@@ -7,8 +7,8 @@ Gradient calculation functions
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.gradients.calc_grad_of_active_link
-    ~landlab.grid.gradients.calc_grad_of_link
+    ~landlab.grid.gradients.calc_grad_at_active_link
+    ~landlab.grid.gradients.calc_grad_at_link
     ~landlab.grid.gradients.calculate_gradients_at_faces
     ~landlab.grid.gradients.calculate_diff_at_links
     ~landlab.grid.gradients.calculate_diff_at_active_links
@@ -21,15 +21,15 @@ from landlab.core.utils import radians_to_degrees
 
 
 @use_field_name_or_array('node')
-def calc_grad_of_link(grid, node_values, out=None):
-    """Calculate gradients of node values over links.
+def calc_grad_at_link(grid, node_values, out=None):
+    """Calculate gradients of node values at links.
 
     Calculates the gradient in `node_values` at each link in the grid,
     returning an array of length `number_of_links`.
 
     Construction::
 
-        calc_grad_of_link(grid, node_values, out=None)
+        calc_grad_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ def calc_grad_of_link(grid, node_values, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> calc_grad_of_link(rg, z)  # there are 17 links
+    >>> calc_grad_at_link(rg, z)  # there are 17 links
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
 
@@ -61,7 +61,7 @@ def calc_grad_of_link(grid, node_values, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> calc_grad_of_link(hg, z)  # there are 11 faces
+    >>> calc_grad_at_link(hg, z)  # there are 11 faces
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
     """
@@ -73,9 +73,9 @@ def calc_grad_of_link(grid, node_values, out=None):
 
 
 
-@deprecated(use='calc_grad_of_link', version='1.0beta')
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
-def calc_grad_of_active_link(grid, node_values, out=None):
+def calc_grad_at_active_link(grid, node_values, out=None):
     """Calculate gradients of node values over active links.
 
     Calculates the gradient in *quantity* node values at each active link in
@@ -83,7 +83,7 @@ def calc_grad_of_active_link(grid, node_values, out=None):
 
     Construction::
 
-        calc_grad_of_active_link(grid, node_values, out=None)
+        calc_grad_at_active_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -106,39 +106,7 @@ def calc_grad_of_active_link(grid, node_values, out=None):
                      grid.length_of_link[grid.active_links], out=out)
 
 
-@deprecated(use='calc_grad_of_link', version='1.0beta')
-@use_field_name_or_array('node')
-def calc_grad_of_link(grid, node_values, out=None):
-    """Calculate gradients of node values over links.
-
-    Calculates the gradient in *quantity* node_values at each link in the grid.
-
-    Construction::
-
-        calc_grad_of_link(grid, node_values, out=None)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Gradients across links.
-    """
-    if out is None:
-        out = grid.empty(centering='link')
-    return np.divide(node_values[grid.node_at_link_head] -
-                     node_values[grid.node_at_link_tail],
-                     grid.length_of_link, out=out)
-
-
-@deprecated(use='calc_grad_of_link', version='1.0beta')
+@deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_gradients_at_faces(grid, node_values, out=None):
     """Calculate gradients of node values over faces.
@@ -274,7 +242,7 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
                        node_values[grid.activelink_fromnode], out=out)
 
 
-def calc_unit_normal_of_patch(grid, elevs='topographic__elevation'):
+def calc_unit_normal_at_patch(grid, elevs='topographic__elevation'):
     """Calculate and return the unit normal vector <a, b, c> to a patch.
 
     Parameters
@@ -294,7 +262,7 @@ def calc_unit_normal_of_patch(grid, elevs='topographic__elevation'):
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid(3, 3)
     >>> z = mg.node_x * 3. / 4.
-    >>> mg.calc_unit_normal_of_patch(z)
+    >>> mg.calc_unit_normal_at_patch(z)
     array([[-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8],
@@ -334,7 +302,7 @@ def calc_unit_normal_of_patch(grid, elevs='topographic__elevation'):
     return nhat / nmag.reshape(grid.number_of_patches, 1)
 
 
-def calc_slope_of_patch(grid, elevs='topographic__elevation',
+def calc_slope_at_patch(grid, elevs='topographic__elevation',
                         unit_normal=None):
     """Calculate the slope (positive magnitude of gradient) at patches.
 
@@ -358,7 +326,7 @@ def calc_slope_of_patch(grid, elevs='topographic__elevation',
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_x
-    >>> S = mg.calc_slope_of_patch(elevs=z)
+    >>> S = mg.calc_slope_at_patch(elevs=z)
     >>> S.size == mg.number_of_patches
     True
     >>> np.allclose(S, np.pi / 4.)
@@ -368,7 +336,7 @@ def calc_slope_of_patch(grid, elevs='topographic__elevation',
         assert unit_normal.shape[1] == 3
         nhat = unit_normal
     else:
-        nhat = grid.calc_unit_normal_of_patch(elevs)
+        nhat = grid.calc_unit_normal_at_patch(elevs)
     dotprod = nhat[:, 2]  # by definition
     cos_slopes_at_patch = dotprod  # ...because it's now a unit vector
     slopes_at_patch = np.arccos(cos_slopes_at_patch)
@@ -376,9 +344,9 @@ def calc_slope_of_patch(grid, elevs='topographic__elevation',
     return slopes_at_patch
 
 
-def calc_grad_of_patch(grid, elevs='topographic__elevation',
+def calc_grad_at_patch(grid, elevs='topographic__elevation',
                        unit_normal=None, slope_magnitude=None):
-    """Calculate the components of the gradient of each patch.
+    """Calculate the components of the gradient at each patch.
 
     Parameters
     ----------
@@ -403,7 +371,7 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_y
-    >>> (x_grad, y_grad) = mg.calc_grad_of_patch(elevs=z)
+    >>> (x_grad, y_grad) = mg.calc_grad_at_patch(elevs=z)
     >>> np.allclose(y_grad, np.pi / 4.)
     True
     >>> np.allclose(x_grad, 0.)
@@ -413,12 +381,12 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
         assert unit_normal.shape[1] == 3
         nhat = unit_normal
     else:
-        nhat = grid.calc_unit_normal_of_patch(elevs)
+        nhat = grid.calc_unit_normal_at_patch(elevs)
     if slope_magnitude is not None:
         assert slope_magnitude.size == grid.number_of_patches
         slopes_at_patch = slope_magnitude
     else:
-        slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs,
+        slopes_at_patch = grid.calc_slope_at_patch(elevs=elevs,
                                                    unit_normal=nhat)
     theta = np.arctan2(- nhat[:, 1], - nhat[:, 0])
     x_slope_patches = np.cos(theta) * slopes_at_patch
@@ -427,7 +395,7 @@ def calc_grad_of_patch(grid, elevs='topographic__elevation',
     return (x_slope_patches, y_slope_patches)
 
 
-def calc_slope_of_node(grid, elevs='topographic__elevation',
+def calc_slope_at_node(grid, elevs='topographic__elevation',
                        method='patch_mean', return_components=False, **kwds):
     """Array of slopes at nodes, averaged over neighboring patches.
 
@@ -441,7 +409,7 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
 
     Note that under these definitions, it is not always true that::
 
-        mag, cmp = mg.calc_slope_of_node(z)
+        mag, cmp = mg.calc_slope_at_node(z)
         mag ** 2 == cmp[0] ** 2 + cmp[1] ** 2  # not always true
 
     Parameters
@@ -471,12 +439,12 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
     >>> from landlab import RadialModelGrid, RasterModelGrid
     >>> mg = RasterModelGrid((4, 5), 1.)
     >>> z = mg.node_x
-    >>> slopes = mg.calc_slope_of_node(elevs=z)
+    >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> np.allclose(slopes, 45. / 180. * np.pi)
     True
     >>> mg = RasterModelGrid((4, 5), 1.)
     >>> z = - mg.node_y
-    >>> slope_mag, cmp = mg.calc_slope_of_node(elevs=z,
+    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
     ...                                        return_components=True)
     >>> np.allclose(slope_mag, np.pi / 4.)
     True
@@ -486,7 +454,7 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
     True
     >>> mg = RadialModelGrid(num_shells=9)
     >>> z = mg.radius_at_node
-    >>> slopes = mg.calc_slope_of_node(elevs=z)
+    >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> mean_ring_slope = []
     >>> for i in range(10):
     ...     mean_ring_slope.append(
@@ -511,8 +479,8 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
         patches_at_node = np.ma.masked_where(
             grid.patches_at_node == -1, grid.patches_at_node, copy=False)
 
-    nhat = grid.calc_unit_normal_of_patch(elevs=elevs)
-    slopes_at_patch = grid.calc_slope_of_patch(elevs=elevs,
+    nhat = grid.calc_unit_normal_at_patch(elevs=elevs)
+    slopes_at_patch = grid.calc_slope_at_patch(elevs=elevs,
                                                unit_normal=nhat)
 
     # now CAREFUL - patches_at_node is MASKED
@@ -522,7 +490,7 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
     slope_mag = np.mean(slopes_at_node_masked, axis=1).data
 
     if return_components or method == 'Horn':
-        (x_slope_patches, y_slope_patches) = grid.calc_grad_of_patch(
+        (x_slope_patches, y_slope_patches) = grid.calc_grad_at_patch(
             elevs=elevs, unit_normal=nhat,
             slope_magnitude=slopes_at_patch)
         x_slope_unmasked = x_slope_patches[patches_at_node]
@@ -547,7 +515,7 @@ def calc_slope_of_node(grid, elevs='topographic__elevation',
         return slope_mag
 
 
-def calc_aspect_of_node(grid, slope_component_tuple=None,
+def calc_aspect_at_node(grid, slope_component_tuple=None,
                         elevs='topographic__elevation', unit='degrees'):
     """Get array of aspect of a surface.
 
@@ -582,13 +550,13 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 4))
     >>> z = mg.node_x ** 2 + mg.node_y ** 2
-    >>> mg.calc_aspect_of_node(elevs=z)
+    >>> mg.calc_aspect_at_node(elevs=z)
     array([ 225.        ,  240.16585039,  255.2796318 ,  258.69006753,
             209.83414961,  225.        ,  243.54632481,  248.77808974,
             194.7203682 ,  206.45367519,  225.        ,  231.94498651,
             191.30993247,  201.22191026,  218.05501349,  225.        ])
     >>> z = z.max() - z
-    >>> mg.calc_aspect_of_node(elevs=z)
+    >>> mg.calc_aspect_at_node(elevs=z)
     array([ 45.        ,  60.16585039,  75.2796318 ,  78.69006753,
             29.83414961,  45.        ,  63.54632481,  68.77808974,
             14.7203682 ,  26.45367519,  45.        ,  51.94498651,
@@ -596,7 +564,7 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
 
     >>> mg = RasterModelGrid((4, 4), (2., 3.))
     >>> z = mg.node_x ** 2 + mg.node_y ** 2
-    >>> mg.calc_aspect_of_node(elevs=z)
+    >>> mg.calc_aspect_at_node(elevs=z)
     array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
             220.75264634,  234.41577266,  251.13402374,  255.29210302,
             201.54258265,  215.47930877,  235.73541937,  242.24162456,
@@ -617,7 +585,7 @@ def calc_aspect_of_node(grid, slope_component_tuple=None,
             assert elevs.size == grid.number_of_nodes
             elev_array = elevs
 
-        _, slope_component_tuple = grid.calc_slope_of_node(
+        _, slope_component_tuple = grid.calc_slope_at_node(
             elevs=elev_array, return_components=True)
 
     angle_from_x_ccw = np.arctan2(
