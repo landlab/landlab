@@ -1,16 +1,14 @@
-#################################################################
-##
-##  Potential Evapotranspiration Component calculate spatially distributed
-##  potential evapotranspiration based on input radiation factor (spatial
-##  distribution of incoming radiation) using chosen method such as a
-##  constant or Priestly Taylor.
-##
-##  Sai Nudurupati and Erkan Istanbulluoglu - 16May2014
-##  Added Priestly Taylor on 09Jul2014
-#################################################################
+""" 
 
+Potential Evapotranspiration Component calculate spatially distributed
+potential evapotranspiration based on input radiation factor (spatial
+distribution of incoming radiation) using chosen method such as a
+constant or Priestly Taylor.
+
+.. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
+"""
 from landlab import Component
-
+from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
 _VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
@@ -38,17 +36,17 @@ class PotentialEvapotranspiration( Component ):
 
     _name = 'Potential Evapotranspiration'
 
-    _input_var_names = set([
-        'RadiationFactor',
-    ])
+    _input_var_names = (
+        'radiation__ratio_to_flat_surface',
+    )
 
-    _output_var_names = set([
+    _output_var_names = (
+        'PotentialEvapotranspiration',
         'TotalShortWaveRadiation',
         'NetShortWaveRadiation',
         'NetLongWaveRadiation',
         'NetRadiation',
-        'PotentialEvapotranspiration',
-    ])
+    )
 
     _var_units = {
         'PotentialEvapotranspiration' : 'mm',
@@ -56,9 +54,27 @@ class PotentialEvapotranspiration( Component ):
         'NetShortWaveRadiation' : 'W/m^2',
         'NetLongWaveRadiation' : 'W/m^2',
         'NetRadiation' : 'W/m^2',
-        'RadiationFactor' : 'None',
+        'radiation__ratio_to_flat_surface' : 'None',
     }
 
+    _var_mapping = {
+        'topographic__elevation': 'node',
+        'radiation__total_shortwave': 'cell',
+        'radiation__ratio_to_flat_surface': 'cell',
+        'radiation__net_shortwave': 'cell',
+    }
+
+    _var_doc = {
+        'radiation__ratio_to_flat_surface':
+            'ratio of total incident shortwave radiation on sloped surface \
+             to flat surface',
+        'radiation__total_shortwave':
+            'total incident shortwave radiation over the time step',
+        'radiation__net_shortwave':
+            'net incident shortwave radiation over the time step',
+    }
+
+    @use_file_name_or_kwds
     def __init__(self, grid, **kwds):
         self._method = kwds.pop('method', 'Constant')
         # For Priestly Taylor
@@ -100,13 +116,13 @@ class PotentialEvapotranspiration( Component ):
             Tavg = kwds.pop('Tavg',0.5)
             self._PET_value = self.PriestlyTaylor( current_time,Tmax, Tmin, Tavg )
             self._cell_values['TotalShortWaveRadiation'] = self._Rs * \
-                                        self._cell_values['RadiationFactor']
+                                        self._cell_values['radiation__ratio_to_flat_surface']
             self._cell_values['NetShortWaveRadiation'] = self._Rns * \
-                                        self._cell_values['RadiationFactor']
+                                        self._cell_values['radiation__ratio_to_flat_surface']
             self._cell_values['NetLongWaveRadiation'] = self._Rnl * \
-                                        self._cell_values['RadiationFactor']
+                                        self._cell_values['radiation__ratio_to_flat_surface']
             self._cell_values['NetRadiation'] = self._Rn * \
-                                        self._cell_values['RadiationFactor']
+                                        self._cell_values['radiation__ratio_to_flat_surface']
         elif self._method == 'MeasuredRadiationPT':
             Tavg = kwds.pop('Tavg',0.5)
             Robs = kwds.pop('Radiation', 350.)
@@ -116,7 +132,7 @@ class PotentialEvapotranspiration( Component ):
             self._PET_value = max((self._TmaxF_mean + self._DeltaD/2. * np.cos((2*np.pi) *
                             (self._J - self._LT - self._ND/2)/self._ND)), 0.0)
 
-        self._PET = self._PET_value * self._cell_values['RadiationFactor']
+        self._PET = self._PET_value * self._cell_values['radiation__ratio_to_flat_surface']
         self._cell_values['PotentialEvapotranspiration'] = self._PET
 
 

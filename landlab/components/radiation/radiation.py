@@ -2,7 +2,7 @@
 
 Landlab component that computes 1D and 2D total incident shortwave
 radiation. This code also computes relative incidence shortwave radiation
-compared to a flat surface.
+compared to a flat surface. Ref: Flores-Cervantes et al., 2012
 
 .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu
 
