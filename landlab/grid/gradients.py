@@ -72,6 +72,10 @@ def calc_grad_at_link(grid, node_values, out=None):
                      grid.length_of_link, out=out)
 
 
+@deprecated(use='calc_grad_at_link', version='1.0beta')
+def calc_grad_of_active_link(grid, node_values, out=None):
+    return calc_grad_at_active_link(grid, node_values, out)
+
 
 @deprecated(use='calc_grad_at_link', version='1.0beta')
 @use_field_name_or_array('node')
