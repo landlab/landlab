@@ -9,49 +9,162 @@ from ...core.utils import as_id_array, argsort_points_by_x_then_y
 from ...utils.jaggedarray import flatten_jagged_array
 
 
+def remap(src, mapping, out=None, inplace=False): 
+    from .ext.remap_element import remap_graph_element
+
+    if inplace:
+        out = src
+    else:
+        if out is None:
+            out = src.copy()
+        else:
+            out[:] = src[:]
+    
+    remap_graph_element(out.reshape((-1, )), mapping)
+
+    return out
+
+
+def reverse_one_to_one(ids, minlength=None):
+    """Reverse a one-to-one mapping.
+
+    Parameters
+    ----------
+    ids : ndarray of int, shape `(N, )`
+        Array of identifier mapping.
+    minlength : int, optional
+        A minimum number of identifiers for the output array.
+    Returns
+    -------
+    ndarray of int, shape `(n, )`
+        Array of the reverse mapping.
+
+    Examples
+    --------
+    >>> from landlab.graph.sort.sort import reverse_one_to_one
+    >>> ids = np.array([-1, -1, 6, 3, -1, 2, 4, 1, -1, 5, 0], dtype=int)
+    >>> reverse_one_to_one(ids)
+    array([10,  7,  5,  3,  6,  9,  2])
+    """
+    from .ext.remap_element import reverse_one_to_one
+
+    if minlength is None:
+        minlength = ids.max() + 1
+    out = np.full((minlength, ), -1, dtype=int)
+
+    reverse_one_to_one(ids, out)
+
+    return out
+
+
+def reverse_one_to_many(ids):
+    """Reverse a one-to-many mapping.
+
+    Parameters
+    ----------
+    ids : ndarray of int, shape `(M, N)`
+        Array of identifier mapping.
+
+    Returns
+    -------
+    ndarray of int, shape `(m, n)`
+        Array of the reverse mapping.
+
+    Examples
+    --------
+    >>> from landlab.graph.sort.sort import reverse_one_to_many
+    >>> ids = np.array([[1,2,3],[-1,-1,-1],[2,3,-1]], dtype=int)
+    >>> reverse_one_to_many(ids)
+    array([[-1, -1],
+           [ 0, -1],
+           [ 0,  2],
+           [ 0,  2]])
+    """
+    from .ext.remap_element import reverse_one_to_many
+
+    counts = np.bincount(ids.reshape((-1, )) + 1)
+    max_counts = np.max(counts[1:])
+
+    out = np.full((ids.max() + 1, max_counts), -1, dtype=int)
+
+    reverse_one_to_many(ids, out)
+
+    return out
+
+
 def reorder_links_at_patch(graph):
     from ..quantity.of_patch import get_area_of_patch
     from ..quantity.of_link import get_midpoint_of_link
     from ..matrix.ext.matrix import roll_id_matrix_rows
     from ..object.ext.at_patch import get_rightmost_edge_at_patch
-
-    area_is_negative = get_area_of_patch(graph) < 0.
-    graph.links_at_patch[area_is_negative, :] = (
-        graph.links_at_patch[area_is_negative, ::-1])
+    from .ext.remap_element import reverse_element_order
+    from ..object.at_patch import get_nodes_at_patch
 
     xy_of_link = get_midpoint_of_link(graph)
 
-    shift = np.empty(graph.number_of_links, dtype=int)
+    shift = np.empty(graph.number_of_patches, dtype=int)
 
     get_rightmost_edge_at_patch(graph.links_at_patch, xy_of_link, shift)
-    roll_id_matrix_rows(graph.links_at_patch, shift)
+    roll_id_matrix_rows(graph.links_at_patch, - shift)
 
+    before = graph.links_at_patch.copy()
+    area_before = get_area_of_patch(graph)
+    reverse_element_order(graph._links_at_patch,
+                          np.where(get_area_of_patch(graph) < 0.)[0])
+
+    graph._nodes_at_patch = get_nodes_at_patch(graph)
+
+    if np.any(get_area_of_patch(graph) < 0.):
+        raise ValueError((graph.links_at_patch,
+                          before,
+                          get_area_of_patch(graph),
+                          area_before))
 
 def reorient_link_dirs(graph):
     from ..quantity.of_link import get_angle_of_link
 
     angles = get_angle_of_link(graph)
-    links_to_swap = (angles < np.pi * .25) | (angles > np.pi * .75)
+    links_to_swap = (angles < 7. * np.pi / 4.) & (angles > np.pi * .75)
     graph.nodes_at_link[links_to_swap, :] = (
         graph.nodes_at_link[links_to_swap, ::-1])
 
 
 def reindex_by_xy(graph):
-    reindex_nodes_by_xy(graph)
-    reindex_links_by_xy(graph)
-    reindex_patches_by_xy(graph)
+    sorted_nodes = reindex_nodes_by_xy(graph)
+    if hasattr(graph, '_nodes_at_link'):
+        sorted_links = reindex_links_by_xy(graph)
+    else:
+        sorted_links = None
 
-    if hasattr(graph, 'dual'):
-        reindex_by_xy(graph.dual)
+    if hasattr(graph, '_links_at_patch'):
+        sorted_patches = reindex_patches_by_xy(graph)
+    else:
+        sorted_patches = None
+
+    # if hasattr(graph, 'dual'):
+    #     reindex_by_xy(graph.dual)
+
+    return sorted_nodes, sorted_links, sorted_patches
 
 
 def reindex_patches_by_xy(graph):
     from ..quantity.of_patch import get_centroid_of_patch
 
-    xy_at_patch = get_centroid_of_patch(graph)
+    if graph.number_of_patches == 1:
+        return np.array([0], dtype=int)
 
-    sorted_patches = argsort_points_by_x_then_y(xy_at_patch)
+    xy_at_patch = get_centroid_of_patch(graph)
+    xy_at_patch[:, 1] = np.round(xy_at_patch[:, 1], decimals=6)
+
+    sorted_patches = argsort_points_by_x_then_y(
+        (xy_at_patch[:, 0], xy_at_patch[:, 1]))
+
     graph._links_at_patch[:] = graph._links_at_patch[sorted_patches, :]
+
+    del graph.__dict__['_nodes_at_patch']
+
+    # if hasattr(graph, '_node_at_cell'):
+    #     graph._node_at_cell[:] = graph._node_at_cell[sorted_patches]
 
     return sorted_patches
 
@@ -66,8 +179,9 @@ def reindex_links_by_xy(graph):
 
     graph._nodes_at_link[:] = graph._nodes_at_link[sorted_links, :]
 
-    remap_graph_element_ignore(graph.links_at_patch.reshape((-1, )),
-                               as_id_array(np.argsort(sorted_links)), -1)
+    if hasattr(graph, '_links_at_patch'):
+        remap_graph_element_ignore(graph.links_at_patch.reshape((-1, )),
+                                   as_id_array(np.argsort(sorted_links)), -1)
 
     return sorted_links
 
@@ -75,14 +189,21 @@ def reindex_links_by_xy(graph):
 def reindex_nodes_by_xy(graph):
     from .ext.remap_element import remap_graph_element
 
+    graph.y_of_node[:] = np.round(graph.y_of_node, decimals=12)
+
     sorted_nodes = argsort_points_by_x_then_y((graph.x_of_node,
                                                graph.y_of_node))
 
     graph.y_of_node[:] = graph.y_of_node[sorted_nodes]
     graph.x_of_node[:] = graph.x_of_node[sorted_nodes]
 
-    remap_graph_element(graph.nodes_at_link.reshape((-1, )),
-                        as_id_array(np.argsort(sorted_nodes)))
+    if hasattr(graph, '_nodes_at_link'):
+        remap_graph_element(graph.nodes_at_link.reshape((-1, )),
+                            as_id_array(np.argsort(sorted_nodes)))
+
+    # if hasattr(graph, '_node_at_cell'):
+    #     remap_graph_element(graph._node_at_cell,
+    #                         as_id_array(np.argsort(sorted_nodes)))
 
     return sorted_nodes
 

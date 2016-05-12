@@ -17,6 +17,43 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
+def reverse_one_to_one(np.ndarray[DTYPE_t, ndim=1] mapping,
+                       np.ndarray[DTYPE_t, ndim=1] out):
+    cdef int n_elements = mapping.size
+    cdef int index
+    cdef int id_
+
+    for index in range(n_elements):
+        id_ = mapping[index]
+        if id_ >= 0:
+          out[id_] = index
+
+
+@cython.boundscheck(False)
+def reverse_one_to_many(np.ndarray[DTYPE_t, ndim=2] mapping,
+                        np.ndarray[DTYPE_t, ndim=2] out):
+    cdef int n_elements = mapping.shape[0]
+    cdef int n_cols = mapping.shape[1]
+    cdef int out_rows = out.shape[0]
+    cdef int index
+    cdef int id_
+    cdef int *count = <int *>malloc(out_rows * sizeof(int))
+
+    try:
+        for index in range(out_rows):
+            count[index] = 0
+
+        for index in range(n_elements):
+            for col in range(n_cols):
+                id_ = mapping[index, col]
+                if id_ >= 0:
+                    out[id_, count[id_]] = index
+                    count[id_] += 1
+    finally:
+        free(count)
+
+
+@cython.boundscheck(False)
 def remap_graph_element(np.ndarray[DTYPE_t, ndim=1] elements,
                         np.ndarray[DTYPE_t, ndim=1] old_to_new):
     """Remap elements in an array in place.
@@ -181,6 +218,41 @@ def connect_links(np.ndarray[long, ndim=1, mode="c"] links,
         free(ordered)
         free(nodes)
 
+
+cdef reverse_order(long * array, long size):
+    cdef long i
+    cdef long temp
+
+    for i in range(size / 2):
+        temp = array[i]
+        array[i] = array[(size - 1) - i]
+        array[(size - 1) - i] = temp
+
+        # array[i], array[size - 1] = array[size - 1], array[i]
+
+
+@cython.boundscheck(False)
+def reverse_element_order(np.ndarray[long, ndim=2] links_at_patch,
+                          np.ndarray[long, ndim=1] patches):
+    cdef long n_patches = patches.shape[0]
+    cdef long max_links = links_at_patch.shape[1]
+    cdef long patch
+    cdef long n
+    cdef long i
+
+    for i in range(n_patches):
+        patch = patches[i]
+        # for n in range(1, max_links):
+        #     if links_at_patch[patch, n] == -1:
+        #         break
+        # reverse_order(&links_at_patch[patch, 1], n - 1)
+
+        n = 1
+        while n < max_links:
+            if links_at_patch[patch, n] == -1:
+                break
+            n += 1
+        reverse_order(&links_at_patch[patch, 1], n - 1)
 
 @cython.boundscheck(False)
 def get_angle_of_link(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
