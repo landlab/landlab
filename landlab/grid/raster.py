@@ -27,7 +27,7 @@ from landlab.grid.structured_quad import faces as squad_faces
 from landlab.grid.structured_quad import cells as squad_cells
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
-from .decorators import return_id_array
+from .decorators import return_id_array, return_readonly_id_array
 from . import gradients
 
 
@@ -1018,64 +1018,71 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # you're already asking for this property
             return self._number_of_d8_active_links
 
+    @property
+    @return_readonly_id_array
     def diagonal_links_at_node(self, *args):
-        """diagonal_links_at_node([node_ids])
-XXXXXXXXXXXXXX very out of date in every way; replace
+        """diagonal_links_at_node
         Diagonal links attached to nodes.
 
-        Returns the ids of diagonal links attached to grid nodes with
-        *node_ids*. If *node_ids* is not given, return links for all of the
-        nodes in the grid. Link ids are listed in clockwise order starting
-        from south (i.e., [SW,NW,NE,SE]).
+        Link ids are listed in counterclockwise order starting from east
+        (i.e., [NE, NW, SW, SE]).
+        (was formerly clockwise from south; [SW,NW,NE,SE])
         This method only returns diagonal links.
-        Call links_at_node for the cardinal links.
-
-        Parameters
-        ----------
-        node_ids : array_like, optional
-            IDs of nodes on a grid.
+        Call links_at_node for all links, and orthogonal_links_at_node for
+        orthogonal links.
 
         Returns
         -------
-        (4, N) ndarray
-            Neighbor node IDs for the source nodes.
+        (N, 4) ndarray
+            Diagonal neighbor node IDs for the source nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4))
+        >>> mg.diagonal_links_at_node.shape
+        (12, 4)
+        >>> mg.diagonal_links_at_node[5]
+        array([25, 24, 17, 20])
+        >>> mg.diagonal_links_at_node[7]
+        array([-1, 28, 21, -1])
         """
-
-        if not self._diagonal_links_created:
-            self._setup_diagonal_links()
-
         try:
-            self._diagonal_links_at_node
-        except AttributeError:
-            self._diagonal_links_at_node = np.empty(
-                (4, self.number_of_nodes), dtype=int)
-            self._diagonal_links_at_node.fill(-1)
-
-            # Number of patches is number_of_diagonal_nodes / 2
-            self._diagonal_links_at_node[0, :][
-                np.setdiff1d(np.arange(self.number_of_nodes),
-                             np.union1d(self.nodes_at_left_edge,
-                                        self.nodes_at_bottom_edge))] = np.arange(self.number_of_patches) + self.number_of_links
-            self._diagonal_links_at_node[1, :][
-                np.setdiff1d(np.arange(self.number_of_nodes),
-                             np.union1d(self.nodes_at_left_edge,
-                                        self.nodes_at_top_edge))] = np.arange(self.number_of_patches) + self.number_of_links + self.number_of_patches
-            self._diagonal_links_at_node[2, :][
-                np.setdiff1d(np.arange(self.number_of_nodes),
-                             np.union1d(self.nodes_at_right_edge,
-                                        self.nodes_at_top_edge))] = np.arange(self.number_of_patches) + self.number_of_links
-            self._diagonal_links_at_node[3, :][
-                np.setdiff1d(np.arange(self.number_of_nodes),
-                             np.union1d(self.nodes_at_right_edge,
-                                        self.nodes_at_bottom_edge))] = np.arange(self.number_of_patches) + self.number_of_links + self.number_of_patches
-
-        if len(args) == 0:
             return self._diagonal_links_at_node
-        elif len(args) == 1:
-            node_ids = np.broadcast_arrays(args[0])[0]
-            return self._diagonal_links_at_node[:, node_ids]
-        else:
-            raise ValueError('only zero or one arguments accepted')
+        except AttributeError:
+            self._create_diagonal_links_at_node()
+            return self._diagonal_links_at_node
+
+    def _create_diagonal_links_at_node(self):
+        """
+        Create the diagonal link list.
+        """
+        self._setup_diagonal_links()
+        self._diagonal_links_at_node = np.empty((self.number_of_nodes, 4),
+                                                dtype=int)
+        self._diagonal_links_at_node.fill(-1)
+
+        # Number of patches is number_of_diagonal_nodes / 2
+        self._diagonal_links_at_node[:, 0][np.setdiff1d(np.arange(
+            self.number_of_nodes), np.union1d(
+                self.nodes_at_right_edge, self.nodes_at_top_edge))] = \
+            (np.arange(0, self.number_of_patches*2, 2) +
+             self.number_of_links)
+        self._diagonal_links_at_node[:, 1][np.setdiff1d(np.arange(
+            self.number_of_nodes), np.union1d(
+                self.nodes_at_left_edge, self.nodes_at_top_edge))] = \
+            (np.arange(0, self.number_of_patches*2, 2) + 1 +
+             self.number_of_links)
+        self._diagonal_links_at_node[:, 2][np.setdiff1d(np.arange(
+            self.number_of_nodes), np.union1d(
+                self.nodes_at_left_edge, self.nodes_at_bottom_edge))] = \
+            (np.arange(0, self.number_of_patches*2, 2) +
+             self.number_of_links)
+        self._diagonal_links_at_node[:, 3][np.setdiff1d(np.arange(
+            self.number_of_nodes), np.union1d(
+                self.nodes_at_right_edge, self.nodes_at_bottom_edge))] = \
+            (np.arange(0, self.number_of_patches*2, 2) + 1 +
+             self.number_of_links)
 
     @property
     @make_return_array_immutable
@@ -1833,7 +1840,7 @@ XXXXXXeric should be killing this with graphs.
         Traceback (most recent call last):
             ...
         AssertionError: No diagonal links have been created in the grid yet!
-        >>> _ = grid.diagonal_links_at_node()
+        >>> _ = grid.diagonal_links_at_node
         >>> grid.number_of_diagonal_links
         24
         """
@@ -2120,7 +2127,7 @@ XXXXXXeric should be killing this with graphs.
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
         >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
-        >>> _ = grid.diagonal_links_at_node()
+        >>> _ = grid.diagonal_links_at_node
         >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,  3.,  4.,  4.,  4.,
                 3.,  3.,  4.,  4.,  4.,
