@@ -1,4 +1,4 @@
-""" Landlab component that generates a random fire event in time.
+"""Landlab component that generates a random fire event in time.
 
 This component generates a random fire event or fire time series from the
 Weibull statistical distribution.
@@ -43,72 +43,36 @@ To get a time to next fire:
 >>> fg.generate_fire_recurrence()  # doctest: +SKIP
 10.68
 
-
 """
 
 from random import weibullvariate
 from scipy import special
-from landlab import Component
 
-class FireGenerator(Component):
+
+class FireGenerator(object):
+
+    """Generate a random fire event or time series.
+
+    Parameters
+    ----------
+    mean_fire_recurrence : float
+        Average time between fires for a given location
+    shape_parameter : float
+        Describes the skew of the Weibull distribution.
+        If shape < 3.5, data skews left.
+        If shape == 3.5, data is normal.
+        If shape > 3.5, data skews right.
+        To approximate a normal bell curve, use a value of 3.5
+    scale_parameter : float, optional
+        Describes the peak of the Weibull distribution, located at the
+        63.5% value of the cumulative distribution function. If unknown,
+        it can be found using mean fire recurrence value and the
+        get_scale_parameter() method described later.
     """
-    Generate a random fire event or time series.
-
-        Parameters
-        ----------
-        mean_fire_recurrence : float
-            Average time between fires for a given location
-        shape_parameter : float
-            Describes the skew of the Weibull distribution.
-            If shape < 3.5, data skews left.
-            If shape == 3.5, data is normal.
-            If shape > 3.5, data skews right.
-            To approximate a normal bell curve, use a value of 3.5
-        scale_parameter : float, optional
-            Describes the peak of the Weibull distribution, located at the
-            63.5% value of the cumulative distribution function. If unknown,
-            it can be found using mean fire recurrence value and the
-            get_scale_parameter() method described later.
-    """
-
-    _name = 'FireGenerator'
-
-    _input_var_names = (
-        'mean_fire_recurrence',
-        'shape_parameter',
-        'scale_parameter',
-    )
-
-    _output_var_names = (
-        'time_to_next_fire',
-    )
-
-    _var_units = {
-        'mean_fire_recurrence': 'yr',
-        'scale_parameter': '-',
-        'shape_parameter': '-',
-        'time_to_next_fire': 'yr'
-    }
-
-    _var_mapping = {
-        'mean_fire_recurrence': '-',
-        'scale_parameter': '-',
-        'shape_parameter': '-',
-        'time_to_next_fire': '-'
-    }
-
-    _var_doc = {
-        'mean_fire_recurrence': 'Mean time between fires for a given location',
-        'shape_parameter': 'Describes the skew of the Weibull distribution',
-        'scale_parameter': 'the 63.5% value of the Weibull distribution function.',
-        'time_to_next_fire': 'Time elapsed before the next fire',
-    }
-
 
     def __init__(self, mean_fire_recurrence=0.0, shape_parameter=0.0,
                  scale_parameter=None):
-        """
-            Generate a random fire event in time.
+        """Generate a random fire event in time.
 
         Parameters
         ----------
@@ -124,7 +88,6 @@ class FireGenerator(Component):
             63.5% value of the cumulative distribution function. If unknown,
             it can be found using mean fire recurrence value and the
             get_scale_parameter().
-
         """
 
         self.mean_fire_recurrence = mean_fire_recurrence
@@ -139,12 +102,14 @@ class FireGenerator(Component):
 
 
     def get_scale_parameter(self):
+        """Get the scale parameter.
+
+        ::
+            mean_fire_recurrence = (scale_parameter * (
+                                    special.gamma(1 + (1 / shape))))
+
+        sets the scale parameter.
         """
-
-        mean_fire_recurrence = (scale_parameter * (
-            special.gamma(1 + (1 / shape))))
-
-        sets the scale parameter."""
 
         shape_in_gamma_func = float( 1+ (1 / self.shape_parameter))
         gamma_func = special.gamma(shape_in_gamma_func)
@@ -152,8 +117,8 @@ class FireGenerator(Component):
 
 
     def generate_fire_recurrence(self):
+        """Get time to next fire.
 
-        """
         Finds the time to next fire (fire recurrence) based on the scale
         parameter (63.5% of fire Weibull distribution) and the shape parameter
         (describes the skew of the histogram, shape = 3.5
@@ -170,4 +135,3 @@ class FireGenerator(Component):
         self.time_to_next_fire = round(weibullvariate(self.scale_parameter,
                                                       self.shape_parameter), 2)
         return self.time_to_next_fire
-
