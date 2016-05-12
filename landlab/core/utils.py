@@ -402,7 +402,7 @@ def argsort_points_by_x_then_y(pts):
 
 def sort_points_by_x_then_y(pts):
     """Sort points by coordinates, first x then y.
-    
+
     Parameters
     ----------
     pts : Nx2 NumPy array of float
@@ -412,7 +412,7 @@ def sort_points_by_x_then_y(pts):
     -------
     pts : Nx2 NumPy array of float
         sorted (x,y) points
-    
+
     Examples
     --------
     >>> import numpy as np
@@ -434,9 +434,73 @@ def sort_points_by_x_then_y(pts):
            [ 1. ,  2.5]])
     """
     indices = argsort_points_by_x_then_y(pts)
-    pts[:,0] = pts[indices,0]
-    pts[:,1] = pts[indices,1]
+    pts[:, 0] = pts[indices, 0]
+    pts[:, 1] = pts[indices, 1]
     return pts
+
+
+def get_categories_from_grid_methods(raster_type):
+    """
+    Create a dict of category:[method_names] for a LL grid type.
+
+    Looks in the final line of the docstrings
+    of class methods for a catgory declaration, "LLCATS: ". It then creates and
+    returns a dict with keys found as categories and values that are lists
+    of the names of methods that have that category.
+
+    Parameters
+    ----------
+    raster_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
+                   'RadialModelGrid', 'VoronoiDelaunayGrid'}
+        String of raster to inspect.
+
+    Returns
+    -------
+    cat_dict : dict
+        Dictionary with cats as keys and lists of method name strings as
+        values.
+    grid_dict : dict
+        Dictionary with method name strings as keys and lists of cats as
+        values.
+    """
+    import inspect
+    import re
+    from landlab import ModelGrid, RasterModelGrid, HexModelGrid, \
+        RadialModelGrid, VoronoiDelaunayGrid
+    from copy import copy
+
+    grid_str_to_grid = {'ModelGrid': ModelGrid,
+                        'RasterModelGrid': RasterModelGrid,
+                        'HexModelGrid': HexModelGrid,
+                        'RadialModelGrid': RadialModelGrid,
+                        'VoronoiDelaunayGrid': VoronoiDelaunayGrid}
+    grid_dict = {}
+    cat_dict = {}
+    grid = grid_str_to_grid[raster_type]
+    funcs = {}
+    for name, func in inspect.getmembers(grid):
+        funcs[name] = func
+    for method_name in funcs.keys():
+        if method_name[0] == '_':
+            continue
+        else:
+            method_doc = funcs[method_name].__doc__
+            try:
+                cat_str = re.search('LLCATS:.+', method_doc)
+            except TypeError:
+                pass
+            else:
+                if cat_str is None:
+                    continue
+                cats = cat_str.group().split()[1:]
+                grid_dict[method_name] = copy(cats)
+                for cat in cats:
+                    try:
+                        cat_dict[cat].append(method_name)
+                    except KeyError:
+                        cat_dict[cat] = [method_name, ]
+
+    return cat_dict, grid_dict
 
 if __name__=='__main__':
     import doctest
