@@ -14,7 +14,7 @@ class VoronoiGraph(Graph):
     >>> from landlab.graph import VoronoiGraph
     """
 
-    def __init__(self, nodes, xy_sort=False, rot_sort=False):
+    def __init__(self, nodes, **kwds):
         """Create a voronoi grid.
 
         Parameters
@@ -41,27 +41,42 @@ class VoronoiGraph(Graph):
         array([[ 1,  0, -1, -1], [ 6,  7,  2,  1], [ 3,  5,  6, -1],
                [ 8,  0,  2, -1], [ 4,  8,  7,  5], [ 4,  3, -1, -1]])
         >>> graph.links_at_patch
-        array([[2, 0, 1], [4, 5, 3], [5, 7, 6], [8, 2, 7]])
+        array([[2, 0, 1], [3, 4, 5], [5, 7, 6], [7, 8, 2]])
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
-        array([[1, 3, 0], [5, 4, 2], [2, 4, 1], [4, 3, 1]])
+        array([[3, 0, 1], [5, 4, 2], [4, 1, 2], [4, 3, 1]])
         """
-        from .ext.delaunay import _setup_links_at_patch
+        xy_sort = kwds.pop('xy_sort', True)
+        rot_sort = kwds.pop('rot_sort', True)
+        max_node_spacing = kwds.pop('max_node_spacing', None)
+
+        from .ext.delaunay import _setup_links_at_patch, remove_tris
 
         node_y, node_x = (np.asarray(nodes[0], dtype=float),
                           np.asarray(nodes[1], dtype=float))
 
         delaunay = Delaunay(list(zip(node_x, node_y)))
-        nodes_at_patch = delaunay.simplices
+        # nodes_at_patch = delaunay.simplices
+
+        nodes_at_patch = np.array(delaunay.simplices, dtype=int)
+        neighbors_at_patch = np.array(delaunay.neighbors, dtype=int)
+
+        if max_node_spacing is not None:
+            max_node_dist = np.ptp(delaunay.simplices, axis=1)
+            bad_patches = np.where(max_node_dist > max_node_spacing)[0]
+            if len(bad_patches) > 0:
+                remove_tris(nodes_at_patch, neighbors_at_patch, bad_patches)
+                nodes_at_patch = nodes_at_patch[:-len(bad_patches), :]
+                neighbors_at_patch = neighbors_at_patch[:-len(bad_patches), :]
 
         n_patches = len(nodes_at_patch)
-        n_shared_links = np.count_nonzero(delaunay.neighbors > -1)
+        n_shared_links = np.count_nonzero(neighbors_at_patch > -1)
         n_links = 3 * n_patches - n_shared_links // 2
 
         links_at_patch = np.empty((n_patches, 3), dtype=int)
         nodes_at_link = np.empty((n_links, 2), dtype=int)
 
-        _setup_links_at_patch(np.array(delaunay.simplices, dtype=int),
-                              np.array(delaunay.neighbors, dtype=int),
+        _setup_links_at_patch(nodes_at_patch,
+                              neighbors_at_patch,
                               nodes_at_link, links_at_patch)
 
         super(VoronoiGraph, self).__init__((node_y.flat, node_x.flat),

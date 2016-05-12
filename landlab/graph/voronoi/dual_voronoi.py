@@ -2,16 +2,21 @@ import numpy as np
 from scipy.spatial import Voronoi
 
 from ..graph import Graph
-from ..dual import DualGraphMixIn
+from ..dual import DualGraph
 from .voronoi import VoronoiGraph
-from .voronoi_helpers import setup_voronoi_connectivity
+from ...utils.jaggedarray import JaggedArray
+# from .voronoi_helpers import (get_nodes, get_nodes_at_link,
+#                               get_links_at_patch, get_corner_at_patch,
+#                               get_corners_at_link)
+from .voronoi_helpers import VoronoiConverter
 
 
-class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
+class DualVoronoiGraph(DualGraph, VoronoiGraph):
 
     """Dual graph of a voronoi grid."""
 
-    def __init__(self, nodes, xy_sort=False, rot_sort=False):
+    def __init__(self, nodes, xy_sort=True, rot_sort=True, min_cell_size=3,
+                 **kwds):
         """Create a voronoi grid.
 
         Parameters
@@ -28,35 +33,40 @@ class DualVoronoiGraph(VoronoiGraph, DualGraphMixIn):
         >>> node_y = [0, 0, 0, 0,
         ...           1, 1, 1, 1,
         ...           2, 2, 2, 2]
-        >>> graph = DualVoronoiGraph((node_y, node_x), rot_sort=True)
+        >>> graph = DualVoronoiGraph((node_y, node_x))
         >>> graph.x_of_corner
-        array([ 0.9,  1.7,  1.9,  0.7,  2.7,  2.7,  1.7,  2.5,  1.5,  0.7])
+        array([ 1.5,  2.5,  0.7,  1.7,  2.7,  0.7,  1.7,  2.7,  0.9,  1.9])
         >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
-        array([ 1.58,  1.42,  1.58,  1.42,  0.58,  1.42,  0.58,  0.42,  0.42,
-                0.58])
+        array([ 0.42,  0.42,  0.58,  0.58,  0.58,  1.42,  1.42,  1.42,  1.58,
+                1.58])
         >>> graph.corners_at_face # doctest: +NORMALIZE_WHITESPACE
-        array([[0, 1], [0, 3], [1, 6], [8, 9], [6, 8], [3, 9], [1, 2], [4, 5],
-               [2, 5], [4, 7], [6, 7]])
+        array([[0, 2], [3, 0], [3, 1], [4, 1],
+               [5, 2], [6, 3], [4, 7],
+               [8, 5], [8, 6], [6, 9], [9, 7]])
         >>> graph.faces_at_corner # doctest: +NORMALIZE_WHITESPACE
-        array([[ 1,  0, -1], [ 6,  0,  2], [ 6,  8, -1], [ 1,  5, -1],
-               [ 7,  9, -1], [ 8,  7, -1], [ 2,  4, 10], [ 9, 10, -1],
-               [ 4,  3, -1], [ 5,  3, -1]])
+        array([[ 0,  1, -1], [ 2,  3, -1],
+               [ 0,  4, -1], [ 1,  2,  5], [ 3,  6, -1],
+               [ 4,  7, -1], [ 5,  8,  9], [ 6, 10, -1],
+               [ 7,  8, -1], [ 9, 10, -1]])
         >>> graph.node_at_cell
         array([5, 6])
         """
-        super(DualVoronoiGraph, self).__init__(nodes, xy_sort=xy_sort,
-                                               rot_sort=rot_sort)
+        voronoi = Voronoi(list(zip(nodes[1], nodes[0])))
 
-        voronoi = Voronoi(list(zip(self.x_of_node, self.y_of_node)))
+        converter = VoronoiConverter(voronoi, min_patch_size=min_cell_size)
 
-        (faces_at_cell,
-         corners_at_face,
-         xy_at_corner,
-         node_at_cell) = setup_voronoi_connectivity(voronoi)
+        corners = converter.get_nodes()
+        corners = (corners[:, 1], corners[:, 0])
+        faces = converter.get_nodes_at_link()
+        cells = converter.get_links_at_patch()
+        cells = [cell for cell in JaggedArray(cells)]
 
-        node_y = xy_at_corner[:, 1]
-        node_x = xy_at_corner[:, 0]
+        node_at_cell = converter.get_corner_at_patch()
+        nodes_at_face = converter.get_corners_at_link()
 
-        self._dual = Graph((node_y, node_x), links=corners_at_face,
-                           patches=faces_at_cell, rot_sort=rot_sort)
-        self._node_at_cell = node_at_cell
+        self._dual = Graph(corners, links=faces,
+                           patches=cells, rot_sort=True, xy_sort=True)
+
+        super(DualVoronoiGraph, self).__init__(
+            nodes, cells=cells, node_at_cell=node_at_cell,
+            nodes_at_face=nodes_at_face, **kwds)
