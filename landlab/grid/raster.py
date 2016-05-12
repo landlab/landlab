@@ -1053,8 +1053,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4))
-        >>> mg._diagonal_links_at_node.shape
-        (12, 4)
+        >>> mg._diagonal_links_at_node.shape == (12, 4)
+        True
         >>> mg._diagonal_links_at_node[5]
         array([25, 24, 17, 20])
         >>> mg._diagonal_links_at_node[7]
