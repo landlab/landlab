@@ -1,11 +1,11 @@
 import numpy as np
 
-from ..dual import DualGraphMixIn
+from ..dual import DualGraph
 from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
                               UniformRectilinearGraph, )
 
 
-class DualStructuredQuadGraph(StructuredQuadGraph, DualGraphMixIn):
+class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
 
     """Dual graph of a structured grid of quadrilaterals.
 
@@ -22,26 +22,29 @@ class DualStructuredQuadGraph(StructuredQuadGraph, DualGraphMixIn):
     >>> graph.number_of_corners
     4
     >>> graph.y_of_corner
-    array([-0.75, -1.25,  0.75,  1.25])
+    array([-1.25, -0.75,  0.75,  1.25])
     >>> graph.x_of_corner
-    array([ 0.75,  2.  ,  0.75,  2.  ])
+    array([ 2.  ,  0.75,  0.75,  2.  ])
     >>> graph.node_at_cell
     array([4])
     """
 
     def __init__(self, nodes, shape=None):
-        super(DualStructuredQuadGraph, self).__init__(nodes, shape=shape)
+        dual_y, dual_x = get_corners(nodes, shape)
 
-        dual_y = np.mean(self.y_of_node[self.nodes_at_patch], axis=1)
-        dual_x = np.mean(self.x_of_node[self.nodes_at_patch], axis=1)
-
-        dual_shape = [dim - 1 for dim in self.shape]
+        dual_shape = dual_y.shape
 
         self._dual = StructuredQuadGraph((dual_y, dual_x), shape=dual_shape)
-        self._node_at_cell = get_node_at_cell(self.shape)
+
+        node_at_cell = get_node_at_cell(shape)
+        nodes_at_face = get_nodes_at_face(shape)
+
+        super(DualStructuredQuadGraph, self).__init__(
+            nodes, shape=shape, node_at_cell=node_at_cell,
+            nodes_at_face=nodes_at_face)
 
 
-class DualRectilinearGraph(RectilinearGraph, DualGraphMixIn):
+class DualRectilinearGraph(DualGraph, RectilinearGraph):
 
     """Create a dual graph for a rectilinear grid.
 
@@ -63,17 +66,24 @@ class DualRectilinearGraph(RectilinearGraph, DualGraphMixIn):
     """
 
     def __init__(self, nodes):
-        super(DualRectilinearGraph, self).__init__(nodes)
-
         dual_nodes = (np.asarray(nodes[0], dtype=float),
                       np.asarray(nodes[1], dtype=float))
         dual_nodes = [x[:-1] + np.diff(x) * .5 for x in dual_nodes]
 
         self._dual = RectilinearGraph(dual_nodes)
-        self._node_at_cell = get_node_at_cell(self.shape)
+        # self._node_at_cell = get_node_at_cell(self.shape)
+
+        shape = (len(nodes[0]), len(nodes[1]))
+
+        node_at_cell = get_node_at_cell(shape)
+        nodes_at_face = get_nodes_at_face(shape)
+
+        super(DualRectilinearGraph, self).__init__(nodes,
+                                                   node_at_cell=node_at_cell,
+                                                   nodes_at_face=nodes_at_face)
 
 
-class DualUniformRectilinearGraph(UniformRectilinearGraph, DualGraphMixIn):
+class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
 
     """Create a dual graph for a uniform rectilinear grid.
 
@@ -97,17 +107,20 @@ class DualUniformRectilinearGraph(UniformRectilinearGraph, DualGraphMixIn):
     """
 
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
-        super(DualUniformRectilinearGraph, self).__init__(shape,
-                                                          spacing=spacing,
-                                                          origin=origin)
-
         dual_shape = [dim - 1 for dim in shape]
         dual_origin = [x + dx * .5 for x, dx in zip(origin, spacing)]
 
         self._dual = UniformRectilinearGraph(dual_shape,
                                              spacing=spacing,
                                              origin=dual_origin)
-        self._node_at_cell = get_node_at_cell(self.shape)
+
+        node_at_cell = get_node_at_cell(shape)
+        nodes_at_face = get_nodes_at_face(shape)
+
+        super(DualUniformRectilinearGraph, self).__init__(
+            shape, spacing=spacing, origin=origin, node_at_cell=node_at_cell,
+            nodes_at_face=nodes_at_face)
+
 
     @property
     def dual(self):
@@ -132,3 +145,37 @@ def get_node_at_cell(shape):
     get_node_at_cell(shape, node_at_cell)
 
     return node_at_cell
+
+
+def get_nodes_at_face(shape):
+    """Set up an array that gives the nodes on either side of each face.
+
+    Examples
+    --------
+    >>> from landlab.graph.structured_quad.dual_structured_quad import get_nodes_at_face
+    >>> get_nodes_at_face((3, 4)) # doctest: +NORMALIZE_WHITESPACE
+    array([[ 1,  5], [ 2,  6],
+           [ 4,  5], [ 5,  6], [ 6,  7],
+           [ 5,  9], [ 6, 10]])
+    """
+    from .ext.structured_quad import get_nodes_at_face
+
+    n_faces = (shape[1] - 2) * (shape[0] - 1) + (shape[0] - 2) * (shape[1] - 1)
+    nodes_at_face = np.empty((n_faces, 2), dtype=int)
+    get_nodes_at_face(shape, nodes_at_face)
+
+    return nodes_at_face
+
+
+def get_corners(nodes, shape):
+    y_of_node, x_of_node = (np.array(nodes[0], dtype=float),
+                            np.array(nodes[1], dtype=float))
+    y_of_node.shape = shape
+    x_of_node.shape = shape
+
+    x_of_corner = (x_of_node[:-1, :-1] + x_of_node[:-1, 1:] +
+                   x_of_node[1:, :-1] + x_of_node[1:, 1:]) * .25
+    y_of_corner = (y_of_node[:-1, :-1] + y_of_node[:-1, 1:] +
+                   y_of_node[1:, :-1] + y_of_node[1:, 1:]) * .25
+
+    return y_of_corner, x_of_corner
