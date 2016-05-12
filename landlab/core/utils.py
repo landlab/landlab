@@ -448,6 +448,24 @@ def get_categories_from_grid_methods(raster_type):
     returns a dict with keys found as categories and values that are lists
     of the names of methods that have that category.
 
+    Currently defined LLCATS are:
+        DEPR : deprecated
+        GINF : information about the grid as a whole
+        NINF : information about nodes
+        LINF : information about links
+        PINF : information about patches
+        CINF : information about cells
+        FINF : information about faces
+        CNINF : information about corners
+        FIELDIO : methods to access and change fields
+        FIELDADD : methods to create new fields/delete old fields
+        GRAD : methods for gradients, fluxes, divergences and slopes
+        MAP : methods to map from one element type to another
+        BC : methods to interact with BCs
+        SURF : methods for surface analysis (slope, aspect, hillshade)
+        SUBSET : methods to indentify part of the grid based on conditions
+        
+
     Parameters
     ----------
     raster_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
