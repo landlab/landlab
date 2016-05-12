@@ -1,4 +1,33 @@
+"""Helper functions that work with Voronoi data structures.
+
+This module provides functions to help work with the Voronoi data
+structures and to map them to more sensible data structures.
+
+The terminology used within this module can sometimes be confusing.
+
+region :
+    Polygon definied by Voronoi. These polygons can be unbound (infinite in
+    area).
+vertex :
+    The points that define the Voronoi regions.
+ridge :
+    Lines that join adjacent vertices. Ridges are the edges of Voronoi
+    regions.
+point :
+    Each region has an associated point, which lies inside the region. Each
+    region has only one point, and each point has only on region.
+patch :
+    Similar to a region but is always bound.
+link :
+    Similar to a ridge but is always part of at least one patch.
+node :
+    Similar to a vertex but bounds only links.
+corner :
+    Same as a point.
+"""
 import numpy as np
+
+from ..sort.sort import remap
 
 
 def flatten_vertices_at_region(regions):
@@ -25,255 +54,346 @@ def flatten_vertices_at_region(regions):
     return vertices_at_region, vertices_per_region
 
 
-def get_finite_regions(voronoi):
-    """Get regions of finite area.
+class VoronoiConverter(object):
+    def __init__(self, voronoi, min_patch_size=3):
+        self._voronoi = voronoi
+        self._min_patch_size = min_patch_size
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import get_finite_regions
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> get_finite_regions(voronoi)
-    array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
-    """
-    from .ext.voronoi import _is_finite_region
+    @property
+    def n_regions(self):
+        return len(self._voronoi.regions)
 
-    n_regions = len(voronoi.regions)
-    vertices_at_region, vertices_per_region = flatten_vertices_at_region(
-        voronoi.regions)
+    @property
+    def regions(self):
+        return self._voronoi.regions
 
-    is_finite_region = np.empty(n_regions, dtype=int)
-    _is_finite_region(vertices_at_region, vertices_per_region,
-                      is_finite_region)
+    @property
+    def max_patch_size(self):
+        try:
+            return self._max_patch_size
+        except AttributeError:
+            self._max_patch_size = max([len(r) for r in self.regions])
+            return self._max_patch_size
 
-    return is_finite_region
+    def get_finite_regions(self):
+        """Get regions of finite area.
 
+        Examples
+        --------
+        >>> from scipy.spatial import Voronoi
+        >>> from landlab.graph.voronoi.voronoi_helpers import get_finite_regions
+        >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
+        ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
+        ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
+        >>> voronoi = Voronoi(points)
+        >>> get_finite_regions(voronoi)
+        array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
+        """
+        try:
+            return self._is_finite_region
+        except AttributeError:
+            from .ext.voronoi import _is_finite_region
 
-def get_neighbor_regions(voronoi):
-    """Get regions on either side of each ridge.
+            n_regions = self.n_regions
+            vertices_at_region, vertices_per_region = flatten_vertices_at_region(
+                self.regions)
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import get_neighbor_regions
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> get_neighbor_regions(voronoi)
-    array([[-1, -1],
-           [-1,  8],
-           [-1, -1],
-           [-1, -1],
-           [-1, -1],
-           [-1,  8],
-           [-1, -1],
-           [-1, -1],
-           [-1,  8],
-           [-1, -1],
-           [-1, -1],
-           [-1,  8],
-           [-1, -1],
-           [-1,  8],
-           [-1, -1],
-           [ 8, -1]])
-    """
-    from .ext.voronoi import _get_neighbor_regions
+            is_finite_region = np.empty(n_regions, dtype=int)
+            _is_finite_region(vertices_at_region, vertices_per_region,
+                              is_finite_region, self._min_patch_size)
 
-    n_ridges = len(voronoi.ridge_vertices)
-    is_finite_region = get_finite_regions(voronoi)
+            self._is_finite_region = is_finite_region
+            return self._is_finite_region
 
-    regions_at_ridge = np.empty((n_ridges, 2), dtype=int)
-    _get_neighbor_regions(np.array(voronoi.ridge_points, dtype=int),
-                          np.array(voronoi.point_region, dtype=int),
-                          is_finite_region, regions_at_ridge)
+    def is_patch(self, region):
+        """Check if a voronoi region in bounded.
 
-    return regions_at_ridge
+        Parameters
+        ----------
+        region : array_like of int
+            Identifiers for the vertices of a region.
 
+        Examples
+        --------
+        >>> from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
+        >>> is_patch([1, 2, 3])
+        True
+        >>> is_patch([1, 2, 3, -1])
+        False
+        >>> is_patch([])
+        False
+        """
+        return len(region) >= self._min_patch_size and -1 not in region
 
-def get_ridges_at_cell(voronoi):
-    """Get the ridges that define a cell.
+    def is_link(self, ridge):
+        """Check if a voronoi ridge is a valid link.
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import get_ridges_at_cell
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> ridges_at_cell, cell_at_region = get_ridges_at_cell(voronoi)
-    >>> ridges_at_cell
-    array([[ 1,  5,  8, 11, 13, 15]])
-    >>> cell_at_region
-    array([-1, -1, -1, -1, -1, -1, -1, -1,  0, -1])
-    """
-    from .ext.voronoi import _get_cell_at_region
+        A ridge is a valid link if at least one of its neighbor regions is
+        bound.
 
-    n_regions = len(voronoi.regions)
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
+        ridge : int
+            Identifier of a ridge in the voronoi graph.
 
-    regions_at_ridge = get_neighbor_regions(voronoi)
+        Returns
+        -------
+        bool
+            True if the ridge is a link.
+        """
+        for point in self._voronoi.ridge_points[ridge]:
+            region = self._voronoi.point_region[point]
+            if self.is_patch(self._voronoi.regions[region]):
+                return True
+        return False
 
-    max_vertices_per_region = max([len(region) for region in voronoi.regions])
-    ridges_at_cell = np.empty((n_regions, max_vertices_per_region), dtype=int)
-    cell_at_region = np.empty(n_regions, dtype=int)
+    def get_patch_at_region(self):
+        """Map voronoi regions to patches.
 
-    n_cells = _get_cell_at_region(regions_at_ridge, ridges_at_cell,
-                                  cell_at_region)
+        Regions that do not have corresponding patches, are -1.
 
-    return ridges_at_cell[:n_cells, :], cell_at_region
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
 
+        Returns
+        -------
+        ndarray of int, shape `(n_regions, 1)`
+            Array of patch identifiers for every voronoi region.
+        """
+        patch_at_region = np.empty(len(self._voronoi.regions), dtype=int)
 
-def get_faces_at_cell(voronoi):
-    """Find the faces that make up each cell.
+        patch = 0
+        for n, region in enumerate(self._voronoi.regions):
+            if self.is_patch(region):
+                patch_at_region[n] = patch
+                patch += 1
+            else:
+                patch_at_region[n] = -1
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import get_faces_at_cell
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> faces_at_cell, face_at_ridge, cell_at_region = get_faces_at_cell(voronoi)
-    >>> faces_at_cell
-    array([[0, 1, 2, 3, 4, 5]])
-    >>> face_at_ridge
-    array([-1,  0, -1, -1, -1,  1, -1, -1,  2, -1, -1,  3, -1,  4, -1,  5])
-    >>> cell_at_region
-    array([-1, -1, -1, -1, -1, -1, -1, -1,  0, -1])
-    """
-    from .ext.voronoi import _get_faces_at_cell
+        return patch_at_region
 
-    n_regions = len(voronoi.regions)
-    n_ridges = len(voronoi.ridge_vertices)
-    max_vertices_per_region = max([len(region) for region in voronoi.regions])
+    def get_link_at_ridge(self):
+        """Map voronoi ridges to links.
 
-    ridges_at_cell, cell_at_region = get_ridges_at_cell(voronoi)
-    n_cells = len(ridges_at_cell)
+        Ridges that do not have corresponding links, are -1.
 
-    faces_at_cell = np.empty((n_cells, max_vertices_per_region), dtype=int)
-    face_at_ridge = np.empty(n_ridges, dtype=int)
-    _get_faces_at_cell(ridges_at_cell, faces_at_cell, face_at_ridge)
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
 
-    return faces_at_cell, face_at_ridge, cell_at_region
+        Returns
+        -------
+        ndarray of int, shape `(n_ridges, 1)`
+            Array of link identifiers for every voronoi ridge.
+        """
+        link_at_ridge = np.empty(len(self._voronoi.ridge_vertices), dtype=int)
 
+        link = 0
+        for n, ridge in enumerate(self._voronoi.ridge_vertices):
+            if -1 not in ridge and self.is_link(n):
+                link_at_ridge[n] = link
+                link += 1
+            else:
+                link_at_ridge[n] = -1
 
-def get_corners_at_face(voronoi, face_at_ridge):
-    """Get the two corners at either end of each face.
+        return link_at_ridge
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import (get_faces_at_cell,
-    ...                                            get_corners_at_face)
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.], [3. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.], [3.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.], [3.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> _, face_at_ridge, _ = get_faces_at_cell(voronoi)
-    >>> corners_at_face, corner_at_vertex = get_corners_at_face(voronoi, face_at_ridge)
-    >>> corners_at_face
-    array([[0, 1],
-           [3, 1],
-           [0, 6],
-           [8, 9],
-           [6, 8],
-           [3, 9],
-           [0, 2],
-           [4, 5],
-           [2, 5],
-           [4, 7],
-           [6, 7]])
-    >>> corner_at_vertex
-    array([ 3,  0,  2,  1,  4, -1,  5,  6,  7,  8, -1,  9])
-    """
-    from .ext.voronoi import _get_corners_at_face
+    def get_patches_at_link(self):
+        """Get patches on either side of each link.
 
-    n_vertices = len(voronoi.vertices)
-    n_faces = max(face_at_ridge) + 1
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
 
-    corner_at_vertex = np.empty(n_vertices, dtype=int)
-    corners_at_face = np.empty((n_faces, 2), dtype=int)
+        Returns
+        -------
+        ndarray of int, shape `(n_links, 2)`
+            Array of patch identifiers for every link.
+        """
+        points_at_ridge = self._voronoi.ridge_points
+        region_at_point = self._voronoi.point_region
 
-    _get_corners_at_face(face_at_ridge,
-                         np.array(voronoi.ridge_vertices, dtype=int),
-                         corner_at_vertex, corners_at_face)
+        regions_at_ridge = region_at_point[points_at_ridge]
 
-    return corners_at_face, corner_at_vertex
+        patch_at_region = self.get_patch_at_region()
+        link_at_ridge = self.get_link_at_ridge()
 
+        patch_at_ridge = remap(regions_at_ridge, patch_at_region, inplace=True)
 
-def get_xy_of_corner(voronoi, corner_at_vertex):
-    """Get the x and y position of each corner.
+        return patch_at_ridge[link_at_ridge >= 0]
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import (get_faces_at_cell,
-    ...                                            get_corners_at_face,
-    ...                                            get_xy_of_corner)
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> _, face_at_ridge, _ = get_faces_at_cell(voronoi)
-    >>> _, corner_at_vertex = get_corners_at_face(voronoi, face_at_ridge)
-    >>> get_xy_of_corner(voronoi, corner_at_vertex)
-    array([[ 0.6  ,  1.455],
-           [ 0.7  ,  1.545],
-           [ 1.5  ,  0.455],
-           [ 0.6  ,  0.545],
-           [ 1.6  ,  0.545],
-           [ 1.6  ,  1.455]])
-    """
-    from .ext.voronoi import _get_xy_at_corners
+    def get_node_at_vertex(self):
+        """Map voronoi vertices to nodes.
 
-    n_corners = max(corner_at_vertex) + 1
-    xy_of_corner = np.empty((n_corners, 2), dtype=float)
-    n_corners = _get_xy_at_corners(voronoi.vertices, corner_at_vertex, xy_of_corner)
+        Vertices that do not have corresponding nodes, are -1.
 
-    return xy_of_corner
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
 
+        Returns
+        -------
+        ndarray of int, shape `(n_vertices, 1)`
+            Array of node identifiers for every voronoi vertex.
+        """
+        node_at_vertex = np.full(len(self._voronoi.vertices), -1, dtype=int)
 
-def get_node_at_cell(voronoi, cell_at_region):
-    """Get node for each cell.
+        node = 0
+        for region in self._voronoi.regions:
+            if self.is_patch(region):
+                for vertex in region:
+                    if node_at_vertex[vertex] == -1:
+                        node_at_vertex[vertex] = node
+                        node += 1
 
-    Examples
-    --------
-    >>> from scipy.spatial import Voronoi
-    >>> from landlab.graph.voronoi.voronoi_helpers import (get_faces_at_cell,
-    ...                                            get_node_at_cell)
-    >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
-    ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
-    ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
-    >>> voronoi = Voronoi(points)
-    >>> _, _, cell_at_region = get_faces_at_cell(voronoi)
-    >>> get_node_at_cell(voronoi, cell_at_region)
-    array([4])
-    """
-    from .ext.voronoi import _get_node_at_cell
+        return node_at_vertex
 
-    n_cells = max(cell_at_region) + 1
-    node_at_cell = np.empty(n_cells, dtype=int)
+    def get_nodes_at_link(self):
+        """Get end nodes for links of a voronoi graph.
 
-    _get_node_at_cell(np.array(voronoi.ridge_points, dtype=int),
-                      np.array(voronoi.point_region, dtype=int),
-                      cell_at_region, node_at_cell)
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
 
-    return node_at_cell
+        Returns
+        -------
+        ndarray of int, shape `(n_links, 2)`
+            Array of node identifiers for every link.
+        """
+        node_at_vertex = self.get_node_at_vertex()
+        link_at_ridge = self.get_link_at_ridge()
+        vertices_at_ridge = np.array(self._voronoi.ridge_vertices)
 
+        nodes_at_link = node_at_vertex[vertices_at_ridge[link_at_ridge >= 0].flat]
+        nodes_at_link.shape = (-1, 2)
 
-def setup_voronoi_connectivity(voronoi):
-    faces_at_cell, face_at_ridge, cell_at_region = get_faces_at_cell(voronoi)
+        return nodes_at_link
 
-    corners_at_face, corner_at_vertex = get_corners_at_face(voronoi,
-                                                            face_at_ridge)
+    def get_nodes(self):
+        """Get nodes of a voronoi graph.
 
-    xy_at_corner = get_xy_of_corner(voronoi, corner_at_vertex)
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
 
-    node_at_cell = get_node_at_cell(voronoi, cell_at_region)
+        Returns
+        -------
+        ndarray of float, shape `(n_nodes, 2)`
+            Array of coordinates `(x, y)` for every node.
+        """
+        node_at_vertex = self.get_node_at_vertex()
+        nodes = np.argsort(node_at_vertex[node_at_vertex >= 0])
 
-    return faces_at_cell, corners_at_face, xy_at_corner, node_at_cell
+        return self._voronoi.vertices[node_at_vertex >= 0][nodes]
+
+    def get_ridges_at_region(self):
+        """Get ridges that bound each voronoi region.
+
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
+
+        Returns
+        -------
+        ndarray of int, shape `(n_regions, max_ridges_per_region)`
+            Ridge identifiers that define each region (padded with -1).
+        """
+        n_regions = self.n_regions
+        max_links_per_patch = self.max_patch_size
+
+        ridges_at_region = np.full((n_regions, max_links_per_patch), -1, dtype=int)
+
+        ridge_at_vertices = {}
+        for ridge, vertices in enumerate(self._voronoi.ridge_vertices):
+            ridge_at_vertices[tuple(vertices)] = ridge
+
+        for region, vertices in enumerate(self.regions):
+            if self.is_patch(vertices):
+                for n in xrange(len(vertices) - 1):
+                    pair = [vertices[n], vertices[n + 1]]
+                    pair.sort()
+
+                    ridge = ridge_at_vertices[tuple(pair)]
+
+                    ridges_at_region[region, n] = ridge
+                pair = [vertices[len(vertices) - 1], vertices[0]]
+                pair.sort()
+
+                ridge = ridge_at_vertices[tuple(pair)]
+
+                ridges_at_region[region, len(vertices) - 1] = ridge
+
+        return ridges_at_region
+
+    def get_links_at_patch(self):
+        """Get links that bound each patch from a voronoi graph.
+
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
+
+        Returns
+        -------
+        ndarray of int, shape `(n_patches, max_links_per_region)`
+            Link identifiers that define each patch (padded with -1).
+        """
+        from ..sort.ext.remap_element import remap_graph_element_ignore
+
+        ridges_at_region = self.get_ridges_at_region()
+        link_at_ridge = self.get_link_at_ridge()
+
+        patches = self.get_patch_at_region() >= 0
+        links_at_patch = ridges_at_region[patches]
+
+        remap_graph_element_ignore(links_at_patch.reshape((-1, )),
+                                   link_at_ridge, -1)
+        return links_at_patch
+
+    def get_corner_at_patch(self):
+        """Get corner that is contained within each patch from a voronoi graph.
+
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
+
+        Returns
+        -------
+        ndarray of int, shape `(n_patches, )`
+            Corner identifiers contained in patches.
+        """
+        finite_regions = self.get_finite_regions()
+        n_patches = finite_regions.sum()
+
+        region_at_patch = np.argsort(self.get_patch_at_region())[- n_patches:]
+        point_at_region = np.argsort(self._voronoi.point_region)
+
+        return point_at_region[region_at_patch - 1]
+
+    def get_corners_at_link(self):
+        """Get corners on either side of links.
+
+        Parameters
+        ----------
+        voronoi : Voronoi
+            A voronoi graph.
+
+        Returns
+        -------
+        ndarray of int, shape `(n_links, 2)`
+            Corner identifiers on either side of each link.
+        """
+        points_at_ridge = self._voronoi.ridge_points
+        link_at_ridge = self.get_link_at_ridge()
+        return points_at_ridge[link_at_ridge >= 0]
