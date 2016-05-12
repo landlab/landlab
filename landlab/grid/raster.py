@@ -3765,7 +3765,7 @@ XXXXXXeric should be killing this with graphs.
         """Stub for adding unit tests to RasterModelGrid."""
         pass
 
-    def calc_unit_normal_of_patch(self, elevs='topographic__elevation'):
+    def calc_unit_normal_at_patch(self, elevs='topographic__elevation'):
         """Calculate and return the unit normal vector <a, b, c> to a patch.
 
         This method is not defined on a raster, as there is no unique unit
