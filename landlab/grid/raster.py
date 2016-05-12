@@ -928,6 +928,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def diagonal_neighbors_at_node(self):
         """Get diagonally neighboring nodes.
 
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+
         Order is LL standard, CCW from east. i.e., [NE, NW, SW, SE].
 
         Examples
@@ -999,6 +1002,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def number_of_d8_links(self):
+        """
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+        """
         try:
             return self._number_of_d8_links
         except AttributeError:
@@ -1010,6 +1017,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     def number_of_d8_active_links(self):
+        """
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+        """
         try:
             return self._number_of_d8_active_links
         except AttributeError:
@@ -1021,8 +1032,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     @return_readonly_id_array
     def diagonal_links_at_node(self, *args):
-        """diagonal_links_at_node
-        Diagonal links attached to nodes.
+        """Diagonal links attached to nodes.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
 
         Link ids are listed in counterclockwise order starting from east
         (i.e., [NE, NW, SW, SE]).
@@ -1056,6 +1069,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def _create_diagonal_links_at_node(self):
         """
         Create the diagonal link list.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
         """
         self._setup_diagonal_links()
         self._diagonal_links_at_node = np.empty((self.number_of_nodes, 4),
@@ -1346,6 +1362,9 @@ XXXXXXeric should be killing this with graphs.
     def _reset_list_of_active_diagonal_links(self):
         """Reset the active diagonal links.
 
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+
         Assuming the diagonal links have already been created elsewhere, this
         helper method checks their statuses (active/inactive) for internal
         consistency after the BC status of some nodes has been changed.
@@ -1379,6 +1398,9 @@ XXXXXXeric should be killing this with graphs.
 
     def _reset_diagonal_link_statuses(self):
         """Rest the statuses of diagonal links.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
 
         Assuming the diagonal links have already been created elsewhere, this
         helper method checks their statuses (active/inactive/fixed) for
@@ -1828,6 +1850,9 @@ XXXXXXeric should be killing this with graphs.
     def number_of_diagonal_links(self):
         """Number of diagonal links.
 
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+
         Returns the number of diagonal links (only) over the grid.
         If the diagonal links have not yet been invoked, returns an
         AssertionError.
@@ -2185,6 +2210,9 @@ XXXXXXeric should be killing this with graphs.
     def _setup_diagonal_links(self):
         """Set up matrices of tonodes and fromnodes for diagonal links.
 
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+
         Creates lists of from and to nodes for diagonal links. A diagonal link
         is a special type of link that connects the diagonal of two raster
         cells.  One use for diagonal links has to do with raster digital
@@ -2212,6 +2240,9 @@ XXXXXXeric should be killing this with graphs.
 
     def d8_active_links(self):
         """Get active links, including diagonals.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
 
         Return a set of active links that include diagonal connections between
         grid cells, for use with link-based water-routing schemes.
@@ -2965,6 +2996,9 @@ XXXXXXeric should be killing this with graphs.
     def calculate_gradients_at_d8_active_links(self, node_values):
         """Calculate gradients over D8 active links.
 
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+
         Parameters
         ----------
         node_values : ndarray
@@ -3467,9 +3501,13 @@ XXXXXXeric should be killing this with graphs.
         else:
             return ans
 
+    @deprecated(use='diagonal_neighbors_at_node', version=1.0)
     def get_diagonal_list(self, *args, **kwds):
         """get_diagonal_list([ids], bad_index=BAD_INDEX_VALUE)
         Get list of diagonal node IDs.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
 
         Return lists of diagonals nodes for nodes with given *ids*. If *ids*
         is not given, return the diagonals for all of the nodes in the grid.
@@ -3496,12 +3534,12 @@ XXXXXXeric should be killing this with graphs.
         except AttributeError:
             self.diagonal_node_dict = {}
             self.diagonal_node_dict[
-                bad_index] = self.create_diagonal_list(bad_index=bad_index)
+                bad_index] = self._create_diagonal_list(bad_index=bad_index)
 
         try:
             diagonal_nodes = self.diagonal_node_dict[bad_index]
         except KeyError:
-            diagonal_nodes = self.create_diagonal_list(bad_index=bad_index)
+            diagonal_nodes = self._create_diagonal_list(bad_index=bad_index)
             self.diagonal_node_dict[bad_index] = diagonal_nodes
 
         if len(args) == 0:
@@ -3511,8 +3549,11 @@ XXXXXXeric should be killing this with graphs.
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
+    def _create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of diagonal node IDs.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
 
         Creates a list of IDs of the diagonal nodes to each node, as a 2D
         array.  Only interior nodes are assigned diagonal neighbors; boundary
