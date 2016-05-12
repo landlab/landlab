@@ -10,7 +10,8 @@ ctypedef np.int_t DTYPE_t
 
 def _is_finite_region(np.ndarray[DTYPE_t, ndim=1] vertices_at_region,
                       np.ndarray[DTYPE_t, ndim=1] vertices_per_region,
-                      np.ndarray[DTYPE_t, ndim=1] is_finite_region):
+                      np.ndarray[DTYPE_t, ndim=1] is_finite_region,
+                      DTYPE_t min_patch_size):
     """Test if each region if finite.
 
     Parameters
@@ -31,7 +32,7 @@ def _is_finite_region(np.ndarray[DTYPE_t, ndim=1] vertices_at_region,
 
     for region in range(n_regions):
         n_vertices = vertices_per_region[region]
-        if n_vertices == 0:
+        if n_vertices == 0 or n_vertices < min_patch_size:
             is_finite_region[region] = 0
         else:
             is_finite_region[region] = 1
