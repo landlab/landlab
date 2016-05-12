@@ -968,7 +968,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((3, 4))
         >>> rmg.links_at_node[5]
-        array([ 8, 11, 7, 4])
+        array([ 8, 11,  7,  4])
         >>> rmg.active_links_at_node((5, 6))
         array([[ 4,  5],
                [ 7,  8],
@@ -2462,7 +2462,7 @@ XXXXXXeric should be killing this with graphs.
            inactive (so they appear on link-based lists, but not
            active_link-based lists)
 
-        This means that if you call the calc_grad_of_active_link
+        This means that if you call the calc_grad_at_active_link
         method, the inactive boundaries will be ignored: there can be no
         gradients or fluxes calculated, because the links that connect to that
         edge of the grid are not included in the calculation. So, setting a
@@ -2559,7 +2559,7 @@ XXXXXXeric should be killing this with graphs.
            flagged as inactive (so they appear on link-based lists, but
            not active_link-based lists)
 
-        This means that if you call the calc_grad_of_active_link
+        This means that if you call the calc_grad_at_active_link
         method, links connecting to closed boundaries will be ignored: there
         can be no gradients or fluxes calculated, because the links that
         connect to that edge of the grid are not included in the calculation.
@@ -3029,7 +3029,7 @@ XXXXXXeric should be killing this with graphs.
         ...               9., 3., 9.,
         ...               6., 9., 6.])
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
-        >>> grads = grid.calc_grad_of_active_link(z)
+        >>> grads = grid.calc_grad_at_active_link(z)
         >>> max_grad, dest_node = (
         ...     grid.calculate_steepest_descent_on_nodes(z, grads))
         >>> max_grad # doctest: +NORMALIZE_WHITESPACE
@@ -3110,7 +3110,7 @@ XXXXXXeric should be killing this with graphs.
 
         return max_slope, dstr_node_ids
 
-    @deprecated(use='calc_net_flux_at_node', version=1.0)
+    @deprecated(use='calc_flux_div_at_node', version=1.0)
     def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
         """Flux divergence at nodes.
 
@@ -3133,7 +3133,7 @@ XXXXXXeric should be killing this with graphs.
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_of_active_link(u)
+        >>> grad = rmg.calc_grad_at_active_link(u)
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])
@@ -3777,7 +3777,7 @@ XXXXXXeric should be killing this with graphs.
             'unit normal for a square patch. Use '
             '`_calc_unit_normals_to_patch_subtriangles` instead.')
 
-    @deprecated(use='calc_aspect_of_node', version=1.0)
+    @deprecated(use='calc_aspect_at_node', version=1.0)
     def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
         """Aspect at nodes.
 
@@ -3832,7 +3832,7 @@ XXXXXXeric should be killing this with graphs.
         # return aspect alone
         return a
 
-    @deprecated(use='calc_slope_of_node', version=1.0)
+    @deprecated(use='calc_slope_at_node', version=1.0)
     def calculate_slope_at_nodes_bestFitPlane(self, id, val):
         """Slope of best-fit plane at nodes.
 
@@ -3889,7 +3889,7 @@ XXXXXXeric should be killing this with graphs.
         # return slope alone
         return s
 
-    @deprecated(use='calc_slope_of_node, calc_aspect_of_node', version=1.0)
+    @deprecated(use='calc_slope_at_node, calc_aspect_at_node', version=1.0)
     def calculate_slope_aspect_at_nodes_burrough(self, ids=None,
                                                  vals='Elevation'):
         """Calculate topographic slope.
@@ -3957,7 +3957,7 @@ XXXXXXeric should be killing this with graphs.
 
         return slope, aspect
 
-    @deprecated(use='calc_slope_of_node, calc_aspect_of_node', version=1.0)
+    @deprecated(use='calc_slope_at_node, calc_aspect_at_node', version=1.0)
     def calculate_slope_aspect_at_nodes_best_fit_plane(self, nodes, val):
         r"""Calculate slope aspect.
 
