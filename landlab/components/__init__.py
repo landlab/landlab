@@ -1,7 +1,7 @@
-from .craters import CratersComponent
 from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
 from .fire_generator import FireGenerator
+from .detachment_ltd_erosion import DetachmentLtdErosion
 from .flexure import Flexure
 from .flow_accum import AccumFlow
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
@@ -22,7 +22,7 @@ from .uniform_precip import PrecipitationDistribution
 from .vegetation_ca import VegCA
 
 
-COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
+COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               Glacier, PerronNLDiffuse, OverlandFlowBates,
               OverlandFlow, PotentialEvapotranspiration,
@@ -30,6 +30,6 @@ COMPONENTS = [CratersComponent, ChiFinder, LinearDiffuser, FireGenerator,
               Vegetation, SinkFiller, SoilMoisture,
               StreamPowerEroder, FastscapeEroder, SedDepEroder,
               TransportLimitedEroder, SteepnessFinder,
-              PrecipitationDistribution, VegCA]
+              VegCA, DetachmentLtdErosion]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

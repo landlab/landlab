@@ -28,13 +28,13 @@ threshold_sp:
 use_Q:
 water__volume_flux
 
-MEAN_STORM:
+mean_storm:
 100.
-MEAN_DEPTH:
+mean_depth:
 5.
-MEAN_INTERSTORM:
+mean_interstorm:
 400.
-RUN_TIME:
+storm_run_time:
 3000000.
-DELTA_T:
+delta_t:
 500.
