@@ -271,6 +271,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         """Number of patches.
 
         Returns the number of patches over the grid.
+
+        LLCATS: GINF PINF
         """
         try:
             return self._number_of_patches
@@ -281,6 +283,8 @@ class VoronoiDelaunayGrid(ModelGrid):
     @property
     def nodes_at_patch(self):
         """Get the four nodes at the corners of each patch in a regular grid.
+
+        LLCATS: PINF NINF CONN
         """
         try:
             return self._nodes_at_patch
@@ -300,6 +304,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
         Note that this method returns a *masked* array, with the normal
         provisos that integer indexing with a masked array removes the mask.
+
+        LLCATS: NINF PINF CONN
         """
         if nodata == -1:
             # ^fiddle needed to ensure we set the nodata value properly if
@@ -537,7 +543,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         ...                 [1.5, 0.87], [0., 1.73], [1., 1.73]])
         >>> from scipy.spatial import Voronoi
         >>> vor = Voronoi(pts)
-        >>> [tn,hn,al,fw] = vdg._create_links_and_faces_from_voronoi_diagram(vor)
+        >>> [tn,hn,al,fw] = vdg._create_links_and_faces_from_voronoi_diagram(
+        ...     vor)
         >>> tn
         array([0, 0, 0, 1, 1, 2, 3, 2, 3, 6, 6, 6])
         >>> hn
@@ -741,6 +748,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> vmg = VoronoiDelaunayGrid(x,y)
         >>> vmg.save('./mytestsave.grid')
         >>> os.remove('mytestsave.grid') #to remove traces of this test
+
+        LLCATS: GINF
         """
         import os
         from six.moves import cPickle

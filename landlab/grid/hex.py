@@ -85,6 +85,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     @classmethod
     def from_dict(cls, params):
+        """
+        LLCATS: GINF
+        """
         shape = params['shape']
         spacing = params.get('spacing', 1.)
 
@@ -461,6 +464,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_columns
         5
+
+        LLCATS: GINF NINF
         """
         return self._ncols
 
@@ -482,6 +487,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid = HexModelGrid(5, 5, shape='rect')
         >>> grid.number_of_node_rows
         5
+
+        LLCATS: GINF NINF
         """
         return self._nrows
 
@@ -573,6 +580,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         plot.imshow_grid
             Another Landlab function capable of producing hexplots, with a
             fuller-featured set of options.
+
+        LLCATS: GINF
         """
         from numpy import array, amin, amax
         import matplotlib.pyplot as plt

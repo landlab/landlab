@@ -110,6 +110,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
 
     @classmethod
     def from_dict(cls, params):
+        """
+        LLCATS: GINF
+        """
         num_shells = params['num_shells']
         dr = params.get('dr', 1.)
         origin = params.get('origin', (0., 0.))
@@ -171,18 +174,26 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         int
             The number of node shells in the radial grid (not counting the
             center node).
+
+        LLCATS: GINF
         """
         return self._n_shells
 
     @property
     @deprecated(use='spacing_of_shells', version=1.0)
     def shell_spacing(self):
-        """Fixed distance between shells."""
+        """Fixed distance between shells.
+
+        LLCATS: DEPR GINF MEAS
+        """
         return self._dr
 
     @property
     def spacing_of_shells(self):
-        """Fixed distance between shells."""
+        """Fixed distance between shells.
+
+        LLCATS: GINF MEAS
+        """
         return self._dr
 
     @property
@@ -193,6 +204,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         -------
         int
             Number of nodes in each shell, excluding the center node.
+
+        LLCATS: GINF NINF
         """
         try:
             return self._nnodes_inshell
@@ -215,6 +228,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         >>> mg.radius_at_node
         array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  0.,  1.,  1.,  2.,  2.,
                 1.,  1.,  2.,  2.,  2.,  2.,  2.])
+
+        LLCATS: NINF MEAS
         """
         try:
             return self._node_radii
