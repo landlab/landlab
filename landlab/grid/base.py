@@ -2261,10 +2261,6 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._create_faces_at_cell()
             return self._faces_at_cell
 
-    @deprecated(use='number_of_faces_at_cell', version=1.0)
-    def find_number_of_faces_at_cell(self):
-        return self.number_of_faces_at_cell()
-
     def number_of_faces_at_cell(self):
         """Number of faces attached to each cell.
 
