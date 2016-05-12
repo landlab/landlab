@@ -689,6 +689,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             _patches_at_node[
                 i, :patches_with_node.size] = patches_with_node[:]
         self._patches_at_node = _patches_at_node
+        self._patches_created = True
 
     def save(self, path, clobber=False):
         """Save a grid and fields.

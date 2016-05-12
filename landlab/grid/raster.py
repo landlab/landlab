@@ -1151,6 +1151,7 @@ XXXXXXXXXXXXXX very out of date in every way; replace
             # we no longer blank out any patches that have a closed node as any
             # vertex, per modern LL style. Instead, we will make a closed/open
             # mask
+            self._patches_created = True
             return self.node_patch_matrix
 
     @property
@@ -1161,6 +1162,7 @@ XXXXXXXXXXXXXX very out of date in every way; replace
         Shape of the returned array is (nnodes, 4). Returns in order CCW from
         east, i.e., [NE, NW, SW, SE].
         """
+        self._patches_created = True
         base = np.arange(self.number_of_patches)
         bottom_left_corner = base + base // (self._ncols - 1)
         return np.column_stack((bottom_left_corner + self._ncols + 1,
