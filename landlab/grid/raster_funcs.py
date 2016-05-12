@@ -6,8 +6,8 @@ from ..core.utils import make_optional_arg_into_id_array
 from .structured_quad import links as squad_links
 
 
-def active_link_id_of_cell_neighbor(grid, inds, *args):
-    """active_link_id_of_cell_neighbor(grid, link_ids [, cell_ids])
+def neighbor_active_link_at_cell(grid, inds, *args):
+    """neighbor_active_link_at_cell(grid, link_ids [, cell_ids])
 
     Return an array of the active link ids for neighbors of *cell_id* cells.
     *link_ids* is an index into the links of a cell as measured
@@ -35,7 +35,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     return links[range(len(cell_ids)), inds]
 
 
-def node_id_of_cell_neighbor(grid, inds, *args):
+def neighbor_node_at_cell(grid, inds, *args):
     """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
 
     Return an array of the node ids for neighbors of *cell_id* cells.
@@ -61,22 +61,22 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import node_id_of_cell_neighbor
+    >>> from landlab.grid.raster_funcs import neighbor_node_at_cell
     >>> grid = RasterModelGrid(4, 5, 1.0)
-    >>> node_id_of_cell_neighbor(grid, 0, 0)
+    >>> neighbor_node_at_cell(grid, 0, 0)
     array([1])
 
     Get the lower and the the upper neighbors for all the cells.
 
-    >>> node_id_of_cell_neighbor(grid, 0)
+    >>> neighbor_node_at_cell(grid, 0)
     array([1, 2, 3, 6, 7, 8])
-    >>> node_id_of_cell_neighbor(grid, 2)
+    >>> neighbor_node_at_cell(grid, 2)
     array([11, 12, 13, 16, 17, 18])
 
     As an alternative to the above, use fancy-indexing to get both sets of
     neighbors with one call.
 
-    >>> node_id_of_cell_neighbor(grid, np.array([0, 2]), [1, 4])
+    >>> neighbor_node_at_cell(grid, np.array([0, 2]), [1, 4])
     array([[ 2, 12],
            [ 7, 17]])
     """
@@ -93,7 +93,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
                 3 - inds, axis=1))
 
 
-def node_id_of_cell_corner(grid, inds, *args):
+def corner_node_at_cell(grid, inds, *args):
     """node_id_of_cell_corner(grid, corner_ids [, cell_ids])
 
     Return an array of the node ids for diagonal neighbors of *cell_id* cells.
@@ -114,22 +114,22 @@ def node_id_of_cell_corner(grid, inds, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import node_id_of_cell_corner
+    >>> from landlab.grid.raster_funcs import corner_node_at_cell
     >>> grid = RasterModelGrid(4, 5, 1.0)
-    >>> node_id_of_cell_corner(grid, 0, 0)
+    >>> corner_node_at_cell(grid, 0, 0)
     array([2])
 
     Get the lower-right and the the upper-left corners for all the cells.
 
-    >>> node_id_of_cell_corner(grid, 0)
+    >>> corner_node_at_cell(grid, 0)
     array([2, 3, 4, 7, 8, 9])
-    >>> node_id_of_cell_corner(grid, 2)
+    >>> corner_node_at_cell(grid, 2)
     array([10, 11, 12, 15, 16, 17])
 
     As an alternative to the above, use fancy-indexing to get both sets of
     corners with one call.
 
-    >>> node_id_of_cell_corner(grid, np.array([0, 2]), [1, 4])
+    >>> corner_node_at_cell(grid, np.array([0, 2]), [1, 4])
     array([[ 3, 11],
            [ 8, 16]])
     """

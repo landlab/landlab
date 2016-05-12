@@ -121,7 +121,7 @@ def _one_line_slopes(input_array, grid, vals):
         return slope_we, slope_sn
 
 
-@deprecated(use='grid.calc_slope_of_node', version=1.0)
+@deprecated(use='grid.calc_slope_at_node', version=1.0)
 def calc_slope_aspect_of_nodes_horn(grid, ids=None,
                                     vals='topographic__elevation'):
     r"""Calculate slope and aspect.
