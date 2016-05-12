@@ -464,7 +464,10 @@ def get_categories_from_grid_methods(raster_type):
         BC : methods to interact with BCs
         SURF : methods for surface analysis (slope, aspect, hillshade)
         SUBSET : methods to indentify part of the grid based on conditions
-        
+        CONN : method describing the connectivity of one element to another
+               (i.e., 'links_at_node')
+        MEAS : method describing a quantity defined on an element (i.e.,
+               'length_of_link')
 
     Parameters
     ----------

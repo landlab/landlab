@@ -870,7 +870,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 7,  9, -1,  3], [ 8, 10,  6,  4], [-1, 11,  7,  5],
                [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
 
-       LLCATS: NINF
+       LLCATS: NINF CONN
         """
         return self._neighbors_at_node
 
@@ -900,7 +900,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.links_at_node[(4, 7), :]
         array([[ 6,  8,  5,  3], [11, 13, 10, 8]])
 
-        LLCATS: NINF LINF
+        LLCATS: NINF LINF CONN
         """
         return self._links_at_node
 
@@ -932,7 +932,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([[-1, -1,  1,  1],
                [-1, -1,  1,  1]], dtype=int8)
 
-        LLCATS: NINF LINF
+        LLCATS: NINF LINF CONN
         """
         return self._link_dirs_at_node
 
@@ -962,7 +962,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
                dtype=int8)
 
-        LLCATS: NINF LINF
+        LLCATS: NINF LINF CONN
         """
         return self._active_link_dirs_at_node
 
@@ -978,7 +978,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 6,  7,  8,
                11, 12, 13])
 
-        LLCATS: NINF CINF
+        LLCATS: NINF CINF CONN
         """
         return self._node_at_cell
 
@@ -998,7 +998,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                -1,  3,  4,  5, -1,
                -1, -1, -1, -1, -1])
 
-        LLCATS: CINF NINF
+        LLCATS: CINF NINF CONN
         """
         return self._cell_at_node
 
@@ -1213,7 +1213,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.node_at_core_cell
         array([ 6,  7, 11, 12, 13])
 
-        LLCATS: NINF CINF BC
+        LLCATS: NINF CINF BC CONN
         """
         (core_cell_ids, ) = numpy.where(self._node_status == CORE_NODE)
         return core_cell_ids
@@ -1245,7 +1245,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.node_at_link_head[:5]
         array([1, 2, 3, 4, 5])
 
-        LLCATS: NINF LINF
+        LLCATS: NINF LINF CONN
         """
         return self._node_at_link_head
 
@@ -1260,7 +1260,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.node_at_link_tail[:5]
         array([0, 1, 2, 3, 0])
 
-        LLCATS: NINF LINF
+        LLCATS: NINF LINF CONN
         """
         return self._node_at_link_tail
 
@@ -1278,7 +1278,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> np.all(mg.face_at_link[:5]==BAD_INDEX_VALUE)
         True
 
-        LLCATS: FINF LINF
+        LLCATS: FINF LINF CONN
         """
         try:
             return self._face_at_link
@@ -1296,7 +1296,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.link_at_face[0:3]
         array([5, 6, 7])
 
-        LLCATS: LINF FINF
+        LLCATS: LINF FINF CONN
         """
         try:
             return self._link_at_face
@@ -1541,7 +1541,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.]])
 
-        LLCATS: NINF
+        LLCATS: NINF MEAS
         """
         return self._node_x
 
@@ -1565,7 +1565,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 4.,  4.,  4.,  4.,  4.],
                [ 6.,  6.,  6.,  6.,  6.]])
 
-       LLCATS: NINF
+       LLCATS: NINF MEAS
         """
         return self._node_y
 
@@ -1589,7 +1589,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.]])
 
-       LLCATS: NINF
+       LLCATS: NINF MEAS
         """
         return self._node_x
 
@@ -1613,7 +1613,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 4.,  4.,  4.,  4.,  4.],
                [ 6.,  6.,  6.,  6.,  6.]])
 
-        LLCATS: NINF
+        LLCATS: NINF MEAS
         """
         return self._node_y
 
@@ -1650,7 +1650,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 0., 1., 2., 3., 4.,
                 0., 1., 2., 3., 4.])
 
-        LLCATS: GINF NINF
+        LLCATS: GINF NINF MEAS
         """
         AXES = ('node_y', 'node_x')
         try:
@@ -1772,7 +1772,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.link_at_face
         array([ 4,  5,  7,  8,  9, 11, 12])
 
-        LLCATS: LINF FINF
+        LLCATS: LINF FINF MEAS
         """
         try:
             return self._link_at_face
@@ -1806,7 +1806,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.number_of_links_at_node
         array([2, 3, 3, 2, 3, 4, 4, 3, 2, 3, 3, 2])
 
-        LLCATS: LINF NINF
+        LLCATS: LINF NINF CONN
         """
         try:
             return self._number_of_links_at_node
@@ -1906,7 +1906,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         -----
         On it's way to being obsolete. **Deprecated**.
 
-        LLCATS: DEPR LINF NINF
+        LLCATS: DEPR LINF NINF CONN
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix,
@@ -1972,7 +1972,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1]])
 
-       LLCATS: DEPR NINF LINF
+       LLCATS: DEPR NINF LINF CONN
         """
         if len(args) == 0:
             return numpy.vstack((self.node_active_inlink_matrix2,
@@ -2007,7 +2007,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         counter-clockwise, which is what the last couple of lines before
         the return statement do.
 
-        LLCATS: LINF
+        LLCATS: LINF MEAS
         """
         dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
                       self.node_x[self.node_at_link_tail[links]])
@@ -2104,7 +2104,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [False, False,  True,  True],
                [False, False,  True,  True]], dtype=bool)
 
-       LLCATS: LINF NINF
+       LLCATS: LINF NINF CONN
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -2173,7 +2173,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ True, False, False, False],
                [False, False, False, False]], dtype=bool)
 
-       LLCATS: LINF NINF
+       LLCATS: LINF NINF CONN
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -2238,7 +2238,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [15, 12],
                [16, 13]])
 
-       LLCATS: LINF NINF
+       LLCATS: LINF NINF CONN
         """
         if type(values) is str:
             vals = self.at_link[values]
@@ -2310,7 +2310,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [        16, 2147483647],
                [2147483647, 2147483647]])
 
-       LLCATS: LINF NINF
+       LLCATS: LINF NINF CONN
         """
         if type(values) is str:
             vals = self.at_link[values]
@@ -2358,7 +2358,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 8, 13, 12,  7,  2,  3],
                [ 9, 15, 14,  8,  4,  5]])
 
-       LLCATS: FINF CINF
+       LLCATS: FINF CINF CONN
         """
         try:
             return self._faces_at_cell
@@ -2376,7 +2376,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> hg.number_of_faces_at_cell()
         array([6, 6])
 
-        LLCATS: FINF CINF GINF
+        LLCATS: FINF CINF CONN
         """
         num_faces_at_cell = np.zeros(self.number_of_cells, dtype=np.int)
         for ln in range(self.number_of_links):
@@ -2673,7 +2673,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                  0.,  12.,  12.,  12.,   0.,
                  0.,   0.,   0.,   0.,   0.])
 
-         LLCATS: CINF NINF
+         LLCATS: CINF NINF CONN
         """
         try:
             return self._cell_area_at_node
@@ -2684,7 +2684,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @deprecated(use='width_of_face', version=1.0)
     def face_width(self):
         """
-        LLCATS: DEPR FINF
+        LLCATS: DEPR FINF MEAS
         """
         return self.width_of_face
 
@@ -2703,7 +2703,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> np.allclose(mg.width_of_face, 0.57735027)
         True
 
-        LLCATS: FINF
+        LLCATS: FINF MEAS
         """
         try:
             return self._face_width
@@ -2788,7 +2788,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> rmg.get_active_link_connecting_node_pair(8, 3)
         array([2])
 
-        LLCATS: DEPR LINF NINF
+        LLCATS: DEPR LINF NINF CONN
         """
         active_link = BAD_INDEX_VALUE
         for alink in range(0, self.number_of_active_links):
@@ -2815,7 +2815,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 6.,  6.,  6.,
                 6.,  6.,  6.])
 
-        LLCATS: CINF
+        LLCATS: CINF MEAS
         """
         return self._area_of_cell
 
@@ -2823,7 +2823,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @deprecated(use='length_of_link', version=1.0)
     def link_length(self):
         """
-        LLCATS: DEPR LINF
+        LLCATS: DEPR LINF MEAS
         """
         return self.length_of_link
 
@@ -2847,7 +2847,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> len(grid.length_of_link) == grid.number_of_links
         True
 
-        LLCATS: LINF
+        LLCATS: LINF MEAS
         """
         if self._link_length is None:
             return self._create_length_of_link()
@@ -2900,7 +2900,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.assign_upslope_vals_to_active_links(u)
         array([ 4.,  4.,  5.,  7.])
 
-        LLCATS: DEPR NINF LINF
+        LLCATS: DEPR NINF LINF CONN
         """
         if v is None:
             v = numpy.array((0., ))
@@ -3292,7 +3292,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.max_of_link_end_node_values(h)
         array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
 
-        LLCATS: DEPR LINF NINF
+        LLCATS: DEPR LINF NINF CONN
         """
         return numpy.maximum(node_data[self.activelink_fromnode],
                              node_data[self.activelink_tonode])
@@ -3579,7 +3579,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 1.,  1.,  0.,  0.,  0.,
                 1.,  1.,  0.,  0.,  0.,  1.,  1.,  0.])
 
-        LLCATS: LINF
+        LLCATS: LINF MEAS
         """
         if self._link_unit_vec_x is None:
             self._create_link_unit_vectors()
@@ -3588,6 +3588,9 @@ class ModelGrid(ModelDataFieldsMixIn):
     @property
     @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
     def link_unit_vec_x(self):
+        """
+        LLCATS: DEPR LINF MEAS
+        """
         return self.unit_vector_xcomponent_at_link
 
     @property
@@ -3604,7 +3607,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 0.,  0.,  1.,  1.,  1.,
                 0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.])
 
-        LLCATS: LINF
+        LLCATS: LINF MEAS
         """
         if self._link_unit_vec_y is None:
             self._create_link_unit_vectors()
@@ -3613,6 +3616,9 @@ class ModelGrid(ModelDataFieldsMixIn):
     @property
     @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
     def link_unit_vec_y(self):
+        """
+        LLCATS: DEPR LINF MEAS
+        """
         return self.unit_vector_ycomponent_at_link
 
     @property
@@ -3628,7 +3634,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.unit_vector_sum_xcomponent_at_node
         array([ 1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
 
-        LLCATS: NINF
+        LLCATS: NINF MEAS
         """
         if self._node_unit_vector_sum_x is None:
             self._create_link_unit_vectors()
@@ -3638,7 +3644,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @deprecated(use='unit_vector_sum_xcomponent_at_node', version='0.5')
     def node_unit_vector_sum_x(self):
         """
-        LLCATS: DEPR NINF
+        LLCATS: DEPR NINF MEAS
         """
         return self.unit_vector_sum_xcomponent_at_node
 
@@ -3655,7 +3661,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.unit_vector_sum_ycomponent_at_node
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
 
-        LLCATS: NINF
+        LLCATS: NINF MEAS
         """
         if self._node_unit_vector_sum_y is None:
             self._create_link_unit_vectors()
@@ -3665,7 +3671,7 @@ class ModelGrid(ModelDataFieldsMixIn):
     @deprecated(use='unit_vector_sum_ycomponent_at_node', version='0.5')
     def node_unit_vector_sum_y(self):
         """
-        LLCATS: DEPR NINF
+        LLCATS: DEPR NINF MEAS
         """
         return self.unit_vector_sum_ycomponent_at_node
 
@@ -3828,6 +3834,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         pre-calculated to have the right values to represent a uniform
         vector with magnitude 5 and orientation 30 degrees counter-clockwise
         from horizontal.
+
+        LLCATS: NINF LINF CONN MAP
         """
 
         # Create the arrays to hold the node-based values of the x and y
@@ -3869,7 +3877,10 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @deprecated(use='plot.imshow_grid', version=1.0)
     def display_grid(self, draw_voronoi=False):
-        """Display the grid."""
+        """Display the grid.
+
+        LLCATS: DEPR GINF
+        """
         import matplotlib.pyplot as plt
 
         # Plot nodes, colored by boundary vs interior
@@ -3905,6 +3916,9 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @deprecated(use='node_is_boundary', version=1.0)
     def is_boundary(self, ids, boundary_flag=None):
+        """
+        LLCATS: DEPR NINF BC
+        """
         return self.node_is_boundary(ids, boundary_flag=boundary_flag)
 
     def node_is_boundary(self, ids, boundary_flag=None):
@@ -3933,6 +3947,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ True, False], dtype=bool)
         >>> mg.node_is_boundary([0, 6], boundary_flag=CLOSED_BOUNDARY)
         array([False, False], dtype=bool)
+
+        LLCATS: NINF BC
         """
         if boundary_flag is None:
             return ~ (self._node_status[ids] == CORE_NODE)
@@ -3981,6 +3997,8 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         Sets the given nodes' boundary condition statuses to CLOSED_BOUNDARY
         (==4), and resets the list of active links to reflect any changes.
+
+        LLCATS: DEPR NINF BC
         """
         self._node_status[nodes] = CLOSED_BOUNDARY
         self._update_links_nodes_cells_to_new_BCs()
@@ -3989,6 +4007,9 @@ class ModelGrid(ModelDataFieldsMixIn):
     def get_distances_of_nodes_to_point(self, coord, get_az=None,
                                         node_subset=None,
                                         out_distance=None, out_azimuth=None):
+        """
+        LLCATS: DEPR NINF MEAS
+        """
         return self.calc_distances_of_nodes_to_point(
             coord, get_az=get_az, node_subset=node_subset,
             out_distance=out_distance, out_azimuth=out_azimuth)
@@ -4106,6 +4127,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> azim
         array([[ 0., -1.,  0.,  1.,  0.],
                [-1.,  0.,  0.,  0.,  1.]])
+
+        LLCATS: NINF MEAS
         """
         if len(coord) != 2:
             raise ValueError('coordinate must iterable of length 2')
@@ -4203,6 +4226,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 0.,  1.,  2.,  3.])
         >>> distances[0, ::4]
         array([ 0.,  1.,  2.])
+
+        LLCATS: NINF MEAS
         """
         if self._all_node_distances_map is None:
             self._create_all_node_distances_azimuths_maps()
@@ -4237,6 +4262,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 0.,  0.,  0.])
         >>> angles[0, ::5]
         array([  0.,  45.,  45.])
+
+        LLCATS: NINF MEAS
         """
         if self._all_node_azimuths_map is None:
             self._create_all_node_distances_azimuths_maps()
@@ -4330,6 +4357,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> rmg.node_y
         array([ 1.5,  1.5,  1.5,  2.5,  2.5,  2.5,  3.5,  3.5,  3.5,  4.5,  4.5,
         4.5])
+
+        LLCATS: GINF MEAS
         """
         self._node_x += origin[0]
         self._node_y += origin[1]
