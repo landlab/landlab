@@ -191,9 +191,9 @@ class UniformRectilinearGraph(RectilinearGraph):
            [ 8, 10,  7,  5], [ 9, 11,  8,  6],
            [13, 15, 12, 10], [14, 16, 13, 11]])
     >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
-    array([[ 1,  4,  3,  0], [ 2,  5,  4,  1],
-           [ 4,  7,  6,  3], [ 5,  8,  7,  4],
-           [ 7, 10,  9,  6], [ 8, 11, 10,  7]])
+    array([[ 4,  3,  0,  1], [ 5,  4,  1,  2],
+           [ 7,  6,  3,  4], [ 8,  7,  4,  5],
+           [10,  9,  6,  7], [11, 10,  7,  8]])
     """
 
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
