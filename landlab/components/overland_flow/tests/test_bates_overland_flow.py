@@ -85,7 +85,7 @@ def test_Bates_analytical():
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     bates = OverlandFlowBates(grid, mannings_n = 0.01, h_init=0.001)
     time = 0.0
-    dt = 1.0
+    bates.dt = 1.0
     while time < 500:
         bates.overland_flow(grid)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *

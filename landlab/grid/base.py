@@ -222,14 +222,14 @@ methods tend to start with `calc_`.
     :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.calc_diff_at_link
-    ~landlab.grid.base.ModelGrid.calc_grad_of_link
+    ~landlab.grid.base.ModelGrid.calc_grad_at_link
     ~landlab.grid.base.ModelGrid.calc_net_flux_at_node
     ~landlab.grid.base.ModelGrid.calc_flux_div_at_node
-    ~landlab.grid.base.ModelGrid.calc_unit_normal_of_patch
-    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_of_patch_subtriangles
-    ~landlab.grid.base.ModelGrid.calc_grad_of_patch
-    ~landlab.grid.base.ModelGrid.calc_slope_of_patch
-    ~landlab.grid.base.ModelGrid.calc_slope_of_node
+    ~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
+    ~landlab.grid.base.ModelGrid.calc_grad_at_patch
+    ~landlab.grid.base.ModelGrid.calc_slope_at_patch
+    ~landlab.grid.base.ModelGrid.calc_slope_at_node
 
 Mappers
 -------
@@ -275,10 +275,10 @@ find in GIS software.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.base.ModelGrid.calc_slope_of_node
+    ~landlab.grid.base.ModelGrid.calc_slope_at_node
     ~landlab.grid.base.ModelGrid.hillshade
     ~landlab.grid.base.ModelGrid.aspect
-    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
+    ~landlab.grid.base.ModelGrid.calc_distances_at_nodes_to_point
 
 Notes
 -----
@@ -386,8 +386,8 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
     ~landlab.grid.base.ModelGrid.node_slopes_using_patches
     ~landlab.grid.base.ModelGrid.node_slopes
-    ~landlab.grid.base.ModelGrid.calc_aspect_of_node
-    ~landlab.grid.base.ModelGrid.calc_hillshade_of_node
+    ~landlab.grid.base.ModelGrid.calc_aspect_at_node
+    ~landlab.grid.base.ModelGrid.calc_hillshade_at_node
     ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_core_nodes
     ~landlab.grid.base.ModelGrid.calculate_flux_divergence_at_nodes
     ~landlab.grid.base.ModelGrid.cell_area_at_node
@@ -2320,7 +2320,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 num_faces[cell] += 1
         self._sort_faces_at_cell_by_angle()
 
-    def calc_hillshade_of_node(self, alt=45., az=315., slp=None, asp=None,
+    def calc_hillshade_at_node(self, alt=45., az=315., slp=None, asp=None,
                                unit='degrees', elevs='topographic__elevation'):
         """Get array of hillshade.
 
@@ -2369,7 +2369,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         >>> mg = RasterModelGrid((5, 5), 1.)
         >>> z = mg.x_of_node * np.tan(60. * np.pi / 180.)
-        >>> mg.calc_hillshade_of_node(elevs=z, alt=30., az=210.)
+        >>> mg.calc_hillshade_at_node(elevs=z, alt=30., az=210.)
         array([ 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
                 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
                 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
@@ -2396,9 +2396,9 @@ class ModelGrid(ModelDataFieldsMixIn):
                 pass
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
-            slp, slp_comps = self.calc_slope_of_node(
+            slp, slp_comps = self.calc_slope_at_node(
                 elevs, return_components=True)
-            asp = self.calc_aspect_of_node(slope_component_tuple=slp_comps,
+            asp = self.calc_aspect_at_node(slope_component_tuple=slp_comps,
                                            unit='radians')
         else:
             raise TypeError('Either both slp and asp must be set, or neither!')
@@ -2468,7 +2468,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_of_active_link(u)
+        >>> grad = rmg.calc_grad_at_active_link(u)
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])

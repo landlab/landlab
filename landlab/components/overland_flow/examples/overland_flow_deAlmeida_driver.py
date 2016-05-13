@@ -50,7 +50,7 @@ rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 # Create fields in the grid for topographic elevation, water depth, discharge.
 rmg.add_zeros('topographic__elevation', at='node') # topographic elevation (m)
 rmg.add_zeros('water__depth', at='node') # water depth (m)
-rmg.add_zeros('water__discharge', at='active_link') # unit discharge (m2/s)
+rmg.add_zeros('water__discharge', at='link') # unit discharge (m2/s)
 
 # Add our initial thin layer of water to the field of water depth.
 #rmg['node']['water_depth'] += h_init

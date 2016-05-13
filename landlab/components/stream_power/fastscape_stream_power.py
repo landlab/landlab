@@ -47,7 +47,7 @@ class FastscapeEroder(Component):
 
     Construction::
 
-        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp,
+        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=0.,
                         rainfall_intensity=1.)
 
     Parameters
@@ -213,7 +213,7 @@ class FastscapeEroder(Component):
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
                                                         self.alpha)
 
-        self._grid.diagonal_links_at_node()  # calc number of diagonal links
+        self.grid._diagonal_links_at_node  # calc number of diagonal links
 
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +

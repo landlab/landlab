@@ -31,6 +31,12 @@ class PotentialityFlowRouter(Component):
     calculate channel depths for yourself using known widths at each node
     if that is what you want.
 
+    Note
+    ----
+    This is a "research grade" component, and is subject to dramatic change
+    with little warning. No guarantees are made regarding its accuracy or
+    utility. It is not recommended for user use yet!
+
     """
     _name = 'PotentialityFlowRouter'
 

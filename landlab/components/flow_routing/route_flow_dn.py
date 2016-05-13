@@ -134,7 +134,7 @@ class FlowRouter(Component):
         # We'll also keep track of the active links; if raster, then these are
         # the "D8" links; otherwise, it's just activelinks
         if self._is_raster:
-            dal, d8f, d8t = grid.d8_active_links()
+            dal, d8f, d8t = grid._d8_active_links()
             self._active_links = dal
             self._activelink_from = d8f
             self._activelink_to = d8t
@@ -295,7 +295,7 @@ class FlowRouter(Component):
 
         # Calculate the downhill-positive slopes at the d8 active links
         if self.method == 'D8':
-            link_slope = - self._grid.calculate_gradients_at_d8_active_links(
+            link_slope = - self._grid._calculate_gradients_at_d8_active_links(
                 elevs)
         else:
             link_slope = - self._grid.calc_grad_of_active_link(
