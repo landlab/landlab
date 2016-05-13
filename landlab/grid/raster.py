@@ -3040,7 +3040,7 @@ XXXXXXeric should be killing this with graphs.
         return np.concatenate((diffs, diagonal_link_slopes))
 
     @deprecated(use='components.FlowRouter', version='0.5')
-    def calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
+    def _calculate_steepest_descent_on_nodes(self, elevs_in, link_gradients,
                                             max_slope=False,
                                             dstr_node_ids=False):
         """Steepest descent over nodes.
@@ -3072,7 +3072,7 @@ XXXXXXeric should be killing this with graphs.
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
         >>> grads = grid.calc_grad_at_active_link(z)
         >>> max_grad, dest_node = (
-        ...     grid.calculate_steepest_descent_on_nodes(z, grads))
+        ...     grid._calculate_steepest_descent_on_nodes(z, grads))
         >>> max_grad # doctest: +NORMALIZE_WHITESPACE
         array([ 1.2, -0. ,  1.2,
                 1.8,  1. ,  1.8,
@@ -3083,7 +3083,7 @@ XXXXXXeric should be killing this with graphs.
                 4,  4,  4])
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_('RasterModelGrid.calculate_steepest_descent_on_nodes')
+            six.print_('RasterModelGrid._calculate_steepest_descent_on_nodes')
 
         assert (len(link_gradients) == self.number_of_active_links), \
             "incorrect length of active_link_gradients array"
@@ -5024,5 +5024,7 @@ add_module_functions_to_class(RasterModelGrid, 'raster_gradients.py',
                               pattern='calc_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
                               pattern='calc_*')
+add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
+                              pattern='_calc_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_set_status.py',
                               pattern='set_status_at_node*')

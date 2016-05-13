@@ -14,7 +14,7 @@ import inspect
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.grid.raster_steepest_descent import (
-    calc_steepest_descent_across_cell_faces)
+    _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 
@@ -101,7 +101,7 @@ def grid_flow_directions(grid, elevations):
     >>> list(zip(mg.node_at_cell, recv_nodes))
     [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
     """
-    slope, receiver = calc_steepest_descent_across_cell_faces(
+    slope, receiver = _calc_steepest_descent_across_cell_faces(
         grid, elevations, return_node=True)
 
     (sink_cell, ) = np.where(slope >= 0.)
