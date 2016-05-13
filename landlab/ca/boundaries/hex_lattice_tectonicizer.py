@@ -48,6 +48,8 @@ class HexLatticeTectonicizer(object):
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(6, 6, shape='rect')
         >>> hlt = HexLatticeTectonicizer()
         >>> hlt.grid.number_of_nodes
         25
@@ -183,6 +185,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                 self.num_fw_rows[c] += 1
                 current_row += 1
 
+        # GOT HERE, SO FAR SO GOOD, CHECK NEXT BIT
         # If we're handling properties and property IDs, we need to do some setup
         if self.propid is not None:
 
@@ -488,6 +491,8 @@ def main():
     >>> pdata = arange(16)
     >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    >>> lnf.num_fw_rows
+    array([0, 1, 3, 4])
     >>> lnf.incoming_node
     array([4, 8, 9])
     >>> lnf.outgoing_node
