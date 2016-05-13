@@ -1120,38 +1120,37 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.shape)
             return self._vertical_links
 
-    def patches_at_node(self, nodata=-1, masked=True, *args):
+    @property
+    @return_readonly_id_array
+    def patches_at_node(self):
         """Get array of patches attached to nodes.
 
-XXXXXXeric should be killing this with graphs.
         Returns a (N, 4) array of the patches associated with each node in the
         grid.
         The four possible patches are returned in order CCW from east, i.e.,
         NE, NW, SW, SE.
-        The nodata argument allows control of the array value used to indicate
-        nodata. It defaults to -1, but you can also specify 'bad_value'.
-
-        The "masked" parameter controls whether or not bad index values in the
-        grid are masked. If True, note the normal
-        provisos that integer indexing with a masked array removes the mask.
+        Missing patches are indexed -1.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 3))
+        >>> mg.patches_at_node
+        array([[ 0, -1, -1, -1],
+               [ 1,  0, -1, -1],
+               [-1,  1, -1, -1],
+               [ 2, -1, -1,  0],
+               [ 3,  2,  0,  1],
+               [-1,  3,  1, -1],
+               [-1, -1, -1,  2],
+               [-1, -1,  2,  3],
+               [-1, -1,  3, -1]])
         """
-        if nodata == 'bad_value':
-            nodata = BAD_INDEX_VALUE
         try:
-            existing_nodata = (self.node_patch_matrix ==
-                               self._patches_at_node_nodata)
-            if self._patches_at_node_nodata != nodata:
-                self._patches_at_node_nodata = nodata
-                self.node_patch_matrix[existing_nodata] = nodata
-            if masked is True:
-                return np.ma.masked_where(existing_nodata,
-                                          self.node_patch_matrix, copy=False)
-            else:
-                return self.node_patch_matrix
+            return self.node_patch_matrix
         except AttributeError:
-            self._patches_at_node_nodata = nodata
             self.node_patch_matrix = np.full((self.number_of_nodes, 4),
-                                             BAD_INDEX_VALUE, dtype=int)
+                                             -1, dtype=int)
             self.node_patch_matrix[:, 2][
                 np.setdiff1d(np.arange(self.number_of_nodes),
                              np.union1d(self.nodes_at_left_edge,
@@ -1172,23 +1171,11 @@ XXXXXXeric should be killing this with graphs.
                              np.union1d(self.nodes_at_right_edge,
                                         self.nodes_at_top_edge))] = \
                 np.arange(self.number_of_patches)
-            self.node_patch_matrix[self.node_patch_matrix ==
-                                   BAD_INDEX_VALUE] = nodata
-            # now we blank out any patches that have a closed node as any
-            # vertex:
-            patch_nodes = self.nodes_at_patch
-            dead_nodes_in_patches = self.node_is_boundary(
-                patch_nodes, boundary_flag=4)
-            # IDs of patches with dead nodes
-            dead_patches = np.where(np.any(dead_nodes_in_patches, axis=1))
-            self.node_patch_matrix.ravel()[np.in1d(
-                self.node_patch_matrix, dead_patches)] = nodata
-            # ^in1d would remove any mask
-            if masked is True:
-                return np.ma.masked_equal(self.node_patch_matrix, nodata,
-                                          copy=False)
-            else:
-                return self.node_patch_matrix
+            # we no longer blank out any patches that have a closed node as any
+            # vertex, per modern LL style. Instead, we will make a closed/open
+            # mask
+            self._patches_created = True
+            return self.node_patch_matrix
 
     @property
     def nodes_at_patch(self):
@@ -1198,6 +1185,7 @@ XXXXXXeric should be killing this with graphs.
         Shape of the returned array is (nnodes, 4). Returns in order CCW from
         east, i.e., [NE, NW, SW, SE].
         """
+        self._patches_created = True
         base = np.arange(self.number_of_patches)
         bottom_left_corner = base + base // (self._ncols - 1)
         return np.column_stack((bottom_left_corner + self._ncols + 1,

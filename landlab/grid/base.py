@@ -2320,6 +2320,68 @@ class ModelGrid(ModelDataFieldsMixIn):
                 num_faces[cell] += 1
         self._sort_faces_at_cell_by_angle()
 
+    @property
+    @make_return_array_immutable
+    def patches_present_at_node(self):
+        """
+        A boolean array, False where a patch has a closed node or is missing.
+
+        The array is the same shape as :func:`patches_at_node`, and is designed
+        to mask it.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> mg = RasterModelGrid((3, 3))
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.patches_at_node
+        array([[ 0, -1, -1, -1],
+               [ 1,  0, -1, -1],
+               [-1,  1, -1, -1],
+               [ 2, -1, -1,  0],
+               [ 3,  2,  0,  1],
+               [-1,  3,  1, -1],
+               [-1, -1, -1,  2],
+               [-1, -1,  2,  3],
+               [-1, -1,  3, -1]])
+        >>> mg.patches_present_at_node
+        array([[ True, False, False, False],
+               [ True,  True, False, False],
+               [False,  True, False, False],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [False, False,  True, False],
+               [False, False, False, False],
+               [False, False, False, False],
+               [False, False, False, False]], dtype=bool)
+        >>> 1 in mg.patches_at_node * mg.patches_present_at_node
+        True
+        >>> 2 in mg.patches_at_node * mg.patches_present_at_node
+        False
+        """
+        try:
+            return self._patches_present_mask
+        except AttributeError:
+            self.patches_at_node
+            self._reset_patch_status()
+            return self._patches_present_mask
+
+    def _reset_patch_status(self):
+        """
+        Creates the array which stores patches_present_at_node.
+
+        Call whenever boundary conditions are updated on the grid.
+        """
+        node_status_at_patch = self.status_at_node[self.nodes_at_patch]
+        any_node_at_patch_closed = (node_status_at_patch ==
+                                    CLOSED_BOUNDARY).sum(axis=1) > 0
+        absent_patches = any_node_at_patch_closed[self.patches_at_node]
+        bad_patches = numpy.logical_or(absent_patches,
+                                       self.patches_at_node == -1)
+        self._patches_present_mask = numpy.logical_not(
+            bad_patches)
+
+
     def calc_hillshade_at_node(self, alt=45., az=315., slp=None, asp=None,
                                unit='degrees', elevs='topographic__elevation'):
         """Get array of hillshade.
@@ -2398,6 +2460,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 raise TypeError("unit must be 'degrees' or 'radians'")
             slp, slp_comps = self.calc_slope_at_node(
                 elevs, return_components=True)
+
             asp = self.calc_aspect_at_node(slope_component_tuple=slp_comps,
                                            unit='radians')
         else:
@@ -2941,6 +3004,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         try:
             if self.neighbor_list_created:
                 self.neighbor_list_created = False
+        except AttributeError:
+            pass
+        try:
+            self._patches_created
+            self._reset_patch_status()
         except AttributeError:
             pass
 

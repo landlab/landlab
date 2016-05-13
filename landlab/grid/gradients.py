@@ -446,6 +446,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> np.allclose(slopes, 45. / 180. * np.pi)
     True
+
     >>> mg = RasterModelGrid((4, 5), 1.)
     >>> z = - mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
@@ -456,6 +457,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     True
     >>> np.allclose(cmp[1], - np.pi / 4.)
     True
+
     >>> mg = RadialModelGrid(num_shells=9)
     >>> z = mg.radius_at_node
     >>> slopes = mg.calc_slope_at_node(elevs=z)
@@ -477,11 +479,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     if method not in ('patch_mean', 'Horn'):
         raise ValueError('method name not understood')
 
-    try:
-        patches_at_node = grid.patches_at_node()
-    except TypeError:  # was a property, not a fn (=> new style)
-        patches_at_node = np.ma.masked_where(
-            grid.patches_at_node == -1, grid.patches_at_node, copy=False)
+    patches_at_node = np.ma.masked_where(
+        grid.patches_at_node == -1, grid.patches_at_node, copy=False)
 
     nhat = grid.calc_unit_normal_at_patch(elevs=elevs)
     slopes_at_patch = grid.calc_slope_at_patch(elevs=elevs,
