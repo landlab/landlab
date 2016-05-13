@@ -258,7 +258,7 @@ class DepressionFinderAndRouter(Component):
         dx = self._grid.dx
         dy = self._grid.dy
         if self._D8:
-            diag_nbrs = self._grid.get_diagonal_list()
+            diag_nbrs = self._grid._get_diagonal_list()
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
             self._link_lengths = np.empty(8, dtype=float)
             self._link_lengths[0] = dx
@@ -322,7 +322,7 @@ class DepressionFinderAndRouter(Component):
 #        # Get a list of active links; in a raster, this (TODO: optionally)
 #        # includes diagonals.
 #        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-#            (active_links, tails, heads) = self._grid.d8_active_links()
+#            (active_links, tails, heads) = self._grid._d8_active_links()
 #        else:
 #            active_links = self._grid.active_links
 #            tails = self._grid.node_index_at_link_tail
@@ -676,7 +676,7 @@ class DepressionFinderAndRouter(Component):
                     if self._D8:
                         all_nbrs = np.hstack((self._grid.active_neighbors_at_node(
                             nodes_on_front),
-                            self._grid.get_diagonal_list(
+                            self._grid._get_diagonal_list(
                             nodes_on_front)))
                     else:
                         all_nbrs = self._grid.active_neighbors_at_node(nodes_on_front)
@@ -747,7 +747,7 @@ class DepressionFinderAndRouter(Component):
             if self._D8:
                 outlet_neighbors = np.hstack((self._grid.active_neighbors_at_node(
                     outlet_node, bad_index=-1),
-                    self._grid.get_diagonal_list(
+                    self._grid._get_diagonal_list(
                     outlet_node, bad_index=-1)))
             else:
                 outlet_neighbors = self._grid.active_neighbors_at_node(

@@ -239,7 +239,7 @@ def calc_slope_aspect_of_nodes_horn(grid, ids=None,
     # [right, top, left, bottom]
     neighbors = grid.active_neighbors_at_node(ids)
     # [topright, topleft, bottomleft, bottomright]
-    diagonals = grid.get_diagonal_list(ids)
+    diagonals = grid._get_diagonal_list(ids)
 
     input_array = np.empty((len(ids), 9), dtype=int)
     input_array[:, 0] = ids
