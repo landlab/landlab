@@ -2,8 +2,8 @@
 
 Potential Evapotranspiration Component calculates spatially distributed
 potential evapotranspiration based on input radiation factor (spatial
-distribution of incoming radiation) using chosen method such as
-constant or Priestly Taylor.
+distribution of incoming radiation) using chosen method such as constant 
+or Priestly Taylor. Ref: ASCE-EWRI Task Committee Report Jan 2005.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
@@ -97,17 +97,99 @@ def assert_method_is_valid(method):
 
 class PotentialEvapotranspiration(Component):
 
-    """Landlab component that calculates Potential Evapotranspiration.
+    """
+    Potential Evapotranspiration Component calculates spatially distributed
+    potential evapotranspiration based on input radiation factor (spatial
+    distribution of incoming radiation) using chosen method such as constant 
+    or Priestly Taylor. Ref: Xiaochi et. al. 2013 for 'Cosine' method and
+    ASCE-EWRI Task Committee Report Jan 2005 for 'PriestlyTaylor' method.
+    Note: Calling 'PriestlyTaylor' method would generate/overwrite shortwave &
+    longwave radiation fields.
+
+    Construction::
+        PotentialEvapotranspiration(grid, method='Cosine',
+            priestly_taylor_const=1.26, albedo=0.6,
+            latent_heat_of_vaporization=28.34, psychometric_const=0.066,
+            stefan_boltzmann_const=0.0000000567, solar_const=1366.67,
+            latitude=34., elevation_of_measurement=300, adjustment_coeff=0.18,
+            lt=0., nd=365., MeanTmaxF=12., delta_d=5., **kwds)
+        
+    Parameters
+    ----------
+    grid: RasterModelGrid
+        A grid.
+    method: {'Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
+             'Cosine'}, optional
+        Priestly Taylor method will spit out radiation outputs too.
+    priestly_taylor_constant: float, optional
+        Alpha used in Priestly Taylor method.
+    albedo: float, optional
+        Albedo.
+    latent_heat_of_vaporization: float, optional
+        Latent heat of vaporization for water Pwhv (Wd/(m*mm^2)).
+    psychometric_const: float, optional
+        Psychometric constant (kPa (deg C)^-1).
+    stefan_boltzmann_const: float, optional
+        Stefan Boltzmann's constant (W/(m^2K^-4)).
+    solar_const: float, optional
+        Solar constant (W/m^2).
+    latitude: float, optional
+        Latitude (radians).
+    elevation_of_measurement: float, optional
+        Elevation at which measurement was taken (m).
+    adjustment_coeff: float, optional
+        adjustment coeff to predict Rs from air temperature (deg C)^-0.5.
+    lt: float, optional
+        lag between peak TmaxF and solar forcing (days).
+    nd: float, optional
+        Number of days in year (days).
+    MeanTmaxF: float, optional
+        Mean annual rate of TmaxF (mm/d).
+    delta_d: float, optional
+        Calibrated difference between max & min daily TmaxF (mm/d).
 
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.pet import PotentialEvapotranspiration
 
-    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'Potential Evapotranspiration'
+    >>> PET.input_var_names
+    ('radiation__ratio_to_flat_surface',)
+    >>> sorted(PET.output_var_names)
+    ['radiation__incoming_shortwave',
+     'radiation__net',
+     'radiation__net_longwave',
+     'radiation__net_shortwave',
+     'surface__potential_evapotranspiration_rate']
+    >>> sorted(PET.units) # doctest: +NORMALIZE_WHITESPACE
+    [('radiation__incoming_shortwave', 'W/m^2'),
+     ('radiation__net', 'W/m^2'),
+     ('radiation__net_longwave', 'W/m^2'),
+     ('radiation__net_shortwave', 'W/m^2'),
+     ('radiation__ratio_to_flat_surface', 'None'),
+     ('surface__potential_evapotranspiration_rate', 'mm')]
+    >>> PET.grid.number_of_cell_rows
+    3
+    >>> PET.grid.number_of_cell_columns
+    2
+    >>> PET.grid is grid
+    True
+    >>> np.all(\
+            grid.at_cell['surface__potential_evapotranspiration_rate'] == 0.)
+    True
+    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
+    ...       0.38488566, 0.38488566,
+    ...       0.33309785, 0.33309785,
+    ...       0.37381705, 0.37381705])
+    >>> current_time = 0.5
+    >>> PET.update(current_time)
+    >>> np.all(\
+            grid.at_cell['surface__potential_evapotranspiration_rate'] == 0.)
+    False
     """
 
     _name = 'Potential Evapotranspiration'
@@ -157,12 +239,48 @@ class PotentialEvapotranspiration(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, method='Constant', priestly_taylor_const=1.26,
+    def __init__(self, grid, method='Cosine', priestly_taylor_const=1.26,
                  albedo=0.6, latent_heat_of_vaporization=28.34,
                  psychometric_const=0.066, stefan_boltzmann_const=0.0000000567,
                  solar_const=1366.67, latitude=34.,
                  elevation_of_measurement=300, adjustment_coeff=0.18,
                  lt=0., nd=365., MeanTmaxF=12., delta_d=5., **kwds):
+        """
+        Parameters
+        ----------
+        grid: RasterModelGrid
+            A grid.
+        method: {'Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
+                 'Cosine'}, optional
+            Priestly Taylor method will spit out radiation outputs too.
+        priestly_taylor_constant: float, optional
+            Alpha used in Priestly Taylor method.
+        albedo: float, optional
+            Albedo.
+        latent_heat_of_vaporization: float, optional
+            Latent heat of vaporization for water Pwhv (Wd/(m*mm^2)).
+        psychometric_const: float, optional
+            Psychometric constant (kPa (deg C)^-1).
+        stefan_boltzmann_const: float, optional
+            Stefan Boltzmann's constant (W/(m^2K^-4)).
+        solar_const: float, optional
+            Solar constant (W/m^2).
+        latitude: float, optional
+            Latitude (radians).
+        elevation_of_measurement: float, optional
+            Elevation at which measurement was taken (m).
+        adjustment_coeff: float, optional
+            adjustment coeff to predict Rs from air temperature (deg C)^-0.5.
+        lt: float, optional
+            lag between peak TmaxF and solar forcing (days).
+        nd: float, optional
+            Number of days in year (days).
+        MeanTmaxF: float, optional
+            Mean annual rate of TmaxF (mm/d).
+        delta_d: float, optional
+            Calibrated difference between max & min daily TmaxF (mm/d).
+        """
+
         self._method = method
         # For Priestly Taylor
         self._alpha = priestly_taylor_const

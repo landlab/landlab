@@ -51,10 +51,10 @@ intent: in
 
 Check the output variable names
 
->>> sorted(Radiation.output_var_names)
-['radiation__net_shortwave',
- 'radiation__ratio_to_flat_surface',
- 'radiation__incoming_shortwave']
+>>> sorted(Radiation.output_var_names) # doctest: +NORMALIZE_WHITESPACE
+['radiation__incoming_shortwave',
+ 'radiation__net_shortwave',
+ 'radiation__ratio_to_flat_surface']
 
 Instantiate the 'Radiation' component to work on this grid, and run it.
 
@@ -92,15 +92,15 @@ class Radiation(Component):
     compared to a flat surface.
 
     Construction::
-        Radiation(grid, method='Grid', cloudiness=0.2, latitude=34., \
-                  albedo=0.2, solar_constant=1366.67, \
+        Radiation(grid, method='Grid', cloudiness=0.2, latitude=34., 
+                  albedo=0.2, solar_constant=1366.67, 
                   clearsky_turbidity=2., opt_airmass=0.)
 
     Parameters
     ----------
-    grid : RasterModelGrid
+    grid: RasterModelGrid
         A grid.
-    method : {'Grid'}, optional
+    method: {'Grid'}, optional
         Currently, only default is available.
     cloudiness: float, optional
         Cloudiness.
@@ -127,14 +127,14 @@ class Radiation(Component):
     'Radiation'
     >>> rad.input_var_names
     ('topographic__elevation',)
-    >>> sorted(rad.output_var_names)
-    ['radiation__net_shortwave',
-     'radiation__ratio_to_flat_surface',
-     'radiation__incoming_shortwave']
+    >>> sorted(rad.output_var_names) # doctest: +NORMALIZE_WHITESPACE
+    ['radiation__incoming_shortwave',
+     'radiation__net_shortwave',
+     'radiation__ratio_to_flat_surface']
     >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
-    [('radiation__net_shortwave', 'W/m^2'),
+    [('radiation__incoming_shortwave', 'W/m^2'),
+     ('radiation__net_shortwave', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
-     ('radiation__incoming_shortwave', 'W/m^2'),
      ('topographic__elevation', 'm')]
 
     >>> rad.grid.number_of_node_rows

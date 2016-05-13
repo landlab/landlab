@@ -40,9 +40,9 @@ def test_input_var_names():
 @with_setup(setup_grid)
 def test_output_var_names():
     assert_equal(sorted(rad.output_var_names),
-                 ['radiation__net_shortwave',
-                  'radiation__ratio_to_flat_surface',
-                  'radiation__total_shortwave'])
+                 ['radiation__incoming_shortwave',
+                  'radiation__net_shortwave',
+                  'radiation__ratio_to_flat_surface'])
 
 
 @with_setup(setup_grid)
@@ -52,7 +52,7 @@ def test_var_units():
                  set(dict(rad.units).keys()))
 
     assert_equal(rad.var_units('topographic__elevation'), 'm')
-    assert_equal(rad.var_units('radiation__total_shortwave'), 'W/m^2')
+    assert_equal(rad.var_units('radiation__incoming_shortwave'), 'W/m^2')
     assert_equal(rad.var_units('radiation__net_shortwave'), 'W/m^2')
     assert_equal(rad.var_units('radiation__ratio_to_flat_surface'), 'None')
 
