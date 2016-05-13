@@ -228,10 +228,12 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                 neighbor_nodes = np.empty((non_boundary_nodes.size, 8), dtype=int)
                 #the target shape is (nnodes,4) & S,W,N,E,SW,NW,NE,SE
                 neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[non_boundary_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
-                neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[non_boundary_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
+                neighbor_nodes[:,4:] = grid._get_diagonal_list(bad_index=-1)[non_boundary_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
                 links_list = np.empty_like(neighbor_nodes)
                 links_list[:, :4] = grid.links_at_node[non_boundary_nodes] # Reorder as SWNE
-                links_list[:, 4:] = grid.diagonal_links_at_node().T[non_boundary_nodes,:] #SW,NW,NE,NE
+                links_list[:, 4:6] = grid._diagonal_links_at_node[non_boundary_nodes, 2:0:-1]
+                links_list[:, 6] = grid._diagonal_links_at_node[non_boundary_nodes, 0]
+                links_list[:, 7] = grid._diagonal_links_at_node[non_boundary_nodes, 3]  # final order SW,NW,NE,SE
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max/1000.)
             slope_array = (elev[non_boundary_nodes].reshape((non_boundary_nodes.size, 1)) - elevs_array)/grid.length_of_link[links_list]
             axis_indices = np.argmax(slope_array, axis=1)

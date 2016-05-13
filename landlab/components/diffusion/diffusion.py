@@ -194,7 +194,7 @@ class LinearDiffuser(Component):
         True
         >>> ld.fixed_grad_offsets.size == 0
         True
-        >>> mg.at_link['topographic__slope'] = mg.calc_grad_of_link(
+        >>> mg.at_link['topographic__slope'] = mg.calc_grad_at_link(
         ...     'topographic__elevation')
         >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
         >>> ld.updated_boundary_conditions()
@@ -246,7 +246,7 @@ class LinearDiffuser(Component):
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self.grid.active_links] = \
-                self.grid.calc_grad_of_active_link(z)
+                self.grid.calc_grad_at_active_link(z)
             # if diffusivity is an array, self.kd is already active_links-long
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])

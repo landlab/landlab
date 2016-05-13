@@ -406,8 +406,8 @@ class SinkFiller(Component):
         the *routing* method (D4/D8) if applicable.
         """
         if self._D8 is True:
-            all_poss = np.union1d(self._grid.active_neighbors_at_node(
-                lake_nodes), self._grid.get_diagonal_list(lake_nodes))
+            all_poss = np.union1d(self._grid.active_neighbors_at_node(lake_nodes),
+                                  self._grid._get_diagonal_list(lake_nodes))
         else:
             all_poss = np.unique(self._grid.active_neighbors_at_node(
                 lake_nodes))
@@ -422,7 +422,7 @@ class SinkFiller(Component):
         lee = lake_ext_edge
         if self._D8 is True:
             all_poss_int = np.union1d(self._grid.active_neighbors_at_node(lee),
-                                      self._grid.get_diagonal_list(lee))
+                                      self._grid._get_diagonal_list(lee))
         else:
             all_poss_int = np.unique(self._grid.active_neighbors_at_node(lee))
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
@@ -461,7 +461,7 @@ class SinkFiller(Component):
         ext_edge = self._get_lake_ext_margin(lake_nodes)
         if self._D8:
             edge_neighbors = np.hstack((self._grid.active_neighbors_at_node(ext_edge),
-                                        self._grid.get_diagonal_list(
+                                        self._grid._get_diagonal_list(
                                             ext_edge)))
         else:
             edge_neighbors = self._grid.active_neighbors_at_node(ext_edge).copy()

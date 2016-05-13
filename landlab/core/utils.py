@@ -275,7 +275,7 @@ def add_module_functions_to_class(cls, module, pattern=None):
     import inspect
     import imp
     import os
-
+    
     caller = inspect.stack()[1]
     path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
 
