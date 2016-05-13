@@ -41,7 +41,7 @@ Functional modules
 	*This might not work...*
 
 
-.. autoclass:: landlab.components.PET.potential_evapotranspiration_field.PotentialEvapotranspiration
+.. autoclass:: landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration
 	:members: update
 	*This component implements a model for potential evapotranspiration.*
 
