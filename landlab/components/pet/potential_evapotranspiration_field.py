@@ -121,8 +121,7 @@ class PotentialEvapotranspiration(Component):
     ----------
     grid: RasterModelGrid
         A grid.
-    method: {'Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
-             'Cosine'}, optional
+    method: {'Constant', 'PriestlyTaylor', 'MeasuredRadiationPT', 'Cosine'}, optional
         Priestly Taylor method will spit out radiation outputs too.
     priestly_taylor_constant: float, optional
         Alpha used in Priestly Taylor method.
