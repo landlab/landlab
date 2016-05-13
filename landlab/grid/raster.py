@@ -467,7 +467,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2])
-        >>> rmg.node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1, -1, -1, -1,  4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22,
                 23, 24, 25, 26],
                [-1,  0,  1,  2,  3, -1,  9, 10, 11, 12, -1, 18, 19, 20, 21, -1,
@@ -477,7 +477,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                2, 2, 2, 2, 1,
                2, 2, 2, 2, 1,
                1, 1, 1, 1, 0])
-        >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
         array([ 4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22, 23, 24, 25, 26,
                -1, -1, -1, -1, -1])
         >>> rmg._node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
@@ -485,7 +485,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                0, 2, 2, 2, 1,
                0, 2, 2, 2, 1,
                0, 1, 1, 1, 0])
-        >>> rmg.node_active_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_active_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,
                  6, 7,  8, -1],
                [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1,
@@ -495,7 +495,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                1, 2, 2, 2, 0,
                1, 2, 2, 2, 0,
                0, 0, 0, 0, 0])
-        >>> rmg.node_active_outlink_matrix # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_active_outlink_matrix # doctest: +NORMALIZE_WHITESPACE
         array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1,
                 -1, -1, -1, -1],
                [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
@@ -989,13 +989,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
-            return np.vstack((self.node_active_inlink_matrix2,
-                              self.node_active_outlink_matrix2))
+            return np.vstack((self._node_active_inlink_matrix2,
+                              self._node_active_outlink_matrix2))
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
             return (
-                np.vstack((self.node_active_inlink_matrix2[:, node_ids],
-                           self.node_active_outlink_matrix2[:, node_ids])
+                np.vstack((self._node_active_inlink_matrix2[:, node_ids],
+                           self._node_active_outlink_matrix2[:, node_ids])
                           ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
@@ -1287,7 +1287,7 @@ XXXXXXeric should be killing this with graphs.
         "from".
 
         We store the inlinks in a 2-row by num_nodes-column matrix called
-        node_inlink_matrix. It has two rows because we know that the nodes in
+        _node_inlink_matrix. It has two rows because we know that the nodes in
         our raster grid will never have more than two inlinks an two outlinks
         each (a given node could also have zero or one of either). The outlinks
         are stored in a similar matrix.
@@ -1326,10 +1326,10 @@ XXXXXXeric should be killing this with graphs.
         >>> rmg = RasterModelGrid((4, 5), 1.0)
         """
 
-        (self.node_inlink_matrix,
+        (self._node_inlink_matrix,
          self._node_numinlink) = sgrid.setup_inlink_matrix(self.shape)
 
-        (self.node_outlink_matrix,
+        (self._node_outlink_matrix,
          self._node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
 
     @deprecated(use='no replacement', version=1.0)
@@ -1343,19 +1343,19 @@ XXXXXXeric should be killing this with graphs.
         """
         node_status = self._node_status != CLOSED_BOUNDARY
 
-        (self.node_active_inlink_matrix,
+        (self._node_active_inlink_matrix,
          self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
              self.shape, node_status=node_status)
 
-        (self.node_active_outlink_matrix,
+        (self._node_active_outlink_matrix,
          self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
              self.shape, node_status=node_status)
 
-        (self.node_active_inlink_matrix2,
+        (self._node_active_inlink_matrix2,
          self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix2(
              self.shape, node_status=node_status)
 
-        (self.node_active_outlink_matrix2,
+        (self._node_active_outlink_matrix2,
          self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
              self.shape, node_status=node_status)
 
@@ -1562,24 +1562,24 @@ XXXXXXeric should be killing this with graphs.
         self._node_unit_vector_sum_y = np.zeros(self.number_of_nodes)
         # x-component contribution from inlinks
         self._node_unit_vector_sum_x += np.abs(
-            self._link_unit_vec_x[self.node_inlink_matrix[0, :]])
+            self._link_unit_vec_x[self._node_inlink_matrix[0, :]])
         self._node_unit_vector_sum_x += np.abs(
-            self._link_unit_vec_x[self.node_inlink_matrix[1, :]])
+            self._link_unit_vec_x[self._node_inlink_matrix[1, :]])
         # x-component contribution from outlinks
         self._node_unit_vector_sum_x += np.abs(
-            self._link_unit_vec_x[self.node_outlink_matrix[0, :]])
+            self._link_unit_vec_x[self._node_outlink_matrix[0, :]])
         self._node_unit_vector_sum_x += np.abs(
-            self._link_unit_vec_x[self.node_outlink_matrix[1, :]])
+            self._link_unit_vec_x[self._node_outlink_matrix[1, :]])
         # y-component contribution from inlinks
         self._node_unit_vector_sum_y += np.abs(
-            self._link_unit_vec_y[self.node_inlink_matrix[0, :]])
+            self._link_unit_vec_y[self._node_inlink_matrix[0, :]])
         self._node_unit_vector_sum_y += np.abs(
-            self._link_unit_vec_y[self.node_inlink_matrix[1, :]])
+            self._link_unit_vec_y[self._node_inlink_matrix[1, :]])
         # y-component contribution from outlinks
         self._node_unit_vector_sum_y += np.abs(
-            self._link_unit_vec_y[self.node_outlink_matrix[0, :]])
+            self._link_unit_vec_y[self._node_outlink_matrix[0, :]])
         self._node_unit_vector_sum_y += np.abs(
-            self._link_unit_vec_y[self.node_outlink_matrix[1, :]])
+            self._link_unit_vec_y[self._node_outlink_matrix[1, :]])
 
     def _make_faces_at_cell(self, *args):
         """faces_at_cell([cell_id])
@@ -1623,8 +1623,8 @@ XXXXXXeric should be killing this with graphs.
             raise ValueError()
 
         node_ids = self.node_at_cell[cell_ids]
-        inlinks = self.node_inlink_matrix[:, node_ids].T
-        outlinks = self.node_outlink_matrix[:, node_ids].T
+        inlinks = self._node_inlink_matrix[:, node_ids].T
+        outlinks = self._node_outlink_matrix[:, node_ids].T
         self._faces_at_link = np.squeeze(np.concatenate(
             (self._face_at_link[inlinks], 
              self._face_at_link[outlinks]), axis=1))
@@ -3108,10 +3108,10 @@ XXXXXXeric should be killing this with graphs.
         # Make a matrix of the links. Need to append to this the gradients *on
         # the diagonals*.
         node_links = np.vstack(
-            (gradients[self.node_active_outlink_matrix2[0][:]],
-             gradients[self.node_active_outlink_matrix2[1][:]],
-             - gradients[self.node_active_inlink_matrix2[0][:]],
-             - gradients[self.node_active_inlink_matrix2[1][:]]))
+            (gradients[self._node_active_outlink_matrix2[0][:]],
+             gradients[self._node_active_outlink_matrix2[1][:]],
+             - gradients[self._node_active_inlink_matrix2[0][:]],
+             - gradients[self._node_active_inlink_matrix2[1][:]]))
 
         # calc the gradients on the diagonals:
         diagonal_nodes = (sgrid.diagonal_node_array(

@@ -750,9 +750,9 @@ class ModelGrid(ModelDataFieldsMixIn):
     at_active_face = {}  # : Values defined at active faces
 
     # : Nodes on the other end of links pointing into a node.
-    node_inlink_matrix = numpy.array([], dtype=numpy.int32)
+    _node_inlink_matrix = numpy.array([], dtype=numpy.int32)
     # : Nodes on the other end of links pointing out of a node.
-    node_outlink_matrix = numpy.array([], dtype=numpy.int32)
+    _node_outlink_matrix = numpy.array([], dtype=numpy.int32)
 
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
@@ -1813,7 +1813,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             The ids of active links attached to grid nodes with
             *node_ids*. If *node_ids* is not given, return links for all of
             the nodes in the grid. M is the number of rows in the grid's
-            node_active_inlink_matrix, which can vary depending on the type
+            _node_active_inlink_matrix, which can vary depending on the type
             and structure of the grid; in a hex grid, for example, it is 6.
 
         Notes
@@ -1821,14 +1821,14 @@ class ModelGrid(ModelDataFieldsMixIn):
         On it's way to being obsolete. **Deprecated**.
         """
         if len(args) == 0:
-            return numpy.vstack((self.node_active_inlink_matrix,
-                                 self.node_active_outlink_matrix))
+            return numpy.vstack((self._node_active_inlink_matrix,
+                                 self._node_active_outlink_matrix))
         elif len(args) == 1:
             node_ids = numpy.broadcast_arrays(args[0])[0]
             return numpy.vstack(
-                (self.node_active_inlink_matrix[:, node_ids],
-                 self.node_active_outlink_matrix[:, node_ids])
-            ).reshape(2 * numpy.size(self.node_active_inlink_matrix, 0), -1)
+                (self._node_active_inlink_matrix[:, node_ids],
+                 self._node_active_outlink_matrix[:, node_ids])
+            ).reshape(2 * numpy.size(self._node_active_inlink_matrix, 0), -1)
         else:
             raise ValueError('only zero or one arguments accepted')
 
@@ -1850,7 +1850,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             The link IDs of active links attached to grid nodes with
             *node_ids*. If *node_ids* is not given, return links for all of
             the nodes in the grid. M is the number of rows in the grid's
-            node_active_inlink_matrix, which can vary depending on the type
+            _node_active_inlink_matrix, which can vary depending on the type
             and structure of the grid; in a hex grid, for example, it is 6.
 
         Examples
@@ -1885,14 +1885,14 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1, -1, -1, -1, -1, -1, -1]])
         """
         if len(args) == 0:
-            return numpy.vstack((self.node_active_inlink_matrix2,
-                                 self.node_active_outlink_matrix2))
+            return numpy.vstack((self._node_active_inlink_matrix2,
+                                 self._node_active_outlink_matrix2))
         elif len(args) == 1:
             node_ids = numpy.broadcast_arrays(args[0])[0]
             return numpy.vstack(
-                (self.node_active_inlink_matrix2[:, node_ids],
-                 self.node_active_outlink_matrix2[:, node_ids])
-            ).reshape(2 * numpy.size(self.node_active_inlink_matrix2, 0), -1)
+                (self._node_active_inlink_matrix2[:, node_ids],
+                 self._node_active_outlink_matrix2[:, node_ids])
+            ).reshape(2 * numpy.size(self._node_active_inlink_matrix2, 0), -1)
         else:
             raise ValueError('only zero or one arguments accepted')
 
@@ -3190,7 +3190,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         as its "from".
 
         We store the inlinks in an NM-row by num_nodes-column matrix called
-        node_inlink_matrix. NM is the maximum number of neighbors for any node.
+        _node_inlink_matrix. NM is the maximum number of neighbors for any node.
 
         We also keep track of the total number of inlinks and outlinks at each
         node in the num_inlinks and num_outlinks arrays.
@@ -3217,9 +3217,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         self.max_num_nbrs = numpy.amax(num_nbrs)
 
         # Create active in-link and out-link matrices.
-        self.node_inlink_matrix = - numpy.ones(
+        self._node_inlink_matrix = - numpy.ones(
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self.node_outlink_matrix = - numpy.ones(
+        self._node_outlink_matrix = - numpy.ones(
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
@@ -3229,7 +3229,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         counts = count_repeated_values(self.node_at_link_head)
         for (count, (tonodes, link_ids)) in enumerate(counts):
-            self.node_inlink_matrix[count][tonodes] = link_ids
+            self._node_inlink_matrix[count][tonodes] = link_ids
 
         # Set up the outlink arrays
         fromnodes = self.node_at_link_tail
@@ -3237,7 +3237,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                                               minlength=self.number_of_nodes)
         counts = count_repeated_values(self.node_at_link_tail)
         for (count, (fromnodes, link_ids)) in enumerate(counts):
-            self.node_outlink_matrix[count][fromnodes] = link_ids
+            self._node_outlink_matrix[count][fromnodes] = link_ids
 
     @deprecated(use='no replacement', version=1.0)
     def _setup_active_inlink_and_outlink_matrices(self):
@@ -3254,7 +3254,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> hg = HexModelGrid(3, 2)
         >>> hg._node_numactiveinlink
         array([0, 0, 0, 3, 1, 1, 1])
-        >>> hg.node_active_inlink_matrix2
+        >>> hg._node_active_inlink_matrix2
         array([[-1, -1, -1,  2,  6,  8,  9],
                [-1, -1, -1,  3, -1, -1, -1],
                [-1, -1, -1,  5, -1, -1, -1],
@@ -3263,7 +3263,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1, -1, -1, -1, -1, -1, -1]])
         >>> hg._node_numactiveoutlink
         array([1, 1, 1, 3, 0, 0, 0])
-        >>> hg.node_active_outlink_matrix2
+        >>> hg._node_active_outlink_matrix2
         array([[ 2,  3,  5,  6, -1, -1, -1],
                [-1, -1, -1,  8, -1, -1, -1],
                [-1, -1, -1,  9, -1, -1, -1],
@@ -3272,9 +3272,9 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1, -1, -1, -1, -1, -1, -1]])
         """
         # Create active in-link and out-link matrices.
-        self.node_active_inlink_matrix = - numpy.ones(
+        self._node_active_inlink_matrix = - numpy.ones(
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self.node_active_outlink_matrix = - numpy.ones(
+        self._node_active_outlink_matrix = - numpy.ones(
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
@@ -3284,7 +3284,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         counts = count_repeated_values(self.activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
-            self.node_active_inlink_matrix[count][tonodes] = active_link_ids
+            self._node_active_inlink_matrix[count][tonodes] = active_link_ids
 
         # Set up the outlink arrays
         fromnodes = self.activelink_fromnode
@@ -3292,7 +3292,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
-            self.node_active_outlink_matrix[count][fromnodes] = active_link_ids
+            self._node_active_outlink_matrix[count][fromnodes] = active_link_ids
 
         # THE FOLLOWING IS MEANT TO REPLACE THE ABOVE CODE, USING LINK IDS
         # FOR ACTIVE LINKS (ONLY), INSTEAD OF "ACTIVE LINK IDS". THE POINT IS
@@ -3305,9 +3305,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         # matrices, WHICH WILL EVENTUALLY REPLACE THE ONE ABOVE (AND BE
         # RENAMED TO GET RID OF THE "2")
         # TODO: MAKE THIS CHANGE ONCE CODE THAT USES IT HAS BEEN PREPPED
-        self.node_active_inlink_matrix2 = - numpy.ones(
+        self._node_active_inlink_matrix2 = - numpy.ones(
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self.node_active_outlink_matrix2 = - numpy.ones(
+        self._node_active_outlink_matrix2 = - numpy.ones(
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
@@ -3324,7 +3324,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         counts = count_repeated_values(
             self.node_at_link_head[self.active_links])
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
-            self.node_active_inlink_matrix2[count][
+            self._node_active_inlink_matrix2[count][
                 tonodes] = self.active_links[active_link_ids]
 
         # Set up the outlink arrays
@@ -3333,7 +3333,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
-            self.node_active_outlink_matrix2[count][
+            self._node_active_outlink_matrix2[count][
                 fromnodes] = self.active_links[active_link_ids]
 
     def _create_link_unit_vectors(self):
@@ -3394,8 +3394,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         # Create the arrays for unit vectors for each link. These each get an
         # additional array element at the end with the value zero. This allows
-        # any references to "link ID -1" in the node_inlink_matrix and
-        # node_outlink_matrix to refer to the zero value in this extra element,
+        # any references to "link ID -1" in the _node_inlink_matrix and
+        # _node_outlink_matrix to refer to the zero value in this extra element,
         # so that when we're summing up link unit vectors, or multiplying by a
         # nonexistent unit vector, we end up just treating these as zero.
         self._link_unit_vec_x = numpy.zeros(self.number_of_links + 1)
@@ -3414,16 +3414,16 @@ class ModelGrid(ModelDataFieldsMixIn):
         # These will be useful in averaging link-based vectors at the nodes.
         self._node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
         self._node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
-        max_num_inlinks_per_node = numpy.size(self.node_inlink_matrix, 0)
+        max_num_inlinks_per_node = numpy.size(self._node_inlink_matrix, 0)
         for i in range(max_num_inlinks_per_node):
             self._node_unit_vector_sum_x += abs(
-                self._link_unit_vec_x[self.node_inlink_matrix[i, :]])
+                self._link_unit_vec_x[self._node_inlink_matrix[i, :]])
             self._node_unit_vector_sum_y += abs(
-                self._link_unit_vec_y[self.node_inlink_matrix[i, :]])
+                self._link_unit_vec_y[self._node_inlink_matrix[i, :]])
             self._node_unit_vector_sum_x += abs(
-                self._link_unit_vec_x[self.node_outlink_matrix[i, :]])
+                self._link_unit_vec_x[self._node_outlink_matrix[i, :]])
             self._node_unit_vector_sum_y += abs(
-                self._link_unit_vec_y[self.node_outlink_matrix[i, :]])
+                self._link_unit_vec_y[self._node_outlink_matrix[i, :]])
 
     @property
     def unit_vector_xcomponent_at_link(self):
@@ -3621,7 +3621,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         To do this calculation efficiently, we use the following algorithm::
 
-            FOR each row in node_inlink_matrix (representing one inlink @ each
+            FOR each row in _node_inlink_matrix (representing one inlink @ each
             node)
                 Multiply the link's q value by its unit x component ...
                 ... divide by node's unit vector sum in x ...
@@ -3698,16 +3698,16 @@ class ModelGrid(ModelDataFieldsMixIn):
         qy[:self.number_of_links] = q * \
             self.link_unit_vec_y[:self.number_of_links]
 
-        # Loop over each row in the node_inlink_matrix and node_outlink_matrix.
+        # Loop over each row in the _node_inlink_matrix and _node_outlink_matrix.
         # This isn't a big loop! In a raster grid, these have only two rows
         # each; in an unstructured grid, it depends on the grid geometry;
         # for a hex grid, there are up to 6 rows.
-        n_matrix_rows = numpy.size(self.node_inlink_matrix, 0)
+        n_matrix_rows = numpy.size(self._node_inlink_matrix, 0)
         for i in range(n_matrix_rows):
-            node_vec_x += qx[self.node_inlink_matrix[i, :]]
-            node_vec_x += qx[self.node_outlink_matrix[i, :]]
-            node_vec_y += qy[self.node_inlink_matrix[i, :]]
-            node_vec_y += qy[self.node_outlink_matrix[i, :]]
+            node_vec_x += qx[self._node_inlink_matrix[i, :]]
+            node_vec_x += qx[self._node_outlink_matrix[i, :]]
+            node_vec_y += qy[self._node_inlink_matrix[i, :]]
+            node_vec_y += qy[self._node_outlink_matrix[i, :]]
         node_vec_x /= self.node_unit_vector_sum_x
         node_vec_y /= self.node_unit_vector_sum_y
 

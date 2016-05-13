@@ -252,10 +252,10 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     flux[horiz_links] = active_link_flux[~ is_vert_link] * grid.dx
 
     net_unit_flux[:] = (
-        (flux[grid.node_active_outlink_matrix2[0][:]] +
-         flux[grid.node_active_outlink_matrix2[1][:]]) -
-        (flux[grid.node_active_inlink_matrix2[0][:]] +
-         flux[grid.node_active_inlink_matrix2[1][:]])) / grid.cellarea
+        (flux[grid._node_active_outlink_matrix2[0][:]] +
+         flux[grid._node_active_outlink_matrix2[1][:]]) -
+        (flux[grid._node_active_inlink_matrix2[0][:]] +
+         flux[grid._node_active_inlink_matrix2[1][:]])) / grid.cellarea
 
     return net_unit_flux
 
