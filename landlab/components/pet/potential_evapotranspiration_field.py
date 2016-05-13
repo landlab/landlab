@@ -86,18 +86,20 @@ from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
+
 _VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
                       'Cosine'])
 
 
-def assert_method_is_valid(method):
+def _assert_method_is_valid(method):
     if method not in _VALID_METHODS:
         raise ValueError('%s: Invalid method name' % method)
 
 
 class PotentialEvapotranspiration(Component):
 
-    """
+    """Calculate spatially distributed potential evapotranspiration.
+
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial
     distribution of incoming radiation) using chosen method such as constant 
@@ -107,6 +109,7 @@ class PotentialEvapotranspiration(Component):
     longwave radiation fields.
 
     Construction::
+
         PotentialEvapotranspiration(grid, method='Cosine',
             priestly_taylor_const=1.26, albedo=0.6,
             latent_heat_of_vaporization=28.34, psychometric_const=0.066,
@@ -178,8 +181,8 @@ class PotentialEvapotranspiration(Component):
     2
     >>> PET.grid is grid
     True
-    >>> np.all(\
-            grid.at_cell['surface__potential_evapotranspiration_rate'] == 0.)
+    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
+    >>> np.allclose(pet_rate, 0.)
     True
     >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
     ...       0.38488566, 0.38488566,
@@ -187,8 +190,7 @@ class PotentialEvapotranspiration(Component):
     ...       0.37381705, 0.37381705])
     >>> current_time = 0.5
     >>> PET.update(current_time)
-    >>> np.all(\
-            grid.at_cell['surface__potential_evapotranspiration_rate'] == 0.)
+    >>> np.allclose(pet_rate, 0.)
     False
     """
 
@@ -297,7 +299,7 @@ class PotentialEvapotranspiration(Component):
         self._TmaxF_mean = MeanTmaxF
         self._DeltaD = delta_d
 
-        assert_method_is_valid(self._method)
+        _assert_method_is_valid(self._method)
 
         super(PotentialEvapotranspiration, self).__init__(grid, **kwds)
 
@@ -348,7 +350,7 @@ class PotentialEvapotranspiration(Component):
         self._PET = (
             self._PET_value *
             self._cell_values['radiation__ratio_to_flat_surface'])
-        self._cell_values['surface__potential_evapotranspiration_rate'] = (
+        self._cell_values['surface__potential_evapotranspiration_rate'][:] = (
             self._PET)
 
     def _PriestlyTaylor(self, current_time, Tmax, Tmin, Tavg):
