@@ -6,7 +6,8 @@ from six.moves import range
 from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
                                INACTIVE_LINK)
 from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
-                                argsort_points_by_x_then_y)
+                                argsort_points_by_x_then_y,
+                                anticlockwise_argsort_points)
 from .decorators import return_readonly_id_array
 
 from scipy.spatial import Voronoi
@@ -192,8 +193,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts[:, 0] = x
         pts[:, 1] = y
         self.pts = sort_points_by_x_then_y(pts)
-        x = pts[:, 0]
-        y = pts[:, 1]
+        x = self.pts[:, 0]
+        y = self.pts[:, 1]
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -222,7 +223,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
-        vor = Voronoi(pts)
+        vor = Voronoi(self.pts)
         self.vor = vor
         self._area_of_cell = numpy.zeros(self.number_of_cells)
         for node in self._node_at_cell:
@@ -250,7 +251,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._reorient_links_upper_right()
 
         # LINKS: Calculate link lengths
-        self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
+        self._link_length = calculate_link_lengths(self.pts,
+                                                   self.node_at_link_tail,
                                                    self.node_at_link_head)
 
         # LINKS: inlink and outlink matrices
@@ -672,7 +674,28 @@ class VoronoiDelaunayGrid(ModelGrid):
         assert numpy.array_equal(tri.points, vor.points)
         nodata = -1
         self._nodes_at_patch = tri.simplices
+        # self._nodes_at_patch = numpy.empty_like(_nodes_at_patch)
         self._number_of_patches = tri.simplices.shape[0]
+        # get the patches in order:
+        patches_xy = numpy.empty((self._number_of_patches, 2), dtype=float)
+        patches_xy[:, 0] = numpy.mean(self.node_x[self._nodes_at_patch],
+                                      axis=1)
+        patches_xy[:, 1] = numpy.mean(self.node_y[self._nodes_at_patch],
+                                      axis=1)
+        orderforsort = argsort_points_by_x_then_y(patches_xy)
+        self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
+        patches_xy = patches_xy[orderforsort, :]
+        # get the nodes around the patch in order:
+        nodes_xy = numpy.empty((3, 2), dtype=float)
+        for i in range(self._number_of_patches):
+            these_nodes = self._nodes_at_patch[i]
+            nodes_xy[:, 0] = self.node_x[these_nodes]
+            nodes_xy[:, 1] = self.node_y[these_nodes]
+            sortorder = anticlockwise_argsort_points(nodes_xy)
+            try:
+                self._nodes_at_patch[i, :] = these_nodes[sortorder]
+            except TypeError:  # sortorder was an int
+                pass
         max_dimension = 0
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of

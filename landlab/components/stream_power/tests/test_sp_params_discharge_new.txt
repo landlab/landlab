@@ -28,5 +28,5 @@ n_sp:
 threshold_sp:
 0.
 use_Q:
-water__volume_flux
+water__discharge
 
