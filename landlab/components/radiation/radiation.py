@@ -251,7 +251,7 @@ class Radiation(Component):
             self.grid.add_zeros('Slope', at='cell', units='radians')
 
         if 'Aspect' not in self.grid.at_cell:
-            self.grid.add_zeros('Aspect', at'cell', units='radians')
+            self.grid.add_zeros('Aspect', at='cell', units='radians')
 
         self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
