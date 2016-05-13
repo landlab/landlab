@@ -27,7 +27,7 @@ def neighbor_active_link_at_cell(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    links = grid.active_links_at_node(node_ids).T
+    links = grid._active_links_at_node(node_ids).T
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -252,10 +252,10 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     flux[horiz_links] = active_link_flux[~ is_vert_link] * grid.dx
 
     net_unit_flux[:] = (
-        (flux[grid.node_active_outlink_matrix2[0][:]] +
-         flux[grid.node_active_outlink_matrix2[1][:]]) -
-        (flux[grid.node_active_inlink_matrix2[0][:]] +
-         flux[grid.node_active_inlink_matrix2[1][:]])) / grid.cellarea
+        (flux[grid._node_active_outlink_matrix2[0][:]] +
+         flux[grid._node_active_outlink_matrix2[1][:]]) -
+        (flux[grid._node_active_inlink_matrix2[0][:]] +
+         flux[grid._node_active_inlink_matrix2[1][:]])) / grid.cellarea
 
     return net_unit_flux
 
