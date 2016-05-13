@@ -1,4 +1,5 @@
-"""Landlab component that simulates incident shortwave radiation.
+"""Landlab component that simulates relative incidence shortwave radiation
+on sloped surface.
 
 Landlab component that computes 1D and 2D total incident shortwave
 radiation. This code also computes relative incidence shortwave radiation
@@ -6,7 +7,7 @@ compared to a flat surface. Ref: Flores-Cervantes et al., 2012
 
 .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu
 
- Examples
+Examples
 --------
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
@@ -53,21 +54,21 @@ Check the output variable names
 >>> sorted(Radiation.output_var_names)
 ['radiation__net_shortwave',
  'radiation__ratio_to_flat_surface',
- 'radiation__total_shortwave']
+ 'radiation__incoming_shortwave']
 
 Instantiate the 'Radiation' component to work on this grid, and run it.
 
->>> rad = Radiation( grid )
+>>> rad = Radiation(grid)
 
 Run the *update* method to update output variables with current time
 >>> current_time = 0.5
->>> rad.update( current_time )
+>>> rad.update(current_time)
 
 >>> rad.grid.at_cell['radiation__ratio_to_flat_surface']
 array([ 0.38488566,  0.38488566,  0.33309785,  0.33309785,  0.37381705,
         0.37381705])
 
->>> rad.grid.at_cell['radiation__total_shortwave']
+>>> rad.grid.at_cell['radiation__incoming_shortwave']
 array([ 398.33664988,  398.33664988,  344.73895668,  344.73895668,
         386.88120966,  386.88120966])
 """
@@ -129,11 +130,11 @@ class Radiation(Component):
     >>> sorted(rad.output_var_names)
     ['radiation__net_shortwave',
      'radiation__ratio_to_flat_surface',
-     'radiation__total_shortwave']
+     'radiation__incoming_shortwave']
     >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
     [('radiation__net_shortwave', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
-     ('radiation__total_shortwave', 'W/m^2'),
+     ('radiation__incoming_shortwave', 'W/m^2'),
      ('topographic__elevation', 'm')]
 
     >>> rad.grid.number_of_node_rows
@@ -150,7 +151,7 @@ class Radiation(Component):
     >>> grid['node']['topographic__elevation'] = np.array([
     ...       0., 0., 0., 0.,
     ...       1., 1., 1., 1.,
-    ...       2., 2., 2., 2., 
+    ...       2., 2., 2., 2.,
     ...       3., 4., 4., 3.,
     ...       4., 4., 4., 4.])
     >>> current_time = 0.5
@@ -166,21 +167,21 @@ class Radiation(Component):
     )
 
     _output_var_names = (
-        'radiation__total_shortwave',
+        'radiation__incoming_shortwave',
         'radiation__ratio_to_flat_surface',
         'radiation__net_shortwave',
     )
 
     _var_units = {
         'topographic__elevation': 'm',
-        'radiation__total_shortwave': 'W/m^2',
+        'radiation__incoming_shortwave': 'W/m^2',
         'radiation__ratio_to_flat_surface': 'None',
         'radiation__net_shortwave': 'W/m^2',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
-        'radiation__total_shortwave': 'cell',
+        'radiation__incoming_shortwave': 'cell',
         'radiation__ratio_to_flat_surface': 'cell',
         'radiation__net_shortwave': 'cell',
     }
@@ -188,7 +189,7 @@ class Radiation(Component):
     _var_doc = {
         'topographic__elevation':
             'elevation of the ground surface relative to some datum',
-        'radiation__total_shortwave':
+        'radiation__incoming_shortwave':
             'total incident shortwave radiation over the time step',
         'radiation__ratio_to_flat_surface':
             'ratio of total incident shortwave radiation on sloped surface \
@@ -272,7 +273,7 @@ class Radiation(Component):
         """
         self._t = hour
         self._radf = self._cell_values['radiation__ratio_to_flat_surface']
-        self._Rs = self._cell_values['radiation__total_shortwave']
+        self._Rs = self._cell_values['radiation__incoming_shortwave']
         self._Rnet = self._cell_values['radiation__net_shortwave']
 
         self._julian = np.floor((current_time - np.floor(current_time)) *
@@ -297,9 +298,9 @@ class Radiation(Component):
                 1/np.sin(self._alpha))))
         # Counting for Albedo, Cloudiness and Atmospheric turbidity
 
-        self._phisun = np.arctan(-np.sin(self._tau)/(np.tan(self._delta) *
-                    np.cos(self._phi) - np.sin(self._phi) *
-                        np.cos(self._tau)))  # Sun's Azhimuth
+        self._phisun = (np.arctan(-np.sin(self._tau)/(np.tan(self._delta) *
+                        np.cos(self._phi) - np.sin(self._phi) *
+                        np.cos(self._tau))))  # Sun's Azhimuth
 
         if (self._phisun >= 0 and -np.sin(self._tau) <= 0):
             self._phisun = self._phisun + np.pi
@@ -332,5 +333,5 @@ class Radiation(Component):
         self._Rnet = self._Rnetflat * self._radf
 
         self._cell_values['radiation__ratio_to_flat_surface'] = self._radf
-        self._cell_values['radiation__total_shortwave'] = self._Rs
+        self._cell_values['radiation__incoming_shortwave'] = self._Rs
         self._cell_values['radiation__net_shortwave'] = self._Rnet
