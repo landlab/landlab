@@ -439,14 +439,14 @@ def sort_points_by_x_then_y(pts):
     return pts
 
 
-def get_categories_from_grid_methods(raster_type):
+def get_categories_from_grid_methods(grid_type):
     """
     Create a dict of category:[method_names] for a LL grid type.
 
     Looks in the final line of the docstrings
-    of class methods for a catgory declaration, "LLCATS: ". It then creates and
-    returns a dict with keys found as categories and values that are lists
-    of the names of methods that have that category.
+    of class methods and propoerties  for a catgory declaration, "LLCATS: ".
+    It then creates and returns a dict with keys found as categories and
+    values that are lists of the names of methods that have that category.
 
     Currently defined LLCATS are:
         DEPR : deprecated
@@ -459,6 +459,7 @@ def get_categories_from_grid_methods(raster_type):
         CNINF : information about corners
         FIELDIO : methods to access and change fields
         FIELDADD : methods to create new fields/delete old fields
+        FIELDINF : information about fields (keys, names, etc)
         GRAD : methods for gradients, fluxes, divergences and slopes
         MAP : methods to map from one element type to another
         BC : methods to interact with BCs
@@ -471,8 +472,8 @@ def get_categories_from_grid_methods(raster_type):
 
     Parameters
     ----------
-    raster_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
-                   'RadialModelGrid', 'VoronoiDelaunayGrid'}
+    grid_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
+                 'RadialModelGrid', 'VoronoiDelaunayGrid'}
         String of raster to inspect.
 
     Returns
@@ -483,6 +484,9 @@ def get_categories_from_grid_methods(raster_type):
     grid_dict : dict
         Dictionary with method name strings as keys and lists of cats as
         values.
+    FAILS : dict of dicts
+        contains any problematic LLCAT entries. Keys: 'MISSING' - list of names
+        of any public method or property without an LLCAT declared.
     """
     import inspect
     import re
@@ -497,7 +501,8 @@ def get_categories_from_grid_methods(raster_type):
                         'VoronoiDelaunayGrid': VoronoiDelaunayGrid}
     grid_dict = {}
     cat_dict = {}
-    grid = grid_str_to_grid[raster_type]
+    FAILS = {'MISSING': []}
+    grid = grid_str_to_grid[grid_type]
     funcs = {}
     for name, func in inspect.getmembers(grid):
         funcs[name] = func
@@ -512,6 +517,7 @@ def get_categories_from_grid_methods(raster_type):
                 pass
             else:
                 if cat_str is None:
+                    FAILS['MISSING'].append(method_name)
                     continue
                 cats = cat_str.group().split()[1:]
                 grid_dict[method_name] = copy(cats)
@@ -521,7 +527,7 @@ def get_categories_from_grid_methods(raster_type):
                     except KeyError:
                         cat_dict[cat] = [method_name, ]
 
-    return cat_dict, grid_dict
+    return cat_dict, grid_dict, FAILS
 
 if __name__=='__main__':
     import doctest
