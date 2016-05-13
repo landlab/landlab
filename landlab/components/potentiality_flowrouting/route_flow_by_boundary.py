@@ -180,17 +180,24 @@ class PotentialityFlowRouter(Component):
         self._core = (slice(1,-1),slice(1,-1))
         self._corecore = (slice(2,-2),slice(2,-2)) #the actual, LL-sense core (interior) nodes of the grid
 
+        # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
-            if self._var_mapping[out_field]=='node':
+            if self._var_mapping[out_field] == 'node':
                 try:
-                    self._grid.at_node[out_field]
+                    self.grid.add_zeros(self._var_mapping[out_field],
+                                        out_field, dtype=float)
                 except FieldError:
-                    self._grid.at_node[out_field] = np.empty(self._grid.number_of_nodes, dtype=float)
-            elif self._var_mapping[out_field]=='link':
-                try:
-                    self._grid.at_link[out_field]
-                except FieldError:
-                    self._grid.at_link[out_field] = np.empty(self._grid.number_of_links, dtype=float)
+                    pass
+            else:
+                pass
+            try:
+                self.grid.add_zeros('node', 'water__discharge', dtype=float)
+            except FieldError:
+                pass
+            try:
+                self.grid.add_zeros('link', 'water__discharge', dtype=float)
+            except FieldError:
+                pass
 
         #make and store a 2d reference for node BCs
         self._BCs = 4*np.ones_like(self.elev_raster)

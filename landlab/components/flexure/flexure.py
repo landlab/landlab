@@ -104,8 +104,8 @@ class Flexure(Component):
     >>> flex.output_var_names
     ('lithosphere_surface__elevation_increment',)
     >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
-    [('lithosphere_surface__elevation_increment', 'm'),
-     ('lithosphere__overlying_pressure_increment', 'Pa')]
+    [('lithosphere__overlying_pressure_increment', 'Pa'),
+     ('lithosphere_surface__elevation_increment', 'm')]
 
     >>> flex.grid.number_of_node_rows
     5
