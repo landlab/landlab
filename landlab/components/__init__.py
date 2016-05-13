@@ -15,16 +15,17 @@ from .uniform_precip import PrecipitationDistribution
 from .gflex import gFlex
 # from .vegetation_ca import VegCA
 # from .soil_moisture import SoilMoisture
-# from .radiation import Radiation
+from .radiation import Radiation
 # from .single_vegetation import Vegetation
-# from .pet import PotentialEvapotranspiration
+from .pet import PotentialEvapotranspiration
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
-              PerronNLDiffuse, OverlandFlowBates,
-              OverlandFlow, PotentialityFlowRouter, SinkFiller,
-              StreamPowerEroder, FastscapeEroder, SedDepEroder,
+              PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
+              PotentialEvapotranspiration,PotentialityFlowRouter,
+              Radiation, SinkFiller, StreamPowerEroder,
+              FastscapeEroder, SedDepEroder,
               SteepnessFinder, DetachmentLtdErosion, gFlex]
 
 
