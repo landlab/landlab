@@ -235,7 +235,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # "from" and "to" nodes.
         (self._node_at_link_tail,
          self._node_at_link_head,
-         self.active_links_ids,
+         _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
