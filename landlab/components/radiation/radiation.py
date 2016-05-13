@@ -241,17 +241,17 @@ class Radiation(Component):
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:
-                self.grid.add_zeros('node', name, units=self._var_units[name])
+                self.grid.add_zeros(name, at='node', units=self._var_units[name])
 
         for name in self._output_var_names:
             if name not in self.grid.at_cell:
-                self.grid.add_zeros('cell', name, units=self._var_units[name])
+                self.grid.add_zeros(name, at='cell', units=self._var_units[name])
 
         if 'Slope' not in self.grid.at_cell:
-            self.grid.add_zeros('cell', 'Slope', units='radians')
+            self.grid.add_zeros('Slope', at='cell', units='radians')
 
         if 'Aspect' not in self.grid.at_cell:
-            self.grid.add_zeros('cell', 'Aspect', units='radians')
+            self.grid.add_zeros('Aspect', at'cell', units='radians')
 
         self._nodal_values = self.grid['node']
         self._cell_values = self.grid['cell']
