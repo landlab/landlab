@@ -432,7 +432,7 @@ from .decorators import (override_array_setitem_and_reset, return_id_array,
                          return_readonly_id_array)
 
 #: Indicates an index is, in some way, *bad*.
-BAD_INDEX_VALUE = numpy.iinfo(numpy.int32).max
+BAD_INDEX_VALUE = -1
 # DEJH thinks the user should be able to override this value if they want
 
 # Map names grid elements to the ModelGrid attribute that contains the count

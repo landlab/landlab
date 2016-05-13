@@ -152,7 +152,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     ordered as right, top, left, and bottom.
 
     Note that the returned gradients are masked to exclude neighbor nodes which
-    are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
+    are closed. Beneath the mask is the value -1.
 
     Construction::
 
@@ -217,7 +217,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
         neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
+        values_at_neighbors, mask=neighbors == BAD_INDEX_VALUE)
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
@@ -305,7 +305,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     negative.
 
     Note that the returned gradients are masked to exclude neighbor nodes which
-    are closed. Beneath the mask is the value numpy.iinfo(numpy.int32).max.
+    are closed. Beneath the mask is the value -1.
 
     Construction::
 

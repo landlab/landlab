@@ -15,7 +15,7 @@ from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.field.scalar_data_fields import FieldError
 from scipy.optimize import newton, fsolve
 
-UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
+UNDEFINED_INDEX = -1
 
 
 class FastscapeEroder(Component):
