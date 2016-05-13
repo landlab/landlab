@@ -25,6 +25,7 @@ for grid_type in grid_types:
 
 auto_index = (
 '''
+
 .. _auto_index:
 
 =================================
@@ -32,8 +33,8 @@ Landlab grid method documentation
 =================================
 
 This is structured documentation built to describe methods that users will
-find useful when working with Landlab's grids. It is structured first by the
-kind of action you are trying to perform using the grid, then further
+find useful when working with Landlab's grids. It is structured first by
+the kind of action you are trying to perform using the grid, then further
 subdivided by grid type.
 
 Where a grid method is relevant in multiple places, it will be listed
@@ -46,40 +47,51 @@ LLCATS system.
 Getting Information about a Grid
 ================================
 
-These methods give information about the grid and its individual elements:
-numbers of elements present, and quantifying their properties (size, shape,
-orientation).
+:ref:`These methods <auto_whole_grid_info>` give information about the grid
+and its individual elements: numbers of elements present, and quantifying
+their properties (size, shape, orientation).
 
-Information about the grid as a whole
+:ref:`Getting information about a grid <auto_whole_grid_info>`
+
 Information about nodes
+
 Information about links
+
 Information about patches
+
 Information about cells
+
 Information about faces
+
 Information about corners
 
 
 Element Connectivity
 ====================
 
-These methods describe the topology of the grid: how the elements fit together,
-which joins to which, and what the neighbors of each element are.
+These methods describe the topology of the grid: how the elements fit
+together, which joins to which, and what the neighbors of each element are.
 
 Connections to nodes
+
 Connections to links
+
 Connections to patches
+
 Connections to cells
+
 Connections to faces
+
 Connections to corners
 
 
 Data Fields in ModelGrid
 ========================
 
-Landlab fields store the values of data defined on the elements of a Landlab
-grid. Grid fields are the primary mechanism by which Landlab components
-share data between themselves. These methods describe how to create, interact
-with, and delete fields.
+Landlab fields store the values of data defined on the elements of a
+Landlab grid. Grid fields are the primary mechanism by which Landlab
+components share data between themselves. These methods describe how to
+create, interact with, and delete fields.
 
 Creating and deleting fields
 Access and modify data in an existing field
@@ -88,15 +100,15 @@ Access and modify data in an existing field
 Gradients, Fluxes, and Divergences on the Grid
 ==============================================
 
-These methods allow calculation of differences, gradients, fluxes, divergences,
-and similar operations on data defined across a Landlab grid.
+These methods allow calculation of differences, gradients, fluxes,
+divergences, and similar operations on data defined across a Landlab grid.
 
 
 Surface analysis
 ================
 
-These methods provide GIS-like methods to describe a surface defined over the
-grid, for example, mean local slopes, aspects, and hillshades.
+These methods provide GIS-like methods to describe a surface defined over
+the grid, for example, mean local slopes, aspects, and hillshades.
 
 
 Mapping between Elements
@@ -130,83 +142,60 @@ These methods will help.
 
 ''')
 
+f = open('./auto_index.rst', "wb")
+f.write(auto_index)
+f.close()
+
+grid_inf_subheads = (
+    'Information about the grid as a whole', 'Information about nodes',
+    'Information about links', 'Information about patches',
+    'Information about cells', 'Information about faces',
+    'Information about corners')
+
 grid_info__main = (
 '''
+
+.. _auto_whole_grid_info:
+
 Getting Information about a Grid
 ================================
 
-The following attributes, properties, and methods provide data about the grid,
-its geometry, and the connectivity among the various elements. Each grid
-element has an ID number, which is also its position in an array that
+The following attributes, properties, and methods provide data about the
+grid, its geometry, and the connectivity among the various elements. Each
+grid element has an ID number, which is also its position in an array that
 contains information about that type of element. For example, the *x*
 coordinate of node 5 would be found at `grid.node_x[5]`.
 
-The naming of grid-element arrays is *attribute*`_at_`*element*, where
-*attribute* is the name of the data in question, and *element* is the element
-to which the attribute applies. For example, the property `node_at_cell`
-contains the ID of the node associated with each cell. For example,
-`node_at_cell[3]` contains the *node ID* of the node associated with cell 3.
-The *attribute* is singular if there is only one value per element; for
-example, there is only one node associated with each cell. It is plural when
-there are multiple values per element; for example, the `faces_at_cell` array
-contains multiple faces for each cell. Exceptions to these general rules are
-functions that return indices of a subset of all elements of a particular type.
+The naming of grid-element arrays is `[attribute]_at_[element]`, where
+`attribute` is the name of the data in question, and `element` is the
+element to which the attribute applies. For example, the property
+`node_at_cell` contains the ID of the node associated with each cell. For
+example, `node_at_cell[3]` contains the node ID of the node associated
+with cell 3.
+The attribute is singular if there is only one value per element; for
+example, there is only one node associated with each cell. It is plural
+when there are multiple values per element; for example, the
+`faces_at_cell` array contains multiple faces for each cell. Exceptions to
+these general rules are functions that return indices of a subset of
+all elements of a particular type.
 For example, you can obtain an array with IDs of only the core nodes using
 `core_nodes`, while `active_links` provides an array of IDs of active links
-(only). Finally, attributes that represent a measurement of something, such as
-the length of a link or the surface area of a cell, are described using `_of_`,
-as in the example `area_of_cell`.
+(only). Finally, attributes that represent a measurement of something, such
+as the length of a link or the surface area of a cell, are described using
+`_of_`, as in the example `area_of_cell`.
 
-Information about the grid as a whole
--------------------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
-    
-Information about nodes
------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
-
-Information about links
------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
-
-Information about patches
--------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
-
-Information about cells
------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
-
-Information about faces
------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
-
-Information about corners
--------------------------
-    Raster
-    Irregular Voronoi-cell
-    Hexagonal
-    Radial
 
 ''')
+
+for subhead, grid in zip(grid_inf_subheads, grid_types[1:]):
+    grid_info__main += subhead + '\n' + '-'*len(subhead) + '\n\n'
+    for subsub in str_sequence:
+        grid_info__main += '    :ref:`' + subsub + ' <GINF_' + grid + '>` \n'
+    grid_info__main += '\n\n'
+
+f = open('./auto_grid_info__main.rst', "wb")
+f.write(grid_info__main)
+f.close()
 
 grid_info__whole_grid_0 = (
 '''
@@ -216,8 +205,8 @@ Information about the grid as a whole
 ''')
 for grid, print_name, path in zip(grid_types[1:], str_sequence, paths):
     grid_info__whole_grid_0 += (
-        '\n' + print_name + '\n' + '-'*len(print_name) + '\n\n' +
-        autosummary + '\n\n')
+        '\n' + '.. _GINF_' + grid + ':\n\n' +
+        print_name + '\n' + '-'*len(print_name) + autosummary)
     allmethsGINF = all_methods_for_cat_allgrid[grid]['GINF']
     allmethsGINF.sort()
     for meth in allmethsGINF:
@@ -227,7 +216,7 @@ for grid, print_name, path in zip(grid_types[1:], str_sequence, paths):
             )
     grid_info__whole_grid_0 += '\n\n'
 
-f = open('./test_raster_out.rst', "wb")
+f = open('./auto_grid_info__whole_grid_0.rst', "wb")
 f.write(grid_info__whole_grid_0)
 f.close()
 
