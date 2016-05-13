@@ -324,7 +324,7 @@ def test_filler_inclined2():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow()
-    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
+    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid4)
@@ -345,7 +345,7 @@ def test_stupid_shaped_hole():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow()
-    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
+    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid5)
@@ -368,7 +368,7 @@ def test_D4_routing():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow(method='D4')
-    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
+    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid5)

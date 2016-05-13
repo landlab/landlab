@@ -48,7 +48,7 @@ class DepressionFinderAndRouter(Component):
     Note the routing part of this component is not yet compatible with
     irregular grids.
 
-    The prinary method of this class is *map_depressions(pits='flow_sinks',
+    The prinary method of this class is *map_depressions(pits='flow__sink_flag',
     reroute_flow=True)*.
 
     Construction::
@@ -130,12 +130,12 @@ class DepressionFinderAndRouter(Component):
 
     _name = 'DepressionFinderAndRouter'
 
-    _input_var_names = set(['topographic__elevation',
-                            ])
+    _input_var_names = ('topographic__elevation',
+                        )
 
-    _output_var_names = set(['depression__depth',
-                             'depression__outlet_node',
-                             ])
+    _output_var_names = ('depression__depth',
+                         'depression__outlet_node',
+                         )
 
     _var_units = {'topographic__elevation': 'm',
                   'depression__depth': 'm',
@@ -564,7 +564,7 @@ class DepressionFinderAndRouter(Component):
         self.unique_lake_outlets = np.array(self.depression_outlets
                                             )[self._unique_pits]
 
-    def map_depressions(self, pits='flow_sinks', reroute_flow=True):
+    def map_depressions(self, pits='flow__sink_flag', reroute_flow=True):
         """Map depressions/lakes in a topographic surface.
 
         Parameters
@@ -574,7 +574,7 @@ class DepressionFinderAndRouter(Component):
             If an array, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
             boundary nodes are flagged as pits; they are never treated as such.
-            Default is 'flow_sinks', the pit field output from 'route_flow_dn'
+            Default is 'flow__sink_flag', the pit field output from 'route_flow_dn'
         reroute_flow : bool, optional
             If True (default), and the component detects the output fields in
             the grid produced by the route_flow_dn component, this component
@@ -642,9 +642,9 @@ class DepressionFinderAndRouter(Component):
 
         self._identify_depressions_and_outlets()
 
-        if reroute_flow and ('flow_receiver' in self._grid.at_node.keys()):
-            self.receivers = self._grid.at_node['flow_receiver']
-            self.sinks = self._grid.at_node['flow_sinks']
+        if reroute_flow and ('flow__receiver_node' in self._grid.at_node.keys()):
+            self.receivers = self._grid.at_node['flow__receiver_node']
+            self.sinks = self._grid.at_node['flow__sink_flag']
             self.grads = self._grid.at_node['topographic__steepest_slope']
             self._route_flow()
             self._reaccumulate_flow()
@@ -713,8 +713,8 @@ class DepressionFinderAndRouter(Component):
                                                        runoff_rate=Q_in)
         # finish the property updating:
         self._grid.at_node['drainage_area'][:] = self.a
-        self._grid.at_node['water__volume_flux'][:] = q
-        self._grid.at_node['upstream_node_order'][:] = s
+        self._grid.at_node['water__discharge'][:] = q
+        self._grid.at_node['flow__upstream_node_order'][:] = s
         # ## TODO: No obvious easy way to recover the receiver_link.
         # ## Think more on this.
         # ## Right now, we're just not updating it.

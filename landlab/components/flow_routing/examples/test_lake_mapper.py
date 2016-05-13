@@ -33,7 +33,7 @@ fr.route_flow()
 figure('old drainage area')
 imshow_node_grid(mg, 'drainage_area')
 
-lf.map_depressions(pits=mg.at_node['flow_sinks'])
+lf.map_depressions(pits=mg.at_node['flow__sink_flag'])
 
 figure('depression depth')
 imshow_node_grid(mg, 'depression__depth')

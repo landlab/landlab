@@ -75,7 +75,7 @@ class SinkFiller(Component):
     ...                      units='-', copy=True)
     >>> fr = FlowRouter(mg)
     >>> fr.run_one_step()
-    >>> mg.at_node['flow_sinks'][mg.core_nodes].sum()
+    >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
     14
     >>> hf = SinkFiller(mg, apply_slope=False)
     >>> hf.run_one_step()
@@ -98,17 +98,17 @@ class SinkFiller(Component):
     >>> np.allclose(mg.at_node['topographic__elevation'][lake2], hole2)
     True
     >>> fr.run_one_step()
-    >>> mg.at_node['flow_sinks'][mg.core_nodes].sum()
+    >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
     0
     """
     _name = 'SinkFiller'
 
-    _input_var_names = set(['topographic__elevation',
-                            ])
+    _input_var_names = ('topographic__elevation',
+                        )
 
-    _output_var_names = set(['topographic__elevation',
-                             'sediment_fill__depth',
-                             ])
+    _output_var_names = ('topographic__elevation',
+                         'sediment_fill__depth',
+                         )
 
     _var_units = {'topographic__elevation': 'm',
                   'sediment_fill__depth': 'm',
@@ -235,7 +235,7 @@ class SinkFiller(Component):
                 spurious_fields.add(field)
 
         self._fr.route_flow()
-        self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
+        self._lf.map_depressions(pits=self._grid.at_node['flow__sink_flag'],
                                  reroute_flow=True)
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node['depression__depth']
@@ -254,7 +254,7 @@ class SinkFiller(Component):
                 elev_increment = ((lowest_elev_perim-self._elev[outlet_node]) /
                                   (lake_nodes.size + 2.))
                 assert elev_increment > 0.
-                all_ordering = self._grid.at_node['upstream_node_order']
+                all_ordering = self._grid.at_node['flow__upstream_node_order']
                 upstream_order_bool = np.in1d(all_ordering, lake_nodes,
                                               assume_unique=True)
                 lake_upstream_order = all_ordering[upstream_order_bool]
@@ -323,7 +323,7 @@ class SinkFiller(Component):
                 spurious_fields.add(field)
 
         self._fr.route_flow()
-        self._lf.map_depressions(pits=self._grid.at_node['flow_sinks'],
+        self._lf.map_depressions(pits=self._grid.at_node['flow__sink_flag'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node['depression__depth']

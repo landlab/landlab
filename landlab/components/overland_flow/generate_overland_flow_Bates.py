@@ -62,11 +62,11 @@ class OverlandFlowBates(Component):
     """
     _name = 'OverlandFlowBates'
 
-    _input_var_names = set(['water__depth', 'topographic__elevation'])
+    _input_var_names = ('water__depth', 'topographic__elevation')
 
-    _output_var_names = set(['water__depth',
+    _output_var_names = ('water__depth',
      'water__discharge',
-     'water_surface__gradient'])
+     'water_surface__gradient')
 
     _var_units = {'water__depth': 'm',
      'water__discharge': 'm3/s',

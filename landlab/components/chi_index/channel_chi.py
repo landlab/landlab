@@ -110,9 +110,9 @@ class ChiFinder(Component):
         'topographic__elevation',
         'drainage_area',
         'topographic__steepest_slope',
-        'flow_receiver',
-        'upstream_node_order',
-        'links_to_flow_receiver',
+        'flow__receiver_node',
+        'flow__upstream_node_order',
+        'flow__link_to_receiver_node',
     )
 
     _output_var_names = (
@@ -122,18 +122,18 @@ class ChiFinder(Component):
     _var_units = {'topographic__elevation': 'm',
                   'drainage_area': 'm**2',
                   'topographic__steepest_slope': '-',
-                  'flow_receiver': '-',
-                  'upstream_node_order': '-',
-                  'links_to_flow_receiver': '-',
+                  'flow__receiver_node': '-',
+                  'flow__upstream_node_order': '-',
+                  'flow__link_to_receiver_node': '-',
                   'channel__chi_index': 'variable',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'drainage_area': 'node',
                     'topographic__steepest_slope': 'node',
-                    'flow_receiver': 'node',
-                    'upstream_node_order': 'node',
-                    'links_to_flow_receiver': 'node',
+                    'flow__receiver_node': 'node',
+                    'flow__upstream_node_order': 'node',
+                    'flow__link_to_receiver_node': 'node',
                     'channel__chi_index': 'node',
                     }
 
@@ -141,12 +141,12 @@ class ChiFinder(Component):
                 'drainage_area': 'upstream drainage area',
                 'topographic__steepest_slope': ('the steepest downslope ' +
                                                 'rise/run leaving the node'),
-                'flow_receiver': ('the downstream node at the end of the ' +
+                'flow__receiver_node': ('the downstream node at the end of the ' +
                                   'steepest link'),
-                'upstream_node_order': ('node order such that nodes must ' +
+                'flow__upstream_node_order': ('node order such that nodes must ' +
                                         'appear in the list after all nodes ' +
                                         'downstream of them'),
-                'links_to_flow_receiver':
+                'flow__link_to_receiver_node':
                     ('ID of link downstream of each node, which carries the ' +
                      'discharge'),
                 'channel__chi_index': 'the local steepness index',
@@ -201,7 +201,7 @@ class ChiFinder(Component):
         assert A0 > 0.
         use_true_dx = kwds.get('use_true_dx', self.use_true_dx)
 
-        upstr_order = self.grid.at_node['upstream_node_order']
+        upstr_order = self.grid.at_node['flow__upstream_node_order']
         # get an array of only nodes with A above threshold:
         valid_upstr_order = upstr_order[self.grid.at_node['drainage_area'][
             upstr_order] >= min_drainage]
@@ -267,7 +267,7 @@ class ChiFinder(Component):
                [ 1.5,  3. ,  4.5,  0. ],
                [ 0. ,  0. ,  0. ,  0. ]])
         """
-        receivers = self.grid.at_node['flow_receiver']
+        receivers = self.grid.at_node['flow__receiver_node']
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
         for (node, integrand) in izip(valid_upstr_order, chi_integrand):
@@ -342,7 +342,7 @@ class ChiFinder(Component):
         ...     sp2.run_one_step(1000.)
         >>> _ = fr2.route_flow()
         >>> output_array = np.zeros(25, dtype=float)
-        >>> cf2.integrate_chi_each_dx(mg2.at_node['upstream_node_order'],
+        >>> cf2.integrate_chi_each_dx(mg2.at_node['flow__upstream_node_order'],
         ...                           np.ones(25, dtype=float),
         ...                           output_array)
         >>> output_array.reshape(mg2.shape)
@@ -352,8 +352,8 @@ class ChiFinder(Component):
                [   0. ,  100. ,  200.        ,  300.        ,    0. ],
                [   0. ,    0. ,    0.        ,    0.        ,    0. ]])
         """
-        receivers = self.grid.at_node['flow_receiver']
-        links = self.grid.at_node['links_to_flow_receiver']
+        receivers = self.grid.at_node['flow__receiver_node']
+        links = self.grid.at_node['flow__link_to_receiver_node']
         link_lengths = self.grid.length_of_link
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
@@ -402,7 +402,7 @@ class ChiFinder(Component):
         >>> cf.mean_channel_node_spacing(ch_nodes)
         2.2761423749153966
         """
-        ch_links = self.grid.at_node['links_to_flow_receiver'][ch_nodes]
+        ch_links = self.grid.at_node['flow__link_to_receiver_node'][ch_nodes]
         ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
         valid_link_lengths = self.grid.length_of_link[ch_links_valid]
         return valid_link_lengths.mean()
@@ -508,7 +508,7 @@ class ChiFinder(Component):
                     ch_A = self.grid.at_node['drainage_area'][current_node]
                     if ch_A > self.min_drainage:
                         ch_nodes.append(current_node)
-                    next_node = self.grid.at_node['flow_receiver'][
+                    next_node = self.grid.at_node['flow__receiver_node'][
                         current_node]
                     if next_node == current_node:
                         break
