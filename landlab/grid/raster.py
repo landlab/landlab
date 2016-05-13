@@ -462,7 +462,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                1, 0, 0, 0, 1,
                1, 0, 0, 0, 1,
                1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg.node_numinlink # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_numinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 1, 1, 1, 1,
                1, 2, 2, 2, 2,
                1, 2, 2, 2, 2,
@@ -472,7 +472,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 23, 24, 25, 26],
                [-1,  0,  1,  2,  3, -1,  9, 10, 11, 12, -1, 18, 19, 20, 21, -1,
                 27, 28, 29, 30]])
-        >>> rmg.node_numoutlink # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_numoutlink # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 1,
                2, 2, 2, 2, 1,
                2, 2, 2, 2, 1,
@@ -480,7 +480,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
         array([ 4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22, 23, 24, 25, 26,
                -1, -1, -1, -1, -1])
-        >>> rmg.node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 0, 0, 0, 0,
                0, 2, 2, 2, 1,
                0, 2, 2, 2, 1,
@@ -490,7 +490,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                  6, 7,  8, -1],
                [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1,
                 -1, -1, -1, -1]])
-        >>> rmg.node_numactiveoutlink # doctest: +NORMALIZE_WHITESPACE
+        >>> rmg._node_numactiveoutlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 1, 1, 1, 0,
                1, 2, 2, 2, 0,
                1, 2, 2, 2, 0,
@@ -1327,10 +1327,10 @@ XXXXXXeric should be killing this with graphs.
         """
 
         (self.node_inlink_matrix,
-         self.node_numinlink) = sgrid.setup_inlink_matrix(self.shape)
+         self._node_numinlink) = sgrid.setup_inlink_matrix(self.shape)
 
         (self.node_outlink_matrix,
-         self.node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
+         self._node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
 
     @deprecated(use='no replacement', version=1.0)
     def _setup_active_inlink_and_outlink_matrices(self):
@@ -1344,19 +1344,19 @@ XXXXXXeric should be killing this with graphs.
         node_status = self._node_status != CLOSED_BOUNDARY
 
         (self.node_active_inlink_matrix,
-         self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
+         self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
              self.shape, node_status=node_status)
 
         (self.node_active_outlink_matrix,
-         self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
+         self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
              self.shape, node_status=node_status)
 
         (self.node_active_inlink_matrix2,
-         self.node_numactiveinlink) = sgrid.setup_active_inlink_matrix2(
+         self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix2(
              self.shape, node_status=node_status)
 
         (self.node_active_outlink_matrix2,
-         self.node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
+         self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
              self.shape, node_status=node_status)
 
     def _reset_list_of_active_diagonal_links(self):

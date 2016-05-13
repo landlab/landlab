@@ -3224,7 +3224,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up the inlink arrays
         tonodes = self.node_at_link_head
-        self.node_numinlink = numpy.bincount(tonodes,
+        self._node_numinlink = numpy.bincount(tonodes,
                                              minlength=self.number_of_nodes)
 
         counts = count_repeated_values(self.node_at_link_head)
@@ -3233,7 +3233,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up the outlink arrays
         fromnodes = self.node_at_link_tail
-        self.node_numoutlink = numpy.bincount(fromnodes,
+        self._node_numoutlink = numpy.bincount(fromnodes,
                                               minlength=self.number_of_nodes)
         counts = count_repeated_values(self.node_at_link_tail)
         for (count, (fromnodes, link_ids)) in enumerate(counts):
@@ -3252,7 +3252,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 2)
-        >>> hg.node_numactiveinlink
+        >>> hg._node_numactiveinlink
         array([0, 0, 0, 3, 1, 1, 1])
         >>> hg.node_active_inlink_matrix2
         array([[-1, -1, -1,  2,  6,  8,  9],
@@ -3261,7 +3261,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1, -1, -1, -1]])
-        >>> hg.node_numactiveoutlink
+        >>> hg._node_numactiveoutlink
         array([1, 1, 1, 3, 0, 0, 0])
         >>> hg.node_active_outlink_matrix2
         array([[ 2,  3,  5,  6, -1, -1, -1],
@@ -3279,7 +3279,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up the inlink arrays
         tonodes = self.activelink_tonode
-        self.node_numactiveinlink = as_id_array(numpy.bincount(
+        self._node_numactiveinlink = as_id_array(numpy.bincount(
             tonodes, minlength=self.number_of_nodes))
 
         counts = count_repeated_values(self.activelink_tonode)
@@ -3288,7 +3288,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up the outlink arrays
         fromnodes = self.activelink_fromnode
-        self.node_numactiveoutlink = as_id_array(numpy.bincount(
+        self._node_numactiveoutlink = as_id_array(numpy.bincount(
             fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
@@ -3312,7 +3312,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up the inlink arrays
         tonodes = self.node_at_link_head[self.active_links]
-        self.node_numactiveinlink = as_id_array(numpy.bincount(
+        self._node_numactiveinlink = as_id_array(numpy.bincount(
             tonodes, minlength=self.number_of_nodes))
 
         # OK, HERE WE HAVE TO MAKE A CHANGE, BECAUSE THE INDICES RETURNED BY
@@ -3329,7 +3329,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up the outlink arrays
         fromnodes = self.node_at_link_tail[self.active_links]
-        self.node_numactiveoutlink = as_id_array(numpy.bincount(
+        self._node_numactiveoutlink = as_id_array(numpy.bincount(
             fromnodes, minlength=self.number_of_nodes))
         counts = count_repeated_values(self.activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
