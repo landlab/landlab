@@ -577,7 +577,7 @@ def test_composite_pits():
     assert_equal(lf.lake_outlets[0], 72)
     outlets_in_map = np.unique(lf.depression_outlet_map)
     assert_equal(outlets_in_map.size, 2)
-    assert_equal(outlets_in_map[0], 72)
+    assert_equal(outlets_in_map[1], 72)
     assert_equal(lf.number_of_lakes, 1)
     assert_equal(lf.lake_codes[0], 57)
     assert_array_equal(lf.lake_map, lc)

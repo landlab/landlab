@@ -14,7 +14,7 @@ import inspect
 
 from landlab import RasterModelGrid, BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.grid.raster_steepest_descent import (
-    calc_steepest_descent_across_cell_faces)
+    _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 
@@ -101,7 +101,7 @@ def grid_flow_directions(grid, elevations):
     >>> list(zip(mg.node_at_cell, recv_nodes))
     [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
     """
-    slope, receiver = calc_steepest_descent_across_cell_faces(
+    slope, receiver = _calc_steepest_descent_across_cell_faces(
         grid, elevations, return_node=True)
 
     (sink_cell, ) = np.where(slope >= 0.)
@@ -169,7 +169,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> snk
     array([4])
     >>> rl[3:8]
-    array([        15, 2147483647,          1,          6,          2])
+    array([15, -1,  1,  6,  2])
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
