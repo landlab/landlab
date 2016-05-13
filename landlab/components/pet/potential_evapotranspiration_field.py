@@ -67,20 +67,20 @@ Run the *update* method to update output variables with current time
 >>> PET.update(current_time)
 
 >>> PET.grid.at_cell['radiation__incoming_shortwave']
-array([ 33.18153166,  33.18153166,  28.71683204,  28.71683204,
-        32.22729129,  32.22729129])
+array([ 33.09968448,  33.09968448,  28.64599771,  28.64599771,
+        32.14779789,  32.14779789])
 
 >>> PET.grid.at_cell['radiation__net']
-array([ 14.00917417,  14.00917417,  12.12418721,  12.12418721,
-        13.60629586,  13.60629586])
+array([ 13.9764353 ,  13.9764353 ,  12.09585347,  12.09585347,
+        13.57449849,  13.57449849])
 
 >>> PET.grid.at_cell['radiation__net_shortwave']
-array([ 13.27261266,  13.27261266,  11.48673282,  11.48673282,
-        12.89091652,  12.89091652])
+array([ 13.23987379,  13.23987379,  11.45839908,  11.45839908,
+        12.85911915,  12.85911915])
 
 >>> PET.grid.at_cell['surface__potential_evapotranspiration_rate']
-array([ 0.2554777 ,  0.2554777 ,  0.22110221,  0.22110221,  0.24813062,
-        0.24813062])
+array([ 0.25488065,  0.25488065,  0.22058551,  0.22058551,  0.24755075,
+        0.24755075])
 """
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
