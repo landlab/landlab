@@ -11,7 +11,7 @@ Examples
 --------
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
->>> from landlab.components.radiation import Radiation
+>>> from landlab.components import Radiation
 
 Create a grid on which to calculate incident shortwave radiation
 
@@ -92,6 +92,7 @@ class Radiation(Component):
     compared to a flat surface.
 
     Construction::
+
         Radiation(grid, method='Grid', cloudiness=0.2, latitude=34., 
                   albedo=0.2, solar_constant=1366.67, 
                   clearsky_turbidity=2., opt_airmass=0.)
@@ -118,7 +119,7 @@ class Radiation(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.radiation import Radiation
+    >>> from landlab.components import Radiation
     >>> import numpy as np
 
     >>> grid = RasterModelGrid( (5, 4), spacing=(0.2,0.2))
