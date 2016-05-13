@@ -472,12 +472,17 @@ class ModelDataFields(object):
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
-        """Create and add an uninitialized array of values to the field.
+        """
+        Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
+
+        Construction::
+
+            add_empty(group, name, units='-', noclobber=True)
 
         Parameters
         ----------
@@ -487,6 +492,8 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -508,17 +515,24 @@ class ModelDataFields(object):
         else:
             raise ValueError('number of arguments must be 1 or 2')
 
-        units = kwds.pop('units', None)
-        return self.add_field(group, name, self.empty(group, **kwds),
-                              units=units)
+        numpy_kwds = kwds.copy()
+        numpy_kwds.pop('units', 0.)
+        numpy_kwds.pop('noclobber', 0.)
+        return self.add_field(group, name, self.empty(group, **numpy_kwds),
+                              **kwds)
 
     def add_ones(self, *args, **kwds):
-        """Create and add an array of values, initialized to 1, to the field.
+        """
+        Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
+
+        Construction::
+
+            add_ones(group, name, units='-', noclobber=True)
 
         Parameters
         ----------
@@ -528,6 +542,8 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -565,18 +581,24 @@ class ModelDataFields(object):
         else:
             raise ValueError('number of arguments must be 1 or 2')
 
-        units = kwds.pop('units', None)
-        return self.add_field(group, name,
-                              self.ones(group, **kwds),
-                              units=units)
+        numpy_kwds = kwds.copy()
+        numpy_kwds.pop('units', 0.)
+        numpy_kwds.pop('noclobber', 0.)
+        return self.add_field(group, name, self.ones(group, **numpy_kwds),
+                              **kwds)
 
     def add_zeros(self, *args, **kwds):
-        """Create and add an array of values, initialized to 0, to the field.
+        """
+        Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
+
+        Construction::
+
+            add_zeros(group, name, units='-', noclobber=True)
 
         Parameters
         ----------
@@ -586,6 +608,8 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
 
         Returns
         -------
@@ -607,18 +631,23 @@ class ModelDataFields(object):
         else:
             raise ValueError('number of arguments must be 1 or 2')
 
-        units = kwds.pop('units', None)
-        return self.add_field(group, name,
-                              self.zeros(group, **kwds),
-                              units=units)
+        numpy_kwds = kwds.copy()
+        numpy_kwds.pop('units', 0.)
+        numpy_kwds.pop('noclobber', 0.)
+        return self.add_field(group, name, self.zeros(group, **numpy_kwds),
+                              **kwds)
 
     def add_field(self, *args, **kwds):
-        """add_field(group, name, value_array, units='-', copy=False, noclobber=False)
-        Add an array of values to the field.
+        """Add an array of values to the field.
 
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
         copy of the provided array.
+
+        Construction::
+
+            add_field(group, name, value_array, units='-', copy=False,
+                      noclobber=True)
 
         Parameters
         ----------
@@ -670,7 +699,7 @@ class ModelDataFields(object):
         behavior to raise an exception in such a case.
 
         >>> field.add_field('node', 'topographic__elevation', values,
-        ...     copy=True)
+        ...     copy=True, noclobber=False)
         array([1, 1, 1, 1])
         >>> field.at_node['topographic__elevation'] is values
         False

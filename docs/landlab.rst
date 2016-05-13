@@ -6,16 +6,17 @@ Subpackages
 
 .. toctree::
 
+    landlab.bmi
+    landlab.ca
+    landlab.cmd
     landlab.components
     landlab.core
-    landlab.examples
     landlab.field
     landlab.framework
     landlab.grid
     landlab.io
     landlab.plot
     landlab.testing
-    landlab.tests
     landlab.utils
 
 Module contents

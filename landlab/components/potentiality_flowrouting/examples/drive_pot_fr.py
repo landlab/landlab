@@ -36,26 +36,26 @@ mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 figure(3)
 imshow_node_grid(mg, mg.status_at_node)
 
-mg.at_node['water__volume_flux_in'] = np.ones_like(z)
+mg.at_node['water__unit_flux_in'] = np.ones_like(z)
 
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
 pfr.route_flow(route_on_diagonals=True)
 
 figure(1)
-imshow_node_grid(mg, 'water__volume_flux_magnitude')
+imshow_node_grid(mg, 'water__discharge')
 figure(2)
 imshow_node_grid(mg, 'topographic__elevation')
 
-out_sum = np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols))[-3,:])
+out_sum = np.sum(mg.at_node['water__discharge'].reshape((nrows,ncols))[-3,:])
 print(out_sum)
-print(np.sum(mg.at_node['water__volume_flux_in']), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
-print(out_sum - np.sum(mg.at_node['water__volume_flux_in']))
+print(np.sum(mg.at_node['water__unit_flux_in']), np.sum(mg.at_node['water__discharge'][mg.boundary_nodes]))
+print(out_sum - np.sum(mg.at_node['water__unit_flux_in']))
 
 show()
 
-print(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)))
-print(np.sum(mg.at_node['water__volume_flux_magnitude'].reshape((nrows,ncols)),axis=0)/3.)
+print(mg.at_node['water__discharge'].reshape((nrows,ncols)))
+print(np.sum(mg.at_node['water__discharge'].reshape((nrows,ncols)),axis=0)/3.)
 
 #now a run with a grid...
 
@@ -103,8 +103,8 @@ mg['node']['topographic__elevation'] = z + np.random.rand(len(z))/1000.
 #make some K values in a field to test
 mg.at_node['K_values'] = 0.00001+np.random.rand(nrows*ncols)/100000.
 
-#mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)
-mg.at_node['water__volume_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.25) #remember, flux is /sec, so this is a small number!
+#mg.at_node['water__unit_flux_in'] = dx*dx*np.ones_like(z)
+mg.at_node['water__unit_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.25) #remember, flux is /sec, so this is a small number!
 #mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 #mg.set_closed_boundaries_at_grid_edges(True, False, True, True)
 
@@ -137,21 +137,21 @@ pfr.route_flow(return_components=True)#route_on_diagonals=False)
 figure('Topo')
 imshow_node_grid(mg, 'topographic__elevation')
 figure('Potentiality flow fluxes')
-imshow_node_grid(mg, 'water__volume_flux_magnitude')
+imshow_node_grid(mg, 'water__discharge')
 figure('D8 drainage areas')
 imshow_node_grid(mg, 'drainage_area')
 figure('K (core only)')
-mg.at_node['potentiality_field'][mg.boundary_nodes] = 0.
-imshow_node_grid(mg, 'potentiality_field')
+mg.at_node['flow__potential'][mg.boundary_nodes] = 0.
+imshow_node_grid(mg, 'flow__potential')
 depths = np.where(mg.at_node['water__depth']>1.e6,0.,mg.at_node['water__depth'])
 figure('depths')
 imshow_node_grid(mg, depths, var_name='depths (Manning)')
 figure('xcomp')
-imshow_node_grid(mg, 'water__volume_flux_xcomponent')
+imshow_node_grid(mg, 'water__discharge_x_component')
 figure('ycomp')
-imshow_node_grid(mg, 'water__volume_flux_ycomponent')
+imshow_node_grid(mg, 'water__discharge_y_component')
 
-print('flux in per node: ', mg.at_node['water__volume_flux_in'][0])
-print('water in, water out: ', np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]))
-print(-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))
-print((-np.sum(mg.at_node['water__volume_flux_magnitude'][mg.boundary_nodes]) + np.sum(mg.at_node['water__volume_flux_in'][mg.core_nodes]))/mg.at_node['water__volume_flux_in'][0])
+print('flux in per node: ', mg.at_node['water__unit_flux_in'][0])
+print('water in, water out: ', np.sum(mg.at_node['water__unit_flux_in'][mg.core_nodes]), np.sum(mg.at_node['water__discharge'][mg.boundary_nodes]))
+print(-np.sum(mg.at_node['water__discharge'][mg.boundary_nodes]) + np.sum(mg.at_node['water__unit_flux_in'][mg.core_nodes]))
+print((-np.sum(mg.at_node['water__discharge'][mg.boundary_nodes]) + np.sum(mg.at_node['water__unit_flux_in'][mg.core_nodes]))/mg.at_node['water__unit_flux_in'][0])

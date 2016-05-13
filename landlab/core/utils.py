@@ -8,6 +8,40 @@ import numpy as np
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
+def radians_to_degrees(rads):
+    """Convert radians to compass-style degrees.
+
+    Convert angles (measured counter-clockwise from the positive x-axis) in
+    radians to angles in degrees measured clockwise starting from north.
+
+    Parameters
+    ----------
+    rads : float or ndarray
+        Angles in radians.
+
+    Returns
+    -------
+    degrees : float or ndarray
+        Converted angles in degrees.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import radians_to_degrees
+
+    >>> radians_to_degrees(0.)
+    90.0
+    >>> radians_to_degrees(np.pi / 2.)
+    0.0
+    >>> radians_to_degrees(- 3 * np.pi / 2.)
+    0.0
+    >>> radians_to_degrees(np.array([- np.pi, np.pi]))
+    array([ 270.,  270.])
+    """
+    degrees = (5. * np.pi / 2. - rads) % (2. * np.pi)
+    return 180. / np.pi * degrees
+
+
 def extend_array(x, fill=0):
     """Extend an array by one element.
 
@@ -241,7 +275,7 @@ def add_module_functions_to_class(cls, module, pattern=None):
     import inspect
     import imp
     import os
-
+    
     caller = inspect.stack()[1]
     path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
 
@@ -250,12 +284,96 @@ def add_module_functions_to_class(cls, module, pattern=None):
     mod = imp.load_module(module, *imp.find_module(module, [path]))
 
     funcs = get_functions_from_module(mod, pattern=pattern)
+    strip_grid_from_method_docstring(funcs)
     add_functions_to_class(cls, funcs)
+
+
+def strip_grid_from_method_docstring(funcs):
+    """Remove 'grid' from the parameters of a dict of functions' docstrings.
+
+    Note that the docstring must be close to numpydoc standards for this to
+    work.
+
+    Parameters
+    ----------
+    funcs : dict
+        Dictionary of functions to modify. Keys are the function names,
+        values are the functions themselves.
+
+    Examples
+    --------
+    >>> from landlab.grid.mappers import dummy_func_to_demonstrate_docstring_modification as dummy_func
+    >>> funcs = {'dummy_func_to_demonstrate_docstring_modification':
+    ...          dummy_func}
+    >>> help(dummy_func)
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+    <BLANKLINE>
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab modelgrid.
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+    >>> strip_grid_from_method_docstring(funcs)
+    >>> help(dummy_func)
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            grid.dummy_func_to_demonstrate_docstring_modification(some_arg)
+    <BLANKLINE>
+        Parameters
+        ----------
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+    """
+    import re
+    for name, func in funcs.items():
+        # strip the entry under "Parameters":
+        func.__doc__ = re.sub('grid *:.*?\n.*?\n *', '', func.__doc__)
+        # # cosmetic magic to get a two-line signature to line up right:
+        match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
+                                  func.__doc__)
+        try:
+            lines_were = match_2_lines.group()
+        except AttributeError:  # no successful match
+            pass
+        else:
+            end_chars = re.search('    .*?\)', lines_were).group()[4:]
+            lines_are_now = re.sub('    .*?\)', '         '+end_chars,
+                                   lines_were)
+            func.__doc__ = (func.__doc__[:match_2_lines.start()] +
+                            lines_are_now +
+                            func.__doc__[match_2_lines.end():])
+        # Move "grid" in signature from an arg to the class position
+        func.__doc__ = re.sub(func.__name__+'\(grid, ',
+                              'grid.'+func.__name__+'(',
+                              func.__doc__)
 
 
 def argsort_points_by_x_then_y(pts):
     """Sort points by coordinates, first x then y, returning sorted indices.
-    
+
     Parameters
     ----------
     pts : Nx2 NumPy array of float
@@ -284,7 +402,7 @@ def argsort_points_by_x_then_y(pts):
 
 def sort_points_by_x_then_y(pts):
     """Sort points by coordinates, first x then y.
-    
+
     Parameters
     ----------
     pts : Nx2 NumPy array of float
@@ -294,7 +412,7 @@ def sort_points_by_x_then_y(pts):
     -------
     pts : Nx2 NumPy array of float
         sorted (x,y) points
-    
+
     Examples
     --------
     >>> import numpy as np
@@ -316,10 +434,49 @@ def sort_points_by_x_then_y(pts):
            [ 1. ,  2.5]])
     """
     indices = argsort_points_by_x_then_y(pts)
-    pts[:,0] = pts[indices,0]
-    pts[:,1] = pts[indices,1]
+    pts[:, 0] = pts[indices, 0]
+    pts[:, 1] = pts[indices, 1]
     return pts
 
-if __name__=='__main__':
+
+def anticlockwise_argsort_points(pts, midpt=None):
+    """Argort points into anticlockwise order around a supplied center.
+
+    Sorts CCW from east. Assumes a convex hull.
+
+    Parameters
+    ----------
+    pts : Nx2 NumPy array of float
+        (x,y) points to be sorted
+    midpt : len-2 NumPy array of float (optional)
+        (x, y) of point about which to sort. If not provided, mean of pts is
+        used.
+
+    Returns
+    -------
+    pts : Nx2 NumPy array of float
+        sorted (x,y) points
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import anticlockwise_argsort_points
+    >>> pts = np.zeros((4, 2))
+    >>> pts[:,0] = np.array([-3., -1., -1., -3.])
+    >>> pts[:,1] = np.array([-1., -3., -1., -3.])
+    >>> sortorder = anticlockwise_argsort_points(pts)
+    >>> np.all(sortorder == np.array([2, 0, 3, 1]))
+    True
+    """
+    if midpt is None:
+        midpt = pts.mean(axis=0)
+    assert len(midpt) == 2
+    theta = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
+    theta = theta % (2.*np.pi)
+    sortorder = np.argsort(theta)
+    return sortorder
+
+
+if __name__ == '__main__':
     import doctest
     doctest.testmod()

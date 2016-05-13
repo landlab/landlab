@@ -33,14 +33,14 @@ mg = RasterModelGrid(nrows, ncols, dx)
 #modify the fields in the grid
 z = mg.zeros(at='node') + init_elev
 mg.at_node['topographic__elevation'] = z + np.random.rand(len(z))/1000.
-mg.add_zeros('water__volume_flux_in', at='node')
+mg.add_zeros('water__unit_flux_in', at='node')
 
 #Set boundary conditions
 mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 mg.set_fixed_value_boundaries_at_grid_edges(False, False, False, True)
 inlet_node = np.array((mg.number_of_node_columns + 1))
-mg.at_node['water__volume_flux_in'].fill(0.)
-mg.at_node['water__volume_flux_in'][inlet_node] = 1.
+mg.at_node['water__unit_flux_in'].fill(0.)
+mg.at_node['water__unit_flux_in'][inlet_node] = 1.
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
 interior_nodes = mg.core_nodes
@@ -51,14 +51,14 @@ for i in range(2000):
         print('loop '+str(i))
     mg.at_node['topographic__elevation'][inlet_node] = 1.
     pfr.route_flow(route_on_diagonals=True)
-    #imshow(mg, 'water__volume_flux_magnitude')
+    #imshow(mg, 'water__discharge')
     #show()
-    kd = mg.at_node['water__volume_flux_magnitude']   # 0.01 m2 per year
+    kd = mg.at_node['water__discharge']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
-    g = mg.calculate_gradients_at_active_links(mg.at_node['topographic__elevation'])
-    map_link_end_node_max_value_to_link(mg, 'water__volume_flux_magnitude')
-    kd_link = 1.e6*mg.at_link['water__volume_flux_magnitude'][mg.active_links]
+    g = mg.calc_grad_of_active_link(mg.at_node['topographic__elevation'])
+    map_link_end_node_max_value_to_link(mg, 'water__discharge')
+    kd_link = 1.e6*mg.at_link['water__discharge'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
     dzdt = -dqsdx
@@ -69,4 +69,4 @@ imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
 imshow_node_grid(mg, 'water__depth')
 figure(3)
-imshow_node_grid(mg, 'water__volume_flux_magnitude')
+imshow_node_grid(mg, 'water__discharge')

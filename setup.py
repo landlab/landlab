@@ -100,7 +100,8 @@ setup(name='landlab',
           'Topic :: Scientific/Engineering :: Physics'
       ],
       packages=find_packages(),
-      package_data={'': ['data/*asc', 'data/*nc', 'preciptest.in']},
+      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
+                         'preciptest.in']},
       test_suite='nose.collector',
       cmdclass={
           'install': install_and_register,

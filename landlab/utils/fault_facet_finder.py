@@ -63,8 +63,8 @@ class find_facets(object):
         return self.az
 
     def set_slopes_aspects(self):
-        self.slopes, self.aspect = self.grid.calculate_slope_aspect_at_nodes_horn(
-            vals=self.elevs)
+        self.slopes = self.grid.calc_slopes_of_nodes(elevs=self.elevs)
+        self.aspect = self.grid.calc_aspect_of_node(elevs=self.elevs)
         print('Calculated and stored slopes and aspects...')
 
     def define_aspect_node_subset(self, angle_tolerance=5.):
@@ -133,7 +133,7 @@ class find_facets(object):
         distance_to_ft.fill(sys.float_info.max)
         new_distance_to_ft = np.empty_like(closest_ft_node, dtype=float)
         for i in self.ft_trace_node_ids:
-            grid.get_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
+            grid.calc_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
                                                  node_subset=grid.core_nodes[
                                                      subset], get_az='angles',
                                                  out_distance=new_distance_to_ft, out_azimuth=new_angle_to_ft)
@@ -234,9 +234,10 @@ class find_facets(object):
         A patch is only recorded if it consists of at least *threshold_num_px*.
 
         The method records and returns:
-        1. a ragged array of lists, where each list is the pixels comprising
+
+        *  a ragged array of lists, where each list is the pixels comprising
            each facet patch, and
-        2. a (num_patches, 2) array recording the mean slope and and its stdev
+        *  a (num_patches, 2) array recording the mean slope and and its stdev
            for each patch.
         """
         self.possible_core_nodes = np.where(np.logical_and(
@@ -248,7 +249,7 @@ class find_facets(object):
             mean_slope = self.slopes[nodes_in_patch]
             while 1:
                 possible_neighbors = np.union1d(
-                    self.grid.get_active_neighbors_at_node(
+                    self.grid.active_neighbors_at_node(
                         nodes_in_patch).flat, self.possible_core_nodes)
                 neighbor_slopes = self.slopes[possible_neighbors]
                 low_tol_condition = np.greater(
@@ -297,7 +298,7 @@ class find_facets(object):
             count += 1
             print("Running ", count, " of ", unique_starting_pts.size)
             # set the local angle of the ft trace:
-            ft_pt_distances_to_node = self.grid.get_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
+            ft_pt_distances_to_node = self.grid.calc_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
                                                                                 node_subset=self.ft_trace_node_ids)
             close_ft_nodes = np.less(
                 ft_pt_distances_to_node, 5. * grid.node_spacing)
@@ -323,9 +324,9 @@ class find_facets(object):
                 y_ref = grid.node_y[
                     i] + cmp(grid.node_y[i], np.mean(grid.node_y[grid.core_nodes[nodes_possible]])) * multiplier
                 # get new absolute distances
-                dist_to_ft = self.grid.get_distances_of_nodes_to_point(
+                dist_to_ft = self.grid.calc_distances_of_nodes_to_point(
                     (x_ref, y_ref), node_subset=np.array([i]))
-                dists_along_profile = self.grid.get_distances_of_nodes_to_point(
+                dists_along_profile = self.grid.calc_distances_of_nodes_to_point(
                     (x_ref, y_ref), node_subset=grid.core_nodes[nodes_possible]) - dist_to_ft
                 # note the ft is now the origin, but pts might be back-to-front (consistently, though)
                 # sort the distances. Remove any pts that aren't in a "cluster".

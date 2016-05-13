@@ -40,7 +40,7 @@ def test_input_var_names():
 @with_setup(setup_grid)
 def test_output_var_names():
     assert_equal(flex.output_var_names,
-                 ('lithosphere__elevation_increment',))
+                 ('lithosphere_surface__elevation_increment',))
 
 
 @with_setup(setup_grid)
@@ -49,7 +49,7 @@ def test_var_units():
                  set(flex.output_var_names),
                  set(dict(flex.units).keys()))
 
-    assert_equal(flex.var_units('lithosphere__elevation_increment'), 'm')
+    assert_equal(flex.var_units('lithosphere_surface__elevation_increment'), 'm')
     assert_equal(flex.var_units('lithosphere__overlying_pressure_increment'),
                  'Pa')
 
@@ -61,15 +61,13 @@ def test_grid_shape():
 
 
 @with_setup(setup_grid)
-def test_grid_xdimension():
-    assert_equal(flex.grid.get_grid_xdimension(),
-                 (_SHAPE[1] - 1) * _SPACING[1])
+def test_grid_x_extent():
+    assert_equal(flex.grid.extent[1], (_SHAPE[1] - 1) * _SPACING[1])
 
 
 @with_setup(setup_grid)
-def test_grid_ydimension():
-    assert_equal(flex.grid.get_grid_xdimension(),
-                 (_SHAPE[0] - 1) * _SPACING[0])
+def test_grid_y_extent():
+    assert_equal(flex.grid.extent[0], (_SHAPE[0] - 1) * _SPACING[0])
 
 
 @with_setup(setup_grid)

@@ -40,7 +40,7 @@ mg = RasterModelGrid(nrows, ncols, dx)
 mg.add_zeros('topographic__elevation', at='node')
 z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
-mg.add_zeros('node', 'water__volume_flux_in')
+mg.add_zeros('node', 'water__unit_flux_in')
 
 #make some K values in a field to test
 #mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
@@ -70,10 +70,10 @@ except NameError:
     #We're going to cheat by running Fastscape SP for the first part of the solution
     for (interval_duration, rainfall_rate) in precip.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
-            mg.at_node['water__volume_flux_in'].fill(rainfall_rate)
+            mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow()
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__discharge', K_if_used='K_values')
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
@@ -88,18 +88,23 @@ else:
     fr = FlowRouter(mg)
     sp = StreamPowerEroder(mg, input_file_string)
 
+x_profiles = []
+z_profiles = []
+S_profiles = []
+A_profiles = []
+
 if True:
     #perturb:
-    time_to_run = 500000.
-    precip_perturb = PrecipitationDistribution(input_file=input_file_string, total_t=time_to_run)
-    out_interval = 10000.
+    time_to_run = 300000.
+    precip_perturb = PrecipitationDistribution(input_file=input_file_string, mean_storm=10., mean_interstorm=40., total_t=time_to_run)
+    out_interval = 5000.
     last_trunc = time_to_run #we use this to trigger taking an output plot
     for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
-            mg.at_node['water__volume_flux_in'].fill(rainfall_rate)
+            mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__discharge', K_if_used='K_values')
 
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
@@ -107,12 +112,16 @@ if True:
             print('saving a plot at perturbed loop ', out_interval*this_trunc)
             pylab.figure("long_profiles")
             profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
-                            mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
+                            mg.at_node['drainage_area'], mg.at_node['flow__receiver_node'])
             dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
-                            profile_IDs, mg.at_node['links_to_flow_receiver'])
+                            profile_IDs, mg.at_node['flow__link_to_receiver_node'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
-
+            x_profiles.append(dists_upstr[:])
+            z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
+            S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
+            A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
+    
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 

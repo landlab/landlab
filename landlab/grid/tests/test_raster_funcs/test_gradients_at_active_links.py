@@ -25,7 +25,7 @@ def setup_grids():
 def test_unit_spacing():
     """Test with a grid with unit spacing."""
     rmg, values_at_nodes = _GRIDS['unit'], np.arange(20)
-    grads = rmg.calculate_gradients_at_active_links(values_at_nodes)
+    grads = rmg.calc_grad_at_active_link(values_at_nodes)
 
     assert_array_equal(grads,
                        np.array([5.0, 5.0, 5.0,
@@ -43,7 +43,7 @@ def test_non_unit_spacing():
     """Test with a grid with non-unit spacing."""
     rmg, values_at_nodes = _GRIDS['non_square'], np.arange(20)
 
-    grads = rmg.calculate_gradients_at_active_links(values_at_nodes)
+    grads = rmg.calc_grad_at_active_link(values_at_nodes)
     assert_array_equal(grads,
                        np.array([1.0, 1.0, 1.0,
                                  0.5, 0.5, 0.5, 0.5,
@@ -65,7 +65,7 @@ def test_out_array():
     rmg, values_at_nodes = _GRIDS['non_square'], np.arange(20)
 
     output_array = np.empty(17)
-    rtn_array = rmg.calculate_gradients_at_active_links(values_at_nodes,
+    rtn_array = rmg.calc_grad_at_active_link(values_at_nodes,
                                                         out=output_array)
     assert_array_equal(rtn_array,
                        np.array([1.0, 1.0, 1.0,

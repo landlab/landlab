@@ -15,7 +15,8 @@ from six import StringIO
 
 from landlab.io import read_esri_ascii, read_asc_header
 from landlab.io import (MissingRequiredKeyError, KeyTypeError, DataSizeError,
-                        BadHeaderLineError, KeyValueError)
+                        BadHeaderLineError, KeyValueError, 
+                        MismatchGridDataSizeError)
 from landlab import RasterModelGrid
 
 
@@ -120,6 +121,21 @@ NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10.
         """)
     assert_raises(DataSizeError, read_esri_ascii, asc_file)
+    
+def test_grid_data_size_mismatch():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
+        """)
+    rmg = RasterModelGrid((10,10),10.)
+    assert_raises(MismatchGridDataSizeError, read_esri_ascii, asc_file, 
+                  grid=rmg)    
 
 
 def test_header_missing_required_key():
@@ -274,6 +290,38 @@ def test_name_keyword():
                                  0.,  1.,  2.]))
     assert_array_almost_equal(grid.at_node['air__temperature'], field)
     assert_is(grid.at_node['air__temperature'], field)
+    
+def test_halo_keyword():
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \
+                                                 '4_x_3.asc'), \
+                                                 halo=1)
+                                    
+    assert_is_instance(grid, RasterModelGrid)
+
+    assert_is_instance(field, np.ndarray)
+    assert_array_equal(field,
+                       np.array([-9999., -9999., -9999., -9999., -9999.,  
+                                 -9999.,     9.,    10.,    11., -9999.,
+                                 -9999.,     6.,     7.,     8., -9999.,
+                                 -9999.,     3.,     4.,     5., -9999.,
+                                 -9999.,     0.,     1.,     2., -9999.,
+                                 -9999., -9999., -9999., -9999., -9999.]))
+                                 
+def test_halo_keyword_no_nodata_value():
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \
+                                                '4_x_3_no_nodata_value.asc'), \
+                                                halo=1)
+                                    
+    assert_is_instance(grid, RasterModelGrid)
+
+    assert_is_instance(field, np.ndarray)
+    assert_array_equal(field,
+                       np.array([-9999., -9999., -9999., -9999., -9999.,  
+                                 -9999.,     9.,    10.,    11., -9999.,
+                                 -9999.,     6.,     7.,     8., -9999.,
+                                 -9999.,     3.,     4.,     5., -9999.,
+                                 -9999.,     0.,     1.,     2., -9999.,
+                                 -9999., -9999., -9999., -9999., -9999.]))
 
 
 if __name__ == '__main__':

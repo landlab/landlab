@@ -8,7 +8,7 @@ except ImportError:
     from landlab.testing.tools import assert_is
 
 from landlab.grid.raster_gradients import (
-    calculate_gradient_across_cell_corners)
+    calc_grad_across_cell_corners)
 
 
 def setup_unit_grid():
@@ -32,7 +32,7 @@ def setup_grid():
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
     """Test using a scalar for cell arg."""
-    grads = calculate_gradient_across_cell_corners(
+    grads = calc_grad_across_cell_corners(
         rmg, values_at_nodes, 0)
     assert_array_equal(grads, np.array([[6., 4., -6., -4.]]) / np.sqrt(2.))
 
@@ -40,7 +40,7 @@ def test_scalar_arg():
 @with_setup(setup_unit_grid)
 def test_iterable():
     """Test using an iterable for cell arg."""
-    grads = rmg.calculate_gradient_across_cell_corners(values_at_nodes, [0, 4])
+    grads = rmg.calc_grad_across_cell_corners(values_at_nodes, [0, 4])
     assert_array_equal(grads, np.array([[6., 4., -6., -4.],
                                         [6., 4., -6., -4.]]) / np.sqrt(2.))
 
@@ -52,7 +52,7 @@ def test_with_no_cell_id_arg():
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
                        0, 1, -3, 6, 10], dtype=float)
-    grads = rmg.calculate_gradient_across_cell_corners(values)
+    grads = rmg.calc_grad_across_cell_corners(values)
 
     assert_array_equal(grads, (1. / np.sqrt(2.)) * np.array([
         [2., -1., -1., 2.], [2., -2., -2., 3.], [4., -3., -3., 4.],
@@ -63,7 +63,7 @@ def test_with_no_cell_id_arg():
 def test_with_out_keyword():
     """Test with out keyword."""
     out = np.empty((1, 4))
-    rtn = rmg.calculate_gradient_across_cell_corners(
+    rtn = rmg.calc_grad_across_cell_corners(
         values_at_nodes, 5, out=out)
     assert_is(rtn, out)
     assert_array_equal(out, np.array([[6., 4., -6., -4.]]) / np.sqrt(2))

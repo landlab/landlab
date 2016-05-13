@@ -57,12 +57,12 @@ def test_sheetflow():
     mg.at_node['topographic__elevation'] = z
 
     mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-    mg.at_node['water__volume_flux_in'] = np.ones_like(z, dtype=float)
+    mg.at_node['water__unit_flux_in'] = np.ones_like(z, dtype=float)
 
     pfr = PotentialityFlowRouter(mg, INPUTS)
     pfr.route_flow(route_on_diagonals=True)
 
-    assert_array_almost_equal(mg.at_node['water__volume_flux_magnitude'], flux)
+    assert_array_almost_equal(mg.at_node['water__discharge'], flux)
 
 
 def test_in_network():
@@ -158,12 +158,12 @@ def test_in_network():
 
     mg.add_field('node', 'topographic__elevation', z)
 
-    mg.at_node['water__volume_flux_in'] = DX * DX * np.ones_like(z) * 100. / (
+    mg.at_node['water__unit_flux_in'] = DX * DX * np.ones_like(z) * 100. / (
         60. * 60. * 24. * 365.25)  # remember, flux is /s, so this is a small number!
 
     pfr = PotentialityFlowRouter(mg, INPUTS)
     pfr.route_flow(return_components=True)
 
-    assert_array_almost_equal(mg.at_node['water__volume_flux_magnitude'], flux)
-    assert_array_almost_equal(mg.at_node['potentiality_field'][mg.core_nodes],
+    assert_array_almost_equal(mg.at_node['water__discharge'], flux)
+    assert_array_almost_equal(mg.at_node['flow__potential'][mg.core_nodes],
                               potnt[mg.core_nodes])
