@@ -42,7 +42,9 @@ def imshow_grid_at_node(grid, values, **kwds):
                             limits=(values.min(), values.max()),
                             vmin=values.min(), vmax=values.max(),
                             allow_colorbar=True, norm=[linear], shrink=1.,
-                            color_for_closed='black', show_elements=False)
+                            color_for_closed='black',
+                            color_for_background=None,
+                            show_elements=False)
 
     Parameters
     ----------
@@ -75,9 +77,12 @@ def imshow_grid_at_node(grid, values, **kwds):
     color_for_closed : str or None
         Color to use for closed nodes (default 'black'). If None, closed
         (or masked) nodes will be transparent.
+    color_for_background : str or None
+        Color to use for closed elements (default None). If None, the
+        background will be transparent, and appear white.
     show_elements : bool
-        If True, and grid is a Voronoi, extra grid elements (nodes, faces,
-        corners) will be plotted along with just the colour of the cell
+        If True, and grid is a Voronoi, the faces will be plotted in black
+        along with just the colour of the cell, defining the cell outlines
         (defaults False).
     """
     if isinstance(values, str):
@@ -121,7 +126,8 @@ def imshow_grid_at_cell(grid, values, **kwds):
                             limits=(values.min(), values.max()),
                             vmin=values.min(), vmax=values.max(),
                             allow_colorbar=True, norm=[linear], shrink=1.,
-                            color_for_closed='black', show_elements=False)
+                            color_for_closed='black',
+                            color_for_background=None, show_elements=False)
 
     Parameters
     ----------
@@ -155,9 +161,12 @@ def imshow_grid_at_cell(grid, values, **kwds):
     color_for_closed : str or None
         Color to use for closed elements (default 'black'). If None, closed
         (or masked) elements will be transparent.
+    color_for_background : str or None
+        Color to use for closed elements (default None). If None, the
+        background will be transparent, and appear white.
     show_elements : bool
-        If True, and grid is a Voronoi, extra grid elements (nodes, faces,
-        corners) will be plotted along with just the colour of the cell
+        If True, and grid is a Voronoi, the faces will be plotted in black
+        along with just the colour of the cell, defining the cell outlines
         (defaults False).
 
     Raises
@@ -204,7 +213,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
                         cmap='pink', limits=None, allow_colorbar=True,
                         vmin=None, vmax=None,
                         norm=None, shrink=1., color_for_closed='black',
-                        show_elements=False):
+                        color_for_background=None, show_elements=False):
 
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -281,7 +290,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         colorVal = scalarMap.to_rgba(values)
 
         if show_elements:
-            myimage = voronoi_plot_2d(grid.vor)
+            myimage = voronoi_plot_2d(grid.vor, show_vertices=False,
+                                      show_points=False)
         mycolors = (i for i in colorVal)
         for order in grid.vor.point_region:
             region = grid.vor.regions[order]
@@ -303,6 +313,9 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
 
         if var_name is not None:
             plt.title('%s (%s)' % (var_name, var_units))
+
+    if color_for_background is not None:
+        plt.gca().set_axis_bgcolor(color_for_background)
 
 
 def imshow_grid(grid, values, **kwds):
@@ -334,7 +347,8 @@ def imshow_grid(grid, values, **kwds):
                     symmetric_cbar=False, cmap='pink',
                     limits=(values.min(), values.max()), vmin=values.min(),
                     vmax=values.max(), allow_colorbar=True, norm=[linear],
-                    shrink=1., color_for_closed='black', show_elements=False,
+                    shrink=1., color_for_closed='black',
+                    color_for_background=None, show_elements=False,
                     show=False)
 
     Parameters
@@ -371,9 +385,12 @@ def imshow_grid(grid, values, **kwds):
     color_for_closed : str or None
         Color to use for closed elements (default 'black'). If None, closed
         (or masked) elements will be transparent.
+    color_for_background : str or None
+        Color to use for closed elements (default None). If None, the
+        background will be transparent, and appear white.
     show_elements : bool
-        If True, and grid is a Voronoi, extra grid elements (nodes, faces,
-        corners) will be plotted along with just the colour of the cell
+        If True, and grid is a Voronoi, the faces will be plotted in black
+        along with just the colour of the cell, defining the cell outlines
         (defaults False).
     show : bool
         If True, plot the figure immediately after calling this method.
