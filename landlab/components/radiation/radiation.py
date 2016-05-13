@@ -80,7 +80,7 @@ import numpy as np
 _VALID_METHODS = set(['Grid'])
 
 
-def assert_method_is_valid(method):
+def _assert_method_is_valid(method):
     if method not in _VALID_METHODS:
         raise ValueError('%s: Invalid method name' % method)
 
@@ -231,7 +231,7 @@ class Radiation(Component):
         self._n = clearsky_turbidity
         self._m = opt_airmass
 
-        assert_method_is_valid(self._method)
+        _assert_method_is_valid(self._method)
 
         super(Radiation, self).__init__(grid, **kwds)
 
