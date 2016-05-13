@@ -66,6 +66,8 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
+
+    LLCATS: NINF GRAD
     """
     if out is None:
         out = grid.zeros(at='node')
@@ -156,6 +158,8 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     there are no cells (i.e., perimeter nodes), the result is given as zeros
     for these nodes. The current algorithm uses fancy indexing (calling
     _calc_net_face_flux_at_cells) and could probably be made faster.
+
+    LLCATS: NINF GRAD
     """
     if out is None:
         out = grid.zeros(at='node')

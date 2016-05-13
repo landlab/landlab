@@ -154,6 +154,8 @@ def calc_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     >>> grid.calc_steepest_descent_across_adjacent_cells(
     ...     node_values, 0, method='d8', return_node=True)
     (array([-7.07106781]), array([0]))
+
+    LLCATS: NINF CINF GRAD
     """
     method = kwds.pop('method', 'd4')
     _assert_valid_routing_method(method)
@@ -250,6 +252,8 @@ def calc_steepest_descent_across_cell_corners(grid, node_values, *args,
     >>> grid.calc_steepest_descent_across_cell_corners(node_values, 0,
     ...     return_node=True)
     (array([-0.70710678]), array([0]))
+
+    LLCATS: NINF CNINF GRAD
     """
     return_node = kwds.pop('return_node', False)
 
@@ -342,6 +346,8 @@ def calc_steepest_descent_across_cell_faces(grid, node_values, *args, **kwds):
     >>> grid.calc_steepest_descent_across_cell_faces(node_values, 0,
     ...     return_node=True)
     (array([-1.]), array([1]))
+
+    LLCATS: NINF FINF GRAD
     """
     return_node = kwds.pop('return_node', False)
 
