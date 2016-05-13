@@ -292,6 +292,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         if show_elements:
             myimage = voronoi_plot_2d(grid.vor, show_vertices=False,
                                       show_points=False)
+        # show_points to be supported in scipy0.18, but harmless for now
         mycolors = (i for i in colorVal)
         for order in grid.vor.point_region:
             region = grid.vor.regions[order]
