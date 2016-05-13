@@ -128,7 +128,7 @@ class OverlandFlowBates(Component):
 
         return self.dt
 
-    def overland_flow(self, grid, dt = None, **kwds):
+    def overland_flow(self, dt = None, **kwds):
         """
         For one time step, this generates 'overland flow' across a given grid
         by calculating discharge at each node.
@@ -178,9 +178,8 @@ class OverlandFlowBates(Component):
             / hflow ** self.ten_thirds))
 
         # Update our water depths
-        dhdt = (self.rainfall_intensity -
-            self._grid.calculate_flux_divergence_at_nodes(
-            self.q[self.active_links]))
+        dhdt = (self.rainfall_intensity - self._grid.calc_flux_div_at_node(
+            self.q))
 
         self.h[self.core_nodes] = (self.h[self.core_nodes] +
             dhdt[self.core_nodes] * self.dt)
