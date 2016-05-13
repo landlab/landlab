@@ -139,6 +139,8 @@ class ModelDataFields(object):
         True
         >>> fields.has_group('cell')
         False
+
+        LLCATS: FIELDINF
         """
         return group in self._groups
 
@@ -170,6 +172,8 @@ class ModelDataFields(object):
         True
         >>> fields.has_field('cell', 'topographic__elevation')
         False
+
+        LLCATS: FIELDINF
         """
         try:
             return field in self[group]
@@ -201,6 +205,8 @@ class ModelDataFields(object):
         >>> _ = fields.add_empty('node', 'topographic__elevation')
         >>> list(fields.keys('node'))
         ['topographic__elevation']
+
+        LLCATS: FIELDINF
         """
         return self[group].keys()
 
@@ -224,6 +230,8 @@ class ModelDataFields(object):
         >>> fields.new_field_location('node', 4)
         >>> fields.size('node')
         4
+
+        LLCATS: FIELDINF
         """
         return self[group].size
 
@@ -276,6 +284,8 @@ class ModelDataFields(object):
         >>> fields.at_core_node['air__temperature'] = [0, 1]
         >>> fields.at_core_node.size
         2
+
+        LLCATS: FIELDCR
         """
         if self.has_group(group):
             raise ValueError('ModelDataFields already contains %s' % group)
@@ -337,6 +347,8 @@ class ModelDataFields(object):
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
+
+        LLCATS: FIELDIO
         """
         return self[group][field]
 
@@ -362,6 +374,8 @@ class ModelDataFields(object):
         ------
         KeyError
             If either *field* or *group* does not exist.
+
+        LLCATS: FIELDINF
         """
         return self[group].units[field]
 
@@ -398,6 +412,8 @@ class ModelDataFields(object):
 
         >>> list(field.keys('node'))
         []
+
+        LLCATS: FIELDCR
         """
         return self[group].empty(**kwds)
 
@@ -434,6 +450,8 @@ class ModelDataFields(object):
 
         >>> list(field.keys('node'))
         []
+
+        LLCATS: FIELDCR
         """
         return self[group].ones(**kwds)
 
@@ -468,6 +486,8 @@ class ModelDataFields(object):
 
         >>> list(field.keys('node'))
         []
+
+        LLCATS: FIELDCR
         """
         return self[group].zeros(**kwds)
 
@@ -507,6 +527,8 @@ class ModelDataFields(object):
             does not initialize the new array.
         landlab.field.ModelDataFields.zeros : Equivalent method that
             initializes the data to 0.
+
+        LLCATS: FIELDCR
         """
         if len(args) == 2:
             group, name = args
@@ -573,6 +595,8 @@ class ModelDataFields(object):
         array([ 1.,  1.,  1.,  1.])
         >>> field.at_node['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
+
+        LLCATS: FIELDCR
         """
         if len(args) == 2:
             group, name = args
@@ -623,6 +647,8 @@ class ModelDataFields(object):
             does not initialize the new array.
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
+
+        LLCATS: FIELDCR
         """
         if len(args) == 2:
             group, name = args
@@ -707,6 +733,8 @@ class ModelDataFields(object):
         ...     noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation
+
+        LLCATS: FIELDCR
         """
         if len(args) == 3:
             group, name, value_array = args
@@ -733,6 +761,8 @@ class ModelDataFields(object):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR FIELDIO
         """
         self[group].set_units(name, units)
 
@@ -750,6 +780,8 @@ class ModelDataFields(object):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR
         """
         del self._groups[group].units[name]
         del self._groups[group][name]
