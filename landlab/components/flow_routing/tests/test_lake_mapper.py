@@ -368,7 +368,7 @@ def test_initial_routing():
     Test the action of fr.route_flow() on the grid.
     """
     fr.route_flow()
-    assert_array_equal(mg.at_node['flow_receiver'], r_old)
+    assert_array_equal(mg.at_node['flow__receiver_node'], r_old)
     assert_array_almost_equal(mg.at_node['drainage_area'], A_old)
 
 @with_setup(setup_dans_grid)
@@ -378,10 +378,10 @@ def test_rerouting_with_supplied_pits():
     """
     fr.route_flow()
     lf.map_depressions()
-    assert_array_equal(mg.at_node['flow_receiver'], r_new)
+    assert_array_equal(mg.at_node['flow__receiver_node'], r_new)
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
-    assert_array_almost_equal(mg.at_node['water__volume_flux'], A_new)
-    assert_array_equal(mg.at_node['upstream_node_order'], s_new)
+    assert_array_almost_equal(mg.at_node['water__discharge'], A_new)
+    assert_array_equal(mg.at_node['flow__upstream_node_order'], s_new)
 
 @with_setup(setup_dans_grid)
 def test_filling_alone():
@@ -389,7 +389,7 @@ def test_filling_alone():
     Test the filler alone, w/o supplying information on the pits.
     """
     lf.map_depressions(pits=None, reroute_flow=False)
-    assert_array_equal(mg.at_node['flow_receiver'], np.zeros(49, dtype=float))
+    assert_array_equal(mg.at_node['flow__receiver_node'], np.zeros(49, dtype=float))
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
 @with_setup(setup_dans_grid)
@@ -400,8 +400,8 @@ def test_filling_supplied_pits():
     Also tests the supply of an array for 'pits'
     """
     fr.route_flow()
-    lf.map_depressions(pits=mg.at_node['flow_sinks'], reroute_flow=False)
-    assert_array_equal(mg.at_node['flow_receiver'], r_old)
+    lf.map_depressions(pits=mg.at_node['flow__sink_flag'], reroute_flow=False)
+    assert_array_equal(mg.at_node['flow__receiver_node'], r_old)
 
 @with_setup(setup_dans_grid)
 def test_pits_as_IDs():
@@ -409,7 +409,7 @@ def test_pits_as_IDs():
     Smoke test for passing specific IDs, not an array, to the mapper.
     """
     fr.route_flow()
-    lf.map_depressions(pits=np.where(mg.at_node['flow_sinks'])[0])
+    lf.map_depressions(pits=np.where(mg.at_node['flow__sink_flag'])[0])
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
 
 
@@ -483,7 +483,7 @@ def test_three_pits():
     flow_sinks_target = np.zeros(100, dtype=bool)
     flow_sinks_target[mg.boundary_nodes] = True
     # no internal sinks now:
-    assert_array_equal(mg.at_node['flow_sinks'], flow_sinks_target)
+    assert_array_equal(mg.at_node['flow__sink_flag'], flow_sinks_target)
     
     # test conservation of mass:
     assert_almost_equal(mg.at_node['drainage_area'
@@ -540,7 +540,7 @@ def test_composite_pits():
     flow_sinks_target = np.zeros(100, dtype=bool)
     flow_sinks_target[mg.boundary_nodes] = True
     # no internal sinks now:
-    assert_array_equal(mg.at_node['flow_sinks'], flow_sinks_target)
+    assert_array_equal(mg.at_node['flow__sink_flag'], flow_sinks_target)
     
     # test conservation of mass:
     assert_almost_equal(mg.at_node['drainage_area'
@@ -634,8 +634,8 @@ def test_D8_D4_route():
                            13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
                            33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
                            32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
-    assert_array_equal(mg1.at_node['flow_receiver'], flow_recD8)
-    assert_array_equal(mg2.at_node['flow_receiver'], flow_recD4)
+    assert_array_equal(mg1.at_node['flow__receiver_node'], flow_recD8)
+    assert_array_equal(mg2.at_node['flow__receiver_node'], flow_recD4)
     assert_array_almost_equal(mg1.at_node['drainage_area'].reshape((7,7))[:,
                                   0].sum(),
                               mg2.at_node['drainage_area'].reshape((7,7))[:,

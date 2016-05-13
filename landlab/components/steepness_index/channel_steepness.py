@@ -98,9 +98,9 @@ class SteepnessFinder(Component):
         'topographic__elevation',
         'drainage_area',
         'topographic__steepest_slope',
-        'flow_receiver',
-        'upstream_node_order',
-        'links_to_flow_receiver',
+        'flow__receiver_node',
+        'flow__upstream_node_order',
+        'flow__link_to_receiver_node',
     )
 
     _output_var_names = (
@@ -110,18 +110,18 @@ class SteepnessFinder(Component):
     _var_units = {'topographic__elevation': 'm',
                   'drainage_area': 'm**2',
                   'topographic__steepest_slope': '-',
-                  'flow_receiver': '-',
-                  'upstream_node_order': '-',
-                  'links_to_flow_receiver': '-',
+                  'flow__receiver_node': '-',
+                  'flow__upstream_node_order': '-',
+                  'flow__link_to_receiver_node': '-',
                   'channel__steepness_index': 'variable',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'drainage_area': 'node',
                     'topographic__steepest_slope': 'node',
-                    'flow_receiver': 'node',
-                    'upstream_node_order': 'node',
-                    'links_to_flow_receiver': 'node',
+                    'flow__receiver_node': 'node',
+                    'flow__upstream_node_order': 'node',
+                    'flow__link_to_receiver_node': 'node',
                     'channel__steepness_index': 'node',
                     }
 
@@ -129,12 +129,12 @@ class SteepnessFinder(Component):
                 'drainage_area': 'upstream drainage area',
                 'topographic__steepest_slope': ('the steepest downslope ' +
                                                 'rise/run leaving the node'),
-                'flow_receiver': ('the downstream node at the end of the ' +
+                'flow__receiver_node': ('the downstream node at the end of the ' +
                                   'steepest link'),
-                'upstream_node_order': ('node order such that nodes must ' +
+                'flow__upstream_node_order': ('node order such that nodes must ' +
                                         'appear in the list after all nodes ' +
                                         'downstream of them'),
-                'links_to_flow_receiver':
+                'flow__link_to_receiver_node':
                     ('ID of link downstream of each node, which carries the ' +
                      'discharge'),
                 'channel__steepness_index': 'the local steepness index',
@@ -178,7 +178,7 @@ class SteepnessFinder(Component):
         discretization_length = kwds.get('discretization_length',
                                          self._discretization)
 
-        upstr_order = self.grid.at_node['upstream_node_order']
+        upstr_order = self.grid.at_node['flow__upstream_node_order']
         # get an array of only nodes with A above threshold:
         valid_dstr_order = (upstr_order[self.grid.at_node['drainage_area'][
             upstr_order] >= min_drainage])[::-1]
@@ -198,7 +198,7 @@ class SteepnessFinder(Component):
                 penultimate_node = this_ch_top_node
                 current_node_incorporated = False
                 while not current_node_incorporated:
-                    next_node = self.grid.at_node['flow_receiver'][
+                    next_node = self.grid.at_node['flow__receiver_node'][
                         penultimate_node]
                     if next_node == penultimate_node:  # end of flow path
                         break
@@ -289,7 +289,7 @@ class SteepnessFinder(Component):
         >>> sf.channel_distances_downstream(ch_nodes)
         array([  0.        ,  10.        ,  21.18033989,  31.18033989])
         """
-        ch_links = self.grid.at_node['links_to_flow_receiver'][
+        ch_links = self.grid.at_node['flow__link_to_receiver_node'][
             ch_nodes]
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide

@@ -96,15 +96,15 @@ class DetachmentLtdErosion(Component):
 
     _name = 'DetachmentLtdErosion'
 
-    _input_var_names = set([
+    _input_var_names = (
         'topographic__elevation',
         'topographic__slope',
         'water__discharge',
-    ])
-    
-    _output_var_names = set([
+    )
+
+    _output_var_names = (
         'topographic__elevation',
-    ])
+    )
 
     _var_units = {
         'topographic__elevation': 'm',

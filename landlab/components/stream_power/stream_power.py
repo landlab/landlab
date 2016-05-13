@@ -142,7 +142,7 @@ class StreamPowerEroder(Component):
     >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
     >>> mg3.at_node['water__unit_flux_in'] = mg3.node_y
     >>> fr3 = FlowRouter(mg3)
-    >>> Q = mg3.at_node['water__volume_flux']
+    >>> Q = mg3.at_node['water__discharge']
     >>> sp3 = StreamPowerEroder(mg3, K_sp=1., sp_type='Unit', a_sp=1.,
     ...                         b_sp=0.5, c_sp=1., use_Q=Q)
     >>> fr3.run_one_step()
@@ -159,36 +159,33 @@ class StreamPowerEroder(Component):
 
     _input_var_names = (
         'topographic__elevation',
-        'links_to_flow_receiver',
+        'flow__link_to_receiver_node',
         'drainage_area',
-        'flow_receiver',
-        'upstream_node_order',
+        'flow__receiver_node',
+        'flow__upstream_node_order',
         'topographic__steepest_slope'
     )
 
     _output_var_names = (
         'topographic__elevation',
-        'stream_power_erosion'
     )
 
     _var_units = {
         'topographic__elevation': 'm',
         'drainage_area': 'm**2',
-        'links_to_flow_receiver': '-',
-        'flow_receiver': '-',
-        'upstream_node_order': '-',
-        'topographic__steepest_slope': '-',
-        'stream_power_erosion': 'variable'
+        'flow__link_to_receiver_node': '-',
+        'flow__receiver_node': '-',
+        'flow__upstream_node_order': '-',
+        'topographic__steepest_slope': '-'
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'drainage_area': 'node',
-        'links_to_flow_receiver': 'node',
-        'flow_receiver': 'node',
-        'upstream_node_order': 'node',
-        'topographic__steepest_slope': 'node',
-        'stream_power_erosion': 'node'
+        'flow__link_to_receiver_node': 'node',
+        'flow__receiver_node': 'node',
+        'flow__upstream_node_order': 'node',
+        'topographic__steepest_slope': 'node'
     }
 
     _var_doc = {
@@ -196,19 +193,16 @@ class StreamPowerEroder(Component):
         'drainage_area':
             "Upstream accumulated surface area contributing to the node's "
             "discharge",
-        'links_to_flow_receiver':
+        'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
-        'flow_receiver':
+        'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
             'node)',
-        'upstream_node_order':
+        'flow__upstream_node_order':
             'Node array containing downstream-to-upstream ordered list of '
             'node IDs',
         'topographic__steepest_slope':
-            'Node array of steepest *downhill* slopes',
-        'stream_power_erosion':
-            ('The value dt*K*A**m*S**n. Note the incorporation of time, and ' +
-             'that any threshold is NOT included in this value.')
+            'Node array of steepest *downhill* slopes'
     }
 
     @use_file_name_or_kwds
@@ -331,16 +325,15 @@ class StreamPowerEroder(Component):
         # and W directly if appropriate
 
         self.stream_power_erosion = grid.zeros(centering='node')
-        grid.add_zeros('stream_power_erosion', at='node')
         self.alpha = self.grid.zeros('node')
         self.alpha_divided = self.grid.zeros('node')
 
     def erode(self, grid, dt, node_elevs='topographic__elevation',
               node_drainage_areas='drainage_area',
-              flow_receiver='flow_receiver',
-              node_order_upstream='upstream_node_order',
+              flow_receiver='flow__receiver_node',
+              node_order_upstream='flow__upstream_node_order',
               slopes_at_nodes='topographic__steepest_slope',
-              link_node_mapping='links_to_flow_receiver',
+              link_node_mapping='flow__link_to_receiver_node',
               link_slopes=None, slopes_from_elevs=None,
               W_if_used=None, Q_if_used=None, K_if_used=None,
               flooded_nodes=None):
@@ -388,7 +381,7 @@ class StreamPowerEroder(Component):
             projected onto the nodes using slopes_at_nodes if not). Other
             components, e.g., flow_routing.route_flow_dn, may provide the
             necessary outputs to make the mapping easier: e.g., just pass
-            'links_to_flow_receiver' from that module (the default name). If
+            'flow__link_to_receiver_node' from that module (the default name). If
             the component cannot find an existing mapping through this
             parameter, it will derive one on the fly, at considerable cost of
             speed (see on-screen reports).
@@ -426,18 +419,17 @@ class StreamPowerEroder(Component):
         -------
         tuple
             Tuple of (*grid*, *modified_elevs*, *stream_power_erosion*);
-            modifies grid elevation fields to reflect updates; creates and
-            maintains ``grid.at_node['stream_power_erosion']``. Note the value
+            modifies grid elevation fields to reflect updates. Note the value
             stream_power_erosion is not an excess stream power; any specified
             erosion threshold is not incorporated into it.
         """
-        upstream_order_IDs = self._grid['node']['upstream_node_order']
+        upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
         defined_flow_receivers = np.not_equal(self._grid['node'][
-            'links_to_flow_receiver'], UNDEFINED_INDEX)
+            'flow__link_to_receiver_node'], UNDEFINED_INDEX)
         flow_link_lengths = self._grid.length_of_link[self._grid['node'][
-            'links_to_flow_receiver'][defined_flow_receivers]]
+            'flow__link_to_receiver_node'][defined_flow_receivers]]
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
-        flow_receivers = self.grid['node']['flow_receiver']
+        flow_receivers = self.grid['node']['flow__receiver_node']
 
         if W_if_used is not None:
             assert self.use_W, ("Widths were provided, but you didn't set " +
