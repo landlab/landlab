@@ -25,6 +25,9 @@ class SedDepEroder(Component):
     into a node, and Qc is the volumetric sediment transport capacity at
     that node.
 
+    This component is under active research and development; proceed with its
+    use at your own risk.
+
     The details of the implementation are a function of the two key
     arguments, *sed_dependency_type* and *Qc*. The former controls the
     shape of the sediment dependent response function f(Qs, Qc), the
@@ -116,7 +119,8 @@ class SedDepEroder(Component):
         Whether to perform a few additional calculations in order to set
         the additional optional output fields, 'channel_width',
         'channel_depth', and 'channel_discharge' (default False).
-    sed_dependency_type : {'generalized_humped', 'None', 'linear_decline', 'almost_parabolic'}
+    sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
+                           'almost_parabolic'}
         The shape of the sediment flux function. For definitions, see
         Hobley et al., 2011. 'None' gives a constant value of 1.
         NB: 'parabolic' is currently not supported, due to numerical

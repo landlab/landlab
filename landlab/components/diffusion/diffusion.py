@@ -34,7 +34,7 @@ class LinearDiffuser(Component):
 
     Construction::
 
-        FastscapeEroder(grid, linear_diffusivity=None)
+        LinearDiffuser(grid, linear_diffusivity=None)
 
     Parameters
     ----------
