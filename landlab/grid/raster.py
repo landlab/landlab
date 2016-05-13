@@ -3519,8 +3519,8 @@ XXXXXXeric should be killing this with graphs.
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg._get_diagonal_list([-1, 6])
-        array([[2147483647, 2147483647,         13, 2147483647],
-               [        12,         10,          0,          2]])
+        array([[-1, -1, 13, -1],
+               [12, 10,  0,  2]])
         >>> mg._get_diagonal_list(7)
         array([13, 11,  1,  3])
 

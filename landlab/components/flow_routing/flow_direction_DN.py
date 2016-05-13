@@ -169,7 +169,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> snk
     array([4])
     >>> rl[3:8]
-    array([        15, 2147483647,          1,          6,          2])
+    array([15, -1,  1,  6,  2])
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
