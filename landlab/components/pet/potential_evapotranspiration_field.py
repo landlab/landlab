@@ -314,6 +314,7 @@ class PotentialEvapotranspiration(Component):
 
     def update(self, current_time, const_potential_evapotranspiration=12.,
                Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350., **kwds):
+        """Update fields with current conditions."""
 
         if self._method == 'Constant':
             self._PET_value = const_potential_evapotranspiration
