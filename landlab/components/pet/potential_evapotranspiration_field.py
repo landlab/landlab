@@ -291,7 +291,7 @@ class PotentialEvapotranspiration(Component):
         self._y = psychometric_const
         self._sigma = stefan_boltzmann_const
         self._Gsc = solar_const
-        self._phi = (3.14/180)*latitude
+        self._phi = (np.pi / 180.) * latitude
         self._z = elevation_of_measurement
         self._Krs = adjustment_coeff
         self._LT = lt
@@ -343,8 +343,8 @@ class PotentialEvapotranspiration(Component):
         elif self._method == 'Cosine':
             self._J = np.floor((current_time - np.floor(current_time)) * 365.)
             self._PET_value = (
-                max((self._TmaxF_mean + self._DeltaD/2. *
-                     np.cos((2*np.pi) * (self._J - self._LT - self._ND/2) /
+                max((self._TmaxF_mean + self._DeltaD / 2. *
+                     np.cos((2 * np.pi) * (self._J - self._LT - self._ND / 2) /
                             self._ND)), 0.0))
 
         self._PET = (
@@ -372,11 +372,11 @@ class PotentialEvapotranspiration(Component):
 
         # Solar Declination Angle - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 24,(51)
-        self._sdecl = 0.409 * np.sin((((2.0 * 3.14) / 365.0) * self._J) - 1.39)
+        self._sdecl = 0.409 * np.sin(((np.pi / 180.0) * self._J) - 1.39)
 
         # Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 23,(50)
-        self._dr = 1 + (0.033 * np.cos((2.0 * 3.14 / 365.0) * self._J))
+        self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._J))
 
         # To calculate ws - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 29,(61)
@@ -386,14 +386,14 @@ class PotentialEvapotranspiration(Component):
             self._x = 0.00001
             # Sunset Hour Angle - ASCE-EWRI Task Committee Report,
             # Jan-2005 - Eqn 28,(60)
-        self._ws = ((3.14 / 2.0) -
+        self._ws = ((np.pi / 2.0) -
                     np.arctan((- 1 * np.tan(self._phi) *
                                np.tan(self._sdecl)) / (self._x ** 2.0)))
 
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 21, (48)
         self._Ra = (
-                    11.57 * (24.0 / 3.14) * 4.92 * self._dr *
+                    11.57 * (24.0 / np.pi) * 4.92 * self._dr *
                     ((self._ws * np.sin(self._phi) * np.sin(self._sdecl)) +
                      (np.cos(self._phi) * np.cos(self._sdecl) *
                      (np.sin(self._ws)))))
