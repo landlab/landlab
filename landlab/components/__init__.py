@@ -24,8 +24,8 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration,PotentialityFlowRouter,
-			  Radiation, SinkFiller, StreamPowerEroder,
-			  FastscapeEroder, SedDepEroder,
+              Radiation, SinkFiller, StreamPowerEroder,
+              FastscapeEroder, SedDepEroder,
               SteepnessFinder, DetachmentLtdErosion, gFlex]
 
 
