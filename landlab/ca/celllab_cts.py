@@ -394,8 +394,8 @@ class CellLabCTSModel(object):
 
         # Keep a copy of the model grid; remember how many active links in it
         self.grid = model_grid
-        ###self.active_links_at_node = self.grid.active_links_at_node()
-        self.active_links_at_node = self.grid.active_links_at_node2()
+        ###self._active_links_at_node = self.grid._active_links_at_node()
+        self._active_links_at_node = self.grid._active_links_at_node2()
 
         # Create an array that knows which links are connected to a boundary
         # node
@@ -696,8 +696,8 @@ class CellLabCTSModel(object):
         """
 
         # Find out the states of the two nodes, and the orientation
-        ###tail_node_state = self.node_state[self.grid.activelink_fromnode[link_id]]
-        ###head_node_state = self.node_state[self.grid.activelink_tonode[link_id]]
+        ###tail_node_state = self.node_state[self.grid._activelink_fromnode[link_id]]
+        ###head_node_state = self.node_state[self.grid._activelink_tonode[link_id]]
         ###orientation = self.active_link_orientation[link_id]
         tail_node_state = self.node_state[self.grid.node_at_link_tail[link_id]]
         head_node_state = self.node_state[self.grid.node_at_link_head[link_id]]
@@ -971,7 +971,7 @@ class CellLabCTSModel(object):
                 if _DEBUG:
                     print(' fromnode has changed state, so updating its links')
 
-                for link in self.active_links_at_node[:, tail_node]:
+                for link in self._active_links_at_node[:, tail_node]:
 
                     if _DEBUG:
                         print('f checking link', link)
@@ -997,7 +997,7 @@ class CellLabCTSModel(object):
                 if _DEBUG:
                     print(' tonode has changed state, so updating its links')
 
-                for link in self.active_links_at_node[:, head_node]:
+                for link in self._active_links_at_node[:, head_node]:
 
                     if _DEBUG:
                         print('t checking link', link)

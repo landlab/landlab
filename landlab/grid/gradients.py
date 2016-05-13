@@ -105,8 +105,8 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     """
     if out is None:
         out = grid.empty(centering='active_link')
-    return np.divide(node_values[grid.activelink_tonode] -
-                     node_values[grid.activelink_fromnode],
+    return np.divide(node_values[grid._activelink_tonode] -
+                     node_values[grid._activelink_fromnode],
                      grid.length_of_link[grid.active_links], out=out)
 
 
@@ -242,8 +242,8 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     if out is None:
         out = grid.empty(centering='active_link')
     node_values = np.asarray(node_values)
-    return np.subtract(node_values[grid.activelink_tonode],
-                       node_values[grid.activelink_fromnode], out=out)
+    return np.subtract(node_values[grid._activelink_tonode],
+                       node_values[grid._activelink_fromnode], out=out)
 
 
 def calc_unit_normal_at_patch(grid, elevs='topographic__elevation'):

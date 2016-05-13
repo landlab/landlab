@@ -678,7 +678,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # List of second ring looped neighbor cells (all 16 neighbors) for
         # given *cell ids* can be created if requested by the user.
-        self.looped_second_ring_cell_neighbor_list_created = False
+        self._looped_second_ring_cell_neighbor_list_created = False
 
     def _setup_nodes(self):
         self._nodes = np.arange(self.number_of_nodes,
@@ -920,7 +920,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
     @make_return_array_immutable
-    def get__diagonal_neighbors_at_node(self):
+    def get_diagonal_neighbors_at_node(self):
         return self._diagonal_neighbors_at_node
 
     @property
@@ -949,8 +949,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
-    def active_links_at_node(self, *args):
-        """active_links_at_node([node_ids])
+    def _active_links_at_node(self, *args):
+        """_active_links_at_node([node_ids])
         Active links of a node.
 
         Parameters
@@ -972,12 +972,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid((3, 4))
         >>> rmg.links_at_node[5]
         array([ 8, 11,  7,  4])
-        >>> rmg.active_links_at_node((5, 6))
+        >>> rmg._active_links_at_node((5, 6))
         array([[ 4,  5],
                [ 7,  8],
                [11, 12],
                [ 8,  9]])
-        >>> rmg.active_links_at_node()
+        >>> rmg._active_links_at_node()
         array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
                [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1],
                [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
@@ -2277,9 +2277,9 @@ XXXXXXeric should be killing this with graphs.
 
         return (
             np.concatenate((self.active_links, self._diag_active_links)),
-            np.concatenate((self.activelink_fromnode,
+            np.concatenate((self._activelink_fromnode,
                             self._diag_activelink_fromnode)),
-            np.concatenate((self.activelink_tonode,
+            np.concatenate((self._activelink_tonode,
                             self._diag_activelink_tonode))
         )
 
@@ -3026,8 +3026,8 @@ XXXXXXeric should be killing this with graphs.
         horizontal_links = squad_links.is_horizontal_link(
             self.shape, active_links)
 
-        diffs = (node_values[self.activelink_tonode] -
-                 node_values[self.activelink_fromnode])
+        diffs = (node_values[self._activelink_tonode] -
+                 node_values[self._activelink_fromnode])
 
         diffs[vertical_links] /= self.dy
         diffs[horizontal_links] /= self.dx
@@ -4274,7 +4274,7 @@ XXXXXXeric should be killing this with graphs.
         [ 8,  9, 10, 11, 12, 13, 14, 15]
         [ 0,  1,  2,  3,  4,  5,  6,  7]
         """
-        if self.looped_second_ring_cell_neighbor_list_created:
+        if self._looped_second_ring_cell_neighbor_list_created:
             return self.second_ring_looped_cell_neighbor_list
         else:
             self.second_ring_looped_cell_neighbor_list = \
@@ -4300,7 +4300,7 @@ XXXXXXeric should be killing this with graphs.
                                       inf[cell4][0:2]))[order]
             second_ring[cell] = ring_tw
 
-        self.looped_second_ring_cell_neighbor_list_created = True
+        self._looped_second_ring_cell_neighbor_list_created = True
         return second_ring
 
     def set_fixed_link_boundaries_at_grid_edges(

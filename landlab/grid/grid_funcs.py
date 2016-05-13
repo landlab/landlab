@@ -26,11 +26,11 @@ def resolve_values_on_active_links(grid, active_link_values):
     """
     link_lengths = grid.length_of_link[grid.active_links]
     return (
-        np.multiply(((grid.node_x[grid.activelink_tonode] -
-                      grid.node_x[grid.activelink_fromnode]) /
+        np.multiply(((grid.node_x[grid._activelink_tonode] -
+                      grid.node_x[grid._activelink_fromnode]) /
                      link_lengths), active_link_values),
-        np.multiply(((grid.node_y[grid.activelink_tonode] -
-                      grid.node_y[grid.activelink_fromnode]) /
+        np.multiply(((grid.node_y[grid._activelink_tonode] -
+                      grid.node_y[grid._activelink_fromnode]) /
                      link_lengths), active_link_values))
 
 

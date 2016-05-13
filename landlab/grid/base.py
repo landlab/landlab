@@ -373,8 +373,8 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.axis_name
     ~landlab.grid.base.ModelGrid.number_of_links_at_node
     ~landlab.grid.base.ModelGrid._create_links_and_link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.active_links_at_node
-    ~landlab.grid.base.ModelGrid.active_links_at_node2
+    ~landlab.grid.base.ModelGrid._active_links_at_node
+    ~landlab.grid.base.ModelGrid._active_links_at_node2
     ~landlab.grid.base.ModelGrid.angle_of_link
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
@@ -394,7 +394,7 @@ Other Grid Methods
     ~landlab.grid.base.ModelGrid.face_width
     ~landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
     ~landlab.grid.base.ModelGrid.length_of_link
-    ~landlab.grid.base.ModelGrid.assign_upslope_vals_to_active_links
+    ~landlab.grid.base.ModelGrid._assign_upslope_vals_to_active_links
     ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.base.ModelGrid.max_of_link_end_node_values
@@ -1798,8 +1798,8 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
-    def active_links_at_node(self, *args):
-        """active_links_at_node([node_ids])
+    def _active_links_at_node(self, *args):
+        """_active_links_at_node([node_ids])
         Active links of a node.
 
         Parameters
@@ -1834,8 +1834,8 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
-    def active_links_at_node2(self, *args):
-        """active_links_at_node2([node_ids])
+    def _active_links_at_node2(self, *args):
+        """_active_links_at_node2([node_ids])
         Get active links attached to nodes.
 
         Parameters
@@ -1857,7 +1857,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid(3, 2)
-        >>> hmg.active_links_at_node2(3)
+        >>> hmg._active_links_at_node2(3)
         array([[ 2],
                [ 3],
                [ 5],
@@ -1870,7 +1870,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1],
                [-1],
                [-1]])
-        >>> hmg.active_links_at_node2()
+        >>> hmg._active_links_at_node2()
         array([[-1, -1, -1,  2,  6,  8,  9],
                [-1, -1, -1,  3, -1, -1, -1],
                [-1, -1, -1,  5, -1, -1, -1],
@@ -2670,10 +2670,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         active_link = BAD_INDEX_VALUE
         for alink in range(0, self.number_of_active_links):
             link_connects_nodes = (
-                (self.activelink_fromnode[alink] == node1 and
-                 self.activelink_tonode[alink] == node2) or
-                (self.activelink_tonode[alink] == node1 and
-                 self.activelink_fromnode[alink] == node2))
+                (self._activelink_fromnode[alink] == node1 and
+                 self._activelink_tonode[alink] == node2) or
+                (self._activelink_tonode[alink] == node1 and
+                 self._activelink_fromnode[alink] == node2))
             if link_connects_nodes:
                 active_link = alink
                 break
@@ -2742,7 +2742,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._link_length
 
     @deprecated(use='map_max_of_link_nodes_to_link', version=1.0)
-    def assign_upslope_vals_to_active_links(self, u, v=None):
+    def _assign_upslope_vals_to_active_links(self, u, v=None):
         """Assign upslope node value to link.
 
         Assigns to each active link the value of *u* at whichever of its
@@ -2767,7 +2767,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> import numpy as np
         >>> grid = RasterModelGrid((3, 3))
         >>> u = np.arange(9.)
-        >>> grid.assign_upslope_vals_to_active_links(u)
+        >>> grid._assign_upslope_vals_to_active_links(u)
         array([ 4.,  4.,  5.,  7.])
         """
         if v is None:
@@ -2776,15 +2776,15 @@ class ModelGrid(ModelDataFieldsMixIn):
         fv = numpy.zeros(self.number_of_active_links)
         if len(v) < len(u):
             for i in range(0, self.number_of_active_links):
-                fv[i] = max(u[self.activelink_fromnode[i]],
-                            u[self.activelink_tonode[i]])
+                fv[i] = max(u[self._activelink_fromnode[i]],
+                            u[self._activelink_tonode[i]])
         else:
             for i in range(0, self.number_of_active_links):
-                if (v[self.activelink_fromnode[i]] >
-                        v[self.activelink_tonode[i]]):
-                    fv[i] = u[self.activelink_fromnode[i]]
+                if (v[self._activelink_fromnode[i]] >
+                        v[self._activelink_tonode[i]]):
+                    fv[i] = u[self._activelink_fromnode[i]]
                 else:
-                    fv[i] = u[self.activelink_tonode[i]]
+                    fv[i] = u[self._activelink_tonode[i]]
         return fv
 
     def _reset_link_status_list(self):
@@ -2882,8 +2882,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._active_links = as_id_array(self._active_links)
         self._fixed_links = as_id_array(self._fixed_links)
 
-        self.activelink_fromnode = self.node_at_link_tail[active_links]
-        self.activelink_tonode = self.node_at_link_head[active_links]
+        self._activelink_fromnode = self.node_at_link_tail[active_links]
+        self._activelink_tonode = self.node_at_link_head[active_links]
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
@@ -3154,8 +3154,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.max_of_link_end_node_values(h)
         array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
         """
-        return numpy.maximum(node_data[self.activelink_fromnode],
-                             node_data[self.activelink_tonode])
+        return numpy.maximum(node_data[self._activelink_fromnode],
+                             node_data[self._activelink_tonode])
 
     def _calc_numbers_of_node_neighbors(self):
         """Number of neighbor nodes.
@@ -3278,19 +3278,19 @@ class ModelGrid(ModelDataFieldsMixIn):
             (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
 
         # Set up the inlink arrays
-        tonodes = self.activelink_tonode
+        tonodes = self._activelink_tonode
         self._node_numactiveinlink = as_id_array(numpy.bincount(
             tonodes, minlength=self.number_of_nodes))
 
-        counts = count_repeated_values(self.activelink_tonode)
+        counts = count_repeated_values(self._activelink_tonode)
         for (count, (tonodes, active_link_ids)) in enumerate(counts):
             self._node_active_inlink_matrix[count][tonodes] = active_link_ids
 
         # Set up the outlink arrays
-        fromnodes = self.activelink_fromnode
+        fromnodes = self._activelink_fromnode
         self._node_numactiveoutlink = as_id_array(numpy.bincount(
             fromnodes, minlength=self.number_of_nodes))
-        counts = count_repeated_values(self.activelink_fromnode)
+        counts = count_repeated_values(self._activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self._node_active_outlink_matrix[count][fromnodes] = active_link_ids
 
@@ -3331,7 +3331,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         fromnodes = self.node_at_link_tail[self.active_links]
         self._node_numactiveoutlink = as_id_array(numpy.bincount(
             fromnodes, minlength=self.number_of_nodes))
-        counts = count_repeated_values(self.activelink_fromnode)
+        counts = count_repeated_values(self._activelink_fromnode)
         for (count, (fromnodes, active_link_ids)) in enumerate(counts):
             self._node_active_outlink_matrix2[count][
                 fromnodes] = self.active_links[active_link_ids]
