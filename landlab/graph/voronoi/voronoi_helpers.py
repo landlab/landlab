@@ -81,12 +81,15 @@ class VoronoiConverter(object):
         Examples
         --------
         >>> from scipy.spatial import Voronoi
-        >>> from landlab.graph.voronoi.voronoi_helpers import get_finite_regions
+        >>> from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
+
         >>> points = [[0. , 0.], [1. , 0.], [2. , 0.],
         ...           [0.1, 1.], [1.1, 1.], [2.1, 1.],
         ...           [0.2, 2.], [1.2, 2.], [2.2, 2.]]
         >>> voronoi = Voronoi(points)
-        >>> get_finite_regions(voronoi)
+
+        >>> converter = VoronoiConverter(voronoi)
+        >>> converter.get_finite_regions()
         array([0, 0, 0, 0, 0, 0, 0, 0, 1, 0])
         """
         try:
@@ -116,11 +119,19 @@ class VoronoiConverter(object):
         Examples
         --------
         >>> from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
-        >>> is_patch([1, 2, 3])
+
+        >>> converter = VoronoiConverter(None)
+        >>> converter.is_patch([1, 2, 3])
         True
-        >>> is_patch([1, 2, 3, -1])
+        >>> converter.is_patch([1, 2, 3, -1])
         False
-        >>> is_patch([])
+        >>> converter.is_patch([])
+        False
+
+        Specify the minimum number sides for a valid patch.
+
+        >>> converter = VoronoiConverter(None, min_patch_size=4)
+        >>> converter.is_patch([1, 2, 3])
         False
         """
         return len(region) >= self._min_patch_size and -1 not in region
