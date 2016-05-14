@@ -37,6 +37,9 @@ class find_facets(object):
         If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2 (i.e.,
         we don't consider fault dip, even if it's known).
         """
+        if not np.isclose(grid.dx, grid.dy):
+            raise ValueError('row and column spacing must be the same')
+
         self.grid = grid
         self.elevs = self.grid.at_node[elev_field]
         self.az = fault_azimuth
@@ -165,7 +168,7 @@ class find_facets(object):
             np.tan((angle_to_ft - self.aspect[subset]) % np.pi)
         # might be *too* forgiving for close-in nodes
         condition = np.less(np.fabs(divergence_at_ft),
-                            grid.node_spacing * dist_tolerance)
+                            grid.dx * dist_tolerance)
         #...so add another tester; must be w/i 15 degrees of each other:
         diff_angles = np.min([np.fabs(angle_to_ft - self.aspect[subset]), np.fabs(
             np.fabs(angle_to_ft - self.aspect[subset]) - 2. * np.pi)], axis=0)
@@ -300,8 +303,7 @@ class find_facets(object):
             # set the local angle of the ft trace:
             ft_pt_distances_to_node = self.grid.calc_distances_of_nodes_to_point((grid.node_x[i], grid.node_y[i]),
                                                                                 node_subset=self.ft_trace_node_ids)
-            close_ft_nodes = np.less(
-                ft_pt_distances_to_node, 5. * grid.node_spacing)
+            close_ft_nodes = np.less(ft_pt_distances_to_node, 5. * grid.dx)
             x = grid.node_x[self.ft_trace_node_ids[close_ft_nodes]]
             y = grid.node_y[self.ft_trace_node_ids[close_ft_nodes]]
             (grad, offset) = np.polyfit(x, y, 1)
@@ -343,7 +345,7 @@ class find_facets(object):
                     mod = np.sqrt(1. + grad**2.)
                 else:
                     mod = np.sqrt(1. + (1. / grad)**2.)
-                max_diff = 1.9 * mod * grid.node_spacing
+                max_diff = 1.9 * mod * grid.dx
                 locs_of_large_diffs = np.where(dist_diffs > max_diff)[0]
                 # there should only be 1 place on the line where there's a cluster, i.e., a large pts_betw_of_max_diffs.
                 # This is what we're seeking.
