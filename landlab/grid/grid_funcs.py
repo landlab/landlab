@@ -120,7 +120,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     # active link, so we are multiplying the unit flux at each link by the
     # width of its corresponding face.
     flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid.face_width
+    flux[:len(active_link_flux)] = active_link_flux * grid.width_of_face
 
     # Next, we need to add up the incoming and outgoing fluxes.
     #
