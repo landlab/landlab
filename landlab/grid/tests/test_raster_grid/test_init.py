@@ -194,11 +194,11 @@ def test_diagonal_list_boundary():
 
 
 @with_setup(setup_grid)
-def test_is_interior():
+def test_node_is_core():
     for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:
-        assert_false(rmg.is_interior(cell_id))
+        assert_false(rmg.node_is_core(cell_id))
     for cell_id in [6, 7, 8, 11, 12, 13]:
-        assert_true(rmg.is_interior(cell_id))
+        assert_true(rmg.node_is_core(cell_id))
 
 
 @with_setup(setup_grid)
