@@ -10,11 +10,14 @@ class DualHexGraph(DualVoronoiGraph):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab.graph import HexGraph
-    >>> graph = StructuredQuadGraph((3, 2))
+
+    >>> graph = DualHexGraph((3, 2))
     >>> graph.number_of_nodes
     7
-    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
+    ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])

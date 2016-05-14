@@ -4,6 +4,25 @@ from ..voronoi.voronoi import VoronoiGraph
 
 
 def number_of_nodes(shape):
+    """Get the number of nodes in a hex graph.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Number of rows and columns of the hex grid. The first value
+        is the number of nodes in the first column and the second the
+        number of nodes in the first column.
+
+    Examples
+    --------
+    >>> from landlab.graph.hex.hex import number_of_nodes
+    >>> number_of_nodes((3, 2))
+    7
+    >>> number_of_nodes((2, 4))
+    9
+    >>> number_of_nodes((4, 2))
+    10
+    """
     if shape[0] % 2 == 0:
         return (2 * shape[1] + 1) * (shape[0] // 2)
     else:
@@ -27,17 +46,25 @@ def create_xy_of_node(shape, spacing=1., origin=(0., 0.),
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab.graph.hex.hex import create_xy_of_node
-    >>> y, x = create_xy_of_node((3, 2))
-    (array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5]),
-     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.]))
-    >>> y, x = create_xy_of_node((2, 2))
-    (array([ 0.5,  1.5,  0. ,  1. ,  2. ]),
-     array([ 0.,  0.,  1.,  1.,  1.]))
 
-    >>> y, x = create_xy_of_node((2, 2), spacing=(2, 3), origin=(1, 2))
-    (array([ 3.5,  6.5,  2. ,  5. ,  8. ]),
-     array([ 1.,  1.,  3.,  3.,  3.]))
+    >>> x, y = create_xy_of_node((3, 2))
+    >>> x
+    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    >>> y / (np.sqrt(3) / 2.)
+    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
+    >>> x, y = create_xy_of_node((2, 2))
+    >>> x
+    array([ 0.5,  1.5,  0. ,  1. ,  2. ])
+    >>> y / (np.sqrt(3) / 2.)
+    array([ 0.,  0.,  1.,  1.,  1.])
+
+    >>> x, y = create_xy_of_node((2, 2), spacing=2, origin=(1, 2))
+    >>> x
+    array([ 3.,  5.,  2.,  4.,  6.])
+    >>> (y - 1) / (np.sqrt(3) / 2.)
+    array([ 0.,  0.,  2.,  2.,  2.])
     """
     from .ext.hex import get_xy_of_node
 
@@ -67,11 +94,14 @@ class HexGraph(VoronoiGraph):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab.graph import HexGraph
-    >>> graph = StructuredQuadGraph((3, 2))
+
+    >>> graph = HexGraph((3, 2))
     >>> graph.number_of_nodes
     7
-    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
+    ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
