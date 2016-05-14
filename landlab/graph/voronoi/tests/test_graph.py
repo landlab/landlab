@@ -12,7 +12,7 @@ This result in two bound voronoi polygons (12 total) centered on points
 """
 
 from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_tuple_equal, assert_is_instance)
+                        assert_is_instance)
 try:
     from nose.tools import assert_tuple_equal
 except ImportError:
