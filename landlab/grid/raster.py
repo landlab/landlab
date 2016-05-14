@@ -295,7 +295,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     (4, 5)
     >>> rmg.number_of_active_links
     17
-    >>> vals = rmg.add_zeros('active_link', 'vals')
+    >>> vals = rmg.add_zeros('vals', at='active_link')
     >>> vals.size
     17
 
@@ -307,7 +307,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     (4, 5)
     >>> rmg.number_of_active_links
     14
-    >>> vals = rmg.add_zeros('active_link', 'vals')
+    >>> vals = rmg.add_zeros('vals', at='active_link')
     >>> vals.size
     14
 
@@ -3186,6 +3186,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         In this case, the function will not have to create the df array.
         """
+        if out is None:
+            out = self.zeros(at='node')
         return rfuncs.calculate_flux_divergence_at_nodes(
             self, active_link_flux, out=out)
 
@@ -3572,7 +3574,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self.closed_boundary_nodes)] = bad_index
         return self.diagonal_cells
 
-    @deprecated(use='is_core', version='0.5')
+    @deprecated(use='node_is_core', version='0.5')
     def is_interior(self, *args):
         """is_interior([ids])
         Check of a node is an interior node.
