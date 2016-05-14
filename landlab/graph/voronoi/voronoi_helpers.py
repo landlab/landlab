@@ -25,6 +25,7 @@ node :
 corner :
     Same as a point.
 """
+from six.moves import range
 import numpy as np
 
 from ..sort.sort import remap
@@ -330,7 +331,7 @@ class VoronoiConverter(object):
 
         for region, vertices in enumerate(self.regions):
             if self.is_patch(vertices):
-                for n in xrange(len(vertices) - 1):
+                for n in range(len(vertices) - 1):
                     pair = [vertices[n], vertices[n + 1]]
                     pair.sort()
 
