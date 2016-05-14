@@ -15,8 +15,7 @@ class DualVoronoiGraph(DualGraph, VoronoiGraph):
 
     """Dual graph of a voronoi grid."""
 
-    def __init__(self, nodes, xy_sort=True, rot_sort=True, min_cell_size=3,
-                 **kwds):
+    def __init__(self, nodes, min_cell_size=3, **kwds):
         """Create a voronoi grid.
 
         Parameters
@@ -40,13 +39,13 @@ class DualVoronoiGraph(DualGraph, VoronoiGraph):
         array([ 0.42,  0.42,  0.58,  0.58,  0.58,  1.42,  1.42,  1.42,  1.58,
                 1.58])
         >>> graph.corners_at_face # doctest: +NORMALIZE_WHITESPACE
-        array([[0, 2], [3, 0], [3, 1], [4, 1],
-               [5, 2], [6, 3], [4, 7],
-               [8, 5], [8, 6], [6, 9], [9, 7]])
+        array([[2, 0], [0, 3], [3, 1], [1, 4],
+               [2, 5], [3, 6], [4, 7],
+               [5, 8], [8, 6], [6, 9], [9, 7]])
         >>> graph.faces_at_corner # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  1, -1], [ 2,  3, -1],
-               [ 0,  4, -1], [ 1,  2,  5], [ 3,  6, -1],
-               [ 4,  7, -1], [ 5,  8,  9], [ 6, 10, -1],
+        array([[ 1,  0, -1], [ 3,  2, -1],
+               [ 4,  0, -1], [ 5,  1,  2], [ 6,  3, -1],
+               [ 7,  4, -1], [ 9,  8,  5], [10,  6, -1],
                [ 7,  8, -1], [ 9, 10, -1]])
         >>> graph.node_at_cell
         array([5, 6])
@@ -65,8 +64,9 @@ class DualVoronoiGraph(DualGraph, VoronoiGraph):
         nodes_at_face = converter.get_corners_at_link()
 
         self._dual = Graph(corners, links=faces,
-                           patches=cells, rot_sort=True, xy_sort=True)
+                           patches=cells, sorting={'xy': False, 'ne': True,
+                                                   'ccw': True})
 
         super(DualVoronoiGraph, self).__init__(
             nodes, cells=cells, node_at_cell=node_at_cell,
-            nodes_at_face=nodes_at_face, **kwds)
+            nodes_at_face=nodes_at_face, sorting=False, **kwds)

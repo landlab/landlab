@@ -68,11 +68,11 @@ class StructuredQuadGraph(Graph):
     >>> graph.number_of_nodes
     9
     >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([-1., -2., -3.,
+    array([-3., -2., -1.,
             0.,  0.,  0.,
             1.,  2.,  3.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  1.,  2.,
+    array([ 2.,  1.,  0.,
             0.,  2.,  3.,
             0.,  1.,  2.])
     """
@@ -104,19 +104,20 @@ class StructuredQuadGraph(Graph):
         super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
                                                   links=nodes_at_link,
                                                   patches=links_at_patch,
-                                                  xy_sort=False,
-                                                  rot_sort=False)
+                                                  sorting={'ne': True,
+                                                           'ccw': False,
+                                                           'xy': True})
 
-    def get_links_at_node(self):
+    def _create_links_and_dirs_at_node(self):
         """Set up node-link data structures."""
         self._links_at_node = links_at_node(self.shape)
         self._link_dirs_at_node = link_dirs_at_node(self.shape)
         return (self._links_at_node, self._link_dirs_at_node)
 
-    def _setup_links_at_node(self):
-        """Set up node-link data structures."""
-        self._links_at_node = links_at_node(self.shape)
-        self._link_dirs_at_node = link_dirs_at_node(self.shape)
+    # def _setup_links_at_node(self):
+    #     """Set up node-link data structures."""
+    #     self._links_at_node = links_at_node(self.shape)
+    #     self._link_dirs_at_node = link_dirs_at_node(self.shape)
 
     @property
     def shape(self):

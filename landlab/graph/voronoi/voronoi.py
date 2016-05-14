@@ -29,24 +29,25 @@ class VoronoiGraph(Graph):
         ...           1, 2, 3]
         >>> node_y = [0, 0, 0,
         ...           2, 2, 2]
-        >>> graph = VoronoiGraph((node_y, node_x), rot_sort=True)
+        >>> graph = VoronoiGraph((node_y, node_x))
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  1.,  2.,  3.])
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  2.,  2.,  2.])
         >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([[3, 0], [0, 1], [1, 3], [2, 5], [5, 4], [4, 2], [1, 2], [4, 1],
-               [4, 3]])
+        array([[0, 1], [1, 2],
+               [0, 3], [1, 3], [1, 4], [2, 4], [2, 5],
+               [3, 4], [4, 5]])
         >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 1,  0, -1, -1], [ 6,  7,  2,  1], [ 3,  5,  6, -1],
-               [ 8,  0,  2, -1], [ 4,  8,  7,  5], [ 4,  3, -1, -1]])
+        array([[ 0,  2, -1, -1], [ 1,  4,  3,  0], [ 6,  5,  1, -1],
+               [ 7,  2,  3, -1], [ 8,  7,  4,  5], [ 8,  6, -1, -1]])
         >>> graph.links_at_patch
-        array([[2, 0, 1], [3, 4, 5], [5, 7, 6], [7, 8, 2]])
+        array([[3, 2, 0], [5, 4, 1], [4, 7, 3], [6, 8, 5]])
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
-        array([[3, 0, 1], [5, 4, 2], [4, 1, 2], [4, 3, 1]])
+        array([[3, 0, 1], [4, 1, 2], [4, 3, 1], [5, 4, 2]])
         """
-        xy_sort = kwds.pop('xy_sort', True)
-        rot_sort = kwds.pop('rot_sort', True)
+        # xy_sort = kwds.pop('xy_sort', True)
+        # rot_sort = kwds.pop('rot_sort', True)
         max_node_spacing = kwds.pop('max_node_spacing', None)
 
         from .ext.delaunay import _setup_links_at_patch, remove_tris
@@ -81,6 +82,4 @@ class VoronoiGraph(Graph):
 
         super(VoronoiGraph, self).__init__((node_y.flat, node_x.flat),
                                            links=nodes_at_link,
-                                           patches=links_at_patch,
-                                           xy_sort=xy_sort,
-                                           rot_sort=rot_sort)
+                                           patches=links_at_patch)
