@@ -12,9 +12,9 @@ class DualRadialGraph(DualVoronoiGraph):
     >>> graph = DualRadialGraph((1, 4))
     >>> graph.number_of_corners
     4
-    >>> graph.y_of_node
+    >>> graph.y_of_corner
     array([-0.5, -0.5,  0.5,  0.5])
-    >>> graph.x_of_node
+    >>> graph.x_of_corner
     array([-0.5,  0.5, -0.5,  0.5])
     """
 
