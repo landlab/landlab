@@ -232,7 +232,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at='cell')
-    total_flux = unit_flux_at_faces * grid.face_width
+    total_flux = unit_flux_at_faces * grid.width_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.link_dirs_at_node.shape[1]):
@@ -357,7 +357,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at='cell')
-    total_flux = unit_flux_at_faces * grid.face_width
+    total_flux = unit_flux_at_faces * grid.width_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.active_link_dirs_at_node.shape[1]):

@@ -2688,7 +2688,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> hg.link_at_face
         array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
         """
-        num_faces = len(self.face_width)
+        num_faces = len(self.width_of_face)
         self._link_at_face = numpy.empty(num_faces, dtype=int)
         face_id = 0
         for link in range(self.number_of_links):
