@@ -77,7 +77,7 @@ def test_deAlm_analytical():
     while time < 500:
         grid['link']['water__discharge'][left_inactive_ids] =   (grid['link'][
         'water__discharge'][left_inactive_ids + 1])
-        dt = deAlm.gear_time_step()
+        dt = deAlm.calc_time_step()
         deAlm.overland_flow(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
                   time) ** (3./7.))

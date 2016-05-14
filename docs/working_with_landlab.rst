@@ -1,7 +1,7 @@
 .. _drive_a_model:
 
 What goes into a Landlab Model?
-==============================
+===============================
 
 In the previous section, we showed you most of the core functionality of the Landlab grid. In this section, we introduce you to how to actually use it, to build models and work with the Landlab component library.
 

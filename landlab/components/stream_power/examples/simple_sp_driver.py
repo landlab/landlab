@@ -9,12 +9,15 @@ from __future__ import print_function
 
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
+from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.plot import channel_profile as prf
 
 import numpy
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import pylab
+from pylab import show
 import time
 
 inputs = ModelParameterDictionary('./drive_sp_params.txt')
@@ -36,6 +39,7 @@ mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
 #make some K values in a field to test
 mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
+mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 
 print( 'Running ...' )
 time_on = time.time()
@@ -48,6 +52,7 @@ fsp = FastscapeEroder(mg, './drive_sp_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation
+counter = 0.
 while elapsed_time < time_to_run:
     print(elapsed_time)
     if elapsed_time+dt>time_to_run:
@@ -60,6 +65,13 @@ while elapsed_time < time_to_run:
     #add uplift
     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
     elapsed_time += dt
+    if counter%20 == 0:
+        pylab.figure('profiles')
+        profiles = prf.analyze_channel_network_and_plot(mg)
+    counter += 1
+
+time_off = time.time()
+print('Elapsed time: ', time_off-time_on)
 
 time_off = time.time()
 print('Elapsed time: ', time_off-time_on)
@@ -80,6 +92,11 @@ print(elev_r)
 pylab.figure(2)
 im = pylab.plot(dx*numpy.arange(nrows), elev_r[:,int(ncols//2)])  # display a colored image
 pylab.title('Vertical cross section')
+
+# Plot topography
+#pylab.figure(1)
+#im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
+#print elev_r
 
 pylab.show()
 

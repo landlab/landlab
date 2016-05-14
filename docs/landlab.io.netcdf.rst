@@ -1,13 +1,6 @@
 landlab.io.netcdf package
 =========================
 
-Subpackages
------------
-
-.. toctree::
-
-    landlab.io.netcdf.tests
-
 Submodules
 ----------
 

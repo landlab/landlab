@@ -219,7 +219,7 @@ def check_fields(grid):
 @with_setup(setup_dans_grid1)
 def test_get_lake_ext_margin():
     lake = np.array([16, 17, 23, 24, 25, 30, 31, 32])
-    ext_margin_returned = hf.get_lake_ext_margin(lake)
+    ext_margin_returned = hf._get_lake_ext_margin(lake)
     ext_margin = np.array([8, 9, 10, 11, 15, 18, 19, 22, 26, 29, 33, 36, 37,
                            38, 39, 40])
     assert_array_equal(ext_margin_returned, ext_margin)
@@ -230,7 +230,7 @@ def test_get_lake_int_margin():
     lake = np.array([16, 17, 18, 23, 24, 25, 26, 30, 31, 32])
     ext_margin = np.array([8, 9, 10, 11, 12, 15, 19, 20, 22, 27, 29, 33, 34,
                            36, 37, 38, 39, 40])
-    int_margin_returned = hf.get_lake_int_margin(lake, ext_margin)
+    int_margin_returned = hf._get_lake_int_margin(lake, ext_margin)
     int_margin = np.array([16, 17, 18, 23, 25, 26, 30, 31, 32])
     assert_array_equal(int_margin_returned, int_margin)
 
@@ -267,14 +267,14 @@ def test_add_slopes():
     lake_map[lake] = lake_code
     hf._lf._lake_map = lake_map
     hf.lake_nodes_treated = np.array([], dtype=int)
-    dists = mg.get_distances_of_nodes_to_point((mg.node_x[outlet],
+    dists = mg.calc_distances_of_nodes_to_point((mg.node_x[outlet],
                                                 mg.node_y[outlet]))
     new_z[lake] = outlet_elev
     new_z[lake] += dists[lake]*slope_to_add
     # test the ones we can do easily analytically separately
     straight_north = np.array([23, 16])
     off_angle = 24
-    elevs_out, lake_out = hf.add_slopes(slope_to_add, outlet, lake_code)
+    elevs_out, lake_out = hf._add_slopes(slope_to_add, outlet, lake_code)
     assert_array_equal(slope_to_add*(np.arange(2.)+1.)+outlet_elev,
                        elevs_out[straight_north])
     assert_almost_equal(slope_to_add*rt2+outlet_elev, elevs_out[off_angle])
@@ -324,7 +324,7 @@ def test_filler_inclined2():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow()
-    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
+    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid4)
@@ -345,7 +345,7 @@ def test_stupid_shaped_hole():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow()
-    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
+    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid5)
@@ -368,7 +368,7 @@ def test_D4_routing():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow(method='D4')
-    assert_equal(mg.at_node['flow_sinks'][mg.core_nodes].sum(), 0)
+    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
 
 
 @with_setup(setup_dans_grid5)

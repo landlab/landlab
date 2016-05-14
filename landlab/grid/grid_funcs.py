@@ -24,13 +24,13 @@ def resolve_values_on_active_links(grid, active_link_values):
     tuple of ndarray
         Values resolved into x-component and y-component.
     """
-    link_lengths = grid.link_length[grid.active_links]
+    link_lengths = grid.length_of_link[grid.active_links]
     return (
-        np.multiply(((grid.node_x[grid.activelink_tonode] -
-                      grid.node_x[grid.activelink_fromnode]) /
+        np.multiply(((grid.node_x[grid._activelink_tonode] -
+                      grid.node_x[grid._activelink_fromnode]) /
                      link_lengths), active_link_values),
-        np.multiply(((grid.node_y[grid.activelink_tonode] -
-                      grid.node_y[grid.activelink_fromnode]) /
+        np.multiply(((grid.node_y[grid._activelink_tonode] -
+                      grid.node_y[grid._activelink_fromnode]) /
                      link_lengths), active_link_values))
 
 
@@ -56,10 +56,10 @@ def resolve_values_on_links(grid, link_values):
     return (
         np.multiply(((grid.node_x[grid.node_at_link_head] -
                       grid.node_x[grid.node_at_link_tail]) /
-                     grid.link_length), link_values),
+                     grid.length_of_link), link_values),
         np.multiply(((grid.node_y[grid.node_at_link_head] -
                       grid.node_y[grid.node_at_link_tail]) /
-                     grid.link_length), link_values))
+                     grid.length_of_link), link_values))
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
@@ -132,9 +132,9 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     #       attached to a node, so should be of order 6 or 7 and won't
     #       generally increase with the number of nodes in the grid.
     #
-    for i in range(np.size(grid.node_active_inlink_matrix, 0)):
-        net_unit_flux += flux[grid.node_active_outlink_matrix[i][:]]
-        net_unit_flux -= flux[grid.node_active_inlink_matrix[i][:]]
+    for i in range(np.size(grid._node_active_inlink_matrix, 0)):
+        net_unit_flux += flux[grid._node_active_outlink_matrix[i][:]]
+        net_unit_flux -= flux[grid._node_active_inlink_matrix[i][:]]
 
     # Now divide by cell areas ... where there are core cells.
     node_at_active_cell = grid.node_at_cell[grid.core_cells]
