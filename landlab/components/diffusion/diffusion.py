@@ -252,8 +252,7 @@ class LinearDiffuser(Component):
                                                self.g[self.grid.active_links])
 
             # Calculate the net deposition/erosion rate at each node
-            self.dqsds = self.grid.calculate_flux_divergence_at_nodes(
-                self.qs[self.grid.active_links])
+            self.dqsds = self.grid.calc_flux_div_at_node(self.qs)
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
 
