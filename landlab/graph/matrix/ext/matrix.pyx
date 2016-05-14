@@ -23,8 +23,8 @@ cdef roll(void * values, size_t n_values, size_t size, long shift):
     else:
         offset = shift % n_values
 
-    dst = values + offset * size
-    end = src + (n_values - offset) * size
+    dst = <char *>values + offset * size
+    end = <char *>src + (n_values - offset) * size
     buff = malloc(offset * size)
 
     memcpy(buff, end, offset * size)
