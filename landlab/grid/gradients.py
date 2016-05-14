@@ -208,7 +208,7 @@ def calc_diff_at_link(grid, node_values, out=None):
 
     Construction::
 
-        calculate_diff_at_links(grid, node_values, out=None)
+        calc_diff_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -231,7 +231,7 @@ def calc_diff_at_link(grid, node_values, out=None):
     >>> rmg = RasterModelGrid((3, 3))
     >>> z = np.zeros(9)
     >>> z[4] = 1.
-    >>> rmg.calculate_diff_at_links(z)
+    >>> rmg.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
     """
     if out is None:
@@ -244,7 +244,23 @@ def calc_diff_at_link(grid, node_values, out=None):
 @deprecated(use='calc_diff_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_diff_at_links(grid, node_values, out=None):
-    """Calculate differences of node values over links."""
+    """Calculate differences of node values over links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+
+    >>> grid = RasterModelGrid((3, 3))
+    >>> z = np.zeros(9)
+    >>> z[4] = 1.
+
+    >>> grid.calculate_diff_at_links(z)
+    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    >>> grid.calc_diff_at_link(z)
+    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
+    """
     return calc_diff_at_link(grid, node_values, out)
 
 
