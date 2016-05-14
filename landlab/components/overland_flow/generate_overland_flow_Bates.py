@@ -169,7 +169,8 @@ class OverlandFlowBates(Component):
         hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
         # Now we calculate the slope of the water surface elevation at active links
-        water_surface_slope = self._grid.calc_grad_of_active_link(w)
+        water_surface_slope = self._grid.calc_grad_at_link(w)
+        water_surface_slope = water_surface_slope[self._grid.active_links]
 
         # Here we calculate discharge at all active links using Eq. 11 from Bates et al., 2010
         self.q[self.active_links] = ((self.q[self.active_links] - self.g *
