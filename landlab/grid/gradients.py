@@ -74,6 +74,25 @@ def calc_grad_at_link(grid, node_values, out=None):
 
 @deprecated(use='calc_grad_at_link', version='1.0beta')
 def calc_grad_of_active_link(grid, node_values, out=None):
+    """Calculate gradients at active links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4))
+    >>> z = np.array([0., 0., 0., 0.,
+    ...               1., 1., 1., 1.,
+    ...               3., 3., 3., 3.])
+    >>> grid.calc_grad_of_active_link(z)
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+
+    This method is *deprecated*. Instead, use ``calc_grad_at_link``.
+
+    >>> vals = grid.calc_grad_at_link(z)
+    >>> vals[grid.active_links]
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+    """
     return calc_grad_at_active_link(grid, node_values, out)
 
 
@@ -102,6 +121,23 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     -------
     ndarray
         Gradients across active links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4))
+    >>> z = np.array([0., 0., 0., 0.,
+    ...               1., 1., 1., 1.,
+    ...               3., 3., 3., 3.])
+    >>> grid.calc_grad_at_active_link(z)
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+
+    This method is *deprecated*. Instead, use ``calc_grad_at_link``.
+
+    >>> vals = grid.calc_grad_at_link(z)
+    >>> vals[grid.active_links]
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
     """
     if out is None:
         out = grid.empty(centering='active_link')
@@ -208,8 +244,7 @@ def calc_diff_at_link(grid, node_values, out=None):
 @deprecated(use='calc_diff_at_link', version='1.0beta')
 @use_field_name_or_array('node')
 def calculate_diff_at_links(grid, node_values, out=None):
-    """Calculate differences of node values over links.
-    """
+    """Calculate differences of node values over links."""
     return calc_diff_at_link(grid, node_values, out)
 
 
