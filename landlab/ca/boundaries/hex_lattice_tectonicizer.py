@@ -112,9 +112,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> lnf.num_fw_rows
     array([0, 1, 3, 4, 5])
     >>> lnf.incoming_node
-    array([ 5, 10, 11, 15])
+    array([1, 3, 5, 6])
     >>> lnf.outgoing_node
-    array([22, 23, 24, 18])
+    array([ 7, 12, 17, 22])
     """
 
     def __init__(self, fault_x_intercept=0.0, grid=None, node_state=None,
@@ -131,15 +131,15 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
         >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-        >>> lnf = LatticeNormalFault(0.01, grid, ns, pid, pdata, 0.0)
+        >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
-        1
+        0
         >>> lnf.num_fw_rows
-        array([0, 1, 3, 4, 5])
+        array(1, 2, 4, 5, 5])
         >>> lnf.incoming_node
-        array([ 5, 10, 11, 15])
+        array([0, 1, 3, 5, 6])
         >>> lnf.outgoing_node
-        array([22, 23, 24, 18])
+        array([ 7, 12, 17, 22])
         """
         # Do the base class init
         super(LatticeNormalFault, self).__init__(grid, node_state, propid,
@@ -185,7 +185,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                 self.num_fw_rows[c] += 1
                 current_row += 1
 
-        # GOT HERE, SO FAR SO GOOD, CHECK NEXT BIT
         # If we're handling properties and property IDs, we need to do some setup
         if self.propid is not None:
 
@@ -204,15 +203,14 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # with a list (so we can append), and then convert to an array
             # that belongs to this class.
             incoming_node_list = []
-            for c in range(self.first_fw_col, self.nc - 1):
+            for n in range(0, self.nc + (self.nc + 1) // 2):
 
-                # This little loop appends to the incoming node list:
-                # either just the bottom node in this column (ID=self.nr*c)
-                # or that plus the node above it (ID=self.nr*c+1). Note that
-                # 2-c%s evaluates to 2 for even-numbered columns and 1 for
-                # odd-numbered columns. So the loop is either 1 or 2 iterations.
-                for node_id in range(self.nr * c, self.nr * c + (2 - c % 2)):
-                    incoming_node_list.append(node_id)
+                if in_footwall[n] and ((n - (self.nc // 2)) % self.nc) != 0:
+                    incoming_node_list.append(n)
+                print incoming_node_list
+
+            # GOT HERE, THE ABOVE ALGORITHM FOR FINDING INCOMING NODES NEEDS
+            # WORK
 
             # Convert to a numpy array that belongs to the class (so we can
             # use it in the do_offset() method).
@@ -494,7 +492,7 @@ def main():
     >>> lnf.num_fw_rows
     array([0, 1, 3, 4])
     >>> lnf.incoming_node
-    array([4, 8, 9])
+    array([1, 2, 5])
     >>> lnf.outgoing_node
     array([13, 14, 15])
     >>> lnf.do_offset()
