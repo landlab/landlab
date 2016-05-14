@@ -6,8 +6,8 @@ from ..core.utils import make_optional_arg_into_id_array
 from .structured_quad import links as squad_links
 
 
-def active_link_id_of_cell_neighbor(grid, inds, *args):
-    """active_link_id_of_cell_neighbor(grid, link_ids [, cell_ids])
+def neighbor_active_link_at_cell(grid, inds, *args):
+    """neighbor_active_link_at_cell(grid, link_ids [, cell_ids])
 
     Return an array of the active link ids for neighbors of *cell_id* cells.
     *link_ids* is an index into the links of a cell as measured
@@ -27,7 +27,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    links = grid.active_links_at_node(node_ids).T
+    links = grid._active_links_at_node(node_ids).T
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -35,7 +35,7 @@ def active_link_id_of_cell_neighbor(grid, inds, *args):
     return links[range(len(cell_ids)), inds]
 
 
-def node_id_of_cell_neighbor(grid, inds, *args):
+def neighbor_node_at_cell(grid, inds, *args):
     """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
 
     Return an array of the node ids for neighbors of *cell_id* cells.
@@ -61,28 +61,28 @@ def node_id_of_cell_neighbor(grid, inds, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import node_id_of_cell_neighbor
+    >>> from landlab.grid.raster_funcs import neighbor_node_at_cell
     >>> grid = RasterModelGrid(4, 5, 1.0)
-    >>> node_id_of_cell_neighbor(grid, 0, 0)
+    >>> neighbor_node_at_cell(grid, 0, 0)
     array([1])
 
     Get the lower and the the upper neighbors for all the cells.
 
-    >>> node_id_of_cell_neighbor(grid, 0)
+    >>> neighbor_node_at_cell(grid, 0)
     array([1, 2, 3, 6, 7, 8])
-    >>> node_id_of_cell_neighbor(grid, 2)
+    >>> neighbor_node_at_cell(grid, 2)
     array([11, 12, 13, 16, 17, 18])
 
     As an alternative to the above, use fancy-indexing to get both sets of
     neighbors with one call.
 
-    >>> node_id_of_cell_neighbor(grid, np.array([0, 2]), [1, 4])
+    >>> neighbor_node_at_cell(grid, np.array([0, 2]), [1, 4])
     array([[ 2, 12],
            [ 7, 17]])
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.get_active_neighbors_at_node(node_ids)
+    neighbors = grid.active_neighbors_at_node(node_ids)
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -93,7 +93,7 @@ def node_id_of_cell_neighbor(grid, inds, *args):
                 3 - inds, axis=1))
 
 
-def node_id_of_cell_corner(grid, inds, *args):
+def corner_node_at_cell(grid, inds, *args):
     """node_id_of_cell_corner(grid, corner_ids [, cell_ids])
 
     Return an array of the node ids for diagonal neighbors of *cell_id* cells.
@@ -114,28 +114,28 @@ def node_id_of_cell_corner(grid, inds, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import node_id_of_cell_corner
+    >>> from landlab.grid.raster_funcs import corner_node_at_cell
     >>> grid = RasterModelGrid(4, 5, 1.0)
-    >>> node_id_of_cell_corner(grid, 0, 0)
+    >>> corner_node_at_cell(grid, 0, 0)
     array([2])
 
     Get the lower-right and the the upper-left corners for all the cells.
 
-    >>> node_id_of_cell_corner(grid, 0)
+    >>> corner_node_at_cell(grid, 0)
     array([2, 3, 4, 7, 8, 9])
-    >>> node_id_of_cell_corner(grid, 2)
+    >>> corner_node_at_cell(grid, 2)
     array([10, 11, 12, 15, 16, 17])
 
     As an alternative to the above, use fancy-indexing to get both sets of
     corners with one call.
 
-    >>> node_id_of_cell_corner(grid, np.array([0, 2]), [1, 4])
+    >>> corner_node_at_cell(grid, np.array([0, 2]), [1, 4])
     array([[ 3, 11],
            [ 8, 16]])
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    diagonals = grid.get_diagonal_list(node_ids)
+    diagonals = grid._get_diagonal_list(node_ids)
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -174,8 +174,8 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     cells of any kind, because they are on the perimeter). It's up to the
     user to decide what to do with these boundary values.
 
-    Example
-    -------
+    Examples
+    --------
     Calculate the gradient of values at a grid's nodes.
 
     >>> from landlab import RasterModelGrid
@@ -184,7 +184,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     ...               1., 2., 3., 2., 3.,
     ...               0., 1., 2., 1., 2.,
     ...               0., 0., 2., 2., 0.])
-    >>> grad = rmg.calculate_gradients_at_active_links(u)
+    >>> grad = rmg.calc_grad_at_active_link(u)
     >>> grad # doctest: +NORMALIZE_WHITESPACE
     array([ 1.,  1., -1.,
             1.,  1., -1.,  1.,
@@ -216,7 +216,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
 
     >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> grad = grid.calculate_gradients_at_active_links(2 * u)
+    >>> grad = grid.calc_grad_at_active_link(2 * u)
     >>> grad
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 2.,  2., -2.,
@@ -252,10 +252,10 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     flux[horiz_links] = active_link_flux[~ is_vert_link] * grid.dx
 
     net_unit_flux[:] = (
-        (flux[grid.node_active_outlink_matrix2[0][:]] +
-         flux[grid.node_active_outlink_matrix2[1][:]]) -
-        (flux[grid.node_active_inlink_matrix2[0][:]] +
-         flux[grid.node_active_inlink_matrix2[1][:]])) / grid.cellarea
+        (flux[grid._node_active_outlink_matrix2[0][:]] +
+         flux[grid._node_active_outlink_matrix2[1][:]]) -
+        (flux[grid._node_active_inlink_matrix2[0][:]] +
+         flux[grid._node_active_inlink_matrix2[1][:]])) / grid.cellarea
 
     return net_unit_flux
 

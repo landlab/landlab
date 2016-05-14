@@ -69,7 +69,7 @@ class SteepnessFinder(Component):
     >>> for i in range(10):
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
     ...     _ = fr.route_flow()
-    ...     sp.run_one_timestep(1000.)
+    ...     sp.run_one_step(1000.)
     >>> sf.calculate_steepnesses()
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([  0.        ,  29.28427125,   1.        ,   1.        ,
@@ -98,9 +98,9 @@ class SteepnessFinder(Component):
         'topographic__elevation',
         'drainage_area',
         'topographic__steepest_slope',
-        'flow_receiver',
-        'upstream_node_order',
-        'links_to_flow_receiver',
+        'flow__receiver_node',
+        'flow__upstream_node_order',
+        'flow__link_to_receiver_node',
     )
 
     _output_var_names = (
@@ -110,18 +110,18 @@ class SteepnessFinder(Component):
     _var_units = {'topographic__elevation': 'm',
                   'drainage_area': 'm**2',
                   'topographic__steepest_slope': '-',
-                  'flow_receiver': '-',
-                  'upstream_node_order': '-',
-                  'links_to_flow_receiver': '-',
+                  'flow__receiver_node': '-',
+                  'flow__upstream_node_order': '-',
+                  'flow__link_to_receiver_node': '-',
                   'channel__steepness_index': 'variable',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'drainage_area': 'node',
                     'topographic__steepest_slope': 'node',
-                    'flow_receiver': 'node',
-                    'upstream_node_order': 'node',
-                    'links_to_flow_receiver': 'node',
+                    'flow__receiver_node': 'node',
+                    'flow__upstream_node_order': 'node',
+                    'flow__link_to_receiver_node': 'node',
                     'channel__steepness_index': 'node',
                     }
 
@@ -129,12 +129,12 @@ class SteepnessFinder(Component):
                 'drainage_area': 'upstream drainage area',
                 'topographic__steepest_slope': ('the steepest downslope ' +
                                                 'rise/run leaving the node'),
-                'flow_receiver': ('the downstream node at the end of the ' +
+                'flow__receiver_node': ('the downstream node at the end of the ' +
                                   'steepest link'),
-                'upstream_node_order': ('node order such that nodes must ' +
+                'flow__upstream_node_order': ('node order such that nodes must ' +
                                         'appear in the list after all nodes ' +
                                         'downstream of them'),
-                'links_to_flow_receiver':
+                'flow__link_to_receiver_node':
                     ('ID of link downstream of each node, which carries the ' +
                      'discharge'),
                 'channel__steepness_index': 'the local steepness index',
@@ -178,7 +178,7 @@ class SteepnessFinder(Component):
         discretization_length = kwds.get('discretization_length',
                                          self._discretization)
 
-        upstr_order = self.grid.at_node['upstream_node_order']
+        upstr_order = self.grid.at_node['flow__upstream_node_order']
         # get an array of only nodes with A above threshold:
         valid_dstr_order = (upstr_order[self.grid.at_node['drainage_area'][
             upstr_order] >= min_drainage])[::-1]
@@ -198,7 +198,7 @@ class SteepnessFinder(Component):
                 penultimate_node = this_ch_top_node
                 current_node_incorporated = False
                 while not current_node_incorporated:
-                    next_node = self.grid.at_node['flow_receiver'][
+                    next_node = self.grid.at_node['flow__receiver_node'][
                         penultimate_node]
                     if next_node == penultimate_node:  # end of flow path
                         break
@@ -289,12 +289,12 @@ class SteepnessFinder(Component):
         >>> sf.channel_distances_downstream(ch_nodes)
         array([  0.        ,  10.        ,  21.18033989,  31.18033989])
         """
-        ch_links = self.grid.at_node['links_to_flow_receiver'][
+        ch_links = self.grid.at_node['flow__link_to_receiver_node'][
             ch_nodes]
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
         ch_dists[0] = 0.
-        np.cumsum(self.grid.link_length[ch_links[:-1]],
+        np.cumsum(self.grid.length_of_link[ch_links[:-1]],
                   out=ch_dists[1:])
         return ch_dists
 
@@ -492,3 +492,44 @@ class SteepnessFinder(Component):
         Return a boolean array, False where steepness indices exist.
         """
         return self._mask
+
+    @property
+    def masked_steepness_indices(self):
+        """
+        Returns a masked array version of the 'channel__steepness_index' field.
+        This enables easier plotting of the values with
+        :func:`landlab.imshow_node_grid` or similar.
+
+        Examples
+        --------
+        Make a topographic map with an overlay of steepness values:
+
+        >>> from landlab import imshow_node_grid
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import FlowRouter, FastscapeEroder
+        >>> mg = RasterModelGrid((5, 5), 100.)
+        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+        ...               mg.nodes_at_top_edge):
+        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        >>> _ = mg.add_zeros('node', 'topographic__elevation')
+        >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
+        ...     mg.core_nodes]/1000.
+        >>> np.random.seed(0)
+        >>> mg.at_node['topographic__elevation'][
+        ...     mg.core_nodes] += np.random.rand(mg.number_of_core_nodes)
+        >>> fr = FlowRouter(mg)
+        >>> sp = FastscapeEroder(mg, K_sp=0.01)
+        >>> cf = SteepnessFinder(mg, min_drainage_area=20000.)
+        >>> for i in range(10):
+        ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
+        ...     _ = fr.route_flow()
+        ...     sp.run_one_step(1000.)
+        >>> _ = fr.route_flow()
+        >>> cf.calculate_steepnesses()
+
+        >>> imshow_node_grid(mg, 'topographic__elevation',
+        ...                  allow_colorbar=False)
+        >>> imshow_node_grid(mg, cf.masked_steepness_indices,
+        ...                  color_for_closed=None, cmap='winter')
+        """
+        return np.ma.array(self.steepness_indices, mask=self.hillslope_mask)

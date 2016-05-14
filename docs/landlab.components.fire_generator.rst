@@ -1,20 +1,5 @@
-landlab.components.fire_generator package
-=========================================
-
-Submodules
-----------
-
-landlab.components.fire_generator.generate_fire module
+FireGenerator: Generate random sequence of fire events
 ------------------------------------------------------
-
-.. automodule:: landlab.components.fire_generator.generate_fire
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
 
 .. automodule:: landlab.components.fire_generator
     :members:

@@ -1,0 +1,43 @@
+#linear decline
+#note this actually *won’t ever* be stable is m/n is the same for both DL & TL
+#(increases in slope can always be balanced by rising Qs)
+#So we adopt NMG’s values again:
+nrows:
+50
+ncols:
+50
+dx:
+200.
+leftmost_elevation:
+0.
+initial_slope:
+0.
+dt:
+100. 
+#for U~0.0001
+total_time:
+400000
+#4000000.
+uplift_rate:
+0.0005
+#acceleration is 0.0001->0.0005
+#time is years, ALL linear dimensions are meters!
+
+#these are the parameters for the stream power module:
+K_sp:
+1.e-6
+m_sp:
+1.
+n_sp:
+2.
+K_t:
+2.e-4
+m_t:
+1.3
+#1.5 leads to fundamental instability
+n_t:
+1.
+Qc:
+power_law
+sed_dependency_type:
+linear_decline

@@ -1,12 +1,25 @@
 #! /usr/bin/env python
-"""Calculate steepest descent on a raster grid."""
+"""Calculate steepest descent on a raster grid.
+
+Steepest descent functions for raster grids
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.raster_steepest_descent._calc_steepest_descent_across_adjacent_cells
+    ~landlab.grid.raster_steepest_descent._calc_steepest_descent_across_cell_corners
+    ~landlab.grid.raster_steepest_descent._calc_steepest_descent_across_cell_faces
+
+"""
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array
+from landlab.utils.decorators import deprecated
 from landlab.grid.raster_gradients import (
-    calculate_gradient_across_cell_faces,
-    calculate_gradient_across_cell_corners,
-    calculate_gradient_along_node_links)
+    calc_grad_across_cell_faces,
+    calc_grad_across_cell_corners,
+    calc_grad_along_node_links)
 
 
 _VALID_ROUTING_METHODS = set(['d8', 'd4'])
@@ -31,8 +44,8 @@ def _assert_valid_routing_method(method):
             (method, ', '.join(_VALID_ROUTING_METHODS)))
 
 
-def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
-                                                     **kwds):
+def _calc_steepest_descent_across_adjacent_cells(grid, node_values, *args,
+                                                **kwds):
     """Get steepest gradient to neighbor and diagonal cells.
 
     Calculate the steepest downward gradients in *node_values*, given at every
@@ -87,13 +100,13 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     lowest node.
 
     >>> from math import sqrt
-    >>> grid.calculate_steepest_descent_across_adjacent_cells(values_at_nodes,
+    >>> grid._calc_steepest_descent_across_adjacent_cells(values_at_nodes,
     ...     method='d4')
     masked_array(data = [-2.],
                  mask = False,
            fill_value = 1e+20)
     <BLANKLINE>
-    >>> grid.calculate_steepest_descent_across_adjacent_cells(values_at_nodes,
+    >>> grid._calc_steepest_descent_across_adjacent_cells(values_at_nodes,
     ...     method='d8') * sqrt(2.)
     masked_array(data = [-4.],
                  mask = False,
@@ -102,7 +115,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
 
     With the 'd4' method, the steepest gradient is to the bottom node (id = 1).
 
-    >>> (_, ind) = grid.calculate_steepest_descent_across_adjacent_cells(
+    >>> (_, ind) = grid._calc_steepest_descent_across_adjacent_cells(
     ...                values_at_nodes, return_node=True)
     >>> ind
     array([1])
@@ -110,7 +123,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     With the 'd8' method, the steepest gradient is to the lower-left node
     (id = 0).
 
-    >>> (_, ind) = grid.calculate_steepest_descent_across_adjacent_cells(
+    >>> (_, ind) = grid._calc_steepest_descent_across_adjacent_cells(
     ...                values_at_nodes, return_node=True, method='d8')
     >>> ind
     array([0])
@@ -119,7 +132,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     >>> grid = RasterModelGrid(4, 4)
     >>> node_values = grid.zeros()
     >>> node_values[1] = -1
-    >>> grid.calculate_steepest_descent_across_adjacent_cells(node_values, 0)
+    >>> grid._calc_steepest_descent_across_adjacent_cells(node_values, 0)
     masked_array(data = [-1.],
                  mask = False,
            fill_value = 1e+20)
@@ -128,7 +141,7 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     Get both the maximum gradient and the node to which the gradient is
     measured.
 
-    >>> grid.calculate_steepest_descent_across_adjacent_cells(
+    >>> grid._calc_steepest_descent_across_adjacent_cells(
     ...     node_values, 0, return_node=True)
     (array([-1.]), array([1]))
 
@@ -136,10 +149,10 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
 
     >>> node_values[0] = -10.
     >>> node_values[1] = -1.
-    >>> grid.calculate_steepest_descent_across_adjacent_cells(
+    >>> grid._calc_steepest_descent_across_adjacent_cells(
     ...     node_values, 0, method='d4', return_node=True)
     (array([-1.]), array([1]))
-    >>> grid.calculate_steepest_descent_across_adjacent_cells(
+    >>> grid._calc_steepest_descent_across_adjacent_cells(
     ...     node_values, 0, method='d8', return_node=True)
     (array([-7.07106781]), array([0]))
     """
@@ -147,12 +160,12 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
     _assert_valid_routing_method(method)
 
     if method == 'd4':
-        return calculate_steepest_descent_across_cell_faces(
+        return _calc_steepest_descent_across_cell_faces(
             grid, node_values, *args, **kwds)
     elif method == 'd8':
-        neighbor_grads = calculate_steepest_descent_across_cell_faces(
+        neighbor_grads = _calc_steepest_descent_across_cell_faces(
             grid, node_values, *args, **kwds)
-        diagonal_grads = calculate_steepest_descent_across_cell_corners(
+        diagonal_grads = _calc_steepest_descent_across_cell_corners(
             grid, node_values, *args, **kwds)
 
         return_node = kwds.pop('return_node', False)
@@ -170,8 +183,8 @@ def calculate_steepest_descent_across_adjacent_cells(grid, node_values, *args,
             return (min_grads, node_ids)
 
 
-def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
-                                                   **kwds):
+def _calc_steepest_descent_across_cell_corners(grid, node_values, *args,
+                                              **kwds):
     """Get steepest gradient to the diagonals of a cell.
 
     Calculate the gradients in *node_values* measure to the diagonals of cells
@@ -215,13 +228,13 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
     lowest node.
 
     >>> from math import sqrt
-    >>> grid.calculate_steepest_descent_across_cell_corners(
+    >>> grid._calc_steepest_descent_across_cell_corners(
     ...     values_at_nodes) * sqrt(2.)
     array([-4.])
 
     The steepest gradient is to node with id 0.
 
-    >>> (_, ind) = grid.calculate_steepest_descent_across_cell_corners(
+    >>> (_, ind) = grid._calc_steepest_descent_across_cell_corners(
     ...                values_at_nodes, return_node=True)
     >>> ind
     array([0])
@@ -229,13 +242,13 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
     >>> grid = RasterModelGrid(3, 3)
     >>> node_values = grid.zeros()
     >>> node_values[0] = -1
-    >>> grid.calculate_steepest_descent_across_cell_corners(node_values, 0)
+    >>> grid._calc_steepest_descent_across_cell_corners(node_values, 0)
     array([-0.70710678])
 
     Get both the maximum gradient and the node to which the gradient is
     measured.
 
-    >>> grid.calculate_steepest_descent_across_cell_corners(node_values, 0,
+    >>> grid._calc_steepest_descent_across_cell_corners(node_values, 0,
     ...     return_node=True)
     (array([-0.70710678]), array([0]))
     """
@@ -243,7 +256,7 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
 
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
 
-    grads = calculate_gradient_across_cell_corners(grid, node_values, cell_ids)
+    grads = calc_grad_across_cell_corners(grid, node_values, cell_ids)
 
     if return_node:
         ind = np.argmin(grads, axis=1)
@@ -255,9 +268,8 @@ def calculate_steepest_descent_across_cell_corners(grid, node_values, *args,
     else:
         return grads.min(axis=1, **kwds)
 
-
-def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
-                                                 **kwds):
+@deprecated(use='FlowRouter', version=1.0)
+def _calc_steepest_descent_across_cell_faces(grid, node_values, *args, **kwds):
     """Get steepest gradient across the faces of a cell.
 
     This method calculates the gradients in *node_values* across all four
@@ -303,7 +315,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
     Calculate gradients across each cell face and choose the gradient to the
     lowest node.
 
-    >>> grid.calculate_steepest_descent_across_cell_faces(values_at_nodes)
+    >>> grid._calc_steepest_descent_across_cell_faces(values_at_nodes)
     masked_array(data = [-3.],
                  mask = False,
            fill_value = 1e+20)
@@ -311,7 +323,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
 
     The steepest gradient is to node with id 1.
 
-    >>> (_, ind) = grid.calculate_steepest_descent_across_cell_faces(
+    >>> (_, ind) = grid._calc_steepest_descent_across_cell_faces(
     ...     values_at_nodes, return_node=True)
     >>> ind
     array([1])
@@ -319,7 +331,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
     >>> grid = RasterModelGrid(3, 3)
     >>> node_values = grid.zeros()
     >>> node_values[1] = -1
-    >>> grid.calculate_steepest_descent_across_cell_faces(node_values, 0)
+    >>> grid._calc_steepest_descent_across_cell_faces(node_values, 0)
     masked_array(data = [-1.],
                  mask = False,
            fill_value = 1e+20)
@@ -328,7 +340,7 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
     Get both the maximum gradient and the node to which the gradient is
     measured.
 
-    >>> grid.calculate_steepest_descent_across_cell_faces(node_values, 0,
+    >>> grid._calc_steepest_descent_across_cell_faces(node_values, 0,
     ...     return_node=True)
     (array([-1.]), array([1]))
     """
@@ -336,11 +348,12 @@ def calculate_steepest_descent_across_cell_faces(grid, node_values, *args,
 
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
 
-    grads = calculate_gradient_across_cell_faces(grid, node_values, cell_ids)
+    grads = calc_grad_across_cell_faces(grid, node_values, cell_ids)
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid.get_active_neighbors_at_node()[grid.node_at_cell[cell_ids], ind]
+        node_ids = grid.active_neighbors_at_node()[grid.node_at_cell[
+            cell_ids], ind]
         # node_ids = grid.neighbor_nodes[grid.node_at_cell[cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)

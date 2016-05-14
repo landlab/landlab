@@ -253,16 +253,13 @@ class OverlandFlow(Component):
         self.h = self._grid['node']['water__depth'] = (
             self._grid['node']['water__depth'] + self.h_init)
 
-            # += self.h_init
-        # self.h += self.h_init#self.grid['node']['water__depth'] = self.h
-
         # Assigning a class variable to the water discharge field.
         self.q = self._grid['link']['water__discharge']
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
 
-    def gear_time_step(self):
+    def calc_time_step(self):
         """Calculate time step.
 
         Adaptive time stepper from Bates et al., 2010 and de Almeida
@@ -351,7 +348,7 @@ class OverlandFlow(Component):
         every point in the input grid.
         """
         if dt is None:
-            self.gear_time_step()
+            self.calc_time_step()
 
         # First, we check and see if the neighbor arrays have been initialized
         if self.neighbor_flag is False:
@@ -383,7 +380,7 @@ class OverlandFlow(Component):
         # Now we calculate the slope of the water surface elevation at
         # active links
         water_surface__gradient = \
-            self.grid.calculate_gradients_at_active_links(w)
+            self.grid.calc_grad_of_active_link(w)
 
         # And insert these values into an array of all links
         self.slope[self.active_links] = water_surface__gradient
@@ -503,9 +500,8 @@ class OverlandFlow(Component):
 #        # Once stability has been restored, we calculate the change in water
 #        # depths on all core nodes by finding the difference between inputs
 #        # (rainfall) and the inputs/outputs (flux divergence of discharge)
-        self.dhdt = (self.rainfall_intensity -
-                     self.grid.calculate_flux_divergence_at_nodes(
-                         self.q[self.active_links]))
+        self.dhdt = (self.rainfall_intensity - self.grid.calc_flux_div_at_node(
+                                                                    self.q))
 
         # Updating our water depths...
         self.h[self.core_nodes] = (self.h[self.core_nodes] +

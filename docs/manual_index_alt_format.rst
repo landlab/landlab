@@ -49,8 +49,8 @@ to the grid.*
 more easily. The data can be accessed by, e.g., mygrid.at_node('my_data_name'), or a
 number of alternative methods (see below).*
 
-.. automethod:: landlab.grid.base.ModelGrid.create_active_link_array_zeros
-.. automethod:: landlab.grid.base.ModelGrid.create_node_array_zeros
+# .. automethod:: landlab.grid.base.ModelGrid.create_active_link_array_zeros
+# .. automethod:: landlab.grid.base.ModelGrid.create_node_array_zeros
 .. automethod:: landlab.grid.base.ModelGrid.empty
 .. automethod:: landlab.grid.base.ModelGrid.ones
 .. automethod:: landlab.grid.base.ModelGrid.set_nodata_nodes_to_inactive
@@ -106,13 +106,10 @@ of them are properties, so are accessed like grid.my_property, not grid.my_metho
 .. autoattribute:: landlab.grid.base.ModelGrid.active_link_length
 .. autoattribute:: landlab.grid.base.ModelGrid.axis_name
 .. autoattribute:: landlab.grid.base.ModelGrid.axis_units
-.. automethod:: landlab.grid.base.ModelGrid.calculate_link_length
 .. automethod:: landlab.grid.base.ModelGrid.calculate_numbers_of_node_neighbors
 .. autoattribute:: landlab.grid.base.ModelGrid.cell_areas
 .. autoattribute:: landlab.grid.base.ModelGrid.forced_cell_areas
 .. autoattribute:: landlab.grid.base.ModelGrid.link_length
-.. automethod:: landlab.grid.base.ModelGrid.max_active_link_length
-.. automethod:: landlab.grid.base.ModelGrid.min_active_link_length
 .. autoattribute:: landlab.grid.base.ModelGrid.ndim
 .. autoattribute:: landlab.grid.base.ModelGrid.number_of_active_cells
 .. autoattribute:: landlab.grid.base.ModelGrid.number_of_core_cells
@@ -131,8 +128,6 @@ of them are properties, so are accessed like grid.my_property, not grid.my_metho
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_grid_xdimension
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_grid_ydimension
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.link_length
-.. automethod:: landlab.grid.raster.RasterModelGrid.max_active_link_length
-.. automethod:: landlab.grid.raster.RasterModelGrid.min_active_link_length
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.node_spacing
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.number_of_interior_nodes
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.number_of_nodes
@@ -160,11 +155,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index_at_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.face_index_at_links
-.. automethod:: landlab.grid.base.ModelGrid.get_active_cell_node_ids
 .. automethod:: landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
-.. automethod:: landlab.grid.base.ModelGrid.get_boundary_nodes
-.. automethod:: landlab.grid.base.ModelGrid.get_core_nodes
-.. automethod:: landlab.grid.base.ModelGrid.get_node_status
 .. autoattribute:: landlab.grid.base.ModelGrid.link_length
 .. automethod:: landlab.grid.base.ModelGrid.is_boundary
 .. automethod:: landlab.grid.base.ModelGrid.node_axis_coordinates
@@ -178,26 +169,16 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.base.ModelGrid.open_boundary_nodes
 
 .. automethod:: landlab.grid.raster.RasterModelGrid.are_all_core
-.. automethod:: landlab.grid.raster.RasterModelGrid.bottom_edge_node_ids
-.. automethod:: landlab.grid.raster.RasterModelGrid.cell_faces
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.corner_nodes
 .. automethod:: landlab.grid.raster.RasterModelGrid.create_diagonal_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.create_neighbor_list
-.. automethod:: landlab.grid.raster.RasterModelGrid.face_links
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_active_link_connecting_node_pair
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_diagonal_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_face_connecting_cell_pair
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_link_connecting_node_pair
-.. automethod:: landlab.grid.raster.RasterModelGrid.get_neighbor_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
 .. automethod:: landlab.grid.raster.RasterModelGrid.has_boundary_neighbor
 .. automethod:: landlab.grid.raster.RasterModelGrid.is_core
-.. automethod:: landlab.grid.raster.RasterModelGrid.left_edge_node_ids
-.. automethod:: landlab.grid.raster.RasterModelGrid.link_faces
-.. automethod:: landlab.grid.raster.RasterModelGrid.node_activelinks
-.. automethod:: landlab.grid.raster.RasterModelGrid.node_links
-.. automethod:: landlab.grid.raster.RasterModelGrid.right_edge_node_ids
-.. automethod:: landlab.grid.raster.RasterModelGrid.top_edge_node_ids
 
 
 Link coordinates and distances to nodes
@@ -250,28 +231,19 @@ boundary nodes.*
 
 .. autoattribute:: landlab.grid.base.ModelGrid.closed_boundary_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
-.. automethod:: landlab.grid.base.ModelGrid.get_boundary_nodes
-.. automethod:: landlab.grid.base.ModelGrid.get_node_status
 .. automethod:: landlab.grid.base.ModelGrid.is_boundary
 .. autoattribute:: landlab.grid.base.ModelGrid.node_boundary_status
 .. autoattribute:: landlab.grid.base.ModelGrid.open_boundary_nodes
-.. automethod:: landlab.grid.base.ModelGrid.set_closed_boundaries
 .. automethod:: landlab.grid.base.ModelGrid.set_closed_nodes
 .. automethod:: landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
 .. automethod:: landlab.grid.base.ModelGrid.update_links_nodes_cells_to_new_BCs
 
 .. automethod:: landlab.grid.raster.RasterModelGrid.are_all_core
-.. automethod:: landlab.grid.raster.RasterModelGrid.bottom_edge_node_ids
-.. automethod:: landlab.grid.raster.RasterModelGrid.force_boundaries_from_gradients
 .. automethod:: landlab.grid.raster.RasterModelGrid.has_boundary_neighbor
 .. automethod:: landlab.grid.raster.RasterModelGrid.is_core
-.. automethod:: landlab.grid.raster.RasterModelGrid.left_edge_node_ids
-.. automethod:: landlab.grid.raster.RasterModelGrid.right_edge_node_ids
-.. automethod:: landlab.grid.raster.RasterModelGrid.set_fixed_gradient_boundaries
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_looped_boundaries
-.. automethod:: landlab.grid.raster.RasterModelGrid.top_edge_node_ids
 
                 
 Manipulate arrays for plotting and display
@@ -285,7 +257,6 @@ have at it!*
 .. automethod:: landlab.grid.base.ModelGrid.display_grid
 
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_aspect_at_nodes_bestFitPlane
-.. automethod:: landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_bestFitPlane
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_slope_at_nodes_bestFitPlane
 .. automethod:: landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
 .. automethod:: landlab.grid.raster.RasterModelGrid.hillshade

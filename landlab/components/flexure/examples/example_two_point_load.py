@@ -24,9 +24,9 @@ def put_two_point_loads_on_grid(grid):
 
 
 def create_lithosphere_elevation_with_bulge(grid):
-    grid.add_zeros('node', 'lithosphere__elevation')
+    grid.add_zeros('node', 'lithosphere_surface__elevation')
 
-    z = grid.field_values('node', 'lithosphere__elevation').view()
+    z = grid.field_values('node', 'lithosphere_surface__elevation').view()
     z.shape = grid.shape
 
     (y, x) = np.meshgrid(np.linspace(0, np.pi * .5, grid.shape[0]),
@@ -47,8 +47,8 @@ def main():
 
     flex.update()
 
-    grid.at_node['lithosphere__elevation'] += grid.at_node['lithosphere__elevation_increment']
-    grid.imshow('node', 'lithosphere__elevation',
+    grid.at_node['lithosphere_surface__elevation'] += grid.at_node['lithosphere_surface__elevation_increment']
+    grid.imshow('node', 'lithosphere_surface__elevation',
                 symmetric_cbar=False, show=True)
 
 

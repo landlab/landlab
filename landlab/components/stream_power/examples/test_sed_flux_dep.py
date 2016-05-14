@@ -21,7 +21,7 @@ from copy import copy, deepcopy
 from time import time
 
 # get the needed properties to build the grid:
-input_file = './sed_dep_params_reliable.txt'
+input_file = './sed_dep_params_reliable.txt'  # './sed_dep_NMGparams2.txt'
 inputs = ModelParameterDictionary(input_file)
 nrows = inputs.read_int('nrows')
 ncols = inputs.read_int('ncols')
@@ -68,8 +68,8 @@ for i in range(nt):
     # print 'loop ', i
     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow()
-    # mg.calculate_gradient_across_cell_faces(mg.at_node['topographic__elevation'])
-    #neighbor_slopes = mg.calculate_gradient_along_node_links(mg.at_node['topographic__elevation'])
+    # mg.calc_grad_across_cell_faces(mg.at_node['topographic__elevation'])
+    #neighbor_slopes = mg.calc_grad_along_node_links(mg.at_node['topographic__elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)
     #max_slope = np.max(np.fabs(neighbor_slopes),axis=1)
     #mg,_,capacity_out = tl.erode(mg,dt,slopes_at_nodes='topographic__steepest_slope')
@@ -86,12 +86,11 @@ for i in range(nt):
             mg.at_node['topographic__steepest_slope'][mg.core_nodes]))
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
-                                        mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
+                                        mg.at_node['drainage_area'], mg.at_node['flow__receiver_node'])
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
-                                                 profile_IDs, mg.at_node['links_to_flow_receiver'])
+                                                 profile_IDs, mg.at_node['flow__link_to_receiver_node'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node[
                           'topographic__elevation'])
-    # mg.update_boundary_nodes()
     #vid.add_frame(mg, 'topographic__elevation')
 
 

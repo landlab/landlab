@@ -47,7 +47,7 @@ def main():
     flex.update(n_procs=args.n_procs)
 
     if args.plot:
-        grid.imshow('node', 'lithosphere__elevation_increment',
+        grid.imshow('node', 'lithosphere_surface__elevation_increment',
                     symmetric_cbar=False, cmap='spectral', show=True)
 
 if __name__ == '__main__':

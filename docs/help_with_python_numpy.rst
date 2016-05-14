@@ -7,10 +7,15 @@ Getting to know Python
 We recommend you approach Landlab with a basic working knowledge of the Python coding language. A good, concise, complete beginner’s guide that will get you to enough knowledge to be able to get started can be found here. We like XXX and XXX as more comprehensive introductions to Python.
 
 If you’re already familiar with Matlab, you will probably feel fairly at home with Python fairly quickly. However, there are some critical differences. Important things to remember are:
-Python’s indexing is inclusive at the start and exclusive at the end (in contrast to Matlab). e.g.,
+
+Python’s indexing is inclusive at the start and exclusive at the end (in contrast to Matlab). e.g.::
+
     >>> numpy.arange(0,100)
-    will give an array of 100 numbers, starting at 0 and ending at 99.
-Python doesn’t use parentheses or brackets to delimit code blocks (functions, loops, if statements, etc). Instead it uses a colon to declare the start of a code block, then spaced indenting (normally 4 spaces) to demark which lines of code belong in the block. e.g.
+
+will give an array of 100 numbers, starting at 0 and ending at 99.
+
+Python doesn’t use parentheses or brackets to delimit code blocks (functions, loops, if statements, etc). Instead it uses a colon to declare the start of a code block, then spaced indenting (normally 4 spaces) to demark which lines of code belong in the block. e.g.::
+
     def myfunction(input_param):
         if type(input_param) == str:
             print “The input to the function said: “, input_param
@@ -30,19 +35,24 @@ Numpy and scipy are the workhorse scientific computing packages of Python. They 
 
 In particular, Landlab makes extensive use of the numpy array data structure. Almost all data input and output from Landlab is in this form (see “Landlab Fields” for more information). These arrays allow operations to happen much faster on the data than would be possible in a pure Python data structure like a list or dictionary. (This is possible because arrays partially suppress some of Python’s inbuilt type checking and memory management, and impose a more ordered structure on the way raw data is held in your computer’s memory).
 
-However, in order to exploit the speed gains that numpy can give you, you’ll need to adopt a coding style quite different to what would be natural in, say, C++ (or likely, Matlab). A typical bottleneck in Python code occurs when looping over data, and numpy arrays typically let you avoid doing this. So if you find yourself about to write something like this:
->>>    for i in range(len(myarray)):
-        myoutputarray[i] = myoutputarray[i] + myarray[i]
+However, in order to exploit the speed gains that numpy can give you, you’ll need to adopt a coding style quite different to what would be natural in, say, C++ (or likely, Matlab). A typical bottleneck in Python code occurs when looping over data, and numpy arrays typically let you avoid doing this. So if you find yourself about to write something like this::
 
-Don’t! Try to develop a coding style where each line operates on the whole array at once, like:
->>>    myoutputarray += myarray
+    >>> for i in range(len(myarray)):
+            myoutputarray[i] = myoutputarray[i] + myarray[i]
 
-In particular, it can be very tempting to use loops to apply a condition over a whole array. Try not to do this! e.g.,
->>>    for i in myarray:
-        if i < 0:
-            i=0
-This will be really slow. Do this instead:
->>>    myarray[myarray<0] = 0
+Don’t! Try to develop a coding style where each line operates on the whole array at once, like::
+
+    >>> myoutputarray += myarray
+
+In particular, it can be very tempting to use loops to apply a condition over a whole array. Try not to do this! e.g.,::
+
+  >>> for i in myarray:
+          if i < 0:
+              i=0
+
+This will be really slow. Do this instead::
+
+  >>> myarray[myarray < 0] = 0
 
 You can read a lot more about writing efficient code using numpy on a large number of websites. Try starting here: http://www.astro.washington.edu/users/vanderplas/Astr599/notebooks/11_EfficientNumpy
 We also strongly recommend the book “High Performance Python” by Gorelick and Ozsvald, published by O’Reilly, if you’re looking for a more comprehensive treatment.
