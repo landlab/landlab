@@ -100,6 +100,9 @@ def reorder_links_at_patch(graph):
     from .ext.remap_element import reverse_element_order
     from ..object.at_patch import get_nodes_at_patch
 
+    if graph.number_of_patches == 0:
+        return
+
     xy_of_link = get_midpoint_of_link(graph)
 
     shift = np.empty(graph.number_of_patches, dtype=int)
@@ -109,6 +112,7 @@ def reorder_links_at_patch(graph):
 
     before = graph.links_at_patch.copy()
     area_before = get_area_of_patch(graph)
+
     reverse_element_order(graph._links_at_patch,
                           np.where(get_area_of_patch(graph) < 0.)[0])
 
@@ -120,8 +124,12 @@ def reorder_links_at_patch(graph):
                           get_area_of_patch(graph),
                           area_before))
 
+
 def reorient_link_dirs(graph):
     from ..quantity.of_link import get_angle_of_link
+
+    if graph.number_of_links == 0:
+        return
 
     angles = get_angle_of_link(graph)
     links_to_swap = (angles < 7. * np.pi / 4.) & (angles > np.pi * .75)
@@ -140,9 +148,6 @@ def reindex_by_xy(graph):
         sorted_patches = reindex_patches_by_xy(graph)
     else:
         sorted_patches = None
-
-    # if hasattr(graph, 'dual'):
-    #     reindex_by_xy(graph.dual)
 
     return sorted_nodes, sorted_links, sorted_patches
 
@@ -189,7 +194,7 @@ def reindex_links_by_xy(graph):
 def reindex_nodes_by_xy(graph):
     from .ext.remap_element import remap_graph_element
 
-    graph.y_of_node[:] = np.round(graph.y_of_node, decimals=12)
+    graph.y_of_node[:] = np.round(graph.y_of_node, decimals=6)
 
     sorted_nodes = argsort_points_by_x_then_y((graph.x_of_node,
                                                graph.y_of_node))
@@ -199,6 +204,10 @@ def reindex_nodes_by_xy(graph):
 
     if hasattr(graph, '_nodes_at_link'):
         remap_graph_element(graph.nodes_at_link.reshape((-1, )),
+                            as_id_array(np.argsort(sorted_nodes)))
+
+    if hasattr(graph, '_nodes_at_patch'):
+        remap_graph_element(graph._nodes_at_patch.reshape((-1, )),
                             as_id_array(np.argsort(sorted_nodes)))
 
     # if hasattr(graph, '_node_at_cell'):
