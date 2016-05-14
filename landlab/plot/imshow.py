@@ -36,12 +36,13 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     Construction ::
 
-        imshow_grid_at_node(grid, values, var_name=[field_name],
-                            var_units=[field_units], grid_units=None,
+        imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
+                            var_units=None, grid_units=None,
                             symmetric_cbar=False, cmap='pink',
                             limits=(values.min(), values.max()),
                             vmin=values.min(), vmax=values.max(),
-                            allow_colorbar=True, norm=[linear], shrink=1.,
+                            allow_colorbar=True,
+                            norm=[linear], shrink=1.,
                             color_for_closed='black',
                             color_for_background=None,
                             show_elements=False)
@@ -53,12 +54,16 @@ def imshow_grid_at_node(grid, values, **kwds):
         provided array.
     values : array_like, masked_array, or str
         Node values, or a field name as a string from which to draw the data.
+    plot_name : str, optional
+        String to put as the plot title.
     var_name : str, optional
-        Name of the variable to put in plot title.
+        Variable name, to use as a colorbar label.
     var_units : str, optional
-        Units for the variable being plotted.
+        Units for the variable being plotted, for the colorbar.
     grid_units : tuple of str, optional
-        Units for y, and x dimensions.
+        Units for y, and x dimensions. If None, component will look to the
+        gri property `axis_units` for this information. If no units are
+        specified there, no entry is made.
     symmetric_cbar : bool
         Make the colormap symetric about 0.
     cmap : str
@@ -69,6 +74,8 @@ def imshow_grid_at_node(grid, values, **kwds):
         Alternatives to limits.
     allow_colorbar : bool
         If True, include the colorbar.
+    colorbar_label : str or None
+        The string with which to label the colorbar.
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
@@ -77,7 +84,7 @@ def imshow_grid_at_node(grid, values, **kwds):
     color_for_closed : str or None
         Color to use for closed nodes (default 'black'). If None, closed
         (or masked) nodes will be transparent.
-    color_for_background : str or None
+    color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
     show_elements : bool
@@ -120,14 +127,16 @@ def imshow_grid_at_cell(grid, values, **kwds):
 
     Construction ::
 
-        imshow_grid_at_cell(grid, values, var_name=[field_name],
-                            var_units=[field_units], grid_units=None,
+        imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
+                            var_units=None, grid_units=None,
                             symmetric_cbar=False, cmap='pink',
                             limits=(values.min(), values.max()),
                             vmin=values.min(), vmax=values.max(),
-                            allow_colorbar=True, norm=[linear], shrink=1.,
+                            allow_colorbar=True, colorbar_label=None,
+                            norm=[linear], shrink=1.,
                             color_for_closed='black',
-                            color_for_background=None, show_elements=False)
+                            color_for_background=None,
+                            show_elements=False)
 
     Parameters
     ----------
@@ -137,12 +146,16 @@ def imshow_grid_at_cell(grid, values, **kwds):
     values : array_like, masked_array, or str
         Values at the cells on the grid. Alternatively, can be a field name
         (string) from which to draw the data from the grid.
+    plot_name : str, optional
+        String to put as the plot title.
     var_name : str, optional
-        Name of the variable to put in plot title.
+        Variable name, to use as a colorbar label.
     var_units : str, optional
-        Units for the variable being plotted.
+        Units for the variable being plotted, for the colorbar.
     grid_units : tuple of str, optional
-        Units for y, and x dimensions.
+        Units for y, and x dimensions. If None, component will look to the
+        gri property `axis_units` for this information. If no units are
+        specified there, no entry is made.
     symmetric_cbar : bool
         Make the colormap symetric about 0.
     cmap : str
@@ -153,6 +166,8 @@ def imshow_grid_at_cell(grid, values, **kwds):
         Alternatives to limits.
     allow_colorbar : bool
         If True, include the colorbar.
+    colorbar_label : str or None
+        The string with which to label the colorbar.
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
@@ -161,7 +176,7 @@ def imshow_grid_at_cell(grid, values, **kwds):
     color_for_closed : str or None
         Color to use for closed elements (default 'black'). If None, closed
         (or masked) elements will be transparent.
-    color_for_background : str or None
+    color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
     show_elements : bool
@@ -208,10 +223,10 @@ def imshow_cell_grid(grid, values, **kwds):
     imshow_grid_at_cell(grid, values, **kwds)
 
 
-def _imshow_grid_values(grid, values, var_name=None, var_units=None,
-                        grid_units=(None, None), symmetric_cbar=False,
-                        cmap='pink', limits=None, allow_colorbar=True,
-                        vmin=None, vmax=None,
+def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
+                        var_units=None, grid_units=(None, None),
+                        symmetric_cbar=False, cmap='pink', limits=None,
+                        allow_colorbar=True, vmin=None, vmax=None,
                         norm=None, shrink=1., color_for_closed='black',
                         color_for_background=None, show_elements=False):
 
@@ -251,15 +266,7 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         plt.autoscale(tight=True)
 
         if allow_colorbar:
-            plt.colorbar(norm=norm, shrink=shrink)
-
-        plt.xlabel('X (%s)' % grid_units[1])
-        plt.ylabel('Y (%s)' % grid_units[0])
-
-        if var_name is not None:
-            plt.title('%s (%s)' % (var_name, var_units))
-
-        # plt.show()
+            cb = plt.colorbar(norm=norm, shrink=shrink)
 
     elif VoronoiDelaunayGrid in gridtypes:
         # This is still very much ad-hoc, and needs prettifying.
@@ -272,7 +279,8 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
         cm = plt.get_cmap(cmap)
-        if limits is None:
+
+        if (limits is None) and ((vmin is None) and (vmax is None)):
             # only want to work with NOT CLOSED nodes
             open_nodes = grid.status_at_node != 4
             if symmetric_cbar:
@@ -283,8 +291,15 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
             else:
                 (vmin, vmax) = (values.flat[
                     open_nodes].min(), values.flat[open_nodes].max())
-        else:
+        elif limits is not None:
             (vmin, vmax) = (limits[0], limits[1])
+        else:
+            open_nodes = grid.status_at_node != 4
+            if vmin is None:
+                vmin = values.flat[open_nodes].min()
+            if vmax is None:
+                vmax = values.flat[open_nodes].max()
+
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
@@ -307,13 +322,38 @@ def _imshow_grid_values(grid, values, var_name=None, var_units=None,
         plt.ylim((np.min(grid.node_y), np.max(grid.node_y)))
 
         scalarMap.set_array(values)
-        plt.colorbar(scalarMap)
+        if allow_colorbar:
+            cb = plt.colorbar(scalarMap, shrink=shrink)
 
+    if grid_units[1] is None and grid_units[0] is None:
+        grid_units = grid.axis_units
+        if grid_units[1] == '-' and grid_units[0] == '-':
+            plt.xlabel('X')
+            plt.ylabel('Y')
+        else:
+            plt.xlabel('X (%s)' % grid_units[1])
+            plt.ylabel('Y (%s)' % grid_units[0])
+    else:
         plt.xlabel('X (%s)' % grid_units[1])
         plt.ylabel('Y (%s)' % grid_units[0])
 
+    if plot_name is not None:
+        plt.title('%s' % (plot_name))
+
+    if var_name is not None or var_units is not None:
         if var_name is not None:
-            plt.title('%s (%s)' % (var_name, var_units))
+            assert type(var_name) is str
+            if var_units is not None:
+                assert type(var_units) is str
+                colorbar_label = var_name + ' (' + var_units + ')'
+            else:
+                colorbar_label = var_name
+        else:
+            assert type(var_units) is str
+            colorbar_label = '(' + var_units + ')'
+        assert type(colorbar_label) is str
+        assert allow_colorbar
+        cb.set_label(colorbar_label)
 
     if color_for_background is not None:
         plt.gca().set_axis_bgcolor(color_for_background)
@@ -343,14 +383,16 @@ def imshow_grid(grid, values, **kwds):
 
     Construction ::
 
-        imshow_grid(grid, values, at='node', var_name=[field_name],
-                    var_units=[field_units], grid_units=None,
+        imshow_grid(grid, values, plot_name=None, var_name=None,
+                    var_units=None, grid_units=None,
                     symmetric_cbar=False, cmap='pink',
-                    limits=(values.min(), values.max()), vmin=values.min(),
-                    vmax=values.max(), allow_colorbar=True, norm=[linear],
-                    shrink=1., color_for_closed='black',
-                    color_for_background=None, show_elements=False,
-                    show=False)
+                    limits=(values.min(), values.max()),
+                    vmin=values.min(), vmax=values.max(),
+                    allow_colorbar=True, colorbar_label=None,
+                    norm=[linear], shrink=1.,
+                    color_for_closed='black',
+                    color_for_background=None,
+                    show_elements=False)
 
     Parameters
     ----------
@@ -362,12 +404,16 @@ def imshow_grid(grid, values, **kwds):
         the data.
     at : str, {'node', 'cell'}
         Tells plotter where values are defined.
+    plot_name : str, optional
+        String to put as the plot title.
     var_name : str, optional
-        Name of the variable to put in plot title.
+        Variable name, to use as a colorbar label.
     var_units : str, optional
-        Units for the variable being plotted.
+        Units for the variable being plotted, for the colorbar.
     grid_units : tuple of str, optional
-        Units for y, and x dimensions.
+        Units for y, and x dimensions. If None, component will look to the
+        gri property `axis_units` for this information. If no units are
+        specified there, no entry is made.
     symmetric_cbar : bool
         Make the colormap symetric about 0.
     cmap : str
@@ -378,6 +424,8 @@ def imshow_grid(grid, values, **kwds):
         Alternatives to limits.
     allow_colorbar : bool
         If True, include the colorbar.
+    colorbar_label : str or None
+        The string with which to label the colorbar.
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
@@ -386,7 +434,7 @@ def imshow_grid(grid, values, **kwds):
     color_for_closed : str or None
         Color to use for closed elements (default 'black'). If None, closed
         (or masked) elements will be transparent.
-    color_for_background : str or None
+    color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
     show_elements : bool
