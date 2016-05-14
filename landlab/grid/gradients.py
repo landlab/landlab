@@ -140,7 +140,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
     """
     if out is None:
-        out = grid.empty(centering='active_link')
+        out = grid.empty(at='active_link')
     return np.divide(node_values[grid._activelink_tonode] -
                      node_values[grid._activelink_fromnode],
                      grid.length_of_link[grid.active_links], out=out)
@@ -192,7 +192,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     """
     if out is None:
-        out = grid.empty(centering='face')
+        out = grid.empty(at='face')
     laf = grid.link_at_face
     return np.divide(node_values[grid.node_at_link_head[laf]] -
                      node_values[grid.node_at_link_tail[laf]],
@@ -235,7 +235,7 @@ def calc_diff_at_link(grid, node_values, out=None):
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
     node_values = np.asarray(node_values)
     return np.subtract(node_values[grid.node_at_link_head],
                        node_values[grid.node_at_link_tail], out=out)
@@ -275,7 +275,7 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
         Differences across active links.
     """
     if out is None:
-        out = grid.empty(centering='active_link')
+        out = grid.empty(at='active_link')
     node_values = np.asarray(node_values)
     return np.subtract(node_values[grid._activelink_tonode],
                        node_values[grid._activelink_fromnode], out=out)
