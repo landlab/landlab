@@ -3953,6 +3953,32 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (slope, aspect) : tuple of float
             *slope*, a len(ids) array of slopes at each node provided.
             *aspect*, a len(ids) array of aspects at each node provided.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), (4, 4))
+        >>> z = np.array([0., 0., 0., 0.,
+        ...               3., 3., 3., 3,
+        ...               6., 6., 6., 6.])
+        >>> (slope,
+        ...  aspect) = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
+        >>> np.tan(slope)
+        array([ 0.75,  0.75])
+        >>> np.degrees(aspect)
+        array([ 180.,  180.])
+
+        This method is *deprecated*. Use ``calc_slope_at_node`` and
+        ``calc_aspect_at_node`` instead. Notice that ``calc_slope_at_node``
+        and ``calc_aspect_at_node`` return values for all nodes, not just
+        core nodes. In addition, ``calc_aspect_at_node`` returns compass-style
+        angles in degrees.
+
+        >>> np.tan(grid.calc_slope_at_node(elevs=z)[grid.core_nodes])
+        array([ 0.75,  0.75])
+        >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
+        array([ 180.,  180.])
         """
         if ids is None:
             ids = self.node_at_cell
