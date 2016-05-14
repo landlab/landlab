@@ -102,7 +102,7 @@ class LinearDiffuser(Component):
         self._grid = grid
         self.current_time = 0.
         if linear_diffusivity is not None:
-            if linear_diffusivity is not str:
+            if type(linear_diffusivity) is not str:
                 self.kd = linear_diffusivity
             else:
                 self.kd = self.grid.at_node[linear_diffusivity]
