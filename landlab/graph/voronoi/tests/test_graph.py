@@ -11,12 +11,11 @@ This result in two bound voronoi polygons (12 total) centered on points
 5 and 6.
 """
 
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_is_instance)
+from nose.tools import (assert_true, assert_false, assert_equal)
 try:
-    from nose.tools import assert_tuple_equal
+    from nose.tools import assert_tuple_equal, assert_is_instance
 except ImportError:
-    from landlab.testing.tools import assert_tuple_equal
+    from landlab.testing.tools import assert_tuple_equal, assert_is_instance
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from scipy.spatial import Voronoi
 import numpy as np
