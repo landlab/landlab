@@ -94,21 +94,41 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.grid_funcs import calculate_flux_divergence_at_nodes
+
     >>> grid = RasterModelGrid((4, 5))
     >>> link_flux = np.ones(grid.number_of_active_links, dtype=float)
-    >>> calculate_flux_divergence_at_nodes(grid, link_flux)
+    >>> flux_at_node = calculate_flux_divergence_at_nodes(grid, link_flux)
     ...     # doctest: +NORMALIZE_WHITESPACE
+    >>> flux_at_node
     array([ 0.,  1.,  1.,  1.,  0.,
             1.,  0.,  0.,  0., -1.,
             1.,  0.,  0.,  0., -1.,
             0., -1., -1., -1.,  0.])
+    >>> flux_at_node[grid.core_nodes]
+    array([ 0., 0., 0., 0., 0., 0.])
+
+    This is *deprecated*. Instead use ``calc_flux_div_at_node`. Notice that
+    fluxes at non-core nodes are handled differently. However, these boundary
+    nodes don't have "flux" anyway and so should be ignored.
+
+    >>> grid = RasterModelGrid((4, 5))
+    >>> link_flux = grid.zeros(at='link')
+    >>> link_flux[grid.active_links] = 1.
+    >>> flux_at_node = grid.calc_flux_div_at_node(link_flux)
+    >>> flux_at_node
+    array([ 0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,  0.])
+    >>> flux_at_node[grid.core_nodes]
+    array([ 0., 0., 0., 0., 0., 0.])
     """
     assert len(active_link_flux) == grid.number_of_active_links, (
         "incorrect length of active_link_flux array")
 
     # If needed, create net_unit_flux array
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
     out.fill(0.)
     net_unit_flux = out
 
