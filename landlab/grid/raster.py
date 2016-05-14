@@ -32,7 +32,7 @@ from . import gradients
 
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
-def node_has_boundary_neighbor(mg, id, method='d8'):
+def _node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
     Test if one of the neighbors of node *id* is a boundary node.
@@ -106,8 +106,8 @@ def _make_arg_into_array(arg):
     return ids
 
 
-node_has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
-                                     excluded=['mg'])
+_node_has_boundary_neighbor = np.vectorize(_node_has_boundary_neighbor,
+                                           excluded=['mg'])
 
 
 class RasterModelGridPlotter(object):
@@ -3484,7 +3484,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-        ans = node_has_boundary_neighbor(self, ids, method=method)
+        ans = _node_has_boundary_neighbor(self, ids, method=method)
 
         if ans.ndim == 0:
             return bool(ans)
