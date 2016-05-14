@@ -27,10 +27,10 @@ def test_origin():
 
 def test_spacing():
     """Test spacing of nodes."""
-    graph = HexGraph((200, 301))
+    graph = HexGraph((20, 31))
     assert_array_almost_equal(graph.length_of_link, 1.)
 
-    graph = HexGraph((301, 200), spacing=2)
+    graph = HexGraph((31, 20), spacing=2)
     assert_array_almost_equal(graph.length_of_link, 2.)
 
 
