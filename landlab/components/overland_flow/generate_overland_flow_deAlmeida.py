@@ -369,10 +369,10 @@ class OverlandFlow(Component):
         # Per Bates et al., 2010, this solution needs to find the difference
         # between the highest water surface in the two cells and the
         # highest bed elevation
-        zmax = self.grid.max_of_link_end_node_values(self.z)
+        zmax = self._grid.map_max_of_link_nodes_to_link(self.z)
         w = self.h + self.z
-        wmax = self.grid.max_of_link_end_node_values(w)
-        hflow = wmax - zmax
+        wmax = self._grid.map_max_of_link_nodes_to_link(w)
+        hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
         # Insert this water depth into an array of water depths at the links.
         self.h_links[self.active_links] = hflow

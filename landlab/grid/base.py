@@ -3214,12 +3214,21 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> import numpy as np
-        >>> import landlab as ll
-        >>> mg = ll.RasterModelGrid((3, 4), spacing=(1., 1.))
+        >>> from landlab import RasterModelGrid
+
+        >>> grid = RasterModelGrid((3, 4), spacing=(1., 1.))
         >>> h = np.array([ 2., 2., 8., 0.,
         ...                8., 0., 3., 0.,
         ...                5., 6., 8., 3.])
-        >>> mg.max_of_link_end_node_values(h)
+
+        >>> grid.max_of_link_end_node_values(h)
+        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
+
+        Note that this method is *deprecatd*. The alternative is to use
+        ``map_max_of_link_nodes_to_link``.
+
+        >>> vals = grid.map_max_of_link_nodes_to_link(h)
+        >>> vals[grid.active_links]
         array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
         """
         return numpy.maximum(node_data[self._activelink_fromnode],

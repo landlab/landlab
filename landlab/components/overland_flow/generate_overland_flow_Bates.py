@@ -163,10 +163,10 @@ class OverlandFlowBates(Component):
 
         # Per Bates et al., 2010, this solution needs to find the difference between the highest
         # water surface in the two cells and the highest bed elevation
-        zmax = self._grid.max_of_link_end_node_values(self.z)
+        zmax = self._grid.map_max_of_link_nodes_to_link(self.z)
         w = self.h + self.z
-        wmax = self._grid.max_of_link_end_node_values(w)
-        hflow = wmax - zmax
+        wmax = self._grid.map_max_of_link_nodes_to_link(w)
+        hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
         # Now we calculate the slope of the water surface elevation at active links
         water_surface_slope = self._grid.calc_grad_of_active_link(w)
