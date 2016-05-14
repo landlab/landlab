@@ -43,8 +43,6 @@ cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
         free(y_of_vertex)
         free(x_of_vertex)
 
-    return area_of_patch
-
 
 @cython.boundscheck(False)
 def calc_centroid_at_patch(np.ndarray[long, ndim=2] nodes_at_patch,
