@@ -113,8 +113,8 @@ def reorder_links_at_patch(graph):
     before = graph.links_at_patch.copy()
     area_before = get_area_of_patch(graph)
 
-    reverse_element_order(graph._links_at_patch,
-                          np.where(get_area_of_patch(graph) < 0.)[0])
+    negative_areas = as_id_array(np.where(get_area_of_patch(graph) < 0.)[0])
+    reverse_element_order(graph._links_at_patch, negative_areas)
 
     graph._nodes_at_patch = get_nodes_at_patch(graph)
 
