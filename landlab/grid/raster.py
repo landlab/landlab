@@ -3058,7 +3058,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...               9., 3., 9.,
         ...               6., 9., 6.])
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
-        >>> grads = grid.calc_grad_at_active_link(z)
+        >>> grads = grid.calc_grad_at_link(z)[grid.active_links]
         >>> max_grad, dest_node = (
         ...     grid._calculate_steepest_descent_on_nodes(z, grads))
         >>> max_grad # doctest: +NORMALIZE_WHITESPACE
@@ -3162,7 +3162,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_at_active_link(u)
+        >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])

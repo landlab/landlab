@@ -136,6 +136,15 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     ...                2., 2., 2.]
     >>> grid.calc_grad_at_active_link(node_values)
     array([ 3.,  1., -1., -1.])
+
+    This function is *deprecated*. Instead, use ``calc_grad_at_link``.
+
+    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> node_values = [0., 0., 0.,
+    ...                1., 3., 1.,
+    ...                2., 2., 2.]
+    >>> grid.calc_grad_at_link(node_values)[grid.active_links]
+    array([ 3.,  1., -1., -1.])
     """
     if out is None:
         out = grid.empty(at='active_link')

@@ -2531,11 +2531,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_at_active_link(u)
+        >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])
-        >>> flux = -grad    # downhill flux proportional to gradient
+        >>> flux = - grad    # downhill flux proportional to gradient
         >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
         >>> divflux
         array([ 2.,  4., -2.,  0.,  1., -4.])

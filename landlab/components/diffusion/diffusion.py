@@ -246,7 +246,7 @@ class LinearDiffuser(Component):
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self.grid.active_links] = \
-                self.grid.calc_grad_at_active_link(z)
+                    self.grid.calc_grad_at_link(z)[self.grid.active_links]
             # if diffusivity is an array, self.kd is already active_links-long
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])
