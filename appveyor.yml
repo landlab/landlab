@@ -47,11 +47,15 @@ install:
   - "conda install -q anaconda-client"
   - "conda build -q .conda-recipe"
   - "conda install -q landlab --use-local"
+  - "conda list"
 build: false
 
 test_script:
   #- "%WITH_COMPILER% python setup.py build_ext --inplace"
   #- "%WITH_COMPILER% python coupled_driver.py"
+  - "conda list"
+  - "python -c 'import sys; print sys.prefix'"
+  - "%WITH_COMPILER% python -c 'import sys; print sys.prefix'"
   - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
 
 after_test:
