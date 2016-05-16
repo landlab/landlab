@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 
 import sys, os
 
@@ -23,9 +24,9 @@ parser.add_option('-m', '--mode', action='store', dest='mode', default='fast',
 try:
     import landlab
 except ImportError:
-    print 'Unable to import landlab. You may not have landlab installed.'
-    print 'Here is your sys.path'
-    print os.linesep.join(sys.path)
+    print('Unable to import landlab. You may not have landlab installed.')
+    print('Here is your sys.path')
+    print(os.linesep.join(sys.path))
     raise
 
 
