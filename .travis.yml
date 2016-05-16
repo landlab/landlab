@@ -44,6 +44,7 @@ virtualenv:
   system_site_packages: false
 after_success:
   - bash .ci/travis/deploy_to_pypi.sh
+  - bash .ci/travis/deploy_to_anaconda.sh
   - coveralls
 deploy:
   provider: pypi
