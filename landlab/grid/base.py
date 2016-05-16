@@ -2531,11 +2531,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_at_active_link(u)
+        >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])
-        >>> flux = -grad    # downhill flux proportional to gradient
+        >>> flux = - grad    # downhill flux proportional to gradient
         >>> divflux = rmg.calculate_flux_divergence_at_core_nodes(flux)
         >>> divflux
         array([ 2.,  4., -2.,  0.,  1., -4.])
@@ -2688,7 +2688,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> hg.link_at_face
         array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
         """
-        num_faces = len(self.face_width)
+        num_faces = len(self.width_of_face)
         self._link_at_face = numpy.empty(num_faces, dtype=int)
         face_id = 0
         for link in range(self.number_of_links):
@@ -3214,12 +3214,21 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> import numpy as np
-        >>> import landlab as ll
-        >>> mg = ll.RasterModelGrid((3, 4), spacing=(1., 1.))
+        >>> from landlab import RasterModelGrid
+
+        >>> grid = RasterModelGrid((3, 4), spacing=(1., 1.))
         >>> h = np.array([ 2., 2., 8., 0.,
         ...                8., 0., 3., 0.,
         ...                5., 6., 8., 3.])
-        >>> mg.max_of_link_end_node_values(h)
+
+        >>> grid.max_of_link_end_node_values(h)
+        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
+
+        Note that this method is *deprecatd*. The alternative is to use
+        ``map_max_of_link_nodes_to_link``.
+
+        >>> vals = grid.map_max_of_link_nodes_to_link(h)
+        >>> vals[grid.active_links]
         array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
         """
         return numpy.maximum(node_data[self._activelink_fromnode],

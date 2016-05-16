@@ -67,8 +67,13 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     -----
     Performs a numerical flux divergence operation on nodes.
     """
+    if unit_flux.size not in (grid.number_of_links, grid.number_of_faces):
+        raise ValueError('Parameter unit_flux must be num links or num faces '
+                         'long')
     if out is None:
         out = grid.zeros(at='node')
+    elif out.size != grid.number_of_nodes:
+        raise ValueError('output buffer length mismatch with number of nodes')
 
     if unit_flux.size == grid.number_of_links:
         out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
@@ -77,10 +82,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     elif unit_flux.size == grid.number_of_faces:
         out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, unit_flux) \
                                 / grid.area_of_cell
-    else:
-        assert (unit_flux.size == grid.number_of_links or
-                unit_flux.size == grid.number_of_faces), \
-                'Parameter unit_flux must be num links or num faces long'
+
     return out
 
 
@@ -232,7 +234,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at='cell')
-    total_flux = unit_flux_at_faces * grid.face_width
+    total_flux = unit_flux_at_faces * grid.width_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.link_dirs_at_node.shape[1]):
@@ -357,7 +359,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at='cell')
-    total_flux = unit_flux_at_faces * grid.face_width
+    total_flux = unit_flux_at_faces * grid.width_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.active_link_dirs_at_node.shape[1]):

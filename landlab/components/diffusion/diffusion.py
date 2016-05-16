@@ -246,14 +246,13 @@ class LinearDiffuser(Component):
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self.grid.active_links] = \
-                self.grid.calc_grad_at_active_link(z)
+                    self.grid.calc_grad_at_link(z)[self.grid.active_links]
             # if diffusivity is an array, self.kd is already active_links-long
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])
 
             # Calculate the net deposition/erosion rate at each node
-            self.dqsds = self.grid.calculate_flux_divergence_at_nodes(
-                self.qs[self.grid.active_links])
+            self.dqsds = self.grid.calc_flux_div_at_node(self.qs)
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
 

@@ -32,7 +32,7 @@ from . import gradients
 
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
-def node_has_boundary_neighbor(mg, id, method='d8'):
+def _node_has_boundary_neighbor(mg, id, method='d8'):
     """Test if a node is next to a boundary.
 
     Test if one of the neighbors of node *id* is a boundary node.
@@ -106,8 +106,8 @@ def _make_arg_into_array(arg):
     return ids
 
 
-node_has_boundary_neighbor = np.vectorize(node_has_boundary_neighbor,
-                                     excluded=['mg'])
+_node_has_boundary_neighbor = np.vectorize(_node_has_boundary_neighbor,
+                                           excluded=['mg'])
 
 
 class RasterModelGridPlotter(object):
@@ -295,7 +295,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     (4, 5)
     >>> rmg.number_of_active_links
     17
-    >>> vals = rmg.add_zeros('active_link', 'vals')
+    >>> vals = rmg.add_zeros('vals', at='active_link')
     >>> vals.size
     17
 
@@ -307,7 +307,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     (4, 5)
     >>> rmg.number_of_active_links
     14
-    >>> vals = rmg.add_zeros('active_link', 'vals')
+    >>> vals = rmg.add_zeros('vals', at='active_link')
     >>> vals.size
     14
 
@@ -3058,7 +3058,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...               9., 3., 9.,
         ...               6., 9., 6.])
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
-        >>> grads = grid.calc_grad_at_active_link(z)
+        >>> grads = grid.calc_grad_at_link(z)[grid.active_links]
         >>> max_grad, dest_node = (
         ...     grid._calculate_steepest_descent_on_nodes(z, grads))
         >>> max_grad # doctest: +NORMALIZE_WHITESPACE
@@ -3162,7 +3162,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...      0., 1., 2., 1., 2.,
         ...      0., 0., 2., 2., 0.]
         >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_at_active_link(u)
+        >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
         >>> grad
         array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
                 1., -1.,  0.,  1.])
@@ -3186,6 +3186,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         In this case, the function will not have to create the df array.
         """
+        if out is None:
+            out = self.zeros(at='node')
         return rfuncs.calculate_flux_divergence_at_nodes(
             self, active_link_flux, out=out)
 
@@ -3482,7 +3484,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
         """
-        ans = node_has_boundary_neighbor(self, ids, method=method)
+        ans = _node_has_boundary_neighbor(self, ids, method=method)
 
         if ans.ndim == 0:
             return bool(ans)
@@ -3572,7 +3574,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                     self.closed_boundary_nodes)] = bad_index
         return self.diagonal_cells
 
-    @deprecated(use='is_core', version='0.5')
+    @deprecated(use='node_is_core', version='0.5')
     def is_interior(self, *args):
         """is_interior([ids])
         Check of a node is an interior node.
@@ -3787,7 +3789,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> grid.face_width
+        >>> grid.width_of_face
         array([ 1.,  1.,  1.,  1.])
         """
         n_horizontal_faces = (self.shape[0] - 2) * (self.shape[1] - 1)
@@ -3951,6 +3953,32 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (slope, aspect) : tuple of float
             *slope*, a len(ids) array of slopes at each node provided.
             *aspect*, a len(ids) array of aspects at each node provided.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), (4, 4))
+        >>> z = np.array([0., 0., 0., 0.,
+        ...               3., 3., 3., 3,
+        ...               6., 6., 6., 6.])
+        >>> (slope,
+        ...  aspect) = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
+        >>> np.tan(slope)
+        array([ 0.75,  0.75])
+        >>> np.degrees(aspect)
+        array([ 180.,  180.])
+
+        This method is *deprecated*. Use ``calc_slope_at_node`` and
+        ``calc_aspect_at_node`` instead. Notice that ``calc_slope_at_node``
+        and ``calc_aspect_at_node`` return values for all nodes, not just
+        core nodes. In addition, ``calc_aspect_at_node`` returns compass-style
+        angles in degrees.
+
+        >>> np.tan(grid.calc_slope_at_node(elevs=z)[grid.core_nodes])
+        array([ 0.75,  0.75])
+        >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
+        array([ 180.,  180.])
         """
         if ids is None:
             ids = self.node_at_cell
