@@ -318,6 +318,10 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
 
         plt.gca().set_aspect(1.)
         # plt.autoscale(tight=True)
+        # Tempting though it is to move the boundary outboard of the outermost
+        # nodes (e.g., to the outermost corners), this is a bad idea, as the
+        # outermost cells tend to have highly elongated shapes which make the
+        # plot look stupid
         plt.xlim((np.min(grid.node_x), np.max(grid.node_x)))
         plt.ylim((np.min(grid.node_y), np.max(grid.node_y)))
 
