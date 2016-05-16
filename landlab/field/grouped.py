@@ -231,7 +231,7 @@ class ModelDataFields(object):
         >>> fields.size('node')
         4
 
-        LLCATS: FIELDINF
+        LLCATS: GINF FIELDINF
         """
         return self[group].size
 

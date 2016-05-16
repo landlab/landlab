@@ -38,7 +38,6 @@ Information about the grid as a whole
     ~landlab.grid.base.ModelGrid.display_grid
     ~landlab.grid.base.ModelGrid.ndim
     ~landlab.grid.base.ModelGrid.number_of_elements
-    ~landlab.grid.base.ModelGrid.set_units
     ~landlab.grid.base.ModelGrid.size
     ~landlab.grid.raster.RasterModelGrid.shape
 
