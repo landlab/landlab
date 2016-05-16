@@ -244,6 +244,8 @@ class ScalarDataFields(dict):
             does not initialize the new array.
         landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.empty(**kwds), units=units,
                               noclobber=noclobber)
@@ -290,6 +292,8 @@ class ScalarDataFields(dict):
         ['topographic__elevation']
         >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.ones(**kwds), units=units,
                               noclobber=noclobber)
@@ -323,6 +327,8 @@ class ScalarDataFields(dict):
             does not initialize the new array.
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.zeros(**kwds), units=units,
                               noclobber=noclobber)
@@ -390,6 +396,8 @@ class ScalarDataFields(dict):
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation already exists
+
+        LLCATS: FIELDCR
         """
         if noclobber and name in self:
             raise FieldError('{name}: already exists'. format(name=name))
@@ -420,6 +428,8 @@ class ScalarDataFields(dict):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR
         """
         self._units[name] = units
 
