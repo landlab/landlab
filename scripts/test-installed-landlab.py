@@ -20,8 +20,13 @@ parser.add_option('-m', '--mode', action='store', dest='mode', default='fast',
 
 (options, args) = parser.parse_args()
 
-
-import landlab
+try:
+    import landlab
+except ImportError:
+    print 'Unable to import landlab. You may not have landlab installed.'
+    print 'Here is your sys.path'
+    print os.linesep.join(sys.path)
+    raise
 
 
 result = landlab.test(label=options.mode, verbose=options.verbose,
