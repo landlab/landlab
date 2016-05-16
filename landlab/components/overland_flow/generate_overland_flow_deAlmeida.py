@@ -379,8 +379,8 @@ class OverlandFlow(Component):
 
         # Now we calculate the slope of the water surface elevation at
         # active links
-        water_surface_gradient = self.grid.calc_grad_at_link(w)
-        water_surface_gradient = water_surface_gradient[self.grid.active_links]
+        water_surface_gradient = (
+            self.grid.calc_grad_at_link(w)[self.grid.active_links])
 
         # And insert these values into an array of all links
         self.slope[self.active_links] = water_surface_gradient
