@@ -54,7 +54,7 @@ test_script:
   #- "%WITH_COMPILER% python setup.py build_ext --inplace"
   #- "%WITH_COMPILER% python coupled_driver.py"
   - "conda list"
-  - "python scripts/test-installed-landlab.py"
+  - "%WITH_COMPILER% python setup.py install"
   - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
 
 after_test:
