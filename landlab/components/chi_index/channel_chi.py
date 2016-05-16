@@ -541,13 +541,13 @@ class ChiFinder(Component):
         """
         Returns a masked array version of the 'channel__chi_index' field.
         This enables easier plotting of the values with
-        :func:`landlab.imshow_node_grid` or similar.
+        :func:`landlab.imshow_grid_at_node` or similar.
 
         Examples
         --------
         Make a topographic map with an overlay of chi values:
 
-        >>> from landlab import imshow_node_grid
+        >>> from landlab import imshow_grid_at_node
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter, FastscapeEroder
         >>> mg = RasterModelGrid((5, 5), 100.)
@@ -570,9 +570,9 @@ class ChiFinder(Component):
         >>> _ = fr.route_flow()
         >>> cf.calculate_chi()
 
-        >>> imshow_node_grid(mg, 'topographic__elevation',
-        ...                  allow_colorbar=False)
-        >>> imshow_node_grid(mg, cf.masked_chi_indices,
-        ...                  color_for_closed=None, cmap='winter')
+        >>> imshow_grid_at_node(mg, 'topographic__elevation',
+        ...                     allow_colorbar=False)
+        >>> imshow_grid_at_node(mg, cf.masked_chi_indices,
+        ...                     color_for_closed=None, cmap='winter')
         """
         return np.ma.array(self.chi_indices, mask=self.hillslope_mask)

@@ -68,7 +68,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> grid.calc_grad_at_link('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     """
-    grads = gradients.calculate_diff_at_links(grid, node_values, out=out)
+    grads = gradients.calc_diff_at_link(grid, node_values, out=out)
     grads /= grid.length_of_link
 
 #    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
@@ -136,11 +136,29 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     ...                2., 2., 2.]
     >>> grid.calc_grad_at_active_link(node_values)
     array([ 3.,  1., -1., -1.])
+
+    This function is *deprecated*. Instead, use ``calc_grad_at_link``.
+
+    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> node_values = [0., 0., 0.,
+    ...                1., 3., 1.,
+    ...                2., 2., 2.]
+    >>> grid.calc_grad_at_link(node_values)[grid.active_links]
+    array([ 3.,  1., -1., -1.])
     """
-    grads = gradients.calculate_diff_at_active_links(grid, node_values,
-                                                     out=out)
-    grads /= grid.length_of_link[grid.active_links]
-    return grads
+    if out is None:
+        out = grid.empty(at='active_link')
+
+    if len(out) != grid.number_of_active_links:
+        raise ValueError('output buffer does not match that of the grid.')
+
+    # grads = gradients.calculate_diff_at_active_links(grid, node_values,
+    #                                                  out=out)
+    grads = gradients.calc_diff_at_link(grid, node_values)
+    out[:] = grads[grid.active_links]
+    out /= grid.length_of_link[grid.active_links]
+
+    return out
 
 
 @use_field_name_or_array('node')

@@ -455,7 +455,7 @@ def imshow_grid(grid, values, **kwds):
         values = grid.field_values(values_at, values)
 
     if values_at == 'node':
-        imshow_node_grid(grid, values, **kwds)
+        imshow_grid_at_node(grid, values, **kwds)
     elif values_at == 'cell':
         imshow_cell_grid(grid, values, **kwds)
     else:
