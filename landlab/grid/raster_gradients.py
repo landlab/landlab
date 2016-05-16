@@ -69,7 +69,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     """
     grads = gradients.calc_diff_at_link(grid, node_values, out=out)
-    grads /= grid.length_of_link
+    grads /= grid.length_of_link[:grid.number_of_links]
 
 #    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
 #    diffs[:n_vertical_links] /= grid.dy
