@@ -66,6 +66,7 @@ artifacts:
 
 deploy_script:
   - "powershell .ci/appveyor/deploy_to_pypi.ps1"
+  - "powershell .ci/appveyor/deploy_to_anaconda.ps1"
 
 notifications:
   - provider: Slack
