@@ -267,7 +267,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
         else:
-            self._link_lengths = self._grid.length_of_link
+            self._link_lengths = self._grid._length_of_link_with_diagonals
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
