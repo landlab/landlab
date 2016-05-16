@@ -37,7 +37,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> lg = rg.calc_grad_of_link(z)  # there are 17 links
+    >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
     >>> lg
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
@@ -69,8 +69,13 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
 
     LLCATS: NINF GRAD
     """
+    if unit_flux.size not in (grid.number_of_links, grid.number_of_faces):
+        raise ValueError('Parameter unit_flux must be num links or num faces '
+                         'long')
     if out is None:
         out = grid.zeros(at='node')
+    elif out.size != grid.number_of_nodes:
+        raise ValueError('output buffer length mismatch with number of nodes')
 
     if unit_flux.size == grid.number_of_links:
         out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
@@ -79,10 +84,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     elif unit_flux.size == grid.number_of_faces:
         out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, unit_flux) \
                                 / grid.area_of_cell
-    else:
-        assert (unit_flux.size == grid.number_of_links or
-                unit_flux.size == grid.number_of_faces), \
-                'Parameter unit_flux must be num links or num faces long'
+
     return out
 
 
@@ -120,7 +122,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> lg = rg.calc_grad_of_link(z)  # there are 17 links
+    >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
     >>> lg
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
@@ -141,7 +143,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> lg = hg.calc_grad_of_link(z)  # there are ? links
+    >>> lg = hg.calc_grad_at_link(z)  # there are ? links
     >>> lg
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
@@ -201,7 +203,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> lg = rg.calc_grad_of_link(z)
+    >>> lg = rg.calc_grad_at_link(z)
     >>> fg = lg[rg.link_at_face]  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
@@ -219,7 +221,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> lg = hg.calc_grad_of_link(z)
+    >>> lg = hg.calc_grad_at_link(z)
     >>> fg = lg[hg.link_at_face]  # there are 11 faces
     >>> fg
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
@@ -236,7 +238,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at='cell')
-    total_flux = unit_flux_at_faces * grid.face_width
+    total_flux = unit_flux_at_faces * grid.width_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.link_dirs_at_node.shape[1]):
@@ -275,7 +277,7 @@ def _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> lg = rg.calc_grad_of_link(z)
+    >>> lg = rg.calc_grad_at_link(z)
     >>> lg[rg.link_at_face]
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_face_flux_divergence_at_cell(rg, -lg[rg.link_at_face])
@@ -330,7 +332,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> fg = rg.calc_grad_of_link(z)[rg.link_at_face]  # there are 7 faces
+    >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_net_active_face_flux_at_cell(rg, -fg)
@@ -345,7 +347,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> fg = hg.calc_grad_of_link(z)[hg.link_at_face]  # there are 11 faces
+    >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
     >>> fg
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = _calc_net_active_face_flux_at_cell(hg, -fg)
@@ -361,7 +363,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at='cell')
-    total_flux = unit_flux_at_faces * grid.face_width
+    total_flux = unit_flux_at_faces * grid.width_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.active_link_dirs_at_node.shape[1]):
@@ -404,7 +406,7 @@ def _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> fg = rg.calc_grad_of_link(z)[rg.link_at_face]  # there are 7 faces
+    >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_active_face_flux_divergence_at_cell(rg, -fg)
@@ -457,7 +459,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> lg = rg.calc_grad_of_link(z)  # there are 17 links
+    >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
     >>> lg
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
@@ -476,7 +478,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> lg = hg.calc_grad_of_link(z)  # there are ? links
+    >>> lg = hg.calc_grad_at_link(z)  # there are ? links
     >>> lg
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
@@ -536,7 +538,7 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links,
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> lg = rg.calc_grad_of_link(z)  # there are 17 links
+    >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
     >>> lg
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
@@ -595,7 +597,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> fg = rg.calc_grad_of_link(z)[rg.link_at_face]  # there are 7 faces
+    >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_net_face_flux_at_node(rg, -fg)
@@ -614,7 +616,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> fg = hg.calc_grad_of_link(z)[hg.link_at_face]  # there are 11 faces
+    >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
     >>> fg
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = _calc_net_face_flux_at_node(hg, -fg)
@@ -670,7 +672,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> fg = rg.calc_grad_of_link(z)[rg.link_at_face]  # there are 7 faces
+    >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_net_active_face_flux_at_node(rg, -fg)
@@ -687,7 +689,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
-    >>> fg = hg.calc_grad_of_link(z)[hg.link_at_face]  # there are 11 faces
+    >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
     >>> fg
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = _calc_net_active_face_flux_at_node(hg, -fg)
@@ -743,7 +745,7 @@ def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
-    >>> fg = rg.calc_grad_of_link(z)[rg.link_at_face]  # there are 7 faces
+    >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_active_face_flux_divergence_at_node(rg, -fg)

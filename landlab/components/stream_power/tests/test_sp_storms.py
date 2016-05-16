@@ -24,7 +24,7 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def test_storms():
     input_file_string = os.path.join(_THIS_DIR, 'drive_sp_params_storms.txt')
-    inputs = ModelParameterDictionary(input_file_string)
+    inputs = ModelParameterDictionary(input_file_string, auto_type=True)
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')
     dx = inputs.read_float('dx')

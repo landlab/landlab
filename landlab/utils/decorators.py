@@ -258,9 +258,12 @@ def deprecated(use, version):
 
         @wraps(func)
         def _wrapped(*args, **kwargs):
-            warnings.warn(
-                message="Call to deprecated function {name}.".format(
-                    name=func.__name__), category=DeprecationWarning)
+            if func.__name__.startswith('_'):
+                pass
+            else:
+                warnings.warn(
+                    message="Call to deprecated function {name}.".format(
+                        name=func.__name__), category=DeprecationWarning)
             return func(*args, **kwargs)
         _wrapped.__dict__.update(func.__dict__)
 

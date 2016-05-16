@@ -62,11 +62,11 @@ class OverlandFlowBates(Component):
     """
     _name = 'OverlandFlowBates'
 
-    _input_var_names = set(['water__depth', 'topographic__elevation'])
+    _input_var_names = ('water__depth', 'topographic__elevation')
 
-    _output_var_names = set(['water__depth',
+    _output_var_names = ('water__depth',
      'water__discharge',
-     'water_surface__gradient'])
+     'water_surface__gradient')
 
     _var_units = {'water__depth': 'm',
      'water__discharge': 'm3/s',
@@ -128,7 +128,7 @@ class OverlandFlowBates(Component):
 
         return self.dt
 
-    def overland_flow(self, grid, dt = None, **kwds):
+    def overland_flow(self, dt = None, **kwds):
         """
         For one time step, this generates 'overland flow' across a given grid
         by calculating discharge at each node.
@@ -163,13 +163,14 @@ class OverlandFlowBates(Component):
 
         # Per Bates et al., 2010, this solution needs to find the difference between the highest
         # water surface in the two cells and the highest bed elevation
-        zmax = self._grid.max_of_link_end_node_values(self.z)
+        zmax = self._grid.map_max_of_link_nodes_to_link(self.z)
         w = self.h + self.z
-        wmax = self._grid.max_of_link_end_node_values(w)
-        hflow = wmax - zmax
+        wmax = self._grid.map_max_of_link_nodes_to_link(w)
+        hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
         # Now we calculate the slope of the water surface elevation at active links
-        water_surface_slope = self._grid.calc_grad_of_active_link(w)
+        water_surface_slope = (
+            self._grid.calc_grad_at_link(w)[self._grid.active_links])
 
         # Here we calculate discharge at all active links using Eq. 11 from Bates et al., 2010
         self.q[self.active_links] = ((self.q[self.active_links] - self.g *
@@ -178,9 +179,8 @@ class OverlandFlowBates(Component):
             / hflow ** self.ten_thirds))
 
         # Update our water depths
-        dhdt = (self.rainfall_intensity -
-            self._grid.calculate_flux_divergence_at_nodes(
-            self.q[self.active_links]))
+        dhdt = (self.rainfall_intensity - self._grid.calc_flux_div_at_node(
+            self.q))
 
         self.h[self.core_nodes] = (self.h[self.core_nodes] +
             dhdt[self.core_nodes] * self.dt)

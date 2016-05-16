@@ -100,7 +100,7 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
              9.,  10.,  11.,   9.,  10.,  11.])
 
-    >>> values_at_links = rmg.empty(centering='link')
+    >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_link_head_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
@@ -113,7 +113,7 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
     out[:] = var_name[grid.node_at_link_head]
 
     return out
@@ -162,7 +162,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
              5.,   6.,   7.,   8.,   9.,  10.])
 
-    >>> values_at_links = rmg.empty(centering='link')
+    >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_link_tail_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
@@ -173,7 +173,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -224,7 +224,7 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
 
-    >>> values_at_links = rmg.empty(centering='link')
+    >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_min_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
@@ -235,7 +235,7 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -287,7 +287,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
              9.,  10.,  11.,   9.,  10.,  11.])
 
-    >>> values_at_links = rmg.empty(centering='link')
+    >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_max_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
@@ -298,7 +298,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -349,7 +349,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     array([  0.5,   1.5,   2.5,   2. ,   3. ,   4. ,   5. ,   4.5,   5.5,
              6.5,   6. ,   7. ,   8. ,   9. ,   8.5,   9.5,  10.5])
 
-    >>> values_at_links = rmg.empty(centering='link')
+    >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_mean_of_link_nodes_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  0.5,   1.5,   2.5,   2. ,   3. ,   4. ,   5. ,   4.5,   5.5,
@@ -360,7 +360,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -426,7 +426,7 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
 
     if type(control_name) is str:
         control_name = grid.at_node[control_name]
@@ -497,7 +497,7 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
 
     if type(control_name) is str:
         control_name = grid.at_node[control_name]
@@ -550,7 +550,7 @@ def map_node_to_cell(grid, var_name, out=None):
     >>> map_node_to_cell(rmg, 'z')
     array([ 5.,  6.])
 
-    >>> values_at_cells = rmg.empty(centering='cell')
+    >>> values_at_cells = rmg.empty(at='cell')
     >>> rtn = map_node_to_cell(rmg, 'z', out=values_at_cells)
     >>> values_at_cells
     array([ 5.,  6.])
@@ -560,7 +560,7 @@ def map_node_to_cell(grid, var_name, out=None):
     LLCATS: CINF NINF MAP
     """
     if out is None:
-        out = grid.empty(centering='cell')
+        out = grid.empty(at='cell')
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -621,7 +621,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).max
@@ -686,7 +686,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).min
@@ -759,7 +759,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -830,7 +830,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -902,7 +902,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -978,7 +978,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -1062,7 +1062,7 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     if type(control_name) is str:
         control_name = grid.at_link[control_name]
@@ -1148,7 +1148,7 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
 
     if type(control_name) is str:
         control_name = grid.at_link[control_name]

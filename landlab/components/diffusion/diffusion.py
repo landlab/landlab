@@ -34,7 +34,7 @@ class LinearDiffuser(Component):
 
     Construction::
 
-        FastscapeEroder(grid, linear_diffusivity=None)
+        LinearDiffuser(grid, linear_diffusivity=None)
 
     Parameters
     ----------
@@ -102,7 +102,7 @@ class LinearDiffuser(Component):
         self._grid = grid
         self.current_time = 0.
         if linear_diffusivity is not None:
-            if linear_diffusivity is not str:
+            if type(linear_diffusivity) is not str:
                 self.kd = linear_diffusivity
             else:
                 self.kd = self.grid.at_node[linear_diffusivity]
@@ -194,7 +194,7 @@ class LinearDiffuser(Component):
         True
         >>> ld.fixed_grad_offsets.size == 0
         True
-        >>> mg.at_link['topographic__slope'] = mg.calc_grad_of_link(
+        >>> mg.at_link['topographic__slope'] = mg.calc_grad_at_link(
         ...     'topographic__elevation')
         >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
         >>> ld.updated_boundary_conditions()
@@ -246,14 +246,13 @@ class LinearDiffuser(Component):
         for i in range(repeats+1):
             # Calculate the gradients and sediment fluxes
             self.g[self.grid.active_links] = \
-                self.grid.calc_grad_of_active_link(z)
+                    self.grid.calc_grad_at_link(z)[self.grid.active_links]
             # if diffusivity is an array, self.kd is already active_links-long
             self.qs[self.grid.active_links] = (-kd_activelinks *
                                                self.g[self.grid.active_links])
 
             # Calculate the net deposition/erosion rate at each node
-            self.dqsds = self.grid.calculate_flux_divergence_at_nodes(
-                self.qs[self.grid.active_links])
+            self.dqsds = self.grid.calc_flux_div_at_node(self.qs)
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
 

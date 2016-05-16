@@ -6,7 +6,9 @@ from six.moves import range
 from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
                                INACTIVE_LINK)
 from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
-                                argsort_points_by_x_then_y)
+                                argsort_points_by_x_then_y,
+                                anticlockwise_argsort_points)
+from .decorators import return_readonly_id_array
 
 from scipy.spatial import Voronoi
 
@@ -191,8 +193,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts[:, 0] = x
         pts[:, 1] = y
         self.pts = sort_points_by_x_then_y(pts)
-        x = pts[:, 0]
-        y = pts[:, 1]
+        x = self.pts[:, 0]
+        y = self.pts[:, 1]
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -221,7 +223,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
-        vor = Voronoi(pts)
+        vor = Voronoi(self.pts)
         self.vor = vor
         self._area_of_cell = numpy.zeros(self.number_of_cells)
         for node in self._node_at_cell:
@@ -234,7 +236,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # "from" and "to" nodes.
         (self._node_at_link_tail,
          self._node_at_link_head,
-         self.active_links_ids,
+         _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
@@ -249,7 +251,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._reorient_links_upper_right()
 
         # LINKS: Calculate link lengths
-        self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
+        self._link_length = calculate_link_lengths(self.pts,
+                                                   self.node_at_link_tail,
                                                    self.node_at_link_head)
 
         # LINKS: inlink and outlink matrices
@@ -292,40 +295,39 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._create_patches_from_delaunay_diagram(self.pts, self.vor)
             return self._nodes_at_patch
 
-    def patches_at_node(self, nodata=-1):
-        """patches_at_node()
-        (This is a placeholder method until improved using jagged array
-        operations.)
-        Returns a (N,max_voronoi_polygon_sides) array of the patches associated
-        with each node in the grid.
-        The patches are returned in id order, with any null or nonexistent
-        patches recorded after the ids of existing faces.
-        The nodata argument allows control of the array value used to indicate
-        nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
-        Note that this method returns a *masked* array, with the normal
-        provisos that integer indexing with a masked array removes the mask.
+    @property
+    @return_readonly_id_array
+    def patches_at_node(self):
+        """
+        Return a (nnodes, max_voronoi_polygon_sides) array of patches at nodes.
+
+        The patches are returned in LL standard order (ccw from E), with any
+        nonexistent patches recorded after the ids of existing faces.
+        Nonexistent patches are ID'ed as -1.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 3)
+        >>> mg.patches_at_node # doctest: +SKIP
+        array([[ 0,  2, -1, -1, -1, -1],
+               [ 1,  3,  0, -1, -1, -1],
+               [ 4,  1, -1, -1, -1, -1],
+               [ 5,  2, -1, -1, -1, -1],
+               [ 6,  8,  5,  2,  0,  3],
+               [ 7,  9,  6,  3,  1,  4],
+               [ 7,  4, -1, -1, -1, -1],
+               [ 5,  8, -1, -1, -1, -1],
+               [ 8,  6,  9, -1, -1, -1],
+               [ 9,  7, -1, -1, -1, -1]])
 
         LLCATS: NINF PINF CONN
         """
-        if nodata == -1:
-            # ^fiddle needed to ensure we set the nodata value properly if
-            # we've called patches elsewhere
-            try:
-                return self._patches_at_node
-            except AttributeError:
-                self._create_patches_from_delaunay_diagram(
-                    self.pts, self.vor, nodata)
-                return self._patches_at_node
-        else:
-            try:
-                self.set_bad_value
-            except:
-                self._create_patches_from_delaunay_diagram(
-                    self.pts, self.vor, nodata)
-                self.set_bad_value = True
-                return self._patches_at_node
-            else:
-                return self._patches_at_node
+        try:
+            return self._patches_at_node
+        except AttributeError:
+            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            return self._patches_at_node
 
     def _find_perimeter_nodes_and_BC_set(self, pts):
         """
@@ -667,28 +669,40 @@ class VoronoiDelaunayGrid(ModelGrid):
                 flip_locs] = self.node_at_link_head[flip_locs]
             self._node_at_link_head[flip_locs] = fromnode_temp
 
-    def _create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
+    def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
         Uses a delaunay diagram drawn from the provided points to
         generate an array of patches and patch-node-link connectivity.
         Returns ...
-        DEJH, 10/3/14
+        DEJH, 10/3/14, modified May 16.
         """
         from scipy.spatial import Delaunay
         tri = Delaunay(pts)
         assert numpy.array_equal(tri.points, vor.points)
-
-        if nodata == -1:
-            pass
-        elif nodata == 'bad_value':
-            nodata = BAD_INDEX_VALUE
-        elif nodata == 'nan':
-            nodata = numpy.nan
-        else:
-            raise ValueError('Do not recognise nodata value!')
-
+        nodata = -1
         self._nodes_at_patch = tri.simplices
+        # self._nodes_at_patch = numpy.empty_like(_nodes_at_patch)
         self._number_of_patches = tri.simplices.shape[0]
+        # get the patches in order:
+        patches_xy = numpy.empty((self._number_of_patches, 2), dtype=float)
+        patches_xy[:, 0] = numpy.mean(self.node_x[self._nodes_at_patch],
+                                      axis=1)
+        patches_xy[:, 1] = numpy.mean(self.node_y[self._nodes_at_patch],
+                                      axis=1)
+        orderforsort = argsort_points_by_x_then_y(patches_xy)
+        self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
+        patches_xy = patches_xy[orderforsort, :]
+        # get the nodes around the patch in order:
+        nodes_xy = numpy.empty((3, 2), dtype=float)
+        for i in range(self._number_of_patches):
+            these_nodes = self._nodes_at_patch[i]
+            nodes_xy[:, 0] = self.node_x[these_nodes]
+            nodes_xy[:, 1] = self.node_y[these_nodes]
+            sortorder = anticlockwise_argsort_points(nodes_xy)
+            try:
+                self._nodes_at_patch[i, :] = these_nodes[sortorder]
+            except TypeError:  # sortorder was an int
+                pass
         max_dimension = 0
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
@@ -700,15 +714,12 @@ class VoronoiDelaunayGrid(ModelGrid):
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
         for i in range(self.number_of_nodes):
-            if not self.node_is_boundary(i, boundary_flag=4):
-                # ^don't include closed nodes
-                patches_with_node = numpy.argwhere(
-                    numpy.equal(self._nodes_at_patch, i))[:, 0]
-                _patches_at_node[
-                    i, :patches_with_node.size] = patches_with_node[:]
-        # mask it
-        self._patches_at_node = numpy.ma.array(
-            _patches_at_node, mask=numpy.equal(_patches_at_node, -1))
+            patches_with_node = numpy.argwhere(
+                numpy.equal(self._nodes_at_patch, i))[:, 0]
+            _patches_at_node[
+                i, :patches_with_node.size] = patches_with_node[:]
+        self._patches_at_node = _patches_at_node
+        self._patches_created = True
 
     def save(self, path, clobber=False):
         """Save a grid and fields.

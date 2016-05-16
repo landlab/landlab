@@ -62,7 +62,7 @@ def test_sheetflow():
     pfr = PotentialityFlowRouter(mg, INPUTS)
     pfr.route_flow(route_on_diagonals=True)
 
-    assert_array_almost_equal(mg.at_node['water__volume_flux_magnitude'], flux)
+    assert_array_almost_equal(mg.at_node['water__discharge'], flux)
 
 
 def test_in_network():
@@ -164,6 +164,6 @@ def test_in_network():
     pfr = PotentialityFlowRouter(mg, INPUTS)
     pfr.route_flow(return_components=True)
 
-    assert_array_almost_equal(mg.at_node['water__volume_flux_magnitude'], flux)
-    assert_array_almost_equal(mg.at_node['potentiality_field'][mg.core_nodes],
+    assert_array_almost_equal(mg.at_node['water__discharge'], flux)
+    assert_array_almost_equal(mg.at_node['flow__potential'][mg.core_nodes],
                               potnt[mg.core_nodes])
