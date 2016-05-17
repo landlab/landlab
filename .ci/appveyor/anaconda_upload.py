@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import traceback
+import glob
 
 
 # print('This is my environment:')
@@ -31,6 +32,12 @@ except subprocess.CalledProcessError:
     traceback.print_exc()
 else:
     file_to_upload = resp.strip().split(os.linesep)[-1]
+
+(dirname, filename) = os.path.split(file_to_upload)
+try:
+    file_to_upload = glob.glob(os.path.join(dirname, os.sep, 'landlab*bz2'))[0]
+except IndexError:
+    raise RuntimeError('{name}: not a file'.format(name=file_to_upload))
 
 print(file_to_upload)
 
