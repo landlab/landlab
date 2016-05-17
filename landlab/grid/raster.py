@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/env/python
 """
 A class used to create and manage regular square raster
 grids for 2D numerical models in Landlab.
