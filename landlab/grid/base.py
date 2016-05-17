@@ -2787,6 +2787,19 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             return self._link_length
 
+    @property
+    def _length_of_link_with_diagonals(self):
+        """A dummy function, equivalent to `length_of_link` for the base class.
+
+        This method is required to maintain grid class generality in several
+        of the flow routing and stream power components. It is overridden in
+        RasterModelGrid only.
+
+        This method will be removed when LL's handling of diagonal links is
+        modernized.
+        """
+        return self.length_of_link
+
     def _create_length_of_link(self):
         """Get array of the lengths of all links.
 
