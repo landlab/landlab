@@ -7,6 +7,8 @@ environment:
     NUMPY_VERSION: "1.9.1"
     PYPI_PASS:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
+    ANACONDA_TOKEN:
+      secure: fK53X8HNpJY7ZeW8q7FYjpNdqi/rgfn94s+vtWGObHHjQMMNiidbNS/lk939vdA6
 
   matrix:
     # - PYTHON: "C:\\Miniconda"
