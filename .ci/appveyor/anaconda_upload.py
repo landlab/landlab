@@ -31,7 +31,8 @@ try:
 except subprocess.CalledProcessError:
     traceback.print_exc()
 else:
-    file_to_upload = resp.strip().split(os.linesep)[-1]
+    file_to_upload = resp.strip().split()[-1]
+    # file_to_upload = resp.strip().split(os.linesep.encode('utf-8'))[-1]
 
 (dirname, filename) = os.path.split(file_to_upload)
 try:
