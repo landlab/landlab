@@ -38,10 +38,10 @@ try:
     print(file_to_upload)
     print(dirname)
     print(filename)
-    print(os.path.join(dirname, os.sep, 'landlab*bz2'))
+    print(os.path.join(dirname, os.sep, 'landlab*.tar.bz2'))
     print(os.linesep.join(os.listdir(dirname)))
-    print(glob.glob(os.path.join(dirname, os.sep, 'landlab*bz2')))
-    file_to_upload = glob.glob(os.path.join(dirname, os.sep, 'landlab*bz2'))[0]
+    print(glob.glob(os.path.join(dirname, os.sep, 'landlab*.tar.bz2')))
+    file_to_upload = glob.glob(os.path.join(dirname, os.sep, 'landlab*.tar.bz2'))[0]
 except IndexError:
     raise RuntimeError('{name}: not a file'.format(name=file_to_upload))
 
