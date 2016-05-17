@@ -1,5 +1,16 @@
 #! /usr/bin/env python
-"""Read data from an ESRI ASCII file into a RasterModelGrid."""
+"""Read/write data from an ESRI ASCII file into a RasterModelGrid.
+
+ESRI ASCII functions
+++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.io.esri_ascii.read_asc_header
+    ~landlab.io.esri_ascii.read_esri_ascii
+    ~landlab.io.esri_ascii.write_esri_ascii
+"""
 
 import os
 import re

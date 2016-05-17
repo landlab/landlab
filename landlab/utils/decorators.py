@@ -1,4 +1,16 @@
-"""General decorators for the landlab library."""
+"""General decorators for the landlab library.
+
+General Landlab decorators
+++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.utils.decorators.use_file_name_or_kwds
+    ~landlab.utils.decorators.use_field_name_or_array
+    ~landlab.utils.decorators.make_return_array_immutable
+    ~landlab.utils.decorators.deprecated
+"""
 
 import os
 import warnings
