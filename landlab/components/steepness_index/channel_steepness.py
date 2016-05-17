@@ -294,7 +294,7 @@ class SteepnessFinder(Component):
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
         ch_dists[0] = 0.
-        np.cumsum(self.grid.length_of_link[ch_links[:-1]],
+        np.cumsum(self.grid._length_of_link_with_diagonals[ch_links[:-1]],
                   out=ch_dists[1:])
         return ch_dists
 

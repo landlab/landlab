@@ -426,8 +426,9 @@ class StreamPowerEroder(Component):
         upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
         defined_flow_receivers = np.not_equal(self._grid['node'][
             'flow__link_to_receiver_node'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid.length_of_link[self._grid['node'][
-            'flow__link_to_receiver_node'][defined_flow_receivers]]
+        flow_link_lengths = self._grid._length_of_link_with_diagonals[
+            self._grid['node']['flow__link_to_receiver_node'][
+                defined_flow_receivers]]
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         flow_receivers = self.grid['node']['flow__receiver_node']
 
