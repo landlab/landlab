@@ -1,5 +1,24 @@
 #! /usr/bin/env python
-"""Some utilities for the landlab package."""
+"""Some utilities for the landlab package.
+
+Landlab utilities
++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.core.utils.radians_to_degrees
+    ~landlab.core.utils.extend_array
+    ~landlab.core.utils.as_id_array
+    ~landlab.core.utils.make_optional_arg_into_id_array
+    ~landlab.core.utils.get_functions_from_module
+    ~landlab.core.utils.add_functions_to_class
+    ~landlab.core.utils.add_module_functions_to_class
+    ~landlab.core.utils.strip_grid_from_method_docstring
+    ~landlab.core.utils.argsort_points_by_x_then_y
+    ~landlab.core.utils.sort_points_by_x_then_y
+    ~landlab.core.utils.anticlockwise_argsort_points
+"""
 
 import numpy as np
 
