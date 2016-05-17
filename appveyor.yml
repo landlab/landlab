@@ -43,7 +43,7 @@ install:
   # - "pip install wheel"
   # - "pip install twine"
   # - "%WITH_COMPILER% python setup.py install"
-  - "conda update conda"
+  - "conda update --yes conda"
   - "conda config --set always_yes yes"
   - "conda config --set anaconda_upload no"
   - "conda install -q python=%PYTHON_VERSION%"
