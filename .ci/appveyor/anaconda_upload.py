@@ -35,6 +35,8 @@ else:
 
 (dirname, filename) = os.path.split(file_to_upload)
 try:
+    print(os.path.join(dirname, os.sep, 'landlab*bz2'))
+    print(os.linesep.join(os.listdir(dirname)))
     file_to_upload = glob.glob(os.path.join(dirname, os.sep, 'landlab*bz2'))[0]
 except IndexError:
     raise RuntimeError('{name}: not a file'.format(name=file_to_upload))
