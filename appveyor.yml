@@ -48,8 +48,8 @@ install:
   - "conda install -q python=%PYTHON_VERSION%"
   - "conda install -q conda-build"
   - "conda install -q anaconda-client"
-  - "conda build -q .conda-recipe"
-  - "conda install -q landlab --use-local"
+  - "%WITH_COMPILER% conda build -q .conda-recipe"
+  - "%WITH_COMPILER% conda install -q landlab --use-local"
   - "conda list"
 build: false
 
