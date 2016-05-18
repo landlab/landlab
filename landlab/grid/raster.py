@@ -60,6 +60,7 @@ Information about nodes
 
 .. autosummary::
     :toctree: generated/
+
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
@@ -332,7 +333,10 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
-    ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
+.. autosummary::
+    :toctree: generated/
+
+	~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link
     ~landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link
