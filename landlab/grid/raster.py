@@ -60,6 +60,7 @@ Information about nodes
 
 .. autosummary::
     :toctree: generated/
+
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
