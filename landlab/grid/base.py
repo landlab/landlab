@@ -257,6 +257,9 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
+.. autosummary::
+    :toctree: generated/
+
     ~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link
     ~landlab.grid.base.ModelGrid.map_value_at_downwind_node_link_max_to_node
     ~landlab.grid.base.ModelGrid.map_mean_of_link_nodes_to_link

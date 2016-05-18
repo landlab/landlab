@@ -335,7 +335,7 @@ nodes.
 
 .. autosummary::
     :toctree: generated/
-    
+
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link

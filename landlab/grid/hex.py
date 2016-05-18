@@ -297,6 +297,9 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
+.. autosummary::
+    :toctree: generated/
+
     ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.hex.HexModelGrid.map_link_head_node_to_link
