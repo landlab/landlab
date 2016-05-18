@@ -28,6 +28,7 @@ matrix:
 sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
+- if [[ "$TRAVIS_TAG" == "v*" ]]; then BUILD_STR=""; else BUILD_STR="dev"; fi
 - bash .ci/travis/install_python.sh
 - export PATH="$HOME/miniconda/bin:$PATH"
 # - source activate test-env
