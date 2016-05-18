@@ -215,19 +215,40 @@ Initial conditions: random field generators
 
 The Component base class
 ------------------------
-
 .. toctree::
-   :maxdepth: 4
+  :maxdepth: 4
 
-   landlab.core.model_component.Component
+  landlab.core.model_component
 
 Input/Output (IO)
 =================
 
+This section documents various methods you can use to bring in data and write
+output to a file.
+
+ESRI Ascii Raster Format
+---------------------------
+
 .. toctree::
   :maxdepth: 4
 
-  landlab.io
+  landlab.io.esri_ascii
+
+NetCDF Format
+---------------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.io.netcdf
+
+Native Landlab Format
+---------------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.io.native_landlab
 
 
 Plotting and Visualization

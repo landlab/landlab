@@ -332,6 +332,9 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
+.. autosummary::
+    :toctree: generated/
+    
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link
@@ -1596,7 +1599,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         The four possible patches are returned in order CCW from east, i.e.,
         NE, NW, SW, SE.
         Missing patches are indexed -1.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -2080,7 +2083,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         inlinks = self._node_inlink_matrix[:, node_ids].T
         outlinks = self._node_outlink_matrix[:, node_ids].T
         self._faces_at_link = np.squeeze(np.concatenate(
-            (self._face_at_link[inlinks], 
+            (self._face_at_link[inlinks],
              self._face_at_link[outlinks]), axis=1))
 
     def _setup_link_at_face(self):
@@ -5142,44 +5145,44 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
-        
+
     def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.
-        
-        All nodes with nodata_value are set to CLOSED_BOUNDARY 
+
+        All nodes with nodata_value are set to CLOSED_BOUNDARY
         (grid.status_at_node == 4). All nodes with data values
         are set to CORE_NODES (grid.status_at_node == 0), with
-        the exception that the outlet node is set to a 
+        the exception that the outlet node is set to a
         FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
-        
+
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
         if there are nodes that have values.  The only exception to this would
         be if the outlet node is on the boundary, which is acceptable.
-        
+
         This assumes that all of the nodata_values are on the outside of the
-        data values.  In other words, there are no islands of nodata_values 
+        data values.  In other words, there are no islands of nodata_values
         surrounded by nodes with data.
-        
+
         This also assumes that the grid has a single watershed.  If this is not
         the case this will not work.
-        
+
         Finally, the developer has seen cases in which DEM data that has been
-        filled results in a different outlet from DEM data which has not been 
+        filled results in a different outlet from DEM data which has not been
         filled.  Be aware that if you identify an outlet on a filled DEM, make
-        sure that filled DEM is what is being used for your modeling.  
-        Otherwise, this may find a different outlet.  To force the outlet 
+        sure that filled DEM is what is being used for your modeling.
+        Otherwise, this may find a different outlet.  To force the outlet
         location, use either set_watershed_boundary_condition_outlet_coords
         or set_watershed_boundary_condition_outlet_id.
-        
+
         Parameters
         ----------
         node_data : ndarray
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
-            
+
         Returns:
         --------
         outlet_loc : int
@@ -5187,17 +5190,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples:
         ---------
-        The first example will use a 4,4 grid with node data values 
+        The first example will use a 4,4 grid with node data values
         as illustrated:
-        
+
         -9999. -9999. -9999. -9999.
         -9999.    67.     0. -9999.
         -9999.    67.    67. -9999.
         -9999. -9999. -9999. -9999.
-        
-        The second example will use a 4,4 grid with node data values 
+
+        The second example will use a 4,4 grid with node data values
         as illustrated:
-        
+
         -9999. -9999. -9999. -9999.
         -9999.    67.     0. -9999.
         -9999.    67.     67.   -2.
@@ -5206,9 +5209,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
-        >>> node_data = np.array([-9999., -9999., -9999., -9999., 
-        ...                      -9999.,    67.,    67., -9999., 
-        ...                      -9999.,    67.,     0., -9999., 
+        >>> node_data = np.array([-9999., -9999., -9999., -9999.,
+        ...                      -9999.,    67.,    67., -9999.,
+        ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
         >>> outlet = rmg.set_watershed_boundary_condition(node_data, -9999.)
         >>> outlet
@@ -5217,8 +5220,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
         >>> node_data2 = np.array([-9999., -9999., -9999., -9999.,
-        ...                      -9999.,    67.,    67.,    -2., 
-        ...                      -9999.,    67.,     0., -9999., 
+        ...                      -9999.,    67.,    67.,    -2.,
+        ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
         >>> outlet2 = rmg2.set_watershed_boundary_condition(node_data2, -9999.)
         >>> outlet2
@@ -5265,7 +5268,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #until a point next to the boundary is found.
         #
         #NG I think the only way this would become an infinite loop
-        #is if there are no interior nodes.  Should be checking for 
+        #is if there are no interior nodes.  Should be checking for
         #this above.
         not_found=True
         while not_found:
@@ -5302,29 +5305,29 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
         return outlet_loc
-        
-    def set_watershed_boundary_condition_outlet_coords(self, outlet_coords, 
-                                                     node_data, nodata_value=-9999.): 
+
+    def set_watershed_boundary_condition_outlet_coords(self, outlet_coords,
+                                                     node_data, nodata_value=-9999.):
         """
-        Set the boundary conditions for a watershed.  
-        All nodes with nodata_value are set to CLOSED_BOUNDARY 
+        Set the boundary conditions for a watershed.
+        All nodes with nodata_value are set to CLOSED_BOUNDARY
         (grid.status_at_node == 4). All nodes with data values
         are set to CORE_NODES (grid.status_at_node == 0), with
-        the exception that the outlet node is set to a 
+        the exception that the outlet node is set to a
         FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
-        
+
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
         if there are nodes that have values.  The only exception to this would
         be if the outlet node is on the boundary, which is acceptable.
 
         Assumes that outlet is already known.
-        
+
         This assumes that the grid has a single watershed.  If this is not
         the case this will not work.
 
-        This must be passed the values of the outlet_row and outlet_column. 
+        This must be passed the values of the outlet_row and outlet_column.
         Also takes node_data and optionally, nodata_value.
-        
+
         Parameters
         ----------
         outlet_coords : list - two integer values
@@ -5333,7 +5336,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
-            
+
         Returns:
         --------
         outlet_loc : int
@@ -5341,23 +5344,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples:
         ---------
-        The example will use a 4,4 grid with node data values 
+        The example will use a 4,4 grid with node data values
         as illustrated:
-        
+
         -9999. -9999. -9999. -9999.
         -9999.    67.     0. -9999.
         -9999.    67.    67. -9999.
         -9999. -9999. -9999. -9999.
-        
+
         ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
         >>> rmg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-        >>> node_data = np.array([-9999., -9999., -9999., -9999., 
-        ...                      -9999.,    67.,    67., -9999., 
-        ...                      -9999.,    67.,     0., -9999., 
+        >>> node_data = np.array([-9999., -9999., -9999., -9999.,
+        ...                      -9999.,    67.,    67., -9999.,
+        ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
         >>> outlet = rmg.set_watershed_boundary_condition_outlet_coords((2, 2), node_data, -9999.)
         >>> outlet
@@ -5365,45 +5368,45 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         """
-        #make ring of no data nodes        
+        #make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
-        
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
         # find the id of the outlet node
-        outlet_node = self.grid_coords_to_node_id(outlet_coords[0], 
+        outlet_node = self.grid_coords_to_node_id(outlet_coords[0],
                                                   outlet_coords[1])
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
         return outlet_node
 
-    def set_watershed_boundary_condition_outlet_id(self, outlet_id, node_data, 
+    def set_watershed_boundary_condition_outlet_id(self, outlet_id, node_data,
                                                    nodata_value=-9999.):
         """
-        Set the boundary conditions for a watershed.  
-        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).  
-        All nodes with data values are set to CORE_NODES (0), with the 
+        Set the boundary conditions for a watershed.
+        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).
+        All nodes with data values are set to CORE_NODES (0), with the
         exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
-        
+
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
         if there are nodes that have values.  The only exception to this would
         be if the outlet node is on the boundary, which is acceptable.
 
         Assumes that the id of the outlet is already known.
-        
+
         This assumes that the grid has a single watershed.  If this is not
         the case this will not work.
-        
+
         Parameters
         ----------
-        outlet_id : integer 
+        outlet_id : integer
             id of the outlet node
         node_data : ndarray
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
-            
+
         Returns:
         --------
         outlet_loc : int
@@ -5411,31 +5414,31 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples:
         ---------
-        The example will use a 4,4 grid with node data values 
+        The example will use a 4,4 grid with node data values
         as illustrated:
-        
+
         -9999. -9999. -9999. -9999.
         -9999.    67.     0. -9999.
         -9999.    67.    67. -9999.
         -9999. -9999. -9999. -9999.
-        
+
         ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
         >>> rmg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
-        >>> node_data = np.array([-9999., -9999., -9999., -9999., 
-        ...                      -9999.,    67.,    67., -9999., 
-        ...                      -9999.,    67.,     0., -9999., 
+        >>> node_data = np.array([-9999., -9999., -9999., -9999.,
+        ...                      -9999.,    67.,    67., -9999.,
+        ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
         >>> outlet = rmg.set_watershed_boundary_condition_outlet_id(10, node_data, -9999.)
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         """
-        #make ring of no data nodes        
+        #make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
-        
+
         #set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
