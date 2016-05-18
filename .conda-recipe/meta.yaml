@@ -1,0 +1,36 @@
+package:
+  name: landlab
+  version: "1.0.0beta"
+
+source:
+  path: ..
+
+requirements:
+  build:
+    - python
+    - scipy
+    - numpy {{environ.get('NUMPY_VERSION', '')}}
+    - nose
+    - matplotlib
+    - numpydoc
+    - netcdf4
+    - cython
+    - six
+    - pyyaml
+    - setuptools
+
+  run:
+    - python
+    - scipy
+    - numpy {{environ.get('NUMPY_VERSION', '')}}
+    - nose
+    - matplotlib
+    - numpydoc
+    - netcdf4
+    - cython
+    - six
+    - pyyaml
+    - setuptools
+
+build:
+  string: {{ environ.get('BUILD_STR', '') }}

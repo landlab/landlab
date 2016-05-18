@@ -78,7 +78,7 @@ def make_links_at_node_array(grid):
     grid.gt_link_dirs_at_node = np.zeros((MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int8)
     grid.gt_active_link_dirs_at_node = np.zeros((MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int8)
     grid.gt_num_links_at_node = np.zeros(grid.number_of_nodes, dtype=np.uint8)  # assume <256 links at any node
-    grid.gt_num_active_links_at_node = np.zeros(grid.number_of_nodes, dtype=np.uint8)  # assume <256 links at any node
+    grid.gt_num__active_links_at_node = np.zeros(grid.number_of_nodes, dtype=np.uint8)  # assume <256 links at any node
     
     # Sweep over all links
     for lk in range(grid.number_of_links):

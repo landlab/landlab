@@ -1,4 +1,15 @@
-"""This module defines decorators used with ModelGrid objects."""
+"""This module defines decorators used with ModelGrid objects.
+
+Grid decorators
++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.decorators.override_array_setitem_and_reset
+    ~landlab.grid.decorators.return_id_array
+    ~landlab.grid.decorators.return_readonly_id_array
+"""
 from functools import wraps
 
 import numpy as np
@@ -48,6 +59,7 @@ class override_array_setitem_and_reset(object):
             The wrapped function.
         """
         reset = self._reset
+
         def _wrapped(grid):
             """Embed a grid into a numpy array and override set methods."""
             class array(np.ndarray):

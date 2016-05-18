@@ -141,8 +141,8 @@ class FlowRouter(Component):
             # needs modifying in the loop if D4 (now done)
         else:
             self._active_links = grid.active_links
-            self._activelink_from = grid.activelink_fromnode
-            self._activelink_to = grid.activelink_tonode
+            self._activelink_from = grid._activelink_fromnode
+            self._activelink_to = grid._activelink_tonode
 
         # test input variables are present:
         grid.at_node['topographic__elevation']

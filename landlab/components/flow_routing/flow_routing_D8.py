@@ -97,6 +97,6 @@ class RouteFlowD8(object):
 
         #Alt. method, DEJH:
         self.gradients_on_active_links = mg.calc_grad_at_active_link(z)
-        max_slopes, self.flowdirs = mg.calculate_steepest_descent_on_nodes(z, self.gradients_on_active_links, dstr_node_ids=self.flowdirs)
+        max_slopes, self.flowdirs = mg._calculate_steepest_descent_on_nodes(z, self.gradients_on_active_links, dstr_node_ids=self.flowdirs)
 
         return self.flowdirs, max_slopes

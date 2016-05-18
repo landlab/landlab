@@ -38,12 +38,12 @@ Methods and properties common to all grids
 .. toctree::
    :maxdepth: 4
 
+   landlab.grid.base
    landlab.grid.mappers
    landlab.grid.gradients
    landlab.grid.divergence
    landlab.grid.grid_funcs
    landlab.grid.create
-   landlab.grid.base
    landlab.grid.decorators
 
 Specialized methods and properties for Rectilinear Grids 'raster grids'
@@ -56,12 +56,11 @@ which inherits from `ModelGrid` and adds the following:
    :maxdepth: 4
 
    landlab.grid.raster
-   landlab.grid.raster_mappers
-   landlab.grid.raster_gradients
-   landlab.grid.raster_aspect
-   landlab.grid.raster_steepest_descent
-   landlab.grid.raster_set_status
-   landlab.grid.raster_funcs
+
+.. automodule::
+   :maxdepth: 4
+
+   landlab.grid.raster
 
 Specialized methods and properties for Voronoi-Delaunay grids
 -------------------------------------------------------------
@@ -214,32 +213,71 @@ Initial conditions: random field generators
 
   landlab.components.fracture_grid
 
+The Component base class
+------------------------
+.. toctree::
+  :maxdepth: 4
+
+  landlab.core.model_component
 
 Input/Output (IO)
 =================
 
-.. toctree::
-   :maxdepth: 4
+This section documents various methods you can use to bring in data and write
+output to a file.
 
-   landlab.io
+ESRI Ascii Raster Format
+---------------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.io.esri_ascii
+
+NetCDF Format
+---------------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.io.netcdf
+
+Native Landlab Format
+---------------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.io.native_landlab
 
 
 Plotting and Visualization
 ==========================
 
 .. toctree::
-   :maxdepth: 4
+  :maxdepth: 4
 
-   landlab.plot
+  landlab.plot
+
+
+Utilities and Decorators
+========================
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.core.utils
+  landlab.utils.decorators
+  landlab.grid.decorators
 
 
 Cellular Automata (CA)
 ======================
 
 .. toctree::
-   :maxdepth: 4
+  :maxdepth: 4
 
-   landlab.ca
+  landlab.ca
 
 
 Contributing to Landlab

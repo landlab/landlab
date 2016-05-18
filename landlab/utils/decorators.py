@@ -1,4 +1,16 @@
-"""General decorators for the landlab library."""
+"""General decorators for the landlab library.
+
+General Landlab decorators
+++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.utils.decorators.use_file_name_or_kwds
+    ~landlab.utils.decorators.use_field_name_or_array
+    ~landlab.utils.decorators.make_return_array_immutable
+    ~landlab.utils.decorators.deprecated
+"""
 
 import os
 import warnings
@@ -258,9 +270,12 @@ def deprecated(use, version):
 
         @wraps(func)
         def _wrapped(*args, **kwargs):
-            warnings.warn(
-                message="Call to deprecated function {name}.".format(
-                    name=func.__name__), category=DeprecationWarning)
+            if func.__name__.startswith('_'):
+                pass
+            else:
+                warnings.warn(
+                    message="Call to deprecated function {name}.".format(
+                        name=func.__name__), category=DeprecationWarning)
             return func(*args, **kwargs)
         _wrapped.__dict__.update(func.__dict__)
 

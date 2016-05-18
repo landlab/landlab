@@ -9,7 +9,6 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import StreamPowerEroder
-from landlab.plot.imshow import imshow_node_grid
 from pylab import show
 
 

@@ -74,6 +74,25 @@ def calc_grad_at_link(grid, node_values, out=None):
 
 @deprecated(use='calc_grad_at_link', version='1.0beta')
 def calc_grad_of_active_link(grid, node_values, out=None):
+    """Calculate gradients at active links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4))
+    >>> z = np.array([0., 0., 0., 0.,
+    ...               1., 1., 1., 1.,
+    ...               3., 3., 3., 3.])
+    >>> grid.calc_grad_of_active_link(z)
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+
+    This method is *deprecated*. Instead, use ``calc_grad_at_link``.
+
+    >>> vals = grid.calc_grad_at_link(z)
+    >>> vals[grid.active_links]
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+    """
     return calc_grad_at_active_link(grid, node_values, out)
 
 
@@ -102,11 +121,28 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     -------
     ndarray
         Gradients across active links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4))
+    >>> z = np.array([0., 0., 0., 0.,
+    ...               1., 1., 1., 1.,
+    ...               3., 3., 3., 3.])
+    >>> grid.calc_grad_at_active_link(z)
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+
+    This method is *deprecated*. Instead, use ``calc_grad_at_link``.
+
+    >>> vals = grid.calc_grad_at_link(z)
+    >>> vals[grid.active_links]
+    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
     """
     if out is None:
-        out = grid.empty(centering='active_link')
-    return np.divide(node_values[grid.activelink_tonode] -
-                     node_values[grid.activelink_fromnode],
+        out = grid.empty(at='active_link')
+    return np.divide(node_values[grid._activelink_tonode] -
+                     node_values[grid._activelink_fromnode],
                      grid.length_of_link[grid.active_links], out=out)
 
 
@@ -156,7 +192,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     """
     if out is None:
-        out = grid.empty(centering='face')
+        out = grid.empty(at='face')
     laf = grid.link_at_face
     return np.divide(node_values[grid.node_at_link_head[laf]] -
                      node_values[grid.node_at_link_tail[laf]],
@@ -172,7 +208,7 @@ def calc_diff_at_link(grid, node_values, out=None):
 
     Construction::
 
-        calculate_diff_at_links(grid, node_values, out=None)
+        calc_diff_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -195,11 +231,11 @@ def calc_diff_at_link(grid, node_values, out=None):
     >>> rmg = RasterModelGrid((3, 3))
     >>> z = np.zeros(9)
     >>> z[4] = 1.
-    >>> rmg.calculate_diff_at_links(z)
+    >>> rmg.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
     """
     if out is None:
-        out = grid.empty(centering='link')
+        out = grid.empty(at='link')
     node_values = np.asarray(node_values)
     return np.subtract(node_values[grid.node_at_link_head],
                        node_values[grid.node_at_link_tail], out=out)
@@ -209,6 +245,21 @@ def calc_diff_at_link(grid, node_values, out=None):
 @use_field_name_or_array('node')
 def calculate_diff_at_links(grid, node_values, out=None):
     """Calculate differences of node values over links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+
+    >>> grid = RasterModelGrid((3, 3))
+    >>> z = np.zeros(9)
+    >>> z[4] = 1.
+
+    >>> grid.calculate_diff_at_links(z)
+    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    >>> grid.calc_diff_at_link(z)
+    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
     """
     return calc_diff_at_link(grid, node_values, out)
 
@@ -240,10 +291,10 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
         Differences across active links.
     """
     if out is None:
-        out = grid.empty(centering='active_link')
+        out = grid.empty(at='active_link')
     node_values = np.asarray(node_values)
-    return np.subtract(node_values[grid.activelink_tonode],
-                       node_values[grid.activelink_fromnode], out=out)
+    return np.subtract(node_values[grid._activelink_tonode],
+                       node_values[grid._activelink_fromnode], out=out)
 
 
 def calc_unit_normal_at_patch(grid, elevs='topographic__elevation'):
@@ -446,6 +497,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> np.allclose(slopes, 45. / 180. * np.pi)
     True
+
     >>> mg = RasterModelGrid((4, 5), 1.)
     >>> z = - mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
@@ -456,6 +508,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     True
     >>> np.allclose(cmp[1], - np.pi / 4.)
     True
+
     >>> mg = RadialModelGrid(num_shells=9)
     >>> z = mg.radius_at_node
     >>> slopes = mg.calc_slope_at_node(elevs=z)
@@ -477,11 +530,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     if method not in ('patch_mean', 'Horn'):
         raise ValueError('method name not understood')
 
-    try:
-        patches_at_node = grid.patches_at_node()
-    except TypeError:  # was a property, not a fn (=> new style)
-        patches_at_node = np.ma.masked_where(
-            grid.patches_at_node == -1, grid.patches_at_node, copy=False)
+    patches_at_node = np.ma.masked_where(
+        grid.patches_at_node == -1, grid.patches_at_node, copy=False)
 
     nhat = grid.calc_unit_normal_at_patch(elevs=elevs)
     slopes_at_patch = grid.calc_slope_at_patch(elevs=elevs,
