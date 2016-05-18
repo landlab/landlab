@@ -1,8 +1,10 @@
-if [[ "$BUILD_STR" == "" ]]; then
+if [[ "$TRAVIS_TAG" == "v*" ]]; then
   echo "Building release version"
+  export BUILD_STR=""
   export CHANNEL="main"
 else
   echo "Building dev version"
+  export BUILD_STR="dev"
   export CHANNEL="dev"
 fi
 
