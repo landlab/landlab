@@ -206,29 +206,10 @@ Input/Output (IO)
 This section documents various methods you can use to bring in data and write
 output to a file.
 
-ESRI Ascii Raster Format
-------------------------
-
 .. toctree::
   :maxdepth: 4
 
-  landlab.io.esri_ascii
-
-NetCDF Format
--------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.io.netcdf
-
-Native Landlab Format
----------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.io.native_landlab
+  landlab.io
 
 
 Plotting and Visualization
