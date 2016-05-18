@@ -13,15 +13,21 @@ import glob
 
 print('Using python: {prefix}'.format(prefix=sys.prefix))
 
-repo_tag = os.environ.get('APPVEYOR_REPO_TAG', 'false')
-tag_name = os.environ.get('APPVEYOR_REPO_TAG_NAME', '')
+# repo_tag = os.environ.get('APPVEYOR_REPO_TAG', 'false')
+# tag_name = os.environ.get('APPVEYOR_REPO_TAG_NAME', '')
 token = os.environ.get('ANACONDA_TOKEN', 'NOT_A_TOKEN')
 
-if repo_tag == 'true' and tag_name.startswith('v'):
+os.environ.setdefault('BUILD_STR', 'dev')
+if os.environ['BUILD_STR'] == '':
     channel = 'main'
 else:
     channel = 'dev'
-    os.environ['BUILD_STR'] = 'dev'
+
+# if repo_tag == 'true' and tag_name.startswith('v'):
+#     channel = 'main'
+# else:
+#     channel = 'dev'
+#     os.environ['BUILD_STR'] = 'dev'
 
 print('Uploading to {channel} channel'.format(channel=channel))
 
