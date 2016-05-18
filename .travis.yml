@@ -30,6 +30,8 @@ sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
 - if [[ "$TRAVIS_TAG" == "v*" ]]; then BUILD_STR=""; fi
+- export BUILD_STR
+- echo "Using this build string: $BUILD_STR".
 - bash .ci/travis/install_python.sh
 - export PATH="$HOME/miniconda/bin:$PATH"
 - pip install coveralls
