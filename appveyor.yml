@@ -9,22 +9,20 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
     ANACONDA_TOKEN:
       secure: fK53X8HNpJY7ZeW8q7FYjpNdqi/rgfn94s+vtWGObHHjQMMNiidbNS/lk939vdA6
+    BUILD_STR: "dev"
 
   matrix:
     # - PYTHON: "C:\\Miniconda"
     #   DISTUTILS_USE_SDK: "1"
     #   PYTHON_VERSION: "2.6"
-    # - PYTHON: "C:\\Miniconda"
-    #   DISTUTILS_USE_SDK: "1"
-    #   PYTHON_VERSION: "2.7"
-    # - PYTHON: "C:\\Miniconda3"
-    #   DISTUTILS_USE_SDK: "1"
-    #   PYTHON_VERSION: "3.4"
-    # - PYTHON: "C:\\Miniconda3"
-    # - PYTHON: "C:\\Python35_64"
+    - PYTHON: "C:\\Python27"
+      DISTUTILS_USE_SDK: "1"
+      PYTHON_VERSION: "2.7"
+    - PYTHON: "C:\\Python34"
+      DISTUTILS_USE_SDK: "1"
+      PYTHON_VERSION: "3.4"
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5"
-      BUILD_STR: "dev"
     #   PYTHON_ARCH: "64"
     #   NUMPY_VERSION: "1.10.4"
 
