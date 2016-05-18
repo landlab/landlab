@@ -57,7 +57,8 @@ function InstallMiniconda ($python_version, $architecture, $python_home) {
         Write-Host $python_home "already exists, skipping."
         return $false
     }
-    if ($architecture -eq "32") {
+    # if ($architecture -eq "32") {
+    if ($architecture -eq "x86") {
         $platform_suffix = "x86"
     } else {
         $platform_suffix = "x86_64"
@@ -91,7 +92,7 @@ function InstallMinicondaPip ($python_home) {
 }
 
 function main () {
-    InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
+    InstallMiniconda $env:PYTHON_VERSION $env:PLATFORM $env:PYTHON
     # InstallMinicondaPip $env:PYTHON
 }
 
