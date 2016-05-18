@@ -11,7 +11,7 @@
 
 from __future__ import absolute_import
 
-__version__ = '1.0.0-alpha'
+__version__ = '1.0.0-beta.1'
 
 
 import os
