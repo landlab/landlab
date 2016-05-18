@@ -14,6 +14,7 @@ env:
   global:
     secure: UxPkdFKl0xtk+H+98CNHSnYN8SJrEq5xJjLtPUPR+5UF5lLKL7godwrOdYeO0B0fXPi2Plw0vtoIID6H1AV4x+8QD/AgAizoWIh8KLim3E7rDX0v0M3WnUHctvYwt76mGCYvIGH6qR2Ziml37Ec6nz2aTuz0oex27P6dq0BKkXs=
     secure: OFyhYR18rMC/MlyG1J8+cRkHWlkn/BOkQP6IM+ZBILG/t33ipoyTjH2qpNJi5Rx3wMCXBn00XnPExf7mqRBAAzSULyt6t6eDbXgInYOCSOQMMZlJ66CdmsD8dKBwDVbcFuGz06amYrIc/22guFP+6GfhsCepHvocrR93A93whug=
+    BUILD_STR: dev
 os:
 - linux
 - osx
@@ -28,14 +29,10 @@ matrix:
 sudo: false
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION"
-- if [[ "$TRAVIS_TAG" == "v*" ]]; then BUILD_STR=""; else BUILD_STR="dev"; fi
+- if [[ "$TRAVIS_TAG" == "v*" ]]; then BUILD_STR=""; fi
 - bash .ci/travis/install_python.sh
 - export PATH="$HOME/miniconda/bin:$PATH"
-# - source activate test-env
 - pip install coveralls
-# - conda install numpy=$NUMPY_VERSION
-# - conda install scipy
-# - python setup.py install
 - conda build -q .conda-recipe
 - conda install -q landlab --use-local
 script:
