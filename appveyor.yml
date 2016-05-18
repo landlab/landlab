@@ -38,8 +38,8 @@ init:
 
 install:
   - powershell .ci/appveyor/install.ps1
+  - if "%APPVEYOR_REPO_TAG%"=="true" if "%APPVEYOR_REPO_TAG_NAME:~0,1%"=="v" set BUILD_STR=""
   - IF "%PLATFORM%"=="x64" (SET SUFFIX="_64") ELSE (SET SUFFIX="_32")
-  # - set PATH=%HOME%/miniconda;%HOME%/miniconda/Scripts;%HOME%/miniconda/Library/bin;%PATH%
   - "set PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%/Scripts;%PYTHON%%SUFFIX%/Library/bin;%PATH%"
   - conda info
   - conda config --set always_yes yes
