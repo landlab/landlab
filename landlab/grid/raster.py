@@ -60,6 +60,7 @@ Information about nodes
 
 .. autosummary::
     :toctree: generated/
+
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
@@ -334,7 +335,7 @@ nodes.
 
 .. autosummary::
     :toctree: generated/
-    
+
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link

@@ -35,6 +35,7 @@ and `RadialModelGrid`.
 
 Methods and properties common to all grids
 ------------------------------------------
+
 .. toctree::
    :maxdepth: 4
 
@@ -53,11 +54,6 @@ Landlab's rectilinear grids are implemented by the class `RasterModelGrid`,
 which inherits from `ModelGrid` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
-
-   landlab.grid.raster
-
-.. automodule::
    :maxdepth: 4
 
    landlab.grid.raster
@@ -103,7 +99,7 @@ This section contains documentation and API reference information for the
 following categories of components:
 
 Hillslope geomorphology
----------------------------
+-----------------------
 
 .. toctree::
    :maxdepth: 4
@@ -112,16 +108,15 @@ Hillslope geomorphology
    landlab.components.nonlinear_diffusion
 
 Fluvial geomorphology
----------------------------
+---------------------
 
 .. toctree::
    :maxdepth: 4
 
    landlab.components.stream_power
-   landlab.components.transport_limited_fluvial
 
 Flow routing
--------------------
+------------
 
 .. toctree::
    :maxdepth: 4
@@ -129,7 +124,7 @@ Flow routing
    landlab.components.flow_routing
 
 Shallow water hydrodynamics
--------------------
+---------------------------
 
 .. toctree::
    :maxdepth: 4
@@ -137,17 +132,17 @@ Shallow water hydrodynamics
    landlab.components.overland_flow
 
 Land surface hydrology
--------------------
+----------------------
 
 .. toctree::
   :maxdepth: 4
 
   landlab.components.radiation
-  landlab.components.PET
+  landlab.components.pet
   landlab.components.soil_moisture
 
 Vegetation
--------------------
+----------
 
 .. toctree::
   :maxdepth: 4
@@ -156,7 +151,7 @@ Vegetation
   landlab.components.vegetation_ca
 
 Precipitation
--------------------
+-------------
 
 .. toctree::
   :maxdepth: 4
@@ -164,7 +159,7 @@ Precipitation
   landlab.components.uniform_precip
 
 Terrain Analysis
--------------------
+----------------
 
 .. toctree::
   :maxdepth: 4
@@ -172,16 +167,8 @@ Terrain Analysis
   landlab.components.steepness_index
   landlab.components.chi_index
 
-Glacial Processes
--------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.components.glacier_thin_ice_model
-
 Tectonics
--------------------
+---------
 
 .. toctree::
   :maxdepth: 4
@@ -190,23 +177,15 @@ Tectonics
   landlab.components.gflex
 
 Fire
--------------------
+----
 
 .. toctree::
   :maxdepth: 4
 
   landlab.components.fire_generator
 
-Impact cratering
--------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.components.craters
-
 Initial conditions: random field generators
--------------------
+-------------------------------------------
 
 .. toctree::
   :maxdepth: 4
@@ -215,6 +194,7 @@ Initial conditions: random field generators
 
 The Component base class
 ------------------------
+
 .. toctree::
   :maxdepth: 4
 
@@ -226,29 +206,10 @@ Input/Output (IO)
 This section documents various methods you can use to bring in data and write
 output to a file.
 
-ESRI Ascii Raster Format
----------------------------
-
 .. toctree::
   :maxdepth: 4
 
-  landlab.io.esri_ascii
-
-NetCDF Format
----------------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.io.netcdf
-
-Native Landlab Format
----------------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.io.native_landlab
+  landlab.io
 
 
 Plotting and Visualization
