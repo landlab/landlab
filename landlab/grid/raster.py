@@ -2613,7 +2613,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 5.,  5.,  5.,  5.,  5.])
         """
         if self._link_length is None:
-            return self._create_length_of_link()
+            self._create_length_of_link()
+            return self._link_length[:self.number_of_links]
         else:
             return self._link_length[:self.number_of_links]
 
@@ -2685,13 +2686,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the horizontal links in that row to dx.
         """
         if self._link_length is None:
-            if self._diagonal_links_created:
-                self._link_length = np.empty(
-                    self.number_of_links + self._number_of_diagonal_links)
-                self._link_length[self.number_of_links:] = np.sqrt(
-                    self._dy ** 2. + self._dx ** 2.)
-            else:
-                self._link_length = self.empty(centering='link', dtype=float)
+            self._create_diag_links_at_node()
+            self._link_length = np.empty(
+                self.number_of_links + self._number_of_diagonal_links)
+            self._link_length[self.number_of_links:] = np.sqrt(
+                self._dy ** 2. + self._dx ** 2.)
 
             vertical_links = squad_links.vertical_link_ids(self.shape)
 
