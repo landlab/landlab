@@ -106,13 +106,13 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pdata = np.arange(25)
     >>> ns = np.arange(25, dtype=int)
     >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-    >>> lnf = LatticeNormalFault(0.01, grid, ns, pid, pdata, 0.0)
+    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.first_fw_col
     1
     >>> lnf.num_fw_rows
     array([0, 1, 3, 4, 5])
     >>> lnf.incoming_node
-    array([1, 3, 5, 6])
+    array([1, 3, 4, 6])
     >>> lnf.outgoing_node
     array([ 7, 12, 17, 22])
     """
@@ -135,9 +135,37 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf.first_fw_col
         0
         >>> lnf.num_fw_rows
-        array(1, 2, 4, 5, 5])
+        array([1, 2, 4, 5, 5])
         >>> lnf.incoming_node
         array([0, 1, 3, 5, 6])
+        >>> lnf.outgoing_node
+        array([ 7, 12, 17, 22])
+        
+        >>> pid = np.arange(16, dtype=int)
+        >>> pdata = np.arange(16)
+        >>> ns = np.arange(16, dtype=int)
+        >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+        >>> lnf.first_fw_col
+        1
+        >>> lnf.num_fw_rows
+        array([0, 1, 3, 4])
+        >>> lnf.incoming_node
+        array([1, 2, 5])
+        >>> lnf.outgoing_node
+        array([ 7, 11, 13])
+
+        >>> pid = np.arange(45, dtype=int)
+        >>> pdata = np.arange(45)
+        >>> ns = np.arange(45, dtype=int)
+        >>> grid = HexModelGrid(5, 9, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+        >>> lnf.first_fw_col
+        1
+        >>> lnf.num_fw_rows
+        array([0, 1, 3, 4, 5, 5, 5, 5, 5])
+        >>> lnf.incoming_node
+        array([ 1,  2,  3,  5,  6,  7,  8, 10, 11, 12])
         >>> lnf.outgoing_node
         array([ 7, 12, 17, 22])
         """
@@ -205,12 +233,14 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             incoming_node_list = []
             for n in range(0, self.nc + (self.nc + 1) // 2):
 
+                print 'checking node', n
+                print in_footwall[n]
+                print (n-(self.nc//2))%self.nc
                 if in_footwall[n] and ((n - (self.nc // 2)) % self.nc) != 0:
                     incoming_node_list.append(n)
                 print incoming_node_list
 
-            # GOT HERE, THE ABOVE ALGORITHM FOR FINDING INCOMING NODES NEEDS
-            # WORK
+            # THIS NOW WORKS FOR ODD NUMBERS OF ROWS. NEXT: TEST FOR EVEN
 
             # Convert to a numpy array that belongs to the class (so we can
             # use it in the do_offset() method).
@@ -512,9 +542,12 @@ def main():
     array([ 0,  1,  2,  3, 18,  5,  6,  7, 19, 15,  4, 11, 14,  8,  9, 10, 16,
            17, 12, 13])
     """
-    pid = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS, dtype=int)
-    pdata = arange(_DEFAULT_NUM_ROWS*_DEFAULT_NUM_COLS)
-    lnf = LatticeNormalFault(propid=pid, prop_data=pdata, prop_reset_value=0.0)
+    nr = 7
+    nc = 7
+    pid = arange(nr * nc, dtype=int)
+    pdata = arange(nr * nc)
+    grid = HexModelGrid(nr, nc, orientation='vertical', shape='rect')
+    lnf = LatticeNormalFault(grid=grid, propid=pid, prop_data=pdata, prop_reset_value=0.0)
 
     lnf.node_state[0:5] = 1
     print lnf.node_state
