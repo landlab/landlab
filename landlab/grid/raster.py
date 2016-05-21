@@ -1648,12 +1648,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self.node_patch_matrix
 
     @property
+    @return_readonly_id_array
     def nodes_at_patch(self):
         """Get array of nodes of a patch.
 
         Returns the four nodes at the corners of each patch in a regular grid.
         Shape of the returned array is (nnodes, 4). Returns in order CCW from
         east, i.e., [NE, NW, SW, SE].
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 3))
+        >>> mg.nodes_at_patch
+        array([[4, 3, 0, 1],
+               [5, 4, 1, 2],
+               [7, 6, 3, 4],
+               [8, 7, 4, 5]])
         """
         self._patches_created = True
         base = np.arange(self.number_of_patches)
@@ -1662,6 +1673,81 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                 bottom_left_corner + self._ncols,
                                 bottom_left_corner,
                                 bottom_left_corner + 1))
+
+    @property
+    @return_readonly_id_array
+    def links_at_patch(self):
+        """Get array of links defining each patch.
+
+        Examples
+        --------
+        >>> mg = RasterModelGrid((3, 4))
+        >>> mg.links_at_patch
+        array([[ 4,  7,  3,  0],
+               [ 5,  8,  4,  1],
+               [ 6,  9,  5,  2],
+               [11, 14, 10,  7],
+               [12, 15, 11,  8],
+               [13, 16, 12,  9]])
+        """
+        self._patches_created = True
+        base = np.arange(self.number_of_patches)
+        bottom_edge = base + (base // (self._ncols - 1)) * self._ncols
+        return np.column_stack((bottom_edge + self._ncols,
+                                bottom_edge + 2 * self._ncols - 1,
+                                bottom_edge + self._ncols - 1,
+                                bottom_edge))
+
+    @property
+    @return_readonly_id_array
+    def patches_at_link(self):
+        """Get array of patches adjoined to each link.
+
+        Missing paches are indexed as -1.
+
+        Examples
+        --------
+        >>> mg = RasterModelGrid((3, 4))
+        >>> mg.patches_at_link
+        array([[ 0, -1],
+               [ 1, -1],
+               [ 2, -1],
+               [ 0, -1],
+               [ 0,  1],
+               [ 1,  2],
+               [ 2, -1],
+               [ 0,  3],
+               [ 1,  4],
+               [ 2,  5],
+               [ 3, -1],
+               [ 3,  4],
+               [ 4,  5],
+               [ 5, -1],
+               [ 3, -1],
+               [ 4, -1],
+               [ 5, -1]])
+        """
+        try:
+            return self._patches_at_link
+        except AttributeError:
+            self._create_patches_at_link()
+            return self._patches_at_link
+
+    def _create_patches_at_link(self):
+        self._patches_created = True
+        self._patches_at_link = np.empty((self.number_of_links, 2),
+                                         dtype=int)
+        self._patches_at_link.fill(-1)
+        to_sort = np.empty((2, 2), dtype=int)
+        for i in range(self.number_of_links):
+            patches_with_link = np.where((
+                self.links_at_patch == i).sum(axis=1))[0]
+            if patches_with_link.size == 2:
+# a sort of the links will be performed here once we have corners
+                midpt = (self.x_of_link[i], self.y_of_link[i])
+                # ...
+            self._patches_at_link[
+                i, :patches_with_link.size] = patches_with_link
 
     def _create_link_dirs_at_node(self):
         """Make array with link directions at each node

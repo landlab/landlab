@@ -777,6 +777,29 @@ class ModelGrid(ModelDataFieldsMixIn):
         # created, and 2) so have node_x and node_y.
         # self._sort_links_by_midpoint()
 
+    def _create_link_face_coords(self):
+        """Create x, y coordinates for link-face intersections.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4), 1.)
+        >>> mg.x_of_link
+        array([ 0.5,  1.5,  2.5,  0. ,  1. ,  2. ,  3. ,  0.5,  1.5,  2.5,
+                0. ,  1. ,  2. ,  3. ,  0.5,  1.5,  2.5])
+        >>> mg.y_of_link
+        array([ 0. ,  0. ,  0. ,  0.5,  0.5,  0.5,  0.5,  1. ,  1. ,  1. ,
+                1.5,  1.5,  1.5,  1.5,  2. ,  2. ,  2. ])
+        >>> np.all(mg.x_of_link[mg.link_at_face] == mg.x_of_face)
+        True
+        >>> np.all(mg.y_of_link[mg.link_at_face] == mg.y_of_face)
+        True
+        """
+        self._link_x = (self.x_of_node[self.node_at_link_head] +
+                        self.x_of_node[self.node_at_link_tail])/2.
+        self._link_y = (self.y_of_node[self.node_at_link_head] +
+                        self.y_of_node[self.node_at_link_tail])/2.
+
     @classmethod
     def from_file(cls, file_like):
         params = load_params(file_like)
@@ -1545,6 +1568,117 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 6.,  6.,  6.,  6.,  6.]])
         """
         return self._node_y
+
+    @property
+    @make_return_array_immutable
+    def x_of_cell(self):
+        """Get array of the x-coordinates of nodes at cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.x_of_cell.reshape((2, 3))
+        array([[  3.,   6.,   9.],
+               [  3.,   6.,   9.]])
+        """
+        return self._node_x[self.node_at_cell]
+
+    @property
+    @make_return_array_immutable
+    def y_of_cell(self):
+        """Get array of the y-coordinates of nodes at cells.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.y_of_cell.reshape((2, 3))
+        array([[ 2.,  2.,  2.],
+               [ 4.,  4.,  4.]])
+        """
+        return self._node_y[self.node_at_cell]
+
+    @property
+    @make_return_array_immutable
+    def x_of_link(self):
+        """Get array of the x-coordinates of link midpoints.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.x_of_link # doctest: +NORMALIZE_WHITESPACE
+        array([  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
+                 1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
+                 1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
+                 1.5,   4.5,   7.5,  10.5])
+        """
+        try:
+            return self._link_x
+        except AttributeError:
+            self._create_link_face_coords()
+            return self._link_x
+
+    @property
+    @make_return_array_immutable
+    def y_of_link(self):
+        """Get array of the y-coordinates of link midpoints.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.y_of_link # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
+                2.,  2.,  2.,  2.,  3.,  3.,  3.,  3.,  3.,
+                4.,  4.,  4.,  4.,  5.,  5.,  5.,  5.,  5.,
+                6.,  6.,  6.,  6.])
+        """
+        try:
+            return self._link_y
+        except AttributeError:
+            self._create_link_face_coords()
+            return self._link_y
+
+    @property
+    @make_return_array_immutable
+    def x_of_face(self):
+        """Get array of the x-coordinates of face midpoints.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.x_of_face # doctest: +NORMALIZE_WHITESPACE
+        array([  3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
+                 3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
+                 3. ,   6. ,   9. ])
+        """
+        try:
+            return self._link_x[self.link_at_face]
+        except AttributeError:
+            self._create_link_face_coords()
+            return self._link_x[self.link_at_face]
+
+    @property
+    @make_return_array_immutable
+    def y_of_face(self):
+        """Get array of the y-coordinates of face midpoints.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg.y_of_face # doctest: +NORMALIZE_WHITESPACE
+        array([ 1.,  1.,  1.,  2.,  2.,  2.,  2.,  3.,  3.,  3.,
+                4.,  4.,  4.,  4.,  5.,  5.,  5.])
+        """
+        try:
+            return self._link_y[self.link_at_face]
+        except AttributeError:
+            self._create_link_face_coords()
+            return self._link_y[self.link_at_face]
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
