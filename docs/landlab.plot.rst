@@ -4,6 +4,14 @@ landlab.plot package
 Submodules
 ----------
 
+landlab.plot.imshow module
+--------------------------
+
+.. automodule:: landlab.plot.imshow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 landlab.plot.channel_profile module
 -----------------------------------
 
@@ -19,23 +27,6 @@ landlab.plot.colors module
     :members:
     :undoc-members:
     :show-inheritance:
-
-landlab.plot.imshow module
---------------------------
-
-.. automodule:: landlab.plot.imshow
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.plot.video_out module
------------------------------
-
-.. automodule:: landlab.plot.video_out
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

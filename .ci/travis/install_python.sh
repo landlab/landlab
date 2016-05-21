@@ -16,7 +16,10 @@ hash -r
 conda config --set always_yes yes --set changeps1 no
 # conda update conda
 conda info -a
-cat requirements.txt | grep -v numpydoc | xargs conda create -n test-env python=$TRAVIS_PYTHON_VERSION
-source activate test-env
-conda install coverage
-conda install sphinx
+# cat requirements.txt | grep -v numpydoc | xargs conda create -n test-env python=$TRAVIS_PYTHON_VERSION
+# source activate test-env
+conda install python=$TRAVIS_PYTHON_VERSION
+conda install -q conda-build
+conda install -q anaconda-client
+conda install -q coverage
+conda install -q sphinx

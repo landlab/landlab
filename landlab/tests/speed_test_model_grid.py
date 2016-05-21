@@ -12,15 +12,15 @@ def main():
 
     nt = 1000
 
-    s = mg.zeros(centering='node')
-    g = mg.zeros(centering='active_link')
-    divg = mg.zeros(centering='node')
+    s = mg.zeros(at='node')
+    g = mg.zeros(at='link')
+    divg = mg.zeros(at='node')
 
     start_time = time.time()
 
     for i in range(nt):
 
-        g = mg.calc_grad_of_active_link(s, g)
+        g = mg.calc_grad_at_link(s, out=g)
 
     time1 = time.time()
 

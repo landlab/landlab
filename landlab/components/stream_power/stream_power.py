@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import warnings
+
 import numpy as np
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 
@@ -9,8 +11,11 @@ from landlab.core.model_parameter_dictionary import MissingKeyError, \
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_file_name_or_kwds
-from .cfuncs import erode_with_link_alpha_varthresh, \
-    erode_with_link_alpha_fixthresh
+try:
+    from .cfuncs import (erode_with_link_alpha_varthresh,
+                         erode_with_link_alpha_fixthresh)
+except ImportError:
+    warnings.warn('Unable to import stream_power extension module.')
 from copy import deepcopy as copy
 UNDEFINED_INDEX = np.iinfo(np.int32).max
 
@@ -426,8 +431,9 @@ class StreamPowerEroder(Component):
         upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
         defined_flow_receivers = np.not_equal(self._grid['node'][
             'flow__link_to_receiver_node'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid.length_of_link[self._grid['node'][
-            'flow__link_to_receiver_node'][defined_flow_receivers]]
+        flow_link_lengths = self._grid._length_of_link_with_diagonals[
+            self._grid['node']['flow__link_to_receiver_node'][
+                defined_flow_receivers]]
         active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         flow_receivers = self.grid['node']['flow__receiver_node']
 
