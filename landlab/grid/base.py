@@ -2503,6 +2503,58 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_patch_status()
             return self._patches_present_mask
 
+    @property
+    @make_return_array_immutable
+    def patches_present_at_link(self):
+        """
+        A boolean array, False where a patch has a closed node or is missing.
+
+        The array is the same shape as :func:`patches_at_link`, and is designed
+        to mask it.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> mg = RasterModelGrid((3, 3))
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.patches_at_link
+        array([[ 0, -1],
+               [ 1, -1],
+               [ 0, -1],
+               [ 0,  1],
+               [ 1, -1],
+               [ 0,  2],
+               [ 1,  3],
+               [ 2, -1],
+               [ 2,  3],
+               [ 3, -1],
+               [ 2, -1],
+               [ 3, -1]])
+        >>> mg.patches_present_at_link
+        array([[ True, False],
+               [ True, False],
+               [ True, False],
+               [ True,  True],
+               [ True, False],
+               [ True, False],
+               [ True, False],
+               [False, False],
+               [False, False],
+               [False, False],
+               [False, False],
+               [False, False]], dtype=bool)
+        >>> 1 in mg.patches_at_link * mg.patches_present_at_link
+        True
+        >>> 2 in mg.patches_at_link * mg.patches_present_at_link
+        False
+        """
+        try:
+            return self._patches_present_link_mask
+        except AttributeError:
+            self.patches_at_node
+            self._reset_patch_status()
+            return self._patches_present_link_mask
+
     def _reset_patch_status(self):
         """
         Creates the array which stores patches_present_at_node.
@@ -2516,6 +2568,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         bad_patches = numpy.logical_or(absent_patches,
                                        self.patches_at_node == -1)
         self._patches_present_mask = numpy.logical_not(
+            bad_patches)
+        absent_patches = any_node_at_patch_closed[self.patches_at_link]
+        bad_patches = numpy.logical_or(absent_patches,
+                                       self.patches_at_link == -1)
+        self._patches_present_link_mask = numpy.logical_not(
             bad_patches)
 
 
