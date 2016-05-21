@@ -179,12 +179,12 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     Calculate the gradient of values at a grid's nodes.
 
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid(4, 5, 1.0)
+    >>> rmg = RasterModelGrid((4, 5), spacing=1.0)
     >>> u = np.array([0., 1., 2., 3., 0.,
     ...               1., 2., 3., 2., 3.,
     ...               0., 1., 2., 1., 2.,
     ...               0., 0., 2., 2., 0.])
-    >>> grad = rmg.calc_grad_at_active_link(u)
+    >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
     >>> grad # doctest: +NORMALIZE_WHITESPACE
     array([ 1.,  1., -1.,
             1.,  1., -1.,  1.,
@@ -216,9 +216,12 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
 
     >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> grad = grid.calc_grad_at_active_link(2 * u)
-    >>> grad
-    ...     # doctest: +NORMALIZE_WHITESPACE
+    >>> u = np.array([0., 1., 2., 3., 0.,
+    ...               1., 2., 3., 2., 3.,
+    ...               0., 1., 2., 1., 2.,
+    ...               0., 0., 2., 2., 0.])
+    >>> grad = grid.calc_grad_at_link(2 * u)[grid.active_links]
+    >>> grad # doctest: +NORMALIZE_WHITESPACE
     array([ 2.,  2., -2.,
             1.,  1., -1.,  1.,
            -2., -2., -2.,

@@ -294,7 +294,7 @@ class SteepnessFinder(Component):
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
         ch_dists[0] = 0.
-        np.cumsum(self.grid.length_of_link[ch_links[:-1]],
+        np.cumsum(self.grid._length_of_link_with_diagonals[ch_links[:-1]],
                   out=ch_dists[1:])
         return ch_dists
 
@@ -498,13 +498,13 @@ class SteepnessFinder(Component):
         """
         Returns a masked array version of the 'channel__steepness_index' field.
         This enables easier plotting of the values with
-        :func:`landlab.imshow_node_grid` or similar.
+        :func:`landlab.imshow_grid_at_node` or similar.
 
         Examples
         --------
         Make a topographic map with an overlay of steepness values:
 
-        >>> from landlab import imshow_node_grid
+        >>> from landlab import imshow_grid_at_node
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter, FastscapeEroder
         >>> mg = RasterModelGrid((5, 5), 100.)
@@ -527,9 +527,9 @@ class SteepnessFinder(Component):
         >>> _ = fr.route_flow()
         >>> cf.calculate_steepnesses()
 
-        >>> imshow_node_grid(mg, 'topographic__elevation',
-        ...                  allow_colorbar=False)
-        >>> imshow_node_grid(mg, cf.masked_steepness_indices,
-        ...                  color_for_closed=None, cmap='winter')
+        >>> imshow_grid_at_node(mg, 'topographic__elevation',
+        ...                     allow_colorbar=False)
+        >>> imshow_grid_at_node(mg, cf.masked_steepness_indices,
+        ...                     color_for_closed=None, cmap='winter')
         """
         return np.ma.array(self.steepness_indices, mask=self.hillslope_mask)

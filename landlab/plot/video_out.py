@@ -116,7 +116,7 @@ class VideoPlotter(object):
         # initialize the plots for the vid
         if data_centering == 'node':
             self.centering = 'n'
-            self.plotfunc = imshow.imshow_node_grid
+            self.plotfunc = imshow.imshow_grid_at_node
         elif data_centering == 'cell':
             self.centering = 'c'
             self.plotfunc = imshow.imshow_cell_grid
