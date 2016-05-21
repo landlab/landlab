@@ -29,6 +29,7 @@ from six.moves import range
 import numpy as np
 
 from ..sort.sort import remap
+from ...core.utils import as_id_array
 
 
 def flatten_vertices_at_region(regions):
@@ -231,7 +232,7 @@ class VoronoiConverter(object):
         points_at_ridge = self._voronoi.ridge_points
         region_at_point = self._voronoi.point_region
 
-        regions_at_ridge = region_at_point[points_at_ridge]
+        regions_at_ridge = as_id_array(region_at_point[points_at_ridge])
 
         patch_at_region = self.get_patch_at_region()
         link_at_ridge = self.get_link_at_ridge()

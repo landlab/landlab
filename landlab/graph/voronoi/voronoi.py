@@ -3,6 +3,7 @@ from scipy.spatial import Voronoi
 from scipy.spatial import Delaunay
 
 from ..graph import Graph
+from ...core.utils import as_id_array
 
 
 class VoronoiGraph(Graph):
@@ -63,7 +64,8 @@ class VoronoiGraph(Graph):
 
         if max_node_spacing is not None:
             max_node_dist = np.ptp(delaunay.simplices, axis=1)
-            bad_patches = np.where(max_node_dist > max_node_spacing)[0]
+            bad_patches = as_id_array(np.where(max_node_dist >
+                                               max_node_spacing)[0])
             if len(bad_patches) > 0:
                 remove_tris(nodes_at_patch, neighbors_at_patch, bad_patches)
                 nodes_at_patch = nodes_at_patch[:-len(bad_patches), :]
