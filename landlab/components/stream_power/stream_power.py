@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import warnings
+
 import numpy as np
 from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
 
@@ -9,8 +11,11 @@ from landlab.core.model_parameter_dictionary import MissingKeyError, \
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_file_name_or_kwds
-from .cfuncs import erode_with_link_alpha_varthresh, \
-    erode_with_link_alpha_fixthresh
+try:
+    from .cfuncs import (erode_with_link_alpha_varthresh,
+                         erode_with_link_alpha_fixthresh)
+except ImportError:
+    warnings.warn('Unable to import stream_power extension module.')
 from copy import deepcopy as copy
 UNDEFINED_INDEX = np.iinfo(np.int32).max
 
