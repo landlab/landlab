@@ -1,4 +1,4 @@
-Input and output of Landlab raster-grid data in ESRI Ascii Raster format
+Input and output of Landlab Raster-Grid data in ESRI Ascii raster format
 --------------------------------------------
 
 .. automodule:: landlab.io.esri_ascii

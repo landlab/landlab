@@ -1,4 +1,4 @@
-Mapping data between different grid elements
+Mapping data between different Grid elements
 --------------------------------------------
 
 .. automodule:: landlab.grid.raster_mappers

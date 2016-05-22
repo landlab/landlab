@@ -1,4 +1,4 @@
-Boundary handling for grid edges
+Boundary handling for Grid edges
 ----------------------------------
 
 .. automodule:: landlab.grid.raster_set_status

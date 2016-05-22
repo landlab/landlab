@@ -1,4 +1,4 @@
-Plotting grid data
+Plotting Grid data
 --------------------------------------------
 
 .. automodule:: landlab.plot.imshow

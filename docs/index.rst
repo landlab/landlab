@@ -211,6 +211,7 @@ output to a file.
 
   landlab.io.esri_ascii
   landlab.io.netcdf
+  landlab.io.vtk
   landlab.io.native_landlab
 
 
@@ -223,7 +224,6 @@ Plotting and Visualization
   landlab.plot.imshow
   landlab.plot.channel_profile
   landlab.plot.colors
-  landlab.plot.video_out
 
 
 Utilities and Decorators
@@ -234,6 +234,9 @@ Utilities and Decorators
 
   landlab.utils.decorators
   landlab.utils.count_repeats
+  landlab.utils.jaggedarray
+  landlab.utils.fault_facet_finder
+  landlab.utils.structured_grid
 
 
 Cellular Automata (CA)
@@ -256,13 +259,10 @@ Contributing to Landlab
 
 If you're intending to make changes to the Landlab code base,
 or want to develop your own components, we recommend you follow
-these specialized developer install instructions.
+these `specialized developer install instructions
+<https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`_.
 
-.. toctree::
- :maxdepth: 3
-
- dev_guide_install
- dev_guide_components
+For more information about contributing to the Landlab code base (i.e. developing components), see `Developing with git and github <https://github.com/landlab/landlab/wiki/Developing-with-github-and-git>`_.
 
 
 References
