@@ -223,7 +223,6 @@ Plotting and Visualization
   landlab.plot.imshow
   landlab.plot.channel_profile
   landlab.plot.colors
-  landlab.plot.video_out
 
 
 Utilities and Decorators
