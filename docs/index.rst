@@ -139,16 +139,16 @@ Land surface hydrology
 
   landlab.components.radiation
   landlab.components.pet
-  landlab.components.soil_moisture
+..  landlab.components.soil_moisture
 
-Vegetation
-----------
+.. Vegetation
+.. ----------
 
 .. toctree::
-  :maxdepth: 4
+..  :maxdepth: 4
 
-  landlab.components.single_vegetation
-  landlab.components.vegetation_ca
+..  landlab.components.single_vegetation
+..  landlab.components.vegetation_ca
 
 Precipitation
 -------------
@@ -176,21 +176,21 @@ Tectonics
   landlab.components.flexure
   landlab.components.gflex
 
-Fire
-----
+.. Fire
+.. ----
 
 .. toctree::
-  :maxdepth: 4
+..  :maxdepth: 4
 
-  landlab.components.fire_generator
+..  landlab.components.fire_generator
 
-Initial conditions: random field generators
--------------------------------------------
+.. Initial conditions: random field generators
+.. -------------------------------------------
 
 .. toctree::
-  :maxdepth: 4
+..  :maxdepth: 4
 
-  landlab.components.fracture_grid
+..  landlab.components.fracture_grid
 
 The Component base class
 ------------------------
@@ -213,6 +213,7 @@ output to a file.
   landlab.io.netcdf
   landlab.io.vtk
   landlab.io.native_landlab
+  landlab.core.model_parameter
 
 
 Plotting and Visualization
@@ -232,11 +233,11 @@ Utilities and Decorators
 .. toctree::
   :maxdepth: 4
 
+  landlab.core.utils
   landlab.utils.decorators
-  landlab.utils.count_repeats
-  landlab.utils.jaggedarray
-  landlab.utils.fault_facet_finder
-  landlab.utils.structured_grid
+..  landlab.utils.jaggedarray
+..  landlab.utils.fault_facet_finder
+..  landlab.utils.structured_grid
 
 
 Cellular Automata (CA)

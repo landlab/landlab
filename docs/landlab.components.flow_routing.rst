@@ -21,3 +21,12 @@ PotentialityFlowRouter: Find flow directions and accumulation using potential-fi
     :members:
     :undoc-members:
     :show-inheritance:
+
+
+SinkFiller: fills sinks in topography by raising their elevation
+--------------------------------------------------
+
+.. automodule:: landlab.components.fill_sinks
+    :members:
+    :undoc-members:
+    :show-inheritance:
