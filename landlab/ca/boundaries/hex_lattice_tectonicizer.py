@@ -16,7 +16,7 @@ Created on Mon Nov 17 08:01:49 2014
 """
 
 from landlab import HexModelGrid
-from numpy import amax, zeros, arange, array
+from numpy import amax, zeros, arange, array, sqrt
 from pylab import figure, show, draw
 
 _DEFAULT_NUM_ROWS = 5
@@ -114,7 +114,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> lnf.incoming_node
     array([1, 3, 4, 6])
     >>> lnf.outgoing_node
-    array([ 7, 12, 17, 22])
+    array([12, 17, 19, 22])
     """
 
     def __init__(self, fault_x_intercept=0.0, grid=None, node_state=None,
@@ -139,7 +139,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf.incoming_node
         array([0, 1, 3, 4, 6])
         >>> lnf.outgoing_node
-        array([ 7, 12, 17, 22])
+        array([12, 17, 19, 22, 24])
         
         >>> pid = np.arange(16, dtype=int)
         >>> pdata = np.arange(16)
@@ -153,7 +153,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf.incoming_node
         array([1, 2, 5])
         >>> lnf.outgoing_node
-        array([ 7, 11, 13])
+        array([ 7, 11, 15])
 
         >>> pid = np.arange(45, dtype=int)
         >>> pdata = np.arange(45)
@@ -167,7 +167,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf.incoming_node
         array([ 1,  2,  3,  5,  6,  7,  8, 10, 11, 12])
         >>> lnf.outgoing_node
-        array([ 7, 12, 17, 22])
+        array([22, 31, 33, 34, 35, 38, 39, 40, 43, 44])
         """
         # Do the base class init
         super(LatticeNormalFault, self).__init__(grid, node_state, propid,
@@ -233,17 +233,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             incoming_node_list = []
             lower_right_node = (self.nc % 2) * (self.nc // 2) + \
                                ((self.nc + 1) % 2) * (self.nc - 1)
-            print 'lrn = ', lower_right_node
             for n in range(0, self.nc + (self.nc + 1) // 2):
-
-                print 'checking node', n
-                print in_footwall[n]
-                print (n-(self.nc//2))%self.nc
                 if in_footwall[n] and ((n - lower_right_node) % self.nc) != 0:
                     incoming_node_list.append(n)
-                print incoming_node_list
-
-            # THIS NOW WORKS FOR ODD NUMBERS OF ROWS. NEXT: TEST FOR EVEN
 
             # Convert to a numpy array that belongs to the class (so we can
             # use it in the do_offset() method).
@@ -254,60 +246,56 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # height of the grid and the position of the fault, there may or
             # may not also be some along the top.
             #
-            # Which of the nodes on the right side outgoing? The lowermost one
-            # won't be. If the right-most column is even-numbered, the next one
-            # up won't be either. So call the ID of the first potential
-            # outgoing node onthe right side the "base_id". Then we also have
-            # the "top_id", which is the ID of *either* the top-most node of
-            # the column (ID=# of nodes in grid-1), *or* the top footwall node.
-            #
-            # The next line translates as: Take the ID of the bottom node in
-            # the right-most column (nr x (nc-1)) and add to it either 1
-            # (if the last column is odd-numbered) or 2 (if even-numbered).
-            # Example: in a 5x5 grid, it is node ID 22 (two up from the base)
-            base_id = self.nr*(self.nc-1)+(1+self.nc%2)
-            #
-            # The next line finds the ID of the top outgoing node on the right
-            # side. Here's how it works. Find the ID of the topmost node in
-            # the column: that's the # of nodes in the grid minus one.
-            # Example: in a 5x5 grid, that's node number 24.
-            #
-            # Then find the ID of the topmost node IN THE FOOTWALL. To get
-            # this, we start with the ID at the top of the column to the left,
-            # and we start we start number of footwall nodes in the right-most
-            # column. Example: in a 5x5 grid, the top of the next-to-rightmost
-            # column is node 19. If the fault position is x=0.0, there will be
-            # 5 footwall nodes here. 19+5 = 24 (meaning the top of the column
-            # and the top of the footwall happen to the same)
-            top_id = min(self.nr * self.nc - 1,
-                         (self.nr * (self.nc - 1) - 1) + \
-                         self.num_fw_rows[self.nc - 1])
+            # To find out which nodes will be exiting the grid, we use
+            # geometry: simply find out which nodes are (1) within the footwall
+            # and (2) the tectonic offset would take them beyond the grid
+            # perimeter. We already have information about the first condition.
+            # For the second, let's start by defining the grid edges. The
+            # y coordinates of the top full row of nodes will either be NR - 1
+            # (even-numbered columns) or NR - 1/2. So we'll take as a
+            # reasonable boundary line NR - 1/4: any node that would move above
+            # this point is definitely out of the grid. Note that the vertical
+            # offset of nodes during each earthquake will be 1.5, so if we were
+            # to offset a top-row node, it would move to y = NR + 1/2 or
+            # y = NR + 1. Odd-numbered columns in the next-from-top row will
+            # move to y = NR, which is out of bounds, so we want to flag these
+            # too, and therefore need our cutoff below this. Even-numbered
+            # columns in the next-from-top row will end up at y = NR - 1/2,
+            # which is within the grid. So our cutoff must be between NR - 1/2
+            # and NR. Hence the choise of NR - 1/4 as the effective "top" of
+            # the grid.
+            top_grid_edge = self.nr - 0.25
 
-            # Having found the top and the base, we now append all these to
-            # the list of outgoing nodes.
+            # The right-hand edge of the grid is a simpler case, because our
+            # grid is vertically oriented and there is no stagger on the right
+            # and left sides. So we simply make it half a column beyond the
+            # right-most column. Column width is sqrt(3), the last column is
+            # NC - 1, so the right edge y coordinate is (NC - 1/2) x sqrt(3)/2
+            right_grid_edge = (self.nc - 0.5) * (sqrt(3.0) / 2.0)
+
+            # To save a repeated calculation in a loop, we'll find a threshold
+            # x and y coordinate beyond which any node offset would take them
+            # off the grid.
+            x_threshold = right_grid_edge - (sqrt(3.0) / 2.0)
+            y_threshold = top_grid_edge - 1.5
+
+            # Actually it turns out there is a third criterion. One or two
+            # nodes in the lower-right corner could be counted as both
+            # "incoming" (they're at the bottom of the grid) AND outgoing
+            # (they're on the right-hand side). We ignored these in setting up
+            # incoming, so we should ignore them for outgoing too. This is
+            # easy: any nodes on the right side (x > x_threshold) that are also
+            # near the bottom (y < 1.25) should be ignored.
+
+            # Now march through all nodes, placing those on the list that meet
+            # our criteria. Yes, it's slow to do this as a Python loop, but we
+            # only do it once.
             outgoing_node_list = []
-            for node_id in range(base_id, top_id+1):
-                outgoing_node_list.append(node_id)
-
-            # Now, at this point, we might have found all the outgoing nodes.
-            # Or there might be some more along the top edge of the grid. The
-            # latter will be true if the number of outgoing nodes found so far
-            # is less than the number there should be (same as # of incoming).
-            #
-            # start with the next-to-rightmost column; if we need to, we'll
-            # work right-to-left from column to column
-            col = self.nc - 2
-            # If the following is true, we still have more nodes to add along
-            # the top
-            while len(outgoing_node_list) < len(self.incoming_node):
-
-                # Add the top-most footwall node in this column
-                outgoing_node_list.append(self.nr*col+self.num_fw_rows[col]-1)
-
-                # If we're on an odd-numbered column, and not already full,
-                # add the next one down too
-                if col%2==1 and len(outgoing_node_list)<len(self.incoming_node):
-                    outgoing_node_list.append(self.nr*col+self.num_fw_rows[col]-2)
+            for n in range(self.grid.number_of_nodes):
+                if (((self.grid.node_x[n] > x_threshold and
+                      self.grid.node_y[n] > 1.25) or
+                     self.grid.node_y[n] > y_threshold) and in_footwall[n]):
+                    outgoing_node_list.append(n)
 
             # Finally, convert the outgoing node list to an array stored in this
             # object
@@ -527,7 +515,7 @@ def main():
     >>> lnf.incoming_node
     array([1, 2, 5])
     >>> lnf.outgoing_node
-    array([13, 14, 15])
+    array([ 7, 11, 15])
     >>> lnf.do_offset()
     >>> lnf.propid
     array([ 0,  1,  2,  3, 13,  5,  6,  7, 14, 15,  4, 11, 12,  8,  9, 10])
@@ -539,7 +527,7 @@ def main():
     >>> lnf.incoming_node
     array([1, 3, 4, 6])
     >>> lnf.outgoing_node
-    array([18, 19, 15, 14])
+    array([12, 14, 17, 19])
     >>> lnf.do_offset()
     >>> lnf.propid
     array([ 0,  1,  2,  3, 18,  5,  6,  7, 19, 15,  4, 11, 14,  8,  9, 10, 16,
