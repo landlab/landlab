@@ -1,22 +1,10 @@
-landlab.ca.boundaries package
+Boundary handlers for CellLab-CTS models
 =============================
 
-Submodules
-----------
-
-landlab.ca.boundaries.hex_lattice_tectonicizer module
+Hex lattice tectonics
 -----------------------------------------------------
 
 .. automodule:: landlab.ca.boundaries.hex_lattice_tectonicizer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: landlab.ca.boundaries
     :members:
     :undoc-members:
     :show-inheritance:

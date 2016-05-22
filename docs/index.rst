@@ -209,7 +209,9 @@ output to a file.
 .. toctree::
   :maxdepth: 4
 
-  landlab.io
+  landlab.io.esri_ascii
+  landlab.io.netcdf
+  landlab.io.native_landlab
 
 
 Plotting and Visualization
@@ -218,7 +220,10 @@ Plotting and Visualization
 .. toctree::
   :maxdepth: 4
 
-  landlab.plot
+  landlab.plot.imshow
+  landlab.plot.channel_profile
+  landlab.plot.colors
+  landlab.plot.video_out
 
 
 Utilities and Decorators
@@ -227,9 +232,8 @@ Utilities and Decorators
 .. toctree::
   :maxdepth: 4
 
-  landlab.core.utils
   landlab.utils.decorators
-  landlab.grid.decorators
+  landlab.utils.count_repeats
 
 
 Cellular Automata (CA)
@@ -238,7 +242,13 @@ Cellular Automata (CA)
 .. toctree::
   :maxdepth: 4
 
-  landlab.ca
+  landlab.ca.celllab_cts
+  landlab.ca.raster_cts
+  landlab.ca.oriented_raster_cts
+  landlab.ca.hex_cts
+  landlab.ca.oriented_hex_cts
+  landlab.ca.boundaries
+
 
 
 Contributing to Landlab
