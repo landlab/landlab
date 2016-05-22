@@ -47,7 +47,7 @@ class FastscapeEroder(Component):
 
     Construction::
 
-        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp,
+        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=0.,
                         rainfall_intensity=1.)
 
     Parameters

@@ -17,104 +17,47 @@ import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 
 
-class PotentialityFlowRouter(Component):
+class LinearDiffuser2(Component):
     """
-    This class implements Voller, Hobley, and Paola's experimental matrix
-    solutions for flow routing.
-    Options are permitted to allow "abstract" routing (flow enforced downslope,
-    but no particular assumptions are made about the governing equations), or
-    routing according to the Chezy or Manning equations. This routine assumes
-    that water is distributed evenly over the surface of the cell in deriving
-    the depth, and does not assume channelization. You will need to back-
-    calculate channel depths for yourself using known widths at each node
-    if that is what you want.
+    This class implements a linear diffusion scheme on a raster grid. It is
+    more precise than the LinearDiffuser, and less prone to grid artifacts,
+    but requires a raster and is slower.
 
-    It is VITAL you initialize this component AFTER setting boundary
-    conditions.
+    The router takes account of the elevation values at diagonal nodes when
+    performing the diffusion (i.e., it resolves slopes on patches, not links.)
     """
-    _name = 'PotentialityFlowRouter'
+    _name = 'LinearDiffuser2'
 
     _input_var_names = ('topographic__elevation',
-                        'water__unit_flux_in',
                         )
 
-    _output_var_names = ('water__volume_flux_magnitude',
-                         'water__volume_flux_xcomponent',
-                         'water__volume_flux_ycomponent',
-                         'potentiality_field',
-                         'water__depth',
-                         'water__volume_flux',
+    _output_var_names = ('topographic__elevation',
                          )
 
     _var_units = {'topographic__elevation': 'm',
-                  'water__unit_flux_in': 'm/s',
-                  'water__volume_flux_magnitude': 'm**3/s',
-                  'water__volume_flux_xcomponent': 'm**3/s',
-                  'water__volume_flux_ycomponent': 'm**3/s',
-                  'potentiality_field': 'm**3/s',
-                  'water__depth': 'm',
-                  'water__volume_flux': 'm**3/s',
                   }
 
     _var_mapping = {
         'topographic__elevation': 'node',
-        'water__unit_flux_in': 'node',
-        'water__volume_flux_magnitude': 'node',
-        'water__volume_flux_xcomponent': 'node',
-        'water__volume_flux_ycomponent': 'node',
-        'potentiality_field': 'node',
-        'water__depth': 'node',
-        'water__volume_flux': 'link',
         }
 
     _var_doc = {
         'topographic__elevation':
             'Land surface topographic elevation',
-        'water__unit_flux_in':
-            ('External volume water per area per time input to each node ' +
-             '(e.g., rainfall rate)'),
-        'water__volume_flux_magnitude':
-            'Magnitude of volumetric water flux through each node',
-        'water__volume_flux_xcomponent':
-            'x component of resolved water flux through node',
-        'water__volume_flux_ycomponent':
-            'y component of resolved water flux through node',
-        'potentiality_field':
-            ('Value of the hypothetical field "K", used to force water flux ' +
-             'to flow downhill'),
-        'water__depth':
-            ('If Manning or Chezy specified, the depth of flow in the cell, ' +
-             'calculated assuming flow occurs over the whole surface'),
-        'water__volume_flux':
-            'Water fluxes on links',
         }
 
     _min_slope_thresh = 1.e-24
     # ^if your flow isn't connecting up, this probably needs to be reduced
 
     @use_file_name_or_kwds
-    def __init__(self, grid, method='D8', flow_equation='default',
-                 Chezys_C=None, Mannings_n=0.03, return_components=False,
+    def __init__(self, grid, diffusivity=None
                  **kwds):
 #### give val for Chezy's C!!!
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         assert grid.number_of_node_rows >= 3
         assert grid.number_of_node_columns >= 3
-        assert type(return_components) is bool
 
         self._grid = grid
-        self.equation = flow_equation
-        assert self.equation in ('default', 'Chezy', 'Manning')
-        if self.equation == 'Chezy':
-            self.chezy_C = Chezys_C
-        elif self.equation == 'Manning':
-            self.manning_n = Mannings_n
-        assert method in ('D8', 'D4')
-        if method == 'D8':
-            self.route_on_diagonals = True
-        else:
-            self.route_on_diagonals = False
-        self.return_components = return_components
 
         ncols = grid.number_of_node_columns
         nrows = grid.number_of_node_rows

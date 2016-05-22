@@ -138,12 +138,14 @@ class LinearDiffuser(Component):
         # as of modern componentization (Spring '16), this can take arrays
         # and irregular grids
         if type(self.kd) not in (int, float):
-            assert len(self.kd) is self.grid.number_of_nodes, self.kd
+            assert len(self.kd) == self.grid.number_of_nodes, self.kd
             kd_links = self.grid.map_max_of_link_nodes_to_link(self.kd)
         else:
             kd_links = float(self.kd)
         # assert CFL condition:
-        CFL_prefactor = _ALPHA * self.grid.link_length ** 2.
+        CFL_prefactor = _ALPHA * self.grid.link_length[
+            :self.grid.number_of_links] ** 2.
+        # ^ link_length can include diags, if not careful...
         self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
         # ^note we can do this as topology shouldn't be changing
         dt_links = CFL_prefactor / kd_links
