@@ -1,25 +1,8 @@
-landlab.io.netcdf package
+Read and Write netCDF Files
 =========================
 
-Subpackages
------------
 
-.. toctree::
-
-    landlab.io.netcdf.tests
-
-Submodules
-----------
-
-landlab.io.netcdf.errors module
--------------------------------
-
-.. automodule:: landlab.io.netcdf.errors
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.io.netcdf.read module
+Reading
 -----------------------------
 
 .. automodule:: landlab.io.netcdf.read
@@ -27,7 +10,7 @@ landlab.io.netcdf.read module
     :undoc-members:
     :show-inheritance:
 
-landlab.io.netcdf.write module
+Writing
 ------------------------------
 
 .. automodule:: landlab.io.netcdf.write
@@ -36,10 +19,9 @@ landlab.io.netcdf.write module
     :show-inheritance:
 
 
-Module contents
----------------
-
-.. automodule:: landlab.io.netcdf
+Error Handling
+------------------------------
+.. automodule:: landlab.io.netcdf.errors
     :members:
     :undoc-members:
     :show-inheritance:

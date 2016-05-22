@@ -31,6 +31,12 @@ class PotentialityFlowRouter(Component):
 
     It is VITAL you initialize this component AFTER setting boundary
     conditions.
+
+    Note
+    ----
+    This is a "research grade" component, and is subject to dramatic change
+    with little warning. No guarantees are made regarding its accuracy or
+    utility. It is not recommended for user use yet!
     """
     _name = 'PotentialityFlowRouter'
 
@@ -38,65 +44,68 @@ class PotentialityFlowRouter(Component):
                         'water__unit_flux_in',
                         )
 
-    _output_var_names = ('water__volume_flux_magnitude',
-                         'water__volume_flux_xcomponent',
-                         'water__volume_flux_ycomponent',
-                         'potentiality_field',
+    _output_var_names = ('water__discharge',
+                         'water__discharge_x_component',
+                         'water__discharge_y_component',
+                         'flow__potential',
                          'water__depth',
-                         'water__volume_flux',
+                         'water__discharge',
                          )
 
-    _var_units = {'topographic__elevation': 'm',
-                  'water__unit_flux_in': 'm/s',
-                  'water__volume_flux_magnitude': 'm**3/s',
-                  'water__volume_flux_xcomponent': 'm**3/s',
-                  'water__volume_flux_ycomponent': 'm**3/s',
-                  'potentiality_field': 'm**3/s',
+    _var_units = {'topographic__elevation' : 'm',
+                  'water__unit_flux_in' : 'm/s',
+                  'water__discharge' : 'm**3/s',
+                  'water__discharge_x_component' : 'm**3/s',
+                  'water__discharge_y_component' : 'm**3/s',
+                  'flow__potential' : 'm**3/s',
                   'water__depth': 'm',
-                  'water__volume_flux': 'm**3/s',
+                  'water__discharge' : 'm**3/s',
                   }
 
-    _var_mapping = {
-        'topographic__elevation': 'node',
-        'water__unit_flux_in': 'node',
-        'water__volume_flux_magnitude': 'node',
-        'water__volume_flux_xcomponent': 'node',
-        'water__volume_flux_ycomponent': 'node',
-        'potentiality_field': 'node',
-        'water__depth': 'node',
-        'water__volume_flux': 'link',
-        }
+    _var_mapping = {'topographic__elevation' : 'node',
+                  'water__unit_flux_in' : 'node',
+                  'water__discharge' : 'node',
+                  'water__discharge_x_component' : 'node',
+                  'water__discharge_y_component' : 'node',
+                  'flow__potential' : 'node',
+                  'water__depth': 'node',
+                  'water__discharge' : 'link',
+                  }
 
-    _var_doc = {
-        'topographic__elevation':
-            'Land surface topographic elevation',
-        'water__unit_flux_in':
-            ('External volume water per area per time input to each node ' +
-             '(e.g., rainfall rate)'),
-        'water__volume_flux_magnitude':
-            'Magnitude of volumetric water flux through each node',
-        'water__volume_flux_xcomponent':
-            'x component of resolved water flux through node',
-        'water__volume_flux_ycomponent':
-            'y component of resolved water flux through node',
-        'potentiality_field':
-            ('Value of the hypothetical field "K", used to force water flux ' +
-             'to flow downhill'),
-        'water__depth':
-            ('If Manning or Chezy specified, the depth of flow in the cell, ' +
-             'calculated assuming flow occurs over the whole surface'),
-        'water__volume_flux':
-            'Water fluxes on links',
-        }
+    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
+                  'water__unit_flux_in' : 'External volume water per area per time input to each node (e.g., rainfall rate)',
+                  'water__discharge' : 'Magnitude of volumetric water flux through each node',
+                  'water__discharge_x_component' : 'x component of resolved water flux through node',
+                  'water__discharge_y_component' : 'y component of resolved water flux through node',
+                  'flow__potential' : 'Value of the hypothetical field "K", used to force water flux to flow downhill',
+                  'water__depth': 'If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface',
+                  'water__discharge' : 'Water fluxes on links',
+                  }
 
-    _min_slope_thresh = 1.e-24
-    # ^if your flow isn't connecting up, this probably needs to be reduced
+    _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
+
 
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
                  Chezys_C=None, Mannings_n=0.03, return_components=False,
                  **kwds):
 #### give val for Chezy's C!!!
+        """Initialize flow router.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid
+        params : dict
+            Input parameters. Optional parameters are:
+
+            *  `flow_equation` : options are ``default`` (default),
+               ``Manning``, or ``Chezy``.  If Equation is ``Manning`` or
+               ``Chezy``, you must also specify:
+
+               *  ``Mannings_n`` (if ``Manning``) : float
+               *  ``Chezys_C`` (if ``Chezy``) : float
+        """
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         assert grid.number_of_node_rows >= 3
         assert grid.number_of_node_columns >= 3
@@ -169,14 +178,26 @@ class PotentialityFlowRouter(Component):
         self._corecore = (slice(2, -2), slice(2, -2))
         # ^the actual, LL-sense core (interior) nodes of the grid
 
+        # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
+            if self._var_mapping[out_field] == 'node':
+                try:
+                    self.grid.add_zeros(self._var_mapping[out_field],
+                                        out_field, dtype=float)
+                except FieldError:
+                    pass
+            else:
+                pass
             try:
-                self.grid.add_empty(self._var_mapping[out_field], out_field,
-                                    units=self._var_units[out_field])
+                self.grid.add_zeros('node', 'water__discharge', dtype=float)
+            except FieldError:
+                pass
+            try:
+                self.grid.add_zeros('link', 'water__discharge', dtype=float)
             except FieldError:
                 pass
 
-        # make and store a 2d reference for node BCs
+        #make and store a 2d reference for node BCs
         self._BCs = 4*np.ones_like(self.elev_raster)
         self._BCs[self._core].flat = self._grid.status_at_node
         BCR = self._BCs  # for conciseness below
@@ -474,48 +495,49 @@ class PotentialityFlowRouter(Component):
             if np.any(degenerate_fluxes):
                 # THIS PART HAS NOT BEEN TESTED
                 defined_fluxes = np.logical_not(degenerate_fluxes)
+
                 flux_error[defined_fluxes] = meanflux[
                     defined_fluxes]/apparent_flux[defined_fluxes]
-                # zeros in the degenerate slots
-                self._grid.at_node['water__volume_flux_xcomponent'][
+                #zeros in the degenerate slots
+                self._grid.at_node['water__discharge_x_component'][
                     :] = (mean_x*flux_error).flat
                 # now modify so we get the right answer for total flux,
                 # pointing arbitrarily N
-                self._grid.at_node['water__volume_flux_ycomponent'][
+                self._grid.at_node['water__discharge_y_component'][
                     defined_fluxes] = (mean_y[defined_fluxes]*flux_error[
                         defined_fluxes]).flat
-                self._grid.at_node['water__volume_flux_ycomponent'][
+                self._grid.at_node['water__discharge_y_component'][
                     degenerate_fluxes] = meanflux[degenerate_fluxes].flat
             else:
                 flux_error[:] = meanflux/apparent_flux
-                self._grid.at_node['water__volume_flux_ycomponent'][
+                self._grid.at_node['water__discharge_y_component'][
                     :] = (mean_y*flux_error).flat
-                self._grid.at_node['water__volume_flux_xcomponent'][
+                self._grid.at_node['water__discharge_x_component'][
                     :] = (mean_x*flux_error).flat
 
-        # save the output
-        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[
+        #save the output
+        self._grid.at_link['water__discharge'][self._grid.links_at_node[
             :, 3]] = uS[core].flat
-        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[
+        self._grid.at_link['water__discharge'][self._grid.links_at_node[
             :, 2]] = uW[core].flat
-        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[
+        self._grid.at_link['water__discharge'][self._grid.links_at_node[
             :, 1]] = uN[core].flat
-        self._grid.at_link['water__volume_flux'][self._grid.links_at_node[
+        self._grid.at_link['water__discharge'][self._grid.links_at_node[
             :, 0]] = uE[core].flat
-        self._grid.at_node['potentiality_field'][:] = K[core].flat
-        self._grid.at_node['water__volume_flux_magnitude'][:] = meanflux.flat
-        # the x,y components are created above, in the if statement
+        self._grid.at_node['flow__potential'][:] = K[core].flat
+        self._grid.at_node['water__discharge'][:] = meanflux.flat
+        #the x,y components are created above, in the if statement
 
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
-            # Chezy: Q = C*Area*sqrt(depth*slope)
+            #Chezy: Q = C*Area*sqrt(depth*slope)
             self._grid.at_node['water__depth'][:] = (
-                self._grid.at_node['potentiality_field']/self.chezy_C /
+                self._grid.at_node['flow__potential']/self.chezy_C /
                 self.equiv_circ_diam)**(2./3.)
         elif self.equation == 'Manning':
-            # Manning: Q = w/n*depth**(5/3)
+            #Manning: Q = w/n*depth**(5/3)
             self._grid.at_node['water__depth'][:] = (
-                self._grid.at_node['potentiality_field']*self.manning_n /
+                self._grid.at_node['flow__potential']*self.manning_n /
                 self.equiv_circ_diam)**0.6
         else:
             pass

@@ -16,19 +16,19 @@ class TestRasterModelGridConnectingFaces():
         self.rmg = RasterModelGrid(4, 5)
 
     def test_horizontally_adjacent_cells(self):
-        assert_array_equal(self.rmg.get_face_connecting_cell_pair(0, 1),
+        assert_array_equal(self.rmg.face_connecting_cell_pair(0, 1),
                            np.array([4]))
 
     def test_vertically_adjacent_cells(self):
-        assert_array_equal(self.rmg.get_face_connecting_cell_pair(0, 3),
+        assert_array_equal(self.rmg.face_connecting_cell_pair(0, 3),
                            np.array([7]))
 
     def test_diagonally_adjacent_cells(self):
-        assert_array_equal(self.rmg.get_face_connecting_cell_pair(1, 5),
+        assert_array_equal(self.rmg.face_connecting_cell_pair(1, 5),
                            np.array([]))
 
     def test_non_adjacent_cells(self):
-        assert_array_equal(self.rmg.get_face_connecting_cell_pair(0, 2),
+        assert_array_equal(self.rmg.face_connecting_cell_pair(0, 2),
                            np.array([]))
 
 

@@ -18,7 +18,7 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def test_sp_widths():
     input_str = os.path.join(_THIS_DIR, 'test_sp_params_widths.txt')
-    inputs = ModelParameterDictionary(input_str)
+    inputs = ModelParameterDictionary(input_str, auto_type=True)
     nrows = 5
     ncols = 5
     dx = inputs.read_float('dx')
@@ -48,10 +48,12 @@ def test_sp_widths():
         # if not careful...
         sp.run_one_step(dt)
 
-    z_tg = np.array([ 5.        ,  5.        ,  0.        ,  5.        ,  5.,
-                      5.        ,  1.08502336,  0.00000100,  1.08502336,  5.,
-                      5.        ,  2.08502336,  0.70602763,  2.08502336,  5.,
-                      5.        ,  3.08502336,  2.70602763,  3.08502336,  5.,
-                      5.        ,  5.        ,  5.        ,  5.        ,  5.])
+    z_tg = np.array([ 5.        ,  5.        ,  0.        ,  5.        ,
+                      5.        ,  5.        ,  1.37222369,  0.36876358,
+                      1.37222369,  5.        ,  5.        ,  2.17408606,
+                      1.07986038,  2.17408606,  5.        ,  5.        ,
+                      3.08340277,  2.85288049,  3.08340277,  5.        ,
+                      5.        ,  5.        ,  5.        ,  5.        ,
+                      5.        ])
 
     assert_array_almost_equal(mg.at_node['topographic__elevation'], z_tg)

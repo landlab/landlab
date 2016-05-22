@@ -1,20 +1,5 @@
-landlab.components.diffusion package
-====================================
-
-Submodules
-----------
-
-landlab.components.diffusion.diffusion module
----------------------------------------------
-
-.. automodule:: landlab.components.diffusion.diffusion
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
+LinearDiffuser: Model soil creep using "linear diffusion" transport law (no depth dependence)
+---------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.diffusion
     :members:

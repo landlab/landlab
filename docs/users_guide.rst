@@ -25,7 +25,7 @@ Functional modules
 .. autoclass:: landlab.components.fire_generator.generate_fire.FireGenerator
 
 
-.. autoclass:: landlab.components.flexure.flexure.FlexureComponent
+.. autoclass:: landlab.components.flexure.flexure.Flexure
 
 
 .. autoclass:: landlab.components.flow_routing.route_flow_dn.FlowRouter
@@ -41,7 +41,7 @@ Functional modules
 	*This might not work...*
 
 
-.. autoclass:: landlab.components.PET.potential_evapotranspiration_field.PotentialEvapotranspiration
+.. autoclass:: landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration
 	:members: update
 	*This component implements a model for potential evapotranspiration.*
 

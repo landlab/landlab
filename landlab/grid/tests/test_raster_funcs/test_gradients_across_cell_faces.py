@@ -7,7 +7,7 @@ try:
 except ImportError:
     from landlab.testing.tools import assert_is
 
-from landlab.grid.raster_gradients import calculate_gradient_across_cell_faces
+from landlab.grid.raster_gradients import calc_grad_across_cell_faces
 
 
 def setup_unit_grid():
@@ -31,7 +31,7 @@ def setup_grid():
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
     """Test with a scalar arg for faces."""
-    grads = calculate_gradient_across_cell_faces(
+    grads = calc_grad_across_cell_faces(
         rmg, values_at_nodes, 0)
     assert_array_equal(grads, np.array([[1., 5., -1., -5.]]))
 
@@ -39,7 +39,7 @@ def test_scalar_arg():
 @with_setup(setup_unit_grid)
 def test_iterable():
     """Test with an iterable arg for faces."""
-    grads = rmg.calculate_gradient_across_cell_faces(values_at_nodes, [0, 4])
+    grads = rmg.calc_grad_across_cell_faces(values_at_nodes, [0, 4])
     assert_array_equal(grads, np.array([[1., 5., -1., -5.],
                                         [1., 5., -1., -5.]]))
 
@@ -51,7 +51,7 @@ def test_with_no_cell_id_arg():
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
                        0, 1, -3, 6, 10], dtype=float)
-    grads = rmg.calculate_gradient_across_cell_faces(values)
+    grads = rmg.calc_grad_across_cell_faces(values)
 
     assert_array_equal(grads, np.array([
         [2., 0., -1., 0.], [3.,  0., -2., 0.], [4., -1., -3., 0.],
@@ -62,6 +62,6 @@ def test_with_no_cell_id_arg():
 def test_with_out_keyword():
     """Test using the out keyword."""
     out = np.empty((1, 4))
-    rtn = rmg.calculate_gradient_across_cell_faces(values_at_nodes, 5, out=out)
+    rtn = rmg.calc_grad_across_cell_faces(values_at_nodes, 5, out=out)
     assert_is(rtn, out)
     assert_array_equal(out, np.array([[1., 5., -1., -5.]]))

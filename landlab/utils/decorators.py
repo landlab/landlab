@@ -1,8 +1,21 @@
-"""General decorators for the landlab library."""
+"""General decorators for the landlab library.
+
+General Landlab decorators
+++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.utils.decorators.use_file_name_or_kwds
+    ~landlab.utils.decorators.use_field_name_or_array
+    ~landlab.utils.decorators.make_return_array_immutable
+    ~landlab.utils.decorators.deprecated
+"""
 
 import os
 import warnings
 from functools import wraps
+import textwrap
 
 import numpy as np
 import six
@@ -234,22 +247,38 @@ def deprecated(use, version):
         A wrapped function that issues a deprecation warning.
     """
     def real_decorator(func):
-        mystring = ("\n*************************\n" +
-                    "This method is deprecated as of Landlab version %s.\n" +
-                    "Use :func:`%s` instead.\n" +
-                    "*************************")
-        try:
-            func.__doc__ = func.__doc__ + mystring % (version, use)
-        except TypeError:
-            func.__doc__ = mystring % (version, use)
+        warning_str = """
+.. note:: This method is deprecated as of Landlab version {ver}.
+
+    Use :func:`{use}` instead.
+
+""".format(ver=version, use=use)
+
+        doc_lines = (func.__doc__ or "").split(os.linesep)
+
+        for lineno, line in enumerate(doc_lines):
+            if len(line.rstrip()) == 0:
+                break
+
+        head = doc_lines[:lineno]
+        body = doc_lines[lineno:]
+
+        head = textwrap.dedent(os.linesep.join(head))
+        body = textwrap.dedent(os.linesep.join(body))
+
+        func.__doc__ = os.linesep.join([head, warning_str, body])
 
         @wraps(func)
         def _wrapped(*args, **kwargs):
-            warnings.warn(
-                message="Call to deprecated function {name}.".format(
-                    name=func.__name__), category=DeprecationWarning)
+            if func.__name__.startswith('_'):
+                pass
+            else:
+                warnings.warn(
+                    message="Call to deprecated function {name}.".format(
+                        name=func.__name__), category=DeprecationWarning)
             return func(*args, **kwargs)
         _wrapped.__dict__.update(func.__dict__)
+
         return _wrapped
 
     return real_decorator

@@ -15,7 +15,7 @@ from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.field.scalar_data_fields import FieldError
 from scipy.optimize import newton, fsolve
 
-UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
+UNDEFINED_INDEX = -1
 
 
 class FastscapeEroder(Component):
@@ -37,8 +37,8 @@ class FastscapeEroder(Component):
 
     This module assumes you have already run
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
-    in the same timestep. It looks for 'upstream_node_order',
-    'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
+    in the same timestep. It looks for 'flow__upstream_node_order',
+    'flow__link_to_receiver_node', 'drainage_area', 'flow__receiver_node', and
     'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
@@ -131,9 +131,9 @@ class FastscapeEroder(Component):
     _input_var_names = (
         'topographic__elevation',
         'drainage_area',
-        'links_to_flow_receiver',
-        'upstream_node_order',
-        'flow_receiver',
+        'flow__link_to_receiver_node',
+        'flow__upstream_node_order',
+        'flow__receiver_node',
     )
 
     _output_var_names = (
@@ -143,17 +143,17 @@ class FastscapeEroder(Component):
     _var_units = {
         'topographic__elevation': 'm',
         'drainage_area': 'm**2',
-        'links_to_flow_receiver': '-',
-        'upstream_node_order': '-',
-        'flow_receiver': '-',
+        'flow__link_to_receiver_node': '-',
+        'flow__upstream_node_order': '-',
+        'flow__receiver_node': '-',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'drainage_area': 'node',
-        'links_to_flow_receiver': 'node',
-        'upstream_node_order': 'node',
-        'flow_receiver': 'node',
+        'flow__link_to_receiver_node': 'node',
+        'flow__upstream_node_order': 'node',
+        'flow__receiver_node': 'node',
     }
 
     _var_doc = {
@@ -161,12 +161,12 @@ class FastscapeEroder(Component):
         'drainage_area':
             "Upstream accumulated surface area contributing to the node's "
             "discharge",
-        'links_to_flow_receiver':
+        'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
-        'upstream_node_order':
+        'flow__upstream_node_order':
             'Node array containing downstream-to-upstream ordered list of '
             'node IDs',
-        'flow_receiver':
+        'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
             'node)',
     }
@@ -213,7 +213,7 @@ class FastscapeEroder(Component):
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
                                                         self.alpha)
 
-        self._grid.diagonal_links_at_node()  # calc number of diagonal links
+        self.grid._diagonal_links_at_node  # calc number of diagonal links
 
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
@@ -294,12 +294,13 @@ class FastscapeEroder(Component):
         grid
             A reference to the grid.
         """
-        upstream_order_IDs = self._grid['node']['upstream_node_order']
+        upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
         z = self._grid['node']['topographic__elevation']
         defined_flow_receivers = numpy.not_equal(self._grid['node'][
-            'links_to_flow_receiver'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid.link_length[self._grid['node'][
-            'links_to_flow_receiver'][defined_flow_receivers]]
+            'flow__link_to_receiver_node'], UNDEFINED_INDEX)
+        flow_link_lengths = self._grid._length_of_link_with_diagonals[
+            self._grid['node']['flow__link_to_receiver_node'][
+                defined_flow_receivers]]
 
         # make arrays from input the right size
         if type(self.K) is numpy.ndarray:
@@ -325,7 +326,7 @@ class FastscapeEroder(Component):
         self.alpha[defined_flow_receivers] = r_i_here**self.m * K_here * dt * \
             self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
-        flow_receivers = self._grid['node']['flow_receiver']
+        flow_receivers = self._grid['node']['flow__receiver_node']
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
 

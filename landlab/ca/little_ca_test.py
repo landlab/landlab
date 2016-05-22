@@ -33,18 +33,17 @@ def setup_transition_list():
     0-1 or 1-0 pairs (50/50 chance) and thence to 1-1 pairs, at which point
     there are no further transitions.
 
-    The states and transitions are as follows:
+    The states and transitions are as follows::
 
-    Pair state      Transition to       Process             Rate (cells/s)
-    ==========      =============       =======             ==============
-    0 (0-0)         1 (0-1)                                 0.5
-                    2 (1-0)                                 0.5
-    1 (0-1)         3 (1-1)                                 1.0
-    2 (1-0)         3 (1-1)                                 1.0
-    3 (1-1)         (none)                                  -
+        Pair state      Transition to       Process             Rate (cells/s)
+        ==========      =============       =======             ==============
+        0 (0-0)         1 (0-1)                                 0.5
+                        2 (1-0)                                 0.5
+        1 (0-1)         3 (1-1)                                 1.0
+        2 (1-0)         3 (1-1)                                 1.0
+        3 (1-1)         (none)                                  -
 
     """
-
     # Create an empty transition list
     xn_list = []
 

@@ -54,27 +54,10 @@ class TestPatchesAtNode():
                            [True,  True, False, False],
                            [True,  True, False,  True]])
 
-    def test_create_masked(self):
+    def test_patches_at_node(self):
         rmg = RasterModelGrid((4, 5))
-        patches_out = rmg.patches_at_node(masked=True)
-
-        assert_array_equal(patches_out.data, self.patch_values)
-
-        assert_array_equal(patches_out.mask, self.patch_mask)
-
-        # check we can change:
-        patches_out2 = rmg.patches_at_node(masked=False)
-        assert_array_equal(patches_out2, patches_out.data)
-
-    def test_create_unmasked(self):
-        rmg = RasterModelGrid((4, 5))
-        patches_out = rmg.patches_at_node(masked=False, nodata='bad_value')
-        patch_values_BAD = self.patch_values.copy()
-        patch_values_BAD[patch_values_BAD == -1] = XX
-        assert_array_equal(patches_out, patch_values_BAD)
-        patches_out2 = rmg.patches_at_node(masked=True, nodata=-1)
-        assert_array_equal(patches_out2.data, self.patch_values)
-        assert_array_equal(patches_out2.mask, self.patch_mask)
+        patches_out = rmg.patches_at_node
+        assert_array_equal(patches_out, self.patch_values)
 
     def test_nodes_at_patch(self):
         rmg = RasterModelGrid((4, 5))
@@ -99,16 +82,19 @@ class TestSlopesAtPatches():
     def test_slopes_at_patches(self):
         rmg = RasterModelGrid((4, 5))
         rmg.at_node['topographic__elevation'] = rmg.node_x.copy()
-        slopes_out = rmg.node_slopes(unit='degrees')
-        assert_array_almost_equal(slopes_out, np.full(20, 45., dtype=float))
+        slopes_out = rmg.calc_slope_at_node()
+        assert_array_almost_equal(slopes_out, np.full(20, np.pi/4.,
+                                  dtype=float))
 
     def test_slopes_at_patches_comps(self):
         rmg = RasterModelGrid((4, 5))
-        rmg.at_node['topographic__elevation'] = rmg.node_x.copy()
-        slopes_out = rmg.node_slopes(unit='radians', return_components=True)
-        assert_array_almost_equal(slopes_out[0].data,
-                                  np.full(20, np.pi / 4., dtype=float))
-        assert_array_almost_equal(slopes_out[1][0].data,
-                                  np.ones(20, dtype=float))
-        assert_array_almost_equal(slopes_out[1][1].data,
+        rmg.at_node['topographic__elevation'] = -rmg.node_y
+        slopes_out = rmg.calc_slope_at_node(
+            rmg.at_node['topographic__elevation'],
+            return_components=True)
+        assert_array_almost_equal(slopes_out[0],
+                                  np.full(20, np.pi/4., dtype=float))
+        assert_array_almost_equal(slopes_out[1][1],
+                                  np.full(20, -np.pi/4., dtype=float))
+        assert_array_almost_equal(slopes_out[1][0],
                                   np.zeros(20, dtype=float))
