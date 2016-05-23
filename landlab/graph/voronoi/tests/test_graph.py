@@ -147,7 +147,7 @@ def test_ridges_at_region():
     ridges_at_region = converter.get_ridges_at_region()
 
     assert_tuple_equal(ridges_at_region.shape, (len(v.regions), 6))
-    assert_is_instance(ridges_at_region[0, 0], int)
+    assert_is_instance(ridges_at_region[0, 0], np.int_)
     assert_array_equal(ridges_at_region[0], [-1] * 6)
 
 

@@ -324,7 +324,8 @@ class VoronoiConverter(object):
         n_regions = self.n_regions
         max_links_per_patch = self.max_patch_size
 
-        ridges_at_region = np.full((n_regions, max_links_per_patch), -1, dtype=int)
+        ridges_at_region = np.full((n_regions, max_links_per_patch), -1,
+                                   dtype=int)
 
         ridge_at_vertices = {}
         for ridge, vertices in enumerate(self._voronoi.ridge_vertices):
