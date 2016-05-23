@@ -56,6 +56,7 @@ their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 from __future__ import division
 
 import numpy as np
+from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 
 
 def map_link_head_node_to_link(grid, var_name, out=None):
@@ -1130,6 +1131,231 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     link_vals_without_invalids[invalid_links] = 0.
     out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
                                         which_link]
+
+    return out
+
+
+def map_mean_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
+                                     out=None):
+    """
+    Map the mean value of nodes around a patch to the patch.
+
+    Construction::
+
+        map_mean_of_patch_nodes_to_patch(grid, var_name,
+                                         ignore_closed_nodes=True, out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at nodes.
+    ignore_closed_nodes : bool
+        If True, do not incorporate closed nodes into calc. If all nodes are
+        masked at a patch, record zero if out is None or leave the existing
+        value if out.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_mean_of_patch_nodes_to_patch
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
+    ...                                 5., 4., 3., 2.,
+    ...                                 3., 2., 1., 0.])
+    >>> map_mean_of_patch_nodes_to_patch(rmg, 'vals')
+    array([ 4.5, 3.5, 2.5,
+            3.5, 2.5, 1.5])
+
+    >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
+    ...                                 5., 4., 3., 2.,
+    ...                                 3., 2., 1., 0.])
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> ans = np.zeros(6, dtype=float)
+    >>> _ = map_mean_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
+    >>> ans # doctest: +NORMALIZE_WHITESPACE
+    array([ 4.5, 4. , 0. ,
+            3.5, 3. , 0. ])
+    """
+    if out is None:
+        out = np.zeros(grid.number_of_patches, dtype=float)
+
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    values_at_nodes = var_name[grid.nodes_at_patch]
+    if ignore_closed_nodes:
+        values_at_nodes = np.ma.masked_where(grid.status_at_node[
+            grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            values_at_nodes, copy=False)
+        meanvals = np.mean(values_at_nodes, axis=1)
+        if type(meanvals.mask) is not np.bool_:
+            gooddata = np.logical_not(meanvals.mask)
+            out[gooddata] = meanvals.data[gooddata]
+        else:
+            if not meanvals.mask:
+                out[:] = meanvals.data
+    else:
+        np.mean(values_at_nodes, axis=1, out=out)
+
+    return out
+
+
+def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
+                                    out=None):
+    """
+    Map the maximum value of nodes around a patch to the patch.
+
+    Construction::
+
+        map_max_of_patch_nodes_to_patch(grid, var_name,
+                                        ignore_closed_nodes=True, out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at nodes.
+    ignore_closed_nodes : bool
+        If True, do not incorporate closed nodes into calc. If all nodes are
+        masked at a patch, record zero if out is None or leave the existing
+        value if out.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_max_of_patch_nodes_to_patch
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
+    ...                                 3., 4., 3., 2.,
+    ...                                 3., 2., 1., 0.])
+    >>> map_max_of_patch_nodes_to_patch(rmg, 'vals')
+    array([ 5., 4., 3.,
+            4., 4., 3.])
+
+    >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
+    ...                                 3., 4., 3., 2.,
+    ...                                 3., 2., 1., 0.])
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> ans = np.zeros(6, dtype=float)
+    >>> _ = map_max_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
+    >>> ans # doctest: +NORMALIZE_WHITESPACE
+    array([ 5., 4., 0.,
+            4., 4., 0.])
+    """
+    if out is None:
+        out = np.zeros(grid.number_of_patches, dtype=float)
+
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    values_at_nodes = var_name[grid.nodes_at_patch]
+    if ignore_closed_nodes:
+        values_at_nodes = np.ma.masked_where(grid.status_at_node[
+            grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            values_at_nodes, copy=False)
+        maxvals = values_at_nodes.max(axis=1)
+        if type(maxvals.mask) is not np.bool_:
+            gooddata = np.logical_not(maxvals.mask)
+            out[gooddata] = maxvals.data[gooddata]
+        else:
+            if not maxvals.mask:
+                out[:] = maxvals.data
+    else:
+        np.amax(values_at_nodes, axis=1, out=out)
+
+    return out
+
+
+def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
+                                    out=None):
+    """
+    Map the minimum value of nodes around a patch to the patch.
+
+    Construction::
+
+        map_min_of_patch_nodes_to_patch(grid, var_name,
+                                        ignore_closed_nodes=True, out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at nodes.
+    ignore_closed_nodes : bool
+        If True, do not incorporate closed nodes into calc. If all nodes are
+        masked at a patch, record zero if out is None or leave the existing
+        value if out.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at nodes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_min_of_patch_nodes_to_patch
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
+    ...                                 5., 4., 3., 2.,
+    ...                                 3., 2., 1., 0.])
+    >>> map_min_of_patch_nodes_to_patch(rmg, 'vals')
+    array([ 4., 3., 2.,
+            2., 1., 0.])
+
+    >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
+    ...                                 5., 4., 3., 2.,
+    ...                                 3., 2., 1., 0.])
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> ans = np.zeros(6, dtype=float)
+    >>> _ = map_min_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
+    >>> ans # doctest: +NORMALIZE_WHITESPACE
+    array([ 4., 4., 0.,
+            2., 2., 0.])
+    """
+    if out is None:
+        out = np.zeros(grid.number_of_patches, dtype=float)
+
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+    values_at_nodes = var_name[grid.nodes_at_patch]
+    if ignore_closed_nodes:
+        values_at_nodes = np.ma.masked_where(grid.status_at_node[
+            grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            values_at_nodes, copy=False)
+        minvals = values_at_nodes.min(axis=1)
+        if type(minvals.mask) is not np.bool_:
+            gooddata = np.logical_not(minvals.mask)
+            out[gooddata] = minvals.data[gooddata]
+        else:
+            if not minvals.mask:
+                out[:] = minvals.data
+    else:
+        np.amin(values_at_nodes, axis=1, out=out)
 
     return out
 
