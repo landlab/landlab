@@ -2466,6 +2466,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         The array is the same shape as :func:`patches_at_node`, and is designed
         to mask it.
 
+        Note that in cases where patches may have more than 3 nodes (e.g.,
+        rasters), a patch is considered still present as long as at least 3
+        open nodes are present.
+
         Examples
         --------
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
@@ -2561,9 +2565,17 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         Call whenever boundary conditions are updated on the grid.
         """
+        from landlab import RasterModelGrid, VoronoiDelaunayGrid
         node_status_at_patch = self.status_at_node[self.nodes_at_patch]
+        if isinstance(self, RasterModelGrid):
+            max_nodes_at_patch = 4
+        elif isinstance(self, VoronoiDelaunayGrid):
+            max_nodes_at_patch = 3
+        else:
+            max_nodes_at_patch = (self.nodes_at_patch > -1).sum(axis=1)
         any_node_at_patch_closed = (node_status_at_patch ==
-                                    CLOSED_BOUNDARY).sum(axis=1) > 0
+                                    CLOSED_BOUNDARY).sum(axis=1) > (
+                                        max_nodes_at_patch - 3)
         absent_patches = any_node_at_patch_closed[self.patches_at_node]
         bad_patches = numpy.logical_or(absent_patches,
                                        self.patches_at_node == -1)
