@@ -2690,16 +2690,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
+        Since LL version 1, this method is unaffected by the existance or
+        otherwise of diagonal links on the grid:
+
         >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
         >>> _ = grid._diagonal_links_at_node
         >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
-        array([ 3.,  3.,  4.,  4.,  4.,
-                3.,  3.,  4.,  4.,  4.,
-                3.,  3.,  5.,  5.,  5.,
-                5.,  5.,  5.,  5.,  5.])
+        array([ 3.,  3.,  4.,  4.,  4.,  3.,  3.,  4.,  4.,  4.,  3.,  3.])
         """
         if self._link_length is None:
-            return self._create_length_of_link()
+            self._create_length_of_link()
+            return self._link_length[:self.number_of_links]
         else:
             return self._link_length[:self.number_of_links]
 
@@ -2727,15 +2728,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
-        >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
-        >>> _ = grid._diagonal_links_at_node
-        >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
-        array([ 3.,  3.,  4.,  4.,  4.,
-                3.,  3.,  4.,  4.,  4.,
-                3.,  3.,  5.,  5.,  5.,
+        >>> grid._length_of_link_with_diagonals # doctest: +NORMALIZE_WHITESPACE
+        array([ 4.,  4.,  3.,  3.,  3.,
+                4.,  4.,  3.,  3.,  3.,
+                4.,  4.,  5.,  5.,  5.,
                 5.,  5.,  5.,  5.,  5.])
         """
         if self._link_length is None:
@@ -2750,7 +2750,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
-        >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
+        >>> grid._create_length_of_link()[
+        ...     :grid.number_of_links] # doctest: +NORMALIZE_WHITESPACE
         array([ 3., 3., 3.,
                 2., 2., 2., 2.,
                 3., 3., 3.,
@@ -2759,11 +2760,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
         >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
-        array([ 2., 2.,
-                1., 1., 1.,
-                2., 2.,
-                1., 1., 1.,
-                2., 2.])
+        array([ 2.        ,  2.        ,  1.        ,  1.        ,
+                1.        ,  2.        ,  2.        ,  1.        ,
+                1.        ,  1.        ,  2.        ,  2.        ,
+                2.23606798,  2.23606798,  2.23606798,  2.23606798,
+                2.23606798,  2.23606798,  2.23606798,  2.23606798])
 
         Notes
         -----
@@ -2771,13 +2772,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the horizontal links in that row to dx.
         """
         if self._link_length is None:
-            if self._diagonal_links_created:
-                self._link_length = np.empty(
-                    self.number_of_links + self._number_of_diagonal_links)
-                self._link_length[self.number_of_links:] = np.sqrt(
-                    self._dy ** 2. + self._dx ** 2.)
-            else:
-                self._link_length = self.empty(centering='link', dtype=float)
+            self._create_diag_links_at_node()
+            self._link_length = np.empty(
+                self.number_of_links + self._number_of_diagonal_links)
+            self._link_length[self.number_of_links:] = np.sqrt(
+                self._dy ** 2. + self._dx ** 2.)
 
             vertical_links = squad_links.vertical_link_ids(self.shape)
 
