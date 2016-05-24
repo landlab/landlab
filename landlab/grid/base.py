@@ -2033,12 +2033,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def angle_of_link(self, links, dirs):
+    def angle_of_link(self, links='all', dirs=-1):
         """Find and return the angle of link(s) in given direction.
 
         Parameters
         ----------
-        links : 1d numpy array
+        links : 1d numpy array or 'all'
             one or more link IDs
         dirs : 1d numpy array (must be same length as links)
             direction of links relative to node: +1 means head is origin;
@@ -2053,11 +2053,29 @@ class ModelGrid(ModelDataFieldsMixIn):
         negative and clockwise from the positive x axis. We want them
         counter-clockwise, which is what the last couple of lines before
         the return statement do.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 2)
+        >>> mg.angle_of_link() / np.pi * 3.  # 60 degree segments
+        array([ 0.,  2.,  1.,  2.,  1.,  0.,  0.,  1.,  2.,  1.,  2.,  0.])
+
+         First 3 links only, angle from head this time:
+
+        >>> mg.angle_of_link(np.arange(3), 1.) / np.pi * 3.
+        array([ 3.,  5.,  4.])
         """
-        dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
-                      self.node_x[self.node_at_link_tail[links]])
-        dy = -dirs * (self.node_y[self.node_at_link_head[links]] -
-                      self.node_y[self.node_at_link_tail[links]])
+        if links != 'all':
+            dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
+                          self.node_x[self.node_at_link_tail[links]])
+            dy = -dirs * (self.node_y[self.node_at_link_head[links]] -
+                          self.node_y[self.node_at_link_tail[links]])
+        else:
+            dx = -dirs * (self.node_x[self.node_at_link_head] -
+                          self.node_x[self.node_at_link_tail])
+            dy = -dirs * (self.node_y[self.node_at_link_head] -
+                          self.node_y[self.node_at_link_tail])
         ang = np.arctan2(dy, dx)
         (lower_two_quads, ) = np.where(ang < 0.0)
         ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
