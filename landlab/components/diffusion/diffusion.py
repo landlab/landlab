@@ -34,7 +34,7 @@ class LinearDiffuser(Component):
 
     Construction::
 
-        LinearDiffuser(grid, linear_diffusivity=None)
+        LinearDiffuser(grid, linear_diffusivity=None, method='simple')
 
     Parameters
     ----------
@@ -42,6 +42,14 @@ class LinearDiffuser(Component):
         A grid.
     linear_diffusivity : float, array, or field name (m**2/time)
         The diffusivity.
+    method : {'simple', 'resolve_on_patches'}
+        The method used to represent the fluxes. 'simple' solves a finite
+        difference method with a simple staggered grid scheme onto the links.
+        'resolve_on_patches' solves the scheme by mapping both slopes and
+        diffusivities onto the patches and solving there before resolving
+        values back to the nodes. This latter technique is more computationally
+        expensive, but can suppress cardinal direction artifacts if diffusion
+        is performed on a raster.
 
     Examples
     --------
@@ -98,8 +106,14 @@ class LinearDiffuser(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, linear_diffusivity=None, **kwds):
+    def __init__(self, grid, linear_diffusivity=None, method='simple',
+                 **kwds):
         self._grid = grid
+        assert method in ('simple', 'resolve_on_patches')
+        if method == 'simple':
+            self._use_patches = False
+        else:
+            self._use_patches = True
         self.current_time = 0.
         if linear_diffusivity is not None:
             if type(linear_diffusivity) is not str:
@@ -162,7 +176,7 @@ class LinearDiffuser(Component):
                                          noclobber=True)
             # ^note this will object if this exists already
         except FieldError:
-            self.g = self.grid.at_link['topographic__gradient'] # keep a ref
+            self.g = self.grid.at_link['topographic__gradient']  # keep a ref
         try:
             self.qs = self.grid.add_field('link', 'unit_flux', qs,
                                           noclobber=True)
@@ -246,18 +260,43 @@ class LinearDiffuser(Component):
             kd_activelinks = self.kd
 
         for i in range(repeats+1):
-            # Calculate the gradients and sediment fluxes
-            self.g[self.grid.active_links] = \
-                    self.grid.calc_grad_at_link(z)[self.grid.active_links]
-            # if diffusivity is an array, self.kd is already active_links-long
-            self.qs[self.grid.active_links] = (-kd_activelinks *
-                                               self.g[self.grid.active_links])
+            if not self._use_patches:
+                # Calculate the gradients and sediment fluxes
+                self.g[self.grid.active_links] = \
+                        self.grid.calc_grad_at_link(z)[self.grid.active_links]
+                # if diffusivity is an array, self.kd is already
+                # active_links-long
+                self.qs[self.grid.active_links] = (
+                    -kd_activelinks * self.g[self.grid.active_links])
 
-            # Calculate the net deposition/erosion rate at each node
-            self.dqsds = self.grid.calc_flux_div_at_node(self.qs)
+                # Calculate the net deposition/erosion rate at each node
+                self.dqsds = self.grid.calc_flux_div_at_node(self.qs)
+            else:
+                (dzdx_at_patch,
+                 dzdy_at_patch) = self.grid.calc_grad_at_patch(z)
+                K_at_patch = self.grid.map_mean_of_patch_nodes_to_patch(
+                    self.kd)
+                qs_EW_patch = -K_at_patch * dzdx_at_patch
+                qs_NS_patch = -K_at_patch * dzdy_at_patch
+                # map onto the links:
+                num_patches_per_link = (self.grid.patches_at_link != -1).sum(
+                    axis=1)
+                qs_EW_at_link = (qs_EW_patch[self.grid.patches_at_link] *
+                                 self.grid.patches_present_at_link).sum(
+                    axis=1)/num_patches_per_link
+                qs_NS_at_link = (qs_NS_patch[self.grid.patches_at_link] *
+                                 self.grid.patches_present_at_link).sum(
+                    axis=1)/num_patches_per_link
+                # zero any with no patches:
+                no_patches = (num_patches_per_link == 0)
+                if np.any(no_patches):
+                    qs_EW_at_link[no_patches] = 0.
+                    qs_NS_at_link[no_patches] = 0.
+                dqsds_EW = self.grid.calc_flux_div_at_node(qs_EW_at_link)
+                dqsds_NS = self.grid.calc_flux_div_at_node(qs_NS_at_link)
+                self.dqsds = np.sqrt(np.square(dqsds_EW) + np.square(dqsds_NS))
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
-
             # Update the elevations
             timestep = self.dt
             if i == (repeats):
