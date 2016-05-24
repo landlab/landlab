@@ -7,45 +7,66 @@
 #################################################################
 
 from landlab import Component
-
+from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
 _VALID_METHODS = set(['Grid', 'Multi'])
+
 
 def assert_method_is_valid(method):
     if method not in _VALID_METHODS:
         raise ValueError('%s: Invalid method name' % method)
 
+
 class SoilMoisture( Component ):
 
     _name = 'Soil Moisture'
 
-    _input_var_names = set([
-        'VegetationCover',
-        'LiveLeafAreaIndex',
-        'PotentialEvapotranspiraton',
-    ])
+    _input_var_names = (
+        'vegetation__cover_fraction',
+        'vegetation__live_leaf_area_index',
+        'surface__potential_evapotranspiration_rate',
+    )
 
-    _output_var_names = set([
+    _output_var_names = (
         'WaterStress',
         'SaturationFraction',
         'Drainage',
         'Runoff',
         'ActualEvapotranspiration',
-    ])
+    )
 
     _var_units = {
-        'VegetationCover' : 'None',
-        'LiveLeafAreaIndex': 'None',
-        'PotentialEvapotranspiraton' : 'mm',
+        'vegetation__cover_fraction' : 'None',
+        'vegetation__live_leaf_area_index': 'None',
+        'surface__potential_evapotranspiration_rate' : 'mm',
         'WaterStress' : 'Pa',
         'SaturationFraction' : 'None',
         'Drainage' : 'mm',
         'Runoff' : 'mm',
         'ActualEvapotranspiration' : 'mm',
     }
+    
+    _var_mapping = {
+        'topographic__elevation': 'node',
+        'radiation__incoming_shortwave': 'cell',
+        'radiation__ratio_to_flat_surface': 'cell',
+        'radiation__net_shortwave': 'cell',
+    }
+    
+    _var_doc = {
+        'topographic__elevation':
+            'elevation of the ground surface relative to some datum',
+        'radiation__incoming_shortwave':
+            'total incident shortwave radiation over the time step',
+        'radiation__ratio_to_flat_surface':
+            'ratio of total incident shortwave radiation on sloped surface \
+             to flat surface',
+        'radiation__net_shortwave':
+            'net incident shortwave radiation over the time step',
+    }
 
-
+    @use_file_name_or_kwds
     def __init__( self, grid, data, **kwds ):
 
         self._method = kwds.pop('method', 'Grid')
@@ -133,13 +154,13 @@ class SoilMoisture( Component ):
         Tr = kwds.pop('Tr', 0.0)
         self._PET = self._cell_values['PotentialEvapotranspiration']
         self._SO = self._cell_values['InitialSaturationFraction']
-        self._vegcover = self._cell_values['VegetationCover']
+        self._vegcover = self._cell_values['vegetation__cover_fraction']
         self._water_stress = self._cell_values['WaterStress']
         self._S = self._cell_values['SaturationFraction']
         self._D = self._cell_values['Drainage']
         self._ETA = self._cell_values['ActualEvapotranspiration']
-        self._fr = self._cell_values['LiveLeafAreaIndex']/self._LAIR_max
-        #LAIl = self._cell_values['LiveLeafAreaIndex']
+        self._fr = self._cell_values['vegetation__live_leaf_area_index']/self._LAIR_max
+        #LAIl = self._cell_values['vegetation__live_leaf_area_index']
         #LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         #if LAIt.all() == 0.:
         #    self._fr = np.zeros(self.grid.number_of_cells)
