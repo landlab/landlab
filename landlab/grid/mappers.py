@@ -56,7 +56,7 @@ their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 from __future__ import division
 
 import numpy as np
-from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY, INACTIVE_LINK
 
 
 def map_link_head_node_to_link(grid, var_name, out=None):
@@ -1161,7 +1161,7 @@ def map_mean_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     Returns
     -------
     ndarray
-        Mapped values at nodes.
+        Mapped values at patches.
 
     Examples
     --------
@@ -1236,7 +1236,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     Returns
     -------
     ndarray
-        Mapped values at nodes.
+        Mapped values at patches.
 
     Examples
     --------
@@ -1311,7 +1311,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     Returns
     -------
     ndarray
-        Mapped values at nodes.
+        Mapped values at patches.
 
     Examples
     --------
@@ -1356,6 +1356,128 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
                 out[:] = minvals.data
     else:
         np.amin(values_at_nodes, axis=1, out=out)
+
+    return out
+
+
+def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
+                                 out=None):
+    """
+    Map the vector sum of links around a patch to the patch.
+
+    The resulting vector is returned as a length-2 list, with the two
+    items being arrays of the x component and the y component of the resolved
+    vectors at the patches, respectively.
+
+    Construction::
+
+        map_link_vector_sum_to_patch(grid, var_name, ignore_inctive_links=True,
+                                     out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at links.
+    ignore_inactive_links : bool
+        If True, do not incorporate inactive links into calc. If all links are
+        inactive at a patch, record zero if out is None or leave the existing
+        value if out.
+    out : len-2 list of npatches-long arrays, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    len-2 list of arrays
+        [x_component_of_link_vals_at_patch, y_component_of_link_vals_at_patch].
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_link_vector_sum_to_patch
+    >>> from landlab import HexModelGrid
+    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE, INACTIVE_LINK
+
+    >>> mg = HexModelGrid(4, 3)
+    >>> interior_nodes = mg.status_at_node == CORE_NODE
+    >>> exterior_nodes = mg.status_at_node != CORE_NODE
+
+    Add a ring of closed nodes at the edge:
+
+    >>> mg.status_at_node[exterior_nodes] = CLOSED_BOUNDARY
+
+    This gives us 5 core nodes, 7 active links, and 3 present patches
+
+    >>> (mg.number_of_core_nodes == 5 and mg.number_of_active_links == 7)
+    True
+    >>> A = mg.add_ones('link', 'vals')
+    >>> A.fill(9.)  # any old values on the inactive links
+    >>> A[mg.active_links] = np.array([ 1., -1.,  1., -1., -1., -1., -1.])
+
+    This setup should give present patch 0 pure east, patch 1 zero (vorticity),
+    and patch 2 westwards and downwards components.
+
+    >>> xcomp, ycomp = map_link_vector_sum_to_patch(mg, 'vals')
+    >>> np.allclose(xcomp[[6, 9, 10]], [2., 0., -1])
+    True
+    >>> np.allclose(ycomp[[6, 9, 10]]/np.sqrt(3.), [0., 0., -1.])
+    True
+
+    These are the patches with INACTIVE_LINKs on all three sides:
+
+    >>> absent_patches = np.array([0, 1, 2, 4, 8, 11, 12, 15, 16, 17, 18])
+    >>> np.allclose(xcomp[absent_patches], 0.)
+    True
+    >>> np.allclose(ycomp[absent_patches], 0.)
+    True
+
+    Now demonstrate the remaining functionality:
+
+    >>> A = mg.at_link['vals'].copy()
+    >>> A.fill(1.)
+    >>> _ = map_link_vector_sum_to_patch(mg, A, ignore_inactive_links=False,
+    ...                                  out=[xcomp, ycomp])
+    >>> np.allclose(xcomp[absent_patches], 0.)
+    False
+    >>> np.allclose(ycomp[absent_patches], 0.)
+    False
+    """
+    if out is None:
+        out = [np.zeros(grid.number_of_patches, dtype=float),
+               np.zeros(grid.number_of_patches, dtype=float)]
+    else:
+        assert len(out) == 2
+
+    if type(var_name) is str:
+        var_name = grid.at_link[var_name]
+    angles_at_links = grid.angle_of_link()  # CCW round tail
+    hoz_cpt = np.cos(angles_at_links)
+    vert_cpt = np.sin(angles_at_links)
+    hoz_vals = var_name * hoz_cpt
+    vert_vals = var_name * vert_cpt
+    hoz_vals_at_patches = hoz_vals[grid.links_at_patch]
+    vert_vals_at_patches = vert_vals[grid.links_at_patch]
+    if ignore_inactive_links:
+        linkmask = grid.status_at_link[grid.links_at_patch] == INACTIVE_LINK
+        hoz_vals_at_patches = np.ma.array(hoz_vals_at_patches, mask=linkmask,
+                                          copy=False)
+        vert_vals_at_patches = np.ma.array(vert_vals_at_patches, mask=linkmask,
+                                           copy=False)
+        hoz_sum = np.sum(hoz_vals_at_patches, axis=1)
+        vert_sum = np.sum(vert_vals_at_patches, axis=1)
+        if type(hoz_sum.mask) is not np.bool_:  # the 2 comps have same mask
+            gooddata = np.logical_not(hoz_sum.mask)
+            out[0][gooddata] = hoz_sum.data[gooddata]
+            out[1][gooddata] = vert_sum.data[gooddata]
+        else:
+            if not hoz_sum.mask:
+                out[0][:] = hoz_sum.data
+                out[1][:] = vert_sum.data
+
+    else:
+        hoz_sum = np.sum(hoz_vals_at_patches, axis=1, out=out[0])
+        vert_sum = np.sum(vert_vals_at_patches, axis=1, out=out[1])
 
     return out
 
