@@ -294,7 +294,7 @@ class LinearDiffuser(Component):
                     qs_NS_at_link[no_patches] = 0.
                 dqsds_EW = self.grid.calc_flux_div_at_node(qs_EW_at_link)
                 dqsds_NS = self.grid.calc_flux_div_at_node(qs_NS_at_link)
-                self.dqsds = np.sqrt(np.square(dqsds_EW) + np.square(dqsds_NS))
+                self.dqsds = dqsds_EW + dqsds_NS
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
             # Update the elevations
