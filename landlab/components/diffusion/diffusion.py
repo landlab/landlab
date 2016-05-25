@@ -40,8 +40,9 @@ class LinearDiffuser(Component):
     ----------
     grid : ModelGrid
         A grid.
-    linear_diffusivity : float, array, or field name (m**2/time)
-        The diffusivity.
+    linear_diffusivity : float, array, len-2 list, or field name (m**2/time)
+        The diffusivity. If a len-2 tuple, must be contain 2 nnodes-long arrays
+        giving diffusivity vector components at each node, [x_diff, y_diff].
     method : {'simple', 'resolve_on_patches'}
         The method used to represent the fluxes. 'simple' solves a finite
         difference method with a simple staggered grid scheme onto the links.
@@ -117,9 +118,31 @@ class LinearDiffuser(Component):
         self.current_time = 0.
         if linear_diffusivity is not None:
             if type(linear_diffusivity) is not str:
-                self.kd = linear_diffusivity
+                if len(linear_diffusivity) is not 2:
+                    self._kd = linear_diffusivity
+                    if type(self._kd) in (float, int):
+                        self._use_patch_kd = False
+                        if type(self._kd) is int:
+                            self._kd = float(self._kd)
+                    else:
+                        if self._kd.size == self.grid.number_of_nodes:
+                            self._use_patch_kd = False
+                        elif self._kd.size == self.grid.number_of_links:
+                            self._use_patch_kd = True
+                else:
+                    assert linear_diffusivity[
+                        0].size == self.grid.number_of_nodes
+                    assert linear_diffusivity[
+                        1].size == self.grid.number_of_nodes
+                    self._kd = list(linear_diffusivity)
+                    self._use_patch_kd = True
             else:
-                self.kd = self.grid.at_node[linear_diffusivity]
+                try:
+                    self._kd = self.grid.at_link[linear_diffusivity]
+                    self._use_patch_kd = True
+                except KeyError:
+                    self._kd = self.grid.at_node[linear_diffusivity]
+                    self._use_patch_kd = False
         else:
             raise KeyError("linear_diffusivity must be provided to the " +
                            "LinearDiffuser component")
@@ -151,19 +174,26 @@ class LinearDiffuser(Component):
         #   adaptive/changing
         # as of modern componentization (Spring '16), this can take arrays
         # and irregular grids
-        if type(self.kd) not in (int, float):
-            assert len(self.kd) == self.grid.number_of_nodes, self.kd
-            kd_links = self.grid.map_max_of_link_nodes_to_link(self.kd)
+        if type(self._kd) not in (float, list):
+            if self._kd.size == self.grid.number_of_nodes:
+                kd_links = self.grid.map_max_of_link_nodes_to_link(self._kd)
+            else:  # explicit length check already applied above
+                kd_links = self._kd
         else:
-            kd_links = float(self.kd)
+            if type(self._kd) is float:
+                kd_links = float(self._kd)
+            else:
+                kd_links = self.grid.map_max_of_link_nodes_to_link(
+                    np.sqrt(self._kd[0]**2 + self._kd[1]**2))
         # assert CFL condition:
-        CFL_prefactor = _ALPHA * self.grid.link_length[
+        CFL_prefactor = _ALPHA * self.grid.length_of_link[
             :self.grid.number_of_links] ** 2.
         # ^ link_length can include diags, if not careful...
         self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
         # ^note we can do this as topology shouldn't be changing
-        dt_links = CFL_prefactor / kd_links
-        self.dt = np.amin(dt_links[self.grid.active_links])
+        dt_links = self._CFL_actives_prefactor / kd_links[
+            self.grid.active_links]
+        self.dt = np.nanmin(dt_links)
 
         # Get a list of interior cells
         self.interior_cells = self.grid.node_at_core_cell
@@ -187,6 +217,10 @@ class LinearDiffuser(Component):
 
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
+
+        self._angle_of_link = self.grid.angle_of_link()
+        self._vertlinkcomp = np.sin(self._angle_of_link)
+        self._hozlinkcomp = np.cos(self._angle_of_link)
 
     def updated_boundary_conditions(self):
         """Call if grid BCs are updated after component instantiation.
@@ -242,29 +276,74 @@ class LinearDiffuser(Component):
         if 'internal_uplift' in kwds.keys():
             raise KeyError('LinearDiffuser can no longer work with internal ' +
                            'uplift')
+        z = self.grid.at_node[self.values_to_diffuse]
+
+        core_nodes = self.grid.node_at_core_cell
+        # do mapping of array kd here, in case it points at an updating
+        # field:
+        if type(self._kd) is np.ndarray:
+            if not self._use_patch_kd:
+                assert self._kd.size == self.grid.number_of_nodes
+                kd_activelinks = self.grid.map_max_of_link_nodes_to_link(
+                    self._kd)[self.grid.active_links]
+            else:
+                assert self._kd.size == self.grid.number_of_links
+                kd_activelinks = self._kd[self.grid.active_links]
+            # re-derive CFL condition, as could change dynamically:
+            dt_links = self._CFL_actives_prefactor / kd_activelinks
+            self.dt = np.nanmin(dt_links)
+        else:
+            if type(self._kd) is list:
+                kd_activelinks = self.grid.map_max_of_link_nodes_to_link(
+                    np.sqrt(self._kd[0]**2 + self._kd[1]**2))[
+                        self.grid.active_links]
+            else:
+                kd_activelinks = self._kd
+            # re-derive CFL condition, as could change dynamically:
+            dt_links = self._CFL_actives_prefactor / kd_activelinks
+            self.dt = np.nanmin(dt_links)
+
         # Take the smaller of delt or built-in time-step size self.dt
         self.tstep_ratio = dt/self.dt
         repeats = int(self.tstep_ratio//1.)
         extra_time = self.tstep_ratio - repeats
-        z = self.grid.at_node[self.values_to_diffuse]
 
-        core_nodes = self.grid.node_at_core_cell
-        # do mapping of array kd here, in case it points at an updating field:
-        if type(self.kd) is np.ndarray:
-            kd_activelinks = self.grid.map_max_of_link_nodes_to_link(
-                self.kd)[self.grid.active_links]
-            # re-derive CFL condition, as could change dynamically:
-            dt_links = self._CFL_actives_prefactor / kd_activelinks
-            self.dt = dt_links.min()
+        # Can really get into trouble if no diffusivity happens but we run...
+        if self.dt < np.inf:
+            loops = repeats+1
         else:
-            kd_activelinks = self.kd
-
-        for i in range(repeats+1):
-            if not self._use_patches:
+            loops = 0
+        for i in range(loops):
+            if not self._use_patch_kd:
                 # Calculate the gradients and sediment fluxes
-                self.g[self.grid.active_links] = \
-                        self.grid.calc_grad_at_link(z)[self.grid.active_links]
-                # if diffusivity is an array, self.kd is already
+                if self._use_patches:
+                    (dzdx_at_patch,
+                     dzdy_at_patch) = self.grid.calc_grad_at_patch(
+                        self.values_to_diffuse)
+                    num_patches_per_link = (
+                        self.grid.patches_at_link != -1).sum(axis=1)
+                    # map onto the links:
+                    dzdx_at_link = (dzdx_at_patch[self.grid.patches_at_link] *
+                                    self.grid.patches_present_at_link).sum(
+                        axis=1)/num_patches_per_link  # a mean
+                    dzdy_at_link = (dzdy_at_patch[self.grid.patches_at_link] *
+                                    self.grid.patches_present_at_link).sum(
+                        axis=1)/num_patches_per_link
+                    # zero any with no patches:
+                    no_patches = (num_patches_per_link == 0)
+                    if np.any(no_patches):
+                        dzdx_at_link[no_patches] = 0.
+                        dzdy_at_link[no_patches] = 0.
+                    vector_angle = np.arctan2(dzdy_at_link, dzdx_at_link)
+                    resolving_fraction = np.cos(vector_angle -
+                                                self._angle_of_link)
+                    vector_mag = np.sqrt(dzdy_at_link**2 + dzdx_at_link**2)
+                    np.multiply(resolving_fraction, vector_mag, out=self.g)
+                else:
+                    self.g[self.grid.active_links] = \
+                            self.grid.calc_grad_at_link(z)[
+                                self.grid.active_links]
+                # if diffusivity is an array, self._kd is already
                 # active_links-long
                 self.qs[self.grid.active_links] = (
                     -kd_activelinks * self.g[self.grid.active_links])
@@ -272,29 +351,63 @@ class LinearDiffuser(Component):
                 # Calculate the net deposition/erosion rate at each node
                 self.dqsds = self.grid.calc_flux_div_at_node(self.qs)
             else:
+                # print(self.grid.at_node['topographic__elevation'])
                 (dzdx_at_patch,
-                 dzdy_at_patch) = self.grid.calc_grad_at_patch(z)
-                K_at_patch = self.grid.map_mean_of_patch_nodes_to_patch(
-                    self.kd)
-                qs_EW_patch = -K_at_patch * dzdx_at_patch
-                qs_NS_patch = -K_at_patch * dzdy_at_patch
-                # map onto the links:
-                num_patches_per_link = (self.grid.patches_at_link != -1).sum(
-                    axis=1)
-                qs_EW_at_link = (qs_EW_patch[self.grid.patches_at_link] *
-                                 self.grid.patches_present_at_link).sum(
-                    axis=1)/num_patches_per_link
-                qs_NS_at_link = (qs_NS_patch[self.grid.patches_at_link] *
-                                 self.grid.patches_present_at_link).sum(
-                    axis=1)/num_patches_per_link
-                # zero any with no patches:
-                no_patches = (num_patches_per_link == 0)
-                if np.any(no_patches):
-                    qs_EW_at_link[no_patches] = 0.
-                    qs_NS_at_link[no_patches] = 0.
-                dqsds_EW = self.grid.calc_flux_div_at_node(qs_EW_at_link)
-                dqsds_NS = self.grid.calc_flux_div_at_node(qs_NS_at_link)
-                self.dqsds = dqsds_EW + dqsds_NS
+                 dzdy_at_patch) = self.grid.calc_grad_at_patch(
+                    self.values_to_diffuse)
+                self.dzdx_at_patch = dzdx_at_patch
+                self.dzdy_at_patch = dzdy_at_patch
+                num_patches_per_link = (
+                    self.grid.patches_at_link != -1).sum(axis=1)
+
+                if type(self._kd) is not list:
+                    # map onto the links:
+                    dzdx_at_link = (dzdx_at_patch[self.grid.patches_at_link] *
+                                    self.grid.patches_present_at_link).sum(
+                        axis=1)/num_patches_per_link  # a mean
+                    dzdy_at_link = (dzdy_at_patch[self.grid.patches_at_link] *
+                                    self.grid.patches_present_at_link).sum(
+                        axis=1)/num_patches_per_link
+                    # zero any with no patches:
+                    no_patches = (num_patches_per_link == 0)
+                    if np.any(no_patches):
+                        dzdx_at_link[no_patches] = 0.
+                        dzdy_at_link[no_patches] = 0.
+                    # hopefully here the minus signs resolve themselves...
+                    qs_EW_at_link = -(np.fabs(self._kd * self._hozlinkcomp) *
+                                      dzdx_at_link)
+                    qs_NS_at_link = -(np.fabs(self._kd * self._vertlinkcomp) *
+                                      dzdx_at_link)
+                else:
+                    # map the resolved diffusivities to the patches:
+                    kd_x_at_patch = self.grid.map_mean_of_patch_nodes_to_patch(
+                        self._kd[0])
+                    kd_y_at_patch = self.grid.map_mean_of_patch_nodes_to_patch(
+                        self._kd[1])
+                    qs_EW_at_patch = -np.fabs(kd_x_at_patch)*dzdx_at_patch
+                    qs_NS_at_patch = -np.fabs(kd_y_at_patch)*dzdy_at_patch
+                    # map these to the links:
+                    qs_EW_at_link = (
+                        qs_EW_at_patch[self.grid.patches_at_link] *
+                        self.grid.patches_present_at_link).sum(
+                            axis=1)/num_patches_per_link  # a mean
+                    qs_NS_at_link = (
+                        qs_NS_at_patch[self.grid.patches_at_link] *
+                        self.grid.patches_present_at_link).sum(
+                            axis=1)/num_patches_per_link
+                    # zero any with no patches:
+                    no_patches = (num_patches_per_link == 0)
+                    if np.any(no_patches):
+                        qs_EW_at_link[no_patches] = 0.
+                        qs_NS_at_link[no_patches] = 0.
+                # now project the vector back onto the link. Only flux
+                # parallel to the link can cross the face.
+                vector_angle = np.arctan2(qs_NS_at_link, qs_EW_at_link)
+                resolving_fraction = np.cos(vector_angle - self._angle_of_link)
+                vector_mag = np.sqrt(qs_NS_at_link**2 + qs_EW_at_link**2)
+                flux_along_link = resolving_fraction * vector_mag
+                self.dqsds = self.grid.calc_flux_div_at_node(flux_along_link)
+
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
             # Update the elevations

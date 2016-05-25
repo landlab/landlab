@@ -49,7 +49,6 @@ class PotentialityFlowRouter(Component):
                          'water__discharge_y_component',
                          'flow__potential',
                          'water__depth',
-                         'water__discharge',
                          )
 
     _var_units = {'topographic__elevation' : 'm',
@@ -59,7 +58,6 @@ class PotentialityFlowRouter(Component):
                   'water__discharge_y_component' : 'm**3/s',
                   'flow__potential' : 'm**3/s',
                   'water__depth': 'm',
-                  'water__discharge' : 'm**3/s',
                   }
 
     _var_mapping = {'topographic__elevation' : 'node',
@@ -69,7 +67,6 @@ class PotentialityFlowRouter(Component):
                   'water__discharge_y_component' : 'node',
                   'flow__potential' : 'node',
                   'water__depth': 'node',
-                  'water__discharge' : 'link',
                   }
 
     _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
@@ -79,7 +76,6 @@ class PotentialityFlowRouter(Component):
                   'water__discharge_y_component' : 'y component of resolved water flux through node',
                   'flow__potential' : 'Value of the hypothetical field "K", used to force water flux to flow downhill',
                   'water__depth': 'If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface',
-                  'water__discharge' : 'Water fluxes on links',
                   }
 
     _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
@@ -192,12 +188,8 @@ class PotentialityFlowRouter(Component):
                 self.grid.add_zeros('node', 'water__discharge', dtype=float)
             except FieldError:
                 pass
-            try:
-                self.grid.add_zeros('link', 'water__discharge', dtype=float)
-            except FieldError:
-                pass
 
-        #make and store a 2d reference for node BCs
+        # make and store a 2d reference for node BCs
         self._BCs = 4*np.ones_like(self.elev_raster)
         self._BCs[self._core].flat = self._grid.status_at_node
         BCR = self._BCs  # for conciseness below
@@ -471,6 +463,8 @@ class PotentialityFlowRouter(Component):
                 self._xdirfluxout += mod*array[core]
             for (array, mod) in zip(outdirs, ydir_mod_out):
                 self._ydirfluxout += mod*array[core]
+            self._xdirfluxout *= K[core]
+            self._ydirfluxout *= K[core]
             # now in
             self._xdirfluxin.fill(0.)
             self._ydirfluxin.fill(0.)
@@ -490,52 +484,52 @@ class PotentialityFlowRouter(Component):
             # so...
             mean_x = self._xdirfluxin + self._xdirfluxout
             mean_y = self._ydirfluxin + self._ydirfluxout
-            apparent_flux = np.sqrt(mean_x*mean_x + mean_y*mean_y)
+            apparent_flux = np.sqrt(mean_x**2 + mean_y**2)
             degenerate_fluxes = np.equal(apparent_flux, 0.)
-            if np.any(degenerate_fluxes):
-                # THIS PART HAS NOT BEEN TESTED
-                defined_fluxes = np.logical_not(degenerate_fluxes)
+            # NEW
+            self.grid.at_node['water__discharge_x_component'][:] = self._xdirfluxout.flat
+            self.grid.at_node['water__discharge_y_component'][:] = self._ydirfluxout.flat
+            self.grid.at_node['water__discharge_x_component'] *= 2.
+            self.grid.at_node['water__discharge_y_component'] *= 2.
+# reverse this double/halfing if we stick with this
+            # OLD
+            # if np.any(degenerate_fluxes):
+            #     # THIS PART HAS NOT BEEN TESTED
+            #     defined_fluxes = np.logical_not(degenerate_fluxes)
+            #     flux_error[defined_fluxes] = meanflux[
+            #         defined_fluxes]/apparent_flux[defined_fluxes]
+            #     # zeros in the degenerate slots
+            #     self._grid.at_node['water__discharge_x_component'][
+            #         :] = (mean_x*flux_error).flat
+            #     # now modify so we get the right answer for total flux,
+            #     # pointing arbitrarily N
+            #     self._grid.at_node['water__discharge_y_component'][
+            #         defined_fluxes] = (mean_y[defined_fluxes]*flux_error[
+            #             defined_fluxes]).flat
+            #     self._grid.at_node['water__discharge_y_component'][
+            #         degenerate_fluxes] = meanflux[degenerate_fluxes].flat
+            # else:
+            #     flux_error[:] = meanflux/apparent_flux
+            #     self._grid.at_node['water__discharge_y_component'][
+            #         :] = (mean_y*flux_error).flat
+            #     self._grid.at_node['water__discharge_x_component'][
+            #         :] = (mean_x*flux_error).flat
 
-                flux_error[defined_fluxes] = meanflux[
-                    defined_fluxes]/apparent_flux[defined_fluxes]
-                #zeros in the degenerate slots
-                self._grid.at_node['water__discharge_x_component'][
-                    :] = (mean_x*flux_error).flat
-                # now modify so we get the right answer for total flux,
-                # pointing arbitrarily N
-                self._grid.at_node['water__discharge_y_component'][
-                    defined_fluxes] = (mean_y[defined_fluxes]*flux_error[
-                        defined_fluxes]).flat
-                self._grid.at_node['water__discharge_y_component'][
-                    degenerate_fluxes] = meanflux[degenerate_fluxes].flat
-            else:
-                flux_error[:] = meanflux/apparent_flux
-                self._grid.at_node['water__discharge_y_component'][
-                    :] = (mean_y*flux_error).flat
-                self._grid.at_node['water__discharge_x_component'][
-                    :] = (mean_x*flux_error).flat
-
-        #save the output
-        self._grid.at_link['water__discharge'][self._grid.links_at_node[
-            :, 3]] = uS[core].flat
-        self._grid.at_link['water__discharge'][self._grid.links_at_node[
-            :, 2]] = uW[core].flat
-        self._grid.at_link['water__discharge'][self._grid.links_at_node[
-            :, 1]] = uN[core].flat
-        self._grid.at_link['water__discharge'][self._grid.links_at_node[
-            :, 0]] = uE[core].flat
-        self._grid.at_node['flow__potential'][:] = K[core].flat
-        self._grid.at_node['water__discharge'][:] = meanflux.flat
-        #the x,y components are created above, in the if statement
+        # save the output
+        # there is no sensible way to save discharges at links, as we route
+        # on diagonals.
+        self.grid.at_node['flow__potential'][:] = K[core].flat
+        self.grid.at_node['water__discharge'][:] = meanflux.flat
+        # the x,y components are created above, in the if statement
 
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
-            #Chezy: Q = C*Area*sqrt(depth*slope)
+            # Chezy: Q = C*Area*sqrt(depth*slope)
             self._grid.at_node['water__depth'][:] = (
                 self._grid.at_node['flow__potential']/self.chezy_C /
                 self.equiv_circ_diam)**(2./3.)
         elif self.equation == 'Manning':
-            #Manning: Q = w/n*depth**(5/3)
+            # Manning: Q = w/n*depth**(5/3)
             self._grid.at_node['water__depth'][:] = (
                 self._grid.at_node['flow__potential']*self.manning_n /
                 self.equiv_circ_diam)**0.6
