@@ -193,6 +193,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         bottom_row_node_id = (arange(self.nc) // 2 +
                               (arange(self.nc) % 2) * half_num_cols)
 
+        # Also useful to remember the number of even-numbered columns
+        self.n_even_cols = (self.nc + 1) // 2
+
         #   Find the first of the bottom-row nodes that lies in the footwall.
         # This loop exploits the fact that nodes are numbered in an order
         # sorted by x then y, and that the bottom row is staggered, with node
@@ -348,8 +351,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # Number of base nodes in the footwall in this column (1 or 2).
             n_base_nodes = min(self.num_fw_rows[c], row_offset)
 
-            # ID of the bottom footwall node
-            bottom_node = (c + 1) // 2 + ((c % 2) * ((self.nc - 1) // 2))
+            # ID of the bottom footwall node in this column
+            bottom_node = (c // 2) + ((c % 2) * self.n_even_cols)
 
             # The bottom 1 or 2 nodes in this column are set to rock
             self.node_state[bottom_node] = rock_state
