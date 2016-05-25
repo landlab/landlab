@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
-from libc.string cimport memcpy
+from libc.string cimport memcpy, memmove
 from libc.stdlib cimport malloc, free
 
 DTYPE = np.int
@@ -28,7 +28,7 @@ cdef roll(void * values, size_t n_values, size_t size, long shift):
     buff = malloc(offset * size)
 
     memcpy(buff, end, offset * size)
-    memcpy(dst, src, (n_values - offset) * size)
+    memmove(dst, src, (n_values - offset) * size)
     memcpy(src, buff, offset * size)
 
     free(buff)
