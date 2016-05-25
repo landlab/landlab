@@ -21,7 +21,9 @@ def get_area_of_patch(graph, out=None):
     if out is None:
         out = np.empty(graph.number_of_patches, dtype=float)
 
-    calc_area_at_patch(graph.nodes_at_patch, graph.x_of_node, graph.y_of_node,
+    calc_area_at_patch(graph.nodes_at_patch,
+                       np.ascontiguousarray(graph.x_of_node),
+                       np.ascontiguousarray(graph.y_of_node),
                        out)
 
     return out
