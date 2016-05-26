@@ -1476,14 +1476,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
         """
-        try:
-            return self._num_d8_links
-        except AttributeError:
-            self._num_d8_links = self.number_of_links + \
-                4*self.number_of_interior_nodes + \
-                2*(self.number_of_nodes-self.number_of_interior_nodes-4) + 4
-            # cores w 4, edges w 2, corners w 1
-            return self._num_d8_links
+        return self.number_of_links + self._number_of_diagonal_links
 
     @property
     def _number_of_d8_active_links(self):
@@ -1543,9 +1536,25 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
         """
-        self._setup_diagonal_links()
+        n_diagonal_links = 2 * (self._nrows - 1) * (self._ncols - 1)
+        self._diag_link_fromnode = np.zeros(n_diagonal_links, dtype=int)
+        self._diag_link_tonode = np.zeros(n_diagonal_links, dtype=int)
+        i = 0
+        for r in range(self._nrows - 1):
+            for c in range(self._ncols - 1):
+                self._diag_link_fromnode[i] = c + r * self._ncols
+                self._diag_link_tonode[i] = (c + 1) + (r + 1) * self._ncols
+                i += 1
+                self._diag_link_fromnode[i] = (c + 1) + r * self._ncols
+                self._diag_link_tonode[i] = c + (r + 1) * self._ncols
+                i += 1
+
+        self._diagonal_links_created = True
+
+        self._reset_list_of_active_diagonal_links()
+
         self._diag_links_at_node = np.empty((self.number_of_nodes, 4),
-                                                dtype=int)
+                                            dtype=int)
         self._diag_links_at_node.fill(-1)
 
         # Number of patches is number_of_diagonal_nodes / 2
@@ -1569,6 +1578,31 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 self.nodes_at_right_edge, self.nodes_at_bottom_edge))] = \
             (np.arange(0, self.number_of_patches*2, 2) + 1 +
              self.number_of_links)
+
+        # now set up the supporting data strs:
+        self._diag__link_dirs_at_node = np.empty((self.number_of_nodes, 4),
+                                                 dtype=int)
+        self._diag__link_dirs_at_node[:, :] = [-1, -1, 1, 1]  # default inside
+        self._diag__link_dirs_at_node[self.nodes_at_bottom_edge] = [
+            -1, -1, 0, 0]
+        self._diag__link_dirs_at_node[self.nodes_at_top_edge] = [
+            0, 0, 1, 1]
+        self._diag__link_dirs_at_node[self.nodes_at_left_edge] = [
+            -1, 0, 0, 1]
+        self._diag__link_dirs_at_node[self.nodes_at_right_edge] = [
+            0, -1, 1, 0]
+        self._diag__link_dirs_at_node[self.nodes_at_corners_of_grid] = [
+            [-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
+
+        self._diag__active_link_dirs_at_node = \
+            self._diag__link_dirs_at_node.copy()
+        inactive_diags = np.ones(self._number_of_d8_links+1, dtype=bool)
+        inactive_diags[self._diag_active_links] = False
+        # note the entended array True-at-end trick is in play here
+        inactive_links = inactive_diags[self._diag_links_at_node]
+        self._diag__active_link_dirs_at_node[inactive_links] = 0
+
+        self._reset_diag_active_link_dirs()
 
     @property
     @make_return_array_immutable
@@ -1914,17 +1948,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         consistency after the BC status of some nodes has been changed.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
-        Assumes _setup_diagonal_links() has been called, either explicitly or
-        by another grid method (e.g., _d8_active_links()).
+        Assumes _create_diag_links_at_node() has been called, either explicitly
+        or by another grid method (e.g., _d8_active_links()).
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
-        self._diagonal_active_links = []
         self._diag_activelink_fromnode = []
         self._diag_activelink_tonode = []
 
-        diag_fromnode_status = self._node_status[self._diag_link_fromnode]
-        diag_tonode_status = self._node_status[self._diag_link_tonode]
+        diag_fromnode_status = self.status_at_node[self._diag_link_fromnode]
+        diag_tonode_status = self.status_at_node[self._diag_link_tonode]
 
         diag_active_links = (((diag_fromnode_status == CORE_NODE) & ~
                               (diag_tonode_status == CLOSED_BOUNDARY)) |
@@ -1934,11 +1967,21 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         (_diag_active_links, ) = np.where(diag_active_links)
         _diag_active_links = as_id_array(_diag_active_links)
 
+        diag_fixed_links = ((((diag_fromnode_status ==
+                               FIXED_GRADIENT_BOUNDARY) &
+                              (diag_tonode_status == CORE_NODE)) |
+                             ((diag_tonode_status == FIXED_GRADIENT_BOUNDARY) &
+                              (diag_fromnode_status == CORE_NODE))))
+
+        (_diag_fixed_links, ) = np.where(diag_fixed_links)
+        _diag_fixed_links = as_id_array(_diag_fixed_links)
+
         self._diag_activelink_fromnode = self._diag_link_fromnode[
             _diag_active_links]
         self._diag_activelink_tonode = self._diag_link_tonode[
             _diag_active_links]
         self._diag_active_links = _diag_active_links + self.number_of_links
+        self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
     def _reset_diagonal_link_statuses(self):
         """Rest the statuses of diagonal links.
@@ -1952,12 +1995,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         changed.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
-        Assumes _setup_diagonal_links() has been called, either explicitly or
-        by another grid method (e.g., _d8_active_links()).
+        Assumes _create_diag_links_at_node_links() has been called, either
+        explicitly or by another grid method (e.g., _d8_active_links()).
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
-        self._diagonal_active_links = []
         self._diag_activelink_fromnode = []
         self._diag_activelink_tonode = []
 
@@ -2009,6 +2051,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
+        self._reset_diag_active_link_dirs()
+
+    def _reset_diag_active_link_dirs(self):
+        self._diag__active_link_dirs_at_node = \
+            self._diag_link_dirs_at_node.copy()
+        inactive_diags = np.ones(self._number_of_d8_links+1, dtype=bool)
+        inactive_diags[self._diag_active_links] = False
+        # note the entended array True-at-end trick is in play here
+        inactive_links = inactive_diags[self._diag_links_at_node]
+        self._diag__active_link_dirs_at_node[inactive_links] = 0
+
     def _reset_link_status_list(self):
         """Rest the status of links.
 
@@ -2019,6 +2072,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self)._reset_link_status_list()
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
+            self._reset_diag_active_link_dirs()
 
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
@@ -2418,6 +2472,61 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return 2 * self.number_of_patches
 
     @property
+    @make_return_array_immutable
+    def _diag_link_dirs_at_node(self):
+        """
+        Link flux directions at each diagonal node: 1=incoming flux,
+        -1=outgoing flux, 0=no node present.
+
+        Returns
+        -------
+        (NODES, 4) ndarray of int
+            Diagonal link directions relative to the nodes of a grid.
+            A zero indicates no link at this position.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid._create_diag_links_at_node()
+        >>> grid.status_at_node[grid.nodes_at_left_edge] = CLOSED_BOUNDARY
+        >>> grid._diag_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[-1,  0,  0,  0], [-1, -1,  0,  0], [ 0, -1,  0,  0],
+               [-1,  0,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  0],
+               [-1,  0,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  0],
+               [ 0,  0,  0,  1], [ 0,  0,  1,  1], [ 0,  0,  1,  0]])
+        """
+        return self._diag__link_dirs_at_node
+
+    @property
+    @make_return_array_immutable
+    def _diag_active_link_dirs_at_node(self):
+        """
+        Link flux directions at each diagonal node: 1=incoming flux,
+        -1=outgoing flux, 0=no flux. Note that inactive links receive zero.
+
+        Returns
+        -------
+        (NODES, 4) ndarray of int
+            Diagonal link directions relative to the nodes of a grid.
+            A zero indicates no link at this position OR that the link at that
+            position is inactive.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> grid = RasterModelGrid((4, 3))
+        >>> grid._create_diag_links_at_node()
+        >>> grid.status_at_node[grid.nodes_at_left_edge] = CLOSED_BOUNDARY
+        >>> grid._diag_active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0], [-1,  0,  0,  1], [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0], [-1,  0,  0,  1], [ 0,  0,  1,  0],
+               [ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0,  0,  1,  0]])
+        """
+        return self._diag__active_link_dirs_at_node
+
+    @property
     @deprecated(use='dx', version='0.5')
     def node_spacing(self):
         """Spacing betweem node rows and columns.
@@ -2785,37 +2894,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return self._link_length
 
-    def _setup_diagonal_links(self):
-        """Set up matrices of tonodes and fromnodes for diagonal links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Creates lists of from and to nodes for diagonal links. A diagonal link
-        is a special type of link that connects the diagonal of two raster
-        cells.  One use for diagonal links has to do with raster digital
-        elevation models: diagonal links allow you to implement "D8"
-        drainage-routing algorithms, in which each node is considered to have
-        8 rather than 4 neighbors, and flow will go toward whichever of these
-        neighbors lies in the steepest downslope direction.
-        """
-        n_diagonal_links = 2 * (self._nrows - 1) * (self._ncols - 1)
-        self._diag_link_fromnode = np.zeros(n_diagonal_links, dtype=int)
-        self._diag_link_tonode = np.zeros(n_diagonal_links, dtype=int)
-        i = 0
-        for r in range(self._nrows - 1):
-            for c in range(self._ncols - 1):
-                self._diag_link_fromnode[i] = c + r * self._ncols
-                self._diag_link_tonode[i] = (c + 1) + (r + 1) * self._ncols
-                i += 1
-                self._diag_link_fromnode[i] = (c + 1) + r * self._ncols
-                self._diag_link_tonode[i] = c + (r + 1) * self._ncols
-                i += 1
-
-        self._diagonal_links_created = True
-
-        self._reset_list_of_active_diagonal_links()
-
     def _d8_active_links(self):
         """Get active links, including diagonals.
 
@@ -2851,7 +2929,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([4, 4, 5, 7, 4, 4, 6, 8])
         """
         if not self._diagonal_links_created:
-            self._setup_diagonal_links()
+            self._create_diag_links_at_node()
 
         return (
             np.concatenate((self.active_links, self._diag_active_links)),
