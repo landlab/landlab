@@ -17,7 +17,7 @@ Created on Mon Nov 17 08:01:49 2014
 
 from landlab import HexModelGrid
 from numpy import amax, zeros, arange, array, sqrt
-from pylab import figure, show, draw
+from pylab import figure, show
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -396,12 +396,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 class LatticeUplifter(HexLatticeTectonicizer):
     """Handles vertical uplift of interior (not edges) for a hexagonal lattice
     with vertical node orientation and rectangular node arrangement.
-
-    Examples
-    --------
-#    >>> lu = LatticeUplifter()
-#    >>> lu.base_row_nodes
-#    array([0, 1, 2, 3, 4])
     """
     def __init__(self, grid=None, node_state=None, propid=None, prop_data=None, prop_reset_value=None):
         """
@@ -412,25 +406,29 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu = LatticeUplifter()
         >>> lu.inner_base_row_nodes
         array([1, 3, 4])
+        
+        >>> hg = HexModelGrid(5, 6, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> lu = LatticeUplifter(grid=hg)
+        >>> lu.inner_base_row_nodes
+        array([1, 2, 3, 4])
         """
         # Do the base class init
-        super(LatticeUplifter, self).__init__(grid, node_state, propid, prop_data, prop_reset_value)
+        super(LatticeUplifter, self).__init__(grid, node_state, propid,
+                                              prop_data, prop_reset_value)
 
         # Remember the IDs of nodes on the bottom row
-        if self.nc % 2 == 0: # if even num cols
-            self.inner_base_row_nodes = arange(1, self.nc - 1, dtype=int)
-        else: # if odd num cols
-            self.inner_base_row_nodes = zeros(self.nc - 2, dtype=int)
-            n_in_row1 = self.nc // 2    # num inner nodes 2nd row from bottom
-            n_in_row0 = n_in_row1 - 1  # num inner nodes bottom row
-            self.inner_base_row_nodes[:n_in_row0] = arange(1, n_in_row0 + 1)
-            self.inner_base_row_nodes[n_in_row0:] = arange(n_in_row0 + 2, 
-                                                           self.nc)
-        #print 'LU INIT HERE******************'
+        self.inner_base_row_nodes = zeros(self.nc - 2, dtype=int)
+        n_in_lower = (self.nc // 2) - 1  # num inner nodes bottom row
+        upper_start = (self.nc + 1) // 2
+        n_in_upper = upper_start - 1
+        self.inner_base_row_nodes[:n_in_lower] = arange(1, n_in_lower + 1)
+        self.inner_base_row_nodes[n_in_lower:] = arange(upper_start,
+                                                        upper_start + \
+                                                        n_in_upper)
+
         if self.propid is not None:
             self.inner_top_row_nodes = self.inner_base_row_nodes+(self.nr-1)*self.nc
-            #print 'top:',self.top_row_nodes
-            #print 'base:',self.base_row_nodes
+
 
     def uplift_interior_nodes(self, rock_state=1):
         """
@@ -448,12 +446,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
         """
-        #print 'in uin, ns is'
-        #print self.node_state
-        #print 'and propid before is'
-        #print self.propid
-        #print 'and prop before is'
-        #print self.prop_data[self.propid]
 
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
@@ -493,18 +485,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
             #print 'in UIN, pid is'
             #print self.propid
             #print self.prop_data[self.propid]
-
-
-def create_lnf(nr, nc):
-    """Create a LatticeNormalFault (for testing purposes only)."""
-    pid = arange(nr*nc, dtype=int)
-    ns = arange(nr*nc, dtype=int)
-    pdata = arange(nr*nc)
-    grid = HexModelGrid(nr, nc, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-    lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-    #for i in range(grid.number_of_nodes):
-    #    print i, grid.node_x[i], grid.node_y[i]
-    return lnf
 
 
 def main():
