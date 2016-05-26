@@ -315,18 +315,21 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
         Examples
         --------
-#        >>> import numpy as np
-#        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
-#        >>> from landlab import HexModelGrid
-#        >>> pid = np.arange(25, dtype=int)
-#        >>> pdata = np.arange(25)
-#        >>> ns = np.arange(25, dtype=int)
-#        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-#        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-#        >>> lnf.do_offset()
-#        >>> lnf.propid
-#        array([ 0,  1,  2,  3,  4, 22,  6,  7,  8,  9, 23, 24,  5, 13, 14, 18, 10,
-#               11, 12, 19, 20, 21, 15, 16, 17])
+        >>> import numpy as np
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab import HexModelGrid
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
+        >>> ns = np.arange(25, dtype=int)
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+        >>> lnf.do_offset(rock_state=25)
+        >>> ns
+        array([ 0, 25, 25, 25, 25,  5, 25, 25,  8,  1, 10,  3,  4, 13,  6, 15, 16,
+                9, 18, 11, 20, 21, 14, 23, 24])
+        >>> lnf.propid
+        array([ 0, 12,  2, 17, 19,  5, 22,  7,  8,  1, 10,  3,  4, 13,  6, 15, 16,
+                9, 18, 11, 20, 21, 14, 23, 24])
         """
 
         # If we need to shift the property ID numbers, we'll first need to
@@ -369,7 +372,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             indices = arange(first_repl, last_repl + 1, self.nc)
 
             if len(indices) > 0:
-                offset = self.nc + ((self.nc + (1 - c % 2)) // 2) + (c % 2)
+                offset = (self.nc + ((self.nc + 1) // 2) + 
+                          ((c + 1) % 2) * ((self.nc + 1) % 2))
                 self.node_state[indices] = self.node_state[indices-offset]
                 if self.propid is not None:
                     #print 'in col',c,'replacing nodes',indices,'with',indices-(self.nr+row_offset)
@@ -519,9 +523,11 @@ def main():
     array([1, 2, 5])
     >>> lnf.outgoing_node
     array([ 7, 11, 15])
-    >>> lnf.do_offset()
+    >>> lnf.do_offset(rock_state=16)
+    >>> ns
+    array([ 0, 16, 16, 16,  4, 16,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
     >>> lnf.propid
-    array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  2, 10,  5, 12, 14, 13,  9])
+    array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
     >>> pid = arange(20, dtype=int)
     >>> ns = arange(20, dtype=int)
     >>> pdata = arange(20)
@@ -531,7 +537,10 @@ def main():
     array([1, 3, 4, 6])
     >>> lnf.outgoing_node
     array([12, 14, 17, 19])
-    >>> lnf.do_offset()
+    >>> lnf.do_offset(rock_state=20)
+    >>> ns
+    array([ 0, 20, 20, 20, 20,  5, 20, 20,  8,  1, 10,  3,  4, 13,  6, 15, 16,
+            9, 18, 11])
     >>> lnf.propid
     array([ 0, 12,  2, 14, 17,  5, 19,  7,  8,  1, 10,  3,  4, 13,  6, 15, 16,
             9, 18, 11])
