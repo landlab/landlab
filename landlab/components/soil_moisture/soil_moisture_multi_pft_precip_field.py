@@ -26,25 +26,27 @@ class SoilMoisture( Component ):
         'vegetation__cover_fraction',
         'vegetation__live_leaf_area_index',
         'surface__potential_evapotranspiration_rate',
+        'vegetation__plant_functional_type',
     )
 
     _output_var_names = (
-        'WaterStress',
-        'SaturationFraction',
-        'Drainage',
-        'Runoff',
-        'ActualEvapotranspiration',
+        'soil_moisture__water_stress',
+        'soil_moisture__saturation_fraction',
+        'soil_moisture__root_zone_leakage_rate',
+        'surface__runoff_rate',
+        'surface__evapotranspiration_rate',
     )
 
     _var_units = {
-        'vegetation__cover_fraction' : 'None',
+        'vegetation__cover_fraction': 'None',
         'vegetation__live_leaf_area_index': 'None',
-        'surface__potential_evapotranspiration_rate' : 'mm',
-        'WaterStress' : 'Pa',
-        'SaturationFraction' : 'None',
-        'Drainage' : 'mm',
-        'Runoff' : 'mm',
-        'ActualEvapotranspiration' : 'mm',
+        'surface__potential_evapotranspiration_rate': 'mm',
+        'vegetation__plant_functional_type': 'None',
+        'soil_moisture__water_stress': 'Pa',
+        'soil_moisture__saturation_fraction': 'None',
+        'soil_moisture__root_zone_leakage_rate': 'mm',
+        'surface__runoff_rate': 'mm',
+        'surface__evapotranspiration_rate': 'mm',
     }
     
     _var_mapping = {
@@ -88,7 +90,7 @@ class SoilMoisture( Component ):
 
         self._nodal_values = self.grid['node']
 
-        if not 'InitialSaturationFraction' in self.grid.at_cell:
+        if not 'Initialsoil_moisture__saturation_fraction' in self.grid.at_cell:
             self.grid.add_zeros('cell', 'InitialSaturationFraction',
                                     units='None' )
 
@@ -155,10 +157,10 @@ class SoilMoisture( Component ):
         self._PET = self._cell_values['PotentialEvapotranspiration']
         self._SO = self._cell_values['InitialSaturationFraction']
         self._vegcover = self._cell_values['vegetation__cover_fraction']
-        self._water_stress = self._cell_values['WaterStress']
-        self._S = self._cell_values['SaturationFraction']
-        self._D = self._cell_values['Drainage']
-        self._ETA = self._cell_values['ActualEvapotranspiration']
+        self._water_stress = self._cell_values['soil_moisture__water_stress']
+        self._S = self._cell_values['soil_moisture__saturation_fraction']
+        self._D = self._cell_values['soil_moisture__root_zone_leakage_rate']
+        self._ETA = self._cell_values['surface__evapotranspiration_rate']
         self._fr = self._cell_values['vegetation__live_leaf_area_index']/self._LAIR_max
         #LAIl = self._cell_values['vegetation__live_leaf_area_index']
         #LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
