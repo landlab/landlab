@@ -17,7 +17,6 @@ Created on Mon Nov 17 08:01:49 2014
 
 from landlab import HexModelGrid
 from numpy import amax, zeros, arange, array, sqrt
-from pylab import figure, show
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -44,7 +43,7 @@ class HexLatticeTectonicizer(object):
     def __init__(self, grid=None, node_state=None, propid=None, prop_data=None,
                  prop_reset_value=None):
         """
-        Create and initialize a HexLatticeTectonicizer
+        Create and initialize a HexLatticeTectonicizer.
 
         Examples
         --------
@@ -75,7 +74,7 @@ class HexLatticeTectonicizer(object):
 
         # If needed, create node-state grid
         if node_state is None:
-            self.node_state = self.grid.add_zeros('node', 'node_state_map', \
+            self.node_state = self.grid.add_zeros('node', 'node_state_map',
                                                   dtype=int)
         else:
             self.node_state = node_state
@@ -115,6 +114,40 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     array([1, 3, 4, 6])
     >>> lnf.outgoing_node
     array([12, 17, 19, 22])
+
+    >>> pid = arange(16, dtype=int)
+    >>> ns = arange(16, dtype=int)
+    >>> pdata = arange(16)
+    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    >>> lnf.num_fw_rows
+    array([0, 1, 3, 4])
+    >>> lnf.incoming_node
+    array([1, 2, 5])
+    >>> lnf.outgoing_node
+    array([ 7, 11, 15])
+    >>> lnf.do_offset(rock_state=16)
+    >>> ns
+    array([ 0, 16, 16, 16,  4, 16,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
+    >>> lnf.propid
+    array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
+
+    >>> pid = arange(20, dtype=int)
+    >>> ns = arange(20, dtype=int)
+    >>> pdata = arange(20)
+    >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+    >>> lnf.incoming_node
+    array([1, 3, 4, 6])
+    >>> lnf.outgoing_node
+    array([12, 14, 17, 19])
+    >>> lnf.do_offset(rock_state=20)
+    >>> ns
+    array([ 0, 20, 20, 20, 20,  5, 20, 20,  8,  1, 10,  3,  4, 13,  6, 15, 16,
+            9, 18, 11])
+    >>> lnf.propid
+    array([ 0, 12,  2, 14, 17,  5, 19,  7,  8,  1, 10,  3,  4, 13,  6, 15, 16,
+            9, 18, 11])
     """
 
     def __init__(self, fault_x_intercept=0.0, grid=None, node_state=None,
@@ -140,7 +173,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         array([0, 1, 3, 4, 6])
         >>> lnf.outgoing_node
         array([12, 17, 19, 22, 24])
-        
+
         >>> pid = np.arange(16, dtype=int)
         >>> pdata = np.arange(16)
         >>> ns = np.arange(16, dtype=int)
@@ -178,7 +211,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         #   the very least, no smaller than the biggest x-coordinate, and if
         #   there is an even number of columns, it must be smaller than that
         #   number minus 1/tangent 60 degrees (0.57735)
-        assert fault_x_intercept< amax(self.grid.node_x) - 0.57735, 'err'
+        assert fault_x_intercept < (amax(self.grid.node_x) - 0.57735), 'err'
 
         #   Figure out which nodes are and are not within the footwall
         in_footwall = (self.grid.node_y < _TAN60 * (self.grid.node_x -
@@ -216,7 +249,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                 self.num_fw_rows[c] += 1
                 current_row += 1
 
-        # If we're handling properties and property IDs, we need to do some setup
+        # If we're handling properties and property IDs, we need to do some
+        # setup
         if self.propid is not None:
 
             # We want to remember the node IDs of two sets of nodes: those
@@ -300,13 +334,15 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                      self.grid.node_y[n] > y_threshold) and in_footwall[n]):
                     outgoing_node_list.append(n)
 
-            # Finally, convert the outgoing node list to an array stored in this
-            # object
+            # Finally, convert the outgoing node list to an array stored in
+            # this object
             self.outgoing_node = array(outgoing_node_list, dtype=int)
 
     def do_offset(self, rock_state=1):
-        """Applies 60-degree normal-fault offset to a hexagonal grid with
-        vertical node orientation and rectangular arrangement of nodes.
+        """Apply 60-degree normal-fault offset.
+
+        Offset is applied to a hexagonal grid with vertical node orientation
+        and rectangular arrangement of nodes.
 
         Parameters
         ----------
@@ -372,22 +408,15 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             indices = arange(first_repl, last_repl + 1, self.nc)
 
             if len(indices) > 0:
-                offset = (self.nc + ((self.nc + 1) // 2) + 
+                offset = (self.nc + ((self.nc + 1) // 2) +
                           ((c + 1) % 2) * ((self.nc + 1) % 2))
                 self.node_state[indices] = self.node_state[indices-offset]
                 if self.propid is not None:
-                    #print 'in col',c,'replacing nodes',indices,'with',indices-(self.nr+row_offset)
-                    #if c==2:
-                        #print 'node 18 propid changing from',self.propid[18],'(',self.prop_data[self.propid[18]],')'
                     self.propid[indices] = self.propid[indices-offset]
-                    #if c==2:
-                        #print '    to',self.propid[18],'(',self.prop_data[self.propid[18]],')'
 
         if self.propid is not None:
             self.propid[self.incoming_node] = propids_for_incoming_nodes
             self.prop_data[self.propid[self.incoming_node]] = self.prop_reset_value
-            #print 'pid after:',self.propid
-            #print 'propdata after:',self.prop_data
 
         if self.first_fw_col==0:
             self.node_state[:self.n_footwall_rows[0]] = rock_state
@@ -406,7 +435,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu = LatticeUplifter()
         >>> lu.inner_base_row_nodes
         array([1, 3, 4])
-        
+
         >>> hg = HexModelGrid(5, 6, 1.0, orientation='vertical', shape='rect', reorient_links=True)
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.inner_base_row_nodes
@@ -427,7 +456,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
                                                         n_in_upper)
 
         if self.propid is not None:
-            self.inner_top_row_nodes = self.inner_base_row_nodes+(self.nr-1)*self.nc
+            self.inner_top_row_nodes = self.inner_base_row_nodes + \
+                                       ((self.nr - 1) * self.nc)
 
 
     def uplift_interior_nodes(self, rock_state=1):
@@ -449,7 +479,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
-        for r in range(self.nr-1, 0, -1):
+        for r in range(self.nr - 1, 0, -1):
             # This row gets the contents of the nodes 1 row down
             self.node_state[self.inner_base_row_nodes+self.nc*r] = \
                     self.node_state[self.inner_base_row_nodes+self.nc*(r-1)]
@@ -459,99 +489,19 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Shift the node states up by two rows: two because the grid is
         # staggered, and we don't want any horizontal offset.
-#        for r in range(self.nr-1, 1, -1):
-#            # This row gets the contents of the nodes 2 rows down
-#            self.node_state[self.base_row_nodes+self.nc*r] = \
-#                    self.node_state[self.base_row_nodes+self.nc*(r-2)]
-#
-#        # Fill the bottom two rows with "fresh material" (code = rock_state)
-#        self.node_state[self.base_row_nodes] = rock_state
-#        self.node_state[self.base_row_nodes+self.nc] = rock_state
 
         # STILL TO DO: MAKE SURE THIS HANDLES WRAP PROPERLY (I DON'T THINK
         # IT DOES NOW)
         # If propid (property ID or index) is defined, shift that too.
-        #print 'uid1: propid 11-12=',self.propid[11:13],self.prop_data[self.propid[11:13]]
         if self.propid is not None:
             top_row_propid = self.propid[self.inner_top_row_nodes]
             for r in range(self.nr-1, 1, -1):
                 self.propid[self.inner_base_row_nodes+self.nc*r] =  \
                             self.propid[self.inner_base_row_nodes+self.nc*(r-2)]
-            #print 'uid2: propid 11-12=',self.propid[11:13],self.prop_data[self.propid[11:13]]
             self.propid[self.inner_base_row_nodes] = top_row_propid
-            #print 'uid3: propid 11-12=',self.propid[11:13],self.prop_data[self.propid[11:13]]
             self.prop_data[self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
-            #print 'uid4: propid 11-12=',self.propid[11:13],self.prop_data[self.propid[11:13]]
-            #print 'in UIN, pid is'
-            #print self.propid
-            #print self.prop_data[self.propid]
 
-
-def main():
-    """The main function is used just to do some unit tests.
-
-    Examples
-    --------
-    >>> pid = arange(16, dtype=int)
-    >>> ns = arange(16, dtype=int)
-    >>> pdata = arange(16)
-    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-    >>> lnf.num_fw_rows
-    array([0, 1, 3, 4])
-    >>> lnf.incoming_node
-    array([1, 2, 5])
-    >>> lnf.outgoing_node
-    array([ 7, 11, 15])
-    >>> lnf.do_offset(rock_state=16)
-    >>> ns
-    array([ 0, 16, 16, 16,  4, 16,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
-    >>> lnf.propid
-    array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
-    >>> pid = arange(20, dtype=int)
-    >>> ns = arange(20, dtype=int)
-    >>> pdata = arange(20)
-    >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
-    >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-    >>> lnf.incoming_node
-    array([1, 3, 4, 6])
-    >>> lnf.outgoing_node
-    array([12, 14, 17, 19])
-    >>> lnf.do_offset(rock_state=20)
-    >>> ns
-    array([ 0, 20, 20, 20, 20,  5, 20, 20,  8,  1, 10,  3,  4, 13,  6, 15, 16,
-            9, 18, 11])
-    >>> lnf.propid
-    array([ 0, 12,  2, 14, 17,  5, 19,  7,  8,  1, 10,  3,  4, 13,  6, 15, 16,
-            9, 18, 11])
-    """
-    nr = 7
-    nc = 7
-    pid = arange(nr * nc, dtype=int)
-    pdata = arange(nr * nc)
-    grid = HexModelGrid(nr, nc, orientation='vertical', shape='rect')
-    lnf = LatticeNormalFault(grid=grid, propid=pid, prop_data=pdata, prop_reset_value=0.0)
-
-    lnf.node_state[0:5] = 1
-    print lnf.node_state
-    figure(1)
-    lnf.grid.hexplot(lnf.node_state)
-    show()
-    for i in range(1):
-        lnf.do_offset()
-        print lnf.node_state
-        figure(i+2)
-        lnf.grid.hexplot(lnf.node_state)
-        show()
-
-#    lu = LatticeUplifter()
-#    lu.uplift_interior_nodes()
-#    figure(2)
-#    for i in range(2):
-#        lu.uplift_interior_nodes()
-#        lu.grid.hexplot(lu.node_state)
 
 if __name__=='__main__':
-    main()
-    #import doctest
-    #doctest.testmod()
+    import doctest
+    doctest.testmod()
