@@ -498,5 +498,17 @@ class Graph(object):
     @property
     @store_result_in_grid()
     def midpoint_of_link(self):
-        """Get the middle of links."""
+        """Get the middle of links.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import UniformRectilinearGraph
+
+        >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
+        >>> graph.midpoint_of_link # doctest: +NORMALIZE_WHITESPACE
+        array([[ 1. ,  0. ], [ 3. ,  0. ],
+               [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
+               [ 1. ,  1. ], [ 3. ,  1. ]])
+        """
         return get_midpoint_of_link(self);
