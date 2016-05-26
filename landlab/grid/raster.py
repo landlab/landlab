@@ -1983,6 +1983,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
+        self._all__d8_active_links = np.concatenate((self.active_links,
+                                                     self._diag_active_links))
+
     def _reset_diagonal_link_statuses(self):
         """Rest the statuses of diagonal links.
 
@@ -2938,6 +2941,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             np.concatenate((self._activelink_tonode,
                             self._diag_activelink_tonode))
         )
+
+    @property
+    @make_return_array_immutable
+    def _all_d8_active_links(self):
+        """Return the all active links, both orthogonal and diagonal.
+        """
+        try:
+            return self._all__d8_active_links
+        except AttributeError:
+            self._create_diag_links_at_node
+            return self._all__d8_active_links
 
     @deprecated(use='components.FlowRouter', version=1.0)
     def find_node_in_direction_of_max_slope(self, u, node_id):
