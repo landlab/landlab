@@ -9,7 +9,7 @@ requirements:
   build:
     - python
     - scipy
-    - numpy {{environ.get('NUMPY_VERSION', '')}}
+    - numpy x.x
     - nose
     - matplotlib
     - numpydoc
@@ -22,7 +22,7 @@ requirements:
   run:
     - python
     - scipy
-    - numpy {{environ.get('NUMPY_VERSION', '')}}
+    - numpy x.x
     - nose
     - matplotlib
     - numpydoc
