@@ -322,7 +322,7 @@ class DepressionFinderAndRouter(Component):
 
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
             if not self._grid._diagonal_links_created:
-                self._grid._setup_diagonal_links()
+                self._grid._create_diag_links_at_node()
 
         h_diag = self._grid._diag_activelink_tonode
         t_diag = self._grid._diag_activelink_fromnode
