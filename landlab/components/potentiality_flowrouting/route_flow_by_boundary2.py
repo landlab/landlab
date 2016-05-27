@@ -228,25 +228,24 @@ class PotentialityFlowRouter(Component):
     def route_flow(self, **kwds):
         """
         """
-####
-        goodnodes = self.grid.status_at_node != 4
         grid = self.grid
         self._K = grid.at_node['flow__potential']
         self._Qw = grid.at_node['water__discharge']
         z = grid.at_node['topographic__elevation']
         qwater_in = grid.at_node['water__unit_flux_in'].copy()
         qwater_in[grid.node_at_cell] *= grid.area_of_cell
+        prev_K = self._K.copy()
+        mismatch = 10000.
         # do the ortho nodes first, in isolation
         g = grid.calc_grad_at_link(z)
         if self.equation != 'default':
             g = np.sign(g)*np.sqrt(np.fabs(g))
             # ^...because both Manning and Chezy actually follow sqrt
             # slope, not slope
-        # weight by face width
-        g *= grid.width_of_face[grid.face_at_link]
+        # weight by face width - NO, because diags
+        # g *= grid.width_of_face[grid.face_at_link]
         link_grad_at_node_w_dir = (
             g[grid.links_at_node]*grid.active_link_dirs_at_node)
-        print(link_grad_at_node_w_dir[goodnodes])
         # active_link_dirs strips "wrong" face widths
 
         # now outgoing link grad sum
@@ -254,21 +253,52 @@ class PotentialityFlowRouter(Component):
                         self._min_slope_thresh)
         pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.)
 
-        prev_K = self._K.copy()
-        mismatch = 10000.
-        while mismatch > 1.e-6:
-            K_link_ends = self._K[grid.neighbors_at_node]
-            incoming_K_sum = (pos_incoming_link_grads*K_link_ends
-                              ).sum(axis=1) + self._min_slope_thresh
-            self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
-            #print(incoming_K_sum[goodnodes], outgoing_sum[goodnodes], self._K[goodnodes])
-            mismatch = np.sum(np.square(self._K-prev_K))
-            prev_K = self._K.copy()
+        if not self.route_on_diagonals:
+            while mismatch > 1.e-6:
+                K_link_ends = self._K[grid.neighbors_at_node]
+                incoming_K_sum = (pos_incoming_link_grads*K_link_ends
+                                  ).sum(axis=1) + self._min_slope_thresh
+                self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
+                mismatch = np.sum(np.square(self._K-prev_K))
+                prev_K = self._K.copy()
+
+            upwind_K = grid.map_max_of_link_nodes_to_link(self._K)
+            self._discharges_at_link = upwind_K * g
+            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
+        else:
+            # grad on diags:
+            gwd = np.empty(grid._number_of_d8_links, dtype=float)
+            gd = gwd[grid.number_of_links:]
+            gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
+            gd /= (grid._length_of_link_with_diagonals[grid.number_of_links:])
+            if self.equation != 'default':
+                gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
+            diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
+                                       grid._diag_active_link_dirs_at_node)
+            outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
+            pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
+            while mismatch > 1.e-6:
+                K_link_ends = self._K[grid.neighbors_at_node]
+                K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
+                incoming_K_sum = ((pos_incoming_link_grads*K_link_ends
+                                   ).sum(axis=1) +
+                                  (pos_incoming_diag_grads*K_diag_ends
+                                   ).sum(axis=1) + self._min_slope_thresh)
+                self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
+                mismatch = np.sum(np.square(self._K-prev_K))
+                prev_K = self._K.copy()
+
+            upwind_K = grid.map_max_of_link_nodes_to_link(self._K)
+            upwind_diag_K = np.amax(
+                (self._K[grid._diag_link_tonode],
+                 self._K[grid._diag_link_fromnode]), axis=0)
+            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+            self._discharges_at_link[:grid.number_of_links] = upwind_K * g
+            self._discharges_at_link[grid.number_of_links:] = (
+                upwind_diag_K * gd)
+            self._discharges_at_link[grid._all_d8_inactive_links] = 0.
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
-        upwind_K = grid.map_max_of_link_nodes_to_link(self._K)
-        self._discharges_at_link = upwind_K * g
-        self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         # there is no sensible way to save discharges at links, if we route
         # on diagonals.
         # for now, let's make a property

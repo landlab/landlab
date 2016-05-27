@@ -1983,8 +1983,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = _diag_active_links + self.number_of_links
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
+        self._diag_inactive_links = np.setdiff1d(np.arange(
+            self.number_of_links, self._number_of_d8_links),
+            self._diag_active_links)
+        self._diag_inactive_links = np.setdiff1d(
+            self._diag_inactive_links, self._diag_fixed_links)
+
         self._all__d8_active_links = np.concatenate((self.active_links,
                                                      self._diag_active_links))
+        normal_inactive = np.where(self.status_at_link == INACTIVE_LINK)[0]
+        self._all__d8_inactive_links = np.concatenate(
+            (normal_inactive, self._diag_inactive_links))
 
     def _reset_diagonal_link_statuses(self):
         """Rest the statuses of diagonal links.
@@ -2945,13 +2954,24 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     @make_return_array_immutable
     def _all_d8_active_links(self):
-        """Return the all active links, both orthogonal and diagonal.
+        """Return all the active links, both orthogonal and diagonal.
         """
         try:
             return self._all__d8_active_links
         except AttributeError:
             self._create_diag_links_at_node
             return self._all__d8_active_links
+
+    @property
+    @make_return_array_immutable
+    def _all_d8_inactive_links(self):
+        """Return all the inactive links, both orthogonal and diagonal.
+        """
+        try:
+            return self._all__d8_inactive_links
+        except AttributeError:
+            self._create_diag_links_at_node
+            return self._all__d8_inactive_links
 
     @deprecated(use='components.FlowRouter', version=1.0)
     def find_node_in_direction_of_max_slope(self, u, node_id):
