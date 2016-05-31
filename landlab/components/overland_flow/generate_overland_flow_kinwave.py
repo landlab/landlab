@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Landlab component for overland flow using the kinematic-wave approximation.
+
 Created on Fri May 27 14:26:13 2016
 
 @author: gtucker
@@ -14,8 +16,15 @@ class KinwaveOverlandFlowModel(Component):
     Calculate water flow over topography.
     
     Landlab component that implements a two-dimensional 
-    kinematic wave model.
-    
+    kinematic wave model. This is an extremely simple, unsophisticated
+    model, originally built simply to demonstrate the component creation
+    process. Limitations to the present version include: infiltration is
+    handled very crudely, the called is responsible for picking a stable
+    time step size (no adaptive time stepping is used in the `run_one_step`
+    method), precipitation rate is constant for a given duration (then zero),
+    and all parameters are uniform in space. Also, the terrain is assumed
+    to be stable over time. Caveat emptor!
+
     Construction:
     
         KinwaveOverlandFlowModel(grid, precip_rate=1.0, 
@@ -154,11 +163,13 @@ class KinwaveOverlandFlowModel(Component):
     def run_one_step(self, dt, current_time=0.0, **kwds):
         """Calculate water flow for a time period `dt`.
         """
-        # Calculate water depth at links
+        # Calculate water depth at links. This implements an "upwind" scheme
+        # in which water depth at the links is the depth at the higher of the
+        # two nodes.
         H_link = self._grid.map_value_at_max_node_to_link(
                 'topographic__elevation', 'water__depth')
 
-        # Calculate velocity
+        # Calculate velocity using the Manning equation.
         self.vel = -self.sign_slope * self.vel_coef * H_link**0.66667 \
                     * self.sqrt_slope
 
@@ -175,10 +186,10 @@ class KinwaveOverlandFlowModel(Component):
             ppt = 0.0
         dHdt = ppt - self.infilt - dqda
 
-        # Update water depth
+        # Update water depth: simple forward Euler scheme
         self.depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * dt
 
-        # Somewhat crude numerical hack: prevent negative water depth
+        # Very crude numerical hack: prevent negative water depth
         self.depth[np.where(self.depth < 0.0)[0]] = 0.0
 
 
