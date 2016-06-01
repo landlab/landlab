@@ -12,7 +12,8 @@ Created on Fri Feb 20 09:32:27 2015
 #Could suppress by mirroring the diagonals
 
 import numpy as np
-from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK
+from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK, \
+    CLOSED_BOUNDARY, CORE_NODE
 import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 
@@ -84,7 +85,7 @@ class PotentialityFlowRouter(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
                  Chezys_C=None, Mannings_n=0.03, return_components=False,
-                 **kwds):
+                 suppress_closed_node_friction=True, **kwds):
 #### give val for Chezy's C!!!
         """Initialize flow router.
 
@@ -120,6 +121,12 @@ class PotentialityFlowRouter(Component):
         else:
             self.route_on_diagonals = False
         self.return_components = return_components
+        if self.return_components:
+            raise ValueError(
+                'Component cannot presently return discharge in x and y ' +
+                'directions. Consider using the discharges_at_links ' +
+                'property to do the mapping yourself.')
+        self.suppress_closed_node_friction = suppress_closed_node_friction
 
         ncols = grid.number_of_node_columns
         nrows = grid.number_of_node_rows
@@ -224,6 +231,10 @@ class PotentialityFlowRouter(Component):
         self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
+        if self.route_on_diagonals:
+            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+        else:
+            self._discharges_at_link = self.grid.empty('link')
 
     def route_flow(self, **kwds):
         """
@@ -249,7 +260,7 @@ class PotentialityFlowRouter(Component):
         # active_link_dirs strips "wrong" face widths
 
         # now outgoing link grad sum
-        outgoing_sum = (np.sum(link_grad_at_node_w_dir.clip(0.), axis=1) +
+        outgoing_sum = (np.sum((link_grad_at_node_w_dir).clip(0.), axis=1) +
                         self._min_slope_thresh)
         pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.)
 
@@ -262,8 +273,8 @@ class PotentialityFlowRouter(Component):
                 mismatch = np.sum(np.square(self._K-prev_K))
                 prev_K = self._K.copy()
 
-            upwind_K = grid.map_max_of_link_nodes_to_link(self._K)
-            self._discharges_at_link = upwind_K * g
+            upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
+            self._discharges_at_link[:] = upwind_K * g
             self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
             # grad on diags:
@@ -275,6 +286,7 @@ class PotentialityFlowRouter(Component):
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
             diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
                                        grid._diag_active_link_dirs_at_node)
+
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
             while mismatch > 1.e-6:
@@ -288,11 +300,13 @@ class PotentialityFlowRouter(Component):
                 mismatch = np.sum(np.square(self._K-prev_K))
                 prev_K = self._K.copy()
 
-            upwind_K = grid.map_max_of_link_nodes_to_link(self._K)
-            upwind_diag_K = np.amax(
-                (self._K[grid._diag_link_tonode],
-                 self._K[grid._diag_link_fromnode]), axis=0)
-            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+            # ^this is necessary to suppress stupid apparent link Qs at flow
+            # edges, if present.
+            upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
+            upwind_diag_K = np.where(
+                z[grid._diag_link_tonode] > z[grid._diag_link_fromnode],
+                self._K[grid._diag_link_tonode],
+                self._K[grid._diag_link_fromnode])
             self._discharges_at_link[:grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links:] = (
                 upwind_diag_K * gd)
@@ -305,6 +319,7 @@ class PotentialityFlowRouter(Component):
 
         if self.return_components:
             pass
+            # can't do this yet
 
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
