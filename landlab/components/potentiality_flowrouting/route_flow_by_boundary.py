@@ -12,7 +12,8 @@ Created on Fri Feb 20 09:32:27 2015
 #Could suppress by mirroring the diagonals
 
 import numpy as np
-from landlab import RasterModelGrid, Component, FieldError
+from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK, \
+    CLOSED_BOUNDARY, CORE_NODE
 import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 
@@ -80,12 +81,10 @@ class PotentialityFlowRouter(Component):
 
     _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
 
-
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
-                 Chezys_C=None, Mannings_n=0.03, return_components=False,
-                 **kwds):
-#### give val for Chezy's C!!!
+                 Chezys_C=30., Mannings_n=0.03, return_components=False,
+                 suppress_closed_node_friction=True, **kwds):
         """Initialize flow router.
 
         Parameters
@@ -102,9 +101,12 @@ class PotentialityFlowRouter(Component):
                *  ``Mannings_n`` (if ``Manning``) : float
                *  ``Chezys_C`` (if ``Chezy``) : float
         """
-        assert RasterModelGrid in inspect.getmro(grid.__class__)
-        assert grid.number_of_node_rows >= 3
-        assert grid.number_of_node_columns >= 3
+        if RasterModelGrid in inspect.getmro(grid.__class__):
+            assert grid.number_of_node_rows >= 3
+            assert grid.number_of_node_columns >= 3
+            self._raster = True
+        else:
+            self._raster = False
         assert type(return_components) is bool
 
         self._grid = grid
@@ -120,59 +122,12 @@ class PotentialityFlowRouter(Component):
         else:
             self.route_on_diagonals = False
         self.return_components = return_components
-
-        ncols = grid.number_of_node_columns
-        nrows = grid.number_of_node_rows
-        # create the blank node maps; assign the topo to an internally held
-        # 2D map with dummy edges:
-        self.elev_raster = np.empty((nrows+2, ncols+2), dtype=float)
-        self._aPP = np.zeros_like(self.elev_raster)
-        self._aWW = np.zeros_like(self.elev_raster)
-        self._aWP = np.zeros_like(self.elev_raster)
-        self._aEE = np.zeros_like(self.elev_raster)
-        self._aEP = np.zeros_like(self.elev_raster)
-        self._aNN = np.zeros_like(self.elev_raster)
-        self._aNP = np.zeros_like(self.elev_raster)
-        self._aSS = np.zeros_like(self.elev_raster)
-        self._aSP = np.zeros_like(self.elev_raster)
-        self._uE = np.zeros_like(self.elev_raster)
-        self._uW = np.zeros_like(self.elev_raster)
-        self._uN = np.zeros_like(self.elev_raster)
-        self._uS = np.zeros_like(self.elev_raster)
-        self._uNE = np.zeros_like(self.elev_raster)
-        self._uNW = np.zeros_like(self.elev_raster)
-        self._uSE = np.zeros_like(self.elev_raster)
-        self._uSW = np.zeros_like(self.elev_raster)
-        self._K = np.zeros_like(self.elev_raster)
-
-        # extras for diagonal routing:
-        self._aNWNW = np.zeros_like(self.elev_raster)
-        self._aNWP = np.zeros_like(self.elev_raster)
-        self._aNENE = np.zeros_like(self.elev_raster)
-        self._aNEP = np.zeros_like(self.elev_raster)
-        self._aSESE = np.zeros_like(self.elev_raster)
-        self._aSEP = np.zeros_like(self.elev_raster)
-        self._aSWSW = np.zeros_like(self.elev_raster)
-        self._aSWP = np.zeros_like(self.elev_raster)
-        self._totalfluxout = np.empty((nrows, ncols), dtype=float)
-        self._meanflux = np.zeros_like(self._totalfluxout)
-        self._xdirfluxout = np.zeros_like(self._totalfluxout)
-        self._ydirfluxout = np.zeros_like(self._totalfluxout)
-        self._xdirfluxin = np.zeros_like(self._totalfluxout)
-        self._ydirfluxin = np.zeros_like(self._totalfluxout)
-
-        # setup slices for use in IDing the neighbors
-        self._Es = (slice(1, -1), slice(2, ncols+2))
-        self._NEs = (slice(2, nrows+2), slice(2, ncols+2))
-        self._Ns = (slice(2, nrows+2), slice(1, -1))
-        self._NWs = (slice(2, nrows+2), slice(0, -2))
-        self._Ws = (slice(1, -1), slice(0, -2))
-        self._SWs = (slice(0, -2), slice(0, -2))
-        self._Ss = (slice(0, -2), slice(1, -1))
-        self._SEs = (slice(0, -2), slice(2, ncols+2))
-        self._core = (slice(1, -1), slice(1, -1))
-        self._corecore = (slice(2, -2), slice(2, -2))
-        # ^the actual, LL-sense core (interior) nodes of the grid
+        if self.return_components:
+            raise ValueError(
+                'Component cannot presently return discharge in x and y ' +
+                'directions. Consider using the discharges_at_links ' +
+                'property to do the mapping yourself.')
+        self.suppress_closed_node_friction = suppress_closed_node_friction
 
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
@@ -189,352 +144,128 @@ class PotentialityFlowRouter(Component):
             except FieldError:
                 pass
 
-        # make and store a 2d reference for node BCs
-        self._BCs = 4*np.ones_like(self.elev_raster)
-        self._BCs[self._core].flat = self._grid.status_at_node
-        BCR = self._BCs  # for conciseness below
-        # these are conditions for boundary->boundary contacts AND
-        # anything->closed contacts w/i the grid, both of which forbid flow
-        self.boundaryboundaryN = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Ns] > 0), np.logical_or(
-                BCR[self._Ns] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryS = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Ss] > 0), np.logical_or(
-                BCR[self._Ss] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryE = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Es] > 0), np.logical_or(
-                BCR[self._Es] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryW = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Ws] > 0), np.logical_or(
-                BCR[self._Ws] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryNE = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._NEs] > 0), np.logical_or(
-                BCR[self._NEs] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryNW = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._NWs] > 0), np.logical_or(
-                BCR[self._NWs] == 4, BCR[self._core] == 4))
-        self.boundaryboundarySE = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._SEs] > 0), np.logical_or(
-                BCR[self._SEs] == 4, BCR[self._core] == 4))
-        self.boundaryboundarySW = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._SWs] > 0), np.logical_or(
-                BCR[self._SWs] == 4, BCR[self._core] == 4))
-        self.notboundaries = BCR[self._core] == 0
-
-        self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
+        if self._raster:
+            self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
+        else:
+            for_cell_areas = 2.*np.sqrt(grid.area_of_cell/np.pi)
+            mean_A = for_cell_areas.mean()
+            self.equiv_circ_diam = for_cell_areas[grid.cell_at_node]
+            self.equiv_circ_diam[grid.cell_at_node == -1] = mean_A
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
+        if self.route_on_diagonals and self._raster:
+            grid._create_diag_links_at_node()  # ...in case not present yet
+            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+        else:
+            self._discharges_at_link = self.grid.empty('link')
 
     def route_flow(self, **kwds):
         """
         """
-        # create aliases for ease
-        hR = self.elev_raster
-        aPP = self._aPP
-        aWW = self._aWW
-        aWP = self._aWP
-        aEE = self._aEE
-        aEP = self._aEP
-        aNN = self._aNN
-        aNP = self._aNP
-        aSS = self._aSS
-        aSP = self._aSP
-        totalfluxout = self._totalfluxout
-        meanflux = self._meanflux
-        uE = self._uE
-        uW = self._uW
-        uN = self._uN
-        uS = self._uS
-        K = self._K
-        Es = self._Es
-        NEs = self._NEs
-        Ns = self._Ns
-        NWs = self._NWs
-        Ws = self._Ws
-        SWs = self._SWs
-        Ss = self._Ss
-        SEs = self._SEs
-        core = self._core
-        one_over_dx = 1./self._grid.dx
-        one_over_dy = 1./self._grid.dy
-        one_over_diagonal = 1./np.sqrt(self._grid.dx**2+self._grid.dy**2)
-        qwater_in = self._grid.at_node['water__unit_flux_in'].copy()
-        qwater_in[self.grid.core_nodes] *= self.grid.area_of_cell
-        # ^non-cell nodes won't matter as they can't route properly anyway
-        qwater_in = qwater_in.reshape((self._grid.number_of_node_rows,
-                                       self._grid.number_of_node_columns))
-        prev_K = K.copy()
-        bbN = self.boundaryboundaryN
-        bbS = self.boundaryboundaryS
-        bbE = self.boundaryboundaryE
-        bbW = self.boundaryboundaryW
-        if self.return_components:
-            flux_error = np.zeros_like(self._totalfluxout)
-
-        if self.route_on_diagonals:
-            # extras for diagonal routing:
-            aNWNW = self._aNWNW
-            aNWP = self._aNWP
-            aNENE = self._aNENE
-            aNEP = self._aNEP
-            aSESE = self._aSESE
-            aSEP = self._aSEP
-            aSWSW = self._aSWSW
-            aSWP = self._aSWP
-
-            bbNE = self.boundaryboundaryNE
-            bbNW = self.boundaryboundaryNW
-            bbSE = self.boundaryboundarySE
-            bbSW = self.boundaryboundarySW
-
-        # paste in the elevs
-        hR[1:-1, 1:-1].flat = self._grid.at_node['topographic__elevation']
-
-        # update the dummy edges of our variables - these all act as closed
-        # nodes (the inner, true boundaries are handled elsewhere... or they
-        # should be closed anyway!):
-        # note this isn't sufficient of we have diagonals turned on, as flow
-        # can still occur on them
-        hR[0, 1:-1] = hR[1, 1:-1]
-        hR[-1, 1:-1] = hR[-2, 1:-1]
-        hR[1:-1, 0] = hR[1:-1, 1]
-        hR[1:-1, -1] = hR[1:-1, -2]
-        hR[(0, -1, 0, -1), (0, -1, -1, 0)] = hR[(1, -2, 1, -2), (1, -2, -2, 1)]
-
-        aNN[core] = (-hR[core]+hR[Ns]).clip(0.)
-        aNP[core] = (hR[core]-hR[Ns]).clip(0.)
-        aSS[core] = (-hR[core]+hR[Ss]).clip(0.)
-        aSP[core] = (hR[core]-hR[Ss]).clip(0.)
-        aEE[core] = (-hR[core]+hR[Es]).clip(0.)
-        aEP[core] = (hR[core]-hR[Es]).clip(0.)
-        aWW[core] = (-hR[core]+hR[Ws]).clip(0.)
-        aWP[core] = (hR[core]-hR[Ws]).clip(0.)
-        aNN[core] *= one_over_dy
-        aNP[core] *= one_over_dy
-        aSS[core] *= one_over_dy
-        aSP[core] *= one_over_dy
-        aEE[core] *= one_over_dx
-        aEP[core] *= one_over_dx
-        aWW[core] *= one_over_dx
-        aWP[core] *= one_over_dx
-
-        # disable lateral flow betw boundary nodes:
-        aEE[core][bbE] = 0.
-        aEP[core][bbE] = 0.
-        aWW[core][bbW] = 0.
-        aWP[core][bbW] = 0.
-        aNN[core][bbN] = 0.
-        aNP[core][bbN] = 0.
-        aSS[core][bbS] = 0.
-        aSP[core][bbS] = 0.
-        # diag correction happens below
-
-        if self.equation != 'default':
-            for grad in (aEE, aEP, aWW, aWP, aNN, aNP, aSS, aSP):
-                np.sqrt(grad[core], out=grad[core])
-                # ^...because both Manning and Chezy actually follow sqrt
-                # slope, not slope
-
-        if self.route_on_diagonals:
-            # adding diagonals
-            aNENE[core] = (-hR[core]+hR[NEs]).clip(0.)
-            aNEP[core] = (hR[core]-hR[NEs]).clip(0.)
-            aSESE[core] = (-hR[core]+hR[SEs]).clip(0.)
-            aSEP[core] = (hR[core]-hR[SEs]).clip(0.)
-            aSWSW[core] = (-hR[core]+hR[SWs]).clip(0.)
-            aSWP[core] = (hR[core]-hR[SWs]).clip(0.)
-            aNWNW[core] = (-hR[core]+hR[NWs]).clip(0.)
-            aNWP[core] = (hR[core]-hR[NWs]).clip(0.)
-            aNENE[core] *= one_over_diagonal
-            aNEP[core] *= one_over_diagonal
-            aSESE[core] *= one_over_diagonal
-            aSEP[core] *= one_over_diagonal
-            aSWSW[core] *= one_over_diagonal
-            aSWP[core] *= one_over_diagonal
-            aNWNW[core] *= one_over_diagonal
-            aNWP[core] *= one_over_diagonal
-
-            # disable lateral flow betw boundaries...
-            aNENE[core][bbNE] = 0.
-            aNEP[core][bbNE] = 0.
-            aNWNW[core][bbNW] = 0.
-            aNWP[core][bbNW] = 0.
-            aSESE[core][bbSE] = 0.
-            aSEP[core][bbSE] = 0.
-            aSWSW[core][bbSW] = 0.
-            aSWP[core][bbSW] = 0.
-
-            if self.equation != 'default':
-                for grad in (aNENE, aNEP, aNWNW, aNWP,
-                             aSESE, aSEP, aSWSW, aSWP):
-                    np.sqrt(grad[core], out=grad[core])
-                    # ^...because both Manning and Chezy actually follow sqrt
-                    # slope, not slope
-
-        if not self.route_on_diagonals:
-            aPP[core] = (aWP[core]+aEP[core]+aSP[core]+aNP[core] +
-                         self._min_slope_thresh)
-        else:
-            aPP[core] = (aWP[core]+aEP[core]+aSP[core]+aNP[core] +
-                         aNEP[core]+aSEP[core]+aSWP[core]+aNWP[core]
-                         ) + self._min_slope_thresh
-
+        grid = self.grid
+        self._K = grid.at_node['flow__potential']
+        self._Qw = grid.at_node['water__discharge']
+        z = grid.at_node['topographic__elevation']
+        qwater_in = grid.at_node['water__unit_flux_in'].copy()
+        qwater_in[grid.node_at_cell] *= grid.area_of_cell
+        prev_K = self._K.copy()
         mismatch = 10000.
-        self.loops_needed = 0
+        # do the ortho nodes first, in isolation
+        g = grid.calc_grad_at_link(z)
+        if self.equation != 'default':
+            g = np.sign(g)*np.sqrt(np.fabs(g))
+            # ^...because both Manning and Chezy actually follow sqrt
+            # slope, not slope
+        # weight by face width - NO, because diags
+        # g *= grid.width_of_face[grid.face_at_link]
+        link_grad_at_node_w_dir = (
+            g[grid.links_at_node]*grid.active_link_dirs_at_node)
+        # active_link_dirs strips "wrong" face widths
 
-        # this explicit solution could easily be replaced with a better solver
-        while mismatch > 1.e-6:
-            if not self.route_on_diagonals:
-                K[core] = (aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss] +
-                           aNN[core]*K[Ns]+qwater_in)/aPP[core]
-            else:
-                K[core] = (aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss] +
-                           aNN[core]*K[Ns]+aNENE[core]*K[NEs]+aSESE[core] *
-                           K[SEs]+aSWSW[core]*K[SWs]+aNWNW[core]*K[NWs] +
-                           qwater_in)/aPP[core]
+        # now outgoing link grad sum
+        outgoing_sum = (np.sum((link_grad_at_node_w_dir).clip(0.), axis=1) +
+                        self._min_slope_thresh)
+        pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.)
 
-            mismatch = np.sum(np.square(K[core]-prev_K[core]))
-            self.loops_needed += 1
-            prev_K = K.copy()
-            # print mismatch
+        if not self.route_on_diagonals or not self._raster:
+            while mismatch > 1.e-6:
+                K_link_ends = self._K[grid.neighbors_at_node]
+                incoming_K_sum = (pos_incoming_link_grads*K_link_ends
+                                  ).sum(axis=1) + self._min_slope_thresh
+                self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
+                mismatch = np.sum(np.square(self._K-prev_K))
+                prev_K = self._K.copy()
 
-            for BC in (K,):
-                BC[0, 1:-1] = BC[1, 1:-1]
-                BC[-1, 1:-1] = BC[-2, 1:-1]
-                BC[1:-1, 0] = BC[1:-1, 1]
-                BC[1:-1, -1] = BC[1:-1, -2]
-                BC[(0, -1, 0, -1), (0, -1, -1, 0)] = BC[
-                    (1, -2, 1, -2), (1, -2, -2, 1)]
-
-        if self.route_on_diagonals:
-            outdirs = (aNP, aSP, aEP, aWP, aNWP, aNEP, aSWP, aSEP)
-            indirs = ((aNN, K[Ns]), (aSS, K[Ss]), (aEE, K[Es]), (aWW, K[Ws]),
-                      (aNWNW, K[NWs]), (aNENE, K[NEs]), (aSWSW, K[SWs]),
-                      (aSESE, K[SEs]))
+            upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
+            self._discharges_at_link[:] = upwind_K * g
+            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
-            outdirs = (aNP, aSP, aEP, aWP)
-            indirs = ((aNN, K[Ns]), (aSS, K[Ss]), (aEE, K[Es]), (aWW, K[Ws]))
+            # grad on diags:
+            gwd = np.empty(grid._number_of_d8_links, dtype=float)
+            gd = gwd[grid.number_of_links:]
+            gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
+            gd /= (grid._length_of_link_with_diagonals[grid.number_of_links:])
+            if self.equation != 'default':
+                gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
+            diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
+                                       grid._diag_active_link_dirs_at_node)
 
-        totalfluxout.fill(0.)
-        for array in outdirs:
-            totalfluxout += array[core]
-        totalfluxout *= K[core]
-        no_outs = np.equal(totalfluxout, 0.)
-        # this WON'T work if there is no out flux, i.e., a BC, so -
-        if np.any(no_outs):
-            for (inarray, inK) in indirs:
-                totalfluxout[no_outs] += inarray[core][no_outs]*inK[no_outs]
-        yes_outs = np.logical_not(no_outs)
-        meanflux[:] = totalfluxout
-        meanflux[yes_outs] -= 0.5*qwater_in[yes_outs]
-        # so note the BC nodes get the value of the fluxes they RECEIVE,
-        # without any addition of flux
-        # & also, nodes at the TOP of the network, with no explicit ins, get
-        # averaged values, not just their out values
+            outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
+            pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
+            while mismatch > 1.e-6:
+                K_link_ends = self._K[grid.neighbors_at_node]
+                K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
+                incoming_K_sum = ((pos_incoming_link_grads*K_link_ends
+                                   ).sum(axis=1) +
+                                  (pos_incoming_diag_grads*K_diag_ends
+                                   ).sum(axis=1) + self._min_slope_thresh)
+                self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
+                mismatch = np.sum(np.square(self._K-prev_K))
+                prev_K = self._K.copy()
+
+            # ^this is necessary to suppress stupid apparent link Qs at flow
+            # edges, if present.
+            upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
+            upwind_diag_K = np.where(
+                z[grid._diag_link_tonode] > z[grid._diag_link_fromnode],
+                self._K[grid._diag_link_tonode],
+                self._K[grid._diag_link_fromnode])
+            self._discharges_at_link[:grid.number_of_links] = upwind_K * g
+            self._discharges_at_link[grid.number_of_links:] = (
+                upwind_diag_K * gd)
+            self._discharges_at_link[grid._all_d8_inactive_links] = 0.
+
+        np.multiply(self._K, outgoing_sum, out=self._Qw)
+        # there is no sensible way to save discharges at links, if we route
+        # on diagonals.
+        # for now, let's make a property
 
         if self.return_components:
-            # this takes a nontrivial number of additional calculations, so is
-            # optional
-            # we aim to return the MEAN flow direction.
-            if self.route_on_diagonals:
-                prefactor_to_x = np.cos(np.arctan(self._grid.dy/self._grid.dx))
-                prefactor_to_y = np.sin(np.arctan(self._grid.dy/self._grid.dx))
-                xdir_mod_out = (0., 0., 1., -1.,
-                                -prefactor_to_x, prefactor_to_x,
-                                -prefactor_to_x, prefactor_to_x)
-                ydir_mod_out = (1., -1., 0., 0.,
-                                prefactor_to_y, prefactor_to_y,
-                                -prefactor_to_y, -prefactor_to_y)
-                xdir_mod_in = (0., 0., -1., 1.,
-                               prefactor_to_x, -prefactor_to_x,
-                               prefactor_to_x, -prefactor_to_x)
-                ydir_mod_in = (-1., 1., 0., 0.,
-                               -prefactor_to_y, -prefactor_to_y,
-                               prefactor_to_y, prefactor_to_y)
-            else:
-                xdir_mod_out = (0., 0., 1., -1.)
-                ydir_mod_out = (1., -1., 0., 0.)
-                xdir_mod_in = (0., 0., -1., 1.)
-                ydir_mod_in = (-1., 1., 0., 0.)
-            # out is easier, so do it first:
-            self._xdirfluxout.fill(0.)
-            self._ydirfluxout.fill(0.)
-            for (array, mod) in zip(outdirs, xdir_mod_out):
-                self._xdirfluxout += mod*array[core]
-            for (array, mod) in zip(outdirs, ydir_mod_out):
-                self._ydirfluxout += mod*array[core]
-            self._xdirfluxout *= K[core]
-            self._ydirfluxout *= K[core]
-            # now in
-            self._xdirfluxin.fill(0.)
-            self._ydirfluxin.fill(0.)
-            for ((array, Kin), mod) in zip(indirs, xdir_mod_in):
-                self._xdirfluxin += mod*array[core]*Kin
-            for ((array, Kin), mod) in zip(indirs, ydir_mod_in):
-                self._ydirfluxin += mod*array[core]*Kin
-            # modify for doing the means:
-            self._xdirfluxin[yes_outs] *= 0.5
-            self._ydirfluxin[yes_outs] *= 0.5
-            # flux outs all get adjusted:
-            self._xdirfluxout *= 0.5
-            self._ydirfluxout *= 0.5
-            # NB: handling of degenerate cases where there is no angle defined
-            # (though rare) could be problematic.
-            # => assign an arbitary zero angle in these cases
-            # so...
-            mean_x = self._xdirfluxin + self._xdirfluxout
-            mean_y = self._ydirfluxin + self._ydirfluxout
-            apparent_flux = np.sqrt(mean_x**2 + mean_y**2)
-            degenerate_fluxes = np.equal(apparent_flux, 0.)
-            # NEW
-            self.grid.at_node['water__discharge_x_component'][:] = self._xdirfluxout.flat
-            self.grid.at_node['water__discharge_y_component'][:] = self._ydirfluxout.flat
-            self.grid.at_node['water__discharge_x_component'] *= 2.
-            self.grid.at_node['water__discharge_y_component'] *= 2.
-# reverse this double/halfing if we stick with this
-            # OLD
-            # if np.any(degenerate_fluxes):
-            #     # THIS PART HAS NOT BEEN TESTED
-            #     defined_fluxes = np.logical_not(degenerate_fluxes)
-            #     flux_error[defined_fluxes] = meanflux[
-            #         defined_fluxes]/apparent_flux[defined_fluxes]
-            #     # zeros in the degenerate slots
-            #     self._grid.at_node['water__discharge_x_component'][
-            #         :] = (mean_x*flux_error).flat
-            #     # now modify so we get the right answer for total flux,
-            #     # pointing arbitrarily N
-            #     self._grid.at_node['water__discharge_y_component'][
-            #         defined_fluxes] = (mean_y[defined_fluxes]*flux_error[
-            #             defined_fluxes]).flat
-            #     self._grid.at_node['water__discharge_y_component'][
-            #         degenerate_fluxes] = meanflux[degenerate_fluxes].flat
-            # else:
-            #     flux_error[:] = meanflux/apparent_flux
-            #     self._grid.at_node['water__discharge_y_component'][
-            #         :] = (mean_y*flux_error).flat
-            #     self._grid.at_node['water__discharge_x_component'][
-            #         :] = (mean_x*flux_error).flat
-
-        # save the output
-        # there is no sensible way to save discharges at links, as we route
-        # on diagonals.
-        self.grid.at_node['flow__potential'][:] = K[core].flat
-        self.grid.at_node['water__discharge'][:] = meanflux.flat
-        # the x,y components are created above, in the if statement
+            pass
+            # can't do this yet
 
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
             # Chezy: Q = C*Area*sqrt(depth*slope)
-            self._grid.at_node['water__depth'][:] = (
-                self._grid.at_node['flow__potential']/self.chezy_C /
+            grid.at_node['water__depth'][:] = (
+                grid.at_node['flow__potential']/self.chezy_C /
                 self.equiv_circ_diam)**(2./3.)
         elif self.equation == 'Manning':
             # Manning: Q = w/n*depth**(5/3)
-            self._grid.at_node['water__depth'][:] = (
-                self._grid.at_node['flow__potential']*self.manning_n /
+            grid.at_node['water__depth'][:] = (
+                grid.at_node['flow__potential']*self.manning_n /
                 self.equiv_circ_diam)**0.6
         else:
             pass
 
     def run_one_step(self, **kwds):
         self.route_flow(**kwds)
+
+    @property
+    def discharges_at_links(self):
+        """Return the discharges at links.
+
+        Note that if diagonal routing, this will return number_of_d8_links.
+        Otherwise, it will be number_of_links.
+        """
+        return self._discharges_at_link

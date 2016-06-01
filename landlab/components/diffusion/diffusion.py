@@ -18,7 +18,7 @@ from landlab import ModelParameterDictionary, Component, FieldError, \
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.utils.decorators import use_file_name_or_kwds
 
-_ALPHA = 0.2   # time-step stability factor
+_ALPHA = 0.15   # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
 
 
