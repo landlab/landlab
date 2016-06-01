@@ -103,9 +103,12 @@ class PotentialityFlowRouter(Component):
                *  ``Mannings_n`` (if ``Manning``) : float
                *  ``Chezys_C`` (if ``Chezy``) : float
         """
-        assert RasterModelGrid in inspect.getmro(grid.__class__)
-        assert grid.number_of_node_rows >= 3
-        assert grid.number_of_node_columns >= 3
+        if RasterModelGrid in inspect.getmro(grid.__class__):
+            assert grid.number_of_node_rows >= 3
+            assert grid.number_of_node_columns >= 3
+            self._raster = True
+        else:
+            self._raster = False
         assert type(return_components) is bool
 
         self._grid = grid
@@ -128,59 +131,6 @@ class PotentialityFlowRouter(Component):
                 'property to do the mapping yourself.')
         self.suppress_closed_node_friction = suppress_closed_node_friction
 
-        ncols = grid.number_of_node_columns
-        nrows = grid.number_of_node_rows
-        # create the blank node maps; assign the topo to an internally held
-        # 2D map with dummy edges:
-        self.elev_raster = np.empty((nrows+2, ncols+2), dtype=float)
-        self._aPP = np.zeros_like(self.elev_raster)
-        self._aWW = np.zeros_like(self.elev_raster)
-        self._aWP = np.zeros_like(self.elev_raster)
-        self._aEE = np.zeros_like(self.elev_raster)
-        self._aEP = np.zeros_like(self.elev_raster)
-        self._aNN = np.zeros_like(self.elev_raster)
-        self._aNP = np.zeros_like(self.elev_raster)
-        self._aSS = np.zeros_like(self.elev_raster)
-        self._aSP = np.zeros_like(self.elev_raster)
-        self._uE = np.zeros_like(self.elev_raster)
-        self._uW = np.zeros_like(self.elev_raster)
-        self._uN = np.zeros_like(self.elev_raster)
-        self._uS = np.zeros_like(self.elev_raster)
-        self._uNE = np.zeros_like(self.elev_raster)
-        self._uNW = np.zeros_like(self.elev_raster)
-        self._uSE = np.zeros_like(self.elev_raster)
-        self._uSW = np.zeros_like(self.elev_raster)
-        self._K = np.zeros_like(self.elev_raster)
-
-        # extras for diagonal routing:
-        self._aNWNW = np.zeros_like(self.elev_raster)
-        self._aNWP = np.zeros_like(self.elev_raster)
-        self._aNENE = np.zeros_like(self.elev_raster)
-        self._aNEP = np.zeros_like(self.elev_raster)
-        self._aSESE = np.zeros_like(self.elev_raster)
-        self._aSEP = np.zeros_like(self.elev_raster)
-        self._aSWSW = np.zeros_like(self.elev_raster)
-        self._aSWP = np.zeros_like(self.elev_raster)
-        self._totalfluxout = np.empty((nrows, ncols), dtype=float)
-        self._meanflux = np.zeros_like(self._totalfluxout)
-        self._xdirfluxout = np.zeros_like(self._totalfluxout)
-        self._ydirfluxout = np.zeros_like(self._totalfluxout)
-        self._xdirfluxin = np.zeros_like(self._totalfluxout)
-        self._ydirfluxin = np.zeros_like(self._totalfluxout)
-
-        # setup slices for use in IDing the neighbors
-        self._Es = (slice(1, -1), slice(2, ncols+2))
-        self._NEs = (slice(2, nrows+2), slice(2, ncols+2))
-        self._Ns = (slice(2, nrows+2), slice(1, -1))
-        self._NWs = (slice(2, nrows+2), slice(0, -2))
-        self._Ws = (slice(1, -1), slice(0, -2))
-        self._SWs = (slice(0, -2), slice(0, -2))
-        self._Ss = (slice(0, -2), slice(1, -1))
-        self._SEs = (slice(0, -2), slice(2, ncols+2))
-        self._core = (slice(1, -1), slice(1, -1))
-        self._corecore = (slice(2, -2), slice(2, -2))
-        # ^the actual, LL-sense core (interior) nodes of the grid
-
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
             if self._var_mapping[out_field] == 'node':
@@ -196,42 +146,16 @@ class PotentialityFlowRouter(Component):
             except FieldError:
                 pass
 
-        # make and store a 2d reference for node BCs
-        self._BCs = 4*np.ones_like(self.elev_raster)
-        self._BCs[self._core].flat = self._grid.status_at_node
-        BCR = self._BCs  # for conciseness below
-        # these are conditions for boundary->boundary contacts AND
-        # anything->closed contacts w/i the grid, both of which forbid flow
-        self.boundaryboundaryN = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Ns] > 0), np.logical_or(
-                BCR[self._Ns] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryS = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Ss] > 0), np.logical_or(
-                BCR[self._Ss] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryE = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Es] > 0), np.logical_or(
-                BCR[self._Es] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryW = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._Ws] > 0), np.logical_or(
-                BCR[self._Ws] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryNE = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._NEs] > 0), np.logical_or(
-                BCR[self._NEs] == 4, BCR[self._core] == 4))
-        self.boundaryboundaryNW = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._NWs] > 0), np.logical_or(
-                BCR[self._NWs] == 4, BCR[self._core] == 4))
-        self.boundaryboundarySE = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._SEs] > 0), np.logical_or(
-                BCR[self._SEs] == 4, BCR[self._core] == 4))
-        self.boundaryboundarySW = np.logical_or(np.logical_and(
-            BCR[self._core] > 0, BCR[self._SWs] > 0), np.logical_or(
-                BCR[self._SWs] == 4, BCR[self._core] == 4))
-        self.notboundaries = BCR[self._core] == 0
-
-        self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
+        if self._raster:
+            self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
+        else:
+            for_cell_areas = 2.*np.sqrt(grid.area_of_cell/np.pi)
+            mean_A = for_cell_areas.mean()
+            self.equiv_circ_diam = for_cell_areas[grid.cell_at_node]
+            self.equiv_circ_diam[grid.cell_at_node == -1] = mean_A
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
-        if self.route_on_diagonals:
+        if self.route_on_diagonals and self._raster:
             self._discharges_at_link = np.empty(grid._number_of_d8_links)
         else:
             self._discharges_at_link = self.grid.empty('link')
@@ -264,7 +188,7 @@ class PotentialityFlowRouter(Component):
                         self._min_slope_thresh)
         pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.)
 
-        if not self.route_on_diagonals:
+        if not self.route_on_diagonals or not self._raster:
             while mismatch > 1.e-6:
                 K_link_ends = self._K[grid.neighbors_at_node]
                 incoming_K_sum = (pos_incoming_link_grads*K_link_ends
