@@ -21,6 +21,7 @@ requirements:
 
   run:
     - python
+    - libgcc # [linux and py27]
     - scipy
     - numpy {{environ.get('NUMPY_VERSION', '')}}
     - nose
