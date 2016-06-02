@@ -8,8 +8,8 @@ Created on Fri Feb 20 09:32:27 2015
 @author: danhobley (SiccarPoint), after volle001@umn.edu
 """
 
-###in the diagonal case, even closed edges can produce "drag". Is this right?
-#Could suppress by mirroring the diagonals
+# ##in the diagonal case, even closed edges can produce "drag". Is this right?
+# Could suppress by mirroring the diagonals
 
 import numpy as np
 from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK, \
@@ -19,9 +19,14 @@ from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class PotentialityFlowRouter(Component):
-    """
+    """Multidirectional flow routing using a novel method.
+
     This class implements Voller, Hobley, and Paola's experimental matrix
-    solutions for flow routing.
+    solutions for flow routing. The method works by solving for a potential
+    field at all nodes on the grid, which enforces both mass conservation
+    and flow downhill along topographic gradients. It is order n and highly
+    efficient, but does not return any information about flow connectivity.
+
     Options are permitted to allow "abstract" routing (flow enforced downslope,
     but no particular assumptions are made about the governing equations), or
     routing according to the Chezy or Manning equations. This routine assumes
@@ -33,11 +38,62 @@ class PotentialityFlowRouter(Component):
     It is VITAL you initialize this component AFTER setting boundary
     conditions.
 
+    Note that this component offers the property `discharges_at_links`. This
+    returns the discharges at all links. If method=='D8', this list will
+    include diagonal links after the orthogonal links, which is why this
+    information is not returned as a field.
+
+    Discharges at nodes are recorded as the outgoing total discharge (i.e.,
+    including any contribution from 'water__unit_flux_in').
+
+    The primary method of this class is :func:`run_one_step`.
+
+    Construction::
+
+        PotentialityFlowRouter(grid, method='D8', flow_equation='default',
+                     Chezys_C=30., Mannings_n=0.03)
+
     Note
     ----
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    method : {'D8', 'D4'}, optional
+        Routing method ('D8' is the default). This keyword has no effect for a
+        Voronoi-based grid.
+    flow_equation : {'default', 'Manning', 'Chezy'}, optional
+        If Manning or Chezy, flow is routed according to the Manning or Chezy
+        equation; discharge is allocated to multiple downslope nodes
+        proportional to the square root of discharge; and a water__depth field
+        is returned. If default, flow is allocated to multiple nodes linearly
+        with slope; and the water__depth field is not calculated.
+    Chezys_C : float (optional)
+        Required if flow_equation == 'Chezy'.
+    Mannings_n : float (optional)
+        Required if flow_equation == 'Manning'.
+
+    Examples
+    --------
+    >>> from landlab import HexModelGrid
+    >>> import numpy as np
+    >>> mg = HexModelGrid(4, 6, dx=2., shape='rect', orientation='vertical')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> Q_in = mg.add_ones('node', 'water__unit_flux_in')
+    >>> z += mg.node_y.copy()
+    >>> potfr = PotentialityFlowRouter(mg)
+    >>> potfr.run_one_step()
+    >>> Q_at_core_nodes = np.array(
+    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
+    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
+    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
+    >>> np.allclose(mg.at_node['water__discharge'][mg.core_nodes],
+    ...             Q_at_core_nodes)
+    True
     """
     _name = 'PotentialityFlowRouter'
 
@@ -46,60 +102,46 @@ class PotentialityFlowRouter(Component):
                         )
 
     _output_var_names = ('water__discharge',
-                         'water__discharge_x_component',
-                         'water__discharge_y_component',
                          'flow__potential',
                          'water__depth',
                          )
 
-    _var_units = {'topographic__elevation' : 'm',
-                  'water__unit_flux_in' : 'm/s',
-                  'water__discharge' : 'm**3/s',
-                  'water__discharge_x_component' : 'm**3/s',
-                  'water__discharge_y_component' : 'm**3/s',
-                  'flow__potential' : 'm**3/s',
+    _var_units = {'topographic__elevation': 'm',
+                  'water__unit_flux_in': 'm/s',
+                  'water__discharge': 'm**3/s',
+                  'flow__potential': 'm**3/s',
                   'water__depth': 'm',
                   }
 
-    _var_mapping = {'topographic__elevation' : 'node',
-                  'water__unit_flux_in' : 'node',
-                  'water__discharge' : 'node',
-                  'water__discharge_x_component' : 'node',
-                  'water__discharge_y_component' : 'node',
-                  'flow__potential' : 'node',
-                  'water__depth': 'node',
+    _var_mapping = {'topographic__elevation': 'node',
+                    'water__unit_flux_in': 'node',
+                    'water__discharge': 'node',
+                    'flow__potential': 'node',
+                    'water__depth': 'node',
+                    }
+
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'water__unit_flux_in': (
+            'External volume water per area per time input to each node ' +
+            '(e.g., rainfall rate)'),
+        'water__discharge': (
+            'Magnitude of volumetric water flux out of each node'),
+        'flow__potential': (
+            'Value of the hypothetical field "K", used to force water flux ' +
+            'to flow downhill'),
+        'water__depth': (
+            'If Manning or Chezy specified, the depth of flow in the cell, ' +
+            'calculated assuming flow occurs over the whole surface'),
                   }
 
-    _var_doc = {'topographic__elevation' : 'Land surface topographic elevation',
-                  'water__unit_flux_in' : 'External volume water per area per time input to each node (e.g., rainfall rate)',
-                  'water__discharge' : 'Magnitude of volumetric water flux through each node',
-                  'water__discharge_x_component' : 'x component of resolved water flux through node',
-                  'water__discharge_y_component' : 'y component of resolved water flux through node',
-                  'flow__potential' : 'Value of the hypothetical field "K", used to force water flux to flow downhill',
-                  'water__depth': 'If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface',
-                  }
-
-    _min_slope_thresh = 1.e-24 #if your flow isn't connecting up, this probably needs to be reduced
+    _min_slope_thresh = 1.e-24
+    # if your flow isn't connecting up, this probably needs to be reduced
 
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
-                 Chezys_C=30., Mannings_n=0.03, return_components=False,
-                 suppress_closed_node_friction=True, **kwds):
+                 Chezys_C=30., Mannings_n=0.03, **kwds):
         """Initialize flow router.
-
-        Parameters
-        ----------
-        grid : ModelGrid
-            A grid
-        params : dict
-            Input parameters. Optional parameters are:
-
-            *  `flow_equation` : options are ``default`` (default),
-               ``Manning``, or ``Chezy``.  If Equation is ``Manning`` or
-               ``Chezy``, you must also specify:
-
-               *  ``Mannings_n`` (if ``Manning``) : float
-               *  ``Chezys_C`` (if ``Chezy``) : float
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
             assert grid.number_of_node_rows >= 3
@@ -107,7 +149,6 @@ class PotentialityFlowRouter(Component):
             self._raster = True
         else:
             self._raster = False
-        assert type(return_components) is bool
 
         self._grid = grid
         self.equation = flow_equation
@@ -121,13 +162,6 @@ class PotentialityFlowRouter(Component):
             self.route_on_diagonals = True
         else:
             self.route_on_diagonals = False
-        self.return_components = return_components
-        if self.return_components:
-            raise ValueError(
-                'Component cannot presently return discharge in x and y ' +
-                'directions. Consider using the discharges_at_links ' +
-                'property to do the mapping yourself.')
-        self.suppress_closed_node_friction = suppress_closed_node_friction
 
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
@@ -240,10 +274,6 @@ class PotentialityFlowRouter(Component):
         # on diagonals.
         # for now, let's make a property
 
-        if self.return_components:
-            pass
-            # can't do this yet
-
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
             # Chezy: Q = C*Area*sqrt(depth*slope)
@@ -259,6 +289,10 @@ class PotentialityFlowRouter(Component):
             pass
 
     def run_one_step(self, **kwds):
+        """Route surface-water flow over a landscape.
+
+        Both convergent and divergent flow can occur.
+        """
         self.route_flow(**kwds)
 
     @property
