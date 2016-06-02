@@ -11,6 +11,7 @@ from __future__ import print_function
 
 import numpy as np
 from six.moves import range
+from inspect import getmro
 
 from landlab import ModelParameterDictionary, Component, FieldError, \
     create_and_initialize_grid, FIXED_GRADIENT_BOUNDARY, FIXED_LINK, \
@@ -31,6 +32,14 @@ class LinearDiffuser(Component):
     :func:`updated_boundary_conditions` to ensure these are reflected in the
     component (especially if fixed_links are present).
 
+    The method keyword allows control of the way the solver works. Options
+    other than 'simple' will make the component run slower, but give second
+    order solutions that incorporate information from more distal nodes (i.e.,
+    the diagonals). Note that because in geological uses the boundary nodes
+    typically have lower values than the core, this means that equilibrium
+    slopes for steady state topographies with 'resolve_on_patches' will be
+    lower than for 'simple'.
+
     The primary method of this class is :func:`run_one_step`.
 
     Construction::
@@ -41,17 +50,23 @@ class LinearDiffuser(Component):
     ----------
     grid : ModelGrid
         A grid.
-    linear_diffusivity : float, array, len-2 list, or field name (m**2/time)
-        The diffusivity. If a len-2 tuple, must be contain 2 nnodes-long arrays
-        giving diffusivity vector components at each node, [x_diff, y_diff].
-    method : {'simple', 'resolve_on_patches'}
+    linear_diffusivity : float, array, or field name (m**2/time)
+        The diffusivity. If an array or field name, these must be the
+        diffusivities on either nodes or links - the component will
+        distinguish which based on array length. Values on nodes will be
+        mapped to links using an upwind scheme in the simple case.
+    method : {'simple', 'resolve_on_patches', 'on_diagonals'}
         The method used to represent the fluxes. 'simple' solves a finite
         difference method with a simple staggered grid scheme onto the links.
         'resolve_on_patches' solves the scheme by mapping both slopes and
         diffusivities onto the patches and solving there before resolving
-        values back to the nodes. This latter technique is more computationally
-        expensive, but can suppress cardinal direction artifacts if diffusion
-        is performed on a raster.
+        values back to the nodes (and at the moment requires a raster grid).
+        'on_diagonals' permits Raster diagonals to carry the diffusional
+        fluxes. These latter techniques are more computationally expensive,
+        but can suppress cardinal direction artifacts if diffusion is
+        performed on a raster. 'on_diagonals' pretends that the "faces" of a
+        cell with 8 links are represented by a stretched regular octagon set
+        within the true cell.
 
     Examples
     --------
@@ -78,6 +93,33 @@ class LinearDiffuser(Component):
     >>> z2[mg2.core_nodes].sum() == 2.
     True
     >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
+    True
+
+    An example using links:
+    >>> mg1 = RasterModelGrid((10, 10), 100.)
+    >>> mg2 = RasterModelGrid((10, 10), 100.)
+    >>> z1 = mg1.add_zeros('node', 'topographic__elevation')
+    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    >>> dt = 1.
+    >>> nt = 10
+    >>> kappa_links = mg2.add_ones('link', 'water__discharge')
+    >>> kappa_links *= 10000.
+    >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
+    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='water__discharge')
+    >>> for i in xrange(nt):
+    ...     z1[mg1.core_nodes] += 1.
+    ...     z2[mg2.core_nodes] += 1.
+    ...     dfn1.run_one_step(dt)
+    ...     dfn2.run_one_step(dt)
+    >>> np.allclose(z1, z2)
+    True
+    >>> z2.fill(0.)
+    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='water__discharge',
+    ...                       method='resolve_on_patches')
+    >>> for i in xrange(nt):
+    ...     z2[mg2.core_nodes] += 1.
+    ...     dfn2.run_one_step(dt)
+    >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])
     True
     """
 
@@ -113,7 +155,8 @@ class LinearDiffuser(Component):
         self._grid = grid
         assert method in ('simple', 'resolve_on_patches', 'on_diagonals')
         if method == 'resolve_on_patches':
-            raise ValueError("'resolve_on_patches' is not currently permitted")
+            assert isinstance(self.grid, RasterModelGrid)
+            self._use_patches = True
         else:
             self._use_patches = False
         if method == 'on_diagonals' and isinstance(self.grid, RasterModelGrid):
@@ -173,11 +216,7 @@ class LinearDiffuser(Component):
         #   adaptive/changing
         # as of modern componentization (Spring '16), this can take arrays
         # and irregular grids
-        if type(self._kd) not in (float, list):
-            kd_links = self.grid.map_max_of_link_nodes_to_link(self._kd)
-        else:
-            kd_links = float(self._kd)
-        # assert CFL condition:
+        # CFL condition precalc:
         CFL_prefactor = _ALPHA * self.grid.length_of_link[
             :self.grid.number_of_links] ** 2.
         # ^ link_length can include diags, if not careful...
@@ -241,10 +280,13 @@ class LinearDiffuser(Component):
         self._vertlinkcomp = np.sin(self._angle_of_link)
         self._hozlinkcomp = np.cos(self._angle_of_link)
 
-        if self._kd_on_links:
+        if self._use_patches or self._kd_on_links:
             mg = self.grid
-            self._hoz = self.grid.horizontal_links.flatten()
-            self._vert = self.grid.vertical_links.flatten()
+            try:
+                self._hoz = self.grid.horizontal_links.flatten()
+                self._vert = self.grid.vertical_links.flatten()
+            except AttributeError:
+                pass
             self._x_link_patches = mg.patches_at_link[self._hoz]
             x_link_patch_pres = mg.patches_present_at_link[self._hoz]
             self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
@@ -310,7 +352,7 @@ class LinearDiffuser(Component):
                 self.grid.active_links, self.grid._diag_active_links)
             self.g.fill(0.)
 
-        if self._kd_on_links:
+        if self._kd_on_links or self._use_patches:
             mg = self.grid
             x_link_patch_pres = mg.patches_present_at_link[self._hoz]
             self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
@@ -350,12 +392,13 @@ class LinearDiffuser(Component):
         # field:
         if type(self._kd) is np.ndarray:
             if not self._kd_on_links:
-                kd_activelinks = self.grid.map_max_of_link_nodes_to_link(
-                    self._kd)[self.grid.active_links]
+                kd_links = self.grid.map_max_of_link_nodes_to_link(self._kd)
+                kd_activelinks = kd_links[self.grid.active_links]
                 # re-derive CFL condition, as could change dynamically:
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
                 self.dt = np.nanmin(dt_links)
             else:
+                kd_links = self._kd
                 kd_activelinks = self._kd[self.grid.active_links]
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
                 self.dt_links = dt_links
@@ -378,46 +421,16 @@ class LinearDiffuser(Component):
             loops = 0
         for i in range(loops):
             if not self._use_diags:
-                if not self._kd_on_links:
-                    # Calculate the gradients and sediment fluxes
-                    if self._use_patches:  # currently forbidden
-                        (dzdx_at_patch,
-                         dzdy_at_patch) = self.grid.calc_grad_at_patch(
-                            self.values_to_diffuse)
-                        num_patches_per_link = (
-                            self.grid.patches_at_link != -1).sum(axis=1)
-                        # map onto the links:
-                        dzdx_at_link = (dzdx_at_patch[
-                                            self.grid.patches_at_link] *
-                                        self.grid.patches_present_at_link).sum(
-                            axis=1)/num_patches_per_link  # a mean
-                        dzdy_at_link = (dzdy_at_patch[
-                                            self.grid.patches_at_link] *
-                                        self.grid.patches_present_at_link).sum(
-                            axis=1)/num_patches_per_link
-                        # zero any with no patches:
-                        no_patches = (num_patches_per_link == 0)
-                        if np.any(no_patches):
-                            dzdx_at_link[no_patches] = 0.
-                            dzdy_at_link[no_patches] = 0.
-                        vector_angle = np.arctan2(dzdy_at_link, dzdx_at_link)
-                        resolving_fraction = np.cos(vector_angle -
-                                                    self._angle_of_link)
-                        vector_mag = np.sqrt(dzdy_at_link**2 + dzdx_at_link**2)
-                        np.multiply(resolving_fraction, vector_mag, out=self.g)
-                    else:
-                        self.g[self.grid.active_links] = \
-                                self.grid.calc_grad_at_link(z)[
-                                    self.grid.active_links]
+                grads = mg.calc_grad_at_link(z)
+                self.g[mg.active_links] = grads[mg.active_links]
+                if not self._use_patches:  # currently forbidden
                     # if diffusivity is an array, self._kd is already
                     # active_links-long
-                    self.qs[self.grid.active_links] = (
-                        -kd_activelinks * self.g[self.grid.active_links])
-
+                    self.qs[mg.active_links] = (
+                        -kd_activelinks * self.g[mg.active_links])
                     # Calculate the net deposition/erosion rate at each node
-                    self.grid.calc_flux_div_at_node(self.qs, out=self.dqsds)
-                else:  # use links
-                    grads = mg.calc_grad_at_link(z)
+                    mg.calc_flux_div_at_node(self.qs, out=self.dqsds)
+                else:  # project onto patches
                     slx = mg.empty('link')
                     sly = mg.empty('link')
                     slx[self._hoz] = grads[self._hoz]
@@ -433,13 +446,13 @@ class LinearDiffuser(Component):
                     # more spatial averaging)
                     Kx = mg.empty('link')
                     Ky = mg.empty('link')
-                    Kx[self._hoz] = self._kd[self._hoz]
-                    Ky[self._vert] = self._kd[self._vert]
+                    Kx[self._hoz] = kd_links[self._hoz]
+                    Ky[self._vert] = kd_links[self._vert]
                     vert_link_crosslink_K = np.ma.array(
-                        self._kd[self._vert_link_neighbors],
+                        kd_links[self._vert_link_neighbors],
                         mask=self._vert_link_badlinks)
                     hoz_link_crosslink_K = np.ma.array(
-                        self._kd[self._hoz_link_neighbors],
+                        kd_links[self._hoz_link_neighbors],
                         mask=self._hoz_link_badlinks)
                     Kx[self._vert] = vert_link_crosslink_K.mean(axis=1)
                     Ky[self._hoz] = hoz_link_crosslink_K.mean(axis=1)
