@@ -30,7 +30,10 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     """
 
     def __init__(self, nodes, shape=None):
-        dual_y, dual_x = get_corners(nodes, shape)
+        y_of_node, x_of_node = reshape_nodes(nodes, shape=shape)
+        shape = y_of_node.shape
+
+        dual_y, dual_x = get_corners((y_of_node, x_of_node), shape)
 
         dual_shape = dual_y.shape
 
@@ -40,7 +43,7 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
         nodes_at_face = get_nodes_at_face(shape)
 
         super(DualStructuredQuadGraph, self).__init__(
-            nodes, shape=shape, node_at_cell=node_at_cell,
+            (y_of_node, x_of_node), shape=shape, node_at_cell=node_at_cell,
             nodes_at_face=nodes_at_face)
 
 
@@ -170,8 +173,9 @@ def get_nodes_at_face(shape):
 def get_corners(nodes, shape):
     y_of_node, x_of_node = (np.array(nodes[0], dtype=float),
                             np.array(nodes[1], dtype=float))
-    y_of_node.shape = shape
-    x_of_node.shape = shape
+    if shape is not None:
+        y_of_node.shape = shape
+        x_of_node.shape = shape
 
     x_of_corner = (x_of_node[:-1, :-1] + x_of_node[:-1, 1:] +
                    x_of_node[1:, :-1] + x_of_node[1:, 1:]) * .25
@@ -179,3 +183,19 @@ def get_corners(nodes, shape):
                    y_of_node[1:, :-1] + y_of_node[1:, 1:]) * .25
 
     return y_of_corner, x_of_corner
+
+
+def reshape_nodes(nodes, shape=None):
+    y_of_node, x_of_node = (np.asarray(nodes[0], dtype=float),
+                            np.asarray(nodes[1], dtype=float))
+
+    if y_of_node.size != x_of_node.size:
+        raise ValueError('size mismatch for size of x and y')
+
+    if shape is None:
+        if y_of_node.shape != x_of_node.shape:
+            raise ValueError('shape mismatch for size of x and y')
+    else:
+        y_of_node.shape = shape
+        x_of_node.shape = shape
+    return y_of_node, x_of_node
