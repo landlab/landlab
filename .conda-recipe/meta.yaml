@@ -8,6 +8,7 @@ source:
 requirements:
   build:
     - python
+    - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy {{environ.get('NUMPY_VERSION', '')}}
     - nose
@@ -21,7 +22,7 @@ requirements:
 
   run:
     - python
-    - libgcc # [linux and py27]
+    - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy {{environ.get('NUMPY_VERSION', '')}}
     - nose
