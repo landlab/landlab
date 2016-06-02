@@ -106,7 +106,7 @@ class LinearDiffuser(Component):
     >>> kappa_links *= 10000.
     >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
     >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='water__discharge')
-    >>> for i in xrange(nt):
+    >>> for i in range(nt):
     ...     z1[mg1.core_nodes] += 1.
     ...     z2[mg2.core_nodes] += 1.
     ...     dfn1.run_one_step(dt)
@@ -116,7 +116,7 @@ class LinearDiffuser(Component):
     >>> z2.fill(0.)
     >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='water__discharge',
     ...                       method='resolve_on_patches')
-    >>> for i in xrange(nt):
+    >>> for i in range(nt):
     ...     z2[mg2.core_nodes] += 1.
     ...     dfn2.run_one_step(dt)
     >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])

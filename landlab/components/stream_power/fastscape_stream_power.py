@@ -361,7 +361,7 @@ class FastscapeEroder(Component):
             #         next_z = z[src_id]
             #         prev_z = 0.
             #         while True:
-            #         #for j in xrange(2):
+            #         #for j in range(2):
             #             z_diff = next_z - z[dst_id]
             #             f = alpha_divided[src_id] * pow(z_diff, n - 1.)
             #             # if z_diff -> 0, pow -> nan (in reality, inf)
