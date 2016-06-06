@@ -160,7 +160,7 @@ class LinearDiffuser(Component):
                                          noclobber=True)
             # ^note this will object if this exists already
         except FieldError:
-            self.g = self.grid.at_link['topographic__gradient'] # keep a ref
+            self.g = self.grid.at_link['topographic__gradient']  # keep a ref
         try:
             self.qs = self.grid.add_field('link', 'unit_flux', qs,
                                           noclobber=True)
