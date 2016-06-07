@@ -35,10 +35,14 @@ class LinearDiffuser(Component):
     The method keyword allows control of the way the solver works. Options
     other than 'simple' will make the component run slower, but give second
     order solutions that incorporate information from more distal nodes (i.e.,
-    the diagonals). Note that because in geological uses the boundary nodes
-    typically have lower values than the core, this means that equilibrium
-    slopes for steady state topographies with 'resolve_on_patches' will be
-    lower than for 'simple'.
+    the diagonals). Note that the option 'resolve_on_patches' can result in
+    somewhat counterintuitive behaviour - this option tells the component to
+    treat the diffusivity as a field **with directionality to it** (i.e., that
+    the diffusivites are defined on links). Thus if all links have the same
+    diffusivity value, with this flag active "effective" diffusivities
+    at the nodes will be *higher* than this value (by a factor of root 2) as
+    the diffusivity at each patch will be the mean vector sum of that at the
+    bounding links.
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -61,6 +65,9 @@ class LinearDiffuser(Component):
         'resolve_on_patches' solves the scheme by mapping both slopes and
         diffusivities onto the patches and solving there before resolving
         values back to the nodes (and at the moment requires a raster grid).
+        Note that this scheme enforces directionality in the diffusion field;
+        it's no longer just a scalar field. Thus diffusivities must be defined
+        *on links* when this option is chosen.
         'on_diagonals' permits Raster diagonals to carry the diffusional
         fluxes. These latter techniques are more computationally expensive,
         but can suppress cardinal direction artifacts if diffusion is
@@ -188,6 +195,12 @@ class LinearDiffuser(Component):
                            "LinearDiffuser component")
         if self._kd_on_links is True:
             assert isinstance(self.grid, RasterModelGrid)
+
+        # if we're using patches, it is VITAL that diffusivity is defined on
+        # links. The whole point of this functionality is that we honour
+        # *directionality* in the diffusivities.
+        if self._use_patches:
+            assert self._kd_on_links
 
         # for component back compatibility (undocumented):
         # note component can NO LONGER do internal uplift, at all.
@@ -409,6 +422,12 @@ class LinearDiffuser(Component):
             dt_links = self._CFL_actives_prefactor / kd_activelinks
             self.dt = np.nanmin(dt_links)
 
+        if self._use_patches:
+            # need this else diffusivities on inactive links deform off-angle
+            # calculations
+            kd_links = kd_links.copy()
+            kd_links[self.grid.status_at_link == INACTIVE_LINK] = 0.
+
         # Take the smaller of delt or built-in time-step size self.dt
         self.tstep_ratio = dt/self.dt
         repeats = int(self.tstep_ratio//1.)
@@ -431,10 +450,10 @@ class LinearDiffuser(Component):
                     # Calculate the net deposition/erosion rate at each node
                     mg.calc_flux_div_at_node(self.qs, out=self.dqsds)
                 else:  # project onto patches
-                    slx = mg.empty('link')
-                    sly = mg.empty('link')
-                    slx[self._hoz] = grads[self._hoz]
-                    sly[self._vert] = grads[self._vert]
+                    slx = mg.zeros('link')
+                    sly = mg.zeros('link')
+                    slx[self._hoz] = self.g[self._hoz]
+                    sly[self._vert] = self.g[self._vert]
                     patch_dx, patch_dy = mg.calc_grad_at_patch(z)
                     xvecs_vert = np.ma.array(patch_dx[self._y_link_patches],
                                              mask=self._y_link_patch_mask)
@@ -444,8 +463,8 @@ class LinearDiffuser(Component):
                     sly[self._hoz] = yvecs_hoz.mean()
                     # now map diffusivities (already on links, but we want
                     # more spatial averaging)
-                    Kx = mg.empty('link')
-                    Ky = mg.empty('link')
+                    Kx = mg.zeros('link')
+                    Ky = mg.zeros('link')
                     Kx[self._hoz] = kd_links[self._hoz]
                     Ky[self._vert] = kd_links[self._vert]
                     vert_link_crosslink_K = np.ma.array(
@@ -458,16 +477,23 @@ class LinearDiffuser(Component):
                     Ky[self._hoz] = hoz_link_crosslink_K.mean(axis=1)
                     Cslope = np.sqrt(slx**2 + sly**2)
                     v = np.sqrt(Kx**2 + Ky**2)
-                    theta = np.arctan(np.fabs(sly)/(np.fabs(slx) + 1.e-10))
                     flux_links = v * Cslope
+                    # NEW, to resolve issue with K being off angle to S:
+                    # in fact, no. Doing this just makes this equivalent
+                    # to the basic diffuser, but with a bunch more crap
+                    # involved.
+                    # flux_x = slx * Kx
+                    # flux_y = sly * Ky
+                    # flux_links = np.sqrt(flux_x*flux_x + flux_y*flux_y)
+                    theta = np.arctan(np.fabs(sly)/(np.fabs(slx) + 1.e-10))
                     flux_links[self._hoz] *= (
                         np.sign(slx[self._hoz]) * np.cos(theta[self._hoz]))
                     flux_links[self._vert] *= (
                         np.sign(sly[self._vert]) * np.sin(theta[self._vert]))
-                    self.qs[:] = flux_links
+                    # zero out the inactive links
+                    self.qs[mg.active_links] = -flux_links[mg.active_links]
 
-                    self.grid.calc_flux_div_at_node(-flux_links,
-                                                    out=self.dqsds)
+                    self.grid.calc_flux_div_at_node(self.qs, out=self.dqsds)
 
             else:  # ..._use_diags
                 # NB: this is dirty code. It uses the obsolete diagonal data
