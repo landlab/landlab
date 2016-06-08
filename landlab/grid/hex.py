@@ -413,6 +413,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
     orientation : string, optional
         One of the 3 cardinal directions in the grid, either 'horizontal'
         (default) or 'vertical'
+    shape : string, optional
+        Controls the shape of the bounding hull, i.e., are the nodes arranged
+        in a hexagon, or a rectangle? Either 'hex' (default) or 'rect'.
 
     Returns
     -------
