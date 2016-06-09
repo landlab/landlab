@@ -179,9 +179,9 @@ class PotentialityFlowRouter(Component):
                 pass
 
         if self._raster:
-            self.equiv_circ_diam = 2.*np.sqrt(grid.dx*grid.dy/np.pi)
+            self.equiv_circ_diam = 2. * np.sqrt(grid.dx * grid.dy / np.pi)
         else:
-            for_cell_areas = 2.*np.sqrt(grid.area_of_cell/np.pi)
+            for_cell_areas = 2. * np.sqrt(grid.area_of_cell / np.pi)
             mean_A = for_cell_areas.mean()
             self.equiv_circ_diam = for_cell_areas[grid.cell_at_node]
             self.equiv_circ_diam[grid.cell_at_node == -1] = mean_A
@@ -207,13 +207,13 @@ class PotentialityFlowRouter(Component):
         # do the ortho nodes first, in isolation
         g = grid.calc_grad_at_link(z)
         if self.equation != 'default':
-            g = np.sign(g)*np.sqrt(np.fabs(g))
+            g = np.sign(g) * np.sqrt(np.fabs(g))
             # ^...because both Manning and Chezy actually follow sqrt
             # slope, not slope
         # weight by face width - NO, because diags
         # g *= grid.width_of_face[grid.face_at_link]
         link_grad_at_node_w_dir = (
-            g[grid.links_at_node]*grid.active_link_dirs_at_node)
+            g[grid.links_at_node] * grid.active_link_dirs_at_node)
         # active_link_dirs strips "wrong" face widths
 
         # now outgoing link grad sum
@@ -249,12 +249,12 @@ class PotentialityFlowRouter(Component):
             while mismatch > 1.e-6:
                 K_link_ends = self._K[grid.neighbors_at_node]
                 K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
-                incoming_K_sum = ((pos_incoming_link_grads*K_link_ends
+                incoming_K_sum = ((pos_incoming_link_grads * K_link_ends
                                    ).sum(axis=1) +
-                                  (pos_incoming_diag_grads*K_diag_ends
+                                  (pos_incoming_diag_grads * K_diag_ends
                                    ).sum(axis=1) + self._min_slope_thresh)
-                self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
-                mismatch = np.sum(np.square(self._K-prev_K))
+                self._K[:] = (incoming_K_sum + qwater_in) / outgoing_sum
+                mismatch = np.sum(np.square(self._K - prev_K))
                 prev_K = self._K.copy()
 
             # ^this is necessary to suppress stupid apparent link Qs at flow
@@ -278,13 +278,13 @@ class PotentialityFlowRouter(Component):
         if self.equation == 'Chezy':
             # Chezy: Q = C*Area*sqrt(depth*slope)
             grid.at_node['water__depth'][:] = (
-                grid.at_node['flow__potential']/self.chezy_C /
-                self.equiv_circ_diam)**(2./3.)
+                grid.at_node['flow__potential'] / self.chezy_C /
+                self.equiv_circ_diam) ** (2. / 3.)
         elif self.equation == 'Manning':
             # Manning: Q = w/n*depth**(5/3)
             grid.at_node['water__depth'][:] = (
-                grid.at_node['flow__potential']*self.manning_n /
-                self.equiv_circ_diam)**0.6
+                grid.at_node['flow__potential'] * self.manning_n /
+                self.equiv_circ_diam) ** 0.6
         else:
             pass
 
