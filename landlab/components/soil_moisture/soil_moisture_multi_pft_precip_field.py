@@ -50,10 +50,15 @@ class SoilMoisture( Component ):
     }
     
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'radiation__incoming_shortwave': 'cell',
-        'radiation__ratio_to_flat_surface': 'cell',
-        'radiation__net_shortwave': 'cell',
+        'vegetation__cover_fraction': 'cell',
+        'vegetation__live_leaf_area_index': 'cell',
+        'surface__potential_evapotranspiration_rate': 'cell',
+        'vegetation__plant_functional_type': 'cell',
+        'soil_moisture__water_stress': 'cell',
+        'soil_moisture__saturation_fraction': 'cell',
+        'soil_moisture__root_zone_leakage_rate': 'cell',
+        'surface__runoff_rate': 'cell',
+        'surface__evapotranspiration_rate': 'cell',
     }
     
     _var_doc = {
@@ -77,7 +82,7 @@ class SoilMoisture( Component ):
 
         super(SoilMoisture, self).__init__(grid)
 
-        self.initialize( data, VEGTYPE = grid['cell']['VegetationType'], \
+        self.initialize( data, VEGTYPE = grid['cell']['vegetation__plant_functional_type'], \
                             **kwds )
 
         for name in self._input_var_names:
@@ -101,7 +106,7 @@ class SoilMoisture( Component ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
-          kwds.pop('VEGTYPE', self.grid['cell']['VegetationType'])
+          kwds.pop('VEGTYPE', self.grid['cell']['vegetation__plant_functional_type'])
         self._runon = kwds.pop('RUNON', 0.)
         self._fbare = kwds.pop('F_BARE', data['F_BARE'])
 
