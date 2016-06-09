@@ -2007,7 +2007,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         changed.
         Note that the IDs of the diagonal links need to be compatible with the
         "normal" links - so we add self.number_links to these IDs.
-        Assumes _create_diag_links_at_node_links() has been called, either
+        Assumes _create_diag_links_at_node() has been called, either
         explicitly or by another grid method (e.g., _d8_active_links()).
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
