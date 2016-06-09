@@ -18,6 +18,7 @@ Gradient calculation functions
 import numpy as np
 from landlab.utils.decorators import use_field_name_or_array, deprecated
 from landlab.core.utils import radians_to_degrees
+from landlab.grid.base import CLOSED_BOUNDARY
 
 
 @use_field_name_or_array('node')
@@ -358,8 +359,12 @@ def calc_unit_normal_at_patch(grid, elevs='topographic__elevation'):
 
 
 def calc_slope_at_patch(grid, elevs='topographic__elevation',
-                        unit_normal=None):
+                        ignore_closed_nodes=True, unit_normal=None):
     """Calculate the slope (positive magnitude of gradient) at patches.
+
+    If ignore_closed_nodes is True, closed nodes do not affect slope
+    calculations. If a closed node is present in a patch, the
+    patch slope is set to zero.
 
     Parameters
     ----------
@@ -367,6 +372,8 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
         A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
     unit_normal : array with shape (num_patches, 3) (optional)
         The unit normal vector to each patch, if already known.
 
@@ -396,12 +403,22 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
     cos_slopes_at_patch = dotprod  # ...because it's now a unit vector
     slopes_at_patch = np.arccos(cos_slopes_at_patch)
 
+    if ignore_closed_nodes:
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        bad_patches = badnodes.sum(axis=1) > 0
+        slopes_at_patch[bad_patches] = 0.
+
     return slopes_at_patch
 
 
 def calc_grad_at_patch(grid, elevs='topographic__elevation',
+                       ignore_closed_nodes=True,
                        unit_normal=None, slope_magnitude=None):
     """Calculate the components of the gradient at each patch.
+
+    If ignore_closed_nodes is True, closed nodes do not affect gradient
+    calculations. If a closed node is present in a patch, the
+    patch gradient is set to zero in both x and y directions.
 
     Parameters
     ----------
@@ -409,6 +426,8 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
         A ModelGrid.
     elevs : str or ndarray, optional
         Field name or array of node values.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
     unit_normal : array with shape (num_patches, 3) (optional)
         The unit normal vector to each patch, if already known.
     slope_magnitude : array with size num_patches (optional)
@@ -441,8 +460,9 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
         assert slope_magnitude.size == grid.number_of_patches
         slopes_at_patch = slope_magnitude
     else:
-        slopes_at_patch = grid.calc_slope_at_patch(elevs=elevs,
-                                                   unit_normal=nhat)
+        slopes_at_patch = grid.calc_slope_at_patch(
+            elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
+            unit_normal=nhat)
     theta = np.arctan2(- nhat[:, 1], - nhat[:, 0])
     x_slope_patches = np.cos(theta) * slopes_at_patch
     y_slope_patches = np.sin(theta) * slopes_at_patch
@@ -451,7 +471,8 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
 
 
 def calc_slope_at_node(grid, elevs='topographic__elevation',
-                       method='patch_mean', return_components=False, **kwds):
+                       method='patch_mean', ignore_closed_nodes=True,
+                       return_components=False, **kwds):
     """Array of slopes at nodes, averaged over neighboring patches.
 
     Produces a value for node slope (i.e., mean gradient magnitude)
@@ -467,6 +488,9 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
         mag, cmp = mg.calc_slope_at_node(z)
         mag ** 2 == cmp[0] ** 2 + cmp[1] ** 2  # not always true
 
+    If ignore_closed_nodes is False, all proximal elevation values will be used
+    in the calculation. If True, only unclosed nodes are used.
+
     Parameters
     ----------
     grid : ModelGrid
@@ -476,6 +500,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     method : {'patch_mean', 'Horn'}
         By equivalence to the raster version, `'patch_mean'` returns a scalar
         mean on the patches; `'Horn'` returns a vector mean on the patches.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
     return_components : bool
         If True, return a tuple, (array_of_magnitude,
         (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -530,12 +556,16 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     if method not in ('patch_mean', 'Horn'):
         raise ValueError('method name not understood')
 
-    patches_at_node = np.ma.masked_where(
-        grid.patches_at_node == -1, grid.patches_at_node, copy=False)
+    if not ignore_closed_nodes:
+        patches_at_node = np.ma.masked_where(
+            grid.patches_at_node == -1, grid.patches_at_node, copy=False)
+    else:
+        patches_at_node = np.ma.masked_where(np.logical_not(
+            grid.patches_present_at_node), grid.patches_at_node, copy=False)
 
     nhat = grid.calc_unit_normal_at_patch(elevs=elevs)
-    slopes_at_patch = grid.calc_slope_at_patch(elevs=elevs,
-                                               unit_normal=nhat)
+    slopes_at_patch = grid.calc_slope_at_patch(
+        elevs=elevs, ignore_closed_nodes=ignore_closed_nodes, unit_normal=nhat)
 
     # now CAREFUL - patches_at_node is MASKED
     slopes_at_node_unmasked = slopes_at_patch[patches_at_node]
@@ -546,6 +576,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     if return_components or method == 'Horn':
         (x_slope_patches, y_slope_patches) = grid.calc_grad_at_patch(
             elevs=elevs, unit_normal=nhat,
+            ignore_closed_nodes=ignore_closed_nodes,
             slope_magnitude=slopes_at_patch)
         x_slope_unmasked = x_slope_patches[patches_at_node]
         x_slope_masked = np.ma.array(x_slope_unmasked,
@@ -570,7 +601,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
 
 
 def calc_aspect_at_node(grid, slope_component_tuple=None,
-                        elevs='topographic__elevation', unit='degrees'):
+                        elevs='topographic__elevation', unit='degrees',
+                        ignore_closed_nodes=True):
     """Get array of aspect of a surface.
 
     Calculates at returns the aspect of a surface. Aspect is returned as
@@ -585,6 +617,9 @@ def calc_aspect_at_node(grid, slope_component_tuple=None,
     'topographic__elevation'), or an nnodes-long numpy array of the
     values themselves.
 
+    If ignore_closed_nodes is False, all proximal elevation values will be used
+    in the calculation. If True, only unclosed nodes are used.
+
     Parameters
     ----------
     grid : ModelGrid
@@ -598,6 +633,8 @@ def calc_aspect_at_node(grid, slope_component_tuple=None,
         otherwise.
     unit : {'degrees', 'radians'}
         Controls the unit that the aspect is returned as.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
 
     Examples
     --------
@@ -640,7 +677,8 @@ def calc_aspect_at_node(grid, slope_component_tuple=None,
             elev_array = elevs
 
         _, slope_component_tuple = grid.calc_slope_at_node(
-            elevs=elev_array, return_components=True)
+            elevs=elev_array, ignore_closed_nodes=ignore_closed_nodes,
+            return_components=True)
 
     angle_from_x_ccw = np.arctan2(
         - slope_component_tuple[1], - slope_component_tuple[0])

@@ -2033,12 +2033,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def angle_of_link(self, links, dirs):
+    def angle_of_link(self, links='all', dirs=-1):
         """Find and return the angle of link(s) in given direction.
 
         Parameters
         ----------
-        links : 1d numpy array
+        links : 1d numpy array or 'all'
             one or more link IDs
         dirs : 1d numpy array (must be same length as links)
             direction of links relative to node: +1 means head is origin;
@@ -2053,11 +2053,29 @@ class ModelGrid(ModelDataFieldsMixIn):
         negative and clockwise from the positive x axis. We want them
         counter-clockwise, which is what the last couple of lines before
         the return statement do.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 2)
+        >>> mg.angle_of_link() / np.pi * 3.  # 60 degree segments
+        array([ 0.,  2.,  1.,  2.,  1.,  0.,  0.,  1.,  2.,  1.,  2.,  0.])
+
+         First 3 links only, angle from head this time:
+
+        >>> mg.angle_of_link(np.arange(3), 1.) / np.pi * 3.
+        array([ 3.,  5.,  4.])
         """
-        dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
-                      self.node_x[self.node_at_link_tail[links]])
-        dy = -dirs * (self.node_y[self.node_at_link_head[links]] -
-                      self.node_y[self.node_at_link_tail[links]])
+        if links != 'all':
+            dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
+                          self.node_x[self.node_at_link_tail[links]])
+            dy = -dirs * (self.node_y[self.node_at_link_head[links]] -
+                          self.node_y[self.node_at_link_tail[links]])
+        else:
+            dx = -dirs * (self.node_x[self.node_at_link_head] -
+                          self.node_x[self.node_at_link_tail])
+            dy = -dirs * (self.node_y[self.node_at_link_head] -
+                          self.node_y[self.node_at_link_tail])
         ang = np.arctan2(dy, dx)
         (lower_two_quads, ) = np.where(ang < 0.0)
         ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
@@ -2466,6 +2484,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         The array is the same shape as :func:`patches_at_node`, and is designed
         to mask it.
 
+        Note that in cases where patches may have more than 3 nodes (e.g.,
+        rasters), a patch is considered still present as long as at least 3
+        open nodes are present.
+
         Examples
         --------
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
@@ -2555,26 +2577,100 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_patch_status()
             return self._patches_present_link_mask
 
+    @property
+    @make_return_array_immutable
+    def number_of_patches_present_at_node(self):
+        """Return the number of patches at a node without a closed node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> mg = RasterModelGrid((3, 3))
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.patches_present_at_node
+        array([[ True, False, False, False],
+               [ True,  True, False, False],
+               [False,  True, False, False],
+               [False, False, False,  True],
+               [False, False,  True,  True],
+               [False, False,  True, False],
+               [False, False, False, False],
+               [False, False, False, False],
+               [False, False, False, False]], dtype=bool)
+        >>> mg.number_of_patches_present_at_node
+        array([1, 2, 1, 1, 2, 1, 0, 0, 0])
+        """
+        try:
+            return self._number_of_patches_present_at_node
+        except AttributeError:
+            self.patches_at_node
+            self._reset_patch_status()
+            return self._number_of_patches_present_at_node
+
+    @property
+    @make_return_array_immutable
+    def number_of_patches_present_at_link(self):
+        """Return the number of patches at a link without a closed node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> mg = RasterModelGrid((3, 3))
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.patches_present_at_link
+        array([[ True, False],
+               [ True, False],
+               [ True, False],
+               [ True,  True],
+               [ True, False],
+               [ True, False],
+               [ True, False],
+               [False, False],
+               [False, False],
+               [False, False],
+               [False, False],
+               [False, False]], dtype=bool)
+        >>> mg.number_of_patches_present_at_link
+        array([1, 1, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0])
+        """
+        try:
+            return self._number_of_patches_present_at_link
+        except AttributeError:
+            self.patches_at_node
+            self._reset_patch_status()
+            return self._number_of_patches_present_at_link
+
     def _reset_patch_status(self):
         """
         Creates the array which stores patches_present_at_node.
 
         Call whenever boundary conditions are updated on the grid.
         """
+        from landlab import RasterModelGrid, VoronoiDelaunayGrid
         node_status_at_patch = self.status_at_node[self.nodes_at_patch]
+        if isinstance(self, RasterModelGrid):
+            max_nodes_at_patch = 4
+        elif isinstance(self, VoronoiDelaunayGrid):
+            max_nodes_at_patch = 3
+        else:
+            max_nodes_at_patch = (self.nodes_at_patch > -1).sum(axis=1)
         any_node_at_patch_closed = (node_status_at_patch ==
-                                    CLOSED_BOUNDARY).sum(axis=1) > 0
+                                    CLOSED_BOUNDARY).sum(axis=1) > (
+                                        max_nodes_at_patch - 3)
         absent_patches = any_node_at_patch_closed[self.patches_at_node]
         bad_patches = numpy.logical_or(absent_patches,
                                        self.patches_at_node == -1)
         self._patches_present_mask = numpy.logical_not(
             bad_patches)
+        self._number_of_patches_present_at_node = numpy.sum(
+            self._patches_present_mask, axis=1)
         absent_patches = any_node_at_patch_closed[self.patches_at_link]
         bad_patches = numpy.logical_or(absent_patches,
                                        self.patches_at_link == -1)
         self._patches_present_link_mask = numpy.logical_not(
             bad_patches)
-
+        self._number_of_patches_present_at_link = numpy.sum(
+            self._patches_present_link_mask, axis=1)
 
     def calc_hillshade_at_node(self, alt=45., az=315., slp=None, asp=None,
                                unit='degrees', elevs='topographic__elevation'):
