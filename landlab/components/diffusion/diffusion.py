@@ -275,10 +275,10 @@ class LinearDiffuser(Component):
             # by our defs, every active link must have a face.
             # calc the length of a diag "face":
             rt2 = np.sqrt(2.)
-            horizontal_face = self.grid.dx/(1. + rt2)
-            vertical_face = self.grid.dy/(1. + rt2)
-            diag_face = np.sqrt(0.5*(
-                horizontal_face**2 + vertical_face**2))
+            horizontal_face = self.grid.dx / (1. + rt2)
+            vertical_face = self.grid.dy / (1. + rt2)
+            diag_face = np.sqrt(0.5 * (
+                horizontal_face ** 2 + vertical_face ** 2))
             self._hoz = self.grid.horizontal_links.flatten()
             self._vert = self.grid.vertical_links.flatten()
             self._d8width_face_at_link[self._hoz] = vertical_face
@@ -429,8 +429,8 @@ class LinearDiffuser(Component):
             kd_links[self.grid.status_at_link == INACTIVE_LINK] = 0.
 
         # Take the smaller of delt or built-in time-step size self.dt
-        self.tstep_ratio = dt/self.dt
-        repeats = int(self.tstep_ratio//1.)
+        self.tstep_ratio = dt / self.dt
+        repeats = int(self.tstep_ratio // 1.)
         extra_time = self.tstep_ratio - repeats
 
         # Can really get into trouble if no diffusivity happens but we run...
@@ -475,8 +475,8 @@ class LinearDiffuser(Component):
                         mask=self._hoz_link_badlinks)
                     Kx[self._vert] = vert_link_crosslink_K.mean(axis=1)
                     Ky[self._hoz] = hoz_link_crosslink_K.mean(axis=1)
-                    Cslope = np.sqrt(slx**2 + sly**2)
-                    v = np.sqrt(Kx**2 + Ky**2)
+                    Cslope = np.sqrt(slx ** 2 + sly ** 2)
+                    v = np.sqrt(Kx ** 2 + Ky ** 2)
                     flux_links = v * Cslope
                     # NEW, to resolve issue with K being off angle to S:
                     # in fact, no. Doing this just makes this equivalent
@@ -485,7 +485,7 @@ class LinearDiffuser(Component):
                     # flux_x = slx * Kx
                     # flux_y = sly * Ky
                     # flux_links = np.sqrt(flux_x*flux_x + flux_y*flux_y)
-                    theta = np.arctan(np.fabs(sly)/(np.fabs(slx) + 1.e-10))
+                    theta = np.arctan(np.fabs(sly) / (np.fabs(slx) + 1.e-10))
                     flux_links[self._hoz] *= (
                         np.sign(slx[self._hoz]) * np.cos(theta[self._hoz]))
                     flux_links[self._vert] *= (
@@ -526,7 +526,7 @@ class LinearDiffuser(Component):
                     total_flux[self.grid._diag_links_at_node] *
                     self.grid._diag_active_link_dirs_at_node).sum(axis=1)
                 self.dqsds[self.grid.node_at_cell] = -totalflux_allnodes[
-                    self.grid.node_at_cell]/self.grid.area_of_cell
+                    self.grid.node_at_cell] / self.grid.area_of_cell
 
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
