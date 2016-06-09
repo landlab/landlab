@@ -144,23 +144,36 @@ class FlowRouter(Component):
             self._activelink_from = grid._activelink_fromnode
             self._activelink_to = grid._activelink_tonode
 
+        if runoff_rate is not None:
+            if type(runoff_rate) is str:
+                runoff_rate = grid.at_node[runoff_rate]
+            elif type(runoff_rate) in (float, int):
+                pass
+            else:
+                assert runoff_rate.size == grid.number_of_nodes
         # test input variables are present:
         grid.at_node['topographic__elevation']
         try:
             grid.at_node['water__unit_flux_in']
         except FieldError:
-            grid.add_empty('node', 'water__unit_flux_in')
             if runoff_rate is None:
-                grid.at_node['water__unit_flux_in'].fill(1.)
+                grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
-                grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                if type(runoff_rate) in (float, int):
+                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
+                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                else:
+                    grid.at_node['water__unit_flux_in'] = runoff_rate
         else:
             if runoff_rate is not None:
                 print ("FlowRouter found both the field " +
                        "'water__unit_flux_in' and a provided float or " +
                        "array for the runoff_rate argument. THE FIELD IS " +
                        "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                if type(runoff_rate) in (float, int):
+                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                else:
+                    grid.at_node['water__unit_flux_in'] = runoff_rate
 
         # perform a test (for politeness!) that the old name for the water_in
         # field is not present:
@@ -179,22 +192,40 @@ class FlowRouter(Component):
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
-        self.drainage_area = grid.add_zeros('drainage_area', at='node',
-                                            noclobber=False)
-        self.receiver = grid.add_zeros('flow__receiver_node', at='node',
-                                       noclobber=False, dtype=int)
-        self.steepest_slope = grid.add_zeros('topographic__steepest_' +
-                                             'slope', at='node',
-                                             noclobber=False)
-        self.discharges = grid.add_zeros('water__discharge', at='node',
-                                         noclobber=False)
-        self.upstream_ordered_nodes = grid.add_zeros('flow__upstream_node_order',
-                                                     at='node', dtype=int,
-                                                     noclobber=False)
-        self.links_to_receiver = grid.add_zeros('flow__link_to_receiver_node',
-                                                at='node', dtype=int,
-                                                noclobber=False)
-        grid.add_zeros('flow__sink_flag', at='node', dtype=int, noclobber=False)
+        try:
+            self.drainage_area = grid.add_zeros('drainage_area', at='node',
+                                                dtype=float)
+        except FieldError:
+            self.drainage_area = grid.at_node['drainage_area']
+        try:
+            self.receiver = grid.add_zeros('flow__receiver_node', at='node',
+                                           dtype=int)
+        except FieldError:
+            self.receiver = grid.at_node['flow__receiver_node']
+        try:
+            self.steepest_slope = grid.add_zeros(
+                'topographic__steepest_slope', at='node', dtype=float)
+        except FieldError:
+            self.steepest_slope = grid.at_node['topographic__steepest_slope']
+        try:
+            self.discharges = grid.add_zeros('water__discharge', at='node',
+                                             dtype=float)
+        except FieldError:
+            self.discharges = grid.at_node['water__discharge']
+        try:
+            self.upstream_ordered_nodes = grid.add_zeros(
+                'flow__upstream_node_order', at='node', dtype=int)
+        except FieldError:
+            self.upstream_ordered_nodes = grid.at_node[
+                'flow__upstream_node_order']
+        try:
+            self.links_to_receiver = grid.add_zeros(
+                'flow__link_to_receiver_node', at='node', dtype=int)
+        except FieldError:
+            self.links_to_receiver = grid.at_node[
+                'flow__link_to_receiver_node']
+        grid.add_zeros('flow__sink_flag', at='node', dtype=int,
+                       noclobber=False)
 
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
@@ -341,7 +372,7 @@ class FlowRouter(Component):
         self._grid['node']['flow__upstream_node_order'][:] = s
         self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
         self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
-                                                               dtype=bool)
+                                                                    dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True
 
         return self._grid
