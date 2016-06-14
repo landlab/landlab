@@ -1,3 +1,4 @@
+# Jai Sri Sainath!
 #################################################################
 ##
 ##  Modification of soil_moisture_field.py to accomodate
@@ -18,7 +19,7 @@ def assert_method_is_valid(method):
         raise ValueError('%s: Invalid method name' % method)
 
 
-class SoilMoisture( Component ):
+class SoilMoisture(Component):
 
     _name = 'Soil Moisture'
 
@@ -48,7 +49,7 @@ class SoilMoisture( Component ):
         'surface__runoff_rate': 'mm',
         'surface__evapotranspiration_rate': 'mm',
     }
-    
+
     _var_mapping = {
         'vegetation__cover_fraction': 'cell',
         'vegetation__live_leaf_area_index': 'cell',
@@ -60,21 +61,31 @@ class SoilMoisture( Component ):
         'surface__runoff_rate': 'cell',
         'surface__evapotranspiration_rate': 'cell',
     }
-    
+
     _var_doc = {
-        'topographic__elevation':
-            'elevation of the ground surface relative to some datum',
-        'radiation__incoming_shortwave':
-            'total incident shortwave radiation over the time step',
-        'radiation__ratio_to_flat_surface':
-            'ratio of total incident shortwave radiation on sloped surface \
-             to flat surface',
-        'radiation__net_shortwave':
-            'net incident shortwave radiation over the time step',
+        'vegetation__cover_fraction':
+            'fraction of land covered by vegetation',
+        'vegetation__live_leaf_area_index':
+            'one-sided green leaf area per unit ground surface area',
+        'surface__potential_evapotranspiration_rate':
+            'potential sum of evaporation and potential transpiration',
+        'vegetation__plant_functional_type':
+            'classification of plants, eg. tree, shrub or grass',
+        'soil_moisture__water_stress':
+            'parameter that represents nonlinear effects of water deficit \
+            on plants',
+        'soil_moisture__saturation_fraction':
+            'relative volumetric water content (theta) - limits=[0,1]',
+        'soil_moisture__root_zone_leakage_rate':
+            'cell',
+        'surface__runoff_rate':
+            'cell',
+        'surface__evapotranspiration_rate':
+            'cell',
     }
 
     @use_file_name_or_kwds
-    def __init__( self, grid, data, **kwds ):
+    def __init__(self, grid, data, **kwds):
 
         self._method = kwds.pop('method', 'Grid')
 
@@ -82,8 +93,9 @@ class SoilMoisture( Component ):
 
         super(SoilMoisture, self).__init__(grid)
 
-        self.initialize( data, VEGTYPE = grid['cell']['vegetation__plant_functional_type'], \
-                            **kwds )
+        self.initialize(data,
+            VEGTYPE = grid['cell']['vegetation__plant_functional_type'], 
+            **kwds)
 
         for name in self._input_var_names:
             if not name in self.grid.at_cell:
@@ -94,10 +106,6 @@ class SoilMoisture( Component ):
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._nodal_values = self.grid['node']
-
-        if not 'Initialsoil_moisture__saturation_fraction' in self.grid.at_cell:
-            self.grid.add_zeros('cell', 'InitialSaturationFraction',
-                                    units='None' )
 
         self._cell_values = self.grid['cell']
 
@@ -159,8 +167,8 @@ class SoilMoisture( Component ):
         P_ = kwds.pop('P', np.zeros(self.grid.number_of_cells,dtype = float))
         Tb = kwds.pop('Tb', 24.)
         Tr = kwds.pop('Tr', 0.0)
-        self._PET = self._cell_values['PotentialEvapotranspiration']
-        self._SO = self._cell_values['InitialSaturationFraction']
+        self._PET = self._cell_values['surface__potential_evapotranspiration_rate']
+        self._SO = self._cell_values['soil_moisture__saturation_fraction']
         self._vegcover = self._cell_values['vegetation__cover_fraction']
         self._water_stress = self._cell_values['soil_moisture__water_stress']
         self._S = self._cell_values['soil_moisture__saturation_fraction']

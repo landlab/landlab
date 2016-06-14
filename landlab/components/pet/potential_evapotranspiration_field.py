@@ -228,6 +228,8 @@ class PotentialEvapotranspiration(Component):
         'radiation__ratio_to_flat_surface':
             'ratio of total incident shortwave radiation on sloped surface \
              to flat surface',
+        'surface__potential_evapotranspiration_rate':
+            'potential sum of evaporation and potential transpiration',
         'radiation__incoming_shortwave':
             'total incident shortwave radiation over the time step',
         'radiation__net_shortwave':
