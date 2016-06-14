@@ -220,7 +220,10 @@ class FastscapeEroder(Component):
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
                                                         self.alpha)
 
-        self.grid._diagonal_links_at_node  # calc number of diagonal links
+        try:
+            self.grid._diagonal_links_at_node  # calc number of diagonal links
+        except AttributeError:
+            pass  # was not a raster
 
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
