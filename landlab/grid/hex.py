@@ -840,27 +840,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts
 
     @property
-    def shape(self):
-        """Get the shape of the grid.
-
-        Returns
-        -------
-        shape : tuple of ints
-            The shape of the grid as number of node rows and node columns.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.shape
-        (3, 4)
-        """
-        try:
-            return self._shape
-        except AttributeError:
-            raise AttributeError('Only rectangular Hex grids have a shape.')
-
-    @property
     def number_of_node_columns(self):
         """Number of node columns hex grid.
 
