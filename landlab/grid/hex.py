@@ -573,6 +573,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
+            self._shape = (self._nrows, self._ncols)
+            self._nodegrid = numpy.arange(self._nrows * self._ncols,
+                                       dtype=int).reshape(self._shape)
         elif orientation == 'vertical' and shape == 'hex':
             pts = HexModelGrid._hex_points_with_vertical_hex(
                 base_num_rows, base_num_cols, dx)
@@ -584,6 +587,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self.orientation = 'vertical'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
+            self._shape = (self._nrows, self._ncols)
+            self._nodegrid = numpy.arange(self._nrows * self._ncols,
+                                       dtype=int).reshape(self._shape)
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -876,6 +882,78 @@ class HexModelGrid(VoronoiDelaunayGrid):
         5
         """
         return self._nrows
+
+    @property
+    def nodes_at_left_edge(self):
+        """Get nodes along the left edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes[grid.nodes_at_left_edge]
+        array([0, 4, 8])
+        """
+        try:
+            return self._nodegrid[:, 0]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
+    @property
+    def nodes_at_right_edge(self):
+        """Get nodes along the right edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes[grid.nodes_at_right_edge]
+        array([ 3,  7, 11])
+        """
+        try:
+            return self._nodegrid[:, -1]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
+    @property
+    def nodes_at_top_edge(self):
+        """Get nodes along the top edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes[grid.nodes_at_top_edge]
+        array([ 8, 9, 10, 11])
+        """
+        try:
+            return self._nodegrid[-1, :]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
+    @property
+    def nodes_at_bottom_edge(self):
+        """Get nodes along the bottom edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes[grid.nodes_at_bottom_edge]
+        array([0, 1, 2, 3])
+        """
+        try:
+            return self._nodegrid[0, :]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
