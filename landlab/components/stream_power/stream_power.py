@@ -386,8 +386,8 @@ class StreamPowerEroder(Component):
             projected onto the nodes using slopes_at_nodes if not). Other
             components, e.g., flow_routing.route_flow_dn, may provide the
             necessary outputs to make the mapping easier: e.g., just pass
-            'flow__link_to_receiver_node' from that module (the default name). If
-            the component cannot find an existing mapping through this
+            'flow__link_to_receiver_node' from that module (the default name).
+            If the component cannot find an existing mapping through this
             parameter, it will derive one on the fly, at considerable cost of
             speed (see on-screen reports).
 
@@ -587,30 +587,30 @@ class StreamPowerEroder(Component):
                     Q_direct = Q_if_used
             else:
                 Q_direct = self._Q
-                self.alpha[defined_flow_receivers] = (
-                    self._K_unit_time[defined_flow_receivers]*dt *
-                    Q_direct[defined_flow_receivers]**self._m /
-                    flow_link_lengths)
-                # Handle flooded nodes, if any (no erosion there)
-                if flooded_nodes is not None:
-                    self.alpha[flooded_nodes] = 0.
-                else:
-                    reversed_flow = node_z < node_z[flow_receivers]
-                    # this check necessary if flow has been routed across
-                    # depressions
-                    self.alpha[reversed_flow] = 0.
-                self.alpha_divided[defined_flow_receivers] = (
-                    self.alpha[defined_flow_receivers] /
-                    flow_link_lengths**(self._n - 1.))
-                threshdt = self.sp_crit * dt
-                if type(threshdt) is float:
-                    erode_with_link_alpha_fixthresh(
-                        upstream_order_IDs, flow_receivers, threshdt,
-                        self.alpha_divided, self._n, node_z)
-                else:
-                    erode_with_link_alpha_varthresh(
-                        upstream_order_IDs, flow_receivers, threshdt,
-                        self.alpha_divided, self._n, node_z)
+            self.alpha[defined_flow_receivers] = (
+                self._K_unit_time[defined_flow_receivers]*dt *
+                Q_direct[defined_flow_receivers]**self._m /
+                flow_link_lengths)
+            # Handle flooded nodes, if any (no erosion there)
+            if flooded_nodes is not None:
+                self.alpha[flooded_nodes] = 0.
+            else:
+                reversed_flow = node_z < node_z[flow_receivers]
+                # this check necessary if flow has been routed across
+                # depressions
+                self.alpha[reversed_flow] = 0.
+            self.alpha_divided[defined_flow_receivers] = (
+                self.alpha[defined_flow_receivers] /
+                flow_link_lengths**(self._n - 1.))
+            threshdt = self.sp_crit * dt
+            if type(threshdt) is float:
+                erode_with_link_alpha_fixthresh(
+                    upstream_order_IDs, flow_receivers, threshdt,
+                    self.alpha_divided, self._n, node_z)
+            else:
+                erode_with_link_alpha_varthresh(
+                    upstream_order_IDs, flow_receivers, threshdt,
+                    self.alpha_divided, self._n, node_z)
             # stream_power_active_nodes = (
             #     self._K_unit_time*dt*Q_direct[active_nodes]**self._m *
             #     self.slopes[active_nodes]**self._n)

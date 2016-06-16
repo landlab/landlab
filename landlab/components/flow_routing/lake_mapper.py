@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import numpy as np
 from landlab import (ModelParameterDictionary, Component, FieldError,
-                     FIXED_VALUE_BOUNDARY)
+                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY)
 from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
@@ -251,7 +251,10 @@ class DepressionFinderAndRouter(Component):
         dx = self._grid.dx
         dy = self._grid.dy
         if self._D8:
-            diag_nbrs = self._grid._get_diagonal_list()
+            diag_nbrs = self._grid._diagonal_neighbors_at_node.copy()
+            # remove the inactive nodes:
+            diag_nbrs[self._grid.status_at_node[
+                diag_nbrs] == CLOSED_BOUNDARY] = -1
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
             self._link_lengths = np.empty(8, dtype=float)
             self._link_lengths[0] = dx
@@ -322,7 +325,7 @@ class DepressionFinderAndRouter(Component):
 
         if type(self._grid) is landlab.grid.raster.RasterModelGrid:
             if not self._grid._diagonal_links_created:
-                self._grid._setup_diagonal_links()
+                self._grid._create_diag_links_at_node()
 
         h_diag = self._grid._diag_activelink_tonode
         t_diag = self._grid._diag_activelink_fromnode

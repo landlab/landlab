@@ -37,7 +37,7 @@ class PerronNLDiffuse(Component):
 
     Construction::
 
-        PerronNLDiffuse(grid, linear_diffusivity=None, S_crit=33.*np.pi/180.,
+        PerronNLDiffuse(grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
                         rock_density=2700., sed_density=2700.)
 
     Parameters
