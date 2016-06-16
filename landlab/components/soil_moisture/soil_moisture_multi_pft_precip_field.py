@@ -73,15 +73,16 @@ class SoilMoisture(Component):
             'classification of plants, eg. tree, shrub or grass',
         'soil_moisture__water_stress':
             'parameter that represents nonlinear effects of water deficit \
-            on plants',
+             on plants',
         'soil_moisture__saturation_fraction':
             'relative volumetric water content (theta) - limits=[0,1]',
         'soil_moisture__root_zone_leakage_rate':
-            'cell',
+            'leakage of water into deeper portions of the soil not accessible \
+             to the plant',
         'surface__runoff_rate':
-            'cell',
+            'runoff from ground surface',
         'surface__evapotranspiration_rate':
-            'cell',
+            'actual sum of evaporation and potential transpiration',
     }
 
     @use_file_name_or_kwds
@@ -110,14 +111,25 @@ class SoilMoisture(Component):
         self._cell_values = self.grid['cell']
 
 
-    def initialize( self, data, **kwds ):
+    def initialize(self, data, runon=0., f_bare=0.7, intercept_cap_grass= 1.,
+                   zr_grass=0.3, I_B_grass=20., I_V_grass=24., pc_grass=0.43,
+                   fc_grass=0.56, sc_grass=0.33, wp_grass=0.13, hgw_grass=0.1,
+                   beta_grass=13.8, intercept_cap_shrub=1.5, zr_shrub=0.5,
+                   I_B_shrub=20., I_V_shrub=40., pc_shrub=0.43, fc_shrub=0.56, 
+                   sc_shrub=0.24, wp_shrub=0.13, hgw_shrub=0.1,
+                   beta_shrub=13.8, intercept_cap_tree=2., zr_tree=1.3,
+                   I_B_tree=20., I_V_tree=40., pc_tree=0.43, fc_tree=0.56,
+                   sc_tree=0.22, wp_tree=0.15, hgw_tree=0.1, beta_tree=13.8,
+                   intercept_cap_bare=1., zr_bare=0.15, I_B_bare=20.,
+                   I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
+                   wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8, **kwds):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         self._vegtype = \
           kwds.pop('VEGTYPE', self.grid['cell']['vegetation__plant_functional_type'])
-        self._runon = kwds.pop('RUNON', 0.)
-        self._fbare = kwds.pop('F_BARE', data['F_BARE'])
-
+        self._runon = runon
+        self._fbare = f_bare
+        
         self._interception_cap = \
                 np.choose(self._vegtype, kwds.pop('INTERCEPT_CAP',
                 [ data['INTERCEPT_CAP_grass'], data['INTERCEPT_CAP_shrub'],
