@@ -1,4 +1,4 @@
-# Jai Sri Sainath!
+
 #################################################################
 ##
 ##  Modification of soil_moisture_field.py to accomodate
@@ -20,7 +20,11 @@ def assert_method_is_valid(method):
 
 
 class SoilMoisture(Component):
-
+    """
+    Landlab component that simulates root-zone average soil moisture at each
+    cell using inputs of potential evapotranspiration, live leaf area index,
+    and vegetation cover.
+    """
     _name = 'Soil Moisture'
 
     _input_var_names = (
@@ -87,7 +91,44 @@ class SoilMoisture(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, data, **kwds):
-
+        """
+        Parameters
+        ----------
+        grid: RasterModelGrid
+            A grid.
+        runon: float, optional
+            Runon from higher elevation (mm)
+        f_bare: float, optional
+            Fraction to partition PET for bare soil (None)
+        soil_ew: float, optional
+            Residual Evaporation after wilting (mm/day)
+        intercept_cap: float, optional
+            Plant Functional Type (PFT) specific full canopy interception
+        capacity
+        zr: float, optional
+            Root depth (m)
+        I_B: float, optional
+            Infiltration capacity of bare soil (mm/h)
+        I_V: float, optional
+            Infiltration capacity of vegetated soil (mm/h)
+        pc: float, optional
+            Soil porosity (None)
+        fc: float, optional
+            Soil saturation degree at field capacity (None)
+        sc: float, optional
+            Soil saturation degree at stomatal closure (None)
+        wp: float, optional
+            Soil saturation degree at wilting point (None)
+        hgw: float, optional
+            Soil saturation degree at hygroscopic point (None)
+        beta: float, optional
+            Deep percolation constant = 2*b+3 where b is water retention
+        parameter (None)
+        LAI_max: float, optional
+            Maximum leaf area index (m^2/m^2)
+        LAIR_max: float, optional
+            Reference leaf area index (m^2/m^2)
+        """
         self._method = kwds.pop('method', 'Grid')
 
         assert_method_is_valid(self._method)
@@ -145,23 +186,23 @@ class SoilMoisture(Component):
             Plant Functional Type (PFT) specific full canopy interception
         capacity
         zr: float, optional
-            root depth (m)
+            Root depth (m)
         I_B: float, optional
             Infiltration capacity of bare soil (mm/h)
         I_V: float, optional
             Infiltration capacity of vegetated soil (mm/h)
         pc: float, optional
-            soil porosity (None)
+            Soil porosity (None)
         fc: float, optional
-            soil saturation degree at field capacity (None)
+            Soil saturation degree at field capacity (None)
         sc: float, optional
-            soil saturation degree at stomatal closure (None)
+            Soil saturation degree at stomatal closure (None)
         wp: float, optional
-            soil saturation degree at wilting point (None)
+            Soil saturation degree at wilting point (None)
         hgw: float, optional
-            soil saturation degree at hygroscopic point (None)
+            Soil saturation degree at hygroscopic point (None)
         beta: float, optional
-            deep percolation constant = 2*b+3 where b is water retention
+            Deep percolation constant = 2*b+3 where b is water retention
         parameter (None)
         LAI_max: float, optional
             Maximum leaf area index (m^2/m^2)
