@@ -222,7 +222,6 @@ class StreamPowerEroder(Component):
             self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
 
-        active_nodes = grid.status_at_node != 4
         # self._K_unit_time = np.empty(active_nodes.sum(), dtype=float)
         self._K_unit_time = self.grid.zeros('node', dtype=float)
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
