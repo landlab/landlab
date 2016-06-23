@@ -14,7 +14,7 @@ taking advantage of codes that have already been written.
 
 More information can be found at the website:
 
-http://landlab.readthedocs.org
+http://landlab.github.io
 
 After installation, tests can be run with:
 

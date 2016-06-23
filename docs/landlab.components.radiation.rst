@@ -1,22 +1,7 @@
-landlab.components.radiation package
-====================================
+Radiation: Calculate solar radiation on topography given latitude, date, and time
+---------------------------------------------------------------------------------
 
-Submodules
-----------
-
-landlab.components.radiation.radiation_field module
----------------------------------------------------
-
-.. automodule:: landlab.components.radiation.radiation_field
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: landlab.components.radiation
+.. automodule:: landlab.components.radiation.radiation
     :members:
     :undoc-members:
     :show-inheritance:

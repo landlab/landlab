@@ -13,7 +13,7 @@ Examples
 True
 >>> grid.number_of_node_columns == 5
 True
->>> grid.corner_nodes
+>>> grid.nodes_at_corners_of_grid
 array([ 0,  4, 15, 19])
 >>> grid.number_of_cells
 6
@@ -30,9 +30,19 @@ from . import cells as quad_cells
 from . import links as quad_links
 from . import faces as quad_faces
 from . import nodes
+from landlab.utils.decorators import deprecated
 
 
 class StructuredQuadGrid(BaseGrid):
+    """
+    Parameters
+    ----------
+    node_coord : tuple
+        Coordinates of all grid nodes.
+    shape : tuple, optional
+        Shape of the grid of nodes.
+    """
+
     def __init__(self, node_coord, shape=None, axis_name=None, axis_units=None,
                  links=True, cells=True, node_status=None):
         """
@@ -59,7 +69,7 @@ class StructuredQuadGrid(BaseGrid):
             self._status = node_status
 
         if links:
-            #links = (node_id_at_link_start(self.shape),
+            # links = (node_id_at_link_start(self.shape),
             #         node_id_at_link_end(self.shape))
             link_grid = StructuredQuadLinkGrid(self.shape)
         if cells:
@@ -92,10 +102,12 @@ class StructuredQuadGrid(BaseGrid):
         self._in_link_id_at_nodes = quad_links.node_in_link_ids(self.shape)
         self._out_link_id_at_nodes = quad_links.node_out_link_ids(self.shape)
 
-        self._node_id_at_link_start = quad_links.node_id_at_link_start(self.shape)
+        self._node_id_at_link_start = quad_links.node_id_at_link_start(
+            self.shape)
         self._node_id_at_link_end = quad_links.node_id_at_link_end(self.shape)
 
-        self._active_link_ids = quad_links.active_link_ids(self.shape, self._status)
+        self._active_link_ids = quad_links.active_link_ids(
+            self.shape, self._status)
 
     @property
     def shape(self):
@@ -104,7 +116,7 @@ class StructuredQuadGrid(BaseGrid):
         return self._shape
 
     #@property
-    #def number_of_core_nodes(self):
+    # def number_of_core_nodes(self):
     #    """Number of core nodes.
     #    """
     #    return self._num_core_nodes
@@ -126,7 +138,12 @@ class StructuredQuadGrid(BaseGrid):
         return self.shape[0]
 
     @property
+    @deprecated(use='nodes_at_corners_of_grid', version=1.0)
     def corner_nodes(self):
+        return self.nodes_at_corners_of_grid
+
+    @property
+    def nodes_at_corners_of_grid(self):
         """Nodes in grid corners.
 
         Return the IDs to the corner nodes of the grid, sorted by ID.
@@ -142,7 +159,7 @@ class StructuredQuadGrid(BaseGrid):
         >>> from landlab.grid.structured_quad.structured import StructuredQuadGrid
         >>> (x, y) = np.meshgrid(np.arange(4.), np.arange(5.), indexing='ij')
         >>> grid = StructuredQuadGrid((x, y))
-        >>> grid.corner_nodes
+        >>> grid.nodes_at_corners_of_grid
         array([ 0,  4, 15, 19])
         """
         return nodes.corners(self.shape)

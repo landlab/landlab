@@ -8,10 +8,14 @@ Created on Fri Feb 20 13:45:52 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver
+from landlab.plot import imshow_grid_at_node
+from landlab import RasterModelGrid
 from matplotlib.ticker import MaxNLocator
 
 sqrt = np.sqrt
@@ -117,7 +121,7 @@ SWs = (slice(0,-2),slice(0,-2))
 Ss = (slice(0,-2),slice(1,-1))
 SEs = (slice(0,-2),slice(2,ncols+2))
 
-for i in xrange(nt):
+for i in range(nt):
     if i%100==0:
         print(i)
     qsedE.fill(0.)
@@ -140,20 +144,20 @@ for i in xrange(nt):
     qsedE[core] = np.sign(hgradEx[core])*vmagE[core]*(CslopeE[core]-slope).clip(0.)*np.cos(thetaE[core])
     #the clip should deal with the eastern edge, but return here to check if probs
 
-    
+
     hgradWx[core] = (hR[Ws]-hR[core])#/width
     hgradWy[core] = hR[SWs]-hR[NWs]+hR[Ss]-hR[Ns]
     hgradWy[core] *= 0.25
     CslopeW[core] = sqrt(np.square(hgradWx[core])+np.square(hgradWy[core]))
     thetaW[core] = np.arctan(np.fabs(hgradWy[core])/(np.fabs(hgradWx[core])+1.e-10))
-    pgradWx[core] = uW[core]#/width 
+    pgradWx[core] = uW[core]#/width
     pgradWy[core] = uN[core]+uS[core]+uN[Ws]+uS[Ws]
     pgradWy[core] *= 0.25
     vmagW[core] = sqrt(np.square(pgradWx[core])+np.square(pgradWy[core]))
     theta_vW[core] = np.arctan(np.fabs(pgradWy[core])/(np.fabs(pgradWx[core])+1.e-10))
     vmagW[core] *= np.cos(np.fabs(thetaW[core]-theta_vW[core]))
     qsedW[core] = np.sign(hgradWx[core])*vmagW[core]*(CslopeW[core]-slope).clip(0.)*np.cos(thetaW[core])
-    
+
     hgradNx[core] = hR[NWs]-hR[NEs]+hR[Ws]-hR[Es]
     hgradNx[core] *= 0.25
     hgradNy[core] = (hR[core]-hR[Ns])#/width
@@ -166,7 +170,7 @@ for i in xrange(nt):
     theta_vN[core] = np.arctan(np.fabs(pgradNy[core])/(np.fabs(pgradNx[core])+1.e-10))
     vmagN[core] *= np.cos(np.fabs(thetaN[core]-theta_vN[core]))
     qsedN[core] = np.sign(hgradNy[core])*vmagN[core]*(CslopeN[core]-slope).clip(0.)*np.sin(thetaN[core])
-    
+
     hgradSx[core] = hR[SWs]-hR[SEs]+hR[Ws]-hR[Es]
     hgradSx[core] *= 0.25
     hgradSy[core] = (hR[Ss]-hR[core])#/width
@@ -178,8 +182,8 @@ for i in xrange(nt):
     vmagS[core] = sqrt(np.square(pgradSx[core])+np.square(pgradSy[core]))
     theta_vS[core] = np.arctan(np.fabs(pgradSy[core])/(np.fabs(pgradSx[core])+1.e-10))
     vmagS[core] *= np.cos(np.fabs(thetaS[core]-theta_vS[core]))
-    qsedS[core] = np.sign(hgradSy[core])*vmagS[core]*(CslopeS[core]-slope).clip(0.)*np.sin(thetaS[core]) 
-    
+    qsedS[core] = np.sign(hgradSy[core])*vmagS[core]*(CslopeS[core]-slope).clip(0.)*np.sin(thetaS[core])
+
     hR[core] += dtwidth*(qsedS[core]+qsedW[core]-qsedN[core]-qsedE[core]+qsed_inR[core])
 
     #update the dummy edges of our variables:
@@ -190,7 +194,7 @@ for i in xrange(nt):
     hR[(0,-1,0,-1),(0,-1,-1,0)] = hR[(1,-2,1,-2),(1,-2,-2,1)]
 
     ###P SOLVER
-    
+
     #not_flat = np.greater(hR[core],flat_threshold)
     #not_mask = np.logical_not(mask)
     aNN[core] = (-hR[core]+hR[Ns]).clip(0.)
@@ -203,21 +207,21 @@ for i in xrange(nt):
     aWP[core] =  (hR[core]-hR[Ws]).clip(0.)
     aPP[core] = aWP[core]+aEP[core]+aSP[core]+aNP[core]+1.e-6
 
-    for j in xrange(15):
-        
+    for j in range(15):
+
         #assert np.all(np.greater(aPP[core][not_flat],0.)) #this is here to eliminate a divby0
         #K[core][not_flat] = ((aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss]+aNN[core]*K[Ns]
         #                    +qwater_inR[core])[not_flat])/aPP[core][not_flat]
         K[core] = (aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss]+aNN[core]*K[Ns]
                             +qwater_inR[core])/aPP[core]
-        
+
         for BC in (K,):
             BC[0,1:-1] = BC[1,1:-1]
             BC[-1,1:-1] = BC[-2,1:-1]
             BC[1:-1,0] = BC[1:-1,1]
             BC[1:-1,-1] = BC[1:-1,-2]
             BC[(0,-1,0,-1),(0,-1,-1,0)] = BC[(1,-2,1,-2),(1,-2,-2,1)]
-        
+
         uW[core] = aWW[core]*K[Ws]-aWP[core]*K[core]
         uE[core] = -aEE[core]*K[Es]+aEP[core]*K[core]
         uN[core] = -aNN[core]*K[Ns]+aNP[core]*K[core]
@@ -229,7 +233,7 @@ for i in xrange(nt):
             BC[1:-1,0] = BC[1:-1,1]
             BC[1:-1,-1] = BC[1:-1,-2]
             BC[(0,-1,0,-1),(0,-1,-1,0)] = BC[(1,-2,1,-2),(1,-2,-2,1)]
-    
+
 X,Y = np.meshgrid(np.arange(ncols),np.arange(nrows))
 uval = uW[core]+uE[core]
 vval = uN[core]+uS[core]
@@ -238,8 +242,10 @@ vval = uN[core]+uS[core]
 #vval /= velmag
 #imshow_node_grid(mg, h)
 figure(1)
-f1 = imshow(hR[core])
+mg = RasterModelGrid((nrows, ncols))
+f1 = imshow_grid_at_node(mg, hR[core].flatten(), grid_units=('m', 'm'))
 figure(2)
 f2 = contour(X,Y,hR[core], locator=MaxNLocator(nbins=100))
+# f2 = contour(X, Y, np.sqrt(uval**2+vval**2), locator=MaxNLocator(nbins=10))
 clabel(f2)
 quiver(X,Y,uval,vval)

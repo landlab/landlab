@@ -8,12 +8,12 @@ Created on Fri Feb 20 11:17:52 2015
 """
 from __future__ import print_function
 
-from landlab.components.gFlex.flexure import gFlex
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
-from landlab.components.stream_power.stream_power import StreamPowerEroder
 import numpy as np
 import pylab
+
+from landlab.components.gFlex.flexure import gFlex
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
@@ -31,16 +31,16 @@ rock_stress_param = inputs.read_float('rock_density')*9.81
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/1000.
 
-#make some surface load stresses in a field to test 
+#make some surface load stresses in a field to test
 mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
-    
+
 #instantiate:
 gf = gFlex(mg, './coupled_SP_gflex_params.txt')
-fsp = Fsc(mg, './coupled_SP_gflex_params.txt')
+fsp = FastscapeEroder(mg, './coupled_SP_gflex_params.txt')
 sp = StreamPowerEroder(mg, './coupled_SP_gflex_params.txt')
 fr = FlowRouter(mg)
 

@@ -1,54 +1,23 @@
-landlab.components.stream_power package
-=======================================
-
-Submodules
-----------
-
-landlab.components.stream_power.cfuncs module
----------------------------------------------
-
-.. automodule:: landlab.components.stream_power.cfuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.stream_power.fastscape_stream_power module
--------------------------------------------------------------
+FastscapeEroder: Compute fluvial erosion using stream power theory ("fastscape" algorithm)
+------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.stream_power.fastscape_stream_power
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.components.stream_power.sed_flux_dep_incision module
-------------------------------------------------------------
-
-.. automodule:: landlab.components.stream_power.sed_flux_dep_incision
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.stream_power.stream_power module
----------------------------------------------------
+StreamPower: Compute fluvial erosion using stream power theory (explicit forward-difference solution)
+-----------------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.stream_power.stream_power
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.components.stream_power.weavefuncs module
--------------------------------------------------
+SedDepEroder: Compute fluvial erosion using using "tools and cover" theory
+--------------------------------------------------------------------------
 
-.. automodule:: landlab.components.stream_power.weavefuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: landlab.components.stream_power
+.. automodule:: landlab.components.stream_power.sed_flux_dep_incision
     :members:
     :undoc-members:
     :show-inheritance:

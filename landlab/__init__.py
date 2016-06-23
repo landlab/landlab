@@ -1,27 +1,17 @@
 #! /usr/bin/env python
-"""
-The Landlab
+"""The Landlab
 
 :Package name: TheLandlab
-:Version: 0.1.0
 :Release date: 2013-03-24
-:Authors:
-  Greg Tucker,
-  Nicole Gasparini,
-  Erkan Istanbulluoglu,
-  Daniel Hobley,
-  Sai Nudurupati,
-  Jordan Adams,
-  Eric Hutton
-
+:Authors: Greg Tucker, Nicole Gasparini, Erkan Istanbulluoglu, Daniel Hobley,
+    Sai Nudurupati, Jordan Adams, Eric Hutton
 :URL: http://csdms.colorado.edu/trac/landlab
-
 :License: MIT
 """
 
 from __future__ import absolute_import
 
-__version__ = '0.1.27'
+__version__ = '1.0.0-beta.6'
 
 
 import os
@@ -53,3 +43,5 @@ __all__ = ['ModelParameterDictionary', 'MissingKeyError',
            'ParameterValueError', 'Component', 'Palette', 'Arena',
            'NoProvidersError', 'Implements', 'ImplementsOrRaise',
            'Framework', 'FieldError', 'LandlabTester']
+
+

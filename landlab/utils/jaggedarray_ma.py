@@ -1,9 +1,9 @@
-"""Arrays of variable-length arrays.
+"""Store arrays of variable-length arrays implemented with masked arrays.
 
 Implements a JaggedArray class using numpy masked arrays.
 
 Examples
-========
+--------
 
 Create a JaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
@@ -40,11 +40,36 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
+from six.moves import range
 
 
 class JaggedArray(object):
+
+    """
+    A container for an array of variable-length arrays.
+
+    JaggedArray([row0, row1, ...])
+    JaggedArray(values, values_per_row)
+
+    Examples
+    --------
+    Create a JaggedArray with an array of arrays.
+
+    >>> from landlab.utils.jaggedarray_ma import JaggedArray
+    >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+    >>> x.array
+    array([0, 1, 2, 3, 4])
+
+    Create a JaggedArray as a 1D array and a list or row lengths.
+
+    >>> x = JaggedArray([0, 1, 2, 3, 4], (3, 2))
+    >>> x.array
+    array([0, 1, 2, 3, 4])
+    """
+
     def __init__(self, *args):
-        """JaggedArray([row0, row1, ...])
+        """
+        JaggedArray([row0, row1, ...])
         JaggedArray(values, values_per_row)
 
         Examples
@@ -75,23 +100,51 @@ class JaggedArray(object):
 
     @staticmethod
     def ma_from_list_of_lists(rows, dtype=None):
+        """Create a masked array from a list of lists.
+
+        Parameters
+        ----------
+        rows : array_like or array_like
+            Rows of the jagged array.
+        dtype : np.dtype, optional
+            The data type of the new masked array.
+
+        Returns
+        -------
+        np.masked_array
+            A new masked array.
+        """
         values_per_row = [len(row) for row in rows]
         mat = np.ma.masked_all((len(rows), max(values_per_row)),
                                dtype=dtype or int)
-        for (m, row) in enumerate(rows):
-            mat[m, :len(row)] = row
+        for (row_number, row) in enumerate(rows):
+            mat[row_number, :len(row)] = row
 
         return mat
 
     @staticmethod
     def ma_from_flat_array(array, values_per_row):
+        """Create a masked array from a flat array.
+
+        Parameters
+        ----------
+        array : array_like
+            Values of the jagged array.
+        values_per_row : array_like of int
+            Number of values in each row of the jagged array.
+
+        Returns
+        -------
+        np.masked_array
+            A new masked array.
+        """
         array = np.array(array)
         mat = np.ma.masked_all((len(values_per_row), max(values_per_row)),
                                dtype=array.dtype)
         offset = 0
-        for (m, row) in enumerate(mat):
-            n_valid = values_per_row[m]
-            mat[m, :n_valid] = array[offset:offset + n_valid]
+        for row_number in range(mat.shape[0]):
+            n_valid = values_per_row[row_number]
+            mat[row_number, :n_valid] = array[offset:offset + n_valid]
             offset += n_valid
 
         return mat
@@ -118,8 +171,26 @@ class JaggedArray(object):
         """
         return self._values.compressed()
 
+    @property
+    def masked_array(self):
+        """The jagged array as a masked array.
+
+        Returns
+        -------
+        np.masked_array :
+            The underlying masked array.
+        """
+        return self._values
+
     @array.setter
     def array(self, array):
+        """Set the data of the jagged array from a 1D array.
+
+        Parameters
+        ----------
+        array : array_like
+            The new values of the array.
+        """
         self._values[~ self._values.mask] = array
 
     @property
@@ -160,6 +231,18 @@ class JaggedArray(object):
 
     @staticmethod
     def _offsets_from_values_per_row(values_per_row):
+        """Get offsets into the base array from array lengths.
+
+        Parameters
+        ----------
+        values_per_row : array of int
+            The number of values in each row of the JaggedArray.
+
+        Returns
+        -------
+        ndarray
+            An array of offsets.
+        """
         offset = np.empty(len(values_per_row) + 1, dtype=int)
         np.cumsum(values_per_row, out=offset[1:])
         offset[0] = 0
@@ -167,7 +250,21 @@ class JaggedArray(object):
 
     @staticmethod
     def empty_like(jagged, dtype=None):
-        return JaggedArray(np.ma.empty_like(jagged._values, dtype=dtype))
+        """Create a new JaggedArray that is like another one.
+
+        Parameters
+        ----------
+        jagged : JaggedArray
+            A JaggedArray to copy.
+        dtype : np.dtype
+            The data type of the new JaggedArray.
+
+        Returns
+        -------
+        JaggedArray
+            A new JaggedArray.
+        """
+        return JaggedArray(np.ma.empty_like(jagged.masked_array, dtype=dtype))
 
     def length_of_row(self, row):
         """Number of values in a given row.
@@ -194,7 +291,7 @@ class JaggedArray(object):
         return len(self.row(row))
 
     def row(self, row):
-        """Values of a row
+        """Get the values of a row as an array.
 
         Parameters
         ----------
@@ -232,7 +329,7 @@ class JaggedArray(object):
             yield row.compressed()
 
     def foreach_row(self, func, out=None):
-        """Apply an operator row-by-row
+        """Apply an operator row-by-row.
 
         Examples
         --------

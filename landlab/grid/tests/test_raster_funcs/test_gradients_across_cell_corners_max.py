@@ -7,8 +7,6 @@ try:
 except ImportError:
     from landlab.testing.tools import assert_is
 
-from landlab.grid import raster_funcs as rfuncs
-
 
 def setup_unit_grid():
     from landlab import RasterModelGrid
@@ -35,14 +33,15 @@ def setup_grid():
 
 @with_setup(setup_unit_grid)
 def test_scalar_arg():
-    grad = rmg.calculate_steepest_descent_across_cell_corners(values_at_nodes, 0)
+    grad = rmg._calc_steepest_descent_across_cell_corners(
+        values_at_nodes, 0)
     assert_equal(grad, - 6. / np.sqrt(2.))
 
 
 @with_setup(setup_unit_grid)
 def test_iterable():
-    grads = rmg.calculate_steepest_descent_across_cell_corners(values_at_nodes,
-                                                           [0, 4])
+    grads = rmg._calc_steepest_descent_across_cell_corners(values_at_nodes,
+                                                               [0, 4])
     assert_array_equal(grads, - np.array([6., 6.]) / np.sqrt(2))
 
 
@@ -52,7 +51,7 @@ def test_scalar_arg_with_faces_ids():
                        0, 1,  3, 6, 10,
                        0, 1,  3, 5, 10,
                        0, 1, -3, 6, 10], dtype=float)
-    (grad, node) = rmg.calculate_steepest_descent_across_cell_corners(
+    (grad, node) = rmg._calc_steepest_descent_across_cell_corners(
         values, (0, 4), return_node=True)
     assert_array_equal(grad, - np.array([1, 2]) / np.sqrt(2.))
     assert_array_equal(node, [10, 16])
@@ -63,7 +62,7 @@ def test_node_in_direction_of_max():
     for diagonal_id in [0, 2, 6, 8]:
         values = np.zeros(9)
         values[diagonal_id] = -1
-        (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_corners(
+        (_, node) = rmg_3x3._calc_steepest_descent_across_cell_corners(
             values, 0, return_node=True)
         assert_array_equal(node, diagonal_id)
 
@@ -71,18 +70,18 @@ def test_node_in_direction_of_max():
 @with_setup(setup_3x3_grid)
 def test_node_in_direction_of_max_with_ties():
     values = np.zeros(9)
-    (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_corners(
+    (_, node) = rmg_3x3._calc_steepest_descent_across_cell_corners(
         values, 0, return_node=True)
     assert_array_equal(node, 8)
 
     values = np.zeros(9)
     values[8] = 1
-    (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_corners(
+    (_, node) = rmg_3x3._calc_steepest_descent_across_cell_corners(
         values, 0, return_node=True)
     assert_array_equal(node, 6)
 
     values = np.zeros(9)
     values[[8, 6]] = 1
-    (_, node) = rmg_3x3.calculate_steepest_descent_across_cell_corners(
+    (_, node) = rmg_3x3._calc_steepest_descent_across_cell_corners(
         values, 0, return_node=True)
     assert_array_equal(node, 0)

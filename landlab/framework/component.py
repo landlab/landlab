@@ -36,7 +36,7 @@ def iscomponent(value, cls):
 
 def load_components_from_dir(path, cls):
     """
-    Look for components for The Landlab in *path*. Identify components as being an
+    Look for components for Landlab in *path*. Identify components as being an
     instance of *cls*. Returns a dictionary of discovered component names as
     keys and component classes as values.
     """
@@ -65,9 +65,11 @@ def load_components_from_dir(path, cls):
 
 def load_components(cls, paths=None):
     """
-    Load components from a series of directories. components found earlier in the
-    search path order override those discovered later. Use the *paths* keyword
-    to specify a list of paths to search for components.
+    Load components from a series of directories.
+
+    Components found earlier in the search path order override those
+    discovered later. Use the *paths* keyword to specify a list of paths to
+    search for components.
 
     .. seealso::
 

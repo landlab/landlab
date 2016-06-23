@@ -17,7 +17,7 @@ import sys, os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                os.pardir))) 
+                                                os.pardir)))
 sys.path.insert(0, os.path.abspath('sphinxext'))
 sys.path.insert(0, '.')
 
@@ -96,6 +96,9 @@ pygments_style = 'sphinx'
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
+
+# selects what content will be inserted into the main body of an autoclass directive: 'class'(default), 'both', or 'init'
+# autoclass_content = 'both'
 
 
 # -- Options for HTML output ---------------------------------------------------
@@ -317,4 +320,5 @@ todo_include_todos = True
 #latex_elements = dict(preamble='\\usepackage{amsmath}')
 
 numpydoc_class_members_toctree = False
+numpydoc_show_class_members = False
 html_style = 'landlab.css'

@@ -30,15 +30,18 @@ def test_link_arg_as_scalars():
 
 
 def test_link_arg_as_pairs():
-    links, count = link_ids_at_node([(0, 1), (0, 2), (0, 3)], number_of_nodes=4)
+    links, count = link_ids_at_node(
+        [(0, 1), (0, 2), (0, 3)], number_of_nodes=4)
     assert_array_equal(links, [0, 1, 2, 0, 1, 2])
     assert_array_equal(count, [3, 1, 1, 1])
 
-    links, count = in_link_ids_at_node([(0, 1), (0, 2), (0, 3)], number_of_nodes=4)
+    links, count = in_link_ids_at_node(
+        [(0, 1), (0, 2), (0, 3)], number_of_nodes=4)
     assert_array_equal(links, [0, 1, 2])
     assert_array_equal(count, [0, 1, 1, 1])
 
-    links, count = out_link_ids_at_node([(0, 1), (0, 2), (0, 3)], number_of_nodes=4)
+    links, count = out_link_ids_at_node(
+        [(0, 1), (0, 2), (0, 3)], number_of_nodes=4)
     assert_array_equal(links, [0, 1, 2])
     assert_array_equal(count, [3, 0, 0, 0])
 

@@ -2,9 +2,8 @@
 
 import numpy as np
 
-from landlab.components.flexure import FlexureComponent
+from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
-from landlab.plot import imshow_field
 
 
 SHAPE = (100, 100)
@@ -16,17 +15,18 @@ LOAD_LOCS = [
 
 
 def put_two_point_loads_on_grid(grid):
-    load = grid.field_values('node', 'lithosphere__overlying_pressure')
+    load = grid.field_values('node',
+                             'lithosphere__overlying_pressure_increment')
     load = load.view()
     load.shape = grid.shape
     for loc in LOAD_LOCS:
-        load[loc] = 1e15
+        load[loc] = 10e6
 
 
 def create_lithosphere_elevation_with_bulge(grid):
-    grid.add_zeros('node', 'lithosphere__elevation')
+    grid.add_zeros('node', 'lithosphere_surface__elevation')
 
-    z = grid.field_values('node', 'lithosphere__elevation').view()
+    z = grid.field_values('node', 'lithosphere_surface__elevation').view()
     z.shape = grid.shape
 
     (y, x) = np.meshgrid(np.linspace(0, np.pi * .5, grid.shape[0]),
@@ -41,14 +41,15 @@ def main():
 
     create_lithosphere_elevation_with_bulge(grid)
 
-    flex = FlexureComponent(grid, method='flexure')
+    flex = Flexure(grid, method='flexure')
 
     put_two_point_loads_on_grid(grid)
 
     flex.update()
 
-    grid.imshow('node', 'lithosphere__elevation', symmetric_cbar=False,
-                show=True) 
+    grid.at_node['lithosphere_surface__elevation'] += grid.at_node['lithosphere_surface__elevation_increment']
+    grid.imshow('node', 'lithosphere_surface__elevation',
+                symmetric_cbar=False, show=True)
 
 
 if __name__ == '__main__':

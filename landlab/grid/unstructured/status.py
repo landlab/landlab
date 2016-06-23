@@ -27,6 +27,7 @@ BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
 
 
 class StatusGrid(object):
+
     def __init__(self, node_status):
         self._node_status = np.array(node_status)
 

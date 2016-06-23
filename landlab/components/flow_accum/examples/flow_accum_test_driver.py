@@ -20,14 +20,14 @@ class data(object):
 
 #Make grid, set the elevs
 mg = raster.RasterModelGrid(5, 5, 1.)
-mg.set_inactive_boundaries(True, True, False, True)
+mg.set_inactive_boundaries(True, False, True, True)
 vectors = data(mg)
 
 vectors.elev = np.array([10.,10.,0.,10.,10.,10.,8.,8.,9.,10.,10.,4.,6.,7.,10.,10.,1.,3.,8.,10.,10.,0.,10.,10.,10.])
 
 print(vectors.elev.reshape((5,5)))
 print(np.array(range(25)).reshape((5,5)))
-#print mg.node_status.reshape((5,5))
+#print mg.status_at_node.reshape((5,5))
 
 #imshow_grid(mg,vectors.elev)
 #plot()

@@ -1,7 +1,7 @@
 .. _drive_a_model:
 
 What goes into a Landlab Model?
-==============================
+===============================
 
 In the previous section, we showed you most of the core functionality of the Landlab grid. In this section, we introduce you to how to actually use it, to build models and work with the Landlab component library.
 
@@ -16,7 +16,7 @@ Typically, a driver file will consist of six distinct sections:
 * **Run** the model, typically by creating a for loop or using a Landlab generator (see below)
 * **Finalize** and handle the data (e.g., plot, export)
 
-Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about parameter files :ref:`here <input_files>`. However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver. 
+Beyond the driver, if you’re using Landlab components, you’ll probably also need a **parameter file**. This file supplies the components with the additional parameter and setup information they need. Landlab parameter files are text files (.txt), have fixed format, and for convenience (so you only have to specify the minimum of path information in the file name) should be placed in the same folder as the driver file. Find out more about parameter files :ref:`here <input_files>`. However, if you’re not using components, there’s little need to create a parameter file; you can just directly other parameters to the grid in the driver.
 
 
 A Brief Introduction to Components
@@ -64,7 +64,7 @@ As noted above, the process of creating a driver is essentially equivalent wheth
 1. Import the libraries and functions you need
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-Landlab handles a lot like numpy, and like numpy you’ll need to import the various libraries and functions that you’ll want to use. At the very least, we suspect you’ll need from outside Landlab:
+Landlab handles a lot like numpy, and like numpy you’ll need to import the various modules and functions that you’ll want to use. At the very least, we suspect you’ll need from outside Landlab:
 
 * *numpy* itself
 * rudimentary pylab plotting routines: *plot*, *show*, *figure*
@@ -82,12 +82,14 @@ From inside Landlab, you’ll also need:
 
 A specific example might be:
 
->>> import numpy as np
->>> from pylab import show, figure, plot
->>> import time
->>> from landlab import RasterModelGrid
->>> from landlab.components.flow_routing import route_flow_dn
->>> from landlab.plot.imshow import imshow_node_grid
+.. code-block:: python
+
+    import numpy as np
+    from pylab import show, figure, plot
+    import time
+    from landlab import RasterModelGrid
+    from landlab.components.flow_routing import FlowRouter
+    from landlab.plot.imshow import imshow_node_grid
 
 
 2. Instantiate objects
@@ -97,14 +99,19 @@ As noted in previous sections, Landlab is coded in an `object-oriented style <ht
 
 Note that most components require the grid object be passed to them as one of their arguments during instantiation, so the first thing you’ll want to instantiate will be the grid.
 
-Check the docstrings for each class (grid, component) you want to instantiate for a detailed description of what you need to supply as arguments. For a RasterModelGrid, this will be (number_of_node_rows, number_of_node_columns, node_spacing(optional)). For a VoronoiDelaunayGrid, it will be (array_of_node_x_coords, array_of_node_y_coords). For a generic component, it will typically be (ModelGrid, ‘path_to_parameter_file.txt’), though there may be some variation, and optional inputs may also be available.
+Check the docstrings for each class (grid, component) you want to instantiate for a detailed description of what you need to supply as arguments. For a RasterModelGrid, this will be a tuple, (i, j), where i is the number of columns and j the number of rows. A second float (or tuple) is optional, specifying the node spacing - using a tuple to specify (dy, dx) if you want them to be different.
+[Landlab also recognises an older style of RasterModelGrid signature, which looks like (number_of_node_rows, number_of_node_columns, node_spacing(optional)), and is clever enough to work out this is what you're doing if your arguments are of this form.]
+For a VoronoiDelaunayGrid, it will be (array_of_node_x_coords, array_of_node_y_coords). For a generic component, it will typically be (ModelGrid, ‘path_to_parameter_file.txt’), though there may be some variation, and optional inputs may also be available.
 
 Give each object you instantiate a variable name. We like “mg” for ModelGrid objects, and some appropriate abbreviation for a component.
 
 An example might be:
 
->>> mg = RasterModelGrid(10,10,1.) #100 nodes, spacing of 1.
->>> fr = route_flow_dn(mg, ‘./params.txt’) #this assumes params.txt is in the current directory
+.. code-block:: python
+
+    mg = RasterModelGrid((10, 10), (1., 2.))  # 100 nodes, dy=1., dx=2.
+    fr = FlowRouter(mg, './params.txt')
+    # ...this assumes params.txt is in the current directory
 
 
 3. Load/create data in fields
@@ -118,19 +125,23 @@ You will likely be in one of two situations regarding the initial data you want 
 
 In both cases, we advocate a two step process: creating a numpy array of the data, then loading it into the grid as a field. We can illustrate for both of the above cases:
 
->>> mg = RasterModelGrid(10,10,1.) #make a grid
->>> z = np.zeros(100, dtype=float) #make a flat surface, elev 0
->>> #or…
->>> z = mg.node_y*0.01 #a flat surface dipping shallowly south
->>> z += np.random.rand(100.)/10000. #add a little noise to the surface
->>> mg.add_field(‘node’, ‘topographic__elevation’, z, units=’m’) #create the field
+.. code-block:: python
 
-Alternatively, we can use the specialized Landlab function :func:`~landlab.io.esri_ascii.read_esri_ascii` 
-to import an ascii raster that can be output from ARC. Note this function both creates the grid for you and loads the data as a field if you provide ‘name’. If not, you’ll have to load the data output (*z*, below) manually.
+    mg = RasterModelGrid((10, 10), 1.)  # make a grid
+    z = np.zeros(100, dtype=float)  # make a flat surface, elev 0
+    # or…
+    z = mg.node_y*0.01  # a flat surface dipping shallowly south
+    # add a little noise to the surface:
+    z += np.random.rand(100.)/10000.
+    # create the field:
+    mg.add_field('node', 'topographic__elevation', z, units='m')
 
->>> from landlab.io import read_esri_ascii
->>> mg, z = read_esri_ascii(‘my_ARC_output.asc’, name=’topographic__elevation’)
->>> np.all(mg.at_node[‘topographic__elevation’] == z)
+Alternatively, we can use the specialized Landlab function :func:`~landlab.io.esri_ascii.read_esri_ascii`
+to import an ascii raster that can be output from ARC. Note this function both creates the grid for you and loads the data as a field if you provide ‘name’. If not, you’ll have to load the data output (*z*, below) manually::
+
+    >>> from landlab.io import read_esri_ascii
+    >>> mg, z = read_esri_ascii('my_ARC_output.asc', name='topographic__elevation')
+    >>> np.all(mg.at_node['topographic__elevation'] == z)
     True
 
 Note that if you don’t want to use any Landlab components, you can continue to work with data as “free floating” numpy arrays, and can ignore the fields (e.g., see the :ref:`simple tutorial <getting_started>` at the start of this guide).
@@ -139,29 +150,36 @@ Note that if you don’t want to use any Landlab components, you can continue to
 4. Set the boundary conditions
 ++++++++++++++++++++++++++++++
 
-Once you have a grid and the initial condition data you’ll need, it’s time to set the boundary conditions. If you’re working with a raster, or some pre-existing imported data, this is very straightforward using the built in RasterModelGrid functions. For a raster where only the edges are to be boundary nodes:
+Once you have a grid and the initial condition data you’ll need, it’s time to set the boundary conditions. If you’re working with a raster, or some pre-existing imported data, this is very straightforward using the built in RasterModelGrid functions. For a raster where only the edges are to be boundary nodes::
 
->>> mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
->>> mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+    >>> mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
+    >>> mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
 This will give a grid with fixed value boundaries at the left and right edges, and closed boundaries at the top and bottom.
 
-If you’re working with, say, an ARC imported array with a null value on the closed nodes (e.g., -9999), you can do this:
+If you’re working with, say, an ARC imported array with a null value on the closed nodes
+(e.g., -9999), you can do this::
 
->>> mg.set_nodata_nodes_to_closed(mg.at_node[‘topographic__elevation’], -9999)
+    >>> mg.set_nodata_nodes_to_closed(mg.at_node['topographic__elevation'], -9999)
 
 (Note though that you’re still likely to have to reopen an outlet node manually! In which case you’ll also need to follow the instructions below.)
 
-If you’re working with individual nodes’ boundary statuses, you’ll need to set the BCs slightly differently. First, you’ll need to alter those statuses directly, but then - and very importantly! - you’ll need to make sure all there’s full internal consistency between the node statuses and all the subsidiary statuses like those on cells and links. Use :func:`~landlab.grid.base.ModelGrid.update_links_nodes_cells_to_new_BCs`.
-Do this like so:
+If you’re working with individual nodes’ boundary statuses, you’ll need to set the BCs by hand. This means individually modifying the boundary condition status of each node or link that you want to be of the new type. Fortunately, Landlab uses some Python magic to make sure that when you update, for example, the status of a node, the statuses of attached links and cells change concomitantly. For example::
 
->>> #find the ID of the lowest elevation core node; we’ll make this a fixed gradient outlet:
->>> outlet_id = mg.core_nodes[np.argmin( 
-                    mg.at_node[‘topographic__elevation’][mg.core_nodes])] 
->>> mg.node_status[outlet_id] = 2
->>> #remember, 0:core, 1:fixedval, 2:fixedgrad, 3:looped, 4:closed
->>> mg.update_links_nodes_cells_to_new_BCs() 
->>> #make sure to call this if you make manual BC changes!!
+    >>> # import the BC values we'll need:
+    >>> from landlab import FIXED_LINK, FIXED_GRADIENT_BOUNDARY
+    >>> # find the ID of the lowest elevation core node.
+    >>> # we'll make this a fixed gradient outlet:
+    >>> outlet_id = mg.core_nodes[np.argmin(
+                    mg.at_node['topographic__elevation'][mg.core_nodes])]
+    >>> # show there are no FIXED_LINK boundary conditions in the grid yet:
+    >>> np.any(mg.status_at_link==FIXED_LINK)
+    False
+    >>> # update the outlet node:
+    >>> mg.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+    >>> np.any(mg.status_at_link==FIXED_LINK)
+    True
+    >>> # the corresponding link has been automatically updated.
 
 
 5. Run the model
@@ -169,32 +187,41 @@ Do this like so:
 
 We’re now ready to actually implement a run of our model! Most things you might want to do with Landlab are probably time-sensitive, so in almost all cases, you’ll probably be placing the guts of your simulation inside a loop of some sort. In simple cases, you can just use some variation on a simple for loop or while statement, either:
 
->>> dt = 10.
->>> for tstep in xrange(100):
-…    #...do the thing for one timestep dt
+.. code-block:: python
 
-or
+    dt = 10.
+    for tstep in xrange(100):
+        #...do the thing for one timestep dt
 
->>> dt = 10.
->>> accumulated_time = 0.
->>> while accumulated_time<1000.:
-…    #...do the thing for one timestep dt
-…    accumulated_time += dt
+or:
+
+.. code-block:: python
+
+    dt = 10.
+    accumulated_time = 0.
+    while accumulated_time<1000.:
+        #...do the thing for one timestep dt
+        accumulated_time += dt
 
 Both produce 1000 time units of run, with an explicit timestep of 10. Notice that the latter technique is particularly amenable to situations where your explicit timestep is varying (e.g., a storm sequence).
 
 Landlab also however has a built in storm generator component,
 :class:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution`,
-which (as its module name suggests) actually acts as a true `Python generator <http://www.python-course.eu/generators.php>`_. The main method is 
-:func:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity`. 
+which acts as a true `Python generator <http://www.python-course.eu/generators.php>`_ (see its documentation!). The main method is
+:func:`~landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity`.
 This means producing a storm series in Landlab is also very easy:
 
->>> from landlab.components.uniform_precip.generate_uniform_precip import PrecipitationDistribution
->>> time_to_run = 500000.
->>> precip_perturb = PrecipitationDistribution(input_file=input_file_string, total_t=time_to_run)
->>> for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
-…    if rainfall_rate != 0.:
-…        #...do the thing, making sure to pass it the current interval_duration and rainfall_rate
+.. code-block:: python
+
+    from landlab.components.uniform_precip import PrecipitationDistribution
+    time_to_run = 500000.
+    precip_perturb = PrecipitationDistribution(input_file=input_file_string,
+                                               total_t=time_to_run)
+    for (interval_duration, rainfall_rate) in \
+            precip_perturb.yield_storm_interstorm_duration_intensity():
+        if rainfall_rate != 0.:
+            # ...do the thing, making sure to pass it the current
+            # interval_duration and rainfall_rate
 
 Notice that the advantage of the generator is that it just stops when the desired number of events/time duration has expired! See the end of `this tutorial <http://nbviewer.ipython.org/github/landlab/drivers/blob/master/notebooks/component_tutorial.ipynb>`_ for an example of this generator in action.
 
@@ -212,36 +239,44 @@ Save or export the data
 
 If you’re using a raster grid, you can easily save your grid output to either ESRI ascii (i.e. ARCmap) or open source netCDF formats. netCDF in particular is a powerful format, and allows easy subsequent re-loading of a Landlab modelgrid and all its fields. Save your raster like this:
 
->>> rmg.save(‘my_savename.asc’, names=[‘field1’,’field2’]) #for esri ascii, only saving the fields 1 and 2
+.. code-block:: python
 
-or 
+    rmg.save('my_savename.asc', names=['field1','field2'])
+    # for esri ascii, only saving the fields 1 and 2
 
->>> rmg.save(‘my_savename.nc’) #save as netCDF3, saving all fields by default
+or:
+
+.. code-block:: python
+
+    rmg.save('my_savename.nc')
+    # save as netCDF3, saving all fields by default
 
 The former way will give two save files, my_savename_field1.asc and my_savename_field2.asc. The latter will just give ‘my_savename.nc’.
 
-To reload a netCDF file, use the Landlab io function 
-:func:`~landlab.io.netcdf.read_netcdf`:
+To reload a netCDF file, use the Landlab io function
+:func:`~landlab.io.netcdf.read_netcdf`::
 
->>> from landlab.io.netcdf import read_netcdf
->>> mg = read_netcdf(‘my_savename.nc’)
+    >>> from landlab.io.netcdf import read_netcdf
+    >>> mg = read_netcdf('my_savename.nc')
 
 Note all the original fields you had will automatically be repopulated.
 
-If you’re using an irregular grid, the simple grid save function is not yet operational (though is under development). Instead, we recommend using Pickle, a native Python way of saving (“pickling”) any Python object. It works like this:
+If you’re using an irregular grid, the simple grid save function is not yet operational (though is under development). Instead, we recommend using Pickle, a native Python way of saving (“pickling”) any Python object. It works like this::
 
->>> import cPickle as pickle #cPickle is a lot faster than normal pickle
->>> pickle.dump( mg, open(‘my_savename.pickle’, ‘wb’) ) #save the grid, and all its fields
->>> mg = pickle.load( open(‘my_savename.pickle’, ‘rb’) ) #load the grid and fields back into a grid object
+    >>> import cPickle as pickle  # cPickle is a lot faster than normal pickle
+    >>> pickle.dump( mg, open('my_savename.pickle', 'wb') )
+    # ...save the grid, and all its fields
+    >>> mg = pickle.load( open('my_savename.pickle', 'rb') )
+    # ...load the grid and fields back into a grid object
 
 Unfortunately, the power of pickle comes somewhat at the expense of both disk space and speed. Saves this way can be slow and, if the grid is big, memory expensive (e.g., ~1 Gb for millions of nodes).
 
-You can also use lower level, numpy save routines to preserve just your data (rather than the whole grid object). The numpy methods **save** and **savetxt** and **load** and **loadtxt** can be called on any numpy array, including those saved as fields. Save and load use the numpy specific .npy file format; savetxt and loadtxt use textfiles. Use them like this:
+You can also use lower level, numpy save routines to preserve just your data (rather than the whole grid object). The numpy methods **save** and **savetxt** and **load** and **loadtxt** can be called on any numpy array, including those saved as fields. Save and load use the numpy specific .npy file format; savetxt and loadtxt use textfiles. Use them like this::
 
->>> np.save(‘savename.npy’, mg.at_node[‘my_field’])
->>> mg.at_node[‘my_field’] = np.load(‘savename.npy’)
->>> np.savetxt(‘savename.txt’, mg.at_node[‘my_field’])
->>> mg.at_node[‘my_field’] = np.loadtxt(‘savename.txt’)
+    >>> np.save('savename.npy', mg.at_node['my_field'])
+    >>> mg.at_node['my_field'] = np.load('savename.npy')
+    >>> np.savetxt('savename.txt', mg.at_node['my_field'])
+    >>> mg.at_node['my_field'] = np.loadtxt('savename.txt')
 
 
 Plot the data
@@ -253,17 +288,18 @@ You also of course have the option of using the `matplotlib plotting library <ht
 
 If you’re careful, you can also build plotting functions into the body of a run loop for your model, so you can see how your output evolves through time. Note however that all Python save and plot functions are considerably time expensive, so it would probably be a bad idea to do this kind of thing every timestep. Instead, you can try something like:
 
->>> import plot
->>> dt = 10.
->>> accumulated_time = 0.
->>> last_accumulated_time_remainder = 0.
->>> while accumulated_time<1000.:
-…	#...do the thing for one timestep dt
-…	accumulated_time += dt
-…	if last_accumulated_time_remainder < accumulated_time%100.:  #output every 100.
-…		plot(mg.node_vector_to_raster(z)[mg.number_of_node_rows//2,:]) #a cross section
-…	last_accumulated_time_remainder = accumulated_time%100.
->>> show()
+.. code-block:: python
+
+    import plot
+    dt = 10.
+    accumulated_time = 0.
+    last_accumulated_time_remainder = 0.
+    while accumulated_time<1000.:
+        #...do the thing for one timestep dt
+        accumulated_time += dt
+        if last_accumulated_time_remainder < accumulated_time%100.:  # output every 100.
+            plot(mg.node_vector_to_raster(z)[mg.number_of_node_rows//2,:])  # a cross section
+            last_accumulated_time_remainder = accumulated_time%100.
+    show()
 
 Note that if you’re running inside an interactive Python session like iPython, all the variables and objects (both grid and component) that you’ve used in your model will still be available in the environment. Thus, you can play with your data for as long as you want!
-

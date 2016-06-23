@@ -24,7 +24,7 @@ class RectilinearGrid(StructuredQuadGrid):
     4
     >>> grid.number_of_node_columns
     5
-    >>> grid.corner_nodes
+    >>> grid.nodes_at_corners_of_grid
     array([ 0,  4, 15, 19])
     >>> grid.number_of_cells
     6
@@ -33,6 +33,7 @@ class RectilinearGrid(StructuredQuadGrid):
     >>> grid.node_col_coord
     array([ 0.,  1.,  2.,  3.,  4.])
     """
+
     def __init__(self, coord):
         """
         Parameters
@@ -70,6 +71,15 @@ class RectilinearGrid(StructuredQuadGrid):
 
 class UniformRectilinearGrid(RectilinearGrid):
     """
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid in nodes.
+    spacing : tuple, optional
+        Spacing between rows and columns.
+    origin : tuple, optional
+        Coordinates of grid origin.
+
     Examples
     --------
     >>> from landlab.grid.structured_quad.rectilinear import UniformRectilinearGrid
@@ -83,7 +93,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     4
     >>> grid.number_of_node_columns
     5
-    >>> grid.corner_nodes
+    >>> grid.nodes_at_corners_of_grid
     array([ 0,  4, 15, 19])
     >>> grid.number_of_cells
     6
@@ -92,6 +102,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     >>> grid.node_col_coord
     array([  1.,   4.,   7.,  10.,  13.])
     """
+
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
         """
         Parameters
@@ -138,6 +149,15 @@ class UniformRectilinearGrid(RectilinearGrid):
 
 class RasterGrid(UniformRectilinearGrid):
     """
+    Parameters
+    ----------
+    shape : tuple
+        Shape of the grid in nodes.
+    spacing : float, optional
+        Spacing between rows and columns.
+    origin : tuple, optional
+        Coordinates of grid origin.
+        
     Examples
     --------
     >>> from landlab.grid.structured_quad.rectilinear import RasterGrid
@@ -151,7 +171,7 @@ class RasterGrid(UniformRectilinearGrid):
     4
     >>> grid.number_of_node_columns
     5
-    >>> grid.corner_nodes
+    >>> grid.nodes_at_corners_of_grid
     array([ 0,  4, 15, 19])
     >>> grid.number_of_cells
     6
@@ -160,6 +180,7 @@ class RasterGrid(UniformRectilinearGrid):
     >>> grid.node_col_coord
     array([ 1.,  3.,  5.,  7.,  9.])
     """
+
     def __init__(self, shape, spacing=1., origin=0.):
         """
         Parameters

@@ -1,7 +1,7 @@
 #! /usr/env/python
 """
-just a little script for testing the d8 flow routing class 
-and drainage area calculation 
+just a little script for testing the d8 flow routing class
+and drainage area calculation
 """
 from __future__ import print_function
 
@@ -18,15 +18,15 @@ def main():
     dx=1
     #instantiate grid
     rg = RasterModelGrid(nr, nc, dx)
-    rg.set_inactive_boundaries(False, False, True, True)
-    
+    rg.set_inactive_boundaries(False, True, True, False)
 
-    elevations  = zeros( ncells )    
+
+    elevations  = zeros( ncells )
     #set-up interior elevations with random numbers
     #for i in range(0, ncells):
     #    if rg.is_interior(i):
     #        elevations[i]=random.random_sample()
-    
+
     #set-up with prescribed elevations to test drainage area calcualtion
     helper = [7,8,9,10,13,14,15,16]
     for i in range(0, len(helper)):
@@ -35,27 +35,27 @@ def main():
     helper = [19,20,21,22]
     for i in range(0, len(helper)):
         elevations[helper[i]]=3
-        
+
     elevations[7]=1
-    
+
     #tried making a pit, drainage area algorithm doesn't crash, but it doesn't
-    #work perfectly either.    
+    #work perfectly either.
     #elevations[15]=-50
-    
+
     #printing elevations for debugging purposes
-    #print 'elevation vector' 
+    #print 'elevation vector'
     #print elevations
 
     #instantiate flow routing variable
     flow = flow_routing_D8.RouteFlowD8(ncells)
     #calculate flow directions
-    flow_directions, max_slope = flow.calc_flowdirs(rg, elevations) 
-    fd_raster = rg.node_vector_to_raster(flow_directions,True)   
+    flow_directions, max_slope = flow.calc_flowdirs(rg, elevations)
+    fd_raster = rg.node_vector_to_raster(flow_directions,True)
     #printing flow directions for debugging purposes
     #print 'flow direction vector'
     #print flow_directions
 
-    
+
     #instantiate drainage area variable
     da_calculator = CalcDrainageArea(ncells)
     #calculate drainage area
@@ -63,7 +63,7 @@ def main():
     #printing drainage area for debugging purposes
     #print 'drainage area vector'
     #print drain_area
-    
+
     #printing, from Dan's craters code
     elev_raster = rg.node_vector_to_raster(elevations,True)
     #contour(elev_raster)
@@ -76,10 +76,10 @@ def main():
     #imshow(elev_raster)
     #colorbar()
     #show()
-    
+
     print('flow direction raster')
     print(fd_raster)
-    
+
     da_raster = rg.node_vector_to_raster(drain_area)
     #contour(elev_raster)
     #flipped_elev_raster = numpy.empty_like(elev_raster)
@@ -89,8 +89,8 @@ def main():
     #imshow(da_raster)
     #colorbar()
     #show()
-    
-    
+
+
     ##test of other code bit in raster model grid
     #[ms, ma] = rg.calculate_max_gradient_across_node(elevations,12)
     #print 'max slope', ms

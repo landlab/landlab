@@ -1,15 +1,14 @@
 '''
 simple_sp_driver.py
 
-A simple driver implementing Braun-Willett flow routing and then a 
+A simple driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
 DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 
 import numpy
 from landlab import RasterModelGrid
@@ -31,11 +30,11 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
-#make some K values in a field to test 
+#make some K values in a field to test
 mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 
 print( 'Running ...' )
@@ -45,7 +44,7 @@ time_on = time.time()
 fr = FlowRouter(mg)
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 #load the Fastscape module too, to allow direct comparison
-fsp = Fsc(mg, './drive_sp_params.txt')
+fsp = FastscapeEroder(mg, './drive_sp_params.txt')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation
@@ -86,4 +85,4 @@ pylab.show()
 
 print('Done.')
 
-    
+

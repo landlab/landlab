@@ -1,14 +1,19 @@
 #! /usr/bin/env python
-"""
-Read data from an ESRI ASCII file into a RasterModelGrid
+"""Read data from a pickled Landlab grid file into a RasterModelGrid.
+
+Read Landlab native
++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.io.native_landlab.load_grid
+    ~landlab.io.native_landlab.save_grid
 """
 
 import os
-import types
-import re
 from six.moves import cPickle
 from landlab import ModelGrid
-import numpy as np
 
 
 def save_grid(grid, path, clobber=False):
@@ -44,26 +49,26 @@ def save_grid(grid, path, clobber=False):
     """
     if os.path.exists(path) and not clobber:
         raise ValueError('file exists')
-        
-    #test it's a grid
+
+    # test it's a grid
     assert issubclass(type(grid), ModelGrid)
-        
+
     (base, ext) = os.path.splitext(path)
     if ext != '.grid':
-        ext = ext+'.grid'
-    path = base+ext
+        ext = ext + '.grid'
+    path = base + ext
 
-    with open(path, 'wb') as fp:
-        cPickle.dump(grid, fp)
+    with open(path, 'wb') as file_like:
+        cPickle.dump(grid, file_like)
 
 
 def load_grid(path):
     """Load a grid and its fields from a Landlab "native" format.
-    
+
     This method uses cPickle to load a saved grid.
     It assumes you saved using vmg.save() or save_grid, i.e., that the
     pickle file is a .grid file.
-    
+
     Caution: Pickling can be slow, and can produce very large files.
     Caution 2: Future updates to Landlab could potentially render old
     saves unloadable.
@@ -86,13 +91,11 @@ def load_grid(path):
     >>> grid_in = load_grid('testsavedgrid.grid')
     >>> os.remove('testsavedgrid.grid') #to remove traces of this test
     """
-    
     (base, ext) = os.path.splitext(path)
     if ext != '.grid':
-        ext = ext+'.grid'
-    path = base+ext
-    with open(path, 'rb') as fp:
-        loaded_grid = cPickle.load(fp)
+        ext = ext + '.grid'
+    path = base + ext
+    with open(path, 'rb') as file_like:
+        loaded_grid = cPickle.load(file_like)
     assert issubclass(type(loaded_grid), ModelGrid)
     return loaded_grid
-

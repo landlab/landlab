@@ -1,0 +1,40 @@
+#These values are for building the grid-
+nrows:
+10
+ncols:
+10
+dx:
+1000.
+dt:
+500.
+uplift_rate: #per time, not per timestep
+0.0001
+run_time:
+3000.
+
+#These values are for running the process-
+rock_density:
+2.7
+sed_density:
+2.7
+K_sp:
+0.0001
+m_sp:
+0.5
+n_sp:
+1.
+threshold_sp:
+1.
+use_Q:
+water__discharge
+
+mean_storm:
+100.
+mean_depth:
+5.
+mean_interstorm:
+400.
+storm_run_time:
+3000000.
+delta_t:
+500.

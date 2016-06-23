@@ -2,7 +2,10 @@ from __future__ import print_function
 
 import os
 import sys
+import doctest
 from numpy.testing import Tester
+from nose.plugins import doctests
+from nose.plugins.base import Plugin
 
 
 def show_system_info():
@@ -15,6 +18,21 @@ def show_system_info():
 
     print('Python version %s' % sys.version.replace('\n', ''))
     print('nose version %d.%d.%d' % nose.__versioninfo__)
+
+
+class LandlabDoctest(doctests.Doctest):
+    name = 'landlabdoctest'
+    score = 1000
+    doctest_ignore = ('setup.py', )
+
+    def options(self, parser, env=os.environ):
+        Plugin.options(self, parser, env)
+        self.doctest_tests = True
+        self._doctest_result_var = None
+
+    def configure(self, options, config):
+        options.doctestOptions = ["+ELLIPSIS", "+NORMALIZE_WHITESPACE"]
+        super(LandlabDoctest, self).configure(options, config)
 
 
 class LandlabTester(Tester):
@@ -36,22 +54,26 @@ class LandlabTester(Tester):
             package_path = str(package)
 
         self.package_path = os.path.abspath(package_path)
-        
+
         # Find the package name under test; this name is used to limit coverage
         # reporting (if enabled).
         if package_name is None:
             #package_name = get_package_name(package_path)
             package_name = 'landlab'
         self.package_name = package_name
-        
+
         # Set to "release" in constructor in maintenance branches.
         self.raise_warnings = raise_warnings
 
+    def _get_custom_doctester(self):
+        return LandlabDoctest()
 
     def test(self, **kwds):
-        kwds.setdefault('verbose', 2)
-        kwds.setdefault('doctests', 1)
-        kwds.setdefault('coverage', 1)
-        kwds.setdefault('extra_argv', ['-x'])
+        kwds.setdefault('label', 'fast')
+        kwds.setdefault('verbose', 1)
+        kwds.setdefault('doctests', True)
+        kwds.setdefault('coverage', False)
+        kwds.setdefault('extra_argv', [])
+        kwds.setdefault('raise_warnings', 'release')
         show_system_info()
         return super(LandlabTester, self).test(**kwds)

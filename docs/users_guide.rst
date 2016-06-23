@@ -25,7 +25,7 @@ Functional modules
 .. autoclass:: landlab.components.fire_generator.generate_fire.FireGenerator
 
 
-.. autoclass:: landlab.components.flexure.flexure.FlexureComponent
+.. autoclass:: landlab.components.flexure.flexure.Flexure
 
 
 .. autoclass:: landlab.components.flow_routing.route_flow_dn.FlowRouter
@@ -36,12 +36,12 @@ Functional modules
 	:members: diffuse
 
 
-.. autoclass:: landlab.components.overland_flow.generate_overland_flow.OverlandFlow
+.. autoclass:: landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow
 	:members: run_one_step
 	*This might not work...*
 
 
-.. autoclass:: landlab.components.PET.potential_evapotranspiration_field.PotentialEvapotranspiration
+.. autoclass:: landlab.components.pet.potential_evapotranspiration_field.PotentialEvapotranspiration
 	:members: update
 	*This component implements a model for potential evapotranspiration.*
 
@@ -50,7 +50,7 @@ Functional modules
 	:members: update
 	*This component implements a model to compute spatial radiation distribution.
 
-.. autoclass:: landlab.components.stream_power.fastscape_stream_power.SPEroder
+.. autoclass:: landlab.components.stream_power.fastscape_stream_power.FastscapeEroder
 	:members: erode
 
 

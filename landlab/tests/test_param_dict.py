@@ -16,6 +16,7 @@ from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import (MissingKeyError,
                                                      ParameterValueError)
 
+
 def setup():
     from six import StringIO
 

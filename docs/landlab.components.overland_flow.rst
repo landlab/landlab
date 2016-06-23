@@ -1,22 +1,15 @@
-landlab.components.overland_flow package
-========================================
+OverlandFlow: Model shallow water flow over topography using the numerical approximation of de Almeida
+------------------------------------------------------------------------------------------------------
 
-Submodules
-----------
-
-landlab.components.overland_flow.generate_overland_flow_DEM module
-------------------------------------------------------------------
-
-.. automodule:: landlab.components.overland_flow.generate_overland_flow_DEM
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_deAlmeida
     :members:
     :undoc-members:
     :show-inheritance:
 
+OverlandFlowBates: Model shallow water flow over topography using the numerical approximation of Bates
+------------------------------------------------------------------------------------------------------
 
-Module contents
----------------
-
-.. automodule:: landlab.components.overland_flow
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_Bates
     :members:
     :undoc-members:
     :show-inheritance:
