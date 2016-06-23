@@ -165,7 +165,7 @@ class DepressionFinderAndRouter(Component):
             Has no effect if grid is not a raster.
         """
         self._grid = grid
-        self._BC_set_code = self.grid.BC_set_code
+        self._bc_set_code = self.grid.bc_set_code
         if routing is not 'D8':
             assert routing is 'D4'
         self._routing = routing
@@ -615,9 +615,9 @@ class DepressionFinderAndRouter(Component):
         . ~ . . .
         o . . . .
         """
-        if self._BC_set_code != self.grid.BC_set_code:
+        if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._BC_set_code = self.grid.BC_set_code
+            self._bc_set_code = self.grid.bc_set_code
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
         self.depression_outlets = []  # reset these
         # Locate nodes with pits

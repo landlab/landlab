@@ -97,7 +97,7 @@ class PerronNLDiffuse(Component):
         # disable internal_uplift option:
         internal_uplift = None
         self._grid = grid
-        self._BC_set_code = self.grid.BC_set_code
+        self._bc_set_code = self.grid.bc_set_code
         self.values_to_diffuse = 'topographic__elevation'
         if nonlinear_diffusivity is not None:
             if nonlinear_diffusivity is not str:
@@ -1421,9 +1421,9 @@ class PerronNLDiffuse(Component):
         *num_uplift_implicit_comps* to the total number of components that
         do.
         """
-        if self._BC_set_code != self.grid.BC_set_code:
+        if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._BC_set_code = self.grid.BC_set_code
+            self._bc_set_code = self.grid.bc_set_code
         if self.internal_uplifts:
             # this is adhoc to fix for the duration of Germany visit
             self._uplift = self.inputs.read_float('uplift_rate')
@@ -1481,9 +1481,9 @@ class PerronNLDiffuse(Component):
         dt : float (time)
             The imposed timestep.
         """
-        if self._BC_set_code != self.grid.BC_set_code:
+        if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._BC_set_code = self.grid.BC_set_code
+            self._bc_set_code = self.grid.bc_set_code
         if self.internal_uplifts:
             self._delta_t = self.timestep_in
             self._set_variables(self.grid)

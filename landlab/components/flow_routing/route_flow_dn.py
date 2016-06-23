@@ -121,7 +121,7 @@ class FlowRouter(Component):
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
         # We keep a local reference to the grid
         self._grid = grid
-        self._BC_set_code = self.grid.BC_set_code
+        self._bc_set_code = self.grid.bc_set_code
         if method in ('D8', 'D4', None):
             self.method = method
         else:
@@ -324,9 +324,9 @@ class FlowRouter(Component):
             if not self._is_raster:
                 self.method = None
 
-        if self._BC_set_code != self.grid.BC_set_code:
+        if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._BC_set_code = self.grid.BC_set_code
+            self._bc_set_code = self.grid.bc_set_code
 
         # if elevs is not provided, default to stored grid values, which must
         # be provided as grid
