@@ -418,6 +418,7 @@ True
 import numpy
 import numpy as np
 import warnings
+from time import time
 
 import six
 from six.moves import range
@@ -771,6 +772,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._node_unit_vector_sum_y = None
         self._link_unit_vec_x = None
         self._link_unit_vec_y = None
+        self.bc_set_code = 0
 
         # Sort links according to the x and y coordinates of their midpoints.
         # Assumes 1) node_at_link_tail and node_at_link_head have been
@@ -3314,6 +3316,10 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_patch_status()
         except AttributeError:
             pass
+        try:
+            self.bc_set_code += 1
+        except AttributeError:
+            self.bc_set_code = 0
 
     @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):

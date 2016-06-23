@@ -160,6 +160,7 @@ class LinearDiffuser(Component):
     def __init__(self, grid, linear_diffusivity=None, method='simple',
                  **kwds):
         self._grid = grid
+        self._bc_set_code = self.grid.bc_set_code
         assert method in ('simple', 'resolve_on_patches', 'on_diagonals')
         if method == 'resolve_on_patches':
             assert isinstance(self.grid, RasterModelGrid)
@@ -399,6 +400,9 @@ class LinearDiffuser(Component):
         if not self._run_before:
             self.updated_boundary_conditions()  # just in case
             self._run_before = True
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
 
         core_nodes = self.grid.node_at_core_cell
         # do mapping of array kd here, in case it points at an updating
