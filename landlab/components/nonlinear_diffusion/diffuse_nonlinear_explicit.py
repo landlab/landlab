@@ -23,11 +23,13 @@ _ALPHA = 0.15   # time-step stability factor
 # maximum value for for ratio of slope to critical slope
 _max_slope_ratio = 0.999
 
+
 class Error(Exception):
 
     """Base class for errors in this module."""
 
     pass
+
 
 class MismatchDiffusivityCriticalSlopeSizeError(Error):
 
@@ -40,7 +42,7 @@ class MismatchDiffusivityCriticalSlopeSizeError(Error):
         return self._string
 
 
-class NonLinearDiffuser(Component):
+class NonlinearDiffuser(Component):
     """
     This component implements nonlinear diffusion of a Landlab field.
 
@@ -67,32 +69,33 @@ class NonLinearDiffuser(Component):
         mapped to links using an upwind scheme in the simple case.
     critical_slope : float, array, or field name (dimensionless, -dz/dx)
 
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> import numpy as np
-    >>> mg = RasterModelGrid((9, 9), 1.)
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> z.reshape((9, 9))[4, 4] = 1.
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> ld = NonLinearDiffuser(mg, nonlinear_diffusivity=1.)
-    >>> for i in range(1):
-    ...     ld.run_one_step(1.)
-    >>> np.isclose(z[mg.core_nodes].sum(), 1.)
-    True
-    >>> mg2 = RasterModelGrid((5, 30), 1.)
-    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
-    >>> z2.reshape((5, 30))[2, 8] = 1.
-    >>> z2.reshape((5, 30))[2, 22] = 1.
-    >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> kd = mg2.node_x/mg2.node_x.mean()
-    >>> ld2 = NonLinearDiffuser(mg2, linear_diffusivity=kd)
-    >>> for i in range(10):
-    ...     ld2.run_one_step(0.1)
-    >>> z2[mg2.core_nodes].sum() == 2.
-    True
-    >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
-    True
+    # Examples
+    # --------
+    # >>> from landlab import RasterModelGrid
+    # >>> import numpy as np
+    # >>> mg = RasterModelGrid((9, 9), 1.)
+    # >>> z = mg.add_zeros('node', 'topographic__elevation')
+    # >>> z.reshape((9, 9))[4, 4] = 1.
+    # >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    # >>> ld = NonLinearDiffuser(mg, nonlinear_diffusivity=1.,
+    #                            critical_slope=0.7)
+    # >>> for i in range(1):
+    # ...     ld.run_one_step(1.)
+    # >>> np.isclose(z[mg.core_nodes].sum(), 1.)
+    # True
+    # >>> mg2 = RasterModelGrid((5, 30), 1.)
+    # >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    # >>> z2.reshape((5, 30))[2, 8] = 1.
+    # >>> z2.reshape((5, 30))[2, 22] = 1.
+    # >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    # >>> kd = mg2.node_x/mg2.node_x.mean()
+    # >>> ld2 = NonLinearDiffuser(mg2, linear_diffusivity=kd)
+    # >>> for i in range(10):
+    # ...     ld2.run_one_step(0.1)
+    # >>> z2[mg2.core_nodes].sum() == 2.
+    # True
+    # >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
+    # True
 
     """
 
@@ -107,7 +110,7 @@ class NonLinearDiffuser(Component):
 
     _var_units = {'topographic__elevation': 'm',
                   'topographic__gradient': '-',
-                  'unit_flux': 'm**3/s',
+                  'unit_flux': 'm**2/s',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
@@ -181,23 +184,19 @@ class NonLinearDiffuser(Component):
         # the same length.  Check for this below.
         # If one is an integer and one is an array, then there is an error
         if not isinstance(self._kd, type(self._sc)):
-            raise MismatchDiffusivityCriticalSlopeSizeError('Diffusivity and' +
-                                                      'critical slope must' +
-                                                      'either both be ' +
-                                                      'uniform or both ' +
-                                                      'nonuniform')
+            raise MismatchDiffusivityCriticalSlopeSizeError(
+                'Diffusivity and critical slope must either both be ' +
+                'uniform or nonuniform')
         # We know that they are both of the same type, but they could be
         # arrays of different length, so check for this now
         # First part tells us that these params are arrays
         # Second part tests to make sure they are both on links or
         # both on nodes
-        if not isintance(self._kd, float) and
-        self._sc_on_links != self._sc_on_links:
-            raise MismatchDiffusivityCriticalSlopeSizeError('Diffusivity and' +
-                                                      'critical slope must' +
-                                                      'either both be ' +
-                                                      'on links or both be ' +
-                                                      'on nodes')
+        if (not isinstance(self._kd, float) and
+           self._kd_on_links != self._sc_on_links):
+                raise MismatchDiffusivityCriticalSlopeSizeError(
+                    'Diffusivity and critical slope must either both be ' +
+                    'on links or both be on nodes')
 
         self.timestep_in = kwds.pop('dt', None)
         if 'values_to_diffuse' in kwds.keys():
@@ -223,7 +222,9 @@ class NonLinearDiffuser(Component):
         CFL_prefactor = _ALPHA * self.grid.length_of_link[
             :self.grid.number_of_links] ** 2.
         # ^ link_length can include diags, if not careful...
-        self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
+        self._CFL_actives_prefactor = self.grid.zeros(at='link')
+        links_to_use = self.grid.active_links[:self.grid.number_of_active_links]
+        self._CFL_actives_prefactor[links_to_use] = CFL_prefactor[links_to_use]
         # ^note we can do this as topology shouldn't be changing
 
         # Get a list of interior cells
@@ -233,10 +234,6 @@ class NonLinearDiffuser(Component):
         self.dqsds = self.grid.zeros('node', dtype=float)
         g = self.grid.zeros(at='link')
         qs = self.grid.zeros(at='link')
-        # slope to critical slope ratio
-        slope_ratio = self.grid.zeros(at='link')
-        # denominator in nonlinear diffusion qs equation
-        denom = self.grid.zeros(at='link')
         try:
             self.g = self.grid.add_field('link', 'topographic__gradient',
                                          g, noclobber=True)
@@ -330,8 +327,11 @@ class NonLinearDiffuser(Component):
         """
         See :func:`run_one_step`.
         """
-        mg = self.grid
         z = self.grid.at_node[self.values_to_diffuse]
+        # slope to critical slope ratio
+        slope_ratio = self.grid.zeros(at='link')
+        # denominator in nonlinear diffusion qs equation
+        denom = self.grid.zeros(at='link')
 
         if not self._run_before:
             self.updated_boundary_conditions()  # just in case
@@ -355,57 +355,60 @@ class NonLinearDiffuser(Component):
                 sc_links = self.grid.map_max_of_link_nodes_to_link(self._sc)
                 sc_activelinks = sc_links[links_to_use]
                 # gradients at all links
-                grads = mg.calc_grad_at_link(z)
+                grads = self.grid.calc_grad_at_link(z)
                 # ratio of slope to critical slope, only at links we care about
-                slope_ratio[links_to_use] = grads[links_to_use]/
-                                            sc_activelinks
+                slope_ratio[links_to_use] = grads[links_to_use]/sc_activelinks
                 # limit the maximum slope ratio
                 slope_ratio[np.where(slope_ratio > _max_slope_ratio)] = \
                     _max_slope_ratio
                 # denominator in nonlinear qs equation
                 denom[links_to_use] = 1 - (slope_ratio[links_to_use] ** 2)
-                # re-derive CFL condition, as could change dynamically:
-                dt_links = CFL_prefactor[links_to_use] * denom[links_to_use] \
-                    ** 1.5 / kd_activelinks
-                self.dt = np.nanmin(np.fabs(dt_links))
+                # calculate stability condition, as could change dynamically:
+                dt_links[links_to_use] = \
+                    (self._CFL_actives_prefactor[links_to_use] *
+                     denom[links_to_use] ** 1.5 / kd_activelinks)
+                self.dt = np.nanmin(np.fabs(dt_links[links_to_use]))
             else:
+                # entered here because both sc and ks are on links
                 kd_links = self._kd
                 sc_links = self._sc
                 kd_activelinks = self._kd[links_to_use]
                 sc_activelinks = self._sc[links_to_use]
                 # gradients at all links
-                grads = mg.calc_grad_at_link(z)
+                grads = self.grid.calc_grad_at_link(z)
                 # ratio of slope to critical slope, only at links we care about
-                slope_ratio[links_to_use] = grads[links_to_use]/
-                                            sc_activelinks
+                slope_ratio[links_to_use] = (grads[links_to_use] /
+                                             sc_activelinks)
                 # limit the maximum slope ratio
                 slope_ratio[np.where(slope_ratio > _max_slope_ratio)] = \
                     _max_slope_ratio
                 # denominator in nonlinear qs equation
                 denom[links_to_use] = 1 - (slope_ratio[links_to_use] ** 2)
-                # re-derive CFL condition, as could change dynamically:
-                dt_links = CFL_prefactor[links_to_use] * denom[links_to_use] \
-                    ** 1.5 / kd_activelinks
-                self.dt_links = dt_links # what is the purpose of this line?
-                self.dt = np.nanmin(np.fabs(dt_links))
+                # caclulate stability condition, as could change dynamically:
+                dt_links[links_to_use] = \
+                    (self._CFL_actives_prefactor[links_to_use] *
+                     denom[links_to_use] ** 1.5 / kd_activelinks)
+                self.dt_links = dt_links  # what is the purpose of this line?
+                self.dt = np.nanmin(np.fabs(dt_links[links_to_use]))
         else:
             # kd and sc are uniform
             kd_activelinks = self._kd
             sc_activelinks = self._sc
             # gradients at all links
-            grads = mg.calc_grad_at_link(z)
+            grads = self.grid.calc_grad_at_link(z)
             # ratio of slope to critical slope, only at links we care about
-            slope_ratio[links_to_use] = grads[links_to_use]/
-                                        sc_activelinks
+            slope_ratio[links_to_use] = (grads[links_to_use] /
+                                         sc_activelinks)
             # limit the maximum slope ratio
             slope_ratio[np.where(slope_ratio > _max_slope_ratio)] = \
                 _max_slope_ratio
             # denominator in nonlinear qs equation
             denom[links_to_use] = 1 - (slope_ratio[links_to_use] ** 2)
             # re-derive CFL condition, as could change dynamically:
-            dt_links = CFL_prefactor[links_to_use] * denom[links_to_use] \
-                ** 1.5 / kd_activelinks
-            self.dt = np.nanmin(np.fabs(dt_links))
+            dt_links[links_to_use] = \
+                (self._CFL_actives_prefactor[links_to_use] *
+                 denom[links_to_use] ** 1.5 / kd_activelinks)
+            self.dt = np.nanmin(np.fabs(dt_links[links_to_use]))
 
         # Take the smaller of delt or built-in time-step size self.dt
         self.tstep_ratio = dt / self.dt
@@ -419,20 +422,19 @@ class NonLinearDiffuser(Component):
             loops = 0
         for i in range(loops):
             # gradients at all links
-            grads = mg.calc_grad_at_link(z)
+            grads = self.grid.calc_grad_at_link(z)
             # gradients just at active links
-            self.g[mg.active_links] = grads[mg.active_links]
+            self.g[links_to_use] = grads[links_to_use]
             # denominator in non linear qs equation
-            denom[mg.active_links] = 1 - ((self.g[mg.active_links]
-                                           [:mg.number_of_active_links] /
-                                           critical_slope) ** 2)
+            denom[links_to_use] = (1 - ((self.g[links_to_use] /
+                                         sc_activelinks) ** 2))
             # now calculating qs at links
-            self.qs[mg.active_links] = (
-                        -kd_activelinks * self.g[mg.active_links]/denom)
+            self.qs[links_to_use] = (-kd_activelinks *
+                                    (self.g[links_to_use]/denom[links_to_use]))
             # Calculate the net deposition/erosion rate at each node
-            mg.calc_flux_div_at_node(self.qs, out=self.dqsds)
+            self.grid.calc_flux_div_at_node(self.qs, out=self.dqsds)
 
-            # Calculate the total rate of elevation change
+            # Calculate the total rate of elevation change at node
             dzdt = - self.dqsds
             # Update the elevations
             timestep = self.dt
@@ -462,7 +464,7 @@ class NonLinearDiffuser(Component):
         dt : float (time)
             The imposed timestep.
         """
-        self.diffuse(dt, **kwds)
+        self.nonlinear_diffuse(dt, **kwds)
 
     @property
     def time_step(self):

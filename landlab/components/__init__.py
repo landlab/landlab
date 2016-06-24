@@ -5,7 +5,7 @@ from .detachment_ltd_erosion import DetachmentLtdErosion
 from .flexure import Flexure
 from .flow_accum import AccumFlow
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
-from .nonlinear_diffusion import PerronNLDiffuse
+from .nonlinear_diffusion import PerronNLDiffuse, NonlinearDiffuser
 from .overland_flow import OverlandFlowBates, OverlandFlow
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .sink_fill import SinkFiller
@@ -20,7 +20,7 @@ from .radiation import Radiation
 from .pet import PotentialEvapotranspiration
 
 
-COMPONENTS = [ChiFinder, LinearDiffuser,
+COMPONENTS = [ChiFinder, LinearDiffuser, NonlinearDiffuser,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
