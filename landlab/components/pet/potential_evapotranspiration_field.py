@@ -13,7 +13,7 @@ Examples
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.pet import PotentialEvapotranspiration
 
-Create a grid on which to calculate incident shortwave radiation
+Create a grid on which to calculate potential evapotranspiration rate.
 
 >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
 
