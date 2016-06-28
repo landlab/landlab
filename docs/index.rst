@@ -114,6 +114,7 @@ Fluvial geomorphology
    :maxdepth: 4
 
    landlab.components.stream_power
+   landlab.components.detachment_ltd_erosion
 
 Flow routing
 ------------
