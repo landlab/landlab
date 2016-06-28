@@ -1,3 +1,4 @@
+# Jai Sri Sainath!
 #################################################################
 ##
 ##  'Field' concept is implemented for Single Species Vegetation.
@@ -26,7 +27,7 @@ class Vegetation(Component):
     _input_var_names = set([
         'ActualEvapotranspiration',
         'WaterStress',
-        'PotentialEvapotranspiration',
+        'surface__potential_evapotranspiration_rate',
     ])
 
     _output_var_names = set([
@@ -42,7 +43,7 @@ class Vegetation(Component):
         'DeadLeafAreaIndex' : 'None',
         'VegetationCover'  : 'None',
         'ActualEvapotranspiration': 'mm',
-        'PotentialEvapotranspiration': 'mm',
+        'surface__potential_evapotranspiration_rate': 'mm',
         'WaterStress': 'Pa',
         'LiveBiomass' : 'g DM m^-2 d^-1',
         'DeadBiomass' : 'g DM m^-2 d^-1',
@@ -114,7 +115,7 @@ class Vegetation(Component):
         PETthreshold_ = kwds.pop('PotentialEvapotranspirationThreshold', 0)
         Tb = kwds.pop('Tb', 24.)
         Tr = kwds.pop('Tr', 0.01)
-        PET = self._cell_values['PotentialEvapotranspiration']
+        PET = self._cell_values['surface__potential_evapotranspiration_rate']
         PET30_ = self._cell_values['PotentialEvapotranspiration30']
         ActualET = self._cell_values['ActualEvapotranspiration']
         Water_stress = self._cell_values['WaterStress']
