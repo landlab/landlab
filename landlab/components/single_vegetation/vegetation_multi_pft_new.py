@@ -1,4 +1,3 @@
-# Jai Sri Sainath!
 #################################################################
 ##
 ##  'Field' concept is implemented for Single Species Vegetation.
@@ -25,28 +24,62 @@ class Vegetation(Component):
     _name = 'Vegetation'
 
     _input_var_names = set([
-        'ActualEvapotranspiration',
-        'WaterStress',
+        'surface__evapotranspiration_rate',
+        'soil_moisture__water_stress',
         'surface__potential_evapotranspiration_rate',
+        'vegetation__plant_functional_type',
     ])
 
     _output_var_names = set([
-        'LiveLeafAreaIndex',
-        'DeadLeafAreaIndex',
-        'VegetationCover',
-        'LiveBiomass',
-        'DeadBiomass',
+        'vegetation__live_leaf_area_index',
+        'vegetation__dead_leaf_area_index',
+        'vegetation__cover_fraction',
+        'vegetation__live_biomass',
+        'vegetation__dead_biomass',
     ])
 
     _var_units = {
-        'LiveLeafAreaIndex' : 'None',
-        'DeadLeafAreaIndex' : 'None',
-        'VegetationCover'  : 'None',
-        'ActualEvapotranspiration': 'mm',
+        'vegetation__live_leaf_area_index': 'None',
+        'vegetation__dead_leaf_area_index': 'None',
+        'vegetation__cover_fraction': 'None',
+        'surface__evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_rate': 'mm',
-        'WaterStress': 'Pa',
-        'LiveBiomass' : 'g DM m^-2 d^-1',
-        'DeadBiomass' : 'g DM m^-2 d^-1',
+        'soil_moisture__water_stress': 'Pa',
+        'vegetation__live_biomass': 'g DM m^-2 d^-1',
+        'vegetation__dead_biomass': 'g DM m^-2 d^-1',
+        'vegetation__plant_functional_type': 'None',
+    }
+    
+    _var_mapping = {
+        'vegetation__live_leaf_area_index': 'cell',
+        'vegetation__dead_leaf_area_index': 'cell',
+        'vegetation__cover_fraction': 'cell',
+        'surface__evapotranspiration_rate': 'cell',
+        'surface__potential_evapotranspiration_rate': 'cell',
+        'soil_moisture__water_stress': 'cell',
+        'vegetation__live_biomass': 'cell',
+        'vegetation__dead_biomass': 'cell',
+        'vegetation__plant_functional_type': 'cell',
+    }
+    
+    _var_doc = {
+        'vegetation__live_leaf_area_index':
+            'one-sided green leaf area per unit ground surface area',
+        'vegetation__dead_leaf_area_index':
+            'one-sided dead leaf area per unit ground surface area',
+        'vegetation__cover_fraction':
+            'fraction of land covered by vegetation',
+        'surface__evapotranspiration_rate':
+            'actual sum of evaporation and plant transpiration',
+        'soil_moisture__water_stress':
+            'parameter that represents nonlinear effects of water defecit \
+             on plants',
+        'vegetation__live_biomass':
+            'weight of green organic mass per unit area',
+        'vegetation__dead_biomass':
+            'weight of dead organic mass per unit area',
+        'vegetation__plant_functional_type':
+            'classification of plants, eg. tree, shrub or grass',
     }
 
     def __init__(self, grid, data, **kwds):
@@ -56,7 +89,7 @@ class Vegetation(Component):
 
         super(Vegetation, self).__init__(grid)
 
-        self.initialize( data, VEGTYPE = grid['cell']['VegetationType'], \
+        self.initialize( data, VEGTYPE = grid['cell']['vegetation__plant_functional_type'], \
                             **kwds )
 
         for name in self._input_var_names:
@@ -117,14 +150,14 @@ class Vegetation(Component):
         Tr = kwds.pop('Tr', 0.01)
         PET = self._cell_values['surface__potential_evapotranspiration_rate']
         PET30_ = self._cell_values['PotentialEvapotranspiration30']
-        ActualET = self._cell_values['ActualEvapotranspiration']
-        Water_stress = self._cell_values['WaterStress']
+        ActualET = self._cell_values['surface__evapotranspiration_rate']
+        Water_stress = self._cell_values['soil_moisture__water_stress']
 
-        self._LAIlive = self._cell_values['LiveLeafAreaIndex']
-        self._LAIdead = self._cell_values['DeadLeafAreaIndex']
-        self._Blive = self._cell_values['LiveBiomass']
-        self._Bdead = self._cell_values['DeadBiomass']
-        self._VegCov = self._cell_values['VegetationCover']
+        self._LAIlive = self._cell_values['vegetation__live_leaf_area_index']
+        self._LAIdead = self._cell_values['vegetation__dead_leaf_area_index']
+        self._Blive = self._cell_values['vegetation__live_biomass']
+        self._Bdead = self._cell_values['vegetation__dead_biomass']
+        self._VegCov = self._cell_values['vegetation__cover_fraction']
 
         if PETthreshold_ == 1:
             PETthreshold = self._ETthresholdup

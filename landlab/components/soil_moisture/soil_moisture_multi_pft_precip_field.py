@@ -253,7 +253,7 @@ class SoilMoisture(Component):
         'surface__runoff_rate':
             'runoff from ground surface',
         'surface__evapotranspiration_rate':
-            'actual sum of evaporation and potential transpiration',
+            'actual sum of evaporation and plant transpiration',
     }
 
     @use_file_name_or_kwds
