@@ -48,6 +48,8 @@ class PrecipitationDistribution(object):
     Examples
     --------
     >>> from landlab.components.uniform_precip import PrecipitationDistribution
+    >>> import numpy as np
+    >>> np.random.seed(np.arange(10))
 
     To use hard-coded values for mean storm, mean interstorm, mean depth,
     model run time and delta t...  Say we use 1.5 for mean storm, 15 for mean
@@ -55,11 +57,13 @@ class PrecipitationDistribution(object):
 
     >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
     ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
-    ...     total_t = 100.0, delta_t = 1)
+    ...     total_t = 100.0, delta_t = 1.)
+    >>> for (dt, rate) in precip.yield_storm_interstorm_duration_intensity():
+    ...     pass  # and so on
     """
 
     def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
-                 mean_storm_depth=0.0, total_t=0.0, delta_t=0.0, **kwds):
+                 mean_storm_depth=0.0, total_t=0.0, delta_t=None, **kwds):
         """Create the storm generator.
 
         Parameters
@@ -71,8 +75,8 @@ class PrecipitationDistribution(object):
         mean_storm_depth : float
             Average depth of precipitation events.
         total_t : float, optional
-            If generating a time series, the total amount of time .
-        delta_t : float, optional
+            If generating a time series, the total amount of time.
+        delta_t : float or None, optional
             If you want to break up storms into determined subsections using
             yield_storm_interstorm_duration_intensity, a delta_t is needed.
         """
@@ -86,6 +90,9 @@ class PrecipitationDistribution(object):
         self.run_time = total_t
 
         self.delta_t = delta_t
+
+        if self.delta_t == 0.:
+            self.delta_t = None
 
         # Mean_intensity is not set by the MPD, but can be drawn from
         # the mean storm depth and mean storm duration.

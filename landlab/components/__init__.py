@@ -23,7 +23,7 @@ from .pet import PotentialEvapotranspiration
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
-              PotentialEvapotranspiration,PotentialityFlowRouter,
+              PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, StreamPowerEroder,
               FastscapeEroder, SedDepEroder,
               SteepnessFinder, DetachmentLtdErosion, gFlex]
