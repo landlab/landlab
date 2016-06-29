@@ -82,15 +82,35 @@ class Vegetation(Component):
             'classification of plants, eg. tree, shrub or grass',
     }
 
-    def __init__(self, grid, data, **kwds):
+    def __init__(self, grid, Blive_init=102., Bdead_init=450.,
+            ETthreshold_up=3.8, ETthreshold_down=6.8, Tdmax=10., w=0.55,
+            WUE_grass=0.01, LAI_max_grass=2., cb_grass=0.0047, cd_grass=0.009,
+            ksg_grass=0.012, kdd_grass=0.013, kws_grass=0.02,
+            WUE_shrub=0.0025, LAI_max_shrub=2., cb_shrub=0.004, cd_shrub=0.01,
+            ksg_shrub=0.002, kdd_shrub=0.013, kws_shrub=0.02,
+            WUE_tree=0.0045, LAI_max_tree=4., cb_tree=0.004, cd_tree=0.01,
+            ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
+            WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
+            ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02, **kwds):
+        
         self._method = kwds.pop('method', 'Grid')
 
         assert_method_is_valid(self._method)
 
         super(Vegetation, self).__init__(grid)
 
-        self.initialize( data, VEGTYPE = grid['cell']['vegetation__plant_functional_type'], \
-                            **kwds )
+        self.initialize(Blive_init=Blive_init, Bdead_init=Bdead_init,
+            ETthreshold_up=ETthreshold_up, ETthreshold_down=ETthreshold_down,
+            Tdmax=Tdmax, w=w, WUE_grass=WUE_grass, LAI_max_grass=LAI_max_grass,
+            cb_grass=cb_grass, cd_grass=cd_grass, ksg_grass=ksg_grass,
+            kdd_grass=kdd_grass, kws_grass=kws_grass, WUE_shrub=WUE_shrub,
+            LAI_max_shrub=LAI_max_shrub, cb_shrub=cb_shrub, cd_shrub=cd_shrub,
+            ksg_shrub=ksg_shrub, kdd_shrub=kdd_shrub, kws_shrub=kws_shrub,
+            WUE_tree=WUE_tree, LAI_max_tree=LAI_max_tree, cb_tree=cb_tree,
+            cd_tree=cd_tree, ksg_tree=ksg_tree, kdd_tree=kdd_tree,
+            kws_tree=kws_tree, WUE_bare=WUE_bare, LAI_max_bare=LAI_max_bare,
+            cb_bare=cb_bare, cd_bare=cd_bare, ksg_bare=ksg_bare,
+            kdd_bare=kdd_bare, kws_bare=kws_bare, **kwds)
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -105,43 +125,44 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
 
-    def initialize( self, data, **kwds ):
+    def initialize( self, Blive_init=102., Bdead_init=450., ETthreshold_up=3.8,
+            ETthreshold_down=6.8, Tdmax=10., w=0.55,
+            WUE_grass=0.01, LAI_max_grass=2., cb_grass=0.0047, cd_grass=0.009,
+            ksg_grass=0.012, kdd_grass=0.013, kws_grass=0.02,
+            WUE_shrub=0.0025, LAI_max_shrub=2., cb_shrub=0.004, cd_shrub=0.01,
+            ksg_shrub=0.002, kdd_shrub=0.013, kws_shrub=0.02,
+            WUE_tree=0.0045, LAI_max_tree=4., cb_tree=0.004, cd_tree=0.01,
+            ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
+            WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
+            ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02, **kwds ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
-        self._vegtype = \
-          kwds.pop('VEGTYPE', np.zeros(self.grid.number_of_cells,dtype = int))
-        self._WUE = np.choose(self._vegtype, kwds.pop('WUE',
-                [ data['WUE_grass'], data['WUE_shrub'], data['WUE_tree'],
-                  data['WUE_bare'], data['WUE_shrub'], data['WUE_tree'] ]))      # Water Use Efficiency  KgCO2kg-1H2O
-        self._LAI_max = np.choose( self._vegtype, kwds.pop('LAI_MAX',
-                [ data['LAI_MAX_grass'], data['LAI_MAX_shrub'],
-                   data['LAI_MAX_tree'], data['LAI_MAX_bare'],
-                   data['LAI_MAX_shrub'], data['LAI_MAX_tree'] ]))               # Maximum leaf area index (m2/m2)
-        self._cb = np.choose( self._vegtype, kwds.pop('CB',
-                [ data['CB_grass'], data['CB_shrub'], data['CB_tree'],
-                  data['CB_bare'], data['CB_shrub'], data['CB_tree'] ]))         # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
-        self._cd = np.choose( self._vegtype, kwds.pop('CD',
-                [ data['CD_grass'], data['CD_shrub'], data['CD_tree'],
-                  data['CD_bare'], data['CD_shrub'], data['CD_tree'] ]))         # Specific leaf area for dead biomass (m2 leaf g-1 DM)
-        self._ksg = np.choose( self._vegtype, kwds.pop('KSG',
-                [ data['KSG_grass'], data['KSG_shrub'], data['KSG_tree'],
-                  data['KSG_bare'], data['KSG_shrub'], data['KSG_tree'] ]))      # Senescence coefficient of green/live biomass (d-1)
-        self._kdd = np.choose( self._vegtype, kwds.pop('KDD',
-                [ data['KDD_grass'], data['KDD_shrub'], data['KDD_tree'],
-                  data['KDD_bare'], data['KDD_shrub'], data['KDD_tree'] ]))      # Decay coefficient of aboveground dead biomass (d-1)
-        self._kws = np.choose( self._vegtype, kwds.pop('KWS',
-                [ data['KWS_grass'], data['KWS_shrub'], data['KWS_tree'],
-                  data['KWS_bare'], data['KWS_shrub'], data['KWS_tree'] ]))      # Maximum drought induced foliage loss rates (d-1)
-        self._Blive_init = kwds.pop('BLIVE_INI', data['BLIVE_INI'])
-        self._Bdead_init = kwds.pop('BDEAD_INI', data['BDEAD_INI'])
-        self._ETthresholdup = kwds.pop('ETTup', data['ETTup'])                   # Growth threshold (mm/d)
-        self._ETthresholddown = kwds.pop('ETTdwn', data['ETTdwn'])               # Dormancy threshold (mm/d)
-        self._Tdmax = kwds.pop('Tdmax', data['Tdmax'])                           # Constant for dead biomass loss adjustment
-        self._w = kwds.pop('w', data['w'])                                       # Conversion factor of CO2 to dry biomass
+        self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
+        self._WUE = np.choose(self._vegtype,
+            [WUE_grass, WUE_shrub, WUE_tree, WUE_bare, WUE_shrub, WUE_tree])     # Water Use Efficiency  KgCO2kg-1H2O
+        self._LAI_max = np.choose( self._vegtype,
+            [LAI_max_grass, LAI_max_shrub, LAI_max_tree,
+             LAI_max_bare, LAI_max_shrub, LAI_max_tree])               # Maximum leaf area index (m2/m2)
+        self._cb = np.choose( self._vegtype,
+            [cb_grass, cb_shrub, cb_tree, cb_bare, cb_shrub, cb_tree])         # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+        self._cd = np.choose( self._vegtype,
+            [cd_grass, cd_shrub, cd_tree, cd_bare, cd_shrub, cd_tree])         # Specific leaf area for dead biomass (m2 leaf g-1 DM)
+        self._ksg = np.choose( self._vegtype,
+            [ksg_grass, ksg_shrub, ksg_tree, ksg_bare, ksg_shrub, ksg_tree])      # Senescence coefficient of green/live biomass (d-1)
+        self._kdd = np.choose( self._vegtype,
+            [kdd_grass, kdd_shrub, kdd_tree, kdd_bare, kdd_shrub, kdd_tree])      # Decay coefficient of aboveground dead biomass (d-1)
+        self._kws = np.choose( self._vegtype,
+            [kws_grass, kws_shrub, kws_tree, kws_bare, kws_shrub, kws_tree])      # Maximum drought induced foliage loss rates (d-1)
+        self._Blive_init = Blive_init
+        self._Bdead_init = Bdead_init
+        self._ETthresholdup = ETthreshold_up              # Growth threshold (mm/d)
+        self._ETthresholddown = ETthreshold_down          # Dormancy threshold (mm/d)
+        self._Tdmax = Tdmax                               # Constant for dead biomass loss adjustment
+        self._w = w                                       # Conversion factor of CO2 to dry biomass
         #self._ETdmax = np.choose( self._vegtype, kwds.pop('ETdmax',
         #                        [ 10, 10, 10, 10, 10, 10 ]))                    # Constant for dead biomass loss adjustment (mm/d)
 
-        self._cell_values = self.grid['cell']
+#        self._cell_values = self.grid['cell']
 
     def update(self, **kwds):
 

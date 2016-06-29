@@ -338,7 +338,7 @@ class SoilMoisture(Component):
             I_B_bare=I_B_bare, I_V_bare=I_V_bare, pc_bare=pc_bare,
             fc_bare=fc_bare, sc_bare=sc_bare, wp_bare=wp_bare,
             hgw_bare=hgw_bare, beta_bare=beta_bare,
-            LAI_max_bare=LAI_max_bare, LAIR_max_bare=LAIR_max_bare, **kwds)
+            LAI_max_bare=LAI_max_bare, LAIR_max_bare=LAIR_max_bare, kwds)
 
         for name in self._input_var_names:
             if not name in self.grid.at_cell:
