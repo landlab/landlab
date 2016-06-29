@@ -17,6 +17,8 @@ from landlab.components.flow_routing import (DepressionFinderAndRouter,
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy as np
 
+_TINY_ELEV_INCREMENT = 1.0e-8
+
 
 class SinkFiller(Component):
     """
@@ -126,6 +128,7 @@ class SinkFiller(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, routing='D8', apply_slope=False,
                  fill_slope=1.e-5, **kwds):
+        print('INITIALIZING...')
         self._grid = grid
         if routing is not 'D8':
             assert routing is 'D4'
@@ -148,6 +151,7 @@ class SinkFiller(Component):
         parameter, which may be either a ModelParameterDictionary object or
         an input stream from which a ModelParameterDictionary can read values.
         """
+        print('  In initialize...')
         # Create a ModelParameterDictionary for the inputs
         if input_stream is None:
             inputs = None
@@ -194,8 +198,10 @@ class SinkFiller(Component):
                                                    'sediment_fill__depth',
                                                    noclobber=False)
 
+        print('  Instatiating DFR and FR...')
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
         self._fr = FlowRouter(self._grid, method=self._routing)
+        print('  Done with initialize')
 
     def fill_pits(self, **kwds):
         """
@@ -208,6 +214,7 @@ class SinkFiller(Component):
         This is the main method. Call it to fill depressions in a starting
         topography.
         """
+        print('In run_one_step')
         # added for back-compatibility with old formats
         try:
             self._apply_slope = kwds['apply_slope']
@@ -234,25 +241,39 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
+        print('ROUTING FLOW...')
         self._fr.route_flow()
+        print('MAPPING DEPRESSIONS...')
         self._lf.map_depressions(pits=self._grid.at_node['flow__sink_flag'],
                                  reroute_flow=True)
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node['depression__depth']
         # if apply_slope is none, we're now done! But if not...
+        print('APPLYING SLOPE...')
         if self._apply_slope:
             # new way of doing this - use the upstream structure! Should be
             # both more general and more efficient
             for (outlet_node, lake_code) in zip(self._lf.lake_outlets,
                                                 self._lf.lake_codes):
                 lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
+                print(lake_nodes)
+                print(outlet_node)
                 lake_perim = self._get_lake_ext_margin(lake_nodes)
                 perim_elevs = self._elev[lake_perim]
                 out_elev = self._elev[outlet_node]
-                lowest_elev_perim = perim_elevs[perim_elevs != out_elev].min()
-                # note we exclude the outlet node
-                elev_increment = ((lowest_elev_perim-self._elev[outlet_node]) /
-                                  (lake_nodes.size + 2.))
+                print('LP=')
+                print(lake_perim)
+                print(perim_elevs)
+                
+                # Bit of a hack for the special case of having only one
+                # perimeter node
+                if len(lake_perim == 1):
+                    elev_increment = _TINY_ELEV_INCREMENT
+                else:
+                    lowest_elev_perim = perim_elevs[perim_elevs != out_elev].min()
+                    # note we exclude the outlet node
+                    elev_increment = ((lowest_elev_perim-self._elev[outlet_node]) /
+                                      (lake_nodes.size + 2.))
                 assert elev_increment > 0.
                 all_ordering = self._grid.at_node['flow__upstream_node_order']
                 upstream_order_bool = np.in1d(all_ordering, lake_nodes,
@@ -263,6 +284,7 @@ class SinkFiller(Component):
                                 1.) * elev_increment
                 sorted_elevs_to_add = elevs_to_add[argsort_lake]
                 self._elev[lake_nodes] += sorted_elevs_to_add
+        print('NEARLY DONE...')
         # now put back any fields that were present initially, and wipe the
         # rest:
         for delete_me in spurious_fields:

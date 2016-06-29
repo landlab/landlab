@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import numpy as np
 from landlab import (ModelParameterDictionary, Component, FieldError,
-                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY)
+                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY, CORE_NODE)
 from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
@@ -164,6 +164,7 @@ class DepressionFinderAndRouter(Component):
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
         """
+        print('DFR init')
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
         if routing is not 'D8':
@@ -256,6 +257,7 @@ class DepressionFinderAndRouter(Component):
                                                  dtype=int, noclobber=False)
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
+        print('DFR _initialize done')
 
     def updated_boundary_conditions(self):
         """
@@ -320,6 +322,7 @@ class DepressionFinderAndRouter(Component):
         elevations. If one is an open boundary, then the other must be a core
         node, and we declare the latter not to be a pit (via rule 2 above).
         """
+        print('_DFR find_pits')
         # Create the is_pit array, with all core nodes initialized to True and
         # all boundary nodes initialized to False.
         self.is_pit.fill(True)
@@ -367,6 +370,7 @@ class DepressionFinderAndRouter(Component):
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = np.count_nonzero(self.is_pit)
         self.pit_node_ids = as_id_array(np.where(self.is_pit)[0])
+        print('  pits found')
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
         """Locate the lowest node on the margin of the "lake".
@@ -381,21 +385,33 @@ class DepressionFinderAndRouter(Component):
         int
             The lowest node on the perimeter of a depression.
         """
+        print(' flnolp, there are ' + str(len(nodes_this_depression)))
         # Start with the first node on the list, and an arbitrarily large elev
         lowest_node = nodes_this_depression[0]
         lowest_elev = self._BIG_ELEV
 
         for n in nodes_this_depression:
+            print('  checking nbrs of ' + str(n) +' elev ' + str(self._elev[n]))
+            if self._elev[n] < 0.0:
+                print('    node status:' + str(self.grid.status_at_node[n]))
+            assert (self._elev[n] >= 0.0), 'uh oh'
             for nbr in self._node_nbrs[n]:
-                if nbr != -1:
+                print('   nbr ' + str(nbr) + ' elev=' + str(self._elev[nbr]))
+                if nbr != -1 and self.grid.status_at_node[nbr] == CORE_NODE:
                     if self.flood_status[nbr] == _UNFLOODED:
+                        print('    unflooded')
                         if self._elev[nbr] < lowest_elev:
                             lowest_node = nbr
                             lowest_elev = self._elev[nbr]
                     elif self.flood_status[nbr] == _PIT or \
                             self.flood_status[nbr] == _FLOODED:
+                        print('    pit or flooded, appending')
                         nodes_this_depression.append(nbr)
                         self.flood_status[nbr] = _CURRENT_LAKE
+            assert (lowest_node != n), ('node ' + str(n) + 
+                                        ' cannot be its own neighbor.' +
+                                        ' Possible isolated node.')
+
         return lowest_node
 
     def node_can_drain(self, the_node, nodes_this_depression):
@@ -511,7 +527,7 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-
+        print('find_depression_from_pit ' + str(pit_node) + str(self._elev[pit_node]))
         # Place pit_node at top of depression list
         nodes_this_depression = []
         nodes_this_depression.insert(0, pit_node)
@@ -526,6 +542,9 @@ class DepressionFinderAndRouter(Component):
         # Safety check
         count = 0
         max_count = self._grid.number_of_nodes + 1
+        
+        # DEBUG
+        last_added = -1
 
         while not found_outlet:
             lowest_node_on_perimeter = \
@@ -536,6 +555,9 @@ class DepressionFinderAndRouter(Component):
                                                 nodes_this_depression)
             if not found_outlet:
                 # Add lowest_node to the lake list
+                print(' fdfp adding ' + str(lowest_node_on_perimeter))
+                assert (lowest_node_on_perimeter != last_added), 'oops'
+                last_added = lowest_node_on_perimeter
                 nodes_this_depression.append(lowest_node_on_perimeter)
                 # Flag it as being part of the current lake/depression
                 self.flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
@@ -560,6 +582,7 @@ class DepressionFinderAndRouter(Component):
         Find and map the depressions/lakes in a topographic surface,
         given a previously identified list of pits (if any) in the surface.
         """
+        print('_identify_depressions_and_outlets')
         self._pits_flooded = 0
         self._unique_pits = np.zeros_like(self.pit_node_ids, dtype=bool)
         for pit_node in self.pit_node_ids:
@@ -615,6 +638,7 @@ class DepressionFinderAndRouter(Component):
         . ~ . . .
         o . . . .
         """
+        print('map_depressions')
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self.grid.bc_set_code
@@ -651,7 +675,7 @@ class DepressionFinderAndRouter(Component):
         self.flood_status[self.pit_node_ids] = _PIT
 
         self._identify_depressions_and_outlets()
-
+        print('done IDing, now re-routing...')
         if reroute_flow and ('flow__receiver_node' in
                              self._grid.at_node.keys()):
             self.receivers = self._grid.at_node['flow__receiver_node']
@@ -665,6 +689,7 @@ class DepressionFinderAndRouter(Component):
 
         Route flow across lake flats, which have already been identified.
         """
+        print('_route_flow')
         for outlet_node, lake_code in zip(self.lake_outlets, self.lake_codes):
             nodes_in_lake = np.where(self.lake_map ==
                                      lake_code)[0]
@@ -715,6 +740,7 @@ class DepressionFinderAndRouter(Component):
         Invoke the accumulator a second time to update drainage area,
         discharge, and upstream order.
         """
+        print('_reaccumulate_flow')
         # Calculate drainage area, discharge, and downstr->upstr order
         Q_in = self._grid.at_node['water__unit_flux_in']
         areas = self._grid.cell_area_at_node.copy()
