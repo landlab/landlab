@@ -35,8 +35,8 @@ Check the units for the fields.
 Create the input fields.
 
 >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
-...        0.25547770, 0.25547770, 0.22110221,
-...        0.22110221, 0.24813062, 0.24813062])
+        0.25547770, 0.25547770, 0.22110221,
+        0.22110221, 0.24813062, 0.24813062])
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -51,6 +51,15 @@ intent: in
 
 >>> grid['cell']['soil_moisture__initial_saturation_fraction']= \
             0.75 * np.ones(grid.number_of_cells)
+
+>>> grid['cell']['vegetation__plant_functional_type']= \
+            np.zeros(grid.number_of_cells)
+
+>>> grid['cell']['vegetation__live_leaf_area_index']= \
+            2. * np.ones(grid.number_of_cells)
+
+>>> grid['cell']['vegetation__cover_fraction']= \
+            np.ones(grid.number_of_cells)
 
 Check the output variable names
 
@@ -173,6 +182,8 @@ class SoilMoisture(Component):
      ('vegetation__cover_fraction', 'None'),
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None')]
+    >>> grid['cell']['vegetation__plant_functional_type']= \
+                np.zeros(grid.number_of_cells)    
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
     3
@@ -467,12 +478,11 @@ class SoilMoisture(Component):
              # Reference leaf area index (m2/m2)
 
 
-    def update( self, current_time, **kwds ):
-        #DEBUGG = 0
-
-        P_ = kwds.pop('P', np.zeros(self.grid.number_of_cells,dtype = float))
-        Tb = kwds.pop('Tb', 24.)
-        Tr = kwds.pop('Tr', 0.0)
+    def update( self, current_time, P=0., Tb=24., Tr=0., **kwds ):
+        if type(P) is float:
+            P_ = P * np.ones(self.grid.number_of_cells)
+        else:
+            P_ = P
         self._PET = \
             self._cell_values['surface__potential_evapotranspiration_rate']
         self._SO = \
