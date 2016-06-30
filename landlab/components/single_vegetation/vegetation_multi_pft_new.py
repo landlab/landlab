@@ -5,9 +5,13 @@ and leaf area index at each cell based on inputs of root-zone
 average soil moisture. Ref: Istanbulluoglu et. al 2012
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
+
+Examples
+--------
+>>> 
 """
 from landlab import Component
-
+from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
 _VALID_METHODS = set(['Grid'])
@@ -67,6 +71,25 @@ class Vegetation(Component):
         Decay coefficient of aboveground dead biomass (d-1)
     kws: float, optional
         Maximum drought induced foliage loss rate (d-1)
+        
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import Vegetation
+    >>> grid = RasterModelGrid((5,4), spacing=(0.2, 0.2))
+    >>> Vegetation.name
+    >>> sorted(Vegetation.output_var_names)
+    >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> Veg = Vegetation(grid)
+    >>> Veg.grid.number_of_cell_rows
+    >>> Veg.grid.number_of_cell_columns
+    >>> Veg.grid is grid
+    >>> import numpy as np
+    >>> np.all(grid.at_cell['vegetation__live_leaf_area_index'] == 0.)
+    >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
+            np.array([0.2554777, 0.2554777 , 0.22110221, 0.22110221,
+                      0.24813062, 0.24813062])
+    
     """
     _name = 'Vegetation'
 
@@ -136,6 +159,7 @@ class Vegetation(Component):
             'classification of plants, eg. tree, shrub or grass',
     }
 
+    @use_file_name_or_kwds
     def __init__(self, grid, Blive_init=102., Bdead_init=450.,
             ETthreshold_up=3.8, ETthreshold_down=6.8, Tdmax=10., w=0.55,
             WUE_grass=0.01, LAI_max_grass=2., cb_grass=0.0047, cd_grass=0.009,
@@ -197,7 +221,7 @@ class Vegetation(Component):
             cd_tree=cd_tree, ksg_tree=ksg_tree, kdd_tree=kdd_tree,
             kws_tree=kws_tree, WUE_bare=WUE_bare, LAI_max_bare=LAI_max_bare,
             cb_bare=cb_bare, cd_bare=cd_bare, ksg_bare=ksg_bare,
-            kdd_bare=kdd_bare, kws_bare=kws_bare, kwds)
+            kdd_bare=kdd_bare, kws_bare=kws_bare, **kwds)
         
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -212,7 +236,7 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
 
-    def initialize( self, Blive_init=102., Bdead_init=450., ETthreshold_up=3.8,
+    def initialize(self, Blive_init=102., Bdead_init=450., ETthreshold_up=3.8,
             ETthreshold_down=6.8, Tdmax=10., w=0.55,
             WUE_grass=0.01, LAI_max_grass=2., cb_grass=0.0047, cd_grass=0.009,
             ksg_grass=0.012, kdd_grass=0.013, kws_grass=0.02,
@@ -221,7 +245,7 @@ class Vegetation(Component):
             WUE_tree=0.0045, LAI_max_tree=4., cb_tree=0.004, cd_tree=0.01,
             ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
             WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
-            ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02, **kwds ):
+            ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02, **kwds):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         """
@@ -285,11 +309,9 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
          
-    def update(self, **kwds):
+    def update(self, PETthreshold=0, Tb=24., Tr=0.01, **kwds):
 
-        PETthreshold_ = kwds.pop('PotentialEvapotranspirationThreshold', 0)
-        Tb = kwds.pop('Tb', 24.)
-        Tr = kwds.pop('Tr', 0.01)
+        PETthreshold_ = PETthreshold
         PET = self._cell_values['surface__potential_evapotranspiration_rate']
         PET30_ = \
           self._cell_values['surface__potential_evapotranspiration_30day_mean']

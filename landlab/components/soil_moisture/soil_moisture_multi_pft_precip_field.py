@@ -49,6 +49,9 @@ units: None
 at: cell
 intent: in
 
+>>> grid['cell']['soil_moisture__initial_saturation_fraction']= \
+            0.75 * np.ones(grid.number_of_cells)
+
 Check the output variable names
 
 >>> sorted(SoilMoisture.output_var_names)
@@ -183,6 +186,8 @@ class SoilMoisture(Component):
     >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
             np.array([0.2554777, 0.2554777 , 0.22110221, 0.22110221,
                       0.24813062, 0.24813062])
+    >>> grid['cell']['soil_moisture__initial_saturation_fraction']= \
+            0.75 * np.ones(grid.number_of_cells)
     >>> grid['cell']['vegetation__live_leaf_area_index']= \
             2. * np.ones(grid.number_of_cells)
     >>> grid['cell']['vegetation__cover_fraction']= \
@@ -198,6 +203,7 @@ class SoilMoisture(Component):
         'vegetation__cover_fraction',
         'vegetation__live_leaf_area_index',
         'surface__potential_evapotranspiration_rate',
+        'soil_moisture__initial_soil_moisture',
         'vegetation__plant_functional_type',
     )
 
@@ -216,6 +222,7 @@ class SoilMoisture(Component):
         'vegetation__plant_functional_type': 'None',
         'soil_moisture__water_stress': 'Pa',
         'soil_moisture__saturation_fraction': 'None',
+        'soil_moisture__initial_soil_moisture': 'None',
         'soil_moisture__root_zone_leakage_rate': 'mm',
         'surface__runoff_rate': 'mm',
         'surface__evapotranspiration_rate': 'mm',
@@ -228,6 +235,7 @@ class SoilMoisture(Component):
         'vegetation__plant_functional_type': 'cell',
         'soil_moisture__water_stress': 'cell',
         'soil_moisture__saturation_fraction': 'cell',
+        'soil_moisture__initial_soil_moisture': 'cell',
         'soil_moisture__root_zone_leakage_rate': 'cell',
         'surface__runoff_rate': 'cell',
         'surface__evapotranspiration_rate': 'cell',
@@ -247,6 +255,8 @@ class SoilMoisture(Component):
              on plants',
         'soil_moisture__saturation_fraction':
             'relative volumetric water content (theta) - limits=[0,1]',
+        'soil_moisture__initial_soil_moisture':
+            'initial soil_moisture__saturation_fraction',
         'soil_moisture__root_zone_leakage_rate':
             'leakage of water into deeper portions of the soil not accessible \
              to the plant',
@@ -338,7 +348,7 @@ class SoilMoisture(Component):
             I_B_bare=I_B_bare, I_V_bare=I_V_bare, pc_bare=pc_bare,
             fc_bare=fc_bare, sc_bare=sc_bare, wp_bare=wp_bare,
             hgw_bare=hgw_bare, beta_bare=beta_bare,
-            LAI_max_bare=LAI_max_bare, LAIR_max_bare=LAIR_max_bare, kwds)
+            LAI_max_bare=LAI_max_bare, LAIR_max_bare=LAIR_max_bare, **kwds)
 
         for name in self._input_var_names:
             if not name in self.grid.at_cell:
@@ -465,7 +475,8 @@ class SoilMoisture(Component):
         Tr = kwds.pop('Tr', 0.0)
         self._PET = \
             self._cell_values['surface__potential_evapotranspiration_rate']
-        self._SO = self._cell_values['soil_moisture__saturation_fraction']
+        self._SO = \
+            self._cell_values['soil_moisture__intial_saturation_fraction']
         self._vegcover = self._cell_values['vegetation__cover_fraction']
         self._water_stress = self._cell_values['soil_moisture__water_stress']
         self._S = self._cell_values['soil_moisture__saturation_fraction']
