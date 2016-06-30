@@ -239,7 +239,7 @@ class SoilMoisture(Component):
         'vegetation__live_leaf_area_index':
             'one-sided green leaf area per unit ground surface area',
         'surface__potential_evapotranspiration_rate':
-            'potential sum of evaporation and potential transpiration',
+            'potential sum of evaporation and plant transpiration',
         'vegetation__plant_functional_type':
             'classification of plants, eg. tree, shrub or grass',
         'soil_moisture__water_stress':

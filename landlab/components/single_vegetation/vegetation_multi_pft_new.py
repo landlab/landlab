@@ -1,10 +1,11 @@
-#################################################################
-##
-##  'Field' concept is implemented for Single Species Vegetation.
-##
-##  Sai Nudurupati and Erkan Istanbulluoglu - 04Mar2014
-#################################################################
+""" Landlab component that implements 1D and 2D vegetation dynamics model.
 
+Landlab component that simulates net primary productivity, biomass
+and leaf area index at each cell based on inputs of root-zone
+average soil moisture. Ref: Istanbulluoglu et. al 2012
+
+.. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
+"""
 from landlab import Component
 
 import numpy as np
@@ -17,9 +18,55 @@ def assert_method_is_valid(method):
 
 
 class Vegetation(Component):
-    """1D and 2D vegetation dynamics.
-
-    Landlab component that implements 1D and 2D vegetation dynamics model.
+    """
+    Landlab component that simulates net primary productivity, biomass
+    and leaf area index at each cell based on inputs of root-zone
+    average soil moisture.
+    
+    Construction::
+        Vegetation(grid, Blive_init=102., Bdead_init=450.,
+            ETthreshold_up=3.8, ETthreshold_down=6.8, Tdmax=10., w=0.55,
+            WUE_grass=0.01, LAI_max_grass=2., cb_grass=0.0047, cd_grass=0.009,
+            ksg_grass=0.012, kdd_grass=0.013, kws_grass=0.02,
+            WUE_shrub=0.0025, LAI_max_shrub=2., cb_shrub=0.004, cd_shrub=0.01,
+            ksg_shrub=0.002, kdd_shrub=0.013, kws_shrub=0.02,
+            WUE_tree=0.0045, LAI_max_tree=4., cb_tree=0.004, cd_tree=0.01,
+            ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
+            WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
+            ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02)
+            
+    Parameters
+    ----------
+    grid: RasterModelGrid
+        A grid.
+    Blive_init: float, optional
+        Initial value for vegetation__live_biomass. Converted to field
+    Bdead_init: float, optional
+        Initial value for vegetation__dead_biomass. Coverted to field
+    ETthreshold_up: float, optional
+        Potential Evapotranspiration (PET) threshold for 
+        growing season (mm/d)
+    ETthreshold_down: float, optional
+        PET threshold for dormant season (mm/d)
+    Tdmax: float, optional
+        Constant for dead biomass loss adjustment (mm/d)
+    w: float, optional
+        Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+    WUE: float, optional
+        Water Use Efficiency - ratio of water used in plant water
+        lost by the plant through transpiration (KgCO2Kg-1H2O)
+    LAI_max: float, optional
+        Maximum leaf area index (m2/m2)
+    cb: float, optional
+        Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+    cd: float, optional
+        Specific leaf area for dead biomass (m2 leaf g-1 DM)
+    ksg: float, optional
+        Senescence coefficient of green/live biomass (d-1)
+    kdd: float, optional
+        Decay coefficient of aboveground dead biomass (d-1)
+    kws: float, optional
+        Maximum drought induced foliage loss rate (d-1)
     """
     _name = 'Vegetation'
 
@@ -27,6 +74,7 @@ class Vegetation(Component):
         'surface__evapotranspiration_rate',
         'soil_moisture__water_stress',
         'surface__potential_evapotranspiration_rate',
+        'surface__potential_evapotranspiration_30day_mean',
         'vegetation__plant_functional_type',
     ])
 
@@ -44,6 +92,7 @@ class Vegetation(Component):
         'vegetation__cover_fraction': 'None',
         'surface__evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_rate': 'mm',
+        'surface__potential_evapotranspiration_30day_mean': 'mm',
         'soil_moisture__water_stress': 'Pa',
         'vegetation__live_biomass': 'g DM m^-2 d^-1',
         'vegetation__dead_biomass': 'g DM m^-2 d^-1',
@@ -56,6 +105,7 @@ class Vegetation(Component):
         'vegetation__cover_fraction': 'cell',
         'surface__evapotranspiration_rate': 'cell',
         'surface__potential_evapotranspiration_rate': 'cell',
+        'surface__potential_evapotranspiration_30day_mean': 'cell',
         'soil_moisture__water_stress': 'cell',
         'vegetation__live_biomass': 'cell',
         'vegetation__dead_biomass': 'cell',
@@ -71,6 +121,10 @@ class Vegetation(Component):
             'fraction of land covered by vegetation',
         'surface__evapotranspiration_rate':
             'actual sum of evaporation and plant transpiration',
+        'surface__potential_evapotranspiration_rate':
+            'potential sum of evaporation and platnt transpiration',
+        'surface__potential_evapotranspiration_30day_mean':
+            '30 day mean of surface__potential_evapotranspiration',
         'soil_moisture__water_stress':
             'parameter that represents nonlinear effects of water defecit \
              on plants',
@@ -92,7 +146,40 @@ class Vegetation(Component):
             ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
             WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
             ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02, **kwds):
-        
+        """
+        Parameters
+        ----------
+        grid: RasterModelGrid
+            A grid.
+        Blive_init: float, optional
+            Initial value for vegetation__live_biomass. Converted to field
+        Bdead_init: float, optional
+            Initial value for vegetation__dead_biomass. Coverted to field
+        ETthreshold_up: float, optional
+            Potential Evapotranspiration (PET) threshold for 
+            growing season (mm/d)
+        ETthreshold_down: float, optional
+            PET threshold for dormant season (mm/d)
+        Tdmax: float, optional
+            Constant for dead biomass loss adjustment (mm/d)
+        w: float, optional
+            Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+        WUE: float, optional
+            Water Use Efficiency - ratio of water used in plant water
+            lost by the plant through transpiration (KgCO2Kg-1H2O)
+        LAI_max: float, optional
+            Maximum leaf area index (m2/m2)
+        cb: float, optional
+            Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+        cd: float, optional
+            Specific leaf area for dead biomass (m2 leaf g-1 DM)
+        ksg: float, optional
+            Senescence coefficient of green/live biomass (d-1)
+        kdd: float, optional
+            Decay coefficient of aboveground dead biomass (d-1)
+        kws: float, optional
+            Maximum drought induced foliage loss rate (d-1)
+        """
         self._method = kwds.pop('method', 'Grid')
 
         assert_method_is_valid(self._method)
@@ -110,8 +197,8 @@ class Vegetation(Component):
             cd_tree=cd_tree, ksg_tree=ksg_tree, kdd_tree=kdd_tree,
             kws_tree=kws_tree, WUE_bare=WUE_bare, LAI_max_bare=LAI_max_bare,
             cb_bare=cb_bare, cd_bare=cd_bare, ksg_bare=ksg_bare,
-            kdd_bare=kdd_bare, kws_bare=kws_bare, **kwds)
-
+            kdd_bare=kdd_bare, kws_bare=kws_bare, kwds)
+        
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
@@ -137,6 +224,38 @@ class Vegetation(Component):
             ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02, **kwds ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
+        """
+        Parameters
+        ----------
+        Blive_init: float, optional
+            Initial value for vegetation__live_biomass. Converted to field
+        Bdead_init: float, optional
+            Initial value for vegetation__dead_biomass. Coverted to field
+        ETthreshold_up: float, optional
+            Potential Evapotranspiration (PET) threshold for 
+            growing season (mm/d)
+        ETthreshold_down: float, optional
+            PET threshold for dormant season (mm/d)
+        Tdmax: float, optional
+            Constant for dead biomass loss adjustment (mm/d)
+        w: float, optional
+            Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+        WUE: float, optional
+            Water Use Efficiency - ratio of water used in plant water
+            lost by the plant through transpiration (KgCO2Kg-1H2O)
+        LAI_max: float, optional
+            Maximum leaf area index (m2/m2)
+        cb: float, optional
+            Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+        cd: float, optional
+            Specific leaf area for dead biomass (m2 leaf g-1 DM)
+        ksg: float, optional
+            Senescence coefficient of green/live biomass (d-1)
+        kdd: float, optional
+            Decay coefficient of aboveground dead biomass (d-1)
+        kws: float, optional
+            Maximum drought induced foliage loss rate (d-1)
+        """
         self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
         self._WUE = np.choose(self._vegtype,
             [WUE_grass, WUE_shrub, WUE_tree, WUE_bare, WUE_shrub, WUE_tree])     # Water Use Efficiency  KgCO2kg-1H2O
@@ -163,14 +282,17 @@ class Vegetation(Component):
         #                        [ 10, 10, 10, 10, 10, 10 ]))                    # Constant for dead biomass loss adjustment (mm/d)
 
 #        self._cell_values = self.grid['cell']
-
+        self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
+        self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
+         
     def update(self, **kwds):
 
         PETthreshold_ = kwds.pop('PotentialEvapotranspirationThreshold', 0)
         Tb = kwds.pop('Tb', 24.)
         Tr = kwds.pop('Tr', 0.01)
         PET = self._cell_values['surface__potential_evapotranspiration_rate']
-        PET30_ = self._cell_values['PotentialEvapotranspiration30']
+        PET30_ = \
+          self._cell_values['surface__potential_evapotranspiration_30day_mean']
         ActualET = self._cell_values['surface__evapotranspiration_rate']
         Water_stress = self._cell_values['soil_moisture__water_stress']
 
