@@ -129,6 +129,7 @@ import landlab
 import numpy
 import pylab as plt
 from numpy import zeros
+from .cfuncs import update_node_states_cython
 
 _NEVER = 1e50
 
