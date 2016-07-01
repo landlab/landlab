@@ -25,7 +25,9 @@ class property.
 ('vegetation__cover_fraction',
  'vegetation__live_leaf_area_index',
  'surface__potential_evapotranspiration_rate',
- 'vegetation__plant_functional_type')
+ 'soil_moisture__initial_soil_moisture',
+ 'vegetation__plant_functional_type',
+ 'precipitation__rain')
  
 Check the units for the fields.
 
@@ -35,8 +37,8 @@ Check the units for the fields.
 Create the input fields.
 
 >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
-        0.25547770, 0.25547770, 0.22110221,
-        0.22110221, 0.24813062, 0.24813062])
+...        0.25547770, 0.25547770, 0.22110221,
+...        0.22110221, 0.24813062, 0.24813062])
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -49,17 +51,19 @@ units: None
 at: cell
 intent: in
 
->>> grid['cell']['soil_moisture__initial_saturation_fraction']= \
-            0.75 * np.ones(grid.number_of_cells)
+>>> grid['cell']['soil_moisture__initial_saturation_fraction'] = \
+...        0.75 * np.ones(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__plant_functional_type']= \
-            np.zeros(grid.number_of_cells)
+...        np.zeros(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__live_leaf_area_index']= \
-            2. * np.ones(grid.number_of_cells)
+...        2. * np.ones(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__cover_fraction']= \
-            np.ones(grid.number_of_cells)
+...        np.ones(grid.number_of_cells)
+
+>>>
 
 Check the output variable names
 
@@ -76,7 +80,12 @@ and run it.
 >>> SM = SoilMoisture(grid)
 
 Run the *update* method to update output variables with current time
+
 >>> current_time = 0.5
+
+>>> grid['cell']['precipitation__rain'] = \
+...        25. * np.ones(grid.number_of_cells)
+
 >>> current_time = SM.update(current_time)
 
 >>> SM.grid.at_cell['soil_moisture__saturation_fraction']
@@ -127,37 +136,38 @@ class SoilMoisture(Component):
     grid: RasterModelGrid
         A grid.
     runon: float, optional
-        Runon from higher elevation (mm)
+        Runon from higher elevation (mm).
     f_bare: float, optional
-        Fraction to partition PET for bare soil (None)
+        Fraction to partition PET for bare soil (None).
     soil_ew: float, optional
-        Residual Evaporation after wilting (mm/day)
+        Residual Evaporation after wilting (mm/day).
     intercept_cap: float, optional
         Plant Functional Type (PFT) specific full canopy interception
-    capacity
+        capacity.
     zr: float, optional
-        Root depth (m)
+        Root depth (m).
     I_B: float, optional
-        Infiltration capacity of bare soil (mm/h)
+        Infiltration capacity of bare soil (mm/h).
     I_V: float, optional
-        Infiltration capacity of vegetated soil (mm/h)
+        Infiltration capacity of vegetated soil (mm/h).
     pc: float, optional
-        Soil porosity (None)
+        Soil porosity (None).
     fc: float, optional
-        Soil saturation degree at field capacity (None)
+        Soil saturation degree at field capacity (None).
     sc: float, optional
-        Soil saturation degree at stomatal closure (None)
+        Soil saturation degree at stomatal closure (None).
     wp: float, optional
-        Soil saturation degree at wilting point (None)
+        Soil saturation degree at wilting point (None).
     hgw: float, optional
-        Soil saturation degree at hygroscopic point (None)
+        Soil saturation degree at hygroscopic point (None).
     beta: float, optional
-        Deep percolation constant = 2*b+3 where b is water retention
+        Deep percolation constant = 2*b+3 where b is
+        water retention (None).
     parameter (None)
     LAI_max: float, optional
-        Maximum leaf area index (m^2/m^2)
+        Maximum leaf area index (m^2/m^2).
     LAIR_max: float, optional
-        Reference leaf area index (m^2/m^2)
+        Reference leaf area index (m^2/m^2).
     
     Examples
     --------
@@ -216,6 +226,7 @@ class SoilMoisture(Component):
         'surface__potential_evapotranspiration_rate',
         'soil_moisture__initial_soil_moisture',
         'vegetation__plant_functional_type',
+        'precipitation__rain',
     )
 
     _output_var_names = (
@@ -237,6 +248,7 @@ class SoilMoisture(Component):
         'soil_moisture__root_zone_leakage_rate': 'mm',
         'surface__runoff_rate': 'mm',
         'surface__evapotranspiration_rate': 'mm',
+        'precipitation__rain': 'mm',
     }
 
     _var_mapping = {
@@ -250,6 +262,7 @@ class SoilMoisture(Component):
         'soil_moisture__root_zone_leakage_rate': 'cell',
         'surface__runoff_rate': 'cell',
         'surface__evapotranspiration_rate': 'cell',
+        'precipitation__rain': 'cell',
     }
 
     _var_doc = {
@@ -275,6 +288,9 @@ class SoilMoisture(Component):
             'runoff from ground surface',
         'surface__evapotranspiration_rate':
             'actual sum of evaporation and plant transpiration',
+        'precipitation__rain':
+            'Rain in (mm) as a field, allowing spatio-temporal soil moisture \
+             saturation analysis.',
     }
 
     @use_file_name_or_kwds
@@ -301,37 +317,38 @@ class SoilMoisture(Component):
         grid: RasterModelGrid
             A grid.
         runon: float, optional
-            Runon from higher elevation (mm)
+            Runon from higher elevation (mm).
         f_bare: float, optional
-            Fraction to partition PET for bare soil (None)
+            Fraction to partition PET for bare soil (None).
         soil_ew: float, optional
-            Residual Evaporation after wilting (mm/day)
+            Residual Evaporation after wilting (mm/day).
         intercept_cap: float, optional
             Plant Functional Type (PFT) specific full canopy interception
-        capacity
+            capacity.
         zr: float, optional
-            Root depth (m)
+            Root depth (m).
         I_B: float, optional
-            Infiltration capacity of bare soil (mm/h)
+            Infiltration capacity of bare soil (mm/h).
         I_V: float, optional
-            Infiltration capacity of vegetated soil (mm/h)
+            Infiltration capacity of vegetated soil (mm/h).
         pc: float, optional
-            Soil porosity (None)
+            Soil porosity (None).
         fc: float, optional
-            Soil saturation degree at field capacity (None)
+            Soil saturation degree at field capacity (None).
         sc: float, optional
-            Soil saturation degree at stomatal closure (None)
+            Soil saturation degree at stomatal closure (None).
         wp: float, optional
-            Soil saturation degree at wilting point (None)
+            Soil saturation degree at wilting point (None).
         hgw: float, optional
-            Soil saturation degree at hygroscopic point (None)
+            Soil saturation degree at hygroscopic point (None).
         beta: float, optional
-            Deep percolation constant = 2*b+3 where b is water retention
+            Deep percolation constant = 2*b+3 where b is
+            water retention (None).
         parameter (None)
         LAI_max: float, optional
-            Maximum leaf area index (m^2/m^2)
+            Maximum leaf area index (m^2/m^2).
         LAIR_max: float, optional
-            Reference leaf area index (m^2/m^2)
+            Reference leaf area index (m^2/m^2).
         """
         self._method = kwds.pop('method', 'Grid')
 
@@ -399,37 +416,38 @@ class SoilMoisture(Component):
         grid: RasterModelGrid
             A grid.
         runon: float, optional
-            Runon from higher elevation (mm)
+            Runon from higher elevation (mm).
         f_bare: float, optional
-            Fraction to partition PET for bare soil (None)
+            Fraction to partition PET for bare soil (None).
         soil_ew: float, optional
-            Residual Evaporation after wilting (mm/day)
+            Residual Evaporation after wilting (mm/day).
         intercept_cap: float, optional
             Plant Functional Type (PFT) specific full canopy interception
-        capacity
+            capacity.
         zr: float, optional
-            Root depth (m)
+            Root depth (m).
         I_B: float, optional
-            Infiltration capacity of bare soil (mm/h)
+            Infiltration capacity of bare soil (mm/h).
         I_V: float, optional
-            Infiltration capacity of vegetated soil (mm/h)
+            Infiltration capacity of vegetated soil (mm/h).
         pc: float, optional
-            Soil porosity (None)
+            Soil porosity (None).
         fc: float, optional
-            Soil saturation degree at field capacity (None)
+            Soil saturation degree at field capacity (None).
         sc: float, optional
-            Soil saturation degree at stomatal closure (None)
+            Soil saturation degree at stomatal closure (None).
         wp: float, optional
-            Soil saturation degree at wilting point (None)
+            Soil saturation degree at wilting point (None).
         hgw: float, optional
-            Soil saturation degree at hygroscopic point (None)
+            Soil saturation degree at hygroscopic point (None).
         beta: float, optional
-            Deep percolation constant = 2*b+3 where b is water retention
+            Deep percolation constant = 2*b+3 where b is
+            water retention (None).
         parameter (None)
         LAI_max: float, optional
-            Maximum leaf area index (m^2/m^2)
+            Maximum leaf area index (m^2/m^2).
         LAIR_max: float, optional
-            Reference leaf area index (m^2/m^2)
+            Reference leaf area index (m^2/m^2).
         """
         
         self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
@@ -478,11 +496,20 @@ class SoilMoisture(Component):
              # Reference leaf area index (m2/m2)
 
 
-    def update( self, current_time, P=0., Tb=24., Tr=0., **kwds ):
-        if type(P) is float:
-            P_ = P * np.ones(self.grid.number_of_cells)
-        else:
-            P_ = P
+    def update( self, current_time, Tb=24., Tr=0., **kwds ):
+        """
+        Update fields with current loading conditions.
+        
+        Parameters
+        ----------
+        current_time: float
+            Current time (years).
+        Tb: float, optional
+            Storm duration (hours).
+        Tr: float, optional
+            Inter-storm duration (hours).            
+        """
+        P_ = self.cell_values['precipitation__rain']
         self._PET = \
             self._cell_values['surface__potential_evapotranspiration_rate']
         self._SO = \

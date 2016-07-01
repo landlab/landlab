@@ -44,33 +44,33 @@ class Vegetation(Component):
     grid: RasterModelGrid
         A grid.
     Blive_init: float, optional
-        Initial value for vegetation__live_biomass. Converted to field
+        Initial value for vegetation__live_biomass. Converted to field.
     Bdead_init: float, optional
-        Initial value for vegetation__dead_biomass. Coverted to field
+        Initial value for vegetation__dead_biomass. Coverted to field.
     ETthreshold_up: float, optional
         Potential Evapotranspiration (PET) threshold for 
-        growing season (mm/d)
+        growing season (mm/d).
     ETthreshold_down: float, optional
-        PET threshold for dormant season (mm/d)
+        PET threshold for dormant season (mm/d).
     Tdmax: float, optional
-        Constant for dead biomass loss adjustment (mm/d)
+        Constant for dead biomass loss adjustment (mm/d).
     w: float, optional
-        Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+        Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2).
     WUE: float, optional
         Water Use Efficiency - ratio of water used in plant water
-        lost by the plant through transpiration (KgCO2Kg-1H2O)
+        lost by the plant through transpiration (KgCO2Kg-1H2O).
     LAI_max: float, optional
-        Maximum leaf area index (m2/m2)
+        Maximum leaf area index (m2/m2).
     cb: float, optional
-        Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+        Specific leaf area for green/live biomass (m2 leaf g-1 DM).
     cd: float, optional
-        Specific leaf area for dead biomass (m2 leaf g-1 DM)
+        Specific leaf area for dead biomass (m2 leaf g-1 DM).
     ksg: float, optional
-        Senescence coefficient of green/live biomass (d-1)
+        Senescence coefficient of green/live biomass (d-1).
     kdd: float, optional
-        Decay coefficient of aboveground dead biomass (d-1)
+        Decay coefficient of aboveground dead biomass (d-1).
     kws: float, optional
-        Maximum drought induced foliage loss rate (d-1)
+        Maximum drought induced foliage loss rate (d-1).
         
     Examples
     --------
@@ -176,33 +176,33 @@ class Vegetation(Component):
         grid: RasterModelGrid
             A grid.
         Blive_init: float, optional
-            Initial value for vegetation__live_biomass. Converted to field
+            Initial value for vegetation__live_biomass. Converted to field.
         Bdead_init: float, optional
-            Initial value for vegetation__dead_biomass. Coverted to field
+            Initial value for vegetation__dead_biomass. Coverted to field.
         ETthreshold_up: float, optional
             Potential Evapotranspiration (PET) threshold for 
-            growing season (mm/d)
+            growing season (mm/d).
         ETthreshold_down: float, optional
-            PET threshold for dormant season (mm/d)
+            PET threshold for dormant season (mm/d).
         Tdmax: float, optional
-            Constant for dead biomass loss adjustment (mm/d)
+            Constant for dead biomass loss adjustment (mm/d).
         w: float, optional
-            Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+            Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2).
         WUE: float, optional
             Water Use Efficiency - ratio of water used in plant water
-            lost by the plant through transpiration (KgCO2Kg-1H2O)
+            lost by the plant through transpiration (KgCO2Kg-1H2O).
         LAI_max: float, optional
-            Maximum leaf area index (m2/m2)
+            Maximum leaf area index (m2/m2).
         cb: float, optional
-            Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+            Specific leaf area for green/live biomass (m2 leaf g-1 DM).
         cd: float, optional
-            Specific leaf area for dead biomass (m2 leaf g-1 DM)
+            Specific leaf area for dead biomass (m2 leaf g-1 DM).
         ksg: float, optional
-            Senescence coefficient of green/live biomass (d-1)
+            Senescence coefficient of green/live biomass (d-1).
         kdd: float, optional
-            Decay coefficient of aboveground dead biomass (d-1)
+            Decay coefficient of aboveground dead biomass (d-1).
         kws: float, optional
-            Maximum drought induced foliage loss rate (d-1)
+            Maximum drought induced foliage loss rate (d-1).
         """
         self._method = kwds.pop('method', 'Grid')
 
@@ -251,34 +251,36 @@ class Vegetation(Component):
         """
         Parameters
         ----------
+        grid: RasterModelGrid
+            A grid.
         Blive_init: float, optional
-            Initial value for vegetation__live_biomass. Converted to field
+            Initial value for vegetation__live_biomass. Converted to field.
         Bdead_init: float, optional
-            Initial value for vegetation__dead_biomass. Coverted to field
+            Initial value for vegetation__dead_biomass. Coverted to field.
         ETthreshold_up: float, optional
             Potential Evapotranspiration (PET) threshold for 
-            growing season (mm/d)
+            growing season (mm/d).
         ETthreshold_down: float, optional
-            PET threshold for dormant season (mm/d)
+            PET threshold for dormant season (mm/d).
         Tdmax: float, optional
-            Constant for dead biomass loss adjustment (mm/d)
+            Constant for dead biomass loss adjustment (mm/d).
         w: float, optional
-            Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+            Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2).
         WUE: float, optional
             Water Use Efficiency - ratio of water used in plant water
-            lost by the plant through transpiration (KgCO2Kg-1H2O)
+            lost by the plant through transpiration (KgCO2Kg-1H2O).
         LAI_max: float, optional
-            Maximum leaf area index (m2/m2)
+            Maximum leaf area index (m2/m2).
         cb: float, optional
-            Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+            Specific leaf area for green/live biomass (m2 leaf g-1 DM).
         cd: float, optional
-            Specific leaf area for dead biomass (m2 leaf g-1 DM)
+            Specific leaf area for dead biomass (m2 leaf g-1 DM).
         ksg: float, optional
-            Senescence coefficient of green/live biomass (d-1)
+            Senescence coefficient of green/live biomass (d-1).
         kdd: float, optional
-            Decay coefficient of aboveground dead biomass (d-1)
+            Decay coefficient of aboveground dead biomass (d-1).
         kws: float, optional
-            Maximum drought induced foliage loss rate (d-1)
+            Maximum drought induced foliage loss rate (d-1).
         """
         self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
         self._WUE = np.choose(self._vegtype,
@@ -310,7 +312,16 @@ class Vegetation(Component):
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
          
     def update(self, PETthreshold=0, Tb=24., Tr=0.01, **kwds):
-
+        """
+        Update fields with current loading conditions.
+        
+        Parameters
+        ----------
+        Tb: float, optional
+            Storm duration (hours).
+        Tr: float, optional
+            Inter-storm duration (hours).            
+        """
         PETthreshold_ = PETthreshold
         PET = self._cell_values['surface__potential_evapotranspiration_rate']
         PET30_ = \
