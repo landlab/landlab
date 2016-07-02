@@ -55,15 +55,13 @@ intent: in
 ...        0.75 * np.ones(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__plant_functional_type']= \
-...        np.zeros(grid.number_of_cells)
+...        np.zeros(grid.number_of_cells, dtype=int)
 
 >>> grid['cell']['vegetation__live_leaf_area_index']= \
 ...        2. * np.ones(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__cover_fraction']= \
 ...        np.ones(grid.number_of_cells)
-
->>>
 
 Check the output variable names
 
@@ -273,7 +271,8 @@ class SoilMoisture(Component):
         'surface__potential_evapotranspiration_rate':
             'potential sum of evaporation and plant transpiration',
         'vegetation__plant_functional_type':
-            'classification of plants, eg. tree, shrub or grass',
+            'classification of plants (int), grass=0, shrub=1, tree=2, \
+             bare=3, shrub_seedling=4, tree_seedling=5',
         'soil_moisture__water_stress':
             'parameter that represents nonlinear effects of water deficit \
              on plants',
