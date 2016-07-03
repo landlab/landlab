@@ -133,6 +133,8 @@ from .cfuncs import update_node_states_cython
 
 _NEVER = 1e50
 
+_USE_CYTHON = True
+
 _DEBUG = False
 
 _TEST = False
@@ -847,28 +849,27 @@ class CellLabCTSModel(object):
             Flags indicating whether the tail node and head node, respectively,
             have changed state
         """
+        if _USE_CYTHON:
+            return update_node_states_cython(self.node_state,
+                              self.grid.status_at_node,
+                              tail_node,
+                              head_node,
+                              new_link_state,
+                              self.node_pair)
+        else:
+			# Remember the previous state of each node so we can detect whether the
+			# state has changed
+			old_tail_node_state = self.node_state[tail_node]
+			old_head_node_state = self.node_state[head_node]
+ 
+			# Change to the new states
+			if self.grid.status_at_node[tail_node] == _CORE:
+				self.node_state[tail_node] = self.node_pair[new_link_state][0]
+			if self.grid.status_at_node[head_node] == _CORE:
+				self.node_state[head_node] = self.node_pair[new_link_state][1]
 
-        # Remember the previous state of each node so we can detect whether the
-        # state has changed
-        old_tail_node_state = self.node_state[tail_node]
-        old_head_node_state = self.node_state[head_node]
-
-        # Change to the new states
-        if self.grid.status_at_node[tail_node] == _CORE:
-            self.node_state[tail_node] = self.node_pair[new_link_state][0]
-        # landlab.grid.base.CORE_NODE:
-        if self.grid.status_at_node[head_node] == _CORE:
-            self.node_state[head_node] = self.node_pair[new_link_state][1]
-
-        if _DEBUG:
-            print('update_node_states() for', tail_node, 'and', head_node)
-            print('  tail_node was', old_tail_node_state,
-                  'and is now', self.node_state[tail_node])
-            print('  head_node was', old_head_node_state,
-                  'and is now', self.node_state[head_node])
-
-        return self.node_state[tail_node] != old_tail_node_state, \
-            self.node_state[head_node] != old_head_node_state
+			return self.node_state[tail_node] != old_tail_node_state, \
+				   self.node_state[head_node] != old_head_node_state
 
     def update_link_state(self, link, new_link_state, current_time):
         """
