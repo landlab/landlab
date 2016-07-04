@@ -128,8 +128,8 @@ from heapq import heappop
 import landlab
 import numpy
 import pylab as plt
-from numpy import zeros
-from .cfuncs import update_node_states_cython
+#from numpy import zeros
+from .cfuncs import update_node_states_cython, update_link_state
 
 _NEVER = 1e50
 
@@ -201,48 +201,23 @@ class Transition():
         self.prop_update_fn = prop_update_fn
 
 
-class Event():
-    """
-    Represents a transition event at a link. The transition occurs at a given
-    link and a given time, and it involves a transition into the state xn_to
-    (an integer code representing the new link state; "xn" is shorthand for
-    "transition").
-
-    The class overrides the __lt__ (less than operator) method so that when
-    Event() objects are placed in a PriorityQueue, the earliest event is
-    given the highest priority (i.e., placed at the top of the queue).
-
-    Event() constructor sets 3 required properties and one optional
-    property.
-
-    Parameters
-    ----------
-    time : float
-        Time at which the event is scheduled to occur
-    link : int
-        ID of the link at which event occurs
-    xn_to : int
-        New state to which this cell pair (link) will transition
-    propswap : bool (optional)
-        Flag: does this event involve an exchange of properties between
-        the two cells?
-
-    Examples
-    --------
-    >>> from landlab.ca.celllab_cts import Event
-    >>> e1 = Event( 10.0, 1, 2)
-    >>> e2 = Event( 2.0, 3, 1)
-    >>> e1 < e2
-    False
-    >>> e2 < e1
-    True
-    """
-
-    def __init__(self, time, link, xn_to, propswap=False, prop_update_fn=None):
+if _USE_CYTHON:
+    from .cfuncs import Event
+else:
+    class Event():
         """
+        Represents a transition event at a link. The transition occurs at a given
+        link and a given time, and it involves a transition into the state xn_to
+        (an integer code representing the new link state; "xn" is shorthand for
+        "transition").
+    
+        The class overrides the __lt__ (less than operator) method so that when
+        Event() objects are placed in a PriorityQueue, the earliest event is
+        given the highest priority (i.e., placed at the top of the queue).
+    
         Event() constructor sets 3 required properties and one optional
         property.
-
+    
         Parameters
         ----------
         time : float
@@ -254,19 +229,47 @@ class Event():
         propswap : bool (optional)
             Flag: does this event involve an exchange of properties between
             the two cells?
+    
+        Examples
+        --------
+        >>> from landlab.ca.celllab_cts import Event
+        >>> e1 = Event( 10.0, 1, 2)
+        >>> e2 = Event( 2.0, 3, 1)
+        >>> e1 < e2
+        False
+        >>> e2 < e1
+        True
         """
-        self.time = time
-        self.link = link
-        self.xn_to = xn_to
-        self.propswap = propswap
-        self.prop_update_fn = prop_update_fn
+    
+        def __init__(self, time, link, xn_to, propswap=False, prop_update_fn=None):
+            """
+            Event() constructor sets 3 required properties and one optional
+            property.
+    
+            Parameters
+            ----------
+            time : float
+                Time at which the event is scheduled to occur
+            link : int
+                ID of the link at which event occurs
+            xn_to : int
+                New state to which this cell pair (link) will transition
+            propswap : bool (optional)
+                Flag: does this event involve an exchange of properties between
+                the two cells?
+            """
+            self.time = time
+            self.link = link
+            self.xn_to = xn_to
+            self.propswap = propswap
+            self.prop_update_fn = prop_update_fn
 
-    def __lt__(self, other):
-        """
-        Overridden less-than operator: returns true if the event on the left
-        has an earlier scheduled time than the event on the right
-        """
-        return self.time < other.time
+        def __lt__(self, other):
+            """
+            Overridden less-than operator: returns true if the event on the left
+            has an earlier scheduled time than the event on the right
+            """
+            return self.time < other.time
 
 
 class CAPlotter():
@@ -849,27 +852,19 @@ class CellLabCTSModel(object):
             Flags indicating whether the tail node and head node, respectively,
             have changed state
         """
-        if _USE_CYTHON:
-            return update_node_states_cython(self.node_state,
-                              self.grid.status_at_node,
-                              tail_node,
-                              head_node,
-                              new_link_state,
-                              self.node_pair)
-        else:
-			# Remember the previous state of each node so we can detect whether the
-			# state has changed
-			old_tail_node_state = self.node_state[tail_node]
-			old_head_node_state = self.node_state[head_node]
- 
-			# Change to the new states
-			if self.grid.status_at_node[tail_node] == _CORE:
-				self.node_state[tail_node] = self.node_pair[new_link_state][0]
-			if self.grid.status_at_node[head_node] == _CORE:
-				self.node_state[head_node] = self.node_pair[new_link_state][1]
+        # Remember the previous state of each node so we can detect whether the
+        # state has changed
+        old_tail_node_state = self.node_state[tail_node]
+        old_head_node_state = self.node_state[head_node]
 
-			return self.node_state[tail_node] != old_tail_node_state, \
-				   self.node_state[head_node] != old_head_node_state
+        # Change to the new states
+        if self.grid.status_at_node[tail_node] == _CORE:
+            self.node_state[tail_node] = self.node_pair[new_link_state][0]
+        if self.grid.status_at_node[head_node] == _CORE:
+            self.node_state[head_node] = self.node_pair[new_link_state][1]
+
+        return self.node_state[tail_node] != old_tail_node_state, \
+               self.node_state[head_node] != old_head_node_state
 
     def update_link_state(self, link, new_link_state, current_time):
         """
@@ -961,9 +956,23 @@ class CellLabCTSModel(object):
 
             tail_node = self.grid.node_at_link_tail[event.link]
             head_node = self.grid.node_at_link_head[event.link]
-            tail_changed, head_changed = self.update_node_states(
-                tail_node, head_node, event.xn_to)
-            self.update_link_state(event.link, event.xn_to, event.time)
+            if _USE_CYTHON:
+                tail_changed, head_changed = update_node_states_cython(
+                    self.node_state, self.grid.status_at_node, tail_node,
+                    head_node, event.xn_to, self.node_pair)
+                update_link_state(event.link, event.xn_to, event.time,
+                                  self.bnd_lnk, self.node_state,
+                                  self.grid.node_at_link_tail,
+                                  self.grid.node_at_link_head,
+                                  self.link_orientation, self.num_node_states,
+                                  self.num_node_states_sq, self.link_state,
+                                  self.n_xn, self.event_queue,
+                                  self.next_update, self.xn_to, self.xn_rate,
+                                  self.xn_propswap, self.xn_prop_update_fn)
+            else:
+                tail_changed, head_changed = self.update_node_states(
+                    tail_node, head_node, event.xn_to)
+                self.update_link_state(event.link, event.xn_to, event.time)
 
             # Next, when the state of one of the link's nodes changes, we have
             # to update the states of the OTHER links attached to it. This
