@@ -12,6 +12,9 @@ from heapq import heappush
 
 _NEVER = 1.0e50
 
+DTYPE = np.double
+ctypedef np.double_t DTYPE_t
+
 DTYPE_INT = np.int
 ctypedef np.int_t DTYPE_INT_t
 
@@ -87,18 +90,6 @@ class Event():
         return self.time < other.time
 
 
-
-# def froggo(a, b):
-#     
-#     c = a + b
-
-#def update_node_states_cython(a, b):
-#
-#    cdef int frog
-#
-#    frog = a + b
-
-
 def update_node_states_cython(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                               np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                               DTYPE_INT_t tail_node, 
@@ -120,7 +111,11 @@ def update_node_states_cython(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
     return node_state[tail_node] != old_tail_node_state, \
            node_state[head_node] != old_head_node_state
 
-def get_next_event(link, current_state, current_time, n_xn, xn_to, xn_rate,
+def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state, 
+                   DTYPE_t current_time, 
+                   np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                   np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                   np.ndarray[DTYPE_t, ndim=2] xn_rate,
                    xn_propswap, xn_prop_update_fn):
     """Get the next event for a link.
 
@@ -154,6 +149,10 @@ def get_next_event(link, current_state, current_time, n_xn, xn_to, xn_rate,
     Assumes that there is at least one potential transition from the
     current state.
     """
+    cdef int my_xn_to
+    cdef bint propswap
+    cdef double next_time, this_next
+
     assert (n_xn[current_state] > 0), \
         'must have at least one potential transition'
 
@@ -166,7 +165,7 @@ def get_next_event(link, current_state, current_time, n_xn, xn_to, xn_rate,
         prop_update_fn = xn_prop_update_fn[current_state][0]
     else:
         next_time = _NEVER
-        my_xn_to = None
+        my_xn_to = 0
         propswap = False
         for i in range(n_xn[current_state]):
             this_next = np.random.exponential(
@@ -183,11 +182,21 @@ def get_next_event(link, current_state, current_time, n_xn, xn_to, xn_rate,
 
     return my_event
 
-def update_link_state(link, new_link_state, current_time, bnd_lnk,
-                      node_state, node_at_link_tail, node_at_link_head,
-                      link_orientation, num_node_states, num_node_states_sq,
-                      link_state, n_xn, event_queue, next_update, xn_to,
-                      xn_rate, xn_propswap, xn_prop_update_fn):
+def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
+                      DTYPE_t current_time,
+                      bnd_lnk,
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                      np.ndarray[DTYPE_INT_t, ndim=1] link_orientation,
+                      DTYPE_INT_t num_node_states,
+                      DTYPE_INT_t num_node_states_sq,
+                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                      np.ndarray[DTYPE_INT_t, ndim=1] n_xn, event_queue,
+                      np.ndarray[DTYPE_t, ndim=1] next_update,
+                      np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                      np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                      xn_propswap, xn_prop_update_fn):
     """
     Implements a link transition by updating the current state of the link
     and (if appropriate) choosing the next transition event and pushing it
@@ -202,9 +211,7 @@ def update_link_state(link, new_link_state, current_time, bnd_lnk,
     current_time : float
         Current time in simulation
     """
-#        if _DEBUG:
-#            print()
-#            print('update_link_state()')
+    cdef int fns, tns
 
     # If the link connects to a boundary, we might have a different state
     # than the one we planned
@@ -214,13 +221,8 @@ def update_link_state(link, new_link_state, current_time, bnd_lnk,
         fns = node_state[node_at_link_tail[link]]
         tns = node_state[node_at_link_head[link]]
         orientation = link_orientation[link]
-        ##actual_pair = (fns,tns,orientation)
-        ##new_link_state = self.link_state_dict[actual_pair]
         new_link_state = orientation * num_node_states_sq + \
             fns * num_node_states + tns
-        #assert new_link_state==new_link_state2, 'oops'
-#            if _DEBUG:
-#                print('**Boundary: overriding new link state to',new_link_state)
 
     link_state[link] = new_link_state
     if n_xn[new_link_state] > 0:
