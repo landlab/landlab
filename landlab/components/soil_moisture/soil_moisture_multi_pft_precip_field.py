@@ -28,7 +28,7 @@ class property.
  'soil_moisture__initial_soil_moisture',
  'vegetation__plant_functional_type',
  'precipitation__rain')
- 
+
 Check the units for the fields.
 
 >>> SoilMoisture.var_units('surface__potential_evapotranspiration_rate')
@@ -63,15 +63,6 @@ intent: in
 >>> grid['cell']['vegetation__cover_fraction']= \
 ...        np.ones(grid.number_of_cells)
 
-Check the output variable names
-
->>> sorted(SoilMoisture.output_var_names)
-['soil_moisture__root_zone_leakage_rate',
- 'soil_moisture__saturation_fraction',
- 'soil_moisture__water_stress',
- 'surface__evapotranspiration_rate',
- 'surface__runoff_rate']
- 
 Instantiate the 'SoilMoisture' component to work on this grid,
 and run it.
 
@@ -86,10 +77,28 @@ Run the *update* method to update output variables with current time
 
 >>> current_time = SM.update(current_time)
 
->>> SM.grid.at_cell['soil_moisture__saturation_fraction']
-array([ 0.00153843,  0.00153843,  0.00153843,  0.00153843,  0.00153843,
-        0.00153843])
+Check the output variable names
 
+>>> sorted(SoilMoisture.output_var_names)
+['soil_moisture__root_zone_leakage_rate',
+ 'soil_moisture__saturation_fraction',
+ 'soil_moisture__water_stress',
+ 'surface__evapotranspiration_rate',
+ 'surface__runoff_rate']
+
+>>> grid['cell']['soil_moisture__root_zone_leakage_rate']
+array([ 29.97001453,  29.97001453,  29.97001453,  29.97001453,
+        29.97001453,  29.97001453])
+
+>>> SM.grid.at_cell['soil_moisture__saturation_fraction']
+array([ 0.70372004,  0.70372004,  0.70372004,  0.70372004,  0.70372004,
+        0.70372004])
+
+>>> grid['cell']['surface__evapotranspiration_rate']
+array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
+
+>>> grid['cell']['surface__runoff_rate']
+array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
 """
 
 from landlab import Component
@@ -109,7 +118,7 @@ class SoilMoisture(Component):
     Landlab component that simulates root-zone average soil moisture at each
     cell using inputs of potential evapotranspiration, live leaf area index,
     and vegetation cover.
-    
+
     Construction::
         SoilMoisture(grid, runon=0., f_bare=0.7, soil_ew=0.1,
            intercept_cap_grass= 1., zr_grass=0.3, I_B_grass=20.,
@@ -128,7 +137,7 @@ class SoilMoisture(Component):
            I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
            wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
            LAI_max_bare=0.01, LAIR_max_bare=0.01)
-      
+
     Parameters
     ----------
     grid: RasterModelGrid
@@ -166,7 +175,7 @@ class SoilMoisture(Component):
         Maximum leaf area index (m^2/m^2).
     LAIR_max: float, optional
         Reference leaf area index (m^2/m^2).
-    
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -181,7 +190,9 @@ class SoilMoisture(Component):
      'surface__evapotranspiration_rate',
      'surface__runoff_rate']
     >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
-    [('soil_moisture__root_zone_leakage_rate', 'mm'),
+    [('precipitation__rain', 'mm'),
+     ('soil_moisture__initial_soil_moisture', 'None'),
+     ('soil_moisture__root_zone_leakage_rate', 'mm'),
      ('soil_moisture__saturation_fraction', 'None'),
      ('soil_moisture__water_stress', 'Pa'),
      ('surface__evapotranspiration_rate', 'mm'),
@@ -191,7 +202,7 @@ class SoilMoisture(Component):
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None')]
     >>> grid['cell']['vegetation__plant_functional_type']= \
-                np.zeros(grid.number_of_cells)    
+                np.zeros(grid.number_of_cells)
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
     3
@@ -212,6 +223,8 @@ class SoilMoisture(Component):
     >>> grid['cell']['vegetation__cover_fraction']= \
             np.ones(grid.number_of_cells)
     >>> current_time = 0.5
+    >>> grid['cell']['precipitation__rain'] = \
+            25. * np.ones(grid.number_of_cells)
     >>> current_time = SM.update(current_time)
     >>> np.all(grid.at_cell['soil_moisture__saturation_fraction'] == 0.)
     False
@@ -448,7 +461,7 @@ class SoilMoisture(Component):
         LAIR_max: float, optional
             Reference leaf area index (m^2/m^2).
         """
-        
+
         self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
         self._runon = runon
         self._fbare = f_bare
@@ -498,7 +511,7 @@ class SoilMoisture(Component):
     def update( self, current_time, Tb=24., Tr=0., **kwds ):
         """
         Update fields with current loading conditions.
-        
+
         Parameters
         ----------
         current_time: float
@@ -506,13 +519,13 @@ class SoilMoisture(Component):
         Tb: float, optional
             Storm duration (hours).
         Tr: float, optional
-            Inter-storm duration (hours).            
+            Inter-storm duration (hours).
         """
-        P_ = self.cell_values['precipitation__rain']
+        P_ = self._cell_values['precipitation__rain']
         self._PET = \
             self._cell_values['surface__potential_evapotranspiration_rate']
         self._SO = \
-            self._cell_values['soil_moisture__intial_saturation_fraction']
+            self._cell_values['soil_moisture__initial_saturation_fraction']
         self._vegcover = self._cell_values['vegetation__cover_fraction']
         self._water_stress = self._cell_values['soil_moisture__water_stress']
         self._S = self._cell_values['soil_moisture__saturation_fraction']

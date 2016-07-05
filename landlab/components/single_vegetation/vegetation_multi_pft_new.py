@@ -1,4 +1,4 @@
-""" Landlab component that implements 1D and 2D vegetation dynamics model.
+"""Landlab component that implements 1D and 2D vegetation dynamics model.
 
 Landlab component that simulates net primary productivity, biomass
 and leaf area index at each cell based on inputs of root-zone
@@ -8,7 +8,86 @@ average soil moisture. Ref: Istanbulluoglu et. al 2012
 
 Examples
 --------
->>> 
+>>> import numpy as np
+>>> from landlab import RasterModelGrid
+>>> from landlab.components import Vegetation
+
+Create a grid on which to simulate vegetation dynamics.
+
+>>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+
+The grid will need some input data. To check the names of the fields
+that provide the input to this component, use the *input_var_names*
+class property.
+
+>>> Vegetation.input_var_names
+('vegetation__plant_functional_type',
+ 'surface__potential_evapotranspiration_rate',
+ 'surface__evapotranspiration_rate',
+ 'surface__potential_evapotranspiration_30day_mean',
+ 'soil_moisture__water_stress')
+
+Check the units for an input field
+
+>>> Vegetation.var_units('surface__evapotranspiration_rate')
+'mm'
+
+Create the input fields.
+
+>>> grid['cell']['vegetation__plant_functional_type']= \
+...        np.zeros(grid.number_of_cells, dtype=int)
+
+>>> grid['cell']['surface__evapotranspiration_rate'] = \
+...        0.2 * np.ones(grid.number_of_cells)
+
+If you are not sure about one of the input or output variables, you can
+get help for specific variables.
+
+>>> Vegetation.var_help('surface__potential_evapotranspiration_30day_mean')
+name: surface__potential_evapotranspiration_30day_mean
+description:
+  30 day mean of surface__potential_evapotranspiration
+units: mm
+at: cell
+intent: in
+
+>>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
+...        0.25547770, 0.25547770, 0.22110221,
+...        0.22110221, 0.24813062, 0.24813062])
+
+>>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
+...        np.array([
+...        0.25547770, 0.25547770, 0.22110221,
+...        0.22110221, 0.24813062, 0.24813062])
+
+>>> grid['cell']['soil_moisture__water_stress'] = \
+...       0.01 * np.ones(grid.number_of_cells)
+
+Instantiate the 'SoilMoisture' component to work on this grid,
+and run it.
+
+>>> Veg = Vegetation(grid)
+
+Run the *update* method to update output variables
+
+>>> Veg.update()
+
+Check the output variable names
+
+>>> sorted(Vegetation.output_var_names)
+['vegetation__cover_fraction',
+ 'vegetation__dead_biomass',
+ 'vegetation__dead_leaf_area_index',
+ 'vegetation__live_biomass',
+ 'vegetation__live_leaf_area_index']
+
+>>> grid['cell']['vegetation__cover_fraction']
+array([ 0.77686984,  0.77686984,  0.77686984,  0.77686984,  0.77686984,
+        0.77686984])
+
+>>> grid['cell']['vegetation__live_leaf_area_index']
+array([ 0.47371568,  0.47371568,  0.47371568,  0.47371568,  0.47371568,
+        0.47371568])
 """
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
@@ -26,7 +105,7 @@ class Vegetation(Component):
     Landlab component that simulates net primary productivity, biomass
     and leaf area index at each cell based on inputs of root-zone
     average soil moisture.
-    
+
     Construction::
         Vegetation(grid, Blive_init=102., Bdead_init=450.,
             ETthreshold_up=3.8, ETthreshold_down=6.8, Tdmax=10., w=0.55,
@@ -38,7 +117,7 @@ class Vegetation(Component):
             ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
             WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
             ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02)
-            
+
     Parameters
     ----------
     grid: RasterModelGrid
@@ -48,7 +127,7 @@ class Vegetation(Component):
     Bdead_init: float, optional
         Initial value for vegetation__dead_biomass. Coverted to field.
     ETthreshold_up: float, optional
-        Potential Evapotranspiration (PET) threshold for 
+        Potential Evapotranspiration (PET) threshold for
         growing season (mm/d).
     ETthreshold_down: float, optional
         PET threshold for dormant season (mm/d).
@@ -71,43 +150,96 @@ class Vegetation(Component):
         Decay coefficient of aboveground dead biomass (d-1).
     kws: float, optional
         Maximum drought induced foliage loss rate (d-1).
-        
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import Vegetation
+
+    Create a grid on which to calculate soil moisture saturation fraction.
+
     >>> grid = RasterModelGrid((5,4), spacing=(0.2, 0.2))
-    >>> Vegetation.name
-    >>> sorted(Vegetation.output_var_names)
+
+    The grid will need some input data. To check the names of the fields
+    that provide the input to this component, use the *input_var_names*
+    class property.
+
+    >>> Vegetation.input_var_names
+    ('vegetation__plant_functional_type',
+     'surface__potential_evapotranspiration_rate',
+     'surface__evapotranspiration_rate',
+     'surface__potential_evapotranspiration_30day_mean',
+     'soil_moisture__water_stress')
+
     >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
+    [('soil_moisture__water_stress', 'Pa'),
+     ('surface__evapotranspiration_rate', 'mm'),
+     ('surface__potential_evapotranspiration_30day_mean', 'mm'),
+     ('surface__potential_evapotranspiration_rate', 'mm'),
+     ('vegetation__cover_fraction', 'None'),
+     ('vegetation__dead_biomass', 'g DM m^-2 d^-1'),
+     ('vegetation__dead_leaf_area_index', 'None'),
+     ('vegetation__live_biomass', 'g DM m^-2 d^-1'),
+     ('vegetation__live_leaf_area_index', 'None'),
+     ('vegetation__plant_functional_type', 'None')]
+
+    Provide all the input fields.
+    >>> grid['cell']['vegetation__plant_functional_type']= \
+                np.zeros(grid.number_of_cells, dtype=int)
+    >>> grid['cell']['surface__evapotranspiration_rate'] = \
+                0.2 * np.ones(grid.number_of_cells)
+    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
+                0.25547770, 0.25547770, 0.22110221,
+                0.22110221, 0.24813062, 0.24813062])
+    >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
+                np.array([
+                0.25547770, 0.25547770, 0.22110221,
+                0.22110221, 0.24813062, 0.24813062])
+    >>> grid['cell']['soil_moisture__water_stress'] = \
+               0.01 * np.ones(grid.number_of_cells)
+
+    Instantiate the 'Vegetation' component.
     >>> Veg = Vegetation(grid)
+
     >>> Veg.grid.number_of_cell_rows
+    3
     >>> Veg.grid.number_of_cell_columns
+    2
     >>> Veg.grid is grid
+    True
     >>> import numpy as np
+    >>> sorted(Vegetation.output_var_names)
+    ['vegetation__cover_fraction',
+     'vegetation__dead_biomass',
+     'vegetation__dead_leaf_area_index',
+     'vegetation__live_biomass',
+     'vegetation__live_leaf_area_index']
+
     >>> np.all(grid.at_cell['vegetation__live_leaf_area_index'] == 0.)
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
-            np.array([0.2554777, 0.2554777 , 0.22110221, 0.22110221,
-                      0.24813062, 0.24813062])
-    
+    True
+
+    >>> Veg.update()
+
+    >>> np.all(grid.at_cell['vegetation__live_leaf_area_index'] == 0.)
+    False
     """
     _name = 'Vegetation'
 
-    _input_var_names = set([
+    _input_var_names = (
         'surface__evapotranspiration_rate',
         'soil_moisture__water_stress',
         'surface__potential_evapotranspiration_rate',
         'surface__potential_evapotranspiration_30day_mean',
         'vegetation__plant_functional_type',
-    ])
+    )
 
-    _output_var_names = set([
+    _output_var_names = (
         'vegetation__live_leaf_area_index',
         'vegetation__dead_leaf_area_index',
         'vegetation__cover_fraction',
         'vegetation__live_biomass',
         'vegetation__dead_biomass',
-    ])
+    )
 
     _var_units = {
         'vegetation__live_leaf_area_index': 'None',
@@ -121,7 +253,7 @@ class Vegetation(Component):
         'vegetation__dead_biomass': 'g DM m^-2 d^-1',
         'vegetation__plant_functional_type': 'None',
     }
-    
+
     _var_mapping = {
         'vegetation__live_leaf_area_index': 'cell',
         'vegetation__dead_leaf_area_index': 'cell',
@@ -134,7 +266,7 @@ class Vegetation(Component):
         'vegetation__dead_biomass': 'cell',
         'vegetation__plant_functional_type': 'cell',
     }
-    
+
     _var_doc = {
         'vegetation__live_leaf_area_index':
             'one-sided green leaf area per unit ground surface area',
@@ -156,7 +288,8 @@ class Vegetation(Component):
         'vegetation__dead_biomass':
             'weight of dead organic mass per unit area',
         'vegetation__plant_functional_type':
-            'classification of plants, eg. tree, shrub or grass',
+            'classification of plants (int), grass=0, shrub=1, tree=2, \
+             bare=3, shrub_seedling=4, tree_seedling=5',
     }
 
     @use_file_name_or_kwds
@@ -180,7 +313,7 @@ class Vegetation(Component):
         Bdead_init: float, optional
             Initial value for vegetation__dead_biomass. Coverted to field.
         ETthreshold_up: float, optional
-            Potential Evapotranspiration (PET) threshold for 
+            Potential Evapotranspiration (PET) threshold for
             growing season (mm/d).
         ETthreshold_down: float, optional
             PET threshold for dormant season (mm/d).
@@ -222,7 +355,7 @@ class Vegetation(Component):
             kws_tree=kws_tree, WUE_bare=WUE_bare, LAI_max_bare=LAI_max_bare,
             cb_bare=cb_bare, cd_bare=cd_bare, ksg_bare=ksg_bare,
             kdd_bare=kdd_bare, kws_bare=kws_bare, **kwds)
-        
+
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
@@ -258,7 +391,7 @@ class Vegetation(Component):
         Bdead_init: float, optional
             Initial value for vegetation__dead_biomass. Coverted to field.
         ETthreshold_up: float, optional
-            Potential Evapotranspiration (PET) threshold for 
+            Potential Evapotranspiration (PET) threshold for
             growing season (mm/d).
         ETthreshold_down: float, optional
             PET threshold for dormant season (mm/d).
@@ -304,23 +437,20 @@ class Vegetation(Component):
         self._ETthresholddown = ETthreshold_down          # Dormancy threshold (mm/d)
         self._Tdmax = Tdmax                               # Constant for dead biomass loss adjustment
         self._w = w                                       # Conversion factor of CO2 to dry biomass
-        #self._ETdmax = np.choose( self._vegtype, kwds.pop('ETdmax',
-        #                        [ 10, 10, 10, 10, 10, 10 ]))                    # Constant for dead biomass loss adjustment (mm/d)
 
-#        self._cell_values = self.grid['cell']
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
-         
+
     def update(self, PETthreshold=0, Tb=24., Tr=0.01, **kwds):
         """
         Update fields with current loading conditions.
-        
+
         Parameters
         ----------
         Tb: float, optional
             Storm duration (hours).
         Tr: float, optional
-            Inter-storm duration (hours).            
+            Inter-storm duration (hours).
         """
         PETthreshold_ = PETthreshold
         PET = self._cell_values['surface__potential_evapotranspiration_rate']

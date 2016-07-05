@@ -1,13 +1,15 @@
+""" Landlab component that simulates inter-species plant competition.
 
-#################################################################
-##
-##  Cellular Automaton component design for Vegetation establishment/mortality
-##
-##  Sai Nudurupati and Erkan Istanbulluoglu - 26 Nov 2014
-#################################################################
+VegCA component simulates inter-species spatial plant competition based
+on input cumulative water stress (converted to plant live index) and
+existing vegetation organization. 
+Ref: Zhou et. al, WRR Vol. 49 (2013) Pg.2872-2895.
 
+.. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
+"""
 from landlab import Component
 import numpy as np
+from ...utils.decorators import use_file_name_or_kwds
 
 _VALID_METHODS = set(['Grid'])
 GRASS = 0
@@ -23,55 +25,167 @@ def assert_method_is_valid(method):
 
 
 class VegCA(Component):
-    """1D and 2D vegetation dynamics.
-
-    Landlab component that implements 1D and 2D vegetation dynamics model.
+    """
+    Landlab component that simulates inter-species plant competition using
+    a 2D cellular automata model.
+    
+    Construction::
+        VegCA(grid, Pemaxg=0.35, ING=2., ThetaGrass=0.62, PmbGrass=0.05,
+            Pemaxsh=0.2, ThetaShrub=0.8, PmbShrub=0.01, tpmaxShrub=600,
+            Pemaxtr=0.25, ThetaTree=0.72, PmbTree=0.01, tpmaxTree=350,
+            ThetaShrubSeedling=0.64, PmbShrubSeedling=0.03,
+            tpmaxShrubSeedling=18, ThetaTreeSeedling=0.64,
+            PmbTreeSeedling=0.03, tpmaxTreeSeedling=18)
+    
+    Parameters
+    ----------
+    grid: RasterModelGrid
+        A grid.
+    Pemaxg: float, optional
+        Maximal establishment probability of grass.
+    ING: float, optional
+        Parameter to define allelopathic effect of creosote on grass.
+    ThetaGrass: float, optional
+        Drought resistance threshold of grass.
+    PmbGrass: float, optional
+        Background mortality probability of grass.
+    Pemaxsh: float, optional
+        Maximal establishment probability of shrub.
+    ThetaShrub: float, optional
+        Drought resistance threshold of shrub.
+    PmbShrub: float, optional
+        Background mortality probability of shrub.
+    tpmaxShrub: float, optional
+        Maximum age of shrub (years).
+    Pemaxtr: float, optional
+        Maximal establishment probability of tree.
+    Thetatree: float, optional
+        Drought resistance threshold of tree.
+    PmbTree: float, optional
+        Background mortality probability of tree.
+    tpmaxTree: float, optional
+        Maximum age of tree (years).
+    ThetaShrubSeedling: float, optional
+        Drought resistance threshold of shrub seedling.
+    PmbShrubSeedling: float, optional
+        Background mortality probability of shrub seedling.
+    tpmaxShrubSeedling: float, optional
+        Maximum age of shrub seedling (years).
+    ThetaTreeSeedling: float, optional
+        Drought resistance threshold of tree seedling.
+    PmbTreeSeedling: float, optional
+        Background mortality probability of tree seedling.
+    tpmaxTreeSeedling: float, optional
+        Maximum age of tree seedling (years).
     """
     _name = 'VegCA'
 
-    _input_var_names = set([
-        'CumulativeWaterStress',
-        'VegetationType',
-    ])
+    _input_var_names = (
+        'soil_moisture__water_stress_cumulative',
+        'vegetation__plant_functional_type',
+    )
 
-    _output_var_names = set([
-        'PlantLiveIndex',
-        'PlantAge',
-    ])
+    _output_var_names = (
+        'vegetation__live_leaf_area_index',
+        'plant__age',
+    )
 
     _var_units = {
-        'CumulativeWaterStress' : 'Pa',
-        'VegetationType'  : 'None',
-        'PlantLiveIndex'  : 'Pa',
-        'PlantAge'        : 'Years',
+        'soil_moisture__water_stress_cumulative': 'Pa',
+        'vegetation__plant_functional_type': 'None',
+        'vegetation__live_leaf_area_index': 'Pa',
+        'plant__age': 'Years',
+    }
+    
+    _var_mapping = {
+        'soil_moisture__water_stress_cumulative': 'cell',
+        'vegetation__plant_functional_type': 'cell',
+        'vegetation__live_leaf_area_index': 'cell',
+        'plant__age': 'cell',
+    }
+    
+    _var_doc = {
+        'soil_moisture__water_stress_cumulative':
+            'cumulative soil_moisture__water_stress over the growing season',
+        'vegetation__plant_functional_type':
+            'classification of plants (int), grass=0, shrub=1, tree=2, \
+             bare=3, shrub_seedling=4, tree_seedling=5',
+        'vegetation__live_leaf_area_index':
+            'one-sided green leaf area per unit ground surface area',
+        'plant__age':
+            'Age of plant (years)',
     }
 
-    def __init__(self, grid, data, **kwds):
+    @use_file_name_or_kwds
+    def __init__(self, grid,
+            Pemaxg=0.35, ING=2., ThetaGrass=0.62, PmbGrass=0.05,
+            Pemaxsh=0.2, ThetaShrub=0.8, PmbShrub=0.01, tpmaxShrub=600,
+            Pemaxtr=0.25, ThetaTree=0.72, PmbTree=0.01, tpmaxTree=350,
+            ThetaShrubSeedling=0.64, PmbShrubSeedling=0.03,
+            tpmaxShrubSeedling=18, ThetaTreeSeedling=0.64,
+            PmbTreeSeedling=0.03, tpmaxTreeSeedling=18,
+            **kwds):
+        """
+        Parameters
+        ----------
+        grid: RasterModelGrid
+            A grid.
+        Pemaxg: float, optional
+            Maximal establishment probability of grass.
+        ING: float, optional
+            Parameter to define allelopathic effect of creosote on grass.
+        ThetaGrass: float, optional
+            Drought resistance threshold of grass.
+        PmbGrass: float, optional
+            Background mortality probability of grass.
+        Pemaxsh: float, optional
+            Maximal establishment probability of shrub.
+        ThetaShrub: float, optional
+            Drought resistance threshold of shrub.
+        PmbShrub: float, optional
+            Background mortality probability of shrub.
+        tpmaxShrub: float, optional
+            Maximum age of shrub (years).
+        Pemaxtr: float, optional
+            Maximal establishment probability of tree.
+        Thetatree: float, optional
+            Drought resistance threshold of tree.
+        PmbTree: float, optional
+            Background mortality probability of tree.
+        tpmaxTree: float, optional
+            Maximum age of tree (years).
+        ThetaShrubSeedling: float, optional
+            Drought resistance threshold of shrub seedling.
+        PmbShrubSeedling: float, optional
+            Background mortality probability of shrub seedling.
+        tpmaxShrubSeedling: float, optional
+            Maximum age of shrub seedling (years).
+        ThetaTreeSeedling: float, optional
+            Drought resistance threshold of tree seedling.
+        PmbTreeSeedling: float, optional
+            Background mortality probability of tree seedling.
+        tpmaxTreeSeedling: float, optional
+            Maximum age of tree seedling (years).        
+        """
         self._method = kwds.pop('method', 'Grid')
-        self._Pemaxg = kwds.pop('Pemaxg', data['Pemaxg'])   # Pe-max-grass - max probability
-        self._Pemaxsh = kwds.pop('Pemaxsh', data['Pemaxsh'])    # Pe-max-shrub
-        self._Pemaxtr = kwds.pop('Pemaxtr', data['Pemaxtr'])   # Pe-max-tree
-        self._INg = kwds.pop('ING', data['ING'])  # Allelopathic effect on grass from creosotebush
-        self._th_g = kwds.pop('ThetaGrass', data['ThetaGrass'])  # grass
-        self._th_sh = kwds.pop('ThetaShrub', data['ThetaShrub']) # shrub - Creosote
-        self._th_tr = kwds.pop('ThetaTree', data['ThetaTree']) # Juniper pine
-        self._th_sh_s = kwds.pop('ThetaShrubSeedling',
-                                    data['ThetaShrubSeedling']) # shrub seedling
-        self._th_tr_s = kwds.pop('ThetaTreeSeedling',
-                                    data['ThetaTreeSeedling']) # Juniper pine seedling
-        self._Pmb_g = kwds.pop('PmbGrass', data['PmbGrass']) # Background mortality probability - grass
-        self._Pmb_sh = kwds.pop('PmbShrub', data['PmbShrub']) # shrub
-        self._Pmb_tr = kwds.pop('PmbTree', data['PmbTree']) # tree
-        self._Pmb_sh_s = kwds.pop('PmbShrubSeedling',
-                                    data['PmbShrubSeedling']) # shrub seedling
-        self._Pmb_tr_s = kwds.pop('PmbTreeSeedling',
-                                    data['PmbTreeSeedling']) # tree seedling
-        self._tpmax_sh = kwds.pop('tpmaxShrub', data['tpmaxShrub']) # Maximum age - shrub
-        self._tpmax_tr = kwds.pop('tpmaxTree', data['tpmaxTree']) # Maximum age - tree
-        self._tpmax_sh_s = kwds.pop('tpmaxShrubSeedling',
-                                    data['tpmaxShrubSeedling']) # Maximum age - shrub seedling
-        self._tpmax_tr_s = kwds.pop('tpmaxTreeSeedling',
-                                    data['tpmaxTreeSeedling']) # Maximum age - tree seedling
+        self._Pemaxg = Pemaxg   # Pe-max-grass - max probability
+        self._Pemaxsh = Pemaxsh    # Pe-max-shrub
+        self._Pemaxtr = Pemaxtr   # Pe-max-tree
+        self._INg = ING  # Allelopathic effect on grass from creosotebush
+        self._th_g = ThetaGrass  # grass
+        self._th_sh = ThetaShrub # shrub - Creosote
+        self._th_tr = ThetaTree # Juniper pine
+        self._th_sh_s = ThetaShrubSeedling # shrub seedling
+        self._th_tr_s = ThetaTreeSeedling # Juniper pine seedling
+        self._Pmb_g = PmbGrass # Background mortality probability - grass
+        self._Pmb_sh = PmbShrub # shrub
+        self._Pmb_tr = PmbTree # tree
+        self._Pmb_sh_s = PmbShrubSeedling # shrub seedling
+        self._Pmb_tr_s = PmbTreeSeedling # tree seedling
+        self._tpmax_sh = tpmaxShrub # Maximum age - shrub
+        self._tpmax_tr = tpmaxTree # Maximum age - tree
+        self._tpmax_sh_s = tpmaxShrubSeedling # Maximum age - shrub seedling
+        self._tpmax_tr_s = tpmaxTreeSeedling # Maximum age - tree seedling
 
 
         assert_method_is_valid(self._method)
@@ -88,11 +202,11 @@ class VegCA(Component):
 
         self._cell_values = self.grid['cell']
 
-        if (np.where(grid['cell']['VegetationType'] != 0)[0].shape[0] == 0):
-            grid['cell']['VegetationType'] =                        \
-                                    np.random.randint(0,6,grid.number_of_cells)
+        if (np.all(grid['cell']['vegetation__plant_functional_type']) == 0):
+            grid['cell']['vegetation__plant_functional_type'] =              \
+                    np.random.randint(0,6,grid.number_of_cells)
 
-        VegType = grid['cell']['VegetationType']
+        VegType = grid['cell']['vegetation__plant_functional_type']
         tp = np.zeros(grid.number_of_cells, dtype = int)
         tp[VegType == TREE] = np.random.randint(0,self._tpmax_tr,
                                     np.where(VegType==TREE)[0].shape)
@@ -100,15 +214,29 @@ class VegCA(Component):
                                     np.where(VegType==SHRUB)[0].shape)
         VegType[tp[VegType == TREE] < self._tpmax_tr_s] = TREESEEDLING
         VegType[tp[VegType == SHRUB] < self._tpmax_sh_s] = SHRUBSEEDLING
-        grid['cell']['PlantAge'] = tp
+        grid['cell']['plant__age'] = tp
 
 
-    def update(self, Edit_VegCov = True, time_elapsed = 1):
+    def update(self, time_elapsed = 1, Edit_VegCov = True):
+        """
+        Update fields with current loading conditions.
 
-        self._VegType = self._cell_values['VegetationType']
-        self._CumWS   = self._cell_values['CumulativeWaterStress']
-        self._live_index = self._cell_values['PlantLiveIndex']
-        self._tp = self._cell_values['PlantAge'] + time_elapsed
+        Parameters
+        ----------
+        time_elapsed: int, optional
+            Time elapsed - time step (years).
+        Edit_VegCov: switch (0 or 1), optional
+            If Edit_VegCov=1, an optional field 'vegetation__boolean_vegetated'
+            will be output, (i.e.) if a cell is vegetated the corresponding
+            cell of the field will be 1, otherwise it will be 0.
+        """
+        self._VegType = \
+            self._cell_values['vegetation__plant_functional_type']
+        self._CumWS   = \
+            self._cell_values['soil_moisture__water_stress_cumulative']
+        self._live_index = \
+            self._cell_values['vegetation__live_leaf_area_index']
+        self._tp = self._cell_values['plant__age'] + time_elapsed
 
         # Check if shrub and tree seedlings have matured
         shrub_seedlings = np.where(self._VegType == SHRUBSEEDLING)[0]
@@ -182,12 +310,13 @@ class VegCA(Component):
         self._VegType[plant_cells[Mortality]] = BARE
         self._tp[plant_cells[Mortality]] = 0
 
-        self._cell_values['PlantAge'] = self._tp
+        self._cell_values['plant__age'] = self._tp
 
         if Edit_VegCov:
-            self.grid['cell']['VegetationCover'] =             \
-                                    np.zeros(self.grid.number_of_cells)
-            self.grid['cell']['VegetationCover'][self._VegType != BARE] = 1.
+            self.grid['cell']['vegetation__boolean_vegetated'] =             \
+                        np.zeros(self.grid.number_of_cells, dtype=int)
+            self.grid['cell']['vegetation__boolean_vegetated'][
+                        self._VegType != BARE] = 1
 
         # For debugging purposes
         self._bare_cells = bare_cells
