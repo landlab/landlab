@@ -233,3 +233,147 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     else:
         next_update[link] = _NEVER
 
+def do_transition(event, DTYPE_t current_time,
+                  np.ndarray[DTYPE_t, ndim=1] next_update,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
+                  np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                  np.ndarray[DTYPE_INT_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_INT_t, ndim=1] link_orientation,
+                  np.ndarray[DTYPE_INT_t, ndim=1] propid,
+                  np.ndarray[DTYPE_INT_t, ndim=1] prop_data,
+                  np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                  np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                  np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                  np.ndarray[DTYPE_INT_t, ndim=2] active_links_at_node,
+                  DTYPE_INT_t num_node_states,
+                  DTYPE_INT_t num_node_states_sq,
+                  DTYPE_INT_t prop_reset_value,
+                  xn_propswap, xn_prop_update_fn,
+                  node_pair, bnd_lnk, event_queue,
+                  link_state_dict, this_cts_model,
+                  plot_each_transition=False,
+                  plotter=None):
+    """Transition state.
+
+    Implements a state transition.
+
+    Parameters
+    ----------
+    event : Event object
+        Event object containing the data for the current transition event
+    current_time : float
+        Current time in simulation
+    plot_each_transition : bool (optional)
+        True if caller wants to show a plot of the grid after this
+        transition
+    plotter : CAPlotter object
+        Sent if caller wants a plot after this transition
+
+    Notes
+    -----
+    First checks that the transition is still valid by comparing the
+    link's next_update time with the corresponding update time in the
+    event object.
+
+    If the transition is valid, we:
+
+    1. Update the states of the two nodes attached to the link
+    2. Update the link's state, choose its next transition, and push
+       it on the event queue.
+    3. Update the states of the other links attached to the two nodes,
+       choose their next transitions, and push them on the event queue.
+    """
+
+    # We'll process the event if its update time matches the one we have
+    # recorded for the link in question. If not, it means that the link has
+    # changed state since the event was pushed onto the event queue, and
+    # in that case we'll ignore it.
+    if event.time == next_update[event.link]:
+
+        tail_node = node_at_link_tail[event.link]
+        head_node = node_at_link_head[event.link]
+        tail_changed, head_changed = update_node_states_cython(
+                node_state, status_at_node, tail_node,
+                head_node, event.xn_to, node_pair)
+        update_link_state(event.link, event.xn_to, event.time,
+                          bnd_lnk, node_state,
+                          node_at_link_tail,
+                          node_at_link_head,
+                          link_orientation, num_node_states,
+                          num_node_states_sq, link_state,
+                          n_xn, event_queue,
+                          next_update, xn_to, xn_rate,
+                          xn_propswap, xn_prop_update_fn)
+
+        # Next, when the state of one of the link's nodes changes, we have
+        # to update the states of the OTHER links attached to it. This
+        # could happen to one or both nodes.
+        if tail_changed:
+
+            for link in active_links_at_node[:, tail_node]:
+
+                if link != -1 and link != event.link:
+
+                    this_link_fromnode = node_at_link_tail[link]
+                    this_link_tonode = node_at_link_head[link]
+                    orientation = link_orientation[link]
+                    current_pair = (node_state[this_link_fromnode],
+                                    node_state[this_link_tonode],
+                                    orientation)
+                    new_link_state = link_state_dict[current_pair]
+                    new_link_state2 = (
+                        orientation * num_node_states_sq +
+                        node_state[this_link_fromnode] * num_node_states +
+                        node_state[this_link_tonode])
+                    assert new_link_state == new_link_state2, 'oops'
+                    update_link_state(link, new_link_state, event.time)
+
+        if head_changed:
+
+            for link in active_links_at_node[:, head_node]:
+
+                if link != -1 and link != event.link:
+                    this_link_fromnode = node_at_link_tail[link]
+                    this_link_tonode = node_at_link_head[link]
+                    orientation = link_orientation[link]
+                    current_pair = (node_state[this_link_fromnode],
+                                    node_state[this_link_tonode],
+                                    orientation)
+                    new_link_state = link_state_dict[current_pair]
+                    new_link_state2 = (
+                        orientation * num_node_states_sq +
+                        node_state[this_link_fromnode] * num_node_states +
+                        node_state[this_link_tonode])
+                    assert new_link_state == new_link_state2, 'oops'
+                    update_link_state(
+                        link, new_link_state, event.time)
+
+        # If requested, display a plot of the grid
+        if plot_each_transition and (plotter is not None):
+            plotter.update_plot()
+
+            # If this event involves an exchange of properties (i.e., the
+            # event involves motion of an object that posses properties we
+            # want to track), implement the swap.
+            #   If the event requires a call to a user-defined callback
+            # function, we handle that here too.
+#            print('trcts')
+#            print(tail_node)
+#            print(head_node)
+#            print(self.propid[tail_node])
+#            print(self.propid[head_node])
+#            print(self.prop_reset_value)
+        if event.propswap:
+            tmp = propid[tail_node]
+            propid[tail_node] = propid[head_node]
+            propid[head_node] = tmp
+            if status_at_node[tail_node] != _CORE:
+                prop_data[propid[tail_node]] = prop_reset_value
+            if status_at_node[head_node] != _CORE:
+                prop_data[propid[head_node]] = prop_reset_value
+            if event.prop_update_fn is not None:
+                event.prop_update_fn(
+                    this_cts_model, tail_node, head_node, event.time)
+

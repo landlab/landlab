@@ -129,7 +129,7 @@ import landlab
 import numpy
 import pylab as plt
 #from numpy import zeros
-from .cfuncs import update_node_states_cython, update_link_state
+from .cfuncs import do_transition, update_node_states_cython, update_link_state
 
 _NEVER = 1e50
 
@@ -409,6 +409,12 @@ class CellLabCTSModel(object):
         for link_id in range(self.grid.number_of_links):
             if self.grid.status_at_node[self.grid.node_at_link_tail[link_id]] != _CORE or self.grid.status_at_node[self.grid.node_at_link_head[link_id]] != _CORE:
                 self.bnd_lnk[link_id] = True
+
+        # TEMP DEBUG/PERF TEST
+        self.san = numpy.zeros(self.grid.number_of_nodes, dtype=numpy.int8)
+        self.san[:] = self.grid.status_at_node # GIVES 10% SPEEDUP BUT USES MEM
+        if _USE_CYTHON:  # MEM HOG BUT FASTER?
+            self.active_links_at_node = self.grid._active_links_at_node()
 
         # Set up the initial node-state grid
         self.set_node_state_grid(initial_node_states)
@@ -958,7 +964,7 @@ class CellLabCTSModel(object):
             head_node = self.grid.node_at_link_head[event.link]
             if _USE_CYTHON:
                 tail_changed, head_changed = update_node_states_cython(
-                    self.node_state, self.grid.status_at_node, tail_node,
+                    self.node_state, self.san, tail_node,#self.grid.status_at_node, tail_node,
                     head_node, event.xn_to, self.node_pair)
                 update_link_state(event.link, event.xn_to, event.time,
                                   self.bnd_lnk, self.node_state,
@@ -1113,7 +1119,7 @@ class CellLabCTSModel(object):
         """
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
-
+       
         # Continue until we've run out of either time or events
         while self.current_time < run_duration and self.event_queue:
 
@@ -1126,8 +1132,25 @@ class CellLabCTSModel(object):
             if _DEBUG:
                 print('Event:', ev.time, ev.link, ev.xn_to)
 
-            self.do_transition(ev, self.current_time,
-                               plot_each_transition, plotter)
+            if _USE_CYTHON:
+                do_transition(ev, self.current_time, self.next_update,
+                              self.grid.node_at_link_tail,
+                              self.grid.node_at_link_head,
+                              self.node_state, self.link_state,
+                              self.san, self.link_orientation,
+                              self.propid, self.prop_data,
+                              self.n_xn, self.xn_to, self.xn_rate,
+                              self.active_links_at_node,
+                              self.num_node_states, self.num_node_states_sq,
+                              self.prop_reset_value, self.xn_propswap,
+                              self.xn_prop_update_fn, self.node_pair,
+                              self.bnd_lnk, self.event_queue,
+                              self.link_state_dict, self,
+                              plot_each_transition,
+                              plotter)
+            else:
+                self.do_transition(ev, self.current_time,
+                                   plot_each_transition, plotter)
 
             # Update current time
             self.current_time = ev.time
