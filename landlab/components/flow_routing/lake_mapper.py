@@ -442,6 +442,8 @@ class DepressionFinderAndRouter(Component):
 
         if self.node_can_drain(the_node, nodes_this_depression):
             return True
+            
+        return False
 
     def _record_depression_depth_and_outlet(self, nodes_this_depression,
                                             outlet_id, pit_node):
@@ -511,7 +513,7 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-
+        print('fdfp:' + str(pit_node))
         # Place pit_node at top of depression list
         nodes_this_depression = []
         nodes_this_depression.insert(0, pit_node)
@@ -530,10 +532,12 @@ class DepressionFinderAndRouter(Component):
         while not found_outlet:
             lowest_node_on_perimeter = \
                 self.find_lowest_node_on_lake_perimeter(nodes_this_depression)
+            print('lowest is' + str(lowest_node_on_perimeter))
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
             found_outlet = self.is_valid_outlet(lowest_node_on_perimeter,
                                                 nodes_this_depression)
+            print('outlet?' + str(found_outlet))
             if not found_outlet:
                 # Add lowest_node to the lake list
                 nodes_this_depression.append(lowest_node_on_perimeter)
