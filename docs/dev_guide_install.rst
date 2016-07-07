@@ -256,52 +256,70 @@ Note that this script will test whatever version of landlab you have installed,
 which may or may not be the one you are working on in your current working
 directory.
 
+Create a new release
+====================
 
-Building Binary Distributions
-=============================
+New releases are built and uploaded to
+[Anaconda.org](https://anaconda.org/landlab/landlab) whenever a new tag that starts
+with the letter "v" is
+[created and pushed to](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
+[GitHub](https://github.com/landlab/landlab). As an example, the following
+will cause a new release to be built,
 
-Ultimately, this will be automated but, for now, this is how we build our
-binary distributions. The basic workflow is the following:
+```bash
+$ git tag v0.1.1 # Create the tag locally
+$ git push --tags # Push the tag to the remote
+```
 
-* Create a fresh virtual Python environment
-* Install landlab dependencies
-* Install landlab
-* Create a wheel
-* Deploy the distribution to PyPI.
+A new release is created (*v0.1.1*) and the tag pushed to GitHub.
+[Travis-CI](https://travis-ci.org/landlab/landlab) notices the tagged commit,
+and after building and testing the package, creates a fresh new package that
+is uploaded to [Anaconda.org](https://anaconda.org/landlab/landlab).
 
-The bash script, `dist_to_pypi.sh` is intended to help with this process.
-Note that it uses `conda` to create environments and install packages. Thus,
-to use this script you will need to have Anaconda installed. To build (and
-upload) a new set of binaries::
+A couple notes about creating a new version:
 
-    > bash_to_pypi.sh version [version [...]]
+1.  The version given in the tag name should match that in
+    `.conda-recipe/meta.yaml`.
+1.  If you mess up (forget to update all the version strings scattered
+    throughout the code, for example), you can always [delete the tag and recreate
+    it](https://git-scm.com/docs/git-tag). To do this, you'll need to delete both
+    the remote tag and the local tag:
 
-Where *version* is the Python version for your build. You can also build
-distributions for multiple version of Python. For example::
+    ```bash
+    $ git push --delete origin <tagname> # Delete the tag on the remote repository
+    $ git tag --delete <tagname> # Delete the tag from the local repository
+    ```
+    where `<tagname>` is the name of your tag (`v0.1.1`, for example).
+1.  If your new tag was successfully pushed to GitHub, you will be able to see
+    it with the rest of the
+    [releases](https://github.com/landlab/landlab/releases) and
+    [tags](https://github.com/landlab/landlab/tags).
+1.  To see if your new release was created successfully, you can do one or all
+    of the following:
 
-    > bash_to_pypi.sh 2.6 2.7 3.3 3.4
+    *  Check the logs for the build of your tagged commit on
+       [Travis-CI](https://travis-ci.org/landlab/landlab).
+    *  Check [Anaconda.org](https://anaconda.org/landlab/landlab) to see if your
+       releases appear there.
+    *  Check if `conda` can see your new release with `conda search landlab -c
+       landlab`. See the [conda docs](http://conda.pydata.org/docs/using/index.html)
+       for a description of `conda` and how to use it, or you can always use
+       `conda -h` from the command line.
 
-If the version of landlab you are installing is the same as what is already
-on PyPI, you will not be able to upload the new version. To upload a new
-set of wheels, you must fist increase the landlab version number in
-`landlab/__init__.py`.
+Helpful links
+-------------
 
-Windows distributions are built in much the same way. However, they are
-created on Appveyor as part of the Windows CI. Note that although Appveyor
-runs the landlab tests with every push to GitHub, binary distributions are
-only built when a version is tagged. To create a tag for a new release::
-
-    > git tag <version>
-
-You will then need to push the tag to GitHub to activate the build. For
-example::
-
-    > git tag v0.1.27
-    > git push --tags
-
-For consistency, please stick with the above version format and follow the
-usual Python versioning standards.
-
+1.  [Using conda](http://conda.pydata.org/docs/using/index.html): What `conda`
+    is and how to use it.
+1.  [git tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging): What git
+    tags are and how to create them.
+1.  [The git tag command](https://git-scm.com/docs/git-tag): A description
+    of all of the options for the `git tag` command (including `git tag
+    --delete`).
+1.  [landlab on Travis](https://travis-ci.org/landlab/landlab): The latest
+    Travis builds of landlab.
+1.  [landlab on Anaconda](https://anaconda.org/landlab/landlab): The conda packages for
+    landlab releases.
 
 Troubleshooting
 ===============
