@@ -290,9 +290,8 @@ class LinearDiffuser(Component):
             self._all_d8_active_links = np.union1d(
                 self.grid.active_links, self.grid._diag_active_links)
 
-        self._angle_of_link = self.grid.angle_of_link()
-        self._vertlinkcomp = np.sin(self._angle_of_link)
-        self._hozlinkcomp = np.cos(self._angle_of_link)
+        self._vertlinkcomp = np.sin(self.grid.angle_of_link)
+        self._hozlinkcomp = np.cos(self.grid.angle_of_link)
 
         if self._use_patches or self._kd_on_links:
             mg = self.grid
