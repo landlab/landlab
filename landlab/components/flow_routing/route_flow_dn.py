@@ -121,6 +121,7 @@ class FlowRouter(Component):
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
         # We keep a local reference to the grid
         self._grid = grid
+        self._bc_set_code = self.grid.bc_set_code
         if method in ('D8', 'D4', None):
             self.method = method
         else:
@@ -131,18 +132,7 @@ class FlowRouter(Component):
         if not self._is_raster:
             self.method = None
 
-        # We'll also keep track of the active links; if raster, then these are
-        # the "D8" links; otherwise, it's just activelinks
-        if self._is_raster:
-            dal, d8f, d8t = grid._d8_active_links()
-            self._active_links = dal
-            self._activelink_from = d8f
-            self._activelink_to = d8t
-            # needs modifying in the loop if D4 (now done)
-        else:
-            self._active_links = grid.active_links
-            self._activelink_from = grid._activelink_fromnode
-            self._activelink_to = grid._activelink_tonode
+        self.updated_boundary_conditions()
 
         if runoff_rate is not None:
             if type(runoff_rate) is str:
@@ -226,6 +216,24 @@ class FlowRouter(Component):
                 'flow__link_to_receiver_node']
         grid.add_zeros('flow__sink_flag', at='node', dtype=int,
                        noclobber=False)
+
+    def updated_boundary_conditions(self):
+        """
+        Call this if boundary conditions on the grid are updated after the
+        component is instantiated.
+        """
+        # We'll also keep track of the active links; if raster, then these are
+        # the "D8" links; otherwise, it's just activelinks
+        if self._is_raster:
+            dal, d8f, d8t = self.grid._d8_active_links()
+            self._active_links = dal
+            self._activelink_from = d8f
+            self._activelink_to = d8t
+            # needs modifying in the loop if D4 (now done)
+        else:
+            self._active_links = self.grid.active_links
+            self._activelink_from = self.grid._activelink_fromnode
+            self._activelink_to = self.grid._activelink_tonode
 
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
@@ -315,6 +323,10 @@ class FlowRouter(Component):
                 self.method = kwds['method']
             if not self._is_raster:
                 self.method = None
+
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
 
         # if elevs is not provided, default to stored grid values, which must
         # be provided as grid

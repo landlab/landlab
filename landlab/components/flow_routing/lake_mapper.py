@@ -165,6 +165,7 @@ class DepressionFinderAndRouter(Component):
             Has no effect if grid is not a raster.
         """
         self._grid = grid
+        self._bc_set_code = self.grid.bc_set_code
         if routing is not 'D8':
             assert routing is 'D4'
         self._routing = routing
@@ -242,35 +243,10 @@ class DepressionFinderAndRouter(Component):
 
         # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
-        self._BIG_ELEV = np.amax(self._elev) + 1
+        self._BIG_ELEV = 1.0e99
 
-        # We'll also need a handy copy of the node neighbor lists
-        # TODO: presently, this grid method seems to only exist for Raster
-        # grids. We need it for *all* grids!
-        self._node_nbrs = self._grid.active_neighbors_at_node()
-        dx = self._grid.dx
-        dy = self._grid.dy
-        if self._D8:
-            diag_nbrs = self._grid._diagonal_neighbors_at_node.copy()
-            # remove the inactive nodes:
-            diag_nbrs[self._grid.status_at_node[
-                diag_nbrs] == CLOSED_BOUNDARY] = -1
-            self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
-            self._link_lengths = np.empty(8, dtype=float)
-            self._link_lengths[0] = dx
-            self._link_lengths[2] = dx
-            self._link_lengths[1] = dy
-            self._link_lengths[3] = dy
-            self._link_lengths[4:].fill(np.sqrt(dx*dx + dy*dy))
-        elif ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
-                (self._routing is 'D4')):
-            self._link_lengths = np.empty(4, dtype=float)
-            self._link_lengths[0] = dx
-            self._link_lengths[2] = dx
-            self._link_lengths[1] = dy
-            self._link_lengths[3] = dy
-        else:
-            self._link_lengths = self._grid._length_of_link_with_diagonals
+        self.updated_boundary_conditions()
+
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
@@ -280,6 +256,39 @@ class DepressionFinderAndRouter(Component):
                                                  dtype=int, noclobber=False)
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
+
+    def updated_boundary_conditions(self):
+        """
+            Call this if boundary conditions on the grid are updated after the
+            component is instantiated.
+        """
+        dx = self._grid.dx
+        dy = self._grid.dy
+        # We'll also need a handy copy of the node neighbor lists
+        # TODO: presently, this grid method seems to only exist for Raster
+        # grids. We need it for *all* grids!
+        self._node_nbrs = self._grid.active_neighbors_at_node()
+        if self._D8:
+            diag_nbrs = self._grid._diagonal_neighbors_at_node.copy()
+            # remove the inactive nodes:
+            diag_nbrs[self.grid.status_at_node[
+                diag_nbrs] == CLOSED_BOUNDARY] = -1
+            self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
+            self._link_lengths = np.empty(8, dtype=float)
+            self._link_lengths[0] = dx
+            self._link_lengths[2] = dx
+            self._link_lengths[1] = dy
+            self._link_lengths[3] = dy
+            self._link_lengths[4:].fill(np.sqrt(dx*dx + dy*dy))
+        elif ((type(self.grid) is landlab.grid.raster.RasterModelGrid) and
+                (self._routing is 'D4')):
+            self._link_lengths = np.empty(4, dtype=float)
+            self._link_lengths[0] = dx
+            self._link_lengths[2] = dx
+            self._link_lengths[1] = dy
+            self._link_lengths[3] = dy
+        else:
+            self._link_lengths = self.grid._length_of_link_with_diagonals
 
     def _find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
@@ -387,6 +396,8 @@ class DepressionFinderAndRouter(Component):
                             self.flood_status[nbr] == _FLOODED:
                         nodes_this_depression.append(nbr)
                         self.flood_status[nbr] = _CURRENT_LAKE
+        assert (lowest_elev < self._BIG_ELEV), \
+               'failed to find lowest perim node'
         return lowest_node
 
     def node_can_drain(self, the_node, nodes_this_depression):
@@ -433,6 +444,8 @@ class DepressionFinderAndRouter(Component):
 
         if self.node_can_drain(the_node, nodes_this_depression):
             return True
+            
+        return False
 
     def _record_depression_depth_and_outlet(self, nodes_this_depression,
                                             outlet_id, pit_node):
@@ -502,7 +515,6 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-
         # Place pit_node at top of depression list
         nodes_this_depression = []
         nodes_this_depression.insert(0, pit_node)
@@ -606,6 +618,9 @@ class DepressionFinderAndRouter(Component):
         . ~ . . .
         o . . . .
         """
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
         self.depression_outlets = []  # reset these
         # Locate nodes with pits
