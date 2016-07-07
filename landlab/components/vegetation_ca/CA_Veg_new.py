@@ -6,6 +6,75 @@ existing vegetation organization.
 Ref: Zhou et. al, WRR Vol. 49 (2013) Pg.2872-2895.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
+
+>>> import numpy as np
+>>> from landlab import RasterModelGrid
+>>> from landlab.components import VegCA
+
+Create a grid on which to calculate soil moisture saturation fraction.
+
+>>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+
+The grid will need some input data. To check the names of the fields
+that provide the input to this component, use the *input_var_names*
+class property.
+
+>>> VegCA.input_var_names
+('soil_moisture__water_stress_cumulative',
+ 'vegetation__plant_functional_type')
+
+Check the units for the fields.
+
+>>> VegCA.var_units('soil_moisture__water_stress_cumulative')
+'None'
+
+Create the input fields.
+
+>>> grid['cell']['vegetation__plant_functional_type']= \
+...            np.arange(0, grid.number_of_cells, dtype=int)
+
+If you are not sure about one of the input or output variables, you can
+get help for specific variables.
+
+>>> grid['cell']['soil_moisture__water_stress_cumulative'] = \
+...            np.ones(grid.number_of_cells)
+
+Instantiate the 'VegCA' component to work on this grid,
+and run it.
+
+>>> ca_veg = VegCA(grid)
+
+Run the *update* method to update output variables with current time
+
+>>> current_time = 0.5
+
+>>> grid['cell']['precipitation__rain'] = \
+...        25. * np.ones(grid.number_of_cells)
+
+>>> current_time = SM.update(current_time)
+
+Check the output variable names
+
+>>> sorted(VegCA.output_var_names)
+['soil_moisture__root_zone_leakage_rate',
+ 'soil_moisture__saturation_fraction',
+ 'soil_moisture__water_stress',
+ 'surface__evapotranspiration_rate',
+ 'surface__runoff_rate']
+
+>>> grid['cell']['soil_moisture__root_zone_leakage_rate']
+array([ 29.97001453,  29.97001453,  29.97001453,  29.97001453,
+        29.97001453,  29.97001453])
+
+>>> SM.grid.at_cell['soil_moisture__saturation_fraction']
+array([ 0.70372004,  0.70372004,  0.70372004,  0.70372004,  0.70372004,
+        0.70372004])
+
+>>> grid['cell']['surface__evapotranspiration_rate']
+array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
+
+>>> grid['cell']['surface__runoff_rate']
+array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
 """
 from landlab import Component
 import numpy as np
@@ -91,9 +160,9 @@ class VegCA(Component):
     )
 
     _var_units = {
-        'soil_moisture__water_stress_cumulative': 'Pa',
+        'soil_moisture__water_stress_cumulative': 'None',
         'vegetation__plant_functional_type': 'None',
-        'vegetation__live_leaf_area_index': 'Pa',
+        'vegetation__live_leaf_area_index': 'None',
         'plant__age': 'Years',
     }
     
@@ -113,7 +182,7 @@ class VegCA(Component):
         'vegetation__live_leaf_area_index':
             'one-sided green leaf area per unit ground surface area',
         'plant__age':
-            'Age of plant (years)',
+            'Age of plant',
     }
 
     @use_file_name_or_kwds

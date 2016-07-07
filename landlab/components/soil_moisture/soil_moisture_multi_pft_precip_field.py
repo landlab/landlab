@@ -170,7 +170,6 @@ class SoilMoisture(Component):
     beta: float, optional
         Deep percolation constant = 2*b+3 where b is
         water retention (None).
-    parameter (None)
     LAI_max: float, optional
         Maximum leaf area index (m^2/m^2).
     LAIR_max: float, optional
@@ -194,7 +193,7 @@ class SoilMoisture(Component):
      ('soil_moisture__initial_soil_moisture', 'None'),
      ('soil_moisture__root_zone_leakage_rate', 'mm'),
      ('soil_moisture__saturation_fraction', 'None'),
-     ('soil_moisture__water_stress', 'Pa'),
+     ('soil_moisture__water_stress', 'None'),
      ('surface__evapotranspiration_rate', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
      ('surface__runoff_rate', 'mm'),
@@ -253,7 +252,7 @@ class SoilMoisture(Component):
         'vegetation__live_leaf_area_index': 'None',
         'surface__potential_evapotranspiration_rate': 'mm',
         'vegetation__plant_functional_type': 'None',
-        'soil_moisture__water_stress': 'Pa',
+        'soil_moisture__water_stress': 'None',
         'soil_moisture__saturation_fraction': 'None',
         'soil_moisture__initial_soil_moisture': 'None',
         'soil_moisture__root_zone_leakage_rate': 'mm',
@@ -356,7 +355,6 @@ class SoilMoisture(Component):
         beta: float, optional
             Deep percolation constant = 2*b+3 where b is
             water retention (None).
-        parameter (None)
         LAI_max: float, optional
             Maximum leaf area index (m^2/m^2).
         LAIR_max: float, optional

@@ -172,7 +172,7 @@ class Vegetation(Component):
      'soil_moisture__water_stress')
 
     >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
-    [('soil_moisture__water_stress', 'Pa'),
+    [('soil_moisture__water_stress', 'None'),
      ('surface__evapotranspiration_rate', 'mm'),
      ('surface__potential_evapotranspiration_30day_mean', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
@@ -248,7 +248,7 @@ class Vegetation(Component):
         'surface__evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_30day_mean': 'mm',
-        'soil_moisture__water_stress': 'Pa',
+        'soil_moisture__water_stress': 'None',
         'vegetation__live_biomass': 'g DM m^-2 d^-1',
         'vegetation__dead_biomass': 'g DM m^-2 d^-1',
         'vegetation__plant_functional_type': 'None',
