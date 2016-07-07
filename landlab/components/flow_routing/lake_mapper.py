@@ -243,7 +243,7 @@ class DepressionFinderAndRouter(Component):
 
         # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
-        self._BIG_ELEV = np.amax(self._elev) + 1
+        self._BIG_ELEV = 1.0e99
 
         self.updated_boundary_conditions()
 
@@ -396,6 +396,8 @@ class DepressionFinderAndRouter(Component):
                             self.flood_status[nbr] == _FLOODED:
                         nodes_this_depression.append(nbr)
                         self.flood_status[nbr] = _CURRENT_LAKE
+        assert (lowest_elev < self._BIG_ELEV), \
+               'failed to find lowest perim node'
         return lowest_node
 
     def node_can_drain(self, the_node, nodes_this_depression):
@@ -442,6 +444,8 @@ class DepressionFinderAndRouter(Component):
 
         if self.node_can_drain(the_node, nodes_this_depression):
             return True
+            
+        return False
 
     def _record_depression_depth_and_outlet(self, nodes_this_depression,
                                             outlet_id, pit_node):
@@ -511,7 +515,6 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-
         # Place pit_node at top of depression list
         nodes_this_depression = []
         nodes_this_depression.insert(0, pit_node)
