@@ -20,12 +20,12 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> VegCA.input_var_names
-('soil_moisture__water_stress_cumulative',
+('soil_moisture__cumulative_water_stress',
  'vegetation__plant_functional_type')
 
 Check the units for the fields.
 
->>> VegCA.var_units('soil_moisture__water_stress_cumulative')
+>>> VegCA.var_units('soil_moisture__cumulative_water_stress')
 'None'
 
 Create the input fields.
@@ -36,7 +36,7 @@ Create the input fields.
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> grid['cell']['soil_moisture__water_stress_cumulative'] = \
+>>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
 ...            np.ones(grid.number_of_cells)
 
 Instantiate the 'VegCA' component to work on this grid,
@@ -46,35 +46,15 @@ and run it.
 
 Run the *update* method to update output variables with current time
 
->>> current_time = 0.5
-
->>> grid['cell']['precipitation__rain'] = \
-...        25. * np.ones(grid.number_of_cells)
-
->>> current_time = SM.update(current_time)
+>>> ca_veg.update()
 
 Check the output variable names
 
 >>> sorted(VegCA.output_var_names)
-['soil_moisture__root_zone_leakage_rate',
- 'soil_moisture__saturation_fraction',
- 'soil_moisture__water_stress',
- 'surface__evapotranspiration_rate',
- 'surface__runoff_rate']
+['plant__age', 'plant__live_index']
 
->>> grid['cell']['soil_moisture__root_zone_leakage_rate']
-array([ 29.97001453,  29.97001453,  29.97001453,  29.97001453,
-        29.97001453,  29.97001453])
-
->>> SM.grid.at_cell['soil_moisture__saturation_fraction']
-array([ 0.70372004,  0.70372004,  0.70372004,  0.70372004,  0.70372004,
-        0.70372004])
-
->>> grid['cell']['surface__evapotranspiration_rate']
-array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
-
->>> grid['cell']['surface__runoff_rate']
-array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
+>>> np.allclose(grid['cell']['plant__age'],0)
+False
 """
 from landlab import Component
 import numpy as np
@@ -146,41 +126,71 @@ class VegCA(Component):
         Background mortality probability of tree seedling.
     tpmaxTreeSeedling: float, optional
         Maximum age of tree seedling (years).
+
+    Examples
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import VegCA
+    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> VegCA.name
+    'VegCA'
+    >>> sorted(VegCA.output_var_names)
+    ['plant__age', 'plant__live_index']
+    >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
+    [('plant__age', 'Years'),
+     ('soil_moisture__cumulative_water_stress', 'None'),
+     ('plant__live_index', 'None'),
+     ('vegetation__plant_functional_type', 'None')]
+    >>> grid['cell']['vegetation__plant_functional_type']= \
+    ...            np.arange(0, grid.number_of_cells, dtype=int)
+    >>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
+    ...            np.ones(grid.number_of_cells)
+    >>> ca_veg = VegCA(grid)
+    >>> ca_veg.grid.number_of_cell_rows
+    3
+    >>> ca_veg.grid.number_of_cell_columns
+    2
+    >>> ca_veg.grid is grid
+    True
+    >>> import numpy as np
+    >>> A = np.copy(grid['cell']['plant__age'])
+    >>> ca_veg.update()
+    >>> np.alltrue(grid['cell']['plant__age'] == A)
+    False 
     """
     _name = 'VegCA'
 
     _input_var_names = (
-        'soil_moisture__water_stress_cumulative',
+        'soil_moisture__cumulative_water_stress',
         'vegetation__plant_functional_type',
     )
 
     _output_var_names = (
-        'vegetation__live_leaf_area_index',
+        'plant__live_index',
         'plant__age',
     )
 
     _var_units = {
-        'soil_moisture__water_stress_cumulative': 'None',
+        'soil_moisture__cumulative_water_stress': 'None',
         'vegetation__plant_functional_type': 'None',
-        'vegetation__live_leaf_area_index': 'None',
+        'plant__live_index': 'None',
         'plant__age': 'Years',
     }
     
     _var_mapping = {
-        'soil_moisture__water_stress_cumulative': 'cell',
+        'soil_moisture__cumulative_water_stress': 'cell',
         'vegetation__plant_functional_type': 'cell',
-        'vegetation__live_leaf_area_index': 'cell',
+        'plant__live_index': 'cell',
         'plant__age': 'cell',
     }
     
     _var_doc = {
-        'soil_moisture__water_stress_cumulative':
+        'soil_moisture__cumulative_water_stress':
             'cumulative soil_moisture__water_stress over the growing season',
         'vegetation__plant_functional_type':
             'classification of plants (int), grass=0, shrub=1, tree=2, \
              bare=3, shrub_seedling=4, tree_seedling=5',
-        'vegetation__live_leaf_area_index':
-            'one-sided green leaf area per unit ground surface area',
+        'plant__live_index':
+            '1 - soil_moisture__cumulative_water_stress',
         'plant__age':
             'Age of plant',
     }
@@ -302,9 +312,9 @@ class VegCA(Component):
         self._VegType = \
             self._cell_values['vegetation__plant_functional_type']
         self._CumWS   = \
-            self._cell_values['soil_moisture__water_stress_cumulative']
+            self._cell_values['soil_moisture__cumulative_water_stress']
         self._live_index = \
-            self._cell_values['vegetation__live_leaf_area_index']
+            self._cell_values['plant__live_index']
         self._tp = self._cell_values['plant__age'] + time_elapsed
 
         # Check if shrub and tree seedlings have matured
