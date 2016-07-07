@@ -11,7 +11,7 @@ symmetry.
 Created GT Sep 2014
 """
 
-from numpy import zeros
+from numpy import zeros, int8
 
 from .celllab_cts import CellLabCTSModel
 from ..grid import HexModelGrid
@@ -126,7 +126,7 @@ class OrientedHexCTS(CellLabCTSModel):
         * 1 = up and right (30 degrees clockwise from vertical)
         * 2 = horizontal (90 degrees clockwise from vertical)
         """
-        self.link_orientation = zeros(self.grid.number_of_links, dtype=int)
+        self.link_orientation = zeros(self.grid.number_of_links, dtype=int8)
         for i in range(self.grid.number_of_links):
             dy = self.grid.node_y[self.grid.node_at_link_head[
                 i]] - self.grid.node_y[self.grid.node_at_link_tail[i]]

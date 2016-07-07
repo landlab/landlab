@@ -13,7 +13,7 @@ Created GT Sep 2014
 """
 from __future__ import print_function
 
-from numpy import zeros
+from numpy import zeros, int8
 
 from .celllab_cts import CellLabCTSModel
 from ..grid import RasterModelGrid
@@ -123,7 +123,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         This overrides the method of the same name in landlab_ca.py.
         """
         # Create array for the orientation of each active link
-        self.link_orientation = zeros(self.grid.number_of_links, dtype=int)
+        self.link_orientation = zeros(self.grid.number_of_links, dtype=int8)
 
         # Set its value according to the different in y coordinate between each
         # link's TO and FROM nodes (the numpy "astype" method turns the

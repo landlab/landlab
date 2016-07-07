@@ -97,7 +97,7 @@ next_update : 1d array (x number of active links)
     valid is to compare its time with the corresponding transition time in the
     *next_update* array. If they are different, the event is discarded.
 
-active_link_orientation : 1d array of ints (x number of active links)
+link_orientation : 1d array of ints (x number of active links)
     Orientation code for each link.
 
 link_state : 1d array of ints (x number of active links)
@@ -597,7 +597,7 @@ class CellLabCTSModel(object):
         matters (for example, vertical vs. horizontal in an OrientedRasterLCA).
         """
         self.link_orientation = numpy.zeros(
-            self.grid.number_of_links, dtype=int)
+            self.grid.number_of_links, dtype=numpy.int8)
 
     def assign_link_states_from_node_types(self):
         """Assign link-state code for each link.
