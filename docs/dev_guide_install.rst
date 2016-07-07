@@ -296,6 +296,7 @@ A couple notes about creating a new version:
 
 4. To see if your new release was created successfully, you can do one or all
    of the following:
+
    *  Check the logs for the build of your tagged commit on
       `Travis-CI <https://travis-ci.org/landlab/landlab>`_.
    *  Check `Anaconda.org <https://anaconda.org/landlab/landlab>`_ to see
@@ -312,8 +313,9 @@ The Release Checklist
 
        $ git checkout release
 2. Make sure all the release strings match.
-   * `landlab/__init__.py`
-   * `.conda-recipe/meta.yaml`
+
+   *  `landlab/__init__.py`
+   *  `.conda-recipe/meta.yaml`
 3. Create a tag for this release that matches the above strings but that starts
    with a *v*::
    
