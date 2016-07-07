@@ -261,7 +261,7 @@ Create a new release
 
 New releases are built and uploaded to
 `Anaconda.org <https://anaconda.org/landlab/landlab>`_ whenever a new tag
-that starts with the letter "v" is
+that starts with the letter ``v`` is
 `created and pushed to <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_
 `GitHub <https://github.com/landlab/landlab>`_. As an example, the following
 will cause a new release to be built::
@@ -269,7 +269,7 @@ will cause a new release to be built::
     $ git tag v0.1.1 # Create the tag locally
     $ git push --tags # Push the tag to the remote
 
-A new release is created (*v0.1.1*) and the tag pushed to GitHub.
+A new release is created (``v0.1.1``) and the tag pushed to GitHub.
 `Travis-CI <https://travis-ci.org/landlab/landlab>`_ notices the tagged commit,
 and after building and testing the package, creates a fresh new package that
 is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
@@ -277,7 +277,7 @@ is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
 A couple notes about creating a new version:
 
 1. The version given in the tag name should match that in
-   `.conda-recipe/meta.yaml`.
+   ``.conda-recipe/meta.yaml``.
 
 2. If you mess up (forget to update all the version strings scattered
    throughout the code, for example), you can always `delete the tag and
@@ -287,7 +287,7 @@ A couple notes about creating a new version:
       $ git push --delete origin <tagname> # Delete the tag on the remote repository
       $ git tag --delete <tagname> # Delete the tag from the local repository
 
-   where `<tagname>` is the name of your tag (`v0.1.1`, for example).
+   where ``<tagname>`` is the name of your tag (``v0.1.1``, for example).
 
 3. If your new tag was successfully pushed to GitHub, you will be able to see
    it with the rest of the
@@ -304,8 +304,8 @@ A couple notes about creating a new version:
    *  Check if `conda` can see your new release with `conda search landlab -c
       landlab`. See the
       `conda docs <http://conda.pydata.org/docs/using/index.html>`_
-      for a description of `conda` and how to use it, or you can always use
-      `conda -h` from the command line.
+      for a description of ``conda`` and how to use it, or you can always use
+      ``conda -h`` from the command line.
 
 The Release Checklist
 ---------------------
@@ -314,10 +314,10 @@ The Release Checklist
        $ git checkout release
 2. Make sure all the release strings match.
 
-   *  `landlab/__init__.py`
-   *  `.conda-recipe/meta.yaml`
+   *  ``landlab/__init__.py``
+   *  ``.conda-recipe/meta.yaml``
 3. Create a tag for this release that matches the above strings but that starts
-   with a *v*::
+   with the letter ``v``::
    
       $ git tag v0.1.1
 4. Push your tag to the remote::
