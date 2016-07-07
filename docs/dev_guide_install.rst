@@ -260,66 +260,83 @@ Create a new release
 ====================
 
 New releases are built and uploaded to
-[Anaconda.org](https://anaconda.org/landlab/landlab) whenever a new tag that starts
-with the letter "v" is
-[created and pushed to](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
-[GitHub](https://github.com/landlab/landlab). As an example, the following
-will cause a new release to be built,
+`Anaconda.org <https://anaconda.org/landlab/landlab>`_ whenever a new tag
+that starts with the letter "v" is
+`created and pushed to <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_
+`GitHub <https://github.com/landlab/landlab>`_. As an example, the following
+will cause a new release to be built::
 
-```bash
-$ git tag v0.1.1 # Create the tag locally
-$ git push --tags # Push the tag to the remote
-```
+    $ git tag v0.1.1 # Create the tag locally
+    $ git push --tags # Push the tag to the remote
 
 A new release is created (*v0.1.1*) and the tag pushed to GitHub.
-[Travis-CI](https://travis-ci.org/landlab/landlab) notices the tagged commit,
+`Travis-CI <https://travis-ci.org/landlab/landlab>`_ notices the tagged commit,
 and after building and testing the package, creates a fresh new package that
-is uploaded to [Anaconda.org](https://anaconda.org/landlab/landlab).
+is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
 
 A couple notes about creating a new version:
 
-1.  The version given in the tag name should match that in
-    `.conda-recipe/meta.yaml`.
-1.  If you mess up (forget to update all the version strings scattered
-    throughout the code, for example), you can always [delete the tag and recreate
-    it](https://git-scm.com/docs/git-tag). To do this, you'll need to delete both
-    the remote tag and the local tag:
+1. The version given in the tag name should match that in
+   `.conda-recipe/meta.yaml`.
 
-    ```bash
-    $ git push --delete origin <tagname> # Delete the tag on the remote repository
-    $ git tag --delete <tagname> # Delete the tag from the local repository
-    ```
-    where `<tagname>` is the name of your tag (`v0.1.1`, for example).
-1.  If your new tag was successfully pushed to GitHub, you will be able to see
-    it with the rest of the
-    [releases](https://github.com/landlab/landlab/releases) and
-    [tags](https://github.com/landlab/landlab/tags).
-1.  To see if your new release was created successfully, you can do one or all
-    of the following:
+2. If you mess up (forget to update all the version strings scattered
+   throughout the code, for example), you can always `delete the tag and
+   recreate it <https://git-scm.com/docs/git-tag>`_. To do this, you'll
+   need to delete both the remote tag and the local tag::
 
-    *  Check the logs for the build of your tagged commit on
-       [Travis-CI](https://travis-ci.org/landlab/landlab).
-    *  Check [Anaconda.org](https://anaconda.org/landlab/landlab) to see if your
-       releases appear there.
-    *  Check if `conda` can see your new release with `conda search landlab -c
-       landlab`. See the [conda docs](http://conda.pydata.org/docs/using/index.html)
-       for a description of `conda` and how to use it, or you can always use
-       `conda -h` from the command line.
+      $ git push --delete origin <tagname> # Delete the tag on the remote repository
+      $ git tag --delete <tagname> # Delete the tag from the local repository
+
+   where `<tagname>` is the name of your tag (`v0.1.1`, for example).
+
+3. If your new tag was successfully pushed to GitHub, you will be able to see
+   it with the rest of the
+   `releases <https://github.com/landlab/landlab/releases>`_ and
+   `tags <https://github.com/landlab/landlab/tags>`_.
+
+4. To see if your new release was created successfully, you can do one or all
+   of the following:
+   *  Check the logs for the build of your tagged commit on
+      `Travis-CI <https://travis-ci.org/landlab/landlab>`_.
+   *  Check `Anaconda.org <https://anaconda.org/landlab/landlab>`_ to see
+      if your releases appear there.
+   *  Check if `conda` can see your new release with `conda search landlab -c
+      landlab`. See the
+      `conda docs <http://conda.pydata.org/docs/using/index.html>`_
+      for a description of `conda` and how to use it, or you can always use
+      `conda -h` from the command line.
+
+The Release Checklist
+---------------------
+1. Make sure you are on the *release* branch::
+
+       $ git checkout release
+2. Make sure all the release strings match.
+   * `landlab/__init__.py`
+   * `.conda-recipe/meta.yaml`
+3. Create a tag for this release that matches the above strings but that starts
+   with a *v*::
+   
+      $ git tag v0.1.1
+4. Push your tag to the remote::
+
+      $ git push --tags
 
 Helpful links
 -------------
 
-1.  [Using conda](http://conda.pydata.org/docs/using/index.html): What `conda`
-    is and how to use it.
-1.  [git tags](https://git-scm.com/book/en/v2/Git-Basics-Tagging): What git
-    tags are and how to create them.
-1.  [The git tag command](https://git-scm.com/docs/git-tag): A description
-    of all of the options for the `git tag` command (including `git tag
-    --delete`).
-1.  [landlab on Travis](https://travis-ci.org/landlab/landlab): The latest
-    Travis builds of landlab.
-1.  [landlab on Anaconda](https://anaconda.org/landlab/landlab): The conda packages for
-    landlab releases.
+1. `Using conda <http://conda.pydata.org/docs/using/index.html>`_: What
+   `conda` is and how to use it.
+2. `git tags <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_: What git
+   tags are and how to create them.
+3. `The git tag command <https://git-scm.com/docs/git-tag>`_: A description
+   of all of the options for the `git tag` command (including `git tag
+   --delete`).
+4. `landlab on Travis <https://travis-ci.org/landlab/landlab>`_: The latest
+   Travis builds of landlab.
+5. `landlab on Anaconda <https://anaconda.org/landlab/landlab>`_: The
+   conda packages for landlab releases.
+
 
 Troubleshooting
 ===============
