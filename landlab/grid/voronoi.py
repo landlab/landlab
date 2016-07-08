@@ -105,6 +105,7 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link_about_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links

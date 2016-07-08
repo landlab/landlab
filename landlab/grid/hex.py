@@ -111,6 +111,7 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
     ~landlab.grid.hex.HexModelGrid.active_links
     ~landlab.grid.hex.HexModelGrid.angle_of_link
+    ~landlab.grid.hex.HexModelGrid.angle_of_link_about_head
     ~landlab.grid.hex.HexModelGrid.downwind_links_at_node
     ~landlab.grid.hex.HexModelGrid.face_at_link
     ~landlab.grid.hex.HexModelGrid.fixed_links

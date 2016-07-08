@@ -132,6 +132,7 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.active_links
     ~landlab.grid.raster.RasterModelGrid.angle_of_link
+    ~landlab.grid.raster.RasterModelGrid.angle_of_link_about_head
     ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
     ~landlab.grid.raster.RasterModelGrid.face_at_link
     ~landlab.grid.raster.RasterModelGrid.fixed_links
