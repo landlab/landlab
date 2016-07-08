@@ -151,10 +151,8 @@ class LandslideProbability(Component):
     >>> import numpy as np
 
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
-    >>> LS_prob = LandslideProbabiity(grid)
+    >>> LS_prob = LandslideProbability(grid)
     >>> LS_prob.name
-    'LandslideProbability'
-# NEED - note this is different in SoilMoisture, not in Radiation???
     >>> LS_prob.input_var_names
     ('contributing_area','slope', 'soil_transmissivity__mode',
      'combined_cohesion__mode', 'combined_cohesion__minimum',
