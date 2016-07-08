@@ -36,6 +36,14 @@ Create the input fields.
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
+>>> VegCA.var_help('soil_moisture__cumulative_water_stress')
+name: soil_moisture__cumulative_water_stress
+description:
+  cumulative soil_moisture__water_stress over the growing season
+units: None
+at: cell
+intent: in
+
 >>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
 ...            np.ones(grid.number_of_cells)
 
@@ -291,8 +299,10 @@ class VegCA(Component):
                                     np.where(VegType==TREE)[0].shape)
         tp[VegType == SHRUB] = np.random.randint(0,self._tpmax_sh,
                                     np.where(VegType==SHRUB)[0].shape)
-        VegType[tp[VegType == TREE] < self._tpmax_tr_s] = TREESEEDLING
-        VegType[tp[VegType == SHRUB] < self._tpmax_sh_s] = SHRUBSEEDLING
+        locs_trees = np.where(VegType==TREE)[0]
+        locs_shrubs = np.where(VegType==SHRUB)[0]
+        VegType[locs_trees[tp[locs_trees]<self._tpmax_tr_s]] = TREESEEDLING
+        VegType[locs_shrubs[tp[locs_shrubs]<self._tpmax_sh_s]] = SHRUBSEEDLING
         grid['cell']['plant__age'] = tp
 
 
