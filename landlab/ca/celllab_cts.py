@@ -133,7 +133,8 @@ from .cfuncs import do_transition, update_node_states_cython, update_link_state
 
 _NEVER = 1e50
 
-_USE_CYTHON = True
+_USE_CYTHON = False
+_USE_CYTHON2 = False
 
 _DEBUG = False
 
@@ -370,7 +371,8 @@ class CellLabCTSModel(object):
     """
 
     def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, prop_data=None, prop_reset_value=None):
+                 initial_node_states, prop_data=None, prop_reset_value=None,
+                 seed=0):
         """Initialize the CA model.
 
         Parameters
@@ -389,6 +391,8 @@ class CellLabCTSModel(object):
         prop_reset_value : number or object, optional
             Default or initial value for a node/cell property (e.g., 0.0).
             Must be same type as *prop_data*.
+        seed : int, optional
+            Seed for random number generation.
         """
         # Are we calling this from a subclass __init__? If so, then the
         # variable self.number_of_orientations should already be defined.
@@ -403,6 +407,9 @@ class CellLabCTSModel(object):
         ###self._active_links_at_node = self.grid._active_links_at_node()
         self._active_links_at_node = self.grid._active_links_at_node2()
 
+        # Initialize random number generation
+        numpy.random.seed(seed)
+
         # Create an array that knows which links are connected to a boundary
         # node
         self.bnd_lnk = numpy.zeros(self.grid.number_of_links, dtype=bool)
@@ -413,8 +420,6 @@ class CellLabCTSModel(object):
         # TEMP DEBUG/PERF TEST
         self.san = numpy.zeros(self.grid.number_of_nodes, dtype=numpy.int8)
         self.san[:] = self.grid.status_at_node # GIVES 10% SPEEDUP BUT USES MEM
-        if _USE_CYTHON:  # MEM HOG BUT FASTER?
-            self.active_links_at_node = self.grid._active_links_at_node()
 
         # Set up the initial node-state grid
         self.set_node_state_grid(initial_node_states)
@@ -818,7 +823,7 @@ class CellLabCTSModel(object):
         onto the queue. Also records scheduled transition times in the
         self.next_update array.
         """
-        if _DEBUG:
+        if False and _DEBUG:
             print(('push_transitions_to_event_queue():',
                    self.num_link_states, self.n_xn))
 
@@ -833,7 +838,7 @@ class CellLabCTSModel(object):
             else:
                 self.next_update[i] = _NEVER
 
-        if _DEBUG:
+        if False and _DEBUG:
             print('  push_transitions_to_event_queue(): events in queue are now:')
             for e in self.event_queue:
                 print('    next_time:', e.time, 'link:',
@@ -887,9 +892,8 @@ class CellLabCTSModel(object):
         current_time : float
             Current time in simulation
         """
-#        if _DEBUG:
-#            print()
-#            print('update_link_state()')
+        if _DEBUG:
+            print('update_link_state() link ' + str(link) + ' to state ' + str(new_link_state))
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
@@ -947,9 +951,9 @@ class CellLabCTSModel(object):
         3. Update the states of the other links attached to the two nodes,
            choose their next transitions, and push them on the event queue.
         """
-#        if _DEBUG:
-#            print()
-#            print('do_transition() for link',event.link)
+        if _DEBUG:
+            print()
+            print('py do_transition() for link',event.link,'time',event.time, ' cur time ', current_time)
 
         # We'll process the event if its update time matches the one we have
         # recorded for the link in question. If not, it means that the link has
@@ -986,13 +990,19 @@ class CellLabCTSModel(object):
             if tail_changed:
 
                 if _DEBUG:
-                    print(' fromnode has changed state, so updating its links')
+                    print(' tail node has changed state, so updating its links')
+                    print(' links at node ' + str(tail_node) + ' are:')
+                    print(self.grid.links_at_node[tail_node, :])
+                    print(self.grid.active_link_dirs_at_node[tail_node, :])
+                #for link in self._active_links_at_node[:, tail_node]:
+                for i in range(self.grid.links_at_node.shape[1]):
 
-                for link in self._active_links_at_node[:, tail_node]:
-
+                    link = self.grid.links_at_node[tail_node, i]
+                    dir_code = self.grid.active_link_dirs_at_node[tail_node, i]
                     if _DEBUG:
-                        print('f checking link', link)
-                    if link != -1 and link != event.link:
+                        print('tail checking link', link)
+                        print('  dir code ' + str(dir_code) + ' event link ' + str(event.link))
+                    if dir_code != 0 and link != event.link:
 
                         this_link_fromnode = self.grid.node_at_link_tail[link]
                         this_link_tonode = self.grid.node_at_link_head[link]
@@ -1012,13 +1022,16 @@ class CellLabCTSModel(object):
             if head_changed:
 
                 if _DEBUG:
-                    print(' tonode has changed state, so updating its links')
+                    print(' head node has changed state, so updating its links')
 
-                for link in self._active_links_at_node[:, head_node]:
+                #for link in self._active_links_at_node[:, head_node]:
+                for i in range(self.grid.links_at_node.shape[1]):
 
+                    link = self.grid.links_at_node[head_node, i]
+                    dir_code = self.grid.active_link_dirs_at_node[head_node, i]
                     if _DEBUG:
-                        print('t checking link', link)
-                    if link != -1 and link != event.link:
+                        print('head checking link', link)
+                    if dir_code != 0 and link != event.link:
                         this_link_fromnode = self.grid.node_at_link_tail[link]
                         this_link_tonode = self.grid.node_at_link_head[link]
                         orientation = self.link_orientation[link]
@@ -1063,7 +1076,7 @@ class CellLabCTSModel(object):
                     event.prop_update_fn(
                         self, tail_node, head_node, event.time)
 
-            if _DEBUG:
+            if False and _DEBUG:
                 n = self.grid.number_of_nodes
                 for r in range(self.grid.number_of_node_rows):
                     for c in range(self.grid.number_of_node_columns):
@@ -1132,7 +1145,7 @@ class CellLabCTSModel(object):
             if _DEBUG:
                 print('Event:', ev.time, ev.link, ev.xn_to)
 
-            if _USE_CYTHON:
+            if _USE_CYTHON2:
                 do_transition(ev, self.current_time, self.next_update,
                               self.grid.node_at_link_tail,
                               self.grid.node_at_link_head,
@@ -1140,7 +1153,8 @@ class CellLabCTSModel(object):
                               self.san, self.link_orientation,
                               self.propid, self.prop_data,
                               self.n_xn, self.xn_to, self.xn_rate,
-                              self.active_links_at_node,
+                              self.grid.links_at_node,
+                              self.grid.active_link_dirs_at_node,
                               self.num_node_states, self.num_node_states_sq,
                               self.prop_reset_value, self.xn_propswap,
                               self.xn_prop_update_fn, self.node_pair,
