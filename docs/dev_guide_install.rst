@@ -278,17 +278,19 @@ is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
 .. note::
 
   Although you can create such a tag on any branch, releases should **only**
-  come from the ``release`` branch.
+  come from the ``release`` branch. Make sure that when you create a tag
+  you are doing so on ``realease`` (and all your changes are committed).
 
 A couple notes about creating a new version:
 
-1. landlab versioning follows `Symantic Versioning <http://semver.org/>`_
-   rules. Please stick to them.
+1. landlab follows `Symantic Versioning <http://semver.org/>`_
+   rules for version assignment and formatting. Please stick to them.
 
-2. The version given in the tag name should match that in
+2. The version given in the tag name must match that in
    ``landlab/__init__.py``. The version must also be changed in
-   ``.conda-recipe/meta.yaml``, however, ``meta.yaml`` doesn't like dashes
-   so if your version contains a dash just leave it out in this file.
+   ``.conda-recipe/meta.yaml``. However, ``meta.yaml`` doesn't like dashes
+   so if your version contains a dash just leave it out in this file
+   (for example ``1.0.0-beta.6`` becomes ``1.0.0beta.6``).
 
 3. If you mess up (forget to update all the version strings scattered
    throughout the code, for example), you can always `delete the tag and
@@ -313,9 +315,9 @@ A couple notes about creating a new version:
    *  Check the logs for the build of your tagged commit on
       `Travis-CI <https://travis-ci.org/landlab/landlab>`_.
    *  Check `Anaconda.org <https://anaconda.org/landlab/landlab>`_ to see
-      if your releases appear there.
-   *  Check if `conda` can see your new release with `conda search landlab -c
-      landlab`. See the
+      if your release appears there.
+   *  Check if `conda` can see your new release with
+     ``conda search landlab -c landlab``. See the
       `conda docs <http://conda.pydata.org/docs/using/index.html>`_
       for a description of ``conda`` and how to use it, or you can always use
       ``conda -h`` from the command line.
