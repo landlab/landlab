@@ -246,62 +246,14 @@ responsible for the failures, please fix them until the tests pass. Note that
 you do not need to send a new pull request after committing for fixes. They
 will be added to the current pull request and the tests automatically rerun.
 
-You can also run unit tests locally with the `test-installed-landlab.py` script
-found in the `scripts` folder::
+You can also run unit tests locally with the ``test-installed-landlab.py``
+script found in the ``scripts`` folder::
 
-    > python test-installed-landlab.py --doctest
+    $ python test-installed-landlab.py
 
-If you don't want to run the doctests, you can drop the `--doctest` option.
 Note that this script will test whatever version of landlab you have installed,
 which may or may not be the one you are working on in your current working
 directory.
-
-
-Building Binary Distributions
-=============================
-
-Ultimately, this will be automated but, for now, this is how we build our
-binary distributions. The basic workflow is the following:
-
-* Create a fresh virtual Python environment
-* Install landlab dependencies
-* Install landlab
-* Create a wheel
-* Deploy the distribution to PyPI.
-
-The bash script, `dist_to_pypi.sh` is intended to help with this process.
-Note that it uses `conda` to create environments and install packages. Thus,
-to use this script you will need to have Anaconda installed. To build (and
-upload) a new set of binaries::
-
-    > bash_to_pypi.sh version [version [...]]
-
-Where *version* is the Python version for your build. You can also build
-distributions for multiple version of Python. For example::
-
-    > bash_to_pypi.sh 2.6 2.7 3.3 3.4
-
-If the version of landlab you are installing is the same as what is already
-on PyPI, you will not be able to upload the new version. To upload a new
-set of wheels, you must fist increase the landlab version number in
-`landlab/__init__.py`.
-
-Windows distributions are built in much the same way. However, they are
-created on Appveyor as part of the Windows CI. Note that although Appveyor
-runs the landlab tests with every push to GitHub, binary distributions are
-only built when a version is tagged. To create a tag for a new release::
-
-    > git tag <version>
-
-You will then need to push the tag to GitHub to activate the build. For
-example::
-
-    > git tag v0.1.27
-    > git push --tags
-
-For consistency, please stick with the above version format and follow the
-usual Python versioning standards.
-
 
 Troubleshooting
 ===============

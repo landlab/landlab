@@ -132,6 +132,7 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.active_links
     ~landlab.grid.raster.RasterModelGrid.angle_of_link
+    ~landlab.grid.raster.RasterModelGrid.angle_of_link_about_head
     ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
     ~landlab.grid.raster.RasterModelGrid.face_at_link
     ~landlab.grid.raster.RasterModelGrid.fixed_links
@@ -5381,11 +5382,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional
             Value that indicates an invalid value.
 
-        Returns:
-        --------
-        outlet_loc : int
-            id of outlet location
-
         Examples:
         ---------
         The first example will use a 4,4 grid with node data values
@@ -5411,9 +5407,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> outlet = rmg.set_watershed_boundary_condition(node_data, -9999.)
-        >>> outlet
-        10
+        >>> rmg.set_watershed_boundary_condition(node_data, -9999.)
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
@@ -5421,9 +5415,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67.,    -2.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> outlet2 = rmg2.set_watershed_boundary_condition(node_data2, -9999.)
-        >>> outlet2
-        7
+        >>> rmg2.set_watershed_boundary_condition(node_data2, -9999.)
         >>> rmg2.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=int8)
         """
@@ -5502,7 +5494,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
-        return outlet_loc
+
 
     def set_watershed_boundary_condition_outlet_coords(self, outlet_coords,
                                                      node_data, nodata_value=-9999.):
@@ -5535,11 +5527,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional
             Value that indicates an invalid value.
 
-        Returns:
-        --------
-        outlet_loc : int
-            id of outlet location
-
         Examples:
         ---------
         The example will use a 4,4 grid with node data values
@@ -5560,9 +5547,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> outlet = rmg.set_watershed_boundary_condition_outlet_coords((2, 2), node_data, -9999.)
-        >>> outlet
-        10
+        >>> rmg.set_watershed_boundary_condition_outlet_coords((2, 2), node_data, -9999.)
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         """
@@ -5577,7 +5562,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                   outlet_coords[1])
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
-        return outlet_node
+
 
     def set_watershed_boundary_condition_outlet_id(self, outlet_id, node_data,
                                                    nodata_value=-9999.):

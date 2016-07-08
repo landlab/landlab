@@ -203,13 +203,12 @@ class OverlandFlow(Component):
         # Now setting up fields at the links...
         # For water discharge
         try:
-            self.water__discharge = grid.add_zeros(
-                'water__discharge', at='link',
+            self.q = grid.add_zeros('water__discharge', at='link',
                 units=self._var_units['water__discharge'])
         except FieldError:
             # Field was already set; still, fill it with zeros
-            self.water__discharge = grid.at_link['water__discharge']
-            self.water__discharge.fill(0.)
+            self.q = grid.at_link['water__discharge']
+            self.q.fill(0.)
 
         # For water depths calculated at links
         try:
@@ -219,7 +218,17 @@ class OverlandFlow(Component):
         except FieldError:
             self.h_links = grid.at_link['water__depth']
             self.h_links.fill(0.)
+
         self.h_links += self.h_init
+
+        try:
+            self.h = grid.add_zeros('water__depth', at='node',
+                units=self._var_units['water__depth'])
+        except FieldError:
+            # Field was already set
+            self.h = grid.at_node['water__depth']
+
+        self.h += self.h_init
 
         # For water surface slopes at links
         try:
@@ -247,14 +256,6 @@ class OverlandFlow(Component):
         # model and will be updated in your driver loop, they can be used by
         # setting the flag in the initialization of  the class to 'True'
         self.use_fixed_links = use_fixed_links
-
-        # Assigning a class variable to the water depth field and adding
-        # the initial thin water depth
-        self.h = self._grid['node']['water__depth'] = (
-            self._grid['node']['water__depth'] + self.h_init)
-
-        # Assigning a class variable to the water discharge field.
-        self.q = self._grid['link']['water__discharge']
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
@@ -379,11 +380,11 @@ class OverlandFlow(Component):
 
         # Now we calculate the slope of the water surface elevation at
         # active links
-        water_surface_gradient = (
+        self.water_surface_gradient = (
             self.grid.calc_grad_at_link(w)[self.grid.active_links])
 
         # And insert these values into an array of all links
-        self.slope[self.active_links] = water_surface_gradient
+        self.slope[self.active_links] = self.water_surface_gradient
 
         # If the user chooses to set boundary links to the neighbor value, we
         # set the discharge array to have the boundary links set to their

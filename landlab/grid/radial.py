@@ -113,6 +113,7 @@ Information about links
     ~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node
     ~landlab.grid.radial.RadialModelGrid.active_links
     ~landlab.grid.radial.RadialModelGrid.angle_of_link
+    ~landlab.grid.radial.RadialModelGrid.angle_of_link_about_head
     ~landlab.grid.radial.RadialModelGrid.downwind_links_at_node
     ~landlab.grid.radial.RadialModelGrid.face_at_link
     ~landlab.grid.radial.RadialModelGrid.fixed_links
