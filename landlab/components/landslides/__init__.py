@@ -1,4 +1,4 @@
-from .landslide import LandslideProbability
+from .landslides import LandslideProbability
 
 
 __all__ = ['LandslideProbability', ]
