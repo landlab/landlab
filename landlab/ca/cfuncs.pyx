@@ -8,7 +8,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 from landlab import CORE_NODE as _CORE
-from heapq import heappush
+from _heapq import heappush
 
 _NEVER = 1.0e50
 
@@ -93,12 +93,12 @@ class Event():
         return self.time < other.time
 
 
-def update_node_states_cython(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-                              np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
-                              DTYPE_INT_t tail_node, 
-                              DTYPE_INT_t head_node,
-                              DTYPE_INT_t new_link_state,
-                              node_pair):
+def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
+                       np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                       DTYPE_INT_t tail_node, 
+                       DTYPE_INT_t head_node,
+                       DTYPE_INT_t new_link_state,
+                       node_pair):
 
     # Remember the previous state of each node so we can detect whether the
     # state has changed
@@ -245,7 +245,7 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     else:
         next_update[link] = _NEVER
 
-def do_transition(event, DTYPE_t current_time,
+def do_transition(event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
@@ -265,7 +265,7 @@ def do_transition(event, DTYPE_t current_time,
                   DTYPE_INT_t prop_reset_value,
                   xn_propswap, xn_prop_update_fn,
                   node_pair, bnd_lnk, event_queue,
-                  link_state_dict, this_cts_model,
+                  this_cts_model,
                   plot_each_transition=False,
                   plotter=None):
     """Transition state.
@@ -276,8 +276,6 @@ def do_transition(event, DTYPE_t current_time,
     ----------
     event : Event object
         Event object containing the data for the current transition event
-    current_time : float
-        Current time in simulation
     plot_each_transition : bool (optional)
         True if caller wants to show a plot of the grid after this
         transition
@@ -298,10 +296,15 @@ def do_transition(event, DTYPE_t current_time,
     3. Update the states of the other links attached to the two nodes,
        choose their next transitions, and push them on the event queue.
     """
-
-    if _DEBUG:
-        print()
-        print('c do_transition() for link ' + str(event.link) + ' time ' + str(event.time) + ' cur time ' + str(current_time))
+    cdef int tail_node, head_node  # IDs of tail and head nodes at link
+    cdef int this_link_tail_node   # Tail ID for an adjacent link
+    cdef int this_link_head_node   # Head ID for an adjacent link
+    cdef int link                  # ID of a link
+    cdef int new_link_state        # New link state after transition
+    cdef int tmp                   # Used to exchange property IDs
+    cdef char tail_changed, head_changed,  # Booleans
+    cdef char dir_code             # Direction code for link at node
+    cdef char orientation          # Orientation code for link
 
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
@@ -309,12 +312,9 @@ def do_transition(event, DTYPE_t current_time,
     # in that case we'll ignore it.
     if event.time == next_update[event.link]:
 
-        if _DEBUG:
-            print('  event time = ' + str(event.time))
-
         tail_node = node_at_link_tail[event.link]
         head_node = node_at_link_head[event.link]
-        tail_changed, head_changed = update_node_states_cython(
+        tail_changed, head_changed = update_node_states(
                 node_state, status_at_node, tail_node,
                 head_node, event.xn_to, node_pair)
         update_link_state(event.link, event.xn_to, event.time,
@@ -332,32 +332,23 @@ def do_transition(event, DTYPE_t current_time,
         # could happen to one or both nodes.
         if tail_changed:
 
-            if _DEBUG:
-                print(' tail has changed state, so updating its links')
-
-            #for link in active_links_at_node[:, tail_node]:
             for i in range(links_at_node.shape[1]):
 
                 link = links_at_node[tail_node, i]
                 dir_code = active_link_dirs_at_node[tail_node, i]
 
-                if _DEBUG:
-                    print('tail checking link', link)
-                    print('  dir code ' + str(dir_code) + ' event link ' + str(event.link))
                 if dir_code != 0 and link != event.link:
 
-                    this_link_fromnode = node_at_link_tail[link]
-                    this_link_tonode = node_at_link_head[link]
+                    this_link_tail_node = node_at_link_tail[link]
+                    this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
-                    current_pair = (node_state[this_link_fromnode],
-                                    node_state[this_link_tonode],
+                    current_pair = (node_state[this_link_tail_node],
+                                    node_state[this_link_head_node],
                                     orientation)
-                    new_link_state = link_state_dict[current_pair]
-                    new_link_state2 = (
+                    new_link_state = (
                         orientation * num_node_states_sq +
-                        node_state[this_link_fromnode] * num_node_states +
-                        node_state[this_link_tonode])
-                    assert new_link_state == new_link_state2, 'oops'
+                        node_state[this_link_tail_node] * num_node_states +
+                        node_state[this_link_head_node])
                     update_link_state(link, new_link_state, event.time,
                                       bnd_lnk, node_state,
                                       node_at_link_tail,
@@ -370,29 +361,22 @@ def do_transition(event, DTYPE_t current_time,
 
         if head_changed:
 
-            if _DEBUG:
-                print(' head has changed state, so updating its links')
-
             for i in range(links_at_node.shape[1]):
 
                 link = links_at_node[head_node, i]
                 dir_code = active_link_dirs_at_node[head_node, i]
 
-                if _DEBUG:
-                    print('head checking link', link)
                 if dir_code != 0 and link != event.link:
-                    this_link_fromnode = node_at_link_tail[link]
-                    this_link_tonode = node_at_link_head[link]
+                    this_link_tail_node = node_at_link_tail[link]
+                    this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
-                    current_pair = (node_state[this_link_fromnode],
-                                    node_state[this_link_tonode],
+                    current_pair = (node_state[this_link_tail_node],
+                                    node_state[this_link_head_node],
                                     orientation)
-                    new_link_state = link_state_dict[current_pair]
-                    new_link_state2 = (
+                    new_link_state = (
                         orientation * num_node_states_sq +
-                        node_state[this_link_fromnode] * num_node_states +
-                        node_state[this_link_tonode])
-                    assert new_link_state == new_link_state2, 'oops'
+                        node_state[this_link_tail_node] * num_node_states +
+                        node_state[this_link_head_node])
                     update_link_state(link, new_link_state, event.time,
                                       bnd_lnk, node_state,
                                       node_at_link_tail,
@@ -407,17 +391,11 @@ def do_transition(event, DTYPE_t current_time,
         if plot_each_transition and (plotter is not None):
             plotter.update_plot()
 
-            # If this event involves an exchange of properties (i.e., the
-            # event involves motion of an object that posses properties we
-            # want to track), implement the swap.
-            #   If the event requires a call to a user-defined callback
-            # function, we handle that here too.
-#            print('trcts')
-#            print(tail_node)
-#            print(head_node)
-#            print(self.propid[tail_node])
-#            print(self.propid[head_node])
-#            print(self.prop_reset_value)
+        # If this event involves an exchange of properties (i.e., the
+        # event involves motion of an object that posses properties we
+        # want to track), implement the swap.
+        #   If the event requires a call to a user-defined callback
+        # function, we handle that here too.
         if event.propswap:
             tmp = propid[tail_node]
             propid[tail_node] = propid[head_node]

@@ -128,13 +128,13 @@ from heapq import heappop
 import landlab
 import numpy
 import pylab as plt
-#from numpy import zeros
-from .cfuncs import do_transition, update_node_states_cython, update_link_state
+
+_USE_CYTHON = True
+
+if _USE_CYTHON:
+    from .cfuncs import do_transition
 
 _NEVER = 1e50
-
-_USE_CYTHON = False
-_USE_CYTHON2 = False
 
 _DEBUG = False
 
@@ -966,23 +966,9 @@ class CellLabCTSModel(object):
 
             tail_node = self.grid.node_at_link_tail[event.link]
             head_node = self.grid.node_at_link_head[event.link]
-            if _USE_CYTHON:
-                tail_changed, head_changed = update_node_states_cython(
-                    self.node_state, self.san, tail_node,#self.grid.status_at_node, tail_node,
-                    head_node, event.xn_to, self.node_pair)
-                update_link_state(event.link, event.xn_to, event.time,
-                                  self.bnd_lnk, self.node_state,
-                                  self.grid.node_at_link_tail,
-                                  self.grid.node_at_link_head,
-                                  self.link_orientation, self.num_node_states,
-                                  self.num_node_states_sq, self.link_state,
-                                  self.n_xn, self.event_queue,
-                                  self.next_update, self.xn_to, self.xn_rate,
-                                  self.xn_propswap, self.xn_prop_update_fn)
-            else:
-                tail_changed, head_changed = self.update_node_states(
-                    tail_node, head_node, event.xn_to)
-                self.update_link_state(event.link, event.xn_to, event.time)
+            tail_changed, head_changed = self.update_node_states(
+                tail_node, head_node, event.xn_to)
+            self.update_link_state(event.link, event.xn_to, event.time)
 
             # Next, when the state of one of the link's nodes changes, we have
             # to update the states of the OTHER links attached to it. This
@@ -994,7 +980,7 @@ class CellLabCTSModel(object):
                     print(' links at node ' + str(tail_node) + ' are:')
                     print(self.grid.links_at_node[tail_node, :])
                     print(self.grid.active_link_dirs_at_node[tail_node, :])
-                #for link in self._active_links_at_node[:, tail_node]:
+
                 for i in range(self.grid.links_at_node.shape[1]):
 
                     link = self.grid.links_at_node[tail_node, i]
@@ -1024,7 +1010,6 @@ class CellLabCTSModel(object):
                 if _DEBUG:
                     print(' head node has changed state, so updating its links')
 
-                #for link in self._active_links_at_node[:, head_node]:
                 for i in range(self.grid.links_at_node.shape[1]):
 
                     link = self.grid.links_at_node[head_node, i]
@@ -1145,8 +1130,8 @@ class CellLabCTSModel(object):
             if _DEBUG:
                 print('Event:', ev.time, ev.link, ev.xn_to)
 
-            if _USE_CYTHON2:
-                do_transition(ev, self.current_time, self.next_update,
+            if _USE_CYTHON:
+                do_transition(ev, self.next_update,
                               self.grid.node_at_link_tail,
                               self.grid.node_at_link_head,
                               self.node_state, self.link_state,
@@ -1159,7 +1144,7 @@ class CellLabCTSModel(object):
                               self.prop_reset_value, self.xn_propswap,
                               self.xn_prop_update_fn, self.node_pair,
                               self.bnd_lnk, self.event_queue,
-                              self.link_state_dict, self,
+                              self,
                               plot_each_transition,
                               plotter)
             else:
