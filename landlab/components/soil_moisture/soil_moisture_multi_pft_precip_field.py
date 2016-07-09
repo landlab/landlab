@@ -1,9 +1,13 @@
 """ Landlab component that simulates root-zone average soil moisture
 saturation fraction.
 
-Soil Moisture component simulates stochastic soil moisture dynamics at a cell,
-using inputs of potential evapotranspiration and properties of vegetation
-occupying the cell. Ref: Laio et. al, AWR 24 (2001) Pg.707-723
+This component uses a single soil moisture layer and models soil moisture
+loss through transpiration by plants, evaporation by bare soil, and leakage.
+The solution of water balance is based on Laio et. al 2001. The component
+requires fields of initial soil moisture, rainfall input (if any), time
+to the next storm and potential transpiration.
+
+Ref: Laio et. al, AWR 24 (2001) Pg.707-723
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
@@ -21,13 +25,13 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> SoilMoisture.input_var_names
-('vegetation__cover_fraction',
- 'vegetation__live_leaf_area_index',
+>>> sorted(SoilMoisture.input_var_names)
+['precipitation__rain',
+ 'soil_moisture__initial_saturation_fraction',
  'surface__potential_evapotranspiration_rate',
- 'soil_moisture__initial_soil_moisture',
- 'vegetation__plant_functional_type',
- 'precipitation__rain')
+ 'vegetation__cover_fraction',
+ 'vegetation__live_leaf_area_index',
+ 'vegetation__plant_functional_type']
 
 Check the units for the fields.
 
@@ -190,7 +194,7 @@ class SoilMoisture(Component):
      'surface__runoff_rate']
     >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
     [('precipitation__rain', 'mm'),
-     ('soil_moisture__initial_soil_moisture', 'None'),
+     ('soil_moisture__initial_saturation_fraction', 'None'),
      ('soil_moisture__root_zone_leakage_rate', 'mm'),
      ('soil_moisture__saturation_fraction', 'None'),
      ('soil_moisture__water_stress', 'None'),
@@ -234,7 +238,7 @@ class SoilMoisture(Component):
         'vegetation__cover_fraction',
         'vegetation__live_leaf_area_index',
         'surface__potential_evapotranspiration_rate',
-        'soil_moisture__initial_soil_moisture',
+        'soil_moisture__initial_saturation_fraction',
         'vegetation__plant_functional_type',
         'precipitation__rain',
     )
@@ -254,7 +258,7 @@ class SoilMoisture(Component):
         'vegetation__plant_functional_type': 'None',
         'soil_moisture__water_stress': 'None',
         'soil_moisture__saturation_fraction': 'None',
-        'soil_moisture__initial_soil_moisture': 'None',
+        'soil_moisture__initial_saturation_fraction': 'None',
         'soil_moisture__root_zone_leakage_rate': 'mm',
         'surface__runoff_rate': 'mm',
         'surface__evapotranspiration_rate': 'mm',
@@ -268,7 +272,7 @@ class SoilMoisture(Component):
         'vegetation__plant_functional_type': 'cell',
         'soil_moisture__water_stress': 'cell',
         'soil_moisture__saturation_fraction': 'cell',
-        'soil_moisture__initial_soil_moisture': 'cell',
+        'soil_moisture__initial_saturation_fraction': 'cell',
         'soil_moisture__root_zone_leakage_rate': 'cell',
         'surface__runoff_rate': 'cell',
         'surface__evapotranspiration_rate': 'cell',
@@ -290,7 +294,7 @@ class SoilMoisture(Component):
              on plants',
         'soil_moisture__saturation_fraction':
             'relative volumetric water content (theta) - limits=[0,1]',
-        'soil_moisture__initial_soil_moisture':
+        'soil_moisture__initial_saturation_fraction':
             'initial soil_moisture__saturation_fraction',
         'soil_moisture__root_zone_leakage_rate':
             'leakage of water into deeper portions of the soil not accessible \
@@ -514,9 +518,9 @@ class SoilMoisture(Component):
         ----------
         current_time: float
             Current time (years).
-        Tb: float, optional
-            Storm duration (hours).
         Tr: float, optional
+            Storm duration (hours).
+        Tb: float, optional
             Inter-storm duration (hours).
         """
         P_ = self._cell_values['precipitation__rain']

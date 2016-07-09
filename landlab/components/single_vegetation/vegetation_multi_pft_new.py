@@ -1,8 +1,10 @@
-"""Landlab component that implements 1D and 2D vegetation dynamics model.
+"""Landlab component that implements vegetation dynamics model.
 
-Landlab component that simulates net primary productivity, biomass
-and leaf area index at each cell based on inputs of root-zone
-average soil moisture. Ref: Istanbulluoglu et. al 2012
+Landlab component that simulates net primary productivity,
+above ground biomass, and leaf area index at each cell based on
+inputs of root-zone average soil moisture.
+
+Ref: Zhou et. al 2013
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
@@ -20,12 +22,12 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> Vegetation.input_var_names
-('vegetation__plant_functional_type',
- 'surface__potential_evapotranspiration_rate',
+>>> sorted(Vegetation.input_var_names)
+['soil_moisture__water_stress',
  'surface__evapotranspiration_rate',
  'surface__potential_evapotranspiration_30day_mean',
- 'soil_moisture__water_stress')
+ 'surface__potential_evapotranspiration_rate',
+ 'vegetation__plant_functional_type']
 
 Check the units for an input field
 

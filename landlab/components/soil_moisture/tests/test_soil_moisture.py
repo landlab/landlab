@@ -1,5 +1,6 @@
 """
-Unit tests for landlab.components.pet.potential_evapotranspiration_field
+Unit tests for \
+    landlab.components.soil_moisture.soil_moisture_multi_pft_precip_field
 """
 from nose.tools import assert_equal, assert_true, assert_raises, with_setup
 from numpy.testing import assert_array_almost_equal
@@ -66,49 +67,56 @@ def test_var_units():
     assert_equal(SM.var_units('surface__potential_evapotranspiration_rate'),
                  'mm')
     assert_equal(SM.var_units('vegetation__plant_functional_type'), 'None')
-    assert_equal(SM.var_units('vegetation__cover_fraction'), 'None')
+    assert_equal(SM.var_units('soil_moisture__water_stress'), 'None')
+    assert_equal(SM.var_units('soil_moisture__saturation_fraction'), 'None')
+    assert_equal(SM.var_units('soil_moisture__initial_saturation_fraction'),
+                 'None')
+    assert_equal(SM.var_units('soil_moisture__root_zone_leakage_rate'), 'mm')
+    assert_equal(SM.var_units('surface__runoff_rate'), 'None')
+    assert_equal(SM.var_units('surface__evapotranspiration_rate'), 'mm')
+    assert_equal(SM.var_units('precipitation__rain'), 'mm')
 
 
 @with_setup(setup_grid)
 def test_grid_shape():
-    assert_equal(PET.grid.number_of_node_rows, _SHAPE[0])
-    assert_equal(PET.grid.number_of_node_columns, _SHAPE[1])
+    assert_equal(SM.grid.number_of_node_rows, _SHAPE[0])
+    assert_equal(SM.grid.number_of_node_columns, _SHAPE[1])
 
 
 @with_setup(setup_grid)
 def test_grid_x_extent():
-    assert_equal(PET.grid.extent[1], (_SHAPE[1] - 1) * _SPACING[1])
+    assert_equal(SM.grid.extent[1], (_SHAPE[1] - 1) * _SPACING[1])
 
 
 @with_setup(setup_grid)
 def test_grid_y_extent():
-    assert_equal(PET.grid.extent[0], (_SHAPE[0] - 1) * _SPACING[0])
+    assert_equal(SM.grid.extent[0], (_SHAPE[0] - 1) * _SPACING[0])
 
 
 @with_setup(setup_grid)
 def test_field_getters():
-    for name in PET.grid['node']:
-        field = PET.grid['node'][name]
+    for name in SM.grid['node']:
+        field = SM.grid['node'][name]
         assert_is_instance(field, np.ndarray)
         assert_equal(field.shape,
-                     (PET.grid.number_of_node_rows *
-                      PET.grid.number_of_node_columns, ))
+                     (SM.grid.number_of_node_rows *
+                      SM.grid.number_of_node_columns, ))
                       
-    for name in PET.grid['cell']:
-        field = PET.grid['cell'][name]
+    for name in SM.grid['cell']:
+        field = SM.grid['cell'][name]
         assert_is_instance(field, np.ndarray)
         assert_equal(field.shape,
-                     (PET.grid.number_of_cell_rows *
-                      PET.grid.number_of_cell_columns, ))
+                     (SM.grid.number_of_cell_rows *
+                      SM.grid.number_of_cell_columns, ))
 
-    assert_raises(KeyError, lambda: PET.grid['not_a_var_name'])
+    assert_raises(KeyError, lambda: SM.grid['not_a_var_name'])
 
 
 @with_setup(setup_grid)
 def test_field_initialized_to_zero():
-    for name in PET.grid['node']:
-        field = PET.grid['node'][name]
-        assert_array_almost_equal(field, np.zeros(PET.grid.number_of_nodes))
-    for name in PET.grid['cell']:
-        field = PET.grid['cell'][name]
-        assert_array_almost_equal(field, np.zeros(PET.grid.number_of_cells))
+    for name in SM.grid['node']:
+        field = SM.grid['node'][name]
+        assert_array_almost_equal(field, np.zeros(SM.grid.number_of_nodes))
+    for name in SM.grid['cell']:
+        field = SM.grid['cell'][name]
+        assert_array_almost_equal(field, np.zeros(SM.grid.number_of_cells))

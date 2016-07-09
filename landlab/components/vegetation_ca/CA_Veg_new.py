@@ -1,8 +1,10 @@
 """ Landlab component that simulates inter-species plant competition.
 
-VegCA component simulates inter-species spatial plant competition based
-on input cumulative water stress (converted to plant live index) and
-existing vegetation organization. 
+This code is based on Cellular Automata Tree Grass Shrub Simulator (CATGraSS).
+It simulates spatial competition of multiple plant functional types through
+establishment and mortality. In the current code, tree, grass and
+shrubs are used.
+ 
 Ref: Zhou et. al, WRR Vol. 49 (2013) Pg.2872-2895.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
