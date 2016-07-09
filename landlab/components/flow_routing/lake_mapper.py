@@ -397,7 +397,7 @@ class DepressionFinderAndRouter(Component):
                         nodes_this_depression.append(nbr)
                         self.flood_status[nbr] = _CURRENT_LAKE
         assert (lowest_elev < self._BIG_ELEV), \
-               'failed to find lowest perim node'
+            'failed to find lowest perim node'
         return lowest_node
 
     def node_can_drain(self, the_node, nodes_this_depression):
@@ -444,7 +444,7 @@ class DepressionFinderAndRouter(Component):
 
         if self.node_can_drain(the_node, nodes_this_depression):
             return True
-            
+
         return False
 
     def _record_depression_depth_and_outlet(self, nodes_this_depression,
@@ -622,6 +622,8 @@ class DepressionFinderAndRouter(Component):
             self.updated_boundary_conditions()
             self._bc_set_code = self.grid.bc_set_code
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
+        self.depression_outlet_map.fill(LOCAL_BAD_INDEX_VALUE)
+        self.depression_depth.fill(0.)
         self.depression_outlets = []  # reset these
         # Locate nodes with pits
         if type(pits) == str:
@@ -669,8 +671,7 @@ class DepressionFinderAndRouter(Component):
         Route flow across lake flats, which have already been identified.
         """
         for outlet_node, lake_code in zip(self.lake_outlets, self.lake_codes):
-            nodes_in_lake = np.where(self.lake_map ==
-                                     lake_code)[0]
+            nodes_in_lake = np.where(self.lake_map == lake_code)[0]
             if len(nodes_in_lake) > 0:
                 nodes_routed = np.array([outlet_node])
                 # ^using set on assumption of cythonizing later
@@ -711,6 +712,24 @@ class DepressionFinderAndRouter(Component):
                     self.grads[drains_from[good_nbrs]] = 0.
                     # ^downstream grad is 0.
         self.sinks[self.pit_node_ids] = False
+        # now rewire the link connectivity:
+        where_receiver_in_ortho = np.equal(self.receivers.reshape(
+            (self.receivers.size, 1)), self.grid.neighbors_at_node)
+        receiver_in_ortho = where_receiver_in_ortho.sum(axis=1).astype(bool)
+        assert not np.any(receiver_in_ortho > 1)
+        self.grid.at_node['flow__link_to_receiver_node'].fill(-1)
+        self.grid.at_node['flow__link_to_receiver_node'].flat[
+            receiver_in_ortho] = self.grid.links_at_node[
+                where_receiver_in_ortho]
+        if self._D8:
+            where_receiver_in_diag = np.equal(self.receivers.reshape(
+                (self.receivers.size, 1)),
+                    self.grid._diagonal_neighbors_at_node)
+            receiver_in_diag = where_receiver_in_diag.sum(axis=1).astype(bool)
+            assert not np.any(receiver_in_diag > 1)
+            self.grid.at_node['flow__link_to_receiver_node'].flat[
+                receiver_in_diag] = \
+                self.grid._diagonal_links_at_node[where_receiver_in_diag]
 
     def _reaccumulate_flow(self):
         """Update drainage area, discharge, and upstream order.
@@ -727,12 +746,9 @@ class DepressionFinderAndRouter(Component):
                                                        node_cell_area=areas,
                                                        runoff_rate=Q_in)
         # finish the property updating:
-        self._grid.at_node['drainage_area'][:] = self.a
-        self._grid.at_node['water__discharge'][:] = q
-        self._grid.at_node['flow__upstream_node_order'][:] = s
-        # ## TODO: No obvious easy way to recover the receiver_link.
-        # ## Think more on this.
-        # ## Right now, we're just not updating it.
+        self.grid.at_node['drainage_area'][:] = self.a
+        self.grid.at_node['water__discharge'][:] = q
+        self.grid.at_node['flow__upstream_node_order'][:] = s
 
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.
