@@ -5,7 +5,9 @@ It simulates spatial competition of multiple plant functional types through
 establishment and mortality. In the current code, tree, grass and
 shrubs are used.
  
-Ref: Zhou et. al, WRR Vol. 49 (2013) Pg.2872-2895.
+Ref: Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
+ecohydrological role of aspect‐controlled radiation on tree‐grass‐shrub
+coexistence in a semiarid climate. Water Resources Research, 49(5), 2872-2895.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 

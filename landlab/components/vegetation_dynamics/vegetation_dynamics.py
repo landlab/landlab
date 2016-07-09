@@ -4,7 +4,9 @@ Landlab component that simulates net primary productivity,
 above ground biomass, and leaf area index at each cell based on
 inputs of root-zone average soil moisture.
 
-Ref: Zhou et. al 2013
+Ref: Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
+ecohydrological role of aspect‐controlled radiation on tree‐grass‐shrub
+coexistence in a semiarid climate. Water Resources Research, 49(5), 2872-2895.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 

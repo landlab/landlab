@@ -7,7 +7,10 @@ The solution of water balance is based on Laio et. al 2001. The component
 requires fields of initial soil moisture, rainfall input (if any), time
 to the next storm and potential transpiration.
 
-Ref: Laio et. al, AWR 24 (2001) Pg.707-723
+Ref: Laio, F., Porporato, A., Ridolfi, L., & Rodriguez-Iturbe, I. (2001).
+Plants in water-controlled ecosystems: active role in hydrologic processes
+and response to water stress: II. Probabilistic soil moisture dynamics.
+Advances in Water Resources, 24(7), 707-723.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
