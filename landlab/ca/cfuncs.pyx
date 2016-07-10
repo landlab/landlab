@@ -312,6 +312,7 @@ def do_transition(event,
     cdef char tail_changed, head_changed,  # Booleans
     cdef char dir_code             # Direction code for link at node
     cdef char orientation          # Orientation code for link
+    cdef int i
 
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
