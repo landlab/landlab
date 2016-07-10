@@ -23,6 +23,8 @@ _PIT = 1
 _CURRENT_LAKE = 2
 _FLOODED = 3
 
+use_cfuncs = True
+
 
 class DepressionFinderAndRouter(Component):
 
@@ -400,7 +402,7 @@ class DepressionFinderAndRouter(Component):
             'failed to find lowest perim node'
         return lowest_node
 
-    def node_can_drain(self, the_node, nodes_this_depression):
+    def node_can_drain(self, the_node):
         """Check if a node has drainage away from the current lake/depression.
 
         Parameters
@@ -415,16 +417,20 @@ class DepressionFinderAndRouter(Component):
         boolean
             ``True`` if the node can drain. Otherwise, ``False``.
         """
-        for nbr in self._node_nbrs[the_node]:
-            if nbr != LOCAL_BAD_INDEX_VALUE:
-                if self._elev[nbr] < self._elev[the_node] and \
-                        self.flood_status[nbr] != _CURRENT_LAKE and \
-                        self.flood_status[nbr] != _FLOODED:
-                    # caveat about outlet elevation...
-                    return True
-        return False
+        nbrs = self._node_nbrs[the_node]
+        not_bad = nbrs != LOCAL_BAD_INDEX_VALUE
+        not_too_high = self._elev[nbrs] < self._elev[the_node]
+        not_current_lake = np.not_equal(self.flood_status[nbrs], _CURRENT_LAKE)
+        not_flooded = np.not_equal(self.flood_status[nbrs], _FLOODED)
+        all_probs = np.logical_and(
+            np.logical_and(not_bad, not_too_high),
+            np.logical_and(not_current_lake, not_flooded))
+        if np.any(all_probs):
+            return True
+        else:
+            return False
 
-    def is_valid_outlet(self, the_node, nodes_this_depression):
+    def is_valid_outlet(self, the_node):
         """Check if a node is a valid outlet for the depression.
 
         Parameters
@@ -442,7 +448,7 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
             return True
 
-        if self.node_can_drain(the_node, nodes_this_depression):
+        if self.node_can_drain(the_node):
             return True
 
         return False
@@ -535,8 +541,7 @@ class DepressionFinderAndRouter(Component):
                 self.find_lowest_node_on_lake_perimeter(nodes_this_depression)
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
-            found_outlet = self.is_valid_outlet(lowest_node_on_perimeter,
-                                                nodes_this_depression)
+            found_outlet = self.is_valid_outlet(lowest_node_on_perimeter)
             if not found_outlet:
                 # Add lowest_node to the lake list
                 nodes_this_depression.append(lowest_node_on_perimeter)
