@@ -30,26 +30,27 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> LandslideProbabiity.input_var_names
-('number_of_simulations', 'contributing_area',
- 'slope', 'soil_transmissivity__mode', 'combined_cohesion__mode',
- 'combined_cohesion__minimum', 'combined_cohesion__maximum',
- 'soil_internal_angle_friction__mode', 'soil_density',
- 'soil_thickness__mode', 'recharge__minimum', 'recharge__maximum')
+('number_of_simulations', 'topographic__specific_contributing_area',
+ 'topographic__slope', 'soil__transmissivity', 'soil__total_cohesion_mode',
+ 'soil__total_cohesion_minimum', 'soil__total_cohesion_maximum',
+ 'soil__internal_friction_angle', 'soil__density',
+ 'soil__thickness', 'groundwater__recharge_minimum',
+  'groundwater__recharge_maximum')
 
 Check the units for the fields.
 
->>> LandslideProbability.var_units('recharge__minimum')
+>>> LandslideProbability.var_units('groundwater__recharge_minimum')
     'mm/day'
 
 Create the input fields.
 
->>> grid['node']['slope'] = np.random.rand(5,4)
+>>> grid['node']['topographic__slope'] = np.random.rand(5,4)
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> LandslideProbability.var_help('soil_transmissivity__mode')
-name: soil_transmissivity__mode
+>>> LandslideProbability.var_help('soil__transmissivity')
+name: soil__transmissivity
 description:
   mode rate of water transmitted through a unit width of saturated soil
 units: m2/day
@@ -59,21 +60,21 @@ intent: in
 Additional required fields for component.
 
 >>> scatter_dat = np.random.random_integers(1, 10, (5,4))
->>> grid['node']['contributing_area']= \
+>>> grid['node']['topographic__specific_contributing_area']= \
          np.sort(np.random.random_integers(30, 900, (5,4)))
 >>> grid['node']['soil_transmissivity']= \
          np.sort(np.random.random_integers(5, 20, (5,4)),-1)
->>> grid['node']['combined_cohesion__mode']= \
+>>> grid['node']['soil__total_cohesion_mode']= \
          np.sort(np.random.random_integers(30, 900, (5,4)))
->>> grid['node']['combined_cohesion__minimum']= \
-         grid.at_node['combined_cohesion__mode'] - scatter_dat
->>> grid['node']['combined_cohesion__maximum']= \
-         grid.at_node['combined_cohesion__mode'] + scatter_dat
->>> grid['node']['soil_internal_angle_friction__mode']= \
+>>> grid['node']['soil__total_cohesion_minimum']= \
+         grid.at_node['soil__total_cohesion_mode'] - scatter_dat
+>>> grid['node']['soil__total_cohesion_maximum']= \
+         grid.at_node['soil__total_cohesion_mode'] + scatter_dat
+>>> grid['node']['soil__internal_friction_angle']= \
          np.sort(np.random.random_integers(26, 40, (5,4)))
->>> grid['node']['soil_thickness__mode']= \
+>>> grid['node']['soil__thickness']= \
          np.sort(np.random.random_integers(1, 10, (5,4)))
->>> grid['node']['soil_density']= \
+>>> grid['node']['soil__density']= \
          2000. * np.ones(grid.number_of_nodes)
 
 Instantiate the 'LandslideProbability' component to work on this grid,
@@ -127,7 +128,7 @@ class LandslideProbability(Component):
 
     Construction:: # NEED do I need the "method = 'Grid'???
         LandslideProbability(grid, method='Grid', number_of_simulations"=250,
-        rechare_minimum=5., recharge__maximum=120.)
+        rechare_minimum=5., groundwater__recharge_maximum=120.)
 
     Parameters
     ----------
@@ -137,10 +138,10 @@ class LandslideProbability(Component):
         Currently, only default is available.
     number_of_simulations: float, optional
         Number of simulations to run Monte Carlo.
-    recharge__minimum: float, optional
+    groundwater__recharge_minimum: float, optional
         User provided minimum annual maximum recharge\
         recharge (mm/day).
-    recharge__maximum: float, optional
+    groundwater__recharge_maximum: float, optional
         User provided maximum annual maximum recharge\
         recharge (mm/day).
 
@@ -154,23 +155,24 @@ class LandslideProbability(Component):
     >>> LS_prob = LandslideProbability(grid)
     >>> LS_prob.name
     >>> LS_prob.input_var_names
-    ('contributing_area','slope', 'soil_transmissivity__mode',
-     'combined_cohesion__mode', 'combined_cohesion__minimum',
-     'combined_cohesion__maximum', 'soil_internal_angle_friction__mode',
-     'soil_density', 'soil_thickness__mode')
+    ('topographic__specific_contributing_area', 'topographic__slope',
+     'soil__transmissivity', 'soil__total_cohesion_mode',
+     'soil__total_cohesion_minimum', 'soil__total_cohesion_maximum',
+     'soil__internal_friction_angle', 'soil__density',
+     'soil__thickness')
     >>> sorted(LS_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['Relative_Wetness__mean', 'Factor_of_Safety__mean',
         'Probability_of_failure', 'Factor_of_Safety__distribution']
     >>> sorted(LS_prob.units) # doctest: +NORMALIZE_WHITESPACE
-    [('contributing_area', 'm'),
-     ('slope', 'tan theta'),
-     ('soil_transmissivity__mode', 'm2/day'),
-     ('combined_cohesion__mode', 'Pa or kg/m-s2'),
-     ('combined_cohesion__minimum', 'Pa or kg/m-s2'),
-     ('combined_cohesion__maximum', 'Pa or kg/m-s2'),
-     ('soil_internal_angle_friction__mode', 'degrees'),
-     ('soil_density', 'kg/m3'),
-     ('soil_thickness__mode', 'm'),
+    [('topographic__specific_contributing_area', 'm'),
+     ('topographic__slope', 'tan theta'),
+     ('soil__transmissivity', 'm2/day'),
+     ('soil__total_cohesion_mode', 'Pa or kg/m-s2'),
+     ('soil__total_cohesion_minimum', 'Pa or kg/m-s2'),
+     ('soil__total_cohesion_maximum', 'Pa or kg/m-s2'),
+     ('soil__internal_friction_angle', 'degrees'),
+     ('soil__density', 'kg/m3'),
+     ('soil__thickness', 'm'),
      ('Relative_Wetness__mean', 'None'),
      ('Factor-of-Safety__mean', 'None'),
      ('Probability_of_failure', 'None'),
@@ -182,28 +184,28 @@ class LandslideProbability(Component):
     4
     >>> LS_prob.grid is grid
     True
-    >>> np.allclose(grid.at_node['slope'], 0.)
+    >>> np.allclose(grid.at_node['topographic__slope'], 0.)
     True
 # NEED this last input, might raise a fielderror(name)
 # because I haven't filled the field yet?
 
-    >>> grid['node']['slope']= np.random.rand(5,4)
+    >>> grid['node']['topographic__slope']= np.random.rand(5,4)
     >>> scatter_dat = np.random.random_integers(1, 10, (5,4))
-    >>> grid['node']['contributing_area']= \
+    >>> grid['node']['topographic__specific_contributing_area']= \
              np.sort(np.random.random_integers(30, 900, (5,4)))
     >>> grid['node']['soil_transmissivity']= \
              np.sort(np.random.random_integers(5, 20, (5,4)),-1)
-    >>> grid['node']['combined_cohesion__mode']= \
+    >>> grid['node']['soil__total_cohesion_mode']= \
              np.sort(np.random.random_integers(30, 900, (5,4)))
-    >>> grid['node']['combined_cohesion__minimum']= \
-             grid.at_node['combined_cohesion__mode'] - scatter_dat
-    >>> grid['node']['combined_cohesion__maximum']= \
-             grid.at_node['combined_cohesion__mode'] + scatter_dat
-    >>> grid['node']['soil_internal_angle_friction__mode']= \
+    >>> grid['node']['soil__total_cohesion_minimum']= \
+             grid.at_node['soil__total_cohesion_mode'] - scatter_dat
+    >>> grid['node']['soil__total_cohesion_maximum']= \
+             grid.at_node['soil__total_cohesion_mode'] + scatter_dat
+    >>> grid['node']['soil__internal_friction_angle']= \
              np.sort(np.random.random_integers(26, 40, (5,4)))
-    >>> grid['node']['soil_thickness__mode']= \
+    >>> grid['node']['soil__thickness']= \
              np.sort(np.random.random_integers(1, 10, (5,4)))
-    >>> grid['node']['soil_density']= \
+    >>> grid['node']['soil__density']= \
              2000. * np.ones(grid.number_of_nodes)
 
     >>> LS_prob = LandslideProbability(grid)
@@ -216,15 +218,15 @@ class LandslideProbability(Component):
     __version__ = '1.0'
 # component requires these values to do its calculation, get from driver
     _input_var_names = (
-        'contributing_area',
-        'slope',
-        'soil_transmissivity__mode',
-        'combined_cohesion__mode',
-        'combined_cohesion__minimum',
-        'combined_cohesion__maximum',
-        'soil_internal_angle_friction__mode',
-        'soil_density',
-        'soil_thickness__mode',
+        'topographic__specific_contributing_area',
+        'topographic__slope',
+        'soil__transmissivity',
+        'soil__total_cohesion_mode',
+        'soil__total_cohesion_minimum',
+        'soil__total_cohesion_maximum',
+        'soil__internal_friction_angle',
+        'soil__density',
+        'soil__thickness',
         )
 
 #  component creates these output values
@@ -237,15 +239,15 @@ class LandslideProbability(Component):
 
 # units for each parameter and output
     _var_units = {
-        'contributing_area': 'm',
-        'slope': 'tan theta',
-        'soil_transmissivity__mode': 'm2/day',
-        'combined_cohesion__mode': 'Pa or kg/m-s2',
-        'combined_cohesion__minimum': 'Pa or kg/m-s2',
-        'combined_cohesion__maximum': 'Pa or kg/m-s2',
-        'soil_internal_angle_friction__mode': 'degrees',
-        'soil_density': 'kg/m3',
-        'soil_thickness__mode': 'm',
+        'topographic__specific_contributing_area': 'm',
+        'topographic__slope': 'tan theta',
+        'soil__transmissivity': 'm2/day',
+        'soil__total_cohesion_mode': 'Pa or kg/m-s2',
+        'soil__total_cohesion_minimum': 'Pa or kg/m-s2',
+        'soil__total_cohesion_maximum': 'Pa or kg/m-s2',
+        'soil__internal_friction_angle': 'degrees',
+        'soil__density': 'kg/m3',
+        'soil__thickness': 'm',
         'Relative_Wetness__mean': 'None',
         'Factor-of-Safety__mean': 'None',
         'Probability_of_failure': 'None',
@@ -254,15 +256,15 @@ class LandslideProbability(Component):
 
 # grid centering of each field
     _var_mapping = {
-        'contributing_area': 'node',
-        'slope': 'node',
-        'soil_transmissivity__mode': 'node',
-        'combined_cohesion__mode': 'node',
-        'combined_cohesion__minimum': 'node',
-        'combined_cohesion__maximum': 'node',
-        'soil_internal_angle_friction__mode': 'node',
-        'soil_density': 'node',
-        'soil_thickness__mode': 'node',
+        'topographic__specific_contributing_area': 'node',
+        'topographic__slope': 'node',
+        'soil__transmissivity': 'node',
+        'soil__total_cohesion_mode': 'node',
+        'soil__total_cohesion_minimum': 'node',
+        'soil__total_cohesion_maximum': 'node',
+        'soil__internal_friction_angle': 'node',
+        'soil__density': 'node',
+        'soil__thickness': 'node',
         'Relative_Wetness__mean': 'node',
         'Factor_of_Safety__mean': 'node',
         'Probability_of_failure': 'node',
@@ -271,21 +273,22 @@ class LandslideProbability(Component):
 
 # short description of each field
     _var_doc = {
-        'contributing_area': 'specific contributing area\
+        'topographic__specific_contributing_area': 'specific contributing area\
         (upslope area/cell face length) that drains to node',
-        'slope': 'slope of surface at node represented by tan theta',
-        'soil_transmissivity__mode': 'mode rate of water transmitted\
+        'topographic__slope':
+        'slope of surface at node represented by tan theta',
+        'soil__transmissivity': 'mode rate of water transmitted\
         through a unit width of saturated soil',
-        'combined_cohesion__mode': 'mode combined root and soil\
+        'soil__total_cohesion_mode': 'mode combined root and soil\
         cohesion at node',
-        'combined_cohesion__minimum': 'minimum combined root and soil\
+        'soil__total_cohesion_minimum': 'minimum combined root and soil\
         cohesion at node',
-        'combined_cohesion__maximum': 'maximum combined root and soil\
+        'soil__total_cohesion_maximum': 'maximum combined root and soil\
         cohesion at node',
-        'soil_internal_angle_friction__mode': 'critical angle just before\
+        'soil__internal_friction_angle': 'critical angle just before\
         failure due to friction between particles',
-        'soil_density': 'wet bulk density of soil',
-        'soil_thickness__mode': 'soil depth to restrictive layer',
+        'soil__density': 'wet bulk density of soil',
+        'soil__thickness': 'soil depth to restrictive layer',
         'Relative_Wetness__mean': 'Indicator of soil wetness; relative depth\
         perched water table within the soil layer',
         'Factor_of_Safety__mean': '(FS) dimensionless index of stability\
@@ -299,19 +302,20 @@ class LandslideProbability(Component):
 # Run Component
     @use_file_name_or_kwds
     def __init__(self, grid, method='Grid', number_of_simulations=1000.,
-                 recharge__minimum=20., recharge__maximum=120., **kwds):
+                 groundwater__recharge_minimum=20.,
+                 groundwater__recharge_maximum=120., **kwds):
         self.n = number_of_simulations
-        self.a = self.grid['node']['contributing_area']
-        self.theta = self.grid['node']['slope ']
-        self.Tmode = self.grid['node']['soil_transmissivity__mode']
-        self.Cmode = self.grid['node']['combined_cohesion__mode']
-        self.Cmin = self.grid['node']['combined_cohesion__minimum']
-        self.Cmax = self.grid['node']['combined_cohesion__maximum']
-        self.phi_mode = self.grid['node']['soil_internal_angle_friction__mode']
-        self.rho = self.grid['node']['soil_density']
-        self.hs_mode = self.grid['node']['soil_thickness__mode']
-        self.recharge_min = recharge__minimum
-        self.recharge_max = recharge__maximum
+        self.a = self.grid['node']['topographic__specific_contributing_area']
+        self.theta = self.grid['node']['topographic__slope ']
+        self.Tmode = self.grid['node']['soil__transmissivity']
+        self.Cmode = self.grid['node']['soil__total_cohesion_mode']
+        self.Cmin = self.grid['node']['soil__total_cohesion_minimum']
+        self.Cmax = self.grid['node']['soil__total_cohesion_maximum']
+        self.phi_mode = self.grid['node']['soil__internal_friction_angle']
+        self.rho = self.grid['node']['soil__density']
+        self.hs_mode = self.grid['node']['soil__thickness']
+        self.recharge_min = groundwater__recharge_minimum
+        self.recharge_max = groundwater__recharge_maximum
         self.g = 9.81
         self.update()
 
@@ -324,9 +328,9 @@ class LandslideProbability(Component):
             Currently, only default is available.
         number_of_simulations: int, optional
             number of simulations to run Monte Carlo (None)
-        recharge__minimum: float, optional
+        groundwater__recharge_minimum: float, optional
             Minimum annual maximum recharge (mm/d).
-        recharge__maximum: float, optional
+        groundwater__recharge_maximum: float, optional
             Maximum annual maximum rechage (mm/d).
         """
         self._method = kwds.pop('method', 'Grid')  # NEED???
@@ -410,15 +414,16 @@ class LandslideProbability(Component):
         # i refers to each core node id
         for i in self.grid.core_nodes:
             self.calculate_factor_of_safety(
-                self.n, self.grid['node']['contributing_area'][i],
-                self.grid['node']['slope'][i],
-                self.grid['node']['soil_transmissivity__mode'][i],
-                self.grid['node']['combined_cohesion__mode'][i],
-                self.grid['node']['combined_cohesion__minimum'][i],
-                self.grid['node']['combined_cohesion__maximum'][i],
-                self.grid['node']['soil_internal_angle_friction__mode'][i],
-                self.grid['node']['soil_density'][i],
-                self.grid['node']['soil_thickness__mode'][i],
+                self.n,
+                self.grid['node']['topographic__specific_contributing_area'][i],
+                self.grid['node']['topographic__slope'][i],
+                self.grid['node']['soil__transmissivity'][i],
+                self.grid['node']['soil__total_cohesion'][i],
+                self.grid['node']['soil__total_cohesion_minimum'][i],
+                self.grid['node']['soil__total_cohesion_maximum'][i],
+                self.grid['node']['soil__internal_friction_angle'][i],
+                self.grid['node']['soil__density'][i],
+                self.grid['node']['soil__thickness'][i],
                 self.Re)   # parameters & data passed to FS class
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self.Relative_Wetness__mean
