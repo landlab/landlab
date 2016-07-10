@@ -711,25 +711,31 @@ class DepressionFinderAndRouter(Component):
                     nodes_routed = np.union1d(nodes_routed, nodes_on_front)
                     self.grads[drains_from[good_nbrs]] = 0.
                     # ^downstream grad is 0.
+                # now rewire the link connectivity:
+                where_receiver_in_ortho = np.equal(
+                    self.receivers[nodes_in_lake].reshape(
+                        (nodes_in_lake.size, 1)),
+                    self.grid.neighbors_at_node[nodes_in_lake, :])
+                receiver_in_ortho = where_receiver_in_ortho.sum(
+                    axis=1).astype(bool)
+                self.grid.at_node[
+                    'flow__link_to_receiver_node'].flat[nodes_in_lake[
+                        receiver_in_ortho]] = self.grid.links_at_node[
+                            nodes_in_lake][where_receiver_in_ortho]
+                if self._D8:
+                    where_receiver_in_diag = np.equal(
+                        self.receivers[nodes_in_lake].reshape(
+                            (nodes_in_lake.size, 1)),
+                        self.grid._diagonal_neighbors_at_node[
+                            nodes_in_lake, :])
+                    receiver_in_diag = where_receiver_in_diag.sum(
+                        axis=1).astype(bool)
+                    self.grid.at_node[
+                        'flow__link_to_receiver_node'].flat[nodes_in_lake[
+                            receiver_in_diag]] = \
+                        self.grid._diagonal_links_at_node[nodes_in_lake][
+                            where_receiver_in_diag]
         self.sinks[self.pit_node_ids] = False
-        # now rewire the link connectivity:
-        where_receiver_in_ortho = np.equal(self.receivers.reshape(
-            (self.receivers.size, 1)), self.grid.neighbors_at_node)
-        receiver_in_ortho = where_receiver_in_ortho.sum(axis=1).astype(bool)
-        assert not np.any(receiver_in_ortho > 1)
-        self.grid.at_node['flow__link_to_receiver_node'].fill(-1)
-        self.grid.at_node['flow__link_to_receiver_node'].flat[
-            receiver_in_ortho] = self.grid.links_at_node[
-                where_receiver_in_ortho]
-        if self._D8:
-            where_receiver_in_diag = np.equal(self.receivers.reshape(
-                (self.receivers.size, 1)),
-                    self.grid._diagonal_neighbors_at_node)
-            receiver_in_diag = where_receiver_in_diag.sum(axis=1).astype(bool)
-            assert not np.any(receiver_in_diag > 1)
-            self.grid.at_node['flow__link_to_receiver_node'].flat[
-                receiver_in_diag] = \
-                self.grid._diagonal_links_at_node[where_receiver_in_diag]
 
     def _reaccumulate_flow(self):
         """Update drainage area, discharge, and upstream order.
