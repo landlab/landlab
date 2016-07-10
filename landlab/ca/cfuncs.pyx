@@ -93,6 +93,7 @@ class Event():
         return self.time < other.time
 
 
+@cython.boundscheck(False)
 def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
@@ -114,6 +115,8 @@ def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
     return node_state[tail_node] != old_tail_node_state, \
            node_state[head_node] != old_head_node_state
 
+
+@cython.boundscheck(False)
 def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
                    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
@@ -192,6 +195,8 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
     return my_event
 
+
+@cython.boundscheck(False)
 def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       bnd_lnk,
@@ -245,6 +250,8 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     else:
         next_update[link] = _NEVER
 
+
+@cython.boundscheck(False)
 def do_transition(event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
