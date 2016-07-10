@@ -126,7 +126,7 @@ from __future__ import print_function
 from heapq import heappush
 from heapq import heappop
 import landlab
-import numpy
+import numpy as np
 import pylab as plt
 
 _USE_CYTHON = True
@@ -143,8 +143,10 @@ _TEST = False
 _CORE = landlab.grid.base.CORE_NODE
 
 
-class Transition():
-    """
+class Transition(object):
+
+    """A transition from one state to another.
+
     Represents a transition from one state ("from_state") to another
     ("to_state") at a link. The transition probability is represented by a rate
     parameter "rate", with dimensions of 1/T. The probability distribution of
@@ -205,12 +207,13 @@ class Transition():
 if _USE_CYTHON:
     from .cfuncs import Event
 else:
-    class Event():
-        """
-        Represents a transition event at a link. The transition occurs at a given
-        link and a given time, and it involves a transition into the state xn_to
-        (an integer code representing the new link state; "xn" is shorthand for
-        "transition").
+    class Event(object):
+        """Transition event at a link.
+
+        Represents a transition event at a link. The transition occurs at a
+        given link and a given time, and it involves a transition into the
+        state xn_to (an integer code representing the new link state;
+        "xn" is shorthand for "transition").
     
         The class overrides the __lt__ (less than operator) method so that when
         Event() objects are placed in a PriorityQueue, the earliest event is
@@ -273,10 +276,9 @@ else:
             return self.time < other.time
 
 
-class CAPlotter():
+class CAPlotter(object):
 
-    """
-    Handle display of a CellLab-CTS grid.
+    """Handle display of a CellLab-CTS grid.
 
     CAPlotter() constructor keeps a reference to the CA model, and
     optionally a colormap to be used with plots.
@@ -287,7 +289,6 @@ class CAPlotter():
         Reference to a CA model
     cmap : Matplotlib colormap, optional
         Colormap to be used in plotting
-
     """
 
     def __init__(self, ca, cmap=None):
@@ -335,8 +336,9 @@ class CAPlotter():
         plt.pause(0.001)
 
     def finalize(self):
-        """
-        Wraps up plotting by switching off interactive model and showing the
+        """Wrap up plotting.
+
+        Wrap up plotting by switching off interactive model and showing the
         plot.
         """
         plt.ioff()
@@ -408,17 +410,17 @@ class CellLabCTSModel(object):
         self._active_links_at_node = self.grid._active_links_at_node2()
 
         # Initialize random number generation
-        numpy.random.seed(seed)
+        np.random.seed(seed)
 
         # Create an array that knows which links are connected to a boundary
         # node
-        self.bnd_lnk = numpy.zeros(self.grid.number_of_links, dtype=bool)
+        self.bnd_lnk = np.zeros(self.grid.number_of_links, dtype=bool)
         for link_id in range(self.grid.number_of_links):
             if self.grid.status_at_node[self.grid.node_at_link_tail[link_id]] != _CORE or self.grid.status_at_node[self.grid.node_at_link_head[link_id]] != _CORE:
                 self.bnd_lnk[link_id] = True
 
         # TEMP DEBUG/PERF TEST
-        self.san = numpy.zeros(self.grid.number_of_nodes, dtype=numpy.int8)
+        self.san = np.zeros(self.grid.number_of_nodes, dtype=np.int8)
         self.san[:] = self.grid.status_at_node # GIVES 10% SPEEDUP BUT USES MEM
 
         # Set up the initial node-state grid
@@ -512,9 +514,9 @@ class CellLabCTSModel(object):
         # In order to keep track of cell "properties", we create an array of
         # indices that refer to locations in the caller's code where properties
         # are tracked.
-        self.propid = numpy.arange(self.grid.number_of_nodes)
+        self.propid = np.arange(self.grid.number_of_nodes)
         if prop_data is None:
-            self.prop_data = numpy.zeros(self.grid.number_of_nodes)
+            self.prop_data = np.zeros(self.grid.number_of_nodes)
             self.prop_reset_value = 0.0
         else:
             self.prop_data = prop_data
@@ -542,7 +544,7 @@ class CellLabCTSModel(object):
         The node-state array is attached to the grid as a field with the name
         'node_state'.
         """
-        assert (type(node_states) is numpy.ndarray), \
+        assert (type(node_states) is np.ndarray), \
             'initial_node_states must be a Numpy array'
         assert (len(node_states) == self.grid.number_of_nodes), \
             'length of initial_node_states must equal number of nodes in grid'
@@ -601,8 +603,8 @@ class CellLabCTSModel(object):
         will override this method to handle lattices in which orientation
         matters (for example, vertical vs. horizontal in an OrientedRasterLCA).
         """
-        self.link_orientation = numpy.zeros(
-            self.grid.number_of_links, dtype=numpy.int8)
+        self.link_orientation = np.zeros(
+            self.grid.number_of_links, dtype=np.int8)
 
     def assign_link_states_from_node_types(self):
         """Assign link-state code for each link.
@@ -616,7 +618,7 @@ class CellLabCTSModel(object):
 
         * ``self.link_state`` : 1D numpy array
         """
-        self.link_state = numpy.zeros(self.grid.number_of_links, dtype=int)
+        self.link_state = np.zeros(self.grid.number_of_links, dtype=int)
 
         for i in self.grid.active_links:
             orientation = self.link_orientation[i]
@@ -649,7 +651,7 @@ class CellLabCTSModel(object):
         """
         # First, create an array that stores the number of possible transitions
         # out of each state.
-        self.n_xn = numpy.zeros(self.num_link_states, dtype=int)
+        self.n_xn = np.zeros(self.num_link_states, dtype=int)
         for xn in xn_list:
             self.n_xn[xn.from_state] += 1
 
@@ -659,13 +661,13 @@ class CellLabCTSModel(object):
         # state (for example if state 3 could transition either to state 1 or
         # state 4, and the other states only had one or zero possible
         # transitions, then the maximum would be 2).
-        max_transitions = numpy.max(self.n_xn)
-        self.xn_to = numpy.zeros(
+        max_transitions = np.max(self.n_xn)
+        self.xn_to = np.zeros(
             (self.num_link_states, max_transitions), dtype=int)
-        self.xn_rate = numpy.zeros((self.num_link_states, max_transitions))
-        self.xn_propswap = numpy.zeros(
+        self.xn_rate = np.zeros((self.num_link_states, max_transitions))
+        self.xn_propswap = np.zeros(
             (self.num_link_states, max_transitions), dtype=bool)
-        self.xn_prop_update_fn = numpy.empty(
+        self.xn_prop_update_fn = np.empty(
             (self.num_link_states, max_transitions), dtype=object)
 
         # Populate the "to" and "rate" arrays
@@ -787,7 +789,7 @@ class CellLabCTSModel(object):
         if self.n_xn[current_state] == 1:
             xn_to = self.xn_to[current_state][0]
             propswap = self.xn_propswap[current_state][0]
-            next_time = numpy.random.exponential(
+            next_time = np.random.exponential(
                 1.0 / self.xn_rate[current_state][0])
             prop_update_fn = self.xn_prop_update_fn[current_state][0]
         else:
@@ -795,7 +797,7 @@ class CellLabCTSModel(object):
             xn_to = None
             propswap = False
             for i in range(self.n_xn[current_state]):
-                this_next = numpy.random.exponential(
+                this_next = np.random.exponential(
                     1.0 / self.xn_rate[current_state][i])
                 if this_next < next_time:
                     next_time = this_next
