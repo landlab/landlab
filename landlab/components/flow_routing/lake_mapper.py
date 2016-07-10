@@ -23,6 +23,8 @@ _PIT = 1
 _CURRENT_LAKE = 2
 _FLOODED = 3
 
+use_cfuncs = True
+
 
 class DepressionFinderAndRouter(Component):
 
@@ -400,7 +402,7 @@ class DepressionFinderAndRouter(Component):
             'failed to find lowest perim node'
         return lowest_node
 
-    def node_can_drain(self, the_node, nodes_this_depression):
+    def node_can_drain(self, the_node):
         """Check if a node has drainage away from the current lake/depression.
 
         Parameters
@@ -415,16 +417,20 @@ class DepressionFinderAndRouter(Component):
         boolean
             ``True`` if the node can drain. Otherwise, ``False``.
         """
-        for nbr in self._node_nbrs[the_node]:
-            if nbr != LOCAL_BAD_INDEX_VALUE:
-                if self._elev[nbr] < self._elev[the_node] and \
-                        self.flood_status[nbr] != _CURRENT_LAKE and \
-                        self.flood_status[nbr] != _FLOODED:
-                    # caveat about outlet elevation...
-                    return True
-        return False
+        nbrs = self._node_nbrs[the_node]
+        not_bad = nbrs != LOCAL_BAD_INDEX_VALUE
+        not_too_high = self._elev[nbrs] < self._elev[the_node]
+        not_current_lake = np.not_equal(self.flood_status[nbrs], _CURRENT_LAKE)
+        not_flooded = np.not_equal(self.flood_status[nbrs], _FLOODED)
+        all_probs = np.logical_and(
+            np.logical_and(not_bad, not_too_high),
+            np.logical_and(not_current_lake, not_flooded))
+        if np.any(all_probs):
+            return True
+        else:
+            return False
 
-    def is_valid_outlet(self, the_node, nodes_this_depression):
+    def is_valid_outlet(self, the_node):
         """Check if a node is a valid outlet for the depression.
 
         Parameters
@@ -442,7 +448,7 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
             return True
 
-        if self.node_can_drain(the_node, nodes_this_depression):
+        if self.node_can_drain(the_node):
             return True
 
         return False
@@ -535,8 +541,7 @@ class DepressionFinderAndRouter(Component):
                 self.find_lowest_node_on_lake_perimeter(nodes_this_depression)
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
-            found_outlet = self.is_valid_outlet(lowest_node_on_perimeter,
-                                                nodes_this_depression)
+            found_outlet = self.is_valid_outlet(lowest_node_on_perimeter)
             if not found_outlet:
                 # Add lowest_node to the lake list
                 nodes_this_depression.append(lowest_node_on_perimeter)
@@ -711,25 +716,31 @@ class DepressionFinderAndRouter(Component):
                     nodes_routed = np.union1d(nodes_routed, nodes_on_front)
                     self.grads[drains_from[good_nbrs]] = 0.
                     # ^downstream grad is 0.
+                # now rewire the link connectivity:
+                where_receiver_in_ortho = np.equal(
+                    self.receivers[nodes_in_lake].reshape(
+                        (nodes_in_lake.size, 1)),
+                    self.grid.neighbors_at_node[nodes_in_lake, :])
+                receiver_in_ortho = where_receiver_in_ortho.sum(
+                    axis=1).astype(bool)
+                self.grid.at_node[
+                    'flow__link_to_receiver_node'].flat[nodes_in_lake[
+                        receiver_in_ortho]] = self.grid.links_at_node[
+                            nodes_in_lake][where_receiver_in_ortho]
+                if self._D8:
+                    where_receiver_in_diag = np.equal(
+                        self.receivers[nodes_in_lake].reshape(
+                            (nodes_in_lake.size, 1)),
+                        self.grid._diagonal_neighbors_at_node[
+                            nodes_in_lake, :])
+                    receiver_in_diag = where_receiver_in_diag.sum(
+                        axis=1).astype(bool)
+                    self.grid.at_node[
+                        'flow__link_to_receiver_node'].flat[nodes_in_lake[
+                            receiver_in_diag]] = \
+                        self.grid._diagonal_links_at_node[nodes_in_lake][
+                            where_receiver_in_diag]
         self.sinks[self.pit_node_ids] = False
-        # now rewire the link connectivity:
-        where_receiver_in_ortho = np.equal(self.receivers.reshape(
-            (self.receivers.size, 1)), self.grid.neighbors_at_node)
-        receiver_in_ortho = where_receiver_in_ortho.sum(axis=1).astype(bool)
-        assert not np.any(receiver_in_ortho > 1)
-        self.grid.at_node['flow__link_to_receiver_node'].fill(-1)
-        self.grid.at_node['flow__link_to_receiver_node'].flat[
-            receiver_in_ortho] = self.grid.links_at_node[
-                where_receiver_in_ortho]
-        if self._D8:
-            where_receiver_in_diag = np.equal(self.receivers.reshape(
-                (self.receivers.size, 1)),
-                    self.grid._diagonal_neighbors_at_node)
-            receiver_in_diag = where_receiver_in_diag.sum(axis=1).astype(bool)
-            assert not np.any(receiver_in_diag > 1)
-            self.grid.at_node['flow__link_to_receiver_node'].flat[
-                receiver_in_diag] = \
-                self.grid._diagonal_links_at_node[where_receiver_in_diag]
 
     def _reaccumulate_flow(self):
         """Update drainage area, discharge, and upstream order.
