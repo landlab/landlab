@@ -25,6 +25,11 @@ Create a grid on which to calculate landslide probability.
 
 >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
 
+Check the number of core nodes.
+
+>>> grid.number_of_core_nodes
+6
+
 The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
@@ -102,6 +107,8 @@ Check the output from the component.
 >>> grid['node']['Relative_Wetness__mean']
 >>> grid['node']['Factor_of_Safety__mean']
 >>> grid['node']['Probability_of_failure]
+
+Check the factor of safety distribution at node number 6
 >>> LS_prob.Factor_of_Safety__distribution[6]
 """
 
@@ -442,6 +449,7 @@ class LandslideProbability(Component):
         self.mean_FS[self.mean_FS < 0.] = 0.       # can't be negative
         self.mean_FS[self.mean_FS == np.inf] = 0.  # to deal with NaN in data
         self.prob_fail[self.prob_fail < 0.] = 0.   # can't be negative
+        # assign output fields to nodes
         self.grid['node']['Relative_Wetness__mean'] =\
             self.mean_Relative_Wetness
         self.grid['node']['Factor_of_Safety__mean'] = self.mean_FS
