@@ -192,7 +192,7 @@ class LandslideProbability(Component):
     4
     >>> LS_prob.grid is grid
     True
-    >>> np.allclose(grid.at_node['topographic__slope'], 0.)
+    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==TRUE
     True
 # NEED this last input, might raise a fielderror(name)
 # because I haven't filled the field yet?
@@ -218,7 +218,7 @@ class LandslideProbability(Component):
 
     >>> LS_prob = LandslideProbability(grid)
     >>> LS_prob.update(grid)
-    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)
+    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==TRUE
     False
     """
 
@@ -323,15 +323,6 @@ class LandslideProbability(Component):
                  groundwater__recharge_maximum=120., **kwds):
         self._grid = grid
         self.n = number_of_simulations
-        self.a = self.grid['node']['topographic__specific_contributing_area']
-        self.theta = self.grid['node']['topographic__slope']
-        self.Tmode = self.grid['node']['soil__transmissivity']
-        self.Cmode = self.grid['node']['soil__total_cohesion_mode']
-        self.Cmin = self.grid['node']['soil__total_cohesion_minimum']
-        self.Cmax = self.grid['node']['soil__total_cohesion_maximum']
-        self.phi_mode = self.grid['node']['soil__internal_friction_angle']
-        self.rho = self.grid['node']['soil__density']
-        self.hs_mode = self.grid['node']['soil__thickness']
         self.recharge_min = groundwater__recharge_minimum
         self.recharge_max = groundwater__recharge_maximum
         self.g = 9.81
@@ -353,23 +344,32 @@ class LandslideProbability(Component):
 
         super(LandslideProbability, self).__init__(grid)
 
-#        for name in self._input_var_names:
-#            if name not in self.grid.at_node:
-#                self.grid.add_zeros('node', name, units=self._var_units[name])
-#
-#        for name in self._output_var_names:
-#            if name not in self.grid.at_node:
-#                self.grid.add_zeros('node', name, units=self._var_units[name])
-#
-#        self._nodal_values = self.grid['node']
+        for name in self._input_var_names:
+            if name not in self.grid.at_node:
+                self.grid.add_zeros('node', name, units=self._var_units[name])
+
+        for name in self._output_var_names:
+            if name not in self.grid.at_node:
+                self.grid.add_zeros('node', name, units=self._var_units[name])
+
+        self._nodal_values = self.grid['node']
 
         # Raise an error if somehow someone is using this weird functionality
         if self._grid is None:
             raise ValueError('You must now provide an existing grid!')
 
-    def calculate_factor_of_safety(self):
+    def calculate_factor_of_safety(self,i):
         # generate distributions to sample from to provide input parameters
         # currently triangle distribution using mode, min, & max
+        self.a = self.grid['node']['topographic__specific_contributing_area'][i]
+        self.theta = self.grid['node']['topographic__slope'][i]
+        self.Tmode = self.grid['node']['soil__transmissivity'][i]
+        self.Cmode = self.grid['node']['soil__total_cohesion_mode'][i]
+        self.Cmin = self.grid['node']['soil__total_cohesion_minimum'][i]
+        self.Cmax = self.grid['node']['soil__total_cohesion_maximum'][i]
+        self.phi_mode = self.grid['node']['soil__internal_friction_angle'][i]
+        self.rho = self.grid['node']['soil__density'][i]
+        self.hs_mode = self.grid['node']['soil__thickness'][i]
         # Transmissivity (T)
         Tmin = self.Tmode-(0.3*self.Tmode)
         Tmax = self.Tmode+(0.3*self.Tmode)
@@ -431,19 +431,7 @@ class LandslideProbability(Component):
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self.grid.core_nodes:
-            self.calculate_factor_of_safety(
-                self.n,
-                self.grid['node'][
-                          'topographic__specific_contributing_area'][i],
-                self.grid['node']['topographic__slope'][i],
-                self.grid['node']['soil__transmissivity'][i],
-                self.grid['node']['soil__total_cohesion_mode'][i],
-                self.grid['node']['soil__total_cohesion_minimum'][i],
-                self.grid['node']['soil__total_cohesion_maximum'][i],
-                self.grid['node']['soil__internal_friction_angle'][i],
-                self.grid['node']['soil__density'][i],
-                self.grid['node']['soil__thickness'][i],
-                self.Re)   # parameters & data passed to FS class
+            self.calculate_factor_of_safety(i)   # parameters & data passed to FS class
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self.Relative_Wetness__mean
             self.mean_FS[i] = self.Factor_of_Safety__mean
@@ -457,3 +445,6 @@ class LandslideProbability(Component):
         self.mean_FS[self.mean_FS == np.inf] = 0.  # to deal with NaN in data
         self.prob_fail[self.prob_fail < 0.] = 0.   # can't be negative
         self.FS_dist[self.FS_dist < 0.] = 0.     # can't be negative
+        grid['node']['Relative_Wetness__mean'] = FS.mean_Relative_Wetness
+        grid['node']['Factor_of_safety__mean'] = FS.mean_FS
+        grid['node']['Probability_of_failure'] = FS.prob_fail
