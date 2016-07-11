@@ -100,9 +100,9 @@ Check the output variable names.
 Assign output to nodes
 
 grid['node']['Relative_Wetness__mean'] = LS_prob.mean_Relative_Wetness
-grid['node']['Factor_of_safety__mean'] = LS_prob.mean_FS
+grid['node']['Factor_of_Safety__mean'] = LS_prob.mean_FS
 grid['node']['Probability_of_failure'] = LS_prob.prob_fail
-grid['node']['Factor_of_safety__distribution'] = LS_prob.FS_dist
+grid['node']['Factor_of_Safety__distribution'] = LS_prob.FS_dist
 
 Check the output from the component.
 
@@ -182,7 +182,7 @@ class LandslideProbability(Component):
      ('soil__density', 'kg/m3'),
      ('soil__thickness', 'm'),
      ('Relative_Wetness__mean', 'None'),
-     ('Factor-of-Safety__mean', 'None'),
+     ('Factor_of_Safety__mean', 'None'),
      ('Probability_of_failure', 'None'),
      ('Factor_of_Safety__distribution', 'None')]
 
@@ -258,7 +258,7 @@ class LandslideProbability(Component):
         'soil__density': 'kg/m3',
         'soil__thickness': 'm',
         'Relative_Wetness__mean': 'None',
-        'Factor-of-Safety__mean': 'None',
+        'Factor_of_Safety__mean': 'None',
         'Probability_of_failure': 'None',
         'Factor_of_Safety__distribution': 'None',
         }
