@@ -431,7 +431,7 @@ class LandslideProbability(Component):
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self.grid.core_nodes:
-            self.calculate_factor_of_safety(i)   # parameters & data passed to FS class
+            self.calculate_factor_of_safety(i)
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self.Relative_Wetness__mean
             self.mean_FS[i] = self.Factor_of_Safety__mean
@@ -445,6 +445,7 @@ class LandslideProbability(Component):
         self.mean_FS[self.mean_FS == np.inf] = 0.  # to deal with NaN in data
         self.prob_fail[self.prob_fail < 0.] = 0.   # can't be negative
         self.FS_dist[self.FS_dist < 0.] = 0.     # can't be negative
-        grid['node']['Relative_Wetness__mean'] = FS.mean_Relative_Wetness
-        grid['node']['Factor_of_safety__mean'] = FS.mean_FS
-        grid['node']['Probability_of_failure'] = FS.prob_fail
+        self.grid['node']['Relative_Wetness__mean'] =\
+            self.mean_Relative_Wetness
+        self.grid['node']['Factor_of_Safety__mean'] = self.mean_FS
+        self.grid['node']['Probability_of_failure'] = self.prob_fail
