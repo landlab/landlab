@@ -45,7 +45,7 @@ Check the units for the fields.
 >>> LandslideProbability.var_units('topographic__specific_contributing_area')
     'm'
 
-Create the input fields.
+Create an input field.
 
 >>> grid['node']['topographic__slope'] = np.random.rand(5,4)
 
