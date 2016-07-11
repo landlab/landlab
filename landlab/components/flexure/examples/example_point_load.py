@@ -29,7 +29,7 @@ def main():
 
     flex.update()
 
-    grid.imshow('node', 'lithosphere__elevation_increment',
+    grid.imshow('node', 'lithosphere_surface__elevation_increment',
                 symmetric_cbar=True, show=True)
 
 

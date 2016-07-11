@@ -111,9 +111,9 @@ while elapsed_time < time_to_run:
     if numpy.allclose(elapsed_time%out_tstep,0.) or numpy.allclose(elapsed_time%out_tstep,1.):
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
-                        mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
+                        mg.at_node['drainage_area'], mg.at_node['flow__receiver_node'])
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
-                        profile_IDs, mg.at_node['links_to_flow_receiver'])
+                        profile_IDs, mg.at_node['flow__link_to_receiver_node'])
 
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
         x_profiles.append(dists_upstr[:])

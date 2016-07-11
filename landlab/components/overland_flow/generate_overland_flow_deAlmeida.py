@@ -203,27 +203,36 @@ class OverlandFlow(Component):
         # Now setting up fields at the links...
         # For water discharge
         try:
-            self.water__discharge = grid.add_zeros(
-                'link', 'water__discharge',
+            self.q = grid.add_zeros('water__discharge', at='link',
                 units=self._var_units['water__discharge'])
         except FieldError:
             # Field was already set; still, fill it with zeros
-            self.water__discharge = grid.at_link['water__discharge']
-            self.water__discharge.fill(0.)
+            self.q = grid.at_link['water__discharge']
+            self.q.fill(0.)
 
         # For water depths calculated at links
         try:
-            self.h_links = grid.add_zeros('link', 'water__depth',
+            self.h_links = grid.add_zeros('water__depth', at='link',
                                           units=self._var_units[
                                               'water__depth'])
         except FieldError:
             self.h_links = grid.at_link['water__depth']
             self.h_links.fill(0.)
+
         self.h_links += self.h_init
+
+        try:
+            self.h = grid.add_zeros('water__depth', at='node',
+                units=self._var_units['water__depth'])
+        except FieldError:
+            # Field was already set
+            self.h = grid.at_node['water__depth']
+
+        self.h += self.h_init
 
         # For water surface slopes at links
         try:
-            self.slope = grid.add_zeros('link', 'water_surface__gradient')
+            self.slope = grid.add_zeros('water_surface__gradient', at='link')
         except FieldError:
             self.slope = grid.at_link['water_surface__gradient']
             self.slope.fill(0.)
@@ -247,17 +256,6 @@ class OverlandFlow(Component):
         # model and will be updated in your driver loop, they can be used by
         # setting the flag in the initialization of  the class to 'True'
         self.use_fixed_links = use_fixed_links
-
-        # Assigning a class variable to the water depth field and adding
-        # the initial thin water depth
-        self.h = self._grid['node']['water__depth'] = (
-            self._grid['node']['water__depth'] + self.h_init)
-
-            # += self.h_init
-        # self.h += self.h_init#self.grid['node']['water__depth'] = self.h
-
-        # Assigning a class variable to the water discharge field.
-        self.q = self._grid['link']['water__discharge']
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
@@ -372,21 +370,21 @@ class OverlandFlow(Component):
         # Per Bates et al., 2010, this solution needs to find the difference
         # between the highest water surface in the two cells and the
         # highest bed elevation
-        zmax = self.grid.max_of_link_end_node_values(self.z)
+        zmax = self._grid.map_max_of_link_nodes_to_link(self.z)
         w = self.h + self.z
-        wmax = self.grid.max_of_link_end_node_values(w)
-        hflow = wmax - zmax
+        wmax = self._grid.map_max_of_link_nodes_to_link(w)
+        hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
         # Insert this water depth into an array of water depths at the links.
         self.h_links[self.active_links] = hflow
 
         # Now we calculate the slope of the water surface elevation at
         # active links
-        water_surface__gradient = \
-            self.grid.calc_grad_of_active_link(w)
+        self.water_surface_gradient = (
+            self.grid.calc_grad_at_link(w)[self.grid.active_links])
 
         # And insert these values into an array of all links
-        self.slope[self.active_links] = water_surface__gradient
+        self.slope[self.active_links] = self.water_surface_gradient
 
         # If the user chooses to set boundary links to the neighbor value, we
         # set the discharge array to have the boundary links set to their
@@ -503,9 +501,8 @@ class OverlandFlow(Component):
 #        # Once stability has been restored, we calculate the change in water
 #        # depths on all core nodes by finding the difference between inputs
 #        # (rainfall) and the inputs/outputs (flux divergence of discharge)
-        self.dhdt = (self.rainfall_intensity -
-                     self.grid.calculate_flux_divergence_at_nodes(
-                         self.q[self.active_links]))
+        self.dhdt = (self.rainfall_intensity - self.grid.calc_flux_div_at_node(
+                                                                    self.q))
 
         # Updating our water depths...
         self.h[self.core_nodes] = (self.h[self.core_nodes] +

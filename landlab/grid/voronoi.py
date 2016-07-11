@@ -1,4 +1,389 @@
-#! /usr/bin/env python
+#! /usr/env/python
+"""
+Python implementation of VoronoiDelaunayGrid, a class used to create and manage
+unstructured, irregular grids for 2D numerical models.
+
+Getting Information about a Grid
+--------------------------------
+The following attributes, properties, and methods provide data about the grid,
+its geometry, and the connectivity among the various elements. Each grid
+element has an ID number, which is also its position in an array that
+contains information about that type of element. For example, the *x*
+coordinate of node 5 would be found at `grid.node_x[5]`.
+
+The naming of grid-element arrays is *attribute*`_at_`*element*, where
+*attribute* is the name of the data in question, and *element* is the element
+to which the attribute applies. For example, the property `node_at_cell`
+contains the ID of the node associated with each cell. For example,
+`node_at_cell[3]` contains the *node ID* of the node associated with cell 3.
+The *attribute* is singular if there is only one value per element; for
+example, there is only one node associated with each cell. It is plural when
+there are multiple values per element; for example, the `faces_at_cell` array
+contains multiple faces for each cell. Exceptions to these general rules are
+functions that return indices of a subset of all elements of a particular type.
+For example, you can obtain an array with IDs of only the core nodes using
+`core_nodes`, while `active_links` provides an array of IDs of active links
+(only). Finally, attributes that represent a measurement of something, such as
+the length of a link or the surface area of a cell, are described using `_of_`,
+as in the example `area_of_cell`.
+
+Information about the grid as a whole
++++++++++++++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.move_origin
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_elements
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.save
+
+Information about nodes
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.neighbors_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_xcomponent_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_ycomponent_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_node
+
+Information about links
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link_about_head
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.length_of_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_xcomponent_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_ycomponent_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
+
+Information about cells
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.area_of_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
+
+Information about faces
++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.width_of_face
+
+Information about patches
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
+
+Data Fields in ModelGrid
+------------------------
+:class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
+provides `~.ModelGrid`, and its subclasses, with the ability to, optionally,
+store data values that are associated with the different types grid elements
+(nodes, cells, etc.). In particular, as part of ``ModelGrid.__init__()``,
+data field *groups* are added to the `ModelGrid` that provide containers to
+put data fields into. There is one group for each of the eight grid elements
+(node, cell, link, face, core_node, core_cell, active_link, and active_face).
+
+To access these groups, use the same methods as accessing groups with
+`~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
+itself that provide access to the values groups:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_face
+
+Each of these attributes returns a ``dict``-like object whose keys are value
+names as strings and values are numpy arrays that gives quantities at
+grid elements.
+
+
+Create Field Arrays
++++++++++++++++++++
+:class:`~.ModelGrid` inherits several useful methods for creating new data
+fields and adding new data fields to a ModelGrid instance. Methods to add or
+create a new data array follow the ``numpy`` syntax for creating arrays. The
+folowing methods create and, optionally, initialize new arrays. These arrays
+are of the correct size but a new field will not be added to the field:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.empty
+    ~landlab.field.grouped.ModelDataFields.ones
+    ~landlab.field.grouped.ModelDataFields.zeros
+
+Add Fields to a ModelGrid
++++++++++++++++++++++++++
+Unlike with the equivalent numpy functions, these do not take a size argument
+as the size of the returned arrays is determined from the size of the
+ModelGrid. However, the keyword arguments are the same as those of the numpy
+equivalents.
+
+The following methods will create a new array and add a reference to that
+array to the ModelGrid:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.add_empty
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.add_field
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.add_ones
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.add_zeros
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.delete_field
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_units
+
+These methods operate in the same way as the previous set except that, in
+addition to creating a new array, the newly-created array is added to the
+ModelGrid. The calling signature is the same but with the addition of an
+argument that gives the name of the new field as a string. The additional
+method, :meth:`~.ModelDataFields.add_field`, adds a previously allocation
+array to the ModelGrid. If the array is of the incorrect size it will raise
+``ValueError``.
+
+Query Fields
+++++++++++++
+Use the following methods/attributes get information about the stored data
+fields:
+
+.. autosummary::
+    :toctree: generated/
+    :nosignatures:
+
+    ~landlab.field.grouped.ModelDataFields.size
+    ~landlab.field.grouped.ModelDataFields.keys
+    ~landlab.field.grouped.ModelDataFields.has_group
+    ~landlab.field.grouped.ModelDataFields.has_field
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.field_units
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.field_values
+    ~landlab.field.grouped.ModelDataFields.groups
+
+    i.e., call, e.g. mg.has_field('node', 'my_field_name')
+
+    # START HERE check that all functions listed below are included above,
+    # ignore ones that start with underscores(_)
+
+Gradients, fluxes, and divergences on the grid
+----------------------------------------------
+
+Landlab is designed to easily calculate gradients in quantities across the
+grid, and to construct fluxes and flux divergences from them. Because these
+calculations tend to be a little more involved than property lookups, the
+methods tend to start with `calc_`.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_net_flux_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_unit_normal_at_patch
+
+Mappers
+-------
+
+These methods allow mapping of values defined on one grid element type onto a
+second, e.g., mapping upwind node values onto links, or mean link values onto
+nodes.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_max_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_mean_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_head_node_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_tail_node_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_link_nodes_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_node_links_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_link_nodes_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_node_links_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_max_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_mean_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_max_node_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_min_node_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_upwind_node_link_max_to_node
+
+
+Boundary condition control
+--------------------------
+
+These are the primary properties for getting and setting the grid boundary
+conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
+:meth:`~.ModelGrid.status_at_node` will automatically update the conditions
+defined at other grid elements automatically.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
+
+Identifying node subsets
+------------------------
+
+These methods are useful in identifying subsets of nodes, e.g., closest node
+to a point; nodes at edges.
+
+(None are available for this grid type)
+
+Surface analysis
+----------------
+
+These methods permit the kinds of surface analysis that you might expect to
+find in GIS software.
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_aspect_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_hillshade_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node
+
+Notes
+-----
+It is important that when creating a new grid class that inherits from
+``ModelGrid``, to call ``ModelGrid.__init__()`` in the new grid's
+``__init__()``. For example, the new class's __init__ should contain the
+following code,
+
+.. code-block:: python
+
+    class NewGrid(ModelGrid):
+        def __init__(self, *args, **kwds):
+            ModelGrid.__init__(self, **kwds)
+            # Code that initializes the NewGrid
+
+Without this, the new grid class will not have the ``at_*`` attributes.
+"""
 
 import numpy
 from six.moves import range
@@ -6,7 +391,9 @@ from six.moves import range
 from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
                                INACTIVE_LINK)
 from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
-                                argsort_points_by_x_then_y)
+                                argsort_points_by_x_then_y,
+                                anticlockwise_argsort_points)
+from .decorators import return_readonly_id_array
 
 from scipy.spatial import Voronoi
 
@@ -191,8 +578,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         pts[:, 0] = x
         pts[:, 1] = y
         self.pts = sort_points_by_x_then_y(pts)
-        x = pts[:, 0]
-        y = pts[:, 1]
+        x = self.pts[:, 0]
+        y = self.pts[:, 1]
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -221,7 +608,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
-        vor = Voronoi(pts)
+        vor = Voronoi(self.pts)
         self.vor = vor
         self._area_of_cell = numpy.zeros(self.number_of_cells)
         for node in self._node_at_cell:
@@ -234,7 +621,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # "from" and "to" nodes.
         (self._node_at_link_tail,
          self._node_at_link_head,
-         self.active_links_ids,
+         _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
         self._status_at_link = numpy.full(len(self._node_at_link_tail),
@@ -249,7 +636,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._reorient_links_upper_right()
 
         # LINKS: Calculate link lengths
-        self._link_length = calculate_link_lengths(pts, self.node_at_link_tail,
+        self._link_length = calculate_link_lengths(self.pts,
+                                                   self.node_at_link_tail,
                                                    self.node_at_link_head)
 
         # LINKS: inlink and outlink matrices
@@ -265,6 +653,11 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._create_link_unit_vectors()
+
+        # create link x, y:
+        self._create_link_face_coords()
+
+        self._create_neighbors()
 
     @property
     def number_of_patches(self):
@@ -288,38 +681,89 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._create_patches_from_delaunay_diagram(self.pts, self.vor)
             return self._nodes_at_patch
 
-    def patches_at_node(self, nodata=-1):
-        """patches_at_node()
-        (This is a placeholder method until improved using jagged array
-        operations.)
-        Returns a (N,max_voronoi_polygon_sides) array of the patches associated
-        with each node in the grid.
-        The patches are returned in id order, with any null or nonexistent
-        patches recorded after the ids of existing faces.
-        The nodata argument allows control of the array value used to indicate
-        nodata. It defaults to -1, but other options are 'nan' and 'bad_value'.
-        Note that this method returns a *masked* array, with the normal
-        provisos that integer indexing with a masked array removes the mask.
+    @property
+    @return_readonly_id_array
+    def patches_at_node(self):
         """
-        if nodata == -1:
-            # ^fiddle needed to ensure we set the nodata value properly if
-            # we've called patches elsewhere
-            try:
-                return self._patches_at_node
-            except AttributeError:
-                self._create_patches_from_delaunay_diagram(
-                    self.pts, self.vor, nodata)
-                return self._patches_at_node
-        else:
-            try:
-                self.set_bad_value
-            except:
-                self._create_patches_from_delaunay_diagram(
-                    self.pts, self.vor, nodata)
-                self.set_bad_value = True
-                return self._patches_at_node
-            else:
-                return self._patches_at_node
+        Return a (nnodes, max_voronoi_polygon_sides) array of patches at nodes.
+
+        The patches are returned in LL standard order (ccw from E), with any
+        nonexistent patches recorded after the ids of existing faces.
+        Nonexistent patches are ID'ed as -1.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 3)
+        >>> mg.patches_at_node # doctest: +SKIP
+        array([[ 0,  2, -1, -1, -1, -1],
+               [ 1,  3,  0, -1, -1, -1],
+               [ 4,  1, -1, -1, -1, -1],
+               [ 5,  2, -1, -1, -1, -1],
+               [ 6,  8,  5,  2,  0,  3],
+               [ 7,  9,  6,  3,  1,  4],
+               [ 7,  4, -1, -1, -1, -1],
+               [ 5,  8, -1, -1, -1, -1],
+               [ 8,  6,  9, -1, -1, -1],
+               [ 9,  7, -1, -1, -1, -1]])
+        """
+        try:
+            return self._patches_at_node
+        except AttributeError:
+            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            return self._patches_at_node
+
+    @property
+    @return_readonly_id_array
+    def links_at_patch(self):
+        """Returns the links forming each patch.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 2)
+        >>> mg.links_at_patch
+        array([[ 3,  2,  0],
+               [ 5,  1,  2],
+               [ 6,  3,  4],
+               [ 8,  7,  5],
+               [10,  9,  6],
+               [11,  8,  9]])
+        """
+        try:
+            return self._links_at_patch
+        except AttributeError:
+            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            return self._links_at_patch
+
+    @property
+    @return_readonly_id_array
+    def patches_at_link(self):
+        """Returns the patches adjoined to each link.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 2)
+        >>> mg.patches_at_link
+        array([[ 0, -1],
+               [ 1, -1],
+               [ 0,  1],
+               [ 0,  2],
+               [ 2, -1],
+               [ 1,  3],
+               [ 2,  4],
+               [ 3, -1],
+               [ 3,  5],
+               [ 4,  5],
+               [ 4, -1],
+               [ 5, -1]])
+        """
+        try:
+            return self._patches_at_link
+        except AttributeError:
+            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            return self._patches_at_link
 
     def _find_perimeter_nodes_and_BC_set(self, pts):
         """
@@ -537,7 +981,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         ...                 [1.5, 0.87], [0., 1.73], [1., 1.73]])
         >>> from scipy.spatial import Voronoi
         >>> vor = Voronoi(pts)
-        >>> [tn,hn,al,fw] = vdg._create_links_and_faces_from_voronoi_diagram(vor)
+        >>> [tn,hn,al,fw] = vdg._create_links_and_faces_from_voronoi_diagram(
+        ...     vor)
         >>> tn
         array([0, 0, 0, 1, 1, 2, 3, 2, 3, 6, 6, 6])
         >>> hn
@@ -660,28 +1105,40 @@ class VoronoiDelaunayGrid(ModelGrid):
                 flip_locs] = self.node_at_link_head[flip_locs]
             self._node_at_link_head[flip_locs] = fromnode_temp
 
-    def _create_patches_from_delaunay_diagram(self, pts, vor, nodata=-1):
+    def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
         Uses a delaunay diagram drawn from the provided points to
         generate an array of patches and patch-node-link connectivity.
         Returns ...
-        DEJH, 10/3/14
+        DEJH, 10/3/14, modified May 16.
         """
         from scipy.spatial import Delaunay
         tri = Delaunay(pts)
         assert numpy.array_equal(tri.points, vor.points)
-
-        if nodata == -1:
-            pass
-        elif nodata == 'bad_value':
-            nodata = BAD_INDEX_VALUE
-        elif nodata == 'nan':
-            nodata = numpy.nan
-        else:
-            raise ValueError('Do not recognise nodata value!')
-
+        nodata = -1
         self._nodes_at_patch = tri.simplices
+        # self._nodes_at_patch = numpy.empty_like(_nodes_at_patch)
         self._number_of_patches = tri.simplices.shape[0]
+        # get the patches in order:
+        patches_xy = numpy.empty((self._number_of_patches, 2), dtype=float)
+        patches_xy[:, 0] = numpy.mean(self.node_x[self._nodes_at_patch],
+                                      axis=1)
+        patches_xy[:, 1] = numpy.mean(self.node_y[self._nodes_at_patch],
+                                      axis=1)
+        orderforsort = argsort_points_by_x_then_y(patches_xy)
+        self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
+        patches_xy = patches_xy[orderforsort, :]
+        # get the nodes around the patch in order:
+        nodes_xy = numpy.empty((3, 2), dtype=float)
+        for i in range(self._number_of_patches):
+            these_nodes = self._nodes_at_patch[i]
+            nodes_xy[:, 0] = self.node_x[these_nodes]
+            nodes_xy[:, 1] = self.node_y[these_nodes]
+            sortorder = anticlockwise_argsort_points(nodes_xy)
+            try:
+                self._nodes_at_patch[i, :] = these_nodes[sortorder]
+            except TypeError:  # sortorder was an int
+                pass
         max_dimension = 0
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
@@ -693,15 +1150,62 @@ class VoronoiDelaunayGrid(ModelGrid):
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
         for i in range(self.number_of_nodes):
-            if not self.node_is_boundary(i, boundary_flag=4):
-                # ^don't include closed nodes
-                patches_with_node = numpy.argwhere(
-                    numpy.equal(self._nodes_at_patch, i))[:, 0]
-                _patches_at_node[
-                    i, :patches_with_node.size] = patches_with_node[:]
-        # mask it
-        self._patches_at_node = numpy.ma.array(
-            _patches_at_node, mask=numpy.equal(_patches_at_node, -1))
+            patches_with_node = numpy.argwhere(
+                numpy.equal(self._nodes_at_patch, i))[:, 0]
+            _patches_at_node[
+                i, :patches_with_node.size] = patches_with_node[:]
+        self._patches_at_node = _patches_at_node
+        # build the patch-link connectivity:
+        self._links_at_patch = numpy.empty((self._number_of_patches, 3),
+                                           dtype=int)
+        link_coords = numpy.empty((3, 2), dtype=float)
+        for i in range(self._number_of_patches):
+            nodes_on_patch = self._nodes_at_patch[i, :]
+            links_at_patch_nodes = self.links_at_node[nodes_on_patch, :]
+            vals, counts = numpy.unique(links_at_patch_nodes,
+                                        return_counts=True)
+            duplicated_vals = vals[counts == 2]
+            assert duplicated_vals.size in (3, 4), duplicated_vals
+            # if it's 4, contains a -1; strip it
+            links_at_patch = duplicated_vals[-3:]
+            link_coords[:, 0] = self.x_of_link[links_at_patch]
+            link_coords[:, 1] = self.y_of_link[links_at_patch]
+            ordered_links = links_at_patch[anticlockwise_argsort_points(
+                link_coords)]
+            self._links_at_patch[i, :] = ordered_links
+        self._patches_at_link = numpy.empty((self.number_of_links, 2),
+                                            dtype=int)
+        self._patches_at_link.fill(-1)
+        to_sort = numpy.empty((2, 2), dtype=int)
+        for i in range(self.number_of_links):
+            patches_with_link = numpy.where((
+                self._links_at_patch == i).sum(axis=1))[0]
+            if patches_with_link.size == 2:
+# a sort of the links will be performed here once we have corners
+                midpt = (self.x_of_link[i], self.y_of_link[i])
+                # ...
+            self._patches_at_link[
+                i, :patches_with_link.size] = patches_with_link
+        self._patches_created = True
+
+    def _create_neighbors(self):
+        """Create the _neighbors_at_node property.
+        """
+        self._neighbors_at_node = self.links_at_node.copy()
+        nodes_at_link = numpy.empty((self.number_of_links, 2))
+        nodes_at_link[:, 0] = self.node_at_link_tail
+        nodes_at_link[:, 1] = self.node_at_link_head
+        both_nodes = nodes_at_link[self.links_at_node]
+        for i in range(both_nodes.shape[1]):
+            centernottail = numpy.not_equal(both_nodes[:, i, 0], self.nodes)
+            centernothead = numpy.not_equal(both_nodes[:, i, 1], self.nodes)
+            self._neighbors_at_node[centernottail, i] = both_nodes[
+                centernottail, i, 0]
+            self._neighbors_at_node[centernothead, i] = both_nodes[
+                centernothead, i, 1]
+        # restamp the missing links:
+        self._neighbors_at_node[
+            self.links_at_node == BAD_INDEX_VALUE] = BAD_INDEX_VALUE
 
     def save(self, path, clobber=False):
         """Save a grid and fields.

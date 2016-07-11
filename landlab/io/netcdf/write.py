@@ -1,5 +1,15 @@
 #! /usr/bin/env python
-"""Write structured grids to NetCDF files."""
+"""Write structured grids to NetCDF files.
+
+Write netcdf
+++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.io.netcdf.write.write_netcdf
+"""
+
 
 import os
 import warnings

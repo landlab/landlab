@@ -53,18 +53,15 @@ def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_
     return profile_IDs
 
 
-def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_receiver):
-    #defined_flow_receivers = numpy.greater_equal(links_to_flow_receiver,-1)
-    #flow_link_lengths = numpy.empty(len_node_arrays, dtype=float)
-    #flow_link_lengths[defined_flow_receivers] = grid.length_of_link[links_to_flow_receiver[defined_flow_receivers]]
-    # print numpy.sum(defined_flow_receivers)
+def get_distances_upstream(grid, len_node_arrays, profile_IDs,
+                           links_to_flow_receiver):
     distances_upstream = []
     for i in range(len(profile_IDs)):
         data_store = []
         total_distance = 0.
         data_store.append(total_distance)
         for j in range(len(profile_IDs[i]) - 1):
-            total_distance += grid.length_of_link[
+            total_distance += grid._length_of_link_with_diagonals[
                 links_to_flow_receiver[profile_IDs[i][j + 1]]]
             data_store.append(total_distance)
         distances_upstream.append(numpy.array(data_store))
@@ -79,15 +76,15 @@ def plot_profiles(distances_upstream, profile_IDs, elevations):
 
 def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
                                      drainage_area='drainage_area',
-                                     flow_receiver='flow_receiver',
-                                     links_to_flow_receiver='links_to_flow_receiver',
+                                     flow_receiver='flow__receiver_node',
+                                     links_to_flow_receiver='flow__link_to_receiver_node',
                                      number_of_channels=1,
                                      starting_nodes=None,
                                      threshold=None):
     """analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
                                      drainage_area='drainage_area',
-                                     flow_receiver='flow_receiver',
-                                     links_to_flow_receiver='links_to_flow_receiver',
+                                     flow_receiver='flow__receiver_node',
+                                     links_to_flow_receiver='flow__link_to_receiver_node',
                                      number_of_channels=1,
                                      starting_nodes=None,
                                      threshold=None)
