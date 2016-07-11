@@ -47,7 +47,7 @@ Check the units for the fields.
 
 Create an input field.
 
->>> grid['node']['topographic__slope'] = np.random.rand(5,4)
+>>> grid['node']['topographic__slope'] = np.random.rand(grid.number_of_nodes)
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -63,22 +63,22 @@ intent: in
 
 Additional required fields for component.
 
->>> scatter_dat = np.random.random_integers(1, 10, (5,4))
->>> grid['node']['topographic__specific_contributing_area']= \
-         np.sort(np.random.random_integers(30, 900, (5,4)))
->>> grid['node']['soil__transmissivity']= \
-         np.sort(np.random.random_integers(5, 20, (5,4)),-1)
->>> grid['node']['soil__total_cohesion_mode']= \
-         np.sort(np.random.random_integers(30, 900, (5,4)))
->>> grid['node']['soil__total_cohesion_minimum']= \
+>>> scatter_dat = np.random.random_integers(1, 10, grid.number_of_nodes)
+>>> grid['node']['topographic__specific_contributing_area'] = \
+         np.sort(np.random.random_integers(30, 900, grid.number_of_nodes))
+>>> grid['node']['soil__transmissivity'] = \
+         np.sort(np.random.random_integers(5, 20, grid.number_of_nodes), -1)
+>>> grid['node']['soil__total_cohesion_mode'] = \
+         np.sort(np.random.random_integers(30, 900, grid.number_of_nodes))
+>>> grid['node']['soil__total_cohesion_minimum'] = \
          grid.at_node['soil__total_cohesion_mode'] - scatter_dat
->>> grid['node']['soil__total_cohesion_maximum']= \
+>>> grid['node']['soil__total_cohesion_maximum'] = \
          grid.at_node['soil__total_cohesion_mode'] + scatter_dat
->>> grid['node']['soil__internal_friction_angle']= \
-         np.sort(np.random.random_integers(26, 40, (5,4)))
->>> grid['node']['soil__thickness']= \
-         np.sort(np.random.random_integers(1, 10, (5,4)))
->>> grid['node']['soil__density']= \
+>>> grid['node']['soil__internal_friction_angle'] = \
+         np.sort(np.random.random_integers(26, 40, grid.number_of_nodes))
+>>> grid['node']['soil__thickness'] = \
+         np.sort(np.random.random_integers(1, 10, grid.number_of_nodes))
+>>> grid['node']['soil__density'] = \
          2000. * np.ones(grid.number_of_nodes)
 
 Instantiate the 'LandslideProbability' component to work on this grid,
@@ -92,8 +92,17 @@ Run the *update* method to update output variables with grid
 Check the output variable names.
 
 >>> sorted(LS_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-['Relative_Wetness__mean', 'Factor_of_Safety__mean',
- 'Probability_of_failure', 'Factor_of_Safety__distribution']
+['Factor_of_Safety__distribution',
+ 'Factor_of_Safety__mean',
+ 'Probability_of_failure',
+ 'Relative_Wetness__mean']
+
+Assign output to nodes
+
+grid['node']['Relative_Wetness__mean'] = LS_prob.mean_Relative_Wetness
+grid['node']['Factor_of_safety__mean'] = LS_prob.mean_FS
+grid['node']['Probability_of_failure'] = LS_prob.prob_fail
+grid['node']['Factor_of_safety__distribution'] = LS_prob.FS_dist
 
 Check the output from the component.
 
@@ -428,7 +437,7 @@ class LandslideProbability(Component):
                           'topographic__specific_contributing_area'][i],
                 self.grid['node']['topographic__slope'][i],
                 self.grid['node']['soil__transmissivity'][i],
-                self.grid['node']['soil__total_cohesion'][i],
+                self.grid['node']['soil__total_cohesion_mode'][i],
                 self.grid['node']['soil__total_cohesion_minimum'][i],
                 self.grid['node']['soil__total_cohesion_maximum'][i],
                 self.grid['node']['soil__internal_friction_angle'][i],
