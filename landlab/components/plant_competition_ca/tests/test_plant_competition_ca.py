@@ -34,18 +34,15 @@ def test_name():
 
 @with_setup(setup_grid)
 def test_input_var_names():
-    assert_equal(ca_veg.input_var_names,
-                 ('radiation__ratio_to_flat_surface',))
+    assert_equal(sorted(ca_veg.input_var_names),
+                 ['soil_moisture__cumulative_water_stress',
+                  'vegetation__plant_functional_type'])
 
 
 @with_setup(setup_grid)
 def test_output_var_names():
     assert_equal(sorted(ca_veg.output_var_names),
-                 ['radiation__incoming_shortwave',
-                  'radiation__net',
-                  'radiation__net_longwave',
-                  'radiation__net_shortwave',
-                  'surface__potential_evapotranspiration_rate'])
+                 ['plant__age', 'plant__live_index'])
 
 
 @with_setup(setup_grid)
@@ -54,13 +51,12 @@ def test_var_units():
                  set(ca_veg.output_var_names),
                  set(dict(ca_veg.units).keys()))
 
-    assert_equal(ca_veg.var_units('radiation__incoming_shortwave'), 'W/m^2')
-    assert_equal(ca_veg.var_units('radiation__net'), 'W/m^2')
-    assert_equal(ca_veg.var_units('radiation__net_longwave'), 'W/m^2')
-    assert_equal(ca_veg.var_units('radiation__net_shortwave'), 'W/m^2')
-    assert_equal(ca_veg.var_units('radiation__ratio_to_flat_surface'), 'None')
-    assert_equal(ca_veg.var_units('surface__potential_evapotranspiration_rate'),
-                 'mm')
+    assert_equal(ca_veg.var_units('soil_moisture__cumulative_water_stress'),
+                 'None')
+    assert_equal(ca_veg.var_units('vegetation__plant_functional_type'),
+                 'None')
+    assert_equal(ca_veg.var_units('plant__live_index'), 'None')
+    assert_equal(ca_veg.var_units('plant__age'), 'Years')
 
 
 @with_setup(setup_grid)
