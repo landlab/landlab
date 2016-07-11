@@ -18,7 +18,7 @@ Last edit July 7, 2016
 Examples
 ----------
 >>> from landlab import RasterModelGrid
->>> from landlab.components import LandslideProbability
+>>> from landlab.components.landslides import LandslideProbability
 >>> import numpy as np
 
 Create a grid on which to calculate landslide probability.
@@ -29,18 +29,21 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> LandslideProbabiity.input_var_names
-('number_of_simulations', 'topographic__specific_contributing_area',
- 'topographic__slope', 'soil__transmissivity', 'soil__total_cohesion_mode',
- 'soil__total_cohesion_minimum', 'soil__total_cohesion_maximum',
- 'soil__internal_friction_angle', 'soil__density',
- 'soil__thickness', 'groundwater__recharge_minimum',
-  'groundwater__recharge_maximum')
+>>> LandslideProbability.input_var_names
+('topographic__specific_contributing_area',
+ 'topographic__slope',
+ 'soil__transmissivity',
+ 'soil__total_cohesion_mode',
+ 'soil__total_cohesion_minimum',
+ 'soil__total_cohesion_maximum',
+ 'soil__internal_friction_angle',
+ 'soil__density',
+ 'soil__thickness')
 
 Check the units for the fields.
 
->>> LandslideProbability.var_units('groundwater__recharge_minimum')
-    'mm/day'
+>>> LandslideProbability.var_units('topographic__specific_contributing_area')
+    'm'
 
 Create the input fields.
 
@@ -50,9 +53,11 @@ If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
 >>> LandslideProbability.var_help('soil__transmissivity')
+LandslideProbability.var_help('soil__transmissivity')
 name: soil__transmissivity
 description:
-  mode rate of water transmitted through a unit width of saturated soil
+  mode rate of water transmitted        through a unit width of
+  saturated soil
 units: m2/day
 at: node
 intent: in
@@ -148,7 +153,7 @@ class LandslideProbability(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import LandslideProbability
+    >>> from landlab.components.landslides import LandslideProbability
     >>> import numpy as np
 
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
@@ -273,8 +278,10 @@ class LandslideProbability(Component):
 
 # short description of each field
     _var_doc = {
-        'topographic__specific_contributing_area': 'specific contributing area\
-        (upslope area/cell face length) that drains to node',
+        'topographic__specific_contributing_area':
+            ('specific contributing' +
+             ' (upslope area/cell face )' +
+             ' that drains to node'),
         'topographic__slope':
         'slope of surface at node represented by tan theta',
         'soil__transmissivity': 'mode rate of water transmitted\
@@ -304,6 +311,7 @@ class LandslideProbability(Component):
     def __init__(self, grid, method='Grid', number_of_simulations=1000.,
                  groundwater__recharge_minimum=20.,
                  groundwater__recharge_maximum=120., **kwds):
+        self._grid = grid        
         self.n = number_of_simulations
         self.a = self.grid['node']['topographic__specific_contributing_area']
         self.theta = self.grid['node']['topographic__slope ']
@@ -332,6 +340,8 @@ class LandslideProbability(Component):
             Minimum annual maximum recharge (mm/d).
         groundwater__recharge_maximum: float, optional
             Maximum annual maximum rechage (mm/d).
+        g: float, optional
+            acceleration due to gravity (m/sec^2).
         """
         self._method = kwds.pop('method', 'Grid')  # NEED???
 
@@ -348,6 +358,10 @@ class LandslideProbability(Component):
                 self.grid.add_zeros('node', name, units=self._var_units[name])
 
         self._nodal_values = self.grid['node']
+
+        # Raise an error if somehow someone is using this weird functionality
+        if self._grid is None:
+            raise ValueError('You must now provide an existing grid!')
 
     def calculate_factor_of_safety(self):
         # generate distributions to sample from to provide input parameters
@@ -415,7 +429,8 @@ class LandslideProbability(Component):
         for i in self.grid.core_nodes:
             self.calculate_factor_of_safety(
                 self.n,
-                self.grid['node']['topographic__specific_contributing_area'][i],
+                self.grid['node'][
+                          'topographic__specific_contributing_area'][i],
                 self.grid['node']['topographic__slope'][i],
                 self.grid['node']['soil__transmissivity'][i],
                 self.grid['node']['soil__total_cohesion'][i],
