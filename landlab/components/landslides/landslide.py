@@ -315,7 +315,7 @@ class LandslideProbability(Component):
         self._grid = grid
         self.n = number_of_simulations
         self.a = self.grid['node']['topographic__specific_contributing_area']
-        self.theta = self.grid['node']['topographic__slope ']
+        self.theta = self.grid['node']['topographic__slope']
         self.Tmode = self.grid['node']['soil__transmissivity']
         self.Cmode = self.grid['node']['soil__total_cohesion_mode']
         self.Cmin = self.grid['node']['soil__total_cohesion_minimum']
