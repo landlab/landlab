@@ -313,7 +313,7 @@ class LandslideProbability(Component):
 
 # Run Component
     @use_file_name_or_kwds
-    def __init__(self, grid, method='Grid', number_of_simulations=1000.,
+    def __init__(self, grid, number_of_simulations=1000.,
                  groundwater__recharge_minimum=20.,
                  groundwater__recharge_maximum=120., **kwds):
         self._grid = grid        
