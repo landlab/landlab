@@ -55,8 +55,8 @@ get help for specific variables.
 >>> LandslideProbability.var_help('soil__transmissivity')
 name: soil__transmissivity
 description:
-  mode rate of water transmitted        through a unit width of
-  saturated soil
+  mode rate of water transmitted through a unit width of
+saturated soil
 units: m2/day
 at: node
 intent: in
@@ -66,7 +66,7 @@ Additional required fields for component.
 >>> scatter_dat = np.random.random_integers(1, 10, (5,4))
 >>> grid['node']['topographic__specific_contributing_area']= \
          np.sort(np.random.random_integers(30, 900, (5,4)))
->>> grid['node']['soil_transmissivity']= \
+>>> grid['node']['soil__transmissivity']= \
          np.sort(np.random.random_integers(5, 20, (5,4)),-1)
 >>> grid['node']['soil__total_cohesion_mode']= \
          np.sort(np.random.random_integers(30, 900, (5,4)))
@@ -85,6 +85,9 @@ Instantiate the 'LandslideProbability' component to work on this grid,
 and run it.
 
 >>> LS_prob = LandslideProbability(grid)
+
+Run the *update* method to update output variables with grid
+>>> LS_prob.update(grid)
 
 Check the output variable names.
 
@@ -105,12 +108,6 @@ from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
-_VALID_METHODS = set(['Grid', 'Multi'])
-
-
-def assert_method_is_valid(method):
-    if method not in _VALID_METHODS:
-        raise ValueError('%s: Invalid method name' % method)
 
 # %% Instantiate Object
 
@@ -130,16 +127,14 @@ class LandslideProbability(Component):
     mean soil relative wetness, mean factor-of-safety, and probabilty
     of failure at each node.
 
-    Construction:: # NEED do I need the "method = 'Grid'???
-        LandslideProbability(grid, method='Grid', number_of_simulations"=250,
+    Construction::
+        LandslideProbability(grid, number_of_simulations"=250,
         rechare_minimum=5., groundwater__recharge_maximum=120.)
 
     Parameters
     ----------
     grid: RasterModelGrid
         A grid.
-    method: {'Grid'}, optional
-        Currently, only default is available.
     number_of_simulations: float, optional
         Number of simulations to run Monte Carlo.
     groundwater__recharge_minimum: float, optional
@@ -197,7 +192,7 @@ class LandslideProbability(Component):
     >>> scatter_dat = np.random.random_integers(1, 10, (5,4))
     >>> grid['node']['topographic__specific_contributing_area']= \
              np.sort(np.random.random_integers(30, 900, (5,4)))
-    >>> grid['node']['soil_transmissivity']= \
+    >>> grid['node']['soil__transmissivity']= \
              np.sort(np.random.random_integers(5, 20, (5,4)),-1)
     >>> grid['node']['soil__total_cohesion_mode']= \
              np.sort(np.random.random_integers(30, 900, (5,4)))
@@ -213,6 +208,7 @@ class LandslideProbability(Component):
              2000. * np.ones(grid.number_of_nodes)
 
     >>> LS_prob = LandslideProbability(grid)
+    >>> LS_prob.update(grid)
     >>> np.all(grid.at_node['Probability_of_failure'] == 0.)
     False
     """
@@ -284,7 +280,7 @@ class LandslideProbability(Component):
         'slope of surface at node represented by tan theta',
         'soil__transmissivity':
             ('mode rate of water transmitted' +
-             'through a unit width of saturated soil'),
+             ' through a unit width of saturated soil'),
         'soil__total_cohesion_mode':
         'mode of combined root and soil cohesion at node',
         'soil__total_cohesion_minimum':
@@ -293,22 +289,22 @@ class LandslideProbability(Component):
         'maximum of combined root and soil cohesion at node',
         'soil__internal_friction_angle':
             ('critical angle just before failure' +
-             'due to friction between particles'),
+             ' due to friction between particles'),
         'soil__density': 'wet bulk density of soil',
         'soil__thickness': 'soil depth to restrictive layer',
         'Relative_Wetness__mean':
             ('Indicator of soil wetness;' +
-             'relative depth perched water table' +
-             'within the soil layer'),
+             ' relative depth perched water table' +
+             ' within the soil layer'),
         'Factor_of_Safety__mean':
             ('(FS) dimensionless index of stability' +
-             'based on infinite slope stabiliity model'),
+             ' based on infinite slope stabiliity model'),
         'Probability_of_failure':
             ('number of times FS is <1 out of number of' +
-             'interations user selected'),
+             ' interations user selected'),
         'Factor_of_Safety__distribution':
             ('distribution of factor of safety' +
-             'from Monte Carlo simulations'),
+             ' from Monte Carlo simulations'),
         }
 
 # Run Component
@@ -316,7 +312,7 @@ class LandslideProbability(Component):
     def __init__(self, grid, number_of_simulations=1000.,
                  groundwater__recharge_minimum=20.,
                  groundwater__recharge_maximum=120., **kwds):
-        self._grid = grid        
+        self._grid = grid
         self.n = number_of_simulations
         self.a = self.grid['node']['topographic__specific_contributing_area']
         self.theta = self.grid['node']['topographic__slope ']
@@ -330,15 +326,12 @@ class LandslideProbability(Component):
         self.recharge_min = groundwater__recharge_minimum
         self.recharge_max = groundwater__recharge_maximum
         self.g = 9.81
-        self.update()
 
         """
         Parameters
         ----------
         grid: RasterModelGrid
             A grid.
-        method : {'Grid'}, optional
-            Currently, only default is available.
         number_of_simulations: int, optional
             number of simulations to run Monte Carlo (None)
         groundwater__recharge_minimum: float, optional
@@ -348,9 +341,6 @@ class LandslideProbability(Component):
         g: float, optional
             acceleration due to gravity (m/sec^2).
         """
-        self._method = kwds.pop('method', 'Grid')  # NEED???
-
-        assert_method_is_valid(self._method)
 
         super(LandslideProbability, self).__init__(grid)
 
