@@ -101,19 +101,11 @@ def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        DTYPE_INT_t new_link_state,
                        node_pair):
 
-    # Remember the previous state of each node so we can detect whether the
-    # state has changed
-    old_tail_node_state = node_state[tail_node]
-    old_head_node_state = node_state[head_node]
-
     # Change to the new states
     if status_at_node[tail_node] == _CORE:
         node_state[tail_node] = node_pair[new_link_state][0]
     if status_at_node[head_node] == _CORE:
         node_state[head_node] = node_pair[new_link_state][1]
-
-    return node_state[tail_node] != old_tail_node_state, \
-           node_state[head_node] != old_head_node_state
 
 
 @cython.boundscheck(False)
@@ -322,9 +314,14 @@ def do_transition(event,
 
         tail_node = node_at_link_tail[event.link]
         head_node = node_at_link_head[event.link]
-        tail_changed, head_changed = update_node_states(
-                node_state, status_at_node, tail_node,
-                head_node, event.xn_to, node_pair)
+
+        # Remember the previous state of each node so we can detect whether the
+        # state has changed
+        old_tail_node_state = node_state[tail_node]
+        old_head_node_state = node_state[head_node]
+
+        update_node_states(node_state, status_at_node, tail_node,
+                           head_node, event.xn_to, node_pair)
         update_link_state(event.link, event.xn_to, event.time,
                           bnd_lnk, node_state,
                           node_at_link_tail,
@@ -338,7 +335,7 @@ def do_transition(event,
         # Next, when the state of one of the link's nodes changes, we have
         # to update the states of the OTHER links attached to it. This
         # could happen to one or both nodes.
-        if tail_changed:
+        if node_state[tail_node] != old_tail_node_state:
 
             for i in range(links_at_node.shape[1]):
 
@@ -367,7 +364,7 @@ def do_transition(event,
                                       next_update, xn_to, xn_rate,
                                       xn_propswap, xn_prop_update_fn)
 
-        if head_changed:
+        if node_state[head_node] != old_head_node_state:
 
             for i in range(links_at_node.shape[1]):
 
