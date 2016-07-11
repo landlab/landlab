@@ -358,10 +358,11 @@ class LandslideProbability(Component):
         if self._grid is None:
             raise ValueError('You must now provide an existing grid!')
 
-    def calculate_factor_of_safety(self,i):
+    def calculate_factor_of_safety(self, i):
         # generate distributions to sample from to provide input parameters
         # currently triangle distribution using mode, min, & max
-        self.a = self.grid['node']['topographic__specific_contributing_area'][i]
+        self.a = self.grid['node'][
+            'topographic__specific_contributing_area'][i]
         self.theta = self.grid['node']['topographic__slope'][i]
         self.Tmode = self.grid['node']['soil__transmissivity'][i]
         self.Cmode = self.grid['node']['soil__total_cohesion_mode'][i]
@@ -408,6 +409,7 @@ class LandslideProbability(Component):
             np.cos(np.arctan(self.theta)) *
             (self.Y/np.sin(np.arctan(self.theta))))
         self.FS_store = np.array(self.FS)        # array of factor of safety
+        self.Factor_of_Safety__distribution = self.FS_store
         self.Factor_of_Safety__mean = np.mean(self.FS)
         count = 0
         for val in self.FS:                   # find how many FS values <= 1
@@ -416,7 +418,6 @@ class LandslideProbability(Component):
         self.FS_L1 = float(count)     # number with unstable FS values (<=1)
         # probability: No. unstable values/total No. of values (n)
         self.Probability_of_failure = self.FS_L1/self.n
-        self.Factor_of_Safety__distribution = self.FS_store
 
     def update(self, **kwds):
 
@@ -444,7 +445,6 @@ class LandslideProbability(Component):
         self.mean_FS[self.mean_FS < 0.] = 0.       # can't be negative
         self.mean_FS[self.mean_FS == np.inf] = 0.  # to deal with NaN in data
         self.prob_fail[self.prob_fail < 0.] = 0.   # can't be negative
-        self.FS_dist[self.FS_dist < 0.] = 0.     # can't be negative
         self.grid['node']['Relative_Wetness__mean'] =\
             self.mean_Relative_Wetness
         self.grid['node']['Factor_of_Safety__mean'] = self.mean_FS
