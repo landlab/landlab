@@ -6,8 +6,9 @@ establishment and mortality. In the current code, tree, grass and
 shrubs are used.
  
 Ref: Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
-ecohydrological role of aspect‐controlled radiation on tree‐grass‐shrub
-coexistence in a semiarid climate. Water Resources Research, 49(5), 2872-2895.
+ecohydrological role of aspect controlled radiation on tree grass shrub
+coexistence in a semiarid climate. Water Resources Research,
+49(5), 2872-2895.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
@@ -23,9 +24,9 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> VegCA.input_var_names
-('soil_moisture__cumulative_water_stress',
- 'vegetation__plant_functional_type')
+>>> sorted(VegCA.input_var_names)
+['soil_moisture__cumulative_water_stress',
+'vegetation__plant_functional_type']
 
 Check the units for the fields.
 
@@ -144,7 +145,7 @@ class VegCA(Component):
     >>> from landlab.components import VegCA
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     >>> VegCA.name
-    'VegCA'
+    'Cellular Automata Plant Competition'
     >>> sorted(VegCA.output_var_names)
     ['plant__age', 'plant__live_index']
     >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
@@ -169,7 +170,7 @@ class VegCA(Component):
     >>> np.alltrue(grid['cell']['plant__age'] == A)
     False 
     """
-    _name = 'VegCA'
+    _name = 'Cellular Automata Plant Competition'
 
     _input_var_names = (
         'soil_moisture__cumulative_water_stress',

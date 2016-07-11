@@ -1,6 +1,6 @@
 """
 Unit tests for \
-    landlab.components.single_vegetation.vegetation_multi_pft_new
+    landlab.components.vegetation_dynamics.vegetation_dynamics
 """
 from nose.tools import assert_equal, assert_true, assert_raises, with_setup
 from numpy.testing import assert_array_almost_equal
@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.single_vegetation.vegetation_multi_pft_new \
+from landlab.components.vegetation_dynamics.vegetation_dynamics \
              import Vegetation
 
 

@@ -12,14 +12,14 @@ from .pet import PotentialEvapotranspiration
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .radiation import Radiation
 from .sed_trp_shallow_flow import SurfaceFlowTransport
-from .single_vegetation import Vegetation
+from .vegetation_dynamics import Vegetation
 from .sink_fill import SinkFiller
 from .soil_moisture import SoilMoisture
 from .steepness_index import SteepnessFinder
 from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
 from .transport_limited_fluvial import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
-from .vegetation_ca import VegCA
+from .plant_competition_ca import VegCA
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,

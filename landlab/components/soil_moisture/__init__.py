@@ -1,4 +1,4 @@
-from .soil_moisture_multi_pft_precip_field import SoilMoisture
+from .soil_moisture_dynamics import SoilMoisture
 
 
 __all__ = ['SoilMoisture', ]

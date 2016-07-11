@@ -1,6 +1,6 @@
 """
 Unit tests for \
-    landlab.components.soil_moisture.soil_moisture_multi_pft_precip_field
+    landlab.components.soil_moisture.soil_moisture_dynamics
 """
 from nose.tools import assert_equal, assert_true, assert_raises, with_setup
 from numpy.testing import assert_array_almost_equal
@@ -11,7 +11,7 @@ except ImportError:
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.soil_moisture.soil_moisture_multi_pft_precip_field \
+from landlab.components.soil_moisture.soil_moisture_dynamics \
              import SoilMoisture
 
 

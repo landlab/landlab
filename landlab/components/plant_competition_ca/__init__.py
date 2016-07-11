@@ -1,5 +1,5 @@
 
-from landlab.components.vegetation_ca.CA_Veg_new import VegCA
+from landlab.components.plant_competition_ca.plant_competition_ca import VegCA
 
 
 __all__ = ['VegCA']
