@@ -344,15 +344,15 @@ class LandslideProbability(Component):
 
         super(LandslideProbability, self).__init__(grid)
 
-        for name in self._input_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros('node', name, units=self._var_units[name])
-
-        for name in self._output_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros('node', name, units=self._var_units[name])
-
-        self._nodal_values = self.grid['node']
+#        for name in self._input_var_names:
+#            if name not in self.grid.at_node:
+#                self.grid.add_zeros('node', name, units=self._var_units[name])
+#
+#        for name in self._output_var_names:
+#            if name not in self.grid.at_node:
+#                self.grid.add_zeros('node', name, units=self._var_units[name])
+#
+#        self._nodal_values = self.grid['node']
 
         # Raise an error if somehow someone is using this weird functionality
         if self._grid is None:
