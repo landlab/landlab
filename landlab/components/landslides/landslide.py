@@ -53,7 +53,6 @@ If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
 >>> LandslideProbability.var_help('soil__transmissivity')
-LandslideProbability.var_help('soil__transmissivity')
 name: soil__transmissivity
 description:
   mode rate of water transmitted        through a unit width of
@@ -279,31 +278,37 @@ class LandslideProbability(Component):
 # short description of each field
     _var_doc = {
         'topographic__specific_contributing_area':
-            ('specific contributing' +
-             ' (upslope area/cell face )' +
+            ('specific contributing (upslope area/cell face )' +
              ' that drains to node'),
         'topographic__slope':
         'slope of surface at node represented by tan theta',
-        'soil__transmissivity': 'mode rate of water transmitted\
-        through a unit width of saturated soil',
-        'soil__total_cohesion_mode': 'mode combined root and soil\
-        cohesion at node',
-        'soil__total_cohesion_minimum': 'minimum combined root and soil\
-        cohesion at node',
-        'soil__total_cohesion_maximum': 'maximum combined root and soil\
-        cohesion at node',
-        'soil__internal_friction_angle': 'critical angle just before\
-        failure due to friction between particles',
+        'soil__transmissivity':
+            ('mode rate of water transmitted' +
+             'through a unit width of saturated soil'),
+        'soil__total_cohesion_mode':
+        'mode of combined root and soil cohesion at node',
+        'soil__total_cohesion_minimum':
+        'minimum of combined root and soil cohesion at node',
+        'soil__total_cohesion_maximum':
+        'maximum of combined root and soil cohesion at node',
+        'soil__internal_friction_angle':
+            ('critical angle just before failure' +
+             'due to friction between particles'),
         'soil__density': 'wet bulk density of soil',
         'soil__thickness': 'soil depth to restrictive layer',
-        'Relative_Wetness__mean': 'Indicator of soil wetness; relative depth\
-        perched water table within the soil layer',
-        'Factor_of_Safety__mean': '(FS) dimensionless index of stability\
-        based on infinite slope stabiliity model',
-        'Probability_of_failure': 'number of times FS is <1 out of number of\
-        interations user selected',
-        'Factor_of_Safety__distribution': 'distribution of factor of safety\
-        from Monte Carlo simulations',
+        'Relative_Wetness__mean':
+            ('Indicator of soil wetness;' +
+             'relative depth perched water table' +
+             'within the soil layer'),
+        'Factor_of_Safety__mean':
+            ('(FS) dimensionless index of stability' +
+             'based on infinite slope stabiliity model'),
+        'Probability_of_failure':
+            ('number of times FS is <1 out of number of' +
+             'interations user selected'),
+        'Factor_of_Safety__distribution':
+            ('distribution of factor of safety' +
+             'from Monte Carlo simulations'),
         }
 
 # Run Component
