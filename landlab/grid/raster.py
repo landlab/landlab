@@ -4084,36 +4084,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             data[ncols * i + offset:ncols *
                  (i + 1) - offset] = top_rows_to_move[i, :]
 
-    @property
-    @return_readonly_id_array
-    def active_neighbors_at_node(self):
-        """Get list of neighbor node IDs.
-
-        Return lists of neighbor nodes, where the neighbor is connected by an
-        active link.vFor each node, the list gives neighbor ids as [right, top,
-        left, bottom]. Nodes at the end of active links or nodes in missing
-        positions get BAD_INDEX_VALUE.
-
-        Examples
-        --------
-        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> np.array_equal(rmg.active_neighbors_at_node[[-1, 6, 2]],
-        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
-        True
-        >>> rmg.active_neighbors_at_node[7]
-        array([ 8, 12,  6,  2])
-        >>> rmg.active_neighbors_at_node[2]
-        array([-1,  7, -1, -1])
-        """
-        try:
-            return self._active_neighbor_nodes
-        except AttributeError:
-            self._active_neighbor_nodes = self._create_neighbor_list(
-                bad_index=-1)
-            return self._active_neighbor_nodes
-
     @deprecated(use='active_neighbors_at_node', version=1.0)
     def get_active_neighbors_at_node(self, *args, **kwds):
         """active_neighbors_at_node([ids], bad_index=BAD_INDEX_VALUE)
