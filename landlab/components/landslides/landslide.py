@@ -48,7 +48,7 @@ class property.
 Check the units for the fields.
 
 >>> LandslideProbability.var_units('topographic__specific_contributing_area')
-    'm'
+'m'
 
 Create an input field.
 
@@ -104,12 +104,10 @@ Check the output variable names.
 
 Check the output from the component.
 
->>> grid['node']['Relative_Wetness__mean']
->>> grid['node']['Factor_of_Safety__mean']
->>> grid['node']['Probability_of_failure]
-
-Check the factor of safety distribution at node number 6
->>> LS_prob.Factor_of_Safety__distribution[6]
+>>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
+False
+>>> isinstance(LS_prob.Factor_of_Safety__distribution[6],ndarray)==True
+True
 """
 
 # %% Import Libraries
@@ -198,7 +196,7 @@ class LandslideProbability(Component):
     4
     >>> LS_prob.grid is grid
     True
-    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==TRUE
+    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
     True
     >>> grid['node']['topographic__slope'] = \
         np.random.rand(grid.number_of_nodes)
@@ -222,7 +220,7 @@ class LandslideProbability(Component):
 
     >>> LS_prob = LandslideProbability(grid)
     >>> LS_prob.update(grid)
-    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==TRUE
+    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
     False
     """
 
@@ -375,6 +373,14 @@ class LandslideProbability(Component):
         self.phi_mode = self.grid['node']['soil__internal_friction_angle'][i]
         self.rho = self.grid['node']['soil__density'][i]
         self.hs_mode = self.grid['node']['soil__thickness'][i]
+
+        """
+        Parameters
+        ----------
+        i: int, optional
+            index for node.
+        """
+
         # Transmissivity (T)
         Tmin = self.Tmode-(0.3*self.Tmode)
         Tmax = self.Tmode+(0.3*self.Tmode)
