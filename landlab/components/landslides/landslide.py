@@ -34,16 +34,16 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> LandslideProbability.input_var_names
-('topographic__specific_contributing_area',
- 'topographic__slope',
- 'soil__transmissivity',
- 'soil__total_cohesion_mode',
- 'soil__total_cohesion_minimum',
- 'soil__total_cohesion_maximum',
+>>> sorted(LandslideProbability.input_var_names)
+['soil__density',
  'soil__internal_friction_angle',
- 'soil__density',
- 'soil__thickness')
+ 'soil__thickness',
+ 'soil__total_cohesion_maximum',
+ 'soil__total_cohesion_minimum',
+ 'soil__total_cohesion_mode',
+ 'soil__transmissivity',
+ 'topographic__slope',
+ 'topographic__specific_contributing_area']
 
 Check the units for the fields.
 

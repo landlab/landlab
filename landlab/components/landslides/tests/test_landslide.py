@@ -36,15 +36,15 @@ def test_name():
 @with_setup(setup_grid)
 def test_input_var_names():
     assert_equal(sorted(LS_prob.input_var_names),
-                 ['topographic__specific_contributing_area',
-                  'topographic__slope',
-                  'soil__transmissivity',
-                  'soil__total_cohesion_mode',
-                  'soil__total_cohesion_minimum',
-                  'soil__total_cohesion_maximum',
+                 ['soil__density',
                   'soil__internal_friction_angle',
-                  'soil__density',
-                  'soil__thickness'])
+                  'soil__thickness',
+                  'soil__total_cohesion_maximum',
+                  'soil__total_cohesion_minimum',
+                  'soil__total_cohesion_mode',
+                  'soil__transmissivity',
+                  'topographic__slope',
+                  'topographic__specific_contributing_area'])
 
 
 @with_setup(setup_grid)
