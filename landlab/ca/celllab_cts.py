@@ -578,7 +578,7 @@ class CellLabCTSModel(object):
                         (tail_state, head_state, orientation))
                     k += 1
 
-        if True: #False and _DEBUG:
+        if False and _DEBUG:
             print()
             print('create_link_state_dict_and_pair_list(): dict is:')
             print((self.link_state_dict))

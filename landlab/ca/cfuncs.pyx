@@ -150,6 +150,7 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     current state.
     """
     cdef int my_xn_to
+    cdef int i
     cdef bint propswap
     cdef double next_time, this_next
 
@@ -160,16 +161,14 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     if n_xn[current_state] == 1:
         my_xn_to = xn_to[current_state][0]
         propswap = xn_propswap[current_state][0]
-        next_time = np.random.exponential(
-            1.0 / xn_rate[current_state][0])
+        next_time = np.random.exponential(1.0 / xn_rate[current_state][0])
         prop_update_fn = xn_prop_update_fn[current_state][0]
     else:
         next_time = _NEVER
         my_xn_to = 0
         propswap = False
         for i in range(n_xn[current_state]):
-            this_next = np.random.exponential(
-                1.0 / xn_rate[current_state][i])
+            this_next = np.random.exponential(1.0 / xn_rate[current_state][i])
             if this_next < next_time:
                 next_time = this_next
                 my_xn_to = xn_to[current_state][i]
@@ -221,6 +220,7 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         Current time in simulation
     """
     cdef int fns, tns
+    cdef int orientation
 
     if _DEBUG:
         print('update_link_state() link ' + str(link) + ' to state ' + str(new_link_state))
