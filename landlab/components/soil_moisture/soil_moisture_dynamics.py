@@ -374,43 +374,47 @@ class SoilMoisture(Component):
 
         super(SoilMoisture, self).__init__(grid)
 
-        self.initialize(runon=runon, f_bare=f_bare,soil_ew=soil_ew,
-            intercept_cap_grass=intercept_cap_grass,
-            zr_grass=zr_grass, I_B_grass=I_B_grass, I_V_grass=I_V_grass,
-            pc_grass=pc_grass, fc_grass=fc_grass, sc_grass=sc_grass,
-            wp_grass=wp_grass, hgw_grass=hgw_grass, beta_grass=beta_grass,
-            LAI_max_grass=LAI_max_grass, LAIR_max_grass=LAIR_max_grass,
-            intercept_cap_shrub=intercept_cap_shrub, zr_shrub=zr_shrub,
-            I_B_shrub=I_B_shrub, I_V_shrub=I_V_shrub, pc_shrub=pc_shrub,
-            fc_shrub=fc_shrub, sc_shrub=sc_shrub, wp_shrub=wp_shrub,
-            hgw_shrub=hgw_shrub, beta_shrub=beta_shrub,
-            LAI_max_shrub=LAI_max_shrub, LAIR_max_shrub=LAIR_max_shrub,
-            intercept_cap_tree=intercept_cap_tree, zr_tree=zr_tree,
-            I_B_tree=I_B_tree, I_V_tree=I_V_tree, pc_tree=pc_tree,
-            fc_tree=fc_tree, sc_tree=sc_tree, wp_tree=wp_tree,
-            hgw_tree=hgw_tree, beta_tree=beta_tree,
-            LAI_max_tree=LAI_max_tree, LAIR_max_tree=LAIR_max_tree,
-            intercept_cap_bare=intercept_cap_bare, zr_bare=zr_bare,
-            I_B_bare=I_B_bare, I_V_bare=I_V_bare, pc_bare=pc_bare,
-            fc_bare=fc_bare, sc_bare=sc_bare, wp_bare=wp_bare,
-            hgw_bare=hgw_bare, beta_bare=beta_bare,
-            LAI_max_bare=LAI_max_bare, LAIR_max_bare=LAIR_max_bare, **kwds)
+        self.initialize(runon=runon, f_bare=f_bare, soil_ew=soil_ew,
+                        intercept_cap_grass=intercept_cap_grass,
+                        zr_grass=zr_grass, I_B_grass=I_B_grass,
+                        I_V_grass=I_V_grass, pc_grass=pc_grass,
+                        fc_grass=fc_grass, sc_grass=sc_grass,
+                        wp_grass=wp_grass, hgw_grass=hgw_grass,
+                        beta_grass=beta_grass, LAI_max_grass=LAI_max_grass,
+                        LAIR_max_grass=LAIR_max_grass,
+                        intercept_cap_shrub=intercept_cap_shrub,
+                        zr_shrub=zr_shrub, I_B_shrub=I_B_shrub,
+                        I_V_shrub=I_V_shrub, pc_shrub=pc_shrub,
+                        fc_shrub=fc_shrub, sc_shrub=sc_shrub,
+                        wp_shrub=wp_shrub, hgw_shrub=hgw_shrub,
+                        beta_shrub=beta_shrub, LAI_max_shrub=LAI_max_shrub,
+                        LAIR_max_shrub=LAIR_max_shrub,
+                        intercept_cap_tree=intercept_cap_tree, zr_tree=zr_tree,
+                        I_B_tree=I_B_tree, I_V_tree=I_V_tree, pc_tree=pc_tree,
+                        fc_tree=fc_tree, sc_tree=sc_tree, wp_tree=wp_tree,
+                        hgw_tree=hgw_tree, beta_tree=beta_tree,
+                        LAI_max_tree=LAI_max_tree, LAIR_max_tree=LAIR_max_tree,
+                        intercept_cap_bare=intercept_cap_bare, zr_bare=zr_bare,
+                        I_B_bare=I_B_bare, I_V_bare=I_V_bare, pc_bare=pc_bare,
+                        fc_bare=fc_bare, sc_bare=sc_bare, wp_bare=wp_bare,
+                        hgw_bare=hgw_bare, beta_bare=beta_bare,
+                        LAI_max_bare=LAI_max_bare,
+                        LAIR_max_bare=LAIR_max_bare, **kwds)
 
         for name in self._input_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if not name in self.grid.at_cell:
+            if name not in self.grid.at_cell:
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._nodal_values = self.grid['node']
 
         self._cell_values = self.grid['cell']
 
-
     def initialize(self, runon=0., f_bare=0.7, soil_ew=0.1,
-                   intercept_cap_grass= 1., zr_grass=0.3, I_B_grass=20.,
+                   intercept_cap_grass=1., zr_grass=0.3, I_B_grass=20.,
                    I_V_grass=24., pc_grass=0.43, fc_grass=0.56, sc_grass=0.33,
                    wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
                    LAI_max_grass=2., LAIR_max_grass=2.88,
@@ -471,50 +475,48 @@ class SoilMoisture(Component):
         self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
         self._runon = runon
         self._fbare = f_bare
-        self._interception_cap = np.choose(self._vegtype,
-            [intercept_cap_grass, intercept_cap_shrub, intercept_cap_tree,
+        self._interception_cap = np.choose(self._vegtype, [
+             intercept_cap_grass, intercept_cap_shrub, intercept_cap_tree,
              intercept_cap_bare, intercept_cap_shrub, intercept_cap_tree])
-             # Full canopy interception (mm)
-        self._zr = np.choose(self._vegtype,
-            [zr_grass, zr_shrub, zr_tree, zr_bare, zr_shrub, zr_tree])
-            # Root depth (m)
-        self._soil_Ib = np.choose(self._vegtype,
-            [I_B_grass, I_B_shrub, I_B_tree, I_B_bare, I_B_shrub, I_B_tree])
-            # Infiltration capacity of bare soil (mm/h)
-        self._soil_Iv = np.choose(self._vegtype,
-            [I_V_grass, I_V_shrub, I_V_tree, I_V_bare, I_V_shrub, I_V_tree])
-            # Infiltration capacity of vegetated soil (mm/h)
+
+        self._zr = np.choose(self._vegtype, [
+             zr_grass, zr_shrub, zr_tree, zr_bare, zr_shrub, zr_tree])
+
+        self._soil_Ib = np.choose(self._vegtype, [
+             I_B_grass, I_B_shrub, I_B_tree, I_B_bare, I_B_shrub, I_B_tree])
+
+        self._soil_Iv = np.choose(self._vegtype, [
+             I_V_grass, I_V_shrub, I_V_tree, I_V_bare, I_V_shrub, I_V_tree])
+
         self._soil_Ew = soil_ew
-        self._soil_pc = np.choose(self._vegtype,
-            [pc_grass, pc_shrub, pc_tree, pc_bare, pc_shrub, pc_tree])
-            # Soil porosity
-        self._soil_fc = np.choose(self._vegtype,
-            [fc_grass, fc_shrub, fc_tree, fc_bare, fc_shrub, fc_tree])
-            # Saturation degree at soil field capacity
-        self._soil_sc = np.choose(self._vegtype,
-            [sc_grass, sc_shrub, sc_tree, sc_bare, sc_shrub, sc_tree])
-            # Saturation degree at soil stomatal closure
-        self._soil_wp = np.choose(self._vegtype,
-            [wp_grass, wp_shrub, wp_tree, wp_bare, wp_shrub, wp_tree])
-            # Saturation degree at soil wilting point
-        self._soil_hgw = np.choose(self._vegtype,
-            [hgw_grass, hgw_shrub, hgw_tree, hgw_bare, hgw_shrub, hgw_tree])
-            # Saturation degree at soil hygroscopic point
-        self._soil_beta = np.choose(self._vegtype,
-            [beta_grass, beta_shrub, beta_tree,
+        self._soil_pc = np.choose(self._vegtype, [
+             pc_grass, pc_shrub, pc_tree, pc_bare, pc_shrub, pc_tree])
+
+        self._soil_fc = np.choose(self._vegtype, [
+             fc_grass, fc_shrub, fc_tree, fc_bare, fc_shrub, fc_tree])
+
+        self._soil_sc = np.choose(self._vegtype, [
+             sc_grass, sc_shrub, sc_tree, sc_bare, sc_shrub, sc_tree])
+
+        self._soil_wp = np.choose(self._vegtype, [
+             wp_grass, wp_shrub, wp_tree, wp_bare, wp_shrub, wp_tree])
+
+        self._soil_hgw = np.choose(self._vegtype, [
+             hgw_grass, hgw_shrub, hgw_tree, hgw_bare, hgw_shrub, hgw_tree])
+
+        self._soil_beta = np.choose(self._vegtype, [
+             beta_grass, beta_shrub, beta_tree,
              beta_bare, beta_shrub, beta_tree])
-            # Deep percolation constant
-        self._LAI_max = np.choose( self._vegtype,
-            [LAI_max_grass, LAI_max_shrub, LAI_max_tree,
+
+        self._LAI_max = np.choose(self._vegtype, [
+             LAI_max_grass, LAI_max_shrub, LAI_max_tree,
              LAI_max_bare, LAI_max_shrub, LAI_max_tree])
-             # Maximum leaf area index (m2/m2)
-        self._LAIR_max = np.choose( self._vegtype,
-            [LAIR_max_grass, LAIR_max_shrub, LAIR_max_tree,
+
+        self._LAIR_max = np.choose(self._vegtype, [
+             LAIR_max_grass, LAIR_max_shrub, LAIR_max_tree,
              LAIR_max_bare, LAIR_max_shrub, LAIR_max_tree])
-             # Reference leaf area index (m2/m2)
 
-
-    def update( self, current_time, Tb=24., Tr=0., **kwds ):
+    def update(self, current_time, Tb=24., Tr=0., **kwds):
         """
         Update fields with current loading conditions.
 
@@ -537,18 +539,17 @@ class SoilMoisture(Component):
         self._S = self._cell_values['soil_moisture__saturation_fraction']
         self._D = self._cell_values['soil_moisture__root_zone_leakage_rate']
         self._ETA = self._cell_values['surface__evapotranspiration_rate']
-        self._fr = (self._cell_values['vegetation__live_leaf_area_index']/
-                       self._LAIR_max)
-        #LAIl = self._cell_values['vegetation__live_leaf_area_index']
-        #LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
-        #if LAIt.all() == 0.:
-        #    self._fr = np.zeros(self.grid.number_of_cells)
-        #else:
-        #    self._fr = (self._vegcover[0]*LAIl/LAIt)
+        self._fr = (self._cell_values['vegetation__live_leaf_area_index'] /
+                    self._LAIR_max)
+        # LAIl = self._cell_values['vegetation__live_leaf_area_index']
+        # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
+        # if LAIt.all() == 0.:
+        #     self._fr = np.zeros(self.grid.number_of_cells)
+        # else:
+        #     self._fr = (self._vegcover[0]*LAIl/LAIt)
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
-        self._ETmax = np.zeros(self._SO.shape) # record ETmax - Eq 5 - Zhou et al.
-
+        self._ETmax = np.zeros(self._SO.shape)
 
         for cell in range(0,self.grid.number_of_cells):
 
