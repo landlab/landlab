@@ -313,16 +313,31 @@ class PotentialEvapotranspiration(Component):
 
         self._cell_values = self.grid['cell']
 
-    def update(self, current_time, const_potential_evapotranspiration=12.,
+    def update(self, current_time=None, const_potential_evapotranspiration=12.,
                Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350., **kwds):
-        """Update fields with current conditions."""
+        """Update fields with current conditions.
+
+        Parameters:
+        ----------
+        current_time: float, required only for 'Cosine' method
+            Current time (Years)
+        constant_potential_evapotranspiration: float, optional for
+            'Constant' method
+            Constant PET value to be spatially distributed.
+        Tmin: float, required for 'Priestly Taylor' method
+            Minimum temperature of the day (deg C)
+        Tmax: float, required for 'Priestly Taylor' method
+            Maximum temperature of the day (deg C)
+        Tavg: float, required for 'Priestly Taylor' and 'MeasuredRadiationPT'
+            methods
+            Average temperature of the day (deg C)
+        obs_radiation float, required for 'MeasuredRadiationPT' method
+            Observed radiation (W/m^2)
+        """
 
         if self._method == 'Constant':
             self._PET_value = const_potential_evapotranspiration
         elif self._method == 'PriestlyTaylor':
-            Tmin = Tmin
-            Tmax = Tmax
-            Tavg = Tavg
             self._PET_value = (
                 self._PriestlyTaylor(current_time, Tmax, Tmin, Tavg))
             self._cell_values['radiation__incoming_shortwave'] = (
@@ -338,7 +353,6 @@ class PotentialEvapotranspiration(Component):
                 self._Rn *
                 self._cell_values['radiation__ratio_to_flat_surface'])
         elif self._method == 'MeasuredRadiationPT':
-            Tavg = Tavg
             Robs = obs_radiation
             self._PET_value = self._MeasuredRadPT(Tavg, (1-self._a)*Robs)
         elif self._method == 'Cosine':
