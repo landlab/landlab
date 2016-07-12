@@ -179,6 +179,8 @@ class DepressionFinderAndRouter(Component):
             self._D8 = False  # useful shorthand for thia test we do a lot
             if type(self._grid) is landlab.grid.raster.RasterModelGrid:
                 self.num_nbrs = 4
+            else:
+                self.num_nbrs = self.grid.links_at_node.shape[1]
         self._initialize()
 
     def _initialize(self, input_stream=None):
@@ -293,7 +295,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
         else:
-            self._link_lengths = self.grid._length_of_link
+            self._link_lengths = self.grid.length_of_link
 
     def _find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
