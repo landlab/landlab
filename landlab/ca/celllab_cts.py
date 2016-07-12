@@ -578,12 +578,12 @@ class CellLabCTSModel(object):
                         (tail_state, head_state, orientation))
                     k += 1
 
-        if False and _DEBUG:
+        if True: #False and _DEBUG:
             print()
             print('create_link_state_dict_and_pair_list(): dict is:')
             print((self.link_state_dict))
             print('  and the pair list is:')
-            print((self.cell_pair))
+            print((self.node_pair))
 
     def setup_array_of_orientation_codes(self):
         """Create array of active link orientation codes.
@@ -1144,7 +1144,7 @@ class CellLabCTSModel(object):
                               self.grid.active_link_dirs_at_node,
                               self.num_node_states, self.num_node_states_sq,
                               self.prop_reset_value, self.xn_propswap,
-                              self.xn_prop_update_fn, self.node_pair,
+                              self.xn_prop_update_fn,
                               self.bnd_lnk, self.event_queue,
                               self,
                               plot_each_transition,

@@ -7,10 +7,12 @@ Created on Thu Jun 30 12:40:39 2016
 import numpy as np
 cimport numpy as np
 cimport cython
-from landlab import CORE_NODE as _CORE
+from landlab import CORE_NODE
 from _heapq import heappush
 
 _NEVER = 1.0e50
+
+cdef int _CORE = CORE_NODE
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
@@ -99,13 +101,13 @@ def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        DTYPE_INT_t tail_node, 
                        DTYPE_INT_t head_node,
                        DTYPE_INT_t new_link_state,
-                       node_pair):
+                       DTYPE_INT_t num_states):
 
     # Change to the new states
     if status_at_node[tail_node] == _CORE:
-        node_state[tail_node] = node_pair[new_link_state][0]
+        node_state[tail_node] = (new_link_state // num_states) % num_states
     if status_at_node[head_node] == _CORE:
-        node_state[head_node] = node_pair[new_link_state][1]
+        node_state[head_node] = new_link_state % num_states
 
 
 @cython.boundscheck(False)
@@ -262,8 +264,9 @@ def do_transition(event,
                   DTYPE_INT_t num_node_states,
                   DTYPE_INT_t num_node_states_sq,
                   DTYPE_INT_t prop_reset_value,
-                  xn_propswap, xn_prop_update_fn,
-                  node_pair, bnd_lnk, event_queue,
+                  xn_propswap,
+                  xn_prop_update_fn,
+                  bnd_lnk, event_queue,
                   this_cts_model,
                   plot_each_transition=False,
                   plotter=None):
@@ -321,7 +324,7 @@ def do_transition(event,
         old_head_node_state = node_state[head_node]
 
         update_node_states(node_state, status_at_node, tail_node,
-                           head_node, event.xn_to, node_pair)
+                           head_node, event.xn_to, num_node_states)
         update_link_state(event.link, event.xn_to, event.time,
                           bnd_lnk, node_state,
                           node_at_link_tail,
