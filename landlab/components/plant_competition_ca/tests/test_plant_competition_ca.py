@@ -99,6 +99,3 @@ def test_field_initialized_to_zero():
     for name in ca_veg.grid['node']:
         field = ca_veg.grid['node'][name]
         assert_array_almost_equal(field, np.zeros(ca_veg.grid.number_of_nodes))
-    for name in ca_veg.grid['cell']:
-        field = ca_veg.grid['cell'][name]
-        assert_array_almost_equal(field, np.zeros(ca_veg.grid.number_of_cells))

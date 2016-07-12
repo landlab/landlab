@@ -72,7 +72,7 @@ def test_var_units():
     assert_equal(SM.var_units('soil_moisture__initial_saturation_fraction'),
                  'None')
     assert_equal(SM.var_units('soil_moisture__root_zone_leakage_rate'), 'mm')
-    assert_equal(SM.var_units('surface__runoff_rate'), 'None')
+    assert_equal(SM.var_units('surface__runoff_rate'), 'mm')
     assert_equal(SM.var_units('surface__evapotranspiration_rate'), 'mm')
     assert_equal(SM.var_units('precipitation__rain'), 'mm')
 

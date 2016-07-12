@@ -25,8 +25,7 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(VegCA.input_var_names)
-['soil_moisture__cumulative_water_stress',
-'vegetation__plant_functional_type']
+['soil_moisture__cumulative_water_stress', 'vegetation__plant_functional_type']
 
 Check the units for the fields.
 
@@ -36,7 +35,7 @@ Check the units for the fields.
 Create the input fields.
 
 >>> grid['cell']['vegetation__plant_functional_type']= \
-...            np.arange(0, grid.number_of_cells, dtype=int)
+            np.arange(0, grid.number_of_cells, dtype=int)
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -50,7 +49,7 @@ at: cell
 intent: in
 
 >>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
-...            np.ones(grid.number_of_cells)
+            np.ones(grid.number_of_cells)
 
 Instantiate the 'VegCA' component to work on this grid,
 and run it.
@@ -152,13 +151,13 @@ class VegCA(Component):
     ['plant__age', 'plant__live_index']
     >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
     [('plant__age', 'Years'),
-     ('soil_moisture__cumulative_water_stress', 'None'),
      ('plant__live_index', 'None'),
+     ('soil_moisture__cumulative_water_stress', 'None'),
      ('vegetation__plant_functional_type', 'None')]
     >>> grid['cell']['vegetation__plant_functional_type']= \
-    ...            np.arange(0, grid.number_of_cells, dtype=int)
+                np.arange(0, grid.number_of_cells, dtype=int)
     >>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
-    ...            np.ones(grid.number_of_cells)
+                np.ones(grid.number_of_cells)
     >>> ca_veg = VegCA(grid)
     >>> ca_veg.grid.number_of_cell_rows
     3

@@ -28,7 +28,7 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> sorted(SoilMoisture.input_var_names)
+>>> sorted(SoilMoisture.input_var_names)   # doctest: +NORMALIZE_WHITESPACE
 ['precipitation__rain',
  'soil_moisture__initial_saturation_fraction',
  'surface__potential_evapotranspiration_rate',
@@ -59,16 +59,16 @@ at: cell
 intent: in
 
 >>> grid['cell']['soil_moisture__initial_saturation_fraction'] = \
-...        0.75 * np.ones(grid.number_of_cells)
+        0.75 * np.ones(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__plant_functional_type']= \
-...        np.zeros(grid.number_of_cells, dtype=int)
+        np.zeros(grid.number_of_cells, dtype=int)
 
 >>> grid['cell']['vegetation__live_leaf_area_index']= \
-...        2. * np.ones(grid.number_of_cells)
+        2. * np.ones(grid.number_of_cells)
 
 >>> grid['cell']['vegetation__cover_fraction']= \
-...        np.ones(grid.number_of_cells)
+        np.ones(grid.number_of_cells)
 
 Instantiate the 'SoilMoisture' component to work on this grid,
 and run it.
@@ -79,14 +79,13 @@ Run the *update* method to update output variables with current time
 
 >>> current_time = 0.5
 
->>> grid['cell']['precipitation__rain'] = \
-...        25. * np.ones(grid.number_of_cells)
+>>> grid['cell']['precipitation__rain'] = 25. * np.ones(grid.number_of_cells)
 
 >>> current_time = SM.update(current_time)
 
 Check the output variable names
 
->>> sorted(SoilMoisture.output_var_names)
+>>> sorted(SoilMoisture.output_var_names)   # doctest: +NORMALIZE_WHITESPACE
 ['soil_moisture__root_zone_leakage_rate',
  'soil_moisture__saturation_fraction',
  'soil_moisture__water_stress',
@@ -105,7 +104,7 @@ array([ 0.70372004,  0.70372004,  0.70372004,  0.70372004,  0.70372004,
 array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
 
 >>> grid['cell']['surface__runoff_rate']
-array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
+array([ 0.,  0.,  0.,  0.,  0.,  0.])
 """
 
 from landlab import Component
@@ -190,7 +189,7 @@ class SoilMoisture(Component):
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     >>> SoilMoisture.name
     'Soil Moisture'
-    >>> sorted(SoilMoisture.output_var_names)
+    >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['soil_moisture__root_zone_leakage_rate',
      'soil_moisture__saturation_fraction',
      'soil_moisture__water_stress',
@@ -209,7 +208,7 @@ class SoilMoisture(Component):
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None')]
     >>> grid['cell']['vegetation__plant_functional_type']= \
-                np.zeros(grid.number_of_cells)
+                np.zeros(grid.number_of_cells, dtype=int)
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
     3
@@ -218,7 +217,7 @@ class SoilMoisture(Component):
     >>> SM.grid is grid
     True
     >>> import numpy as np
-    >>> np.all(grid.at_cell['soil_moisture__saturation_fraction'] == 0.)
+    >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     True
     >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
             np.array([0.2554777, 0.2554777 , 0.22110221, 0.22110221,
@@ -233,7 +232,7 @@ class SoilMoisture(Component):
     >>> grid['cell']['precipitation__rain'] = \
             25. * np.ones(grid.number_of_cells)
     >>> current_time = SM.update(current_time)
-    >>> np.all(grid.at_cell['soil_moisture__saturation_fraction'] == 0.)
+    >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     False
     """
     _name = 'Soil Moisture'

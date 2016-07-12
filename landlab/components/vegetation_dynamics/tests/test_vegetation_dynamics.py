@@ -22,6 +22,8 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((20, 20), spacing=10e0)
+    grid['cell']['vegetation__plant_functional_type']= \
+        np.zeros(grid.number_of_cells, dtype=int)
     Veg = Vegetation(grid)
     globals().update({
         'Veg': Vegetation(grid)
