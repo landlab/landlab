@@ -13,7 +13,7 @@ as accomodate functionality with new release of Landlab version 1.
 
 .. codauthor:: R.Strauch & E.Istanbulluoglu - University of Washington
 Created on Thu Aug 20, 2015
-Last edit July 7, 2016
+Last edit July 12, 2016
 
 Examples
 ----------
@@ -90,8 +90,11 @@ Instantiate the 'LandslideProbability' component to work on this grid,
 and run it.
 
 >>> LS_prob = LandslideProbability(grid)
+>>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
+True
 
 Run the *update* method to update output variables with grid
+
 >>> LS_prob.update(grid)
 
 Check the output variable names.
@@ -102,11 +105,13 @@ Check the output variable names.
  'Probability_of_failure',
  'Relative_Wetness__mean']
 
-Check the output from the component.
+Check the output from the component, including array at one node.
 
->>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
+>>> np.all(grid.at_node['Probability_of_failure'] == 0.) == True
 False
->>> isinstance(LS_prob.Factor_of_Safety__distribution[6],ndarray)==True
+>>> core_nodes = LS_prob.grid.core_nodes
+>>> isinstance(LS_prob.Factor_of_Safety__distribution[
+    core_nodes[0]], ndarray) == True
 True
 """
 
@@ -122,7 +127,7 @@ import numpy as np
 class LandslideProbability(Component):
     """
     Landlab component designed to calculate a probability of failure at
-    each grid nodes based on the infinite slope stability model
+    each grid node based on the infinite slope stability model
     stability index (Factor of Safety).
 
     The driving force for failure is provided by the user in the form of
@@ -196,8 +201,7 @@ class LandslideProbability(Component):
     4
     >>> LS_prob.grid is grid
     True
-    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
-    True
+
     >>> grid['node']['topographic__slope'] = \
         np.random.rand(grid.number_of_nodes)
     >>> scatter_dat = np.random.random_integers(1, 10, grid.number_of_nodes)
@@ -219,9 +223,15 @@ class LandslideProbability(Component):
              2000. * np.ones(grid.number_of_nodes)
 
     >>> LS_prob = LandslideProbability(grid)
+    >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
+    True
     >>> LS_prob.update(grid)
     >>> np.all(grid.at_node['Probability_of_failure'] == 0.)==True
     False
+    >>> core_nodes = LS_prob.grid.core_nodes
+    >>> isinstance(LS_prob.Factor_of_Safety__distribution[
+        core_nodes[0]], ndarray) == True
+    True
     """
 
 # component name
@@ -265,7 +275,7 @@ class LandslideProbability(Component):
         'Factor_of_Safety__distribution': 'None',
         }
 
-# grid centering of each field
+# grid centering of each field and variable
     _var_mapping = {
         'topographic__specific_contributing_area': 'node',
         'topographic__slope': 'node',
@@ -320,13 +330,14 @@ class LandslideProbability(Component):
 
 # Run Component
     @use_file_name_or_kwds
-    def __init__(self, grid, number_of_simulations=1000.,
+    def __init__(self, grid, number_of_simulations=250.,
                  groundwater__recharge_minimum=20.,
                  groundwater__recharge_maximum=120., **kwds):
+        # Store grid and parameters and do unit conversions
         self._grid = grid
         self.n = number_of_simulations
-        self.recharge_min = groundwater__recharge_minimum
-        self.recharge_max = groundwater__recharge_maximum
+        self.recharge_min = groundwater__recharge_minimum/1000.0  # mm->m
+        self.recharge_max = groundwater__recharge_maximum/1000.0
         self.g = 9.81
 
         """
@@ -407,7 +418,7 @@ class LandslideProbability(Component):
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
         self.C_dim = self.C/(self.hs*self.rho*self.g)  # demensionless cohesion
-        self.Rel_wetness = ((self.Re/1000.0)/self.T)*(self.a/np.sin(
+        self.Rel_wetness = ((self.Re)/self.T)*(self.a/np.sin(
             np.arctan(self.theta)))                       # relative wetness
         np.place(self.Rel_wetness, self.Rel_wetness > 1, 1.0)
         # maximum Rel_wetness = 1.0

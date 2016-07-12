@@ -20,6 +20,8 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((20, 20), spacing=10e0)
+    grid['node']['topographic__slope'] = \
+        np.zeros(grid.number_of_nodes, dtype=float)
     LS_prob = LandslideProbability(grid)
     globals().update({
         'LS_prob': LandslideProbability(grid)
