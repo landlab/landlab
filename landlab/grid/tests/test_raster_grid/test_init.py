@@ -108,14 +108,14 @@ def test_nodes_around_point():
 
 @with_setup(setup_grid)
 def test_neighbor_list_with_scalar_arg():
-    assert_array_equal(rmg.active_neighbors_at_node(6), np.array([7, 11, 5, 1]))
-    assert_array_equal(rmg.active_neighbors_at_node(-1), np.array([X, X, X, X]))
-    assert_array_equal(rmg.active_neighbors_at_node(-2), np.array([X, X, X, 13]))
+    assert_array_equal(rmg.active_neighbors_at_node[6], np.array([7, 11, 5, 1]))
+    assert_array_equal(rmg.active_neighbors_at_node[-1], np.array([X, X, X, X]))
+    assert_array_equal(rmg.active_neighbors_at_node[-2], np.array([X, X, X, 13]))
 
 
 @with_setup(setup_grid)
 def test_neighbor_list_with_array_arg():
-    assert_array_equal(rmg.active_neighbors_at_node([6, -1]),
+    assert_array_equal(rmg.active_neighbors_at_node[[6, -1]],
                        np.array([[7, 11, 5, 1], [X, X, X, X]]))
 
 
@@ -131,7 +131,7 @@ def test_neighbor_list_with_no_args():
         [X,  X,  X,  X], [X,  X,  X, 11], [X,  X,  X, 12], [X,  X,  X, 13],
         [X,  X,  X,  X]])
 
-    assert_array_equal(rmg.active_neighbors_at_node(), expected)
+    assert_array_equal(rmg.active_neighbors_at_node, expected)
 
 
 @with_setup(setup_grid)

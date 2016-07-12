@@ -522,7 +522,7 @@ def _node_has_boundary_neighbor(mg, id, method='d8'):
     boolean
         ``True`` if node has a neighbor on the boundary, ``False`` otherwise.
     """
-    for neighbor in mg.active_neighbors_at_node(id):
+    for neighbor in mg.active_neighbors_at_node[id]:
         try:
             if mg.status_at_node[neighbor] != CORE_NODE:
                 return True
@@ -3021,7 +3021,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return a null index ->  Now returns -1.
 
         # We have poor functionality if these are closed boundary nodes!
-        neighbor_nodes = self.active_neighbors_at_node(node_id)
+        neighbor_nodes = self.get_active_neighbors_at_node(node_id)
         neighbor_nodes.sort()
         diagonal_nodes = []
         # NG also think that this won't happen if you are always sending this
@@ -3133,7 +3133,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # return a null index ->  Now returns -1.
 
         # We have poor functionality if these are closed boundary nodes!
-        neighbor_nodes = self.active_neighbors_at_node(node_id)
+        neighbor_nodes = self.get_active_neighbors_at_node(node_id)
         neighbor_nodes.sort()
         slopes = []
         for a in neighbor_nodes:
@@ -3827,7 +3827,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # ...per fancy indexing
         # Assemble a node index array which corresponds to this gradients array
         # from which to draw the dstr IDs:
-        neighbors_ENWS = (self.active_neighbors_at_node()).T
+        neighbors_ENWS = (self.get_active_neighbors_at_node()).T
         dstr_id_source_array = np.vstack(
             (neighbors_ENWS[1][:], neighbors_ENWS[0][:],
              neighbors_ENWS[3][:], neighbors_ENWS[2][:], diagonal_nodes))
@@ -4084,11 +4084,38 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             data[ncols * i + offset:ncols *
                  (i + 1) - offset] = top_rows_to_move[i, :]
 
+    @property
+    @return_readonly_id_array
+    def active_neighbors_at_node(self):
+        """Get list of neighbor node IDs.
+
+        Return lists of neighbor nodes, where the neighbor is connected by an
+        active link.vFor each node, the list gives neighbor ids as [right, top,
+        left, bottom]. Nodes at the end of active links or nodes in missing
+        positions get BAD_INDEX_VALUE.
+
+        Examples
+        --------
+        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid((4, 5))
+        >>> np.array_equal(rmg.active_neighbors_at_node[[-1, 6, 2]],
+        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
+        True
+        >>> rmg.active_neighbors_at_node[7]
+        array([ 8, 12,  6,  2])
+        >>> rmg.active_neighbors_at_node[2]
+        array([-1,  7, -1, -1])
+        """
+        try:
+            return self._active_neighbor_nodes
+        except AttributeError:
+            self._active_neighbor_nodes = self._create_neighbor_list(
+                bad_index=-1)
+            return self._active_neighbor_nodes
+
     @deprecated(use='active_neighbors_at_node', version=1.0)
     def get_active_neighbors_at_node(self, *args, **kwds):
-        return self.active_neighbors_at_node(*args, **kwds)
-
-    def active_neighbors_at_node(self, *args, **kwds):
         """active_neighbors_at_node([ids], bad_index=BAD_INDEX_VALUE)
         Get list of neighbor node IDs.
 
@@ -4108,14 +4135,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab.grid.base import BAD_INDEX_VALUE as X
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 5))
-        >>> np.array_equal(rmg.active_neighbors_at_node([-1, 6, 2]),
+        >>> np.array_equal(rmg.get_active_neighbors_at_node([-1, 6, 2]),
         ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
         True
-        >>> rmg.active_neighbors_at_node(7)
+        >>> rmg.get_active_neighbors_at_node(7)
         array([ 8, 12,  6,  2])
-        >>> rmg.active_neighbors_at_node(2, bad_index=-1)
+        >>> rmg.get_active_neighbors_at_node(2, bad_index=-1)
         array([-1,  7, -1, -1])
-        >>> np.array_equal(rmg.active_neighbors_at_node(2), [X, 7, X, X])
+        >>> np.array_equal(rmg.get_active_neighbors_at_node(2), [X, 7, X, X])
         True
 
         .. todo:: could use inlink_matrix, outlink_matrix
@@ -4545,7 +4572,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        n = self.active_neighbors_at_node(id)
+        n = self.active_neighbors_at_node[id]
         a = []
 
         # for each node in id make a list with the node id and the ids of
@@ -4601,7 +4628,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        n = self.active_neighbors_at_node(id)
+        n = self.active_neighbors_at_node[id]
         s = []
 
         # for each node in id make a list with the node id and the ids of
@@ -4696,7 +4723,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        neighbors[:, ] = self.active_neighbors_at_node(ids)
+        neighbors[:, ] = self.active_neighbors_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
         diagonals[:, ] = self._get_diagonal_list(ids)
 
@@ -4761,7 +4788,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        node_neighbors = self.active_neighbors_at_node(nodes)
+        node_neighbors = self.active_neighbors_at_node[nodes]
         aspects = []
         slopes = []
 

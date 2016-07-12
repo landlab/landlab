@@ -264,12 +264,15 @@ class DepressionFinderAndRouter(Component):
             Call this if boundary conditions on the grid are updated after the
             component is instantiated.
         """
-        dx = self._grid.dx
-        dy = self._grid.dy
+        try:
+            dx = self._grid.dx
+            dy = self._grid.dy
+        except AttributeError:
+            pass
         # We'll also need a handy copy of the node neighbor lists
         # TODO: presently, this grid method seems to only exist for Raster
         # grids. We need it for *all* grids!
-        self._node_nbrs = self._grid.active_neighbors_at_node()
+        self._node_nbrs = self._grid.active_neighbors_at_node
         if self._D8:
             diag_nbrs = self._grid._diagonal_neighbors_at_node.copy()
             # remove the inactive nodes:
@@ -290,7 +293,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
         else:
-            self._link_lengths = self.grid._length_of_link_with_diagonals
+            self._link_lengths = self.grid._length_of_link
 
     def _find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
@@ -685,13 +688,13 @@ class DepressionFinderAndRouter(Component):
                 while (len(nodes_in_lake) + 1) != len(nodes_routed):
                     if self._D8:
                         all_nbrs = np.hstack(
-                            (self._grid.active_neighbors_at_node(
-                             nodes_on_front),
+                            (self.grid.active_neighbors_at_node[
+                             nodes_on_front],
                              self._grid._get_diagonal_list(
                              nodes_on_front)))
                     else:
-                        all_nbrs = self._grid.active_neighbors_at_node(
-                            nodes_on_front)
+                        all_nbrs = self._grid.active_neighbors_at_node[
+                            nodes_on_front]
                     outlake = np.logical_not(np.in1d(all_nbrs.flat,
                                                      nodes_in_lake))
                     all_nbrs[outlake.reshape(all_nbrs.shape)] = -1
@@ -779,13 +782,12 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
                 outlet_neighbors = np.hstack(
-                    (self._grid.active_neighbors_at_node(
-                     outlet_node, bad_index=-1),
+                    (self._grid.active_neighbors_at_node[outlet_node],
                      self._grid._get_diagonal_list(
                      outlet_node, bad_index=-1)))
             else:
-                outlet_neighbors = self._grid.active_neighbors_at_node(
-                    outlet_node, bad_index=-1).copy()
+                outlet_neighbors = self._grid.active_neighbors_at_node[
+                    outlet_node].copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0
             outlet_neighbors[inlake] = -1
