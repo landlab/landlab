@@ -39,9 +39,9 @@ def test_input_var_names():
                  ['soil__density',
                   'soil__internal_friction_angle',
                   'soil__thickness',
-                  'soil__total_cohesion_maximum',
-                  'soil__total_cohesion_minimum',
-                  'soil__total_cohesion_mode',
+                  'soil__maximum_total_cohesion',
+                  'soil__minimum_total_cohesion',
+                  'soil__mode_total_cohesion',
                   'soil__transmissivity',
                   'topographic__slope',
                   'topographic__specific_contributing_area'])
@@ -50,10 +50,9 @@ def test_input_var_names():
 @with_setup(setup_grid)
 def test_output_var_names():
     assert_equal(sorted(LS_prob.output_var_names),
-                 ['Factor_of_Safety__distribution',
-                  'Factor_of_Safety__mean',
-                  'Probability_of_failure',
-                  'Relative_Wetness__mean'])
+                 ['landslide__mean_factor_of_safety',
+                  'landslide__probability_of_failure',
+                  'soil__mean_relative_wetness'])
 
 
 @with_setup(setup_grid)
@@ -67,20 +66,18 @@ def test_var_units():
     assert_equal(LS_prob.var_units('topographic__slope'), 'tan theta')
     assert_equal(LS_prob.var_units('soil__transmissivity'), 'm2/day')
     assert_equal(LS_prob.var_units(
-        'soil__total_cohesion_mode'), 'Pa or kg/m-s2')
+        'soil__mode_total_cohesion'), 'Pa or kg/m-s2')
     assert_equal(LS_prob.var_units(
-        'soil__total_cohesion_minimum'), 'Pa or kg/m-s2')
+        'soil__minimum_total_cohesion'), 'Pa or kg/m-s2')
     assert_equal(LS_prob.var_units(
-        'soil__total_cohesion_maximum'), 'Pa or kg/m-s2')
+        'soil__maximum_total_cohesion'), 'Pa or kg/m-s2')
     assert_equal(LS_prob.var_units(
         'soil__internal_friction_angle'), 'degrees')
     assert_equal(LS_prob.var_units('soil__density'), 'kg/m3')
     assert_equal(LS_prob.var_units('soil__thickness'), 'm')
-    assert_equal(LS_prob.var_units('Relative_Wetness__mean'), 'None')
-    assert_equal(LS_prob.var_units('Factor_of_Safety__mean'), 'None')
-    assert_equal(LS_prob.var_units('Probability_of_failure'), 'None')
-    assert_equal(LS_prob.var_units(
-        'Factor_of_Safety__distribution'), 'None')
+    assert_equal(LS_prob.var_units('soil__mean_relative_wetness'), 'None')
+    assert_equal(LS_prob.var_units('landslide__probability_of_failure'), 'None')
+    assert_equal(LS_prob.var_units('landslide__mean_factor_of_safety'), 'None')
 
 
 @with_setup(setup_grid)
