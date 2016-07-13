@@ -920,8 +920,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         """Get list of neighbor node IDs.
 
         Return lists of neighbor nodes, where the neighbor is connected by an
-        active link.vFor each node, the list gives neighbor ids as [right, top,
-        left, bottom]. Nodes at the end of active links or nodes in missing
+        active link. For each node, the list gives neighbor ids as [right, top,
+        left, bottom]. Nodes at the end of inactive links or nodes in missing
         positions get BAD_INDEX_VALUE.
 
         Examples
