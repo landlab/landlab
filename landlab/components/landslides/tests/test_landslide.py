@@ -38,10 +38,10 @@ def test_input_var_names():
     assert_equal(sorted(LS_prob.input_var_names),
                  ['soil__density',
                   'soil__internal_friction_angle',
-                  'soil__thickness',
                   'soil__maximum_total_cohesion',
                   'soil__minimum_total_cohesion',
                   'soil__mode_total_cohesion',
+                  'soil__thickness',
                   'soil__transmissivity',
                   'topographic__slope',
                   'topographic__specific_contributing_area'])

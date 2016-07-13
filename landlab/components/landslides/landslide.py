@@ -34,13 +34,13 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> sorted(LandslideProbability.input_var_names)
+>>> sorted(LandslideProbability.input_var_names) # doctest: +NORMALIZE_WHITESPACE
 ['soil__density',
  'soil__internal_friction_angle',
- 'soil__thickness',
  'soil__maximum_total_cohesion',
  'soil__minimum_total_cohesion',
  'soil__mode_total_cohesion',
+ 'soil__thickness',
  'soil__transmissivity',
  'topographic__slope',
  'topographic__specific_contributing_area']
@@ -57,7 +57,8 @@ Create an input field.
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> LandslideProbability.var_help('soil__transmissivity')
+>>> LandslideProbability.var_help('soil__transmissivity') \
+                        # doctest: +NORMALIZE_WHITESPACE
 name: soil__transmissivity
 description:
   mode rate of water transmitted through a unit width of
@@ -90,12 +91,13 @@ Instantiate the 'LandslideProbability' component to work on this grid,
 and run it.
 
 >>> LS_prob = LandslideProbability(grid)
->>> np.all(grid.at_node['landslide__probability_of_failure'] == 0.)==True
+>>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
 True
 
-Run the *update* method to update output variables with grid
+Run the *calculate_landslide_probability* method to update output
+variables with grid
 
->>> LS_prob.update(grid)
+>>> LS_prob.calculate_landslide_probability()
 
 Check the output variable names.
 
@@ -106,11 +108,11 @@ Check the output variable names.
 
 Check the output from the component, including array at one node.
 
->>> np.all(grid.at_node['landslide__probability_of_failure'] == 0.) == True
+>>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
 False
 >>> core_nodes = LS_prob.grid.core_nodes
->>> isinstance(LS_prob.landslide__factor_of_safety_histogram[
-    core_nodes[0]], ndarray) == True
+>>> isinstance(LS_prob.landslide__factor_of_safety_histogram[ \
+    core_nodes[0]], np.ndarray) == True
 True
 """
 
@@ -164,16 +166,18 @@ class LandslideProbability(Component):
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     >>> LS_prob = LandslideProbability(grid)
     >>> LS_prob.name
-    >>> LS_prob.input_var_names
-    ('topographic__specific_contributing_area',
-     'topographic__slope',
-     'soil__transmissivity',
-     'soil__mode_total_cohesion',
-     'soil__minimum_total_cohesion',
-     'soil__maximum_total_cohesion',
+    'Landslide Probability'
+    >>> sorted(LandslideProbability.input_var_names) \
+              # doctest: +NORMALIZE_WHITESPACE
+    ['soil__density',
      'soil__internal_friction_angle',
-     'soil__density',
-     'soil__thickness')
+     'soil__maximum_total_cohesion',
+     'soil__minimum_total_cohesion',
+     'soil__mode_total_cohesion',
+     'soil__thickness',
+     'soil__transmissivity',
+     'topographic__slope',
+     'topographic__specific_contributing_area']
     >>> sorted(LS_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['landslide__mean_factor_of_safety',
      'landslide__probability_of_failure',
@@ -181,13 +185,13 @@ class LandslideProbability(Component):
     >>> sorted(LS_prob.units) # doctest: +NORMALIZE_WHITESPACE
     [('landslide__mean_factor_of_safety', 'None'),
      ('landslide__probability_of_failure', 'None'),
-     ('soil__mean_relative_wetness', 'None'),
      ('soil__density', 'kg/m3'),
      ('soil__internal_friction_angle', 'degrees'),
-     ('soil__thickness', 'm'),
      ('soil__maximum_total_cohesion', 'Pa or kg/m-s2'),
+     ('soil__mean_relative_wetness', 'None'),
      ('soil__minimum_total_cohesion', 'Pa or kg/m-s2'),
      ('soil__mode_total_cohesion', 'Pa or kg/m-s2'),
+     ('soil__thickness', 'm'),
      ('soil__transmissivity', 'm2/day'),
      ('topographic__slope', 'tan theta'),
      ('topographic__specific_contributing_area', 'm')]
@@ -220,14 +224,14 @@ class LandslideProbability(Component):
              2000. * np.ones(grid.number_of_nodes)
 
     >>> LS_prob = LandslideProbability(grid)
-    >>> np.all(grid.at_node['landslide__probability_of_failure'] == 0.)==True
+    >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     True
-    >>> LS_prob.update(grid)
-    >>> np.all(grid.at_node['landslide__probability_of_failure'] == 0.)==True
+    >>> LS_prob.calculate_landslide_probability()
+    >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = LS_prob.grid.core_nodes
-    >>> isinstance(LS_prob.landslide__factor_of_safety_histogram[
-        core_nodes[0]], ndarray) == True
+    >>> isinstance(LS_prob.landslide__factor_of_safety_histogram[ \
+        core_nodes[0]], np.ndarray) == True
     True
     """
 
