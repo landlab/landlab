@@ -25,7 +25,7 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> sorted(Vegetation.input_var_names)
+>>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
 ['soil_moisture__water_stress',
  'surface__evapotranspiration_rate',
  'surface__potential_evapotranspiration_30day_mean',
@@ -40,10 +40,10 @@ Check the units for an input field
 Create the input fields.
 
 >>> grid['cell']['vegetation__plant_functional_type']= \
-...        np.zeros(grid.number_of_cells, dtype=int)
+        np.zeros(grid.number_of_cells, dtype=int)
 
 >>> grid['cell']['surface__evapotranspiration_rate'] = \
-...        0.2 * np.ones(grid.number_of_cells)
+        0.2 * np.ones(grid.number_of_cells)
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -61,12 +61,12 @@ intent: in
 ...        0.22110221, 0.24813062, 0.24813062])
 
 >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
-...        np.array([
+        np.array([
 ...        0.25547770, 0.25547770, 0.22110221,
 ...        0.22110221, 0.24813062, 0.24813062])
 
 >>> grid['cell']['soil_moisture__water_stress'] = \
-...       0.01 * np.ones(grid.number_of_cells)
+           0.01 * np.ones(grid.number_of_cells)
 
 Instantiate the 'SoilMoisture' component to work on this grid,
 and run it.
@@ -79,7 +79,7 @@ Run the *update* method to update output variables
 
 Check the output variable names
 
->>> sorted(Vegetation.output_var_names)
+>>> sorted(Vegetation.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
 ['vegetation__cover_fraction',
  'vegetation__dead_biomass',
  'vegetation__dead_leaf_area_index',
@@ -170,12 +170,12 @@ class Vegetation(Component):
     that provide the input to this component, use the *input_var_names*
     class property.
 
-    >>> Vegetation.input_var_names
-    ('vegetation__plant_functional_type',
-     'surface__potential_evapotranspiration_rate',
+    >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    ['soil_moisture__water_stress',
      'surface__evapotranspiration_rate',
      'surface__potential_evapotranspiration_30day_mean',
-     'soil_moisture__water_stress')
+     'surface__potential_evapotranspiration_rate',
+     'vegetation__plant_functional_type']
 
     >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
     [('soil_moisture__water_stress', 'None'),
@@ -194,13 +194,12 @@ class Vegetation(Component):
                 np.zeros(grid.number_of_cells, dtype=int)
     >>> grid['cell']['surface__evapotranspiration_rate'] = \
                 0.2 * np.ones(grid.number_of_cells)
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
-                0.25547770, 0.25547770, 0.22110221,
-                0.22110221, 0.24813062, 0.24813062])
+    >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
+            np.array([ 0.25547770, 0.25547770, 0.22110221, \
+                       0.22110221, 0.24813062, 0.24813062])
     >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
-                np.array([
-                0.25547770, 0.25547770, 0.22110221,
-                0.22110221, 0.24813062, 0.24813062])
+            np.array([ 0.25547770, 0.25547770, 0.22110221, \
+                       0.22110221, 0.24813062, 0.24813062])
     >>> grid['cell']['soil_moisture__water_stress'] = \
                0.01 * np.ones(grid.number_of_cells)
 
@@ -214,7 +213,7 @@ class Vegetation(Component):
     >>> Veg.grid is grid
     True
     >>> import numpy as np
-    >>> sorted(Vegetation.output_var_names)
+    >>> sorted(Vegetation.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
     ['vegetation__cover_fraction',
      'vegetation__dead_biomass',
      'vegetation__dead_leaf_area_index',

@@ -61,7 +61,7 @@ def test_var_units():
                  set(Veg.output_var_names),
                  set(dict(Veg.units).keys()))
 
-    assert_equal(Veg.var_units('vegetation__life_leaf_area_index'), 'None')
+    assert_equal(Veg.var_units('vegetation__live_leaf_area_index'), 'None')
     assert_equal(Veg.var_units('vegetation__dead_leaf_area_index'), 'None')
     assert_equal(Veg.var_units('vegetation__cover_fraction'), 'None')
     assert_equal(Veg.var_units('surface__evapotranspiration_rate'), 'mm')

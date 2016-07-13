@@ -39,7 +39,7 @@ def test_name():
 def test_input_var_names():
     assert_equal(sorted(SM.input_var_names),
                 ['precipitation__rain',
-                 'soil_moisture__initial_soil_moisture',
+                 'soil_moisture__initial_saturation_fraction',
                  'surface__potential_evapotranspiration_rate',
                  'vegetation__cover_fraction',
                  'vegetation__live_leaf_area_index',
