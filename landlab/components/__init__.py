@@ -3,7 +3,6 @@ from .diffusion import LinearDiffuser
 from .fire_generator import FireGenerator
 from .detachment_ltd_erosion import DetachmentLtdErosion
 from .flexure import Flexure
-from .flow_accum import AccumFlow
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .overland_flow import OverlandFlowBates, OverlandFlow
@@ -21,7 +20,7 @@ from .pet import PotentialEvapotranspiration
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
-              Flexure, AccumFlow, FlowRouter, DepressionFinderAndRouter,
+              Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, StreamPowerEroder,
