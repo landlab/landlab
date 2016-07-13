@@ -29,7 +29,7 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(SoilMoisture.input_var_names)   # doctest: +NORMALIZE_WHITESPACE
-['precipitation__rain',
+['rainfall_rate',
  'soil_moisture__initial_saturation_fraction',
  'surface__potential_evapotranspiration_rate',
  'vegetation__cover_fraction',
@@ -79,7 +79,7 @@ Run the *update* method to update output variables with current time
 
 >>> current_time = 0.5
 
->>> grid['cell']['precipitation__rain'] = 25. * np.ones(grid.number_of_cells)
+>>> grid['cell']['rainfall_rate'] = 25. * np.ones(grid.number_of_cells)
 
 >>> current_time = SM.update(current_time)
 
@@ -196,7 +196,7 @@ class SoilMoisture(Component):
      'surface__evapotranspiration_rate',
      'surface__runoff_rate']
     >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
-    [('precipitation__rain', 'mm'),
+    [('rainfall_rate', 'mm'),
      ('soil_moisture__initial_saturation_fraction', 'None'),
      ('soil_moisture__root_zone_leakage_rate', 'mm'),
      ('soil_moisture__saturation_fraction', 'None'),
@@ -229,7 +229,7 @@ class SoilMoisture(Component):
     >>> grid['cell']['vegetation__cover_fraction']= \
             np.ones(grid.number_of_cells)
     >>> current_time = 0.5
-    >>> grid['cell']['precipitation__rain'] = \
+    >>> grid['cell']['rainfall_rate'] = \
             25. * np.ones(grid.number_of_cells)
     >>> current_time = SM.update(current_time)
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
@@ -243,7 +243,7 @@ class SoilMoisture(Component):
         'surface__potential_evapotranspiration_rate',
         'soil_moisture__initial_saturation_fraction',
         'vegetation__plant_functional_type',
-        'precipitation__rain',
+        'rainfall_rate',
     )
 
     _output_var_names = (
@@ -265,7 +265,7 @@ class SoilMoisture(Component):
         'soil_moisture__root_zone_leakage_rate': 'mm',
         'surface__runoff_rate': 'mm',
         'surface__evapotranspiration_rate': 'mm',
-        'precipitation__rain': 'mm',
+        'rainfall_rate': 'mm',
     }
 
     _var_mapping = {
@@ -279,7 +279,7 @@ class SoilMoisture(Component):
         'soil_moisture__root_zone_leakage_rate': 'cell',
         'surface__runoff_rate': 'cell',
         'surface__evapotranspiration_rate': 'cell',
-        'precipitation__rain': 'cell',
+        'rainfall_rate': 'cell',
     }
 
     _var_doc = {
@@ -306,7 +306,7 @@ class SoilMoisture(Component):
             'runoff from ground surface',
         'surface__evapotranspiration_rate':
             'actual sum of evaporation and plant transpiration',
-        'precipitation__rain':
+        'rainfall_rate':
             'Rain in (mm) as a field, allowing spatio-temporal soil moisture \
              saturation analysis.',
     }
@@ -528,7 +528,7 @@ class SoilMoisture(Component):
         Tb: float, optional
             Inter-storm duration (hours).
         """
-        P_ = self._cell_values['precipitation__rain']
+        P_ = self._cell_values['rainfall_rate']
         self._PET = \
             self._cell_values['surface__potential_evapotranspiration_rate']
         self._SO = \

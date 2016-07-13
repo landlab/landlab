@@ -51,10 +51,10 @@ intent: in
 Check the output variable names
 
 >>> sorted(PotentialEvapotranspiration.output_var_names)
-['radiation__incoming_shortwave',
- 'radiation__net',
- 'radiation__net_longwave',
- 'radiation__net_shortwave',
+['radiation__incoming_shortwave_flux',
+ 'radiation__net_flux',
+ 'radiation__net_longwave_flux',
+ 'radiation__net_shortwave_flux',
  'surface__potential_evapotranspiration_rate']
 
 Instantiate the 'PotentialEvapotranspiration' component to work on this grid,
@@ -66,15 +66,15 @@ Run the *update* method to update output variables with current time
 >>> current_time = 0.5
 >>> PET.update(current_time)
 
->>> PET.grid.at_cell['radiation__incoming_shortwave']
+>>> PET.grid.at_cell['radiation__incoming_shortwave_flux']
 array([ 33.09968448,  33.09968448,  28.64599771,  28.64599771,
         32.14779789,  32.14779789])
 
->>> PET.grid.at_cell['radiation__net']
+>>> PET.grid.at_cell['radiation__net_flux']
 array([ 13.9764353 ,  13.9764353 ,  12.09585347,  12.09585347,
         13.57449849,  13.57449849])
 
->>> PET.grid.at_cell['radiation__net_shortwave']
+>>> PET.grid.at_cell['radiation__net_shortwave_flux']
 array([ 13.23987379,  13.23987379,  11.45839908,  11.45839908,
         12.85911915,  12.85911915])
 
@@ -162,16 +162,16 @@ class PotentialEvapotranspiration(Component):
     >>> PET.input_var_names
     ('radiation__ratio_to_flat_surface',)
     >>> sorted(PET.output_var_names)
-    ['radiation__incoming_shortwave',
-     'radiation__net',
-     'radiation__net_longwave',
-     'radiation__net_shortwave',
+    ['radiation__incoming_shortwave_flux',
+     'radiation__net_flux',
+     'radiation__net_longwave_flux',
+     'radiation__net_shortwave_flux',
      'surface__potential_evapotranspiration_rate']
     >>> sorted(PET.units) # doctest: +NORMALIZE_WHITESPACE
-    [('radiation__incoming_shortwave', 'W/m^2'),
-     ('radiation__net', 'W/m^2'),
-     ('radiation__net_longwave', 'W/m^2'),
-     ('radiation__net_shortwave', 'W/m^2'),
+    [('radiation__incoming_shortwave_flux', 'W/m^2'),
+     ('radiation__net_flux', 'W/m^2'),
+     ('radiation__net_longwave_flux', 'W/m^2'),
+     ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
      ('surface__potential_evapotranspiration_rate', 'mm')]
     >>> PET.grid.number_of_cell_rows
@@ -201,28 +201,28 @@ class PotentialEvapotranspiration(Component):
 
     _output_var_names = (
         'surface__potential_evapotranspiration_rate',
-        'radiation__incoming_shortwave',
-        'radiation__net_shortwave',
-        'radiation__net_longwave',
-        'radiation__net',
+        'radiation__incoming_shortwave_flux',
+        'radiation__net_shortwave_flux',
+        'radiation__net_longwave_flux',
+        'radiation__net_flux',
     )
 
     _var_units = {
         'radiation__ratio_to_flat_surface': 'None',
         'surface__potential_evapotranspiration_rate': 'mm',
-        'radiation__incoming_shortwave': 'W/m^2',
-        'radiation__net_shortwave': 'W/m^2',
-        'radiation__net_longwave': 'W/m^2',
-        'radiation__net': 'W/m^2',
+        'radiation__incoming_shortwave_flux': 'W/m^2',
+        'radiation__net_shortwave_flux': 'W/m^2',
+        'radiation__net_longwave_flux': 'W/m^2',
+        'radiation__net_flux': 'W/m^2',
     }
 
     _var_mapping = {
         'radiation__ratio_to_flat_surface': 'cell',
         'surface__potential_evapotranspiration_rate': 'cell',
-        'radiation__incoming_shortwave': 'cell',
-        'radiation__net_shortwave': 'cell',
-        'radiation__net_longwave': 'cell',
-        'radiation__net': 'cell',
+        'radiation__incoming_shortwave_flux': 'cell',
+        'radiation__net_shortwave_flux': 'cell',
+        'radiation__net_longwave_flux': 'cell',
+        'radiation__net_flux': 'cell',
     }
 
     _var_doc = {
@@ -231,13 +231,13 @@ class PotentialEvapotranspiration(Component):
              to flat surface',
         'surface__potential_evapotranspiration_rate':
             'potential sum of evaporation and potential transpiration',
-        'radiation__incoming_shortwave':
+        'radiation__incoming_shortwave_flux':
             'total incident shortwave radiation over the time step',
-        'radiation__net_shortwave':
+        'radiation__net_shortwave_flux':
             'net incident shortwave radiation over the time step',
-        'radiation__net_longwave':
+        'radiation__net_longwave_flux':
             'net incident longwave radiation over the time step',
-        'radiation__net':
+        'radiation__net_flux':
             'net total radiation over the time step',
     }
 
@@ -340,16 +340,16 @@ class PotentialEvapotranspiration(Component):
         elif self._method == 'PriestlyTaylor':
             self._PET_value = (
                 self._PriestlyTaylor(current_time, Tmax, Tmin, Tavg))
-            self._cell_values['radiation__incoming_shortwave'] = (
+            self._cell_values['radiation__incoming_shortwave_flux'] = (
                 self._Rs *
                 self._cell_values['radiation__ratio_to_flat_surface'])
-            self._cell_values['radiation__net_shortwave'] = (
+            self._cell_values['radiation__net_shortwave_flux'] = (
                 self._Rns *
                 self._cell_values['radiation__ratio_to_flat_surface'])
-            self._cell_values['radiation__net_longwave'] = (
+            self._cell_values['radiation__net_longwave_flux'] = (
                 self._Rnl *
                 self._cell_values['radiation__ratio_to_flat_surface'])
-            self._cell_values['radiation__net'] = (
+            self._cell_values['radiation__net_flux'] = (
                 self._Rn *
                 self._cell_values['radiation__ratio_to_flat_surface'])
         elif self._method == 'MeasuredRadiationPT':

@@ -52,8 +52,8 @@ intent: in
 Check the output variable names
 
 >>> sorted(Radiation.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-['radiation__incoming_shortwave',
- 'radiation__net_shortwave',
+['radiation__incoming_shortwave_flux',
+ 'radiation__net_shortwave_flux',
  'radiation__ratio_to_flat_surface']
 
 Instantiate the 'Radiation' component to work on this grid, and run it.
@@ -68,7 +68,7 @@ Run the *update* method to update output variables with current time
 array([ 0.38488566,  0.38488566,  0.33309785,  0.33309785,  0.37381705,
         0.37381705])
 
->>> rad.grid.at_cell['radiation__incoming_shortwave']
+>>> rad.grid.at_cell['radiation__incoming_shortwave_flux']
 array([ 398.33664988,  398.33664988,  344.73895668,  344.73895668,
         386.88120966,  386.88120966])
 """
@@ -132,12 +132,12 @@ class Radiation(Component):
     >>> rad.input_var_names
     ('topographic__elevation',)
     >>> sorted(rad.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['radiation__incoming_shortwave',
-     'radiation__net_shortwave',
+    ['radiation__incoming_shortwave_flux',
+     'radiation__net_shortwave_flux',
      'radiation__ratio_to_flat_surface']
     >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
-    [('radiation__incoming_shortwave', 'W/m^2'),
-     ('radiation__net_shortwave', 'W/m^2'),
+    [('radiation__incoming_shortwave_flux', 'W/m^2'),
+     ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
      ('topographic__elevation', 'm')]
 
@@ -171,34 +171,34 @@ class Radiation(Component):
     )
 
     _output_var_names = (
-        'radiation__incoming_shortwave',
+        'radiation__incoming_shortwave_flux',
         'radiation__ratio_to_flat_surface',
-        'radiation__net_shortwave',
+        'radiation__net_shortwave_flux',
     )
 
     _var_units = {
         'topographic__elevation': 'm',
-        'radiation__incoming_shortwave': 'W/m^2',
+        'radiation__incoming_shortwave_flux': 'W/m^2',
         'radiation__ratio_to_flat_surface': 'None',
-        'radiation__net_shortwave': 'W/m^2',
+        'radiation__net_shortwave_flux': 'W/m^2',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
-        'radiation__incoming_shortwave': 'cell',
+        'radiation__incoming_shortwave_flux': 'cell',
         'radiation__ratio_to_flat_surface': 'cell',
-        'radiation__net_shortwave': 'cell',
+        'radiation__net_shortwave_flux': 'cell',
     }
 
     _var_doc = {
         'topographic__elevation':
             'elevation of the ground surface relative to some datum',
-        'radiation__incoming_shortwave':
+        'radiation__incoming_shortwave_flux':
             'total incident shortwave radiation over the time step',
         'radiation__ratio_to_flat_surface':
             'ratio of total incident shortwave radiation on sloped surface \
              to flat surface',
-        'radiation__net_shortwave':
+        'radiation__net_shortwave_flux':
             'net incident shortwave radiation over the time step',
     }
 
@@ -278,8 +278,8 @@ class Radiation(Component):
         """
         self._t = hour
         self._radf = self._cell_values['radiation__ratio_to_flat_surface']
-        self._Rs = self._cell_values['radiation__incoming_shortwave']
-        self._Rnet = self._cell_values['radiation__net_shortwave']
+        self._Rs = self._cell_values['radiation__incoming_shortwave_flux']
+        self._Rnet = self._cell_values['radiation__net_shortwave_flux']
 
         self._julian = np.floor((current_time - np.floor(current_time)) *
                                 365.25)    # Julian day
@@ -337,5 +337,5 @@ class Radiation(Component):
         self._Rnet = self._Rnetflat * self._radf
 
         self._cell_values['radiation__ratio_to_flat_surface'] = self._radf
-        self._cell_values['radiation__incoming_shortwave'] = self._Rs
-        self._cell_values['radiation__net_shortwave'] = self._Rnet
+        self._cell_values['radiation__incoming_shortwave_flux'] = self._Rs
+        self._cell_values['radiation__net_shortwave_flux'] = self._Rnet

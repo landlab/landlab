@@ -41,10 +41,10 @@ def test_input_var_names():
 @with_setup(setup_grid)
 def test_output_var_names():
     assert_equal(sorted(PET.output_var_names),
-                 ['radiation__incoming_shortwave',
-                  'radiation__net',
-                  'radiation__net_longwave',
-                  'radiation__net_shortwave',
+                 ['radiation__incoming_shortwave_flux',
+                  'radiation__net_flux',
+                  'radiation__net_longwave_flux',
+                  'radiation__net_shortwave_flux',
                   'surface__potential_evapotranspiration_rate'])
 
 
@@ -54,10 +54,10 @@ def test_var_units():
                  set(PET.output_var_names),
                  set(dict(PET.units).keys()))
 
-    assert_equal(PET.var_units('radiation__incoming_shortwave'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__net'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__net_longwave'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__net_shortwave'), 'W/m^2')
+    assert_equal(PET.var_units('radiation__incoming_shortwave_flux'), 'W/m^2')
+    assert_equal(PET.var_units('radiation__net_flux'), 'W/m^2')
+    assert_equal(PET.var_units('radiation__net_longwave_flux'), 'W/m^2')
+    assert_equal(PET.var_units('radiation__net_shortwave_flux'), 'W/m^2')
     assert_equal(PET.var_units('radiation__ratio_to_flat_surface'), 'None')
     assert_equal(PET.var_units('surface__potential_evapotranspiration_rate'),
                  'mm')

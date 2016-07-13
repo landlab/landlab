@@ -38,7 +38,7 @@ def test_name():
 @with_setup(setup_grid)
 def test_input_var_names():
     assert_equal(sorted(SM.input_var_names),
-                ['precipitation__rain',
+                ['rainfall_rate',
                  'soil_moisture__initial_saturation_fraction',
                  'surface__potential_evapotranspiration_rate',
                  'vegetation__cover_fraction',
@@ -74,7 +74,7 @@ def test_var_units():
     assert_equal(SM.var_units('soil_moisture__root_zone_leakage_rate'), 'mm')
     assert_equal(SM.var_units('surface__runoff_rate'), 'mm')
     assert_equal(SM.var_units('surface__evapotranspiration_rate'), 'mm')
-    assert_equal(SM.var_units('precipitation__rain'), 'mm')
+    assert_equal(SM.var_units('rainfall_rate'), 'mm')
 
 
 @with_setup(setup_grid)
