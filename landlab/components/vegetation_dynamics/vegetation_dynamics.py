@@ -183,9 +183,9 @@ class Vegetation(Component):
      ('surface__potential_evapotranspiration_30day_mean', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
      ('vegetation__cover_fraction', 'None'),
-     ('vegetation__dead_biomass', 'g DM m^-2 d^-1'),
+     ('vegetation__dead_biomass', 'g m^-2 d^-1'),
      ('vegetation__dead_leaf_area_index', 'None'),
-     ('vegetation__live_biomass', 'g DM m^-2 d^-1'),
+     ('vegetation__live_biomass', 'g m^-2 d^-1'),
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None')]
 
@@ -254,8 +254,8 @@ class Vegetation(Component):
         'surface__potential_evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_30day_mean': 'mm',
         'soil_moisture__water_stress': 'None',
-        'vegetation__live_biomass': 'g DM m^-2 d^-1',
-        'vegetation__dead_biomass': 'g DM m^-2 d^-1',
+        'vegetation__live_biomass': 'g m^-2 d^-1',
+        'vegetation__dead_biomass': 'g m^-2 d^-1',
         'vegetation__plant_functional_type': 'None',
     }
 
@@ -289,9 +289,11 @@ class Vegetation(Component):
             'parameter that represents nonlinear effects of water defecit \
              on plants',
         'vegetation__live_biomass':
-            'weight of green organic mass per unit area',
+            'weight of green organic mass per unit area - measured in terms \
+             of dry matter',
         'vegetation__dead_biomass':
-            'weight of dead organic mass per unit area',
+            'weight of dead organic mass per unit area - measured in terms \
+             of dry matter',
         'vegetation__plant_functional_type':
             'classification of plants (int), grass=0, shrub=1, tree=2, \
              bare=3, shrub_seedling=4, tree_seedling=5',

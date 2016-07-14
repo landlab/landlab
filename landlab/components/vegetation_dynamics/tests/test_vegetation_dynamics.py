@@ -70,8 +70,8 @@ def test_var_units():
     assert_equal(Veg.var_units(
                 'surface__potential_evapotranspiration_30day_mean'), 'mm')                 
     assert_equal(Veg.var_units('soil_moisture__water_stress'), 'None')
-    assert_equal(Veg.var_units('vegetation__live_biomass'), 'g DM m^-2 d^-1')
-    assert_equal(Veg.var_units('vegetation__dead_biomass'), 'g DM m^-2 d^-1')
+    assert_equal(Veg.var_units('vegetation__live_biomass'), 'g m^-2 d^-1')
+    assert_equal(Veg.var_units('vegetation__dead_biomass'), 'g m^-2 d^-1')
     assert_equal(Veg.var_units('vegetation__plant_functional_type'), 'None')    
 
 
