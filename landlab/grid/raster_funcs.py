@@ -82,7 +82,7 @@ def neighbor_node_at_cell(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.active_neighbors_at_node(node_ids)
+    neighbors = grid.active_neighbors_at_node[node_ids]
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)

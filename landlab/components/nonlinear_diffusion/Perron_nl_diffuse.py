@@ -617,7 +617,7 @@ class PerronNLDiffuse(Component):
         extended_elevs = np.empty(
             self.grid.number_of_nodes + 1, dtype=float)
         extended_elevs[-1] = np.nan
-        node_neighbors = self.grid.active_neighbors_at_node(bad_index=-1)
+        node_neighbors = self.grid.active_neighbors_at_node
         extended_elevs[:-1] = new_grid['node'][self.values_to_diffuse]
         max_offset = np.nanmax(np.fabs(
             extended_elevs[:-1][node_neighbors] -
@@ -720,10 +720,11 @@ class PerronNLDiffuse(Component):
             elev[right_edge] = elev[inside_right_edge]
 
         # replacing loop:
-        cell_neighbors = grid.active_neighbors_at_node(bad_index=-1)
+        cell_neighbors = grid.active_neighbors_at_node
         # ^E,N,W,S
         cell_diagonals = grid._get_diagonal_list()  # NE,NW,SW,SE
-        cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
+        # cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
+        # ^this should be dealt with by active_neighbors... (skips bad nodes)
         cell_diagonals[cell_diagonals == BAD_INDEX_VALUE] = -1
 
         _z_x = (elev[cell_neighbors[:, 0]] - elev[cell_neighbors[:, 2]]
