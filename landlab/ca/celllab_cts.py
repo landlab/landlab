@@ -129,10 +129,10 @@ import landlab
 import numpy as np
 import pylab as plt
 
-_USE_CYTHON = False
+_USE_CYTHON = True
 
 if _USE_CYTHON:
-    from .cfuncs import do_transition
+    from .cfuncs import do_transition, update_link_states_and_transitions
 
 _NEVER = 1e50
 
@@ -741,11 +741,28 @@ class CellLabCTSModel(object):
                     change the link state to be correct
                     schedule an event
         """
-        for i in self.grid.active_links:
-            # for i in range(self.grid.number_of_active_links):
-            current_state = self.current_link_state(i)
-            if current_state != self.link_state[i]:
-                self.update_link_state(i, current_state, current_time)
+        if _USE_CYTHON:
+            update_link_states_and_transitions(self.grid.active_links,
+                                               self.node_state, 
+                                               self.grid.node_at_link_tail,
+                                               self.grid.node_at_link_head,
+                                               self.link_orientation,
+                                               self.bnd_lnk,
+                                               self.link_state,
+                                               self.n_xn,
+                                               self.event_queue,
+                                               self.next_update,
+                                               self.xn_to, self.xn_rate,
+                                               self.num_node_states,
+                                               self.num_node_states_sq,
+                                               current_time,
+                                               self.xn_propswap,
+                                               self.xn_prop_update_fn)
+        else:
+            for i in self.grid.active_links:
+                current_state = self.current_link_state(i)
+                if current_state != self.link_state[i]:
+                    self.update_link_state(i, current_state, current_time)
 
     def get_next_event(self, link, current_state, current_time):
         """Get the next event for a link.
