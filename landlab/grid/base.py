@@ -87,6 +87,7 @@ Information about links
 
     ~landlab.grid.base.ModelGrid.active_links
     ~landlab.grid.base.ModelGrid.angle_of_link
+    ~landlab.grid.base.ModelGrid.angle_of_link_about_head
     ~landlab.grid.base.ModelGrid.face_at_link
     ~landlab.grid.base.ModelGrid.fixed_links
     ~landlab.grid.base.ModelGrid.length_of_link
@@ -802,6 +803,23 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._link_y = (self.y_of_node[self.node_at_link_head] +
                         self.y_of_node[self.node_at_link_tail])/2.
 
+    def _create_neighbor_list(self, **kwds):
+        """Create list of neighbor node IDs.
+
+        Creates a list of IDs of neighbor nodes for each node, as a
+        2D array. Only record neighbor nodes that are on the other end of an
+        *active* link. Nodes attached to *inactive* links or neighbor nodes
+        that would be outside of the grid are given an ID of
+        :const:`~landlab.grid.base.BAD_INDEX_VALUE`.
+
+        Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
+        """
+        self._active_neighbor_nodes = self.neighbors_at_node.copy()
+        self._active_neighbor_nodes[
+            self.active_link_dirs_at_node == 0] = BAD_INDEX_VALUE
+        self.neighbor_list_created = True
+        return self._active_neighbor_nodes
+
     @classmethod
     def from_file(cls, file_like):
         params = load_params(file_like)
@@ -895,6 +913,45 @@ class ModelGrid(ModelDataFieldsMixIn):
                [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
         """
         return self._neighbors_at_node
+
+    @property
+    @return_readonly_id_array
+    def active_neighbors_at_node(self):
+        """Get list of neighbor node IDs.
+
+        Return lists of neighbor nodes, where the neighbor is connected by an
+        active link. For each node, the list gives neighbor ids as [right, top,
+        left, bottom]. Nodes at the end of inactive links or nodes in missing
+        positions get BAD_INDEX_VALUE.
+
+        Examples
+        --------
+        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
+        >>> from landlab import RasterModelGrid, HexModelGrid, CLOSED_BOUNDARY
+        >>> rmg = RasterModelGrid((4, 5))
+        >>> np.array_equal(rmg.active_neighbors_at_node[[-1, 6, 2]],
+        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
+        True
+        >>> rmg.active_neighbors_at_node[7]
+        array([ 8, 12,  6,  2])
+        >>> rmg.active_neighbors_at_node[2]
+        array([-1,  7, -1, -1])
+        >>> hmg = HexModelGrid(3, 2)
+        >>> hmg.status_at_node[0] = CLOSED_BOUNDARY
+        >>> hmg.active_neighbors_at_node
+        array([[-1, -1, -1, -1, -1, -1],
+               [-1,  3, -1, -1, -1, -1],
+               [ 3, -1, -1, -1, -1, -1],
+               [ 4,  6,  5,  2, -1,  1],
+               [-1,  3, -1, -1, -1, -1],
+               [-1, -1,  3, -1, -1, -1],
+               [-1,  3, -1, -1, -1, -1]])
+        """
+        try:
+            return self._active_neighbor_nodes
+        except AttributeError:
+            self._active_neighbor_nodes = self._create_neighbor_list()
+            return self._active_neighbor_nodes
 
     @property
     @make_return_array_immutable
@@ -2035,16 +2092,53 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def angle_of_link(self, links='all', dirs=-1):
-        """Find and return the angle of link(s) in given direction.
+    @property
+    @make_return_array_immutable
+    def angle_of_link(self):
+        """Find and return the angle of a link about the node at the link tail.
 
-        Parameters
-        ----------
-        links : 1d numpy array or 'all'
-            one or more link IDs
-        dirs : 1d numpy array (must be same length as links)
-            direction of links relative to node: +1 means head is origin;
-            -1 means tail is origin.
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 2)
+        >>> mg.angle_of_link / np.pi * 3.  # 60 degree segments
+        array([ 0.,  2.,  1.,  2.,  1.,  0.,  0.,  1.,  2.,  1.,  2.,  0.])
+        """
+        try:
+            if not self._angle_of_link_created:
+                self._create_angle_of_link()
+        except AttributeError:
+            self._create_angle_of_link()
+        return self._angle_of_link_bothends[-1]
+
+    @property
+    @make_return_array_immutable
+    def angle_of_link_about_head(self):
+        """Find and return the angle of a link about the node at the link head.
+
+        Because links have direction, their angle can be specified as an angle
+        about either the node at the link head, or the node at the link tail.
+        The default behaviour of `angle_of_link` is to return the angle about
+        the link tail, but this method gives the angle about the link head.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> mg = HexModelGrid(3, 2)
+        >>> mg.angle_of_link_about_head[:3] / np.pi * 3.  # 60 deg segments
+        array([ 3.,  5.,  4.])
+        """
+        try:
+            if not self._angle_of_link_created:
+                self._create_angle_of_link()
+        except AttributeError:
+            self._create_angle_of_link()
+        return self._angle_of_link_bothends[1]
+
+    def _create_angle_of_link(self):
+        """
+        Build a dict with keys (-1, 1) that contains the angles of the links
+        about both the link heads (1) and link tails (-1).
 
         Notes
         -----
@@ -2055,45 +2149,34 @@ class ModelGrid(ModelDataFieldsMixIn):
         negative and clockwise from the positive x axis. We want them
         counter-clockwise, which is what the last couple of lines before
         the return statement do.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.angle_of_link() / np.pi * 3.  # 60 degree segments
-        array([ 0.,  2.,  1.,  2.,  1.,  0.,  0.,  1.,  2.,  1.,  2.,  0.])
-
-         First 3 links only, angle from head this time:
-
-        >>> mg.angle_of_link(np.arange(3), 1.) / np.pi * 3.
-        array([ 3.,  5.,  4.])
         """
-        if links != 'all':
-            dx = -dirs * (self.node_x[self.node_at_link_head[links]] -
-                          self.node_x[self.node_at_link_tail[links]])
-            dy = -dirs * (self.node_y[self.node_at_link_head[links]] -
-                          self.node_y[self.node_at_link_tail[links]])
-        else:
+        self._angle_of_link_bothends = {}
+        for dirs in (-1, 1):
             dx = -dirs * (self.node_x[self.node_at_link_head] -
                           self.node_x[self.node_at_link_tail])
             dy = -dirs * (self.node_y[self.node_at_link_head] -
                           self.node_y[self.node_at_link_tail])
-        ang = np.arctan2(dy, dx)
-        (lower_two_quads, ) = np.where(ang < 0.0)
-        ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
-        (no_link, ) = np.where(dirs == 0)
-        ang[no_link] = 2*np.pi
-        return ang
+            ang = np.arctan2(dy, dx)
+            (lower_two_quads, ) = np.where(ang < 0.0)
+            ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
+            (no_link, ) = np.where(dirs == 0)
+            ang[no_link] = 2*np.pi
+            self._angle_of_link_bothends[dirs] = ang.copy()
+        self._angle_of_link_created = True
 
     def _sort_links_at_node_by_angle(self):
         """Sort the links_at_node and link_dirs_at_node arrays by angle.
         """
-        for n in range(self.number_of_nodes):
-            ang = self.angle_of_link(self.links_at_node[n, :],
-                                     self.link_dirs_at_node[n, :])
-            indices = np.argsort(ang)
-            self._links_at_node[n, :] = self._links_at_node[n, indices]
-            self._link_dirs_at_node[n, :] = self._link_dirs_at_node[n, indices]
+        ang = self.angle_of_link[self.links_at_node]
+        linkhead_at_node = self.link_dirs_at_node == 1
+        ang[linkhead_at_node] = self.angle_of_link_about_head[
+            self.links_at_node[linkhead_at_node]]
+        ang[self.link_dirs_at_node == 0] = 100.
+        argsorted = np.argsort(ang, axis=1)
+        indices = np.indices(ang.shape)[0] * ang.shape[1] + argsorted
+        self._links_at_node.flat = self._links_at_node.flat[indices.flatten()]
+        self._link_dirs_at_node.flat = self._link_dirs_at_node.flat[
+            indices.flatten()]
 
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.

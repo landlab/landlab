@@ -231,7 +231,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
-    neighbors = grid.active_neighbors_at_node(node_ids)
+    neighbors = grid.active_neighbors_at_node[node_ids]
     if BAD_INDEX_VALUE != -1:
         neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
@@ -413,7 +413,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     padded_node_values[:-1] = node_values
     node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
-    neighbors = grid.active_neighbors_at_node(node_ids, bad_index=-1)
+    neighbors = grid.active_neighbors_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
         values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
