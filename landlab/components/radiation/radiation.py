@@ -52,8 +52,8 @@ intent: in
 Check the output variable names
 
 >>> sorted(Radiation.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-['radiation__incoming_shortwave',
- 'radiation__net_shortwave',
+['radiation__incoming_shortwave_flux',
+ 'radiation__net_shortwave_flux',
  'radiation__ratio_to_flat_surface']
 
 Instantiate the 'Radiation' component to work on this grid, and run it.
@@ -68,7 +68,7 @@ Run the *update* method to update output variables with current time
 array([ 0.38488566,  0.38488566,  0.33309785,  0.33309785,  0.37381705,
         0.37381705])
 
->>> rad.grid.at_cell['radiation__incoming_shortwave']
+>>> rad.grid.at_cell['radiation__incoming_shortwave_flux']
 array([ 398.33664988,  398.33664988,  344.73895668,  344.73895668,
         386.88120966,  386.88120966])
 """
@@ -96,8 +96,8 @@ class Radiation(Component):
 
     Construction::
 
-        Radiation(grid, method='Grid', cloudiness=0.2, latitude=34., 
-                  albedo=0.2, solar_constant=1366.67, 
+        Radiation(grid, method='Grid', cloudiness=0.2, latitude=34.,
+                  albedo=0.2, solar_constant=1366.67,
                   clearsky_turbidity=2., opt_airmass=0.)
 
     Parameters
@@ -132,12 +132,12 @@ class Radiation(Component):
     >>> rad.input_var_names
     ('topographic__elevation',)
     >>> sorted(rad.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['radiation__incoming_shortwave',
-     'radiation__net_shortwave',
+    ['radiation__incoming_shortwave_flux',
+     'radiation__net_shortwave_flux',
      'radiation__ratio_to_flat_surface']
     >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
-    [('radiation__incoming_shortwave', 'W/m^2'),
-     ('radiation__net_shortwave', 'W/m^2'),
+    [('radiation__incoming_shortwave_flux', 'W/m^2'),
+     ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
      ('topographic__elevation', 'm')]
 
@@ -171,34 +171,34 @@ class Radiation(Component):
     )
 
     _output_var_names = (
-        'radiation__incoming_shortwave',
+        'radiation__incoming_shortwave_flux',
         'radiation__ratio_to_flat_surface',
-        'radiation__net_shortwave',
+        'radiation__net_shortwave_flux',
     )
 
     _var_units = {
         'topographic__elevation': 'm',
-        'radiation__incoming_shortwave': 'W/m^2',
+        'radiation__incoming_shortwave_flux': 'W/m^2',
         'radiation__ratio_to_flat_surface': 'None',
-        'radiation__net_shortwave': 'W/m^2',
+        'radiation__net_shortwave_flux': 'W/m^2',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
-        'radiation__incoming_shortwave': 'cell',
+        'radiation__incoming_shortwave_flux': 'cell',
         'radiation__ratio_to_flat_surface': 'cell',
-        'radiation__net_shortwave': 'cell',
+        'radiation__net_shortwave_flux': 'cell',
     }
 
     _var_doc = {
         'topographic__elevation':
             'elevation of the ground surface relative to some datum',
-        'radiation__incoming_shortwave':
+        'radiation__incoming_shortwave_flux':
             'total incident shortwave radiation over the time step',
         'radiation__ratio_to_flat_surface':
             'ratio of total incident shortwave radiation on sloped surface \
              to flat surface',
-        'radiation__net_shortwave':
+        'radiation__net_shortwave_flux':
             'net incident shortwave radiation over the time step',
     }
 
@@ -241,11 +241,13 @@ class Radiation(Component):
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:
-                self.grid.add_zeros(name, at='node', units=self._var_units[name])
+                self.grid.add_zeros(name, at='node',
+                                    units=self._var_units[name])
 
         for name in self._output_var_names:
             if name not in self.grid.at_cell:
-                self.grid.add_zeros(name, at='cell', units=self._var_units[name])
+                self.grid.add_zeros(name, at='cell',
+                                    units=self._var_units[name])
 
         if 'Slope' not in self.grid.at_cell:
             self.grid.add_zeros('Slope', at='cell', units='radians')
@@ -276,25 +278,25 @@ class Radiation(Component):
         """
         self._t = hour
         self._radf = self._cell_values['radiation__ratio_to_flat_surface']
-        self._Rs = self._cell_values['radiation__incoming_shortwave']
-        self._Rnet = self._cell_values['radiation__net_shortwave']
+        self._Rs = self._cell_values['radiation__incoming_shortwave_flux']
+        self._Rnet = self._cell_values['radiation__net_shortwave_flux']
 
-        self._julian = np.floor(
-            (current_time - np.floor(current_time)) * 365.25) # Julian day
+        self._julian = np.floor((current_time - np.floor(current_time)) *
+                                365.25)    # Julian day
 
-        self._phi = np.radians(self._latitude) # Latitude in Radians
+        self._phi = np.radians(self._latitude)    # Latitude in Radians
 
         self._delta = 23.45 * np.radians(
-            np.cos(2*np.pi / 365 * (172 - self._julian))) # Declination angle
+            np.cos(2*np.pi / 365 * (172 - self._julian)))   # Declination angle
 
-        self._tau = (self._t + 12.0) * np.pi / 12.0 # Hour angle
+        self._tau = (self._t + 12.0) * np.pi / 12.0     # Hour angle
 
         self._alpha = np.arcsin(np.sin(self._delta) * np.sin(self._phi) +
                                 np.cos(self._delta) * np.cos(self._phi) *
-                                np.cos(self._tau)) # Solar Altitude
+                                np.cos(self._tau))     # Solar Altitude
 
-        if self._alpha <= 0.25 * np.pi / 180.0: # If altitude is -ve,
-            self._alpha = 0.25 * np.pi / 180.0 # sun is beyond the horizon
+        if self._alpha <= 0.25 * np.pi / 180.0:    # If altitude is -ve,
+            self._alpha = 0.25 * np.pi / 180.0     # sun is beyond the horizon
 
         self._Rgl = (self._Io * np.exp((-1) * self._n * (
             0.128 - 0.054 * np.log10(1. / np.sin(self._alpha)))*(
@@ -303,8 +305,7 @@ class Radiation(Component):
 
         self._phisun = (np.arctan(- np.sin(self._tau) / (np.tan(self._delta) *
                         np.cos(self._phi) - np.sin(self._phi) *
-                        np.cos(self._tau)))) # Sun's Azhimuth
-
+                        np.cos(self._tau))))      # Sun's Azhimuth
         if (self._phisun >= 0 and - np.sin(self._tau) <= 0):
             self._phisun = self._phisun + np.pi
 
@@ -313,7 +314,7 @@ class Radiation(Component):
 
         self._flat = (np.cos(np.arctan(0)) * np.sin(self._alpha) +
                       np.sin(np.arctan(0)) * np.cos(self._alpha) *
-                      np.cos(self._phisun - 0)) # flat surface reference
+                      np.cos(self._phisun - 0))   # flat surface reference
 
         self._Rsflat = self._Rgl * self._flat
         # flat surface total incoming shortwave radiation
@@ -336,5 +337,5 @@ class Radiation(Component):
         self._Rnet = self._Rnetflat * self._radf
 
         self._cell_values['radiation__ratio_to_flat_surface'] = self._radf
-        self._cell_values['radiation__incoming_shortwave'] = self._Rs
-        self._cell_values['radiation__net_shortwave'] = self._Rnet
+        self._cell_values['radiation__incoming_shortwave_flux'] = self._Rs
+        self._cell_values['radiation__net_shortwave_flux'] = self._Rnet
