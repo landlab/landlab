@@ -12,6 +12,8 @@ from distutils.extension import Extension
 import sys
 
 ext_modules = [
+    Extension('landlab.ca.cfuncs',
+              ['landlab/ca/cfuncs.pyx']),
     Extension('landlab.components.flexure.cfuncs',
               ['landlab/components/flexure/cfuncs.pyx']),
     Extension('landlab.components.flow_routing.cfuncs',

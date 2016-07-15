@@ -1451,7 +1451,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
-    angles_at_links = grid.angle_of_link()  # CCW round tail
+    angles_at_links = grid.angle_of_link  # CCW round tail
     hoz_cpt = np.cos(angles_at_links)
     vert_cpt = np.sin(angles_at_links)
     hoz_vals = var_name * hoz_cpt
