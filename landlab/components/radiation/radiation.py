@@ -298,9 +298,12 @@ class Radiation(Component):
         if self._alpha <= 0.25 * np.pi / 180.0:    # If altitude is -ve,
             self._alpha = 0.25 * np.pi / 180.0     # sun is beyond the horizon
 
-        self._Rgl = (self._Io * np.exp((-1) * self._n * (
-            0.128 - 0.054 * np.log10(1. / np.sin(self._alpha)))*(
-                1. / np.sin(self._alpha))))
+        self._d_sun_2 = (1./(1. + 0.033 * np.cos((2*np.pi*self._julian)/365.)))
+        # distance parameter from Duffie & Beckman 1991
+
+        self._Rgl = ((self._Io * np.exp((-1) * self._n * (
+                0.128 - 0.054 * np.log10(1. / np.sin(self._alpha)))*(
+                1. / np.sin(self._alpha))))/self._d_sun_2)
         # Counting for Albedo, Cloudiness and Atmospheric turbidity
 
         self._phisun = (np.arctan(- np.sin(self._tau) / (np.tan(self._delta) *
