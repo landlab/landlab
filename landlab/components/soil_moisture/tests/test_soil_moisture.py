@@ -51,9 +51,9 @@ def test_output_var_names():
     assert_equal(sorted(SM.output_var_names),
                 ['soil_moisture__root_zone_leakage_rate',
                  'soil_moisture__saturation_fraction',
-                 'soil_moisture__water_stress',
                  'surface__evapotranspiration_rate',
-                 'surface__runoff_rate'])
+                 'surface__runoff_rate',
+                 'vegetation__water_stress',])
 
 
 @with_setup(setup_grid)
@@ -67,7 +67,7 @@ def test_var_units():
     assert_equal(SM.var_units('surface__potential_evapotranspiration_rate'),
                  'mm')
     assert_equal(SM.var_units('vegetation__plant_functional_type'), 'None')
-    assert_equal(SM.var_units('soil_moisture__water_stress'), 'None')
+    assert_equal(SM.var_units('vegetation__water_stress'), 'None')
     assert_equal(SM.var_units('soil_moisture__saturation_fraction'), 'None')
     assert_equal(SM.var_units('soil_moisture__initial_saturation_fraction'),
                  'None')

@@ -25,11 +25,11 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(VegCA.input_var_names)
-['soil_moisture__cumulative_water_stress', 'vegetation__plant_functional_type']
+['vegetation__cumulative_water_stress', 'vegetation__plant_functional_type']
 
 Check the units for the fields.
 
->>> VegCA.var_units('soil_moisture__cumulative_water_stress')
+>>> VegCA.var_units('vegetation__cumulative_water_stress')
 'None'
 
 Create the input fields.
@@ -40,15 +40,15 @@ Create the input fields.
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> VegCA.var_help('soil_moisture__cumulative_water_stress')
-name: soil_moisture__cumulative_water_stress
+>>> VegCA.var_help('vegetation__cumulative_water_stress')
+name: vegetation__cumulative_water_stress
 description:
-  cumulative soil_moisture__water_stress over the growing season
+  cumulative vegetation__water_stress over the growing season
 units: None
 at: cell
 intent: in
 
->>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
+>>> grid['cell']['vegetation__cumulative_water_stress'] = \
             np.ones(grid.number_of_cells)
 
 Instantiate the 'VegCA' component to work on this grid,
@@ -152,11 +152,11 @@ class VegCA(Component):
     >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
     [('plant__age', 'Years'),
      ('plant__live_index', 'None'),
-     ('soil_moisture__cumulative_water_stress', 'None'),
+     ('vegetation__cumulative_water_stress', 'None'),
      ('vegetation__plant_functional_type', 'None')]
     >>> grid['cell']['vegetation__plant_functional_type']= \
                 np.arange(0, grid.number_of_cells, dtype=int)
-    >>> grid['cell']['soil_moisture__cumulative_water_stress'] = \
+    >>> grid['cell']['vegetation__cumulative_water_stress'] = \
                 np.ones(grid.number_of_cells)
     >>> ca_veg = VegCA(grid)
     >>> ca_veg.grid.number_of_cell_rows
@@ -174,7 +174,7 @@ class VegCA(Component):
     _name = 'Cellular Automata Plant Competition'
 
     _input_var_names = (
-        'soil_moisture__cumulative_water_stress',
+        'vegetation__cumulative_water_stress',
         'vegetation__plant_functional_type',
     )
 
@@ -184,27 +184,27 @@ class VegCA(Component):
     )
 
     _var_units = {
-        'soil_moisture__cumulative_water_stress': 'None',
+        'vegetation__cumulative_water_stress': 'None',
         'vegetation__plant_functional_type': 'None',
         'plant__live_index': 'None',
         'plant__age': 'Years',
     }
 
     _var_mapping = {
-        'soil_moisture__cumulative_water_stress': 'cell',
+        'vegetation__cumulative_water_stress': 'cell',
         'vegetation__plant_functional_type': 'cell',
         'plant__live_index': 'cell',
         'plant__age': 'cell',
     }
 
     _var_doc = {
-        'soil_moisture__cumulative_water_stress':
-            'cumulative soil_moisture__water_stress over the growing season',
+        'vegetation__cumulative_water_stress':
+            'cumulative vegetation__water_stress over the growing season',
         'vegetation__plant_functional_type':
             'classification of plants (int), grass=0, shrub=1, tree=2, \
              bare=3, shrub_seedling=4, tree_seedling=5',
         'plant__live_index':
-            '1 - soil_moisture__cumulative_water_stress',
+            '1 - vegetation__cumulative_water_stress',
         'plant__age':
             'Age of plant',
     }
@@ -327,7 +327,7 @@ class VegCA(Component):
         """
         self._VegType = self._cell_values['vegetation__plant_functional_type']
         self._CumWS = self._cell_values[
-            'soil_moisture__cumulative_water_stress']
+            'vegetation__cumulative_water_stress']
         self._live_index = self._cell_values['plant__live_index']
         self._tp = self._cell_values['plant__age'] + time_elapsed
 
