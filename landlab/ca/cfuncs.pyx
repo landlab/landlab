@@ -96,6 +96,92 @@ class Event():
 
 
 @cython.boundscheck(False)
+def current_link_state(DTYPE_INT_t link_id,
+                       np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
+                       np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
+                       np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                       np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                       DTYPE_INT_t num_node_states,
+                       DTYPE_INT_t num_node_states_sq):
+    """Get the current state of a link.
+
+    Used to determine whether the link state at link *link_id* has changed
+    due to an independent change in the node-state grid. Returns the
+    current state of the link based on the states of its two end nodes;
+    this can be compared to the entry in self.link_state to determine
+    whether the state has changed.
+
+    Parameters
+    ----------
+    link_id : int
+        ID of the active link to test
+
+    Returns
+    -------
+    int
+        New link state code
+    """
+    cdef int tail_node_state, head_node_state
+
+    # Find out the states of the two nodes, and the orientation
+    tail_node_state = node_state[node_at_link_tail[link_id]]
+    head_node_state = node_state[node_at_link_head[link_id]]
+    orientation = link_orientation[link_id]
+
+    # Return the corresponding state code.
+    return (orientation * num_node_states_sq +
+            tail_node_state * num_node_states + head_node_state)
+
+
+@cython.boundscheck(False)
+def update_link_states_and_transitions(
+                             np.ndarray[DTYPE_INT_t, ndim=1] active_links,
+                             np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
+                             np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
+                             np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                             np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                             bnd_lnk,
+                             np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                             np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                             event_queue,
+                             np.ndarray[DTYPE_t, ndim=1] next_update,
+                             np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                             np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                             DTYPE_INT_t num_node_states,
+                             DTYPE_INT_t num_node_states_sq,
+                             DTYPE_t current_time,
+                             xn_propswap, xn_prop_update_fn):
+        """
+        Following an "external" change to the node state grid, updates link
+        states where necessary and creates any needed events.
+
+        Notes
+        -----
+        **Algorithm**::
+
+            FOR each active link:
+                if the actual node pair is different from the link's code:
+                    change the link state to be correct
+                    schedule an event
+        """
+        for i in active_links:
+            current_state = current_link_state(i, node_state,
+                                               node_at_link_tail,
+                                               node_at_link_head,
+                                               link_orientation,
+                                               num_node_states,
+                                               num_node_states_sq)
+            if current_state != link_state[i]:
+                update_link_state(i, current_state, current_time, bnd_lnk,
+                                  node_state, node_at_link_tail,
+                                  node_at_link_head, link_orientation, 
+                                  num_node_states, num_node_states_sq,
+                                  link_state, n_xn, event_queue, next_update, 
+                                  xn_to, xn_rate,xn_propswap,
+                                  xn_prop_update_fn)
+
+
+@cython.boundscheck(False)
 def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
