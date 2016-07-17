@@ -35,7 +35,7 @@ def test_name():
 @with_setup(setup_grid)
 def test_input_var_names():
     assert_equal(sorted(ca_veg.input_var_names),
-                 ['soil_moisture__cumulative_water_stress',
+                 ['vegetation__cumulative_water_stress',
                   'vegetation__plant_functional_type'])
 
 
@@ -51,7 +51,7 @@ def test_var_units():
                  set(ca_veg.output_var_names),
                  set(dict(ca_veg.units).keys()))
 
-    assert_equal(ca_veg.var_units('soil_moisture__cumulative_water_stress'),
+    assert_equal(ca_veg.var_units('vegetation__cumulative_water_stress'),
                  'None')
     assert_equal(ca_veg.var_units('vegetation__plant_functional_type'),
                  'None')

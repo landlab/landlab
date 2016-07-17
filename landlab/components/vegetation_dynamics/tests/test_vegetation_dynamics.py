@@ -38,11 +38,11 @@ def test_name():
 @with_setup(setup_grid)
 def test_input_var_names():
     assert_equal(sorted(Veg.input_var_names),
-                ['soil_moisture__water_stress',
-                 'surface__evapotranspiration_rate',
+                ['surface__evapotranspiration_rate',
                  'surface__potential_evapotranspiration_30day_mean',
                  'surface__potential_evapotranspiration_rate',
-                 'vegetation__plant_functional_type'])
+                 'vegetation__plant_functional_type',
+                 'vegetation__water_stress'])
 
 
 @with_setup(setup_grid)
@@ -69,9 +69,9 @@ def test_var_units():
                  'mm')
     assert_equal(Veg.var_units(
                 'surface__potential_evapotranspiration_30day_mean'), 'mm')                 
-    assert_equal(Veg.var_units('soil_moisture__water_stress'), 'None')
-    assert_equal(Veg.var_units('vegetation__live_biomass'), 'g DM m^-2 d^-1')
-    assert_equal(Veg.var_units('vegetation__dead_biomass'), 'g DM m^-2 d^-1')
+    assert_equal(Veg.var_units('vegetation__water_stress'), 'None')
+    assert_equal(Veg.var_units('vegetation__live_biomass'), 'g m^-2 d^-1')
+    assert_equal(Veg.var_units('vegetation__dead_biomass'), 'g m^-2 d^-1')
     assert_equal(Veg.var_units('vegetation__plant_functional_type'), 'None')    
 
 

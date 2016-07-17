@@ -26,11 +26,11 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
-['soil_moisture__water_stress',
- 'surface__evapotranspiration_rate',
+['surface__evapotranspiration_rate',
  'surface__potential_evapotranspiration_30day_mean',
  'surface__potential_evapotranspiration_rate',
- 'vegetation__plant_functional_type']
+ 'vegetation__plant_functional_type',
+ 'vegetation__water_stress']
 
 Check the units for an input field
 
@@ -65,7 +65,7 @@ intent: in
 ...        0.25547770, 0.25547770, 0.22110221,
 ...        0.22110221, 0.24813062, 0.24813062])
 
->>> grid['cell']['soil_moisture__water_stress'] = \
+>>> grid['cell']['vegetation__water_stress'] = \
            0.01 * np.ones(grid.number_of_cells)
 
 Instantiate the 'SoilMoisture' component to work on this grid,
@@ -171,23 +171,23 @@ class Vegetation(Component):
     class property.
 
     >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
-    ['soil_moisture__water_stress',
-     'surface__evapotranspiration_rate',
+    ['surface__evapotranspiration_rate',
      'surface__potential_evapotranspiration_30day_mean',
      'surface__potential_evapotranspiration_rate',
-     'vegetation__plant_functional_type']
+     'vegetation__plant_functional_type',
+     'vegetation__water_stress']
 
     >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
-    [('soil_moisture__water_stress', 'None'),
-     ('surface__evapotranspiration_rate', 'mm'),
+    [('surface__evapotranspiration_rate', 'mm'),
      ('surface__potential_evapotranspiration_30day_mean', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
      ('vegetation__cover_fraction', 'None'),
-     ('vegetation__dead_biomass', 'g DM m^-2 d^-1'),
+     ('vegetation__dead_biomass', 'g m^-2 d^-1'),
      ('vegetation__dead_leaf_area_index', 'None'),
-     ('vegetation__live_biomass', 'g DM m^-2 d^-1'),
+     ('vegetation__live_biomass', 'g m^-2 d^-1'),
      ('vegetation__live_leaf_area_index', 'None'),
-     ('vegetation__plant_functional_type', 'None')]
+     ('vegetation__plant_functional_type', 'None'),
+     ('vegetation__water_stress', 'None')]
 
     Provide all the input fields.
     >>> grid['cell']['vegetation__plant_functional_type']= \
@@ -200,7 +200,7 @@ class Vegetation(Component):
     >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
             np.array([ 0.25547770, 0.25547770, 0.22110221, \
                        0.22110221, 0.24813062, 0.24813062])
-    >>> grid['cell']['soil_moisture__water_stress'] = \
+    >>> grid['cell']['vegetation__water_stress'] = \
                0.01 * np.ones(grid.number_of_cells)
 
     Instantiate the 'Vegetation' component.
@@ -232,7 +232,7 @@ class Vegetation(Component):
 
     _input_var_names = (
         'surface__evapotranspiration_rate',
-        'soil_moisture__water_stress',
+        'vegetation__water_stress',
         'surface__potential_evapotranspiration_rate',
         'surface__potential_evapotranspiration_30day_mean',
         'vegetation__plant_functional_type',
@@ -253,9 +253,9 @@ class Vegetation(Component):
         'surface__evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_30day_mean': 'mm',
-        'soil_moisture__water_stress': 'None',
-        'vegetation__live_biomass': 'g DM m^-2 d^-1',
-        'vegetation__dead_biomass': 'g DM m^-2 d^-1',
+        'vegetation__water_stress': 'None',
+        'vegetation__live_biomass': 'g m^-2 d^-1',
+        'vegetation__dead_biomass': 'g m^-2 d^-1',
         'vegetation__plant_functional_type': 'None',
     }
 
@@ -266,7 +266,7 @@ class Vegetation(Component):
         'surface__evapotranspiration_rate': 'cell',
         'surface__potential_evapotranspiration_rate': 'cell',
         'surface__potential_evapotranspiration_30day_mean': 'cell',
-        'soil_moisture__water_stress': 'cell',
+        'vegetation__water_stress': 'cell',
         'vegetation__live_biomass': 'cell',
         'vegetation__dead_biomass': 'cell',
         'vegetation__plant_functional_type': 'cell',
@@ -285,13 +285,15 @@ class Vegetation(Component):
             'potential sum of evaporation and platnt transpiration',
         'surface__potential_evapotranspiration_30day_mean':
             '30 day mean of surface__potential_evapotranspiration',
-        'soil_moisture__water_stress':
+        'vegetation__water_stress':
             'parameter that represents nonlinear effects of water defecit \
              on plants',
         'vegetation__live_biomass':
-            'weight of green organic mass per unit area',
+            'weight of green organic mass per unit area - measured in terms \
+             of dry matter',
         'vegetation__dead_biomass':
-            'weight of dead organic mass per unit area',
+            'weight of dead organic mass per unit area - measured in terms \
+             of dry matter',
         'vegetation__plant_functional_type':
             'classification of plants (int), grass=0, shrub=1, tree=2, \
              bare=3, shrub_seedling=4, tree_seedling=5',
@@ -479,7 +481,7 @@ class Vegetation(Component):
         PET30_ = self._cell_values[
             'surface__potential_evapotranspiration_30day_mean']
         ActualET = self._cell_values['surface__evapotranspiration_rate']
-        Water_stress = self._cell_values['soil_moisture__water_stress']
+        Water_stress = self._cell_values['vegetation__water_stress']
 
         self._LAIlive = self._cell_values['vegetation__live_leaf_area_index']
         self._LAIdead = self._cell_values['vegetation__dead_leaf_area_index']
