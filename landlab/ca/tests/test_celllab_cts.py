@@ -91,7 +91,6 @@ def test_raster_cts():
     assert (ca.num_link_states==4), 'wrong number of link states'
     assert (ca.prop_data[5]==50), 'error in property data'
     assert (ca.xn_rate[2][0]==0.1), 'error in transition rate array'
-    assert (ca._active_links_at_node[1][6]==8), 'error in active link array'
     assert (ca.num_node_states==2), 'error in num_node_states'
     assert (ca.link_orientation[-1]==0), 'error in link orientation array'
     assert (ca.link_state_dict[(1, 0, 0)]==2), 'error in link state dict'

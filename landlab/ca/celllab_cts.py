@@ -132,7 +132,7 @@ import pylab as plt
 _USE_CYTHON = True
 
 if _USE_CYTHON:
-    from .cfuncs import do_transition
+    from .cfuncs import do_transition, update_link_states_and_transitions
 
 _NEVER = 1e50
 
@@ -406,8 +406,6 @@ class CellLabCTSModel(object):
 
         # Keep a copy of the model grid; remember how many active links in it
         self.grid = model_grid
-        ###self._active_links_at_node = self.grid._active_links_at_node()
-        self._active_links_at_node = self.grid._active_links_at_node2()
 
         # Initialize random number generation
         np.random.seed(seed)
@@ -743,11 +741,28 @@ class CellLabCTSModel(object):
                     change the link state to be correct
                     schedule an event
         """
-        for i in self.grid.active_links:
-            # for i in range(self.grid.number_of_active_links):
-            current_state = self.current_link_state(i)
-            if current_state != self.link_state[i]:
-                self.update_link_state(i, current_state, current_time)
+        if _USE_CYTHON:
+            update_link_states_and_transitions(self.grid.active_links,
+                                               self.node_state, 
+                                               self.grid.node_at_link_tail,
+                                               self.grid.node_at_link_head,
+                                               self.link_orientation,
+                                               self.bnd_lnk,
+                                               self.link_state,
+                                               self.n_xn,
+                                               self.event_queue,
+                                               self.next_update,
+                                               self.xn_to, self.xn_rate,
+                                               self.num_node_states,
+                                               self.num_node_states_sq,
+                                               current_time,
+                                               self.xn_propswap,
+                                               self.xn_prop_update_fn)
+        else:
+            for i in self.grid.active_links:
+                current_state = self.current_link_state(i)
+                if current_state != self.link_state[i]:
+                    self.update_link_state(i, current_state, current_time)
 
     def get_next_event(self, link, current_state, current_time):
         """Get the next event for a link.
@@ -811,9 +826,13 @@ class CellLabCTSModel(object):
 
         if _DEBUG:
             print('get_next_event():')
+            print(('  current state:', current_state))
+            print(('  node pair:', self.node_pair[current_state]))
             print(('  next_time:', my_event.time))
             print(('  link:', my_event.link))
             print(('  xn_to:', my_event.xn_to))
+            print(('  nxn:', self.n_xn[current_state]))
+            print(('  rate:', self.xn_rate[current_state][:]))
             print(('  propswap:', my_event.propswap))
 
         return my_event
@@ -895,23 +914,16 @@ class CellLabCTSModel(object):
             Current time in simulation
         """
         if _DEBUG:
-            print('update_link_state() link ' + str(link) + ' to state ' + str(new_link_state))
+            print('update_link_state() link ' + str(link) + ' to state ' + str(new_link_state) + ' at time ' + str(current_time))
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
-        # if self.grid.status_at_node[self.grid.link_fromnode[link]]!=_CORE or \
-        #   self.grid.status_at_node[self.grid.link_tonode[link]]!=_CORE:
         if self.bnd_lnk[link]:
             fns = self.node_state[self.grid.node_at_link_tail[link]]
             tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
-            ##actual_pair = (fns,tns,orientation)
-            ##new_link_state = self.link_state_dict[actual_pair]
             new_link_state = orientation * self.num_node_states_sq + \
                 fns * self.num_node_states + tns
-            #assert new_link_state==new_link_state2, 'oops'
-#            if _DEBUG:
-#                print('**Boundary: overriding new link state to',new_link_state)
 
         self.link_state[link] = new_link_state
         if self.n_xn[new_link_state] > 0:
@@ -1043,12 +1055,6 @@ class CellLabCTSModel(object):
             # want to track), implement the swap.
             #   If the event requires a call to a user-defined callback
             # function, we handle that here too.
-#            print('trcts')
-#            print(tail_node)
-#            print(head_node)
-#            print(self.propid[tail_node])
-#            print(self.propid[head_node])
-#            print(self.prop_reset_value)
             if event.propswap:
                 tmp = self.propid[tail_node]
                 self.propid[tail_node] = self.propid[head_node]
@@ -1102,14 +1108,14 @@ class CellLabCTSModel(object):
         self.push_transitions_to_event_queue()
 
     #@profile
-    def run(self, run_duration, node_state_grid=None,
+    def run(self, run_to, node_state_grid=None,
             plot_each_transition=False, plotter=None):
         """Run the model forward for a specified period of time.
 
         Parameters
         ----------
-        run_duration : float
-            Length of time to run
+        run_to : float
+            Time to run to, starting from self.current_time
         node_state_grid : 1D array of ints (x number of nodes) (optional)
             Node states (if given, replaces model's current node state grid)
         plot_each_transition : bool (optional)
@@ -1121,40 +1127,49 @@ class CellLabCTSModel(object):
             self.set_node_state_grid(node_state_grid)
        
         # Continue until we've run out of either time or events
-        while self.current_time < run_duration and self.event_queue:
+        while self.current_time < run_to and self.event_queue:
 
             if _DEBUG:
                 print('Current Time = ', self.current_time)
 
-            # Pick the next transition event from the event queue
-            ev = heappop(self.event_queue)
+            # Is there an event scheduled to occur within this run?
+            if self.event_queue[0].time <= run_to:
 
-            if _DEBUG:
-                print('Event:', ev.time, ev.link, ev.xn_to)
+                # If so, pick the next transition event from the event queue
+                ev = heappop(self.event_queue)
 
-            if _USE_CYTHON:
-                do_transition(ev, self.next_update,
-                              self.grid.node_at_link_tail,
-                              self.grid.node_at_link_head,
-                              self.node_state, self.link_state,
-                              self.san, self.link_orientation,
-                              self.propid, self.prop_data,
-                              self.n_xn, self.xn_to, self.xn_rate,
-                              self.grid.links_at_node,
-                              self.grid.active_link_dirs_at_node,
-                              self.num_node_states, self.num_node_states_sq,
-                              self.prop_reset_value, self.xn_propswap,
-                              self.xn_prop_update_fn,
-                              self.bnd_lnk, self.event_queue,
-                              self,
-                              plot_each_transition,
-                              plotter)
+                if _DEBUG:
+                    print('Event:', ev.time, ev.link, ev.xn_to)
+    
+                # ... and execute the transition
+                if _USE_CYTHON:
+                    do_transition(ev, self.next_update,
+                                  self.grid.node_at_link_tail,
+                                  self.grid.node_at_link_head,
+                                  self.node_state, self.link_state,
+                                  self.san, self.link_orientation,
+                                  self.propid, self.prop_data,
+                                  self.n_xn, self.xn_to, self.xn_rate,
+                                  self.grid.links_at_node,
+                                  self.grid.active_link_dirs_at_node,
+                                  self.num_node_states, self.num_node_states_sq,
+                                  self.prop_reset_value, self.xn_propswap,
+                                  self.xn_prop_update_fn,
+                                  self.bnd_lnk, self.event_queue,
+                                  self,
+                                  plot_each_transition,
+                                  plotter)
+                else:
+                    self.do_transition(ev, self.current_time,
+                                       plot_each_transition, plotter)
+
+                # Update current time
+                self.current_time = ev.time
+                
+            # If there is no event scheduled for this span of time, simply
+            # advance current_time to the end of the current run period.
             else:
-                self.do_transition(ev, self.current_time,
-                                   plot_each_transition, plotter)
-
-            # Update current time
-            self.current_time = ev.time
+                self.current_time = run_to
 
 
 if __name__ == "__main__":
