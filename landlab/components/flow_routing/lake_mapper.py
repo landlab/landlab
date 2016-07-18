@@ -406,7 +406,12 @@ class DepressionFinderAndRouter(Component):
             print('Unable to find drainage outlet for a lake.')
             print('In lake with these nodes:')
             for i in nodes_this_depression:
-                print((i, self._elev[i], self.flood_status[i], self._grid.status_at_node[i], self._node_nbrs[i], self._elev[self._node_nbrs[i]], self.flood_status[self._node_nbrs[i]], self._grid.status_at_node[self._node_nbrs[i]]))
+                print((i, self._elev[i], self.flood_status[i]), end="") 
+                print((self._grid.status_at_node[i]), end="")
+                print((self._node_nbrs[i]), end="")
+                print((self._elev[self._node_nbrs[i]]) , end="")
+                print((self.flood_status[self._node_nbrs[i]]), end="")
+                print((self._grid.status_at_node[self._node_nbrs[i]]))
         assert (lowest_elev < self._BIG_ELEV), \
             'failed to find lowest perim node'
         return lowest_node
