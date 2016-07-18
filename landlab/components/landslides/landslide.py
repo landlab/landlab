@@ -34,7 +34,8 @@ The grid will need some input data. To check the names of the fields
 that provide the input to this component, use the *input_var_names*
 class property.
 
->>> sorted(LandslideProbability.input_var_names) # doctest: +NORMALIZE_WHITESPACE
+>>> sorted(LandslideProbability.input_var_names) \
+                      # doctest: +NORMALIZE_WHITESPACE
 ['soil__density',
  'soil__internal_friction_angle',
  'soil__maximum_total_cohesion',
@@ -417,12 +418,13 @@ class LandslideProbability(Component):
         hs_max = self.hs_mode+0.3*self.hs_mode
         self.hs = np.random.triangular(hs_min, self.hs_mode,
                                        hs_max, size=self.n)
+        self.hs[self.hs <= 0.] = 0.0001
         # recharge distribution
         self.Re = np.random.uniform(self.recharge_min,
                                     self.recharge_max, size=self.n)
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
-        self.C_dim = self.C/(self.hs*self.rho*self.g)  # demensionless cohesion
+        self.C_dim = self.C/(self.hs*self.rho*self.g)  # dimensionless cohesion
         self.Rel_wetness = ((self.Re)/self.T)*(self.a/np.sin(
             np.arctan(self.theta)))                       # relative wetness
         np.place(self.Rel_wetness, self.Rel_wetness > 1, 1.0)
