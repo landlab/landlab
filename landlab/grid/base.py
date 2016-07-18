@@ -1866,11 +1866,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         return self._status_at_link
 
-    @status_at_node.setter
-    def status_at_node(self, new_status_array):
-        self._node_status[:] = new_status_array[:]
-        self._update_links_nodes_cells_to_new_BCs()
-
     @property
     @return_readonly_id_array
     def link_at_face(self):
