@@ -38,7 +38,7 @@ def test_name():
 @with_setup(setup_grid)
 def test_input_var_names():
     assert_equal(sorted(Veg.input_var_names),
-                ['surface__evapotranspiration_rate',
+                ['surface__evapotranspiration',
                  'surface__potential_evapotranspiration_30day_mean',
                  'surface__potential_evapotranspiration_rate',
                  'vegetation__plant_functional_type',
@@ -64,7 +64,7 @@ def test_var_units():
     assert_equal(Veg.var_units('vegetation__live_leaf_area_index'), 'None')
     assert_equal(Veg.var_units('vegetation__dead_leaf_area_index'), 'None')
     assert_equal(Veg.var_units('vegetation__cover_fraction'), 'None')
-    assert_equal(Veg.var_units('surface__evapotranspiration_rate'), 'mm')
+    assert_equal(Veg.var_units('surface__evapotranspiration'), 'mm')
     assert_equal(Veg.var_units('surface__potential_evapotranspiration_rate'),
                  'mm')
     assert_equal(Veg.var_units(

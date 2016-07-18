@@ -26,7 +26,7 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
-['surface__evapotranspiration_rate',
+['surface__evapotranspiration',
  'surface__potential_evapotranspiration_30day_mean',
  'surface__potential_evapotranspiration_rate',
  'vegetation__plant_functional_type',
@@ -34,7 +34,7 @@ class property.
 
 Check the units for an input field
 
->>> Vegetation.var_units('surface__evapotranspiration_rate')
+>>> Vegetation.var_units('surface__evapotranspiration')
 'mm'
 
 Create the input fields.
@@ -42,7 +42,7 @@ Create the input fields.
 >>> grid['cell']['vegetation__plant_functional_type']= \
         np.zeros(grid.number_of_cells, dtype=int)
 
->>> grid['cell']['surface__evapotranspiration_rate'] = \
+>>> grid['cell']['surface__evapotranspiration'] = \
         0.2 * np.ones(grid.number_of_cells)
 
 If you are not sure about one of the input or output variables, you can
@@ -171,14 +171,14 @@ class Vegetation(Component):
     class property.
 
     >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
-    ['surface__evapotranspiration_rate',
+    ['surface__evapotranspiration',
      'surface__potential_evapotranspiration_30day_mean',
      'surface__potential_evapotranspiration_rate',
      'vegetation__plant_functional_type',
      'vegetation__water_stress']
 
     >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
-    [('surface__evapotranspiration_rate', 'mm'),
+    [('surface__evapotranspiration', 'mm'),
      ('surface__potential_evapotranspiration_30day_mean', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
      ('vegetation__cover_fraction', 'None'),
@@ -192,7 +192,7 @@ class Vegetation(Component):
     Provide all the input fields.
     >>> grid['cell']['vegetation__plant_functional_type']= \
                 np.zeros(grid.number_of_cells, dtype=int)
-    >>> grid['cell']['surface__evapotranspiration_rate'] = \
+    >>> grid['cell']['surface__evapotranspiration'] = \
                 0.2 * np.ones(grid.number_of_cells)
     >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
             np.array([ 0.25547770, 0.25547770, 0.22110221, \
@@ -231,7 +231,7 @@ class Vegetation(Component):
     _name = 'Vegetation'
 
     _input_var_names = (
-        'surface__evapotranspiration_rate',
+        'surface__evapotranspiration',
         'vegetation__water_stress',
         'surface__potential_evapotranspiration_rate',
         'surface__potential_evapotranspiration_30day_mean',
@@ -250,7 +250,7 @@ class Vegetation(Component):
         'vegetation__live_leaf_area_index': 'None',
         'vegetation__dead_leaf_area_index': 'None',
         'vegetation__cover_fraction': 'None',
-        'surface__evapotranspiration_rate': 'mm',
+        'surface__evapotranspiration': 'mm',
         'surface__potential_evapotranspiration_rate': 'mm',
         'surface__potential_evapotranspiration_30day_mean': 'mm',
         'vegetation__water_stress': 'None',
@@ -263,7 +263,7 @@ class Vegetation(Component):
         'vegetation__live_leaf_area_index': 'cell',
         'vegetation__dead_leaf_area_index': 'cell',
         'vegetation__cover_fraction': 'cell',
-        'surface__evapotranspiration_rate': 'cell',
+        'surface__evapotranspiration': 'cell',
         'surface__potential_evapotranspiration_rate': 'cell',
         'surface__potential_evapotranspiration_30day_mean': 'cell',
         'vegetation__water_stress': 'cell',
@@ -279,7 +279,7 @@ class Vegetation(Component):
             'one-sided dead leaf area per unit ground surface area',
         'vegetation__cover_fraction':
             'fraction of land covered by vegetation',
-        'surface__evapotranspiration_rate':
+        'surface__evapotranspiration':
             'actual sum of evaporation and plant transpiration',
         'surface__potential_evapotranspiration_rate':
             'potential sum of evaporation and platnt transpiration',
@@ -480,7 +480,7 @@ class Vegetation(Component):
         PET = self._cell_values['surface__potential_evapotranspiration_rate']
         PET30_ = self._cell_values[
             'surface__potential_evapotranspiration_30day_mean']
-        ActualET = self._cell_values['surface__evapotranspiration_rate']
+        ActualET = self._cell_values['surface__evapotranspiration']
         Water_stress = self._cell_values['vegetation__water_stress']
 
         self._LAIlive = self._cell_values['vegetation__live_leaf_area_index']

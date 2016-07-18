@@ -86,13 +86,13 @@ Run the *update* method to update output variables with current time
 Check the output variable names
 
 >>> sorted(SoilMoisture.output_var_names)   # doctest: +NORMALIZE_WHITESPACE
-['soil_moisture__root_zone_leakage_rate',
+['soil_moisture__root_zone_leakage',
  'soil_moisture__saturation_fraction',
- 'surface__evapotranspiration_rate',
- 'surface__runoff_rate',
+ 'surface__evapotranspiration',
+ 'surface__runoff',
  'vegetation__water_stress']
 
->>> grid['cell']['soil_moisture__root_zone_leakage_rate']
+>>> grid['cell']['soil_moisture__root_zone_leakage']
 array([ 29.97001453,  29.97001453,  29.97001453,  29.97001453,
         29.97001453,  29.97001453])
 
@@ -100,10 +100,10 @@ array([ 29.97001453,  29.97001453,  29.97001453,  29.97001453,
 array([ 0.70372004,  0.70372004,  0.70372004,  0.70372004,  0.70372004,
         0.70372004])
 
->>> grid['cell']['surface__evapotranspiration_rate']
+>>> grid['cell']['surface__evapotranspiration']
 array([ 0.0001,  0.0001,  0.0001,  0.0001,  0.0001,  0.0001])
 
->>> grid['cell']['surface__runoff_rate']
+>>> grid['cell']['surface__runoff']
 array([ 0.,  0.,  0.,  0.,  0.,  0.])
 """
 
@@ -190,19 +190,19 @@ class SoilMoisture(Component):
     >>> SoilMoisture.name
     'Soil Moisture'
     >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['soil_moisture__root_zone_leakage_rate',
+    ['soil_moisture__root_zone_leakage',
      'soil_moisture__saturation_fraction',
-     'surface__evapotranspiration_rate',
-     'surface__runoff_rate',
+     'surface__evapotranspiration',
+     'surface__runoff',
      'vegetation__water_stress']
     >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
     [('rainfall__daily', 'mm'),
      ('soil_moisture__initial_saturation_fraction', 'None'),
-     ('soil_moisture__root_zone_leakage_rate', 'mm'),
+     ('soil_moisture__root_zone_leakage', 'mm'),
      ('soil_moisture__saturation_fraction', 'None'),
-     ('surface__evapotranspiration_rate', 'mm'),
+     ('surface__evapotranspiration', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
-     ('surface__runoff_rate', 'mm'),
+     ('surface__runoff', 'mm'),
      ('vegetation__cover_fraction', 'None'),
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None'),
@@ -249,9 +249,9 @@ class SoilMoisture(Component):
     _output_var_names = (
         'vegetation__water_stress',
         'soil_moisture__saturation_fraction',
-        'soil_moisture__root_zone_leakage_rate',
-        'surface__runoff_rate',
-        'surface__evapotranspiration_rate',
+        'soil_moisture__root_zone_leakage',
+        'surface__runoff',
+        'surface__evapotranspiration',
     )
 
     _var_units = {
@@ -262,9 +262,9 @@ class SoilMoisture(Component):
         'vegetation__water_stress': 'None',
         'soil_moisture__saturation_fraction': 'None',
         'soil_moisture__initial_saturation_fraction': 'None',
-        'soil_moisture__root_zone_leakage_rate': 'mm',
-        'surface__runoff_rate': 'mm',
-        'surface__evapotranspiration_rate': 'mm',
+        'soil_moisture__root_zone_leakage': 'mm',
+        'surface__runoff': 'mm',
+        'surface__evapotranspiration': 'mm',
         'rainfall__daily': 'mm',
     }
 
@@ -276,9 +276,9 @@ class SoilMoisture(Component):
         'vegetation__water_stress': 'cell',
         'soil_moisture__saturation_fraction': 'cell',
         'soil_moisture__initial_saturation_fraction': 'cell',
-        'soil_moisture__root_zone_leakage_rate': 'cell',
-        'surface__runoff_rate': 'cell',
-        'surface__evapotranspiration_rate': 'cell',
+        'soil_moisture__root_zone_leakage': 'cell',
+        'surface__runoff': 'cell',
+        'surface__evapotranspiration': 'cell',
         'rainfall__daily': 'cell',
     }
 
@@ -299,12 +299,12 @@ class SoilMoisture(Component):
             'relative volumetric water content (theta) - limits=[0,1]',
         'soil_moisture__initial_saturation_fraction':
             'initial soil_moisture__saturation_fraction',
-        'soil_moisture__root_zone_leakage_rate':
+        'soil_moisture__root_zone_leakage':
             'leakage of water into deeper portions of the soil not accessible \
              to the plant',
-        'surface__runoff_rate':
+        'surface__runoff':
             'runoff from ground surface',
-        'surface__evapotranspiration_rate':
+        'surface__evapotranspiration':
             'actual sum of evaporation and plant transpiration',
         'rainfall__daily':
             'Rain in (mm) as a field, allowing spatio-temporal soil moisture \
@@ -536,10 +536,11 @@ class SoilMoisture(Component):
         self._vegcover = self._cell_values['vegetation__cover_fraction']
         self._water_stress = self._cell_values['vegetation__water_stress']
         self._S = self._cell_values['soil_moisture__saturation_fraction']
-        self._D = self._cell_values['soil_moisture__root_zone_leakage_rate']
-        self._ETA = self._cell_values['surface__evapotranspiration_rate']
+        self._D = self._cell_values['soil_moisture__root_zone_leakage']
+        self._ETA = self._cell_values['surface__evapotranspiration']
         self._fr = (self._cell_values['vegetation__live_leaf_area_index'] /
                     self._LAIR_max)
+        self._runoff = self._cell_values['surface__runoff']
         # LAIl = self._cell_values['vegetation__live_leaf_area_index']
         # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         # if LAIt.all() == 0.:
@@ -585,13 +586,12 @@ class SoilMoisture(Component):
             sini = self._SO[cell] + ((Peff+self._runon)/(pc*ZR*1000.))
 
             if sini > 1.:
-                self._runoff = (sini-1.)*pc*ZR*1000.
+                self._runoff[cell] = (sini-1.)*pc*ZR*1000.
                 # print 'Runoff =', self._runoff
                 sini = 1.
             else:
-                self._runoff = 0.
+                self._runoff[cell] = 0.
 
-            # self._runon = runoff
             if sini >= fc:
                 tfc = (1./(beta*(mu-nu)))*(beta*(fc-sini) + np.log((
                        nu-mu+mu*np.exp(beta*(sini-fc)))/nu))
