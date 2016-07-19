@@ -3473,7 +3473,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             pass
 ##### check for persistence of TRACKS_CELL_BOUNDARY goes here
-        if np.any(self.status_at_node == TRACKS_CELL_BOUNDARY):
+##### copy this to the diag place in raster
+        if self._need_to_update_loops():
             goodvalues = self.looped_node_properties['boundary_node_IDs']
             repvalues = self.looped_node_properties['linked_node_IDs']
             flatneighbors = self.neighbors_at_node.ravel()
@@ -3486,6 +3487,60 @@ class ModelGrid(ModelDataFieldsMixIn):
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
+
+    def _need_to_update_loops(self):
+        """
+        See if any looped nodes have changed since this was last called.
+
+        Returns
+        -------
+        bool
+            True if anything has changed or this is the first time; False if
+            nothing has changed or there are no looped nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5))
+        >>> mg._need_to_update_loops()
+        False
+
+        Alter looped_node_properties['boundary_node_IDs'] so a change can be
+        felt:
+
+        >>> mg.looped_node_properties = {}
+        >>> mg.looped_node_properties[
+        ...     'boundary_node_IDs'] = mg.nodes_at_left_edge.copy()
+        >>> mg._need_to_update_loops()
+        True
+        >>> mg._need_to_update_loops()
+        False
+        >>> mg.looped_node_properties['boundary_node_IDs'].fill(0)
+        >>> mg._need_to_update_loops()
+        True
+        >>> mg._need_to_update_loops()
+        False
+        """
+        try:
+            current_LNP = self.looped_node_properties['boundary_node_IDs']
+        except (AttributeError, KeyError):  # no loops to set
+            update_loops = False
+        else:  # looped nodes present already
+            try:
+                _old_LNP = self._old_LNP
+            except AttributeError:  # haven't done this before
+                update_loops = True
+                self._old_LNP = current_LNP.copy()
+            else:
+                if current_LNP.size != _old_LNP.size:
+                    update_loops = True
+                    self._old_LNP = current_LNP.copy()
+                elif not np.all(current_LNP == _old_LNP):
+                    update_loops = True
+                    self._old_LNP = current_LNP.copy()
+                else:
+                    update_loops = False
+        return update_loops
 
     @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
