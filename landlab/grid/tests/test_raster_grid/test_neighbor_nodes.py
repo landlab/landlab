@@ -118,3 +118,37 @@ def test_diagonal_list_is_read_only():
 def test_diagonals_is_contiguous():
     rmg = RasterModelGrid(5, 4)
     assert_true(rmg._diagonal_neighbors_at_node.flags['C_CONTIGUOUS'])
+
+
+def test_node_replacement_after_looping():
+    n1 = np.array([[5,  8, -1, 12],
+                   [6,  9,  4, 13],
+                   [7, 10,  5, 14],
+                   [-1, 11,  6, 15]])
+
+    n2 = np.array([[13,  4, -1, -1],
+                   [14,  5, 12, -1],
+                   [13,  6, 13, -1],
+                   [-1,  5, 14, -1],
+                   [5,  8, -1, 12],
+                   [6,  9,  4, 13],
+                   [5, 10,  5, 14],
+                   [-1,  9,  6, 13],
+                   [9, 12, -1,  4],
+                   [10, 13,  8,  5],
+                   [9, 14,  9,  6],
+                   [-1, 13, 10,  5],
+                   [13, 16, -1,  8],
+                   [14, 17, 12,  9],
+                   [13, 18, 13, 10],
+                   [-1, 17, 14,  9],
+                   [17, -1, -1, 12],
+                   [18, -1, 16, 13],
+                   [17, -1, 17, 14],
+                   [-1, -1, 18, 13]])
+
+    rmg = RasterModelGrid((5, 4))
+    rmg.set_looped_boundaries(rmg.nodes[0, :], rmg.nodes[-2, :])
+    assert_array_equal(rmg.neighbors_at_node[4:8], n1)
+    rmg.set_looped_boundaries(rmg.nodes[:, -1], rmg.nodes[:, -3])
+    assert_array_equal(rmg.neighbors_at_node, n2)
