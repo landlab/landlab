@@ -282,7 +282,11 @@ class VegCA(Component):
 
         assert_method_is_valid(self._method)
 
-        super(VegCA, self).__init__(grid, **kwds)
+        super(VegCA, self).__init__(grid)
+
+        if 'vegetation__plant_functional_type' not in self.grid.at_cell:
+            grid['cell']['vegetation__plant_functional_type'] = (
+                    np.random.randint(0, 6, grid.number_of_cells))
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -293,11 +297,6 @@ class VegCA(Component):
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
-
-        if (np.all(grid['cell']['vegetation__plant_functional_type']) == 0):
-            grid['cell'][
-                'vegetation__plant_functional_type'] = np.random.randint(
-                    0, 6, grid.number_of_cells)
 
         VegType = grid['cell']['vegetation__plant_functional_type']
         tp = np.zeros(grid.number_of_cells, dtype=int)

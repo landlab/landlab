@@ -465,7 +465,7 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
 
-    def update(self, PETthreshold=0, Tb=24., Tr=0.01, **kwds):
+    def update(self, PETthreshold_switch=0, Tb=24., Tr=0.01, **kwds):
         """
         Update fields with current loading conditions.
 
@@ -476,7 +476,7 @@ class Vegetation(Component):
         Tr: float, optional
             Inter-storm duration (hours).
         """
-        PETthreshold_ = PETthreshold
+        PETthreshold_ = PETthreshold_switch
         PET = self._cell_values['surface__potential_evapotranspiration_rate']
         PET30_ = self._cell_values[
             'surface__potential_evapotranspiration_30day_mean']
