@@ -113,7 +113,7 @@ The instructions below describe the installation of Landlab with :ref:`Anaconda 
 .. _landlab-install_quickly:
 
 Quick Landlab Install Instructions (For Experienced Python Users)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 If you are new to Python, you probably should see instructions :ref:`here for Anaconda users <landlab-install_with_anaconda>`.  Otherwise, if you don't like details, continue!
 
@@ -127,7 +127,7 @@ If you are new to Python, you probably should see instructions :ref:`here for An
 .. _landlab-install_with_anaconda:
 
 Installing Landlab Using using Anaconda  - Recommended Method
-++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This should work for Anaconda users with Windows 7+, Mac OS 10.6+, or Ubuntu Linux (only the latest version has been tested).
 
@@ -166,7 +166,7 @@ The version number is changing rapidly at this point, but it should be something
     .. _landlab-install_with_canopy:
 
     Installing Landlab using Enthought Canopy
-    +++++++++++++++++++++++++++++++++
+    +++++++++++++++++++++++++++++++++++++++++
 
     This should work for Canopy users with Windows 7+ or Mac OS 10.6 and above.
 
@@ -193,7 +193,7 @@ The version number is changing rapidly at this point, but it should be something
 
 
 Developer Installation - Installing from Landlab Source Code
-++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is recommended only for users who have gotten a feel for Landlab and want to keep up with the absolute latest Landlab developments and contribute codes back to the Landlab repository.  If this is not you, please follow the standard installation instructions :ref:`above <landlab_install>`.  Otherwise, if you are ready to become a Landlab developer, follow :ref:`these directions <dev_install>`.
 

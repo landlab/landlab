@@ -8,7 +8,7 @@ area and (optionally) water discharge. Assumes each node has only one downstream
 receiver. If water discharge is calculated, the result assumes steady flow
 (that is, hydrologic equilibrium).
 
-The main public function is
+The main public function is::
 
     a, q, s = flow_accumulation(r, b)
 
@@ -18,7 +18,7 @@ calc_flowdirs() method), and an array of baselevel nodes, b. It returns Numpy
 arrays with the drainage area (a) and discharge (q) at each node, along with an
 array (s) that contains the IDs of the nodes in downstream-to-upstream order.
 
-If you simply want the ordered list by itself, use:
+If you simply want the ordered list by itself, use::
 
     s = make_ordered_node_array(r, b)
 
@@ -119,15 +119,22 @@ def _make_delta_array(nd):
     Creates and returns the "delta" array, which is a list containing, for each
     node, the array index where that node's donor list begins.
 
-    Inputs: nd = array containing number of donors for each node
-    Returns: delta array
+    Parameters
+    ----------
+    nd : ndarray of int
+        Number of donors for each node
 
+    Returns
+    -------
+    ndarray of int
+        Delta array
+
+    Examples
+    --------
     The example below is from Braun and Willett (2012), and represents
     \delta_i in their Table 1. Here, the numbers are all one less than in their
     table because here we number indices from 0 rather than 1.
 
-    Examples
-    --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
     >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
@@ -197,7 +204,8 @@ def _make_array_of_donors(r, delta):
 
 
 def make_ordered_node_array(receiver_nodes, baselevel_nodes):
-    """
+    """Create an array of node IDs that is arranged in order from.
+
     Creates and returns an array of node IDs that is arranged in order from
     downstream to upstream.
 
@@ -207,7 +215,7 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import make_ordered_node_array
+    >>> from landlab.components.flow_accum import make_ordered_node_array
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> b = np.array([4])
     >>> s = make_ordered_node_array(r, b)
@@ -228,36 +236,44 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
 
 def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
                                      boundary_nodes=None):
-    """
-    Calculates and returns the drainage area and water discharge at each node.
+    """Calculate the drainage area and water discharge at each node.
 
-    Inputs: s = ordered (downstream to upstream) array of node IDs
-            r = array of receiver IDs for each node
-            node_cell_area = scalar or numpy array of cell surface areas for
-                             each node. If it's an array, must have same length
-                             as s (that is, the number of nodes).
-            runoff = scalar or numpy array of local runoff rate at each cell
-                     (in water depth per time). If it's an array, must have same
-                     length as s (that is, the number of nodes).
+    Parameters
+    ----------
+    s : ndarray of int
+        Ordered (downstream to upstream) array of node IDs
+    r : ndarray of int
+        Receiver IDs for each node
+    node_cell_area : float or ndarray
+        Cell surface areas for each node. If it's an array, must have same
+        length as s (that is, the number of nodes).
+    runoff : float or ndarray
+        Local runoff rate at each cell (in water depth per time). If it's an
+        array, must have same length as s (that is, the number of nodes).
 
-    Returns: drainage area and discharge as Numpy arrays
+    Returns
+    -------
+    tuple of ndarray
+        drainage area and discharge
 
-    Notes:
-        - If node_cell_area not given, the output drainage area is equivalent
-          to the number of nodes/cells draining through each point, including
-          the local node itself.
-        - Give node_cell_area as a scalar when using a regular raster grid.
-        - If runoff is not given, the discharge returned will be the same as
-          drainage area (i.e., drainage area times unit runoff rate).
-        - If using an unstructured Landlab grid, make sure that the input
-          argument for node_cell_area is the cell area at each NODE rather than
-          just at each CELL. This means you need to include entries for the
-          perimeter nodes too. They can be zeros.
+    Notes
+    -----
+    -  If node_cell_area not given, the output drainage area is equivalent
+       to the number of nodes/cells draining through each point, including
+       the local node itself.
+    -  Give node_cell_area as a scalar when using a regular raster grid.
+    -  If runoff is not given, the discharge returned will be the same as
+       drainage area (i.e., drainage area times unit runoff rate).
+    -  If using an unstructured Landlab grid, make sure that the input
+       argument for node_cell_area is the cell area at each NODE rather than
+       just at each CELL. This means you need to include entries for the
+       perimeter nodes too. They can be zeros.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import find_drainage_area_and_discharge
+    >>> from landlab.components.flow_accum import (
+    ...     find_drainage_area_and_discharge)
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     >>> a, q = find_drainage_area_and_discharge(s, r)
@@ -265,7 +281,6 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-
     """
 
     # Number of points
@@ -298,14 +313,15 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
 def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
                       runoff_rate=1.0, boundary_nodes=None):
-    """
+    """Calculate drainage area and (steady) discharge.
+
     Calculates and returns the drainage area and (steady) discharge at each
     node, along with a downstream-to-upstream ordered list (array) of node IDs.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import flow_accumulation
+    >>> from landlab.components.flow_accum import flow_accumulation
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> b = np.array([4])
     >>> a, q, s = flow_accumulation(r, b)

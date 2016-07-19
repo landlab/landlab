@@ -1,20 +1,5 @@
-landlab.components.glacier_thin_ice_model package
-=================================================
-
-Submodules
-----------
-
-landlab.components.glacier_thin_ice_model.glacier module
---------------------------------------------------------
-
-.. automodule:: landlab.components.glacier_thin_ice_model.glacier
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
+Glacier: Models glacier mass balance and flow using thin ice approximation
+--------------------------------------------------------------------------
 
 .. automodule:: landlab.components.glacier_thin_ice_model
     :members:

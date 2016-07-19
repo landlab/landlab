@@ -1,54 +1,23 @@
-landlab.components.flow_routing package
-=======================================
-
-Submodules
-----------
-
-landlab.components.flow_routing.cfuncs module
----------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.cfuncs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.flow_routing.flow_direction_DN module
---------------------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.flow_direction_DN
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.flow_routing.flow_routing_D8 module
-------------------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.flow_routing_D8
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.flow_routing.lake_mapper module
---------------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.lake_mapper
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.flow_routing.route_flow_dn module
-----------------------------------------------------
+FlowRouter: Calculate flow direction and accumulation from topography
+---------------------------------------------------------------------
 
 .. automodule:: landlab.components.flow_routing.route_flow_dn
     :members:
     :undoc-members:
     :show-inheritance:
 
+DepressionFinderAndRouter: Handle depressions in terrain by calculating extent and drainage of "lakes"
+------------------------------------------------------------------------------------------------------
 
-Module contents
----------------
+.. automodule:: landlab.components.flow_routing.lake_mapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-.. automodule:: landlab.components.flow_routing
+PotentialityFlowRouter: Find flow directions and accumulation using potential-field theory
+------------------------------------------------------------------------------------------
+
+.. automodule:: landlab.components.potentiality_flowrouting
     :members:
     :undoc-members:
     :show-inheritance:

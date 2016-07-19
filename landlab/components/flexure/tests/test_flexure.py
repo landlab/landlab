@@ -10,7 +10,7 @@ except ImportError:
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.flexure.flexure import FlexureComponent
+from landlab.components.flexure.flexure import Flexure
 
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
@@ -19,10 +19,10 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 def setup_grid():
     from landlab import RasterModelGrid
-    grid = RasterModelGrid(20, 20, 10e3)
-    flex = FlexureComponent(grid)
+    grid = RasterModelGrid((20, 20), spacing=10e3)
+    flex = Flexure(grid)
     globals().update({
-        'flex': FlexureComponent(grid)
+        'flex': Flexure(grid)
     })
 
 
@@ -33,30 +33,25 @@ def test_name():
 
 @with_setup(setup_grid)
 def test_input_var_names():
-    assert_equal(sorted(flex.input_var_names),
-                 ['lithosphere__elevation',
-                  'lithosphere__overlying_pressure',
-                  'planet_surface_sediment__deposition_increment'])
+    assert_equal(flex.input_var_names,
+                 ('lithosphere__overlying_pressure_increment', ))
 
 
 @with_setup(setup_grid)
 def test_output_var_names():
-    assert_equal(sorted(flex.output_var_names),
-                 ['lithosphere__elevation',
-                  'lithosphere__elevation_increment'])
+    assert_equal(flex.output_var_names,
+                 ('lithosphere_surface__elevation_increment',))
 
 
 @with_setup(setup_grid)
 def test_var_units():
     assert_equal(set(flex.input_var_names) |
                  set(flex.output_var_names),
-                 set(flex.units))
+                 set(dict(flex.units).keys()))
 
-    assert_equal(flex.units['lithosphere__elevation'], 'm')
-    assert_equal(flex.units['lithosphere__elevation_increment'], 'm')
-    assert_equal(flex.units['lithosphere__overlying_pressure'], 'Pa')
-    assert_equal(
-        flex.units['planet_surface_sediment__deposition_increment'], 'm')
+    assert_equal(flex.var_units('lithosphere_surface__elevation_increment'), 'm')
+    assert_equal(flex.var_units('lithosphere__overlying_pressure_increment'),
+                 'Pa')
 
 
 @with_setup(setup_grid)
@@ -66,15 +61,13 @@ def test_grid_shape():
 
 
 @with_setup(setup_grid)
-def test_grid_xdimension():
-    assert_equal(flex.grid.get_grid_xdimension(),
-                 (_SHAPE[1] - 1) * _SPACING[1])
+def test_grid_x_extent():
+    assert_equal(flex.grid.extent[1], (_SHAPE[1] - 1) * _SPACING[1])
 
 
 @with_setup(setup_grid)
-def test_grid_ydimension():
-    assert_equal(flex.grid.get_grid_xdimension(),
-                 (_SHAPE[0] - 1) * _SPACING[0])
+def test_grid_y_extent():
+    assert_equal(flex.grid.extent[0], (_SHAPE[0] - 1) * _SPACING[0])
 
 
 @with_setup(setup_grid)

@@ -70,6 +70,10 @@ test-results.xml
 *.png
 !docs/**/*.png
 
+*.aux
+
+*.synctex.gz
+
 installfiles.txt
 
 # Ignore all .c files as, currently, they are all cython generated.

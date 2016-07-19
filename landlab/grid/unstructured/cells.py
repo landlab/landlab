@@ -5,6 +5,47 @@ from ...utils.jaggedarray import JaggedArray
 
 
 class CellGrid(object):
+    """
+    Parameters
+    ----------
+    vertices : array-like
+        Vertex IDs at each grid cell
+    vertices_per_cell : array-like
+        Number of vertices per grid cell
+
+    Returns
+    -------
+    CellGrid :
+        A newly-created CellGrid
+
+    Examples
+    --------
+    Create a grid of two cells where the first cell has four vertices and
+    the second has three.
+
+    >>> from landlab.grid.unstructured.cells import CellGrid
+    >>> cgrid = CellGrid([0, 1, 3, 2, 1, 4, 3], [4, 3])
+    >>> cgrid.number_of_cells
+    2
+    >>> cgrid.number_of_vertices_at_cell(0)
+    4
+    >>> cgrid.number_of_vertices_at_cell(1)
+    3
+    >>> cgrid.vertices_at_cell(0)
+    array([0, 1, 3, 2])
+    >>> cgrid.vertices_at_cell(1)
+    array([1, 4, 3])
+
+    Associate nodes with each cell.
+
+    >>> cgrid = CellGrid([0, 1, 2, 3, 1, 3, 4], [4, 3], node_at_cell=[10, 11])
+    >>> cgrid.node_at_cell
+    array([10, 11])
+    >>> cgrid.cell_at_node[10]
+    0
+    >>> cgrid.cell_at_node[11]
+    1
+    """
 
     def __init__(self, vertices, vertices_per_cell, node_at_cell=None):
         """

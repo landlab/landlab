@@ -1,23 +1,8 @@
 landlab.plot package
 ====================
 
-Subpackages
------------
-
-.. toctree::
-
-    landlab.plot.tests
-
 Submodules
 ----------
-
-landlab.plot.channel_profile module
------------------------------------
-
-.. automodule:: landlab.plot.channel_profile
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 landlab.plot.imshow module
 --------------------------
@@ -27,14 +12,21 @@ landlab.plot.imshow module
     :undoc-members:
     :show-inheritance:
 
-landlab.plot.video_out module
------------------------------
+landlab.plot.channel_profile module
+-----------------------------------
 
-.. automodule:: landlab.plot.video_out
+.. automodule:: landlab.plot.channel_profile
     :members:
     :undoc-members:
     :show-inheritance:
 
+landlab.plot.colors module
+--------------------------
+
+.. automodule:: landlab.plot.colors
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Module contents
 ---------------

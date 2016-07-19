@@ -8,10 +8,14 @@ Created on Fri Feb 20 13:45:52 2015
 """
 from __future__ import print_function
 
+from six.moves import range
+
 #from landlab import RasterModelGrid
 #from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver
+from landlab.plot import imshow_grid_at_node
+from landlab import RasterModelGrid
 from matplotlib.ticker import MaxNLocator
 
 sqrt = np.sqrt
@@ -117,7 +121,7 @@ SWs = (slice(0,-2),slice(0,-2))
 Ss = (slice(0,-2),slice(1,-1))
 SEs = (slice(0,-2),slice(2,ncols+2))
 
-for i in xrange(nt):
+for i in range(nt):
     if i%100==0:
         print(i)
     qsedE.fill(0.)
@@ -203,7 +207,7 @@ for i in xrange(nt):
     aWP[core] =  (hR[core]-hR[Ws]).clip(0.)
     aPP[core] = aWP[core]+aEP[core]+aSP[core]+aNP[core]+1.e-6
 
-    for j in xrange(15):
+    for j in range(15):
 
         #assert np.all(np.greater(aPP[core][not_flat],0.)) #this is here to eliminate a divby0
         #K[core][not_flat] = ((aWW[core]*K[Ws]+aEE[core]*K[Es]+aSS[core]*K[Ss]+aNN[core]*K[Ns]
@@ -238,8 +242,10 @@ vval = uN[core]+uS[core]
 #vval /= velmag
 #imshow_node_grid(mg, h)
 figure(1)
-f1 = imshow(hR[core])
+mg = RasterModelGrid((nrows, ncols))
+f1 = imshow_grid_at_node(mg, hR[core].flatten(), grid_units=('m', 'm'))
 figure(2)
 f2 = contour(X,Y,hR[core], locator=MaxNLocator(nbins=100))
+# f2 = contour(X, Y, np.sqrt(uval**2+vval**2), locator=MaxNLocator(nbins=10))
 clabel(f2)
 quiver(X,Y,uval,vval)

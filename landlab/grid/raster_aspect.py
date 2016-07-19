@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Calculate slope aspects on a :any:`RasterModelGrid`."""
 import numpy as np
+from landlab.utils.decorators import deprecated
 
 
 def _one_line_slopes(input_array, grid, vals):
@@ -23,7 +24,7 @@ def _one_line_slopes(input_array, grid, vals):
              vals[diagonals[3]]) - (vals[diagonals[1]] +
                                     2. * vals[neighbors[:, 1]] +
                                     vals[diagonals[0]])
-        ) / (8. * grid.dx)
+        ) / (8. * grid.dy)
         return slope_we, slope_sn
     except IndexError:
         C = vals[node]
@@ -31,13 +32,13 @@ def _one_line_slopes(input_array, grid, vals):
         weighting_horizontals = 4.
         try:
             vertical_grad = (vals[neighbors[3]] -
-                             vals[neighbors[1]]) / (2. * grid.dx)
+                             vals[neighbors[1]]) / (2. * grid.dy)
         except IndexError:
             try:
-                vertical_grad = (C - vals[neighbors[1]]) / grid.dx
+                vertical_grad = (C - vals[neighbors[1]]) / grid.dy
             except IndexError:
                 try:
-                    vertical_grad = (vals[neighbors[3]] - C) / grid.dx
+                    vertical_grad = (vals[neighbors[3]] - C) / grid.dy
                 except IndexError:
                     vertical_grad = 0.
                     weighting_verticals -= 2.
@@ -85,7 +86,7 @@ def _one_line_slopes(input_array, grid, vals):
                     right_grad = (vals[diagonals[3]] - C) / grid.dx
         try:
             top_grad = (vals[diagonals[1]] -
-                        vals[diagonals[0]]) / (2. * grid.dx)
+                        vals[diagonals[0]]) / (2. * grid.dy)
         except IndexError:
             try:
                 C = vals[neighbors[1]]
@@ -94,12 +95,12 @@ def _one_line_slopes(input_array, grid, vals):
                 weighting_horizontals -= 1.
             else:
                 try:
-                    top_grad = (C - vals[diagonals[0]]) / grid.dx
+                    top_grad = (C - vals[diagonals[0]]) / grid.dy
                 except IndexError:
-                    top_grad = (vals[diagonals[1]] - C) / grid.dx
+                    top_grad = (vals[diagonals[1]] - C) / grid.dy
         try:
             bottom_grad = (vals[diagonals[2]] -
-                           vals[diagonals[3]]) / (2. * grid.dx)
+                           vals[diagonals[3]]) / (2. * grid.dy)
         except IndexError:
             try:
                 C = vals[neighbors[3]]
@@ -108,9 +109,9 @@ def _one_line_slopes(input_array, grid, vals):
                 weighting_horizontals -= 1.
             else:
                 try:
-                    bottom_grad = (C - vals[diagonals[3]]) / grid.dx
+                    bottom_grad = (C - vals[diagonals[3]]) / grid.dy
                 except IndexError:
-                    bottom_grad = (vals[diagonals[2]] - C) / grid.dx
+                    bottom_grad = (vals[diagonals[2]] - C) / grid.dy
 
         slope_we = (top_grad + 2. * horizontal_grad +
                     bottom_grad) / weighting_horizontals
@@ -120,22 +121,24 @@ def _one_line_slopes(input_array, grid, vals):
         return slope_we, slope_sn
 
 
-def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
-                                         vals='topographic__elevation'):
+@deprecated(use='grid.calc_slope_at_node', version=1.0)
+def calc_slope_aspect_of_nodes_horn(grid, ids=None,
+                                    vals='topographic__elevation'):
     r"""Calculate slope and aspect.
 
     .. note::
 
-        THIS CODE HAS ISSUES: This code didn't perform well on a NS facing
-        elevation profile. Please check slope_aspect_routines_comparison.py
-        under landlab\examples before using this.
-        Suggested alternative: calculate_slope_aspect_at_nodes_burrough
-                                                    ~ SN 25Sep14
+        THIS CODE HAS ISSUES (SN 25-Sept-14): This code didn't perform well
+        on a NS facing elevation profile. Please check
+        slope_aspect_routines_comparison.py under landlab\examples before
+        using this.  Suggested alternative:
+        calculate_slope_aspect_at_nodes_burrough
 
     Calculates the local topographic slope (i.e., the down-dip slope, and
     presented as positive), and the aspect (dip direction in radians
     clockwise from north), at the given nodes, *ids*. All *ids* must be of
     core nodes.
+
     This method uses the Horn 1981 algorithm, the one employed by many GIS
     packages. It should be significantly faster than alternative slope
     methods.
@@ -177,7 +180,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     ...     1., 1., 1., 1., 1,
     ...     2., 2., 2., 2., 2,
     ...     3., 3., 3., 3., 3])
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> len(slope) == grid.number_of_core_nodes
     True
@@ -192,7 +195,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     will still be positive but the aspects will change.
 
     >>> elevation *= -1
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> slope
     array([ 1.,  1.,  1.,  1.,  1.,  1.])
@@ -207,7 +210,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     ...     0., 1., 2., 3., 4.,
     ...     0., 1., 2., 3., 4.])
     >>> elevation *= 2.
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> slope
     array([ 2.,  2.,  2.,  2.,  2.,  2.])
@@ -218,7 +221,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     will still be positive but the aspects will change.
 
     >>> elevation *= -1.
-    >>> (slope, aspect) = grid.calculate_slope_aspect_at_nodes_horn(
+    >>> (slope, aspect) = calc_slope_aspect_of_nodes_horn(grid,
     ...     vals=elevation)
     >>> slope
     array([ 2.,  2.,  2.,  2.,  2.,  2.])
@@ -234,9 +237,9 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
             raise IndexError('*vals* was not of a compatible length!')
 
     # [right, top, left, bottom]
-    neighbors = grid.get_neighbor_list(ids)
+    neighbors = grid.active_neighbors_at_node[ids]
     # [topright, topleft, bottomleft, bottomright]
-    diagonals = grid.get_diagonal_list(ids)
+    diagonals = grid._get_diagonal_list(ids)
 
     input_array = np.empty((len(ids), 9), dtype=int)
     input_array[:, 0] = ids
@@ -249,7 +252,7 @@ def calculate_slope_aspect_at_nodes_horn(grid, ids=None,
     slope_sn = slopes_array[:, 1]
 
     slope = np.sqrt(slope_we * slope_we + slope_sn * slope_sn)
-    #aspect = np.empty_like(slope)
+    # aspect = np.empty_like(slope)
     aspect = np.ones(slope.size, dtype=float)
     simple_cases = slope_we != 0.
     complex_cases = np.logical_not(simple_cases)

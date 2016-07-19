@@ -7,12 +7,14 @@ or irregular grid.
 GT Nov 2013
 Modified Feb 2014
 """
+from six.moves import range
 
 import numpy as np
 import inspect
 
-from landlab import RasterModelGrid, BAD_INDEX_VALUE
-from landlab.grid.raster_funcs import calculate_steepest_descent_across_cell_faces
+from landlab import RasterModelGrid, BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab.grid.raster_steepest_descent import (
+    _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 
@@ -65,7 +67,7 @@ def grid_flow_directions(grid, elevations):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_routing.flow_direction_DN import grid_flow_directions
+    >>> from landlab.components.flow_routing import grid_flow_directions
     >>> mg = RasterModelGrid(4,5)
     >>> z = np.array([5., 0., 5., 5., 5.,
     ...               5., 1., 2., 2., 5.,
@@ -99,7 +101,7 @@ def grid_flow_directions(grid, elevations):
     >>> list(zip(mg.node_at_cell, recv_nodes))
     [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
     """
-    slope, receiver = calculate_steepest_descent_across_cell_faces(
+    slope, receiver = _calc_steepest_descent_across_cell_faces(
         grid, elevations, return_node=True)
 
     (sink_cell, ) = np.where(slope >= 0.)
@@ -153,7 +155,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     re-created.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_routing.flow_direction_DN import flow_directions
+    >>> from landlab.components.flow_routing import flow_directions
     >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
     >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
     >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
@@ -167,13 +169,12 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     >>> snk
     array([4])
     >>> rl[3:8]
-    array([        15, 2147483647,          1,          6,          2])
+    array([15, -1,  1,  6,  2])
 
     OK, the following are rough notes on design: we want to work with just the
     active links. Ways to do this:
-        - Pass active_links in as argument
-        - In calling code, only refer to receiver_links for active nodes
-
+    *  Pass active_links in as argument
+    *  In calling code, only refer to receiver_links for active nodes
     """
     # Setup
     num_nodes = len(elev)
@@ -205,7 +206,7 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
                               steepest_slope)
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
-            for i in xrange(len(fromnode)):
+            for i in range(len(fromnode)):
                 f = fromnode[i]
                 t = tonode[i]
                 if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
@@ -220,22 +221,25 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
             #alternative, assuming grid structure doesn't change between steps
             #global neighbor_nodes
             #global links_list #this is ugly. We need another way of saving that doesn't make these permanent (can't change grid size...)
+            (non_boundary_nodes, ) = np.where(grid.node_status != CLOSED_BOUNDARY)
             try:
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max)
             except NameError:
-                neighbor_nodes = np.empty((grid.active_nodes.size, 8), dtype=int)
+                neighbor_nodes = np.empty((non_boundary_nodes.size, 8), dtype=int)
                 #the target shape is (nnodes,4) & S,W,N,E,SW,NW,NE,SE
-                neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[grid.active_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
-                neighbor_nodes[:,4:] = grid.get_diagonal_list(bad_index=-1)[grid.active_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
+                neighbor_nodes[:,:4] = grid.get_neighbor_list(bad_index=-1)[non_boundary_nodes,:][:,::-1] # comes as (nnodes, 4), and E,N,W,S
+                neighbor_nodes[:,4:] = grid._get_diagonal_list(bad_index=-1)[non_boundary_nodes,:][:,[2,1,0,3]] #NE,NW,SW,SE
                 links_list = np.empty_like(neighbor_nodes)
-                links_list[:,:4] = grid.node_links().T[grid.active_nodes,:] #(n_active_nodes, SWNE)
-                links_list[:,4:] = grid.diagonal_links_at_node().T[grid.active_nodes,:] #SW,NW,NE,NE
+                links_list[:, :4] = grid.links_at_node[non_boundary_nodes] # Reorder as SWNE
+                links_list[:, 4:6] = grid._diagonal_links_at_node[non_boundary_nodes, 2:0:-1]
+                links_list[:, 6] = grid._diagonal_links_at_node[non_boundary_nodes, 0]
+                links_list[:, 7] = grid._diagonal_links_at_node[non_boundary_nodes, 3]  # final order SW,NW,NE,SE
                 elevs_array = np.where(neighbor_nodes!=-1, elev[neighbor_nodes], np.finfo(float).max/1000.)
-            slope_array = (elev[grid.active_nodes].reshape((grid.active_nodes.size,1)) - elevs_array)/grid.link_length[links_list]
+            slope_array = (elev[non_boundary_nodes].reshape((non_boundary_nodes.size, 1)) - elevs_array)/grid._length_of_link_with_diagonals[links_list]
             axis_indices = np.argmax(slope_array, axis=1)
-            steepest_slope[grid.active_nodes] = slope_array[np.indices(axis_indices.shape),axis_indices]
+            steepest_slope[non_boundary_nodes] = slope_array[np.indices(axis_indices.shape),axis_indices]
             downslope = np.greater(steepest_slope, 0.)
-            downslope_active = downslope[grid.active_nodes]
+            downslope_active = downslope[non_boundary_nodes]
             receiver[downslope] = neighbor_nodes[np.indices(axis_indices.shape),axis_indices][0,downslope_active]
             receiver_link[downslope] = links_list[np.indices(axis_indices.shape),axis_indices][0,downslope_active]
 

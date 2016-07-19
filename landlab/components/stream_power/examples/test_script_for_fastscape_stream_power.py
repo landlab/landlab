@@ -7,13 +7,13 @@ Tests and illustrates use of route_flow_dn component.
 """
 from __future__ import print_function
 
-from landlab import RasterModelGrid
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
+from landlab.components.flow_routing import FlowRouter
 from landlab.io import read_esri_ascii
 from landlab.plot.imshow import imshow_node_grid
 import os
 import pylab
-from numpy import ones, size
+import numpy as np
 
 dem_name = '../../../io/tests/data/west_bijou_gully.asc'
 outlet_row = 82
@@ -26,7 +26,7 @@ dem_grid.set_nodata_nodes_to_inactive(z, 0) # set nodata nodes to inactive bound
 outlet_node = dem_grid.grid_coords_to_node_id(outlet_row, outlet_column)
 
 grid = RasterModelGrid(4, 5, 1.0)
-grid.set_inactive_boundaries(True, False, True, True)
+grid.set_inactive_boundaries(False, True, True, True)
 z = grid.add_zeros('node', 'Land_Surface__Elevation')
 z[6] = 4.5
 z[7] = 3.
@@ -37,7 +37,7 @@ z[13] = 2.
 
 
 # Get array of interior (active) node IDs
-interior_nodes = grid.get_active_cell_node_ids()
+interior_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 
 # Route flow
 flow_router = FlowRouter(grid)
@@ -53,8 +53,9 @@ for i in range(grid.number_of_nodes):
 #    print i, r[i], rl[i]
 
 # Calculate lengths of flow links
-flow_link_length = ones(size(z))
-flow_link_length[interior_nodes] = grid.link_length[rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
+flow_link_length = np.ones(np.size(z))
+flow_link_length[interior_nodes] = grid._length_of_link_with_diagonals[
+    rl[interior_nodes]] #DEJH suspects a node ordering bug here - rl is not in ID order, but interior_nodes is
 print('fll:', flow_link_length)
 
 # Get a 2D array version of the elevations

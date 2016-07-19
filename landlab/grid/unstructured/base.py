@@ -1,9 +1,11 @@
 import numpy as np
 
 from .status import StatusGrid
-from .links import link_is_active, find_active_links, LinkGrid, _split_link_ends
+from .links import link_is_active, find_active_links, LinkGrid
+from .links import _split_link_ends
 from .cells import CellGrid
 from .nodes import NodeGrid
+from landlab.utils.decorators import deprecated
 
 
 def _default_axis_names(n_dims):
@@ -18,9 +20,67 @@ def _default_axis_units(n_dims):
 
 
 class BaseGrid(object):
+    """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)
 
-    def __init__(self, nodes, axis_name=None, axis_units=None, node_status=None,
-                 links=None, cells=None):
+    Parameters
+    ----------
+    coord0, coord1, ... : sequence of array-like
+        Coordinates of grid nodes
+    axis_name : sequence of strings, optional
+        Names of coordinate axes
+    axis_units : sequence of strings, optional
+        Units of coordinate axes
+
+    Returns
+    -------
+    BaseGrid :
+        A newly-created BaseGrid
+
+    Examples
+    --------
+    >>> from landlab.grid.unstructured.base import BaseGrid
+    >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
+    >>> ngrid.number_of_nodes
+    4
+    >>> ngrid.x_at_node
+    array([ 0.,  1.,  0.,  1.])
+    >>> ngrid.x_at_node[2]
+    0.0
+    >>> ngrid.point_at_node[2]
+    array([ 1.,  0.])
+    >>> ngrid.coord_at_node[:, [2, 3]]
+    array([[ 1.,  1.],
+           [ 0.,  1.]])
+
+    >>> cells = ([0, 1, 2, 1, 3, 2], [3, 3], [0, 1])
+    >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]), cells=cells)
+    >>> ngrid.number_of_cells
+    2
+    >>> ngrid.node_at_cell
+    array([0, 1])
+
+    >>> links = [(0, 2), (1, 3), (0, 1), (1, 2), (0, 3)]
+    >>> ngrid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]), links=zip(*links))
+    >>> ngrid.number_of_links
+    5
+    >>> ngrid.links_leaving_at_node(0)
+    array([0, 2, 4])
+    >>> len(ngrid.links_entering_at_node(0)) == 0
+    True
+
+    >>> tails, heads = zip(*links)
+    >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
+    ...     node_status=[0, 0, 0, 4], links=[tails, heads])
+    >>> grid.status_at_node
+    array([0, 0, 0, 4])
+    >>> len(grid.active_links_entering_at_node(0)) == 0
+    True
+    >>> grid.active_links_leaving_at_node(0)
+    array([0, 2])
+    """
+
+    def __init__(self, nodes, axis_name=None, axis_units=None,
+                 node_status=None, links=None, cells=None):
         """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)
 
         Parameters
@@ -256,7 +316,11 @@ class BaseGrid(object):
     def active_links(self):
         return self._active_link_grid.link_id
 
+    @deprecated(use='length_of_link', version=1.0)
     def link_length(self, link=None):
+        return self.length_of_link(link=link)
+
+    def length_of_link(self, link=None):
         """Length of grid links.
 
         Parameters
@@ -269,14 +333,14 @@ class BaseGrid(object):
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> links = [(0, 2), (1, 3), (0, 1), (2, 3), (0, 3)]
         >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]), links=links)
-        >>> grid.link_length()
+        >>> grid.length_of_link()
         array([ 4.,  4.,  3.,  3.,  5.])
-        >>> grid.link_length(0)
+        >>> grid.length_of_link(0)
         array([ 4.])
 
-        >>> grid.link_length().min()
+        >>> grid.length_of_link().min()
         3.0
-        >>> grid.link_length().max()
+        >>> grid.length_of_link().max()
         5.0
         """
         if link is None:
@@ -312,7 +376,8 @@ class BaseGrid(object):
         array([ 0.,  3.,  4.,  5.])
         """
         return point_to_point_distance(
-            self._get_coord_at_node(node0), self._get_coord_at_node(node1), out=out)
+            self._get_coord_at_node(node0), self._get_coord_at_node(node1),
+            out=out)
 
         node0, node1 = np.broadcast_arrays(node0, node1)
         return np.sqrt(np.sum((self.coord_at_node[:, node1] -
@@ -347,7 +412,8 @@ class BaseGrid(object):
         >>> out
         array([ 0.,  3.,  4.,  5.])
         """
-        return point_to_point_distance(point, self._get_coord_at_node(node), out=out)
+        return point_to_point_distance(point, self._get_coord_at_node(node),
+                                       out=out)
 
     def point_to_node_angle(self, point, node=None, out=None):
         """Angle from a point to a node.
@@ -378,7 +444,8 @@ class BaseGrid(object):
         >>> out / np.pi
         array([ 0.  ,  0.  ,  0.5 ,  0.25])
         """
-        return point_to_point_angle(point, self._get_coord_at_node(node), out=out)
+        return point_to_point_angle(point, self._get_coord_at_node(node),
+                                    out=out)
 
     def point_to_node_azimuth(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -411,7 +478,8 @@ class BaseGrid(object):
         >>> out
         array([ 90.,  90.,   0.,  45.])
         """
-        return point_to_point_azimuth(point, self._get_coord_at_node(node), out=out)
+        return point_to_point_azimuth(point, self._get_coord_at_node(node),
+                                      out=out)
 
     def point_to_node_vector(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -448,7 +516,8 @@ class BaseGrid(object):
         array([[ 0.],
                [ 1.]])
         """
-        return point_to_point_vector(point, self._get_coord_at_node(node), out=out)
+        return point_to_point_vector(point, self._get_coord_at_node(node),
+                                     out=out)
 
     def _get_coord_at_node(self, node=None):
         if node is None:
@@ -465,14 +534,14 @@ def point_to_point_distance(point0, point1, out=None):
     (y0, x0) : tuple of array_like
     (y1, x1) : tuple of array_like
     out : array_like, optional
-        An array to store the output. Must be the same shape as the output would
-        have.
+        An array to store the output. Must be the same shape as the output
+        would have.
 
     Returns
     -------
     l : array_like
-        Length of vector joining points; if *out* is provided, *v* will be equal
-        to *out*.
+        Length of vector joining points; if *out* is provided, *v* will be
+        equal to *out*.
 
     Examples
     --------
@@ -500,8 +569,8 @@ def point_to_point_angle(point0, point1, out=None):
     (y0, x0) : tuple of array_like
     (y1, x1) : tuple of array_like
     out : array_like, optional
-        An array to store the output. Must be the same shape as the output would
-        have.
+        An array to store the output. Must be the same shape as the output
+        would have.
 
     Returns
     -------
@@ -525,8 +594,8 @@ def point_to_point_azimuth(point0, point1, out=None):
     (y0, x0) : tuple of array_like
     (y1, x1) : tuple of array_like
     out : array_like, optional
-        An array to store the output. Must be the same shape as the output would
-        have.
+        An array to store the output. Must be the same shape as the output
+        would have.
 
     Returns
     -------
@@ -560,8 +629,8 @@ def point_to_point_vector(point0, point1, out=None):
     (y0, x0) : tuple of array_like
     (y1, x1) : tuple of array_like
     out : array_like, optional
-        An array to store the output. Must be the same shape as the output would
-        have.
+        An array to store the output. Must be the same shape as the output
+        would have.
 
     Returns
     -------

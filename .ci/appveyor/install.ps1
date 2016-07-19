@@ -1,16 +1,24 @@
-# Sample script to install Miniconda under Windows
-# Authors: Olivier Grisel, Jonathan Helmus and Kyle Kastner, Robert McGibbon
+# Sample script to install Python and pip under Windows
+# Authors: Olivier Grisel, Jonathan Helmus and Kyle Kastner
 # License: CC0 1.0 Universal: http://creativecommons.org/publicdomain/zero/1.0/
 
 $MINICONDA_URL = "http://repo.continuum.io/miniconda/"
+$GET_PIP_URL = "https://bootstrap.pypa.io/get-pip.py"
+$GET_PIP_PATH = "C:\get-pip.py"
 
+function RunCommand ($command, $command_args) {
+    Write-Host $command $command_args
+    Start-Process -FilePath $command -ArgumentList $command_args -Wait -Passthru
+}
 
 function DownloadMiniconda ($python_version, $platform_suffix) {
     $webclient = New-Object System.Net.WebClient
-    if ($python_version -match "3.4") {
-        $filename = "Miniconda3-3.5.5-Windows-" + $platform_suffix + ".exe"
-    } else {
-        $filename = "Miniconda-3.5.5-Windows-" + $platform_suffix + ".exe"
+    if ($python_version -like "2.*") {
+        $filename = "Miniconda2-latest-Windows-" + $platform_suffix + ".exe"
+    } ElseIf ($python_version -like "3.*") {
+        $filename = "Miniconda3-latest-Windows-" + $platform_suffix + ".exe"
+    } Else {
+        $filename = "Miniconda-latest-Windows-" + $platform_suffix + ".exe"
     }
     $url = $MINICONDA_URL + $filename
 
@@ -44,15 +52,19 @@ function DownloadMiniconda ($python_version, $platform_suffix) {
 
 
 function InstallMiniconda ($python_version, $architecture, $python_home) {
+    # if ($architecture -eq "32") {
+    if ($architecture -eq "x86") {
+        $platform_suffix = "x86"
+        $python_home = $python_home + "_32"
+    } else {
+        $platform_suffix = "x86_64"
+        $python_home = $python_home + "_64"
+    }
+
     Write-Host "Installing Python" $python_version "for" $architecture "bit architecture to" $python_home
     if (Test-Path $python_home) {
         Write-Host $python_home "already exists, skipping."
         return $false
-    }
-    if ($architecture -match "32") {
-        $platform_suffix = "x86"
-    } else {
-        $platform_suffix = "x86_64"
     }
 
     $filepath = DownloadMiniconda $python_version $platform_suffix
@@ -70,28 +82,22 @@ function InstallMiniconda ($python_version, $architecture, $python_home) {
     }
 }
 
-
-function InstallCondaPackages ($python_home, $spec) {
+function InstallMinicondaPip ($python_home) {
+    $pip_path = $python_home + "\Scripts\pip.exe"
     $conda_path = $python_home + "\Scripts\conda.exe"
-    $args = "install --yes " + $spec
-    Write-Host ("conda " + $args)
-    Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
+    if (-not(Test-Path $pip_path)) {
+        Write-Host "Installing pip..."
+        $args = "install --yes pip"
+        Write-Host $conda_path $args
+        Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
+    } else {
+        Write-Host "pip already installed."
+    }
 }
-
-function UpdateConda ($python_home) {
-    $conda_path = $python_home + "\Scripts\conda.exe"
-    Write-Host "Updating conda..."
-    $args = "update --yes conda"
-    Write-Host $conda_path $args
-    Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
-}
-
 
 function main () {
-    InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    UpdateConda $env:PYTHON
-    InstallCondaPackages $env:PYTHON "conda-build=1.4.0 pip jinja2 binstar"
-    InstallCondaPackages $env:PYTHON "conda-build=1.4.0 scipy>=0.12 numpy nose>=1.3 matplotlib netCDF4 sympy pandas cython>=0.22 wheel"
+    InstallMiniconda $env:PYTHON_VERSION $env:PLATFORM $env:PYTHON
+    # InstallMinicondaPip $env:PYTHON
 }
 
 main

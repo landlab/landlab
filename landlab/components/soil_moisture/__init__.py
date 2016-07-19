@@ -1,2 +1,4 @@
+from .soil_moisture_dynamics import SoilMoisture
 
-import landlab.components.soil_moisture.soil_moisture_field
+
+__all__ = ['SoilMoisture', ]
