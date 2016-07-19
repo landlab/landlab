@@ -34,8 +34,8 @@ Check the units for the fields.
 
 Create the input fields.
 
->>> grid['cell']['vegetation__plant_functional_type']= \
-            np.arange(0, grid.number_of_cells, dtype=int)
+>>> grid['cell']['vegetation__plant_functional_type']= np.arange(
+...        0, grid.number_of_cells, dtype=int)
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -48,8 +48,8 @@ units: None
 at: cell
 intent: in
 
->>> grid['cell']['vegetation__cumulative_water_stress'] = \
-            np.ones(grid.number_of_cells)
+>>> grid['cell']['vegetation__cumulative_water_stress'] = np.ones(
+...        grid.number_of_cells)
 
 Instantiate the 'VegCA' component to work on this grid,
 and run it.
@@ -154,10 +154,10 @@ class VegCA(Component):
      ('plant__live_index', 'None'),
      ('vegetation__cumulative_water_stress', 'None'),
      ('vegetation__plant_functional_type', 'None')]
-    >>> grid['cell']['vegetation__plant_functional_type']= \
-                np.arange(0, grid.number_of_cells, dtype=int)
-    >>> grid['cell']['vegetation__cumulative_water_stress'] = \
-                np.ones(grid.number_of_cells)
+    >>> grid['cell']['vegetation__plant_functional_type']= np.arange(
+    ...        0, grid.number_of_cells, dtype=int)
+    >>> grid['cell']['vegetation__cumulative_water_stress'] = np.ones(
+    ...        grid.number_of_cells)
     >>> ca_veg = VegCA(grid)
     >>> ca_veg.grid.number_of_cell_rows
     3

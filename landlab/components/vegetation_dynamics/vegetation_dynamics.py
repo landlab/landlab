@@ -39,11 +39,11 @@ Check the units for an input field
 
 Create the input fields.
 
->>> grid['cell']['vegetation__plant_functional_type']= \
-        np.zeros(grid.number_of_cells, dtype=int)
+>>> grid['cell']['vegetation__plant_functional_type']= np.zeros(
+...        grid.number_of_cells, dtype=int)
 
->>> grid['cell']['surface__evapotranspiration'] = \
-        0.2 * np.ones(grid.number_of_cells)
+>>> grid['cell']['surface__evapotranspiration'] = (
+...        0.2 * np.ones(grid.number_of_cells))
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
@@ -60,13 +60,12 @@ intent: in
 ...        0.25547770, 0.25547770, 0.22110221,
 ...        0.22110221, 0.24813062, 0.24813062])
 
->>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
-        np.array([
-...        0.25547770, 0.25547770, 0.22110221,
-...        0.22110221, 0.24813062, 0.24813062])
+>>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= (
+...        np.array([0.25547770, 0.25547770, 0.22110221,
+...                  0.22110221, 0.24813062, 0.24813062]))
 
->>> grid['cell']['vegetation__water_stress'] = \
-           0.01 * np.ones(grid.number_of_cells)
+>>> grid['cell']['vegetation__water_stress'] = (
+...        0.01 * np.ones(grid.number_of_cells))
 
 Instantiate the 'SoilMoisture' component to work on this grid,
 and run it.
@@ -190,18 +189,18 @@ class Vegetation(Component):
      ('vegetation__water_stress', 'None')]
 
     Provide all the input fields.
-    >>> grid['cell']['vegetation__plant_functional_type']= \
-                np.zeros(grid.number_of_cells, dtype=int)
-    >>> grid['cell']['surface__evapotranspiration'] = \
-                0.2 * np.ones(grid.number_of_cells)
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
-            np.array([ 0.25547770, 0.25547770, 0.22110221, \
-                       0.22110221, 0.24813062, 0.24813062])
-    >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= \
-            np.array([ 0.25547770, 0.25547770, 0.22110221, \
-                       0.22110221, 0.24813062, 0.24813062])
-    >>> grid['cell']['vegetation__water_stress'] = \
-               0.01 * np.ones(grid.number_of_cells)
+    >>> grid['cell']['vegetation__plant_functional_type']= (
+    ...         np.zeros(grid.number_of_cells, dtype=int))
+    >>> grid['cell']['surface__evapotranspiration'] = (
+    ...         0.2 * np.ones(grid.number_of_cells))
+    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
+    ...         0.25547770, 0.25547770, 0.22110221,
+    ...         0.22110221, 0.24813062, 0.24813062])
+    >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= (
+    ...        np.array([0.25547770, 0.25547770, 0.22110221,
+    ...                  0.22110221, 0.24813062, 0.24813062]))
+    >>> grid['cell']['vegetation__water_stress'] = (
+    ...        0.01 * np.ones(grid.number_of_cells))
 
     Instantiate the 'Vegetation' component.
     >>> Veg = Vegetation(grid)

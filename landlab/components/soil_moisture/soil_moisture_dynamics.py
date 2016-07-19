@@ -58,17 +58,17 @@ units: None
 at: cell
 intent: in
 
->>> grid['cell']['soil_moisture__initial_saturation_fraction'] = \
-        0.75 * np.ones(grid.number_of_cells)
+>>> grid['cell']['soil_moisture__initial_saturation_fraction'] = (
+...        0.75 * np.ones(grid.number_of_cells))
 
->>> grid['cell']['vegetation__plant_functional_type']= \
-        np.zeros(grid.number_of_cells, dtype=int)
+>>> grid['cell']['vegetation__plant_functional_type']= (
+...        np.zeros(grid.number_of_cells, dtype=int))
 
->>> grid['cell']['vegetation__live_leaf_area_index']= \
-        2. * np.ones(grid.number_of_cells)
+>>> grid['cell']['vegetation__live_leaf_area_index']= (
+...        2. * np.ones(grid.number_of_cells))
 
->>> grid['cell']['vegetation__cover_fraction']= \
-        np.ones(grid.number_of_cells)
+>>> grid['cell']['vegetation__cover_fraction']= (
+...        np.ones(grid.number_of_cells))
 
 Instantiate the 'SoilMoisture' component to work on this grid,
 and run it.
@@ -207,8 +207,8 @@ class SoilMoisture(Component):
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None'),
      ('vegetation__water_stress', 'None')]
-    >>> grid['cell']['vegetation__plant_functional_type']= \
-                np.zeros(grid.number_of_cells, dtype=int)
+    >>> grid['cell']['vegetation__plant_functional_type']= (
+    ...            np.zeros(grid.number_of_cells, dtype=int))
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
     3
@@ -219,18 +219,18 @@ class SoilMoisture(Component):
     >>> import numpy as np
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     True
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= \
-            np.array([0.2554777, 0.2554777 , 0.22110221, 0.22110221, \
-                      0.24813062, 0.24813062])
-    >>> grid['cell']['soil_moisture__initial_saturation_fraction']= \
-            0.75 * np.ones(grid.number_of_cells)
-    >>> grid['cell']['vegetation__live_leaf_area_index']= \
-            2. * np.ones(grid.number_of_cells)
-    >>> grid['cell']['vegetation__cover_fraction']= \
-            np.ones(grid.number_of_cells)
+    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
+    ...            0.2554777, 0.2554777 , 0.22110221, 0.22110221,
+    ...            0.24813062, 0.24813062])
+    >>> grid['cell']['soil_moisture__initial_saturation_fraction']= (
+    ...        0.75 * np.ones(grid.number_of_cells))
+    >>> grid['cell']['vegetation__live_leaf_area_index']= (
+    ...        2. * np.ones(grid.number_of_cells))
+    >>> grid['cell']['vegetation__cover_fraction']= (
+    ...        np.ones(grid.number_of_cells))
     >>> current_time = 0.5
-    >>> grid['cell']['rainfall__daily'] = \
-            25. * np.ones(grid.number_of_cells)
+    >>> grid['cell']['rainfall__daily'] = (
+    ...        25. * np.ones(grid.number_of_cells))
     >>> current_time = SM.update(current_time)
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     False
