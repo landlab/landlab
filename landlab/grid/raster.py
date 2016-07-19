@@ -409,7 +409,7 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
-    ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
+    ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition
@@ -443,7 +443,7 @@ to a point; nodes at edges.
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
-    ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
+    ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries_at_grid_edges
 
 Surface analysis
 ----------------
@@ -1063,8 +1063,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._neighbors_at_node = (
             sgrid.neighbor_node_ids(self.shape).transpose().copy())
-        self.__diagonal_neighbors_at_node = sgrid.diagonal_node_array(self.shape,
-                                                            contiguous=True)
+        self.__diagonal_neighbors_at_node = sgrid.diagonal_node_array(
+            self.shape, contiguous=True)
 
         self._links_at_node = squad_links.links_at_node(self.shape)
 
@@ -3339,7 +3339,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         except NameError:
             pass  # the flag will catch this case
 
-    def set_looped_boundaries(self, top_bottom_are_looped, sides_are_looped):
+    def set_looped_boundaries_at_grid_edges(self, top_bottom_are_looped,
+                                            sides_are_looped):
         """Create wrap-around boundaries.
 
         Handles boundary conditions by setting corresponding parallel grid
@@ -3374,7 +3375,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.add_zeros('topographic__elevation', at='node')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
-        >>> rmg.set_looped_boundaries(True, True)
+        >>> rmg.set_looped_boundaries_at_grid_edges(True, True)
         >>> rmg.looped_node_properties['boundary_node_IDs']
         array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
         >>> rmg.looped_node_properties['linked_node_IDs']
@@ -3416,8 +3417,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 these_linked_nodes,
                 right_edge - 1, left_edge + 1))
 
-        self._update_links_nodes_cells_to_new_BCs()
-
         if not self.looped_node_properties:
             existing_IDs = np.array([])
             existing_links = np.array([])
@@ -3439,10 +3438,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             np.concatenate((these_linked_nodes, existing_links))[ID_ordering])
 
         if np.any(self._node_status[self.looped_node_properties[
-                'boundary_node_IDs']] == 2):
+                'boundary_node_IDs']] == FIXED_GRADIENT_BOUNDARY):
             raise AttributeError(
                 'Switching a boundary between fixed gradient and looped will '
                 'result in bad BC handling! Bailing out...')
+
+        self._update_links_nodes_cells_to_new_BCs()
 
     @deprecated(use='_update_links_nodes_cells_to_new_BCs', version=1.0)
     def update_boundary_nodes(self):
@@ -3951,16 +3952,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             of active links.
         """
         self.diagonal_list_created = True
-        self.diagonal_cells = sgrid.diagonal_node_array(
+        self._diagonal_nodes = sgrid.diagonal_node_array(
             self.shape, out_of_bounds=bad_index)
 
         closed_boundaries = np.empty(4, dtype=np.int)
         closed_boundaries.fill(bad_index)
-        self.diagonal_cells[self.closed_boundary_nodes, :] = closed_boundaries
-        self.diagonal_cells.ravel()[
-            np.in1d(self.diagonal_cells.ravel(),
+        self._diagonal_nodes[self.closed_boundary_nodes, :] = closed_boundaries
+        self._diagonal_nodes.ravel()[
+            np.in1d(self._diagonal_nodes.ravel(),
                     self.closed_boundary_nodes)] = bad_index
-        return self.diagonal_cells
+
+########the below untested; mirrored in base.py
+        if np.any(self.status_at_node == TRACKS_CELL_BOUNDARY):
+            goodvalues = self.looped_node_properties['boundary_node_IDs']
+            repvalues = self.looped_node_properties['linked_node_IDs']
+            flatdiags = self._diagonal_nodes.ravel()
+            ix = np.where(np.in1d(flatdiags, goodvalues))[0]
+            oldvalues = flatdiags[ix]  # out of order; a copy; -1s gone
+            for old, new in zip(goodvalues, repvalues):
+                whichnodes = oldvalues == old
+                self._diagonal_nodes.ravel()[ix[whichnodes]] = new
+
+        return self._diagonal_nodes
 
     @deprecated(use='node_is_core', version='0.5')
     def is_interior(self, *args):

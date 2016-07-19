@@ -895,6 +895,84 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._node_status[:] = new_status[:]
         self._update_links_nodes_cells_to_new_BCs()
 
+    def set_looped_boundaries(self, boundary_node_IDs, linked_node_IDs):
+        """
+        Bind the status of a set of nodes to values at a second set of nodes.
+
+        This procedure sets the boundary condition at both the boundary node
+        to the TRACKS_CELL_BOUNDARY status. It effectively makes these nodes
+        "invisible", such that the last core nodes at e.g. the bottom of the
+        grid see the first core nodes at the top of the grid as their southern
+        neighbors. This style of handling is necessary so that grid operations
+        on only core nodes and active links make sense in the big picture of
+        Landlab.
+
+        To create a mirrored array, pass the IDs of the 3rd row/column from
+        the edge to this method. i.e., for mirrored nodes along
+        `rmg.nodes[:, 0]`, set `linked_node_IDs = rmg.nodes[:, 2]`.
+
+        If the boundary_nodes are not equal to the linked_nodes, a test is
+        applied to ensure that the link geometries around each set are
+        compatible with each other. The link angles each must be the same. This
+        is only of concern on an unstructured grid.
+
+        Parameters
+        ----------
+        boundary_node_IDs : array of ints
+            The nodes at which to modify the node statuses.
+        linked_node_IDs : array of ints
+            Array of the same length of nodes to mimic.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((5, 4))
+        >>> mg.set_looped_boundaries(mg.nodes_at_bottom_edge, mg.nodes[3, :])
+        >>> mg.looped_node_properties['boundary_node_IDs']
+        array([0, 1, 2, 3])
+        >>> mg.looped_node_properties['linked_node_IDs']
+        array([12, 13, 14, 15])
+
+        Now set a mirrored edge:
+
+        >>> mg.set_looped_boundaries(mg.nodes_at_left_edge, mg.nodes[:, 2])
+        >>> mg.looped_node_properties['boundary_node_IDs']
+        array([ 0,  1,  2,  3,  4,  8, 12, 16])
+        >>> mg.looped_node_properties['linked_node_IDs']
+        array([ 2, 13, 14, 15,  6, 10, 14, 18])
+        """
+        for nodes in (boundary_node_IDs, linked_node_IDs):
+            assert not np.any(nodes == -1)
+        try:
+            unrepeated_node_entries = np.logical_not(
+                np.in1d(self.looped_node_properties['boundary_node_IDs'],
+                        boundary_node_IDs))
+        except (AttributeError, KeyError):
+            existing_IDs = np.array([])
+            existing_links = np.array([])
+        else:
+            existing_IDs = self.looped_node_properties[
+                'boundary_node_IDs'][unrepeated_node_entries]
+            existing_links = self.looped_node_properties[
+                'linked_node_IDs'][unrepeated_node_entries]
+
+        self.looped_node_properties = {}
+        all_the_IDs = np.concatenate((boundary_node_IDs, existing_IDs))
+        ID_ordering = np.argsort(all_the_IDs)
+        self.looped_node_properties['boundary_node_IDs'] = (
+            as_id_array(all_the_IDs[ID_ordering]))
+        self.looped_node_properties['linked_node_IDs'] = as_id_array(
+            np.concatenate((linked_node_IDs, existing_links))[ID_ordering])
+
+        if np.any(self.status_at_node[self.looped_node_properties[
+                'boundary_node_IDs']] == FIXED_GRADIENT_BOUNDARY):
+            raise AttributeError(
+                'Switching a boundary between fixed gradient and looped will '
+                'result in bad BC handling! Bailing out...')
+
+        self._node_status[boundary_node_IDs] = TRACKS_CELL_BOUNDARY
+        self._update_links_nodes_cells_to_new_BCs()
+
     @property
     @make_return_array_immutable
     def neighbors_at_node(self):
@@ -3394,6 +3472,16 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_patch_status()
         except AttributeError:
             pass
+##### check for persistence of TRACKS_CELL_BOUNDARY goes here
+        if np.any(self.status_at_node == TRACKS_CELL_BOUNDARY):
+            goodvalues = self.looped_node_properties['boundary_node_IDs']
+            repvalues = self.looped_node_properties['linked_node_IDs']
+            flatneighbors = self.neighbors_at_node.ravel()
+            ix = np.where(np.in1d(flatneighbors, goodvalues))[0]
+            oldvalues = flatneighbors[ix]  # out of order; a copy; -1s gone
+            for old, new in zip(goodvalues, repvalues):
+                whichnodes = oldvalues == old
+                self._neighbors_at_node.ravel()[ix[whichnodes]] = new
         try:
             self.bc_set_code += 1
         except AttributeError:
