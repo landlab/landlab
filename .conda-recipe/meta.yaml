@@ -1,6 +1,6 @@
 package:
   name: landlab
-  version: "1.0.0beta.10"
+  version: "1.0.0beta.11"
 
 source:
   path: ..
