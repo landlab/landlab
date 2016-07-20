@@ -5126,7 +5126,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         #locs is a list that contains locations where
         #node data is greater than the nodata value
-        locs = list(np.where(node_data != nodata_value)[0])
+        locs = np.where(node_data != nodata_value)
         if len(locs) < 1:
             raise ValueError('All data values are no_data values')
 
@@ -5134,7 +5134,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         min_val=np.min(node_data[locs])
 
         #now find where minimum values are
-        min_locs=list(np.where(node_data == min_val)[0])
+        min_locs=np.where(node_data == min_val)
 
         #check all the locations with the minimum value to see if one
         #is adjacent to a boundary location.  If so, that will be the
@@ -5167,8 +5167,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 #first find the locations of all values greater
                 #than the old minimum
                 #not done with outer while
-                locs=list(np.where(node_data > min_val & \
-                    node_data != nodata_value)[0])
+                locs=np.where((node_data > min_val) & \
+                     (node_data != nodata_value))
                 #now find new minimum of these values
                 min_val = np.min(node_data[locs])
                 min_locs = list(np.where(node_data == min_val)[0])

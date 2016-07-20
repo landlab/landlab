@@ -5,8 +5,8 @@ Relative wetness and factor-of-safety are based on the infinite slope
 stability model driven by topographic and soils inputs and recharge provided
 by user in a "landslide_driver" file. In addition, the component simulates
 the probability of failure for each node based on Monte Carlo simulations
-of the factor-of-safety as the number of simulations <= 1.0 divided by
-the number of simulations.
+of the factor-of-safety as the number of simulations with factor-of-safety
+<= 1.0 divided by the number of simulations.
 
 Modified to be more generic in the inputs for greater usability as well
 as accomodate functionality with new release of Landlab version 1.
@@ -35,7 +35,7 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(LandslideProbability.input_var_names) \
-                      # doctest: +NORMALIZE_WHITESPACE
+                # doctest: +NORMALIZE_WHITESPACE
 ['soil__density',
  'soil__internal_friction_angle',
  'soil__maximum_total_cohesion',
@@ -133,9 +133,9 @@ class LandslideProbability(Component):
     stability index (Factor of Safety).
 
     The driving force for failure is provided by the user in the form of
-    groundwater recharge, simply user provide minimum and maximum annual
-    peak values. The model uses topographic and soils characteristics
-    provided as input in the landslide_driver.
+    groundwater recharge, simply user provided minimum and maximum annual
+    peak values of recharge. The model uses topographic and soils
+    characteristics provided as input in the landslide_driver.
 
     A LandslideProbability calcuation function provides the user with the
     mean soil relative wetness, mean factor-of-safety, and probabilty
