@@ -3458,8 +3458,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:  # doesn't exist yet
             pass
         try:
-            if self.diagonal_list_created:
-                self.diagonal_list_created = False
+            if self._diagonal_list_created:
+                self._diagonal_list_created = False
         except AttributeError:
             pass
         try:
@@ -3474,8 +3474,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             pass
         # check if anyone has messed with the LOOPED_BOUNDARY conds:
         self._harmonize_looped_boundary_conditions()
-##### copy this to the diag place in raster
-        if self._need_to_update_loops():
+        if self._need_to_update_loops(called_from='_update'):
             goodvalues = self.looped_node_properties['boundary_node_IDs']
             repvalues = self.looped_node_properties['linked_node_IDs']
             flatneighbors = self.neighbors_at_node.ravel()
@@ -3553,9 +3552,14 @@ class ModelGrid(ModelDataFieldsMixIn):
                 self.looped_node_properties['linked_node_IDs'] = \
                     self.looped_node_properties['linked_node_IDs'][rep]
 
-    def _need_to_update_loops(self):
+    def _need_to_update_loops(self, called_from='not_specified'):
         """
         See if any looped nodes have changed since this was last called.
+
+        Parameters
+        ----------
+        called_from : Python hashable
+            string identifying which method called this method.
 
         Returns
         -------
@@ -3592,17 +3596,21 @@ class ModelGrid(ModelDataFieldsMixIn):
             update_loops = False
         else:  # looped nodes present already
             try:
-                _old_LNP = self._old_LNP
+                _old_LNP = self._old_LNP[called_from]
             except AttributeError:  # haven't done this before
+                self._old_LNP = {}
                 update_loops = True
-                self._old_LNP = current_LNP.copy()
+                self._old_LNP[called_from] = current_LNP.copy()
+            except KeyError:  # this function hasn't done this before
+                update_loops = True
+                self._old_LNP[called_from] = current_LNP.copy()
             else:
                 if current_LNP.size != _old_LNP.size:
                     update_loops = True
-                    self._old_LNP = current_LNP.copy()
+                    self._old_LNP[called_from] = current_LNP.copy()
                 elif not np.all(current_LNP == _old_LNP):
                     update_loops = True
-                    self._old_LNP = current_LNP.copy()
+                    self._old_LNP[called_from] = current_LNP.copy()
                 else:
                     update_loops = False
         return update_loops

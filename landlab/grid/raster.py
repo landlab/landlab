@@ -1063,8 +1063,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._neighbors_at_node = (
             sgrid.neighbor_node_ids(self.shape).transpose().copy())
-        self.__diagonal_neighbors_at_node = sgrid.diagonal_node_array(
-            self.shape, contiguous=True)
+        self._diagonal_list_created = False
 
         self._links_at_node = squad_links.links_at_node(self.shape)
 
@@ -1141,7 +1140,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
         # create it if requested.
-        self.diagonal_list_created = False
+        self._diagonal_list_created = False
 
         # List of looped neighbor cells (all 8 neighbors) for
         # given *cell ids* can be created if requested by the user.
@@ -1389,12 +1388,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return self._dy
 
     @property
-    @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
-    @make_return_array_immutable
-    def get_diagonal_neighbors_at_node(self):
-        return self._diagonal_neighbors_at_node
-
-    @property
     @make_return_array_immutable
     def _diagonal_neighbors_at_node(self):
         """Get diagonally neighboring nodes.
@@ -1416,7 +1409,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
         """
-        return self.__diagonal_neighbors_at_node
+        if self._diagonal_list_created:
+            return self._xdiagonal_neighbors_at_node
+        else:
+            return self._create_diagonal_list()
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
@@ -3873,33 +3869,53 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             same ID. However, this is the old-style grid structure as
             boundary nodes no longer have associated cells.
 
-            DEJH: As of 6/12/14, this method now uses BAD_INDEX_VALUE, and
-            boundary nodes now have neighbors, where they are found at the ends
-            of active links.
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4))
+        >>> mg._diagonal_neighbors_at_node
+        array([[ 5, -1, -1, -1],
+               [ 6,  4, -1, -1],
+               [ 7,  5, -1, -1],
+               [-1,  6, -1, -1],
+               [ 9, -1, -1,  1],
+               [10,  8,  0,  2],
+               [11,  9,  1,  3],
+               [-1, 10,  2, -1],
+               [-1, -1, -1,  5],
+               [-1, -1,  4,  6],
+               [-1, -1,  5,  7],
+               [-1, -1,  6, -1]])
+
+        Test that things update right if BCs change:
+
+        >>> mg.set_looped_boundaries(mg.nodes[:, 0], mg.nodes[:, -2])
+        >>> mg._diagonal_neighbors_at_node[5]
+        array([10, 10,  2,  2])
         """
-        self.diagonal_list_created = True
-        self._diagonal_nodes = sgrid.diagonal_node_array(
+        self._diagonal_list_created = True
+        self._xdiagonal_neighbors_at_node = sgrid.diagonal_node_array(
             self.shape, out_of_bounds=bad_index)
 
         closed_boundaries = np.empty(4, dtype=np.int)
         closed_boundaries.fill(bad_index)
-        self._diagonal_nodes[self.closed_boundary_nodes, :] = closed_boundaries
-        self._diagonal_nodes.ravel()[
-            np.in1d(self._diagonal_nodes.ravel(),
+        self._xdiagonal_neighbors_at_node[
+            self.closed_boundary_nodes, :] = closed_boundaries
+        self._xdiagonal_neighbors_at_node.ravel()[
+            np.in1d(self._xdiagonal_neighbors_at_node.ravel(),
                     self.closed_boundary_nodes)] = bad_index
 
-########the below untested; mirrored in base.py
-        if np.any(self.status_at_node == LOOPED_BOUNDARY):
+        if self._need_to_update_loops(called_from='_diag_neighbors'):
             goodvalues = self.looped_node_properties['boundary_node_IDs']
             repvalues = self.looped_node_properties['linked_node_IDs']
-            flatdiags = self._diagonal_nodes.ravel()
+            flatdiags = self._xdiagonal_neighbors_at_node.ravel()
             ix = np.where(np.in1d(flatdiags, goodvalues))[0]
             oldvalues = flatdiags[ix]  # out of order; a copy; -1s gone
             for old, new in zip(goodvalues, repvalues):
                 whichnodes = oldvalues == old
-                self._diagonal_nodes.ravel()[ix[whichnodes]] = new
+                self._xdiagonal_neighbors_at_node.ravel()[ix[whichnodes]] = new
 
-        return self._diagonal_nodes
+        return self._xdiagonal_neighbors_at_node
 
     @deprecated(use='node_is_core', version='0.5')
     def is_interior(self, *args):

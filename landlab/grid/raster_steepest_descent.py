@@ -260,7 +260,8 @@ def _calc_steepest_descent_across_cell_corners(grid, node_values, *args,
 
     if return_node:
         ind = np.argmin(grads, axis=1)
-        node_ids = grid._diagonal_nodes[grid.node_at_cell[cell_ids], ind]
+        node_ids = grid._diagonal_neighbors_at_node[grid.node_at_cell[
+            cell_ids], ind]
         if 'out' not in kwds:
             out = np.empty(len(cell_ids), dtype=grads.dtype)
         out[:] = grads[range(len(cell_ids)), ind]
