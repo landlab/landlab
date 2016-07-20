@@ -3381,69 +3381,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.looped_node_properties['linked_node_IDs']
         array([10, 11, 12, 13, 14,  8,  6, 13, 11,  5,  6,  7,  8,  9])
         """
-        # Added DEJH Feb 2014
-        # TODO: Assign BC_statuses also to *links*
-
-        bottom_edge = np.array(range(0, self.number_of_node_columns))
-        right_edge = np.array(range(2 * self.number_of_node_columns - 1,
-                                    self.number_of_nodes - 1,
-                                    self.number_of_node_columns))
-        top_edge = np.array(
-            range((self.number_of_node_rows - 1) * self.number_of_node_columns,
-                  self.number_of_nodes))
-        left_edge = np.array(range(self.number_of_node_columns,
-                                   (self.number_of_nodes -
-                                    self.number_of_node_columns),
-                                   self.number_of_node_columns))
-        these_boundary_IDs = np.array([])
-        these_linked_nodes = np.array([])
-
-        if top_bottom_are_looped:
-            self._node_status[bottom_edge] = LOOPED_BOUNDARY
-            self._node_status[top_edge] = LOOPED_BOUNDARY
-            these_boundary_IDs = np.concatenate((these_boundary_IDs,
-                                                 bottom_edge, top_edge))
-            these_linked_nodes = np.concatenate((
-                these_linked_nodes,
-                top_edge - self.number_of_node_columns,
-                bottom_edge + self.number_of_node_columns))
-
         if sides_are_looped:
-            self._node_status[right_edge] = LOOPED_BOUNDARY
-            self._node_status[left_edge] = LOOPED_BOUNDARY
-            these_boundary_IDs = np.concatenate((these_boundary_IDs,
-                                                 left_edge, right_edge))
-            these_linked_nodes = np.concatenate((
-                these_linked_nodes,
-                right_edge - 1, left_edge + 1))
-
-        if not self.looped_node_properties:
-            existing_IDs = np.array([])
-            existing_links = np.array([])
-        else:
-            unrepeated_node_entries = np.logical_not(
-                np.in1d(self.looped_node_properties['boundary_node_IDs'],
-                        these_linked_nodes))
-            existing_IDs = self.looped_node_properties[
-                'boundary_node_IDs'][unrepeated_node_entries]
-            existing_links = self.looped_node_properties[
-                'linked_node_IDs'][unrepeated_node_entries]
-
-        self.looped_node_properties = {}
-        all_the_IDs = np.concatenate((these_boundary_IDs, existing_IDs))
-        ID_ordering = np.argsort(all_the_IDs)
-        self.looped_node_properties['boundary_node_IDs'] = (
-            as_id_array(all_the_IDs[ID_ordering]))
-        self.looped_node_properties['linked_node_IDs'] = as_id_array(
-            np.concatenate((these_linked_nodes, existing_links))[ID_ordering])
-
-        if np.any(self._node_status[self.looped_node_properties[
-                'boundary_node_IDs']] == FIXED_GRADIENT_BOUNDARY):
-            raise AttributeError(
-                'Switching a boundary between fixed gradient and looped will '
-                'result in bad BC handling! Bailing out...')
-
-        self._update_links_nodes_cells_to_new_BCs()
+            self.set_looped_boundaries(self.nodes[:, 0], self.nodes[:, -2])
+            self.set_looped_boundaries(self.nodes[:, -1], self.nodes[:, 1])
+        if top_bottom_are_looped:
+            self.set_looped_boundaries(self.nodes[0, :], self.nodes[-2, :])
+            self.set_looped_boundaries(self.nodes[-1, :], self.nodes[1, :])
 
     @deprecated(use='_update_links_nodes_cells_to_new_BCs', version=1.0)
     def update_boundary_nodes(self):
