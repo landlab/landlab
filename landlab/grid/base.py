@@ -927,7 +927,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((5, 4))
-        >>> mg.set_looped_boundaries(mg.nodes_at_bottom_edge, mg.nodes[3, :])
+        >>> mg.set_looped_boundaries(mg.nodes_at_bottom_edge, mg.nodes[-2, :])
         >>> mg.looped_node_properties['boundary_node_IDs']
         array([0, 1, 2, 3])
         >>> mg.looped_node_properties['linked_node_IDs']
@@ -3472,7 +3472,8 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_patch_status()
         except AttributeError:
             pass
-##### check for persistence of TRACKS_CELL_BOUNDARY goes here
+        # check if anyone has messed with the TRACKS_CELL_BOUNDARY conds:
+        self._harmonize_tracks_cell_conditions()
 ##### copy this to the diag place in raster
         if self._need_to_update_loops():
             goodvalues = self.looped_node_properties['boundary_node_IDs']
@@ -3487,6 +3488,70 @@ class ModelGrid(ModelDataFieldsMixIn):
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
+
+    def _harmonize_tracks_cell_conditions(self):
+        """
+        Update looped_node_properties if looped nodes are removed on the grid.
+
+        If looped nodes are added by means they should not be (i.e., messing
+        with `status_at_node` directly rather than using
+        `set_looped_boundaries`), this method will raise an error.
+
+        No action is taken if looped nodes do not exist.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab import TRACKS_CELL_BOUNDARY, FIXED_VALUE_BOUNDARY
+        >>> mg = RasterModelGrid((4, 5))
+        >>> mg._node_status[mg.nodes_at_bottom_edge] = TRACKS_CELL_BOUNDARY
+        >>> mg._harmonize_tracks_cell_conditions()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+            ...
+        NotImplementedError: ...
+
+        Now overprint the forbidden change. Note that if we were to change
+        `status_at_node` as we should, this method would have been
+        automatically invoked, so we change _node_status directly to illustrate
+        outcomes. Never do this in regular usage!)
+
+        >>> mg.set_looped_boundaries(mg.nodes_at_bottom_edge, mg.nodes[-2, :])
+        >>> mg._harmonize_tracks_cell_conditions()  # no changes
+        >>> mg._node_status[
+        ...     mg.nodes_at_bottom_edge[0]] = FIXED_VALUE_BOUNDARY
+        >>> bool((mg.status_at_node == TRACKS_CELL_BOUNDARY).sum() ==
+        ...      mg.looped_node_properties['boundary_node_IDs'].size)
+        False
+        >>> mg._harmonize_tracks_cell_conditions()
+        >>> bool((mg.status_at_node == TRACKS_CELL_BOUNDARY).sum() ==
+        ...      mg.looped_node_properties['boundary_node_IDs'].size)
+        True
+        """
+        errorstring = (
+            "You cannot set TRACKS_CELL_BOUNDARY (looped) boundaries by " +
+            "manually changing the status_at_node array. Use " +
+            "grid.set_looped_boundaries instead.")
+        looped_SaN = np.equal(self.status_at_node, TRACKS_CELL_BOUNDARY)
+        num_looped_SaN = looped_SaN.sum()
+        if num_looped_SaN != 0:
+            try:
+                num_looped_LNP = self.looped_node_properties[
+                    'boundary_node_IDs'].size
+            except (AttributeError, KeyError):
+                raise NotImplementedError(errorstring)
+            if num_looped_LNP < num_looped_SaN:
+                raise NotImplementedError(errorstring)
+            elif num_looped_LNP > num_looped_SaN:
+                # a BC that used to be looped no longer is
+                # it should be impossible to change multiple types
+                # simultaneously, so logic here should be safe
+                looped_nodes_SaN = np.where(looped_SaN)[0]
+                rep = np.in1d(self.looped_node_properties[
+                    'boundary_node_IDs'], looped_nodes_SaN)
+                self.looped_node_properties['boundary_node_IDs'] = \
+                    self.looped_node_properties['boundary_node_IDs'][rep]
+                self.looped_node_properties['linked_node_IDs'] = \
+                    self.looped_node_properties['linked_node_IDs'][rep]
 
     def _need_to_update_loops(self):
         """

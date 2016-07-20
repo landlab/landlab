@@ -58,11 +58,22 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
 
     An example that sets all of the edges shows how corners are set.
 
-    >>> grid.set_status_at_node_on_edges(right=1, top=2, left=3, bottom=4)
+    >>> grid.set_status_at_node_on_edges(right=1, top=2, left=1, bottom=4)
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([3, 4, 4, 4,
-           3, 0, 0, 1,
+    array([1, 4, 4, 4,
+           1, 0, 0, 1,
            2, 2, 2, 1], dtype=int8)
+
+    This method cannot be used to set TRACKS_CELL_BOUNDARY conditions (3),
+    as more information is required (which nodes are tracked?). Use
+    `grid.set_looped_boundaries` instead.
+
+    >>> from landlab import TRACKS_CELL_BOUNDARY
+    >>> grid.set_status_at_node_on_edges(
+    ...     left=TRACKS_CELL_BOUNDARY)  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+        ...
+    NotImplementedError: ...
     """
     status_at_edge = (('bottom', bottom), ('left', left), ('top', top),
                       ('right', right), )
