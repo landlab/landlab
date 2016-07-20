@@ -1,5 +1,5 @@
-SoilMoisture: Compute the space-time evolution of soil water content
---------------------------------------------------------------------
+SoilMoisture: Compute the decay of soil moisture saturation at storm-interstorm time period
+-------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.soil_moisture
     :members:
