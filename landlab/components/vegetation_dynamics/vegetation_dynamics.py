@@ -161,7 +161,7 @@ class Vegetation(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import Vegetation
 
-    Create a grid on which to calculate soil moisture saturation fraction.
+    Create a grid on which to simulate vegetation dynamics.
 
     >>> grid = RasterModelGrid((5,4), spacing=(0.2, 0.2))
 
@@ -189,6 +189,7 @@ class Vegetation(Component):
      ('vegetation__water_stress', 'None')]
 
     Provide all the input fields.
+
     >>> grid['cell']['vegetation__plant_functional_type']= (
     ...         np.zeros(grid.number_of_cells, dtype=int))
     >>> grid['cell']['surface__evapotranspiration'] = (
@@ -203,6 +204,7 @@ class Vegetation(Component):
     ...        0.01 * np.ones(grid.number_of_cells))
 
     Instantiate the 'Vegetation' component.
+
     >>> Veg = Vegetation(grid)
 
     >>> Veg.grid.number_of_cell_rows
