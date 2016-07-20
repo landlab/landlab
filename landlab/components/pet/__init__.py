@@ -3,7 +3,7 @@
 Potential Evapotranspiration Component calculates spatially distributed
 potential evapotranspiration based on input radiation factor (spatial
 distribution of incoming radiation) using chosen method such as constant
-or Priestly Taylor. Ref: ASCE-EWRI Task Committee Report Jan 2005.
+or Priestley Taylor. Ref: ASCE-EWRI Task Committee Report Jan 2005.
 
 .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
@@ -60,7 +60,7 @@ Check the output variable names
 Instantiate the 'PotentialEvapotranspiration' component to work on this grid,
 and run it.
 
->>> PET = PotentialEvapotranspiration(grid, method='PriestlyTaylor')
+>>> PET = PotentialEvapotranspiration(grid, method='PriestleyTaylor')
 
 Run the *update* method to update output variables with current time
 >>> current_time = 0.5

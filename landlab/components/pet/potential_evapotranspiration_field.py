@@ -4,7 +4,7 @@ from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
 
 
-_VALID_METHODS = set(['Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
+_VALID_METHODS = set(['Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
                       'Cosine'])
 
 
@@ -19,9 +19,9 @@ class PotentialEvapotranspiration(Component):
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial
     distribution of incoming radiation) using chosen method such as constant
-    or Priestly Taylor. Ref: Xiaochi et. al. 2013 for 'Cosine' method and
-    ASCE-EWRI Task Committee Report Jan 2005 for 'PriestlyTaylor' method.
-    Note: Calling 'PriestlyTaylor' method would generate/overwrite shortwave &
+    or Priestley Taylor. Ref: Xiaochi et. al. 2013 for 'Cosine' method and
+    ASCE-EWRI Task Committee Report Jan 2005 for 'PriestleyTaylor' method.
+    Note: Calling 'PriestleyTaylor' method would generate/overwrite shortwave &
     longwave radiation fields.
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
@@ -29,7 +29,7 @@ class PotentialEvapotranspiration(Component):
     Construction::
 
         PotentialEvapotranspiration(grid, method='Cosine',
-            priestly_taylor_const=1.26, albedo=0.6,
+            Priestley_taylor_const=1.26, albedo=0.6,
             latent_heat_of_vaporization=28.34, psychometric_const=0.066,
             stefan_boltzmann_const=0.0000000567, solar_const=1366.67,
             latitude=34., elevation_of_measurement=300, adjustment_coeff=0.18,
@@ -39,11 +39,11 @@ class PotentialEvapotranspiration(Component):
     ----------
     grid: RasterModelGrid
         A grid.
-    method: {'Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
+    method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
              'Cosine'}, optional
-        Priestly Taylor method will spit out radiation outputs too.
-    priestly_taylor_constant: float, optional
-        Alpha used in Priestly Taylor method.
+        Priestley Taylor method will spit out radiation outputs too.
+    priestley_taylor_constant: float, optional
+        Alpha used in Priestley Taylor method.
     albedo: float, optional
         Albedo.
     latent_heat_of_vaporization: float, optional
@@ -161,7 +161,7 @@ class PotentialEvapotranspiration(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, method='Cosine', priestly_taylor_const=1.26,
+    def __init__(self, grid, method='Cosine', priestley_taylor_const=1.26,
                  albedo=0.6, latent_heat_of_vaporization=28.34,
                  psychometric_const=0.066, stefan_boltzmann_const=0.0000000567,
                  solar_const=1366.67, latitude=34.,
@@ -172,11 +172,11 @@ class PotentialEvapotranspiration(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        method: {'Constant', 'PriestlyTaylor', 'MeasuredRadiationPT',
+        method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
                  'Cosine'}, optional
-            Priestly Taylor method will spit out radiation outputs too.
-        priestly_taylor_constant: float, optional
-            Alpha used in Priestly Taylor method.
+            Priestley Taylor method will spit out radiation outputs too.
+        priestley_taylor_constant: float, optional
+            Alpha used in Priestley Taylor method.
         albedo: float, optional
             Albedo.
         latent_heat_of_vaporization: float, optional
@@ -204,8 +204,8 @@ class PotentialEvapotranspiration(Component):
         """
 
         self._method = method
-        # For Priestly Taylor
-        self._alpha = priestly_taylor_const
+        # For Priestley Taylor
+        self._alpha = priestley_taylor_const
         self._a = albedo
         self._pwhv = latent_heat_of_vaporization
         self._y = psychometric_const
@@ -243,11 +243,11 @@ class PotentialEvapotranspiration(Component):
         constant_potential_evapotranspiration: float, optional for
             'Constant' method
             Constant PET value to be spatially distributed.
-        Tmin: float, required for 'Priestly Taylor' method
+        Tmin: float, required for 'Priestley Taylor' method
             Minimum temperature of the day (deg C)
-        Tmax: float, required for 'Priestly Taylor' method
+        Tmax: float, required for 'Priestley Taylor' method
             Maximum temperature of the day (deg C)
-        Tavg: float, required for 'Priestly Taylor' and 'MeasuredRadiationPT'
+        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
             methods
             Average temperature of the day (deg C)
         obs_radiation float, required for 'MeasuredRadiationPT' method
@@ -256,9 +256,9 @@ class PotentialEvapotranspiration(Component):
 
         if self._method == 'Constant':
             self._PET_value = const_potential_evapotranspiration
-        elif self._method == 'PriestlyTaylor':
+        elif self._method == 'PriestleyTaylor':
             self._PET_value = (
-                self._PriestlyTaylor(current_time, Tmax, Tmin, Tavg))
+                self._PriestleyTaylor(current_time, Tmax, Tmin, Tavg))
             self._cell_values['radiation__incoming_shortwave_flux'] = (
                 self._Rs *
                 self._cell_values['radiation__ratio_to_flat_surface'])
@@ -287,7 +287,7 @@ class PotentialEvapotranspiration(Component):
         self._cell_values['surface__potential_evapotranspiration_rate'][:] = (
             self._PET)
 
-    def _PriestlyTaylor(self, current_time, Tmax, Tmin, Tavg):
+    def _PriestleyTaylor(self, current_time, Tmax, Tmin, Tavg):
 
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         self._J = np.floor((current_time - np.floor(current_time)) * 365)
