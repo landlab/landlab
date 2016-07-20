@@ -142,6 +142,7 @@ class VegCA(Component):
         Maximum age of tree seedling (years).
 
     Examples
+    --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import VegCA
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
