@@ -1,5 +1,5 @@
-PotentialEvapotranspiration: Compute potential evapotranspiration using the Priestley-Taylor method
---------------------------------------------------------------------------------------------------
+PotentialEvapotranspiration: Compute potential evapotranspiration
+-----------------------------------------------------------------
 
 .. automodule:: landlab.components.pet
     :members:

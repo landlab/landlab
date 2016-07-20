@@ -1,5 +1,5 @@
-Vegetation: Model plant dynamics using multiple representative species
-----------------------------------------------------------------------
+Vegetation: Model plant dynamics using multiple representative plant species
+----------------------------------------------------------------------------
 
 .. automodule:: landlab.components.vegetation_dynamics
     :members:

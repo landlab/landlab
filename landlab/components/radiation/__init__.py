@@ -3,7 +3,8 @@ on sloped surface.
 
 Landlab component that computes 1D and 2D total incident shortwave
 radiation. This code also computes relative incidence shortwave radiation
-compared to a flat surface. Ref: Flores-Cervantes et al., 2012
+compared to a flat surface. Ref: Bras, Rafael L. Hydrology: an introduction
+to hydrologic science. Addison Wesley Publishing Company, 1990.
 
 .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu
 

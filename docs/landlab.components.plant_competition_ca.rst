@@ -1,5 +1,5 @@
-VegCA: Simulate plant competition with cellular automaton model of grass, shrubs, and trees
--------------------------------------------------------------------------------------------
+VegCA: Simulate plant competition with cellular automaton model for grass, shrubs, and trees
+--------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.plant_competition_ca
     :members:
