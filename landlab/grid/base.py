@@ -465,7 +465,7 @@ FIXED_VALUE_BOUNDARY = 1
 FIXED_GRADIENT_BOUNDARY = 2
 
 #: Indicates a boundary node is wrap-around.
-TRACKS_CELL_BOUNDARY = 3
+LOOPED_BOUNDARY = 3
 
 #: Indicates a boundary node is closed
 CLOSED_BOUNDARY = 4
@@ -484,7 +484,7 @@ INACTIVE_LINK = 4
 BOUNDARY_STATUS_FLAGS_LIST = [
     FIXED_VALUE_BOUNDARY,
     FIXED_GRADIENT_BOUNDARY,
-    TRACKS_CELL_BOUNDARY,
+    LOOPED_BOUNDARY,
     CLOSED_BOUNDARY,
 ]
 BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
@@ -900,7 +900,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Bind the status of a set of nodes to values at a second set of nodes.
 
         This procedure sets the boundary condition at both the boundary node
-        to the TRACKS_CELL_BOUNDARY status. It effectively makes these nodes
+        to the LOOPED_BOUNDARY status. It effectively makes these nodes
         "invisible", such that the last core nodes at e.g. the bottom of the
         grid see the first core nodes at the top of the grid as their southern
         neighbors. This style of handling is necessary so that grid operations
@@ -970,7 +970,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                 'Switching a boundary between fixed gradient and looped will '
                 'result in bad BC handling! Bailing out...')
 
-        self._node_status[boundary_node_IDs] = TRACKS_CELL_BOUNDARY
+        self._node_status[boundary_node_IDs] = LOOPED_BOUNDARY
         self._update_links_nodes_cells_to_new_BCs()
 
     @property
@@ -3472,8 +3472,8 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_patch_status()
         except AttributeError:
             pass
-        # check if anyone has messed with the TRACKS_CELL_BOUNDARY conds:
-        self._harmonize_tracks_cell_conditions()
+        # check if anyone has messed with the LOOPED_BOUNDARY conds:
+        self._harmonize_looped_boundary_conditions()
 ##### copy this to the diag place in raster
         if self._need_to_update_loops():
             goodvalues = self.looped_node_properties['boundary_node_IDs']
@@ -3489,7 +3489,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         except AttributeError:
             self.bc_set_code = 0
 
-    def _harmonize_tracks_cell_conditions(self):
+    def _harmonize_looped_boundary_conditions(self):
         """
         Update looped_node_properties if looped nodes are removed on the grid.
 
@@ -3502,10 +3502,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab import TRACKS_CELL_BOUNDARY, FIXED_VALUE_BOUNDARY
+        >>> from landlab import LOOPED_BOUNDARY, FIXED_VALUE_BOUNDARY
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg._node_status[mg.nodes_at_bottom_edge] = TRACKS_CELL_BOUNDARY
-        >>> mg._harmonize_tracks_cell_conditions()  # doctest: +ELLIPSIS
+        >>> mg._node_status[mg.nodes_at_bottom_edge] = LOOPED_BOUNDARY
+        >>> mg._harmonize_looped_boundary_conditions()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
         NotImplementedError: ...
@@ -3516,22 +3516,22 @@ class ModelGrid(ModelDataFieldsMixIn):
         outcomes. Never do this in regular usage!)
 
         >>> mg.set_looped_boundaries(mg.nodes_at_bottom_edge, mg.nodes[-2, :])
-        >>> mg._harmonize_tracks_cell_conditions()  # no changes
+        >>> mg._harmonize_looped_boundary_conditions()  # no changes
         >>> mg._node_status[
         ...     mg.nodes_at_bottom_edge[0]] = FIXED_VALUE_BOUNDARY
-        >>> bool((mg.status_at_node == TRACKS_CELL_BOUNDARY).sum() ==
+        >>> bool((mg.status_at_node == LOOPED_BOUNDARY).sum() ==
         ...      mg.looped_node_properties['boundary_node_IDs'].size)
         False
-        >>> mg._harmonize_tracks_cell_conditions()
-        >>> bool((mg.status_at_node == TRACKS_CELL_BOUNDARY).sum() ==
+        >>> mg._harmonize_looped_boundary_conditions()
+        >>> bool((mg.status_at_node == LOOPED_BOUNDARY).sum() ==
         ...      mg.looped_node_properties['boundary_node_IDs'].size)
         True
         """
         errorstring = (
-            "You cannot set TRACKS_CELL_BOUNDARY (looped) boundaries by " +
+            "You cannot set LOOPED_BOUNDARY (looped) boundaries by " +
             "manually changing the status_at_node array. Use " +
             "grid.set_looped_boundaries instead.")
-        looped_SaN = np.equal(self.status_at_node, TRACKS_CELL_BOUNDARY)
+        looped_SaN = np.equal(self.status_at_node, LOOPED_BOUNDARY)
         num_looped_SaN = looped_SaN.sum()
         if num_looped_SaN != 0:
             try:

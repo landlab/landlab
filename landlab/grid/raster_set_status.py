@@ -64,13 +64,13 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
            1, 0, 0, 1,
            2, 2, 2, 1], dtype=int8)
 
-    This method cannot be used to set TRACKS_CELL_BOUNDARY conditions (3),
+    This method cannot be used to set LOOPED_BOUNDARY conditions (3),
     as more information is required (which nodes are tracked?). Use
     `grid.set_looped_boundaries` instead.
 
-    >>> from landlab import TRACKS_CELL_BOUNDARY
+    >>> from landlab import LOOPED_BOUNDARY
     >>> grid.set_status_at_node_on_edges(
-    ...     left=TRACKS_CELL_BOUNDARY)  # doctest: +ELLIPSIS
+    ...     left=LOOPED_BOUNDARY)  # doctest: +ELLIPSIS
     Traceback (most recent call last):
         ...
     NotImplementedError: ...
