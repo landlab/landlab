@@ -1061,8 +1061,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #    self.shape).reshape((-1, ))
         self._core_cells = sgrid.core_cell_index(self.shape)
 
-        self._neighbors_at_node = (
-            sgrid.neighbor_node_ids(self.shape).transpose().copy())
+        self._create_neighbors()
         self._diagonal_list_created = False
 
         self._links_at_node = squad_links.links_at_node(self.shape)
@@ -1306,6 +1305,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._forced_cell_areas.shape = (-1, )
         return self._forced_cell_areas
 
+    def _create_neighbors(self):
+        """Create the _neighbors_at_node property.
+        """
+        self._neighbors_at_node = (
+            sgrid.neighbor_node_ids(self.shape).transpose().copy())
+
     @property
     def shape(self):
         """Get the shape of the grid.
@@ -1412,7 +1417,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if self._diagonal_list_created:
             return self._xdiagonal_neighbors_at_node
         else:
-            return self._create_diagonal_list()
+            return self._create_diagonal_neighbors()
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
@@ -3835,12 +3840,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         except AttributeError:
             self.diagonal_node_dict = {}
             self.diagonal_node_dict[
-                bad_index] = self._create_diagonal_list(bad_index=bad_index)
+                bad_index] = self._create_diagonal_neighbors(
+                    bad_index=bad_index)
 
         try:
             diagonal_nodes = self.diagonal_node_dict[bad_index]
         except KeyError:
-            diagonal_nodes = self._create_diagonal_list(bad_index=bad_index)
+            diagonal_nodes = self._create_diagonal_neighbors(
+                bad_index=bad_index)
             self.diagonal_node_dict[bad_index] = diagonal_nodes
 
         if len(args) == 0:
@@ -3850,7 +3857,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    def _create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
+    def _create_diagonal_neighbors(self, bad_index=BAD_INDEX_VALUE):
         """Create list of diagonal node IDs.
 
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;

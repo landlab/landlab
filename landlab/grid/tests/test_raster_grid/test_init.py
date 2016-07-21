@@ -449,8 +449,8 @@ def test_grid_coords_to_node_id_outside_of_grid():
 
 
 @with_setup(setup_grid)
-def test_create_diagonal_list():
-    rmg._create_diagonal_list()
+def test_create_diagonal_neighbors():
+    rmg._create_diagonal_neighbors()
 
     assert_array_equal(
         rmg._get_diagonal_list(),
