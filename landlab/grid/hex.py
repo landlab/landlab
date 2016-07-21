@@ -394,6 +394,7 @@ import numpy
 import six
 
 from landlab.grid.voronoi import VoronoiDelaunayGrid
+from .decorators import return_readonly_id_array
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
@@ -576,7 +577,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
             self._nodegrid = numpy.arange(self._nrows * self._ncols,
-                                       dtype=int).reshape(self._shape)
+                                          dtype=int).reshape(self._shape)
         elif orientation[0].lower() == 'v' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_vertical_hex(
                 base_num_rows, base_num_cols, dx)
@@ -589,15 +590,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._nrows = base_num_rows
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
-            #self._nodegrid = numpy.arange(self._nrows * self._ncols,
-            #                           dtype=int).reshape(self._shape)
             self._nodegrid = numpy.zeros(self._nrows * self._ncols,
                                          dtype=int).reshape(self._shape)
             for col in range(self._ncols):
                 base_node = (col // 2) + (col % 2) * ((self._ncols + 1) // 2)
-                self._nodegrid[:, col] = numpy.arange(base_node, 
-                                                      self._nrows * self._ncols,
-                                                      self._ncols)
+                self._nodegrid[:, col] = numpy.arange(
+                    base_node, self._nrows * self._ncols, self._ncols)
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -964,6 +962,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 'Only rectangular Hex grids have defined edges.')
 
     @property
+    @return_readonly_id_array
     def nodegrid(self):
         """Get node ids for a rectangular-shaped Hex grid, arranged in a 2D
         array.
