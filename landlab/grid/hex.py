@@ -589,8 +589,15 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._nrows = base_num_rows
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
-            self._nodegrid = numpy.arange(self._nrows * self._ncols,
-                                       dtype=int).reshape(self._shape)
+            #self._nodegrid = numpy.arange(self._nrows * self._ncols,
+            #                           dtype=int).reshape(self._shape)
+            self._nodegrid = numpy.zeros(self._nrows * self._ncols,
+                                         dtype=int).reshape(self._shape)
+            for col in range(self._ncols):
+                base_node = (col // 2) + (col % 2) * ((self._ncols + 1) // 2)
+                self._nodegrid[:, col] = numpy.arange(base_node, 
+                                                      self._nrows * self._ncols,
+                                                      self._ncols)
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -956,37 +963,34 @@ class HexModelGrid(VoronoiDelaunayGrid):
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
 
-    def nodes_at_column(self, col):
-        """Return array of node IDs in given column.
-        
+    @property
+    def nodegrid(self):
+        """Get node ids for a rectangular-shaped Hex grid, arranged in a 2D
+        array.
+
         Examples
         --------
-        >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(3, 5, shape='rect', orientation='vert')
-        >>> grid.nodes_at_column(3)
+        >>> grid.nodegrid[:, 3]
         array([ 4,  9, 14])
-        >>> grid.nodes_at_column(4)
+        >>> grid.nodegrid[:, 4]
         array([ 2,  7, 12])
         >>> grid = HexModelGrid(3, 6, shape='rect', orientation='vert')
-        >>> grid.nodes_at_column(3)
+        >>> grid.nodegrid[:, 3]
         array([ 4, 10, 16])
-        >>> grid.nodes_at_column(4)
+        >>> grid.nodegrid[:, 4]
         array([ 2,  8, 14])
         >>> grid = HexModelGrid(3, 5, shape='rect', orientation='horiz')
-        >>> grid.nodes_at_column(2)
+        >>> grid.nodegrid[:, 2]
         array([ 2,  7, 12])
         """
         try:
-            (num_rows, num_cols) = self._nodegrid.shape
+            return self._nodegrid
         except AttributeError:
             raise AttributeError(
-                'Only rectangular Hex grids have defined columns.')
-        if self.orientation[0] == 'v':
-            base_node = (col // 2) + (col % 2) * ((num_cols + 1) // 2)
-            return numpy.arange(base_node, self.number_of_nodes, num_cols)
-        else:
-            return self._nodegrid[:, col]
+                'Only rectangular Hex grids have a 2D nodegrid array.')
+
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
