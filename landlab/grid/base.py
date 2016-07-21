@@ -990,7 +990,11 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 7,  9, -1,  3], [ 8, 10,  6,  4], [-1, 11,  7,  5],
                [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
         """
-        return self._neighbors_at_node
+        try:
+            return self._neighbors_at_node
+        except AttributeError:
+            self._create_neighbors()
+            return self._neighbors_at_node
 
     @property
     @return_readonly_id_array
@@ -3474,7 +3478,8 @@ class ModelGrid(ModelDataFieldsMixIn):
             pass
         # check if anyone has messed with the LOOPED_BOUNDARY conds:
         self._harmonize_looped_boundary_conditions()
-        if self._need_to_update_loops(called_from='_update'):
+        if self._need_to_update_loops(called_from='main_update'):
+            self._create_neighbors()  # necessary in case we revert nodes
             goodvalues = self.looped_node_properties['boundary_node_IDs']
             repvalues = self.looped_node_properties['linked_node_IDs']
             flatneighbors = self.neighbors_at_node.ravel()
@@ -3614,6 +3619,78 @@ class ModelGrid(ModelDataFieldsMixIn):
                 else:
                     update_loops = False
         return update_loops
+
+    def _update_link_node_connectivity_to_looped_BCs(self):
+        """
+        Updates node-link and link-node connectivity if looped BCs are altered.
+
+        Assumes that data structures are already harmonized, and that this
+        method needs to be called.
+
+        Examples
+        --------
+        These are ad-hoc, to test if things are working.
+
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4))
+        >>> mg.looped_node_properties['boundary_node_IDs'] = np.array([
+        ...     0, 4, 8, 3, 7, 11])
+        >>> mg.looped_node_properties['linked_node_IDs'] = np.array([
+        ...     2, 6, 10, 1, 5, 9])
+        >>> (mg.node_at_link_head[7], mg.node_at_link_tail[7])
+        (5, 4)
+        >>> mg.links_at_node[5]
+        array([ 8, 11,  7,  4])
+        >>> mg._update_link_node_connectivity_to_looped_BCs()
+        >>> (mg.node_at_link_head[7], mg.node_at_link_tail[7])
+        (5, 6)
+        >>> mg.links_at_node[5]
+        array([ 8, 11,  7,  4])
+
+        The grid is now formally looped around. The middle row now goes
+        7 -> 8 -> 7 -> ...
+
+        >>> mg.links_at_node[[5, 6]]  # note link 7
+        array([[ 8, 11,  7,  4],
+               [ 7, 10,  8,  3]])
+
+        Note that links at LOOPED_BOUNDARY nodes themselves are also modified.
+        For instance, here node 7 has become a degenerate equivalent of node 5,
+        its linked twin in the core grid. Do not include these looped nodes
+        themelves in calculations.
+
+        >>> mg.links_at_node[[4, 7]]
+        array([[ 7, 10, -1,  3],
+               [-1, 11,  7,  4]])
+        """
+        goodvalues = self.looped_node_properties['boundary_node_IDs']
+        repvalues = self.looped_node_properties['linked_node_IDs']
+        for linknodes in (self._node_at_link_head, self._node_at_link_tail):
+            ix = np.where(np.in1d(linknodes, goodvalues))[0]
+            oldvalues = linknodes[ix]
+            for old, new in zip(goodvalues, repvalues):
+                whichnodes = oldvalues == old
+                linknodes[ix[whichnodes]] = new
+
+        # now search for "identical" links:
+        ordertosort = np.lexsort((self.node_at_link_head,
+                                  self.node_at_link_tail))
+        nodiffhead = np.ediff1d(self.node_at_link_head[ordertosort]) == 0
+        nodifftail = np.ediff1d(self.node_at_link_tail[ordertosort]) == 0
+        replink_cond = np.logical_and(nodiffhead, nodifftail)
+        goodlink = ordertosort[replink_cond]
+        replink = np.roll(ordertosort, -1)[replink_cond]  # out of order?
+        # the roll here makes sure we get the repeated link with the higher ID
+        # (I think)
+
+        # now find and replace the replinks with the goodlinks
+        flatLaN = self._links_at_node.ravel()
+        ix = np.where(np.in1d(flatLaN, replink))[0]
+        oldvalues = flatLaN[ix]
+        for old, new in zip(replink, goodlink):
+            whichlinks = oldvalues == old
+            flatLaN[ix[whichlinks]] = new
 
     @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
