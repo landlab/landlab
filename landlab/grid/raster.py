@@ -3380,7 +3380,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.looped_node_properties['boundary_node_IDs']
         array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
         >>> rmg.looped_node_properties['linked_node_IDs']
-        array([10, 11, 12, 13, 14,  8,  6, 13, 11,  5,  6,  7,  8,  9])
+        array([11, 11, 12, 13, 14,  8,  6, 13, 11,  6,  6,  7,  8,  9])
         """
         if sides_are_looped:
             self.set_looped_boundaries(self.nodes[:, 0], self.nodes[:, -2])

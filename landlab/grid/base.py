@@ -939,8 +939,27 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.looped_node_properties['boundary_node_IDs']
         array([ 0,  1,  2,  3,  4,  8, 12, 16])
         >>> mg.looped_node_properties['linked_node_IDs']
-        array([ 2, 13, 14, 15,  6, 10, 14, 18])
+        array([14, 13, 14, 15,  6, 10, 14, 18])
         """
+        # perform a check that we aren't about to accidentally reroute
+        # anything twice:
+        try:
+            existing_boundaries = self.looped_node_properties[
+                'boundary_node_IDs']
+            existing_linked = self.looped_node_properties['linked_node_IDs']
+        except (AttributeError, KeyError):
+            pass
+        else:
+            which_doubled = np.where(np.in1d(
+                linked_node_IDs, existing_boundaries))[0]
+            if which_doubled.size > 0:
+                linked_node_IDs = linked_node_IDs.copy()
+                old_values = linked_node_IDs[which_doubled]
+                count = 0
+                for oldval in old_values:
+                    newval = existing_linked[existing_boundaries == oldval]
+                    linked_node_IDs[which_doubled[count]] = newval
+
         for nodes in (boundary_node_IDs, linked_node_IDs):
             assert not np.any(nodes == -1)
         try:
@@ -3450,6 +3469,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         by node status (e.g., core nodes, active links, etc) when you change
         node statuses. Call it if your method or driver makes changes to the
         boundary conditions of nodes in the grid.
+
+        If looped boundaries are present, note that the values at these nodes
+        themselves cannot be guaranteed. Notably, if a looped boundary ever
+        points to another looped boundary, updates will not occur accurately
+        to that node. Calculations performed with looped BCs should only ever
+        be done on core nodes or active links!
         """
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
