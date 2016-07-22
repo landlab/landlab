@@ -1197,8 +1197,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         nodes_at_link[:, 1] = self.node_at_link_head
         both_nodes = nodes_at_link[self.links_at_node]
         for i in range(both_nodes.shape[1]):
-            centernottail = numpy.not_equal(both_nodes[:, i, 0], self.nodes)
-            centernothead = numpy.not_equal(both_nodes[:, i, 1], self.nodes)
+            centernottail = numpy.not_equal(both_nodes[:, i, 0], self.nodes.flatten)
+            centernothead = numpy.not_equal(both_nodes[:, i, 1], self.nodes.flatten)
             self._neighbors_at_node[centernottail, i] = both_nodes[
                 centernottail, i, 0]
             self._neighbors_at_node[centernothead, i] = both_nodes[

@@ -577,6 +577,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._shape = (self._nrows, self._ncols)
             self._nodegrid = numpy.arange(self._nrows * self._ncols,
                                        dtype=int).reshape(self._shape)
+            self._nodes = self._nodegrid
         elif orientation[0].lower() == 'v' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_vertical_hex(
                 base_num_rows, base_num_cols, dx)
@@ -591,6 +592,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._shape = (self._nrows, self._ncols)
             self._nodegrid = numpy.arange(self._nrows * self._ncols,
                                        dtype=int).reshape(self._shape)
+            self._nodes = self._nodegrid
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -947,7 +949,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes[grid.nodes_at_bottom_edge]
+        >>> grid.nodes_at_bottom_edge
         array([0, 1, 2, 3])
         """
         try:
