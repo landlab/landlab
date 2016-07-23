@@ -394,6 +394,7 @@ import numpy
 import six
 
 from landlab.grid.voronoi import VoronoiDelaunayGrid
+from .decorators import return_readonly_id_array
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
@@ -563,21 +564,21 @@ class HexModelGrid(VoronoiDelaunayGrid):
             'shape must be either "hex" (default) or "rect"'
 
         # Create a set of hexagonally arranged points. These will be our nodes.
-        if orientation == 'horizontal' and shape == 'hex':
+        if orientation[0].lower() == 'h' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_horizontal_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
-        elif orientation == 'horizontal' and shape == 'rect':
+        elif orientation[0].lower() == 'h' and shape[0].lower() == 'r':
             pts = HexModelGrid._hex_points_with_horizontal_rect(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
-            self._nodegrid = numpy.arange(self._nrows * self._ncols,
+            self._nodes = numpy.arange(self._nrows * self._ncols,
                                        dtype=int).reshape(self._shape)
-        elif orientation == 'vertical' and shape == 'hex':
+        elif orientation[0].lower() == 'v' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_vertical_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
@@ -589,8 +590,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._nrows = base_num_rows
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
-            self._nodegrid = numpy.arange(self._nrows * self._ncols,
+            self._nodes = numpy.arange(self._nrows * self._ncols,
                                        dtype=int).reshape(self._shape)
+            for col in range(self._ncols):
+                base_node = (col // 2) + (col % 2) * ((self._ncols + 1) // 2)
+                self._nodes[:, col] = numpy.arange(
+                    base_node, self._nrows * self._ncols, self._ncols)
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -893,11 +898,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes[grid.nodes_at_left_edge]
+        >>> grid.nodes_at_left_edge
         array([0, 4, 8])
         """
         try:
-            return self._nodegrid[:, 0]
+            return self._nodes[:, 0]
         except AttributeError:
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
@@ -911,11 +916,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes[grid.nodes_at_right_edge]
+        >>> grid.nodes_at_right_edge
         array([ 3,  7, 11])
         """
         try:
-            return self._nodegrid[:, -1]
+            return self._nodes[:, -1]
         except AttributeError:
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
@@ -929,11 +934,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes[grid.nodes_at_top_edge]
-        array([ 8, 9, 10, 11])
+        >>> grid.nodes_at_top_edge
+        array([ 8,  9, 10, 11])
         """
         try:
-            return self._nodegrid[-1, :]
+            return self._nodes[-1, :]
         except AttributeError:
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
@@ -947,11 +952,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes[grid.nodes_at_bottom_edge]
+        >>> grid.nodes_at_bottom_edge
         array([0, 1, 2, 3])
         """
         try:
-            return self._nodegrid[0, :]
+            return self._nodes[0, :]
         except AttributeError:
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
@@ -999,7 +1004,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         poly_verts = zeros((6, 2))
 
         # Figure out whether the orientation is horizontal or vertical
-        if self.orientation == 'horizontal':   # horizontal
+        if self.orientation[0] == 'h':   # horizontal
             offsets[:, 0] = array(
                 [0., apothem, apothem, 0., -apothem, -apothem])
             offsets[:, 1] = array(
