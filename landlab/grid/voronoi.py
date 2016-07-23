@@ -1197,11 +1197,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         nodes_at_link[:, 1] = self.node_at_link_head
         both_nodes = nodes_at_link[self.links_at_node]
 
-        # Handle whether nodes is 2D (raster, rect-hex) or 1D (others)
-        if self.nodes.ndim == 2:
-            nodes = self.nodes.flatten
-        else:
-            nodes = self.nodes
+        nodes = numpy.arange(self.number_of_nodes, dtype=int)
+        # ^we have to do this, as for a hex it's possible that mg.nodes is
+        # returned not just in ID order.
 
         for i in range(both_nodes.shape[1]):
             centernottail = numpy.not_equal(both_nodes[:, i, 0], nodes)
