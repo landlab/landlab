@@ -1139,13 +1139,11 @@ class VoronoiDelaunayGrid(ModelGrid):
                 self._nodes_at_patch[i, :] = these_nodes[sortorder]
             except TypeError:  # sortorder was an int
                 pass
-        max_dimension = 0
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
         # the side-iest voronoi region.
-        for i in range(len(vor.regions)):
-            if len(vor.regions[i]) > max_dimension:
-                max_dimension = len(vor.regions[i])
+        max_dimension = len(max(vor.regions, key=len))
+
         _patches_at_node = numpy.empty(
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
