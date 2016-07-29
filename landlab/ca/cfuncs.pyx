@@ -27,7 +27,22 @@ _DEBUG = False
 
 
 
-class Event():
+cdef class Testo:
+    
+    cdef int frog
+    cdef double toad
+    
+    def __init__(Testo self, int f, double t):
+        self.frog = f
+        self.toad = t
+        
+    def __richcmp__(Testo self, Testo other, int op):
+        assert op == 0, 'wrong op'
+        return self.frog < other.frog
+
+
+cdef class Event:
+#class Event():
     """
     Represents a transition event at a link. The transition occurs at a given
     link and a given time, and it involves a transition into the state xn_to
@@ -63,8 +78,15 @@ class Event():
     >>> e2 < e1
     True
     """
+    cdef public double time
+    cdef public int link
+    cdef public int xn_to
+    cdef public char propswap
+    cdef public object prop_update_fn
 
-    def __init__(self, time, link, xn_to, propswap=False, prop_update_fn=None):
+    #def __init__(Event self, double time, int link, int xn_to, char propswap=0, prop_update_fn=None):
+    def __init__(self, double time, int link, int xn_to, object propswap=False,
+                 object prop_update_fn=None):
         """
         Event() constructor sets 3 required properties and one optional
         property.
@@ -86,12 +108,25 @@ class Event():
         self.xn_to = xn_to
         self.propswap = propswap
         self.prop_update_fn = prop_update_fn
+        
+        #print('Event here with:')
+        #print('  time' + str(self.time))
+        #print('  link' + str(self.link))
+        #print('  xn_to' + str(self.xn_to))
 
-    def __lt__(self, other):
+#    def __lt__(self, other):
+#        """
+#        Overridden less-than operator: returns true if the event on the left
+#        has an earlier scheduled time than the event on the right
+#        """
+#        return self.time < other.time
+
+    def __richcmp__(self, other, int op):
         """
         Overridden less-than operator: returns true if the event on the left
         has an earlier scheduled time than the event on the right
         """
+        assert op==0, 'operation type not supported'
         return self.time < other.time
 
 

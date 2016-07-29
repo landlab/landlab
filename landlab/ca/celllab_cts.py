@@ -132,7 +132,8 @@ import pylab as plt
 _USE_CYTHON = True
 
 if _USE_CYTHON:
-    from .cfuncs import do_transition, update_link_states_and_transitions
+    from .cfuncs import (do_transition, update_link_states_and_transitions,
+                         get_next_event)
 
 _NEVER = 1e50
 
@@ -852,7 +853,12 @@ class CellLabCTSModel(object):
             # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
-                event = self.get_next_event(i, self.link_state[i], 0.0)
+                #self.get_next_event(i, self.link_state[i], 0.0)
+                event = get_next_event(i, self.link_state[i], 0.0, self.n_xn,
+                                       self.xn_to, self.xn_rate,
+                                       self.xn_propswap,
+                                       self.xn_prop_update_fn)
+                #print('Pushing event ' + str(event.time) + ' ' + str(event.link) + ' ' + str(event.xn_to))
                 heappush(self.event_queue, event)
                 self.next_update[i] = event.time
 
