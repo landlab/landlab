@@ -27,22 +27,7 @@ _DEBUG = False
 
 
 
-cdef class Testo:
-    
-    cdef int frog
-    cdef double toad
-    
-    def __init__(Testo self, int f, double t):
-        self.frog = f
-        self.toad = t
-        
-    def __richcmp__(Testo self, Testo other, int op):
-        assert op == 0, 'wrong op'
-        return self.frog < other.frog
-
-
 cdef class Event:
-#class Event():
     """
     Represents a transition event at a link. The transition occurs at a given
     link and a given time, and it involves a transition into the state xn_to
@@ -84,7 +69,6 @@ cdef class Event:
     cdef public char propswap
     cdef public object prop_update_fn
 
-    #def __init__(Event self, double time, int link, int xn_to, char propswap=0, prop_update_fn=None):
     def __init__(self, double time, int link, int xn_to, object propswap=False,
                  object prop_update_fn=None):
         """
@@ -109,29 +93,16 @@ cdef class Event:
         self.propswap = propswap
         self.prop_update_fn = prop_update_fn
         
-        #print('Event here with:')
-        #print('  time' + str(self.time))
-        #print('  link' + str(self.link))
-        #print('  xn_to' + str(self.xn_to))
-
-#    def __lt__(self, other):
-#        """
-#        Overridden less-than operator: returns true if the event on the left
-#        has an earlier scheduled time than the event on the right
-#        """
-#        return self.time < other.time
-
     def __richcmp__(self, other, int op):
         """
         Overridden less-than operator: returns true if the event on the left
         has an earlier scheduled time than the event on the right
         """
-        assert op==0, 'operation type not supported'
         return self.time < other.time
 
 
 @cython.boundscheck(False)
-def current_link_state(DTYPE_INT_t link_id,
+cdef int current_link_state(DTYPE_INT_t link_id,
                        np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
                        np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
                        np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
@@ -157,6 +128,7 @@ def current_link_state(DTYPE_INT_t link_id,
         New link state code
     """
     cdef int tail_node_state, head_node_state
+    cdef char orientation
 
     # Find out the states of the two nodes, and the orientation
     tail_node_state = node_state[node_at_link_tail[link_id]]
@@ -175,7 +147,7 @@ def update_link_states_and_transitions(
                              np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
                              np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
                              np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-                             bnd_lnk,
+                             np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
                              np.ndarray[DTYPE_INT_t, ndim=1] link_state,
                              np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                              event_queue,
@@ -185,7 +157,8 @@ def update_link_states_and_transitions(
                              DTYPE_INT_t num_node_states,
                              DTYPE_INT_t num_node_states_sq,
                              DTYPE_t current_time,
-                             xn_propswap, xn_prop_update_fn):
+                             np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
+                             xn_prop_update_fn):
         """
         Following an "external" change to the node state grid, updates link
         states where necessary and creates any needed events.
@@ -199,6 +172,8 @@ def update_link_states_and_transitions(
                     change the link state to be correct
                     schedule an event
         """
+        cdef int current_state
+
         for i in active_links:
             current_state = current_link_state(i, node_state,
                                                node_at_link_tail,
@@ -237,7 +212,8 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
                    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
                    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-                   xn_propswap, xn_prop_update_fn):
+                   np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
+                   xn_prop_update_fn):
     """Get the next event for a link.
 
     Returns the next event for link with ID "link", which is in state
@@ -272,7 +248,7 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     """
     cdef int my_xn_to
     cdef int i
-    cdef bint propswap
+    cdef char propswap
     cdef double next_time, this_next
 
     assert (n_xn[current_state] > 0), \
@@ -280,21 +256,21 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
     # Find next event time for each potential transition
     if n_xn[current_state] == 1:
-        my_xn_to = xn_to[current_state][0]
-        propswap = xn_propswap[current_state][0]
-        next_time = np.random.exponential(1.0 / xn_rate[current_state][0])
-        prop_update_fn = xn_prop_update_fn[current_state][0]
+        my_xn_to = xn_to[current_state, 0]
+        propswap = xn_propswap[current_state, 0]
+        next_time = np.random.exponential(1.0 / xn_rate[current_state, 0])
+        prop_update_fn = xn_prop_update_fn[current_state, 0]
     else:
         next_time = _NEVER
         my_xn_to = 0
-        propswap = False
+        propswap = 0
         for i in range(n_xn[current_state]):
-            this_next = np.random.exponential(1.0 / xn_rate[current_state][i])
+            this_next = np.random.exponential(1.0 / xn_rate[current_state, i])
             if this_next < next_time:
                 next_time = this_next
-                my_xn_to = xn_to[current_state][i]
-                propswap = xn_propswap[current_state][i]
-                prop_update_fn = xn_prop_update_fn[current_state][i]
+                my_xn_to = xn_to[current_state, i]
+                propswap = xn_propswap[current_state, i]
+                prop_update_fn = xn_prop_update_fn[current_state, i]
 
     # Create and setup event, and return it
     my_event = Event(next_time + current_time, link,
@@ -313,7 +289,7 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 @cython.boundscheck(False)
 def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
-                      bnd_lnk,
+                      np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
                       np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
@@ -325,7 +301,8 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
                       np.ndarray[DTYPE_t, ndim=1] next_update,
                       np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
                       np.ndarray[DTYPE_t, ndim=2] xn_rate, 
-                      xn_propswap, xn_prop_update_fn):
+                      np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
+                      xn_prop_update_fn):
     """
     Implements a link transition by updating the current state of the link
     and (if appropriate) choosing the next transition event and pushing it
@@ -367,7 +344,7 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
 
 
 @cython.boundscheck(False)
-def do_transition(event,
+def do_transition(Event event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
@@ -376,7 +353,7 @@ def do_transition(event,
                   np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                   np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                   np.ndarray[DTYPE_INT_t, ndim=1] propid,
-                  prop_data,
+                  object prop_data,
                   np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                   np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
                   np.ndarray[DTYPE_t, ndim=2] xn_rate, 
@@ -385,9 +362,10 @@ def do_transition(event,
                   DTYPE_INT_t num_node_states,
                   DTYPE_INT_t num_node_states_sq,
                   DTYPE_INT_t prop_reset_value,
-                  xn_propswap,
+                  np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
                   xn_prop_update_fn,
-                  bnd_lnk, event_queue,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                  event_queue,
                   this_cts_model,
                   plot_each_transition=False,
                   plotter=None):

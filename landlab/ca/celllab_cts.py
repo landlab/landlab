@@ -413,7 +413,7 @@ class CellLabCTSModel(object):
 
         # Create an array that knows which links are connected to a boundary
         # node
-        self.bnd_lnk = np.zeros(self.grid.number_of_links, dtype=bool)
+        self.bnd_lnk = np.zeros(self.grid.number_of_links, dtype=np.int8)
         for link_id in range(self.grid.number_of_links):
             if self.grid.status_at_node[self.grid.node_at_link_tail[link_id]] != _CORE or self.grid.status_at_node[self.grid.node_at_link_head[link_id]] != _CORE:
                 self.bnd_lnk[link_id] = True
@@ -665,7 +665,7 @@ class CellLabCTSModel(object):
             (self.num_link_states, max_transitions), dtype=int)
         self.xn_rate = np.zeros((self.num_link_states, max_transitions))
         self.xn_propswap = np.zeros(
-            (self.num_link_states, max_transitions), dtype=bool)
+            (self.num_link_states, max_transitions), dtype=np.int8)
         self.xn_prop_update_fn = np.empty(
             (self.num_link_states, max_transitions), dtype=object)
 
