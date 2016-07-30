@@ -1153,12 +1153,21 @@ class VoronoiDelaunayGrid(ModelGrid):
         _patches_at_node = np.empty(
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
-        for i in range(self.number_of_nodes):
-            patches_with_node = np.argwhere(
-                np.equal(self._nodes_at_patch, i))[:, 0]
-            _patches_at_node[
-                i, :patches_with_node.size] = patches_with_node[:]
+
+        patches_with_node = (np.arange(self.number_of_nodes).reshape(
+            (self.number_of_nodes, 1, 1)) == self._nodes_at_patch.reshape(
+                (1, self._nodes_at_patch.shape[0],
+                 self._nodes_at_patch.shape[1]))).sum(axis=2)
+        node_ID, patch_ID = np.nonzero(patches_with_node)
+        counts_each_node = np.bincount(node_ID)
+        id_arr = np.ones(node_ID.size, dtype=int)
+        id_arr[0] = 0
+        id_arr[counts_each_node[:-1].cumsum()] = -counts_each_node[:-1] + 1
+        counts_so_far = id_arr.cumsum()[np.argsort(
+            node_ID, kind='mergesort').argsort()]
+        _patches_at_node[node_ID, counts_so_far] = patch_ID
         self._patches_at_node = _patches_at_node
+
         # build the patch-link connectivity:
         self._links_at_patch = np.empty((self._number_of_patches, 3),
                                         dtype=int)
