@@ -1113,6 +1113,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         DEJH, 10/3/14, modified May 16.
         """
         from scipy.spatial import Delaunay
+        from landlab.core.utils import anticlockwise_argsort_points_multiline
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
         nodata = -1
@@ -1134,16 +1135,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         # perform a CCW sort without a line-by-line loop:
         patch_nodes_x = self.node_x[self._nodes_at_patch]
         patch_nodes_y = self.node_y[self._nodes_at_patch]
-        npatch = self._number_of_patches
-        midpt = np.empty((npatch, 2), dtype=float)
-        midpt[:, 0] = patch_nodes_x.mean(axis=1)
-        midpt[:, 1] = patch_nodes_y.mean(axis=1)
-        theta = np.arctan2(patch_nodes_y - midpt[:, 1].reshape((npatch, 1)),
-                           patch_nodes_x - midpt[:, 0].reshape((npatch, 1)))
-        theta = theta % (2.*np.pi)
-        sortorder = np.argsort(theta)
-        self._nodes_at_patch[:] = self._nodes_at_patch[np.ogrid[
-            :npatch].reshape((npatch, 1)), sortorder]
+        anticlockwise_argsort_points_multiline(patch_nodes_x, patch_nodes_y,
+                                               out=self._nodes_at_patch)
 
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
@@ -1171,34 +1164,46 @@ class VoronoiDelaunayGrid(ModelGrid):
         # build the patch-link connectivity:
         self._links_at_patch = np.empty((self._number_of_patches, 3),
                                         dtype=int)
-        link_coords = np.empty((3, 2), dtype=float)
-        for i in range(self._number_of_patches):
-            nodes_on_patch = self._nodes_at_patch[i, :]
-            links_at_patch_nodes = self.links_at_node[nodes_on_patch, :]
-            vals, counts = np.unique(links_at_patch_nodes,
-                                     return_counts=True)
-            duplicated_vals = vals[counts == 2]
-            assert duplicated_vals.size in (3, 4), duplicated_vals
-            # if it's 4, contains a -1; strip it
-            links_at_patch = duplicated_vals[-3:]
-            link_coords[:, 0] = self.x_of_link[links_at_patch]
-            link_coords[:, 1] = self.y_of_link[links_at_patch]
-            ordered_links = links_at_patch[anticlockwise_argsort_points(
-                link_coords)]
-            self._links_at_patch[i, :] = ordered_links
+        links_at_patch_nodes = self.links_at_node[
+            self.nodes_at_patch].reshape(self.nodes_at_patch.shape[0], -1)
+        # ^this is npatches x maxlinksatnode*3
+        links_at_patch_nodes.sort(axis=1)
+        # The following array is incremented each time a link ID is repeated
+        # along the minor axis. The link order counts down, so -1s appear at
+        # the end. Thus the argmax values equal to 1,2,3 are the "real"
+        # repeated links in the structure.
+        links_at_patch_nodes = links_at_patch_nodes[:, ::-1]
+        replinks_at_patch_nodes = np.cumsum(
+            (np.diff(links_at_patch_nodes) == 0), axis=1)
+        links_at_patch_order = np.empty_like(self._links_at_patch)
+        for i in range(3):
+            links_at_patch_order[:, i] = np.argmax(
+                replinks_at_patch_nodes == i+1, axis=1)
+        nrows = self._links_at_patch.shape[0]
+        self._links_at_patch[:] = links_at_patch_nodes[np.ogrid[
+            :nrows].reshape((nrows, 1)), links_at_patch_order]
+        patch_links_x = self.x_of_link[self._links_at_patch]
+        patch_links_y = self.y_of_link[self._links_at_patch]
+        anticlockwise_argsort_points_multiline(patch_links_x, patch_links_y,
+                                               out=self._links_at_patch)
+
         self._patches_at_link = np.empty((self.number_of_links, 2),
                                          dtype=int)
         self._patches_at_link.fill(-1)
-        to_sort = np.empty((2, 2), dtype=int)
-        for i in range(self.number_of_links):
-            patches_with_link = np.where((
-                self._links_at_patch == i).sum(axis=1))[0]
-            if patches_with_link.size == 2:
+        patches_with_link = (np.arange(self.number_of_links).reshape(
+            (self.number_of_links, 1, 1)) == self._links_at_patch.reshape(
+                (1, self._links_at_patch.shape[0],
+                 self._links_at_patch.shape[1]))).sum(axis=2)
+        link_ID, patch_ID = np.nonzero(patches_with_link)
+        counts_each_link = np.bincount(link_ID)
+        id_arr = np.ones(link_ID.size, dtype=int)
+        id_arr[0] = 0
+        id_arr[counts_each_link[:-1].cumsum()] = -counts_each_link[:-1] + 1
+        counts_so_far = id_arr.cumsum()[np.argsort(
+            link_ID, kind='mergesort').argsort()]
 # a sort of the links will be performed here once we have corners
-                midpt = (self.x_of_link[i], self.y_of_link[i])
-                # ...
-            self._patches_at_link[
-                i, :patches_with_link.size] = patches_with_link
+        self._patches_at_link[link_ID, counts_so_far] = patch_ID
+
         self._patches_created = True
 
     def _create_neighbors(self):
