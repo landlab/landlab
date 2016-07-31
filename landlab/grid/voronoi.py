@@ -1114,7 +1114,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         from scipy.spatial import Delaunay
         from landlab.core.utils import anticlockwise_argsort_points_multiline
-        from .cfuncs import find_rows_containing_ID
+        from .cfuncs import find_rows_containing_ID, create_patches_at_element
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
         nodata = -1
@@ -1144,22 +1144,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         # the side-iest voronoi region.
         max_dimension = len(max(vor.regions, key=len))
 
-        _patches_at_node = np.empty(
+        self._patches_at_node = np.empty(
             (self.number_of_nodes, max_dimension), dtype=int)
-        _patches_at_node.fill(nodata)
+        self._patches_at_node.fill(nodata)
 
         patches_with_node = np.empty((self.number_of_nodes,
                                       self.number_of_patches), dtype=int)
-        find_rows_containing_ID(self._nodes_at_patch, patches_with_node)
-        node_ID, patch_ID = np.nonzero(patches_with_node)
-        counts_each_node = np.bincount(node_ID)
-        id_arr = np.ones(node_ID.size, dtype=int)
-        id_arr[0] = 0
-        id_arr[counts_each_node[:-1].cumsum()] = -counts_each_node[:-1] + 1
-        counts_so_far = id_arr.cumsum()[np.argsort(
-            node_ID, kind='mergesort').argsort()]
-        _patches_at_node[node_ID, counts_so_far] = patch_ID
-        self._patches_at_node = _patches_at_node
+        create_patches_at_element(self._nodes_at_patch, self.number_of_nodes,
+                                  self._patches_at_node)
 
         # build the patch-link connectivity:
         self._links_at_patch = np.empty((self._number_of_patches, 3),
@@ -1178,7 +1170,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         links_at_patch_order = np.empty_like(self._links_at_patch)
         for i in range(3):
             links_at_patch_order[:, i] = np.argmax(
-                replinks_at_patch_nodes == i+1, axis=1)
+                replinks_at_patch_nodes == (i + 1), axis=1)
         nrows = self._links_at_patch.shape[0]
         self._links_at_patch[:] = links_at_patch_nodes[np.ogrid[
             :nrows].reshape((nrows, 1)), links_at_patch_order]
@@ -1190,18 +1182,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._patches_at_link = np.empty((self.number_of_links, 2),
                                          dtype=int)
         self._patches_at_link.fill(-1)
-        patches_with_link = np.empty((self.number_of_links,
-                                      self.number_of_patches), dtype=int)
-        find_rows_containing_ID(self._links_at_patch, patches_with_link)
-        link_ID, patch_ID = np.nonzero(patches_with_link)
-        counts_each_link = np.bincount(link_ID)
-        id_arr = np.ones(link_ID.size, dtype=int)
-        id_arr[0] = 0
-        id_arr[counts_each_link[:-1].cumsum()] = -counts_each_link[:-1] + 1
-        counts_so_far = id_arr.cumsum()[np.argsort(
-            link_ID, kind='mergesort').argsort()]
+        create_patches_at_element(self._links_at_patch, self.number_of_links,
+                                  self._patches_at_link)
 # a sort of the links will be performed here once we have corners
-        self._patches_at_link[link_ID, counts_so_far] = patch_ID
 
         self._patches_created = True
 

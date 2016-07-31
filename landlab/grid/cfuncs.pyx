@@ -24,7 +24,6 @@ def find_rows_containing_ID(np.ndarray[DTYPE_INT_t, ndim=2] input_array,
         The output array. The number of rows sets the number of IDs to search
         for in input_array.
     """
-
     cdef int nrows = out.shape[0]
     cdef int i
     cdef np.ndarray[DTYPE_INT_t, ndim=2] contains_ID = np.empty_like(
@@ -35,8 +34,23 @@ def find_rows_containing_ID(np.ndarray[DTYPE_INT_t, ndim=2] input_array,
         out[i, :] = contains_ID.sum(axis=1)
 
 
-# @cython.boundscheck(False)
-# def _create    
+@cython.boundscheck(False)
+def create_patches_at_element(
+        np.ndarray[DTYPE_INT_t, ndim=2] elements_at_patch,
+        int number_of_elements, np.ndarray[DTYPE_INT_t, ndim=2] out):
+    """
+    """
+    cdef int i
+    cdef np.ndarray[DTYPE_INT_t, ndim=2] element_with_value = np.empty_like(
+        (elements_at_patch), dtype=int)
+    cdef np.ndarray[DTYPE_INT_t, ndim=1] patches_with_element
+    cdef int num_elements_here
+
+    for i in range(number_of_elements):
+        np.equal(elements_at_patch, i, out=element_with_value)
+        patches_with_element = np.argwhere(element_with_value)[:, 0]
+        num_elements_here = patches_with_element.size
+        out[i, :num_elements_here] = patches_with_element
 
 
 @cython.boundscheck(False)
