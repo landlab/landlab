@@ -1114,10 +1114,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         from scipy.spatial import Delaunay
         from landlab.core.utils import anticlockwise_argsort_points_multiline
+        from .cfuncs import find_rows_containing_ID
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
         nodata = -1
-        self._nodes_at_patch = tri.simplices
+        self._nodes_at_patch = as_id_array(tri.simplices)
         # self._nodes_at_patch = np.empty_like(_nodes_at_patch)
         self._number_of_patches = tri.simplices.shape[0]
         # get the patches in order:
@@ -1147,10 +1148,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             (self.number_of_nodes, max_dimension), dtype=int)
         _patches_at_node.fill(nodata)
 
-        patches_with_node = (np.arange(self.number_of_nodes).reshape(
-            (self.number_of_nodes, 1, 1)) == self._nodes_at_patch.reshape(
-                (1, self._nodes_at_patch.shape[0],
-                 self._nodes_at_patch.shape[1]))).sum(axis=2)
+        patches_with_node = np.empty((self.number_of_nodes,
+                                      self.number_of_patches), dtype=int)
+        find_rows_containing_ID(self._nodes_at_patch, patches_with_node)
         node_ID, patch_ID = np.nonzero(patches_with_node)
         counts_each_node = np.bincount(node_ID)
         id_arr = np.ones(node_ID.size, dtype=int)
@@ -1190,10 +1190,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._patches_at_link = np.empty((self.number_of_links, 2),
                                          dtype=int)
         self._patches_at_link.fill(-1)
-        patches_with_link = (np.arange(self.number_of_links).reshape(
-            (self.number_of_links, 1, 1)) == self._links_at_patch.reshape(
-                (1, self._links_at_patch.shape[0],
-                 self._links_at_patch.shape[1]))).sum(axis=2)
+        patches_with_link = np.empty((self.number_of_links,
+                                      self.number_of_patches), dtype=int)
+        find_rows_containing_ID(self._links_at_patch, patches_with_link)
         link_ID, patch_ID = np.nonzero(patches_with_link)
         counts_each_link = np.bincount(link_ID)
         id_arr = np.ones(link_ID.size, dtype=int)
