@@ -1148,8 +1148,6 @@ class VoronoiDelaunayGrid(ModelGrid):
             (self.number_of_nodes, max_dimension), dtype=int)
         self._patches_at_node.fill(nodata)
 
-        patches_with_node = np.empty((self.number_of_nodes,
-                                      self.number_of_patches), dtype=int)
         create_patches_at_element(self._nodes_at_patch, self.number_of_nodes,
                                   self._patches_at_node)
 
