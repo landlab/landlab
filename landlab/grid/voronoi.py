@@ -1114,7 +1114,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         from scipy.spatial import Delaunay
         from landlab.core.utils import anticlockwise_argsort_points_multiline
-        from .cfuncs import find_rows_containing_ID, create_patches_at_element
+        from .cfuncs import find_rows_containing_ID, \
+            create_patches_at_element, create_links_at_patch
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
         nodata = -1
@@ -1154,24 +1155,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         # build the patch-link connectivity:
         self._links_at_patch = np.empty((self._number_of_patches, 3),
                                         dtype=int)
-        links_at_patch_nodes = self.links_at_node[
-            self.nodes_at_patch].reshape(self.nodes_at_patch.shape[0], -1)
-        # ^this is npatches x maxlinksatnode*3
-        links_at_patch_nodes.sort(axis=1)
-        # The following array is incremented each time a link ID is repeated
-        # along the minor axis. The link order counts down, so -1s appear at
-        # the end. Thus the argmax values equal to 1,2,3 are the "real"
-        # repeated links in the structure.
-        links_at_patch_nodes = links_at_patch_nodes[:, ::-1]
-        replinks_at_patch_nodes = np.cumsum(
-            (np.diff(links_at_patch_nodes) == 0), axis=1)
-        links_at_patch_order = np.empty_like(self._links_at_patch)
-        for i in range(3):
-            links_at_patch_order[:, i] = np.argmax(
-                replinks_at_patch_nodes == (i + 1), axis=1)
-        nrows = self._links_at_patch.shape[0]
-        self._links_at_patch[:] = links_at_patch_nodes[np.ogrid[
-            :nrows].reshape((nrows, 1)), links_at_patch_order]
+        create_links_at_patch(self._nodes_at_patch, self._links_at_node,
+                              self._number_of_patches, self._links_at_patch)
         patch_links_x = self.x_of_link[self._links_at_patch]
         patch_links_y = self.y_of_link[self._links_at_patch]
         anticlockwise_argsort_points_multiline(patch_links_x, patch_links_y,
