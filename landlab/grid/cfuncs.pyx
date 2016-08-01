@@ -43,7 +43,7 @@ def create_patches_at_element(
     cdef int i
     cdef np.ndarray[DTYPE_INT_t, ndim=2] element_with_value = np.empty_like(
         (elements_at_patch), dtype=int)
-    cdef np.ndarray[DTYPE_INT_t, ndim=1] patches_with_element
+    # cdef np.ndarray[DTYPE_INT_t, ndim=1] patches_with_element
     cdef int num_elements_here
 
     for i in range(number_of_elements):
