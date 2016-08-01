@@ -46,8 +46,8 @@ grid. Reset the interior nodes for the loading.
 >>> flex.update()
 
 >>> flex.output_var_names
-('lithosphere__elevation_increment',)
->>> flex.grid.at_node['lithosphere__elevation_increment']
+('lithosphere_surface__elevation_increment',)
+>>> flex.grid.at_node['lithosphere_surface__elevation_increment']
 ...     # doctest: +NORMALIZE_WHITESPACE
 array([ 0., 0., 0., 0.,
         0., 1., 1., 0.,
@@ -102,10 +102,10 @@ class Flexure(Component):
     >>> flex.input_var_names
     ('lithosphere__overlying_pressure_increment',)
     >>> flex.output_var_names
-    ('lithosphere__elevation_increment',)
+    ('lithosphere_surface__elevation_increment',)
     >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
-    [('lithosphere__elevation_increment', 'm'),
-     ('lithosphere__overlying_pressure_increment', 'Pa')]
+    [('lithosphere__overlying_pressure_increment', 'Pa'),
+     ('lithosphere_surface__elevation_increment', 'm')]
 
     >>> flex.grid.number_of_node_rows
     5
@@ -114,23 +114,23 @@ class Flexure(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     True
 
     >>> np.all(grid.at_node['lithosphere__overlying_pressure_increment'] == 0.)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     True
 
     >>> load = grid.at_node['lithosphere__overlying_pressure_increment']
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere__elevation_increment']
+    >>> dz = grid.at_node['lithosphere_surface__elevation_increment']
     >>> np.all(dz == 0.)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     False
     """
 
@@ -141,23 +141,23 @@ class Flexure(Component):
     )
 
     _output_var_names = (
-        'lithosphere__elevation_increment',
+        'lithosphere_surface__elevation_increment',
     )
 
     _var_units = {
         'lithosphere__overlying_pressure_increment': 'Pa',
-        'lithosphere__elevation_increment': 'm',
+        'lithosphere_surface__elevation_increment': 'm',
     }
 
     _var_mapping = {
         'lithosphere__overlying_pressure_increment': 'node',
-        'lithosphere__elevation_increment': 'node',
+        'lithosphere_surface__elevation_increment': 'node',
     }
 
     _var_doc = {
         'lithosphere__overlying_pressure_increment':
             'Applied pressure to the lithosphere over a time step',
-        'lithosphere__elevation_increment':
+        'lithosphere_surface__elevation_increment':
             'The change in elevation of the top of the lithosphere (the land '
             'surface) in one timestep',
     }
@@ -186,13 +186,13 @@ class Flexure(Component):
             raise ValueError(
                 '{method}: method not understood'.format(method=method))
 
-        self._eet = eet
+        self._grid = grid
+
         self._youngs = youngs
         self._method = method
         self._rho_mantle = rho_mantle
         self._gravity = gravity
-
-        self._grid = grid
+        self.eet = eet
 
         super(Flexure, self).__init__(grid, **kwds)
 
@@ -204,7 +204,9 @@ class Flexure(Component):
             if name not in self.grid.at_node:
                 self.grid.add_zeros('node', name, units=self._var_units[name])
 
-        self._r = self._set_kei_func_grid()
+        self._r = self._create_kei_func_grid(self._grid.shape,
+                                             (self.grid.dy, self.grid.dx),
+                                             self.alpha)
 
     @property
     def eet(self):
@@ -215,8 +217,10 @@ class Flexure(Component):
     def eet(self, new_val):
         if new_val <= 0:
             raise ValueError('Effective elastic thickness must be positive.')
-        self._r = self._set_kei_func_grid()
         self._eet = new_val
+        self._r = self._create_kei_func_grid(self._grid.shape,
+                                             (self.grid.dy, self.grid.dx),
+                                             self.alpha)
 
     @property
     def youngs(self):
@@ -249,14 +253,14 @@ class Flexure(Component):
         return get_flexure_parameter(self._eet, self._youngs, 2,
                                      gamma_mantle=self.gamma_mantle)
 
-    def _set_kei_func_grid(self):
+    @staticmethod
+    def _create_kei_func_grid(shape, spacing, alpha):
         from scipy.special import kei
 
-        dx, dy = np.meshgrid(
-            np.arange(self._grid.number_of_node_columns) * self._grid.dx,
-            np.arange(self._grid.number_of_node_rows) * self._grid.dy)
+        dx, dy = np.meshgrid(np.arange(shape[1]) * spacing[1],
+                             np.arange(shape[0]) * spacing[0])
 
-        return kei(np.sqrt(dx ** 2 + dy ** 2) / self.alpha)
+        return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
     def update(self, n_procs=1):
         """Update fields with current loading conditions.
@@ -267,7 +271,7 @@ class Flexure(Component):
             Number of processors to use for calculations.
         """
         load = self.grid.at_node['lithosphere__overlying_pressure_increment']
-        deflection = self.grid.at_node['lithosphere__elevation_increment']
+        deflection = self.grid.at_node['lithosphere_surface__elevation_increment']
 
         new_load = load.copy()
 

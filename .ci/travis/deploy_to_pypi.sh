@@ -1,4 +1,4 @@
-if [[ "$TRAVIS_TAG" == v* && "$TRAVIS_BRANCH" == "release" ]]; then
+if [[ "$TRAVIS_TAG" == v* ]]; then
   echo "Installing deployment requirements."
   pip install twine wheel
   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then

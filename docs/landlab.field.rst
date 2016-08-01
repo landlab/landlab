@@ -1,15 +1,16 @@
 landlab.field package
 =====================
 
-Subpackages
------------
-
-.. toctree::
-
-    landlab.field.tests
-
 Submodules
 ----------
+
+landlab.field.field_mixin module
+--------------------------------
+
+.. automodule:: landlab.field.field_mixin
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 landlab.field.grouped module
 ----------------------------

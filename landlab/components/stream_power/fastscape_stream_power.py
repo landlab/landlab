@@ -15,7 +15,7 @@ from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.field.scalar_data_fields import FieldError
 from scipy.optimize import newton, fsolve
 
-UNDEFINED_INDEX = numpy.iinfo(numpy.int32).max
+UNDEFINED_INDEX = -1
 
 
 class FastscapeEroder(Component):
@@ -37,8 +37,8 @@ class FastscapeEroder(Component):
 
     This module assumes you have already run
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
-    in the same timestep. It looks for 'upstream_node_order',
-    'links_to_flow_receiver', 'drainage_area', 'flow_receiver', and
+    in the same timestep. It looks for 'flow__upstream_node_order',
+    'flow__link_to_receiver_node', 'drainage_area', 'flow__receiver_node', and
     'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
     FlowRouter.route_flow).
@@ -47,7 +47,7 @@ class FastscapeEroder(Component):
 
     Construction::
 
-        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp,
+        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=0.,
                         rainfall_intensity=1.)
 
     Parameters
@@ -63,9 +63,12 @@ class FastscapeEroder(Component):
         Performance will be VERY degraded if n < 1.
     threshold_sp : float, array, or field name
         The threshold stream power.
-    rainfall intensity : float, array, or field name; optional
+    rainfall_intensity : float; optional
         Modifying factor on drainage area to convert it to a true water
-        volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n
+        volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n. For a time
+        varying rainfall intensity, pass rainfall_intensity_if_used to
+        `run_one_step`. For a spatially variable rainfall, use the
+        StreamPowerEroder component.
 
     Examples
     --------
@@ -118,12 +121,16 @@ class FastscapeEroder(Component):
     >>> K_field = mg3.ones('node')  # K can be a field
     >>> sp3 = FastscapeEroder(mg3, K_sp=K_field, m_sp=1., n_sp=0.6,
     ...                       threshold_sp=mg3.node_x,
-    ...                       rainfall_intensity=z)
+    ...                       rainfall_intensity=2.)
     >>> fr3.run_one_step()
     >>> sp3.run_one_step(1.)
     >>> z.reshape((3, 7))[1, :]  # doctest: +NORMALIZE_WHITESPACE
-    array([  0.        ,   0.        ,   0.18508544,   0.42869679,
-             0.85354205,   2.05732094,  36.        ])
+    array([  0.        ,   0.0647484 ,   0.58634455,   2.67253503,
+             8.49212152,  20.92606987,  36.        ])
+    >>> previous_z = z.copy()
+    >>> sp3.run_one_step(1., rainfall_intensity_if_used=0.)
+    >>> np.allclose(z, previous_z)
+    True
     '''
 
     _name = 'FastscapeEroder'
@@ -131,9 +138,9 @@ class FastscapeEroder(Component):
     _input_var_names = (
         'topographic__elevation',
         'drainage_area',
-        'links_to_flow_receiver',
-        'upstream_node_order',
-        'flow_receiver',
+        'flow__link_to_receiver_node',
+        'flow__upstream_node_order',
+        'flow__receiver_node',
     )
 
     _output_var_names = (
@@ -143,17 +150,17 @@ class FastscapeEroder(Component):
     _var_units = {
         'topographic__elevation': 'm',
         'drainage_area': 'm**2',
-        'links_to_flow_receiver': '-',
-        'upstream_node_order': '-',
-        'flow_receiver': '-',
+        'flow__link_to_receiver_node': '-',
+        'flow__upstream_node_order': '-',
+        'flow__receiver_node': '-',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'drainage_area': 'node',
-        'links_to_flow_receiver': 'node',
-        'upstream_node_order': 'node',
-        'flow_receiver': 'node',
+        'flow__link_to_receiver_node': 'node',
+        'flow__upstream_node_order': 'node',
+        'flow__receiver_node': 'node',
     }
 
     _var_doc = {
@@ -161,12 +168,12 @@ class FastscapeEroder(Component):
         'drainage_area':
             "Upstream accumulated surface area contributing to the node's "
             "discharge",
-        'links_to_flow_receiver':
+        'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
-        'upstream_node_order':
+        'flow__upstream_node_order':
             'Node array containing downstream-to-upstream ordered list of '
             'node IDs',
-        'flow_receiver':
+        'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
             'node)',
     }
@@ -213,7 +220,10 @@ class FastscapeEroder(Component):
         self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
                                                         self.alpha)
 
-        self._grid.diagonal_links_at_node()  # calc number of diagonal links
+        try:
+            self.grid._diagonal_links_at_node  # calc number of diagonal links
+        except AttributeError:
+            pass  # was not a raster
 
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
@@ -236,25 +246,31 @@ class FastscapeEroder(Component):
                             'not nnodes long!')
 
         if type(rainfall_intensity) is str:
+            raise ValueError('This component can no longer handle ' +
+                             'spatially variable rainfall. Use ' +
+                             'StreamPowerEroder.')
             if rainfall_intensity == 'array':
-                self.r_i = None
+                self._r_i = None
             else:
-                self.r_i = self._grid.at_node[rainfall_intensity]
+                self._r_i = self._grid.at_node[rainfall_intensity]
         elif type(rainfall_intensity) in (float, int):  # a float
-            self.r_i = float(rainfall_intensity)
+            self._r_i = float(rainfall_intensity)
         elif len(rainfall_intensity) == self.grid.number_of_nodes:
-            self.r_i = numpy.array(rainfall_intensity)
+            raise ValueError('This component can no longer handle ' +
+                             'spatially variable rainfall. Use ' +
+                             'StreamPowerEroder.')
+            self._r_i = numpy.array(rainfall_intensity)
         else:
             raise TypeError('Supplied type of rainfall_' +
-                            'intensity was not recognised, or array was ' +
-                            'not nnodes long!')
+                            'intensity was not recognised!')
 
         # We now forbid changing of the field name
         if 'value_field' in kwds.keys():
             raise ValueError('This component can no longer support variable' +
                              'field names. Use "topographic__elevation".')
 
-    def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None):
+    def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None,
+              rainfall_intensity_if_used=None):
         """
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
@@ -288,28 +304,33 @@ class FastscapeEroder(Component):
             provided but flow has still been routed across depressions, erosion
             may still occur beneath the apparent water level (though will
             always still be positive).
+        rainfall_intensity_if_used : float or None (optional)
+            Supply to drive this component with a time-varying spatially
+            constant rainfall.
 
         Returns
         -------
         grid
             A reference to the grid.
         """
-        upstream_order_IDs = self._grid['node']['upstream_node_order']
+        upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
         z = self._grid['node']['topographic__elevation']
         defined_flow_receivers = numpy.not_equal(self._grid['node'][
-            'links_to_flow_receiver'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid.link_length[self._grid['node'][
-            'links_to_flow_receiver'][defined_flow_receivers]]
+            'flow__link_to_receiver_node'], UNDEFINED_INDEX)
+        flow_link_lengths = self._grid._length_of_link_with_diagonals[
+            self._grid['node']['flow__link_to_receiver_node'][
+                defined_flow_receivers]]
 
         # make arrays from input the right size
         if type(self.K) is numpy.ndarray:
             K_here = self.K[defined_flow_receivers]
         else:
             K_here = self.K
-        if type(self.r_i) is numpy.ndarray:
-            r_i_here = self.r_i[defined_flow_receivers]
+        if rainfall_intensity_if_used is not None:
+            assert type(rainfall_intensity_if_used) in (float, int)
+            r_i_here = float(rainfall_intensity_if_used)
         else:
-            r_i_here = self.r_i
+            r_i_here = self._r_i
 
         if dt is None:
             dt = self.dt
@@ -325,7 +346,7 @@ class FastscapeEroder(Component):
         self.alpha[defined_flow_receivers] = r_i_here**self.m * K_here * dt * \
             self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
 
-        flow_receivers = self._grid['node']['flow_receiver']
+        flow_receivers = self._grid['node']['flow__receiver_node']
         n_nodes = upstream_order_IDs.size
         alpha = self.alpha
 
@@ -360,7 +381,7 @@ class FastscapeEroder(Component):
             #         next_z = z[src_id]
             #         prev_z = 0.
             #         while True:
-            #         #for j in xrange(2):
+            #         #for j in range(2):
             #             z_diff = next_z - z[dst_id]
             #             f = alpha_divided[src_id] * pow(z_diff, n - 1.)
             #             # if z_diff -> 0, pow -> nan (in reality, inf)
@@ -382,7 +403,8 @@ class FastscapeEroder(Component):
 
         return self._grid
 
-    def run_one_step(self, dt, flooded_nodes=None, **kwds):
+    def run_one_step(self, dt, flooded_nodes=None,
+                     rainfall_intensity_if_used=None, **kwds):
         """
         This method implements the stream power erosion across one time
         interval, dt, following the Braun-Willett (2013) implicit Fastscape
@@ -400,5 +422,9 @@ class FastscapeEroder(Component):
             provided but flow has still been routed across depressions, erosion
             may still occur beneath the apparent water level (though will
             always still be positive).
+        rainfall_intensity_if_used : float or None (optional)
+            Supply to drive this component with a time-varying spatially
+            constant rainfall.
         """
-        self.erode(grid_in=self._grid, dt=dt, flooded_nodes=flooded_nodes)
+        self.erode(grid_in=self._grid, dt=dt, flooded_nodes=flooded_nodes,
+                   rainfall_intensity_if_used=rainfall_intensity_if_used)

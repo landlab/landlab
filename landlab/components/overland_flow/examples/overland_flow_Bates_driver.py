@@ -51,7 +51,6 @@ rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
 rmg.add_zeros('topographic__elevation', at='node') # topographic elevation (m)
 rmg.add_zeros('water__depth', at='node') # water depth (m)
-rmg.add_zeros('water__discharge', at='active_link') # unit discharge (m2/s)
 
 # Now we'll identify our leftmost, but interior, column and the IDs of those
 # nodes. One column in to prevent issues with BC.
@@ -67,7 +66,7 @@ starttime = time()
 while elapsed_time < run_time:
 
     # Now, we generate overland flow.
-    of.overland_flow(rmg)
+    of.overland_flow()
 
     # Recalculate water depth at the boundary ...
     # water depth at left side (m)

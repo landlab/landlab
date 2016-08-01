@@ -141,12 +141,12 @@ def wrap_as_bmi(cls):
     ... \"\"\"
     >>> flexure.initialize(config)
     >>> flexure.get_output_var_names()
-    ('lithosphere__elevation_increment',)
-    >>> flexure.get_var_grid('lithosphere__elevation_increment')
+    ('lithosphere_surface__elevation_increment',)
+    >>> flexure.get_var_grid('lithosphere_surface__elevation_increment')
     0
     >>> flexure.get_grid_shape(0)
     (20, 40)
-    >>> dz = flexure.get_value('lithosphere__elevation_increment')
+    >>> dz = flexure.get_value('lithosphere_surface__elevation_increment')
     >>> dz.shape == (800, )
     True
 
@@ -163,7 +163,7 @@ def wrap_as_bmi(cls):
     >>> flexure.update()
     >>> flexure.get_current_time()
     2.0
-    >>> dz = flexure.get_value('lithosphere__elevation_increment')
+    >>> dz = flexure.get_value('lithosphere_surface__elevation_increment')
     >>> np.all(dz == 0.)
     False
     """
@@ -278,7 +278,7 @@ def wrap_as_bmi(cls):
         def update_until(self, then):
             """Update the component until a given time."""
             n_steps = (then - self.get_current_time()) / self.get_time_step()
-            for _ in xrange(int(n_steps)):
+            for _ in range(int(n_steps)):
                 self.update()
             self.update_frac(n_steps - int(n_steps))
 

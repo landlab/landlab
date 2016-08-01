@@ -396,43 +396,43 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
 Methods and Internal Documentation for the base class: CellLabCTSModel
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.celllab_cts.CellLabCTSModel
+.. autoclass:: landlab.ca.celllab_cts.CellLabCTSModel
 	:members:
 
 Methods and Internal Documentation for the RasterCTS class 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.raster_cts.RasterCTS
+.. autoclass:: landlab.ca.raster_cts.RasterCTS
 	:members:
 
 Methods and Internal Documentation for the OrientedRasterCTS class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.oriented_raster_cts.OrientedRasterCTS
+.. autoclass:: landlab.ca.oriented_raster_cts.OrientedRasterCTS
 	:members:
 
 Methods and Internal Documentation for the HexCTS class 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.hex_cts.HexCTS
+.. autoclass:: landlab.ca.hex_cts.HexCTS
 	:members:
 
 Methods and Internal Documentation for the OrientedHexCTS class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.oriented_hex_cts.OrientedHexCTS
+.. autoclass:: landlab.ca.oriented_hex_cts.OrientedHexCTS
 	:members:
 
 Methods and Internal Documentation for class Transition 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.celllab_cts.Transition
+.. autoclass:: landlab.ca.celllab_cts.Transition
 	:members:
 
 Methods and Internal Documentation for class CAPlotter 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: landlab.components.cellular_automata.celllab_cts.CAPlotter
+.. autoclass:: landlab.ca.celllab_cts.CAPlotter
 	:members:
 	
 References

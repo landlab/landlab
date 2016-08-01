@@ -308,7 +308,7 @@ def test_check_fields():
 
 @with_setup(setup_dans_grid1)
 def test_check_field_input():
-    """Check we can successfully pass water__volume_flux_in."""
+    """Check we can successfully pass water__discharge_in."""
     mg.add_field('node', 'water__unit_flux_in',
                  np.full(25, 3.), units='m**3/s')
     fr = FlowRouter(mg)
@@ -323,10 +323,10 @@ def test_accumulate_D8():
     fr = FlowRouter(mg)
     fr.route_flow()
     assert_array_equal(A_target, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target, mg.at_node['upstream_node_order'])
-    assert_array_equal(links2rcvr_target, mg.at_node['links_to_flow_receiver'])
-    assert_array_equal(A_target, mg.at_node['water__volume_flux'])
+    assert_array_equal(frcvr_target, mg.at_node['flow__receiver_node'])
+    assert_array_equal(upids_target, mg.at_node['flow__upstream_node_order'])
+    assert_array_equal(links2rcvr_target, mg.at_node['flow__link_to_receiver_node'])
+    assert_array_equal(A_target, mg.at_node['water__discharge'])
     assert_array_equal(steepest_target,
                        mg.at_node['topographic__steepest_slope'])
 
@@ -342,7 +342,7 @@ def test_variable_Qin():
     fr.route_flow()
     Qout_local = np.zeros_like(Qin_local)
     Qout_local[10:14] = 200.
-    assert_array_equal(Qout_local, mg.at_node['water__volume_flux'])
+    assert_array_equal(Qout_local, mg.at_node['water__discharge'])
     assert_array_equal(A_target, mg.at_node['drainage_area'])
     # note that A DOES NOT CHANGE when messing with Q_in
 
@@ -353,10 +353,10 @@ def test_irreg_topo():
     fr = FlowRouter(mg)
     fr.route_flow()
     assert_array_equal(A_target_D8, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target_D8, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target_D8, mg.at_node['upstream_node_order'])
+    assert_array_equal(frcvr_target_D8, mg.at_node['flow__receiver_node'])
+    assert_array_equal(upids_target_D8, mg.at_node['flow__upstream_node_order'])
     assert_array_equal(links2rcvr_target_D8,
-                       mg.at_node['links_to_flow_receiver'])
+                       mg.at_node['flow__link_to_receiver_node'])
     assert_array_almost_equal(steepest_target_D8,
                               mg.at_node['topographic__steepest_slope'])
 
@@ -370,10 +370,10 @@ def test_irreg_topo_old():
     fr = FlowRouter(mg)
     fr.route_flow(method='D4')
     assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target_D4, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target_D4, mg.at_node['upstream_node_order'])
+    assert_array_equal(frcvr_target_D4, mg.at_node['flow__receiver_node'])
+    assert_array_equal(upids_target_D4, mg.at_node['flow__upstream_node_order'])
     assert_array_equal(links2rcvr_target_D4,
-                       mg.at_node['links_to_flow_receiver'])
+                       mg.at_node['flow__link_to_receiver_node'])
     assert_array_almost_equal(steepest_target_D4,
                               mg.at_node['topographic__steepest_slope'])
 
@@ -384,10 +384,10 @@ def test_irreg_topo_new():
     fr = FlowRouter(mg, method='D4')
     fr.route_flow()
     assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target_D4, mg.at_node['flow_receiver'])
-    assert_array_equal(upids_target_D4, mg.at_node['upstream_node_order'])
+    assert_array_equal(frcvr_target_D4, mg.at_node['flow__receiver_node'])
+    assert_array_equal(upids_target_D4, mg.at_node['flow__upstream_node_order'])
     assert_array_equal(links2rcvr_target_D4,
-                       mg.at_node['links_to_flow_receiver'])
+                       mg.at_node['flow__link_to_receiver_node'])
     assert_array_almost_equal(steepest_target_D4,
                               mg.at_node['topographic__steepest_slope'])
 
@@ -398,9 +398,9 @@ def test_internal_closed():
     fr = FlowRouter(mg)
     fr.route_flow()
     assert_array_almost_equal(A_target, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target, mg.at_node['flow_receiver'])
-    assert_array_equal(links2rcvr_target, mg.at_node['links_to_flow_receiver'])
-    assert_array_almost_equal(A_target, mg.at_node['water__volume_flux'])
+    assert_array_equal(frcvr_target, mg.at_node['flow__receiver_node'])
+    assert_array_equal(links2rcvr_target, mg.at_node['flow__link_to_receiver_node'])
+    assert_array_almost_equal(A_target, mg.at_node['water__discharge'])
     assert_array_almost_equal(steepest_target,
                               mg.at_node['topographic__steepest_slope'])
 
@@ -420,7 +420,7 @@ def test_voronoi_closedinternal():
     fr.route_flow()
     # for i in range(vmg.number_of_nodes):
     #     print i, vmg.node_x[i], vmg.node_y[i], vmg.status_at_node[i], \
-    #             vmg.at_node['drainage_area'][i], vmg.at_node['flow_receiver'][i], \
+    #             vmg.at_node['drainage_area'][i], vmg.at_node['flow__receiver_node'][i], \
     #             vmg.at_node['topographic__elevation'][i]
 
     assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],

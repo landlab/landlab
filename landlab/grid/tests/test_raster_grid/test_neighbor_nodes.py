@@ -15,7 +15,7 @@ def test_all_active_neighbors():
         [13, X, X, X], [14, 17, 12, 9], [15, 18, 13, 10], [X, X, 14, X],
         [X, X, X, X], [X, X, X, 13], [X, X, X, 14], [X, X, X, X],
     ])
-    assert_array_equal(rmg.get_active_neighbors_at_node(), expected)
+    assert_array_equal(rmg.active_neighbors_at_node, expected)
 
 
 def test_all_neighbors():
@@ -33,11 +33,11 @@ def test_all_neighbors():
 def test_active_neighbor_list_with_scalar_arg():
     rmg = RasterModelGrid(5, 4)
 
-    assert_array_equal(rmg.get_active_neighbors_at_node(6),
+    assert_array_equal(rmg.active_neighbors_at_node[6],
                        np.array([7, 10, 5, 2]))
-    assert_array_equal(rmg.get_active_neighbors_at_node(-1),
+    assert_array_equal(rmg.active_neighbors_at_node[-1],
                        np.array([X, X, X, X]))
-    assert_array_equal(rmg.get_active_neighbors_at_node(-2),
+    assert_array_equal(rmg.active_neighbors_at_node[-2],
                        np.array([X, X, X, 14]))
 
 
@@ -51,7 +51,7 @@ def test_neighbor_list_with_scalar_arg():
 
 def test_active_neighbor_list_with_array_arg():
     rmg = RasterModelGrid(5, 4)
-    assert_array_equal(rmg.get_active_neighbors_at_node([6, -1]),
+    assert_array_equal(rmg.active_neighbors_at_node[[6, -1]],
                        np.array([[7, 10, 5, 2], [X, X, X, X]]))
 
 
@@ -79,7 +79,7 @@ def test_active_neighbor_list_boundary():
     rmg.set_closed_nodes([0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19])
 
     for node_id in sgrid.boundary_iter(rmg.shape):
-        assert_array_equal(rmg.get_active_neighbors_at_node(node_id),
+        assert_array_equal(rmg.active_neighbors_at_node[node_id],
                            np.array([X, X, X, X]))
 
 
@@ -92,29 +92,29 @@ def test_all_diagonals():
         [17,  X, X,  9], [18, 16,  8, 10], [19, 17,  9, 11], [X, 18, 10,  X],
         [ X,  X, X, 13], [ X,  X, 12, 14], [ X,  X, 13, 15], [X,  X, 14,  X],
     ])
-    assert_array_equal(rmg.diagonals_at_node, expected)
+    assert_array_equal(rmg._diagonal_neighbors_at_node, expected)
 
 
 def test_diagonal_list_with_scalar_arg():
     rmg = RasterModelGrid((5, 4))
 
-    assert_array_equal(rmg.diagonals_at_node[6], np.array([11, 9, 1, 3]))
-    assert_array_equal(rmg.diagonals_at_node[-1], np.array([X, X, 14, X]))
-    assert_array_equal(rmg.diagonals_at_node[-2], np.array([X, X, 13, 15]))
+    assert_array_equal(rmg._diagonal_neighbors_at_node[6], np.array([11, 9, 1, 3]))
+    assert_array_equal(rmg._diagonal_neighbors_at_node[-1], np.array([X, X, 14, X]))
+    assert_array_equal(rmg._diagonal_neighbors_at_node[-2], np.array([X, X, 13, 15]))
 
 
 def test_diagonal_list_with_array_arg():
     rmg = RasterModelGrid(5, 4)
-    assert_array_equal(rmg.diagonals_at_node[(6, -1), :],
+    assert_array_equal(rmg._diagonal_neighbors_at_node[(6, -1), :],
                        np.array([[11, 9, 1, 3], [X, X, 14, X]]))
 
 
 @raises(ValueError)
 def test_diagonal_list_is_read_only():
     rmg = RasterModelGrid(5, 4)
-    rmg.diagonals_at_node[0] = [1, 2, 3, 4]
+    rmg._diagonal_neighbors_at_node[0] = [1, 2, 3, 4]
 
 
 def test_diagonals_is_contiguous():
     rmg = RasterModelGrid(5, 4)
-    assert_true(rmg.diagonals_at_node.flags['C_CONTIGUOUS'])
+    assert_true(rmg._diagonal_neighbors_at_node.flags['C_CONTIGUOUS'])

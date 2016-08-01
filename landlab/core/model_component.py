@@ -1,4 +1,34 @@
 #! /usr/bin/env python
+"""
+Defines the base component class from which Landlab components inherit.
+
+Base component class methods
+++++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.core.model_component.Component.from_path
+    ~landlab.core.model_component.Component.name
+    ~landlab.core.model_component.Component.units
+    ~landlab.core.model_component.Component.definitions
+    ~landlab.core.model_component.Component.input_var_names
+    ~landlab.core.model_component.Component.output_var_names
+    ~landlab.core.model_component.Component.optional_var_names
+    ~landlab.core.model_component.Component.var_type
+    ~landlab.core.model_component.Component.var_units
+    ~landlab.core.model_component.Component.var_definition
+    ~landlab.core.model_component.Component.var_mapping
+    ~landlab.core.model_component.Component.var_loc
+    ~landlab.core.model_component.Component.var_help
+    ~landlab.core.model_component.Component.initialize_output_fields
+    ~landlab.core.model_component.Component.initialize_optional_output_fields
+    ~landlab.core.model_component.Component.shape
+    ~landlab.core.model_component.Component.grid
+    ~landlab.core.model_component.Component.coords
+    ~landlab.core.model_component.Component.imshow
+"""
+
 from __future__ import print_function
 
 import os
@@ -23,6 +53,35 @@ class classproperty(property):
 
 
 class Component(object):
+    """
+    Defines the base component class from which Landlab components inherit.
+
+    Base component class methods
+    ++++++++++++++++++++++++++++
+
+    .. autosummary::
+        :toctree: generated/
+
+        ~landlab.core.model_component.Component.from_path
+        ~landlab.core.model_component.Component.name
+        ~landlab.core.model_component.Component.units
+        ~landlab.core.model_component.Component.definitions
+        ~landlab.core.model_component.Component.input_var_names
+        ~landlab.core.model_component.Component.output_var_names
+        ~landlab.core.model_component.Component.optional_var_names
+        ~landlab.core.model_component.Component.var_type
+        ~landlab.core.model_component.Component.var_units
+        ~landlab.core.model_component.Component.var_definition
+        ~landlab.core.model_component.Component.var_mapping
+        ~landlab.core.model_component.Component.var_loc
+        ~landlab.core.model_component.Component.var_help
+        ~landlab.core.model_component.Component.initialize_output_fields
+        ~landlab.core.model_component.Component.initialize_optional_output_fields
+        ~landlab.core.model_component.Component.shape
+        ~landlab.core.model_component.Component.grid
+        ~landlab.core.model_component.Component.coords
+        ~landlab.core.model_component.Component.imshow
+    """
     _input_var_names = set()
     _output_var_names = set()
     _optional_var_names = set()
@@ -296,15 +355,21 @@ class Component(object):
 
     @property
     def shape(self):
+        """Return the grid shape attached to the component, if defined."""
         return self.grid._shape
 
     @property
     def grid(self):
+        """Return the grid attached to the component."""
         return self._grid
 
     @property
     def coords(self):
+        """Return the coordinates of nodes on grid attached to the component.
+        """
         return (self.grid.node_x, self.grid.node_y)
 
     def imshow(self, name, **kwds):
+        """Plot data on the grid attached to the component.
+        """
         self._grid.imshow(name, **kwds)

@@ -73,7 +73,7 @@ except NameError:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow()
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__discharge', K_if_used='K_values')
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
@@ -104,7 +104,7 @@ if True:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__volume_flux', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__discharge', K_if_used='K_values')
 
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval
@@ -112,9 +112,9 @@ if True:
             print('saving a plot at perturbed loop ', out_interval*this_trunc)
             pylab.figure("long_profiles")
             profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
-                            mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
+                            mg.at_node['drainage_area'], mg.at_node['flow__receiver_node'])
             dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
-                            profile_IDs, mg.at_node['links_to_flow_receiver'])
+                            profile_IDs, mg.at_node['flow__link_to_receiver_node'])
             prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
             last_trunc=this_trunc
             x_profiles.append(dists_upstr[:])
