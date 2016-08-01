@@ -15,7 +15,7 @@ class SoilInfiltrationGreenAmpt(Component):
     Green and Ampt equation.
 
     It was implemented in Landlab by DEJH, March '16. Please cite
-    Rengers et al., in review, Model Predictions of Water Runoff in Steep
+    Rengers et al., 2016, Model Predictions of Water Runoff in Steep
     Catchments after Wildfire, WRR.
 
     Construction::
@@ -82,7 +82,7 @@ class SoilInfiltrationGreenAmpt(Component):
     >>> SI = SoilInfiltrationGreenAmpt(
     ...     mg,hydraulic_conductivity=hydraulic_conductivity)
     >>> for i in xrange(10):  # 100s total
-    ...     SI.update_one_timestep(10.)
+    ...     SI.run_one_step(10.)
     >>> mg.at_node['surface_water__depth']
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
@@ -196,7 +196,7 @@ class SoilInfiltrationGreenAmpt(Component):
         # ^This guy is in "surface water equivalent", i.e., the actual depth
         # of penetration is greater because it only fills the pores
 
-    def update_one_timestep(self, dt):
+    def run_one_step(self, dt):
         """Update fields with current hydrologic conditions.
 
         Parameters

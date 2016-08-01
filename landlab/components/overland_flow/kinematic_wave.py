@@ -16,9 +16,9 @@ class KinematicWave(Component):
     solution to a depth-varying Manning's equation, broadly following, e.g.,
     Mugler et al., 2011.
     It was implemented in Landlab by DEJH, March '16. Please cite
-    Rengers et al., in review, Model Predictions of Water Runoff in Steep
+    Rengers et al., 2016, Model Predictions of Water Runoff in Steep
     Catchments after Wildfire, WRR.
-    
+
     Note: You will not have a good day if you have pits present in your topo
     before routing flow with this component. Fill pits before instantiating
     the component (or call :func:`update_topographic_params` once you have
@@ -84,7 +84,7 @@ class KinematicWave(Component):
     >>> rain_intensities = (1.e-5, 1.e-5, 1.e-5, 1.e-5, 1.e-5)
     >>> kw = KinematicWave(mg)
     >>> for i in rain_intensities:
-    ...     kw.update_one_timestep(dt, rainfall_intensity=i)
+    ...     kw.run_one_step(dt, rainfall_intensity=i)
     >>> mg.at_node['surface_water__depth']
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
@@ -165,8 +165,7 @@ class KinematicWave(Component):
         self.min_surface_water_depth = min_surface_water_depth
         self._active_depths = self.grid.at_node[
             'surface_water__depth'][active]
-        all_grads = self.grid.calculate_gradients_at_links(
-            'topographic__elevation')
+        all_grads = self.grid.calc_grad_at_link('topographic__elevation')
         hoz_grads = self.grid.map_mean_of_horizontal_active_links_to_node(
             all_grads)
         vert_grads = self.grid.map_mean_of_vertical_active_links_to_node(
@@ -203,7 +202,7 @@ class KinematicWave(Component):
         blank_nodes[fixed_grad_anchors] = True
         self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
 
-    def update_one_timestep(self, dt, rainfall_intensity=0.00001,
+    def run_one_step(self, dt, rainfall_intensity=0.00001,
                             update_topography=False, track_min_depth=False):
         """Update fields with current hydrologic conditions.
 
@@ -323,7 +322,7 @@ class KinematicWave(Component):
     def update_topographic_params(self):
         """
         If the topo changes during the run, change the held params used by
-        :func:`update_one_timestep`.
+        :func:`run_one_step`.
         """
         active = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
         all_grads = self.grid.calculate_gradients_at_links(

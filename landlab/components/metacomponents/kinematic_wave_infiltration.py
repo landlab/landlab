@@ -40,7 +40,7 @@ class FillInfiltrateKinematicWave(Component):
         >>> rain_intensities = (rain_array, 0., 0., 0., 0.)
         >>> fikw = FillInfiltrateKinematicWave(mg)
         >>> for i in rain_intensities:
-        ...     fikw.update_one_timestep(dt, rainfall_intensity=i)
+        ...     fikw.run_one_step(dt, rainfall_intensity=i)
         >>> mg.at_node['surface_water__depth']
 
     """
@@ -133,7 +133,7 @@ class FillInfiltrateKinematicWave(Component):
         # do the fill:
         self._sinkfill.fill_pits()
 
-    def update_one_timestep(self, dt, rainfall_intensity=0.00001,
+    def run_one_step(self, dt, rainfall_intensity=0.00001,
                             update_topography=False):
         """
         """
@@ -143,7 +143,7 @@ class FillInfiltrateKinematicWave(Component):
         while internal_elapsed_time < dt:
             remaining_time = dt-internal_elapsed_time
             internal_dt = min((remaining_time, internal_dt))
-            self._wave.update_one_timestep(
+            self._wave.run_one_step(
                 internal_dt, rainfall_intensity=rainfall_intensity,
                 update_topography=update_topography)
-            self._infilt.update_one_timestep(internal_dt)
+            self._infilt.run_one_step(internal_dt)
