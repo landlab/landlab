@@ -64,8 +64,8 @@ def create_links_at_patch(np.ndarray[DTYPE_INT_t, ndim=2] nodes_at_patch,
         nodes_at_patch.shape[1], dtype=int)
     cdef np.ndarray[DTYPE_INT_t, ndim=2] links_at_patch_nodes = np.empty(
         (nodes_at_patch.shape[1], links_at_node.shape[1]), dtype=int)
-    cdef np.ndarray[DTYPE_INT_t, ndim=1] vals
-    cdef np.ndarray[DTYPE_INT_t, ndim=1] counts
+    # cdef np.ndarray[DTYPE_INT_t, ndim=1] vals
+    # cdef np.ndarray[DTYPE_INT_t, ndim=1] counts
     cdef np.ndarray[DTYPE_INT_t, ndim=1] duplicated_vals
 
     for i in range(number_of_patches):
