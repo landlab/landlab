@@ -5,6 +5,8 @@ cimport cython
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_INT_t
+DTYPE_INTP = np.intp
+ctypedef np.intp_t DTYPE_INTP_t
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
@@ -43,7 +45,7 @@ def create_patches_at_element(
     cdef int i
     cdef np.ndarray[DTYPE_INT_t, ndim=2] element_with_value = np.empty_like(
         (elements_at_patch), dtype=int)
-    # cdef np.ndarray[DTYPE_INT_t, ndim=1] patches_with_element
+    cdef np.ndarray[DTYPE_INTP_t, ndim=1] patches_with_element
     cdef int num_elements_here
 
     for i in range(number_of_elements):
@@ -64,9 +66,9 @@ def create_links_at_patch(np.ndarray[DTYPE_INT_t, ndim=2] nodes_at_patch,
         nodes_at_patch.shape[1], dtype=int)
     cdef np.ndarray[DTYPE_INT_t, ndim=2] links_at_patch_nodes = np.empty(
         (nodes_at_patch.shape[1], links_at_node.shape[1]), dtype=int)
-    # cdef np.ndarray[DTYPE_INT_t, ndim=1] vals
-    # cdef np.ndarray[DTYPE_INT_t, ndim=1] counts
-    cdef np.ndarray[DTYPE_INT_t, ndim=1] duplicated_vals
+    cdef np.ndarray[DTYPE_INTP_t, ndim=1] vals
+    cdef np.ndarray[DTYPE_INTP_t, ndim=1] counts
+    cdef np.ndarray[DTYPE_INTP_t, ndim=1] duplicated_vals
 
     for i in range(number_of_patches):
         nodes_on_patch = nodes_at_patch[i, :]
