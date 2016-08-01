@@ -1157,9 +1157,10 @@ class VoronoiDelaunayGrid(ModelGrid):
                                       self.number_of_nodes,
                                       self._patches_at_node)
         except ValueError:
-            print(self._nodes_at_patch.dtype)
-            print(self._patches_at_node.dtype)
-            raise
+            raise ValueError(
+                'type mismatch: {type1}, {type2}'.format(
+                    type1=self._nodes_at_patch.dtype,
+                    type2=self._patches_at_node.dtype))
 
         # build the patch-link connectivity:
         self._links_at_patch = np.empty((self._number_of_patches, 3),
