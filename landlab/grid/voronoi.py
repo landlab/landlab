@@ -1150,7 +1150,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         #     (self.number_of_nodes, max_dimension), dtype=int)
         # self._patches_at_node.fill(nodata)
         self._patches_at_node = np.full(
-            (self.number_of_nodes, max_dimension), nodata, dtype=np.int)
+            (self.number_of_nodes, max_dimension), nodata, dtype=int)
 
         try:
             create_patches_at_element(self._nodes_at_patch,
