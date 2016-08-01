@@ -1769,24 +1769,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self._patches_at_link
 
     def _create_patches_at_link(self):
-        from .cfuncs import find_rows_containing_ID
+        from .cfuncs import create_patches_at_element
         self._patches_created = True
         self._patches_at_link = np.empty((self.number_of_links, 2),
                                          dtype=int)
         self._patches_at_link.fill(-1)
-        patches_with_link = np.empty((self.number_of_links,
-                                      self.number_of_patches), dtype=int)
-        find_rows_containing_ID(self.links_at_patch, patches_with_link)
-        link_ID, patch_ID = np.nonzero(patches_with_link)
-        counts_each_link = np.bincount(link_ID)
-        id_arr = np.ones(link_ID.size, dtype=int)
-        id_arr[0] = 0
-        id_arr[counts_each_link[:-1].cumsum()] = -counts_each_link[:-1] + 1
-        counts_so_far = id_arr.cumsum()[np.argsort(
-            link_ID, kind='mergesort').argsort()]
+        create_patches_at_element(self.links_at_patch, self.number_of_links,
+                                  self._patches_at_link)
 # a sort of the links will be performed here once we have corners
-        self._patches_at_link[link_ID, counts_so_far] = patch_ID
-
 
     def _create_link_dirs_at_node(self):
         """Make array with link directions at each node
