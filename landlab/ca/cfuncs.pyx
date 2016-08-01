@@ -10,7 +10,7 @@ cimport cython
 from landlab import CORE_NODE
 from _heapq import heappush
 
-_NEVER = 1.0e50
+cdef double _NEVER = 1.0e50
 
 cdef int _CORE = CORE_NODE
 
@@ -23,7 +23,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_INT8 = np.int8
 ctypedef np.int8_t DTYPE_INT8_t
 
-_DEBUG = False
+cdef char _DEBUG = 0
 
 
 
@@ -251,9 +251,6 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     cdef char propswap
     cdef double next_time, this_next
 
-    assert (n_xn[current_state] > 0), \
-        'must have at least one potential transition'
-
     # Find next event time for each potential transition
     if n_xn[current_state] == 1:
         my_xn_to = xn_to[current_state, 0]
@@ -319,13 +316,10 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     """
     cdef int fns, tns
     cdef int orientation
+    cdef Event event
 
-    if _DEBUG:
-        print('update_link_state() link ' + str(link) + ' to state ' + str(new_link_state))
     # If the link connects to a boundary, we might have a different state
     # than the one we planned
-    # if self.grid.status_at_node[self.grid.link_fromnode[link]]!=_CORE or \
-    #   self.grid.status_at_node[self.grid.link_tonode[link]]!=_CORE:
     if bnd_lnk[link]:
         fns = node_state[node_at_link_tail[link]]
         tns = node_state[node_at_link_head[link]]
@@ -449,9 +443,6 @@ def do_transition(Event event,
                     this_link_tail_node = node_at_link_tail[link]
                     this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
-                    current_pair = (node_state[this_link_tail_node],
-                                    node_state[this_link_head_node],
-                                    orientation)
                     new_link_state = (
                         orientation * num_node_states_sq +
                         node_state[this_link_tail_node] * num_node_states +
@@ -477,9 +468,6 @@ def do_transition(Event event,
                     this_link_tail_node = node_at_link_tail[link]
                     this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
-                    current_pair = (node_state[this_link_tail_node],
-                                    node_state[this_link_head_node],
-                                    orientation)
                     new_link_state = (
                         orientation * num_node_states_sq +
                         node_state[this_link_tail_node] * num_node_states +
