@@ -141,7 +141,7 @@ cdef int current_link_state(DTYPE_INT_t link_id,
 
 
 @cython.boundscheck(False)
-def update_link_states_and_transitions(
+cpdef update_link_states_and_transitions(
                              np.ndarray[DTYPE_INT_t, ndim=1] active_links,
                              np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
                              np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
@@ -192,7 +192,7 @@ def update_link_states_and_transitions(
 
 
 @cython.boundscheck(False)
-def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
+cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
                        DTYPE_INT_t head_node,
@@ -207,7 +207,7 @@ def update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
 
 
 @cython.boundscheck(False)
-def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state, 
+cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
                    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
@@ -284,7 +284,7 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
 
 @cython.boundscheck(False)
-def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
+cpdef update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
@@ -338,7 +338,7 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
 
 
 @cython.boundscheck(False)
-cpdef void do_transition(Event event,
+cdef void do_transition(Event event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
