@@ -16,6 +16,8 @@ ext_modules = [
               ['landlab/ca/cfuncs.pyx']),
     Extension('landlab.components.flexure.cfuncs',
               ['landlab/components/flexure/cfuncs.pyx']),
+    Extension('landlab.components.flow_accum.cfuncs',
+              ['landlab/components/flow_accum/cfuncs.pyx']),
     Extension('landlab.components.flow_routing.cfuncs',
               ['landlab/components/flow_routing/cfuncs.pyx']),
     Extension('landlab.components.stream_power.cfuncs',
