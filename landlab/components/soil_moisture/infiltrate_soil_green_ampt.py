@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
+from six.moves import range
 
 from landlab import Component, CLOSED_BOUNDARY
 from ...utils.decorators import use_file_name_or_kwds
@@ -81,7 +82,7 @@ class SoilInfiltrationGreenAmpt(Component):
     >>> d *= 0.2
     >>> SI = SoilInfiltrationGreenAmpt(
     ...     mg,hydraulic_conductivity=hydraulic_conductivity)
-    >>> for i in xrange(10):  # 100s total
+    >>> for i in range(10):  # 100s total
     ...     SI.run_one_step(10.)
     >>> mg.at_node['surface_water__depth']
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
