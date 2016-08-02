@@ -18,7 +18,6 @@ from .uniform_precip import PrecipitationDistribution
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
-# from .metacomponents import FillInfiltrateKinematicWave
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
