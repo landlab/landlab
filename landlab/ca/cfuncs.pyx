@@ -8,7 +8,7 @@ import numpy as np
 cimport numpy as np
 cimport cython
 from landlab import CORE_NODE
-from _heapq import heappush
+from _heapq import heappush, heappop
 
 cdef double _NEVER = 1.0e50
 
@@ -338,7 +338,7 @@ def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
 
 
 @cython.boundscheck(False)
-def do_transition(Event event,
+cpdef void do_transition(Event event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
@@ -503,3 +503,83 @@ def do_transition(Event event,
                 event.prop_update_fn(
                     this_cts_model, tail_node, head_node, event.time)
 
+cpdef double run_cts(double run_to, double current_time,
+               char plot_each_transition,
+               object plotter,
+               object event_queue,
+               np.ndarray[DTYPE_t, ndim=1] next_update,                  
+               np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
+                  np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                  np.ndarray[DTYPE_INT_t, ndim=1] propid,
+                  object prop_data,
+                  np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                  np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                  np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                  np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
+                  np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
+                  DTYPE_INT_t num_node_states,
+                  DTYPE_INT_t num_node_states_sq,
+                  DTYPE_INT_t prop_reset_value,
+                  np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
+                  xn_prop_update_fn,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                  this_cts_model):
+    """Run the model forward for a specified period of time.
+
+    Parameters
+    ----------
+    run_to : float
+        Time to run to, starting from self.current_time
+    node_state_grid : 1D array of ints (x number of nodes) (optional)
+        Node states (if given, replaces model's current node state grid)
+    plot_each_transition : bool (optional)
+        Option to display the grid after each transition
+    plotter : CAPlotter object (optional)
+        Needed if caller wants to plot after every transition
+    """
+    # Continue until we've run out of either time or events
+    while current_time < run_to and event_queue:
+
+        if _DEBUG:
+            print('Current Time = ', current_time)
+
+        # Is there an event scheduled to occur within this run?
+        if event_queue[0].time <= run_to:
+
+            # If so, pick the next transition event from the event queue
+            ev = heappop(event_queue)
+
+            if _DEBUG:
+                print('Event:', ev.time, ev.link, ev.xn_to)
+
+            # ... and execute the transition
+            do_transition(ev, next_update,
+                              node_at_link_tail,
+                              node_at_link_head,
+                              node_state, link_state,
+                              status_at_node, link_orientation,
+                              propid, prop_data,
+                              n_xn, xn_to, xn_rate,
+                              links_at_node,
+                              active_link_dirs_at_node,
+                              num_node_states, num_node_states_sq,
+                              prop_reset_value, xn_propswap,
+                              xn_prop_update_fn,
+                              bnd_lnk, event_queue,
+                              this_cts_model,
+                              plot_each_transition,
+                              plotter)
+
+            # Update current time
+            current_time = ev.time
+            
+        # If there is no event scheduled for this span of time, simply
+        # advance current_time to the end of the current run period.
+        else:
+            current_time = run_to
+
+    return current_time
