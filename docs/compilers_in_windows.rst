@@ -29,9 +29,7 @@ install::
   > python setup.py develop
 
 If you have compiler issues, you will see the message::
-=====================================================
 
-for Python 2.7:
   ...building 'landlab.components.flexure.cfuncs' extension
   error: MS VisualC++ 9.0 is required (Unable to find vcvarsall.bat).
   Get it from http://aka.ms/vcpython27
@@ -39,11 +37,4 @@ for Python 2.7:
 Simply go to `that specified Microsoft website <http://aka.ms/vcpython27>`_ and from
 there download the software needed using the obvious download button.
 
-for Python 3/3.X:
-  ...building 'landlab.components.flexure.cfuncs' extension
-  error: MS VisualC++ 9.0 is required (Unable to find vcvarsall.bat).
-
-Go to https://wiki.python.org/moin/WindowsCompilers to download relevant software.
-
-Once you have it, the above install command ('python setup.py develop') should then
-work fine.
+Once you have it, the above install command should then work fine.
