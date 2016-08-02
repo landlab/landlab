@@ -5,7 +5,8 @@ from .detachment_ltd_erosion import DetachmentLtdErosion
 from .flexure import Flexure
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
 from .nonlinear_diffusion import PerronNLDiffuse
-from .overland_flow import OverlandFlowBates, OverlandFlow, KinematicWave
+from .overland_flow import OverlandFlowBates, OverlandFlow
+from .overland_flow import KinematicWaveRengers
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .pet import PotentialEvapotranspiration
 from .radiation import Radiation
@@ -25,7 +26,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, StreamPowerEroder,
-              FastscapeEroder, SedDepEroder, KinematicWave,
+              FastscapeEroder, SedDepEroder, KinematicWaveRengers,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt,
               SoilMoisture, Vegetation, VegCA]

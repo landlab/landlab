@@ -8,8 +8,7 @@ from landlab import FIXED_GRADIENT_BOUNDARY
 from ...utils.decorators import use_file_name_or_kwds
 
 
-class KinematicWave(Component):
-
+class KinematicWaveRengers(Component):
     """
     This code is based on an overland flow model by Francis Rengers and
     colleagues, after Julien et al., 1995. It uses an explicit face-centered
@@ -40,9 +39,9 @@ class KinematicWave(Component):
 
     Construction::
 
-        KinematicWave(grid, mannings_n=0.03, critical_flow_depth=0.003,
-                      mannings_epsilon=0.33333333, dt_max=0.3,
-                      max_courant=0.2, min_surface_water_depth=1.e-8)
+        KinematicWaveRengers(grid, mannings_n=0.03, critical_flow_depth=0.003,
+                             mannings_epsilon=0.33333333, dt_max=0.3,
+                             max_courant=0.2, min_surface_water_depth=1.e-8)
 
     Parameters
     ----------
@@ -82,7 +81,7 @@ class KinematicWave(Component):
     >>> mg.at_node['surface_water__depth'].fill(1.e-8)
     >>> dt = 60.  # 1 min intervals
     >>> rain_intensities = (1.e-5, 1.e-5, 1.e-5, 1.e-5, 1.e-5)
-    >>> kw = KinematicWave(mg)
+    >>> kw = KinematicWaveRengers(mg)
     >>> for i in rain_intensities:
     ...     kw.run_one_step(dt, rainfall_intensity=i)
     >>> mg.at_node['surface_water__depth']
@@ -105,7 +104,7 @@ class KinematicWave(Component):
              1.00000000e-08,   1.00000000e-08])
     """
 
-    _name = 'KinematicWave'
+    _name = 'KinematicWaveRengers'
 
     _input_var_names = (
         'topographic__elevation',
