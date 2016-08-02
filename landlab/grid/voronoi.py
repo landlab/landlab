@@ -384,8 +384,6 @@ following code,
 
 Without this, the new grid class will not have the ``at_*`` attributes.
 """
-from __future__ import print_function
-
 import numpy as np
 from six.moves import range
 
@@ -1146,24 +1144,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         # the side-iest voronoi region.
         max_dimension = len(max(vor.regions, key=len))
 
-        # self._patches_at_node = np.empty(
-        #     (self.number_of_nodes, max_dimension), dtype=int)
-        # self._patches_at_node.fill(nodata)
         self._patches_at_node = np.full(
             (self.number_of_nodes, max_dimension), nodata, dtype=int)
 
         self._nodes_at_patch = as_id_array(self._nodes_at_patch)
         self._patches_at_node = as_id_array(self._patches_at_node)
 
-        try:
-            create_patches_at_element(self._nodes_at_patch,
-                                      self.number_of_nodes,
-                                      self._patches_at_node)
-        except ValueError:
-            raise ValueError(
-                'type mismatch: {type1}, {type2}'.format(
-                    type1=self._nodes_at_patch.dtype,
-                    type2=self._patches_at_node.dtype))
+        create_patches_at_element(self._nodes_at_patch,
+                                  self.number_of_nodes,
+                                  self._patches_at_node)
 
         # build the patch-link connectivity:
         self._links_at_patch = np.empty((self._number_of_patches, 3),
