@@ -3,6 +3,8 @@
 This script auto-constructs an elementary web documentation structure & API for
 Landlab grid methods, based around Sphinx and the new LLCATS type declaration
 system.
+
+THIS DOES NOT YET WORK, but illustrates the principle of how the utils work.
 """
 from landlab.core.utils import get_categories_from_grid_methods
 from copy import copy
