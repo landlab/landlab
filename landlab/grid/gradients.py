@@ -95,6 +95,8 @@ def calc_grad_of_active_link(grid, node_values, out=None):
     >>> vals = grid.calc_grad_at_link(z)
     >>> vals[grid.active_links]
     array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+
+    LLCATS: DEPR
     """
     return calc_grad_at_active_link(grid, node_values, out)
 

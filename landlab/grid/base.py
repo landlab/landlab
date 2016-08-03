@@ -834,7 +834,10 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @property
     def ndim(self):
-        """Number of spatial dimensions of the grid"""
+        """Number of spatial dimensions of the grid.
+
+        LLCATS: GINF
+        """
         return 2
 
     def _setup_nodes(self):
@@ -952,6 +955,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                [-1,  3, -1, -1, -1, -1],
                [-1, -1,  3, -1, -1, -1],
                [-1,  3, -1, -1, -1, -1]])
+
+        LLCATS: NINF CONN BC
         """
         try:
             return self._active_neighbor_nodes
@@ -1714,6 +1719,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.x_of_cell.reshape((2, 3))
         array([[  3.,   6.,   9.],
                [  3.,   6.,   9.]])
+
+        LLCATS: CINF MEAS
         """
         return self._node_x[self.node_at_cell]
 
@@ -1729,6 +1736,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.y_of_cell.reshape((2, 3))
         array([[ 2.,  2.,  2.],
                [ 4.,  4.,  4.]])
+
+        LLCATS: CINF MEAS
         """
         return self._node_y[self.node_at_cell]
 
@@ -1746,6 +1755,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
                  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
                  1.5,   4.5,   7.5,  10.5])
+
+        LLCATS: CINF MEAS
         """
         try:
             return self._link_x
@@ -1767,6 +1778,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                 2.,  2.,  2.,  2.,  3.,  3.,  3.,  3.,  3.,
                 4.,  4.,  4.,  4.,  5.,  5.,  5.,  5.,  5.,
                 6.,  6.,  6.,  6.])
+
+        LLCATS: LINF MEAS
         """
         try:
             return self._link_y
@@ -1787,6 +1800,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([  3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
                  3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
                  3. ,   6. ,   9. ])
+
+        LLCATS: FINF MEAS
         """
         try:
             return self._link_x[self.link_at_face]
@@ -1806,6 +1821,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.y_of_face # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  2.,  3.,  3.,  3.,
                 4.,  4.,  4.,  4.,  5.,  5.,  5.])
+
+        LLCATS: FINF MEAS
         """
         try:
             return self._link_y[self.link_at_face]
@@ -2188,6 +2205,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg = HexModelGrid(3, 2)
         >>> mg.angle_of_link / np.pi * 3.  # 60 degree segments
         array([ 0.,  2.,  1.,  2.,  1.,  0.,  0.,  1.,  2.,  1.,  2.,  0.])
+
+        LLCATS: LINF MEAS
         """
         try:
             if not self._angle_of_link_created:
@@ -2212,6 +2231,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg = HexModelGrid(3, 2)
         >>> mg.angle_of_link_about_head[:3] / np.pi * 3.  # 60 deg segments
         array([ 3.,  5.,  4.])
+
+        LLCATS: LINF MEAS
         """
         try:
             if not self._angle_of_link_created:
@@ -2705,6 +2726,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         True
         >>> 2 in mg.patches_at_node * mg.patches_present_at_node
         False
+
+        LLCATS: PINF NINF
         """
         try:
             return self._patches_present_mask
@@ -2757,6 +2780,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         True
         >>> 2 in mg.patches_at_link * mg.patches_present_at_link
         False
+
+        LLCATS: PINF LINF
         """
         try:
             return self._patches_present_link_mask
@@ -2787,6 +2812,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                [False, False, False, False]], dtype=bool)
         >>> mg.number_of_patches_present_at_node
         array([1, 2, 1, 1, 2, 1, 0, 0, 0])
+
+        LLCATS: PINF NINF BC
         """
         try:
             return self._number_of_patches_present_at_node
@@ -2820,6 +2847,8 @@ class ModelGrid(ModelDataFieldsMixIn):
                [False, False]], dtype=bool)
         >>> mg.number_of_patches_present_at_link
         array([1, 1, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0])
+
+        LLCATS: PINF LINF BC
         """
         try:
             return self._number_of_patches_present_at_link

@@ -605,6 +605,8 @@ class RasterModelGridPlotter(object):
         See Also
         --------
         landlab.plot.imshow_grid
+
+        LLCATS: OTHER
         """
         from landlab.plot import imshow_grid
         kwds['values_at'] = group
@@ -1414,6 +1416,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
     @make_return_array_immutable
     def get_diagonal_neighbors_at_node(self):
+        """
+        LLCATS: DEPR
+        """
         return self._diagonal_neighbors_at_node
 
     @property
@@ -1767,6 +1772,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [11, 14, 10,  7],
                [12, 15, 11,  8],
                [13, 16, 12,  9]])
+
+        LLCATS: PINF LINF CONN
         """
         self._patches_created = True
         base = np.arange(self.number_of_patches)
@@ -1804,6 +1811,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [ 3, -1],
                [ 4, -1],
                [ 5, -1]])
+
+        LLCATS: PINF LINF CONN
         """
         try:
             return self._patches_at_link
@@ -2906,6 +2915,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> _ = grid._diagonal_links_at_node
         >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,  3.,  4.,  4.,  4.,  3.,  3.,  4.,  4.,  4.,  3.,  3.])
+
+        LLCATS: LINF MEAS
         """
         if self._link_length is None:
             self._create_length_of_link()

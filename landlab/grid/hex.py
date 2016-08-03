@@ -907,6 +907,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid = HexModelGrid(3, 4, shape='rect')
         >>> grid.nodes_at_left_edge
         array([0, 4, 8])
+
+        LLCATS: GINF NINF BC SUBSET
         """
         try:
             return self._nodes[:, 0]
@@ -925,6 +927,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid = HexModelGrid(3, 4, shape='rect')
         >>> grid.nodes_at_right_edge
         array([ 3,  7, 11])
+
+        LLCATS: GINF NINF BC SUBSET
         """
         try:
             return self._nodes[:, -1]
@@ -943,6 +947,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid = HexModelGrid(3, 4, shape='rect')
         >>> grid.nodes_at_top_edge
         array([ 8,  9, 10, 11])
+
+        LLCATS: GINF NINF BC SUBSET
         """
         try:
             return self._nodes[-1, :]
@@ -961,6 +967,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid = HexModelGrid(3, 4, shape='rect')
         >>> grid.nodes_at_bottom_edge
         array([0, 1, 2, 3])
+
+        LLCATS: GINF NINF BC SUBSET
         """
         try:
             return self._nodes[0, :]

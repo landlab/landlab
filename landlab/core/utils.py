@@ -526,6 +526,7 @@ def get_categories_from_grid_methods(grid_type):
                (i.e., 'links_at_node')
         MEAS : method describing a quantity defined on an element (i.e.,
                'length_of_link')
+        OTHER : anything else
 
     Parameters
     ----------

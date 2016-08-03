@@ -735,6 +735,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 8,  7,  5],
                [10,  9,  6],
                [11,  8,  9]])
+
+        LLCATS: LINF PINF CONN
         """
         try:
             return self._links_at_patch
@@ -764,6 +766,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 4,  5],
                [ 4, -1],
                [ 5, -1]])
+
+        LLCATS: PINF LINF CONN
         """
         try:
             return self._patches_at_link

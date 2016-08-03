@@ -1218,6 +1218,8 @@ def map_mean_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     >>> ans # doctest: +NORMALIZE_WHITESPACE
     array([ 4.5, 4. , 0. ,
             3.5, 3. , 0. ])
+
+    LLCATS: PINF NINF MAP
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1293,6 +1295,8 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     >>> ans # doctest: +NORMALIZE_WHITESPACE
     array([ 5., 4., 0.,
             4., 4., 0.])
+
+    LLCATS: PINF NINF MAP
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1368,6 +1372,8 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     >>> ans # doctest: +NORMALIZE_WHITESPACE
     array([ 4., 4., 0.,
             2., 2., 0.])
+
+    LLCATS: PINF NINF MAP
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1474,6 +1480,8 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
     False
     >>> np.allclose(ycomp[absent_patches], 0.)
     False
+
+    LLCATS: PINF LINF MAP
     """
     if out is None:
         out = [np.zeros(grid.number_of_patches, dtype=float),
