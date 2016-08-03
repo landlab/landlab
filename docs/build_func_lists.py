@@ -35,10 +35,12 @@ autosummary = '\n\n.. autosummary::\n    :toctree: generated/\n\n'
 
 all_methods_for_cat_allgrid = {}
 all_cats_for_method_allgrid = {}
+fails_allgrid = {}  # not needed here, but good for manual checking
 for grid_type in grid_types:
-    catdict, griddict, _ = get_categories_from_grid_methods(grid_type)
+    catdict, griddict, fails = get_categories_from_grid_methods(grid_type)
     all_methods_for_cat_allgrid[grid_type] = copy(catdict)
     all_cats_for_method_allgrid[grid_type] = copy(griddict)
+    fails_allgrid[grid_type] = copy(fails)
 
 grid_info__whole_grid_0 = (
 '''
