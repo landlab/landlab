@@ -1,5 +1,15 @@
 #! /usr/bin/env python
-"""Read data from an ESRI ASCII file into a RasterModelGrid."""
+"""Read data from a pickled Landlab grid file into a RasterModelGrid.
+
+Read Landlab native
++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.io.native_landlab.load_grid
+    ~landlab.io.native_landlab.save_grid
+"""
 
 import os
 from six.moves import cPickle

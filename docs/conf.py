@@ -320,4 +320,5 @@ todo_include_todos = True
 #latex_elements = dict(preamble='\\usepackage{amsmath}')
 
 numpydoc_class_members_toctree = False
+numpydoc_show_class_members = False
 html_style = 'landlab.css'

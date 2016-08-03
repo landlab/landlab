@@ -35,15 +35,16 @@ and `RadialModelGrid`.
 
 Methods and properties common to all grids
 ------------------------------------------
+
 .. toctree::
    :maxdepth: 4
 
+   landlab.grid.base
    landlab.grid.mappers
    landlab.grid.gradients
    landlab.grid.divergence
    landlab.grid.grid_funcs
    landlab.grid.create
-   landlab.grid.base
    landlab.grid.decorators
 
 Specialized methods and properties for Rectilinear Grids 'raster grids'
@@ -56,12 +57,6 @@ which inherits from `ModelGrid` and adds the following:
    :maxdepth: 4
 
    landlab.grid.raster
-   landlab.grid.raster_mappers
-   landlab.grid.raster_gradients
-   landlab.grid.raster_aspect
-   landlab.grid.raster_steepest_descent
-   landlab.grid.raster_set_status
-   landlab.grid.raster_funcs
 
 Specialized methods and properties for Voronoi-Delaunay grids
 -------------------------------------------------------------
@@ -104,7 +99,7 @@ This section contains documentation and API reference information for the
 following categories of components:
 
 Hillslope geomorphology
----------------------------
+-----------------------
 
 .. toctree::
    :maxdepth: 4
@@ -113,16 +108,16 @@ Hillslope geomorphology
    landlab.components.nonlinear_diffusion
 
 Fluvial geomorphology
----------------------------
+---------------------
 
 .. toctree::
    :maxdepth: 4
 
    landlab.components.stream_power
-   landlab.components.transport_limited_fluvial
+   landlab.components.detachment_ltd_erosion
 
 Flow routing
--------------------
+------------
 
 .. toctree::
    :maxdepth: 4
@@ -130,7 +125,7 @@ Flow routing
    landlab.components.flow_routing
 
 Shallow water hydrodynamics
--------------------
+---------------------------
 
 .. toctree::
    :maxdepth: 4
@@ -138,26 +133,34 @@ Shallow water hydrodynamics
    landlab.components.overland_flow
 
 Land surface hydrology
--------------------
+----------------------
 
 .. toctree::
   :maxdepth: 4
 
   landlab.components.radiation
-  landlab.components.PET
+  landlab.components.pet
   landlab.components.soil_moisture
 
-Vegetation
--------------------
+Landslides
+----------
 
 .. toctree::
   :maxdepth: 4
 
-  landlab.components.single_vegetation
-  landlab.components.vegetation_ca
+  landlab.components.landslides
+
+Vegetation
+----------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.vegetation_dynamics
+  landlab.components.plant_competition_ca
 
 Precipitation
--------------------
+-------------
 
 .. toctree::
   :maxdepth: 4
@@ -165,7 +168,7 @@ Precipitation
   landlab.components.uniform_precip
 
 Terrain Analysis
--------------------
+----------------
 
 .. toctree::
   :maxdepth: 4
@@ -173,16 +176,8 @@ Terrain Analysis
   landlab.components.steepness_index
   landlab.components.chi_index
 
-Glacial Processes
--------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.components.glacier_thin_ice_model
-
 Tectonics
--------------------
+---------
 
 .. toctree::
   :maxdepth: 4
@@ -191,55 +186,68 @@ Tectonics
   landlab.components.gflex
 
 Fire
--------------------
+----
 
 .. toctree::
   :maxdepth: 4
 
   landlab.components.fire_generator
 
-Impact cratering
--------------------
-
-.. toctree::
-  :maxdepth: 4
-
-  landlab.components.craters
-
 Initial conditions: random field generators
--------------------
+-------------------------------------------
 
 .. toctree::
   :maxdepth: 4
 
   landlab.components.fracture_grid
 
+The Component base class
+------------------------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.core.model_component
 
 Input/Output (IO)
 =================
 
-.. toctree::
-   :maxdepth: 4
+This section documents various methods you can use to bring in data and write
+output to a file.
 
-   landlab.io
+.. toctree::
+  :maxdepth: 4
+
+  landlab.io
 
 
 Plotting and Visualization
 ==========================
 
 .. toctree::
-   :maxdepth: 4
+  :maxdepth: 4
 
-   landlab.plot
+  landlab.plot
+
+
+Utilities and Decorators
+========================
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.core.utils
+  landlab.utils.decorators
+  landlab.grid.decorators
 
 
 Cellular Automata (CA)
 ======================
 
 .. toctree::
-   :maxdepth: 4
+  :maxdepth: 4
 
-   landlab.ca
+  landlab.ca
 
 
 Contributing to Landlab
@@ -253,6 +261,7 @@ these specialized developer install instructions.
  :maxdepth: 3
 
  dev_guide_install
+ dev_guide_releases
  dev_guide_components
 
 

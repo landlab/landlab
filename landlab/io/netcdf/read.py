@@ -1,5 +1,14 @@
 #! /usr/bin/env python
-"""Read data from a NetCDF file into a RasterModelGrid."""
+"""Read data from a NetCDF file into a RasterModelGrid.
+
+Read netcdf
++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.io.netcdf.read.read_netcdf
+"""
 
 try:
     import netCDF4 as nc4

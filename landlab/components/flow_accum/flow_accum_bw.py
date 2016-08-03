@@ -25,6 +25,7 @@ If you simply want the ordered list by itself, use::
 Created: GT Nov 2013
 """
 from six.moves import range
+from .cfuncs import _add_to_stack
 
 import numpy
 
@@ -60,19 +61,8 @@ class _DrainageStack():
         >>> ds.s
         array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
-        self.s[self.j] = l
-        self.j += 1
-        #make some aliases to make the weave faster & better
-        delta = self.delta
-        D = self.D
-        add_it = self.add_to_stack
-        delta_l = int(numpy.take(delta,l))
-        delta_lplus1 = int(numpy.take(delta,l+1))
-
-        for n in range(delta_l, delta_lplus1):
-            m = self.D[n]
-            if m != l:
-                self.add_to_stack(m)
+        # we invoke cython here to attempt to suppress Python's RecursionLimit
+        self.j = _add_to_stack(l, self.j, self.s, self.delta, self.D)
 
 
 def _make_number_of_donors_array(r):

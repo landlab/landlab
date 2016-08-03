@@ -1,4 +1,18 @@
 #! /usr/bin/env python
+"""
+Methods to plot data defined on Landlab grids.
+
+Plotting functions
+++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.plot.imshow.imshow_grid
+    ~landlab.plot.imshow.imshow_grid_at_cell
+    ~landlab.plot.imshow.imshow_grid_at_node
+"""
+
 
 import numpy as np
 import inspect

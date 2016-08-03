@@ -20,6 +20,7 @@ from landlab.core.utils import make_optional_arg_into_id_array
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.utils.decorators import use_field_name_or_array
+from collections import deque
 
 
 @use_field_name_or_array('node')
@@ -236,7 +237,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
-    neighbors = grid.active_neighbors_at_node(node_ids)
+    neighbors = grid.active_neighbors_at_node[node_ids]
     if BAD_INDEX_VALUE != -1:
         neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
@@ -422,7 +423,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     padded_node_values[:-1] = node_values
     node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
-    neighbors = grid.active_neighbors_at_node(node_ids, bad_index=-1)
+    neighbors = grid.active_neighbors_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
         values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
@@ -558,10 +559,15 @@ def calc_unit_normals_at_patch_subtriangles(grid,
 
 
 def calc_slope_at_patch(grid, elevs='topographic__elevation',
+                        ignore_closed_nodes=True,
                         subtriangle_unit_normals=None):
     """Calculate the slope (positive magnitude of gradient) at raster patches.
 
     Returns the mean of the slopes of the four possible patch subtriangles.
+
+    If ignore_closed_nodes is True, closed nodes do not affect slope
+    calculations. If more than one closed node is present in a patch, the
+    patch slope is set to zero.
 
     Parameters
     ----------
@@ -569,6 +575,8 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
         A grid.
     elevs : str or ndarray, optional
         Field name or array of node values.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
     subtriangle_unit_normals : tuple of 4 (npatches, 3) arrays (optional)
         The unit normal vectors for the four subtriangles of each patch,
         if already known. Order is TR, TL, BL, BR.
@@ -595,6 +603,19 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
            [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
            [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
 
+    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+    >>> z = mg.node_x.copy()
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> mg.status_at_node[11] = CLOSED_BOUNDARY
+    >>> mg.status_at_node[9] = FIXED_VALUE_BOUNDARY
+    >>> z[11] = 100.  # this should get ignored now
+    >>> z[9] = 2.  # this should be felt by patch 7 only
+    >>> mg.calc_slope_at_patch(elevs=z, ignore_closed_nodes=True).reshape(
+    ...     (3, 4)) * 4./np.pi
+    array([[ 0.,  0.,  0.,  0.],
+           [ 0.,  1.,  1.,  1.],
+           [ 0.,  0.,  0.,  0.]])
+
     LLCATS: PINF GRAD
     """
     if subtriangle_unit_normals is not None:
@@ -611,17 +632,35 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
     dotprod_BR = n_BR[:, 2]
     dotprod_TR = n_TR[:, 2]
     dotprod_BL = n_BL[:, 2]
-    slopes_at_patch_TL = np.arccos(dotprod_TL)
-    slopes_at_patch_BR = np.arccos(dotprod_BR)
-    slopes_at_patch_TR = np.arccos(dotprod_TR)
-    slopes_at_patch_BL = np.arccos(dotprod_BL)
+    slopes_at_patch_TL = np.arccos(dotprod_TL)  # 1 node order
+    slopes_at_patch_BR = np.arccos(dotprod_BR)  # 3
+    slopes_at_patch_TR = np.arccos(dotprod_TR)  # 0
+    slopes_at_patch_BL = np.arccos(dotprod_BL)  # 2
+    if ignore_closed_nodes:
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        tot_bad = badnodes.sum(axis=1)
+        tot_tris = 4. - 3. * (tot_bad > 0)  # 4 where all good, 1 where not
+        # now shut down the bad tris. Remember, one bad node => 3 bad tris.
+        # anywhere where badnodes > 1 will have zero from summing, so div by 1
+        # assert np.all(np.logical_or(np.isclose(tot_tris, 4.),
+        #                             np.isclose(tot_tris, 1.)))
+        corners_rot = deque([slopes_at_patch_BR, slopes_at_patch_TR,
+                             slopes_at_patch_TL, slopes_at_patch_BL])
+        # note initial offset so we are centered around TR on first slice
+        for i in range(4):
+            for j in range(3):
+                (corners_rot[j])[badnodes[:, i]] = 0.
+            corners_rot.rotate(-1)
+    else:
+        tot_tris = 4.
     mean_slope_at_patch = (slopes_at_patch_TR + slopes_at_patch_TL +
-                           slopes_at_patch_BL + slopes_at_patch_BR) / 4.
+                           slopes_at_patch_BL + slopes_at_patch_BR) / tot_tris
 
     return mean_slope_at_patch
 
 
 def calc_grad_at_patch(grid, elevs='topographic__elevation',
+                       ignore_closed_nodes=True,
                        subtriangle_unit_normals=None,
                        slope_magnitude=None):
     """Calculate the components of the gradient of each raster patch.
@@ -629,12 +668,18 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
     Returns the mean gradient of the four possible patch subtriangles,
     in radians.
 
+    If ignore_closed_nodes is True, closed nodes do not affect gradient
+    calculations. If more than one closed node is present in a patch, the
+    patch gradients in both x and y directions are set to zero.
+
     Parameters
     ----------
     grid : RasterModelGrid
         A grid.
     elevs : str or ndarray, optional
         Field name or array of node values.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
     subtriangle_unit_normals : tuple of 4 (npatches, 3) arrays (optional)
         The unit normal vectors for the four subtriangles of each patch,
         if already known. Order is TR, TL, BL, BR.
@@ -660,6 +705,21 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
     >>> np.allclose(x_grad, 0.)
     True
 
+    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+    >>> z = mg.node_x.copy()
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> mg.status_at_node[11] = CLOSED_BOUNDARY
+    >>> mg.status_at_node[[9, 2]] = FIXED_VALUE_BOUNDARY
+    >>> z[11] = 100.  # this should get ignored now
+    >>> z[9] = 2.  # this should be felt by patch 7 only
+    >>> z[2] = 1.  # should be felt by patches 1 and 2
+    >>> xgrad, ygrad = mg.calc_grad_at_patch(
+    ...     elevs=z, ignore_closed_nodes=True)
+    >>> (xgrad.reshape((3, 4)) * 4./np.pi)[1, 1:]
+    array([ 1.,  1., -1.])
+    >>> np.allclose(ygrad[1:3], xgrad[1:3])
+    True
+
     LLCATS: PINF GRAD
     """
     if subtriangle_unit_normals is not None:
@@ -677,7 +737,17 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
         slopes_at_patch = slope_magnitude
     else:
         slopes_at_patch = grid.calc_slope_at_patch(
-            elevs=elevs, subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+            elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
+            subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+
+    if ignore_closed_nodes:
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        corners_rot = deque([n_BR, n_TR, n_TL, n_BL])
+        # note initial offset so we are centered around TR on first slice
+        for i in range(4):
+            for j in range(3):
+                (corners_rot[j])[badnodes[:, i], :] = 0.
+            corners_rot.rotate(-1)
 
     n_sum_x = n_TR[:, 0] + n_TL[:, 0] + n_BL[:, 0] + n_BR[:, 0]
     n_sum_y = n_TR[:, 1] + n_TL[:, 1] + n_BL[:, 1] + n_BR[:, 1]
@@ -689,7 +759,8 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
 
 
 def calc_slope_at_node(grid, elevs='topographic__elevation',
-                       method='patch_mean', return_components=False):
+                       method='patch_mean', ignore_closed_nodes=True,
+                       return_components=False):
     """Array of slopes at nodes, averaged over neighboring patches.
 
     Produces a value for node slope (i.e., mean gradient magnitude)
@@ -706,6 +777,9 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
         mag, cmp = mg.calc_slope_at_node(z)
         mag**2 == cmp[0]**2 + cmp[1]**2  # only if method=='Horn'
 
+    If ignore_closed_nodes is False, all proximal elevation values will be used
+    in the calculation. If True, only unclosed nodes are used.
+
     This is a verion of this code specialized for a raster. It subdivides
     the four square patches around each node into subtriangles,
     in order to ensure more correct solutions that incorporate equally
@@ -721,6 +795,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
         square patches, and 'Horn', which is the standard ArcGIS slope
         algorithm. These produce very similar solutions; the Horn method
         gives a vector mean and the patch_mean gives a scalar mean.
+    ignore_closed_nodes : bool
+        If True, do not incorporate values at closed nodes into the calc.
     return_components : bool
         If True, return a tuple, (array_of_magnitude,
         (array_of_slope_x_radians, array_of_slope_y_radians)).
@@ -771,9 +847,14 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     try:
         patches_at_node = grid.patches_at_node()
     except TypeError:  # was a property, not a fn (=> new style)
-        patches_at_node = np.ma.masked_where(
-            grid.patches_at_node == -1, grid.patches_at_node,
-            copy=False)
+        if not ignore_closed_nodes:
+            patches_at_node = np.ma.masked_where(
+                grid.patches_at_node == -1, grid.patches_at_node,
+                copy=False)
+        else:
+            patches_at_node = np.ma.masked_where(np.logical_not(
+                grid.patches_present_at_node), grid.patches_at_node,
+                copy=False)
     # now, we also want to mask any "closed" patches (any node closed)
     closed_patches = (grid.status_at_node[grid.nodes_at_patch] ==
                       CLOSED_BOUNDARY).sum(axis=1) > 0
@@ -785,7 +866,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
             grid.calc_unit_normals_at_patch_subtriangles(elevs)
 
         mean_slope_at_patches = grid.calc_slope_at_patch(
-            elevs=elevs, subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+            elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
+            subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
 
         # now CAREFUL - patches_at_node is MASKED
         slopes_at_node_unmasked = mean_slope_at_patches[patches_at_node]
@@ -794,8 +876,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
         slope_mag = np.mean(slopes_at_node_masked, axis=1).data
         if return_components:
             (x_slope_patches, y_slope_patches) = grid.calc_grad_at_patch(
-                elevs=elevs, subtriangle_unit_normals=(
-                    n_TR, n_TL, n_BL, n_BR),
+                elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
+                subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR),
                 slope_magnitude=mean_slope_at_patches)
             x_slope_unmasked = x_slope_patches[patches_at_node]
             x_slope_masked = np.ma.array(x_slope_unmasked,

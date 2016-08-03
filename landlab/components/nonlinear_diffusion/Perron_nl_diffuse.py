@@ -37,7 +37,7 @@ class PerronNLDiffuse(Component):
 
     Construction::
 
-        PerronNLDiffuse(grid, linear_diffusivity=None, S_crit=33.*np.pi/180.,
+        PerronNLDiffuse(grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
                         rock_density=2700., sed_density=2700.)
 
     Parameters
@@ -97,6 +97,7 @@ class PerronNLDiffuse(Component):
         # disable internal_uplift option:
         internal_uplift = None
         self._grid = grid
+        self._bc_set_code = self.grid.bc_set_code
         self.values_to_diffuse = 'topographic__elevation'
         if nonlinear_diffusivity is not None:
             if nonlinear_diffusivity is not str:
@@ -207,16 +208,18 @@ class PerronNLDiffuse(Component):
         # Build masks for the edges and corners to be applied to the operating
         # matrix map.
         # Antimasks are the boundary nodes, masks are "normal"
-        topleft_mask = [1, 2, 4, 5]
+        self.topleft_mask = [1, 2, 4, 5]
         topleft_antimask = [0, 3, 6, 7, 8]
-        topright_mask = [0, 1, 3, 4]
+        self.topright_mask = [0, 1, 3, 4]
         topright_antimask = [2, 5, 6, 7, 8]
-        bottomleft_mask = [4, 5, 7, 8]
+        self.bottomleft_mask = [4, 5, 7, 8]
         bottomleft_antimask = [0, 1, 2, 3, 6]
-        bottomright_mask = [3, 4, 6, 7]
+        self.bottomright_mask = [3, 4, 6, 7]
         bottomright_antimask = [0, 1, 2, 5, 8]
-        self.corners_masks = (np.vstack((bottomleft_mask, bottomright_mask,
-                                         topleft_mask, topright_mask)))
+        self.corners_masks = (np.vstack((self.bottomleft_mask,
+                                         self.bottomright_mask,
+                                         self.topleft_mask,
+                                         self.topright_mask)))
         # ^(each_corner,mask_for_each_corner)
         self.corners_antimasks = (np.vstack((bottomleft_antimask,
                                              bottomright_antimask,
@@ -238,6 +241,14 @@ class PerronNLDiffuse(Component):
         self.modulator_mask = np.array([-ncols - 1, -ncols, -ncols + 1, -1,
                                         0, 1, ncols - 1, ncols, ncols + 1])
 
+        self.updated_boundary_conditions()
+
+    def updated_boundary_conditions(self):
+        """Call if grid BCs are updated after component instantiation.
+        """
+        grid = self.grid
+        nrows = self.nrows
+        ncols = self.ncols
         # ^Set up terms for BC handling (still feels very clumsy)
         bottom_edge = grid.nodes_at_bottom_edge[1: -1]
         top_edge = grid.nodes_at_top_edge[1: -1]
@@ -321,29 +332,29 @@ class PerronNLDiffuse(Component):
 
         self.corner_flags = grid.status_at_node[[0, ncols - 1, -ncols, -1]]
 
-        op_mat_just_corners = operating_matrix_ID_map[
+        op_mat_just_corners = self.operating_matrix_ID_map[
             self.corner_interior_IDs, :]
-        op_mat_cnr0 = op_mat_just_corners[0, bottomleft_mask]
-        op_mat_cnr1 = op_mat_just_corners[1, bottomright_mask]
-        op_mat_cnr2 = op_mat_just_corners[2, topleft_mask]
-        op_mat_cnr3 = op_mat_just_corners[3, topright_mask]
+        op_mat_cnr0 = op_mat_just_corners[0, self.bottomleft_mask]
+        op_mat_cnr1 = op_mat_just_corners[1, self.bottomright_mask]
+        op_mat_cnr2 = op_mat_just_corners[2, self.topleft_mask]
+        op_mat_cnr3 = op_mat_just_corners[3, self.topright_mask]
         op_mat_just_active_cnrs = np.vstack((op_mat_cnr0, op_mat_cnr1,
                                              op_mat_cnr2, op_mat_cnr3))
         self.operating_matrix_corner_int_IDs = self._realIDtointerior(
             op_mat_just_active_cnrs)
         # ^(4corners,4nodesactivepercorner)
         self.operating_matrix_bottom_int_IDs = self._realIDtointerior(
-            operating_matrix_ID_map[
+            self.operating_matrix_ID_map[
                 self.bottom_interior_IDs, :][:, self.bottom_mask])
         # ^(nbottomnodes,6activenodeseach)
         self.operating_matrix_top_int_IDs = self._realIDtointerior(
-            operating_matrix_ID_map[
+            self.operating_matrix_ID_map[
                 self.top_interior_IDs, :][:, self.top_mask])
         self.operating_matrix_left_int_IDs = self._realIDtointerior(
-            operating_matrix_ID_map[
+            self.operating_matrix_ID_map[
                 self.left_interior_IDs, :][:, self.left_mask])
         self.operating_matrix_right_int_IDs = self._realIDtointerior(
-            operating_matrix_ID_map[
+            self.operating_matrix_ID_map[
                 self.right_interior_IDs, :][:, self.right_mask])
 
     def _initialize(self, grid, input_stream):
@@ -606,7 +617,7 @@ class PerronNLDiffuse(Component):
         extended_elevs = np.empty(
             self.grid.number_of_nodes + 1, dtype=float)
         extended_elevs[-1] = np.nan
-        node_neighbors = self.grid.active_neighbors_at_node(bad_index=-1)
+        node_neighbors = self.grid.active_neighbors_at_node
         extended_elevs[:-1] = new_grid['node'][self.values_to_diffuse]
         max_offset = np.nanmax(np.fabs(
             extended_elevs[:-1][node_neighbors] -
@@ -709,10 +720,11 @@ class PerronNLDiffuse(Component):
             elev[right_edge] = elev[inside_right_edge]
 
         # replacing loop:
-        cell_neighbors = grid.active_neighbors_at_node(bad_index=-1)
+        cell_neighbors = grid.active_neighbors_at_node
         # ^E,N,W,S
         cell_diagonals = grid._get_diagonal_list()  # NE,NW,SW,SE
-        cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
+        # cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
+        # ^this should be dealt with by active_neighbors... (skips bad nodes)
         cell_diagonals[cell_diagonals == BAD_INDEX_VALUE] = -1
 
         _z_x = (elev[cell_neighbors[:, 0]] - elev[cell_neighbors[:, 2]]
@@ -1410,6 +1422,9 @@ class PerronNLDiffuse(Component):
         *num_uplift_implicit_comps* to the total number of components that
         do.
         """
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
         if self.internal_uplifts:
             # this is adhoc to fix for the duration of Germany visit
             self._uplift = self.inputs.read_float('uplift_rate')
@@ -1467,6 +1482,9 @@ class PerronNLDiffuse(Component):
         dt : float (time)
             The imposed timestep.
         """
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
         if self.internal_uplifts:
             self._delta_t = self.timestep_in
             self._set_variables(self.grid)
