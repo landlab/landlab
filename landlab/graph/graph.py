@@ -64,6 +64,7 @@ from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
 from .quantity.of_link import (get_angle_of_link, get_length_of_link,
                                get_midpoint_of_link)
+from .quantity.of_patch import get_centroid_of_patch
 
 from .sort.sort import reverse_one_to_many, reorient_link_dirs
 
@@ -119,8 +120,9 @@ class Graph(object):
             else:
                 patches = None
 
-        self._y_of_node, self._x_of_node = nodes[0], nodes[1]
-        self._nodes = np.arange(len(self._x_of_node), dtype=int)
+        self._xy_of_node = np.stack((nodes[1], nodes[0])).T.copy()
+        # self._y_of_node, self._x_of_node = nodes[0], nodes[1]
+        self._nodes = np.arange(len(nodes[0]), dtype=int)
 
         self._create_nodes_at_link(links)
         self._create_links_at_patch(patches)
@@ -145,6 +147,20 @@ class Graph(object):
             return self._links_at_patch
 
     @property
+    def xy_of_node(self):
+        """Get x and y-coordinates of node.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> graph = Graph((node_y, node_x))
+        >>> graph.xy_of_node
+        array([ 0.,  1.,  2.,  0.,  1.,  2.])
+        """
+        return self._xy_of_node
+
+    @property
     def x_of_node(self):
         """Get x-coordinate of node.
 
@@ -156,7 +172,8 @@ class Graph(object):
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
         """
-        return self._x_of_node
+        return self._xy_of_node[:, 0]
+        # return self._x_of_node
 
     @property
     def y_of_node(self):
@@ -170,7 +187,8 @@ class Graph(object):
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
         """
-        return self._y_of_node
+        return self._xy_of_node[:, 1]
+        # return self._y_of_node
 
     @property
     def nodes(self):
@@ -493,7 +511,7 @@ class Graph(object):
         >>> graph.length_of_link
         array([ 2., 2., 1., 1., 1., 2., 2.])
         """
-        return get_length_of_link(self);
+        return get_length_of_link(self)
 
     @property
     @store_result_in_grid()
@@ -511,4 +529,14 @@ class Graph(object):
                [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
                [ 1. ,  1. ], [ 3. ,  1. ]])
         """
-        return get_midpoint_of_link(self);
+        return get_midpoint_of_link(self)
+
+    @property
+    @store_result_in_grid()
+    def xy_of_link(self):
+        return get_midpoint_of_link(self)
+
+    @property
+    @store_result_in_grid()
+    def xy_of_patch(self):
+        return get_centroid_of_patch(self)

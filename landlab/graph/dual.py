@@ -1,3 +1,8 @@
+"""Define a graph of nodes-links-patches and its dual.
+
+This class should not be used directly. Instead, it should be used as a base
+class when defining other types of graphs.
+"""
 import numpy as np
 
 from ..core.utils import as_id_array
@@ -82,6 +87,18 @@ class DualGraph(object):
     @property
     def y_of_corner(self):
         return self._dual.y_of_node
+
+    @property
+    def xy_of_corner(self):
+        return self._dual.xy_of_node
+
+    @property
+    def xy_of_face(self):
+        return self._dual.xy_of_link
+
+    @property
+    def xy_of_cell(self):
+        return self._dual.xy_of_patch
 
     @property
     def corners(self):
