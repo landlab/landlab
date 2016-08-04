@@ -38,21 +38,13 @@ Information about the grid as a whole
     ~landlab.grid.hex.HexModelGrid.from_dict
     ~landlab.grid.hex.HexModelGrid.hexplot
     ~landlab.grid.hex.HexModelGrid.move_origin
+    ~landlab.grid.hex.HexModelGrid.ndim
     ~landlab.grid.hex.HexModelGrid.node_axis_coordinates
-    ~landlab.grid.hex.HexModelGrid.number_of_active_faces
-    ~landlab.grid.hex.HexModelGrid.number_of_active_links
-    ~landlab.grid.hex.HexModelGrid.number_of_cells
-    ~landlab.grid.hex.HexModelGrid.number_of_core_cells
-    ~landlab.grid.hex.HexModelGrid.number_of_core_nodes
     ~landlab.grid.hex.HexModelGrid.number_of_elements
-    ~landlab.grid.hex.HexModelGrid.number_of_faces
-    ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
-    ~landlab.grid.hex.HexModelGrid.number_of_links
     ~landlab.grid.hex.HexModelGrid.number_of_node_columns
     ~landlab.grid.hex.HexModelGrid.number_of_node_rows
-    ~landlab.grid.hex.HexModelGrid.number_of_nodes
-    ~landlab.grid.hex.HexModelGrid.number_of_patches
     ~landlab.grid.hex.HexModelGrid.save
+    ~landlab.grid.hex.HexModelGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
@@ -61,9 +53,11 @@ Information about nodes
     :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
+    ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
     ~landlab.grid.hex.HexModelGrid.all_node_azimuths_map
     ~landlab.grid.hex.HexModelGrid.all_node_distances_map
     ~landlab.grid.hex.HexModelGrid.boundary_nodes
+    ~landlab.grid.hex.HexModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.hex.HexModelGrid.cell_area_at_node
     ~landlab.grid.hex.HexModelGrid.cell_at_node
     ~landlab.grid.hex.HexModelGrid.closed_boundary_nodes
@@ -85,14 +79,20 @@ Information about nodes
     ~landlab.grid.hex.HexModelGrid.node_x
     ~landlab.grid.hex.HexModelGrid.node_y
     ~landlab.grid.hex.HexModelGrid.nodes
+    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_patch
+    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
     ~landlab.grid.hex.HexModelGrid.number_of_core_nodes
     ~landlab.grid.hex.HexModelGrid.number_of_links_at_node
     ~landlab.grid.hex.HexModelGrid.number_of_node_columns
     ~landlab.grid.hex.HexModelGrid.number_of_node_rows
     ~landlab.grid.hex.HexModelGrid.number_of_nodes
+    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node
     ~landlab.grid.hex.HexModelGrid.open_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.patches_at_node
+    ~landlab.grid.hex.HexModelGrid.patches_present_at_node
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.hex.HexModelGrid.status_at_node
@@ -121,18 +121,24 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.link_at_node_is_upwind
     ~landlab.grid.hex.HexModelGrid.link_dirs_at_node
     ~landlab.grid.hex.HexModelGrid.links_at_node
+    ~landlab.grid.hex.HexModelGrid.links_at_patch
     ~landlab.grid.hex.HexModelGrid.node_at_link_head
     ~landlab.grid.hex.HexModelGrid.node_at_link_tail
     ~landlab.grid.hex.HexModelGrid.number_of_active_links
     ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
     ~landlab.grid.hex.HexModelGrid.number_of_links
     ~landlab.grid.hex.HexModelGrid.number_of_links_at_node
+    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.hex.HexModelGrid.patches_at_link
+    ~landlab.grid.hex.HexModelGrid.patches_present_at_link
     ~landlab.grid.hex.HexModelGrid.resolve_values_on_active_links
     ~landlab.grid.hex.HexModelGrid.resolve_values_on_links
     ~landlab.grid.hex.HexModelGrid.status_at_link
     ~landlab.grid.hex.HexModelGrid.unit_vector_xcomponent_at_link
     ~landlab.grid.hex.HexModelGrid.unit_vector_ycomponent_at_link
     ~landlab.grid.hex.HexModelGrid.upwind_links_at_node
+    ~landlab.grid.hex.HexModelGrid.x_of_link
+    ~landlab.grid.hex.HexModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -150,6 +156,8 @@ Information about cells
     ~landlab.grid.hex.HexModelGrid.number_of_cells
     ~landlab.grid.hex.HexModelGrid.number_of_core_cells
     ~landlab.grid.hex.HexModelGrid.number_of_faces_at_cell
+    ~landlab.grid.hex.HexModelGrid.x_of_cell
+    ~landlab.grid.hex.HexModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -165,6 +173,8 @@ Information about faces
     ~landlab.grid.hex.HexModelGrid.number_of_faces
     ~landlab.grid.hex.HexModelGrid.number_of_faces_at_cell
     ~landlab.grid.hex.HexModelGrid.width_of_face
+    ~landlab.grid.hex.HexModelGrid.x_of_face
+    ~landlab.grid.hex.HexModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -172,9 +182,15 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.hex.HexModelGrid.links_at_patch
     ~landlab.grid.hex.HexModelGrid.nodes_at_patch
     ~landlab.grid.hex.HexModelGrid.number_of_patches
+    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.hex.HexModelGrid.patches_at_link
     ~landlab.grid.hex.HexModelGrid.patches_at_node
+    ~landlab.grid.hex.HexModelGrid.patches_present_at_link
+    ~landlab.grid.hex.HexModelGrid.patches_present_at_node
 
 Data Fields in ModelGrid
 ------------------------
@@ -305,12 +321,16 @@ nodes.
     ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.hex.HexModelGrid.map_link_head_node_to_link
     ~landlab.grid.hex.HexModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.hex.HexModelGrid.map_link_vector_sum_to_patch
     ~landlab.grid.hex.HexModelGrid.map_link_vector_to_nodes
     ~landlab.grid.hex.HexModelGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.hex.HexModelGrid.map_max_of_node_links_to_node
+    ~landlab.grid.hex.HexModelGrid.map_max_of_patch_nodes_to_patch
     ~landlab.grid.hex.HexModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.hex.HexModelGrid.map_mean_of_patch_nodes_to_patch
     ~landlab.grid.hex.HexModelGrid.map_min_of_link_nodes_to_link
     ~landlab.grid.hex.HexModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.hex.HexModelGrid.map_min_of_patch_nodes_to_patch
     ~landlab.grid.hex.HexModelGrid.map_node_to_cell
     ~landlab.grid.hex.HexModelGrid.map_upwind_node_link_max_to_node
     ~landlab.grid.hex.HexModelGrid.map_upwind_node_link_mean_to_node
@@ -332,6 +352,7 @@ defined at other grid elements automatically.
 
     ~landlab.grid.hex.HexModelGrid.active_faces
     ~landlab.grid.hex.HexModelGrid.active_links
+    ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
     ~landlab.grid.hex.HexModelGrid.boundary_nodes
     ~landlab.grid.hex.HexModelGrid.closed_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.core_cells
@@ -341,11 +362,17 @@ defined at other grid elements automatically.
     ~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.node_at_core_cell
     ~landlab.grid.hex.HexModelGrid.node_is_boundary
+    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
     ~landlab.grid.hex.HexModelGrid.number_of_active_faces
     ~landlab.grid.hex.HexModelGrid.number_of_active_links
     ~landlab.grid.hex.HexModelGrid.number_of_core_cells
     ~landlab.grid.hex.HexModelGrid.number_of_core_nodes
     ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
+    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node
     ~landlab.grid.hex.HexModelGrid.open_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -358,7 +385,13 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-(None are available for this grid type)
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
 
 Surface analysis
 ----------------
@@ -908,7 +941,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid.nodes_at_left_edge
         array([0, 4, 8])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         try:
             return self._nodes[:, 0]
@@ -928,7 +961,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid.nodes_at_right_edge
         array([ 3,  7, 11])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         try:
             return self._nodes[:, -1]
@@ -948,7 +981,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid.nodes_at_top_edge
         array([ 8,  9, 10, 11])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         try:
             return self._nodes[-1, :]
@@ -968,7 +1001,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> grid.nodes_at_bottom_edge
         array([0, 1, 2, 3])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         try:
             return self._nodes[0, :]

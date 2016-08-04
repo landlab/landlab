@@ -38,22 +38,26 @@ Information about the grid as a whole
     ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
     ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.corner_cells
-    ~landlab.grid.raster.RasterModelGrid.corner_nodes
     ~landlab.grid.raster.RasterModelGrid.dx
     ~landlab.grid.raster.RasterModelGrid.dy
     ~landlab.grid.raster.RasterModelGrid.extent
     ~landlab.grid.raster.RasterModelGrid.from_dict
     ~landlab.grid.raster.RasterModelGrid.grid_ydimension
+    ~landlab.grid.raster.RasterModelGrid.imshow
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
     ~landlab.grid.raster.RasterModelGrid.move_origin
+    ~landlab.grid.raster.RasterModelGrid.ndim
     ~landlab.grid.raster.RasterModelGrid.node_axis_coordinates
     ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
     ~landlab.grid.raster.RasterModelGrid.number_of_elements
     ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
     ~landlab.grid.raster.RasterModelGrid.save
     ~landlab.grid.raster.RasterModelGrid.shape
+    ~landlab.grid.raster.RasterModelGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
@@ -66,15 +70,16 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
     ~landlab.grid.raster.RasterModelGrid.all_node_distances_map
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
     ~landlab.grid.raster.RasterModelGrid.cell_at_node
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_nodes
-    ~landlab.grid.raster.RasterModelGrid.corner_nodes
     ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
     ~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.get_active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
@@ -109,8 +114,10 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
     ~landlab.grid.raster.RasterModelGrid.number_of_nodes
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.patches_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.roll_nodes_ud
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -143,12 +150,16 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
     ~landlab.grid.raster.RasterModelGrid.link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.links_at_node
+    ~landlab.grid.raster.RasterModelGrid.links_at_patch
     ~landlab.grid.raster.RasterModelGrid.node_at_link_head
     ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
     ~landlab.grid.raster.RasterModelGrid.number_of_active_links
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
     ~landlab.grid.raster.RasterModelGrid.number_of_links
     ~landlab.grid.raster.RasterModelGrid.number_of_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_links
     ~landlab.grid.raster.RasterModelGrid.status_at_link
@@ -156,6 +167,8 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.unit_vector_ycomponent_at_link
     ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
     ~landlab.grid.raster.RasterModelGrid.vertical_links
+    ~landlab.grid.raster.RasterModelGrid.x_of_link
+    ~landlab.grid.raster.RasterModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -170,9 +183,7 @@ Information about cells
     ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.core_cells
-    ~landlab.grid.raster.RasterModelGrid.corner_cells
     ~landlab.grid.raster.RasterModelGrid.faces_at_cell
-    ~landlab.grid.raster.RasterModelGrid.map_node_to_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
@@ -180,6 +191,8 @@ Information about cells
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
     ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
+    ~landlab.grid.raster.RasterModelGrid.x_of_cell
+    ~landlab.grid.raster.RasterModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -188,7 +201,6 @@ Information about faces
     :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.active_faces
-    ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces
     ~landlab.grid.raster.RasterModelGrid.face_at_link
     ~landlab.grid.raster.RasterModelGrid.faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.link_at_face
@@ -196,6 +208,8 @@ Information about faces
     ~landlab.grid.raster.RasterModelGrid.number_of_faces
     ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.width_of_face
+    ~landlab.grid.raster.RasterModelGrid.x_of_face
+    ~landlab.grid.raster.RasterModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -203,9 +217,15 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.raster.RasterModelGrid.links_at_patch
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
     ~landlab.grid.raster.RasterModelGrid.number_of_patches
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_at_link
     ~landlab.grid.raster.RasterModelGrid.patches_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
 
 Data Fields in ModelGrid
 ------------------------
@@ -341,23 +361,27 @@ nodes.
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link
     ~landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_link_vector_sum_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_link_vector_to_nodes
     ~landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_patch_nodes_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_active_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_link_nodes_to_link
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_patch_nodes_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_active_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_min_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_min_of_link_nodes_to_link
     ~landlab.grid.raster.RasterModelGrid.map_min_of_node_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_min_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_patch_nodes_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_node_to_cell
     ~landlab.grid.raster.RasterModelGrid.map_sum_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_sum_of_outlinks_to_node
@@ -382,6 +406,7 @@ defined at other grid elements automatically.
 
     ~landlab.grid.raster.RasterModelGrid.active_faces
     ~landlab.grid.raster.RasterModelGrid.active_links
+    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_cells
@@ -404,6 +429,8 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
     ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
@@ -412,6 +439,7 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.raster.RasterModelGrid.set_status_at_node_on_edges
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_coords
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_id
@@ -428,8 +456,6 @@ to a point; nodes at edges.
     :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.corner_cells
-    ~landlab.grid.raster.RasterModelGrid.corner_nodes
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
@@ -606,7 +632,7 @@ class RasterModelGridPlotter(object):
         --------
         landlab.plot.imshow_grid
 
-        LLCATS: OTHER
+        LLCATS: GINF
         """
         from landlab.plot import imshow_grid
         kwds['values_at'] = group
@@ -1205,7 +1231,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> vals[grid.nodes_at_right_edge]
         array([ 3,  7, 11])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[:, -1]
 
@@ -1224,7 +1250,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> vals[grid.nodes_at_top_edge]
         array([ 8,  9, 10, 11])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[-1, :]
 
@@ -1243,7 +1269,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> vals[grid.nodes_at_left_edge]
         array([0, 4, 8])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[:, 0]
 
@@ -1262,7 +1288,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> vals[grid.nodes_at_bottom_edge]
         array([0, 1, 2, 3])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[0, :]
 
@@ -1290,7 +1316,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> vals[grid.nodes_at_edge('left')]
         array([0, 4, 8])
 
-        LLCATS: GINF NINF BC SUBSET
+        LLCATS: NINF BC SUBSET
         """
         if edge not in ('right', 'top', 'left', 'bottom'):
             raise ValueError('value for edge not understood')
@@ -2442,7 +2468,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.number_of_interior_nodes
         6
 
-        LLCATS: GINF NINF
+        LLCATS: NINF
         """
         return sgrid.interior_node_count(self.shape)
 
@@ -2527,7 +2553,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.number_of_patches
         12
 
-        LLCATS: GINF PINF
+        LLCATS: PINF
         """
         return (self._nrows - 1) * (self._ncols - 1)
 
@@ -2640,7 +2666,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @deprecated(use='nodes_at_corners_of_grid', version=1.0)
     def corner_nodes(self):
         """
-        LLCATS: GINF NINF SUBSET
+        LLCATS: DEPR GINF NINF SUBSET
         """
         return self.nodes_at_corners_of_grid
 
@@ -2670,7 +2696,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @deprecated(use='cells_at_corners_of_grid', version=1.0)
     def corner_cells(self):
         """
-        LLCATS: GINF CINF SUBSET
+        LLCATS: DEPR GINF CINF SUBSET
         """
         return self.cells_at_corners_of_grid
 

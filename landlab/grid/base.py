@@ -35,7 +35,6 @@ Information about the grid as a whole
 
     ~landlab.grid.base.ModelGrid.axis_name
     ~landlab.grid.base.ModelGrid.axis_units
-    ~landlab.grid.base.ModelGrid.display_grid
     ~landlab.grid.base.ModelGrid.move_origin
     ~landlab.grid.base.ModelGrid.ndim
     ~landlab.grid.base.ModelGrid.node_axis_coordinates
@@ -49,9 +48,11 @@ Information about nodes
     :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
     ~landlab.grid.base.ModelGrid.all_node_azimuths_map
     ~landlab.grid.base.ModelGrid.all_node_distances_map
     ~landlab.grid.base.ModelGrid.boundary_nodes
+    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.base.ModelGrid.cell_area_at_node
     ~landlab.grid.base.ModelGrid.cell_at_node
     ~landlab.grid.base.ModelGrid.closed_boundary_nodes
@@ -64,17 +65,26 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.link_dirs_at_node
     ~landlab.grid.base.ModelGrid.links_at_node
     ~landlab.grid.base.ModelGrid.neighbors_at_node
+    ~landlab.grid.base.ModelGrid.node_at_cell
+    ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.node_at_link_head
+    ~landlab.grid.base.ModelGrid.node_at_link_tail
     ~landlab.grid.base.ModelGrid.node_axis_coordinates
     ~landlab.grid.base.ModelGrid.node_is_boundary
     ~landlab.grid.base.ModelGrid.node_x
     ~landlab.grid.base.ModelGrid.node_y
     ~landlab.grid.base.ModelGrid.nodes
     ~landlab.grid.base.ModelGrid.number_of_core_nodes
+    ~landlab.grid.base.ModelGrid.number_of_links_at_node
     ~landlab.grid.base.ModelGrid.number_of_nodes
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
     ~landlab.grid.base.ModelGrid.open_boundary_nodes
+    ~landlab.grid.base.ModelGrid.patches_present_at_node
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.base.ModelGrid.status_at_node
     ~landlab.grid.base.ModelGrid.unit_vector_sum_xcomponent_at_node
-    ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node
     ~landlab.grid.base.ModelGrid.upwind_links_at_node
     ~landlab.grid.base.ModelGrid.x_of_node
     ~landlab.grid.base.ModelGrid.y_of_node
@@ -85,24 +95,35 @@ Information about links
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
     ~landlab.grid.base.ModelGrid.active_links
     ~landlab.grid.base.ModelGrid.angle_of_link
     ~landlab.grid.base.ModelGrid.angle_of_link_about_head
+    ~landlab.grid.base.ModelGrid.downwind_links_at_node
     ~landlab.grid.base.ModelGrid.face_at_link
     ~landlab.grid.base.ModelGrid.fixed_links
     ~landlab.grid.base.ModelGrid.length_of_link
+    ~landlab.grid.base.ModelGrid.link_at_face
     ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
     ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
+    ~landlab.grid.base.ModelGrid.link_dirs_at_node
     ~landlab.grid.base.ModelGrid.links_at_node
     ~landlab.grid.base.ModelGrid.node_at_link_head
     ~landlab.grid.base.ModelGrid.node_at_link_tail
     ~landlab.grid.base.ModelGrid.number_of_active_links
+    ~landlab.grid.base.ModelGrid.number_of_fixed_links
     ~landlab.grid.base.ModelGrid.number_of_links
+    ~landlab.grid.base.ModelGrid.number_of_links_at_node
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.base.ModelGrid.patches_present_at_link
     ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.status_at_link
     ~landlab.grid.base.ModelGrid.unit_vector_xcomponent_at_link
     ~landlab.grid.base.ModelGrid.unit_vector_ycomponent_at_link
+    ~landlab.grid.base.ModelGrid.upwind_links_at_node
+    ~landlab.grid.base.ModelGrid.x_of_link
+    ~landlab.grid.base.ModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -111,6 +132,8 @@ Information about cells
     :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.area_of_cell
+    ~landlab.grid.base.ModelGrid.cell_area_at_node
+    ~landlab.grid.base.ModelGrid.cell_at_node
     ~landlab.grid.base.ModelGrid.core_cells
     ~landlab.grid.base.ModelGrid.faces_at_cell
     ~landlab.grid.base.ModelGrid.node_at_cell
@@ -118,6 +141,8 @@ Information about cells
     ~landlab.grid.base.ModelGrid.number_of_cells
     ~landlab.grid.base.ModelGrid.number_of_core_cells
     ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
+    ~landlab.grid.base.ModelGrid.x_of_cell
+    ~landlab.grid.base.ModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -126,15 +151,26 @@ Information about faces
     :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.active_faces
+    ~landlab.grid.base.ModelGrid.face_at_link
+    ~landlab.grid.base.ModelGrid.faces_at_cell
     ~landlab.grid.base.ModelGrid.link_at_face
     ~landlab.grid.base.ModelGrid.number_of_active_faces
     ~landlab.grid.base.ModelGrid.number_of_faces
+    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
     ~landlab.grid.base.ModelGrid.width_of_face
+    ~landlab.grid.base.ModelGrid.x_of_face
+    ~landlab.grid.base.ModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
 
-All information about patches is provided by the child classes.
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.base.ModelGrid.patches_present_at_link
+    ~landlab.grid.base.ModelGrid.patches_present_at_node
 
 Data Fields in ModelGrid
 ------------------------
@@ -261,23 +297,27 @@ nodes.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link
-    ~landlab.grid.base.ModelGrid.map_value_at_downwind_node_link_max_to_node
-    ~landlab.grid.base.ModelGrid.map_mean_of_link_nodes_to_link
     ~landlab.grid.base.ModelGrid.map_downwind_node_link_max_to_node
-    ~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link
-    ~landlab.grid.base.ModelGrid.map_link_head_node_to_link
-    ~landlab.grid.base.ModelGrid.map_min_of_link_nodes_to_link
-    ~landlab.grid.base.ModelGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.base.ModelGrid.map_downwind_node_link_mean_to_node
+    ~landlab.grid.base.ModelGrid.map_link_head_node_to_link
     ~landlab.grid.base.ModelGrid.map_link_tail_node_to_link
-    ~landlab.grid.base.ModelGrid.map_upwind_node_link_max_to_node
-    ~landlab.grid.base.ModelGrid.map_min_of_node_links_to_node
-    ~landlab.grid.base.ModelGrid.map_node_to_cell
+    ~landlab.grid.base.ModelGrid.map_link_vector_sum_to_patch
     ~landlab.grid.base.ModelGrid.map_link_vector_to_nodes
+    ~landlab.grid.base.ModelGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.base.ModelGrid.map_max_of_node_links_to_node
-    ~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node
+    ~landlab.grid.base.ModelGrid.map_max_of_patch_nodes_to_patch
+    ~landlab.grid.base.ModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.base.ModelGrid.map_mean_of_patch_nodes_to_patch
+    ~landlab.grid.base.ModelGrid.map_min_of_link_nodes_to_link
+    ~landlab.grid.base.ModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.base.ModelGrid.map_min_of_patch_nodes_to_patch
+    ~landlab.grid.base.ModelGrid.map_node_to_cell
+    ~landlab.grid.base.ModelGrid.map_upwind_node_link_max_to_node
     ~landlab.grid.base.ModelGrid.map_upwind_node_link_mean_to_node
+    ~landlab.grid.base.ModelGrid.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link
+    ~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link
+    ~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node
 
 
 Boundary condition control
@@ -291,27 +331,30 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.base.ModelGrid.number_of_active_links
-    ~landlab.grid.base.ModelGrid.status_at_node
-    ~landlab.grid.base.ModelGrid.open_boundary_nodes
-    ~landlab.grid.base.ModelGrid.core_nodes
-    ~landlab.grid.base.ModelGrid.status_at_link
-    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
-    ~landlab.grid.base.ModelGrid.number_of_fixed_links
-    ~landlab.grid.base.ModelGrid.number_of_core_nodes
-    ~landlab.grid.base.ModelGrid.node_at_core_cell
-    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.base.ModelGrid.core_cells
-    ~landlab.grid.base.ModelGrid.boundary_nodes
-    ~landlab.grid.base.ModelGrid.number_of_core_cells
-    ~landlab.grid.base.ModelGrid.node_is_boundary
     ~landlab.grid.base.ModelGrid.active_faces
-    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
-    ~landlab.grid.base.ModelGrid.fixed_links
     ~landlab.grid.base.ModelGrid.active_links
-    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
+    ~landlab.grid.base.ModelGrid.boundary_nodes
+    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
+    ~landlab.grid.base.ModelGrid.core_cells
+    ~landlab.grid.base.ModelGrid.core_nodes
+    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.base.ModelGrid.fixed_links
+    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.node_is_boundary
     ~landlab.grid.base.ModelGrid.number_of_active_faces
+    ~landlab.grid.base.ModelGrid.number_of_active_links
+    ~landlab.grid.base.ModelGrid.number_of_core_cells
+    ~landlab.grid.base.ModelGrid.number_of_core_nodes
+    ~landlab.grid.base.ModelGrid.number_of_fixed_links
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.base.ModelGrid.open_boundary_nodes
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.base.ModelGrid.status_at_link
+    ~landlab.grid.base.ModelGrid.status_at_node
 
 Identifying node subsets
 ------------------------
@@ -333,7 +376,6 @@ find in GIS software.
     ~landlab.grid.base.ModelGrid.calc_aspect_at_node
     ~landlab.grid.base.ModelGrid.calc_slope_at_node
     ~landlab.grid.base.ModelGrid.calc_hillshade_at_node
-    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
 
 Notes
 -----
@@ -1404,7 +1446,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_nodes
         20
 
-        LLCATS: GINF NINF
+        LLCATS: NINF
         """
         return len(self._cell_at_node)
 
@@ -1419,7 +1461,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_cells
         6
 
-        LLCATS: GINF CINF
+        LLCATS: CINF
         """
         return len(self._node_at_cell)
 
@@ -1434,7 +1476,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_links
         17
 
-        LLCATS: GINF LINF
+        LLCATS: LINF
         """
         return self._status_at_link.size
 
@@ -1454,7 +1496,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_faces
         7
 
-        LLCATS: GINF FINF
+        LLCATS: FINF
         """
         return len(self.link_at_face)
 
@@ -1481,7 +1523,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_active_faces
         3
 
-        LLCATS: GINF FINF BC
+        LLCATS: FINF BC
         """
         return self.active_faces.size
 
@@ -1503,7 +1545,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_core_nodes
         5
 
-        LLCATS: GINF NINF BC
+        LLCATS: NINF BC
         """
         return self._core_nodes.size
 
@@ -1524,7 +1566,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_core_cells
         5
 
-        LLCATS: GINF CINF BC
+        LLCATS: CINF BC
         """
         return self._core_cells.size
 
@@ -1544,7 +1586,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.number_of_active_links
         10
 
-        LLCATS: GINF LINF BC
+        LLCATS: LINF BC
         """
         return self.active_links.size
 
@@ -1562,7 +1604,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> mg.number_of_fixed_links
         3
 
-        LLCATS: GINF LINF BC
+        LLCATS: LINF BC
         """
         try:
             return self._fixed_links.size
@@ -1756,7 +1798,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
                  1.5,   4.5,   7.5,  10.5])
 
-        LLCATS: CINF MEAS
+        LLCATS: LINF MEAS
         """
         try:
             return self._link_x
