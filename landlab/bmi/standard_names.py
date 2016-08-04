@@ -6,21 +6,21 @@ STANDARD_NAME = {
     'channel__depth': 'channel_x-section__mean_of_depth',
     'channel__discharge': 'channel_water_x-section__volume_flow_rate',
     'channel__steepness_index': 'land_surface__steepness_index',
-    'channel__width': 'channel_x-section__mean_of_width',
-    'channel_sediment__relative_flux': 'channel_water_sediment~suspended__volume_flow_rate-to-max_volume_flow_rate_ratio',
-    'channel_sediment__volumetric_flux': 'channel_water_sediment~suspended__volume_flow_rate',
-    'channel_sediment__volumetric_transport_capacity': 'channel_water_sediment~suspended__max_volume_flow_rate',
-    'depression__depth': 'land~flooded__max_of_depth',
-    'depression__outlet_node': 'land~flooded_outlet_model_grid_node__index',
-    'drainage_area': 'basin__total_contributing_area',
+    'channel__width': 'channel_x-section_top__width',
+    'channel_sediment__relative_flux': 'channel_water_sediment~suspended__time_max_normalized_volume_flux_ratio',
+    'channel_sediment__volumetric_flux': 'channel_water_sediment~suspended__volume_flux', # (flux is area/time) or is it flow_rate?
+    'channel_sediment__volumetric_transport_capacity': 'channel_water_sediment~suspended__potential_volume_flow_rate', # ?
+    'depression__depth': 'land_depression__max-fill_depth',
+    'depression__outlet_node': 'model_grid_node_land_depression_pour-point__id', # necessary? model-specific? does anything need this?
+    'drainage_area': 'basin__total_contributing_area', # model_grid_cell__total_contributing_area
     'flow__link_to_receiver_node': 'model_grid_node_link~downstream__index',
     'flow__potential': None,
     'flow__receiver_node': None,
-    'flow__sink_flag': None,
+    'flow__sink_flag': None, # model_*__flag boolean?
     'flow__upstream_node_order': None,
-    'lithosphere__overlying_pressure_increment': 'lithosphere_surface__increment_of_pressure',
-    'lithosphere__vertical_displacement': 'lithosphere_surface__increment_of_elevation',
-    'lithosphere_surface__elevation_increment': 'lithosphere_surface__increment_of_elevation',
+    'lithosphere__overlying_pressure_increment': 'lithosphere_top_surface__increment_of_static_pressure',
+    'lithosphere__vertical_displacement': 'lithosphere_top_surface__increment_of_elevation',
+    'lithosphere_surface__elevation_increment': 'lithosphere_top_surface__increment_of_elevation',
     'plant__age': 'plant__age',
     'plant__live_index': None,
     'radiation__incoming_shortwave_flux': 'earth_surface_radiation~incoming~shortwave__energy_flux',
