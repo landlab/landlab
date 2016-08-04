@@ -24,11 +24,13 @@ Information about the grid as a whole
 from landlab.core.utils import get_categories_from_grid_methods
 from copy import copy
 import re
+import numpy as np
 
 grid_types = ('ModelGrid', 'RasterModelGrid', 'VoronoiDelaunayGrid',
               'HexModelGrid', 'RadialModelGrid')
-str_sequence = ('Raster', 'Irregular Voronoi-cell', 'Hexagonal', 'Radial')
-paths = ('raster', 'voronoi', 'hex', 'radial')
+str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
+                'Radial')
+paths = ('base', 'raster', 'voronoi', 'hex', 'radial')
 
 autosummary = '\n\n.. autosummary::\n    :toctree: generated/\n\n'
 
@@ -42,27 +44,102 @@ for grid_type in grid_types:
     all_cats_for_method_allgrid[grid_type] = copy(griddict)
     fails_allgrid[grid_type] = copy(fails)
 
-grid_info__whole_grid_0 = (
+
+LLCATS = ('GINF', 'NINF', 'LINF', 'CINF', 'PINF', 'FINF', 'CNINF', 'GRAD',
+          'MAP', 'BC', 'SUBSET', 'SURF')
+outfile_names = ('auto_grid_info__whole.rst', 'auto_grid_info__nodes.rst',
+                 'auto_grid_info__links.rst', 'auto_grid_info__cells.rst',
+                 'auto_grid_info__patches.rst', 'auto_grid_info__faces.rst',
+                 'auto_grid_info__corners.rst', 'auto_grid_info__grads.rst',
+                 'auto_grid_info__mappers.rst', 'auto_grid_info__BCs.rst',
+                 'auto_grid_info__subsets.rst', 'auto_grid_info__surf.rst')
+
+text_heads = (
 '''
 Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
+''',
+'''
+Information about nodes
++++++++++++++++++++++++
+
+''',
+'''
+Information about links
++++++++++++++++++++++++
+
+''',
+'''
+Information about cells
++++++++++++++++++++++++
+
+''',
+'''
+Information about patches
++++++++++++++++++++++++++
+
+''',
+'''
+Information about faces
++++++++++++++++++++++++
+
+''',
+'''
+Information about corners
++++++++++++++++++++++++++
+
+''',
+'''
+Gradients, fluxes, and divergences on the grid
+----------------------------------------------
+
+''',
+'''
+Mappers
+-------
+
+''',
+'''
+Boundary condition control
+--------------------------
+
+''',
+'''
+Identifying node subsets
+------------------------
+
+''',
+'''
+Surface analysis
+----------------
+
 ''')
-for grid, print_name, path in zip(grid_types[1:], str_sequence, paths):
-    grid_info__whole_grid_0 += (
-        '\n' + '.. _GINF_' + grid + ':\n\n' +
-        print_name + '\n' + '-'*len(print_name) + autosummary)
-    allmethsGINF = all_methods_for_cat_allgrid[grid]['GINF']
-    allmethsGINF.sort()
-    for meth in allmethsGINF:
-        if 'DEPR' not in all_cats_for_method_allgrid[grid][meth]:
-            grid_info__whole_grid_0 += (
-                '    ~landlab.grid.' + path + '.' + grid + '.' + meth + '\n'
-            )
-    grid_info__whole_grid_0 += '\n\n'
 
-f = open('./auto_grid_info__whole_grid_0.rst', "wb")
-f.write(grid_info__whole_grid_0)
-f.close()
+for LLCAT, outfile_name, text in zip(LLCATS, outfile_names, text_heads):
+    for grid, print_name, path in zip(grid_types, str_sequence, paths):
+        text += (
+            '\n' + '.. _' + LLCAT + '_' + grid + ':\n\n' +
+            print_name + '\n' + '-'*len(print_name) + autosummary)
+        try:
+            allmeths = all_methods_for_cat_allgrid[grid][LLCAT]
+            allmeths.sort()
+            for meth in allmeths:
+                if LLCAT in ('GINF', 'NINF', 'LINF', 'CINF', 'PINF', 'FINF',
+                             'CNINF'):
+                    exclude = ('DEPR', 'MAP', 'GRAD', 'SURF')
+                else:
+                    exclude = ('DEPR', )
+                if np.in1d(exclude,
+                           all_cats_for_method_allgrid[grid][meth]).sum() == 0:
+                    text += (
+                        '    ~landlab.grid.' + path + '.' + grid + '.' + meth +
+                        '\n'
+                    )
+            text += '\n\n'
+        except KeyError:
+            print('Failed at ' + grid + ' looking for ' + LLCAT)
 
-
+    f = open('./' + outfile_name, "wb")
+    f.write(text)
+    f.close()
