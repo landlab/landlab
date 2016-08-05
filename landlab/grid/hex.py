@@ -111,6 +111,7 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
     ~landlab.grid.hex.HexModelGrid.active_links
     ~landlab.grid.hex.HexModelGrid.angle_of_link
+    ~landlab.grid.hex.HexModelGrid.angle_of_link_about_head
     ~landlab.grid.hex.HexModelGrid.downwind_links_at_node
     ~landlab.grid.hex.HexModelGrid.face_at_link
     ~landlab.grid.hex.HexModelGrid.fixed_links
@@ -393,6 +394,7 @@ import numpy
 import six
 
 from landlab.grid.voronoi import VoronoiDelaunayGrid
+from .decorators import return_readonly_id_array
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
@@ -413,6 +415,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
     orientation : string, optional
         One of the 3 cardinal directions in the grid, either 'horizontal'
         (default) or 'vertical'
+    shape : string, optional
+        Controls the shape of the bounding hull, i.e., are the nodes arranged
+        in a hexagon, or a rectangle? Either 'hex' (default) or 'rect'.
 
     Returns
     -------
@@ -559,18 +564,21 @@ class HexModelGrid(VoronoiDelaunayGrid):
             'shape must be either "hex" (default) or "rect"'
 
         # Create a set of hexagonally arranged points. These will be our nodes.
-        if orientation == 'horizontal' and shape == 'hex':
+        if orientation[0].lower() == 'h' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_horizontal_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
-        elif orientation == 'horizontal' and shape == 'rect':
+        elif orientation[0].lower() == 'h' and shape[0].lower() == 'r':
             pts = HexModelGrid._hex_points_with_horizontal_rect(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
-        elif orientation == 'vertical' and shape == 'hex':
+            self._shape = (self._nrows, self._ncols)
+            self._nodes = numpy.arange(self._nrows * self._ncols,
+                                       dtype=int).reshape(self._shape)
+        elif orientation[0].lower() == 'v' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_vertical_hex(
                 base_num_rows, base_num_cols, dx)
             self.orientation = 'vertical'
@@ -581,6 +589,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self.orientation = 'vertical'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
+            self._shape = (self._nrows, self._ncols)
+            self._nodes = numpy.arange(self._nrows * self._ncols,
+                                       dtype=int).reshape(self._shape)
+            for col in range(self._ncols):
+                base_node = (col // 2) + (col % 2) * ((self._ncols + 1) // 2)
+                self._nodes[:, col] = numpy.arange(
+                    base_node, self._nrows * self._ncols, self._ncols)
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
@@ -874,6 +889,78 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         return self._nrows
 
+    @property
+    def nodes_at_left_edge(self):
+        """Get nodes along the left edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes_at_left_edge
+        array([0, 4, 8])
+        """
+        try:
+            return self._nodes[:, 0]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
+    @property
+    def nodes_at_right_edge(self):
+        """Get nodes along the right edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes_at_right_edge
+        array([ 3,  7, 11])
+        """
+        try:
+            return self._nodes[:, -1]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
+    @property
+    def nodes_at_top_edge(self):
+        """Get nodes along the top edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes_at_top_edge
+        array([ 8,  9, 10, 11])
+        """
+        try:
+            return self._nodes[-1, :]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
+    @property
+    def nodes_at_bottom_edge(self):
+        """Get nodes along the bottom edge of a grid, if grid is rectangular.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect')
+        >>> grid.nodes_at_bottom_edge
+        array([0, 1, 2, 3])
+        """
+        try:
+            return self._nodes[0, :]
+        except AttributeError:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined edges.')
+
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
@@ -917,7 +1004,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         poly_verts = zeros((6, 2))
 
         # Figure out whether the orientation is horizontal or vertical
-        if self.orientation == 'horizontal':   # horizontal
+        if self.orientation[0] == 'h':   # horizontal
             offsets[:, 0] = array(
                 [0., apothem, apothem, 0., -apothem, -apothem])
             offsets[:, 1] = array(
