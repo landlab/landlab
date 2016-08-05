@@ -37,7 +37,7 @@ def plot_patches(graph, color='g'):
     plt.gca().set_aspect(1.)
 
 
-def plot_graph(graph, at='node'):
+def plot_graph(graph, at='node,link,patch'):
     locs = [loc.strip() for loc in at.split(',')]
     for loc in locs:
         if loc not in ('node', 'link', 'patch', 'corner', 'face', 'cell'):
