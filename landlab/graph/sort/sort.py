@@ -6,7 +6,8 @@ This module provides functions that sort the elements of a graph structure.
 import numpy as np
 
 from ...core.utils import as_id_array, argsort_points_by_x_then_y
-from ...utils.jaggedarray import flatten_jagged_array
+from ...utils.jaggedarray import flatten_jagged_array, unravel
+from .ext.spoke_sort import sort_spokes_at_wheel
 
 
 def remap(src, mapping, out=None, inplace=False): 
@@ -454,3 +455,137 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     # reorder_links_at_patch(links_at_patch, offset_to_patch, xy_of_link)
 
     return sorted_patches
+
+
+def sort_spokes_at_hub(graph, spoke=None, at='node', badval=None,
+                       inplace=False):
+    sorted_spokes = argsort_spokes_at_hub(graph, spoke=spoke, at=at,
+                                          badval=badval)
+    spokes_at_hub = getattr(graph,
+                            '{spoke}es_at_{hub}'.format(spoke=spoke, hub=at))
+
+    if inplace:
+        out = spokes_at_hub
+    else:
+        out = np.empty_like(spokes_at_hub)
+
+    return np.take(spokes_at_hub, sorted_spokes, out=out)
+
+
+def argsort_spokes_at_hub(graph, spoke=None, at='node', badval=None):
+    """Order spokes clockwise around spokes.
+
+    Parameters
+    ----------
+    graph : Graph-like
+        A landlab graph.
+    spoke : str
+        Name of graph elements that make the spokes.
+    at : str
+        Namve of graph elements that make the hubs.
+    badval : float or iterable of float, optional
+        Value to insert for missing spokes. If an iterable, use items as
+        bad values to use for different spokes.
+
+    Returns
+    -------
+    ndarray of int, shape `(n_spokes, n_hubs)`
+        Spokes ordered around each hub.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.graph import UniformRectilinearGraph
+    >>> from landlab.graph.sort.sort import argsort_spokes_at_hub
+
+    >>> graph = UniformRectilinearGraph((3, 3))
+    >>> argsort_spokes_at_hub(graph, 'link', at='node')
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 9, 10,  8, 11],
+           [12, 13, 15, 14],
+           [16, 17, 18, 19],
+           [21, 22, 23, 20],
+           [24, 27, 25, 26],
+           [28, 30, 31, 29],
+           [34, 35, 32, 33]])
+    """
+    angles = calc_angle_of_spoke(graph, spoke=spoke, at=at, badval=np.inf)
+    angles[angles < 0] += np.pi
+
+    n_hubs, n_spokes = angles.shape
+    ordered_angles = np.argsort(angles)
+    ordered_angles += np.arange(n_hubs).reshape((-1, 1)) * n_spokes
+
+    return ordered_angles
+
+
+def calc_angle_of_spoke(graph, spoke=None, at='node', badval=None):
+    """Calculate angles spokes make with a hub.
+
+    Parameters
+    ----------
+    graph : Graph-like
+        A landlab graph.
+    spoke : str
+        Name of graph elements that make the spokes.
+    at : str
+        Namve of graph elements that make the hubs.
+    badval : float or iterable of float, optional
+        Value to insert for missing spokes. If an iterable, use items as
+        bad values to use for different spokes.
+
+    Returns
+    -------
+    ndarray of float, shape `(n_spokes, n_hubs)`
+        Angle that spoke elements make with each hub element.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.graph import UniformRectilinearGraph
+    >>> from landlab.graph.sort.sort import calc_angle_of_spoke
+
+    >>> graph = UniformRectilinearGraph((3, 3))
+    >>> np.rad2deg(calc_angle_of_spoke(graph, 'link', at='node', badval=np.nan))
+    array([[   0.,   90.,   nan,   nan],
+           [   0.,   90.,  180.,   nan],
+           [  nan,   90.,  180.,   nan],
+           [   0.,   90.,   nan,  270.],
+           [   0.,   90.,  180.,  270.],
+           [  nan,   90.,  180.,  270.],
+           [   0.,   nan,   nan,  270.],
+           [   0.,   nan,  180.,  270.],
+           [  nan,   nan,  180.,  270.]])
+    """
+    xy_of_hub = getattr(graph, 'xy_of_{hub}'.format(hub=at))
+    xy_of_spoke = getattr(graph, 'xy_of_{spoke}'.format(spoke=spoke))
+    if spoke == 'patch':
+        plural = 'patches'
+    else:
+        plural = spoke + 's'
+    spokes_at_hub = getattr(graph,
+                            '{plural}_at_{hub}'.format(plural=plural, hub=at))
+
+    xy_of_spoke = xy_of_spoke[spokes_at_hub.flat]
+    x_of_spoke = xy_of_spoke[:, 0].reshape(spokes_at_hub.shape)
+    y_of_spoke = xy_of_spoke[:, 1].reshape(spokes_at_hub.shape)
+
+    x_of_hub, y_of_hub = xy_of_hub[:, 0], xy_of_hub[:, 1]
+
+    dx = (x_of_spoke.T - x_of_hub).T
+    dy = (y_of_spoke.T - y_of_hub).T
+
+    angle_of_spoke = np.arctan2(dy, dx)
+    angle_of_spoke[angle_of_spoke < 0.] += np.pi * 2.
+
+    if badval is not None:
+        try:
+            badval_for_column = enumerate(badval)
+        except TypeError:
+            angle_of_spoke[spokes_at_hub == -1] = badval
+        else:
+            for col, val in badval_for_column:
+                angle_of_spoke[spokes_at_hub[:, col] == -1, col] = val
+
+    return angle_of_spoke
