@@ -1,4 +1,3 @@
-# cython: linetrace=True
 """
 Created on Thu Jun 30 12:40:39 2016
 
@@ -94,7 +93,7 @@ cdef class Event:
         self.propswap = propswap
         self.prop_update_fn = prop_update_fn
         
-    def __richcmp__(self, other, int op):
+    def __richcmp__(self, Event other, int op):
         """
         Overridden less-than operator: returns true if the event on the left
         has an earlier scheduled time than the event on the right
@@ -251,6 +250,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     cdef int i
     cdef char propswap
     cdef double next_time, this_next
+    cdef Event my_event
 
     # Find next event time for each potential transition
     if n_xn[current_state] == 1:
@@ -286,7 +286,6 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
 @cython.boundscheck(False)
 cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
-cpdef update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
@@ -301,7 +300,7 @@ cpdef update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
                       np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
                       np.ndarray[DTYPE_t, ndim=2] xn_rate, 
                       np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-                      xn_prop_update_fn):
+                      np.ndarray[object, ndim=2] xn_prop_update_fn):
     """
     Implements a link transition by updating the current state of the link
     and (if appropriate) choosing the next transition event and pushing it
@@ -394,6 +393,8 @@ cdef void do_transition(Event event,
        choose their next transitions, and push them on the event queue.
     """
     cdef int tail_node, head_node  # IDs of tail and head nodes at link
+    cdef int old_tail_node_state
+    cdef int old_head_node_state
     cdef int this_link_tail_node   # Tail ID for an adjacent link
     cdef int this_link_head_node   # Head ID for an adjacent link
     cdef int link                  # ID of a link
@@ -543,6 +544,8 @@ cpdef double run_cts(double run_to, double current_time,
     plotter : CAPlotter object (optional)
         Needed if caller wants to plot after every transition
     """
+    cdef Event ev
+
     # Continue until we've run out of either time or events
     while current_time < run_to and event_queue:
 
