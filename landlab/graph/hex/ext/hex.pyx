@@ -9,6 +9,66 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
+def fill_hex_xy_of_node(shape,
+                        np.ndarray[np.double_t, ndim=1] x_of_node,
+                        np.ndarray[np.double_t, ndim=1] y_of_node):
+    """Get x and y coordinates for each node."""
+    cdef int n_nodes = x_of_node.size
+    cdef int n_cols = shape[1]
+    cdef int node
+    cdef int row
+    cdef int col
+    cdef int offset
+    cdef int n
+    cdef double x0
+
+    node = 0
+    x0 = 0.
+    for row in range(shape[0] / 2 + 1):
+        for col in range(n_cols):
+            x_of_node[node] = x0 + col
+            y_of_node[node] = row
+            node += 1
+        x0 -= .5
+        n_cols += 1
+
+    x0 += 1.
+    n_cols -= 2
+    for row in range(shape[0] / 2 + 1, shape[0]):
+        for col in range(n_cols):
+            x_of_node[node] = x0 + col
+            y_of_node[node] = row
+            node += 1
+        x0 += .5
+        n_cols -= 1
+
+
+@cython.boundscheck(False)
+def fill_xy_of_node(shape,
+                    np.ndarray[np.double_t, ndim=1] x_of_node,
+                    np.ndarray[np.double_t, ndim=1] y_of_node):
+    """Get x and y coordinates for each node."""
+    cdef int n_nodes = x_of_node.size
+    cdef int stride = 2 * shape[1]
+    cdef int n_cols = shape[1]
+    cdef int row
+    cdef int offset
+    cdef int n
+
+    for offset in range(0, n_nodes, stride):
+        row = (offset // stride) * 2
+        for n in range(offset, offset + n_cols):
+            x_of_node[n] = n - offset
+            y_of_node[n] = row
+
+    for offset in range(shape[1], n_nodes, stride):
+        row = (offset // stride) * 2 + 1
+        for n in range(offset, offset + n_cols):
+            x_of_node[n] = n - offset + .5
+            y_of_node[n] = row
+
+
+@cython.boundscheck(False)
 def get_xy_of_node(shape,
                    np.ndarray[np.double_t, ndim=1] x_of_node,
                    np.ndarray[np.double_t, ndim=1] y_of_node):

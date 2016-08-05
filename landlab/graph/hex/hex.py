@@ -88,6 +88,53 @@ def create_xy_of_node(shape, spacing=1., origin=(0., 0.),
     return (x_of_node, y_of_node)
 
 
+def setup_xy_of_node(shape, spacing=1., origin=(0., 0.),
+                     orientation='horizontal'):
+    from .ext.hex import fill_xy_of_node
+
+    if orientation == 'vertical':
+        return setup_xy_of_node((shape[1], shape[0]), spacing=spacing,
+                                origin=(origin[1], origin[0]),
+                                orientation='horizontal')[::-1]
+    n_nodes = shape[0] * shape[1]
+
+    x_of_node = np.empty((n_nodes, ), dtype=float)
+    y_of_node = np.empty((n_nodes, ), dtype=float)
+
+    fill_xy_of_node(shape, x_of_node, y_of_node)
+
+    x_of_node *= spacing
+    x_of_node += origin[1]
+    y_of_node *= (spacing * np.sin(np.pi / 3.))
+    y_of_node += origin[0]
+
+    return (x_of_node, y_of_node)
+
+
+def setup_hex_xy_of_node(shape, spacing=1., origin=(0., 0.),
+                         orientation='horizontal'):
+    from .ext.hex import fill_hex_xy_of_node
+
+    if orientation == 'vertical':
+        return setup_hex_xy_of_node((shape[1], shape[0]), spacing=spacing,
+                                origin=(origin[1], origin[0]),
+                                orientation='horizontal')[::-1]
+
+    n_nodes = shape[0] * shape[1] + (shape[0] / 2) ** 2
+
+    x_of_node = np.zeros((n_nodes, ), dtype=float)
+    y_of_node = np.zeros((n_nodes, ), dtype=float)
+
+    fill_hex_xy_of_node(shape, x_of_node, y_of_node)
+
+    x_of_node *= spacing
+    x_of_node += origin[1]
+    y_of_node *= (spacing * np.sin(np.pi / 3.))
+    y_of_node += origin[0]
+
+    return (x_of_node, y_of_node)
+
+
 class HexGraph(VoronoiGraph):
 
     """Graph of a structured grid of triangles.
