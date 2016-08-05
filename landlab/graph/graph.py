@@ -155,8 +155,10 @@ class Graph(object):
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
-        >>> graph.xy_of_node
+        >>> graph.xy_of_node[:, 0]
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
+        >>> graph.xy_of_node[:, 1]
+        array([ 0.,  0.,  0.,  1.,  1.,  1.])
         """
         return self._xy_of_node
 
