@@ -151,3 +151,15 @@ class DualGraph(object):
     @property
     def cells_at_corner(self):
         return self._dual.patches_at_node
+
+    @property
+    def width_of_face(self):
+        return self._dual.length_of_link
+
+    @property
+    def length_of_face(self):
+        return self._dual.length_of_link
+
+    @property
+    def area_of_cell(self):
+        return self._dual.area_of_patch

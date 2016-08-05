@@ -64,7 +64,7 @@ from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
 from .quantity.of_link import (get_angle_of_link, get_length_of_link,
                                get_midpoint_of_link)
-from .quantity.of_patch import get_centroid_of_patch
+from .quantity.of_patch import get_centroid_of_patch, get_area_of_patch
 
 from .sort.sort import reverse_one_to_many, reorient_link_dirs
 
@@ -131,6 +131,8 @@ class Graph(object):
         not sorting['xy'] or reindex_by_xy(self)
         not sorting['ccw'] or reorder_links_at_patch(self)
 
+        self._origin = (0., 0.)
+
     def _create_nodes_at_link(self, links):
         """Set up node-link data structures."""
         if links is not None:
@@ -145,6 +147,10 @@ class Graph(object):
             self._links_at_patch = links_at_patch(
                 patches, nodes_at_link=self.nodes_at_link)
             return self._links_at_patch
+
+    @property
+    def ndim(self):
+        return 2
 
     @property
     def xy_of_node(self):
@@ -542,3 +548,8 @@ class Graph(object):
     @store_result_in_grid()
     def xy_of_patch(self):
         return get_centroid_of_patch(self)
+
+    @property
+    @store_result_in_grid()
+    def area_of_patch(self):
+        return get_area_of_patch(self)
