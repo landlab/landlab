@@ -1,3 +1,4 @@
+# cython: linetrace=True
 """
 Created on Thu Jun 30 12:40:39 2016
 
@@ -284,7 +285,7 @@ def get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
 
 @cython.boundscheck(False)
-def update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
+cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
@@ -504,30 +505,30 @@ cpdef void do_transition(Event event,
                     this_cts_model, tail_node, head_node, event.time)
 
 cpdef double run_cts(double run_to, double current_time,
-               char plot_each_transition,
-               object plotter,
-               object event_queue,
-               np.ndarray[DTYPE_t, ndim=1] next_update,                  
-               np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
-                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
-                  np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
-                  np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-                  np.ndarray[DTYPE_INT_t, ndim=1] propid,
-                  object prop_data,
-                  np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-                  np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-                  np.ndarray[DTYPE_t, ndim=2] xn_rate, 
-                  np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-                  np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-                  DTYPE_INT_t num_node_states,
-                  DTYPE_INT_t num_node_states_sq,
-                  DTYPE_INT_t prop_reset_value,
-                  np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-                  xn_prop_update_fn,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-                  this_cts_model):
+                     char plot_each_transition,
+                     object plotter,
+                     object event_queue,
+                     np.ndarray[DTYPE_t, ndim=1] next_update,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
+                     np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                     np.ndarray[DTYPE_INT_t, ndim=1] propid,
+                     object prop_data,
+                     np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                     np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                     np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                     np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
+                     np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
+                     DTYPE_INT_t num_node_states,
+                     DTYPE_INT_t num_node_states_sq,
+                     DTYPE_INT_t prop_reset_value,
+                     np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
+                     xn_prop_update_fn,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                     this_cts_model):
     """Run the model forward for a specified period of time.
 
     Parameters
@@ -544,17 +545,11 @@ cpdef double run_cts(double run_to, double current_time,
     # Continue until we've run out of either time or events
     while current_time < run_to and event_queue:
 
-        if _DEBUG:
-            print('Current Time = ', current_time)
-
         # Is there an event scheduled to occur within this run?
         if event_queue[0].time <= run_to:
 
             # If so, pick the next transition event from the event queue
             ev = heappop(event_queue)
-
-            if _DEBUG:
-                print('Event:', ev.time, ev.link, ev.xn_to)
 
             # ... and execute the transition
             do_transition(ev, next_update,

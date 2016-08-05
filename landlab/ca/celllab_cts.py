@@ -123,8 +123,8 @@ Created GT Sep 2014, starting from link_ca.py.
 """
 from __future__ import print_function
 
-from heapq import heappush
-from heapq import heappop
+from _heapq import heappush
+from _heapq import heappop
 import landlab
 import numpy as np
 import pylab as plt
