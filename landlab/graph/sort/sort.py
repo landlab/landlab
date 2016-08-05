@@ -517,7 +517,7 @@ def argsort_spokes_at_hub(graph, spoke=None, at='node', badval=None):
     ordered_angles = np.argsort(angles)
     ordered_angles += np.arange(n_hubs).reshape((-1, 1)) * n_spokes
 
-    return ordered_angles
+    return as_id_array(ordered_angles)
 
 
 def calc_angle_of_spoke(graph, spoke=None, at='node', badval=None):
