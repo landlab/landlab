@@ -1,7 +1,25 @@
 import numpy as np
 
 from ..graph import Graph
-from ...grid.structured_quad.links import links_at_node, link_dirs_at_node
+# from ...grid.structured_quad.links import links_at_node, link_dirs_at_node
+from ...utils.decorators import store_result_in_grid
+from .ext.structured_quad import (fill_patches_at_node, fill_patches_at_link,
+                                  fill_nodes_at_link, fill_links_at_patch,
+                                  fill_links_at_node, fill_link_dirs_at_node)
+
+
+def setup_link_dirs_at_node(shape):
+    n_nodes = shape[0] * shape[1]
+    link_dirs_at_node = np.empty((n_nodes , 4), dtype=int)
+    fill_link_dirs_at_node(shape, link_dirs_at_node)
+    return link_dirs_at_node
+
+
+def setup_links_at_node(shape):
+    n_nodes = shape[0] * shape[1]
+    links_at_node = np.empty((n_nodes , 4), dtype=int)
+    fill_links_at_node(shape, links_at_node)
+    return links_at_node
 
 
 def setup_links_at_patch(shape):
@@ -14,17 +32,10 @@ def setup_links_at_patch(shape):
     array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
            [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]])
     """
-    links = np.arange((2 * shape[1] - 1) * shape[0])
-    links[-shape[1]:] = -1
-    links.shape = (shape[0], 2 * shape[1] - 1)
-    horizontal_links = links[:, :shape[1] - 1].reshape(shape[0], shape[1] - 1)
-    vertical_links = links[:-1, - shape[1]:].reshape(shape[0] - 1, shape[1])
-    links_at_patch = np.vstack((vertical_links[:, 1:].flat,
-                                horizontal_links[1:, :].flat,
-                                vertical_links[:, :-1].flat,
-                                horizontal_links[:-1, :].flat)).T
-
-    return links_at_patch.copy(order='C')
+    n_patches = (shape[0] - 1) * (shape[1] - 1)
+    links_at_patch = np.empty((n_patches , 4), dtype=int)
+    fill_links_at_patch(shape, links_at_patch)
+    return links_at_patch
 
 
 def setup_nodes_at_link(shape):
@@ -39,16 +50,27 @@ def setup_nodes_at_link(shape):
            [ 4,  8], [ 5,  9], [ 6, 10], [ 7, 11],
            [ 8,  9], [ 9, 10], [10, 11]])
     """
-    nodes = np.arange((shape[0] + 1) * shape[1]).reshape((shape[0] + 1,
-                                                          shape[1]))
-    nodes[-1, :] = -1
+    n_links = shape[0] * (shape[1] - 1) +  (shape[0] - 1) * shape[1]
+    nodes_at_link = np.empty((n_links , 2), dtype=int)
+    fill_nodes_at_link(shape, nodes_at_link)
 
-    link_tails = np.hstack((nodes[:-1, :-1], nodes[:-1, :]))
-    link_heads = np.hstack((nodes[:-1, 1:], nodes[1:, :]))
+    return nodes_at_link
 
-    nodes_at_link = np.vstack((link_tails.flat, link_heads.flat))
 
-    return nodes_at_link.T[:- (shape[1])].copy(order='C')
+def setup_patches_at_node(shape):
+    n_nodes = shape[0] * shape[1]
+    patches_at_node = np.empty((n_nodes , 4), dtype=int)
+    fill_patches_at_node(shape, patches_at_node)
+
+    return patches_at_node
+
+
+def setup_patches_at_link(shape):
+    n_links = shape[0] * (shape[1] - 1) +  (shape[0] - 1) * shape[1]
+    patches_at_link = np.empty((n_links , 2), dtype=int)
+    fill_patches_at_link(shape, patches_at_link)
+
+    return patches_at_link
 
 
 class StructuredQuadGraph(Graph):
@@ -110,8 +132,10 @@ class StructuredQuadGraph(Graph):
 
     def _create_links_and_dirs_at_node(self):
         """Set up node-link data structures."""
-        self._links_at_node = links_at_node(self.shape)
-        self._link_dirs_at_node = link_dirs_at_node(self.shape)
+        # self._links_at_node = links_at_node(self.shape)
+        # self._link_dirs_at_node = link_dirs_at_node(self.shape)
+        self._links_at_node = setup_links_at_node(self.shape)
+        self._link_dirs_at_node = setup_link_dirs_at_node(self.shape)
         return (self._links_at_node, self._link_dirs_at_node)
 
     # def _setup_links_at_node(self):
@@ -122,6 +146,16 @@ class StructuredQuadGraph(Graph):
     @property
     def shape(self):
         return self._shape
+
+    @property
+    @store_result_in_grid()
+    def patches_at_node(self):
+        return setup_patches_at_node(self.shape)
+
+    @property
+    @store_result_in_grid()
+    def patches_at_link(self):
+        return setup_patches_at_link(self.shape)
 
 
 class RectilinearGraph(StructuredQuadGraph):
