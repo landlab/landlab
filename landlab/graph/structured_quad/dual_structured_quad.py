@@ -141,11 +141,11 @@ def get_node_at_cell(shape):
            13, 14, 15, 16,
            19, 20, 21, 22])
     """
-    from .ext.structured_quad import get_node_at_cell
+    from .ext.at_cell import fill_node_at_cell
 
     node_at_cell = np.empty((shape[0] - 2) * (shape[1] - 2), dtype=int)
 
-    get_node_at_cell(shape, node_at_cell)
+    fill_node_at_cell(shape, node_at_cell)
 
     return node_at_cell
 
@@ -161,11 +161,11 @@ def get_nodes_at_face(shape):
            [ 4,  5], [ 5,  6], [ 6,  7],
            [ 5,  9], [ 6, 10]])
     """
-    from .ext.structured_quad import get_nodes_at_face
+    from .ext.at_face import fill_nodes_at_face
 
     n_faces = (shape[1] - 2) * (shape[0] - 1) + (shape[0] - 2) * (shape[1] - 1)
     nodes_at_face = np.empty((n_faces, 2), dtype=int)
-    get_nodes_at_face(shape, nodes_at_face)
+    fill_nodes_at_face(shape, nodes_at_face)
 
     return nodes_at_face
 

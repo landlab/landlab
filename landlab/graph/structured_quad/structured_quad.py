@@ -1,11 +1,11 @@
 import numpy as np
 
 from ..graph import Graph
-# from ...grid.structured_quad.links import links_at_node, link_dirs_at_node
 from ...utils.decorators import store_result_in_grid
-from .ext.structured_quad import (fill_patches_at_node, fill_patches_at_link,
-                                  fill_nodes_at_link, fill_links_at_patch,
-                                  fill_links_at_node, fill_link_dirs_at_node)
+from .ext.at_node import (fill_patches_at_node, fill_links_at_node,
+                          fill_link_dirs_at_node)
+from .ext.at_link import fill_patches_at_link, fill_nodes_at_link
+from .ext.at_patch import fill_links_at_patch
 
 
 def setup_link_dirs_at_node(shape):
