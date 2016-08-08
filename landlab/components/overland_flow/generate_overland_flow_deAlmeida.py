@@ -163,9 +163,9 @@ class OverlandFlow(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, default_fixed_links=False, h_init=0.00001,
-                 alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
-                 rainfall_intensity=0.0, steep_slopes=False, **kwds):
+    def __init__(self, grid, default_fixed_links=False, h_init=0.00001, alpha=0.7,
+                 mannings_n=0.03, g=9.81, theta=0.8, rainfall_intensity=0.0,
+                 steep_slopes = False, **kwds):
         """Create a overland flow component.
 
         Parameters
