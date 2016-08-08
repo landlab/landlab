@@ -131,8 +131,6 @@ import pylab as plt
 
 _USE_CYTHON = True
 
-_LEAN_RUN = False
-
 if _USE_CYTHON:
     from .cfuncs import (update_link_states_and_transitions,
                          get_next_event, run_cts, run_cts_lean)
@@ -522,6 +520,13 @@ class CellLabCTSModel(object):
         else:
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
+            
+        # Determine and remember whether we will handle property swaps and/or
+        # callbacks in this model.
+        if np.amax(self.xn_propswap) > 0:
+            self._use_propswap_or_callback = True
+        else:
+            self._use_propswap_or_callback = False
 
     def set_node_state_grid(self, node_states):
         """Set the grid of node-state codes to node_states.
@@ -668,7 +673,7 @@ class CellLabCTSModel(object):
         self.xn_rate = np.zeros((self.num_link_states, max_transitions))
         self.xn_propswap = np.zeros(
             (self.num_link_states, max_transitions), dtype=np.int8)
-        self.xn_prop_update_fn = np.empty(
+        self.xn_prop_update_fn = np.zeros(
             (self.num_link_states, max_transitions), dtype=object)
 
         # Populate the "to" and "rate" arrays
@@ -680,8 +685,10 @@ class CellLabCTSModel(object):
             self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
             self.xn_propswap[from_state][
                 self.n_xn[from_state]] = xn.swap_properties
-            self.xn_prop_update_fn[from_state][
-                self.n_xn[from_state]] = xn.prop_update_fn
+            if xn.prop_update_fn is not None:
+                self.xn_prop_update_fn[from_state][
+                    self.n_xn[from_state]] = xn.prop_update_fn
+                self._use_propswap_or_callback = True
             self.n_xn[from_state] += 1
 
         if False and _DEBUG:
@@ -1133,9 +1140,13 @@ class CellLabCTSModel(object):
         """
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
+            
+        if plot_each_transition or self._use_propswap_or_callback:
+            lean_run = False
+        else:
+            lean_run = True
 
-        if _USE_CYTHON and not _LEAN_RUN:
-            print("****BIG FROG***")
+        if _USE_CYTHON and not lean_run:
             self.current_time = run_cts(run_to, self.current_time,
                plot_each_transition,
                plotter,
@@ -1161,8 +1172,7 @@ class CellLabCTSModel(object):
                self.xn_prop_update_fn,
                self.bnd_lnk,
                self)
-        if _USE_CYTHON and _LEAN_RUN:
-            print("****BIG TOAD***")
+        elif _USE_CYTHON and lean_run:
             self.current_time = run_cts_lean(run_to, self.current_time,
                self.event_queue,
                self.next_update,                  
