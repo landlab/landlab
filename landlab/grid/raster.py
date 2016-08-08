@@ -485,7 +485,7 @@ from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
-                   FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
+                   FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
                    CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK,
                    INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
@@ -3398,8 +3398,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         these_linked_nodes = np.array([])
 
         if top_bottom_are_looped:
-            self._node_status[bottom_edge] = TRACKS_CELL_BOUNDARY
-            self._node_status[top_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[bottom_edge] = LOOPED_BOUNDARY
+            self._node_status[top_edge] = LOOPED_BOUNDARY
             these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                                  bottom_edge, top_edge))
             these_linked_nodes = np.concatenate((
@@ -3408,8 +3408,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 bottom_edge + self.number_of_node_columns))
 
         if sides_are_looped:
-            self._node_status[right_edge] = TRACKS_CELL_BOUNDARY
-            self._node_status[left_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[right_edge] = LOOPED_BOUNDARY
+            self._node_status[left_edge] = LOOPED_BOUNDARY
             these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                                  left_edge, right_edge))
             these_linked_nodes = np.concatenate((
@@ -3618,7 +3618,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if bc is None:
             bc = self.default_bc
 
-        inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
+        inds = (bc.boundary_code[id] == bc.LOOPED_BOUNDARY)
         u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
 
         return u
