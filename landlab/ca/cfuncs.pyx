@@ -582,3 +582,326 @@ cpdef double run_cts(double run_to, double current_time,
             current_time = run_to
 
     return current_time
+
+
+@cython.boundscheck(False)
+cpdef get_next_event_lean(DTYPE_INT_t link, DTYPE_INT_t current_state, 
+                   DTYPE_t current_time, 
+                   np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                   np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                   np.ndarray[DTYPE_t, ndim=2] xn_rate):
+    """Get the next event for a link.
+
+    Returns the next event for link with ID "link", which is in state
+    "current state".
+
+    Parameters
+    ----------
+    link : int
+        ID of the link
+    current_state : int
+        Current state code for the link
+    current_time : float
+        Current time in simulation (i.e., time of event just processed)
+
+    Returns
+    -------
+    Event object
+        The returned Event object contains the time, link ID, and type of
+        the next transition event at this link.
+
+    Notes
+    -----
+    If there is only one potential transition out of the current state, a
+    time for the transition is selected at random from an exponential
+    distribution with rate parameter appropriate for this transition.
+
+    If there are more than one potential transitions, a transition time is
+    chosen for each, and the smallest of these applied.
+
+    Assumes that there is at least one potential transition from the
+    current state.
+    """
+    cdef int my_xn_to
+    cdef int i
+    cdef char propswap
+    cdef double next_time, this_next
+    cdef Event my_event
+
+    # Find next event time for each potential transition
+    if n_xn[current_state] == 1:
+        my_xn_to = xn_to[current_state, 0]
+        next_time = np.random.exponential(1.0 / xn_rate[current_state, 0])
+    else:
+        next_time = _NEVER
+        my_xn_to = 0
+        for i in range(n_xn[current_state]):
+            this_next = np.random.exponential(1.0 / xn_rate[current_state, i])
+            if this_next < next_time:
+                next_time = this_next
+                my_xn_to = xn_to[current_state, i]
+
+    # Create and setup event, and return it
+    my_event = Event(next_time + current_time, link, my_xn_to)
+
+    if _DEBUG:
+        print('get_next_event():')
+        print(('  next_time:', my_event.time))
+        print(('  link:', my_event.link))
+        print(('  xn_to:', my_event.xn_to))
+        print(('  propswap:', my_event.propswap))
+
+    return my_event
+
+
+@cython.boundscheck(False)
+cdef void update_link_state_lean(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
+                      DTYPE_t current_time,
+                      np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                      np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                      DTYPE_INT_t num_node_states,
+                      DTYPE_INT_t num_node_states_sq,
+                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                      np.ndarray[DTYPE_INT_t, ndim=1] n_xn, event_queue,
+                      np.ndarray[DTYPE_t, ndim=1] next_update,
+                      np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                      np.ndarray[DTYPE_t, ndim=2] xn_rate):
+    """
+    Implements a link transition by updating the current state of the link
+    and (if appropriate) choosing the next transition event and pushing it
+    on to the event queue.
+
+    Parameters
+    ----------
+    link : int
+        ID of the link to update
+    new_link_state : int
+        Code for the new state
+    current_time : float
+        Current time in simulation
+    """
+    cdef int fns, tns
+    cdef int orientation
+    cdef Event event
+
+    # If the link connects to a boundary, we might have a different state
+    # than the one we planned
+    if bnd_lnk[link]:
+        fns = node_state[node_at_link_tail[link]]
+        tns = node_state[node_at_link_head[link]]
+        orientation = link_orientation[link]
+        new_link_state = orientation * num_node_states_sq + \
+            fns * num_node_states + tns
+
+    link_state[link] = new_link_state
+    if n_xn[new_link_state] > 0:
+        event = get_next_event_lean(link, new_link_state, current_time, n_xn, xn_to,
+                               xn_rate)
+        heappush(event_queue, event)
+        next_update[link] = event.time
+    else:
+        next_update[link] = _NEVER
+
+
+@cython.boundscheck(False)
+cdef void do_transition_lean(Event event,
+                  np.ndarray[DTYPE_t, ndim=1] next_update,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
+                  np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                  np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                  np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                  np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                  np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
+                  np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
+                  DTYPE_INT_t num_node_states,
+                  DTYPE_INT_t num_node_states_sq,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                  object event_queue):
+    """Transition state.
+
+    Implements a state transition.
+
+    Parameters
+    ----------
+    event : Event object
+        Event object containing the data for the current transition event
+    plot_each_transition : bool (optional)
+        True if caller wants to show a plot of the grid after this
+        transition
+    plotter : CAPlotter object
+        Sent if caller wants a plot after this transition
+
+    Notes
+    -----
+    First checks that the transition is still valid by comparing the
+    link's next_update time with the corresponding update time in the
+    event object.
+
+    If the transition is valid, we:
+
+    1. Update the states of the two nodes attached to the link
+    2. Update the link's state, choose its next transition, and push
+       it on the event queue.
+    3. Update the states of the other links attached to the two nodes,
+       choose their next transitions, and push them on the event queue.
+    """
+    cdef int tail_node, head_node  # IDs of tail and head nodes at link
+    cdef int old_tail_node_state
+    cdef int old_head_node_state
+    cdef int this_link_tail_node   # Tail ID for an adjacent link
+    cdef int this_link_head_node   # Head ID for an adjacent link
+    cdef int link                  # ID of a link
+    cdef int new_link_state        # New link state after transition
+    cdef int tmp                   # Used to exchange property IDs
+    cdef char tail_changed, head_changed,  # Booleans
+    cdef char dir_code             # Direction code for link at node
+    cdef char orientation          # Orientation code for link
+    cdef int i
+
+    # We'll process the event if its update time matches the one we have
+    # recorded for the link in question. If not, it means that the link has
+    # changed state since the event was pushed onto the event queue, and
+    # in that case we'll ignore it.
+    if event.time == next_update[event.link]:
+
+        tail_node = node_at_link_tail[event.link]
+        head_node = node_at_link_head[event.link]
+
+        # Remember the previous state of each node so we can detect whether the
+        # state has changed
+        old_tail_node_state = node_state[tail_node]
+        old_head_node_state = node_state[head_node]
+
+        update_node_states(node_state, status_at_node, tail_node,
+                           head_node, event.xn_to, num_node_states)
+        update_link_state_lean(event.link, event.xn_to, event.time,
+                          bnd_lnk, node_state,
+                          node_at_link_tail,
+                          node_at_link_head,
+                          link_orientation, num_node_states,
+                          num_node_states_sq, link_state,
+                          n_xn, event_queue,
+                          next_update, xn_to, xn_rate)
+
+        # Next, when the state of one of the link's nodes changes, we have
+        # to update the states of the OTHER links attached to it. This
+        # could happen to one or both nodes.
+        if node_state[tail_node] != old_tail_node_state:
+
+            for i in range(links_at_node.shape[1]):
+
+                link = links_at_node[tail_node, i]
+                dir_code = active_link_dirs_at_node[tail_node, i]
+
+                if dir_code != 0 and link != event.link:
+
+                    this_link_tail_node = node_at_link_tail[link]
+                    this_link_head_node = node_at_link_head[link]
+                    orientation = link_orientation[link]
+                    new_link_state = (
+                        orientation * num_node_states_sq +
+                        node_state[this_link_tail_node] * num_node_states +
+                        node_state[this_link_head_node])
+                    update_link_state_lean(link, new_link_state, event.time,
+                                      bnd_lnk, node_state,
+                                      node_at_link_tail,
+                                      node_at_link_head,
+                                      link_orientation, num_node_states,
+                                      num_node_states_sq, link_state,
+                                      n_xn, event_queue,
+                                      next_update, xn_to, xn_rate)
+
+        if node_state[head_node] != old_head_node_state:
+
+            for i in range(links_at_node.shape[1]):
+
+                link = links_at_node[head_node, i]
+                dir_code = active_link_dirs_at_node[head_node, i]
+
+                if dir_code != 0 and link != event.link:
+                    this_link_tail_node = node_at_link_tail[link]
+                    this_link_head_node = node_at_link_head[link]
+                    orientation = link_orientation[link]
+                    new_link_state = (
+                        orientation * num_node_states_sq +
+                        node_state[this_link_tail_node] * num_node_states +
+                        node_state[this_link_head_node])
+                    update_link_state_lean(link, new_link_state, event.time,
+                                      bnd_lnk, node_state,
+                                      node_at_link_tail,
+                                      node_at_link_head,
+                                      link_orientation, num_node_states,
+                                      num_node_states_sq, link_state,
+                                      n_xn, event_queue,
+                                      next_update, xn_to, xn_rate)
+
+
+cpdef double run_cts_lean(double run_to, double current_time,
+                     object event_queue,
+                     np.ndarray[DTYPE_t, ndim=1] next_update,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
+                     np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                     np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
+                     np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
+                     np.ndarray[DTYPE_t, ndim=2] xn_rate, 
+                     np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
+                     np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
+                     DTYPE_INT_t num_node_states,
+                     DTYPE_INT_t num_node_states_sq,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk):
+    """Run the model forward for a specified period of time.
+
+    Parameters
+    ----------
+    run_to : float
+        Time to run to, starting from self.current_time
+    node_state_grid : 1D array of ints (x number of nodes) (optional)
+        Node states (if given, replaces model's current node state grid)
+    plot_each_transition : bool (optional)
+        Option to display the grid after each transition
+    plotter : CAPlotter object (optional)
+        Needed if caller wants to plot after every transition
+    """
+    cdef Event ev
+
+    # Continue until we've run out of either time or events
+    while current_time < run_to and event_queue:
+
+        # Is there an event scheduled to occur within this run?
+        if event_queue[0].time <= run_to:
+
+            # If so, pick the next transition event from the event queue
+            ev = heappop(event_queue)
+
+            # ... and execute the transition
+            do_transition_lean(ev, next_update,
+                              node_at_link_tail,
+                              node_at_link_head,
+                              node_state, link_state,
+                              status_at_node, link_orientation,
+                              n_xn, xn_to, xn_rate,
+                              links_at_node,
+                              active_link_dirs_at_node,
+                              num_node_states, num_node_states_sq,
+                              bnd_lnk, event_queue)
+
+            # Update current time
+            current_time = ev.time
+            
+        # If there is no event scheduled for this span of time, simply
+        # advance current_time to the end of the current run period.
+        else:
+            current_time = run_to
+
+    return current_time

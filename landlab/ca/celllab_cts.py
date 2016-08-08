@@ -131,9 +131,11 @@ import pylab as plt
 
 _USE_CYTHON = True
 
+_LEAN_RUN = False
+
 if _USE_CYTHON:
     from .cfuncs import (update_link_states_and_transitions,
-                         get_next_event, run_cts)
+                         get_next_event, run_cts, run_cts_lean)
 
 _NEVER = 1e50
 
@@ -1131,9 +1133,10 @@ class CellLabCTSModel(object):
         """
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
-       
-        if _USE_CYTHON:
-            run_cts(run_to, self.current_time,
+
+        if _USE_CYTHON and not _LEAN_RUN:
+            print("****BIG FROG***")
+            self.current_time = run_cts(run_to, self.current_time,
                plot_each_transition,
                plotter,
                self.event_queue,
@@ -1158,6 +1161,25 @@ class CellLabCTSModel(object):
                self.xn_prop_update_fn,
                self.bnd_lnk,
                self)
+        if _USE_CYTHON and _LEAN_RUN:
+            print("****BIG TOAD***")
+            self.current_time = run_cts_lean(run_to, self.current_time,
+               self.event_queue,
+               self.next_update,                  
+               self.grid.node_at_link_tail,                  
+               self.grid.node_at_link_head,                  
+               self.node_state,            
+               self.link_state,
+               self.grid.status_at_node,
+               self.link_orientation,
+               self.n_xn,
+               self.xn_to,
+               self.xn_rate, 
+               self.grid.links_at_node,
+               self.grid.active_link_dirs_at_node,
+               self.num_node_states,
+               self.num_node_states_sq,
+               self.bnd_lnk)
         else:
     
             # Continue until we've run out of either time or events
@@ -1175,35 +1197,18 @@ class CellLabCTSModel(object):
                     if _DEBUG:
                         print('Event:', ev.time, ev.link, ev.xn_to)
         
-                    # ... and execute the transition
-#                    do_transition(ev, self.next_update,
-#                                  self.grid.node_at_link_tail,
-#                                  self.grid.node_at_link_head,
-#                                  self.node_state, self.link_state,
-#                                  self.san, self.link_orientation,
-#                                  self.propid, self.prop_data,
-#                                  self.n_xn, self.xn_to, self.xn_rate,
-#                                  self.grid.links_at_node,
-#                                  self.grid.active_link_dirs_at_node,
-#                                  self.num_node_states, self.num_node_states_sq,
-#                                  self.prop_reset_value, self.xn_propswap,
-#                                  self.xn_prop_update_fn,
-#                                  self.bnd_lnk, self.event_queue,
-#                                  self,
-#                                  plot_each_transition,
-#                                  plotter)
                     self.do_transition(ev, self.current_time,
                                        plot_each_transition, plotter)
 
-                # Update current time
-                self.current_time = ev.time
+                    # Update current time
+                    self.current_time = ev.time
                 
-            # If there is no event scheduled for this span of time, simply
-            # advance current_time to the end of the current run period.
-            else:
-                self.current_time = run_to
-
-
+                # If there is no event scheduled for this span of time, simply
+                # advance current_time to the end of the current run period.
+                else:
+                    self.current_time = run_to
+    
+    
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
