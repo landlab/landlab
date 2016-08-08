@@ -163,9 +163,9 @@ class OverlandFlow(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, use_fixed_links=False, h_init=0.00001, alpha=0.7,
-                 mannings_n=0.03, g=9.81, theta=0.8, rainfall_intensity=0.0,
-                 steep_slopes = False, **kwds):
+    def __init__(self, grid, default_fixed_links=False, h_init=0.00001,
+                 alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
+                 rainfall_intensity=0.0, steep_slopes=False, **kwds):
         """Create a overland flow component.
 
         Parameters
@@ -255,7 +255,7 @@ class OverlandFlow(Component):
         # too? By default, we ignore these, but if they are important to your
         # model and will be updated in your driver loop, they can be used by
         # setting the flag in the initialization of  the class to 'True'
-        self.use_fixed_links = use_fixed_links
+        self.default_fixed_links = default_fixed_links
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
@@ -299,7 +299,7 @@ class OverlandFlow(Component):
         self.vertical_active_link_ids = links.vertical_active_link_ids(
             self.grid.shape, self.active_ids)
 
-        if self.use_fixed_links is True:
+        if self.default_fixed_links is True:
             fixed_link_ids = links.fixed_link_ids(
                 self.grid.shape, self.grid.status_at_node)
             fixed_horizontal_links = links.horizontal_fixed_link_ids(
@@ -389,7 +389,7 @@ class OverlandFlow(Component):
         # If the user chooses to set boundary links to the neighbor value, we
         # set the discharge array to have the boundary links set to their
         # neighbor value
-        if self.use_fixed_links is True:
+        if self.default_fixed_links is True:
             self.q[self.grid.fixed_links] = self.q[self.active_neighbors]
 
         # Now we can calculate discharge. To handle links with neighbors that
@@ -432,7 +432,7 @@ class OverlandFlow(Component):
 
         # Updating the discharge array to have the boundary links set to
         # their neighbor
-        if self.use_fixed_links is True:
+        if self.default_fixed_links is True:
             self.q[self.grid.fixed_links] = self.q[self.active_neighbors]
 
         if self.steep_slopes is True:

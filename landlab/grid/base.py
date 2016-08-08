@@ -319,7 +319,6 @@ nodes.
     ~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link
     ~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node
 
-
 Boundary condition control
 --------------------------
 
