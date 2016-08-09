@@ -84,6 +84,27 @@ def _parse_sorting_opt(sorting):
     return as_dict
 
 
+def find_perimeter_nodes(graph):
+    """Find nodes on the perimeter of a graph.
+
+    Uses a convex hull to locate the perimeter nodes of a graph.
+
+    Parameters
+    ----------
+    graph : graph_like
+        A Graph of nodes (just requires *xy_of_node*).
+
+    Returns
+    -------
+    ndarray of int
+        Identifiers of the perimeter nodes.
+    """
+    from scipy.spatial import ConvexHull
+
+    hull = ConvexHull(graph.xy_of_node, qhull_options='Qt')
+    return as_id_array(hull.vertices)
+
+
 class Graph(object):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
@@ -211,6 +232,11 @@ class Graph(object):
         array([0, 1, 2, 3, 4, 5])
         """
         return self._nodes
+
+    @property
+    @store_result_in_grid()
+    def perimeter_nodes(self):
+        return find_perimeter_nodes(self)
 
     @property
     def number_of_nodes(self):
