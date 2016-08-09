@@ -9,6 +9,8 @@ cimport numpy as np
 cimport cython
 from landlab import CORE_NODE
 from _heapq import heappush, heappop
+from libc.stdlib cimport rand
+from libc.math cimport log
 
 cdef double _NEVER = 1.0e50
 
@@ -102,6 +104,7 @@ cdef class Event:
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cdef int current_link_state(DTYPE_INT_t link_id,
                        np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
                        np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
@@ -121,7 +124,19 @@ cdef int current_link_state(DTYPE_INT_t link_id,
     ----------
     link_id : int
         ID of the active link to test
-
+    node_state : array of int
+        State codes of nodes
+    node_at_link_tail : array of int
+        ID of node at link tails
+    node_at_link_head : array of int
+        ID of node at link heads
+    link_orientation : array of 1-byte int
+        Orientation codes: 0, 1, or (with hex) 2
+    num_nodes_states : int
+        Total number of possible node states
+    num_node_states_sq : int
+        Square of number of node states (precomputed for speed)
+    
     Returns
     -------
     int
@@ -141,6 +156,7 @@ cdef int current_link_state(DTYPE_INT_t link_id,
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef update_link_states_and_transitions(
                              np.ndarray[DTYPE_INT_t, ndim=1] active_links,
                              np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
@@ -192,13 +208,14 @@ cpdef update_link_states_and_transitions(
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
                        DTYPE_INT_t head_node,
                        DTYPE_INT_t new_link_state,
                        DTYPE_INT_t num_states):
-
+    """Update the states of 2 nodes that underwent a transition."""
     # Change to the new states
     if status_at_node[tail_node] == _CORE:
         node_state[tail_node] = (new_link_state // num_states) % num_states
@@ -207,6 +224,7 @@ cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
                    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
@@ -227,6 +245,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
         Current state code for the link
     current_time : float
         Current time in simulation (i.e., time of event just processed)
+    (see celllab_cts.py for other parameters)
 
     Returns
     -------
@@ -257,6 +276,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
         my_xn_to = xn_to[current_state, 0]
         propswap = xn_propswap[current_state, 0]
         next_time = np.random.exponential(1.0 / xn_rate[current_state, 0])
+        #next_time = -(1.0 / xn_rate[current_state, 0]) * log(1.0 - rand())
         prop_update_fn = xn_prop_update_fn[current_state, 0]
     else:
         next_time = _NEVER
@@ -264,6 +284,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
         propswap = 0
         for i in range(n_xn[current_state]):
             this_next = np.random.exponential(1.0 / xn_rate[current_state, i])
+            #this_next = -(1.0 / xn_rate[current_state, i]) * log(1.0 - rand())
             if this_next < next_time:
                 next_time = this_next
                 my_xn_to = xn_to[current_state, i]
@@ -274,17 +295,11 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     my_event = Event(next_time + current_time, link,
                      my_xn_to, propswap, prop_update_fn)
 
-    if _DEBUG:
-        print('get_next_event():')
-        print(('  next_time:', my_event.time))
-        print(('  link:', my_event.link))
-        print(('  xn_to:', my_event.xn_to))
-        print(('  propswap:', my_event.propswap))
-
     return my_event
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -314,6 +329,7 @@ cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         Code for the new state
     current_time : float
         Current time in simulation
+    (see celllab_cts.py for other parameters)
     """
     cdef int fns, tns
     cdef int orientation
@@ -339,6 +355,7 @@ cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cdef void do_transition(Event event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
@@ -377,6 +394,7 @@ cdef void do_transition(Event event,
         transition
     plotter : CAPlotter object
         Sent if caller wants a plot after this transition
+    (see celllab_cts.py for other parameters)
 
     Notes
     -----
@@ -543,6 +561,7 @@ cpdef double run_cts(double run_to, double current_time,
         Option to display the grid after each transition
     plotter : CAPlotter object (optional)
         Needed if caller wants to plot after every transition
+    (see celllab_cts.py for other parameters)
     """
     cdef Event ev
 
@@ -585,6 +604,7 @@ cpdef double run_cts(double run_to, double current_time,
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef get_next_event_lean(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
                    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
@@ -593,7 +613,8 @@ cpdef get_next_event_lean(DTYPE_INT_t link, DTYPE_INT_t current_state,
     """Get the next event for a link.
 
     Returns the next event for link with ID "link", which is in state
-    "current state".
+    "current state". This "lean" version omits parameters related to property
+    exchange and callback function.
 
     Parameters
     ----------
@@ -603,6 +624,7 @@ cpdef get_next_event_lean(DTYPE_INT_t link, DTYPE_INT_t current_state,
         Current state code for the link
     current_time : float
         Current time in simulation (i.e., time of event just processed)
+    (see celllab_cts.py for other parameters)
 
     Returns
     -------
@@ -632,11 +654,13 @@ cpdef get_next_event_lean(DTYPE_INT_t link, DTYPE_INT_t current_state,
     if n_xn[current_state] == 1:
         my_xn_to = xn_to[current_state, 0]
         next_time = np.random.exponential(1.0 / xn_rate[current_state, 0])
+        #next_time = -(1.0 / xn_rate[current_state, 0]) * log(1.0 - rand())
     else:
         next_time = _NEVER
         my_xn_to = 0
         for i in range(n_xn[current_state]):
             this_next = np.random.exponential(1.0 / xn_rate[current_state, i])
+            #this_next = -(1.0 / xn_rate[current_state, i]) * log(1.0 - rand())
             if this_next < next_time:
                 next_time = this_next
                 my_xn_to = xn_to[current_state, i]
@@ -644,17 +668,11 @@ cpdef get_next_event_lean(DTYPE_INT_t link, DTYPE_INT_t current_state,
     # Create and setup event, and return it
     my_event = Event(next_time + current_time, link, my_xn_to)
 
-    if _DEBUG:
-        print('get_next_event():')
-        print(('  next_time:', my_event.time))
-        print(('  link:', my_event.link))
-        print(('  xn_to:', my_event.xn_to))
-        print(('  propswap:', my_event.propswap))
-
     return my_event
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cdef void update_link_state_lean(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -672,7 +690,8 @@ cdef void update_link_state_lean(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     """
     Implements a link transition by updating the current state of the link
     and (if appropriate) choosing the next transition event and pushing it
-    on to the event queue.
+    on to the event queue. This "lean" version omits parameters related to 
+    property exchange and callback function.
 
     Parameters
     ----------
@@ -682,6 +701,7 @@ cdef void update_link_state_lean(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         Code for the new state
     current_time : float
         Current time in simulation
+    (see celllab_cts.py for other parameters)
     """
     cdef int fns, tns
     cdef int orientation
@@ -707,6 +727,7 @@ cdef void update_link_state_lean(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cdef void do_transition_lean(Event event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
@@ -726,17 +747,14 @@ cdef void do_transition_lean(Event event,
                   object event_queue):
     """Transition state.
 
-    Implements a state transition.
+    Implements a state transition. This "lean" version omits parameters related
+    to property exchange and callback function.
 
     Parameters
     ----------
     event : Event object
         Event object containing the data for the current transition event
-    plot_each_transition : bool (optional)
-        True if caller wants to show a plot of the grid after this
-        transition
-    plotter : CAPlotter object
-        Sent if caller wants a plot after this transition
+    (see celllab_cts.py for other parameters)
 
     Notes
     -----
@@ -843,6 +861,7 @@ cdef void do_transition_lean(Event event,
                                       next_update, xn_to, xn_rate)
 
 
+@cython.boundscheck(False)
 cpdef double run_cts_lean(double run_to, double current_time,
                      object event_queue,
                      np.ndarray[DTYPE_t, ndim=1] next_update,                  
@@ -860,18 +879,14 @@ cpdef double run_cts_lean(double run_to, double current_time,
                      DTYPE_INT_t num_node_states,
                      DTYPE_INT_t num_node_states_sq,
                      np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk):
-    """Run the model forward for a specified period of time.
+    """Run the model forward for a specified period of time. This "lean"
+    version omits parameters related to property exchange and callback fn.
 
     Parameters
     ----------
     run_to : float
         Time to run to, starting from self.current_time
-    node_state_grid : 1D array of ints (x number of nodes) (optional)
-        Node states (if given, replaces model's current node state grid)
-    plot_each_transition : bool (optional)
-        Option to display the grid after each transition
-    plotter : CAPlotter object (optional)
-        Needed if caller wants to plot after every transition
+    (see celllab_cts.py for other parameters)
     """
     cdef Event ev
 
