@@ -8,21 +8,31 @@ import numpy as np
 from landlab.graph import HexGraph, DualHexGraph
 
 
-def test_create():
-    """Test creating a hex graph."""
-    graph = HexGraph((3, 2))
+def test_create_rect():
+    """Test creating a hex graph with rectangular layout."""
+    graph = HexGraph((3, 2), node_layout='rect')
+
+    assert_equal(graph.number_of_nodes, 6)
+    assert_equal(graph.number_of_links, 9)
+    assert_equal(graph.number_of_patches, 4)
+
+
+def test_create_hex():
+    """Test creating a hex graph with hex layout."""
+    graph = HexGraph((3, 2), node_layout='hex')
 
     assert_equal(graph.number_of_nodes, 7)
     assert_equal(graph.number_of_links, 12)
     assert_equal(graph.number_of_patches, 6)
 
 
-def test_origin():
-    """Test spacing of nodes."""
-    graph = HexGraph((3, 2), origin=(- np.sqrt(3.) / 2., -1.))
+def test_create_rect1():
+    """Test creating a hex graph."""
+    graph = HexGraph((3, 2), node_layout='rect1')
 
-    assert_almost_equal(graph.x_of_node[3], 0.)
-    assert_almost_equal(graph.y_of_node[3], 0.)
+    assert_equal(graph.number_of_nodes, 7)
+    assert_equal(graph.number_of_links, 12)
+    assert_equal(graph.number_of_patches, 6)
 
 
 def test_spacing():
@@ -34,10 +44,35 @@ def test_spacing():
     assert_array_almost_equal(graph.length_of_link, 2.)
 
 
+def test_origin():
+    """Test setting the origin."""
+    graph = HexGraph((4, 3))
+
+    assert_almost_equal(graph.y_of_node[0], 0.)
+    assert_almost_equal(graph.x_of_node[0], 0.)
+
+    graph = HexGraph((4, 3), origin=(.5, .25))
+
+    assert_almost_equal(graph.y_of_node[0], .5)
+    assert_almost_equal(graph.x_of_node[0], .25)
+
+
 def test_orientation():
     """Test vertical and horizontal orientation."""
-    graph = HexGraph((2, 3), orientation='vertical')
-    assert_array_almost_equal(graph.y_of_node, [0., .5, .5, 1., 1.5, 1.5, 2.])
+    graph = HexGraph((3, 3), orientation='vertical')
+    assert_array_almost_equal(graph.y_of_node,
+                              [0., 0., .5, 1., 1., 1.5, 2., 2., 2.5])
 
-    graph = HexGraph((3, 2), orientation='horizontal')
-    assert_array_almost_equal(graph.x_of_node, [.5, 1.5, 0., 1., 2., .5, 1.5])
+    graph = HexGraph((3, 3), orientation='horizontal')
+    assert_array_almost_equal(graph.x_of_node,
+                              [.0, 1., 2., .5, 1.5, 2.5, 0., 1., 2.])
+
+
+def test_perimeter_nodes_rect():
+    graph = HexGraph((3, 4), node_layout='rect')
+    assert_array_equal(graph.perimeter_nodes, [3, 7, 11, 10, 9, 8, 4, 0, 1, 2])
+
+
+def test_perimeter_nodes_hex():
+    graph = HexGraph((4, 2), node_layout='hex')
+    assert_array_equal(graph.perimeter_nodes, [1, 4, 8, 11, 10, 9, 5, 2, 0])

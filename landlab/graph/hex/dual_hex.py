@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..voronoi import DualVoronoiGraph
-from .hex import create_xy_of_node
+from .hex import setup_xy_of_node
 
 
 class DualHexGraph(DualVoronoiGraph):
@@ -24,7 +24,7 @@ class DualHexGraph(DualVoronoiGraph):
     """
 
     def __init__(self, shape, spacing=1., origin=(0., 0.),
-                 orientation='horizontal'):
+                 orientation='horizontal', node_layout='rect'):
         """Create a structured grid of triangles.
 
         Parameters
@@ -43,10 +43,16 @@ class DualHexGraph(DualVoronoiGraph):
         except TypeError:
             raise TypeError('spacing must be a float')
 
-        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing,
-                                                 origin=origin,
-                                                 orientation=orientation)
+        x_of_node, y_of_node = setup_xy_of_node(shape, spacing=spacing,
+                                                origin=origin,
+                                                orientation=orientation,
+                                                node_layout=node_layout)
+
+        if node_layout == 'hex':
+            max_node_spacing = None
+        else:
+            max_node_spacing = shape[1] + 1
 
         super(DualHexGraph, self).__init__(
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
-            min_cell_size=6, max_node_spacing=shape[1] + 1)
+            min_cell_size=6, max_node_spacing=max_node_spacing)
