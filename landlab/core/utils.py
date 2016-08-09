@@ -18,6 +18,7 @@ Landlab utilities
     ~landlab.core.utils.argsort_points_by_x_then_y
     ~landlab.core.utils.sort_points_by_x_then_y
     ~landlab.core.utils.anticlockwise_argsort_points
+    ~landlab.core.utils.get_categories_from_grid_methods
 """
 
 import numpy as np
