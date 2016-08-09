@@ -27,7 +27,7 @@ STANDARD_NAME = {
     'radiation__net_flux': 'earth_surface_radiation~net~total__energy_flux',
     'radiation__net_longwave_flux': 'earth_surface_radiation~net~longwave__energy_flux',
     'radiation__net_shortwave_flux': 'earth_surface_radiation~net~shortwave__energy_flux',
-    'radiation__ratio_to_flat_surface': 'earth_surface_radiation~incoming~shortware-to-flat_surface__energy_flux',
+    'radiation__ratio_to_flat_surface': 'earth_surface_radiation~incoming~shortwave-to-flat_surface__energy_flux',
     'rainfall__daily': 'atmosphere_water__rainfall_volume_flux',
     'sediment_fill__depth': 'land_surface_sediment__deposition_depth',
     'soil_moisture__cumulative_water_stress': 'land_vegetation__time_integral_of_water_stress',
