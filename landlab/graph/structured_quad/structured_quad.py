@@ -3,9 +3,16 @@ import numpy as np
 from ..graph import Graph
 from ...utils.decorators import store_result_in_grid
 from .ext.at_node import (fill_patches_at_node, fill_links_at_node,
-                          fill_link_dirs_at_node)
+                          fill_link_dirs_at_node, fill_perimeter_nodes)
 from .ext.at_link import fill_patches_at_link, fill_nodes_at_link
 from .ext.at_patch import fill_links_at_patch
+
+
+def setup_perimeter_nodes(shape):
+    n_perimeter_nodes = 2 * shape[0] + 2 * (shape[1] - 2)
+    perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
+    fill_perimeter_nodes(shape, perimeter_nodes)
+    return perimeter_nodes
 
 
 def setup_link_dirs_at_node(shape):
@@ -146,6 +153,11 @@ class StructuredQuadGraph(Graph):
     @property
     def shape(self):
         return self._shape
+
+    @property
+    @store_result_in_grid()
+    def perimeter_nodes(self):
+        return setup_perimeter_nodes(self.shape)
 
     @property
     @store_result_in_grid()

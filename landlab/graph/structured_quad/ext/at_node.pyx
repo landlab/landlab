@@ -7,6 +7,36 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
+def fill_perimeter_nodes(shape, np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
+    cdef int n_rows = shape[0]
+    cdef int n_cols = shape[1]
+    cdef int n_nodes = n_rows * n_cols
+    cdef int i
+    cdef int node
+
+    # Right edge
+    i = 0
+    for node in range(n_cols - 1, n_nodes - 1, n_cols):
+        perimeter_nodes[i] = node
+        i += 1
+
+    # Top edge
+    for node in range(n_nodes - 1, n_nodes - n_cols, - 1):
+        perimeter_nodes[i] = node
+        i += 1
+
+    # Left edge
+    for node in range((n_rows - 1) * n_cols, 0, - n_cols):
+        perimeter_nodes[i] = node
+        i += 1
+
+    # Bottom edge
+    for node in range(0, n_cols):
+        perimeter_nodes[i] = node
+        i += 1
+
+
+@cython.boundscheck(False)
 def fill_patches_at_node(shape, np.ndarray[DTYPE_t, ndim=2] patches_at_face):
     cdef int patch
     cdef int node
