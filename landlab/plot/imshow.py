@@ -59,7 +59,7 @@ def imshow_grid_at_node(grid, values, **kwds):
                             norm=[linear], shrink=1.,
                             color_for_closed='black',
                             color_for_background=None,
-                            show_elements=False)
+                            show_elements=False, output=None)
 
     Parameters
     ----------
@@ -105,6 +105,13 @@ def imshow_grid_at_node(grid, values, **kwds):
         If True, and grid is a Voronoi, the faces will be plotted in black
         along with just the colour of the cell, defining the cell outlines
         (defaults False).
+    output : None, string, or bool
+        If None (or False), the image is sent to the imaging buffer to await
+        an explicit call to show() or savefig() from outside this function.
+        If a string, the string should be the path to a save location, and the
+        filename (with file extension). The function will then call
+        plt.savefig([string]) itself. If True, the function will call
+        plt.show() itself once plotting is complete.
     """
     if isinstance(values, str):
         values_at_node = grid.at_node[values]
@@ -150,7 +157,7 @@ def imshow_grid_at_cell(grid, values, **kwds):
                             norm=[linear], shrink=1.,
                             color_for_closed='black',
                             color_for_background=None,
-                            show_elements=False)
+                            show_elements=False, output=None)
 
     Parameters
     ----------
@@ -197,6 +204,13 @@ def imshow_grid_at_cell(grid, values, **kwds):
         If True, and grid is a Voronoi, the faces will be plotted in black
         along with just the colour of the cell, defining the cell outlines
         (defaults False).
+    output : None, string, or bool
+        If None (or False), the image is sent to the imaging buffer to await
+        an explicit call to show() or savefig() from outside this function.
+        If a string, the string should be the path to a save location, and the
+        filename (with file extension). The function will then call
+        plt.savefig([string]) itself. If True, the function will call
+        plt.show() itself once plotting is complete.
 
     Raises
     ------
@@ -242,7 +256,8 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
                         symmetric_cbar=False, cmap='pink', limits=None,
                         allow_colorbar=True, vmin=None, vmax=None,
                         norm=None, shrink=1., color_for_closed='black',
-                        color_for_background=None, show_elements=False):
+                        color_for_background=None, show_elements=False,
+                        output=None):
 
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -379,6 +394,13 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
     if color_for_background is not None:
         plt.gca().set_axis_bgcolor(color_for_background)
 
+    if output is not None:
+        if type(output) is str:
+            plt.savefig(output)
+            plt.clf()
+        elif output:
+            plt.show()
+
 
 def imshow_grid(grid, values, **kwds):
     """Prepare a map view of data over all nodes or cells in the grid.
@@ -462,8 +484,13 @@ def imshow_grid(grid, values, **kwds):
         If True, and grid is a Voronoi, the faces will be plotted in black
         along with just the colour of the cell, defining the cell outlines
         (defaults False).
-    show : bool
-        If True, plot the figure immediately after calling this method.
+    output : None, string, or bool
+        If None (or False), the image is sent to the imaging buffer to await
+        an explicit call to show() or savefig() from outside this function.
+        If a string, the string should be the path to a save location, and the
+        filename (with file extension). The function will then call
+        plt.savefig([string]) itself. If True, the function will call
+        plt.show() itself once plotting is complete.
     """
     show = kwds.pop('show', False)
     values_at = kwds.pop('values_at', 'node')
@@ -482,5 +509,6 @@ def imshow_grid(grid, values, **kwds):
     else:
         raise TypeError('value location %s not understood' % values_at)
 
+    # retained for backwards compatibility:
     if show:
         plt.show()
