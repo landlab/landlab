@@ -5,8 +5,6 @@ cimport cython
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_INT_t
-DTYPE_INTP = np.intp
-ctypedef np.intp_t DTYPE_INTP_t
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
