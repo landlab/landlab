@@ -80,3 +80,27 @@ installfiles.txt
 *.c
 
 landlab/io/mysave.grid
+
+docs/auto_grid_info__BCs.rst
+
+docs/auto_grid_info__cells.rst
+
+docs/auto_grid_info__corners.rst
+
+docs/auto_grid_info__faces.rst
+
+docs/auto_grid_info__grads.rst
+
+docs/auto_grid_info__links.rst
+
+docs/auto_grid_info__mappers.rst
+
+docs/auto_grid_info__nodes.rst
+
+docs/auto_grid_info__patches.rst
+
+docs/auto_grid_info__subsets.rst
+
+docs/auto_grid_info__surf.rst
+
+docs/auto_grid_info__whole.rst

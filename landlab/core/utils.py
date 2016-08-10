@@ -18,6 +18,7 @@ Landlab utilities
     ~landlab.core.utils.argsort_points_by_x_then_y
     ~landlab.core.utils.sort_points_by_x_then_y
     ~landlab.core.utils.anticlockwise_argsort_points
+    ~landlab.core.utils.get_categories_from_grid_methods
 """
 
 import numpy as np
@@ -460,33 +461,33 @@ def sort_points_by_x_then_y(pts):
 
 def anticlockwise_argsort_points(pts, midpt=None):
     """Argort points into anticlockwise order around a supplied center.
-
-    Sorts CCW from east. Assumes a convex hull.
-
-    Parameters
-    ----------
-    pts : Nx2 NumPy array of float
+        
+        Sorts CCW from east. Assumes a convex hull.
+        
+        Parameters
+        ----------
+        pts : Nx2 NumPy array of float
         (x,y) points to be sorted
-    midpt : len-2 NumPy array of float (optional)
+        midpt : len-2 NumPy array of float (optional)
         (x, y) of point about which to sort. If not provided, mean of pts is
         used.
-
-    Returns
-    -------
-    pts : Nx2 NumPy array of float
+        
+        Returns
+        -------
+        pts : Nx2 NumPy array of float
         sorted (x,y) points
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.core.utils import anticlockwise_argsort_points
-    >>> pts = np.zeros((4, 2))
-    >>> pts[:,0] = np.array([-3., -1., -1., -3.])
-    >>> pts[:,1] = np.array([-1., -3., -1., -3.])
-    >>> sortorder = anticlockwise_argsort_points(pts)
-    >>> np.all(sortorder == np.array([2, 0, 3, 1]))
-    True
-    """
+        
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.core.utils import anticlockwise_argsort_points
+        >>> pts = np.zeros((4, 2))
+        >>> pts[:,0] = np.array([-3., -1., -1., -3.])
+        >>> pts[:,1] = np.array([-1., -3., -1., -3.])
+        >>> sortorder = anticlockwise_argsort_points(pts)
+        >>> np.all(sortorder == np.array([2, 0, 3, 1]))
+        True
+        """
     if midpt is None:
         midpt = pts.mean(axis=0)
     assert len(midpt) == 2
@@ -494,6 +495,98 @@ def anticlockwise_argsort_points(pts, midpt=None):
     theta = theta % (2.*np.pi)
     sortorder = np.argsort(theta)
     return sortorder
+
+
+def get_categories_from_grid_methods(grid_type):
+    """
+    Create a dict of category:[method_names] for a LL grid type.
+
+    Looks in the final line of the docstrings
+    of class methods and propoerties  for a catgory declaration, "LLCATS: ".
+    It then creates and returns a dict with keys found as categories and
+    values that are lists of the names of methods that have that category.
+
+    Currently defined LLCATS are:
+        DEPR : deprecated
+        GINF : information about the grid as a whole
+        NINF : information about nodes
+        LINF : information about links
+        PINF : information about patches
+        CINF : information about cells
+        FINF : information about faces
+        CNINF : information about corners
+        FIELDIO : methods to access and change fields
+        FIELDADD : methods to create new fields/delete old fields
+        FIELDINF : information about fields (keys, names, etc)
+        GRAD : methods for gradients, fluxes, divergences and slopes
+        MAP : methods to map from one element type to another
+        BC : methods to interact with BCs
+        SURF : methods for surface analysis (slope, aspect, hillshade)
+        SUBSET : methods to indentify part of the grid based on conditions
+        CONN : method describing the connectivity of one element to another
+               (i.e., 'links_at_node')
+        MEAS : method describing a quantity defined on an element (i.e.,
+               'length_of_link')
+        OTHER : anything else
+
+    Parameters
+    ----------
+    grid_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
+                 'RadialModelGrid', 'VoronoiDelaunayGrid'}
+        String of raster to inspect.
+
+    Returns
+    -------
+    cat_dict : dict
+        Dictionary with cats as keys and lists of method name strings as
+        values.
+    grid_dict : dict
+        Dictionary with method name strings as keys and lists of cats as
+        values.
+    FAILS : dict of dicts
+        contains any problematic LLCAT entries. Keys: 'MISSING' - list of names
+        of any public method or property without an LLCAT declared.
+    """
+    import inspect
+    import re
+    from landlab import ModelGrid, RasterModelGrid, HexModelGrid, \
+        RadialModelGrid, VoronoiDelaunayGrid
+    from copy import copy
+
+    grid_str_to_grid = {'ModelGrid': ModelGrid,
+                        'RasterModelGrid': RasterModelGrid,
+                        'HexModelGrid': HexModelGrid,
+                        'RadialModelGrid': RadialModelGrid,
+                        'VoronoiDelaunayGrid': VoronoiDelaunayGrid}
+    grid_dict = {}
+    cat_dict = {}
+    FAILS = {'MISSING': []}
+    grid = grid_str_to_grid[grid_type]
+    funcs = {}
+    for name, func in inspect.getmembers(grid):
+        funcs[name] = func
+    for method_name in funcs.keys():
+        if method_name[0] == '_':
+            continue
+        else:
+            method_doc = funcs[method_name].__doc__
+            try:
+                cat_str = re.search('LLCATS:.+', method_doc)
+            except TypeError:
+                pass
+            else:
+                if cat_str is None:
+                    FAILS['MISSING'].append(method_name)
+                    continue
+                cats = cat_str.group().split()[1:]
+                grid_dict[method_name] = copy(cats)
+                for cat in cats:
+                    try:
+                        cat_dict[cat].append(method_name)
+                    except KeyError:
+                        cat_dict[cat] = [method_name, ]
+
+    return cat_dict, grid_dict, FAILS
 
 
 if __name__ == '__main__':
