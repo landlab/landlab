@@ -6,6 +6,7 @@ from .flexure import Flexure
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .overland_flow import OverlandFlowBates, OverlandFlow
+from .overland_flow import KinematicWaveRengers
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .pet import PotentialEvapotranspiration
 from .radiation import Radiation
@@ -15,6 +16,7 @@ from .sink_fill import SinkFiller
 from .steepness_index import SteepnessFinder
 from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
 from .uniform_precip import PrecipitationDistribution
+from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
 
@@ -24,8 +26,9 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, StreamPowerEroder,
-              FastscapeEroder, SedDepEroder,
+              FastscapeEroder, SedDepEroder, KinematicWaveRengers,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
+              SoilInfiltrationGreenAmpt,
               SoilMoisture, Vegetation, VegCA]
 
 

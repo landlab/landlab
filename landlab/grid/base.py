@@ -1071,8 +1071,9 @@ class ModelGrid(ModelDataFieldsMixIn):
     @make_return_array_immutable
     def active_link_dirs_at_node(self):
         """
-        Link flux directions at each node: 1=incoming flux, -1=outgoing flux,
-        0=no flux. Note that inactive links receive zero.
+        Link flux directions at each node: 1=incoming flux, -1=outgoing
+        flux, 0=no flux. Note that inactive links receive zero, but active
+        and fixed links are both reported normally.
 
         Returns
         -------
@@ -1232,6 +1233,134 @@ class ModelGrid(ModelDataFieldsMixIn):
         (fixed_gradient_boundary_node_ids, ) = numpy.where(
             self._node_status == FIXED_GRADIENT_BOUNDARY)
         return fixed_gradient_boundary_node_ids
+
+    @property
+    @return_readonly_id_array
+    def fixed_gradient_boundary_node_fixed_link(self):
+        """
+        An array of the fixed_links connected to fixed gradient boundary nodes.
+
+        Note that on a raster, some nodes (notably the corners) can be
+        FIXED_GRADIENT_BOUNDARY, but not have a true FIXED_LINK neighboring
+        link. In such cases, the link returned will be a closed link joining
+        the corner node to a neighboring FIXED_GRADIENT_BOUNDARY node (see
+        example).
+
+        An AssertionError will be raised if for some reason a
+        FIXED_GRADIENT_BOUNDARY node exists which has neither a
+        FIXED_GRADIENT_BOUNDARY neighbor, or a FIXED_LINK.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab import FIXED_GRADIENT_BOUNDARY
+        >>> grid = RasterModelGrid((3, 4))
+        >>> leftedge = grid.nodes_at_left_edge
+        >>> grid.status_at_node[leftedge] = FIXED_GRADIENT_BOUNDARY
+        >>> grid.fixed_gradient_boundary_nodes
+        array([0, 4, 8])
+        >>> grid.fixed_gradient_boundary_node_fixed_link
+        array([ 3,  7, 10])
+        """
+        try:
+            return self._fixed_gradient_boundary_node_links
+        except AttributeError:
+            self._create_fixed_gradient_boundary_node_links()
+            return self._fixed_gradient_boundary_node_links
+
+    @property
+    @return_readonly_id_array
+    def fixed_gradient_boundary_node_anchor_node(self):
+        """
+        Returns the node at the other end of the fixed link for a fixed
+        gradient boundary node.
+
+        Degenerate FIXED_GRADIENT_BOUNDARY nodes (e.g., corners) are handled as
+        in :func:`fixed_gradient_boundary_node_fixed_link`, by pointing to a
+        neighboring FIXED_GRADIENT_BOUNDARY node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab import FIXED_GRADIENT_BOUNDARY
+        >>> grid = RasterModelGrid((3, 4))
+        >>> leftedge = grid.nodes_at_left_edge
+        >>> grid.status_at_node[leftedge] = FIXED_GRADIENT_BOUNDARY
+        >>> grid.fixed_gradient_boundary_nodes
+        array([0, 4, 8])
+        >>> grid.fixed_gradient_boundary_node_fixed_link
+        array([ 3,  7, 10])
+        >>> grid.fixed_gradient_boundary_node_anchor_node
+        array([4, 5, 4])
+        """
+        try:
+            return self._fixed_gradient_boundary_node_anchor_node
+        except AttributeError:
+            self._create_fixed_gradient_boundary_node_anchor_node()
+            return self._fixed_gradient_boundary_node_anchor_node
+
+    def _create_fixed_gradient_boundary_node_links(self):
+        """
+        Builds a data structure to hold the fixed_links which control the
+        values of any FIXED_GRADIENT_BOUNDARY nodes in the grid.
+
+        An AssertionError will be raised if for some reason a
+        FIXED_GRADIENT_BOUNDARY node exists which has neither a
+        FIXED_GRADIENT_BOUNDARY neighbor, or a FIXED_LINK.
+        """
+        self._fixed_grad_links_created = True
+        self._fixed_gradient_boundary_node_links = np.empty_like(
+            self.fixed_gradient_boundary_nodes, dtype=int)
+        fix_nodes = self.fixed_gradient_boundary_nodes
+        neighbor_links = self.links_at_node[fix_nodes]  # -1s
+        boundary_exists = self.link_dirs_at_node[fix_nodes]
+        # next line retains -1 indexes
+        link_stat_badind = self.status_at_link[neighbor_links] == FIXED_LINK
+        true_connection = np.logical_and(link_stat_badind, boundary_exists)
+        true_fix_nodes = true_connection.sum(axis=1).astype(bool)
+        self._fixed_gradient_boundary_node_links[true_fix_nodes] = (
+            neighbor_links[true_connection])
+        # resolve any corner nodes
+        neighbor_nodes = self.neighbors_at_node[fix_nodes]  # BAD_INDEX_VALUEs
+        neighbor_nodes[neighbor_nodes == BAD_INDEX_VALUE] = -1
+        fixed_grad_neighbor = np.logical_and((self.status_at_node[
+            neighbor_nodes] == FIXED_GRADIENT_BOUNDARY), boundary_exists)
+        # ^True when FIXED_GRADIENT_BOUNDARY for real
+        # winnow it down to only one possibility for fixed_grad neighbor:
+        which_neighbor = np.argmax(fixed_grad_neighbor, axis=1)
+        indexing_range = np.arange(fixed_grad_neighbor.shape[0])
+        a_link_to_fixed_grad = neighbor_links[indexing_range, which_neighbor]
+        corners = np.logical_not(true_fix_nodes)
+        assert np.all(
+            fixed_grad_neighbor[indexing_range, which_neighbor][corners])
+        self._fixed_gradient_boundary_node_links[
+            corners] = a_link_to_fixed_grad[corners]
+
+    def _create_fixed_gradient_boundary_node_anchor_node(self):
+        """
+        Builds a data structure to hold the nodes which anchor the
+        values of any FIXED_GRADIENT_BOUNDARY nodes in the grid, i.e., those
+        at the other ends of the FIXED_LINKS.
+
+        An AssertionError will be raised if for some reason a
+        FIXED_GRADIENT_BOUNDARY node exists which has neither a
+        FIXED_GRADIENT_BOUNDARY neighbor, or a FIXED_LINK.
+        """
+        self._fixed_grad_links_created = True
+        fix_grad_nodes = self.fixed_gradient_boundary_nodes
+        self._fixed_gradient_boundary_node_anchor_node = np.empty_like(
+            fix_grad_nodes)
+        heads_and_tails = np.empty((fix_grad_nodes.size, 2))
+        which_one = np.empty_like(heads_and_tails, dtype=bool)
+        heads_and_tails[:, 0] = self.node_at_link_head[
+            self.fixed_gradient_boundary_node_fixed_link]
+        heads_and_tails[:, 1] = self.node_at_link_tail[
+            self.fixed_gradient_boundary_node_fixed_link]
+        which_one[:, 0] = heads_and_tails[:, 0] == fix_grad_nodes
+        which_one[:, 1] = heads_and_tails[:, 1] == fix_grad_nodes
+        assert np.all(which_one.sum(axis=1) == 1)
+        self._fixed_gradient_boundary_node_anchor_node = heads_and_tails[
+            np.logical_not(which_one)]
 
     @property
     @return_readonly_id_array
@@ -3591,6 +3720,13 @@ class ModelGrid(ModelDataFieldsMixIn):
                 self.neighbor_list_created = False
         except AttributeError:
             pass
+        try:
+            self._fixed_grad_links_created
+        except AttributeError:
+            pass
+        else:
+            self._gradient_boundary_node_links()
+            self._create_fixed_gradient_boundary_node_anchor_node()
         try:
             self._patches_created
             self._reset_patch_status()
