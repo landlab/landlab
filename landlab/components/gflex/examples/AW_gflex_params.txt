@@ -24,7 +24,7 @@ rho_fill:
 Te:
 35000.
 BC_W:
-Dirichlet0
+0Displacement0Slope
 BC_E:
 0Moment0Shear
 BC_N:

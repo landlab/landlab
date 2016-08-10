@@ -1,7 +1,9 @@
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.fastscape_stream_power import SPEroder
+from six.moves import range
+
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import FastscapeEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
 
@@ -38,8 +40,8 @@ mg.status_at_node[20] = FIXED_VALUE_BOUNDARY
 
 ##create the elevation field in the grid:
 #create the field
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros()
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 #put these values plus roughness into that field
 mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 
@@ -47,7 +49,7 @@ mg['node'][ 'topographic__elevation'] = z + np.random.rand(len(z))/100000.
 print('Running ...')
 
 # MN: Loop over several changes in the outlet position
-for t in xrange(5):
+for t in range(5):
 
     # Set a new random outlet position
     mg.set_inactive_boundaries(True, True, True, True)
@@ -63,12 +65,12 @@ for t in xrange(5):
 
     #instantiate the components:
     fr = FlowRouter(mg)
-    sp = SPEroder(mg, input_file)
+    sp = FastscapeEroder(mg, input_file)
 
     time_on = time()
 
     #perform the inner time loops:
-    for i in xrange(nt):
+    for i in range(nt):
         mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
         mg = fr.route_flow()
         mg = sp.erode(mg)
@@ -76,10 +78,10 @@ for t in xrange(5):
         #plot long profiles along channels
         pylab.figure(6)
         profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
-                mg.at_node['drainage_area'], mg.at_node['upstream_ID_order'],
-                mg.at_node['flow_receiver'])
+                mg.at_node['drainage_area'], mg.at_node['flow__upstream_node_order'],
+                mg.at_node['flow__receiver_node'])
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
-                profile_IDs, mg.at_node['links_to_flow_receiver'])
+                profile_IDs, mg.at_node['flow__link_to_receiver_node'])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
         # print 'Completed loop ', i
 

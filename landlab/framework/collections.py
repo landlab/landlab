@@ -6,8 +6,8 @@ Collections of components
 import inspect
 
 #from landlab.interfaces import BmiBase
-from landlab.framework.interfaces import BmiBase
-from landlab.framework.decorators import is_implementation
+from .interfaces import BmiBase
+from .decorators import is_implementation
 
 
 class Error(Exception):

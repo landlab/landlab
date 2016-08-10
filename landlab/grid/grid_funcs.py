@@ -24,13 +24,14 @@ def resolve_values_on_active_links(grid, active_link_values):
     tuple of ndarray
         Values resolved into x-component and y-component.
     """
+    link_lengths = grid.length_of_link[grid.active_links]
     return (
-        np.multiply(((grid.node_x[grid.activelink_tonode] -
-                      grid.node_x[grid.activelink_fromnode]) /
-                     grid.active_link_length), active_link_values),
-        np.multiply(((grid.node_y[grid.activelink_tonode] -
-                      grid.node_y[grid.activelink_fromnode]) /
-                     grid.active_link_length), active_link_values))
+        np.multiply(((grid.node_x[grid._activelink_tonode] -
+                      grid.node_x[grid._activelink_fromnode]) /
+                     link_lengths), active_link_values),
+        np.multiply(((grid.node_y[grid._activelink_tonode] -
+                      grid.node_y[grid._activelink_fromnode]) /
+                     link_lengths), active_link_values))
 
 
 def resolve_values_on_links(grid, link_values):
@@ -55,115 +56,10 @@ def resolve_values_on_links(grid, link_values):
     return (
         np.multiply(((grid.node_x[grid.node_at_link_head] -
                       grid.node_x[grid.node_at_link_tail]) /
-                     grid.link_length), link_values),
+                     grid.length_of_link), link_values),
         np.multiply(((grid.node_y[grid.node_at_link_head] -
                       grid.node_y[grid.node_at_link_tail]) /
-                     grid.link_length), link_values))
-
-
-def calculate_gradients_at_active_links(grid, node_values, out=None):
-    """Calculate gradients of node values over active links.
-
-    Calculates the gradient in *quantity* node values at each active link in
-    the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Gradients across active links.
-    """
-    if out is None:
-        out = grid.empty(centering='active_link')
-    return np.divide(node_values[grid.activelink_tonode] -
-                     node_values[grid.activelink_fromnode],
-                     grid.link_length[grid.active_links], out=out)
-
-
-def calculate_gradients_at_links(grid, node_values, out=None):
-    """Calculate gradients of node values over links.
-
-    Calculates the gradient in *quantity* node_values at each link in the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Gradients across links.
-    """
-    if out is None:
-        out = grid.empty(centering='link')
-    return np.divide(node_values[grid.node_at_link_head] -
-                     node_values[grid.node_at_link_tail],
-                     grid.link_length, out=out)
-
-
-def calculate_diff_at_active_links(grid, node_values, out=None):
-    """Calculate differences of node values over active links.
-
-    Calculates the difference in quantity *node_values* at each active link
-    in the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Differences across active links.
-    """
-    if out is None:
-        out = grid.empty(centering='active_link')
-    return np.subtract(node_values[grid.activelink_tonode],
-                       node_values[grid.activelink_fromnode], out=out)
-
-
-def calculate_diff_at_links(grid, node_values, out=None):
-    """Calculate differences of node values over links.
-
-    Calculates the difference in quantity *node_values* at each link in the
-    grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Differences across links.
-    """
-    if out is None:
-        out = grid.empty(centering='link')
-    return np.subtract(node_values[grid.node_at_link_head],
-                       node_values[grid.node_at_link_tail], out=out)
+                     grid.length_of_link), link_values))
 
 
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
@@ -193,13 +89,46 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     -------
     ndarray
         Net unit fluxes at nodes.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.grid_funcs import calculate_flux_divergence_at_nodes
+
+    >>> grid = RasterModelGrid((4, 5))
+    >>> link_flux = np.ones(grid.number_of_active_links, dtype=float)
+    >>> flux_at_node = calculate_flux_divergence_at_nodes(grid, link_flux)
+    ...     # doctest: +NORMALIZE_WHITESPACE
+    >>> flux_at_node
+    array([ 0.,  1.,  1.,  1.,  0.,
+            1.,  0.,  0.,  0., -1.,
+            1.,  0.,  0.,  0., -1.,
+            0., -1., -1., -1.,  0.])
+    >>> flux_at_node[grid.core_nodes]
+    array([ 0., 0., 0., 0., 0., 0.])
+
+    This is *deprecated*. Instead use ``calc_flux_div_at_node`. Notice that
+    fluxes at non-core nodes are handled differently. However, these boundary
+    nodes don't have "flux" anyway and so should be ignored.
+
+    >>> grid = RasterModelGrid((4, 5))
+    >>> link_flux = grid.zeros(at='link')
+    >>> link_flux[grid.active_links] = 1.
+    >>> flux_at_node = grid.calc_flux_div_at_node(link_flux)
+    >>> flux_at_node
+    array([ 0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,  0.])
+    >>> flux_at_node[grid.core_nodes]
+    array([ 0., 0., 0., 0., 0., 0.])
     """
     assert len(active_link_flux) == grid.number_of_active_links, (
         "incorrect length of active_link_flux array")
 
     # If needed, create net_unit_flux array
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
     out.fill(0.)
     net_unit_flux = out
 
@@ -211,7 +140,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     # active link, so we are multiplying the unit flux at each link by the
     # width of its corresponding face.
     flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid.face_width
+    flux[:len(active_link_flux)] = active_link_flux * grid.width_of_face
 
     # Next, we need to add up the incoming and outgoing fluxes.
     #
@@ -223,11 +152,12 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     #       attached to a node, so should be of order 6 or 7 and won't
     #       generally increase with the number of nodes in the grid.
     #
-    for i in range(np.size(grid.node_active_inlink_matrix, 0)):
-        net_unit_flux += flux[grid.node_active_outlink_matrix[i][:]]
-        net_unit_flux -= flux[grid.node_active_inlink_matrix[i][:]]
+    for i in range(np.size(grid._node_active_inlink_matrix, 0)):
+        net_unit_flux += flux[grid._node_active_outlink_matrix[i][:]]
+        net_unit_flux -= flux[grid._node_active_inlink_matrix[i][:]]
 
-    # Now divide by cell areas ... where there are active cells.
-    net_unit_flux[grid.activecell_node] /= grid.active_cell_areas
+    # Now divide by cell areas ... where there are core cells.
+    node_at_active_cell = grid.node_at_cell[grid.core_cells]
+    net_unit_flux[node_at_active_cell] /= grid.area_of_cell[grid.core_cells]
 
     return net_unit_flux

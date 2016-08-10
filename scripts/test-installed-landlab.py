@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from __future__ import print_function
 
 import sys, os
 
@@ -20,13 +21,18 @@ parser.add_option('-m', '--mode', action='store', dest='mode', default='fast',
 
 (options, args) = parser.parse_args()
 
-
-import landlab
+try:
+    import landlab
+except ImportError:
+    print('Unable to import landlab. You may not have landlab installed.')
+    print('Here is your sys.path')
+    print(os.linesep.join(sys.path))
+    raise
 
 
 result = landlab.test(label=options.mode, verbose=options.verbose,
                       doctests=options.doctests, coverage=options.coverage,
-                      extra_argv=args)
+                      extra_argv=args, raise_warnings='release')
 
 if result.wasSuccessful():
     sys.exit(0)

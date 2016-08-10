@@ -97,6 +97,9 @@ pygments_style = 'sphinx'
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
 
+# selects what content will be inserted into the main body of an autoclass directive: 'class'(default), 'both', or 'init'
+# autoclass_content = 'both'
+
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -317,4 +320,5 @@ todo_include_todos = True
 #latex_elements = dict(preamble='\\usepackage{amsmath}')
 
 numpydoc_class_members_toctree = False
+numpydoc_show_class_members = False
 html_style = 'landlab.css'

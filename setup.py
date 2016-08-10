@@ -12,12 +12,18 @@ from distutils.extension import Extension
 import sys
 
 ext_modules = [
+    Extension('landlab.ca.cfuncs',
+              ['landlab/ca/cfuncs.pyx']),
     Extension('landlab.components.flexure.cfuncs',
               ['landlab/components/flexure/cfuncs.pyx']),
     Extension('landlab.components.flow_routing.cfuncs',
               ['landlab/components/flow_routing/cfuncs.pyx']),
     Extension('landlab.components.stream_power.cfuncs',
-              ['landlab/components/stream_power/cfuncs.pyx'])
+              ['landlab/components/stream_power/cfuncs.pyx']),
+    Extension('landlab.grid.structured_quad.cfuncs',
+              ['landlab/grid/structured_quad/cfuncs.pyx']),
+    Extension('landlab.grid.structured_quad.c_faces',
+              ['landlab/grid/structured_quad/c_faces.pyx']),
 ]
 
 import numpy as np
@@ -81,6 +87,7 @@ setup(name='landlab',
                         'sympy',
                         'pandas',
                         'six',
+                        'pyyaml',
                        ],
       #                  'Cython>=0.22'],
       setup_requires=['cython'],
@@ -95,13 +102,18 @@ setup(name='landlab',
           'Topic :: Scientific/Engineering :: Physics'
       ],
       packages=find_packages(),
-      package_data={'': ['data/*asc', 'data/*nc', 'preciptest.in']},
+      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
+                         'preciptest.in']},
       test_suite='nose.collector',
       cmdclass={
           'install': install_and_register,
           'develop': develop_and_register,
       },
-
+      entry_points={
+          'console_scripts': [
+              'landlab=landlab.cmd.landlab:main',
+          ]
+      },
       include_dirs = [np.get_include()],
       ext_modules = ext_modules,
      )

@@ -1,103 +1,135 @@
-landlab.grid package
-====================
+Base Class (`ModelGrid`)
+========================
 
-Subpackages
------------
-
-.. toctree::
-
-    landlab.grid.structured_quad
-    landlab.grid.tests
-    landlab.grid.unstructured
-
-Submodules
-----------
-
-landlab.grid.base module
-------------------------
+General class methods and attributes of the `landlab.grid.base` module
+----------------------------------------------------------------------
 
 .. automodule:: landlab.grid.base
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.grid.create module
---------------------------
-
-.. automodule:: landlab.grid.create
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.grid.grid_funcs module
-------------------------------
-
-.. automodule:: landlab.grid.grid_funcs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.grid.hex module
------------------------
-
-.. automodule:: landlab.grid.hex
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.grid.mappers module
----------------------------
+Mapping data between different grid elements
+--------------------------------------------
 
 .. automodule:: landlab.grid.mappers
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.grid.radial module
+Gradient calculation functions
+------------------------------
+
+.. automodule:: landlab.grid.gradients
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Miscellaneous functions
+-----------------------
+
+.. automodule:: landlab.grid.grid_funcs
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+
+Grid creation from a formatted input file
+-----------------------------------------
+
+.. automodule:: landlab.grid.create
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Function/method decorators
 --------------------------
 
-.. automodule:: landlab.grid.radial
+.. automodule:: landlab.grid.decorators
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.grid.raster module
---------------------------
+Regular Rectilinear Grids (`RasterModelGrid`)
+=============================================
+Inherits from `ModelGrid` and adds:
 
-.. automodule:: landlab.grid.raster
-    :members:
-    :undoc-members:
-    :show-inheritance:
+  .. automodule:: landlab.grid.raster
+      :members:
+      :undoc-members:
+      :show-inheritance:
 
-landlab.grid.raster_funcs module
---------------------------------
-
-.. automodule:: landlab.grid.raster_funcs
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.grid.raster_mappers module
-----------------------------------
+Mapping data between different grid elements
+--------------------------------------------
 
 .. automodule:: landlab.grid.raster_mappers
     :members:
     :undoc-members:
     :show-inheritance:
 
-landlab.grid.voronoi module
----------------------------
+Gradient calculation functions
+------------------------------
+
+.. automodule:: landlab.grid.raster_gradients
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Slope-aspect calculation functions
+----------------------------------
+
+.. automodule:: landlab.grid.raster_aspect
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Steepest-descent functions
+--------------------------
+
+.. automodule:: landlab.grid.raster_steepest_descent
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Boundary handling for grid edges
+--------------------------------
+
+.. automodule:: landlab.grid.raster_set_status
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Miscellaneous raster-grid functions
+-----------------------------------
+
+  .. automodule:: landlab.grid.raster_funcs
+      :members:
+      :undoc-members:
+      :show-inheritance:
+
+Voronoi-DeLaunay Grids (`VoronoiDelaunayGrid`)
+==============================================
+Inherits from `ModelGrid` and adds:
 
 .. automodule:: landlab.grid.voronoi
     :members:
     :undoc-members:
     :show-inheritance:
 
+Hex Grids (`HexModelGrid`)
+==========================
+Inherits from `VoronoiDelauneyGrid` and adds:
 
-Module contents
----------------
+.. automodule:: landlab.grid.hex
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
-.. automodule:: landlab.grid
+Radial Grids (`HexModelGrid`)
+=============================
+Inherits from `VoronoiDelauneyGrid` and adds:
+
+.. automodule:: landlab.grid.radial
     :members:
     :undoc-members:
     :show-inheritance:

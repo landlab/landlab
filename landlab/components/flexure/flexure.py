@@ -1,41 +1,111 @@
 #!/usr/bin/env python
+"""Deform the lithosphere with 1D or 2D flexure.
+
+Landlab component that implements a 1 and 2D lithospheric flexure
+model.
+
+Examples
+--------
+
+Create a grid on which we will run the flexure calculations.
+
+>>> from landlab import RasterModelGrid
+>>> from landlab.components.flexure import Flexure
+>>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+
+Check the fields that are used as input to the flexure component.
+
+>>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
+('lithosphere__overlying_pressure_increment',)
+
+Check the units for the fields.
+
+>>> Flexure.var_units('lithosphere__overlying_pressure_increment')
+'Pa'
+
+If you are not sure about one of the input or output variables, you can
+get help for specific variables.
+
+>>> Flexure.var_help('lithosphere__overlying_pressure_increment')
+name: lithosphere__overlying_pressure_increment
+description:
+  Applied pressure to the lithosphere over a time step
+units: Pa
+at: node
+intent: in
+
+>>> flex = Flexure(grid)
+
+In creating the component, a field (initialized with zeros) was added to the
+grid. Reset the interior nodes for the loading.
+
+>>> dh = grid.at_node['lithosphere__overlying_pressure_increment']
+>>> dh = dh.reshape(grid.shape)
+>>> dh[1:-1, 1:-1] = flex.gamma_mantle
+
+>>> flex.update()
+
+>>> flex.output_var_names
+('lithosphere_surface__elevation_increment',)
+>>> flex.grid.at_node['lithosphere_surface__elevation_increment']
+...     # doctest: +NORMALIZE_WHITESPACE
+array([ 0., 0., 0., 0.,
+        0., 1., 1., 0.,
+        0., 1., 1., 0.,
+        0., 1., 1., 0.,
+        0., 0., 0., 0.])
+"""
 
 import numpy as np
 
 from landlab import Component
 from .funcs import get_flexure_parameter
+from ...utils.decorators import use_file_name_or_kwds
 
 
-_VALID_METHODS = set(['airy', 'flexure'])
+class Flexure(Component):
 
+    """Deform the lithosphere with 1D or 2D flexure.
 
-def assert_method_is_valid(method):
-    if method not in _VALID_METHODS:
-        raise ValueError('%s: Invalid method name' % method)
-
-
-class FlexureComponent(Component):
-    """
     Landlab component that implements a 1 and 2D lithospheric flexure
     model.
+
+    Construction::
+
+        Flexure(grid, eet=65e3, youngs=7e10, method='airy', rho_mantle=3300.,
+                gravity=9.80665)
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    eet : float, optional
+        Effective elastic thickness (m).
+    youngs : float, optional
+        Young's modulus.
+    method : {'airy', 'flexure'}, optional
+        Method to use to calculate deflections.
+    rho_mantle : float, optional
+        Density of the mantle (kg / m^3).
+    gravity : float, optional
+        Acceleration due to gravity (m / s^2).
 
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flexure import FlexureComponent
-    >>> grid = RasterModelGrid(5, 4, 1.e4)
-    >>> flex = FlexureComponent(grid)
+    >>> from landlab.components.flexure import Flexure
+    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+
+    >>> flex = Flexure(grid)
     >>> flex.name
     'Flexure'
-    >>> sorted(flex.input_var_names)
-    ['lithosphere__elevation', 'lithosphere__overlying_pressure', 'planet_surface_sediment__deposition_increment']
-    >>> sorted(flex.output_var_names)
-    ['lithosphere__elevation', 'lithosphere__elevation_increment']
-    >>> for var in sorted(flex.units): flex.units[var]
-    'm'
-    'm'
-    'Pa'
-    'm'
+    >>> flex.input_var_names
+    ('lithosphere__overlying_pressure_increment',)
+    >>> flex.output_var_names
+    ('lithosphere_surface__elevation_increment',)
+    >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
+    [('lithosphere__overlying_pressure_increment', 'Pa'),
+     ('lithosphere_surface__elevation_increment', 'm')]
 
     >>> flex.grid.number_of_node_rows
     5
@@ -44,95 +114,87 @@ class FlexureComponent(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere__elevation'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     True
 
-    >>> np.all(grid.at_node['lithosphere__elevation'] == 0.)
-    True
-    >>> np.all(grid.at_node['lithosphere__overlying_pressure'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__overlying_pressure_increment'] == 0.)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     True
 
-    >>> load = grid.at_node['lithosphere__overlying_pressure']
+    >>> load = grid.at_node['lithosphere__overlying_pressure_increment']
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere__elevation_increment']
+    >>> dz = grid.at_node['lithosphere_surface__elevation_increment']
     >>> np.all(dz == 0.)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     False
     """
 
-    ###############THIS IS THE STANDARD DECLARATIONS EXAMPLE.
-    #YOU NEED TO DECLARE ALL THE FOLLOWING LIKE THIS HERE IN YOUR COMPONENT!!
     _name = 'Flexure'
-    #...give the component a name
 
-    _input_var_names = set([
-        'lithosphere__overlying_pressure',
-        'lithosphere__elevation',
-        'planet_surface_sediment__deposition_increment',
-    ])
-    #...the component requires these values to do its calculation
+    _input_var_names = (
+        'lithosphere__overlying_pressure_increment',
+    )
 
-    _output_var_names = set([
-        'lithosphere__elevation_increment',
-        'lithosphere__elevation',
-    ])
-    #...the component modifies these values
+    _output_var_names = (
+        'lithosphere_surface__elevation_increment',
+    )
 
-    # the next three dictionaries must each have the union of the two var_name
-    # sets above as their keys
     _var_units = {
-        'lithosphere__overlying_pressure': 'Pa',
-        'lithosphere__elevation': 'm',
-        'lithosphere__elevation_increment': 'm',
-        'planet_surface_sediment__deposition_increment': 'm',
+        'lithosphere__overlying_pressure_increment': 'Pa',
+        'lithosphere_surface__elevation_increment': 'm',
     }
-    #...the units for each field. In the future, there may be unit casting
-    # required, as there's nothing stopping you passing in the wrong units!!!
 
     _var_mapping = {
-        'lithosphere__overlying_pressure': 'node',
-        'lithosphere__elevation': 'node',
-        'lithosphere__elevation_increment': 'node',
-        'planet_surface_sediment__deposition_increment': 'node',
+        'lithosphere__overlying_pressure_increment': 'node',
+        'lithosphere_surface__elevation_increment': 'node',
     }
-    #...the grid centering of each name. Note you CANNOT and SHOULD NOT TRY
-    # TO define the same field name but with different centering within one
-    # component; you'll need to distinguish the names.
 
-    _var_defs = {
-        'lithosphere__overlying_pressure': 'The pressure at the base of the lithosphere',
-        'lithosphere__elevation': 'The elevation of the top of the lithosphere, i.e., the land surface',
-        'lithosphere__elevation_increment': 'The change in elevation of the top of the lithosphere (the land surface) in one timestep',
-        'planet_surface_sediment__deposition_increment': 'The amount of sediment deposited at the land surface in one timestep',
+    _var_doc = {
+        'lithosphere__overlying_pressure_increment':
+            'Applied pressure to the lithosphere over a time step',
+        'lithosphere_surface__elevation_increment':
+            'The change in elevation of the top of the lithosphere (the land '
+            'surface) in one timestep',
     }
-    #...give the names a short description. [We still need to work out how
-    # we deal with same name, but different description between components]
 
-    ###lastly, ---> 1. did you remember to import and inherit from Component?
-    #do the import up top ->
-    #from landlab import Component
-    #& in the class declaration ->
-    #   class FlexureComponent(Component):
-    #        ...
-    ### ---> 2. Make sure that self._grid is an alias for the grid after
-    # initialization, below
-    ################################
+    @use_file_name_or_kwds
+    def __init__(self, grid, eet=65e3, youngs=7e10, method='airy',
+                 rho_mantle=3300., gravity=9.80665, **kwds):
+        """Initialize the flexure component.
 
-    def __init__(self, grid, **kwds):
-        self._eet = kwds.pop('eet', 65000.)
-        self._youngs = kwds.pop('youngs', 7e10)
-        self._method = kwds.pop('method', 'airy')
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A grid.
+        eet : float, optional
+            Effective elastic thickness (m).
+        youngs : float, optional
+            Young's modulus.
+        method : {'airy', 'flexure'}, optional
+            Method to use to calculate deflections.
+        rho_mantle : float, optional
+            Density of the mantle (kg / m^3).
+        gravity : float, optional
+            Acceleration due to gravity (m / s^2).
+        """
+        if method not in ('airy', 'flexure'):
+            raise ValueError(
+                '{method}: method not understood'.format(method=method))
+
         self._grid = grid
 
-        assert_method_is_valid(self._method)
+        self._youngs = youngs
+        self._method = method
+        self._rho_mantle = rho_mantle
+        self._gravity = gravity
+        self.eet = eet
 
-        super(FlexureComponent, self).__init__(grid, **kwds)
+        super(Flexure, self).__init__(grid, **kwds)
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:
@@ -142,43 +204,102 @@ class FlexureComponent(Component):
             if name not in self.grid.at_node:
                 self.grid.add_zeros('node', name, units=self._var_units[name])
 
-        self._last_load = self.grid.field_values('node', 'lithosphere__overlying_pressure').copy()
+        self._r = self._create_kei_func_grid(self._grid.shape,
+                                             (self.grid.dy, self.grid.dx),
+                                             self.alpha)
 
-        self._nodal_values = self.grid['node']
+    @property
+    def eet(self):
+        """Effective elastic thickness (m)."""
+        return self._eet
 
-        self._r = self._set_kei_func_grid()
+    @eet.setter
+    def eet(self, new_val):
+        if new_val <= 0:
+            raise ValueError('Effective elastic thickness must be positive.')
+        self._eet = new_val
+        self._r = self._create_kei_func_grid(self._grid.shape,
+                                             (self.grid.dy, self.grid.dx),
+                                             self.alpha)
 
-    def _set_kei_func_grid(self):
+    @property
+    def youngs(self):
+        """Young's modulus of lithosphere (Pa)."""
+        return self._youngs
+
+    @property
+    def rho_mantle(self):
+        """Density of mantle (kg/m^3)."""
+        return self._rho_mantle
+
+    @property
+    def gamma_mantle(self):
+        """Specific density of mantle (N/m^3)."""
+        return self._rho_mantle * self._gravity
+
+    @property
+    def gravity(self):
+        """Acceleration due to gravity (m/s^2)."""
+        return self._gravity
+
+    @property
+    def method(self):
+        """Name of method used to calculate deflections."""
+        return self._method
+
+    @property
+    def alpha(self):
+        """Flexure parameter (m)."""
+        return get_flexure_parameter(self._eet, self._youngs, 2,
+                                     gamma_mantle=self.gamma_mantle)
+
+    @staticmethod
+    def _create_kei_func_grid(shape, spacing, alpha):
         from scipy.special import kei
 
-        alpha = get_flexure_parameter(self._eet, self._youngs, 2)
-        dx, dy = np.meshgrid(
-            np.arange(self._grid.number_of_node_columns) * self._grid.dx,
-            np.arange(self._grid.number_of_node_rows) * self._grid.dx)
+        dx, dy = np.meshgrid(np.arange(shape[1]) * spacing[1],
+                             np.arange(shape[0]) * spacing[0])
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
     def update(self, n_procs=1):
-        elevation = self._nodal_values['lithosphere__elevation']
-        load = self._nodal_values['lithosphere__overlying_pressure']
-        deflection = self._nodal_values['lithosphere__elevation_increment']
-        deposition = self._nodal_values['planet_surface_sediment__deposition_increment']
+        """Update fields with current loading conditions.
 
-        new_load = ((load - self._last_load) +
-                    (deposition * 2650. * 9.81).flat)
+        Parameters
+        ----------
+        n_procs : int, optional
+            Number of processors to use for calculations.
+        """
+        load = self.grid.at_node['lithosphere__overlying_pressure_increment']
+        deflection = self.grid.at_node['lithosphere_surface__elevation_increment']
 
-        self._last_load = load.copy()
+        new_load = load.copy()
 
         deflection.fill(0.)
 
         if self._method == 'airy':
-            deflection[:] = new_load / (3300. * 9.81)
+            deflection[:] = new_load / self.gamma_mantle
         else:
             self.subside_loads(new_load, deflection=deflection,
                                n_procs=n_procs)
-        np.subtract(elevation, deflection, out=elevation)
 
     def subside_loads(self, loads, deflection=None, n_procs=1):
+        """Subside surface due to multiple loads.
+
+        Parameters
+        ----------
+        loads : ndarray of float
+            Loads applied to each grid node.
+        deflection : ndarray of float, optional
+            Buffer to place resulting deflection values.
+        n_procs : int, optional
+            Number of processors to use for calculations.
+
+        Returns
+        -------
+        ndarray of float
+            Deflections caused by the loading.
+        """
         if deflection is None:
             deflection = np.empty(self.shape, dtype=np.float)
 
@@ -186,13 +307,9 @@ class FlexureComponent(Component):
 
         w = deflection.reshape(self._grid.shape)
         load = loads.reshape(self._grid.shape)
-        alpha = get_flexure_parameter(self._eet, self._youngs, 2)
 
-        subside_grid_in_parallel(w, load, self._r, alpha, n_procs)
+        subside_grid_in_parallel(w, load * self._grid.dx * self._grid.dy,
+                                 self._r, self.alpha, self.gamma_mantle,
+                                 n_procs)
 
         return deflection
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()

@@ -1,2 +1,4 @@
+from .generate_uniform_precip import PrecipitationDistribution
 
-import landlab.components.uniform_precip.generate_uniform_precip# import data
+
+__all__ = ['PrecipitationDistribution', ]

@@ -335,6 +335,51 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
 
 class LinkGrid(object):
+    """Create a grid of links that enter and leave nodes.
+    __init__((node0, node1), number_of_nodes=None)
+
+    Parameters
+    ----------
+    node0, node1 : sequence of array-like
+        Node ID at link start and end.
+    number_of_nodes : int, optional
+        Number of nodes in the grid
+
+    Returns
+    -------
+    LinkGrid :
+        A newly-created grid
+
+    Examples
+    --------
+    >>> from landlab.grid.unstructured.links import LinkGrid
+    >>> lgrid = LinkGrid([(0, 1, 0, 2, 0), (2, 3, 1, 3, 3)], 4)
+    >>> lgrid.number_of_links
+    5
+    >>> lgrid.number_of_nodes
+    4
+    >>> lgrid.number_of_in_links_at_node(0)
+    0
+    >>> lgrid.number_of_out_links_at_node(0)
+    3
+    >>> lgrid.out_link_at_node(0)
+    array([0, 2, 4])
+    >>> lgrid.nodes_at_link_id(1)
+    array([1, 3])
+
+    >>> lgrid = LinkGrid([(0, 1, 0, 2, 0), (2, 3, 1, 3, 3)], 4,
+    ...                  link_ids=range(1, 6))
+    >>> lgrid.nodes_at_link
+    array([[0, 2],
+           [1, 3],
+           [0, 1],
+           [2, 3],
+           [0, 3]])
+    >>> lgrid.out_link_at_node(0)
+    array([1, 3, 5])
+    >>> lgrid.nodes_at_link_id(1)
+    array([0, 2])
+    """
 
     def __init__(self, link_ends, number_of_nodes, link_ids=None,
                  node_status=None):

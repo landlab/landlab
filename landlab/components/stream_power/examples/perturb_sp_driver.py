@@ -10,9 +10,9 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.stream_power import StreamPowerEroder
+from landlab.components.stream_power import FastscapeEroder as Fsc
 from landlab.plot.video_out import VideoPlotter
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
@@ -37,9 +37,14 @@ init_elev = inputs.read_float('init_elev')
 mg = RasterModelGrid(nrows, ncols, dx)
 
 #create the fields in the grid
-mg.create_node_array_zeros('topographic__elevation')
-z = mg.create_node_array_zeros() + init_elev
+mg.add_zeros('topographic__elevation', at='node')
+z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
+
+#make some K values in a field to test 
+mg.at_node['K_values'] = 1.e-6+numpy.random.rand(nrows*ncols)*1.e-8
+
+mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 
 print( 'Running ...' )
 
@@ -50,7 +55,7 @@ fsp = Fsc(mg, './drive_sp_params.txt')
 
 #load the Fastscape module too, to allow direct comparison
 fsp = Fsc(mg, './drive_sp_params.txt')
-vid = VideoPlotter(mg, data_centering='node', step=2.5)
+#vid = VideoPlotter(mg, data_centering='node', step=2.5)
 
 try:
     mg = copy.deepcopy(mg_mature)
@@ -81,31 +86,42 @@ else:
 
     #load the Fastscape module too, to allow direct comparison
     fsp = Fsc(mg, './drive_sp_params.txt')
-    vid = VideoPlotter(mg, data_centering='node', step=2.5)
+    #vid = VideoPlotter(mg, data_centering='node', step=2.5)
+
+x_profiles = []
+z_profiles = []
+S_profiles = []
+A_profiles = []
 
 #perturb:
-time_to_run = 50.
-dt=0.5
+time_to_run = 5000000.
+dt=10000.
+out_tstep = 50000.
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-    print(elapsed_time)
-    vid.add_frame(mg, 'topographic__elevation', elapsed_time)
     if elapsed_time+dt>time_to_run:
         print("Short step!")
         dt = time_to_run - elapsed_time
     mg = fr.route_flow()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-    mg = fsp.erode(mg)
-    #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
+    #mg = fsp.erode(mg)
+    mg,_,_ = sp.erode(mg, dt, K_if_used='K_values')
 
     #plot long profiles along channels
-    if numpy.allclose(elapsed_time%1.,0.) or numpy.allclose(elapsed_time%1.,1.):
+    if numpy.allclose(elapsed_time%out_tstep,0.) or numpy.allclose(elapsed_time%out_tstep,1.):
         pylab.figure("long_profiles")
         profile_IDs = prf.channel_nodes(mg, mg.at_node['topographic__steepest_slope'],
-                        mg.at_node['drainage_area'], mg.at_node['flow_receiver'])
+                        mg.at_node['drainage_area'], mg.at_node['flow__receiver_node'])
         dists_upstr = prf.get_distances_upstream(mg, len(mg.at_node['topographic__steepest_slope']),
-                        profile_IDs, mg.at_node['links_to_flow_receiver'])
+                        profile_IDs, mg.at_node['flow__link_to_receiver_node'])
+
+        prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])
+        x_profiles.append(dists_upstr[:])
+        z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
+        S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
+        A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
         prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic__elevation'])
+
 
     #add uplift
     mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*dt
@@ -116,7 +132,7 @@ while elapsed_time < time_to_run:
 elev = mg['node']['topographic__elevation']
 elev_r = mg.node_vector_to_raster(elev)
 
-vid.produce_video()
+#vid.produce_video()
 
 # Clear previous plots
 pylab.figure("topo")

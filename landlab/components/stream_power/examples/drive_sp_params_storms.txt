@@ -6,11 +6,11 @@ ncols:
 dx:
 1000.
 dt:
-500.
+5000.
 uplift_rate: #per time, not per timestep
 0.0001
 run_time:
-3000000.
+1000000.
 init_elev:
 0.
 
@@ -27,17 +27,18 @@ m_sp:
 n_sp:
 1.
 threshold_sp:
-1.
+0.1
 use_Q:
 True
 
 MEAN_STORM:
-100.
+10.
 MEAN_DEPTH:
 5.
 MEAN_INTERSTORM:
-400.
+40.
 RUN_TIME:
-3000000.
+1000000.
 DELTA_T:
-500.
+5000.
+
