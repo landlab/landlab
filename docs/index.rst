@@ -142,14 +142,22 @@ Land surface hydrology
   landlab.components.pet
   landlab.components.soil_moisture
 
+Landslides
+----------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.landslides
+
 Vegetation
 ----------
 
 .. toctree::
   :maxdepth: 4
 
-  landlab.components.single_vegetation
-  landlab.components.vegetation_ca
+  landlab.components.vegetation_dynamics
+  landlab.components.plant_competition_ca
 
 Precipitation
 -------------

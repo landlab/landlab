@@ -1,7 +1,7 @@
-PotentialEvapotranspiration: Compute potential evapotranspiration
+Landslides: Compute probability of failure for shallow landslides
 -----------------------------------------------------------------
 
-.. automodule:: landlab.components.pet
+.. automodule:: landlab.components.landslides
     :members:
     :undoc-members:
     :show-inheritance:

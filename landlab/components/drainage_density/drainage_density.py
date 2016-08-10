@@ -9,7 +9,6 @@ for West Valley Project: Landlab component to calculate drainage density
 """
 from landlab import Component
 import numpy as np
-from six.moves import range
 
 
 class DrainageDensity(Component):

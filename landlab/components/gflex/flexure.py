@@ -30,15 +30,9 @@ from landlab import FieldError
 try:
     import gflex
 except ImportError:
-    import warnings, sys
-
-    warnings.warn("gFlex not installed.")
-    print("""
-To use the gFlex component you must have gFlex installed on your machine.
-For installation instructions see gFlex on GitHub:
-
-  https://github.com/awickert/gFlex
-          """.strip(), file=sys.stderr)
+    NO_GFLEX = True
+else:
+    NO_GFLEX = False
 
 
 class gFlex(Component):
@@ -149,6 +143,10 @@ class gFlex(Component):
                  g=9.81, **kwds):
         """Constructor for Wickert's gFlex in Landlab."""
         assert RasterModelGrid in inspect.getmro(grid.__class__)
+        if NO_GFLEX:
+            raise ImportError(
+                "gFlex not installed! For installation instructions see " +
+                "gFlex on GitHub: https://github.com/awickert/gFlex")
         BC_options = ('0Displacement0Slope', '0Moment0Shear', '0Slope0Shear',
                       'Periodic')
 
