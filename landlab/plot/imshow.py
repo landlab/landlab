@@ -290,8 +290,13 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
                 kwds['vmax'] = vmax
 
         if np.isclose(grid.dx, grid.dy):
-            myimage = plt.imshow(values.reshape(grid.shape), origin='lower',
-                                 extent=(x[0], x[-1], y[0], y[-1]), **kwds)
+            if values.size == grid.number_of_nodes:
+                myimage = plt.imshow(
+                    values.reshape(grid.shape), origin='lower',
+                    extent=(x[0], x[-1], y[0], y[-1]), **kwds)
+            else:  # this is a cell grid, and has been reshaped already...
+                myimage = plt.imshow(values, origin='lower',
+                                     extent=(x[0], x[-1], y[0], y[-1]), **kwds)
         myimage = plt.pcolormesh(x, y, values, **kwds)
 
         plt.gca().set_aspect(1.)
@@ -505,7 +510,7 @@ def imshow_grid(grid, values, **kwds):
     if values_at == 'node':
         imshow_grid_at_node(grid, values, **kwds)
     elif values_at == 'cell':
-        imshow_cell_grid(grid, values, **kwds)
+        imshow_grid_at_cell(grid, values, **kwds)
     else:
         raise TypeError('value location %s not understood' % values_at)
 
