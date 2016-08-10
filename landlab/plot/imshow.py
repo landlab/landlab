@@ -274,6 +274,9 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
             if vmax is not None:
                 kwds['vmax'] = vmax
 
+        if np.isclose(grid.dx, grid.dy):
+            myimage = plt.imshow(values.reshape(grid.shape), origin='lower',
+                                 extent=(x[0], x[-1], y[0], y[-1]), **kwds)
         myimage = plt.pcolormesh(x, y, values, **kwds)
 
         plt.gca().set_aspect(1.)
