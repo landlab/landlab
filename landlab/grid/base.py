@@ -404,8 +404,8 @@ Use the groups attribute to see the group names.
 >>> groups = list(grid.groups)
 >>> groups.sort()
 >>> groups # doctest: +NORMALIZE_WHITESPACE
-['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'face',
- 'link', 'node']
+['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'corner',
+ 'face', 'link', 'node', 'patch']
 
 Create Field Arrays
 +++++++++++++++++++
