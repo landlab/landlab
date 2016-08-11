@@ -172,6 +172,15 @@ Information about patches
     ~landlab.grid.base.ModelGrid.patches_present_at_link
     ~landlab.grid.base.ModelGrid.patches_present_at_node
 
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.number_of_corners
+
+
 Data Fields in ModelGrid
 ------------------------
 :class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
@@ -194,6 +203,8 @@ itself that provide access to the values groups:
     ~landlab.grid.base.ModelGrid.at_cell
     ~landlab.grid.base.ModelGrid.at_link
     ~landlab.grid.base.ModelGrid.at_face
+    ~landlab.grid.base.ModelGrid.at_patch
+    ~landlab.grid.base.ModelGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -404,8 +415,8 @@ Use the groups attribute to see the group names.
 >>> groups = list(grid.groups)
 >>> groups.sort()
 >>> groups # doctest: +NORMALIZE_WHITESPACE
-['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'face',
- 'link', 'node']
+['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'corner',
+ 'face', 'link', 'node', 'patch']
 
 Create Field Arrays
 +++++++++++++++++++
@@ -485,6 +496,10 @@ BAD_INDEX_VALUE = -1
 # of that element in the grid.
 _ARRAY_LENGTH_ATTRIBUTES = {
     'node': 'number_of_nodes',
+    'patch': 'number_of_patches',
+    'link': 'number_of_links',
+    'corner': 'number_of_corners',
+    'face': 'number_of_faces',
     'cell': 'number_of_cells',
     'link': 'number_of_links',
     'face': 'number_of_faces',
@@ -787,9 +802,11 @@ class ModelGrid(ModelDataFieldsMixIn):
     _DEBUG_TRACK_METHODS = False
 
     at_node = {}  # : Values defined at nodes
-    at_cell = {}  # : Values defined at cells
     at_link = {}  # : Values defined at links
+    at_patch = {}  # : Values defined at patches
+    at_corner = {}  # : Values defined at corners
     at_face = {}  # : Values defined at faces
+    at_cell = {}  # : Values defined at cells
     at_core_node = {}  # : Values defined at core nodes
     at_core_cell = {}  # : Values defined at core cells
     at_active_link = {}  # : Values defined at active links
@@ -1577,6 +1594,21 @@ class ModelGrid(ModelDataFieldsMixIn):
         LLCATS: NINF
         """
         return len(self._cell_at_node)
+
+    @property
+    def number_of_corners(self):
+        """Total number of nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.number_of_corners
+        12
+
+        LLCATS: CNINF
+        """
+        return self.number_of_patches
 
     @property
     def number_of_cells(self):

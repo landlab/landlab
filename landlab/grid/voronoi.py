@@ -182,6 +182,15 @@ Information about patches
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
 
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
+
+
 Data Fields in ModelGrid
 ------------------------
 :class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
@@ -204,6 +213,8 @@ itself that provide access to the values groups:
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at

@@ -190,6 +190,15 @@ Information about patches
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
 
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.radial.RadialModelGrid.number_of_corners
+
+
 Data Fields in ModelGrid
 ------------------------
 :class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
@@ -212,6 +221,8 @@ itself that provide access to the values groups:
     ~landlab.grid.radial.RadialModelGrid.at_cell
     ~landlab.grid.radial.RadialModelGrid.at_link
     ~landlab.grid.radial.RadialModelGrid.at_face
+    ~landlab.grid.radial.RadialModelGrid.at_patch
+    ~landlab.grid.radial.RadialModelGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
