@@ -1593,7 +1593,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_corners
-        20
+        12
 
         LLCATS: NINF
         """
