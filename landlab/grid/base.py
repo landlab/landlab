@@ -172,6 +172,15 @@ Information about patches
     ~landlab.grid.base.ModelGrid.patches_present_at_link
     ~landlab.grid.base.ModelGrid.patches_present_at_node
 
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.base.ModelGrid.number_of_corners
+
+
 Data Fields in ModelGrid
 ------------------------
 :class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
@@ -194,6 +203,8 @@ itself that provide access to the values groups:
     ~landlab.grid.base.ModelGrid.at_cell
     ~landlab.grid.base.ModelGrid.at_link
     ~landlab.grid.base.ModelGrid.at_face
+    ~landlab.grid.base.ModelGrid.at_patch
+    ~landlab.grid.base.ModelGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -1595,7 +1606,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> grid.number_of_corners
         12
 
-        LLCATS: NINF
+        LLCATS: CNINF
         """
         return self.number_of_patches
 
