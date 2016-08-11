@@ -485,6 +485,10 @@ BAD_INDEX_VALUE = -1
 # of that element in the grid.
 _ARRAY_LENGTH_ATTRIBUTES = {
     'node': 'number_of_nodes',
+    'patch': 'number_of_patches',
+    'link': 'number_of_links',
+    'corner': 'number_of_corners',
+    'face': 'number_of_faces',
     'cell': 'number_of_cells',
     'link': 'number_of_links',
     'face': 'number_of_faces',
@@ -787,9 +791,11 @@ class ModelGrid(ModelDataFieldsMixIn):
     _DEBUG_TRACK_METHODS = False
 
     at_node = {}  # : Values defined at nodes
-    at_cell = {}  # : Values defined at cells
     at_link = {}  # : Values defined at links
+    at_patch = {}  # : Values defined at patches
+    at_corner = {}  # : Values defined at corners
     at_face = {}  # : Values defined at faces
+    at_cell = {}  # : Values defined at cells
     at_core_node = {}  # : Values defined at core nodes
     at_core_cell = {}  # : Values defined at core cells
     at_active_link = {}  # : Values defined at active links

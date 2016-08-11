@@ -2,8 +2,8 @@
 from .grouped import ModelDataFields, GroupSizeError
 
 
-_GROUPS = ('node', 'cell', 'link', 'face', 'core_node', 'core_cell',
-           'active_link', 'active_face', )
+_GROUPS = ('node', 'link', 'patch', 'corner', 'face', 'cell', 'core_node',
+           'core_cell', 'active_link', 'active_face', )
 
 
 class ModelDataFieldsMixIn(ModelDataFields):
