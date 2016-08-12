@@ -5321,7 +5321,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> out_id = rmg.set_watershed_boundary_condition(node_data, -9999.,
         ...                                              True)
         >>> out_id
-        array([[10]], dtype=int8)
+        array([10])
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
@@ -5406,7 +5406,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
         if return_outlet_id:
-            return np.array([outlet_loc])
+            return as_id_array([outlet_loc])
 
     def set_watershed_boundary_condition_outlet_coords(
                         self, outlet_coords, node_data, nodata_value=-9999.):
