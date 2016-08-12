@@ -125,15 +125,18 @@ from __future__ import print_function
 
 from _heapq import heappush
 from _heapq import heappop
+from _heapq import heapify
 import landlab
 import numpy as np
 import pylab as plt
 
 _USE_CYTHON = True
 
+_RUN_NEW = False
+
 if _USE_CYTHON:
     from .cfuncs import (update_link_states_and_transitions,
-                         get_next_event, run_cts, run_cts_lean)
+                         run_cts, run_cts_lean, PriorityQueue)
 
 _NEVER = 1e50
 
@@ -418,10 +421,6 @@ class CellLabCTSModel(object):
             if self.grid.status_at_node[self.grid.node_at_link_tail[link_id]] != _CORE or self.grid.status_at_node[self.grid.node_at_link_head[link_id]] != _CORE:
                 self.bnd_lnk[link_id] = True
 
-        # TEMP DEBUG/PERF TEST
-        self.san = np.zeros(self.grid.number_of_nodes, dtype=np.int8)
-        self.san[:] = self.grid.status_at_node # GIVES 10% SPEEDUP BUT USES MEM
-
         # Set up the initial node-state grid
         self.set_node_state_grid(initial_node_states)
 
@@ -478,7 +477,10 @@ class CellLabCTSModel(object):
 
         # Create priority queue for events and next_update array for links
         self.event_queue = []
+        heapify(self.event_queue)
         self.next_update = self.grid.add_zeros('link', 'next_update_time')
+        self.priority_queue = PriorityQueue()
+        self.next_trn_id = np.zeros(self.grid.number_of_links, dtype=np.int)
 
         # Assign link types from node types
         self.create_link_state_dict_and_pair_list()
@@ -847,6 +849,61 @@ class CellLabCTSModel(object):
 
         return my_event
 
+    def get_next_event_new(self, link, current_state, current_time):
+        """Get the next event for a link.
+
+        Returns the next event for link with ID "link", which is in state
+        "current state".
+
+        Parameters
+        ----------
+        link : int
+            ID of the link
+        current_state : int
+            Current state code for the link
+        current_time : float
+            Current time in simulation (i.e., time of event just processed)
+
+        Returns
+        -------
+        Event object
+            The returned Event object contains the time, link ID, and type of
+            the next transition event at this link.
+
+        Notes
+        -----
+        If there is only one potential transition out of the current state, a
+        time for the transition is selected at random from an exponential
+        distribution with rate parameter appropriate for this transition.
+
+        If there are more than one potential transitions, a transition time is
+        chosen for each, and the smallest of these applied.
+
+        Assumes that there is at least one potential transition from the
+        current state.
+        """
+        assert (self.n_xn[current_state] > 0), \
+            'must have at least one potential transition'
+
+        # Find next event time for each potential transition
+        if self.n_xn[current_state] == 1:
+            trn_id = self.trn_id[current_state][0]
+            next_time = np.random.exponential(
+                1.0 / self.trn_rate[trn_id])
+        else:
+            next_time = _NEVER
+            trn_id = -1
+            for i in range(self.n_xn[current_state]):
+                this_next = np.random.exponential(
+                    1.0 / self.trn_rate[self.trn_id[current_state][i]])
+                if this_next < next_time:
+                    next_time = this_next
+
+        if _DEBUG:
+            print('get_next_event_new():')
+
+        return (next_time, trn_id)
+
     def push_transitions_to_event_queue(self):
         """
         Initializes the event queue by creating transition events for each
@@ -862,14 +919,18 @@ class CellLabCTSModel(object):
             # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
-                #self.get_next_event(i, self.link_state[i], 0.0)
-                event = get_next_event(i, self.link_state[i], 0.0, self.n_xn,
-                                       self.xn_to, self.xn_rate,
-                                       self.xn_propswap,
-                                       self.xn_prop_update_fn)
+                event = self.get_next_event(i, self.link_state[i], 0.0)
+                #event = get_next_event(i, self.link_state[i], 0.0, self.n_xn,
+                #                       self.xn_to, self.xn_rate,
+                #                       self.xn_propswap,
+                #                       self.xn_prop_update_fn)
                 #print('Pushing event ' + str(event.time) + ' ' + str(event.link) + ' ' + str(event.xn_to))
                 heappush(self.event_queue, event)
                 self.next_update[i] = event.time
+                
+                # for NEW approach (gradual transition...)
+                (next_time, trn_id) = self.get_next_event_new(i,self.link_state[i], 0.0)
+                #self.priority_queue.push(())
 
             else:
                 self.next_update[i] = _NEVER
@@ -1190,8 +1251,13 @@ class CellLabCTSModel(object):
                self.num_node_states,
                self.num_node_states_sq,
                self.bnd_lnk)
+
+        elif _RUN_NEW:
+            
+            self.run_new()
+            
         else:
-    
+
             # Continue until we've run out of either time or events
             while self.current_time < run_to and self.event_queue:
     
@@ -1218,6 +1284,36 @@ class CellLabCTSModel(object):
                 else:
                     self.current_time = run_to
     
+    
+    def run_new(self, run_to):
+        """Test of new approach using priority queue."""
+        
+        # Continue until we've run out of either time or events
+        while self.current_time < run_to and self.event_queue:
+    
+            if _DEBUG:
+                print('Current Time = ', self.current_time)
+    
+            # Is there an event scheduled to occur within this run?
+            if self.priority_queue[0, 0] <= run_to:
+
+                # If so, pick the next transition event from the event queue
+                (ev_time, ev_idx, ev_link) = self.priority_queue.pop()
+
+                if _DEBUG:
+                    print('Event:', ev_time, ev_link, self.trn_to[self.next_trn_id[ev_link]])
+        
+                    self.do_transition_new(ev, self.current_time,
+                                       plot_each_transition, plotter)
+
+                    # Update current time
+                    self.current_time = ev.time
+                
+                # If there is no event scheduled for this span of time, simply
+                # advance current_time to the end of the current run period.
+                else:
+                    self.current_time = run_to
+        
     
 if __name__ == "__main__":
     import doctest

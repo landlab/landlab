@@ -29,6 +29,25 @@ cdef char _DEBUG = 0
 
 
 
+cdef class PriorityQueue:
+    """
+    Implements a priority queue.
+    """
+    cdef public object _queue
+    cdef public int _index
+
+    def __init__(self):
+        self._queue = []
+        self._index = 0
+
+    def push(self, int item, double priority):
+        heappush(self._queue, (priority, self._index, item))
+        self._index += 1
+
+    def pop(self):
+        return heappop(self._queue)[-1]
+
+
 cdef class Event:
     """
     Represents a transition event at a link. The transition occurs at a given
@@ -189,8 +208,10 @@ cpdef update_link_states_and_transitions(
                     schedule an event
         """
         cdef int current_state
+        cdef int i, j
 
-        for i in active_links:
+        for j in range(len(active_links)):
+            i = active_links[i]
             current_state = current_link_state(i, node_state,
                                                node_at_link_tail,
                                                node_at_link_head,
@@ -209,6 +230,7 @@ cpdef update_link_states_and_transitions(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
@@ -218,7 +240,7 @@ cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
     """Update the states of 2 nodes that underwent a transition."""
     # Change to the new states
     if status_at_node[tail_node] == _CORE:
-        node_state[tail_node] = (new_link_state // num_states) % num_states
+        node_state[tail_node] = (new_link_state / num_states) % num_states # assume integer division!!
     if status_at_node[head_node] == _CORE:
         node_state[head_node] = new_link_state % num_states
 
@@ -783,6 +805,8 @@ cdef void do_transition_lean(Event event,
     cdef char orientation          # Orientation code for link
     cdef int i
 
+    #print 'dtl'
+
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
     # changed state since the event was pushed onto the event queue, and
@@ -889,6 +913,8 @@ cpdef double run_cts_lean(double run_to, double current_time,
     (see celllab_cts.py for other parameters)
     """
     cdef Event ev
+    
+    print 'in ctsl'
 
     # Continue until we've run out of either time or events
     while current_time < run_to and event_queue:
@@ -896,6 +922,8 @@ cpdef double run_cts_lean(double run_to, double current_time,
         # Is there an event scheduled to occur within this run?
         if event_queue[0].time <= run_to:
 
+            #print 'popping'
+            
             # If so, pick the next transition event from the event queue
             ev = heappop(event_queue)
 
