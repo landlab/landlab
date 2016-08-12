@@ -1554,7 +1554,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
-        
+
         LLCATS: GINF NINF BC
         """
         try:
@@ -5255,7 +5255,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
-        value.  Can return the outlet id as a one element numpy array if 
+        value.  Can return the outlet id as a one element numpy array if
         return_outlet_id is set to True.
 
         All nodes with nodata_value are set to CLOSED_BOUNDARY
@@ -5264,9 +5264,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the exception that the outlet node is set to a
         FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
-        Note that the outer ring (perimeter) of the raster is set to 
-        CLOSED_BOUNDARY, even if there are nodes that have values. 
-        The only exception to this would be if the outlet node 
+        Note that the outer ring (perimeter) of the raster is set to
+        CLOSED_BOUNDARY, even if there are nodes that have values.
+        The only exception to this would be if the outlet node
         is on the perimeter, which is acceptable.
 
         This assumes that all of the nodata_values are on the outside of the
@@ -5321,7 +5321,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> out_id = rmg.set_watershed_boundary_condition(node_data, -9999.,
         ...                                              True)
         >>> out_id
-        array([[10]])
+        array([[10]], dtype=int8)
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
@@ -5336,10 +5336,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         LLCATS: BC
         """
         # For this to be a watershed, need to make sure that there is a ring
-        # of closed boundary nodes around the outside of the watershed, 
+        # of closed boundary nodes around the outside of the watershed,
         # barring the outlet location.  So enforce that all perimeter nodes
         # are inactive boundaries now, then set the outlet location later.
-        # By enforcing the perimeter of closed values first, then fixing the 
+        # By enforcing the perimeter of closed values first, then fixing the
         # outlet later, it should be OK if the outlet is on the perimeter.
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
@@ -5404,7 +5404,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
-        
+
         if return_outlet_id:
             return np.array([outlet_loc])
 
