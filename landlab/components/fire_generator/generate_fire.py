@@ -47,9 +47,10 @@ To get a time to next fire:
 
 from random import weibullvariate
 from scipy import special
+from landlab import Component
 
 
-class FireGenerator(object):
+class FireGenerator(Component):
 
     """Generate a random fire event or time series.
 
@@ -69,6 +70,18 @@ class FireGenerator(object):
         it can be found using mean fire recurrence value and the
         get_scale_parameter() method described later.
     """
+
+    _name = 'FireGenerator'
+
+    _input_var_names = tuple()
+
+    _output_var_names = tuple()
+
+    _var_units = dict()
+
+    _var_mapping = dict()
+
+    _var_doc = dict()
 
     def __init__(self, mean_fire_recurrence=0.0, shape_parameter=0.0,
                  scale_parameter=None):
