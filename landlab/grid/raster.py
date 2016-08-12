@@ -1,4 +1,4 @@
-#! /usr/env/python
+set#! /usr/env/python
 """
 A class used to create and manage regular square raster
 grids for 2D numerical models in Landlab.
@@ -5406,7 +5406,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
         if return_outlet_id:
-            return as_id_array([outlet_loc])
+            return as_id_array(np.array(outlet_loc))
 
     def set_watershed_boundary_condition_outlet_coords(
                         self, outlet_coords, node_data, nodata_value=-9999.):
