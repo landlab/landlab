@@ -1,4 +1,4 @@
-#! /usr/env/python
+set#! /usr/env/python
 """
 A class used to create and manage regular square raster
 grids for 2D numerical models in Landlab.
@@ -1554,7 +1554,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
-        
+
         LLCATS: GINF NINF BC
         """
         try:
@@ -5250,10 +5250,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
 
-    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.):
+    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
+                                         return_outlet_id=False):
         """
         Finds the node adjacent to a boundary node with the smallest value.
-        This node is set as the outlet.
+        This node is set as the outlet.  The outlet node must have a data
+        value.  Can return the outlet id as a one element numpy array if
+        return_outlet_id is set to True.
 
         All nodes with nodata_value are set to CLOSED_BOUNDARY
         (grid.status_at_node == 4). All nodes with data values
@@ -5261,9 +5264,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         the exception that the outlet node is set to a
         FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
-        Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
-        if there are nodes that have values.  The only exception to this would
-        be if the outlet node is on the boundary, which is acceptable.
+        Note that the outer ring (perimeter) of the raster is set to
+        CLOSED_BOUNDARY, even if there are nodes that have values.
+        The only exception to this would be if the outlet node
+        is on the perimeter, which is acceptable.
 
         This assumes that all of the nodata_values are on the outside of the
         data values.  In other words, there are no islands of nodata_values
@@ -5275,7 +5279,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Finally, the developer has seen cases in which DEM data that has been
         filled results in a different outlet from DEM data which has not been
         filled.  Be aware that if you identify an outlet on a filled DEM, make
-        sure that filled DEM is what is being used for your modeling.
+        sure that the filled DEM is what is being used for your modeling.
         Otherwise, this may find a different outlet.  To force the outlet
         location, use either set_watershed_boundary_condition_outlet_coords
         or set_watershed_boundary_condition_outlet_id.
@@ -5286,6 +5290,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
+        return_outlet_id : boolean, optional
+            Indicates whether or not to return the id of the found outlet
 
         Examples:
         ---------
@@ -5312,7 +5318,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> rmg.set_watershed_boundary_condition(node_data, -9999.)
+        >>> out_id = rmg.set_watershed_boundary_condition(node_data, -9999.,
+        ...                                              True)
+        >>> out_id
+        array([10])
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
@@ -5326,28 +5335,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
-        # for this to be a watershed, need to make sure that there is a ring
-        # of no data values around the outside of the watershed, barring the
-        # outlet location.  So enforce that all outer nodes
+        # For this to be a watershed, need to make sure that there is a ring
+        # of closed boundary nodes around the outside of the watershed,
+        # barring the outlet location.  So enforce that all perimeter nodes
         # are inactive boundaries now, then set the outlet location later.
-        # By enforcing the ring of closed values first, then fixing the outlet
-        # later, it should be OK if the outlet is on the outer ring.
+        # By enforcing the perimeter of closed values first, then fixing the
+        # outlet later, it should be OK if the outlet is on the perimeter.
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
-        # set no data nodes to inactive boundaries
-        # this may be redundant, but must do in case there are no data
-        # values that are not on the outer boundary
+        # Set no data nodes to inactive boundaries.
+        # This may be redundant, but must do in case there are no data
+        # values that are not on the perimeter.
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
-
-        # This method works well if the watershed topography is already
-        # established.  If it's not, then this is an ineffiient method, but
-        # seems likely that one would only call this if the watershed
-        # topography was already established.
 
         # need to find values that are not no_data
 
         #locs is a list that contains locations where
-        #node data is greater than the nodata value
+        #node data is not equal to the nodata value
         locs = np.where(node_data != nodata_value)
         if len(locs) < 1:
             raise ValueError('All data values are no_data values')
@@ -5400,6 +5404,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
+
+        if return_outlet_id:
+            return as_id_array(np.array(outlet_loc))
 
     def set_watershed_boundary_condition_outlet_coords(
                         self, outlet_coords, node_data, nodata_value=-9999.):
