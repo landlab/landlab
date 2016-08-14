@@ -31,7 +31,7 @@ def fill_perimeter_nodes(shape, np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
         i += 1
 
     # Bottom edge
-    for node in range(0, n_cols):
+    for node in range(0, n_cols - 1):
         perimeter_nodes[i] = node
         i += 1
 
