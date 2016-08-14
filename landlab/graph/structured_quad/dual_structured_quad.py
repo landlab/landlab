@@ -46,6 +46,10 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
             (y_of_node, x_of_node), shape=shape, node_at_cell=node_at_cell,
             nodes_at_face=nodes_at_face)
 
+    @property
+    def perimeter_corners(self):
+        return self.dual.perimeter_nodes
+
 
 class DualRectilinearGraph(DualGraph, RectilinearGraph):
 
@@ -110,6 +114,9 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
     """
 
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+        spacing = np.broadcast_to(spacing, 2)
+        origin = np.broadcast_to(origin, 2)
+
         dual_shape = [dim - 1 for dim in shape]
         dual_origin = [x + dx * .5 for x, dx in zip(origin, spacing)]
 

@@ -134,7 +134,7 @@ class StructuredQuadGraph(Graph):
                                                   links=nodes_at_link,
                                                   patches=links_at_patch,
                                                   sorting={'ne': True,
-                                                           'ccw': False,
+                                                           'ccw': True,
                                                            'xy': True})
 
     def _create_links_and_dirs_at_node(self):
@@ -244,6 +244,9 @@ class UniformRectilinearGraph(RectilinearGraph):
     """
 
     def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+
+        spacing = np.broadcast_to(spacing, 2)
+        origin = np.broadcast_to(origin, 2)
 
         rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
         cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
