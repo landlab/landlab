@@ -6,7 +6,8 @@ class when defining other types of graphs.
 import numpy as np
 
 from ..core.utils import as_id_array
-from .graph import Graph
+from ..utils.decorators import store_result_in_grid
+from .graph import Graph, find_perimeter_nodes
 from .sort.sort import reverse_one_to_one
 
 
@@ -107,6 +108,11 @@ class DualGraph(object):
     @property
     def number_of_corners(self):
         return self._dual.number_of_nodes
+
+    @property
+    @store_result_in_grid()
+    def perimeter_corners(self):
+        return find_perimeter_nodes(self.dual)
 
     @property
     def corners_at_face(self):
