@@ -6,7 +6,7 @@ class when defining other types of graphs.
 import numpy as np
 
 from ..core.utils import as_id_array
-from ..utils.decorators import store_result_in_grid
+from ..utils.decorators import store_result_in_grid, read_only_array
 from .graph import Graph, find_perimeter_nodes
 from .sort.sort import reverse_one_to_one
 
@@ -111,6 +111,7 @@ class DualGraph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def perimeter_corners(self):
         return find_perimeter_nodes(self.dual)
 

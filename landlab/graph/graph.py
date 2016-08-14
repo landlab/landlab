@@ -58,7 +58,7 @@ import numpy as np
 
 from ..core.utils import as_id_array, argsort_points_by_x_then_y
 from ..utils.jaggedarray import flatten_jagged_array
-from ..utils.decorators import store_result_in_grid
+from ..utils.decorators import store_result_in_grid, read_only_array
 from .sort import sort_graph, reindex_by_xy, reorder_links_at_patch
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
@@ -512,6 +512,7 @@ class Graph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def angle_of_link(self):
         """Get the angle of each link.
 
@@ -533,6 +534,7 @@ class Graph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def length_of_link(self):
         """Get the length of links.
 
@@ -549,6 +551,7 @@ class Graph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def midpoint_of_link(self):
         """Get the middle of links.
 
@@ -567,15 +570,18 @@ class Graph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def xy_of_link(self):
         return get_midpoint_of_link(self)
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def xy_of_patch(self):
         return get_centroid_of_patch(self)
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def area_of_patch(self):
         return get_area_of_patch(self)
