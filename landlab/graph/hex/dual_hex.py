@@ -13,14 +13,17 @@ class DualHexGraph(DualVoronoiGraph):
     >>> import numpy as np
     >>> from landlab.graph import HexGraph
 
-    >>> graph = DualHexGraph((3, 2))
+    >>> graph = DualHexGraph((3, 2), node_layout='hex')
     >>> graph.number_of_nodes
     7
+    >>> graph.number_of_corners
+    6
+
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    array([ 0. ,  1. , -0.5,  0.5,  1.5,  0. ,  1. ])
     """
 
     def __init__(self, shape, spacing=1., origin=(0., 0.),

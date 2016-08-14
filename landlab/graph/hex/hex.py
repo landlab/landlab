@@ -89,20 +89,20 @@ def setup_xy_of_node(shape, spacing=1., origin=(0., 0.),
 
     >>> x, y = setup_xy_of_node((3, 2))
     >>> x
-    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    array([ 0. ,  1. ,  0.5,  1.5,  0. ,  1. ])
     >>> y / (np.sqrt(3) / 2.)
-    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
+    array([ 0.,  0.,  1.,  1.,  2.,  2.])
     >>> x, y = setup_xy_of_node((2, 2))
     >>> x
-    array([ 0.5,  1.5,  0. ,  1. ,  2. ])
+    array([ 0. ,  1. ,  0.5,  1.5])
     >>> y / (np.sqrt(3) / 2.)
-    array([ 0.,  0.,  1.,  1.,  1.])
+    array([ 0.,  0.,  1.,  1.])
 
     >>> x, y = setup_xy_of_node((2, 2), spacing=2, origin=(1, 2))
     >>> x
-    array([ 3.,  5.,  2.,  4.,  6.])
+    array([ 2.,  4.,  3.,  5.])
     >>> (y - 1) / (np.sqrt(3) / 2.)
-    array([ 0.,  0.,  2.,  2.,  2.])
+    array([ 0.,  0.,  2.,  2.])
     """
     from .ext.hex import get_xy_of_node, fill_xy_of_node, fill_hex_xy_of_node
 
@@ -143,12 +143,12 @@ class HexGraph(VoronoiGraph):
 
     >>> graph = HexGraph((3, 2))
     >>> graph.number_of_nodes
-    7
+    6
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
     ...     # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
+    array([ 0.,  0.,  1.,  1.,  2.,  2.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    array([ 0. ,  1. ,  0.5,  1.5,  0. ,  1. ])
     """
 
     def __init__(self, shape, spacing=1., origin=(0., 0.),
