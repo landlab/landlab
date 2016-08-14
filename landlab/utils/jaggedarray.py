@@ -155,8 +155,11 @@ class JaggedArray(object):
         array([0, 1, 2, 3, 4])
         """
         if len(args) == 1:
-            values, values_per_row = (np.concatenate(args[0]),
-                                      [len(row) for row in args[0]])
+            if len(args[0]) > 1:
+                values, values_per_row = (np.concatenate(args[0]),
+                                          [len(row) for row in args[0]])
+            else:
+                values, values_per_row = (np.array(args[0]), [len(args[0])])
         else:
             values, values_per_row = (np.array(args[0]), args[1])
 
