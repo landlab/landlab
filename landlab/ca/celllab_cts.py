@@ -130,9 +130,14 @@ import landlab
 import numpy as np
 import pylab as plt
 
-_USE_CYTHON = True
+_USE_CYTHON = False
 
 _RUN_NEW = False
+
+_TESTING = True
+
+if _TESTING:
+    from .cfuncs import PriorityQueue
 
 if _USE_CYTHON:
     from .cfuncs import (update_link_states_and_transitions,
@@ -480,7 +485,7 @@ class CellLabCTSModel(object):
         heapify(self.event_queue)
         self.next_update = self.grid.add_zeros('link', 'next_update_time')
         self.priority_queue = PriorityQueue()
-        self.next_trn_id = np.zeros(self.grid.number_of_links, dtype=np.int)
+        self.next_trn_id = -np.ones(self.grid.number_of_links, dtype=np.int)
 
         # Assign link types from node types
         self.create_link_state_dict_and_pair_list()
@@ -643,6 +648,8 @@ class CellLabCTSModel(object):
     def setup_transition_data(self, xn_list):
         """Create transition data arrays.
 
+        PREVIOUS METHOD:
+        
         Using the transition list and the number of link states, creates
         three arrays that collectively contain data on state transitions:
 
@@ -656,12 +663,48 @@ class CellLabCTSModel(object):
           each transition, whether that transition is accompanied by a
           "property" swap, in which the two cells exchange properties (in
           order to represent a particle moving)
+          
+        NEW METHOD:
+        
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 4))
+        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> trn_list = []
+        >>> trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
+        >>> trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
+        >>> trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
+        >>> trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
+        >>> ins = np.arange(12) % 2
+        >>> cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
+        >>> cts.n_trn
+        array([0, 1, 1, 0, 0, 2, 0, 0])
+        >>> cts.trn_id
+        array([[0, 0],
+               [0, 0],
+               [1, 0],
+               [0, 0],
+               [0, 0],
+               [2, 3],
+               [0, 0],
+               [0, 0]])
+        >>> cts.trn_to
+        array([2, 1, 6, 7])
+        >>> cts.trn_rate
+        array([ 1.,  2.,  3.,  4.])
         """
+
         # First, create an array that stores the number of possible transitions
         # out of each state.
         self.n_xn = np.zeros(self.num_link_states, dtype=int)
         for xn in xn_list:
             self.n_xn[xn.from_state] += 1
+        self.n_trn = np.zeros(self.num_link_states, dtype=np.int)
 
         # Now, create arrays to hold the "to state" and transition rate for each
         # transition. These arrays are dimensioned N x M where N is the number
@@ -670,6 +713,14 @@ class CellLabCTSModel(object):
         # state 4, and the other states only had one or zero possible
         # transitions, then the maximum would be 2).
         max_transitions = np.max(self.n_xn)
+        self.trn_id = np.zeros(
+            (self.num_link_states, max_transitions), dtype=np.int)
+        num_transitions = len(xn_list)
+        self.trn_to = np.zeros(num_transitions, dtype=np.int)
+        self.trn_rate = np.zeros(num_transitions)
+        self.trn_propswap = np.zeros(num_transitions, dtype=np.int8)
+        self.trn_prop_update_fn = np.zeros(num_transitions, dtype=object)
+        # OLD
         self.xn_to = np.zeros(
             (self.num_link_states, max_transitions), dtype=int)
         self.xn_rate = np.zeros((self.num_link_states, max_transitions))
@@ -678,6 +729,18 @@ class CellLabCTSModel(object):
         self.xn_prop_update_fn = np.zeros(
             (self.num_link_states, max_transitions), dtype=object)
 
+        for trn in range(num_transitions):
+            self.trn_to[trn] = xn_list[trn].to_state
+            self.trn_rate[trn] = xn_list[trn].rate
+            self.trn_propswap[trn] = xn_list[trn].swap_properties
+            if xn_list[trn].prop_update_fn is not None:
+                self.trn_prop_update_fn[trn] = xn_list[trn].prop_update_fn
+                self._use_propswap_or_callback = True
+            from_state = xn_list[trn].from_state
+            self.trn_id[from_state, self.n_trn[from_state]] = trn
+            self.n_trn[from_state] += 1
+
+        #OLD
         # Populate the "to" and "rate" arrays
         # reset this and then re-do (inefficient but should work)
         self.n_xn[:] = 0
@@ -885,24 +948,55 @@ class CellLabCTSModel(object):
         assert (self.n_xn[current_state] > 0), \
             'must have at least one potential transition'
 
-        # Find next event time for each potential transition
+        # Find next event time for each potential transition: OLD VERSION
         if self.n_xn[current_state] == 1:
-            trn_id = self.trn_id[current_state][0]
+            xn_to = self.xn_to[current_state][0]
+            propswap = self.xn_propswap[current_state][0]
             next_time = np.random.exponential(
-                1.0 / self.trn_rate[trn_id])
+                1.0 / self.xn_rate[current_state][0])
+            prop_update_fn = self.xn_prop_update_fn[current_state][0]
+        else:
+            next_time = _NEVER
+            xn_to = None
+            propswap = False
+            for i in range(self.n_xn[current_state]):
+                this_next = np.random.exponential(
+                    1.0 / self.xn_rate[current_state][i])
+                if this_next < next_time:
+                    next_time = this_next
+                    xn_to = self.xn_to[current_state][i]
+                    propswap = self.xn_propswap[current_state][i]
+                    prop_update_fn = self.xn_prop_update_fn[current_state][i]
+
+        assert (self.n_xn[current_state] > 0), \
+            'must have at least one potential transition'
+
+        # Create and setup event, and return it
+        my_event = Event(next_time + current_time, link,
+                         xn_to, propswap, prop_update_fn)
+
+        # NEW VERSION HERE
+        # Find next event time for each potential transition: new version
+        if self.n_trn[current_state] == 1:
+            trn_id = self.trn_id[current_state, 0]
+            next_time = my_event.time  #temporary: for dev
+#            next_time = np.random.exponential(
+#                1.0 / self.trn_rate[trn_id])
         else:
             next_time = _NEVER
             trn_id = -1
-            for i in range(self.n_xn[current_state]):
-                this_next = np.random.exponential(
-                    1.0 / self.trn_rate[self.trn_id[current_state][i]])
+            for i in range(self.n_trn[current_state]):
+                trn_id = self.trn_id[current_state, i]
+                this_next = my_event.time  #temporary: for dev
+#                this_next = np.random.exponential(
+#                    1.0 / self.trn_rate[self.trn_id[current_state][i]])
                 if this_next < next_time:
                     next_time = this_next
 
         if _DEBUG:
             print('get_next_event_new():')
 
-        return (next_time, trn_id)
+        return (my_event, next_time, trn_id)
 
     def push_transitions_to_event_queue(self):
         """
@@ -910,6 +1004,47 @@ class CellLabCTSModel(object):
         cell pair that has one or more potential transitions and pushing these
         onto the queue. Also records scheduled transition times in the
         self.next_update array.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 5))
+        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> trn_list = []
+        >>> trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
+        >>> trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
+        >>> trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
+        >>> trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
+        >>> ins = np.arange(15) % 2
+        >>> cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
+        >>> len(cts.event_queue)
+        7
+        >>> np.round(100 * cts.event_queue[0].time)
+        12.0
+        >>> cts.event_queue[0].link
+        16
+        >>> np.round(100 * cts.next_update[16])
+        12.0
+        >>> cts.event_queue[0].xn_to
+        7
+        >>> np.round(100 * cts.event_queue[1].time)
+        28.0
+        >>> cts.event_queue[1].link
+        11
+        >>> cts.event_queue[1].xn_to
+        1
+        >>> ev0 = cts.priority_queue._queue[0]
+        >>> np.round(100 * ev0[0])
+        12.0
+        >>> ev0[2]  # this is the link ID
+        16
+        >>> cts.next_trn_id[ev0[2]]  # ID of the transition to occur at this link
+        3
+        >>> cts.next_trn_id[cts.grid.active_links]
+        array([-1,  3, -1,  1,  0,  1,  0,  3, -1,  3])
         """
         if False and _DEBUG:
             print(('push_transitions_to_event_queue():',
@@ -919,18 +1054,20 @@ class CellLabCTSModel(object):
             # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
-                event = self.get_next_event(i, self.link_state[i], 0.0)
+                (event, ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
                 #event = get_next_event(i, self.link_state[i], 0.0, self.n_xn,
                 #                       self.xn_to, self.xn_rate,
                 #                       self.xn_propswap,
                 #                       self.xn_prop_update_fn)
+                #print('At link ' + str(i) + ' with trn_id ' + str(trn_id))
                 #print('Pushing event ' + str(event.time) + ' ' + str(event.link) + ' ' + str(event.xn_to))
                 heappush(self.event_queue, event)
                 self.next_update[i] = event.time
                 
                 # for NEW approach (gradual transition...)
-                (next_time, trn_id) = self.get_next_event_new(i,self.link_state[i], 0.0)
-                #self.priority_queue.push(())
+                #(next_time, trn_id) = self.get_next_event_new(i,self.link_state[i], 0.0)
+                self.priority_queue.push(i, ev_time)
+                self.next_trn_id[i] = trn_id
 
             else:
                 self.next_update[i] = _NEVER
