@@ -46,9 +46,9 @@ def number_of_nodes(shape, node_layout='rect'):
     if node_layout == 'rect':
         return n_rows * n_cols
     elif node_layout == 'hex':
-        return  n_rows * n_cols + (n_rows / 2) ** 2
+        return  n_rows * n_cols + (n_rows // 2) ** 2
     elif node_layout == 'rect1':
-        return (2 * n_cols + 1) * (n_rows / 2) + n_cols * (n_rows % 2)
+        return (2 * n_cols + 1) * (n_rows // 2) + n_cols * (n_rows % 2)
 
 
 def setup_perimeter_nodes(shape, orientation='horizontal', node_layout='rect'):
