@@ -33,7 +33,7 @@ def fill_perimeter_nodes(shape, np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
         i += 1
 
     # Bottom edge
-    for node in range(0, n_cols):
+    for node in range(0, n_cols - 1):
         perimeter_nodes[i] = node
         i += 1
 
@@ -43,9 +43,7 @@ def fill_hex_perimeter_nodes(shape,
                              np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
-    cdef int n_nodes = n_rows * n_cols + (n_rows / 2) ** 2 + (n_rows + 1) % 2
-    cdef int n_top_rows
-    cdef int n_top_cols
+    cdef int n_bottom_rows = (n_rows + (n_rows + 1) % 2) // 2 + 1
     cdef int i, i0
     cdef int node
     cdef int row
@@ -53,9 +51,9 @@ def fill_hex_perimeter_nodes(shape,
 
     try:
         nodes_per_row[0] = n_cols
-        for row in range(1, shape[0] / 2 + 1):
+        for row in range(1, n_bottom_rows):
             nodes_per_row[row] = nodes_per_row[row - 1] + 1
-        for row in range(shape[0] / 2 + 1, shape[0]):
+        for row in range(n_bottom_rows, n_rows):
             nodes_per_row[row] = nodes_per_row[row - 1] - 1
 
         # Right edge
