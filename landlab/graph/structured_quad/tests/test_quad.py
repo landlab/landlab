@@ -18,11 +18,11 @@ def test_create():
     assert_equal(graph.number_of_patches, 4)
 
 
-# def test_perimeter_nodes():
-#     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
-#     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
-#     graph = StructuredQuadGraph((y, x), shape=(3, 3))
-#     assert_array_equal(graph.perimeter_nodes, [2, 5, 8, 7, 6, 3, 0, 1])
+def test_perimeter_nodes():
+    y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
+    x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
+    graph = StructuredQuadGraph((y, x), shape=(3, 3))
+    assert_array_equal(graph.perimeter_nodes, [2, 5, 8, 7, 6, 3, 0, 1])
 
 
 def test_length_of_link():
