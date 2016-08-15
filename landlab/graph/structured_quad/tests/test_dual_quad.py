@@ -100,12 +100,12 @@ def test_raster_origin_as_scalar():
                        [-.5, -.5, -.5,
                          .5,  .5,  .5])
 
-def test_perimeter_corners():
-    """Test the perimeter corners."""
-    y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
-    x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
-    graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
-    assert_array_equal(graph.perimeter_corners, [1, 3, 2, 0])
+# def test_perimeter_corners():
+#     """Test the perimeter corners."""
+#     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
+#     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
+#     graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
+#     assert_array_equal(graph.perimeter_corners, [1, 3, 2, 0])
 
 
 def test_length_of_face():
