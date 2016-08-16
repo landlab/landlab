@@ -136,24 +136,24 @@ class LinearDiffuser(Component):
 
     _output_var_names = ('topographic__elevation',
                          'topographic__gradient',
-                         'unit_flux',
+                         'hillslope_sediment__unit_volume_flux',
                          )
 
     _var_units = {'topographic__elevation': 'm',
                   'topographic__gradient': '-',
-                  'unit_flux': 'm**3/s',
+                  'hillslope_sediment__unit_volume_flux': 'm**2/s',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'topographic__gradient': 'link',
-                    'unit_flux': 'link',
+                    'hillslope_sediment__unit_volume_flux': 'link',
                     }
 
     _var_doc = {
         'topographic__elevation': ('Land surface topographic elevation; can ' +
                                    'be overwritten in initialization'),
         'topographic__gradient': 'Gradient of surface, on links',
-        'unit_flux': 'Volume flux per unit width along links'
+        'hillslope_sediment__unit_volume_flux': 'Volume flux per unit width along links'
     }
 
     @use_file_name_or_kwds
@@ -252,10 +252,10 @@ class LinearDiffuser(Component):
             except FieldError:  # keep a ref
                 self.g = self.grid.at_link['topographic__gradient']
             try:
-                self.qs = self.grid.add_field('link', 'unit_flux', qs,
+                self.qs = self.grid.add_field('link', 'hillslope_sediment__unit_volume_flux', qs,
                                               noclobber=True)
             except FieldError:
-                self.qs = self.grid.at_link['unit_flux']
+                self.qs = self.grid.at_link['hillslope_sediment__unit_volume_flux']
             # note all these terms are deliberately loose, as we won't always
             # be dealing with topo
         else:

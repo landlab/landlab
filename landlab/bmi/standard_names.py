@@ -44,7 +44,7 @@ STANDARD_NAME = {
     'topographic__gradient': 'land_surface__slope',
     'topographic__slope': 'land_surface__slope_angle',
     'topographic__steepest_slope': 'model_grid_cell__max_of_d8_slope',
-    'unit_flux': None,
+    'hillslope_sediment__unit_volume_flux': None,
     'vegetation__cover_fraction': 'land_vegetation__area_fraction',
     'vegetation__dead_biomass': 'land_vegetation~biomass~dead__volume_flux',
     'vegetation__dead_leaf_area_index': 'land_vegetation~dead__leaf-area_index',
