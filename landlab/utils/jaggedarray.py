@@ -65,6 +65,10 @@ def flatten_jagged_array(jagged, dtype=None):
     array([0, 2, 2, 5])
     """
     data = np.concatenate(jagged).astype(dtype=dtype)
+    # if len(jagged) > 1:
+    #     data = np.concatenate(jagged).astype(dtype=dtype)
+    # else:
+    #     data = np.array(jagged[0]).astype(dtype=dtype)
     items_per_block = np.array([len(block) for block in jagged], dtype=int)
 
     offset = np.empty(len(items_per_block) + 1, dtype=int)
@@ -148,6 +152,12 @@ class JaggedArray(object):
         >>> x.array
         array([0, 1, 2, 3, 4])
 
+        >>> x = JaggedArray([[0, 1, 2]])
+        >>> x.array
+        array([0, 1, 2])
+        >>> x.offset
+        array([0, 3])
+
         Create a JaggedArray as a 1D array and a list or row lengths.
 
         >>> x = JaggedArray([0, 1, 2, 3, 4], (3, 2))
@@ -155,11 +165,13 @@ class JaggedArray(object):
         array([0, 1, 2, 3, 4])
         """
         if len(args) == 1:
-            if len(args[0]) > 1:
-                values, values_per_row = (np.concatenate(args[0]),
-                                          [len(row) for row in args[0]])
-            else:
-                values, values_per_row = (np.array(args[0]), [len(args[0])])
+            values, values_per_row = (np.concatenate(args[0]),
+                                      [len(row) for row in args[0]])
+            # if len(args[0]) > 1:
+            #     values, values_per_row = (np.concatenate(args[0]),
+            #                               [len(row) for row in args[0]])
+            # else:
+            #     values, values_per_row = (np.array(args[0]), [len(args[0])])
         else:
             values, values_per_row = (np.array(args[0]), args[1])
 
