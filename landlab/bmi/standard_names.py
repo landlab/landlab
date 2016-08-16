@@ -19,7 +19,7 @@ STANDARD_NAME = {
     'flow__sink_flag': None, # model_*__flag boolean?
     'flow__upstream_node_order': None,
     'lithosphere__overlying_pressure_increment': 'lithosphere_top_surface__increment_of_static_pressure',
-    'lithosphere__vertical_displacement': 'lithosphere_top_surface__increment_of_elevation',
+    'lithosphere_surface__elevation_increment': 'lithosphere_top_surface__increment_of_elevation',
     'lithosphere_surface__elevation_increment': 'lithosphere_top_surface__increment_of_elevation',
     'plant__age': 'plant__age',
     'plant__live_index': None,

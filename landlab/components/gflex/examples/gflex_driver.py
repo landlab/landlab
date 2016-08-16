@@ -52,4 +52,4 @@ pylab.figure(1)
 im = imshow_node_grid(mg, 'topographic__elevation')  # display a colored image
 
 pylab.figure(2)
-im = imshow_node_grid(mg, 'lithosphere__vertical_displacement')
+im = imshow_node_grid(mg, 'lithosphere_surface__elevation_increment')
