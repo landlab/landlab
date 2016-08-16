@@ -163,9 +163,9 @@ class OverlandFlow(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, default_fixed_links=False, h_init=0.00001, alpha=0.7,
-                 mannings_n=0.03, g=9.81, theta=0.8, rainfall_intensity=0.0,
-                 steep_slopes = False, **kwds):
+    def __init__(self, grid, default_fixed_links=False, h_init=0.00001,
+                 alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
+                 rainfall_intensity=0.0, steep_slopes=False, **kwds):
         """Create a overland flow component.
 
         Parameters
@@ -204,7 +204,7 @@ class OverlandFlow(Component):
         # For water discharge
         try:
             self.q = grid.add_zeros('water__discharge', at='link',
-                units=self._var_units['water__discharge'])
+                                    units=self._var_units['water__discharge'])
         except FieldError:
             # Field was already set; still, fill it with zeros
             self.q = grid.at_link['water__discharge']
@@ -223,7 +223,7 @@ class OverlandFlow(Component):
 
         try:
             self.h = grid.add_zeros('water__depth', at='node',
-                units=self._var_units['water__depth'])
+                                    units=self._var_units['water__depth'])
         except FieldError:
             # Field was already set
             self.h = grid.at_node['water__depth']
@@ -354,34 +354,41 @@ class OverlandFlow(Component):
             dt = np.inf  # to allow the loop to begin
         while local_elapsed_time < dt:
             dt_local = self.calc_time_step()
-            if dt_local > dt:
-                dt_local = dt
+            # Can really get into trouble if nothing happens but we still run:
+            if not dt_local < np.inf:
+                break
+            if local_elapsed_time + dt_local > dt:
+                dt_local = dt - local_elapsed_time
+            self.dt_local = dt_local
 
-            # First, we check and see if the neighbor arrays have been initialized
+            # First, we check and see if the neighbor arrays have been
+            # initialized
             if self.neighbor_flag is False:
                 self.set_up_neighbor_arrays()
 
             # In case another component has added data to the fields, we just
-            # reset our water depths, topographic elevations and water discharge
-            # variables to the fields.
+            # reset our water depths, topographic elevations and water
+            # discharge variables to the fields.
             self.h = self.grid['node']['water__depth']
             self.z = self.grid['node']['topographic__elevation']
             self.q = self.grid['link']['water__discharge']
             self.h_links = self.grid['link']['water__depth']
 
-            # Here we identify the core nodes and active link ids for later use.
+            # Here we identify the core nodes and active links for later use.
             self.core_nodes = self.grid.core_nodes
             self.active_links = self.grid.active_links
 
-            # Per Bates et al., 2010, this solution needs to find the difference
+            # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
             # highest bed elevation
             zmax = self._grid.map_max_of_link_nodes_to_link(self.z)
             w = self.h + self.z
             wmax = self._grid.map_max_of_link_nodes_to_link(w)
-            hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
+            hflow = wmax[self._grid.active_links] - zmax[
+                self._grid.active_links]
 
-            # Insert this water depth into an array of water depths at the links.
+            # Insert this water depth into an array of water depths at the
+            # links.
             self.h_links[self.active_links] = hflow
 
             # Now we calculate the slope of the water surface elevation at
@@ -392,26 +399,26 @@ class OverlandFlow(Component):
             # And insert these values into an array of all links
             self.slope[self.active_links] = self.water_surface_gradient
 
-            # If the user chooses to set boundary links to the neighbor value, we
-            # set the discharge array to have the boundary links set to their
-            # neighbor value
+            # If the user chooses to set boundary links to the neighbor value,
+            # we set the discharge array to have the boundary links set to
+            # their neighbor value
             if self.default_fixed_links is True:
                 self.q[self.grid.fixed_links] = self.q[self.active_neighbors]
 
-            # Now we can calculate discharge. To handle links with neighbors that
-            # do not exist, we will do a fancy indexing trick. Non-existent links
-            # or inactive links have an index of '-1', which in Python, looks to
-            # the end of a list or array. To accommodate these '-1' indices, we
-            # will simply insert an value of 0.0 discharge (in units of L^2/T)
-            # to the end of the discharge array.
+            # Now we can calculate discharge. To handle links with neighbors
+            # that do not exist, we will do a fancy indexing trick. Non-
+            # existent links or inactive links have an index of '-1', which in
+            # Python, looks to the end of a list or array. To accommodate these
+            # '-1' indices, we will simply insert an value of 0.0 discharge (in
+            # units of L^2/T) to the end of the discharge array.
             self.q = np.append(self.q, [0])
 
             horiz = self.horizontal_ids
             vert = self.vertical_ids
             # Now we calculate discharge in the horizontal direction
             self.q[horiz] = ((
-                self.theta * self.q[horiz] + (1 - self.theta) /
-                2 * (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
+                self.theta * self.q[horiz] + (1. - self.theta) / 2. *
+                (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
                 self.g * self.h_links[self.horizontal_ids] * dt_local *
                 self.slope[self.horizontal_ids]) / (
                     1 + self.g * dt_local * self.mannings_n ** 2. *
@@ -420,21 +427,23 @@ class OverlandFlow(Component):
 
             # ... and in the vertical direction
             self.q[vert] = ((
-                self.theta * self.q[vert] + (1 - self.theta) /
-                2 * (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
+                self.theta * self.q[vert] + (1 - self.theta) / 2. *
+                (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
                 self.g * self.h_links[self.vertical_ids] * dt_local *
                 self.slope[self.vertical_ids]) / (
                     1 + self.g * dt_local * self.mannings_n ** 2. *
                     abs(self.q[vert]) / self.h_links[self.vertical_ids] **
                     _SEVEN_OVER_THREE))
 
-            # Now to return the array to its original length (length of number of
-            # all links), we delete the extra 0.0 value from the end of the array.
+            # Now to return the array to its original length (length of number
+            # of all links), we delete the extra 0.0 value from the end of the
+            # array.
             self.q = np.delete(self.q, len(self.q) - 1)
 
-            # And put the horizontal and vertical arrays back together, to create
-            # the discharge array.
-            # self.q = np.concatenate((self.q_vertical, self.q_horizontal), axis=0)
+            # And put the horizontal and vertical arrays back together, to
+            # create the discharge array.
+            # self.q = np.concatenate((self.q_vertical, self.q_horizontal),
+            #                         axis=0)
 
             # Updating the discharge array to have the boundary links set to
             # their neighbor
@@ -445,12 +454,13 @@ class OverlandFlow(Component):
                 # To prevent water from draining too fast for our time steps...
                 # Our Froude number.
                 Fr = 0.8
-                # Our two limiting factors, the froude number and courant number.
+                # Our two limiting factors, the froude number and courant
+                # number.
                 # Looking a calculated q to be compared to our Fr number.
                 calculated_q = (self.q / self.h_links) / np.sqrt(self.g *
                                                                  self.h_links)
 
-                # Looking at our calculated q and comparing it to our Courant no.,
+                # Looking at our calculated q and comparing it to Courant no.,
                 q_courant = self.q * dt_local / self.grid.dx
 
                 # Water depth split equally between four links..
@@ -462,28 +472,31 @@ class OverlandFlow(Component):
                 # ... and negative.
                 (negative_q, ) = np.where(self.q < 0)
 
-                # Where does our calculated q exceed the Froude number? If q does
-                # exceed the Froude number, we are getting supercritical flow and
-                # discharge needs to be reduced to maintain stability.
+                # Where does our calculated q exceed the Froude number? If q
+                # does exceed the Froude number, we are getting supercritical
+                # flow and discharge needs to be reduced to maintain stability.
                 (Froude_logical, ) = np.where((calculated_q) > Fr)
                 (Froude_abs_logical, ) = np.where(abs(calculated_q) > Fr)
 
-                # Where does our calculated q exceed the Courant number and water
-                # depth divided amongst 4 links? If the calculated q exceeds the
-                # Courant number and is greater than the water depth divided by 4
-                # links, we reduce discharge to maintain stability.
+                # Where does our calculated q exceed the Courant number and
+                # water depth divided amongst 4 links? If the calculated q
+                # exceeds the Courant number and is greater than the water
+                # depth divided by 4 links, we reduce discharge to maintain
+                # stability.
                 (water_logical, ) = np.where(q_courant > water_div_4)
                 (water_abs_logical, ) = np.where(abs(q_courant) > water_div_4)
 
                 # Where are these conditions met? For positive and negative q,
-                # there are specific rules to reduce q. This step finds where the
-                # discharge values are positive or negative and where discharge
-                # exceeds the Froude or Courant number.
-                self.if_statement_1 = np.intersect1d(positive_q, Froude_logical)
+                # there are specific rules to reduce q. This step finds where
+                # the discharge values are positive or negative and where
+                # discharge exceeds the Froude or Courant number.
+                self.if_statement_1 = np.intersect1d(positive_q,
+                                                     Froude_logical)
                 self.if_statement_2 = np.intersect1d(negative_q,
                                                      Froude_abs_logical)
                 self.if_statement_3 = np.intersect1d(positive_q, water_logical)
-                self.if_statement_4 = np.intersect1d(negative_q, water_abs_logical)
+                self.if_statement_4 = np.intersect1d(negative_q,
+                                                     water_abs_logical)
 
                 # Rules 1 and 2 reduce discharge by the Froude number.
                 self.q[self.if_statement_1] = (
@@ -500,30 +513,31 @@ class OverlandFlow(Component):
                     self.h_links[self.if_statement_3] * self.grid.dx) / 5.) /
                     dt_local)
 
-                self.q[self.if_statement_4] = (
-                    0. - (self.h_links[self.if_statement_4] * self.grid.dx / 5.) /
-                    dt_local)
+                self.q[self.if_statement_4] = (0. - (self.h_links[
+                    self.if_statement_4] * self.grid.dx / 5.) / dt_local)
 
-    #        # Once stability has been restored, we calculate the change in water
-    #        # depths on all core nodes by finding the difference between inputs
-    #        # (rainfall) and the inputs/outputs (flux divergence of discharge)
-            self.dhdt = (self.rainfall_intensity - self.grid.calc_flux_div_at_node(
-                                                                        self.q))
+            # Once stability has been restored, we calculate the change in
+            # water depths on all core nodes by finding the difference between
+            # inputs (rainfall) and the inputs/outputs (flux divergence of
+            # discharge)
+            self.dhdt = (self.rainfall_intensity -
+                         self.grid.calc_flux_div_at_node(self.q))
 
             # Updating our water depths...
             self.h[self.core_nodes] = (self.h[self.core_nodes] +
                                        self.dhdt[self.core_nodes] * dt_local)
 
-    #        # To prevent divide by zero errors, a minimum threshold water depth
-    #        # must be maintained. To reduce mass imbalances, this is set to
-    #        # find locations where water depth is smaller than h_init (default is
-    #        # is 0.001) and the new value is self.h_init * 10^-3. This was set as
-    #        # it showed the smallest amount of mass creation in the grid during
-    #        # testing.
+            # To prevent divide by zero errors, a minimum threshold water depth
+            # must be maintained. To reduce mass imbalances, this is set to
+            # find locations where water depth is smaller than h_init (default
+            # is 0.001) and the new value is self.h_init * 10^-3. This was set
+            # as it showed the smallest amount of mass creation in the grid
+            # during testing.
             if self.steep_slopes is True:
-                self.h[np.where(self.h < self.h_init)] = self.h_init * 10.0 ** -3
+                self.h[self.h < self.h_init] = self.h_init * 10.0 ** -3
 
-            # And reset our field values with the newest water depth and discharge.
+            # And reset our field values with the newest water depth and
+            # discharge.
             self.grid.at_node['water__depth'] = self.h
             self.grid.at_link['water__discharge'] = self.q
 
