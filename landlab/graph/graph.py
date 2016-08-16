@@ -407,6 +407,8 @@ class Graph(object):
             return self._patches_at_node
 
     @property
+    @store_result_in_grid()
+    @read_only_array
     def patches_at_link(self):
         """Get the patches on either side of each link.
 
@@ -425,11 +427,7 @@ class Graph(object):
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])
         """
-        try:
-            return self._patches_at_link
-        except AttributeError:
-            self._patches_at_link = reverse_one_to_many(self._links_at_patch)
-            return self._patches_at_link
+        return reverse_one_to_many(self._links_at_patch)
 
     @property
     def number_of_patches(self):
