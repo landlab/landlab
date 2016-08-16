@@ -50,7 +50,7 @@ rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 # Create fields in the grid for topographic elevation, water depth, discharge.
 
 rmg.add_zeros('topographic__elevation', at='node') # topographic elevation (m)
-rmg.add_zeros('water__depth', at='node') # water depth (m)
+rmg.add_zeros('surface_water__depth', at='node') # water depth (m)
 
 # Now we'll identify our leftmost, but interior, column and the IDs of those
 # nodes. One column in to prevent issues with BC.
@@ -75,7 +75,7 @@ while elapsed_time < run_time:
 
     # And now we input that water depth along the left-most interior column,
     # in all rows that are not boundary rows.
-    rmg.at_node['water__depth'][inside_left_edge] = h_boundary
+    rmg.at_node['surface_water__depth'][inside_left_edge] = h_boundary
 
     # Increased elapsed time
     elapsed_time += of.dt
@@ -90,7 +90,7 @@ print("Total time: ", totaltime, " seconds")
 # Plotting
 # Our first figure will be the wave front on the horizontal plane
 pylab.plt.figure(1)
-imshow_grid(rmg, 'water__depth', cmap="Purples", grid_units=("m", "m"))
+imshow_grid(rmg, 'surface_water__depth', cmap="Purples", grid_units=("m", "m"))
 
 # The second figure will compare the depth profiles of the analytical solution
 # and our modeled solution
@@ -111,7 +111,7 @@ h_analytical[np.where(h_analytical < 0)] = 0.0
 # one row for plotting. We will also remove the first (boundary) cell from this
 # array, while also appending a [0] value at the end to keep it the same size
 # as the 'x' array.
-h_Bates = rmg['node']['water__depth'].reshape(rmg.shape)
+h_Bates = rmg['node']['surface_water__depth'].reshape(rmg.shape)
 h_Bates = h_Bates[1][1:]
 h_Bates = np.append(h_Bates,[0])
 
