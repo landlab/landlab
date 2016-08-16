@@ -54,10 +54,10 @@ def test_Bates_var_units():
                  set(bates.output_var_names),
                  set(dict(bates.units).keys()))
 
-    assert_equal(bates.var_units['water__depth'], 'm')
-    assert_equal(bates.var_units['water__discharge'], 'm3/s')
-    assert_equal(bates.var_units['water_surface__gradient'], 'm/m')
-    assert_equal(bates.var_units['topographic__elevation'], 'm')
+    assert_equal(bates.var_units('water__depth'), 'm')
+    assert_equal(bates.var_units('water__discharge'), 'm3/s')
+    assert_equal(bates.var_units('water_surface__gradient'), 'm/m')
+    assert_equal(bates.var_units('topographic__elevation'), 'm')
 
 
 @with_setup(setup_grid)
