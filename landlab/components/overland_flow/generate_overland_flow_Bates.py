@@ -71,13 +71,13 @@ class OverlandFlowBates(Component):
 
     _output_var_names = (
         'water__depth',
-        'water__discharge',
+        'surface_water__discharge',
         'water_surface__gradient',
     )
 
     _var_units = {
         'water__depth': 'm',
-        'water__discharge': 'm3/s',
+        'surface_water__discharge': 'm3/s',
         'water_surface__gradient': 'm/m',
         'topographic__elevation': 'm',
     }
@@ -85,14 +85,14 @@ class OverlandFlowBates(Component):
     _var_mapping = {
         'water__depth': 'node',
         'topographic__elevtation': 'node',
-        'water__discharge': 'active_link',
+        'surface_water__discharge': 'active_link',
         'water_surface__gradient': 'node',
     }
 
     _var_mapping = {
         'water__depth': 'The depth of water at each node.',
         'topographic__elevtation': 'The land surface elevation.',
-        'water__discharge': 'The discharge of water on active links.',
+        'surface_water__discharge': 'The discharge of water on active links.',
         'water_surface__gradient':
             'The slope of the water surface at each node.',
     }
@@ -115,8 +115,8 @@ class OverlandFlowBates(Component):
         # Now setting up fields at the links...
         # For water discharge
         self.water__discharge = grid.add_zeros(
-            'link', 'water__discharge',
-            units=self._var_units['water__discharge'])
+            'link', 'surface_water__discharge',
+            units=self._var_units['surface_water__discharge'])
 
         # Pre-calculated values included for speed.
         self.ten_thirds = 10.0 / 3.0
@@ -131,7 +131,7 @@ class OverlandFlowBates(Component):
             self._grid['node']['water__depth'] + self.h_init)
 
         # Assigning a class variable to the water discharge field.
-        self.q = self._grid['link']['water__discharge']
+        self.q = self._grid['link']['surface_water__discharge']
 
         # Assiging a class variable to the elevation field.
         self.z = self._grid.at_node['topographic__elevation']
@@ -176,7 +176,7 @@ class OverlandFlowBates(Component):
         # variables to the fields.
         # self.h = self._grid['node']['water__depth']
         self.z = self._grid['node']['topographic__elevation']
-        self.q = self._grid['link']['water__discharge']
+        self.q = self._grid['link']['surface_water__discharge']
 
         # Here we identify the core nodes and active link ids for later use.
         self.core_nodes = self._grid.core_nodes
@@ -212,4 +212,4 @@ class OverlandFlowBates(Component):
 
         # And reset our field values with the newest water depth and discharge.
         self._grid.at_node['water__depth'] = self.h
-        self._grid.at_link['water__discharge'] = self.q
+        self._grid.at_link['surface_water__discharge'] = self.q

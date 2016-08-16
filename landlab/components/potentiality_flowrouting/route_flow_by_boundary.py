@@ -91,7 +91,7 @@ class PotentialityFlowRouter(Component):
     ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
     ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
     ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
-    >>> np.allclose(mg.at_node['water__discharge'][mg.core_nodes],
+    >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
     ...             Q_at_core_nodes)
     True
     """
@@ -101,21 +101,21 @@ class PotentialityFlowRouter(Component):
                         'water__unit_flux_in',
                         )
 
-    _output_var_names = ('water__discharge',
+    _output_var_names = ('surface_water__discharge',
                          'flow__potential',
                          'water__depth',
                          )
 
     _var_units = {'topographic__elevation': 'm',
                   'water__unit_flux_in': 'm/s',
-                  'water__discharge': 'm**3/s',
+                  'surface_water__discharge': 'm**3/s',
                   'flow__potential': 'm**3/s',
                   'water__depth': 'm',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'water__unit_flux_in': 'node',
-                    'water__discharge': 'node',
+                    'surface_water__discharge': 'node',
                     'flow__potential': 'node',
                     'water__depth': 'node',
                     }
@@ -125,7 +125,7 @@ class PotentialityFlowRouter(Component):
         'water__unit_flux_in': (
             'External volume water per area per time input to each node ' +
             '(e.g., rainfall rate)'),
-        'water__discharge': (
+        'surface_water__discharge': (
             'Magnitude of volumetric water flux out of each node'),
         'flow__potential': (
             'Value of the hypothetical field "K", used to force water flux ' +
@@ -174,7 +174,7 @@ class PotentialityFlowRouter(Component):
             else:
                 pass
             try:
-                self.grid.add_zeros('node', 'water__discharge', dtype=float)
+                self.grid.add_zeros('node', 'surface_water__discharge', dtype=float)
             except FieldError:
                 pass
 
@@ -198,7 +198,7 @@ class PotentialityFlowRouter(Component):
         """
         grid = self.grid
         self._K = grid.at_node['flow__potential']
-        self._Qw = grid.at_node['water__discharge']
+        self._Qw = grid.at_node['surface_water__discharge']
         z = grid.at_node['topographic__elevation']
         qwater_in = grid.at_node['water__unit_flux_in'].copy()
         qwater_in[grid.node_at_cell] *= grid.area_of_cell

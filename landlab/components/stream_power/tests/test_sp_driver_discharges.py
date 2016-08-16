@@ -34,13 +34,13 @@ def test_sp_discharges_old():
     mg['node']['topographic__elevation'] = z
 
     fr = FlowRouter(mg)
-    my_Q = mg.at_node['water__discharge']
+    my_Q = mg.at_node['surface_water__discharge']
     sp = StreamPowerEroder(mg, input_str, use_Q=my_Q)
 
     # perform the loop (once!)
     for i in range(1):
         fr.route_flow()
-        my_Q[:] = mg.at_node['water__discharge'] * 1.
+        my_Q[:] = mg.at_node['surface_water__discharge'] * 1.
         sp.run_one_step(dt)
 
     z_tg = np.array([5.        ,  5.        ,  0.        ,  5.        ,

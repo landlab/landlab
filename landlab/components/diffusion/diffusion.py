@@ -109,10 +109,10 @@ class LinearDiffuser(Component):
     >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
     >>> dt = 1.
     >>> nt = 10
-    >>> kappa_links = mg2.add_ones('link', 'water__discharge')
+    >>> kappa_links = mg2.add_ones('link', 'surface_water__discharge')
     >>> kappa_links *= 10000.
     >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='water__discharge')
+    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge')
     >>> for i in range(nt):
     ...     z1[mg1.core_nodes] += 1.
     ...     z2[mg2.core_nodes] += 1.
@@ -121,7 +121,7 @@ class LinearDiffuser(Component):
     >>> np.allclose(z1, z2)
     True
     >>> z2.fill(0.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='water__discharge',
+    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge',
     ...                       method='resolve_on_patches')
     >>> for i in range(nt):
     ...     z2[mg2.core_nodes] += 1.

@@ -24,7 +24,7 @@ def setup_grid():
         grid = RasterModelGrid((32, 240), spacing = 25)
         grid.add_zeros('node', 'water__depth')
         grid.add_zeros('node', 'topographic__elevation')
-        grid.add_zeros('water__discharge', at='active_link')
+        grid.add_zeros('surface_water__discharge', at='active_link')
         deAlm = OverlandFlow(grid, mannings_n = 0.01, h_init=0.001)
         globals().update({
             'deAlm': OverlandFlow(grid)})
@@ -43,7 +43,7 @@ def test_deAlm_input_var_names():
 
 @with_setup(setup_grid)
 def test_deAlm_output_var_names():
-    assert_equal(deAlm.output_var_names, ('water__depth', 'water__discharge',
+    assert_equal(deAlm.output_var_names, ('water__depth', 'surface_water__discharge',
                                          'water_surface__gradient', ))
 
 @with_setup(setup_grid)
@@ -53,7 +53,7 @@ def test_deAlm_var_units():
                  set(dict(deAlm.units).keys()))
 
     assert_equal(deAlm.var_units('water__depth'), 'm')
-    assert_equal(deAlm.var_units('water__discharge'), 'm3/s')
+    assert_equal(deAlm.var_units('surface_water__discharge'), 'm3/s')
     assert_equal(deAlm.var_units('water_surface__gradient'),'-')
     assert_equal(deAlm.var_units('topographic__elevation'), 'm')
 
@@ -75,8 +75,8 @@ def test_deAlm_analytical():
     time = 0.0
 
     while time < 500:
-        grid['link']['water__discharge'][left_inactive_ids] =   (grid['link'][
-        'water__discharge'][left_inactive_ids + 1])
+        grid['link']['surface_water__discharge'][left_inactive_ids] =   (grid['link'][
+        'surface_water__discharge'][left_inactive_ids + 1])
         dt = deAlm.calc_time_step()
         deAlm.overland_flow(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *

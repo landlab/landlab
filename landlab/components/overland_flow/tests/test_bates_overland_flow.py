@@ -45,7 +45,7 @@ def test_Bates_input_var_names():
 def test_Bates_output_var_names():
     # DEJH added sets to remove reliance on ordering
     assert_equal(set(bates.output_var_names), set(('water__depth',
-                                                   'water__discharge',
+                                                   'surface_water__discharge',
                                                    'water_surface__gradient')))
 
 @with_setup(setup_grid)
@@ -55,7 +55,7 @@ def test_Bates_var_units():
                  set(dict(bates.units).keys()))
 
     assert_equal(bates.var_units('water__depth'), 'm')
-    assert_equal(bates.var_units('water__discharge'), 'm3/s')
+    assert_equal(bates.var_units('surface_water__discharge'), 'm3/s')
     assert_equal(bates.var_units('water_surface__gradient'), 'm/m')
     assert_equal(bates.var_units('topographic__elevation'), 'm')
 
