@@ -15,7 +15,7 @@ import numpy as np
 import os
 
 class OverlandFlowBates(Component):
-    u"""Simulate overland flow using Base et al. (2010).
+    """Simulate overland flow using Base et al. (2010).
 
     Landlab component that simulates overland flow using the Bates et al.,
     (2010) approximations of the 1D shallow water equations to be used for 2D
