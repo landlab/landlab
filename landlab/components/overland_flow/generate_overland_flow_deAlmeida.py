@@ -21,7 +21,7 @@ check the names of the fields that provide input to the overland flow
 component use the *input_var_names* class property.
 
 >>> OverlandFlow.input_var_names
-('water__depth', 'topographic__elevation')
+('surface_water__depth', 'topographic__elevation')
 
 Create fields of data for each of these input variables.
 
@@ -30,7 +30,7 @@ Create fields of data for each of these input variables.
 ...     1., 1., 1., 1., 1.,
 ...     2., 2., 2., 2., 2.,
 ...     3., 3., 3., 3., 3.])
->>> grid.at_node['water__depth'] = np.array([
+>>> grid.at_node['surface_water__depth'] = np.array([
 ...     0. , 0. , 0. , 0. , 0. ,
 ...     0. , 0. , 0. , 0. , 0. ,
 ...     0. , 0. , 0. , 0. , 0. ,
@@ -46,13 +46,13 @@ grid. Use the *output_var_names* property to see the names of the fields that
 have been changed.
 
 >>> of.output_var_names
-('water__depth', 'water__discharge', 'water_surface__gradient')
+('surface_water__depth', 'surface_water__discharge', 'surface_water__gradient')
 
-The `water__depth` field is defined at nodes.
+The `surface_water__depth` field is defined at nodes.
 
->>> of.var_loc('water__depth')
+>>> of.var_loc('surface_water__depth')
 'node'
->>> grid.at_node['water__depth'] # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_node['surface_water__depth'] # doctest: +NORMALIZE_WHITESPACE
 array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
@@ -61,23 +61,23 @@ array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00010000e-01,   1.00010000e-01,   1.00010000e-01,
          1.00010000e-01,   1.00010000e-01])
 
-The `water__discharge` field is defined at links. Because our initial
+The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
 direction, only toward the bottom of the grid.
 
->>> of.var_loc('water__discharge')
+>>> of.var_loc('surface_water__discharge')
 'link'
->>> q = grid.at_link['water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+>>> q = grid.at_link['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
 >>> np.all(q[grid.horizontal_links] == 0.)
 True
 >>> np.all(q[grid.vertical_links] <= 0.)
 True
 
-The *water_surface__gradient* is also defined at links.
+The *surface_water__gradient* is also defined at links.
 
->>> of.var_loc('water_surface__gradient')
+>>> of.var_loc('surface_water__gradient')
 'link'
->>> grid.at_link['water_surface__gradient'] # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_link['surface_water__gradient'] # doctest: +NORMALIZE_WHITESPACE
 array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  1. ,  1. ,  1. ,  0. ,
         0. ,  0. ,  0. ,  0. ,
@@ -131,35 +131,35 @@ class OverlandFlow(Component):
     _name = 'OverlandFlow'
 
     _input_var_names = (
-        'water__depth',
+        'surface_water__depth',
         'topographic__elevation',
     )
 
     _output_var_names = (
-        'water__depth',
-        'water__discharge',
-        'water_surface__gradient',
+        'surface_water__depth',
+        'surface_water__discharge',
+        'surface_water__gradient',
     )
 
     _var_units = {
-        'water__depth': 'm',
-        'water__discharge': 'm3/s',
+        'surface_water__depth': 'm',
+        'surface_water__discharge': 'm3/s',
         'topographic__elevation': 'm',
-        'water_surface__gradient': '-',
+        'surface_water__gradient': '-',
     }
 
     _var_mapping = {
-        'water__depth': 'node',
+        'surface_water__depth': 'node',
         'topographic__elevtation': 'node',
-        'water__discharge': 'link',
-        'water_surface__gradient': 'link',
+        'surface_water__discharge': 'link',
+        'surface_water__gradient': 'link',
     }
 
     _var_doc = {
-        'water__depth': 'The depth of water at each node.',
+        'surface_water__depth': 'The depth of water at each node.',
         'topographic__elevtation': 'The land surface elevation.',
-        'water__discharge': 'The discharge of water on active links.',
-        'water_surface__gradient': 'Downstream gradient of the water surface.',
+        'surface_water__discharge': 'The discharge of water on active links.',
+        'surface_water__gradient': 'Downstream gradient of the water surface.',
     }
 
     @use_file_name_or_kwds
@@ -203,38 +203,38 @@ class OverlandFlow(Component):
         # Now setting up fields at the links...
         # For water discharge
         try:
-            self.q = grid.add_zeros('water__discharge', at='link',
-                                    units=self._var_units['water__discharge'])
+            self.q = grid.add_zeros('surface_water__discharge', at='link',
+                                    units=self._var_units['surface_water__discharge'])
         except FieldError:
             # Field was already set; still, fill it with zeros
-            self.q = grid.at_link['water__discharge']
+            self.q = grid.at_link['surface_water__discharge']
             self.q.fill(0.)
 
         # For water depths calculated at links
         try:
-            self.h_links = grid.add_zeros('water__depth', at='link',
+            self.h_links = grid.add_zeros('surface_water__depth', at='link',
                                           units=self._var_units[
-                                              'water__depth'])
+                                              'surface_water__depth'])
         except FieldError:
-            self.h_links = grid.at_link['water__depth']
+            self.h_links = grid.at_link['surface_water__depth']
             self.h_links.fill(0.)
 
         self.h_links += self.h_init
 
         try:
-            self.h = grid.add_zeros('water__depth', at='node',
-                                    units=self._var_units['water__depth'])
+            self.h = grid.add_zeros('surface_water__depth', at='node',
+                                    units=self._var_units['surface_water__depth'])
         except FieldError:
             # Field was already set
-            self.h = grid.at_node['water__depth']
+            self.h = grid.at_node['surface_water__depth']
 
         self.h += self.h_init
 
         # For water surface slopes at links
         try:
-            self.slope = grid.add_zeros('water_surface__gradient', at='link')
+            self.slope = grid.add_zeros('surface_water__gradient', at='link')
         except FieldError:
-            self.slope = grid.at_link['water_surface__gradient']
+            self.slope = grid.at_link['surface_water__gradient']
             self.slope.fill(0.)
 
         # Start time of simulation is at 1.0 s
@@ -267,7 +267,7 @@ class OverlandFlow(Component):
         et al., 2012
         """
         self.dt = (self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(
-            self._grid.at_node['water__depth'])))
+            self._grid.at_node['surface_water__depth'])))
 
         return self.dt
 
@@ -369,10 +369,10 @@ class OverlandFlow(Component):
             # In case another component has added data to the fields, we just
             # reset our water depths, topographic elevations and water
             # discharge variables to the fields.
-            self.h = self.grid['node']['water__depth']
+            self.h = self.grid['node']['surface_water__depth']
             self.z = self.grid['node']['topographic__elevation']
-            self.q = self.grid['link']['water__discharge']
-            self.h_links = self.grid['link']['water__depth']
+            self.q = self.grid['link']['surface_water__discharge']
+            self.h_links = self.grid['link']['surface_water__depth']
 
             # Here we identify the core nodes and active links for later use.
             self.core_nodes = self.grid.core_nodes
@@ -538,8 +538,8 @@ class OverlandFlow(Component):
 
             # And reset our field values with the newest water depth and
             # discharge.
-            self.grid.at_node['water__depth'] = self.h
-            self.grid.at_link['water__discharge'] = self.q
+            self.grid.at_node['surface_water__depth'] = self.h
+            self.grid.at_link['surface_water__discharge'] = self.q
 
             if dt is np.inf:
                 break
