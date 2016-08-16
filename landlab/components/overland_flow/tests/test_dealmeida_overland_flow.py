@@ -22,9 +22,9 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing=25)
-    grid.add_zeros('node', 'water__depth')
+    grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
-    grid.add_zeros('water__discharge', at='active_link')
+    grid.add_zeros('surface_water__discharge', at='active_link')
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     globals().update({
         'deAlm': OverlandFlow(grid)})
@@ -37,14 +37,14 @@ def test_deAlm_name():
 
 @with_setup(setup_grid)
 def test_deAlm_input_var_names():
-    assert_equal(deAlm.input_var_names,  ('water__depth',
+    assert_equal(deAlm.input_var_names,  ('surface_water__depth',
                                           'topographic__elevation',))
 
 
 @with_setup(setup_grid)
 def test_deAlm_output_var_names():
-    assert_equal(deAlm.output_var_names, ('water__depth', 'water__discharge',
-                                          'water_surface__gradient', ))
+    assert_equal(deAlm.output_var_names, ('surface_water__depth', 'surface_water__discharge',
+                                          'surface_water__gradient', ))
 
 
 @with_setup(setup_grid)
@@ -53,9 +53,9 @@ def test_deAlm_var_units():
                  set(deAlm.output_var_names),
                  set(dict(deAlm.units).keys()))
 
-    assert_equal(deAlm.var_units('water__depth'), 'm')
-    assert_equal(deAlm.var_units('water__discharge'), 'm3/s')
-    assert_equal(deAlm.var_units('water_surface__gradient'), '-')
+    assert_equal(deAlm.var_units('surface_water__depth'), 'm')
+    assert_equal(deAlm.var_units('surface_water__discharge'), 'm3/s')
+    assert_equal(deAlm.var_units('surface_water__gradient'), '-')
     assert_equal(deAlm.var_units('topographic__elevation'), 'm')
 
 
@@ -68,7 +68,7 @@ def test_grid_shape():
 def test_deAlm_analytical():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing=25)
-    grid.add_zeros('node', 'water__depth')
+    grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     left_inactive_ids = left_edge_horizontal_ids(grid.shape)
@@ -76,13 +76,13 @@ def test_deAlm_analytical():
     time = 0.0
 
     while time < 500.:
-        grid['link']['water__discharge'][left_inactive_ids] = (grid['link'][
-            'water__discharge'][left_inactive_ids + 1])
+        grid['link']['surface_water__discharge'][left_inactive_ids] = (
+            grid['link']['surface_water__discharge'][left_inactive_ids + 1])
         dt = deAlm.calc_time_step()
         deAlm.overland_flow(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
                       time) ** (3./7.))
-        grid.at_node['water__depth'][grid.nodes[1: -1, 1]] = h_boundary
+        grid.at_node['surface_water__depth'][grid.nodes[1: -1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
@@ -101,7 +101,7 @@ def test_deAlm_analytical():
 def test_deAlm_analytical_imposed_dt_short():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing=25)
-    grid.add_zeros('node', 'water__depth')
+    grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     left_inactive_ids = left_edge_horizontal_ids(grid.shape)
@@ -109,13 +109,13 @@ def test_deAlm_analytical_imposed_dt_short():
     time = 0.0
 
     while time < 500.:
-        grid['link']['water__discharge'][left_inactive_ids] = (grid['link'][
-            'water__discharge'][left_inactive_ids + 1])
+        grid['link']['surface_water__discharge'][left_inactive_ids] = (
+            grid['link']['surface_water__discharge'][left_inactive_ids + 1])
         dt = 10.
         deAlm.overland_flow(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
                       time) ** (3./7.))
-        grid.at_node['water__depth'][grid.nodes[1: -1, 1]] = h_boundary
+        grid.at_node['surface_water__depth'][grid.nodes[1: -1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
@@ -134,7 +134,7 @@ def test_deAlm_analytical_imposed_dt_short():
 def test_deAlm_analytical_imposed_dt_long():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing=25)
-    grid.add_zeros('node', 'water__depth')
+    grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     left_inactive_ids = left_edge_horizontal_ids(grid.shape)
@@ -142,13 +142,13 @@ def test_deAlm_analytical_imposed_dt_long():
     time = 0.0
 
     while time < 500.:
-        grid['link']['water__discharge'][left_inactive_ids] = (grid['link'][
-            'water__discharge'][left_inactive_ids + 1])
+        grid['link']['surface_water__discharge'][left_inactive_ids] = (
+            grid['link']['surface_water__discharge'][left_inactive_ids + 1])
         dt = 100.
         deAlm.run_one_step(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
                       time) ** (3./7.))
-        grid.at_node['water__depth'][grid.nodes[1: -1, 1]] = h_boundary
+        grid.at_node['surface_water__depth'][grid.nodes[1: -1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
