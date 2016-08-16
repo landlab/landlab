@@ -143,7 +143,7 @@ imshow_node_grid(mg, 'drainage_area')
 figure('K (core only)')
 mg.at_node['flow__potential'][mg.boundary_nodes] = 0.
 imshow_node_grid(mg, 'flow__potential')
-depths = np.where(mg.at_node['water__depth']>1.e6,0.,mg.at_node['water__depth'])
+depths = np.where(mg.at_node['surface_water__depth']>1.e6,0.,mg.at_node['surface_water__depth'])
 figure('depths')
 imshow_node_grid(mg, depths, var_name='depths (Manning)')
 figure('xcomp')

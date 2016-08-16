@@ -81,7 +81,7 @@ for i in range(2000):
 figure(1)
 imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
-imshow_node_grid(mg, 'water__depth')
+imshow_node_grid(mg, 'surface_water__depth')
 figure(3)
 imshow_node_grid(mg, 'surface_water__discharge', cmap='Blues_r')
 figure(4)

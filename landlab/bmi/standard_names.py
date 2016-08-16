@@ -51,7 +51,7 @@ STANDARD_NAME = {
     'vegetation__live_biomass': 'land_vegetation~biomass~live__volume_flux',
     'vegetation__live_leaf_area_index': 'land_vegetation~live__leaf-area_index',
     'vegetation__plant_functional_type': None,
-    'water__depth': 'land_surface_water__depth',
+    'surface_water__depth': 'land_surface_water__depth',
     'surface_water__discharge': 'land_surface_water__volume_flow_rate',
     'water__unit_flux_in': 'model_grid_cell_water~incoming__volume_flow_rate',
     'water_surface__gradient': 'land_surface_water_surface__slope',

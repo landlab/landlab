@@ -21,7 +21,7 @@ check the names of the fields that provide input to the overland flow
 component use the *input_var_names* class property.
 
 >>> OverlandFlow.input_var_names
-('water__depth', 'topographic__elevation')
+('surface_water__depth', 'topographic__elevation')
 
 Create fields of data for each of these input variables.
 
@@ -30,7 +30,7 @@ Create fields of data for each of these input variables.
 ...     1., 1., 1., 1., 1.,
 ...     2., 2., 2., 2., 2.,
 ...     3., 3., 3., 3., 3.])
->>> grid.at_node['water__depth'] = np.array([
+>>> grid.at_node['surface_water__depth'] = np.array([
 ...     0. , 0. , 0. , 0. , 0. ,
 ...     0. , 0. , 0. , 0. , 0. ,
 ...     0. , 0. , 0. , 0. , 0. ,
@@ -46,13 +46,13 @@ grid. Use the *output_var_names* property to see the names of the fields that
 have been changed.
 
 >>> of.output_var_names
-('water__depth', 'surface_water__discharge', 'water_surface__gradient')
+('surface_water__depth', 'surface_water__discharge', 'water_surface__gradient')
 
 The `water__depth` field is defined at nodes.
 
->>> of.var_loc('water__depth')
+>>> of.var_loc('surface_water__depth')
 'node'
->>> grid.at_node['water__depth'] # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_node['surface_water__depth'] # doctest: +NORMALIZE_WHITESPACE
 array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
@@ -131,32 +131,32 @@ class OverlandFlow(Component):
     _name = 'OverlandFlow'
 
     _input_var_names = (
-        'water__depth',
+        'surface_water__depth',
         'topographic__elevation',
     )
 
     _output_var_names = (
-        'water__depth',
+        'surface_water__depth',
         'surface_water__discharge',
         'water_surface__gradient',
     )
 
     _var_units = {
-        'water__depth': 'm',
+        'surface_water__depth': 'm',
         'surface_water__discharge': 'm3/s',
         'topographic__elevation': 'm',
         'water_surface__gradient': '-',
     }
 
     _var_mapping = {
-        'water__depth': 'node',
+        'surface_water__depth': 'node',
         'topographic__elevtation': 'node',
         'surface_water__discharge': 'link',
         'water_surface__gradient': 'link',
     }
 
     _var_doc = {
-        'water__depth': 'The depth of water at each node.',
+        'surface_water__depth': 'The depth of water at each node.',
         'topographic__elevtation': 'The land surface elevation.',
         'surface_water__discharge': 'The discharge of water on active links.',
         'water_surface__gradient': 'Downstream gradient of the water surface.',
@@ -212,21 +212,21 @@ class OverlandFlow(Component):
 
         # For water depths calculated at links
         try:
-            self.h_links = grid.add_zeros('water__depth', at='link',
+            self.h_links = grid.add_zeros('surface_water__depth', at='link',
                                           units=self._var_units[
-                                              'water__depth'])
+                                              'surface_water__depth'])
         except FieldError:
-            self.h_links = grid.at_link['water__depth']
+            self.h_links = grid.at_link['surface_water__depth']
             self.h_links.fill(0.)
 
         self.h_links += self.h_init
 
         try:
-            self.h = grid.add_zeros('water__depth', at='node',
-                units=self._var_units['water__depth'])
+            self.h = grid.add_zeros('surface_water__depth', at='node',
+                units=self._var_units['surface_water__depth'])
         except FieldError:
             # Field was already set
-            self.h = grid.at_node['water__depth']
+            self.h = grid.at_node['surface_water__depth']
 
         self.h += self.h_init
 
@@ -267,7 +267,7 @@ class OverlandFlow(Component):
         et al., 2012
         """
         self.dt = (self.alpha * self._grid.dx / np.sqrt(self.g * np.amax(
-            self._grid.at_node['water__depth'])))
+            self._grid.at_node['surface_water__depth'])))
 
         return self.dt
 
@@ -358,10 +358,10 @@ class OverlandFlow(Component):
         # In case another component has added data to the fields, we just
         # reset our water depths, topographic elevations and water discharge
         # variables to the fields.
-        self.h = self.grid['node']['water__depth']
+        self.h = self.grid['node']['surface_water__depth']
         self.z = self.grid['node']['topographic__elevation']
         self.q = self.grid['link']['surface_water__discharge']
-        self.h_links = self.grid['link']['water__depth']
+        self.h_links = self.grid['link']['surface_water__depth']
 
         # Here we identify the core nodes and active link ids for later use.
         self.core_nodes = self.grid.core_nodes
@@ -518,7 +518,7 @@ class OverlandFlow(Component):
             self.h[np.where(self.h < self.h_init)] = self.h_init * 10.0 ** -3
 
         # And reset our field values with the newest water depth and discharge.
-        self.grid.at_node['water__depth'] = self.h
+        self.grid.at_node['surface_water__depth'] = self.h
         self.grid.at_link['surface_water__discharge'] = self.q
 
 

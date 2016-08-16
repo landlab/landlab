@@ -103,21 +103,21 @@ class PotentialityFlowRouter(Component):
 
     _output_var_names = ('surface_water__discharge',
                          'flow__potential',
-                         'water__depth',
+                         'surface_water__depth',
                          )
 
     _var_units = {'topographic__elevation': 'm',
                   'water__unit_flux_in': 'm/s',
                   'surface_water__discharge': 'm**3/s',
                   'flow__potential': 'm**3/s',
-                  'water__depth': 'm',
+                  'surface_water__depth': 'm',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'water__unit_flux_in': 'node',
                     'surface_water__discharge': 'node',
                     'flow__potential': 'node',
-                    'water__depth': 'node',
+                    'surface_water__depth': 'node',
                     }
 
     _var_doc = {
@@ -130,7 +130,7 @@ class PotentialityFlowRouter(Component):
         'flow__potential': (
             'Value of the hypothetical field "K", used to force water flux ' +
             'to flow downhill'),
-        'water__depth': (
+        'surface_water__depth': (
             'If Manning or Chezy specified, the depth of flow in the cell, ' +
             'calculated assuming flow occurs over the whole surface'),
                   }
@@ -277,12 +277,12 @@ class PotentialityFlowRouter(Component):
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
             # Chezy: Q = C*Area*sqrt(depth*slope)
-            grid.at_node['water__depth'][:] = (
+            grid.at_node['surface_water__depth'][:] = (
                 grid.at_node['flow__potential'] / self.chezy_C /
                 self.equiv_circ_diam) ** (2. / 3.)
         elif self.equation == 'Manning':
             # Manning: Q = w/n*depth**(5/3)
-            grid.at_node['water__depth'][:] = (
+            grid.at_node['surface_water__depth'][:] = (
                 grid.at_node['flow__potential'] * self.manning_n /
                 self.equiv_circ_diam) ** 0.6
         else:
