@@ -44,7 +44,7 @@ def test_deAlm_input_var_names():
 @with_setup(setup_grid)
 def test_deAlm_output_var_names():
     assert_equal(deAlm.output_var_names, ('surface_water__depth', 'surface_water__discharge',
-                                          'surface_water__gradient', ))
+                                          'water_surface__gradient', ))
 
 
 @with_setup(setup_grid)
@@ -55,7 +55,7 @@ def test_deAlm_var_units():
 
     assert_equal(deAlm.var_units('surface_water__depth'), 'm')
     assert_equal(deAlm.var_units('surface_water__discharge'), 'm3/s')
-    assert_equal(deAlm.var_units('surface_water__gradient'), '-')
+    assert_equal(deAlm.var_units('water_surface__gradient'), '-')
     assert_equal(deAlm.var_units('topographic__elevation'), 'm')
 
 

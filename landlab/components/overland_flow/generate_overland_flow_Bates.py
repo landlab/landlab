@@ -72,13 +72,13 @@ class OverlandFlowBates(Component):
     _output_var_names = (
         'surface_water__depth',
         'surface_water__discharge',
-        'surface_water__gradient',
+        'water_surface__gradient',
     )
 
     _var_units = {
         'surface_water__depth': 'm',
         'surface_water__discharge': 'm3/s',
-        'surface_water__gradient': 'm/m',
+        'water_surface__gradient': 'm/m',
         'topographic__elevation': 'm',
     }
 
@@ -86,14 +86,14 @@ class OverlandFlowBates(Component):
         'surface_water__depth': 'node',
         'topographic__elevtation': 'node',
         'surface_water__discharge': 'active_link',
-        'surface_water__gradient': 'node',
+        'water_surface__gradient': 'node',
     }
 
     _var_mapping = {
         'surface_water__depth': 'The depth of water at each node.',
         'topographic__elevtation': 'The land surface elevation.',
         'surface_water__discharge': 'The discharge of water on active links.',
-        'surface_water__gradient':
+        'water_surface__gradient':
             'The slope of the water surface at each node.',
     }
 

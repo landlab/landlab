@@ -46,7 +46,7 @@ grid. Use the *output_var_names* property to see the names of the fields that
 have been changed.
 
 >>> of.output_var_names
-('surface_water__depth', 'surface_water__discharge', 'surface_water__gradient')
+('surface_water__depth', 'surface_water__discharge', 'water_surface__gradient')
 
 The `surface_water__depth` field is defined at nodes.
 
@@ -73,11 +73,11 @@ True
 >>> np.all(q[grid.vertical_links] <= 0.)
 True
 
-The *surface_water__gradient* is also defined at links.
+The *water_surface__gradient* is also defined at links.
 
->>> of.var_loc('surface_water__gradient')
+>>> of.var_loc('water_surface__gradient')
 'link'
->>> grid.at_link['surface_water__gradient'] # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_link['water_surface__gradient'] # doctest: +NORMALIZE_WHITESPACE
 array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  1. ,  1. ,  1. ,  0. ,
         0. ,  0. ,  0. ,  0. ,
@@ -138,28 +138,28 @@ class OverlandFlow(Component):
     _output_var_names = (
         'surface_water__depth',
         'surface_water__discharge',
-        'surface_water__gradient',
+        'water_surface__gradient',
     )
 
     _var_units = {
         'surface_water__depth': 'm',
         'surface_water__discharge': 'm3/s',
         'topographic__elevation': 'm',
-        'surface_water__gradient': '-',
+        'water_surface__gradient': '-',
     }
 
     _var_mapping = {
         'surface_water__depth': 'node',
         'topographic__elevtation': 'node',
         'surface_water__discharge': 'link',
-        'surface_water__gradient': 'link',
+        'water_surface__gradient': 'link',
     }
 
     _var_doc = {
         'surface_water__depth': 'The depth of water at each node.',
         'topographic__elevtation': 'The land surface elevation.',
         'surface_water__discharge': 'The discharge of water on active links.',
-        'surface_water__gradient': 'Downstream gradient of the water surface.',
+        'water_surface__gradient': 'Downstream gradient of the water surface.',
     }
 
     @use_file_name_or_kwds
@@ -232,9 +232,9 @@ class OverlandFlow(Component):
 
         # For water surface slopes at links
         try:
-            self.slope = grid.add_zeros('surface_water__gradient', at='link')
+            self.slope = grid.add_zeros('water_surface__gradient', at='link')
         except FieldError:
-            self.slope = grid.at_link['surface_water__gradient']
+            self.slope = grid.at_link['water_surface__gradient']
             self.slope.fill(0.)
 
         # Start time of simulation is at 1.0 s
@@ -393,11 +393,11 @@ class OverlandFlow(Component):
 
             # Now we calculate the slope of the water surface elevation at
             # active links
-            self.water_surface_gradient = (
+            self.water_surface__gradient = (
                 self.grid.calc_grad_at_link(w)[self.grid.active_links])
 
             # And insert these values into an array of all links
-            self.slope[self.active_links] = self.water_surface_gradient
+            self.slope[self.active_links] = self.water_surface__gradient
 
             # If the user chooses to set boundary links to the neighbor value,
             # we set the discharge array to have the boundary links set to
