@@ -126,6 +126,18 @@ class OverlandFlow(Component):
         Weighting factor from de Almeida et al., 2012.
     rainfall_intensity : float, optional
         Rainfall intensity.
+
+
+
+    The primary method of this class is :func:`run_one_step`.
+
+
+    Construction::
+
+        OverlandFlow(grid, default_fixed_links=False, h_init=0.00001,
+                 alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
+                 rainfall_intensity=0.0, steep_slopes=False, **kwds)
+
     """
 
     _name = 'OverlandFlow'
