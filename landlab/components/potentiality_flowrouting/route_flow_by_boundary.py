@@ -91,7 +91,7 @@ class PotentialityFlowRouter(Component):
     ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
     ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
     ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
-    >>> np.allclose(mg.at_node['water__discharge'][mg.core_nodes],
+    >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
     ...             Q_at_core_nodes)
     True
     """
@@ -101,23 +101,23 @@ class PotentialityFlowRouter(Component):
                         'water__unit_flux_in',
                         )
 
-    _output_var_names = ('water__discharge',
+    _output_var_names = ('surface_water__discharge',
                          'flow__potential',
-                         'water__depth',
+                         'surface_water__depth',
                          )
 
     _var_units = {'topographic__elevation': 'm',
                   'water__unit_flux_in': 'm/s',
-                  'water__discharge': 'm**3/s',
+                  'surface_water__discharge': 'm**3/s',
                   'flow__potential': 'm**3/s',
-                  'water__depth': 'm',
+                  'surface_water__depth': 'm',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
                     'water__unit_flux_in': 'node',
-                    'water__discharge': 'node',
+                    'surface_water__discharge': 'node',
                     'flow__potential': 'node',
-                    'water__depth': 'node',
+                    'surface_water__depth': 'node',
                     }
 
     _var_doc = {
@@ -125,12 +125,12 @@ class PotentialityFlowRouter(Component):
         'water__unit_flux_in': (
             'External volume water per area per time input to each node ' +
             '(e.g., rainfall rate)'),
-        'water__discharge': (
+        'surface_water__discharge': (
             'Magnitude of volumetric water flux out of each node'),
         'flow__potential': (
             'Value of the hypothetical field "K", used to force water flux ' +
             'to flow downhill'),
-        'water__depth': (
+        'surface_water__depth': (
             'If Manning or Chezy specified, the depth of flow in the cell, ' +
             'calculated assuming flow occurs over the whole surface'),
                   }
@@ -174,7 +174,7 @@ class PotentialityFlowRouter(Component):
             else:
                 pass
             try:
-                self.grid.add_zeros('node', 'water__discharge', dtype=float)
+                self.grid.add_zeros('node', 'surface_water__discharge', dtype=float)
             except FieldError:
                 pass
 
@@ -198,7 +198,7 @@ class PotentialityFlowRouter(Component):
         """
         grid = self.grid
         self._K = grid.at_node['flow__potential']
-        self._Qw = grid.at_node['water__discharge']
+        self._Qw = grid.at_node['surface_water__discharge']
         z = grid.at_node['topographic__elevation']
         qwater_in = grid.at_node['water__unit_flux_in'].copy()
         qwater_in[grid.node_at_cell] *= grid.area_of_cell
@@ -277,12 +277,12 @@ class PotentialityFlowRouter(Component):
         # now process uval and vval to give the depths, if Chezy or Manning:
         if self.equation == 'Chezy':
             # Chezy: Q = C*Area*sqrt(depth*slope)
-            grid.at_node['water__depth'][:] = (
+            grid.at_node['surface_water__depth'][:] = (
                 grid.at_node['flow__potential'] / self.chezy_C /
                 self.equiv_circ_diam) ** (2. / 3.)
         elif self.equation == 'Manning':
             # Manning: Q = w/n*depth**(5/3)
-            grid.at_node['water__depth'][:] = (
+            grid.at_node['surface_water__depth'][:] = (
                 grid.at_node['flow__potential'] * self.manning_n /
                 self.equiv_circ_diam) ** 0.6
         else:

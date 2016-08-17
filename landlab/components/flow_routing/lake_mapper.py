@@ -772,7 +772,7 @@ class DepressionFinderAndRouter(Component):
                                                        runoff_rate=Q_in)
         # finish the property updating:
         self.grid.at_node['drainage_area'][:] = self.a
-        self.grid.at_node['water__discharge'][:] = q
+        self.grid.at_node['surface_water__discharge'][:] = q
         self.grid.at_node['flow__upstream_node_order'][:] = s
 
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):
