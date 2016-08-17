@@ -73,7 +73,7 @@ except NameError:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow()
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__discharge', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='surface_water__discharge', K_if_used='K_values')
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*interval_duration
         this_trunc = precip.elapsed_time//out_interval
@@ -104,7 +104,7 @@ if True:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
             mg = fr.route_flow() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
-            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='water__discharge', K_if_used='K_values')
+            mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='surface_water__discharge', K_if_used='K_values')
 
         #plot long profiles along channels
         this_trunc = precip_perturb.elapsed_time//out_interval

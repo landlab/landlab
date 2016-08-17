@@ -138,8 +138,7 @@ class OverlandFlow(Component):
                  alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
                  rainfall_intensity=0.0, steep_slopes=False, **kwds)
 
-    """
-
+"""
     _name = 'OverlandFlow'
 
     _input_var_names = (
@@ -216,7 +215,8 @@ class OverlandFlow(Component):
         # For water discharge
         try:
             self.q = grid.add_zeros('surface_water__discharge', at='link',
-                                    units=self._var_units['surface_water__discharge'])
+                units=self._var_units['surface_water__discharge'])
+
         except FieldError:
             # Field was already set; still, fill it with zeros
             self.q = grid.at_link['surface_water__discharge']
@@ -235,7 +235,8 @@ class OverlandFlow(Component):
 
         try:
             self.h = grid.add_zeros('surface_water__depth', at='node',
-                                    units=self._var_units['surface_water__depth'])
+                units=self._var_units['surface_water__depth'])
+
         except FieldError:
             # Field was already set
             self.h = grid.at_node['surface_water__depth']

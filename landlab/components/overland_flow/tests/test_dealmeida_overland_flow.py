@@ -30,6 +30,7 @@ def setup_grid():
         'deAlm': OverlandFlow(grid)})
 
 
+
 @with_setup(setup_grid)
 def test_deAlm_name():
     assert_equal(deAlm.name, 'OverlandFlow')
@@ -45,7 +46,6 @@ def test_deAlm_input_var_names():
 def test_deAlm_output_var_names():
     assert_equal(deAlm.output_var_names, ('surface_water__depth', 'surface_water__discharge',
                                           'water_surface__gradient', ))
-
 
 @with_setup(setup_grid)
 def test_deAlm_var_units():
@@ -67,7 +67,7 @@ def test_grid_shape():
 
 def test_deAlm_analytical():
     from landlab import RasterModelGrid
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), spacing = 25)
     grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
