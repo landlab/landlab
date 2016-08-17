@@ -371,7 +371,7 @@ class OverlandFlow(Component):
                 break
             if local_elapsed_time + dt_local > dt:
                 dt_local = dt - local_elapsed_time
-            self.dt_local = dt_local
+            self.dt = dt_local
 
             # First, we check and see if the neighbor arrays have been
             # initialized
