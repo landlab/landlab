@@ -543,7 +543,7 @@ class Graph(object):
 
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
         >>> graph.length_of_link
-        array([ 2., 2., 1., 1., 1., 2., 2.])
+        array([ 2.,  2.,  1.,  1.,  1.,  2.,  2.])
         """
         return get_length_of_link(self)
 
