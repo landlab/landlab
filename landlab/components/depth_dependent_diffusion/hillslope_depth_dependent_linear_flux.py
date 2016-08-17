@@ -14,24 +14,73 @@ class DepthDependentDiffuser(Component):
     """
     hillslope evolution using a depth and slope dependent flux rule
     in the style of Johnstone and Hilley (2014)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import ExponentialWeathering, DepthDependentDiffuser
+    >>> mg = RasterModelGrid((5, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> expweath = ExponentialWeathering(mg)
+    >>> DDdiff = DepthDependentDiffuser(mg)
+    >>> expweath.exponentialweather()
+    >>> np.allclose(mg.at_node['weathering__rate'], 1.)
+    True
+    >>> DDdiff.soilflux(2.)
+    >>> np.allclose(mg.at_node['topographic__elevation'], 0.)
+    True
+    >>> np.allclose(mg.at_node['bedrock__elevation'], -2.)
+    True
+    >>> np.allclose(mg.at_node['soil__depth'], 2.)
+    True
+
+    Now with a slope:
+    >>> mg = RasterModelGrid((5, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> z += mg.node_x.copy()
+    >>> BRz += mg.node_x/2.
+    >>> soilTh[:] = z - BRz
+    >>> expweath = ExponentialWeathering(mg)
+    >>> DDdiff = DepthDependentDiffuser(mg)
+    >>> expweath.exponentialweather()
+    >>> mynodes = mg.nodes[2, :]
+    >>> np.allclose(
+    ...     mg.at_node['weathering__rate'][mynodes],
+    ...     np.array([ 1., 0.60653066, 0.36787944, 0.22313016, 0.13533528]))
+    True
+    >>> DDdiff.soilflux(2.)
+    >>> np.allclose(
+    ...     mg.at_node['topographic__elevation'][mynodes],
+    ...     np.array([0., 1.47730244, 2.28949856, 3.17558975, 4.]))
+    True
+    >>> np.allclose(mg.at_node['bedrock__elevation'][mynodes],
+    ...     np.array([-2., -0.71306132, 0.26424112, 1.05373968, 1.72932943]))
+    True
+    >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
+    True
+
     """
 
     _name = 'DepthDependentDiffuser'
 
-    _input_var_names = set((
+    _input_var_names = (
         'topographic__elevation',
         'soil__depth',
         'weathering__rate',
-    ))
+    )
     
-    _output_var_names = set((
+    _output_var_names = (
         'soil__flux',
         'topographic__slope',
         'topographic__elevation',
         'bedrock__elevation',
-        'soil__depth',
-        
-    ))
+        'soil__depth',   
+    )
         
     _var_units = {
         'topographic__elevation' : 'm',
@@ -149,7 +198,7 @@ class DepthDependentDiffuser(Component):
         dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
         
         #Calculate change in soil depth
-        dhdt=self.weather*dt-dqdx
+        dhdt=self.weather-dqdx
         
         #Calculate soil depth at nodes
         self.depth[self._active_nodes] += dhdt[self._active_nodes]*dt
