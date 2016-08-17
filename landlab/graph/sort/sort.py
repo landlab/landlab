@@ -11,6 +11,34 @@ from .ext.spoke_sort import sort_spokes_at_wheel
 
 
 def remap(src, mapping, out=None, inplace=False): 
+    """Remap elements in an id array.
+
+    Parameters
+    ----------
+    src : ndarray of int
+        Initial array of ids.
+    mapping : ndarray of int
+        Mapping of ids.
+    out : ndarray of int, optional
+        Buffer into which to place output.
+    inplace : bool, optional
+        Mapping of values will include inplace.
+
+    Returns
+    -------
+    ndarray of int
+        Array of remapped values.
+
+    Examples
+    --------
+    >>> from landlab.graph.sort.sort import remap
+    >>> import numpy as np
+
+    >>> src = np.array([1, 2, 3, 4])
+    >>> mapping = np.array([-1, 10, 20, 30, 40])
+    >>> remap(src, mapping)
+    array([10, 20, 30, 40])
+    """
     from .ext.remap_element import remap_graph_element
 
     if inplace:
@@ -457,12 +485,48 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     return sorted_patches
 
 
-def sort_spokes_at_hub(graph, spoke=None, at='node', badval=None,
-                       inplace=False):
-    sorted_spokes = argsort_spokes_at_hub(graph, spoke=spoke, at=at,
-                                          badval=badval)
+def sort_spokes_at_hub(graph, spoke=None, at='node', inplace=False):
+    """Order spokes of a graph clockwise around spokes.
+
+    Parameters
+    ----------
+    graph : Graph-like
+        A landlab graph.
+    spoke : str
+        Name of graph elements that make the spokes.
+    at : {'node', 'corner', 'link', 'face', 'patch', 'cell'}
+        Namve of graph elements that make the hubs.
+
+    Returns
+    -------
+    ndarray of int, shape `(n_spokes, n_hubs)`
+        Spokes ordered around each hub.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.graph import UniformRectilinearGraph
+    >>> from landlab.graph.sort.sort import sort_spokes_at_hub
+
+    >>> graph = UniformRectilinearGraph((3, 3))
+    >>> sort_spokes_at_hub(graph, 'link', at='node')
+    array([[ 0,  2, -1, -1],
+           [ 1,  3,  0, -1],
+           [ 4,  1, -1, -1],
+           [ 5,  7,  2, -1],
+           [ 6,  8,  5,  3],
+           [ 9,  6,  4, -1],
+           [10,  7, -1, -1],
+           [11, 10,  8, -1],
+           [11,  9, -1, -1]])
+    """
+    sorted_spokes = argsort_spokes_at_hub(graph, spoke=spoke, at=at)
+    if spoke == 'patch':
+        plural = 'patches'
+    else:
+        plural = spoke + 's'
     spokes_at_hub = getattr(graph,
-                            '{spoke}es_at_{hub}'.format(spoke=spoke, hub=at))
+                            '{plural}_at_{hub}'.format(plural=plural, hub=at))
 
     if inplace:
         out = spokes_at_hub
@@ -472,7 +536,7 @@ def sort_spokes_at_hub(graph, spoke=None, at='node', badval=None,
     return np.take(spokes_at_hub, sorted_spokes, out=out)
 
 
-def argsort_spokes_at_hub(graph, spoke=None, at='node', badval=None):
+def argsort_spokes_at_hub(graph, spoke=None, at='node'):
     """Order spokes clockwise around spokes.
 
     Parameters
@@ -483,9 +547,6 @@ def argsort_spokes_at_hub(graph, spoke=None, at='node', badval=None):
         Name of graph elements that make the spokes.
     at : str
         Namve of graph elements that make the hubs.
-    badval : float or iterable of float, optional
-        Value to insert for missing spokes. If an iterable, use items as
-        bad values to use for different spokes.
 
     Returns
     -------
