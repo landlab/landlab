@@ -53,7 +53,7 @@ rmg.add_zeros('surface_water__depth', at='node') # water depth (m)
 rmg.add_zeros('surface_water__discharge', at='link') # unit discharge (m2/s)
 
 # Add our initial thin layer of water to the field of water depth.
-#rmg['node']['water_depth'] += h_init
+#rmg['node']['surface_water__depth'] += h_init
 
 # Now we'll identify our leftmost, but interior, column and the IDs of those
 # nodes. One column in to prevent issues with BC.
