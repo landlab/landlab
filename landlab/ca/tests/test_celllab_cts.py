@@ -17,6 +17,7 @@ from landlab.ca.hex_cts import HexCTS
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
 from heapq import heappush
 from heapq import heappop
+import numpy as np
 
 
 def callback_function(ca, node1, node2, time_now):
@@ -168,6 +169,99 @@ def test_oriented_hex_cts():
     assert_equal(ohcts.num_link_states, 12)
     #assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
     assert_array_equal(ohcts.link_orientation, [2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1])
+    
+    
+def test_priority_queue():
+    """Test import and use of priority queue."""
+    from ..cfuncs import PriorityQueue
+    
+    # Create a priority queue
+    pq = PriorityQueue()
+    
+    # push a bunch of events
+    pq.push(2, 2.2)
+    pq.push(5, 5.5)
+    pq.push(0, 0.11)
+    pq.push(4, 4.4)
+    pq.push(1, 1.1)
+    pq.push(3, 3.3)
+
+    # pop a bunch of events
+    (priority, index, item) = pq.pop()
+    assert (priority == 0.11), 'incorrect priority in PQ test'
+    assert (index == 2), 'incorrect index in PQ test'
+    assert (item == 0), 'incorrect item in PQ test'
+
+    (priority, index, item) = pq.pop()
+    assert (priority == 1.1), 'incorrect priority in PQ test'
+    assert (index == 4), 'incorrect index in PQ test'
+    assert (item == 1), 'incorrect item in PQ test'
+
+    (priority, index, item) = pq.pop()
+    assert (priority == 2.2), 'incorrect priority in PQ test'
+    assert (index == 0), 'incorrect index in PQ test'
+    assert (item == 2), 'incorrect item in PQ test'
+
+    (priority, index, item) = pq.pop()
+    assert (priority == 3.3), 'incorrect priority in PQ test'
+    assert (index == 5), 'incorrect index in PQ test'
+    assert (item == 3), 'incorrect item in PQ test'
+
+    (priority, index, item) = pq.pop()
+    assert (priority == 4.4), 'incorrect priority in PQ test'
+    assert (index == 3), 'incorrect index in PQ test'
+    assert (item == 4), 'incorrect item in PQ test'
+
+    (priority, index, item) = pq.pop()
+    assert (priority == 5.5), 'incorrect priority in PQ test'
+    assert (index == 1), 'incorrect index in PQ test'
+    assert (item == 5), 'incorrect item in PQ test'
+
+def test_run_oriented_raster():
+    """Test running with a small grid, 2 states, 4 transition types."""
+
+    # Create an OrientedRaster with a 3x5 raster grid. Test model has 2 node
+    # states and 4 transition types.
+    grid = RasterModelGrid((3, 5))
+    nsd = {0 : 'zero', 1 : 'one'}
+    trn_list = []
+    trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
+    trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
+    trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
+    trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
+    ins = np.arange(15) % 2  # makes a checkerboard pattern
+    cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
+
+    # Run to 1st transition, at ~0.12
+    cts.run(0.15)
+    assert_array_equal(cts.node_state,
+                       [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0])
+
+    # Run to 2nd transition, at ~0.19
+    cts.run(0.2)
+    assert_array_equal(cts.node_state,
+                       [0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0])
+
+    # Run to 3rd transition, at ~0.265
+    cts.run(0.27)
+    assert_array_equal(cts.node_state,
+                       [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+
+    # Run to 4th transition, at ~0.276 (transition is ignored)
+    cts.run(0.28)
+    assert_array_equal(cts.node_state,
+                       [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+
+    # Run to 5th transition, at ~0.461 (ignored)
+    cts.run(0.5)
+    assert_array_equal(cts.node_state,
+                       [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+
+    # Run to 6th transition, at ~0.648
+    cts.run(0.65)
+    assert_array_equal(cts.node_state,
+                       [0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0])
+
 
 if __name__ == '__main__':
     test_raster_cts()
