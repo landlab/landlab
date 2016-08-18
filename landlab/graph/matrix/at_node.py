@@ -49,22 +49,3 @@ def get_links(nodes_at_link, sort=True):
 
     return (as_id_array(links_at_node), as_id_array(link_dirs_at_node),
             offset_to_node)
-
-
-def links2(nodes_at_link):
-    from .ext.elements import get_links_at_node
-
-    nodes_at_link = nodes_at_link.reshape((-1, ))
-
-    n_link_ends = len(nodes_at_link)
-
-    links_at_node = np.empty(n_link_ends, dtype=int)
-    link_dirs_at_node = np.empty(n_link_ends, dtype=int)
-    offset_to_node = np.empty(n_link_ends + 1, dtype=int)
-
-    get_links_at_node(nodes_at_link, links_at_node, link_dirs_at_node,
-                      offset_to_node)
-
-    return links_at_node, link_dirs_at_node, offset_to_node
-
-
