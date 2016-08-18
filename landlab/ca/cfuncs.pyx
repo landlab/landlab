@@ -45,7 +45,7 @@ cdef class PriorityQueue:
         self._index += 1
 
     def pop(self):
-        return heappop(self._queue)[-1]
+        return heappop(self._queue)
 
 
 cdef class Event:
