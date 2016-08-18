@@ -12,8 +12,20 @@ from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 class DepthDependentDiffuser(Component):
     
     """
-    hillslope evolution using a depth and slope dependent flux rule
-    in the style of Johnstone and Hilley (2014)
+    This component implements a depth and slope dependent linear diffusion rule
+    in the style of Johnstone and Hilley (2014). 
+
+        
+    Parameters
+    ----------
+    grid: ModelGrid
+        Landlab ModelGrid object
+    k: float
+        Hillslope efficiency, m/yr
+    hstar: float
+        characteristic transport soil depth, m
+    
+
 
     Examples
     --------
@@ -117,17 +129,7 @@ class DepthDependentDiffuser(Component):
 
     def __init__(self,grid,k=1,hstar=1,**kwds):
         
-        """Initialize HillslopeDepthDependentLinearFlux.
-        
-        Parameters
-        ----------
-        grid: ModelGrid
-            Landlab ModelGrid object
-        k: float
-            Hillslope efficiency, m/yr
-        hstar: float
-            characteristic transport soil depth, m
-        """
+       
         
         #Store grid and parameters
         self._grid=grid
@@ -179,7 +181,16 @@ class DepthDependentDiffuser(Component):
     
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
+
+        Parameters:
+        ----------
+
+        dt: float (time)
+            The imposed timestep.
+
         """
+
+
         #update soil depth
         self.grid.at_node['soil__depth'][:] = self.grid.at_node['topographic__elevation'] - self.grid.at_node['bedrock__elevation']
         

@@ -8,30 +8,25 @@ Created on Fri Apr  8 08:32:48 2016
 
 from landlab import Component, CLOSED_BOUNDARY
 import numpy as np
-"""
-Summary docs go here.
 
-Examples
---------
->>> import numpy as np
->>> from landlab import RasterModelGrid
->>> from landlab.components import ExponentialWeathering
->>> mg = RasterModelGrid((5, 5))
->>> soilz = mg.add_zeros('node', 'soil__depth')
->>> soilrate = mg.add_ones('node', 'weathering__rate')
->>> expw = ExponentialWeathering(mg)
->>> expw.exponentialweather()
->>> np.allclose(mg.at_node['weathering__rate'], 1.)
-True
-
-"""
 
 
 class ExponentialWeathering(Component):
     
     """
-    Exponential weathering of bedrock on hillslopes. Using exponential soil production function
-    in the style of Heimsath 1997. 
+    This component implements exponential weathering of bedrock on hillslopes. 
+    Uses exponential soil production function in the style of Heimsath 1997.
+        
+    Parameters
+    ----------
+    grid: ModelGrid
+        Landlab ModelGrid object
+    wstar: float
+	characteristic weathering depth
+    wnot: float
+	maximum weathering rate for bare bedrock 
+        
+ 
 
     Examples
     --------
@@ -78,15 +73,7 @@ class ExponentialWeathering(Component):
 
     def __init__(self, grid, wnot=1, wstar=1, **kwds):
         
-        """Initialize ExponentialWeathering.
-        
-        Parameters
-        ----------
-        grid: ModelGrid
-            Landlab ModelGrid object
-        wstar: characteristic weathering depth
-        """
-        
+                
         #Store grid and parameters
         self._grid=grid
         self.wstar=wstar
