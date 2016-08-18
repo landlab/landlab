@@ -3,15 +3,22 @@ import numpy as np
 from ...utils.jaggedarray import unravel
 
 
-def new_links_at_patch(patches, nodes_at_link=None, nodes_at_patch=None):
-    links_at_patch, offset_to_patch = patches
-
-    connect_links_at_patch(links_at_patch, offset_to_patch, nodes_at_link,
-                           nodes_at_patch)
-
-
 def links_at_patch(patches, sort=True, nodes_at_link=None):
-    """Set up patch data structures."""
+    """Construct as links_at_patch array for a graph.
+
+    Parameters
+    ----------
+    patches : tuple of ndarray of int
+        Links that define patches as `(links, offset_to_patch)`.
+    sort : bool, optional
+        Sort the links.
+    nodes_at_link : ndarray of int, shape `(n_links, 2)`
+        Nodes at link tail and head.
+
+    Examples
+    --------
+
+    """
     from ..sort.ext.remap_element import reorder_links_at_patch
     from ..quantity.ext.of_link import calc_midpoint_of_link
 
@@ -27,27 +34,3 @@ def links_at_patch(patches, sort=True, nodes_at_link=None):
         sort_patches(links_at_patch, offset_to_patch, xy_of_link)
 
     return unravel(links_at_patch, offset_to_patch, pad=-1)
-
-
-def old_links(patches):
-    """Set up data structure that describes link-patch connectivity.
-
-    Parameters
-    ----------
-    patches: iterable of iterables
-        List of links for each patch.
-
-    Returns
-    -------
-    ndarray
-        Links for each patch.
-    """
-    from .ext.at_patch import fill_links_at_patch
-
-    max_links_per_patch = np.diff(patches[1]).max()
-    n_patches = len(patches[1]) - 1
-    links_at_patch = np.full((n_patches, max_links_per_patch), -1, dtype=int)
-
-    fill_links_at_patch(patches[0], patches[1], links_at_patch)
-
-    return links_at_patch
