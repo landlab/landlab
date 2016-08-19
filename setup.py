@@ -14,6 +14,8 @@ import sys
 ext_modules = [
     Extension('landlab.ca.cfuncs',
               ['landlab/ca/cfuncs.pyx']),
+    Extension('landlab.grid.cfuncs',
+              ['landlab/grid/cfuncs.pyx']),
     Extension('landlab.components.flexure.cfuncs',
               ['landlab/components/flexure/cfuncs.pyx']),
     Extension('landlab.components.flow_accum.cfuncs',

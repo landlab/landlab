@@ -497,11 +497,11 @@ def anticlockwise_argsort_points(pts, midpt=None):
         midpt : len-2 NumPy array of float (optional)
         (x, y) of point about which to sort. If not provided, mean of pts is
         used.
-        
+
         Returns
         -------
-        pts : Nx2 NumPy array of float
-        sorted (x,y) points
+        pts : N NumPy array of int
+            sorted (x,y) points
         
         Examples
         --------
@@ -520,6 +520,54 @@ def anticlockwise_argsort_points(pts, midpt=None):
     theta = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
     theta = theta % (2.*np.pi)
     sortorder = np.argsort(theta)
+    return sortorder
+
+
+def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
+    """Argort multi lines of points into CCW order around the geometric center.
+
+    This version sorts columns of data in a 2d array. Sorts CCW from east
+    around the geometric center of the points in the row.
+    Assumes a convex hull.
+
+    Parameters
+    ----------
+    pts_x : rows x n_elements array of float
+        rows x points_to_sort x x_coord of points
+    pts_y : rows x n_elements array of float
+        rows x points_to_sort x y_coord of points
+    out : rows x n_elements (optional)
+        If provided, the ID array to be sorted
+
+    Returns
+    -------
+    sortorder : rows x n_elements NumPy array of int
+        sorted (x,y) points
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import anticlockwise_argsort_points_multiline
+    >>> pts = np.array([[1, 3, 0, 2], [2, 0, 3, 1]])
+    >>> pts_x = np.array([[-3., -1., -1., -3.], [-3., -1., -1., -3.]])
+    >>> pts_y = np.array([[-1., -3., -1., -3.], [-3., -1., -3., -1.]])
+    >>> sortorder = anticlockwise_argsort_points_multiline(
+    ...     pts_x, pts_y, out=pts)
+    >>> np.all(sortorder == np.array([[2, 0, 3, 1], [1, 3, 0, 2]]))
+    True
+    >>> np.all(pts == np.array([[0, 1, 2, 3], [0, 1, 2, 3]]))
+    True
+    """
+    nrows = pts_x.shape[0]
+    midpt = np.empty((nrows, 2), dtype=float)
+    midpt[:, 0] = pts_x.mean(axis=1)
+    midpt[:, 1] = pts_y.mean(axis=1)
+    theta = np.arctan2(pts_y - midpt[:, 1].reshape((nrows, 1)),
+                       pts_x - midpt[:, 0].reshape((nrows, 1)))
+    theta = theta % (2.*np.pi)
+    sortorder = np.argsort(theta)
+    if out is not None:
+        out[:] = out[np.ogrid[:nrows].reshape((nrows, 1)), sortorder]
     return sortorder
 
 
