@@ -16,7 +16,7 @@ import numpy as np
 from landlab import Component
 
 
-class PrecipitationDistribution(object):
+class PrecipitationDistribution(Component):
 
     """Generate precipitation events.
 
@@ -61,6 +61,18 @@ class PrecipitationDistribution(object):
     >>> for (dt, rate) in precip.yield_storm_interstorm_duration_intensity():
     ...     pass  # and so on
     """
+
+    _name = 'PrecipitationDistribution'
+
+    _input_var_names = tuple()
+
+    _output_var_names = tuple()
+
+    _var_units = dict()
+
+    _var_mapping = dict()
+
+    _var_doc = dict()
 
     def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
                  mean_storm_depth=0.0, total_t=0.0, delta_t=None, **kwds):

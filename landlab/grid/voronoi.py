@@ -36,19 +36,11 @@ Information about the grid as a whole
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.move_origin
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.ndim
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_elements
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.save
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
@@ -57,9 +49,11 @@ Information about nodes
     :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
@@ -85,8 +79,10 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
@@ -115,18 +111,24 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_xcomponent_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_ycomponent_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -144,6 +146,8 @@ Information about cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -159,6 +163,8 @@ Information about faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.width_of_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -166,9 +172,24 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
+
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
+
 
 Data Fields in ModelGrid
 ------------------------
@@ -192,6 +213,8 @@ itself that provide access to the values groups:
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -299,12 +322,16 @@ nodes.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_head_node_to_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_tail_node_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_sum_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_node_links_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_patch_nodes_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_patch_nodes_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_link_nodes_to_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_node_links_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_patch_nodes_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_max_to_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_mean_to_node
@@ -327,6 +354,7 @@ defined at other grid elements automatically.
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
@@ -341,6 +369,8 @@ defined at other grid elements automatically.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
@@ -663,6 +693,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         """Number of patches.
 
         Returns the number of patches over the grid.
+
+        LLCATS: PINF
         """
         try:
             return self._number_of_patches
@@ -673,6 +705,8 @@ class VoronoiDelaunayGrid(ModelGrid):
     @property
     def nodes_at_patch(self):
         """Get the four nodes at the corners of each patch in a regular grid.
+
+        LLCATS: PINF NINF CONN
         """
         try:
             return self._nodes_at_patch
@@ -705,6 +739,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 5,  8, -1, -1, -1, -1],
                [ 8,  6,  9, -1, -1, -1],
                [ 9,  7, -1, -1, -1, -1]])
+
+        LLCATS: NINF PINF CONN
         """
         try:
             return self._patches_at_node
@@ -728,6 +764,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 8,  7,  5],
                [10,  9,  6],
                [11,  8,  9]])
+
+        LLCATS: LINF PINF CONN
         """
         try:
             return self._links_at_patch
@@ -757,6 +795,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 4,  5],
                [ 4, -1],
                [ 5, -1]])
+
+        LLCATS: PINF LINF CONN
         """
         try:
             return self._patches_at_link
@@ -1235,6 +1275,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> vmg = VoronoiDelaunayGrid(x,y)
         >>> vmg.save('./mytestsave.grid')
         >>> os.remove('mytestsave.grid') #to remove traces of this test
+
+        LLCATS: GINF
         """
         import os
         from six.moves import cPickle

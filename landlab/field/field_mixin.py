@@ -2,8 +2,8 @@
 from .grouped import ModelDataFields, GroupSizeError
 
 
-_GROUPS = ('node', 'cell', 'link', 'face', 'core_node', 'core_cell',
-           'active_link', 'active_face', )
+_GROUPS = ('node', 'link', 'patch', 'corner', 'face', 'cell', 'core_node',
+           'core_cell', 'active_link', 'active_face', )
 
 
 class ModelDataFieldsMixIn(ModelDataFields):
@@ -74,6 +74,10 @@ class ModelDataFieldsMixIn(ModelDataFields):
             ModelDataFields.new_field_location(self, group)
 
     def new_field_location(self, group, size=None):
+        """Add a new quantity to a field, but not available from here.
+
+        LLCATS: DEPR, FIELDCR
+        """
         raise AttributeError(
             "'ModelDataFieldsMixIn' object has no attribute "
             "'new_field_location'")
@@ -104,6 +108,8 @@ class ModelDataFieldsMixIn(ModelDataFields):
         >>> grid = RasterModelGrid((4, 5))
         >>> len(grid.empty())
         20
+
+        LLCATS: FIELDADD
         """
         if len(args) == 0:
             group = kwds.pop('at', kwds.pop('centering', 'node'))
@@ -151,6 +157,8 @@ class ModelDataFieldsMixIn(ModelDataFields):
         >>> grid.zeros('cell') # doctest: +NORMALIZE_WHITESPACE
         array([ 0., 0., 0.,
                 0., 0., 0.])
+
+        LLCATS: FIELDADD
         """
         if len(args) == 0:
             group = kwds.pop('at', kwds.pop('centering', 'node'))
@@ -193,6 +201,8 @@ class ModelDataFieldsMixIn(ModelDataFields):
         >>> grid.zeros()
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
+
+        LLCATS: FIELDADD
         """
         if len(args) == 0:
             group = kwds.pop('at', kwds.pop('centering', 'node'))
