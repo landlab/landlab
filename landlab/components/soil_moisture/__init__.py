@@ -29,7 +29,7 @@ that provide the input to this component, use the *input_var_names*
 class property.
 
 >>> sorted(SoilMoisture.input_var_names)   # doctest: +NORMALIZE_WHITESPACE
-['rainfall__daily',
+['rainfall__daily_depth',
  'soil_moisture__initial_saturation_fraction',
  'surface__potential_evapotranspiration_rate',
  'vegetation__cover_fraction',
@@ -79,7 +79,7 @@ Run the *update* method to update output variables with current time
 
 >>> current_time = 0.5
 
->>> grid['cell']['rainfall__daily'] = 25. * np.ones(grid.number_of_cells)
+>>> grid['cell']['rainfall__daily_depth'] = 25. * np.ones(grid.number_of_cells)
 
 >>> current_time = SM.update(current_time)
 
@@ -108,6 +108,8 @@ array([ 0.,  0.,  0.,  0.,  0.,  0.])
 """
 
 from .soil_moisture_dynamics import SoilMoisture
+from .infiltrate_soil_green_ampt import SoilInfiltrationGreenAmpt
 
 
-__all__ = ['SoilMoisture', ]
+__all__ = ['SoilMoisture',
+           'SoilInfiltrationGreenAmpt', ]

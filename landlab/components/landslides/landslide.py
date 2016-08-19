@@ -1,121 +1,3 @@
-""" Landlab component that simulates relative wetness, mean factor-of-safety,
-and probability of failure.
-
-Relative wetness and factor-of-safety are based on the infinite slope
-stability model driven by topographic and soils inputs and recharge provided
-by user in a "landslide_driver" file. In addition, the component simulates
-the probability of failure for each node based on Monte Carlo simulations
-of the factor-of-safety as the number of simulations with factor-of-safety
-<= 1.0 divided by the number of simulations.
-
-Modified to be more generic in the inputs for greater usability as well
-as accomodate functionality with new release of Landlab version 1.
-
-.. codauthor:: R.Strauch & E.Istanbulluoglu - University of Washington
-Created on Thu Aug 20, 2015
-Last edit July 12, 2016
-
-Examples
-----------
->>> from landlab import RasterModelGrid
->>> from landlab.components.landslides import LandslideProbability
->>> import numpy as np
-
-Create a grid on which to calculate landslide probability.
-
->>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
-
-Check the number of core nodes.
-
->>> grid.number_of_core_nodes
-6
-
-The grid will need some input data. To check the names of the fields
-that provide the input to this component, use the *input_var_names*
-class property.
-
->>> sorted(LandslideProbability.input_var_names) \
-                # doctest: +NORMALIZE_WHITESPACE
-['soil__density',
- 'soil__internal_friction_angle',
- 'soil__maximum_total_cohesion',
- 'soil__minimum_total_cohesion',
- 'soil__mode_total_cohesion',
- 'soil__thickness',
- 'soil__transmissivity',
- 'topographic__slope',
- 'topographic__specific_contributing_area']
-
-Check the units for the fields.
-
->>> LandslideProbability.var_units('topographic__specific_contributing_area')
-'m'
-
-Create an input field.
-
->>> grid['node']['topographic__slope'] = np.random.rand(grid.number_of_nodes)
-
-If you are not sure about one of the input or output variables, you can
-get help for specific variables.
-
->>> LandslideProbability.var_help('soil__transmissivity') \
-                        # doctest: +NORMALIZE_WHITESPACE
-name: soil__transmissivity
-description:
-  mode rate of water transmitted through a unit width of
-saturated soil
-units: m2/day
-at: node
-intent: in
-
-Additional required fields for component.
-
->>> scatter_dat = np.random.random_integers(1, 10, grid.number_of_nodes)
->>> grid['node']['topographic__specific_contributing_area'] = \
-         np.sort(np.random.random_integers(30, 900, grid.number_of_nodes))
->>> grid['node']['soil__transmissivity'] = \
-         np.sort(np.random.random_integers(5, 20, grid.number_of_nodes), -1)
->>> grid['node']['soil__mode_total_cohesion'] = \
-         np.sort(np.random.random_integers(30, 900, grid.number_of_nodes))
->>> grid['node']['soil__minimum_total_cohesion'] = \
-         grid.at_node['soil__mode_total_cohesion'] - scatter_dat
->>> grid['node']['soil__maximum_total_cohesion'] = \
-         grid.at_node['soil__mode_total_cohesion'] + scatter_dat
->>> grid['node']['soil__internal_friction_angle'] = \
-         np.sort(np.random.random_integers(26, 40, grid.number_of_nodes))
->>> grid['node']['soil__thickness'] = \
-         np.sort(np.random.random_integers(1, 10, grid.number_of_nodes))
->>> grid['node']['soil__density'] = \
-         2000. * np.ones(grid.number_of_nodes)
-
-Instantiate the 'LandslideProbability' component to work on this grid,
-and run it.
-
->>> LS_prob = LandslideProbability(grid)
->>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
-True
-
-Run the *calculate_landslide_probability* method to update output
-variables with grid
-
->>> LS_prob.calculate_landslide_probability()
-
-Check the output variable names.
-
->>> sorted(LS_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-['landslide__mean_factor_of_safety',
- 'landslide__probability_of_failure',
- 'soil__mean_relative_wetness']
-
-Check the output from the component, including array at one node.
-
->>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
-False
->>> core_nodes = LS_prob.grid.core_nodes
->>> isinstance(LS_prob.landslide__factor_of_safety_histogram[ \
-    core_nodes[0]], np.ndarray) == True
-True
-"""
 
 # %% Import Libraries
 from landlab import Component
@@ -152,10 +34,10 @@ class LandslideProbability(Component):
     number_of_simulations: float, optional
         Number of simulations to run Monte Carlo.
     groundwater__recharge_minimum: float, optional
-        User provided minimum annual maximum recharge\
+        User provided minimum annual maximum recharge
         recharge (mm/day).
     groundwater__recharge_maximum: float, optional
-        User provided maximum annual maximum recharge\
+        User provided maximum annual maximum recharge
         recharge (mm/day).
 
     Examples
@@ -168,8 +50,7 @@ class LandslideProbability(Component):
     >>> LS_prob = LandslideProbability(grid)
     >>> LS_prob.name
     'Landslide Probability'
-    >>> sorted(LandslideProbability.input_var_names) \
-              # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(LandslideProbability.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
     ['soil__density',
      'soil__internal_friction_angle',
      'soil__maximum_total_cohesion',
@@ -204,25 +85,24 @@ class LandslideProbability(Component):
     >>> LS_prob.grid is grid
     True
 
-    >>> grid['node']['topographic__slope'] = \
-        np.random.rand(grid.number_of_nodes)
+    >>> grid['node']['topographic__slope'] = np.random.rand(
+    ...      grid.number_of_nodes)
     >>> scatter_dat = np.random.random_integers(1, 10, grid.number_of_nodes)
-    >>> grid['node']['topographic__specific_contributing_area'] = \
-             np.sort(np.random.random_integers(30, 900, grid.number_of_nodes))
-    >>> grid['node']['soil__transmissivity'] = \
-             np.sort(np.random.random_integers(5, 20, grid.number_of_nodes),-1)
-    >>> grid['node']['soil__mode_total_cohesion'] = \
-             np.sort(np.random.random_integers(30, 900, grid.number_of_nodes))
-    >>> grid['node']['soil__minimum_total_cohesion'] = \
-             grid.at_node['soil__mode_total_cohesion'] - scatter_dat
-    >>> grid['node']['soil__maximum_total_cohesion'] = \
-             grid.at_node['soil__mode_total_cohesion'] + scatter_dat
-    >>> grid['node']['soil__internal_friction_angle'] = \
-             np.sort(np.random.random_integers(26, 40, grid.number_of_nodes))
-    >>> grid['node']['soil__thickness']= \
-             np.sort(np.random.random_integers(1, 10, grid.number_of_nodes))
-    >>> grid['node']['soil__density'] = \
-             2000. * np.ones(grid.number_of_nodes)
+    >>> grid['node']['topographic__specific_contributing_area'] = np.sort(
+    ...      np.random.random_integers(30, 900, grid.number_of_nodes))
+    >>> grid['node']['soil__transmissivity'] = np.sort(
+    ...      np.random.random_integers(5, 20, grid.number_of_nodes),-1)
+    >>> grid['node']['soil__mode_total_cohesion'] = np.sort(
+    ...      np.random.random_integers(30, 900, grid.number_of_nodes))
+    >>> grid['node']['soil__minimum_total_cohesion'] = (
+    ...      grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
+    >>> grid['node']['soil__maximum_total_cohesion'] = (
+    ...      grid.at_node['soil__mode_total_cohesion'] + scatter_dat)
+    >>> grid['node']['soil__internal_friction_angle'] = np.sort(
+    ...      np.random.random_integers(26, 40, grid.number_of_nodes))
+    >>> grid['node']['soil__thickness']= np.sort(
+    ...      np.random.random_integers(1, 10, grid.number_of_nodes))
+    >>> grid['node']['soil__density'] = (2000. * np.ones(grid.number_of_nodes))
 
     >>> LS_prob = LandslideProbability(grid)
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
@@ -231,8 +111,8 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = LS_prob.grid.core_nodes
-    >>> isinstance(LS_prob.landslide__factor_of_safety_histogram[ \
-        core_nodes[0]], np.ndarray) == True
+    >>> isinstance(LS_prob.landslide__factor_of_safety_histogram[
+    ...      core_nodes[0]], np.ndarray) == True
     True
     """
 
@@ -418,12 +298,13 @@ class LandslideProbability(Component):
         hs_max = self.hs_mode+0.3*self.hs_mode
         self.hs = np.random.triangular(hs_min, self.hs_mode,
                                        hs_max, size=self.n)
+        self.hs[self.hs <= 0.] = 0.0001
         # recharge distribution
         self.Re = np.random.uniform(self.recharge_min,
                                     self.recharge_max, size=self.n)
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
-        self.C_dim = self.C/(self.hs*self.rho*self.g)  # demensionless cohesion
+        self.C_dim = self.C/(self.hs*self.rho*self.g)  # dimensionless cohesion
         self.Rel_wetness = ((self.Re)/self.T)*(self.a/np.sin(
             np.arctan(self.theta)))                       # relative wetness
         np.place(self.Rel_wetness, self.Rel_wetness > 1, 1.0)
@@ -478,8 +359,8 @@ class LandslideProbability(Component):
             self.mean_Relative_Wetness[i] = self.soil__mean_relative_wetness
             self.mean_FS[i] = self.landslide__mean_factor_of_safety
             self.prob_fail[i] = self.landslide__probability_of_failure
-            self.landslide__factor_of_safety_histogram[i] = \
-                self.FS_distribution
+            self.landslide__factor_of_safety_histogram[i] = (
+                self.FS_distribution)
             # stores FS values from last loop (node)
         # replace unrealistic values in arrays
         self.mean_Relative_Wetness[
@@ -488,7 +369,7 @@ class LandslideProbability(Component):
         self.mean_FS[self.mean_FS == np.inf] = 0.  # to deal with NaN in data
         self.prob_fail[self.prob_fail < 0.] = 0.   # can't be negative
         # assign output fields to nodes
-        self.grid['node']['soil__mean_relative_wetness'] =\
-            self.mean_Relative_Wetness
+        self.grid['node']['soil__mean_relative_wetness'] = (
+            self.mean_Relative_Wetness)
         self.grid['node']['landslide__mean_factor_of_safety'] = self.mean_FS
         self.grid['node']['landslide__probability_of_failure'] = self.prob_fail

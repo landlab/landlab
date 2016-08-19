@@ -23,6 +23,46 @@ import six
 from ..core.model_parameter_loader import load_params
 
 
+class store_result_in_grid(object):
+    def __init__(self, name=None):
+        self._attr = name
+
+    def __call__(self, func):
+        @wraps(func)
+        def _wrapped(grid):
+            name = self._attr or '_' + func.__name__
+            try:
+                getattr(grid, name)
+            except AttributeError:
+                setattr(grid, name, func(grid))
+            finally:
+                return getattr(grid, name)
+
+        return _wrapped
+
+
+def read_only_array(func):
+    """Decorate a function so that its return array is read-only.
+
+    Parameters
+    ----------
+    func : function
+        A function that returns a numpy array.
+
+    Returns
+    -------
+    func
+        A wrapped function that returns a read-only numpy array.
+    """
+    @wraps(func)
+    def _wrapped(self, *args, **kwds):
+        """Make the returned array read-only."""
+        array = func(self, *args, **kwds)
+        array.flags.writeable = False
+        return array
+    return _wrapped
+
+
 def use_file_name_or_kwds(func):
 
     """Decorate a method so that it takes a file name or keywords.

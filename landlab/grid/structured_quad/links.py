@@ -483,6 +483,42 @@ def links_at_node(shape):
                       west_links.flat, south_links.flat)).transpose().copy()
 
 
+def link_dirs_at_node(shape):
+    """Construct a matrix of link directions at each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    (N, 4) ndarray of int
+        Array of link directions.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import link_dirs_at_node
+    >>> link_dirs_at_node((4, 3)) # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
+           [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+           [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+           [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+    """
+    south_link_dirs = np.full(shape, 1, dtype=int)
+    south_link_dirs[0, :] = 0
+    north_link_dirs = np.full(shape, -1, dtype=int)
+    north_link_dirs[-1, :] = 0
+    west_link_dirs = np.full(shape, 1, dtype=int)
+    west_link_dirs[:, 0] = 0
+    east_link_dirs = np.full(shape, -1, dtype=int)
+    east_link_dirs[:, -1] = 0
+
+    return np.vstack((east_link_dirs.flat, north_link_dirs.flat,
+                      west_link_dirs.flat, south_link_dirs.flat)
+                    ).transpose().copy()
+
+
 def node_link_ids(shape):
     """Link IDs for links entering and leaving each node.
 
