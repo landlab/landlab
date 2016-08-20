@@ -119,7 +119,7 @@ xn_rate : 2d array of floats (# possible link states x max. # transitions)
     Rate associated with each link-state transition.
 
 
-Created GT Sep 2014, starting from link_ca.py.
+Created GT Sep 2014, starting from link_cap.py.
 """
 from __future__ import print_function
 
@@ -145,7 +145,7 @@ if _USE_CYTHON:
 
 _NEVER = 1e50
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -959,9 +959,11 @@ class CellLabCTSModel(object):
             next_time = _NEVER
             xn_to = None
             propswap = False
+            nums = []  # temp, for testing
             for i in range(self.n_xn[current_state]):
                 this_next = np.random.exponential(
                     1.0 / self.xn_rate[current_state][i])
+                nums.append(this_next)  # temp, for testing
                 if this_next < next_time:
                     next_time = this_next
                     xn_to = self.xn_to[current_state][i]
@@ -987,7 +989,7 @@ class CellLabCTSModel(object):
             trn_id = -1
             for i in range(self.n_trn[current_state]):
                 trn_id = self.trn_id[current_state, i]
-                this_next = my_event.time  #temporary: for dev
+                this_next = nums[i]  #temporary: for dev
 #                this_next = np.random.exponential(
 #                    1.0 / self.trn_rate[self.trn_id[current_state][i]])
                 if this_next < next_time:
@@ -1072,6 +1074,7 @@ class CellLabCTSModel(object):
                 #                       self.xn_prop_update_fn)
                 #print('At link ' + str(i) + ' with trn_id ' + str(trn_id))
                 #print('Pushing event ' + str(event.time) + ' ' + str(event.link) + ' ' + str(event.xn_to))
+                #print('This trn_id means trn_to ' + str(self.trn_to[trn_id]))                
                 heappush(self.event_queue, event)
                 self.next_update[i] = event.time
                 
@@ -1187,7 +1190,7 @@ class CellLabCTSModel(object):
         self.link_state[link] = new_link_state
         if self.n_xn[new_link_state] > 0:
             (event, event_time, trn_id) = self.get_next_event_new(link, new_link_state, current_time)
-            self.priority_queue.push((link, event_time))
+            self.priority_queue.push(link, event_time)
             self.next_update[link] = event_time
             self.next_trn_id[link] = trn_id
         else:
@@ -1722,14 +1725,15 @@ class CellLabCTSModel(object):
 
                     # Update current time
                     self.current_time = ev_time
-                    
-                if _DEBUG:
-                    print(self.node_state)
                 
-                # If there is no event scheduled for this span of time, simply
-                # advance current_time to the end of the current run period.
-                else:
-                    self.current_time = run_to
+            # If there is no event scheduled for this span of time, simply
+            # advance current_time to the end of the current run period.
+            else:
+                self.current_time = run_to
+                    
+            if _DEBUG:
+                print(self.node_state)
+
         
     
 if __name__ == "__main__":

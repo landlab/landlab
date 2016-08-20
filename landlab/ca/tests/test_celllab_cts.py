@@ -264,4 +264,4 @@ def test_run_oriented_raster():
 
 
 if __name__ == '__main__':
-    test_raster_cts()
+    test_run_oriented_raster()
