@@ -46,7 +46,7 @@ mg.status_at_node[section_col] = 2
 mg._update_links_nodes_cells_to_new_BCs()
 mg.at_node['water__unit_flux_in'].fill(0.)
 mg.at_node['water__unit_flux_in'][inlet_node] = 1.
-mg.add_zeros('link', 'water__discharge')
+mg.add_zeros('link', 'surface_water__discharge')
 pfr = PotentialityFlowRouter(mg, 'pot_fr_params.txt')
 
 interior_nodes = mg.core_nodes
@@ -60,17 +60,17 @@ for i in range(3000):
     #maintain flux like this now instead:
     mg.at_node['topographic__elevation'][section_col] = mg.at_node['topographic__elevation'][inlet_node]+1.
     pfr.route_flow(route_on_diagonals=True)
-    #imshow(mg, 'water__discharge')
+    #imshow(mg, 'surface_water__discharge')
     #show()
-    kd = mg.at_node['water__discharge']   # 0.01 m2 per year
+    kd = mg.at_node['surface_water__discharge']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
     g = mg.calc_grad_of_active_link(mg.at_node['topographic__elevation'])
-    mg.map_max_of_link_nodes_to_link('water__discharge',
+    mg.map_max_of_link_nodes_to_link('surface_water__discharge',
                                      out=mg.at_link[
-                                        'water__discharge'])
-    #map_link_end_node_max_value_to_link(mg, 'water__discharge')
-    kd_link = 1.e6*mg.at_link['water__discharge'][mg.active_links]
+                                        'surface_water__discharge'])
+    #map_link_end_node_max_value_to_link(mg, 'surface_water__discharge')
+    kd_link = 1.e6*mg.at_link['surface_water__discharge'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
     dzdt = -dqsdx
@@ -84,15 +84,15 @@ for i in range(3000):
     #now pull down hard on the BL:
     mg.at_node['topographic__elevation'][mg.nodes_at_top_edge[mg.number_of_node_columns // 2]] =- 10.
     pfr.route_flow(route_on_diagonals=True)
-    kd = mg.at_node['water__discharge']   # 0.01 m2 per year
+    kd = mg.at_node['surface_water__discharge']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
     g = mg.calc_grad_of_active_link(mg.at_node['topographic__elevation'])
-    mg.map_max_of_link_nodes_to_link('water__discharge',
+    mg.map_max_of_link_nodes_to_link('surface_water__discharge',
                                      out=mg.at_link[
-                                        'water__discharge'])
-    # map_link_end_node_max_value_to_link(mg, 'water__discharge')
-    kd_link = 1.e6*mg.at_link['water__discharge'][mg.active_links]
+                                        'surface_water__discharge'])
+    # map_link_end_node_max_value_to_link(mg, 'surface_water__discharge')
+    kd_link = 1.e6*mg.at_link['surface_water__discharge'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
     dzdt = -dqsdx
@@ -106,7 +106,7 @@ imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
 imshow_node_grid(mg, mg.calc_hillshade_of_node(), cmap='bone')
 figure(3)
-imshow_node_grid(mg, 'water__discharge', cmap='Blues_r')
+imshow_node_grid(mg, 'surface_water__discharge', cmap='Blues_r')
 figure(4)
 for i in range(len(section_downfan)):
     plot(section_downfan[i], '-')

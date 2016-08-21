@@ -89,7 +89,7 @@ class SoilMoisture(Component):
      'surface__runoff',
      'vegetation__water_stress']
     >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
-    [('rainfall__daily', 'mm'),
+    [('rainfall__daily_depth', 'mm'),
      ('soil_moisture__initial_saturation_fraction', 'None'),
      ('soil_moisture__root_zone_leakage', 'mm'),
      ('soil_moisture__saturation_fraction', 'None'),
@@ -122,7 +122,7 @@ class SoilMoisture(Component):
     >>> grid['cell']['vegetation__cover_fraction']= (
     ...        np.ones(grid.number_of_cells))
     >>> current_time = 0.5
-    >>> grid['cell']['rainfall__daily'] = (
+    >>> grid['cell']['rainfall__daily_depth'] = (
     ...        25. * np.ones(grid.number_of_cells))
     >>> current_time = SM.update(current_time)
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
@@ -136,7 +136,7 @@ class SoilMoisture(Component):
         'surface__potential_evapotranspiration_rate',
         'soil_moisture__initial_saturation_fraction',
         'vegetation__plant_functional_type',
-        'rainfall__daily',
+        'rainfall__daily_depth',
     )
 
     _output_var_names = (
@@ -158,7 +158,7 @@ class SoilMoisture(Component):
         'soil_moisture__root_zone_leakage': 'mm',
         'surface__runoff': 'mm',
         'surface__evapotranspiration': 'mm',
-        'rainfall__daily': 'mm',
+        'rainfall__daily_depth': 'mm',
     }
 
     _var_mapping = {
@@ -172,7 +172,7 @@ class SoilMoisture(Component):
         'soil_moisture__root_zone_leakage': 'cell',
         'surface__runoff': 'cell',
         'surface__evapotranspiration': 'cell',
-        'rainfall__daily': 'cell',
+        'rainfall__daily_depth': 'cell',
     }
 
     _var_doc = {
@@ -199,7 +199,7 @@ class SoilMoisture(Component):
             'runoff from ground surface',
         'surface__evapotranspiration':
             'actual sum of evaporation and plant transpiration',
-        'rainfall__daily':
+        'rainfall__daily_depth':
             'Rain in (mm) as a field, allowing spatio-temporal soil moisture \
              saturation analysis.',
     }
@@ -421,7 +421,7 @@ class SoilMoisture(Component):
         Tb: float, optional
             Inter-storm duration (hours).
         """
-        P_ = self._cell_values['rainfall__daily']
+        P_ = self._cell_values['rainfall__daily_depth']
         self._PET = \
             self._cell_values['surface__potential_evapotranspiration_rate']
         self._SO = \

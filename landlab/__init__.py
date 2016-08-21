@@ -11,7 +11,7 @@
 
 from __future__ import absolute_import
 
-__version__ = '1.0.0-beta.6'
+__version__ = '1.0.0'
 
 
 import os
@@ -27,6 +27,7 @@ if 'DISPLAY' not in os.environ:
 from .core.model_parameter_dictionary import ModelParameterDictionary
 from .core.model_parameter_dictionary import (MissingKeyError,
                                               ParameterValueError)
+from .core.model_parameter_loader import load_params
 from .core.model_component import Component
 from .framework.collections import Palette, Arena, NoProvidersError
 from .framework.decorators import Implements, ImplementsOrRaise
@@ -42,6 +43,4 @@ bench = LandlabTester().bench
 __all__ = ['ModelParameterDictionary', 'MissingKeyError',
            'ParameterValueError', 'Component', 'Palette', 'Arena',
            'NoProvidersError', 'Implements', 'ImplementsOrRaise',
-           'Framework', 'FieldError', 'LandlabTester']
-
-
+           'Framework', 'FieldError', 'LandlabTester', 'load_params']
