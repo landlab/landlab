@@ -17,6 +17,7 @@ from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
 from .uniform_precip import PrecipitationDistribution
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
+from .drainage_density import DrainageDensity
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
@@ -26,7 +27,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               Radiation, SinkFiller, StreamPowerEroder,
               FastscapeEroder, SedDepEroder,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
-              SoilMoisture, Vegetation, VegCA]
+              SoilMoisture, Vegetation, VegCA, DrainageDensity]
 
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

@@ -10,27 +10,29 @@ for West Valley Project: Landlab component to calculate drainage density
 from landlab import Component
 import numpy as np
 
+
 class DrainageDensity(Component):
     """
     Calculate drainage density overa DEM.
-    
-    calc_drainage_density function returns drainage density for the model domain.
-    
+
+    calc_drainage_density function returns drainage density for the model
+    domain.
+
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.
-    
+
     Written by C. Shobe on 7/11/2016
-    
+
     Construction:
-    
+
         DrainageDensity(grid, channel_network_name='string')
-        
+
     Parameters
     ----------
     grid : ModelGrid
     channel_network_name : string naming a boolean grid field with 'True'
         in channels and 'False' elsewhere.
-        
+
     Examples
     ---------
     >>> import numpy as np
@@ -76,112 +78,113 @@ class DrainageDensity(Component):
     >>> print np.around(mean_drainage_density, 10)
     0.3831100571
     """
-    
+
     _name = 'DrainageDensity'
-    
+
     _input_var_names = (
-        'topographic__elevation'
-        'topographic__gradient'
-        'drainage_area'
+        'flow__receiver_node',
+        'flow__link_to_receiver_node',
+        'channel_network',
     )
-    
+
     _output_var_names = (
-        'distance_to_channel'
-        'drainage_density' #this is the CSDMS standard name
+        'distance_to_channel',
     )
-    
+
     _var_units = {
-        'topographic__elevation': 'm',
-        'topographic__gradient': 'm/m',
-        'drainage_area': 'm^2',
+        'flow__receiver_node': '-',
+        'flow__link_to_receiver_node': '-',
+        'channel_network': '-',
         'distance_to_channel': 'm',
-        'drainage_density': '1/m'
     }
-    
+
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'topographic__gradient': 'link',
-        'drainage_area': 'node',
+        'flow__receiver_node': 'node',
+        'flow__link_to_receiver_node': 'node',
+        'channel_network': 'node',
         'distance_to_channel': 'node',
-        'drainage_density': 'node'
     }
-    
+
     _var_doc = {
-        'topographic__elevation':
-            'elevation of the ground surface relative to some datum',
-        'topographic__gradient':
-            'gradient of the ground surface',
-        'drainage_area':
-            'contributing drainage area',
+        'flow__receiver_node':
+            'Node array of receivers (node that receives flow from current '
+            'node)',
+        'flow__link_to_receiver_node':
+            'ID of link downstream of each node, which carries the discharge',
+        'channel_network':
+            'Logical map of at which grid nodes channels are present',
         'distance_to_channel':
-            'distance from each node to the nearest channel',
-        'drainage_density':
-            'total length of channels per unit area'
+            'Distance from each node to the nearest channel',
     }
-    
-    def __init__(self, grid, channel_network_name = 'channel_network', **kwds):
+
+    def __init__(self, grid, channel_network_name='channel_network', **kwds):
         """Initialize the DrainageDensity component.
-        
+
         Parameters
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
         channel_network_name : string, optional (defaults to 'channel_network')
-            Name of Landlab grid field that holds 1's where channels exist and 0's elsewhere
+            Name of Landlab grid field that holds 1's where channels exist
+            and 0's elsewhere
         """
-        
-        #Store grid
-        self._grid = grid
-        
-        # Create fields...
-        
-        #   Channel network
-        if channel_network_name in grid.at_node:
-            self.channel_network = grid.at_node['channel_network']
-        else:
-            self.channel_network = grid.add_zeros('node', 'channel_network')
 
-        #   Flow receivers
+        # Store grid
+        self._grid = grid
+
+        # Create fields... Input fields should raise an error if not present,
+        # rather than silently creating a nonsensical blank field.
+        # Channel network
+        self.channel_network_name = channel_network_name
+        if channel_network_name in grid.at_node:
+            self.channel_network = grid.at_node[channel_network_name].astype(
+                int)
+            # for this component to work with Cython acceleration,
+            # the channel_network must be int, not bool...
+        else:
+            raise FieldError(
+                'DrainageDensity needs the field channel_network!')
+
+        # Flow receivers
         if 'flow__receiver_node' in grid.at_node:
             self.flow_receivers = grid.at_node['flow__receiver_node']
         else:
-            self.flow_receivers = grid.add_zeros('node', 'flow__receiver_node')
-            
-        #   Links to receiver nodes
-        if 'flow__link_to_receiver_node' in grid.at_node: #flow__link_to_receiver_node
+            raise FieldError(
+                'DrainageDensity needs the field flow__receiver_node!')
+
+        # Links to receiver nodes
+        if 'flow__link_to_receiver_node' in grid.at_node:
+            # ^flow__link_to_receiver_node
             self.stack_links = grid.at_node['flow__link_to_receiver_node']
         else:
-            self.stack_links = grid.add_zeros('node', 'flow__link_to_receiver_node')
-        
+            raise FieldError(
+                'DrainageDensity needs the field flow__link_to_receiver_node!')
+
         #   Distance to channel
         if 'distance_to_channel' in grid.at_node:
             self.distance_to_channel = grid.at_node['distance_to_channel']
         else:
-            self.distance_to_channel = grid.add_zeros('node', 'distance_to_channel')
-        
-    def calc_drainage_density(self, **kwds): #there is no 'run_one_step' methid b/c this is a tool, not a model.
+            self.distance_to_channel = grid.add_zeros(
+                'node', 'distance_to_channel', dtype=float)
+
+    def calc_drainage_density(self, **kwds):
+        # ^there is no 'run_one_step' methid b/c this is a tool, not a model.
         """Calculate distance to channel and drainage density, after
         Tucker et al., 2001.
-        
-        Returns drainage density over the model domain.
+
+        Returns
+        -------
+        landscape_drainage_density : float (1/m)
+            Drainage density over the model domain.
         """
-        for node in range(self.grid.number_of_nodes):
-            if self.channel_network[node] == True: #we're standing in a channel
-                distance = 0
-            else:
-                distance = 0
-                flag = 0
-                node_iter = node
-                while flag == 0: #as long as we haven't hit a channel yet...
-                    if self.flow_receivers[node_iter] == node_iter: #if no flow receiver (boundary probably)
-                        self.channel_network[node_iter] = True #convince the node it's a channel
-                    else:
-                        distance += self.grid._length_of_link_with_diagonals[self.stack_links[node_iter]]
-                        node_iter = self.flow_receivers[node_iter]
-                    if self.channel_network[node_iter] == True: #we've hit a channel
-                        self.distance_to_channel[node] = distance #save distance to channel
-                        flag = 1
-        self.grid['node']['distance_to_channel'] = self.distance_to_channel
-        landscape_drainage_density = 1 / (2.0 * np.mean(self.grid.at_node['distance_to_channel'][self.grid.core_nodes]))#self.distance_to_channel)) #this is THE drainage density
+        from .cfuncs import _calc_dists_to_channel
+        _calc_dists_to_channel(self.channel_network,
+                               self.flow_receivers,
+                               self.grid._length_of_link_with_diagonals,
+                               self.stack_links,
+                               self.distance_to_channel,
+                               self.grid.number_of_nodes)
+        landscape_drainage_density = 1. / (2.0 * np.mean(self.grid.at_node[
+            'distance_to_channel'][self.grid.core_nodes]))
+        # self.distance_to_channel))  # this is THE drainage density
         return landscape_drainage_density
-                
