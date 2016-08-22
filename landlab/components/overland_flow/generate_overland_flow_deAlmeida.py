@@ -573,6 +573,46 @@ class OverlandFlow(Component):
         self.overland_flow(dt=dt)
 
 
+    def discharge_mapper(self, discharge_vals, convert_to_volume=False):
+        """
+        Maps discharge value from links onto nodes.
+
+        This method takes the discharge values on links and determines the
+        links that are flowing INTO a given node. The fluxes moving INTO a
+        given node are summed.
+
+        This method ignores all flow moving OUT of a given node.
+
+        This takes values from the OverlandFlow component (by default) in
+        units of [L^2/T]. If the convert_to_cms flag is raised as True, this
+        method converts discharge to units [L^3/T] - as of Aug 2016, only
+        operates for square RasterModelGrid instances.
+
+        The output array is of length grid.number_of_nodes and can be used
+        with the Landlab imshow_grid plotter.
+
+        Returns a numpy array (discharge_vals)
+        """
+
+        if convert_to_volume == True:
+            discharge_vals *= self.grid.dx
+        else:
+            pass
+
+        discharge_vals = (discharge_vals[self.grid.links_at_node] *
+                                        self.grid.active_link_dirs_at_node)
+
+        discharge_vals = discharge_vals.flatten()
+
+        discharge_vals[np.where(discharge_vals < 0)] = 0.0
+
+        discharge_vals = discharge_vals.reshape(self.grid.number_of_nodes, 4)
+
+        discharge_vals = discharge_vals.sum(axis=1.0)
+
+        return discharge_vals
+
+
 def find_active_neighbors_for_fixed_links(grid):
     """Find active link neighbors for every fixed link.
 
