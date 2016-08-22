@@ -10,13 +10,14 @@ ctypedef np.double_t DTYPE_FLOAT_t
 
 
 @cython.boundscheck(False)
-def _calc_dists_to_channel(np.ndarray[DTYPE_INT_t, ndim=1] ch_network,
+def _calc_dists_to_channel(np.ndarray[np.uint8_t, ndim=1] ch_network,
                            np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
                            np.ndarray[DTYPE_FLOAT_t, ndim=1] link_lengths,
                            np.ndarray[DTYPE_INT_t, ndim=1] stack_links,
                            np.ndarray[DTYPE_FLOAT_t, ndim=1] dist_to_ch,
                            DTYPE_INT_t num_nodes):
-    """
+    """Calculate distance to nearest channel.
+
     Calculate the distances to the closest channel node for all nodes in the
     grid.
 

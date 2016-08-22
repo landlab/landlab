@@ -12,8 +12,8 @@ import numpy as np
 
 
 class DrainageDensity(Component):
-    """
-    Calculate drainage density overa DEM.
+
+    """Calculate drainage density over a DEM.
 
     calc_drainage_density function returns drainage density for the model
     domain.
@@ -23,7 +23,7 @@ class DrainageDensity(Component):
 
     Written by C. Shobe on 7/11/2016
 
-    Construction:
+    Construction::
 
         DrainageDensity(grid, channel_network_name='string')
 
@@ -39,12 +39,14 @@ class DrainageDensity(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_routing import FlowRouter
     >>> from landlab.components import FastscapeEroder
+
     >>> mg = RasterModelGrid((10, 10), 1.0)
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
+
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
-    >>> mg['node']['topographic__elevation'] += noise
-    >>> mg['node']['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node['topographic__elevation'] += noise
+    >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
     array([ 0.49460165,  0.2280831 ,  0.25547392,  0.39632991,  0.3773151 ,
         0.99657423,  0.4081972 ,  0.77189399,  0.76053669,  0.31000935,
         0.3465412 ,  0.35176482,  0.14546686,  0.97266468,  0.90917844,
@@ -65,18 +67,21 @@ class DrainageDensity(Component):
         0.82165703,  0.73749168,  0.84034417,  0.4015291 ,  0.74862   ,
         0.55962945,  0.61323757,  0.29810165,  0.60237917,  0.42567684,
         0.53854438,  0.48672986,  0.49989164,  0.91745948,  0.26287702])
+
     >>> fr = FlowRouter(mg)
     >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
     ...     fsc.run_one_step(dt = 10.0)
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-    >>> channels = mg['node']['drainage_area'] > 5
-    >>> _ = mg.add_field('node', 'channel_network', channels)
+
+    >>> channels = mg.at_node['drainage_area'] > 5
+    >>> _ = mg.add_field('channel_network', channels, at='node')
+
     >>> dd = DrainageDensity(mg, channel_network_name='channel_network')
     >>> mean_drainage_density = dd.calc_drainage_density()
-    >>> print np.around(mean_drainage_density, 10)
-    0.3831100571
+    >>> np.isclose(mean_drainage_density, 0.3831100571)
+    True
     """
 
     _name = 'DrainageDensity'
@@ -128,6 +133,12 @@ class DrainageDensity(Component):
             Name of Landlab grid field that holds 1's where channels exist
             and 0's elsewhere
         """
+        required = ('flow__receiver_node', 'flow__link_to_receiver_node',
+                    channel_network_name)
+        for name in required:
+            if name not in grid.at_node:
+                raise FieldError(
+                    '{name]: missing required field'.format(name=name))
 
         # Store grid
         self._grid = grid
@@ -136,38 +147,34 @@ class DrainageDensity(Component):
         # rather than silently creating a nonsensical blank field.
         # Channel network
         self.channel_network_name = channel_network_name
-        if channel_network_name in grid.at_node:
-            self.channel_network = grid.at_node[channel_network_name].astype(
-                int)
-            # for this component to work with Cython acceleration,
-            # the channel_network must be int, not bool...
-        else:
-            raise FieldError(
-                'DrainageDensity needs the field channel_network!')
+
+        # for this component to work with Cython acceleration,
+        # the channel_network must be uint8, not bool...
+        self.channel_network = grid.at_node[channel_network_name].view(
+            dtype=np.uint8)
 
         # Flow receivers
-        if 'flow__receiver_node' in grid.at_node:
-            self.flow_receivers = grid.at_node['flow__receiver_node']
-        else:
-            raise FieldError(
-                'DrainageDensity needs the field flow__receiver_node!')
+        self.flow_receivers = grid.at_node['flow__receiver_node']
 
         # Links to receiver nodes
-        if 'flow__link_to_receiver_node' in grid.at_node:
-            # ^flow__link_to_receiver_node
-            self.stack_links = grid.at_node['flow__link_to_receiver_node']
-        else:
-            raise FieldError(
-                'DrainageDensity needs the field flow__link_to_receiver_node!')
+        self.stack_links = grid.at_node['flow__link_to_receiver_node']
 
-        #   Distance to channel
-        if 'distance_to_channel' in grid.at_node:
+        # Distance to channel
+        try:
             self.distance_to_channel = grid.at_node['distance_to_channel']
-        else:
+        except KeyError:
             self.distance_to_channel = grid.add_zeros(
-                'node', 'distance_to_channel', dtype=float)
+                'distance_to_channel', at='node', dtype=float)
 
-    def calc_drainage_density(self, **kwds):
+    def calc_drainage_density(self):
+        """Calculate drainage density.
+
+        Returns
+        -------
+        float
+            The drainage density.
+        """
+
         # ^there is no 'run_one_step' methid b/c this is a tool, not a model.
         """Calculate distance to channel and drainage density, after
         Tucker et al., 2001.
