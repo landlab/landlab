@@ -25,13 +25,13 @@ class DrainageDensity(Component):
 
     Construction::
 
-        DrainageDensity(grid, channel_network_name='string')
+        DrainageDensity(grid, channel__mask=None)
 
     Parameters
     ----------
     grid : ModelGrid
-    channel_network_name : string naming a boolean grid field with 'True'
-        in channels and 'False' elsewhere.
+    channel_network_name : string naming a grid field with 1
+        in channels and 0 elsewhere.
 
     Examples
     ---------
@@ -76,9 +76,7 @@ class DrainageDensity(Component):
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
 
     >>> channels = mg.at_node['drainage_area'] > 5
-    >>> _ = mg.add_field('channel_network', channels, at='node')
-
-    >>> dd = DrainageDensity(mg, channel_network_name='channel_network')
+    >>> dd = DrainageDensity(mg, channel__mask=channels)
     >>> mean_drainage_density = dd.calc_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
     True
@@ -89,25 +87,25 @@ class DrainageDensity(Component):
     _input_var_names = (
         'flow__receiver_node',
         'flow__link_to_receiver_node',
-        'channel_network',
+        'channel__mask',
     )
 
     _output_var_names = (
-        'distance_to_channel',
+        'surface_to_channel__minimum_distance',
     )
 
     _var_units = {
         'flow__receiver_node': '-',
         'flow__link_to_receiver_node': '-',
-        'channel_network': '-',
-        'distance_to_channel': 'm',
+        'channel__mask': '-',
+        'surface_to_channel__minimum_distance': 'm',
     }
 
     _var_mapping = {
         'flow__receiver_node': 'node',
         'flow__link_to_receiver_node': 'node',
-        'channel_network': 'node',
-        'distance_to_channel': 'node',
+        'channel__mask': 'node',
+        'surface_to_channel__minimum_distance': 'node',
     }
 
     _var_doc = {
@@ -116,25 +114,31 @@ class DrainageDensity(Component):
             'node)',
         'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
-        'channel_network':
+        'channel__mask':
             'Logical map of at which grid nodes channels are present',
-        'distance_to_channel':
+        'surface_to_channel__minimum_distance':
             'Distance from each node to the nearest channel',
     }
 
-    def __init__(self, grid, channel_network_name='channel_network', **kwds):
+    def __init__(self, grid, channel__mask=None, **kwds):
         """Initialize the DrainageDensity component.
 
         Parameters
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        channel_network_name : string, optional (defaults to 'channel_network')
-            Name of Landlab grid field that holds 1's where channels exist
-            and 0's elsewhere
+        channel__mask : array, optional (default is None)
+            Array that holds 1's where channels exist and 0's elsewhere
         """
+        if channel__mask is not None:
+            assert grid.number_of_nodes == len(channel__mask),\
+                'Length of channel mask is not equal to number of grid nodes'
+            if 'channel__mask' not in grid.at_node:
+                grid.add_zeros('node', 'channel__mask')
+                grid['node']['channel__mask'] = \
+                    channel__mask
         required = ('flow__receiver_node', 'flow__link_to_receiver_node',
-                    channel_network_name)
+                    'channel__mask')
         for name in required:
             if name not in grid.at_node:
                 raise FieldError(
@@ -143,15 +147,10 @@ class DrainageDensity(Component):
         # Store grid
         self._grid = grid
 
-        # Create fields... Input fields should raise an error if not present,
-        # rather than silently creating a nonsensical blank field.
-        # Channel network
-        self.channel_network_name = channel_network_name
-
         # for this component to work with Cython acceleration,
         # the channel_network must be uint8, not bool...
-        self.channel_network = grid.at_node[channel_network_name].view(
-            dtype=np.uint8)
+        self.channel_network = grid.at_node['channel__mask']\
+            .view(dtype=np.uint8)
 
         # Flow receivers
         self.flow_receivers = grid.at_node['flow__receiver_node']
@@ -161,10 +160,11 @@ class DrainageDensity(Component):
 
         # Distance to channel
         try:
-            self.distance_to_channel = grid.at_node['distance_to_channel']
+            self.distance_to_channel = grid.at_node[
+                'surface_to_channel__minimum_distance']
         except KeyError:
             self.distance_to_channel = grid.add_zeros(
-                'distance_to_channel', at='node', dtype=float)
+                'surface_to_channel__minimum_distance', at='node', dtype=float)
 
     def calc_drainage_density(self):
         """Calculate drainage density.
@@ -175,7 +175,7 @@ class DrainageDensity(Component):
             The drainage density.
         """
 
-        # ^there is no 'run_one_step' methid b/c this is a tool, not a model.
+        # ^there is no 'run_one_step' method b/c this is a tool, not a model.
         """Calculate distance to channel and drainage density, after
         Tucker et al., 2001.
 
@@ -192,6 +192,6 @@ class DrainageDensity(Component):
                                self.distance_to_channel,
                                self.grid.number_of_nodes)
         landscape_drainage_density = 1. / (2.0 * np.mean(self.grid.at_node[
-            'distance_to_channel'][self.grid.core_nodes]))
+            'surface_to_channel__minimum_distance'][self.grid.core_nodes]))
         # self.distance_to_channel))  # this is THE drainage density
         return landscape_drainage_density
