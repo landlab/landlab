@@ -80,8 +80,8 @@ class DrainageDensity(Component):
 
     >>> dd = DrainageDensity(mg, channel_network_name='channel_network')
     >>> mean_drainage_density = dd.calc_drainage_density()
-    >>> np.around(mean_drainage_density, 10)
-    0.3831100571
+    >>> np.isclose(mean_drainage_density, 0.3831100571)
+    True
     """
 
     _name = 'DrainageDensity'
