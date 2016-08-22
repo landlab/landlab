@@ -142,8 +142,8 @@ class DrainageDensity(Component):
         # Channel network
         self.channel_network_name = channel_network_name
         if channel_network_name in grid.at_node:
-            self.channel_network = grid.at_node[channel_network_name].astype(
-                int)
+            self.channel_network = grid.at_node[channel_network_name].view(
+                dtype=np.uint8)
             # for this component to work with Cython acceleration,
             # the channel_network must be int, not bool...
         else:
