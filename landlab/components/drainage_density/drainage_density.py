@@ -12,8 +12,8 @@ import numpy as np
 
 
 class DrainageDensity(Component):
-    """
-    Calculate drainage density overa DEM.
+
+    """Calculate drainage density over a DEM.
 
     calc_drainage_density function returns drainage density for the model
     domain.
@@ -23,7 +23,7 @@ class DrainageDensity(Component):
 
     Written by C. Shobe on 7/11/2016
 
-    Construction:
+    Construction::
 
         DrainageDensity(grid, channel_network_name='string')
 
@@ -39,12 +39,14 @@ class DrainageDensity(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_routing import FlowRouter
     >>> from landlab.components import FastscapeEroder
+
     >>> mg = RasterModelGrid((10, 10), 1.0)
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
+
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
-    >>> mg['node']['topographic__elevation'] += noise
-    >>> mg['node']['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node['topographic__elevation'] += noise
+    >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
     array([ 0.49460165,  0.2280831 ,  0.25547392,  0.39632991,  0.3773151 ,
         0.99657423,  0.4081972 ,  0.77189399,  0.76053669,  0.31000935,
         0.3465412 ,  0.35176482,  0.14546686,  0.97266468,  0.90917844,
@@ -65,17 +67,20 @@ class DrainageDensity(Component):
         0.82165703,  0.73749168,  0.84034417,  0.4015291 ,  0.74862   ,
         0.55962945,  0.61323757,  0.29810165,  0.60237917,  0.42567684,
         0.53854438,  0.48672986,  0.49989164,  0.91745948,  0.26287702])
+
     >>> fr = FlowRouter(mg)
     >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
     ...     fsc.run_one_step(dt = 10.0)
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-    >>> channels = mg['node']['drainage_area'] > 5
-    >>> _ = mg.add_field('node', 'channel_network', channels)
+
+    >>> channels = mg.at_node['drainage_area'] > 5
+    >>> _ = mg.add_field('channel_network', channels, at='node')
+
     >>> dd = DrainageDensity(mg, channel_network_name='channel_network')
     >>> mean_drainage_density = dd.calc_drainage_density()
-    >>> print np.around(mean_drainage_density, 10)
+    >>> np.around(mean_drainage_density, 10)
     0.3831100571
     """
 
