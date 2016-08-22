@@ -133,6 +133,12 @@ class DrainageDensity(Component):
             Name of Landlab grid field that holds 1's where channels exist
             and 0's elsewhere
         """
+        required = ('flow__receiver_node', 'flow__link_to_receiver_node',
+                    channel_network_name)
+        for name in required:
+            if name not in grid.at_node:
+                raise FieldError(
+                    '{name]: missing required field'.format(name=name))
 
         # Store grid
         self._grid = grid
@@ -141,38 +147,34 @@ class DrainageDensity(Component):
         # rather than silently creating a nonsensical blank field.
         # Channel network
         self.channel_network_name = channel_network_name
-        if channel_network_name in grid.at_node:
-            self.channel_network = grid.at_node[channel_network_name].view(
-                dtype=np.uint8)
-            # for this component to work with Cython acceleration,
-            # the channel_network must be int, not bool...
-        else:
-            raise FieldError(
-                'DrainageDensity needs the field channel_network!')
+
+        # for this component to work with Cython acceleration,
+        # the channel_network must be uint8, not bool...
+        self.channel_network = grid.at_node[channel_network_name].view(
+            dtype=np.uint8)
 
         # Flow receivers
-        if 'flow__receiver_node' in grid.at_node:
-            self.flow_receivers = grid.at_node['flow__receiver_node']
-        else:
-            raise FieldError(
-                'DrainageDensity needs the field flow__receiver_node!')
+        self.flow_receivers = grid.at_node['flow__receiver_node']
 
         # Links to receiver nodes
-        if 'flow__link_to_receiver_node' in grid.at_node:
-            # ^flow__link_to_receiver_node
-            self.stack_links = grid.at_node['flow__link_to_receiver_node']
-        else:
-            raise FieldError(
-                'DrainageDensity needs the field flow__link_to_receiver_node!')
+        self.stack_links = grid.at_node['flow__link_to_receiver_node']
 
-        #   Distance to channel
-        if 'distance_to_channel' in grid.at_node:
+        # Distance to channel
+        try:
             self.distance_to_channel = grid.at_node['distance_to_channel']
-        else:
+        except KeyError:
             self.distance_to_channel = grid.add_zeros(
-                'node', 'distance_to_channel', dtype=float)
+                'distance_to_channel', at='node', dtype=float)
 
-    def calc_drainage_density(self, **kwds):
+    def calc_drainage_density(self):
+        """Calculate drainage density.
+
+        Returns
+        -------
+        float
+            The drainage density.
+        """
+
         # ^there is no 'run_one_step' methid b/c this is a tool, not a model.
         """Calculate distance to channel and drainage density, after
         Tucker et al., 2001.
