@@ -141,7 +141,7 @@ class DrainageDensity(Component):
                 raise ValueError('Length of channel mask is not equal to '
                                  'number of grid nodes')
             grid['node']['channel__mask'] = channel__mask
-            print 'WARNING: Existing channel__mask grid field was overwritten.'
+            print("WARNING: Existing channel__mask grid field was overwritten.")
         required = ('flow__receiver_node', 'flow__link_to_receiver_node',
                     'channel__mask')
         for name in required:
