@@ -130,13 +130,13 @@ class DrainageDensity(Component):
         channel__mask : array, optional (default is None)
             Array that holds 1's where channels exist and 0's elsewhere
         """
-        if channel__mask is not None:
-            assert grid.number_of_nodes == len(channel__mask),\
-                'Length of channel mask is not equal to number of grid nodes'
-            if 'channel__mask' not in grid.at_node:
-                grid.add_zeros('node', 'channel__mask')
-                grid['node']['channel__mask'] = \
-                    channel__mask
+        if channel__mask is not None and 'channel__mask' not in grid.at_node:
+            if grid.number_of_nodes != len(channel__mask):
+                raise ValueError('Length of channel mask is not equal to '
+                                 'number of grid nodes')
+            grid.add_field('channel__mask', channel__mask, at='node',
+                           copy=False)
+
         required = ('flow__receiver_node', 'flow__link_to_receiver_node',
                     'channel__mask')
         for name in required:
@@ -149,8 +149,8 @@ class DrainageDensity(Component):
 
         # for this component to work with Cython acceleration,
         # the channel_network must be uint8, not bool...
-        self.channel_network = grid.at_node['channel__mask']\
-            .view(dtype=np.uint8)
+        self.channel_network = (
+            grid.at_node['channel__mask'].view(dtype=np.uint8))
 
         # Flow receivers
         self.flow_receivers = grid.at_node['flow__receiver_node']
