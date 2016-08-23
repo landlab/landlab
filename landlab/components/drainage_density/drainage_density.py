@@ -136,7 +136,11 @@ class DrainageDensity(Component):
                                  'number of grid nodes')
             grid.add_field('channel__mask', channel__mask, at='node',
                            copy=False)
-
+        elif channel__mask is not None and 'channel__mask' in grid.at_node:
+            if grid.number_of_nodes != len(channel__mask):
+                raise ValueError('Length of channel mask is not equal to '
+                                 'number of grid nodes')
+            grid['node']['channel__mask'] = channel__mask
         required = ('flow__receiver_node', 'flow__link_to_receiver_node',
                     'channel__mask')
         for name in required:
