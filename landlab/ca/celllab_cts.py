@@ -1598,7 +1598,7 @@ class CellLabCTSModel(object):
                     self.prop_data[self.propid[head_node]
                                    ] = self.prop_reset_value
                 if self.trn_prop_update_fn[trn_id] is not None:
-                    self.trn_prop_update_fn(
+                    self.trn_prop_update_fn[trn_id](
                         self, tail_node, head_node, event_time)
 
             if False and _DEBUG:

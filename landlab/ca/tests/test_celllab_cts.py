@@ -19,6 +19,9 @@ from heapq import heappush
 from heapq import heappop
 import numpy as np
 
+# For dev
+from landlab.ca.celllab_cts import _RUN_NEW
+
 
 def callback_function(ca, node1, node2, time_now):
     """
@@ -85,35 +88,58 @@ def test_raster_cts():
                    prop_reset_value=0)
 
     # Test the data structures
-    assert (ca.xn_to.size==4), 'wrong size for xn_to'
-    assert (ca.xn_to.shape==(4, 1)), 'wrong size for xn_to'
-    assert (ca.xn_to[2][0]==1), 'wrong value in xn_to'
-    assert (len(ca.event_queue)==1), 'event queue has wrong size'
     assert (ca.num_link_states==4), 'wrong number of link states'
     assert (ca.prop_data[5]==50), 'error in property data'
-    assert (ca.xn_rate[2][0]==0.1), 'error in transition rate array'
     assert (ca.num_node_states==2), 'error in num_node_states'
     assert (ca.link_orientation[-1]==0), 'error in link orientation array'
     assert (ca.link_state_dict[(1, 0, 0)]==2), 'error in link state dict'
     assert (ca.n_xn[2]==1), 'error in n_xn'
     assert (ca.node_pair[1]==(0, 1, 0)), 'error in cell_pair list'
 
+    if _RUN_NEW:
+        assert (len(ca.priority_queue._queue)==1), 'event queue has wrong size'
+        assert (ca.next_trn_id.size==24), 'wrong size next_trn_id'
+        assert (ca.trn_id.shape==(4, 1)), 'wrong size for xn_to'
+        assert (ca.trn_id[2][0]==0), 'wrong value in xn_to'
+        assert (ca.trn_to[0] == 1), 'wrong trn_to state'
+        assert (ca.trn_rate[0] == 0.1), 'wrong trn rate'
+        assert (ca.trn_propswap[0] == 1), 'wrong trn propswap'
+        assert (ca.trn_prop_update_fn == callback_function), 'wrong prop upd'
+    else:
+        assert (len(ca.event_queue)==1), 'event queue has wrong size'
+        assert (ca.xn_to.size==4), 'wrong size for xn_to'
+        assert (ca.xn_to.shape==(4, 1)), 'wrong size for xn_to'
+        assert (ca.xn_to[2][0]==1), 'wrong value in xn_to'
+        assert (ca.xn_rate[2][0]==0.1), 'error in transition rate array'
+
     # Manipulate the data in the event queue for testing:
 
-    # pop the scheduled event off the queue
-    ev = heappop(ca.event_queue)
-    assert (ca.event_queue==[]), 'event queue should now be empty but is not'
+    if _RUN_NEW:
+        # pop the scheduled event off the queue
+        (event_time, index, event_link) = ca.priority_queue.pop()        
+        assert (ca.priority_queue._queue==[]), \
+                                'event queue should now be empty but is not'
 
-    # engineer an event
-    ev.time = 1.0
-    ev.link = 8
-    ev.xn_to = 1
-    ev.propswap = True
-    ev.prop_update_fn = callback_function
-    ca.next_update[8] = 1.0
+        # engineer an event
+        ca.priority_queue.push(8, 1.0)
+        ca.next_update[8] = 1.0
+        ca.next_trn_id[8] = 0
 
-    # push it onto the event queue
-    heappush(ca.event_queue, ev)
+    else:
+        # pop the scheduled event off the queue
+        ev = heappop(ca.event_queue)
+        assert (ca.event_queue==[]), 'event queue should now be empty but is not'
+    
+        # engineer an event
+        ev.time = 1.0
+        ev.link = 8
+        ev.xn_to = 1
+        ev.propswap = True
+        ev.prop_update_fn = callback_function
+        ca.next_update[8] = 1.0
+    
+        # push it onto the event queue
+        heappush(ca.event_queue, ev)
 
     # run the CA
     ca.run(2.0)
@@ -264,4 +290,7 @@ def test_run_oriented_raster():
 
 
 if __name__ == '__main__':
+    test_oriented_raster_cts()
+    test_raster_cts()
+    test_transition()
     test_run_oriented_raster()
