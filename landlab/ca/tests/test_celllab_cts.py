@@ -290,7 +290,9 @@ def test_run_oriented_raster():
 
 
 if __name__ == '__main__':
-    test_oriented_raster_cts()
-    test_raster_cts()
     test_transition()
+    test_raster_cts()
+    test_oriented_raster_cts()
+    test_hex_cts()
+    test_oriented_hex_cts()
     test_run_oriented_raster()
