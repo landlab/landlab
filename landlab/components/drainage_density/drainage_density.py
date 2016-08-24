@@ -7,8 +7,10 @@ Created on Mon Jul 11 10:00:25 2016
 for West Valley Project: Landlab component to calculate drainage density
 
 """
-from landlab import Component
+from warnings import warn
 import numpy as np
+
+from landlab import Component
 from landlab import FieldError
 
 
@@ -131,19 +133,15 @@ class DrainageDensity(Component):
         channel__mask : array, optional (default is None)
             Array that holds 1's where channels exist and 0's elsewhere
         """
-        if channel__mask is not None and 'channel__mask' not in grid.at_node:
+        if channel__mask is not None:
             if grid.number_of_nodes != len(channel__mask):
                 raise ValueError('Length of channel mask is not equal to '
                                  'number of grid nodes')
-            grid.add_field('channel__mask', channel__mask, at='node',
-                           copy=False)
-        elif channel__mask is not None and 'channel__mask' in grid.at_node:
-            if grid.number_of_nodes != len(channel__mask):
-                raise ValueError('Length of channel mask is not equal to '
-                                 'number of grid nodes')
-            grid['node']['channel__mask'] = channel__mask
-            print(
-                "WARNING: Existing channel__mask grid field was overwritten.")
+            if 'channel__mask' in grid.at_node:
+                warn("Existing channel__mask grid field was overwritten.")
+
+            grid.at_node['channel__mask'] = channel__mask
+
         required = ('flow__receiver_node', 'flow__link_to_receiver_node',
                     'channel__mask')
         for name in required:
