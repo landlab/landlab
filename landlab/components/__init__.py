@@ -19,6 +19,7 @@ from .uniform_precip import PrecipitationDistribution
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
+from .drainage_density import DrainageDensity
 from .fire_generator import FireGenerator
 
 
@@ -29,8 +30,8 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               Radiation, SinkFiller, StreamPowerEroder,
               FastscapeEroder, SedDepEroder, KinematicWaveRengers,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
-              SoilInfiltrationGreenAmpt, FireGenerator,
-              SoilMoisture, Vegetation, VegCA]
+              SoilMoisture, Vegetation, VegCA, DrainageDensity,
+              SoilInfiltrationGreenAmpt, FireGenerator]
 
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
