@@ -573,7 +573,7 @@ class OverlandFlow(Component):
         self.overland_flow(dt=dt)
 
 
-    def discharge_mapper(self, discharge_vals, convert_to_volume=False):
+    def discharge_mapper(self, input_discharge, convert_to_volume=False):
         """
         Maps discharge value from links onto nodes.
 
@@ -593,6 +593,9 @@ class OverlandFlow(Component):
 
         Returns a numpy array (discharge_vals)
         """
+
+        discharge_vals = np.zeros(self.grid.number_of_links)
+        discharge_vals[:] = input_discharge[:]
 
         if convert_to_volume == True:
             discharge_vals *= self.grid.dx
