@@ -145,7 +145,7 @@ if _USE_CYTHON:
 
 _NEVER = 1e50
 
-_DEBUG = False
+_DEBUG = True
 
 _TEST = False
 

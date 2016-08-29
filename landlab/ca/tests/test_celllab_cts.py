@@ -289,7 +289,23 @@ def test_run_oriented_raster():
                        [0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0])
 
 
+def test_grain_hill_model():
+    """Run a lattice-grain-based hillslope evolution model."""
+    import grain_hill_as_class
+    from grain_hill_as_class import GrainHill
+
+    params = grain_hill_as_class.get_params_from_input_file('grain_hill_params.txt')
+    grid_size = (int(params['number_of_node_rows']), 
+                 int(params['number_of_node_columns']))
+    grain_hill_model = GrainHill(grid_size, **params)
+    grain_hill_model.run()
+    
+    # Now test
+    assert_array_equal(grain_hill_model.grid.at_node['node_state'][:18],
+                       [8, 7, 7, 7, 7, 7, 7, 7, 7, 8, 0, 7, 7, 7, 7, 0, 7, 7])
+
 if __name__ == '__main__':
+    test_grain_hill_model()
     test_transition()
     test_raster_cts()
     test_oriented_raster_cts()
