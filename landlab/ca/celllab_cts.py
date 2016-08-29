@@ -132,7 +132,7 @@ import pylab as plt
 
 _USE_CYTHON = False
 
-_RUN_NEW = False
+_RUN_NEW = True
 
 _TESTING = True
 
@@ -145,7 +145,7 @@ if _USE_CYTHON:
 
 _NEVER = 1e50
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -842,6 +842,25 @@ class CellLabCTSModel(object):
                 if current_state != self.link_state[i]:
                     self.update_link_state(i, current_state, current_time)
 
+    def update_link_states_and_transitions_new(self, current_time):
+        """
+        Following an "external" change to the node state grid, updates link
+        states where necessary and creates any needed events.
+
+        Notes
+        -----
+        **Algorithm**::
+
+            FOR each active link:
+                if the actual node pair is different from the link's code:
+                    change the link state to be correct
+                    schedule an event
+        """
+        for i in self.grid.active_links:
+            current_state = self.current_link_state(i)
+            if current_state != self.link_state[i]:
+                self.update_link_state_new(i, current_state, current_time)
+
     def get_next_event(self, link, current_state, current_time):
         """Get the next event for a link.
 
@@ -884,7 +903,8 @@ class CellLabCTSModel(object):
             propswap = self.xn_propswap[current_state][0]
             next_time = np.random.exponential(
                 1.0 / self.xn_rate[current_state][0])
-            print('next_time for 1 xn is ' + str(next_time))
+            if _DEBUG:
+                print('next_time for 1 xn is ' + str(next_time))
             prop_update_fn = self.xn_prop_update_fn[current_state][0]
         else:
             next_time = _NEVER
@@ -893,7 +913,8 @@ class CellLabCTSModel(object):
             for i in range(self.n_xn[current_state]):
                 this_next = np.random.exponential(
                     1.0 / self.xn_rate[current_state][i])
-                print('this_next for >1 xn is ' + str(this_next))
+                if _DEBUG:
+                    print('this_next for >1 xn is ' + str(this_next))
                 if this_next < next_time:
                     next_time = this_next
                     xn_to = self.xn_to[current_state][i]
@@ -992,7 +1013,8 @@ class CellLabCTSModel(object):
             trn_id = self.trn_id[current_state, 0]
             #next_time = my_event.time  #temporary: for dev
             next_time = np.random.exponential(1.0 / self.trn_rate[trn_id])
-            print('rand (' + str(self.trn_rate[trn_id]) + ': ' + str(next_time))
+            if _DEBUG:
+                print('rand (' + str(self.trn_rate[trn_id]) + ': ' + str(next_time))
         else:
             next_time = _NEVER
             trn_id = -1
@@ -1000,9 +1022,11 @@ class CellLabCTSModel(object):
                 #this_next = nums[i] + current_time #temporary: for dev
                 this_next = np.random.exponential(
                     1.0 / self.trn_rate[self.trn_id[current_state][i]])
-                print('rand2 (' + str(self.trn_rate[self.trn_id[current_state][i]]) + ': ' + str(this_next))
+                if _DEBUG:
+                    print('rand2 (' + str(self.trn_rate[self.trn_id[current_state][i]]) + ': ' + str(this_next))
                 if this_next < next_time:
-                    print(' using it')
+                    if _DEBUG:
+                        print(' using it')
                     next_time = this_next
                     trn_id = self.trn_id[current_state, i]
 
@@ -1257,7 +1281,8 @@ class CellLabCTSModel(object):
         if self.n_xn[new_link_state] > 0:
             (event_time, trn_id) = self.get_next_event_new(link, new_link_state, current_time)
             self.priority_queue.push(link, event_time)
-            print('Pushed event at ' + str(link) + ' for time ' + str(event_time) + ' id ' + str(trn_id))
+            if _DEBUG:
+                print('Pushed event at ' + str(link) + ' for time ' + str(event_time) + ' id ' + str(trn_id))
             self.next_update[link] = event_time
             self.next_trn_id[link] = trn_id
         else:

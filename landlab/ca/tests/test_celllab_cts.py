@@ -304,6 +304,17 @@ def test_grain_hill_model():
     assert_array_equal(grain_hill_model.grid.at_node['node_state'][:18],
                        [8, 7, 7, 7, 7, 7, 7, 7, 7, 8, 0, 7, 7, 7, 7, 0, 7, 7])
 
+    # Try with an uplift step
+    params['uplift_interval'] = 5.0
+    params['run_duration'] = 15.0
+    grain_hill_model = GrainHill(grid_size, **params)
+    grain_hill_model.run()
+
+    # Test
+    assert_array_equal(grain_hill_model.grid.at_node['node_state'][20:38],
+                       [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7])
+
+
 if __name__ == '__main__':
     test_grain_hill_model()
     test_transition()
