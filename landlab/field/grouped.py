@@ -102,6 +102,7 @@ class ModelDataFields(object):
 
     def __init__(self, **kwds):
         self._groups = dict()
+        self._default_group = None
         super(ModelDataFields, self).__init__(**kwds)
 
     @property
@@ -114,6 +115,31 @@ class ModelDataFields(object):
             Set of quantity names.
         """
         return set(self._groups.keys())
+
+    def set_default_group(self, group):
+        """Set the default group for which fields are added.
+
+        Parameters
+        ----------
+        group : str
+            Name of a group to use as a default.
+
+        Examples
+        --------
+        >>> from landlab.field import ModelDataFields
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 12)
+
+        >>> fields.add_field('z', [1.] * 12)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: missing group name
+        >>> fields.set_default_group('node')
+        >>> _ = fields.add_field('z', [1.] * 12)
+        >>> 'z' in fields.at_node
+        True
+        """
+        self._default_group = group
 
     def has_group(self, group):
         """Check if a group exists.
@@ -739,9 +765,13 @@ class ModelDataFields(object):
         if len(args) == 3:
             group, name, value_array = args
         elif len(args) == 2:
-            group, name, value_array = kwds.pop('at'), args[0], args[1]
+            group, name, value_array = (kwds.pop('at', self._default_group),
+                                        args[0], args[1])
         else:
             raise ValueError('number of arguments must be 2 or 3')
+
+        if not group:
+            raise ValueError('missing group name')
 
         return self[group].add_field(name, value_array, **kwds)
 
