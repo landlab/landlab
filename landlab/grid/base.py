@@ -847,6 +847,7 @@ class ModelGrid(ModelDataFieldsMixIn):
             ModelDataFields.new_field_location(self, loc, size=size)
         for loc in _UNSIZED_FIELDS:
             ModelDataFields.new_field_location(self, loc, size=None)
+        ModelDataFields.set_default_group(self, 'node')
 
     def _create_link_face_coords(self):
         """Create x, y coordinates for link-face intersections.
