@@ -501,13 +501,17 @@ _ARRAY_LENGTH_ATTRIBUTES = {
     'corner': 'number_of_corners',
     'face': 'number_of_faces',
     'cell': 'number_of_cells',
-    'link': 'number_of_links',
-    'face': 'number_of_faces',
-    'core_node': 'number_of_core_nodes',
-    'core_cell': 'number_of_core_cells',
     'active_link': 'number_of_active_links',
     'active_face': 'number_of_active_faces',
+    'core_node': 'number_of_core_nodes',
+    'core_cell': 'number_of_core_cells',
 }
+
+# Fields whose sizes can not change.
+_SIZED_FIELDS = {'node', 'link', 'patch', 'corner', 'face', 'cell', }
+
+# Fields whose sizes can change after creation.
+_UNSIZED_FIELDS = {'core_node', 'core_cell', 'active_link', 'active_face', }
 
 # Define the boundary-type codes
 
@@ -837,6 +841,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         # Assumes 1) node_at_link_tail and node_at_link_head have been
         # created, and 2) so have node_x and node_y.
         # self._sort_links_by_midpoint()
+
+        for loc in _SIZED_FIELDS:
+            size = self.number_of_elements(loc)
+            ModelDataFields.new_field_location(self, loc, size=size)
+        for loc in _UNSIZED_FIELDS:
+            ModelDataFields.new_field_location(self, loc, size=None)
+        ModelDataFields.set_default_group(self, 'node')
 
     def _create_link_face_coords(self):
         """Create x, y coordinates for link-face intersections.
@@ -1772,15 +1783,15 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_link_status_list()
             return self._fixed_links.size
 
-    def number_of_elements(self, element_name):
+    def number_of_elements(self, name):
         """Number of instances of an element.
 
         Get the number of instances of a grid element in a grid.
 
         Parameters
         ----------
-        element_name : {'node', 'cell', 'link', 'face', 'core_node',
-            'core_cell', 'active_link', 'active_face'}
+        name : {'node', 'cell', 'link', 'face', 'core_node', 'core_cell',
+                'active_link', 'active_face'}
             Name of the grid element.
 
         Returns
@@ -1809,9 +1820,10 @@ class ModelGrid(ModelDataFieldsMixIn):
         LLCATS: GINF
         """
         try:
-            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[element_name])
+            return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
         except KeyError:
-            raise TypeError('element name not understood')
+            raise TypeError(
+                '{name}: element name not understood'.format(name=name))
 
     @property
     @make_return_array_immutable
