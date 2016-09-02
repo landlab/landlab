@@ -131,7 +131,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         # resulting array into integer format)
         dy = (self.grid.node_y[self.grid.node_at_link_head] -
               self.grid.node_y[self.grid.node_at_link_tail])
-        self.link_orientation = dy.astype(int)
+        self.link_orientation = dy.astype(np.int8)
 
         if _DEBUG:
             print(self.link_orientation)
