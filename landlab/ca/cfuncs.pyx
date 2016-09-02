@@ -28,7 +28,6 @@ ctypedef np.int8_t DTYPE_INT8_t
 cdef char _DEBUG = 0
 
 
-
 cdef class PriorityQueue:
     """
     Implements a priority queue.
@@ -322,6 +321,72 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state, 
+                   DTYPE_t current_time, 
+                   np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                   np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                   np.ndarray[DTYPE_t, ndim=1] trn_rate):
+    """Get the next event for a link.
+
+    Returns the next event for link with ID "link", which is in state
+    "current state".
+
+    Parameters
+    ----------
+    link : int
+        ID of the link
+    current_state : int
+        Current state code for the link
+    current_time : float
+        Current time in simulation (i.e., time of event just processed)
+    (see celllab_cts.py for other parameters)
+
+    Returns
+    -------
+    Event object
+        The returned Event object contains the time, link ID, and type of
+        the next transition event at this link.
+
+    Notes
+    -----
+    If there is only one potential transition out of the current state, a
+    time for the transition is selected at random from an exponential
+    distribution with rate parameter appropriate for this transition.
+
+    If there are more than one potential transitions, a transition time is
+    chosen for each, and the smallest of these applied.
+
+    Assumes that there is at least one potential transition from the
+    current state.
+    """
+    cdef int this_trn_id
+    cdef int i
+    cdef char propswap
+    cdef double next_time, this_next
+    cdef Event my_event
+
+    #print('GNE C link ' + str(link) + ' state ' + str(current_state))
+
+    # Find next event time for each potential transition
+    if n_trn[current_state] == 1:
+        this_trn_id = trn_id[current_state, 0]
+        next_time = np.random.exponential(1.0 / trn_rate[this_trn_id])
+        #print(' gne 1 trn, next = ' + str(next_time) + ' id=' + str(this_trn_id))
+    else:
+        next_time = _NEVER
+        this_trn_id = -1
+        for i in range(n_trn[current_state]):
+            this_next = np.random.exponential(1.0 / trn_rate[trn_id[current_state][i]])
+            if this_next < next_time:
+                next_time = this_next
+                this_trn_id = trn_id[current_state, i]
+        #print(' gne >1 trn, next = ' + str(next_time) + ' id=' + str(this_trn_id))
+
+    return (next_time + current_time, this_trn_id)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
                       np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -375,6 +440,64 @@ cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     else:
         next_update[link] = _NEVER
 
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
+                      DTYPE_t current_time,
+                      np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
+                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                      np.ndarray[DTYPE_INT_t, ndim=1] link_orientation, #8
+                      DTYPE_INT_t num_node_states,
+                      DTYPE_INT_t num_node_states_sq,
+                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                      np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                      PriorityQueue priority_queue,
+                      np.ndarray[DTYPE_t, ndim=1] next_update,
+                      np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
+                      np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                      np.ndarray[DTYPE_t, ndim=1] trn_rate):
+    """
+    Implements a link transition by updating the current state of the link
+    and (if appropriate) choosing the next transition event and pushing it
+    on to the event queue.
+
+    Parameters
+    ----------
+    link : int
+        ID of the link to update
+    new_link_state : int
+        Code for the new state
+    current_time : float
+        Current time in simulation
+    (see celllab_cts.py for other parameters)
+    """
+    cdef int fns, tns
+    cdef int this_trn_id
+    cdef int orientation
+
+    # If the link connects to a boundary, we might have a different state
+    # than the one we planned
+    if bnd_lnk[link]:
+        fns = node_state[node_at_link_tail[link]]
+        tns = node_state[node_at_link_head[link]]
+        orientation = link_orientation[link]
+        new_link_state = orientation * num_node_states_sq + \
+            fns * num_node_states + tns
+
+    link_state[link] = new_link_state
+    if n_trn[new_link_state] > 0:
+        (event_time, this_trn_id) = get_next_event_new(link, new_link_state, 
+                                                       current_time,
+                                                       n_trn, trn_id, trn_rate)
+        priority_queue.push(link, event_time)
+        next_update[link] = event_time
+        next_trn_id[link] = this_trn_id
+    else:
+        next_update[link] = _NEVER
+        next_trn_id[link] = -1
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
