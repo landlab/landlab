@@ -471,6 +471,50 @@ class ChiFinder(Component):
         coeffs = np.polyfit(chi_vals, elev_vals, 1)
         return coeffs
 
+    def nodes_downstream_of_channel_head(self, channel_head):
+        """
+        Find and return an array with nodes downstream of channel_head.
+
+        Parameters
+        ----------
+        channel_head : int
+            Node ID of channel head from which to get downstream nodes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import FlowRouter
+        >>> mg = RasterModelGrid((3, 4), 1.)
+        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
+        ...               mg.nodes_at_top_edge):
+        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        >>> z = mg.add_field('node', 'topographic__elevation',
+        ...                  mg.node_x.copy())
+        >>> z[4:8] = np.array([0.5, 1., 2., 0.])
+        >>> fr = FlowRouter(mg)
+        >>> _ = fr.route_flow()
+        >>> mg.at_node['flow__receiver_node']
+        array([ 0,  1,  2,  3,  4,  4,  5,  7,  8,  9, 10, 11])
+        >>> cf = ChiFinder(mg, min_drainage_area=0., reference_concavity=1.)
+        >>> cf.calculate_chi()
+        >>> cf.nodes_downstream_of_channel_head(6)
+        [6, 5, 4]
+        """
+        ch_nodes = []
+        current_node = channel_head
+        while True:
+            ch_A = self.grid.at_node['drainage_area'][current_node]
+            if ch_A > self.min_drainage:
+                ch_nodes.append(current_node)
+            next_node = self.grid.at_node['flow__receiver_node'][
+                        current_node]
+            if next_node == current_node:
+                break
+            else:
+                current_node = next_node
+        return ch_nodes
+
     def create_chi_plot(self, channel_heads=None, label_axes=True,
                         symbol='kx', plot_line=False, line_symbol='r-'):
         """
@@ -503,18 +547,7 @@ class ChiFinder(Component):
             if type(channel_heads) is int:
                 channel_heads = [channel_heads, ]
             for head in channel_heads:
-                ch_nodes = []
-                current_node = head
-                while 1:
-                    ch_A = self.grid.at_node['drainage_area'][current_node]
-                    if ch_A > self.min_drainage:
-                        ch_nodes.append(current_node)
-                    next_node = self.grid.at_node['flow__receiver_node'][
-                        current_node]
-                    if next_node == current_node:
-                        break
-                    else:
-                        current_node = next_node
+                ch_nodes = self.nodes_downstream_of_channel_head(head)
                 plot(self.chi_indices[ch_nodes],
                      self.grid.at_node['topographic__elevation'][ch_nodes],
                      symbol)
