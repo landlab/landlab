@@ -449,7 +449,7 @@ cpdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
                       np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
                       np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-                      np.ndarray[DTYPE_INT_t, ndim=1] link_orientation, #8
+                      np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                       DTYPE_INT_t num_node_states,
                       DTYPE_INT_t num_node_states_sq,
                       np.ndarray[DTYPE_INT_t, ndim=1] link_state,

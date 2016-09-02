@@ -1557,10 +1557,6 @@ class CellLabCTSModel(object):
                 tail_changed, head_changed = self.update_node_states(
                                                 tail_node, head_node, trn_to)
             if _CYTEST:
-                print('link orientation is ')
-                print(type(self.link_orientation))
-                print(type(self.link_orientation[0]))
-                #test = np.zeros(self.grid.number_of_links, dtype=np.int8)
                 update_link_state_new(event_link, trn_to, event_time,
                                           self.bnd_lnk, 
                                           self.node_state,
