@@ -146,8 +146,9 @@ if _USE_CYTHON:
                          run_cts, run_cts_lean, PriorityQueue)
 
 if _CYTEST:
-    from landlab.ca.cfuncs import (get_next_event_new, update_node_states,
-                                   update_link_state_new)
+    from landlab.ca.cfuncs import (update_node_states,
+                                   update_link_state_new,
+                                   push_transitions_to_event_queue_new)
 
 _NEVER = 1e50
 
@@ -521,7 +522,15 @@ class CellLabCTSModel(object):
         self.setup_transition_data(transition_list_as_ID)
 
         # Put the various transitions on the event queue
-        if _RUN_NEW:
+        if _CYTEST:
+            push_transitions_to_event_queue_new(self.grid.number_of_active_links,
+                                                self.grid.active_links,
+                                                self.n_trn, self.link_state,
+                                                self.trn_id, self.trn_rate,
+                                                self.next_update,
+                                                self.next_trn_id,
+                                                self.priority_queue)
+        elif _RUN_NEW:
             self.push_transitions_to_event_queue_new()
         else:
             self.push_transitions_to_event_queue()
@@ -1151,16 +1160,16 @@ class CellLabCTSModel(object):
             # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
-                if _CYTEST:
-                    (ev_time, trn_id) = get_next_event_new(
-                                            i,                                                 
-                                            self.link_state[i],
-                                            0.0,
-                                            self.n_trn,
-                                            self.trn_id,
-                                            self.trn_rate)
-                else:
-                    (ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
+#                if _CYTEST:
+#                    (ev_time, trn_id) = get_next_event_new(
+#                                            i,                                                 
+#                                            self.link_state[i],
+#                                            0.0,
+#                                            self.n_trn,
+#                                            self.trn_id,
+#                                            self.trn_rate)
+#                else:
+                (ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
                 #event = get_next_event(i, self.link_state[i], 0.0, self.n_xn,
                 #                       self.xn_to, self.xn_rate,
                 #                       self.xn_propswap,
