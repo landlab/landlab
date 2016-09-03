@@ -700,28 +700,29 @@ cdef void do_transition(Event event,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void do_transition_new(Event event,
+cpdef void do_transition_new(PriorityQueue priority_queue,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
-                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
-                  np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
-                  np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                  np.ndarray[DTYPE_INT_t, ndim=1] node_state,
+                  np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
+                  np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
                   np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-                  np.ndarray[DTYPE_INT_t, ndim=1] propid,
-                  object prop_data,
-                  np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-                  np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-                  np.ndarray[DTYPE_t, ndim=2] xn_rate, 
-                  np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-                  np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
                   DTYPE_INT_t num_node_states,
                   DTYPE_INT_t num_node_states_sq,
-                  DTYPE_INT_t prop_reset_value,
-                  np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-                  xn_prop_update_fn,
                   np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-                  event_queue,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                  np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                  np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                  np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                  np.ndarray[DTYPE_t, ndim=1] trn_rate, 
+                  np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
+                  np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
+                  np.ndarray[DTYPE_INT8_t, ndim=1] trn_propswap,
+                  np.ndarray[DTYPE_INT_t, ndim=1] propid,
+                  object prop_data,
+                  DTYPE_INT_t prop_reset_value,
+                  trn_prop_update_fn,
                   this_cts_model,
                   plot_each_transition=False,
                   plotter=None):
@@ -754,9 +755,14 @@ cdef void do_transition_new(Event event,
     3. Update the states of the other links attached to the two nodes,
        choose their next transitions, and push them on the event queue.
     """
+    cdef double event_time
+    cdef int index
+    cdef int event_link
     cdef int tail_node, head_node  # IDs of tail and head nodes at link
     cdef int old_tail_node_state
     cdef int old_head_node_state
+    cdef int this_trn_id
+    cdef int this_trn_to
     cdef int this_link_tail_node   # Tail ID for an adjacent link
     cdef int this_link_head_node   # Head ID for an adjacent link
     cdef int link                  # ID of a link
@@ -771,27 +777,27 @@ cdef void do_transition_new(Event event,
     # recorded for the link in question. If not, it means that the link has
     # changed state since the event was pushed onto the event queue, and
     # in that case we'll ignore it.
-    if event.time == next_update[event.link]:
+    (event_time, index, event_link) = priority_queue.pop()
+    if event_time == next_update[event_link]:
 
-        tail_node = node_at_link_tail[event.link]
-        head_node = node_at_link_head[event.link]
+        tail_node = node_at_link_tail[event_link]
+        head_node = node_at_link_head[event_link]
 
         # Remember the previous state of each node so we can detect whether the
         # state has changed
         old_tail_node_state = node_state[tail_node]
         old_head_node_state = node_state[head_node]
 
+        this_trn_id = next_trn_id[event_link]
+        this_trn_to = trn_to[this_trn_id]
         update_node_states(node_state, status_at_node, tail_node,
-                           head_node, event.xn_to, num_node_states)
-        update_link_state(event.link, event.xn_to, event.time,
-                          bnd_lnk, node_state,
-                          node_at_link_tail,
-                          node_at_link_head,
-                          link_orientation, num_node_states,
-                          num_node_states_sq, link_state,
-                          n_xn, event_queue,
-                          next_update, xn_to, xn_rate,
-                          xn_propswap, xn_prop_update_fn)
+                           head_node, this_trn_to, num_node_states)
+        update_link_state_new(event_link, this_trn_to, event_time, bnd_lnk,
+                              node_state, node_at_link_tail,
+                              node_at_link_head, link_orientation,
+                              num_node_states, num_node_states_sq,
+                              link_state, n_trn, priority_queue, next_update,
+                              next_trn_id, trn_id, trn_rate)
 
         # Next, when the state of one of the link's nodes changes, we have
         # to update the states of the OTHER links attached to it. This
@@ -803,7 +809,7 @@ cdef void do_transition_new(Event event,
                 link = links_at_node[tail_node, i]
                 dir_code = active_link_dirs_at_node[tail_node, i]
 
-                if dir_code != 0 and link != event.link:
+                if dir_code != 0 and link != event_link:
 
                     this_link_tail_node = node_at_link_tail[link]
                     this_link_head_node = node_at_link_head[link]
@@ -812,15 +818,13 @@ cdef void do_transition_new(Event event,
                         orientation * num_node_states_sq +
                         node_state[this_link_tail_node] * num_node_states +
                         node_state[this_link_head_node])
-                    update_link_state(link, new_link_state, event.time,
-                                      bnd_lnk, node_state,
-                                      node_at_link_tail,
-                                      node_at_link_head,
-                                      link_orientation, num_node_states,
-                                      num_node_states_sq, link_state,
-                                      n_xn, event_queue,
-                                      next_update, xn_to, xn_rate,
-                                      xn_propswap, xn_prop_update_fn)
+                    update_link_state_new(link, new_link_state, event_time, 
+                                          bnd_lnk,
+                                          node_state, node_at_link_tail,
+                                          node_at_link_head, link_orientation,
+                                          num_node_states, num_node_states_sq,
+                                          link_state, n_trn, priority_queue, next_update,
+                                          next_trn_id, trn_id, trn_rate)
 
         if node_state[head_node] != old_head_node_state:
 
@@ -829,7 +833,7 @@ cdef void do_transition_new(Event event,
                 link = links_at_node[head_node, i]
                 dir_code = active_link_dirs_at_node[head_node, i]
 
-                if dir_code != 0 and link != event.link:
+                if dir_code != 0 and link != event_link:
                     this_link_tail_node = node_at_link_tail[link]
                     this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
@@ -837,15 +841,13 @@ cdef void do_transition_new(Event event,
                         orientation * num_node_states_sq +
                         node_state[this_link_tail_node] * num_node_states +
                         node_state[this_link_head_node])
-                    update_link_state(link, new_link_state, event.time,
-                                      bnd_lnk, node_state,
-                                      node_at_link_tail,
-                                      node_at_link_head,
-                                      link_orientation, num_node_states,
-                                      num_node_states_sq, link_state,
-                                      n_xn, event_queue,
-                                      next_update, xn_to, xn_rate,
-                                      xn_propswap, xn_prop_update_fn)
+                    update_link_state_new(link, new_link_state, event_time, 
+                                          bnd_lnk,
+                                          node_state, node_at_link_tail,
+                                          node_at_link_head, link_orientation,
+                                          num_node_states, num_node_states_sq,
+                                          link_state, n_trn, priority_queue, next_update,
+                                          next_trn_id, trn_id, trn_rate)
 
         # If requested, display a plot of the grid
         if plot_each_transition and (plotter is not None):
@@ -856,7 +858,7 @@ cdef void do_transition_new(Event event,
         # want to track), implement the swap.
         #   If the event requires a call to a user-defined callback
         # function, we handle that here too.
-        if event.propswap:
+        if trn_propswap[this_trn_id]:
             tmp = propid[tail_node]
             propid[tail_node] = propid[head_node]
             propid[head_node] = tmp
@@ -864,9 +866,9 @@ cdef void do_transition_new(Event event,
                 prop_data[propid[tail_node]] = prop_reset_value
             if status_at_node[head_node] != _CORE:
                 prop_data[propid[head_node]] = prop_reset_value
-            if event.prop_update_fn is not None:
-                event.prop_update_fn(
-                    this_cts_model, tail_node, head_node, event.time)
+            if trn_prop_update_fn[this_trn_id] is not None:
+                trn_prop_update_fn[this_trn_id](
+                    this_cts_model, tail_node, head_node, event_time)
 
 cpdef double run_cts(double run_to, double current_time,
                      char plot_each_transition,
