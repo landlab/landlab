@@ -10,8 +10,7 @@ from landlab import RasterModelGrid
 
 
 ELEMENTS = ['node', 'cell', 'link', 'face']
-ELEMENTS += ['core_node', 'core_cell', 'active_link', 'active_face']
-#ELEMENTS += ['active_' + name for name in ELEMENTS]
+# ELEMENTS += ['core_node', 'core_cell', 'active_link', 'active_face']
 TYPES = ['float', 'int', 'bool']
 
 
@@ -73,8 +72,7 @@ def generate_add_ones_tests():
 
 def generate_empty_tests():
     elements = ['node', 'cell', 'link', 'face']
-    elements += ['core_node', 'core_cell', 'active_link', 'active_face']
-    #elements += ['active_' + name for name in elements]
+    # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
 
     types = ['float', 'int', 'bool']
 
@@ -92,8 +90,7 @@ def generate_empty_tests():
 
 def generate_add_empty_tests():
     elements = ['node', 'cell', 'link', 'face']
-    elements += ['core_node', 'core_cell', 'active_link', 'active_face']
-    #elements += ['active_' + name for name in elements]
+    # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
 
     types = ['float', 'int', 'bool']
 
