@@ -20,48 +20,6 @@ class ModelDataFieldsMixIn(ModelDataFields):
     >>> grid = RasterModelGrid((4, 5))
     >>> grid.number_of_elements('node')
     20
-
-    Examples
-    --------
-
-    A `RasterModelGrid` is an example of a class that inherits from
-    `ModelDataFieldsMixIn`.
-
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> grid = RasterModelGrid((4, 5))
-
-    After we initially create the grid, it has a number of active links.
-    However, since we haven't assigned or created a field based on the number,
-    the field is un-sized.
-
-    >>> grid.number_of_elements('active_link')
-    17
-    >>> grid.at_active_link.size is None
-    True
-
-    If we change the status of some of the nodes, the number of active links
-    changes. If we now create an array based on the current number of active
-    links, that number *is now fixed*.
-
-    >>> grid.status_at_node[:5] = CLOSED_BOUNDARY
-    >>> grid.number_of_elements('active_link')
-    14
-    >>> grid.ones(at='active_link', dtype=int)
-    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-    >>> grid.at_active_link.size
-    14
-
-    Because the number of active links is fixed in our collection of fields,
-    if we change the number of active links in our grid, an exception is
-    raised if we try to create a new active link array.
-
-    >>> grid.status_at_node[-5:] = CLOSED_BOUNDARY
-    >>> grid.number_of_elements('active_link')
-    11
-    >>> grid.ones(at='active_link', dtype=int)
-    ...     # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    GroupSizeError: number of active_link elements has changed. (was = 14, now=11)
     """
 
     def __init__(self, **kwds):

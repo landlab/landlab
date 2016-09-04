@@ -805,9 +805,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     (4, 5)
     >>> rmg.number_of_active_links
     17
-    >>> vals = rmg.add_zeros('vals', at='active_link')
-    >>> vals.size
-    17
 
     Set the nodes along the top edge of the grid to be *closed* boundaries.
     This means that any links touching these nodes will be *inactive*.
@@ -816,9 +813,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
-    14
-    >>> vals = rmg.add_zeros('vals', at='active_link')
-    >>> vals.size
     14
 
     A `RasterModelGrid` can have different node spacings in the *x* and *y*
