@@ -24,7 +24,7 @@ def setup_grid():
     grid = RasterModelGrid((32, 240), spacing=25)
     grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
-    grid.add_zeros('surface_water__discharge', at='active_link')
+    grid.add_zeros('surface_water__discharge', at='link')
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     globals().update({
         'deAlm': OverlandFlow(grid)})
@@ -44,7 +44,8 @@ def test_deAlm_input_var_names():
 
 @with_setup(setup_grid)
 def test_deAlm_output_var_names():
-    assert_equal(deAlm.output_var_names, ('surface_water__depth', 'surface_water__discharge',
+    assert_equal(deAlm.output_var_names, ('surface_water__depth',
+                                          'surface_water__discharge',
                                           'water_surface__gradient', ))
 
 @with_setup(setup_grid)
@@ -76,8 +77,8 @@ def test_deAlm_analytical():
     time = 0.0
 
     while time < 500.:
-        grid['link']['surface_water__discharge'][left_inactive_ids] = (
-            grid['link']['surface_water__discharge'][left_inactive_ids + 1])
+        grid.at_link['surface_water__discharge'][left_inactive_ids] = (
+            grid.at_link['surface_water__discharge'][left_inactive_ids + 1])
         dt = deAlm.calc_time_step()
         deAlm.overland_flow(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
@@ -109,8 +110,8 @@ def test_deAlm_analytical_imposed_dt_short():
     time = 0.0
 
     while time < 500.:
-        grid['link']['surface_water__discharge'][left_inactive_ids] = (
-            grid['link']['surface_water__discharge'][left_inactive_ids + 1])
+        grid.at_link['surface_water__discharge'][left_inactive_ids] = (
+            grid.at_link['surface_water__discharge'][left_inactive_ids + 1])
         dt = 10.
         deAlm.overland_flow(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
@@ -142,8 +143,8 @@ def test_deAlm_analytical_imposed_dt_long():
     time = 0.0
 
     while time < 500.:
-        grid['link']['surface_water__discharge'][left_inactive_ids] = (
-            grid['link']['surface_water__discharge'][left_inactive_ids + 1])
+        grid.at_link['surface_water__discharge'][left_inactive_ids] = (
+            grid.at_link['surface_water__discharge'][left_inactive_ids + 1])
         dt = 100.
         deAlm.run_one_step(dt)
         h_boundary = (((7./3.) * (0.01**2) * (0.4**3) *
