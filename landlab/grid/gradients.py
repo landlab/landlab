@@ -130,7 +130,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = grid.empty(centering='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
     return np.divide(node_values[grid._activelink_tonode] -
                      node_values[grid._activelink_fromnode],
                      grid.length_of_link[grid.active_links], out=out)
@@ -289,7 +289,7 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = grid.empty(at='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
     node_values = np.asarray(node_values)
     return np.subtract(node_values[grid._activelink_tonode],
                        node_values[grid._activelink_fromnode], out=out)
