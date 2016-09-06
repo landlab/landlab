@@ -68,6 +68,8 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> _ = grid.add_field('node', 'elevation', node_values)
     >>> grid.calc_grad_at_link('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
+
+    LLCATS: LINF GRAD
     """
     grads = gradients.calc_diff_at_link(grid, node_values, out=out)
     grads /= grid.length_of_link[:grid.number_of_links]
@@ -146,6 +148,8 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     ...                2., 2., 2.]
     >>> grid.calc_grad_at_link(node_values)[grid.active_links]
     array([ 3.,  1., -1., -1.])
+
+    LLCATS: LINF GRAD
     """
     if out is None:
         out = grid.empty(at='active_link')
@@ -224,6 +228,8 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
                   mask =
      False,
            fill_value = 1e+20)
+
+    LLCATS: FINF GRAD
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
@@ -231,7 +237,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
-    neighbors = grid.active_neighbors_at_node(node_ids)
+    neighbors = grid.active_neighbors_at_node[node_ids]
     if BAD_INDEX_VALUE != -1:
         neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
@@ -299,6 +305,8 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     >>> grid.calc_grad_across_cell_corners(x)
     array([[ 0.6,  0.6,  0.2,  0. ],
            [ 0.4,  0.4, -0.2,  0. ]])
+
+    LLCATS: CNINF GRAD
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
@@ -407,13 +415,15 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True False]
      [ True  True  True  True]],
            fill_value = 1e+20)
+
+    LLCATS: NINF LINF GRAD
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = BAD_INDEX_VALUE
     padded_node_values[:-1] = node_values
     node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
-    neighbors = grid.active_neighbors_at_node(node_ids, bad_index=-1)
+    neighbors = grid.active_neighbors_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
         values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
@@ -484,6 +494,8 @@ def calc_unit_normals_at_patch_subtriangles(grid,
            [-0.9486833 ,  0.        ,  0.31622777],
            [-0.98058068,  0.        ,  0.19611614],
            [-0.98994949,  0.        ,  0.14142136]])
+
+    LLCATS: PINF GRAD
     """
     try:
         z = grid.at_node[elevs]
@@ -603,6 +615,8 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
     array([[ 0.,  0.,  0.,  0.],
            [ 0.,  1.,  1.,  1.],
            [ 0.,  0.,  0.,  0.]])
+
+    LLCATS: PINF GRAD
     """
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 4
@@ -705,6 +719,8 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
     array([ 1.,  1., -1.])
     >>> np.allclose(ygrad[1:3], xgrad[1:3])
     True
+
+    LLCATS: PINF GRAD
     """
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 4
@@ -823,6 +839,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     >>> np.allclose(cmp[0].reshape((4, 4))[:, 0],
     ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
     True
+
+    LLCATS: NINF GRAD SURF
     """
     if method not in ('patch_mean', 'Horn'):
         raise ValueError('method name not understood')

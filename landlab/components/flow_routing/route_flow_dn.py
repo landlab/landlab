@@ -67,7 +67,7 @@ class FlowRouter(Component):
     _output_var_names = ('drainage_area',
                          'flow__receiver_node',
                          'topographic__steepest_slope',
-                         'water__discharge',
+                         'surface_water__discharge',
                          'flow__upstream_node_order',
                          'flow__link_to_receiver_node',
                          'flow__sink_flag',
@@ -78,7 +78,7 @@ class FlowRouter(Component):
                   'drainage_area': 'm**2',
                   'flow__receiver_node': '-',
                   'topographic__steepest_slope': '-',
-                  'water__discharge': 'm**3/s',
+                  'surface_water__discharge': 'm**3/s',
                   'flow__upstream_node_order': '-',
                   'flow__link_to_receiver_node': '-',
                   'flow__sink_flag': '-',
@@ -89,7 +89,7 @@ class FlowRouter(Component):
                     'drainage_area': 'node',
                     'flow__receiver_node': 'node',
                     'topographic__steepest_slope': 'node',
-                    'water__discharge': 'node',
+                    'surface_water__discharge': 'node',
                     'flow__upstream_node_order': 'node',
                     'flow__link_to_receiver_node': 'node',
                     'flow__sink_flag': 'node',
@@ -108,7 +108,7 @@ class FlowRouter(Component):
             'node)',
         'topographic__steepest_slope':
             'Node array of steepest *downhill* slopes',
-        'water__discharge': 'Discharge of water through each node',
+        'surface_water__discharge': 'Discharge of water through each node',
         'flow__upstream_node_order':
             'Node array containing downstream-to-upstream ordered list of '
             'node IDs',
@@ -198,10 +198,10 @@ class FlowRouter(Component):
         except FieldError:
             self.steepest_slope = grid.at_node['topographic__steepest_slope']
         try:
-            self.discharges = grid.add_zeros('water__discharge', at='node',
+            self.discharges = grid.add_zeros('surface_water__discharge', at='node',
                                              dtype=float)
         except FieldError:
-            self.discharges = grid.at_node['water__discharge']
+            self.discharges = grid.at_node['surface_water__discharge']
         try:
             self.upstream_ordered_nodes = grid.add_zeros(
                 'flow__upstream_node_order', at='node', dtype=int)
@@ -247,7 +247,7 @@ class FlowRouter(Component):
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
            there is no receiver: *'flow__receiver_node'*
         -  Node array of drainage areas: *'drainage_area'*
-        -  Node array of discharges: *'water__discharge'*
+        -  Node array of discharges: *'surface_water__discharge'*
         -  Node array of steepest downhill slopes:
            *'topographic__steepest_slope'*
         -  Node array containing downstream-to-upstream ordered list of node
@@ -303,7 +303,7 @@ class FlowRouter(Component):
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)
         >>> mg = fr.route_flow()
-        >>> mg.at_node['water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
         array([    0.,   500.,  5200.,     0.,
                    0.,   500.,  5200.,     0.,
                    0.,   900.,  3700.,     0.,
@@ -380,7 +380,7 @@ class FlowRouter(Component):
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['flow__receiver_node'][:] = receiver
         self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['water__discharge'][:] = q
+        self._grid['node']['surface_water__discharge'][:] = q
         self._grid['node']['flow__upstream_node_order'][:] = s
         self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
         self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
@@ -441,7 +441,7 @@ class FlowRouter(Component):
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)
         >>> fr.run_one_step()
-        >>> mg.at_node['water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
         array([    0.,   500.,  5200.,     0.,
                    0.,   500.,  5200.,     0.,
                    0.,   900.,  3700.,     0.,
@@ -464,7 +464,7 @@ class FlowRouter(Component):
 
     @property
     def node_water_discharge(self):
-        return self._grid['node']['water__discharge']
+        return self._grid['node']['surface_water__discharge']
 
     @property
     def node_order_upstream(self):
