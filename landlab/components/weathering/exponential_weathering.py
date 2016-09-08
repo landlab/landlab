@@ -75,35 +75,35 @@ class ExponentialWeathering(Component):
         
                 
         #Store grid and parameters
-        self._grid=grid
-        self.wstar=wstar
-        self.wnot=wnot
+        self._grid = grid
+        self.wstar = wstar
+        self.wnot = wnot
         
         #create fields
     
         
         #soil depth
         if 'soil__depth' in grid.at_node:
-            self.depth=grid.at_node['soil__depth']
+            self.depth = grid.at_node['soil__depth']
         else:
-            self.depth=grid.add_zeros('node','soil__depth')
+            self.depth = grid.add_zeros('node','soil__depth')
 
             
         #weathering rate
         if 'weathering__rate' in grid.at_node:
-            self.weather=grid.at_node['weathering__rate']
+            self.weather = grid.at_node['weathering__rate']
         else:
-            self.weather=grid.add_zeros('node','weathering__rate')
+            self.weather = grid.add_zeros('node','weathering__rate')
 
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
         
     
-    def exponentialweather(self,current_time=0.0, **kwds):
+    def exponentialweather(self, current_time=0.0, **kwds):
         """Calculate soil flux for a time period 'dt'.
         """
         
         #weather
-        self.weather[self._active_nodes]=(self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
+        self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
 
         
         
