@@ -199,6 +199,8 @@ class DetachmentLtdErosion(Component):
 
         self.I = (self.K * (Q_to_m * S_to_n - self.entraiment_threshold))
 
+        self.I[self.I < 0.0] = 0.0
+
         self.dzdt = (self.uplift_rate - self.I)
 
         self._grid['node']['topographic__elevation'] += self.dzdt

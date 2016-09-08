@@ -2,10 +2,6 @@
 from .grouped import ModelDataFields, GroupSizeError
 
 
-_GROUPS = ('node', 'link', 'patch', 'corner', 'face', 'cell', 'core_node',
-           'core_cell', 'active_link', 'active_face', )
-
-
 class ModelDataFieldsMixIn(ModelDataFields):
 
     """Mix-in that provides un-sized fields.
@@ -70,17 +66,6 @@ class ModelDataFieldsMixIn(ModelDataFields):
 
     def __init__(self, **kwds):
         super(ModelDataFieldsMixIn, self).__init__(**kwds)
-        for group in _GROUPS:
-            ModelDataFields.new_field_location(self, group)
-
-    def new_field_location(self, group, size=None):
-        """Add a new quantity to a field, but not available from here.
-
-        LLCATS: DEPR, FIELDCR
-        """
-        raise AttributeError(
-            "'ModelDataFieldsMixIn' object has no attribute "
-            "'new_field_location'")
 
     def empty(self, *args, **kwds):
         """Array, filled with unititialized values, for a given element.

@@ -114,7 +114,8 @@ class OverlandFlowBates(Component):
 
         # Now setting up fields at the links...
         # For water discharge
-        self.water__discharge = grid.add_zeros(
+
+        self.surface_water__discharge = grid.add_zeros(
             'link', 'surface_water__discharge',
             units=self._var_units['surface_water__discharge'])
 

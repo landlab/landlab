@@ -171,10 +171,13 @@ def as_id_array(array):
     >>> y.dtype == np.int
     True
     """
-    if array.dtype == np.int:
-        return array.view(np.int)
-    else:
-        return array.astype(np.int)
+    try:
+        if array.dtype == np.int:
+            return array.view(np.int)
+        else:
+            return array.astype(np.int)
+    except AttributeError:
+        return np.asarray(array, dtype=np.int)
 
 
 if np.dtype(np.intp) == np.int:
@@ -391,33 +394,56 @@ def strip_grid_from_method_docstring(funcs):
                               func.__doc__)
 
 
-def argsort_points_by_x_then_y(pts):
+def argsort_points_by_x_then_y(points):
     """Sort points by coordinates, first x then y, returning sorted indices.
 
     Parameters
     ----------
-    pts : Nx2 NumPy array of float
-        (x,y) points to be sorted
+    points : tuple of ndarray or ndarray of float, shape `(*, 2)`
+        Coordinates of points to be sorted. Sort by first coordinate, then
+        second.
 
     Returns
     -------
-    indices : Nx1 NumPy array of int
-        indices of sorted (x,y) points
+    ndarray of int, shape `(n_points, )`
+        Indices of sorted points.
     
     Examples
     --------
     >>> import numpy as np
     >>> from landlab.core.utils import argsort_points_by_x_then_y
-    >>> pts = np.zeros((10, 2))
-    >>> pts[:,0] = np.array([0., 0., 0., 1., 1., 1., 1., 2., 2., 2.])
-    >>> pts[:,1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
-    >>> idx = argsort_points_by_x_then_y(pts)
-    >>> idx
+
+    >>> points = np.zeros((10, 2))
+    >>> points[:, 0] = np.array([0., 0., 0.,  1.,  1.,  1.,  1.,  2., 2., 2.])
+    >>> points[:, 1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
+    >>> argsort_points_by_x_then_y(points)
+    array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
+
+    >>> x = [0., 0., 0.,
+    ...      1., 1., 1., 1.,
+    ...      2., 2., 2.]
+    >>> y = [ 0. , 1. , 2. ,
+    ...      -0.5, 0.5, 1.5, 2.5,
+    ...       0. , 1. , 2.]
+    >>> indices = argsort_points_by_x_then_y((x, y))
+    >>> indices
+    array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
+
+    >>> argsort_points_by_x_then_y(np.array((x, y)))
     array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
     """
-    a = pts[:,0].argsort(kind='mergesort')
-    b = pts[a,1].argsort(kind='mergesort')
-    return as_id_array(a[b])
+    if isinstance(points, np.ndarray):
+        if points.shape[0] > points.shape[1]:
+            points = points.T
+        try:
+            return argsort_points_by_x_then_y((points[0, :], points[1, :]))
+        except IndexError:
+            return as_id_array([0])
+    else:
+        points = [np.asarray(coord) for coord in points]
+        a = points[0].argsort(kind='mergesort')
+        b = points[1][a].argsort(kind='mergesort')
+        return as_id_array(a[b])
 
 
 def sort_points_by_x_then_y(pts):
@@ -471,11 +497,11 @@ def anticlockwise_argsort_points(pts, midpt=None):
         midpt : len-2 NumPy array of float (optional)
         (x, y) of point about which to sort. If not provided, mean of pts is
         used.
-        
+
         Returns
         -------
-        pts : Nx2 NumPy array of float
-        sorted (x,y) points
+        pts : N NumPy array of int
+            sorted (x,y) points
         
         Examples
         --------
@@ -494,6 +520,54 @@ def anticlockwise_argsort_points(pts, midpt=None):
     theta = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
     theta = theta % (2.*np.pi)
     sortorder = np.argsort(theta)
+    return sortorder
+
+
+def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
+    """Argort multi lines of points into CCW order around the geometric center.
+
+    This version sorts columns of data in a 2d array. Sorts CCW from east
+    around the geometric center of the points in the row.
+    Assumes a convex hull.
+
+    Parameters
+    ----------
+    pts_x : rows x n_elements array of float
+        rows x points_to_sort x x_coord of points
+    pts_y : rows x n_elements array of float
+        rows x points_to_sort x y_coord of points
+    out : rows x n_elements (optional)
+        If provided, the ID array to be sorted
+
+    Returns
+    -------
+    sortorder : rows x n_elements NumPy array of int
+        sorted (x,y) points
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import anticlockwise_argsort_points_multiline
+    >>> pts = np.array([[1, 3, 0, 2], [2, 0, 3, 1]])
+    >>> pts_x = np.array([[-3., -1., -1., -3.], [-3., -1., -1., -3.]])
+    >>> pts_y = np.array([[-1., -3., -1., -3.], [-3., -1., -3., -1.]])
+    >>> sortorder = anticlockwise_argsort_points_multiline(
+    ...     pts_x, pts_y, out=pts)
+    >>> np.all(sortorder == np.array([[2, 0, 3, 1], [1, 3, 0, 2]]))
+    True
+    >>> np.all(pts == np.array([[0, 1, 2, 3], [0, 1, 2, 3]]))
+    True
+    """
+    nrows = pts_x.shape[0]
+    midpt = np.empty((nrows, 2), dtype=float)
+    midpt[:, 0] = pts_x.mean(axis=1)
+    midpt[:, 1] = pts_y.mean(axis=1)
+    theta = np.arctan2(pts_y - midpt[:, 1].reshape((nrows, 1)),
+                       pts_x - midpt[:, 0].reshape((nrows, 1)))
+    theta = theta % (2.*np.pi)
+    sortorder = np.argsort(theta)
+    if out is not None:
+        out[:] = out[np.ogrid[:nrows].reshape((nrows, 1)), sortorder]
     return sortorder
 
 
