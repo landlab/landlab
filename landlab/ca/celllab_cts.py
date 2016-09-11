@@ -148,7 +148,8 @@ if _USE_CYTHON:
 if _CYTEST:
     from landlab.ca.cfuncs import (update_node_states,
                                    update_link_state_new,
-                                   push_transitions_to_event_queue_new)
+                                   push_transitions_to_event_queue_new,
+                                   do_transition_new)
 
 _NEVER = 1e50
 
@@ -1873,8 +1874,36 @@ class CellLabCTSModel(object):
 
                 if _DEBUG:
                     print('Event:', ev_time, ev_link, self.trn_to[self.next_trn_id[ev_link]])
-        
-                self.do_transition_new(ev_link, ev_time, self.current_time,
+                
+                if _CYTEST:
+                    do_transition_new(ev_link, ev_time,
+                                      self.priority_queue, self.next_update,                  
+                                      self.grid.node_at_link_tail,                  
+                                      self.grid.node_at_link_head,
+                                      self.node_state,
+                                      self.next_trn_id,
+                                      self.trn_to,
+                                      self.grid.status_at_node,
+                                      self.num_node_states,
+                                      self.num_node_states_sq,
+                                      self.bnd_lnk,
+                                      self.link_orientation,
+                                      self.link_state,
+                                      self.n_trn,
+                                      self.trn_id,
+                                      self.trn_rate, 
+                                      self.grid.links_at_node,
+                                      self.grid.active_link_dirs_at_node,
+                                      self.trn_propswap,
+                                      self.propid,
+                                      self.prop_data,
+                                      self.prop_reset_value,
+                                      self.trn_prop_update_fn,
+                                      self,
+                                      plot_each_transition=False,
+                                      plotter=None)
+                else:
+                    self.do_transition_new(ev_link, ev_time, self.current_time,
                                            plot_each_transition, plotter)
 
                 # Update current time

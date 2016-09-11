@@ -12,6 +12,8 @@ from _heapq import heappush, heappop
 from libc.stdlib cimport rand
 from libc.math cimport log
 
+import sys # for debug
+
 cdef double _NEVER = 1.0e50
 
 cdef int _CORE = CORE_NODE
@@ -44,6 +46,7 @@ cdef class PriorityQueue:
         self._index += 1
 
     def pop(self):
+        assert len(self._queue) > 0, 'Q is empty'
         return heappop(self._queue)
 
 
@@ -698,9 +701,11 @@ cdef void do_transition(Event event,
                 event.prop_update_fn(
                     this_cts_model, tail_node, head_node, event.time)
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cpdef void do_transition_new(PriorityQueue priority_queue,
+#@cython.boundscheck(False)
+#@cython.wraparound(False)
+cpdef void do_transition_new(DTYPE_INT_t event_link,
+                             DTYPE_t event_time,
+                             PriorityQueue priority_queue,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
@@ -755,9 +760,10 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
     3. Update the states of the other links attached to the two nodes,
        choose their next transitions, and push them on the event queue.
     """
-    cdef double event_time
+    #print >> sys.stderr, 'A'
+    #cdef double event_time
     cdef int index
-    cdef int event_link
+    #cdef int event_link
     cdef int tail_node, head_node  # IDs of tail and head nodes at link
     cdef int old_tail_node_state
     cdef int old_head_node_state
@@ -772,13 +778,14 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
     cdef char dir_code             # Direction code for link at node
     cdef char orientation          # Orientation code for link
     cdef int i
+    #print >> sys.stderr, 'a'
 
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
     # changed state since the event was pushed onto the event queue, and
     # in that case we'll ignore it.
-    (event_time, index, event_link) = priority_queue.pop()
     if event_time == next_update[event_link]:
+        #print >> sys.stderr, ' B'
 
         tail_node = node_at_link_tail[event_link]
         head_node = node_at_link_head[event_link]
@@ -790,6 +797,7 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
 
         this_trn_id = next_trn_id[event_link]
         this_trn_to = trn_to[this_trn_id]
+
         update_node_states(node_state, status_at_node, tail_node,
                            head_node, this_trn_to, num_node_states)
         update_link_state_new(event_link, this_trn_to, event_time, bnd_lnk,
@@ -799,18 +807,23 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
                               link_state, n_trn, priority_queue, next_update,
                               next_trn_id, trn_id, trn_rate)
 
+        #print >> sys.stderr, ' /B'
         # Next, when the state of one of the link's nodes changes, we have
         # to update the states of the OTHER links attached to it. This
         # could happen to one or both nodes.
         if node_state[tail_node] != old_tail_node_state:
 
+            #print >> sys.stderr, '  C'
+            
             for i in range(links_at_node.shape[1]):
 
+                #print >> sys.stderr, '   D'
                 link = links_at_node[tail_node, i]
                 dir_code = active_link_dirs_at_node[tail_node, i]
 
                 if dir_code != 0 and link != event_link:
 
+                    #print >> sys.stderr, '    E'
                     this_link_tail_node = node_at_link_tail[link]
                     this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
@@ -825,15 +838,21 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
                                           num_node_states, num_node_states_sq,
                                           link_state, n_trn, priority_queue, next_update,
                                           next_trn_id, trn_id, trn_rate)
+                    #print >> sys.stderr, '    /E'
+                    
+                #print >> sys.stderr, '   /D'
+            #print >> sys.stderr, '  /C'
 
         if node_state[head_node] != old_head_node_state:
 
+            #print >> sys.stderr, ' F'
             for i in range(links_at_node.shape[1]):
-
+                #print >> sys.stderr, '  G'
                 link = links_at_node[head_node, i]
                 dir_code = active_link_dirs_at_node[head_node, i]
 
                 if dir_code != 0 and link != event_link:
+                    #print >> sys.stderr, '   H'
                     this_link_tail_node = node_at_link_tail[link]
                     this_link_head_node = node_at_link_head[link]
                     orientation = link_orientation[link]
@@ -848,6 +867,9 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
                                           num_node_states, num_node_states_sq,
                                           link_state, n_trn, priority_queue, next_update,
                                           next_trn_id, trn_id, trn_rate)
+                    #print >> sys.stderr, '   /H'
+                #print >> sys.stderr, '  /G'
+            #print >> sys.stderr, ' /F'
 
         # If requested, display a plot of the grid
         if plot_each_transition and (plotter is not None):
@@ -858,7 +880,9 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
         # want to track), implement the swap.
         #   If the event requires a call to a user-defined callback
         # function, we handle that here too.
+        #print >> sys.stderr, 'I'
         if trn_propswap[this_trn_id]:
+            #print >> sys.stderr, ' J'
             tmp = propid[tail_node]
             propid[tail_node] = propid[head_node]
             propid[head_node] = tmp
@@ -869,6 +893,9 @@ cpdef void do_transition_new(PriorityQueue priority_queue,
             if trn_prop_update_fn[this_trn_id] is not None:
                 trn_prop_update_fn[this_trn_id](
                     this_cts_model, tail_node, head_node, event_time)
+            #print >> sys.stderr, ' /J'
+        #print >> sys.stderr, '/I'
+    #print >> sys.stderr, '/A'
 
 cpdef double run_cts(double run_to, double current_time,
                      char plot_each_transition,
