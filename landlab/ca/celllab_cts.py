@@ -147,7 +147,6 @@ if _USE_CYTHON:
 
 if _CYTEST:
     from landlab.ca.cfuncs import (update_node_states,
-                                   update_link_state_new,
                                    push_transitions_to_event_queue_new,
                                    do_transition_new)
 
@@ -875,21 +874,21 @@ class CellLabCTSModel(object):
         for i in self.grid.active_links:
             current_state = self.current_link_state(i)
             if current_state != self.link_state[i]:
-                if _CYTEST:
-                    update_link_state_new(i, current_state, current_time,
-                                          self.bnd_lnk, self.node_state,
-                                          self.grid.node_at_link_tail,
-                                          self.grid.node_at_link_head,
-                                          self.link_orientation,
-                                          self.num_node_states,
-                                          self.num_node_states_sq,
-                                          self.link_state, self.n_trn,
-                                          self.priority_queue,
-                                          self.next_update,
-                                          self.next_trn_id,
-                                          self.trn_id, self.trn_rate)
-                else:
-                    self.update_link_state_new(i, current_state, current_time)
+#                if _CYTEST:
+#                    update_link_state_new(i, current_state, current_time,
+#                                          self.bnd_lnk, self.node_state,
+#                                          self.grid.node_at_link_tail,
+#                                          self.grid.node_at_link_head,
+#                                          self.link_orientation,
+#                                          self.num_node_states,
+#                                          self.num_node_states_sq,
+#                                          self.link_state, self.n_trn,
+#                                          self.priority_queue,
+#                                          self.next_update,
+#                                          self.next_trn_id,
+#                                          self.trn_id, self.trn_rate)
+#                else:
+                self.update_link_state_new(i, current_state, current_time)
 
     def get_next_event(self, link, current_state, current_time):
         """Get the next event for a link.
