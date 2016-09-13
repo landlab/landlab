@@ -1,5 +1,6 @@
 from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
+from .submarine_diffusion import SubmarineDiffuser
 from .fire_generator import FireGenerator
 from .detachment_ltd_erosion import DetachmentLtdErosion
 from .flexure import Flexure
@@ -23,7 +24,7 @@ from .drainage_density import DrainageDensity
 from .fire_generator import FireGenerator
 
 
-COMPONENTS = [ChiFinder, LinearDiffuser,
+COMPONENTS = [ChiFinder, LinearDiffuser, SubmarineDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
