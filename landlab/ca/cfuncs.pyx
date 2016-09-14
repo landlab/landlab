@@ -232,6 +232,58 @@ cpdef update_link_states_and_transitions(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cpdef update_link_states_and_transitions_new(
+                             np.ndarray[DTYPE_INT_t, ndim=1] active_links,
+                             np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
+                             np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
+                             np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
+                             np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                             np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                             np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                             np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                             priority_queue,
+                             np.ndarray[DTYPE_t, ndim=1] next_update,
+                             np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
+                             np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                             np.ndarray[DTYPE_t, ndim=1] trn_rate, 
+                             DTYPE_INT_t num_node_states,
+                             DTYPE_INT_t num_node_states_sq,
+                             DTYPE_t current_time):
+        """
+        Following an "external" change to the node state grid, updates link
+        states where necessary and creates any needed events.
+
+        Notes
+        -----
+        **Algorithm**::
+
+            FOR each active link:
+                if the actual node pair is different from the link's code:
+                    change the link state to be correct
+                    schedule an event
+        """
+        cdef int current_state
+        cdef int i, j
+
+        for j in range(len(active_links)):
+            i = active_links[i]
+            current_state = current_link_state(i, node_state,
+                                               node_at_link_tail,
+                                               node_at_link_head,
+                                               link_orientation,
+                                               num_node_states,
+                                               num_node_states_sq)
+            if current_state != link_state[i]:
+                update_link_state_new(i, current_state, current_time, bnd_lnk,
+                                  node_state, node_at_link_tail,
+                                  node_at_link_head, link_orientation, 
+                                  num_node_states, num_node_states_sq,
+                                  link_state, n_trn, priority_queue, next_update, 
+                                  next_trn_id, trn_id, trn_rate)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 @cython.cdivision(True)
 cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
