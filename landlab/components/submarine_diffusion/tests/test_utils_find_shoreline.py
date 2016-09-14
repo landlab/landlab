@@ -39,6 +39,13 @@ def test_find_shoreline_with_list_args():
     find_shoreline(x_list, z_list)
 
 
+@raises(ValueError)
+def test_find_shoreline_fails_with_different_len_args():
+    """Test find_shoreline fails with arguments of different length"""
+    new_x = np.arange(float(len(x) + 1))
+    find_shoreline(new_x, z)
+
+
 @raises(NotImplementedError)
 def test_find_shoreline_fails_with_unknown_kind():
     """Test find_shoreline fails with unknown interpolation"""
