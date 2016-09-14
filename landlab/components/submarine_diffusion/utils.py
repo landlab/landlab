@@ -24,7 +24,7 @@ def find_shoreline(x, z, sea_level=0., kind='cubic'):
 
     Examples
     --------
-    >>> from landlab.components.submarine_diffusion import find_shoreline
+    >>> from landlab.components.submarine_diffusion.utils import find_shoreline
     >>> import numpy as np
 
     Create a linearly-dipping profile.
