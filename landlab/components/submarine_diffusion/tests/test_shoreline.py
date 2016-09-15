@@ -1,8 +1,8 @@
-"""Test the utils.find_shoreline function."""
+"""Test the shoreline.find_shoreline function."""
 import numpy as np
 from nose.tools import raises, assert_almost_equal
 
-from landlab.components.submarine_diffusion.utils import find_shoreline
+from landlab.components.submarine_diffusion.shoreline import find_shoreline
 
 
 # Test data: a linear shoreline profile.

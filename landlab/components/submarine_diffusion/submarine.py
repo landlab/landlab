@@ -2,7 +2,8 @@
 import numpy as np
 
 from .. import LinearDiffuser
-from .utils import find_shoreline
+from .shoreline import find_shoreline
+
 
 class SubmarineDiffuser(LinearDiffuser):
 

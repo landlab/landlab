@@ -24,7 +24,8 @@ def find_shoreline(x, z, sea_level=0., kind='cubic'):
 
     Examples
     --------
-    >>> from landlab.components.submarine_diffusion.utils import find_shoreline
+    >>> from landlab.components.submarine_diffusion.shoreline import (
+    ...     find_shoreline)
     >>> import numpy as np
 
     Create a linearly-dipping profile.
@@ -66,6 +67,30 @@ def find_shoreline(x, z, sea_level=0., kind='cubic'):
     return x_of_shoreline
 
 
+def interp_shoreline_point(x, z, sea_level=0.):
+    index_at_shore = find_shoreline_index(x, z, sea_level=sea_level)
+
+    p_land = np.polyfit(x[index_at_shore - 2: index_at_shore],
+                        z[index_at_shore - 2: index_at_shore], 1)
+    p_sea = np.polyfit(x[index_at_shore: index_at_shore + 2],
+                       z[index_at_shore: index_at_shore + 2], 1)
+
+    if np.isclose(p_land[0], p_sea[0]):
+        raise ValueError('lines are parallel')
+    else:
+        x_int = (p_sea[1] - p_land[1]) / (p_land[0] - p_sea[0])
+        z_int = p_land[0] * x_int + p_land[1]
+        return x_int, z_int
+
+
+def insert_shoreline_point(x, z, sea_level=0.):
+    from bisect import bisect
+    (x_shore, z_shore) = interp_shoreline_point(x, z, sea_level=sea_level)
+    index = bisect(x, x_shore)
+
+    return np.insert(x, index, x_shore), np.insert(z, index, z_shore)
+
+
 def find_shoreline_index(x, z, sea_level=0.):
     """Find the landward-index of the shoreline.
 
@@ -90,7 +115,7 @@ def find_shoreline_index(x, z, sea_level=0.):
 
     Examples
     --------
-    >>> from landlab.components.submarine_diffusion.utils import (
+    >>> from landlab.components.submarine_diffusion.shoreline import (
     ...     find_shoreline_index)
     >>> import numpy as np
 
