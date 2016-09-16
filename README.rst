@@ -29,6 +29,9 @@ http://github.com/landlab/landlab
 Project Status
 --------------
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.154179.svg
+   :target: https://doi.org/10.5281/zenodo.154179
+   
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
     :target: https://readthedocs.org/projects/landlab/?badge=latest
 
