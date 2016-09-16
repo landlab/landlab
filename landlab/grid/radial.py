@@ -37,21 +37,13 @@ Information about the grid as a whole
     ~landlab.grid.radial.RadialModelGrid.axis_units
     ~landlab.grid.radial.RadialModelGrid.from_dict
     ~landlab.grid.radial.RadialModelGrid.move_origin
+    ~landlab.grid.radial.RadialModelGrid.ndim
     ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
-    ~landlab.grid.radial.RadialModelGrid.number_of_active_faces
-    ~landlab.grid.radial.RadialModelGrid.number_of_active_links
-    ~landlab.grid.radial.RadialModelGrid.number_of_cells
-    ~landlab.grid.radial.RadialModelGrid.number_of_core_cells
-    ~landlab.grid.radial.RadialModelGrid.number_of_core_nodes
     ~landlab.grid.radial.RadialModelGrid.number_of_elements
-    ~landlab.grid.radial.RadialModelGrid.number_of_faces
-    ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
-    ~landlab.grid.radial.RadialModelGrid.number_of_links
-    ~landlab.grid.radial.RadialModelGrid.number_of_nodes
     ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell
-    ~landlab.grid.radial.RadialModelGrid.number_of_patches
     ~landlab.grid.radial.RadialModelGrid.number_of_shells
     ~landlab.grid.radial.RadialModelGrid.save
+    ~landlab.grid.radial.RadialModelGrid.size
     ~landlab.grid.radial.RadialModelGrid.spacing_of_shells
 
 
@@ -62,9 +54,11 @@ Information about nodes
     :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node
+    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
     ~landlab.grid.radial.RadialModelGrid.all_node_azimuths_map
     ~landlab.grid.radial.RadialModelGrid.all_node_distances_map
     ~landlab.grid.radial.RadialModelGrid.boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.radial.RadialModelGrid.cell_area_at_node
     ~landlab.grid.radial.RadialModelGrid.cell_at_node
     ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
@@ -91,8 +85,10 @@ Information about nodes
     ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
     ~landlab.grid.radial.RadialModelGrid.number_of_nodes
     ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
     ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.patches_at_node
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
     ~landlab.grid.radial.RadialModelGrid.radius_at_node
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -123,18 +119,24 @@ Information about links
     ~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind
     ~landlab.grid.radial.RadialModelGrid.link_dirs_at_node
     ~landlab.grid.radial.RadialModelGrid.links_at_node
+    ~landlab.grid.radial.RadialModelGrid.links_at_patch
     ~landlab.grid.radial.RadialModelGrid.node_at_link_head
     ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
     ~landlab.grid.radial.RadialModelGrid.number_of_active_links
     ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
     ~landlab.grid.radial.RadialModelGrid.number_of_links
     ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_links
     ~landlab.grid.radial.RadialModelGrid.status_at_link
     ~landlab.grid.radial.RadialModelGrid.unit_vector_xcomponent_at_link
     ~landlab.grid.radial.RadialModelGrid.unit_vector_ycomponent_at_link
     ~landlab.grid.radial.RadialModelGrid.upwind_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.x_of_link
+    ~landlab.grid.radial.RadialModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -152,6 +154,8 @@ Information about cells
     ~landlab.grid.radial.RadialModelGrid.number_of_cells
     ~landlab.grid.radial.RadialModelGrid.number_of_core_cells
     ~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell
+    ~landlab.grid.radial.RadialModelGrid.x_of_cell
+    ~landlab.grid.radial.RadialModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -167,6 +171,8 @@ Information about faces
     ~landlab.grid.radial.RadialModelGrid.number_of_faces
     ~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell
     ~landlab.grid.radial.RadialModelGrid.width_of_face
+    ~landlab.grid.radial.RadialModelGrid.x_of_face
+    ~landlab.grid.radial.RadialModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -174,9 +180,24 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.radial.RadialModelGrid.links_at_patch
     ~landlab.grid.radial.RadialModelGrid.nodes_at_patch
     ~landlab.grid.radial.RadialModelGrid.number_of_patches
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.patches_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_at_node
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
+
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.radial.RadialModelGrid.number_of_corners
+
 
 Data Fields in ModelGrid
 ------------------------
@@ -200,6 +221,8 @@ itself that provide access to the values groups:
     ~landlab.grid.radial.RadialModelGrid.at_cell
     ~landlab.grid.radial.RadialModelGrid.at_link
     ~landlab.grid.radial.RadialModelGrid.at_face
+    ~landlab.grid.radial.RadialModelGrid.at_patch
+    ~landlab.grid.radial.RadialModelGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -307,12 +330,16 @@ nodes.
     ~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.radial.RadialModelGrid.map_link_head_node_to_link
     ~landlab.grid.radial.RadialModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_link_vector_sum_to_patch
     ~landlab.grid.radial.RadialModelGrid.map_link_vector_to_nodes
     ~landlab.grid.radial.RadialModelGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.radial.RadialModelGrid.map_max_of_node_links_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_max_of_patch_nodes_to_patch
     ~landlab.grid.radial.RadialModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_mean_of_patch_nodes_to_patch
     ~landlab.grid.radial.RadialModelGrid.map_min_of_link_nodes_to_link
     ~landlab.grid.radial.RadialModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_min_of_patch_nodes_to_patch
     ~landlab.grid.radial.RadialModelGrid.map_node_to_cell
     ~landlab.grid.radial.RadialModelGrid.map_upwind_node_link_max_to_node
     ~landlab.grid.radial.RadialModelGrid.map_upwind_node_link_mean_to_node
@@ -332,9 +359,9 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
-   .....:     
     ~landlab.grid.radial.RadialModelGrid.active_faces
     ~landlab.grid.radial.RadialModelGrid.active_links
+    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
     ~landlab.grid.radial.RadialModelGrid.boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.core_cells
@@ -349,6 +376,8 @@ defined at other grid elements automatically.
     ~landlab.grid.radial.RadialModelGrid.number_of_core_cells
     ~landlab.grid.radial.RadialModelGrid.number_of_core_nodes
     ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
     ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -503,6 +532,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
 
     @classmethod
     def from_dict(cls, params):
+        """
+        LLCATS: GINF
+        """
         num_shells = params['num_shells']
         dr = params.get('dr', 1.)
         origin = params.get('origin', (0., 0.))
@@ -564,18 +596,26 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         int
             The number of node shells in the radial grid (not counting the
             center node).
+
+        LLCATS: GINF
         """
         return self._n_shells
 
     @property
     @deprecated(use='spacing_of_shells', version=1.0)
     def shell_spacing(self):
-        """Fixed distance between shells."""
+        """Fixed distance between shells.
+
+        LLCATS: DEPR GINF MEAS
+        """
         return self._dr
 
     @property
     def spacing_of_shells(self):
-        """Fixed distance between shells."""
+        """Fixed distance between shells.
+
+        LLCATS: GINF MEAS
+        """
         return self._dr
 
     @property
@@ -586,6 +626,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         -------
         int
             Number of nodes in each shell, excluding the center node.
+
+        LLCATS: GINF NINF
         """
         try:
             return self._nnodes_inshell
@@ -608,6 +650,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         >>> mg.radius_at_node
         array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  0.,  1.,  1.,  2.,  2.,
                 1.,  1.,  2.,  2.,  2.,  2.,  2.])
+
+        LLCATS: NINF MEAS
         """
         try:
             return self._node_radii

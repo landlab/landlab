@@ -34,6 +34,9 @@ class ScalarDataFields(dict):
     a standard Python `dict`, which allows access to the fields through
     dict-like syntax.
 
+    The syntax `.at_[element]` can also be used as syntactic sugar to access
+    fields. e.g., `n1 = fields.at_node['name1']`, `n2 = grid.at_link['name2']`.
+
     Parameters
     ----------
     size : int
@@ -73,6 +76,20 @@ class ScalarDataFields(dict):
     ...     # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ValueError: total size of the new array must be the same as the field
+
+    Fields defined on a grid, which inherits from the ScalarModelFields class,
+    behave similarly, though the length of those fields will be forced
+    by the element type they are defined on:
+
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> mg = RasterModelGrid((4, 5))
+    >>> z = mg.add_field('cell', 'topographic__elevation', np.random.rand(
+    ...         mg.number_of_cells), units='m')
+    >>> mg.at_cell['topographic__elevation'].size == mg.number_of_cells
+    True
+
+    LLCATS: FIELDCR, FIELDIO
     """
 
     def __init__(self, size=None):
@@ -227,6 +244,8 @@ class ScalarDataFields(dict):
             does not initialize the new array.
         landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.empty(**kwds), units=units,
                               noclobber=noclobber)
@@ -273,6 +292,8 @@ class ScalarDataFields(dict):
         ['topographic__elevation']
         >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.ones(**kwds), units=units,
                               noclobber=noclobber)
@@ -306,6 +327,8 @@ class ScalarDataFields(dict):
             does not initialize the new array.
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.zeros(**kwds), units=units,
                               noclobber=noclobber)
@@ -373,6 +396,8 @@ class ScalarDataFields(dict):
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation already exists
+
+        LLCATS: FIELDCR
         """
         if noclobber and name in self:
             raise FieldError('{name}: already exists'. format(name=name))
@@ -403,6 +428,8 @@ class ScalarDataFields(dict):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR
         """
         self._units[name] = units
 

@@ -403,7 +403,7 @@ def test_rerouting_with_supplied_pits():
     lf.map_depressions()
     assert_array_equal(mg.at_node['flow__receiver_node'], r_new)
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
-    assert_array_almost_equal(mg.at_node['water__discharge'], A_new)
+    assert_array_almost_equal(mg.at_node['surface_water__discharge'], A_new)
     assert_array_equal(mg.at_node['flow__upstream_node_order'], s_new)
     assert_array_equal(mg.at_node['flow__link_to_receiver_node'], links_new)
 

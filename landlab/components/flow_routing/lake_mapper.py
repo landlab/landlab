@@ -16,7 +16,6 @@ from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
 # LOCAL_BAD_INDEX_VALUE = np.iinfo(np.int32).max
 import landlab
 
-
 # Codes for depression status
 _UNFLOODED = 0
 _PIT = 1
@@ -403,6 +402,16 @@ class DepressionFinderAndRouter(Component):
                             self.flood_status[nbr] == _FLOODED:
                         nodes_this_depression.append(nbr)
                         self.flood_status[nbr] = _CURRENT_LAKE
+        if lowest_elev == self._BIG_ELEV:
+            print('Unable to find drainage outlet for a lake.')
+            print('In lake with these nodes:')
+            for i in nodes_this_depression:
+                print((i, self._elev[i], self.flood_status[i]), end="") 
+                print((self._grid.status_at_node[i]), end="")
+                print((self._node_nbrs[i]), end="")
+                print((self._elev[self._node_nbrs[i]]) , end="")
+                print((self.flood_status[self._node_nbrs[i]]), end="")
+                print((self._grid.status_at_node[self._node_nbrs[i]]))
         assert (lowest_elev < self._BIG_ELEV), \
             'failed to find lowest perim node'
         return lowest_node
@@ -763,7 +772,7 @@ class DepressionFinderAndRouter(Component):
                                                        runoff_rate=Q_in)
         # finish the property updating:
         self.grid.at_node['drainage_area'][:] = self.a
-        self.grid.at_node['water__discharge'][:] = q
+        self.grid.at_node['surface_water__discharge'][:] = q
         self.grid.at_node['flow__upstream_node_order'][:] = s
 
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):

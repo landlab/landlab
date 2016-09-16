@@ -52,7 +52,7 @@ class KinwaveOverlandFlowModel(Component):
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0
-    >>> rg.at_node['water__depth']
+    >>> rg.at_node['surface_water__depth']
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
             0.,  0.,  0.,  0.,  0.,  0.,  0.])
     """
@@ -65,7 +65,7 @@ class KinwaveOverlandFlowModel(Component):
     )
 
     _output_var_names = (
-        'water__depth',
+        'surface_water__depth',
         'water__velocity',
         'water__specific_discharge',
     )
@@ -73,7 +73,7 @@ class KinwaveOverlandFlowModel(Component):
     _var_units = {
         'topographic__elevation' : 'm',
         'topographic__slope' : 'm/m',
-        'water__depth' : 'm',
+        'surface_water__depth' : 'm',
         'water__velocity' : 'm/s',
         'water__specific_discharge' : 'm2/s',
     }
@@ -81,7 +81,7 @@ class KinwaveOverlandFlowModel(Component):
     _var_mapping = {
         'topographic__elevation' : 'node',
         'topographic__gradient' : 'link',
-        'water__depth' : 'node',
+        'surface_water__depth' : 'node',
         'water__velocity' : 'link',
         'water__specific_discharge' : 'link',
     }
@@ -91,7 +91,7 @@ class KinwaveOverlandFlowModel(Component):
             'elevation of the ground surface relative to some datum',
         'topographic__gradient':
             'gradient of the ground surface',
-        'water__depth':
+        'surface_water__depth':
             'depth of water',
         'water__velocity':
             'flow velocity component in the direction of the link',
@@ -132,10 +132,10 @@ class KinwaveOverlandFlowModel(Component):
             self.elev = grid.add_zeros('node',
                                        'topographic__elevation')
         #  Water depth
-        if 'water__depth' in grid.at_node:
-            self.depth = grid.at_node['water__depth']
+        if 'surface_water__depth' in grid.at_node:
+            self.depth = grid.at_node['surface_water__depth']
         else:
-            self.depth = grid.add_zeros('node', 'water__depth')
+            self.depth = grid.add_zeros('node', 'surface_water__depth')
         #   Slope
         if 'topographic__gradient' in grid.at_link:
             self.slope = grid.at_link['topographic__gradient']
@@ -167,7 +167,7 @@ class KinwaveOverlandFlowModel(Component):
         # in which water depth at the links is the depth at the higher of the
         # two nodes.
         H_link = self._grid.map_value_at_max_node_to_link(
-                'topographic__elevation', 'water__depth')
+                'topographic__elevation', 'surface_water__depth')
 
         # Calculate velocity using the Manning equation.
         self.vel = -self.sign_slope * self.vel_coef * H_link**0.66667 \

@@ -26,7 +26,7 @@ n_sp:
 threshold_sp:
 1.
 use_Q:
-water__discharge
+surface_water__discharge
 
 mean_storm:
 100.
