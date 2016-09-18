@@ -329,8 +329,8 @@ class FlowRouter(Component):
             self.updated_boundary_conditions()
             self._bc_set_code = self.grid.bc_set_code
 
-        # if elevs is not provided, default to stored grid values, which must
-        # be provided as grid
+        # We assume that elevations are provided in a field called
+        # 'topographic__elevation'
         elevs = self._grid['node']['topographic__elevation']
 
         node_cell_area = self._grid.cell_area_at_node.copy()
@@ -368,6 +368,10 @@ class FlowRouter(Component):
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
 
+        #print('Sink @ 371:')
+        #print(sink)
+        #print('Recv @ 373:')
+        #print(receiver)
         # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.
 

@@ -576,6 +576,11 @@ class DepressionFinderAndRouter(Component):
         # and average depth of depressions. Tricky thing is that one might be
         # devoured by another, so would need to be removed from the list.
 
+        # DEBUG
+        #nnil = len(nodes_this_depression)
+        #if nnil > 100:
+        #    print('Lake as ' + str(nnil))
+
     def _identify_depressions_and_outlets(self):
         """Find depression and lakes on a topographic surface.
 
@@ -584,20 +589,18 @@ class DepressionFinderAndRouter(Component):
         """
         self._pits_flooded = 0
         self._unique_pits = np.zeros_like(self.pit_node_ids, dtype=bool)
-        #print('In lake maper there are ' + str(len(self.pit_node_ids)))
+        #debug_count = 0
         for pit_node in self.pit_node_ids:
             if self.flood_status[pit_node] != _PIT:
                 #print(str(pit_node) + ' fs: ' + str(self.flood_status[pit_node]))
                 from landlab import BAD_INDEX_VALUE
                 self.depression_outlets.append(BAD_INDEX_VALUE)
-            #x = self.grid.x_of_node[pit_node]
-            #y = self.grid.y_of_node[pit_node]
-            #if x > 6300. and y < 4500.:
-            #    print('pit' + str(pit_node))
-            #    print(str(self.grid.x_of_node[pit_node]) + ',' + str(self.grid.y_of_node[pit_node]))
             else:
                 self.find_depression_from_pit(pit_node)
                 self._pits_flooded += 1
+            #debug_count += 1
+            #if (debug_count % 100) == 0:
+            #    print(str(debug_count) + ' pits')
         assert len(self.depression_outlets) == self._unique_pits.size
 
         self.unique_lake_outlets = np.array(self.depression_outlets
@@ -925,7 +928,6 @@ class DepressionFinderAndRouter(Component):
 
 def main():
     """temporary: test."""
-    print('howdy')
     from landlab import RasterModelGrid
     from numpy.random import rand
     grid = RasterModelGrid(4, 5, 1.0)
