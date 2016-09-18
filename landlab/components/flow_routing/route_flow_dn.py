@@ -18,6 +18,7 @@ import warnings
 from landlab.components.flow_routing import flow_direction_DN
 from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError, Component
+from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import ModelParameterDictionary
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_file_name_or_kwds
@@ -232,8 +233,6 @@ class FlowRouter(Component):
             # needs modifying in the loop if D4 (now done)
         else:
             self._active_links = self.grid.active_links
-            #self._activelink_tail = self.grid._activelink_fromnode
-            #self._activelink_head = self.grid._activelink_tonode
             self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
@@ -348,8 +347,8 @@ class FlowRouter(Component):
 
         # Find the baselevel nodes
         (baselevel_nodes, ) = numpy.where(
-            numpy.logical_or(self._grid.status_at_node == 1,
-                             self._grid.status_at_node == 2))
+            numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
 
         # Calculate flow directions
         if self.method == 'D4':
