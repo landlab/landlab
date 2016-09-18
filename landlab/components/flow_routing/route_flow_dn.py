@@ -225,15 +225,17 @@ class FlowRouter(Component):
         # We'll also keep track of the active links; if raster, then these are
         # the "D8" links; otherwise, it's just activelinks
         if self._is_raster:
-            dal, d8f, d8t = self.grid._d8_active_links()
+            dal, d8t, d8h = self.grid._d8_active_links()
             self._active_links = dal
-            self._activelink_from = d8f
-            self._activelink_to = d8t
+            self._activelink_tail = d8t
+            self._activelink_head = d8h
             # needs modifying in the loop if D4 (now done)
         else:
             self._active_links = self.grid.active_links
-            self._activelink_from = self.grid._activelink_fromnode
-            self._activelink_to = self.grid._activelink_tonode
+            #self._activelink_tail = self.grid._activelink_fromnode
+            #self._activelink_head = self.grid._activelink_tonode
+            self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
+            self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
@@ -354,16 +356,16 @@ class FlowRouter(Component):
             num_d4_active = self._grid.number_of_active_links  # only d4
             receiver, steepest_slope, sink, recvr_link = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
-                                         self._activelink_from[:num_d4_active],
-                                         self._activelink_to[:num_d4_active],
+                                         self._activelink_tail[:num_d4_active],
+                                         self._activelink_head[:num_d4_active],
                                          link_slope,
                                          grid=self._grid,
                                          baselevel_nodes=baselevel_nodes)
         else:  # Voronoi or D8
             receiver, steepest_slope, sink, recvr_link = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
-                                     self._activelink_from,
-                                     self._activelink_to, link_slope,
+                                     self._activelink_tail,
+                                     self._activelink_head, link_slope,
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
 
