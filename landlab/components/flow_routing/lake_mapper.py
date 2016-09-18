@@ -522,7 +522,7 @@ class DepressionFinderAndRouter(Component):
         else:  # lake is subsumed within an existing lake
             assert np.all(np.equal(self.flood_status[n], _CURRENT_LAKE))
             self.flood_status[n] = _FLOODED
-            pass
+            #pass
 
     def find_depression_from_pit(self, pit_node):
         """Find the extent of the nodes that form a pit.
@@ -584,9 +584,20 @@ class DepressionFinderAndRouter(Component):
         """
         self._pits_flooded = 0
         self._unique_pits = np.zeros_like(self.pit_node_ids, dtype=bool)
+        #print('In lake maper there are ' + str(len(self.pit_node_ids)))
         for pit_node in self.pit_node_ids:
-            self.find_depression_from_pit(pit_node)
-            self._pits_flooded += 1
+            if self.flood_status[pit_node] != _PIT:
+                #print(str(pit_node) + ' fs: ' + str(self.flood_status[pit_node]))
+                from landlab import BAD_INDEX_VALUE
+                self.depression_outlets.append(BAD_INDEX_VALUE)
+            #x = self.grid.x_of_node[pit_node]
+            #y = self.grid.y_of_node[pit_node]
+            #if x > 6300. and y < 4500.:
+            #    print('pit' + str(pit_node))
+            #    print(str(self.grid.x_of_node[pit_node]) + ',' + str(self.grid.y_of_node[pit_node]))
+            else:
+                self.find_depression_from_pit(pit_node)
+                self._pits_flooded += 1
         assert len(self.depression_outlets) == self._unique_pits.size
 
         self.unique_lake_outlets = np.array(self.depression_outlets
@@ -672,6 +683,7 @@ class DepressionFinderAndRouter(Component):
             self.is_pit[self.pit_node_ids] = True
         # Set up "lake code" array
         self.flood_status.fill(_UNFLOODED)
+        #print('in lake_mapper length of PNI is ' + str(len(self.pit_node_ids)))
         self.flood_status[self.pit_node_ids] = _PIT
 
         self._identify_depressions_and_outlets()
