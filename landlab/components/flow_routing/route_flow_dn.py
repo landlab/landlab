@@ -180,6 +180,13 @@ class FlowRouter(Component):
                           "your code if you intended the FlowRouter to use " +
                           "that field.", DeprecationWarning)
 
+        # For fields involving IDs, we'll use 32-bit integers, which should be
+        # able to address IDs up to 2,147,483,648. Using 32-bit ints saves some
+        # memory (relative to the default 64-bit), and permits netCDF3 output
+        # of fields. Here we add an assert in the unlikely event we are working
+        # with a grid with more than 2 billion links:
+        assert (self.grid.number_of_links < 2147483648), 'Grid is too big'
+    
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
@@ -215,7 +222,7 @@ class FlowRouter(Component):
         except FieldError:
             self.links_to_receiver = grid.at_node[
                 'flow__link_to_receiver_node']
-        grid.add_zeros('flow__sink_flag', at='node', dtype=int,
+        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
                        noclobber=False)
 
     def updated_boundary_conditions(self):
