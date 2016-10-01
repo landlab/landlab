@@ -392,6 +392,9 @@ class DepressionFinderAndRouter(Component):
         lowest_elev = self._BIG_ELEV
 
         for n in nodes_this_depression:
+            #debug
+            if n == 105417:
+                print('in depr')
             for nbr in self._node_nbrs[n]:
                 if nbr != -1:
                     if self.flood_status[nbr] == _UNFLOODED:
@@ -485,6 +488,12 @@ class DepressionFinderAndRouter(Component):
             depression.
         """
         n = nodes_this_depression
+        #DEBUG
+        if outlet_id == 87533:
+            print('***' + str(len(n)))
+            debug_flag = True
+        else:
+            debug_flag = False
         # three cases possible - new lake is fresh; new lake is smaller than
         # an existing lake (subsumed, and unimportant), new lake is equal to
         # or bigger than old lake (or multiple old lakes). It SHOULDN'T be
@@ -493,6 +502,8 @@ class DepressionFinderAndRouter(Component):
         # total of unique vals in lake_map.
         fresh_nodes = np.equal(self._lake_map[n], LOCAL_BAD_INDEX_VALUE)
         if np.all(fresh_nodes):  # a new lake
+            if debug_flag:
+                print('new lake')
             self.flood_status[n] = _FLOODED
             self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
             self.depression_outlet_map[n] = outlet_id
@@ -502,6 +513,8 @@ class DepressionFinderAndRouter(Component):
                                              pit_node)
             self._unique_pits[pit_node_where] = True
         elif np.any(fresh_nodes):  # lake is bigger than one or more existing
+            if debug_flag:
+                print('lake bigger')
             self.flood_status[n] = _FLOODED
             depth_this_lake = self._elev[outlet_id] - self._elev[n]
             self.depression_depth[n] = depth_this_lake
@@ -520,6 +533,8 @@ class DepressionFinderAndRouter(Component):
             # because a single lake is just replaced by a new lake.
             self._lake_map[n] = pit_node
         else:  # lake is subsumed within an existing lake
+            if debug_flag:
+                print('lake swallowed')
             assert np.all(np.equal(self.flood_status[n], _CURRENT_LAKE))
             self.flood_status[n] = _FLOODED
             #pass
@@ -535,6 +550,9 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
+        #debug
+        if pit_node == 105417:
+            print('N in fdfp')
         # Place pit_node at top of depression list
         nodes_this_depression = []
         nodes_this_depression.insert(0, pit_node)
@@ -591,6 +609,8 @@ class DepressionFinderAndRouter(Component):
         self._unique_pits = np.zeros_like(self.pit_node_ids, dtype=bool)
         #debug_count = 0
         for pit_node in self.pit_node_ids:
+            if pit_node == 105417:
+                print('N is pit in idao')
             if self.flood_status[pit_node] != _PIT:
                 #print(str(pit_node) + ' fs: ' + str(self.flood_status[pit_node]))
                 from landlab import BAD_INDEX_VALUE
@@ -605,6 +625,12 @@ class DepressionFinderAndRouter(Component):
 
         self.unique_lake_outlets = np.array(self.depression_outlets
                                             )[self._unique_pits]
+                                            
+        #DEBUG
+#        if 87533 in self.unique_lake_outlets:
+#            print('87533 is an outlet')
+#        else:
+#            print('87533 IS MISSING!')
 
     def map_depressions(self, pits='flow__sink_flag', reroute_flow=True):
         """Map depressions/lakes in a topographic surface.
@@ -689,38 +715,147 @@ class DepressionFinderAndRouter(Component):
         #print('in lake_mapper length of PNI is ' + str(len(self.pit_node_ids)))
         self.flood_status[self.pit_node_ids] = _PIT
 
+        #DEBUG
+#        r86225 = self._grid.at_node['flow__receiver_node'][86225]
+#        r86226 = self._grid.at_node['flow__receiver_node'][86226]
+#        if r86225 == 86226 and r86226 == 86225:
+#            print('111111111111111')
+
         self._identify_depressions_and_outlets()
+        
+        #DEBUG
+#        r86225 = self._grid.at_node['flow__receiver_node'][86225]
+#        r86226 = self._grid.at_node['flow__receiver_node'][86226]
+#        if r86225 == 86226 and r86226 == 86225:
+#            print('2222222222222222')
 
         if reroute_flow and ('flow__receiver_node' in
                              self._grid.at_node.keys()):
             self.receivers = self._grid.at_node['flow__receiver_node']
             self.sinks = self._grid.at_node['flow__sink_flag']
             self.grads = self._grid.at_node['topographic__steepest_slope']
+            #DEBUG
+#            print('BEFORE route_flow:')
+#            print('87966 => ' + str(self.receivers[87966]) + ' A=' + str(self.grid.at_node['drainage_area'][87966]))
+#            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
             self._route_flow()
+#            print('AFTER route_flow:')
+#            print('87966 => ' + str(self.receivers[87966]) + ' A=' + str(self.grid.at_node['drainage_area'][87966]))
+#            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
+
+            #DEBUG
+#            r86225 = self._grid.at_node['flow__receiver_node'][86225]
+#            r86226 = self._grid.at_node['flow__receiver_node'][86226]
+#            if r86225 == 86226 and r86226 == 86225:
+#                print('333333333333')
+
+            # BIG DEBUG
+#            done = False
+#            count = 0
+#            n = 87966
+#            while not done:
+#                r = self.receivers[n]
+#                if self.receivers[r] == n:
+#                    print('HOUSTON, WE HAVE PROBLEM:')
+#                    print(n)
+#                    print(r)
+#                    print(self.receivers[r])
+#                    done = True
+#                print(str(n) + '=>' + str(r))
+#                n = self.receivers[n]
+#                if n == self.receivers[n]:
+#                    done = True
+#                    print('HALTING AT ' + str(n))
+#                count += 1
+#                if count > 100000:
+#                    done = True
+                    
             self._reaccumulate_flow()
+#            print('and POST reaccum:')
+#            print('87966 => ' + str(self.receivers[87966]) + ' A=' + str(self.grid.at_node['drainage_area'][87966]))
+#            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
+
+
+    def _route_flow_for_one_lake(self, outlet, lake_code):
+        """Route flow across a single lake. Alternative to part of _route_flow.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> rg = RasterModelGrid((7, 8))
+        >>> rcvr = rg.add_zeros('node', 'flow__receiver_node', dtype=int)
+        >>> rcvr[:] = np.arange(rg.number_of_nodes)
+        >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
+        >>> rcvr[lake_nodes] = -1
+        >>> rcvr[9] = 1
+        >>> rcvr[11] = 3
+        >>> rcvr[14] = 6
+        >>> rcvr[17] = 16
+        >>> rcvr[18] = 17
+        >>> rcvr[22] = 14  # this is the outlet
+        >>> rcvr[41] = 40
+        >>> rcvr[42] = 50
+        >>> rcvr[43] = 51
+        >>> 
+        """
+        pass
+    
 
     def _route_flow(self):
         """Route flow across lake flats.
 
         Route flow across lake flats, which have already been identified.
         """
+        
+        # Process each lake.
         for outlet_node, lake_code in zip(self.lake_outlets, self.lake_codes):
+        
+            # Start with an array with the IDs of all nodes in the lake
             nodes_in_lake = np.where(self.lake_map == lake_code)[0]
+            #DEBUG
+            #if outlet_node == 87533:
+            #    print('Our outlet is found in _route_flow: ' + str(len(nodes_in_lake)))
+                #for n in nodes_in_lake:
+                #    print(str(n) + ' ' + str(self.receivers[n]) + \
+                #            ' ' + str(self.grid.x_of_node[n]) + ',' + str(self.grid.y_of_node[n]))
+
+            # Continue if there are any nodes in the lake
             if len(nodes_in_lake) > 0:
+                
+                # Make and initialize arrays of ... ?
                 nodes_routed = np.array([outlet_node])
-                # ^using set on assumption of cythonizing later
                 nodes_on_front = np.array([outlet_node])
+                
+                # Make sure the outlet drains to the grid edge
                 self._handle_outlet_node(outlet_node, nodes_in_lake)
+
+                # Continue while ... ?
                 while (len(nodes_in_lake) + 1) != len(nodes_routed):
+
+                    # Get the IDs of all the active neighbors of those nodes
+                    # in the "nodes_on_front" array
                     if self._D8:
                         all_nbrs = np.hstack(
                             (self.grid.active_neighbors_at_node[
                              nodes_on_front],
                              self._grid._get_diagonal_list(
                              nodes_on_front)))
+                        #if outlet_node == 87533:
+                        #    print('an ' + str(all_nbrs.shape))
                     else:
                         all_nbrs = self._grid.active_neighbors_at_node[
                             nodes_on_front]
+                            
+                    # DEBUG
+#                    if outlet_node == 87533:
+#                        print('&&&&&&&&&&&&==>')
+#                        print(all_nbrs)
+#                        print(all_nbrs.flat)
+#                        print(nodes_in_lake)
+#                        print(np.in1d(all_nbrs.flat, nodes_in_lake))
+#                        print(np.logical_not(np.in1d(all_nbrs.flat, nodes_in_lake)))
+#                        assert False, 'stopping here'
                     outlake = np.logical_not(np.in1d(all_nbrs.flat,
                                                      nodes_in_lake))
                     all_nbrs[outlake.reshape(all_nbrs.shape)] = -1
@@ -745,6 +880,7 @@ class DepressionFinderAndRouter(Component):
                     nodes_routed = np.union1d(nodes_routed, nodes_on_front)
                     self.grads[drains_from[good_nbrs]] = 0.
                     # ^downstream grad is 0.
+                    #assert ((self.receivers[86225] != 86226) or (self.receivers[86225] != 86226)), 'bad3'
                 # now rewire the link connectivity:
                 where_receiver_in_ortho = np.equal(
                     self.receivers[nodes_in_lake].reshape(
@@ -769,6 +905,13 @@ class DepressionFinderAndRouter(Component):
                             receiver_in_diag]] = \
                         self.grid._diagonal_links_at_node[nodes_in_lake][
                             where_receiver_in_diag]
+            
+            # DEBUG
+#            watch = [87966, 90141, 91016, 92323, 93193, 94063, 95370, 96246, 97118, 98426, 99298, 100169, 101041, 102348, 103220]
+#            for w in watch:
+#                if w in nodes_in_lake and self.receivers[w] == w:
+#                    print(str(w) + ' now points to itself, with outlet_node ' + str(outlet_node))
+            
         self.sinks[self.pit_node_ids] = False
 
     def _reaccumulate_flow(self):
@@ -831,9 +974,13 @@ class DepressionFinderAndRouter(Component):
             lowest = np.argmax(eff_slopes)
             lowest_node = out_draining[lowest]
             # route the flow
+            if outlet_node == 87533:
+                print('outlet drains to ' + str(lowest_node))
             self.receivers[outlet_node] = lowest_node
         else:
             self.receivers[outlet_node] = outlet_node
+            if outlet_node == 87533:
+                print('outlet drains to itself')
 
     def display_depression_map(self):
         """Print a simple character-based map of depressions/lakes."""
