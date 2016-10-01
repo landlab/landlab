@@ -207,16 +207,37 @@ class LinearDiffuser(Component):
         # note component can NO LONGER do internal uplift, at all.
         # ###
         self.timestep_in = kwds.pop('dt', None)
+        
+        # Why is 'values_to_diffuse' undocumented??
+        #
+        # Here we handle the case when the user wishes to diffuse some
+        # quantity other than elevation (for example, soil thickness, 
+        # temperature, chemical concentration, etc.)
         if 'values_to_diffuse' in kwds.keys():
+
+            # Get the name of the field they want to diffuse
             self.values_to_diffuse = kwds.pop('values_to_diffuse')
-            for mytups in (self._input_var_names, self._output_var_names):
-                myset = set(mytups)
-                myset.remove('topographic__elevation')
-                myset.add(self.values_to_diffuse)
-                mytups = tuple(myset)
-            for mydicts in (self._var_units, self._var_mapping, self._var_doc):
-                mydicts[self.values_to_diffuse] = mydicts.pop(
-                    'topographic__elevation')
+
+            # The next block of code swaps out the default field
+            # topographic__elevation, and replaces it with the field name that
+            # the caller has requested. The conditional statement effectively
+            # tests whether this has already been done, which is possible 
+            # because we're actually changing the CLASS rather than just the
+            # INSTANCE. In other words, if I import LinearDiffuser, instantiate
+            # it with the values_to_diffuse option, then my values_to_diffuse
+            # are injected into LinearDiffuser._var_units, etc. (not just
+            # my_instance._var_units, for example). Note that this does not
+            # handle what happens if caller does this, then wants to revert
+            # back to the default with another instance.
+            if self.values_to_diffuse not in self._var_units:
+                for mytups in (self._input_var_names, self._output_var_names):
+                    myset = set(mytups)
+                    myset.remove('topographic__elevation')
+                    myset.add(self.values_to_diffuse)
+                    mytups = tuple(myset)
+                for mydicts in (self._var_units, self._var_mapping, self._var_doc):
+                    mydicts[self.values_to_diffuse] = mydicts.pop(
+                        'topographic__elevation')
         else:
             self.values_to_diffuse = 'topographic__elevation'
         # Raise an error if somehow someone is using this weird functionality
