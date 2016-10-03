@@ -793,7 +793,7 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[29] = -1
         >>> rcvr[30] = -1
         >>> nbrs = np.array([23, 30, 21, 14], dtype=int)
-        >>> df._find_unresolved_neighbors(22, nbrs, rcvr)
+        >>> df._find_unresolved_neighbors(nbrs, rcvr)
         array([30, 21])
         """
         return nbrs[np.where(receivers[nbrs] == -1)[0]]
@@ -806,7 +806,9 @@ class DepressionFinderAndRouter(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
+        >>> from landlab.components import DepressionFinderAndRouter
         >>> rg = RasterModelGrid((7, 8))
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> rcvr = rg.add_zeros('node', 'flow__receiver_node', dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
         >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
@@ -819,8 +821,16 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[41] = 40
         >>> rcvr[42] = 50
         >>> rcvr[43] = 51
+        >>> df = DepressionFinderAndRouter(rg)
+        >>> df.receivers = rcvr
+        >>> df._route_flow_for_one_lake(22, lake_nodes)
+        >>> df.receivers
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  1, 19,  3, 13, 22,  6, 15, 16,
+               16, 17, 20, 21, 22, 14, 23, 24, 26, 27, 28, 29, 22, 22, 31, 32, 34,
+               35, 36, 29, 29, 30, 39, 40, 40, 50, 51, 36, 37, 38, 47, 48, 49, 50,
+               51, 52, 53, 54, 55])
         """
-        
+
         # Flag receiver nodes inside the lake as "unresolved"
         UNRESOLVED = -1
         self.receivers[lake_nodes] = UNRESOLVED
@@ -840,6 +850,7 @@ class DepressionFinderAndRouter(Component):
         # We stop when there are no more nodes to process.
         #    Note that the nested looping will be slow, but could be sped up
         # by translating to cython.
+        counter = 0  # counts # of times thru loop as fail-safe
         done = False
         while not done:
             
@@ -848,10 +859,11 @@ class DepressionFinderAndRouter(Component):
                 
                 # Get active and unresolved neighbors of cn
                 nbrs = self._find_unresolved_neighbors(
-                        self.grid.active_neighbors_at_node, self.receivers)
+                        self.grid.active_neighbors_at_node[cn], self.receivers)
                         
                 # They will now flow to cn
-                self.receivers[nbrs] = cn
+                if nbrs.size > 0:
+                    self.receivers[nbrs] = cn
                 
                 # Place them on the list of nodes to process next
                 for n in nbrs:
@@ -859,7 +871,33 @@ class DepressionFinderAndRouter(Component):
                     
             # If we're working with a raster that has diagonals, do the same
             # for the diagonal neighbors
+            if self._D8:
 
+                # Get unresolved "regular" neighbors of the current nodes
+                for cn in nodes_being_processed:
+                    
+                    # Get active and unresolved diagonal neighbors of cn
+                    nbrs = self._find_unresolved_neighbors(
+                            self._grid._get_diagonal_list(cn), self.receivers)
+
+                    # They will now flow to cn
+                    if nbrs.size > 0:
+                        self.receivers[nbrs] = cn
+                    
+                    # Place them on the list of nodes to process next
+                    for n in nbrs:
+                        nodes_to_proc_next.append(n)
+
+            # Move to the next set of nodes
+            nodes_being_processed = nodes_to_proc_next
+            nodes_to_proc_next = []
+            if not nodes_being_processed:
+                done = True
+
+            # Just in case
+            counter += 1
+            assert (counter < self._grid.number_of_nodes), 'inf loop in lake'
+            
 
     def _route_flow(self):
         """Route flow across lake flats.
