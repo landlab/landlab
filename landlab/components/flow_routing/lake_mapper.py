@@ -776,7 +776,30 @@ class DepressionFinderAndRouter(Component):
 #            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
 
 
-    def _route_flow_for_one_lake(self, outlet, lake_code):
+    def _find_unresolved_neighbors(self, nbrs, receivers):
+        """Make and return list of neighbors of node with unresolved flow dir.
+        
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.components import DepressionFinderAndRouter
+        >>> from landlab import RasterModelGrid
+        >>> rg = RasterModelGrid((7, 8))
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> df = DepressionFinderAndRouter(rg)
+        >>> rcvr = np.arange(56)
+        >>> rcvr[13] = -1
+        >>> rcvr[21] = -1
+        >>> rcvr[29] = -1
+        >>> rcvr[30] = -1
+        >>> nbrs = np.array([23, 30, 21, 14], dtype=int)
+        >>> df._find_unresolved_neighbors(22, nbrs, rcvr)
+        array([30, 21])
+        """
+        return nbrs[np.where(receivers[nbrs] == -1)[0]]
+
+
+    def _route_flow_for_one_lake(self, outlet, lake_nodes):
         """Route flow across a single lake. Alternative to part of _route_flow.
         
         Examples
@@ -787,7 +810,6 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr = rg.add_zeros('node', 'flow__receiver_node', dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
         >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
-        >>> rcvr[lake_nodes] = -1
         >>> rcvr[9] = 1
         >>> rcvr[11] = 3
         >>> rcvr[14] = 6
@@ -797,10 +819,47 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[41] = 40
         >>> rcvr[42] = 50
         >>> rcvr[43] = 51
-        >>> 
         """
-        pass
-    
+        
+        # Flag receiver nodes inside the lake as "unresolved"
+        UNRESOLVED = -1
+        self.receivers[lake_nodes] = UNRESOLVED
+        
+        # We work with two lists: the nodes currently being processed, and
+        # the nodes that will be processed on the next iteration. We start with
+        # the outlet node as the one being processed, and an empty list of
+        # nodes to process next.
+        nodes_being_processed = [outlet]
+        nodes_to_proc_next = []
+        
+        # We must now iterate until we've taken care of all the nodes in the 
+        # lake. In each iteration, we:
+        #  1 - find the unresolved neighbors of nodes being processed
+        #  2 - point them toward the nodes being processed
+        #  3 - place them on the nodes_to_proc_next list
+        # We stop when there are no more nodes to process.
+        #    Note that the nested looping will be slow, but could be sped up
+        # by translating to cython.
+        done = False
+        while not done:
+            
+            # Get unresolved "regular" neighbors of the current nodes
+            for cn in nodes_being_processed:
+                
+                # Get active and unresolved neighbors of cn
+                nbrs = self._find_unresolved_neighbors(
+                        self.grid.active_neighbors_at_node, self.receivers)
+                        
+                # They will now flow to cn
+                self.receivers[nbrs] = cn
+                
+                # Place them on the list of nodes to process next
+                for n in nbrs:
+                    nodes_to_proc_next.append(n)
+                    
+            # If we're working with a raster that has diagonals, do the same
+            # for the diagonal neighbors
+
 
     def _route_flow(self):
         """Route flow across lake flats.
