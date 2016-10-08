@@ -466,8 +466,50 @@ class DepressionFinderAndRouter(Component):
         own lake."""
         (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)        
 
-        # Sweep through them, identifying the neighbor with the greatest slope
+        # Sweep through them, identifying the neighbor with the greatest slope.
+        # We are probably duplicating some gradient calculations, but this only
+        # happens occasionally, when we have a candidate outlet node.
 
+        # We're seeking the valid neighbor (*receiver*) in the direction of 
+        # steepest descent. Initially set *receiver* to the node itself, and
+        # downhill-positive gradient to zero. If we don't find any neighbor
+        # with a steeper path (or an open boundary), then we have failed.
+        max_downhill_grad = 0.0
+        receiver = outlet_node
+        node_elev = self._elev[outlet_node]
+        
+        # Iterate over all "regular" neighbors
+        for (lnk, nbr) in (links, nbrs):
+            
+            # To pass this first hurdle, the neighbor must:
+            #   * not be part of the current lake
+            #   * have a surface (if flooded, WATER surface) 
+            #     lower than our outlet node; 
+            #   * not be a closed boundary
+            if (self.flood_status[nbr] != _CURRENT_LAKE
+                and ((self._elev[nbr] + self.depression_depth[nbr]) < 
+                      self._elev[receiver])
+                and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY):
+                
+                # Next test: is it the steepest downhill grad so far?
+                # If so, we've found a candidate.
+                grad = ((node_elev - self._elev[nbr]) /
+                        self._grid.length_of_link[lnk])
+                if grad > max_downhill_grad:
+                    
+                    # Update the receiver and max grad: this is now the one
+                    # to beat.
+                    max_downhill_grad = grad
+                    receiver = nbr
+        
+        # We only call this method after is_valid_outlet has evaluated True,
+        # so in theory it should NEVER be the case that we fail to find a
+        # receiver. However, let's make sure.
+        assert (receiver != outlet_node), 'failed to find receiver'
+        
+        # Finally, let's assign it
+        self.receivers[outlet_node] = receiver
+        
 
     def node_can_drain(self, the_node):
         """Check if a node has drainage away from the current lake/depression.
