@@ -60,10 +60,8 @@ class DrainageDensity(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_routing import FlowRouter
     >>> from landlab.components import FastscapeEroder
-
     >>> mg = RasterModelGrid((10, 10), 1.0)
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
-
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
     >>> mg.at_node['topographic__elevation'] += noise
@@ -88,13 +86,13 @@ class DrainageDensity(Component):
         0.82165703,  0.73749168,  0.84034417,  0.4015291 ,  0.74862   ,
         0.55962945,  0.61323757,  0.29810165,  0.60237917,  0.42567684,
         0.53854438,  0.48672986,  0.49989164,  0.91745948,  0.26287702])
-
     >>> fr = FlowRouter(mg)
     >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
     ...     fsc.run_one_step(dt = 10.0)
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
+<<<<<<< HEAD
 
     >>> channels = mg.at_node['drainage_area'] > 5
     >>> dd = DrainageDensity(mg, channel__mask=channels)
