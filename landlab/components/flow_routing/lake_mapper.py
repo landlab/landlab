@@ -463,8 +463,35 @@ class DepressionFinderAndRouter(Component):
 
     def assign_outlet_receiver(self, outlet_node):
         """Find drainage direction for outlet_node that does not flow into its
-        own lake."""
-        (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)        
+        own lake.
+                
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.components import DepressionFinderAndRouter
+        >>> from landlab.components import FlowRouter
+        >>> from landlab import RasterModelGrid
+        >>> rg = RasterModelGrid((7, 7))
+        >>> rg.status_at_node[rg.nodes_at_right_edge] = CLOSED_BOUNDARY
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z[:] = rg.x_of_node + 0.01 * rg.y_of_node
+        >>> lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
+        >>> z[lake_nodes] *= 0.1
+        >>> fr = FlowRouter(rg, method='D4')
+        >>> fr.run_one_step()
+        >>> rg.at_node['flow__receiver_node']
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 10, 10, 11, 13, 14, 14, 16,
+               16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 24, 32, 32,
+               34, 35, 35, 38, 38, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> df = DepressionFinderAndRouter(rg, routing='D4')
+        >>> df.map_depressions()
+        >>> rg.at_node['flow__receiver_node']
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 10, 11, 13, 14, 14, 15,
+               16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 24, 31, 32,
+               34, 35, 35, 36, 37, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
+        """
+
+        (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)      
 
         # Sweep through them, identifying the neighbor with the greatest slope.
         # We are probably duplicating some gradient calculations, but this only
@@ -477,9 +504,14 @@ class DepressionFinderAndRouter(Component):
         max_downhill_grad = 0.0
         receiver = outlet_node
         node_elev = self._elev[outlet_node]
-        
+
         # Iterate over all "regular" neighbors
-        for (lnk, nbr) in (links, nbrs):
+        for i in range(len(links)):
+            
+            lnk = links[i]
+            nbr = nbrs[i]            
+            #print('lnk ' + str(lnk))
+            #print('nbr ' + str(nbr))
             
             # To pass this first hurdle, the neighbor must:
             #   * not be part of the current lake
@@ -491,12 +523,13 @@ class DepressionFinderAndRouter(Component):
                       self._elev[receiver])
                 and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY):
                 
+                #print('  passed test 1')
                 # Next test: is it the steepest downhill grad so far?
                 # If so, we've found a candidate.
                 grad = ((node_elev - self._elev[nbr]) /
                         self._grid.length_of_link[lnk])
                 if grad > max_downhill_grad:
-                    
+                    #print('  passed test 2')
                     # Update the receiver and max grad: this is now the one
                     # to beat.
                     max_downhill_grad = grad
@@ -505,10 +538,27 @@ class DepressionFinderAndRouter(Component):
         # We only call this method after is_valid_outlet has evaluated True,
         # so in theory it should NEVER be the case that we fail to find a
         # receiver. However, let's make sure.
-        assert (receiver != outlet_node), 'failed to find receiver'
+        if receiver == outlet_node:
+            print('***UH OH***')
+            print('Final receiver of ' + str(outlet_node) + ' is ' + str(receiver))
+            print('OUTLET ' + str(outlet_node))
+            print(links)
+            print(nbrs)
+            print(diag_nbrs)
+            print(self._grid.status_at_node[outlet_node])
+            print(self._grid.number_of_nodes)
+            print(self._grid.number_of_node_rows)
+        #assert (receiver != outlet_node), 'failed to find receiver'
         
         # Finally, let's assign it
-        self.receivers[outlet_node] = receiver
+        
+        self._grid.at_node['flow__receiver_node'][outlet_node] = receiver
+        #NEXT STEPS:
+        # - ADD DIAGONALS
+        # - WRITE D8 DOCTEST AND RUN
+        # - RUN LAKE TESTS
+        # - RUN ALL TESTS
+        # - TRY ON DEMS KNOW TO HAVE PREVIOUSLY FAILED
         
 
     def node_can_drain(self, the_node):
@@ -672,7 +722,7 @@ class DepressionFinderAndRouter(Component):
                 nodes_this_depression.append(lowest_node_on_perimeter)
                 # Flag it as being part of the current lake/depression
                 self.flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
-            else:
+            elif ('flow__receiver_node' in self._grid.at_node.keys()):
                 self.assign_outlet_receiver(lowest_node_on_perimeter)
             # Safety check, in case a bug (ha!) puts us in an infinite loop
             assert (count < max_count), 'too many iterations in lake filler!'
@@ -763,7 +813,7 @@ class DepressionFinderAndRouter(Component):
         ...                   90.,  95., 100., 100., 100.])
         >>> df = DepressionFinderAndRouter(rg)
         >>> df.map_depressions(pits=None, reroute_flow=False)
-        >>> df.display_depression_map()
+        >>> df.display_depression_map()  # doctest: +NORMALIZE_WHITESPACE
         . . . . .
         . . . ~ .
         . . ~ . .
