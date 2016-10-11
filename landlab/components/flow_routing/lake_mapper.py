@@ -174,6 +174,7 @@ class DepressionFinderAndRouter(Component):
                 (routing is 'D8')):
             self._D8 = True
             self.num_nbrs = 8
+            self._diag_link_length = np.sqrt(grid._dx**2 + grid._dy**2)
         else:
             self._D8 = False  # useful shorthand for thia test we do a lot
             if type(self._grid) is landlab.grid.raster.RasterModelGrid:
@@ -489,6 +490,18 @@ class DepressionFinderAndRouter(Component):
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 10, 11, 13, 14, 14, 15,
                16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 24, 31, 32,
                34, 35, 35, 36, 37, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> fr = FlowRouter(rg, method='D8')
+        >>> fr.run_one_step()
+        >>> rg.at_node['flow__receiver_node']
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 16, 10, 18, 13, 14, 14, 16,
+               16, 17, 18, 20, 21, 21, 16, 16, 24, 33, 27, 28, 28, 24, 24, 24, 32,
+               34, 35, 35, 38, 38, 38, 32, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> df = DepressionFinderAndRouter(rg, routing='D8')
+        >>> df.map_depressions()
+        >>> rg.at_node['flow__receiver_node']
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 16, 10, 18, 13, 14, 14,  8,
+               16, 10, 18, 20, 21, 21, 16, 16, 24, 33, 27, 28, 28, 24, 24, 24, 32,
+               34, 35, 35, 38, 32, 38, 32, 41, 42, 43, 44, 45, 46, 47, 48])
         """
 
         (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)      
@@ -535,6 +548,32 @@ class DepressionFinderAndRouter(Component):
                     max_downhill_grad = grad
                     receiver = nbr
         
+        # If we're on a D8 raster, iterate over all diagonal neighbors
+        if self._D8:
+            
+            for nbr in diag_nbrs:
+                
+                # Again, to pass this first hurdle, the neighbor must:
+                #   * not be part of the current lake
+                #   * have a surface (if flooded, WATER surface) 
+                #     lower than our outlet node; 
+                #   * not be a closed boundary
+                if (self.flood_status[nbr] != _CURRENT_LAKE
+                    and ((self._elev[nbr] + self.depression_depth[nbr]) < 
+                          self._elev[receiver])
+                    and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY):
+
+                    # Next test: is it the steepest downhill grad so far?
+                    # If so, we've found a candidate.
+                    grad = ((node_elev - self._elev[nbr]) /
+                            self._diag_link_length)
+                    if grad > max_downhill_grad:
+                        #print('  passed test 2')
+                        # Update the receiver and max grad: this is now the one
+                        # to beat.
+                        max_downhill_grad = grad
+                        receiver = nbr
+
         # We only call this method after is_valid_outlet has evaluated True,
         # so in theory it should NEVER be the case that we fail to find a
         # receiver. However, let's make sure.
@@ -554,8 +593,7 @@ class DepressionFinderAndRouter(Component):
         
         self._grid.at_node['flow__receiver_node'][outlet_node] = receiver
         #NEXT STEPS:
-        # - ADD DIAGONALS
-        # - WRITE D8 DOCTEST AND RUN
+        # - CORRECT THE SECOND D8 UNIT TEST
         # - RUN LAKE TESTS
         # - RUN ALL TESTS
         # - TRY ON DEMS KNOW TO HAVE PREVIOUSLY FAILED
