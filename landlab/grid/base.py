@@ -415,15 +415,14 @@ Use the groups attribute to see the group names.
 >>> groups = list(grid.groups)
 >>> groups.sort()
 >>> groups # doctest: +NORMALIZE_WHITESPACE
-['active_face', 'active_link', 'cell', 'core_cell', 'core_node', 'corner',
- 'face', 'link', 'node', 'patch']
+['cell', 'corner', 'face', 'link', 'node', 'patch']
 
 Create Field Arrays
 +++++++++++++++++++
 If you just want to create an array but not add it to the grid, you can use
 the :meth:`~.ModelGrid.ones` method.
 
->>> grid.ones(centering='node')
+>>> grid.ones(at='node')
 array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 >>> list(grid.at_node.keys()) # Nothing has been added to the grid
 []
@@ -509,9 +508,6 @@ _ARRAY_LENGTH_ATTRIBUTES = {
 
 # Fields whose sizes can not change.
 _SIZED_FIELDS = {'node', 'link', 'patch', 'corner', 'face', 'cell', }
-
-# Fields whose sizes can change after creation.
-_UNSIZED_FIELDS = {'core_node', 'core_cell', 'active_link', 'active_face', }
 
 # Define the boundary-type codes
 
@@ -785,14 +781,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         Values at links.
     at_face : dict-like
         Values at faces.
-    at_core_node : dict-like
-        Values at core nodes.
-    at_core_cell : dict-like
-        Values at core cells.
-    at_active_link : dict-like
-        Values at active links.
-    at_active_face : dict-like
-        Values at active faces.
 
     Other Parameters
     ----------------
@@ -811,10 +799,6 @@ class ModelGrid(ModelDataFieldsMixIn):
     at_corner = {}  # : Values defined at corners
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
-    at_core_node = {}  # : Values defined at core nodes
-    at_core_cell = {}  # : Values defined at core cells
-    at_active_link = {}  # : Values defined at active links
-    at_active_face = {}  # : Values defined at active faces
 
     # : Nodes on the other end of links pointing into a node.
     _node_inlink_matrix = numpy.array([], dtype=numpy.int32)
@@ -845,8 +829,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         for loc in _SIZED_FIELDS:
             size = self.number_of_elements(loc)
             ModelDataFields.new_field_location(self, loc, size=size)
-        for loc in _UNSIZED_FIELDS:
-            ModelDataFields.new_field_location(self, loc, size=None)
+        # for loc in _UNSIZED_FIELDS:
+        #     ModelDataFields.new_field_location(self, loc, size=None)
         ModelDataFields.set_default_group(self, 'node')
 
     def _create_link_face_coords(self):
@@ -3267,7 +3251,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         improve speed slightly by creating an array outside the loop. For
         example, do this once, before the loop:
 
-        >>> divflux = rmg.zeros(centering='core_cell') # outside loop
+        >>> divflux = np.zeros(rmg.number_of_core_cells) # outside loop
 
         Then do this inside the loop:
 
@@ -3550,7 +3534,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         of all the links in the grid.
         """
         if self._link_length is None:
-            self._link_length = self.empty(centering='link', dtype=float)
+            self._link_length = self.empty(at='link', dtype=float)
 
         diff_x = (self.node_x[self.node_at_link_tail] -
                   self.node_x[self.node_at_link_head])

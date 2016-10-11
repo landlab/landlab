@@ -152,7 +152,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     LLCATS: LINF GRAD
     """
     if out is None:
-        out = grid.empty(at='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
 
     if len(out) != grid.number_of_active_links:
         raise ValueError('output buffer does not match that of the grid.')
