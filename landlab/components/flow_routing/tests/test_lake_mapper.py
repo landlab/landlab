@@ -139,6 +139,22 @@ def setup_dans_grid():
 def setup_D4_grid():
     """
     Test functionality of routing when D4 is specified.
+    
+    The elevation field in this test looks like:
+    
+    1   2   3   4   5   6   7
+    
+    1   2   3   0   5   0   7
+    
+    1   2   3   4   0   0   7
+    
+    1   2   3   0   5   6   7
+    
+    1   2   0   0   0   6   7
+    
+    1   2   3   0   5   6   7
+    
+    1   2   3   4   5   6   7
     """
     global frD8, frD4, lfD8, lfD4, mg1, mg2
     global z, lake_nodes
@@ -447,6 +463,9 @@ def test_changing_slopes():
 def test_filling_alone():
     """
     Test the filler alone, w/o supplying information on the pits.
+    
+    Setting the the *pits* parameter to None causes the mapper to look for pits
+    using its _find_pits method.
     """
     lf.map_depressions(pits=None, reroute_flow=False)
     assert_array_equal(mg.at_node['flow__receiver_node'],

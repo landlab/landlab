@@ -593,7 +593,6 @@ class DepressionFinderAndRouter(Component):
         
         self._grid.at_node['flow__receiver_node'][outlet_node] = receiver
         #NEXT STEPS:
-        # - CORRECT THE SECOND D8 UNIT TEST
         # - RUN LAKE TESTS
         # - RUN ALL TESTS
         # - TRY ON DEMS KNOW TO HAVE PREVIOUSLY FAILED
@@ -719,7 +718,7 @@ class DepressionFinderAndRouter(Component):
             self.flood_status[n] = _FLOODED
             #pass
 
-    def find_depression_from_pit(self, pit_node):
+    def find_depression_from_pit(self, pit_node, reroute_flow=True):
         """Find the extent of the nodes that form a pit.
 
         Identify extent of depression/lake whose lowest point is the node
@@ -760,7 +759,8 @@ class DepressionFinderAndRouter(Component):
                 nodes_this_depression.append(lowest_node_on_perimeter)
                 # Flag it as being part of the current lake/depression
                 self.flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
-            elif ('flow__receiver_node' in self._grid.at_node.keys()):
+            elif ('flow__receiver_node' in self._grid.at_node.keys() and
+                  reroute_flow):
                 self.assign_outlet_receiver(lowest_node_on_perimeter)
             # Safety check, in case a bug (ha!) puts us in an infinite loop
             assert (count < max_count), 'too many iterations in lake filler!'
@@ -782,7 +782,7 @@ class DepressionFinderAndRouter(Component):
         #if nnil > 100:
         #    print('Lake as ' + str(nnil))
 
-    def _identify_depressions_and_outlets(self):
+    def _identify_depressions_and_outlets(self, reroute_flow=True):
         """Find depression and lakes on a topographic surface.
 
         Find and map the depressions/lakes in a topographic surface,
@@ -797,7 +797,7 @@ class DepressionFinderAndRouter(Component):
                 from landlab import BAD_INDEX_VALUE
                 self.depression_outlets.append(BAD_INDEX_VALUE)
             else:
-                self.find_depression_from_pit(pit_node)
+                self.find_depression_from_pit(pit_node, reroute_flow)
                 self._pits_flooded += 1
             #debug_count += 1
             #if (debug_count % 100) == 0:
@@ -902,7 +902,7 @@ class DepressionFinderAndRouter(Component):
 #        if r86225 == 86226 and r86226 == 86225:
 #            print('111111111111111')
 
-        self._identify_depressions_and_outlets()
+        self._identify_depressions_and_outlets(reroute_flow)
         
         #DEBUG
 #        r86225 = self._grid.at_node['flow__receiver_node'][86225]
