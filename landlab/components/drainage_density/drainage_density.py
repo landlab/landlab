@@ -92,8 +92,6 @@ class DrainageDensity(Component):
     ...     fr.run_one_step()
     ...     fsc.run_one_step(dt = 10.0)
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-<<<<<<< HEAD
-
     >>> channels = mg.at_node['drainage_area'] > 5
     >>> dd = DrainageDensity(mg, channel__mask=channels)
     >>> mean_drainage_density = dd.calc_drainage_density()
