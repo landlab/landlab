@@ -73,25 +73,42 @@ class DepressionFinderAndRouter(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowRouter, DepressionFinderAndRouter
     >>> mg = RasterModelGrid((7, 7), 0.5)
-    >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
-    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] = 0.
+    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> z += 0.01 * mg.node_y
+    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
     >>> fr = FlowRouter(mg)
     >>> fr.run_one_step()  # the flow "gets stuck" in the hole
+    >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
+    array([[ 0,  1,  2,  3,  4,  5,  6],
+           [ 7,  7, 16, 17, 18, 18, 13],
+           [14, 14, 16, 16, 17, 18, 20],
+           [21, 21, 16, 23, 24, 25, 27],
+           [28, 28, 23, 30, 31, 32, 34],
+           [35, 35, 30, 31, 32, 32, 41],
+           [42, 43, 44, 45, 46, 47, 48]])
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  3.  ,  0.75,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  2.  ,  1.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
     >>> df = DepressionFinderAndRouter(mg)
     >>> df.map_depressions()  # reroute_flow defaults to True
+    >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
+    array([[ 0,  1,  2,  3,  4,  5,  6],
+           [ 7,  7, 16, 17, 18, 18, 13],
+           [14, 14,  8, 16, 17, 18, 20],
+           [21, 21, 16, 16, 24, 25, 27],
+           [28, 28, 23, 24, 24, 32, 34],
+           [35, 35, 30, 31, 32, 32, 41],
+           [42, 43, 44, 45, 46, 47, 48]])
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 5.25,  5.25,  3.75,  2.  ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  1.25,  1.25,  0.5 ,  0.25,  0.  ],
+           [ 5.25,  5.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.75,  2.25,  0.5 ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
@@ -393,9 +410,7 @@ class DepressionFinderAndRouter(Component):
         lowest_elev = self._BIG_ELEV
 
         for n in nodes_this_depression:
-            #debug
-            if n == 105417:
-                print('in depr')
+
             for nbr in self._node_nbrs[n]:
                 if nbr != -1:
                     if self.flood_status[nbr] == _UNFLOODED:
@@ -523,8 +538,6 @@ class DepressionFinderAndRouter(Component):
             
             lnk = links[i]
             nbr = nbrs[i]            
-            #print('lnk ' + str(lnk))
-            #print('nbr ' + str(nbr))
             
             # To pass this first hurdle, the neighbor must:
             #   * not be part of the current lake
@@ -536,13 +549,12 @@ class DepressionFinderAndRouter(Component):
                       self._elev[receiver])
                 and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY):
                 
-                #print('  passed test 1')
                 # Next test: is it the steepest downhill grad so far?
                 # If so, we've found a candidate.
                 grad = ((node_elev - self._elev[nbr]) /
                         self._grid.length_of_link[lnk])
                 if grad > max_downhill_grad:
-                    #print('  passed test 2')
+
                     # Update the receiver and max grad: this is now the one
                     # to beat.
                     max_downhill_grad = grad
@@ -568,7 +580,7 @@ class DepressionFinderAndRouter(Component):
                     grad = ((node_elev - self._elev[nbr]) /
                             self._diag_link_length)
                     if grad > max_downhill_grad:
-                        #print('  passed test 2')
+
                         # Update the receiver and max grad: this is now the one
                         # to beat.
                         max_downhill_grad = grad
@@ -593,10 +605,10 @@ class DepressionFinderAndRouter(Component):
         
         self._grid.at_node['flow__receiver_node'][outlet_node] = receiver
         #NEXT STEPS:
-        # - RUN LAKE TESTS
-        # - RUN ALL TESTS
         # - TRY ON DEMS KNOW TO HAVE PREVIOUSLY FAILED
-        
+        # - CLEAN UP FUNCTION DOCSTRINGS
+        # - REMOVE DEBUG STUFF
+
 
     def node_can_drain(self, the_node):
         """Check if a node has drainage away from the current lake/depression.
@@ -667,12 +679,14 @@ class DepressionFinderAndRouter(Component):
             depression.
         """
         n = nodes_this_depression
+
         #DEBUG
-        if outlet_id == 87533:
-            print('***' + str(len(n)))
-            debug_flag = True
-        else:
-            debug_flag = False
+#        if outlet_id == 87533:
+#            print('***' + str(len(n)))
+#            debug_flag = True
+#        else:
+#            debug_flag = False
+
         # three cases possible - new lake is fresh; new lake is smaller than
         # an existing lake (subsumed, and unimportant), new lake is equal to
         # or bigger than old lake (or multiple old lakes). It SHOULDN'T be
@@ -681,8 +695,6 @@ class DepressionFinderAndRouter(Component):
         # total of unique vals in lake_map.
         fresh_nodes = np.equal(self._lake_map[n], LOCAL_BAD_INDEX_VALUE)
         if np.all(fresh_nodes):  # a new lake
-            if debug_flag:
-                print('new lake')
             self.flood_status[n] = _FLOODED
             self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
             self.depression_outlet_map[n] = outlet_id
@@ -692,8 +704,6 @@ class DepressionFinderAndRouter(Component):
                                              pit_node)
             self._unique_pits[pit_node_where] = True
         elif np.any(fresh_nodes):  # lake is bigger than one or more existing
-            if debug_flag:
-                print('lake bigger')
             self.flood_status[n] = _FLOODED
             depth_this_lake = self._elev[outlet_id] - self._elev[n]
             self.depression_depth[n] = depth_this_lake
@@ -712,11 +722,9 @@ class DepressionFinderAndRouter(Component):
             # because a single lake is just replaced by a new lake.
             self._lake_map[n] = pit_node
         else:  # lake is subsumed within an existing lake
-            if debug_flag:
-                print('lake swallowed')
             assert np.all(np.equal(self.flood_status[n], _CURRENT_LAKE))
             self.flood_status[n] = _FLOODED
-            #pass
+
 
     def find_depression_from_pit(self, pit_node, reroute_flow=True):
         """Find the extent of the nodes that form a pit.
@@ -729,9 +737,7 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-        #debug
-        if pit_node == 105417:
-            print('N in fdfp')
+
         # Place pit_node at top of depression list
         nodes_this_depression = []
         nodes_this_depression.insert(0, pit_node)
@@ -777,10 +783,6 @@ class DepressionFinderAndRouter(Component):
         # and average depth of depressions. Tricky thing is that one might be
         # devoured by another, so would need to be removed from the list.
 
-        # DEBUG
-        #nnil = len(nodes_this_depression)
-        #if nnil > 100:
-        #    print('Lake as ' + str(nnil))
 
     def _identify_depressions_and_outlets(self, reroute_flow=True):
         """Find depression and lakes on a topographic surface.
@@ -793,7 +795,6 @@ class DepressionFinderAndRouter(Component):
         #debug_count = 0
         for pit_node in self.pit_node_ids:
             if self.flood_status[pit_node] != _PIT:
-                #print(str(pit_node) + ' fs: ' + str(self.flood_status[pit_node]))
                 from landlab import BAD_INDEX_VALUE
                 self.depression_outlets.append(BAD_INDEX_VALUE)
             else:
@@ -1080,7 +1081,7 @@ class DepressionFinderAndRouter(Component):
             assert (counter < self._grid.number_of_nodes), 'inf loop in lake'
             
 
-    def _route_flow_new(self):
+    def _route_flow(self):
         """Route flow across lake flats.
 
         Route flow across lake flats, which have already been identified.
@@ -1093,19 +1094,19 @@ class DepressionFinderAndRouter(Component):
             nodes_in_lake = np.where(self.lake_map == lake_code)[0]
 
             if len(nodes_in_lake) > 0:
-                print('OL ' + str(outlet_node))
-                print(nodes_in_lake)
-                print(self.receivers[outlet_node])
+#                print('OL ' + str(outlet_node))
+#                print(nodes_in_lake)
+#                print(self.receivers[outlet_node])
 
                 if self.lake_map[self.receivers[outlet_node]] == lake_code:
-                    print('Issue')
+                    #print('Issue')
                     nbrs = self.grid.active_neighbors_at_node[outlet_node]
                     not_lake = nbrs[np.where(self.lake_map[nbrs] != lake_code)[0]]
-                    print(not_lake)
+                    #print(not_lake)
                     min_index = np.argmin(self._elev[not_lake])
                     new_receiver = not_lake[min_index]
                     self.receivers[outlet_node] = new_receiver
-                    print('just reassigned rcvr as ' + str(new_receiver))
+                    #print('just reassigned rcvr as ' + str(new_receiver))
 
                 assert self.lake_map[self.receivers[outlet_node]] != lake_code, \
                     'outlet of lake drains to itself!'
@@ -1116,7 +1117,7 @@ class DepressionFinderAndRouter(Component):
         self.sinks[self.pit_node_ids] = False
 
 
-    def _route_flow(self):
+    def _route_flow_old(self):
         """Route flow across lake flats.
 
         Route flow across lake flats, which have already been identified.
@@ -1288,13 +1289,13 @@ class DepressionFinderAndRouter(Component):
             lowest = np.argmax(eff_slopes)
             lowest_node = out_draining[lowest]
             # route the flow
-            if outlet_node == 87533:
-                print('outlet drains to ' + str(lowest_node))
+            #if outlet_node == 87533:
+            #    print('outlet drains to ' + str(lowest_node))
             self.receivers[outlet_node] = lowest_node
         else:
             self.receivers[outlet_node] = outlet_node
-            if outlet_node == 87533:
-                print('outlet drains to itself')
+            #if outlet_node == 87533:
+            #    print('outlet drains to itself')
 
     def display_depression_map(self):
         """Print a simple character-based map of depressions/lakes."""
