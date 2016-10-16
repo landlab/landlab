@@ -131,7 +131,7 @@ class DepressionFinderAndRouter(Component):
     >>> df.lake_codes  # a unique code for each lake present on the grid
     array([16])
     >>> df.lake_outlets  # the outlet node of each lake in lake_codes
-    array([15])
+    array([8])
     >>> df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
 
@@ -503,7 +503,7 @@ class DepressionFinderAndRouter(Component):
         >>> df.map_depressions()
         >>> rg.at_node['flow__receiver_node']
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 10, 11, 13, 14, 14, 15,
-               16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 24, 31, 32,
+               16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 38, 31, 32,
                34, 35, 35, 36, 37, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
         >>> fr = FlowRouter(rg, method='D8')
         >>> fr.run_one_step()
@@ -515,7 +515,7 @@ class DepressionFinderAndRouter(Component):
         >>> df.map_depressions()
         >>> rg.at_node['flow__receiver_node']
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 16, 10, 18, 13, 14, 14,  8,
-               16, 10, 18, 20, 21, 21, 16, 16, 24, 33, 27, 28, 28, 24, 24, 24, 32,
+               16, 17, 18, 20, 21, 21, 16, 16, 24, 33, 27, 28, 28, 24, 24, 24, 32,
                34, 35, 35, 38, 32, 38, 32, 41, 42, 43, 44, 45, 46, 47, 48])
         """
 
