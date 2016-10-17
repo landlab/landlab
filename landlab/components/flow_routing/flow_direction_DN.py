@@ -111,7 +111,7 @@ def grid_flow_directions(grid, elevations):
     return receiver, slope
 
 
-def flow_directions(elev, active_links, fromnode, tonode, link_slope,
+def flow_directions(elev, active_links, tail_node, head_node, link_slope,
                     grid=None, baselevel_nodes=None):
     """Find flow directions on a grid.
 
@@ -125,10 +125,10 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
         Elevations at nodes.
     active_links : array_like
         IDs of active links.
-    fromnode : array_like
-        IDs of the "from" node for each link.
-    tonode : array_like
-        IDs of the "to" node for each link.
+    tail_node : array_like
+        IDs of the tail node for each link.
+    head_node : array_like
+        IDs of the head node for each link.
     link_slope : array_like
         slope of each link, defined POSITIVE DOWNHILL (i.e., a negative value
         means the link runs uphill from the fromnode to the tonode).
@@ -201,22 +201,22 @@ def flow_directions(elev, active_links, fromnode, tonode, link_slope,
     if method == 'cython':
         from .cfuncs import adjust_flow_receivers
 
-        adjust_flow_receivers(fromnode, tonode, elev, link_slope,
+        adjust_flow_receivers(tail_node, head_node, elev, link_slope,
                               active_links, receiver, receiver_link,
                               steepest_slope)
     else:
         if grid==None or not RasterModelGrid in inspect.getmro(grid.__class__):
-            for i in range(len(fromnode)):
-                f = fromnode[i]
-                t = tonode[i]
-                if elev[f]>elev[t] and link_slope[i]>steepest_slope[f]:
-                    receiver[f] = t
-                    steepest_slope[f] = link_slope[i]
-                    receiver_link[f] = active_links[i]
-                elif elev[t]>elev[f] and -link_slope[i]>steepest_slope[t]:
-                    receiver[t] = f
-                    steepest_slope[t] = -link_slope[i]
+            for i in range(len(tail_node)):
+                t = tail_node[i]
+                h = head_node[i]
+                if elev[t]>elev[h] and link_slope[i]>steepest_slope[t]:
+                    receiver[t] = h
+                    steepest_slope[t] = link_slope[i]
                     receiver_link[t] = active_links[i]
+                elif elev[h]>elev[t] and -link_slope[i]>steepest_slope[h]:
+                    receiver[h] = t
+                    steepest_slope[h] = -link_slope[i]
+                    receiver_link[h] = active_links[i]
         else:
             #alternative, assuming grid structure doesn't change between steps
             #global neighbor_nodes
