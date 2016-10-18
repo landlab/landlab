@@ -581,7 +581,39 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     diff_xyz_IW[:, 1] = y_W - y_I
     diff_xyz_IW[:, 2] = z_W - z_I
 
+    # calculate cross product to get unit normal
+    # cross product is orthogonal to both vectors, and is the normal
+    # n = <a, b, c>, where plane is ax + by + cz = d
+    nhat_ENE = np.cross(diff_xyz_IP, diff_xyz_IQ)  # <a, b, c>
+    nhat_NNE = np.cross(diff_xyz_IQ, diff_xyz_IR)
+    nhat_NNW = np.cross(diff_xyz_IR, diff_xyz_IS)
+    nhat_WNW = np.cross(diff_xyz_IS, diff_xyz_IT)
+    nhat_WSW = np.cross(diff_xyz_IT, diff_xyz_IU)
+    nhat_SSW = np.cross(diff_xyz_IU, diff_xyz_IV)
+    nhat_SSE = np.cross(diff_xyz_IV, diff_xyz_IW)
+    nhat_ESE = np.cross(diff_xyz_IW, diff_xyz_IP)
 
+    # calculate magnitude of cross product so that the result is a unit normal
+    nmag_ENE = np.sqrt(np.square(nhat_ENE).sum(axis=1))
+    nmag_NNE = np.sqrt(np.square(nhat_NNE).sum(axis=1))
+    nmag_NNW = np.sqrt(np.square(nhat_NNW).sum(axis=1))
+    nmag_WNW = np.sqrt(np.square(nhat_WNW).sum(axis=1))
+    nmag_WSW = np.sqrt(np.square(nhat_WSW).sum(axis=1))
+    nmag_SSW = np.sqrt(np.square(nhat_SSW).sum(axis=1))
+    nmag_SSE = np.sqrt(np.square(nhat_SSE).sum(axis=1))
+    nmag_ESE = np.sqrt(np.square(nhat_ESE).sum(axis=1))
+
+    n_ENE = nhat_ENE/nmag_ENE.reshape(grid.number_of_cells, 1)
+    n_NNE = nhat_NNE/nmag_NNE.reshape(grid.number_of_cells, 1)
+    n_NNW = nhat_NNW/nmag_NNW.reshape(grid.number_of_cells, 1)
+    n_WNW = nhat_WNW/nmag_WNW.reshape(grid.number_of_cells, 1)
+    n_WSW = nhat_WSW/nmag_WSW.reshape(grid.number_of_cells, 1)
+    n_SSW = nhat_SSW/nmag_SSW.reshape(grid.number_of_cells, 1)
+    n_SSE = nhat_SSE/nmag_SSE.reshape(grid.number_of_cells, 1)
+    n_ESE = nhat_ESE/nmag_ESE.reshape(grid.number_of_cells, 1)
+
+
+    (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):
     """Calculate unit normals on a patch.
