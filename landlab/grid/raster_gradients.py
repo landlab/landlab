@@ -469,8 +469,35 @@ def calc_unit_normals_at_cell_subtriangles(grid,
 
     LLCATS: PINF GRAD
     """
+    try:
+        z = grid.at_node[elevs]
+    except TypeError:
+        z = elevs
+    #  cell has center node I
+    # orthogonal neighbors P, R, T, V, counter clockwise from East
+    # diagonal neibors Q, S, U, W, counter clocwise from North East
+    # There are 8 subtriangles that can be defined  with the following corners
+    # (starting from the central node, and progressing counter-clockwise).
+    # ENE: IPQ
+    # NNE: IQR
+    # NNW: IRS
+    # WNW: IST
+    # WSW: ITU
+    # SSW: IUV
+    # SSE: IVW
+    # ESE: IWP
 
+    # There are thus 8 vectors, IP, IQ, IR, IS, IT, IU, IV, IW
 
+    diff_xyz_IP = np.empty((grid.number_of_cells, 3))  # East
+    # ^this is the vector (xP-xI, yP-yI, zP-yI)
+    diff_xyz_IQ = np.empty((grid.number_of_cells, 3))  # Northeast
+    diff_xyz_IR = np.empty((grid.number_of_cells, 3))  # North
+    diff_xyz_IS = np.empty((grid.number_of_cells, 3))  # Northwest
+    diff_xyz_IT = np.empty((grid.number_of_cells, 3))  # West
+    diff_xyz_IU = np.empty((grid.number_of_cells, 3))  # Southwest
+    diff_xyz_IV = np.empty((grid.number_of_cells, 3))  # South
+    diff_xyz_IW = np.empty((grid.number_of_cells, 3))  # Southeast
 
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):
