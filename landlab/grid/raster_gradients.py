@@ -440,6 +440,37 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
 
     return out
 
+def calc_unit_normals_at_cell_subtriangles(grid,
+                                            elevs='topographic__elevation'):
+    """Calculate unit normals on a cell.
+
+    Calculate the eight unit normal vectors <a, b, c> to the eight
+    subtriangles of a four-cornered (raster) cell.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    elevs : str or ndarray, optional
+        Field name or array of node values.
+
+    Returns
+    -------
+    (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE) :
+        each a num-cells x length-3 array
+        Len-8 tuple of the eight unit normal vectors <a, b, c> for the eight
+        subtriangles in the cell. Order is from north of east, counter
+        clockwise to south of east (East North East, North North East, North
+        North West, West North West, West South West, South South West, South
+        South East, East South East).
+
+    Examples
+    --------
+
+    LLCATS: PINF GRAD
+    """
+
+
 
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):
