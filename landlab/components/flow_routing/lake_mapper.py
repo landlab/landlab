@@ -978,7 +978,42 @@ class DepressionFinderAndRouter(Component):
         >>> df._find_unresolved_neighbors(nbrs, rcvr)
         array([30, 21])
         """
+        #unresolved = np.where(receivers[nbrs] == -1)[0]
+        #ur_nbrs = nbrs[unresolved]
+        #ur_links = self._grid.links_at_node[unresolved]
+        #return (ur_nbrs, ur_links)
         return nbrs[np.where(receivers[nbrs] == -1)[0]]
+
+
+    def _find_unresolved_neighbors_new(self, nbrs, nbr_links, receivers):
+        """Make and return list of neighbors of node with unresolved flow dir.
+        
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.components import DepressionFinderAndRouter
+        >>> from landlab import RasterModelGrid
+        >>> rg = RasterModelGrid((7, 8))
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> df = DepressionFinderAndRouter(rg)
+        >>> rcvr = np.arange(56)
+        >>> rcvr[13] = -1
+        >>> rcvr[21] = -1
+        >>> rcvr[29] = -1
+        >>> rcvr[30] = -1
+        >>> nbrs = rg.neighbors_at_node[22]
+        >>> nbr_links = rg.links_at_node[22]
+        >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
+        (array([30, 21]), array([43, 35]))
+        >>> nbrs = rg._diagonal_neighbors_at_node[22]
+        >>> nbr_links = rg._diagonal_links_at_node[22]
+        >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
+        (array([29, 13]), array([136, 121]))
+        """
+        unresolved = np.where(receivers[nbrs] == -1)[0]
+        ur_nbrs = nbrs[unresolved]
+        ur_links = nbr_links[unresolved]
+        return (ur_nbrs, ur_links)
 
 
     def _route_flow_for_one_lake(self, outlet, lake_nodes):
@@ -1016,14 +1051,14 @@ class DepressionFinderAndRouter(Component):
         # Flag receiver nodes inside the lake as "unresolved"
         UNRESOLVED = -1
         self.receivers[lake_nodes] = UNRESOLVED
-        
+
         # We work with two lists: the nodes currently being processed, and
         # the nodes that will be processed on the next iteration. We start with
         # the outlet node as the one being processed, and an empty list of
         # nodes to process next.
         nodes_being_processed = [outlet]
         nodes_to_proc_next = []
-        
+
         # We must now iterate until we've taken care of all the nodes in the 
         # lake. In each iteration, we:
         #  1 - find the unresolved neighbors of nodes being processed
@@ -1040,17 +1075,20 @@ class DepressionFinderAndRouter(Component):
             for cn in nodes_being_processed:
                 
                 # Get active and unresolved neighbors of cn
-                nbrs = self._find_unresolved_neighbors(
-                        self.grid.active_neighbors_at_node[cn], self.receivers)
-                        
+                (nbrs, lnks) = self._find_unresolved_neighbors_new(
+                        self.grid.neighbors_at_node[cn], 
+                        self.grid.links_at_node[cn], self.receivers)
+
                 # They will now flow to cn
                 if nbrs.size > 0:
                     self.receivers[nbrs] = cn
+                    if 'flow__link_to_receiver_node' in self._grid.at_node:
+                        self._grid.at_node['flow__link_to_receiver_node'][nbrs] = lnks
                 
                 # Place them on the list of nodes to process next
                 for n in nbrs:
                     nodes_to_proc_next.append(n)
-                    
+
             # If we're working with a raster that has diagonals, do the same
             # for the diagonal neighbors
             if self._D8:
@@ -1059,8 +1097,12 @@ class DepressionFinderAndRouter(Component):
                 for cn in nodes_being_processed:
                     
                     # Get active and unresolved diagonal neighbors of cn
-                    nbrs = self._find_unresolved_neighbors(
-                            self._grid._get_diagonal_list(cn), self.receivers)
+#                    nbrs = self._find_unresolved_neighbors(
+#                            self._grid._get_diagonal_list(cn), self.receivers)
+                    (nbrs, diags) = self._find_unresolved_neighbors_new(
+                            self._grid._diagonal_neighbors_at_node[cn],
+                            self._grid._diagonal_links_at_node[cn],
+                            self.receivers)
 
                     # They will now flow to cn
                     if nbrs.size > 0:
