@@ -499,6 +499,48 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     diff_xyz_IV = np.empty((grid.number_of_cells, 3))  # South
     diff_xyz_IW = np.empty((grid.number_of_cells, 3))  # Southeast
 
+    P = grid.neighbors_at_node[:, 0]
+    Q = grid.diagonal_neighbors_at_node[:, 0]
+    R = grid.neighbors_at_node[:, 1]
+    S = grid.diagonal_neighbors_at_node[:, 1]
+    T = grid.neighbors_at_node[:, 2]
+    U = grid.diagonal_neighbors_at_node[:, 2]
+    V = grid.neighbors_at_node[:, 3]
+    W = grid.diagonal_neighbors_at_node[:, 3]
+
+    x_P = grid.node_x[P]
+    y_P = grid.node_y[P]
+    z_P = z[P]
+
+    x_Q = grid.node_x[Q]
+    y_Q = grid.node_y[Q]
+    z_Q = z[Q]
+
+    x_R = grid.node_x[R]
+    y_R = grid.node_y[R]
+    z_R = z[R]
+
+    x_S = grid.node_x[S]
+    y_S = grid.node_y[S]
+    z_S = z[S]
+
+    x_T = grid.node_x[T]
+    y_T = grid.node_y[T]
+    z_T = z[T]
+
+    x_U = grid.node_x[U]
+    y_U = grid.node_y[U]
+    z_U = z[U]
+
+    x_V = grid.node_x[V]
+    y_V = grid.node_y[V]
+    z_V = z[V]
+
+    x_W = grid.node_x[W]
+    y_W = grid.node_y[W]
+    z_W = z[W]
+
+
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):
     """Calculate unit normals on a patch.
