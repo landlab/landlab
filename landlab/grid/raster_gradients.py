@@ -489,6 +489,7 @@ def calc_unit_normals_at_cell_subtriangles(grid,
 
     # There are thus 8 vectors, IP, IQ, IR, IS, IT, IU, IV, IW
 
+    # initialized difference matricies for cross product
     diff_xyz_IP = np.empty((grid.number_of_cells, 3))  # East
     # ^this is the vector (xP-xI, yP-yI, zP-yI)
     diff_xyz_IQ = np.empty((grid.number_of_cells, 3))  # Northeast
@@ -499,6 +500,8 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     diff_xyz_IV = np.empty((grid.number_of_cells, 3))  # South
     diff_xyz_IW = np.empty((grid.number_of_cells, 3))  # Southeast
 
+    # identify the grid neigbors at each location
+    I = mg.nodes.flatten()
     P = grid.neighbors_at_node[:, 0]
     Q = grid.diagonal_neighbors_at_node[:, 0]
     R = grid.neighbors_at_node[:, 1]
@@ -507,6 +510,11 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     U = grid.diagonal_neighbors_at_node[:, 2]
     V = grid.neighbors_at_node[:, 3]
     W = grid.diagonal_neighbors_at_node[:, 3]
+
+    #get x, y, z coordinates for each location
+    x_I = grid.node_x[I]
+    y_I = grid.node_y[I]
+    z_I = z[I]
 
     x_P = grid.node_x[P]
     y_P = grid.node_y[P]
@@ -539,6 +547,39 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     x_W = grid.node_x[W]
     y_W = grid.node_y[W]
     z_W = z[W]
+
+    # calculate vectors by differencing
+    diff_xyz_IP[:, 0] = x_P - x_I
+    diff_xyz_IP[:, 1] = y_P - y_I
+    diff_xyz_IP[:, 2] = z_P - z_I
+
+    diff_xyz_IQ[:, 0] = x_Q - x_I
+    diff_xyz_IQ[:, 1] = y_Q - y_I
+    diff_xyz_IQ[:, 2] = z_Q - z_I
+
+    diff_xyz_IR[:, 0] = x_R - x_I
+    diff_xyz_IR[:, 1] = y_R - y_I
+    diff_xyz_IR[:, 2] = z_R - z_I
+
+    diff_xyz_IS[:, 0] = x_S - x_I
+    diff_xyz_IS[:, 1] = y_S - y_I
+    diff_xyz_IS[:, 2] = z_S - z_I
+
+    diff_xyz_IT[:, 0] = x_T - x_I
+    diff_xyz_IT[:, 1] = y_T - y_I
+    diff_xyz_IT[:, 2] = z_T - z_I
+
+    diff_xyz_IU[:, 0] = x_U - x_I
+    diff_xyz_IU[:, 1] = y_U - y_I
+    diff_xyz_IU[:, 2] = z_U - z_I
+
+    diff_xyz_IV[:, 0] = x_V - x_I
+    diff_xyz_IV[:, 1] = y_V - y_I
+    diff_xyz_IV[:, 2] = z_V - z_I
+
+    diff_xyz_IW[:, 0] = x_W - x_I
+    diff_xyz_IW[:, 1] = y_W - y_I
+    diff_xyz_IW[:, 2] = z_W - z_I
 
 
 def calc_unit_normals_at_patch_subtriangles(grid,
