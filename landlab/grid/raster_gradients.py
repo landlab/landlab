@@ -470,11 +470,11 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_x ** 2
-    >>> four_tris = mg.calc_unit_normals_at_patch_subtriangles(z)
-    >>> type(four_tris) is tuple
+    >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
+    >>> type(eight_tris) is tuple
     True
-    >>> len(four_tris)
-    4
+    >>> len(eight_tris)
+    8
     >>> np.allclose(four_tris[0], four_tris[1])
     True
     >>> np.allclose(four_tris[2], four_tris[3])
@@ -643,7 +643,69 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     n_ESE = nhat_ESE/nmag_ESE.reshape(grid.number_of_cells, 1)
 
 
-    (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
+    return (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
+
+def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
+                        subtriangle_unit_normals=None):
+    """Calculate the slope (positive magnitude of gradient) at each of the
+    eight cell subtriangles.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    elevs : str or ndarray, optional
+        Field name or array of node values.
+    subtriangle_unit_normals : tuple of 8 (ncels, 3) arrays (optional)
+        The unit normal vectors for the eight subtriangles of each cell,
+        if already known. Order is from north of east, counter
+        clockwise to south of east (East North East, North North East, North
+        North West, West North West, West South West, South South West, South
+        South East, East South East).
+
+    Returns
+    -------
+    slopes_at_cell_subtriangles: array (n_cells, 8) array
+        The slope (positive gradient magnitude) of each cell subtriangle, in
+        radians.
+
+    Examples
+    --------
+
+
+    LLCATS: CINF GRAD
+    """
+    if subtriangle_unit_normals is not None:
+        assert len(subtriangle_unit_normals) == 8
+        assert subtriangle_unit_normals[0].shape[1] == 3
+        assert subtriangle_unit_normals[1].shape[1] == 3
+        assert subtriangle_unit_normals[2].shape[1] == 3
+        assert subtriangle_unit_normals[3].shape[1] == 3
+        assert subtriangle_unit_normals[4].shape[1] == 3
+        assert subtriangle_unit_normals[5].shape[1] == 3
+        assert subtriangle_unit_normals[6].shape[1] == 3
+        assert subtriangle_unit_normals[7].shape[1] == 3
+        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = subtriangle_unit_normals
+    else:
+        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
+            grid.calc_unit_normals_at_cell_subtriangles(elevs))
+
+    # combine z direction element of all eight
+    dotprod = np.zeros((grid.number_of_cells,8))
+    dotprod[:,0] = n_ENE[:, 2]  # by definition
+    dotprod[:,1] = n_NNE[:, 2]
+    dotprod[:,2] = n_NNW[:, 2]
+    dotprod[:,3] = n_WNW[:, 2]
+    dotprod[:,4] = n_WSW[:, 2]
+    dotprod[:,5] = n_SSW[:, 2]
+    dotprod[:,6] = n_SSE[:, 2]
+    dotprod[:,7] = n_ESE[:, 2]
+
+    slopes_at_cell_subtriangles = np.arccos(dotprod)  # 1 node order
+
+
+    return slopes_at_cell_subtriangles
+
 
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):
