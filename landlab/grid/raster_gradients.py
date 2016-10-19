@@ -466,6 +466,36 @@ def calc_unit_normals_at_cell_subtriangles(grid,
 
     Examples
     --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid((4, 5))
+    >>> z = mg.node_x ** 2
+    >>> four_tris = mg.calc_unit_normals_at_patch_subtriangles(z)
+    >>> type(four_tris) is tuple
+    True
+    >>> len(four_tris)
+    4
+    >>> np.allclose(four_tris[0], four_tris[1])
+    True
+    >>> np.allclose(four_tris[2], four_tris[3])
+    True
+    >>> np.allclose(four_tris[0], four_tris[2])
+    True
+    >>> np.allclose(np.square(four_tris[0]).sum(axis=1), 1.)
+    True
+    >>> four_tris[0]
+    array([[-0.70710678,  0.        ,  0.70710678],
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [-0.98058068,  0.        ,  0.19611614],
+           [-0.98994949,  0.        ,  0.14142136],
+           [-0.70710678,  0.        ,  0.70710678],
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [-0.98058068,  0.        ,  0.19611614],
+           [-0.98994949,  0.        ,  0.14142136],
+           [-0.70710678,  0.        ,  0.70710678],
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [-0.98058068,  0.        ,  0.19611614],
+           [-0.98994949,  0.        ,  0.14142136]])
 
     LLCATS: CINF GRAD
     """
@@ -501,15 +531,15 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     diff_xyz_IW = np.empty((grid.number_of_cells, 3))  # Southeast
 
     # identify the grid neigbors at each location
-    I = grid.nodes.flatten()
-    P = grid.neighbors_at_node[:, 0]
-    Q = grid._diagonal_neighbors_at_node[:, 0]
-    R = grid.neighbors_at_node[:, 1]
-    S = grid._diagonal_neighbors_at_node[:, 1]
-    T = grid.neighbors_at_node[:, 2]
-    U = grid._diagonal_neighbors_at_node[:, 2]
-    V = grid.neighbors_at_node[:, 3]
-    W = grid._diagonal_neighbors_at_node[:, 3]
+    I = grid.node_at_cell
+    P = grid.neighbors_at_node[I, 0]
+    Q = grid._diagonal_neighbors_at_node[I, 0]
+    R = grid.neighbors_at_node[I, 1]
+    S = grid._diagonal_neighbors_at_node[I, 1]
+    T = grid.neighbors_at_node[I, 2]
+    U = grid._diagonal_neighbors_at_node[I, 2]
+    V = grid.neighbors_at_node[I, 3]
+    W = grid._diagonal_neighbors_at_node[I, 3]
 
     #get x, y, z coordinates for each location
     x_I = grid.node_x[I]
