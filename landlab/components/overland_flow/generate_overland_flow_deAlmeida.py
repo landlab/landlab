@@ -453,11 +453,6 @@ class OverlandFlow(Component):
             # array.
             self.q = np.delete(self.q, len(self.q) - 1)
 
-            # And put the horizontal and vertical arrays back together, to
-            # create the discharge array.
-            # self.q = np.concatenate((self.q_vertical, self.q_horizontal),
-            #                         axis=0)
-
             # Updating the discharge array to have the boundary links set to
             # their neighbor
             if self.default_fixed_links is True:
