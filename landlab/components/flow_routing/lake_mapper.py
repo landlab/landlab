@@ -1000,7 +1000,7 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[13] = -1
         >>> rcvr[21] = -1
         >>> rcvr[29] = -1
-        >>> rcvr[30] = -1
+        >>> rcvr[30] = -1 
         >>> nbrs = rg.neighbors_at_node[22]
         >>> nbr_links = rg.links_at_node[22]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
@@ -1084,7 +1084,14 @@ class DepressionFinderAndRouter(Component):
                     self.receivers[nbrs] = cn
                     if 'flow__link_to_receiver_node' in self._grid.at_node:
                         self._grid.at_node['flow__link_to_receiver_node'][nbrs] = lnks
-                
+                        slopes = ((self._elev[nbrs] - self._elev[cn]) / 
+                                  self._grid.length_of_link[lnks])
+                        self._grid.at_node['topographic__steepest_slope'][nbrs] = np.maximum(slopes, 0.0)
+                        if cn == 24:
+                            print('slopes:')
+                            print(slopes)
+                            print(self._grid.at_node['topographic__steepest_slope'][nbrs])
+
                 # Place them on the list of nodes to process next
                 for n in nbrs:
                     nodes_to_proc_next.append(n)
@@ -1107,6 +1114,15 @@ class DepressionFinderAndRouter(Component):
                     # They will now flow to cn
                     if nbrs.size > 0:
                         self.receivers[nbrs] = cn
+                        if 'flow__link_to_receiver_node' in self._grid.at_node:
+                            self._grid.at_node['flow__link_to_receiver_node'][nbrs] = diags
+                            slopes = ((self._elev[nbrs] - self._elev[cn]) / 
+                                      self._diag_link_length)
+                            self._grid.at_node['topographic__steepest_slope'][nbrs] = np.maximum(slopes, 0.0)
+                            if cn == 24:
+                                print('diag slopes:')
+                                print(slopes)
+                                print(self._grid.at_node['topographic__steepest_slope'][nbrs])
                     
                     # Place them on the list of nodes to process next
                     for n in nbrs:
