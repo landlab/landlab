@@ -665,9 +665,13 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
 
     Returns
     -------
-    slopes_at_cell_subtriangles: array (n_cells, 8) array
-        The slope (positive gradient magnitude) of each cell subtriangle, in
-        radians.
+    (s_ENE, s_NNE, s_NNW, s_WNW, s_WSW, s_SSW, s_SSE, s_ESE) :
+        each a length num-cells array
+        Len-8 tuple of the slopes (positive gradient magnitude) of each of the
+        eight cell subtriangles, in radians. Order is from north of east,
+        counter clockwise to south of east (East North East, North North East,
+        North North West, West North West, West South West, South South West,
+        South South East, East South East).
 
     Examples
     --------
@@ -691,7 +695,7 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
             grid.calc_unit_normals_at_cell_subtriangles(elevs))
 
     # combine z direction element of all eight
-    dotprod = np.zeros((grid.number_of_cells,8))
+    dotprod = np.empty((grid.number_of_cells,8))
     dotprod[:,0] = n_ENE[:, 2]  # by definition
     dotprod[:,1] = n_NNE[:, 2]
     dotprod[:,2] = n_NNW[:, 2]
@@ -701,11 +705,131 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     dotprod[:,6] = n_SSE[:, 2]
     dotprod[:,7] = n_ESE[:, 2]
 
-    slopes_at_cell_subtriangles = np.arccos(dotprod)  # 1 node order
+    slopes_at_cell_subtriangles = np.arccos(dotprod)  #
+    s_ENE = slopes_at_cell_subtriangles[:,0].reshape(grid.number_of_cells, 1)
+    s_NNE = slopes_at_cell_subtriangles[:,1].reshape(grid.number_of_cells, 1)
+    s_NNW = slopes_at_cell_subtriangles[:,2].reshape(grid.number_of_cells, 1)
+    s_WNW = slopes_at_cell_subtriangles[:,3].reshape(grid.number_of_cells, 1)
+    s_WSW = slopes_at_cell_subtriangles[:,4].reshape(grid.number_of_cells, 1)
+    s_SSW = slopes_at_cell_subtriangles[:,5].reshape(grid.number_of_cells, 1)
+    s_SSE = slopes_at_cell_subtriangles[:,6].reshape(grid.number_of_cells, 1)
+    s_ESE = slopes_at_cell_subtriangles[:,7].reshape(grid.number_of_cells, 1)
+
+    return (s_ENE, s_NNE, s_NNW, s_WNW, s_WSW, s_SSW, s_SSE, s_ESE)
+
+def calc_aspect_at_cell_subtriangles(grid, subtriangle_unit_normals=None,
+                        elevs='topographic__elevation', unit='degrees'):
+    """Get tuple of arrays of aspect of each of the eight cell subtriangles.
+
+    Aspect is returned as radians clockwise of north, unless input parameter
+    units is set to 'degrees'.
+
+    If subtriangle_unit_normals is provided the aspect will be calculated from
+    these data.
+
+    If it is not, it will be derived from elevation data at the nodes,
+    which can either be a string referring to a grid field (default:
+    'topographic__elevation'), or an nnodes-long numpy array of the
+    values themselves.
 
 
-    return slopes_at_cell_subtriangles
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    subtriangle_unit_normals : tuple of 8 (ncels, 3) arrays (optional)
+        The unit normal vectors for the eight subtriangles of each cell,
+        if already known. Order is from north of east, counter
+        clockwise to south of east (East North East, North North East, North
+        North West, West North West, West South West, South South West, South
+        South East, East South East).
+    elevs : str or array (optional)
+        Node field name or node array of elevations.
+        If *subtriangle_unit_normals* is not provided, must be set, but unused
+        otherwise.
+    unit : {'degrees', 'radians'}
+        Controls the unit that the aspect is returned as.
 
+
+    Returns
+    -------
+    (a_ENE, a_NNE, a_NNW, a_WNW, a_WSW, a_SSW, a_SSE, a_ESE) :
+        each a length num-cells array
+        Len-8 tuple of the aspect of each of the eight cell subtriangles.Aspect
+        is returned as radians clockwise of north, unless input parameter
+        units is set to 'degrees'.
+        Order is from north of east, counter clockwise to south of east (East
+        North East, North North East, North North West, West North West, West
+        South West, South South West, South South East, East South East).
+
+    Examples
+    --------
+
+
+    LLCATS: CINF SURF
+    """
+    if subtriangle_unit_normals is not None:
+        assert len(subtriangle_unit_normals) == 8
+        assert subtriangle_unit_normals[0].shape[1] == 3
+        assert subtriangle_unit_normals[1].shape[1] == 3
+        assert subtriangle_unit_normals[2].shape[1] == 3
+        assert subtriangle_unit_normals[3].shape[1] == 3
+        assert subtriangle_unit_normals[4].shape[1] == 3
+        assert subtriangle_unit_normals[5].shape[1] == 3
+        assert subtriangle_unit_normals[6].shape[1] == 3
+        assert subtriangle_unit_normals[7].shape[1] == 3
+        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = subtriangle_unit_normals
+    else:
+        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
+            grid.calc_unit_normals_at_cell_subtriangles(elevs))
+
+    angle_from_x_ccw_ENE = np.arctan2(n_ENE[:, 1],n_ENE[:, 0])
+    angle_from_x_ccw_NNE = np.arctan2(n_NNE[:, 1],n_NNE[:, 0])
+    angle_from_x_ccw_NNW = np.arctan2(n_NNW[:, 1],n_NNW[:, 0])
+    angle_from_x_ccw_WNW = np.arctan2(n_WNW[:, 1],n_WNW[:, 0])
+    angle_from_x_ccw_WSW = np.arctan2(n_WSW[:, 1],n_WSW[:, 0])
+    angle_from_x_ccw_SSW = np.arctan2(n_SSW[:, 1],n_SSW[:, 0])
+    angle_from_x_ccw_SSE = np.arctan2(n_SSE[:, 1],n_SSE[:, 0])
+    angle_from_x_ccw_ESE = np.arctan2(n_ESE[:, 1],n_ESE[:, 0])
+
+    if unit == 'degrees':
+        return (radians_to_degrees(angle_from_x_ccw_ENE),
+                radians_to_degrees(angle_from_x_ccw_NNE),
+                radians_to_degrees(angle_from_x_ccw_NNW),
+                radians_to_degrees(angle_from_x_ccw_WNW),
+                radians_to_degrees(angle_from_x_ccw_WSW),
+                radians_to_degrees(angle_from_x_ccw_SSW),
+                radians_to_degrees(angle_from_x_ccw_SSE),
+                radians_to_degrees(angle_from_x_ccw_ESE))
+
+    elif unit == 'radians':
+        angle_from_north_cw_ENE = (5. * np.pi / 2. -
+                               angle_from_x_ccw_ENE) % (2. * np.pi)
+        angle_from_north_cw_NNE = (5. * np.pi / 2. -
+                               angle_from_x_ccw_NNE) % (2. * np.pi)
+        angle_from_north_cw_NNW = (5. * np.pi / 2. -
+                               angle_from_x_ccw_NNW) % (2. * np.pi)
+        angle_from_north_cw_WNW = (5. * np.pi / 2. -
+                               angle_from_x_ccw_WNW) % (2. * np.pi)
+        angle_from_north_cw_WSW = (5. * np.pi / 2. -
+                               angle_from_x_ccw_WSW) % (2. * np.pi)
+        angle_from_north_cw_SSW = (5. * np.pi / 2. -
+                               angle_from_x_ccw_SSW) % (2. * np.pi)
+        angle_from_north_cw_SSE = (5. * np.pi / 2. -
+                               angle_from_x_ccw_SSE) % (2. * np.pi)
+        angle_from_north_cw_ESE = (5. * np.pi / 2. -
+                               angle_from_x_ccw_ESE) % (2. * np.pi)
+
+        return (angle_from_north_cw_ENE,
+                angle_from_north_cw_NNE,
+                angle_from_north_cw_NNW,
+                angle_from_north_cw_WNW,
+                angle_from_north_cw_WSW,
+                angle_from_north_cw_SSW,
+                angle_from_north_cw_SSE,
+                angle_from_north_cw_ESE)
+    else:
+        raise TypeError("unit must be 'degrees' or 'radians'")
 
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):
