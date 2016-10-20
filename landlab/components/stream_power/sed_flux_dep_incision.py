@@ -403,10 +403,43 @@ class SedDepEroder(Component):
         sed_flux_out = rel_sed_flux*trans_cap_vol_out
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
 
-    def get_sed_flux_function_pseudoimplicit(self, sed_in, trans_cap_vol_out,
-                                             prefactor_for_volume,
-                                             prefactor_for_dz):
-        rel_sed_flux_in = sed_in/trans_cap_vol_out
+    def get_sed_flux_function_pseudoimplicit(self, sed_in_bydt,
+                                             trans_cap_vol_out_bydt,
+                                             prefactor_for_volume_bydt,
+                                             prefactor_for_dz_bydt):
+        """
+        This function uses a pseudoimplicit method to calculate the sediment
+        flux function for a node, and also returns dz/dt and the rate of
+        sediment output from the node.
+
+        Note that this method now operates in PER TIME units; this was not
+        formerly the case.
+
+        Parameters
+        ----------
+        sed_in_bydt : float
+            Total rate of incoming sediment, sum(Q_s_in)/dt
+        trans_cap_vol_out_bydt : float
+            Volumetric transport capacity as a rate (i.e., m**3/s) on outgoing
+            link
+        prefactor_for_volume_bydt : float
+            Equal to K*A**m*S**n * cell_area
+        prefactor_for_dz_bydt : float
+            Equal to K*A**m*S**n (both prefactors are passed for computational
+            efficiency)
+
+        Returns
+        -------
+        dzbydt : float
+            Rate of change of substrate elevation
+        sed_flux_out_bydt : float
+            Q_s/dt on the outgoing link
+        rel_sed_flux : float
+            f(Q_s/Q_c)
+        error_in_sed_flux_fn : float
+            Measure of how well converged rel_sed_flux is
+        """
+        rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
         rel_sed_flux = rel_sed_flux_in
 
         if self.type == 'generalized_humped':
@@ -447,8 +480,9 @@ class SedDepEroder(Component):
 
         for i in range(self.pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
-            sed_vol_added = prefactor_for_volume*sed_flux_fn
-            rel_sed_flux = rel_sed_flux_in + sed_vol_added/trans_cap_vol_out
+            sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
+            rel_sed_flux = (rel_sed_flux_in +
+                            sed_vol_added_bydt/trans_cap_vol_out_bydt)
             # print rel_sed_flux
             if rel_sed_flux >= 1.:
                 rel_sed_flux = 1.
@@ -460,9 +494,9 @@ class SedDepEroder(Component):
         sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
         # this error could alternatively be used to break the loop
         error_in_sed_flux_fn = sed_flux_fn-last_sed_flux_fn
-        dz = prefactor_for_dz*sed_flux_fn
-        sed_flux_out = rel_sed_flux*trans_cap_vol_out
-        return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
+        dzbydt = prefactor_for_dz_bydt*sed_flux_fn
+        sed_flux_out_bydt = rel_sed_flux*trans_cap_vol_out_bydt
+        return dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn
 
     def erode(self, dt, flooded_depths=None, **kwds):
         """Erode and deposit on the channel bed for a duration of *dt*.
@@ -529,13 +563,13 @@ class SedDepEroder(Component):
                                         slopes_tothent)
                 erosion_prefactor_withS = (
                     erosion_prefactor_withA * slopes_tothen)  # no time, no fqs
-                # shear_tothe_a = shear_stress**self._a
 
                 dt_this_step = dt_secs-internal_t
                 # ^timestep adjustment is made AFTER the dz calc
-                node_vol_capacities = transport_capacities*dt_this_step
+#                node_vol_capacities = transport_capacities*dt_this_step
 
-                sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
+#                sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
+                sed_rate_into_node = np.zeros(grid.number_of_nodes, dtype=float)
                 dz = np.zeros(grid.number_of_nodes, dtype=float)
                 cell_areas = self.cell_areas
                 for i in s_in[::-1]:  # work downstream
@@ -544,43 +578,45 @@ class SedDepEroder(Component):
                         flood_depth = flooded_depths[i]
                     else:
                         flood_depth = 0.
-                    sed_flux_into_this_node = sed_into_node[i]
+                    sed_flux_into_this_node_bydt = sed_rate_into_node[i]
                     node_capacity = transport_capacities[i]
                     # ^we work in volume flux, not volume per se here
-                    node_vol_capacity = node_vol_capacities[i]
+#                    node_vol_capacity = node_vol_capacities[i]
                     if flood_depth > 0.:
-                        node_vol_capacity = 0.
-                    if sed_flux_into_this_node < node_vol_capacity:
+                        node_capacity = 0.
+                    if sed_flux_into_this_node_bydt < node_capacity:
                         # ^note incision is forbidden at capacity
-                        dz_prefactor = dt_this_step*erosion_prefactor_withS[i]
-                        vol_prefactor = dz_prefactor*cell_area
-                        (dz_here, sed_flux_out, rel_sed_flux_here,
+                        dz_prefactor_bydt = erosion_prefactor_withS[i]
+                        vol_prefactor_bydt = dz_prefactor_bydt*cell_area
+                        (dzbydt_here, sed_flux_out_bydt, rel_sed_flux_here,
                          error_in_sed_flux) = \
                             self.get_sed_flux_function_pseudoimplicit(
-                                sed_flux_into_this_node, node_vol_capacity,
-                                vol_prefactor, dz_prefactor)
+                                sed_flux_into_this_node_bydt,
+                                node_capacity,
+                                vol_prefactor_bydt, dz_prefactor_bydt)
                         # note now dz_here may never create more sed than the
                         # out can transport...
-                        assert sed_flux_out <= node_vol_capacity, (
+                        assert sed_flux_out_bydt <= node_capacity, (
                             'failed at node '+str(s_in.size-i) +
                             ' with rel sed flux '+str(
-                                sed_flux_out/node_capacity))
+                                sed_flux_out_bydt/node_capacity))
                         rel_sed_flux[i] = rel_sed_flux_here
-                        vol_pass = sed_flux_out
+                        vol_pass_rate = sed_flux_out_bydt
                     else:
                         rel_sed_flux[i] = 1.
-                        vol_dropped = (sed_flux_into_this_node -
-                                       node_vol_capacity)
-                        dz_here = -vol_dropped/cell_area
+                        vol_drop_rate = (sed_flux_into_this_node_bydt -
+                                       node_capacity)
+                        dzbydt_here = -vol_drop_rate/cell_area
                         try:
                             isflooded = flooded_nodes[i]
                         except TypeError:  # was None
                             isflooded = False
                         if flood_depth <= 0. and not isflooded:
-                            vol_pass = node_vol_capacity
+                            vol_pass_rate = node_capacity
                             # we want flooded nodes which have already been
                             # filled to enter the else statement
                         else:
+########modify ->
                             height_excess = -dz_here - flood_depth
                             # ...above water level
                             if height_excess <= 0.:
@@ -593,8 +629,8 @@ class SedDepEroder(Component):
                                 # ^bit cheeky?
                                 flooded_depths[i] = 0.
 
-                    dz[i] -= dz_here
-                    sed_into_node[flow_receiver[i]] += vol_pass
+                    dz[i] -= dzbydt_here * dt_this_step
+                    sed_rate_into_node[flow_receiver[i]] += vol_pass_rate
                 break_flag = True
 
                 node_z[grid.core_nodes] += dz[grid.core_nodes]
@@ -627,7 +663,8 @@ class SedDepEroder(Component):
 
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
-        grid.at_node['channel_sediment__volumetric_flux'][:] = sed_into_node
+        grid.at_node['channel_sediment__volumetric_flux'][
+            :] = sed_rate_into_node
         grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
         # elevs set automatically to the name used in the function call.
         self.iterations_in_dt = counter
