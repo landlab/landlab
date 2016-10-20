@@ -342,7 +342,8 @@ class SedDepEroder(Component):
                 'recognised!')
         return sed_flux_fn
 
-    def get_sed_flux_function_pseudoimplicit_old(self, sed_in, trans_cap_vol_out,
+    def get_sed_flux_function_pseudoimplicit_old(self, sed_in,
+                                             trans_cap_vol_out,
                                              prefactor_for_volume,
                                              prefactor_for_dz):
         rel_sed_flux_in = sed_in/trans_cap_vol_out
@@ -547,6 +548,24 @@ class SedDepEroder(Component):
             transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
             erosion_prefactor_withA = self._K_unit_time * node_A**self._m
             # ^doesn't include S**n*f(Qc/Qc)
+            downward_slopes = node_S.clip(0.)
+            # for the stability condition:
+            if np.isclose(self._n, 1.):
+                linear = True
+                wave_stab_cond_denominator = erosion_prefactor_withA
+            else:
+                linear = False
+                wave_stab_cond_denominator = (
+                    erosion_prefactor_withA * downward_slopes**(self._n - 1.))
+                # this is a bit cheeky; we're basically assuming the slope
+                # won't change much as the tstep evolves
+                # justifiable as the -1 suppresses the sensitivity to S
+                # for now, we're going to be conservative and just exclude the
+                # role of the value of the sed flux fn in modifying the calc;
+                # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
+            max_tstep_wave = np.nanmin(link_length/wave_stab_cond_denominator)
+            self.max_tstep_wave = max_tstep_wave
+
             internal_t = 0.
             break_flag = False
             dt_secs = dt*31557600.
@@ -555,7 +574,6 @@ class SedDepEroder(Component):
             while 1:
                 counter += 1
                 # print counter
-                downward_slopes = node_S.clip(0.)
                 # positive_slopes = np.greater(downward_slopes, 0.)
                 slopes_tothen = downward_slopes**self._n
                 slopes_tothent = downward_slopes**self._nt
@@ -566,9 +584,7 @@ class SedDepEroder(Component):
 
                 dt_this_step = dt_secs-internal_t
                 # ^timestep adjustment is made AFTER the dz calc
-#                node_vol_capacities = transport_capacities*dt_this_step
 
-#                sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
                 sed_rate_into_node = np.zeros(grid.number_of_nodes, dtype=float)
                 dz = np.zeros(grid.number_of_nodes, dtype=float)
                 cell_areas = self.cell_areas
@@ -581,7 +597,6 @@ class SedDepEroder(Component):
                     sed_flux_into_this_node_bydt = sed_rate_into_node[i]
                     node_capacity = transport_capacities[i]
                     # ^we work in volume flux, not volume per se here
-#                    node_vol_capacity = node_vol_capacities[i]
                     if flood_depth > 0.:
                         node_capacity = 0.
                     if sed_flux_into_this_node_bydt < node_capacity:
@@ -646,6 +661,7 @@ class SedDepEroder(Component):
                 node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[
                     core_draining_nodes]/link_length[core_draining_nodes]
                 internal_t += dt_this_step  # still in seconds, remember
+                downward_slopes = node_S.clip(0.)
         else:
             raise TypeError # should never trigger
 
