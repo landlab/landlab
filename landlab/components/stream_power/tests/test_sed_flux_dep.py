@@ -48,7 +48,7 @@ def test_sed_dep_new():
     dt = 100.
     up = 0.05
 
-    for i in xrange(10):
+    for i in range(10):
         fr.route_flow()
         sde.run_one_step(dt)
         z[mg.core_nodes] += 20.*up
