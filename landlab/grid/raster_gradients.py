@@ -469,34 +469,24 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> mg = RasterModelGrid((4, 5))
+    >>> mg = RasterModelGrid((3, 3))
     >>> z = mg.node_x ** 2
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
     >>> type(eight_tris) is tuple
     True
     >>> len(eight_tris)
     8
-    >>> np.allclose(four_tris[0], four_tris[1])
+    >>> eight_tris[0].shape==(mg.number_of_cells,3)
     True
-    >>> np.allclose(four_tris[2], four_tris[3])
-    True
-    >>> np.allclose(four_tris[0], four_tris[2])
-    True
-    >>> np.allclose(np.square(four_tris[0]).sum(axis=1), 1.)
-    True
-    >>> four_tris[0]
-    array([[-0.70710678,  0.        ,  0.70710678],
-           [-0.9486833 ,  0.        ,  0.31622777],
-           [-0.98058068,  0.        ,  0.19611614],
-           [-0.98994949,  0.        ,  0.14142136],
-           [-0.70710678,  0.        ,  0.70710678],
-           [-0.9486833 ,  0.        ,  0.31622777],
-           [-0.98058068,  0.        ,  0.19611614],
-           [-0.98994949,  0.        ,  0.14142136],
-           [-0.70710678,  0.        ,  0.70710678],
-           [-0.9486833 ,  0.        ,  0.31622777],
-           [-0.98058068,  0.        ,  0.19611614],
-           [-0.98994949,  0.        ,  0.14142136]])
+    >>> eight_tris
+    (array([[-0.9486833 ,  0.        ,  0.31622777]]),
+     array([[-0.9486833 ,  0.        ,  0.31622777]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.9486833 ,  0.        ,  0.31622777]]),
+     array([[-0.9486833 ,  0.        ,  0.31622777]]))
 
     LLCATS: CINF GRAD
     """
@@ -634,6 +624,8 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     nmag_SSE = np.sqrt(np.square(nhat_SSE).sum(axis=1))
     nmag_ESE = np.sqrt(np.square(nhat_ESE).sum(axis=1))
 
+    # normalize the cross product with its magnitude so it is a unit normal
+    # instead of a variable lenth normal.
     n_ENE = nhat_ENE/nmag_ENE.reshape(grid.number_of_cells, 1)
     n_NNE = nhat_NNE/nmag_NNE.reshape(grid.number_of_cells, 1)
     n_NNW = nhat_NNW/nmag_NNW.reshape(grid.number_of_cells, 1)
@@ -676,10 +668,42 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
 
     Examples
     --------
-
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid((3, 3))
+    >>> z=np.array([np.sqrt(3),0,4./3.,0,0,0,1,0,1./np.sqrt(3)])
+    >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
+    >>> S=mg.calc_slope_at_cell_subtriangles(z, eight_tris)
+    >>> S0=mg.calc_slope_at_cell_subtriangles(z)
+    >>> np.allclose(S, S0)
+    True
+    >>> type(S) is tuple
+    True
+    >>> len(S)
+    8
+    >>> len(S[0])==mg.number_of_cells
+    True
+    >>> np.allclose(S[0],S[1])
+    True
+    >>> np.allclose(S[2],S[3])
+    True
+    >>> np.allclose(S[4],S[5])
+    True
+    >>> np.allclose(S[6],S[7])
+    True
+    >>> np.allclose(np.rad2deg(S[0])[0], 30.)
+    True
+    >>> np.allclose(np.rad2deg(S[2])[0], 45.)
+    True
+    >>> np.allclose(np.rad2deg(S[4])[0], 60.)
+    True
+    >>> np.allclose(np.cos(S[6])[0],3./5)
+    True
 
     LLCATS: CINF GRAD
     """
+
+    # verify that subtriangle_unit_normals is of the correct form.
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 8
         assert subtriangle_unit_normals[0].shape[1] == 3
@@ -695,7 +719,8 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
         n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
             grid.calc_unit_normals_at_cell_subtriangles(elevs))
 
-    # combine z direction element of all eight
+    # combine z direction element of all eight so that the arccosine portion
+    # only takes one function call.
     dotprod = np.empty((grid.number_of_cells,8))
     dotprod[:,0] = n_ENE[:, 2]  # by definition
     dotprod[:,1] = n_NNE[:, 2]
@@ -706,7 +731,10 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     dotprod[:,6] = n_SSE[:, 2]
     dotprod[:,7] = n_ESE[:, 2]
 
+    # take the inverse cosine of the z component to get the slope angle
     slopes_at_cell_subtriangles = np.arccos(dotprod)  #
+
+    # split array into each subtriangle component.
     s_ENE = slopes_at_cell_subtriangles[:,0].reshape(grid.number_of_cells)
     s_NNE = slopes_at_cell_subtriangles[:,1].reshape(grid.number_of_cells)
     s_NNW = slopes_at_cell_subtriangles[:,2].reshape(grid.number_of_cells)
@@ -766,10 +794,29 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
 
     Examples
     --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid((3, 3))
+    >>> z=np.array([1,0,1,0,0,0,1,0,1])
+    >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
+    >>> A = mg.calc_aspect_at_cell_subtriangles(z, eight_tris)
+    >>> A0 = mg.calc_aspect_at_cell_subtriangles(z)
+    >>> np.allclose(A, A0)
+    True
+    >>> type(A) is tuple
+    True
+    >>> len(A)
+    8
+    >>> len(A[0])==mg.number_of_cells
+    True
+    >>> A0
+    (array([ 180.]), array([ 270.]), array([ 90.]), array([ 180.]), array([ 0.]), array([ 90.]), array([ 270.]), array([ 0.]))
 
 
     LLCATS: CINF SURF
     """
+
+    # verify that subtriangle_unit_normals is of the correct form.
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 8
         assert subtriangle_unit_normals[0].shape[1] == 3
@@ -781,15 +828,18 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
         assert subtriangle_unit_normals[6].shape[1] == 3
         assert subtriangle_unit_normals[7].shape[1] == 3
         n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = subtriangle_unit_normals
+
+    # otherwise create it.
     else:
         n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
             grid.calc_unit_normals_at_cell_subtriangles(elevs))
 
+    # calculate the aspect as an angle ccw from the x axis (math angle)
     angle_from_x_ccw_ENE = np.reshape(np.arctan2(n_ENE[:, 1],n_ENE[:, 0]),
                                       grid.number_of_cells)
     angle_from_x_ccw_NNE = np.reshape(np.arctan2(n_NNE[:, 1],n_NNE[:, 0]),
                                       grid.number_of_cells)
-    angle_from_x_ccw_NNW = np.reshape(np.arctan2(n_NNW[:, 1],n_NNW[:, 0]), 
+    angle_from_x_ccw_NNW = np.reshape(np.arctan2(n_NNW[:, 1],n_NNW[:, 0]),
                                       grid.number_of_cells)
     angle_from_x_ccw_WNW = np.reshape(np.arctan2(n_WNW[:, 1],n_WNW[:, 0]),
                                       grid.number_of_cells)
@@ -801,7 +851,8 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
                                       grid.number_of_cells)
     angle_from_x_ccw_ESE = np.reshape(np.arctan2(n_ESE[:, 1],n_ESE[:, 0]),
                                       grid.number_of_cells)
-
+    # convert reference from math angle to angles clockwise from north
+    # return as either  radians or degrees depending on unit.
     if unit == 'degrees':
         return (radians_to_degrees(angle_from_x_ccw_ENE),
                 radians_to_degrees(angle_from_x_ccw_NNE),
