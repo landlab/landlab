@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import numpy as np
 from landlab import (ModelParameterDictionary, Component, FieldError,
-                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY)
+                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY, CORE_NODE)
 from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
@@ -760,14 +760,25 @@ class DepressionFinderAndRouter(Component):
             # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
             # I BELIEVE THE IS_VALID_OUTLET FN SHOULD ASSIGN FLOW DIR
             found_outlet = self.is_valid_outlet(lowest_node_on_perimeter)
+            
+            # If we haven't found an outlet, add lowest_node to the lake list
+            # and flag it as being part of the current lake/depression
             if not found_outlet:
-                # Add lowest_node to the lake list
                 nodes_this_depression.append(lowest_node_on_perimeter)
-                # Flag it as being part of the current lake/depression
                 self.flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
+                
+            # If we HAVE found an outlet, and we are re-routing flow, then
+            # assign the proper flow direction to the outlet node. If it is an
+            # open boundary, then it drains to itself. Otherwise, call
+            # assign_outlet_receiver to find the correct receiver (so that it
+            # doesn't simply drain back into the lake)
             elif ('flow__receiver_node' in self._grid.at_node.keys() and
                   reroute_flow):
-                self.assign_outlet_receiver(lowest_node_on_perimeter)
+                if self._grid.status_at_node[lowest_node_on_perimeter] != CORE_NODE:
+                    self._grid.at_node['flow__receiver_node'][lowest_node_on_perimeter] = lowest_node_on_perimeter
+                else:
+                    self.assign_outlet_receiver(lowest_node_on_perimeter)
+
             # Safety check, in case a bug (ha!) puts us in an infinite loop
             assert (count < max_count), 'too many iterations in lake filler!'
             count += 1
@@ -805,6 +816,8 @@ class DepressionFinderAndRouter(Component):
             #    print(str(debug_count) + ' pits')
         assert len(self.depression_outlets) == self._unique_pits.size
 
+        #print('before ulo')
+        #print(self._grid.at_node['flow__receiver_node'])
         self.unique_lake_outlets = np.array(self.depression_outlets
                                             )[self._unique_pits]
                                             
@@ -906,10 +919,8 @@ class DepressionFinderAndRouter(Component):
         self._identify_depressions_and_outlets(reroute_flow)
         
         #DEBUG
-#        r86225 = self._grid.at_node['flow__receiver_node'][86225]
-#        r86226 = self._grid.at_node['flow__receiver_node'][86226]
-#        if r86225 == 86226 and r86226 == 86225:
-#            print('2222222222222222')
+        #print('after ido')
+        #print(self._grid.at_node['flow__receiver_node'])
 
         if reroute_flow and ('flow__receiver_node' in
                              self._grid.at_node.keys()):
@@ -917,11 +928,12 @@ class DepressionFinderAndRouter(Component):
             self.sinks = self._grid.at_node['flow__sink_flag']
             self.grads = self._grid.at_node['topographic__steepest_slope']
             #DEBUG
-#            print('BEFORE route_flow:')
+            #print('BEFORE route_flow:')
 #            print('87966 => ' + str(self.receivers[87966]) + ' A=' + str(self.grid.at_node['drainage_area'][87966]))
 #            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
             self._route_flow()
-#            print('AFTER route_flow:')
+            #print('AFTER route_flow:')
+            #print(self._grid.at_node['flow__receiver_node'])
 #            print('87966 => ' + str(self.receivers[87966]) + ' A=' + str(self.grid.at_node['drainage_area'][87966]))
 #            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
 
@@ -951,11 +963,8 @@ class DepressionFinderAndRouter(Component):
 #                count += 1
 #                if count > 100000:
 #                    done = True
-                    
+
             self._reaccumulate_flow()
-#            print('and POST reaccum:')
-#            print('87966 => ' + str(self.receivers[87966]) + ' A=' + str(self.grid.at_node['drainage_area'][87966]))
-#            print('99298 => ' + str(self.receivers[99298]) + ' A=' + str(self.grid.at_node['drainage_area'][99298]))
 
 
     def _find_unresolved_neighbors(self, nbrs, receivers):
@@ -1047,6 +1056,9 @@ class DepressionFinderAndRouter(Component):
                35, 36, 29, 29, 30, 39, 40, 40, 50, 51, 36, 37, 38, 47, 48, 49, 50,
                51, 52, 53, 54, 55])
         """
+        #print('rffol:')
+        #print(outlet)
+        #print(lake_nodes)
 
         # Flag receiver nodes inside the lake as "unresolved"
         UNRESOLVED = -1
@@ -1087,10 +1099,10 @@ class DepressionFinderAndRouter(Component):
                         slopes = ((self._elev[nbrs] - self._elev[cn]) / 
                                   self._grid.length_of_link[lnks])
                         self._grid.at_node['topographic__steepest_slope'][nbrs] = np.maximum(slopes, 0.0)
-                        if cn == 24:
-                            print('slopes:')
-                            print(slopes)
-                            print(self._grid.at_node['topographic__steepest_slope'][nbrs])
+                        #if cn == 24:
+                        #    print('slopes:')
+                        #    print(slopes)
+                        #    print(self._grid.at_node['topographic__steepest_slope'][nbrs])
 
                 # Place them on the list of nodes to process next
                 for n in nbrs:
@@ -1119,10 +1131,10 @@ class DepressionFinderAndRouter(Component):
                             slopes = ((self._elev[nbrs] - self._elev[cn]) / 
                                       self._diag_link_length)
                             self._grid.at_node['topographic__steepest_slope'][nbrs] = np.maximum(slopes, 0.0)
-                            if cn == 24:
-                                print('diag slopes:')
-                                print(slopes)
-                                print(self._grid.at_node['topographic__steepest_slope'][nbrs])
+                            #if cn == 24:
+                            #    print('diag slopes:')
+                            #    print(slopes)
+                            #    print(self._grid.at_node['topographic__steepest_slope'][nbrs])
                     
                     # Place them on the list of nodes to process next
                     for n in nbrs:
@@ -1297,10 +1309,12 @@ class DepressionFinderAndRouter(Component):
         Q_in = self._grid.at_node['water__unit_flux_in']
         areas = self._grid.cell_area_at_node.copy()
         areas[self._grid.closed_boundary_nodes] = 0.
+        #print('pre fa')
         self.a, q, s = flow_accum_bw.flow_accumulation(self.receivers,
                                                        np.where(self.sinks)[0],
                                                        node_cell_area=areas,
                                                        runoff_rate=Q_in)
+        #print('post fa')
         # finish the property updating:
         self.grid.at_node['drainage_area'][:] = self.a
         self.grid.at_node['surface_water__discharge'][:] = q

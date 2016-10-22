@@ -307,11 +307,20 @@ def setup_dans_grid2():
     z[guard_sides] = z[13]
     z[edges] = -2.  # force flow outwards from the tops of the guards
     z[hole_here] = -1.
+    #print(z)
+
+#    A_new = np.array([[[0.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                       15.,   9.,   4.,   3.,   2.,   1.,   0.,
+#                        0.,   6.,   4.,   3.,   2.,   1.,   0.,
+#                        0.,   1.,   4.,   3.,   2.,   1.,   0.,
+#                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                        0.,   1.,   1.,   1.,   1.,   1.,   0.]]]).flatten()
 
     A_new = np.array([[[0.,   1.,   1.,   1.,   1.,   1.,   0.,
                         0.,   1.,   1.,   1.,   1.,   1.,   0.,
-                       15.,   9.,   4.,   3.,   2.,   1.,   0.,
-                        0.,   6.,   4.,   3.,   2.,   1.,   0.,
+                       15.,   5.,   4.,   3.,   2.,   1.,   0.,
+                        0.,  10.,   4.,   3.,   2.,   1.,   0.,
                         0.,   1.,   4.,   3.,   2.,   1.,   0.,
                         0.,   1.,   1.,   1.,   1.,   1.,   0.,
                         0.,   1.,   1.,   1.,   1.,   1.,   0.]]]).flatten()
@@ -547,6 +556,8 @@ def test_edge_draining():
     is suspected.
     """
     fr.route_flow()
+    #print('after route, before map')
+    #print(fr.grid.at_node['flow__receiver_node'])
     lf.map_depressions()
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
@@ -571,16 +582,26 @@ def test_degenerate_drainage():
     fr.route_flow()
     lf.map_depressions()
 
+#    correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
+#                           0.,   1.,   3.,   1.,   0.,
+#                           0.,   5.,   1.,   2.,   0.,
+#                           0.,   1.,  10.,   1.,   0.,
+#                          21.,  21.,   1.,   1.,   0.,
+#                           0.,   1.,   9.,   1.,   0.,
+#                           0.,   3.,   1.,   2.,   0.,
+#                           0.,   1.,   1.,   1.,   0.,
+#                           0.,   0.,   0.,   0.,   0.])
+    
     correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
                            0.,   1.,   3.,   1.,   0.,
-                           0.,   5.,   1.,   2.,   0.,
+                           0.,   2.,   4.,   2.,   0.,
                            0.,   1.,  10.,   1.,   0.,
                           21.,  21.,   1.,   1.,   0.,
                            0.,   1.,   9.,   1.,   0.,
-                           0.,   3.,   1.,   2.,   0.,
+                           0.,   2.,   2.,   2.,   0.,
                            0.,   1.,   1.,   1.,   0.,
                            0.,   0.,   0.,   0.,   0.])
-    
+
     thelake = np.concatenate((lake_pits, [22])).sort()
 
     assert_array_almost_equal(mg.at_node['drainage_area'], correct_A)
@@ -660,6 +681,10 @@ def test_composite_pits():
     z[57] = -1.
     z[44] = -2.
     z[54] = -10.
+    
+    # make an outlet
+    z[71] = 0.9
+
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
     fr.route_flow()
@@ -676,14 +701,24 @@ def test_composite_pits():
     # ^all the core nodes
     
     # test the actual flow field:
+#    nA = np.array([  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+#                     8.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   0.,
+#                     1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                     1.,   1.,   1.,   4.,   2.,   2.,   8.,   4.,   1.,   0.,
+#                     1.,   1.,   1.,   8.,   3.,  15.,   3.,   2.,   1.,   0.,
+#                     1.,   1.,   1.,  13.,  25.,   6.,   3.,   2.,   1.,   0.,
+#                     1.,   1.,   1.,  45.,   3.,   3.,   5.,   2.,   1.,   0.,
+#                    50.,  50.,  49.,   3.,   2.,   2.,   2.,   4.,   1.,   0.,
+#                     1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                     0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.])
     nA = np.array([  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
                      8.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   0.,
                      1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
-                     1.,   1.,   1.,   4.,   2.,   2.,   8.,   4.,   1.,   0.,
-                     1.,   1.,   1.,   8.,   3.,  15.,   3.,   2.,   1.,   0.,
-                     1.,   1.,   1.,  13.,  25.,   6.,   3.,   2.,   1.,   0.,
-                     1.,   1.,   1.,  45.,   3.,   3.,   5.,   2.,   1.,   0.,
-                    50.,  50.,  49.,   3.,   2.,   2.,   2.,   4.,   1.,   0.,
+                     1.,   1.,   1.,   4.,   2.,   2.,   6.,   4.,   1.,   0.,
+                     1.,   1.,   1.,   6.,   3.,  12.,   3.,   2.,   1.,   0.,
+                     1.,   1.,   1.,   8.,  20.,   4.,   3.,   2.,   1.,   0.,
+                     1.,   1.,   1.,  35.,   5.,   4.,   3.,   2.,   1.,   0.,
+                    50.,  50.,  49.,  13.,  10.,   8.,   6.,   4.,   1.,   0.,
                      1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
                      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.])
     assert_array_equal(mg.at_node['drainage_area'], nA)
@@ -754,13 +789,21 @@ def test_D8_D4_route():
     assert_equal(lfD8.number_of_lakes, 1)
     assert_equal(lfD4.number_of_lakes, 3)
 
+#    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
+#                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
+#                           33, 27, 28, 28, 24, 24, 24, 32, 34, 35, 35, 38, 32,
+#                           32, 32, 41, 42, 43, 44, 45, 46, 47, 48])
     flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
-                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
+                           13, 14, 14, 15, 16, 17, 18, 20, 21, 16, 16, 16, 18,
                            33, 27, 28, 28, 24, 24, 24, 32, 34, 35, 35, 38, 32,
                            32, 32, 41, 42, 43, 44, 45, 46, 47, 48])
+#    flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 10, 17, 10, 11,
+#                           13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
+#                           33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
+#                           32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
     flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 10, 17, 10, 11,
                            13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
-                           33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
+                           33, 27, 28, 28, 29, 38, 31, 32, 34, 35, 35, 36, 37,
                            32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
     assert_array_equal(mg1.at_node['flow__receiver_node'], flow_recD8)
     assert_array_equal(mg2.at_node['flow__receiver_node'], flow_recD4)
@@ -771,10 +814,11 @@ def test_D8_D4_route():
 
 
 if __name__=='__main__':
-    test_lake_mapper()
-    setup_dans_grid()
-    test_initial_routing()
-    test_rerouting_with_supplied_pits()
-    test_changing_slopes()
-    test_filling_alone()
+    #test_lake_mapper()
+    setup_dans_grid2()
+    test_edge_draining()
+    #test_initial_routing()
+    #test_rerouting_with_supplied_pits()
+    #test_changing_slopes()
+    #test_filling_alone()
     #    test_pits_as_IDs()

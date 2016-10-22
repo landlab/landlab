@@ -330,7 +330,7 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.
     #print('ordered node array at 330:')
-    #print(s)
+    #print('post s, pre a q')
 
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
                                             runoff_rate, boundary_nodes)
