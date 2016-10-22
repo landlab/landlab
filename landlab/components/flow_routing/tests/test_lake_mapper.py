@@ -507,8 +507,6 @@ def test_changing_slopes():
     assert_array_almost_equal(mg.at_node['topographic__steepest_slope'],
                               slope_old)
     lf.map_depressions()
-    for i in range(mg.number_of_nodes):
-        print i, mg.at_node['flow__receiver_node'][i], mg.at_node['topographic__steepest_slope'][i], slope_new[i]
     assert_array_almost_equal(mg.at_node['topographic__steepest_slope'],
                               slope_new)
 
