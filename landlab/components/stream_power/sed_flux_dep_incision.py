@@ -142,7 +142,8 @@ class SedDepEroder(Component):
         'flow__receiver_node',
         'flow__upstream_node_order',
         'topographic__steepest_slope',
-        'flow__link_to_receiver_node'
+        'flow__link_to_receiver_node',
+        'flow__sink_flag'
     )
 
     _output_var_names = (
@@ -167,6 +168,7 @@ class SedDepEroder(Component):
                   'topographic__steepest_slope': '-',
                   'flow__upstream_node_order': '-',
                   'flow__link_to_receiver_node': '-',
+                  'flow__sink_flag': '-',
                   'channel__bed_shear_stress': 'Pa',
                   'channel_sediment__volumetric_transport_capacity': 'm**3/s',
                   'channel_sediment__volumetric_flux': 'm**3/s',
@@ -182,6 +184,7 @@ class SedDepEroder(Component):
                     'topographic__steepest_slope': 'node',
                     'flow__upstream_node_order': 'node',
                     'flow__link_to_receiver_node': 'node',
+                    'flow__sink_flag': 'node',
                     'channel__bed_shear_stress': 'node',
                     'channel_sediment__volumetric_transport_capacity': 'node',
                     'channel_sediment__volumetric_flux': 'node',
@@ -197,6 +200,7 @@ class SedDepEroder(Component):
                  'topographic__steepest_slope': float,
                  'flow__upstream_node_order': int,
                  'flow__link_to_receiver_node': int,
+                 'flow__sink_flag': bool,                            # CHECK
                  'channel__bed_shear_stress': float,
                  'channel_sediment__volumetric_transport_capacity': float,
                  'channel_sediment__volumetric_flux': float,
@@ -221,6 +225,7 @@ class SedDepEroder(Component):
              'node IDs'),
         'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
+        'flow__sink_flag': 'Boolean array, True at local lows',
         'channel__bed_shear_stress':
             ('Shear exerted on the bed of the channel, assuming all ' +
              'discharge travels along a single, self-formed channel'),
@@ -257,12 +262,6 @@ class SedDepEroder(Component):
         """Constructor for the class."""
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
-
-        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1)
-        # ^needs to be filled with values in execution
-        self.count_active_links = np.zeros_like(
-            self.link_S_with_trailing_blank, dtype=int)
-        self.count_active_links[:-1] = 1
 
         self._K_unit_time = K_sp/31557600.
         # ^...because we work with dt in seconds
@@ -551,10 +550,8 @@ class SedDepEroder(Component):
             downward_slopes = node_S.clip(0.)
             # for the stability condition:
             if np.isclose(self._n, 1.):
-                linear = True
                 wave_stab_cond_denominator = erosion_prefactor_withA
             else:
-                linear = False
                 wave_stab_cond_denominator = (
                     erosion_prefactor_withA * downward_slopes**(self._n - 1.))
                 # this is a bit cheeky; we're basically assuming the slope
@@ -563,18 +560,21 @@ class SedDepEroder(Component):
                 # for now, we're going to be conservative and just exclude the
                 # role of the value of the sed flux fn in modifying the calc;
                 # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
-            max_tstep_wave = np.nanmin(link_length/wave_stab_cond_denominator)
+
+            max_tstep_wave = 0.2 * np.nanmin(link_length /
+                                             wave_stab_cond_denominator)
+            # ^adding 0.2 scaling per CHILD approach
+            self.wave_denom = wave_stab_cond_denominator
+            self.link_length = link_length
             self.max_tstep_wave = max_tstep_wave
 
-            internal_t = 0.
+            t_elapsed_internal = 0.
             break_flag = False
-            dt_secs = dt*31557600.
-            counter = 0
+            dt_secs = dt * 31557600.
             rel_sed_flux = np.empty_like(node_A)
+            counter = 0
+
             while 1:
-                counter += 1
-                # print counter
-                # positive_slopes = np.greater(downward_slopes, 0.)
                 slopes_tothen = downward_slopes**self._n
                 slopes_tothent = downward_slopes**self._nt
                 transport_capacities = (transport_capacity_prefactor_withA *
@@ -582,11 +582,8 @@ class SedDepEroder(Component):
                 erosion_prefactor_withS = (
                     erosion_prefactor_withA * slopes_tothen)  # no time, no fqs
 
-                dt_this_step = dt_secs-internal_t
-                # ^timestep adjustment is made AFTER the dz calc
-
                 sed_rate_into_node = np.zeros(grid.number_of_nodes, dtype=float)
-                dz = np.zeros(grid.number_of_nodes, dtype=float)
+                dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
                 cell_areas = self.cell_areas
                 for i in s_in[::-1]:  # work downstream
                     cell_area = cell_areas[i]
@@ -644,12 +641,44 @@ class SedDepEroder(Component):
                                 # ^bit cheeky?
                                 flooded_depths[i] = 0.
 
-                    dz[i] -= dzbydt_here * dt_this_step
+                    dzbydt[i] -= dzbydt_here
+                    # minus returns us to the correct sign convention
                     sed_rate_into_node[flow_receiver[i]] += vol_pass_rate
-                break_flag = True
 
-                node_z[grid.core_nodes] += dz[grid.core_nodes]
+                # now perform a CHILD-like convergence-based stability test:
+                ratediff =  dzbydt[flow_receiver] - dzbydt
+                # if this is +ve, the nodes are converging
+                downstr_vert_diff = node_z - node_z[flow_receiver]
+                # ^+ve when dstr is lower
+                botharepositive = np.logical_and(
+                    np.logical_and(ratediff > 0., downstr_vert_diff > 0.),
+                    np.logical_not(self.grid.at_node['flow__sink_flag'][
+                        flow_receiver]))
+                try:
+                    t_to_converge = np.amin(downstr_vert_diff[botharepositive] /
+                                            ratediff[botharepositive])
+                except ValueError:  # no node pair converges
+                    t_to_converge = dt_secs
+                t_to_converge *= 0.8  # arbitrary safety factor; CHILD uses 0.3
+                # check this is a more restrictive condition than Courant:
+                t_to_converge = min((t_to_converge, max_tstep_wave))
+                if t_to_converge < 3600.:
+                    t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
+                # without this, it's possible for the component to get stuck in
+                # a loop, presumably when the gradient is "supposed" to level
+                # out
+                this_tstep = min((t_to_converge, dt_secs))
+                # print(this_tstep)
+                # self.t_to_converge = t_to_converge
+                t_elapsed_internal += this_tstep
+                # print(t_elapsed_internal)
+                # print('***')
+                if t_elapsed_internal >= dt_secs:
+                    break_flag = True
+                    t_to_converge = dt_secs - t_elapsed_internal + this_tstep
+                    self.t_to_converge = t_to_converge
 
+                node_z[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
                 if break_flag:
                     break
                 # do we need to reroute the flow/recalc the slopes here?
@@ -660,7 +689,6 @@ class SedDepEroder(Component):
                 # print link_length[core_draining_nodes]
                 node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[
                     core_draining_nodes]/link_length[core_draining_nodes]
-                internal_t += dt_this_step  # still in seconds, remember
                 downward_slopes = node_S.clip(0.)
         else:
             raise TypeError # should never trigger
