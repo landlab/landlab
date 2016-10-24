@@ -368,10 +368,6 @@ class FlowRouter(Component):
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
 
-        #print('Sink @ 371:')
-        #print(sink)
-        #print('Recv @ 373:')
-        #print(receiver)
         # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.
 

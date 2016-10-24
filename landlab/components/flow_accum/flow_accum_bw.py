@@ -219,11 +219,7 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
         add_it(k) #don't think this is a bottleneck, so no C++
-    #print('at 224:')
-    #print(nd)
-    #print(delta)
-    #print(D)
-    #print(dstack.s)
+
     return dstack.s
 
 
@@ -329,8 +325,6 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.
-    #print('ordered node array at 330:')
-    #print(s)
 
     a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
                                             runoff_rate, boundary_nodes)
