@@ -338,8 +338,7 @@ def test_stupid_shaped_hole():
                       4.00038462, 4.00046154, 4.00053846, 4.00061538,
                       4.00069231, 4.00076923, 4.00084615])
     hole2 = np.array([7.4, 7.2, 7.6])
-    # print this to check out the funky drainage arrangement...
-    # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
+
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
@@ -363,9 +362,7 @@ def test_D4_routing():
                       4.00041667, 4.000833, 4.00066667, 4.00058333, 4.00075,
                       4.334])
     hole2 = np.array([7.6, 7.2, 7.4])
-    # np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
-    # print this to check out the funky drainage arrangement...
-    # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
+
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
@@ -385,9 +382,7 @@ def test_D4_filling():
     hole1 = 4.*np.ones_like(lake1, dtype=float)
     hole1[-1] += 0.001
     hole2 = 7.*np.ones_like(lake2, dtype=float)
-    # np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
-    # print this to check out the funky drainage arrangement...
-    # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
+
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
