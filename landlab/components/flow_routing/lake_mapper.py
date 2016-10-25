@@ -55,7 +55,7 @@ class DepressionFinderAndRouter(Component):
 
     Construction::
 
-        DepressionFinderAndRouter(grid, grid, routing='D8')
+        DepressionFinderAndRouter(grid, routing='D8')
 
     Parameters
     ----------
@@ -406,7 +406,7 @@ class DepressionFinderAndRouter(Component):
             print('Unable to find drainage outlet for a lake.')
             print('In lake with these nodes:')
             for i in nodes_this_depression:
-                print((i, self._elev[i], self.flood_status[i]), end="") 
+                print((i, self._elev[i], self.flood_status[i]), end="")
                 print((self._grid.status_at_node[i]), end="")
                 print((self._node_nbrs[i]), end="")
                 print((self._elev[self._node_nbrs[i]]) , end="")
