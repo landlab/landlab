@@ -445,6 +445,7 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_next_to_closed_neighbors
     ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
@@ -5395,6 +5396,69 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if return_outlet_id:
             return as_id_array(np.array(outlet_loc))
+
+    def set_closed_boundaries_next_to_closed_neighbors(self, node_data, nodata_value, method='d8'):
+        """Set the node status of nodes that are adjacent to closed nodes,
+        closed themselves.
+
+        This is likely to be useful for flow routing on grids that have a non-
+        uniform width of no-data around them, such as lidar data or clipped
+        watersheds.
+
+        While set_nodata_nodes_to_closed will set the nodes with no data to
+        closed to make the flow routing algorithms run, a boundary node with
+        defined elevation is required.
+        
+        Sets node status to :any:`CLOSED_BOUNDARY` for all nodes whose neighbors
+        have a node status of :any:`CLOSED_BOUNDARY`.
+
+        Any links connected to :any:`CLOSED_BOUNDARY` nodes are automatically
+        set to :any:`INACTIVE_LINK` boundary.
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float
+            Value that indicates an invalid value.
+        method : string
+            Method for identifying neighbors : D4 or D8(default)
+
+        Examples
+        --------
+
+
+
+        LLCATS: BC NINF
+        """
+        # Find locations where value equals the NODATA code and set these nodes
+        # as inactive boundaries.
+
+        status_of_orthogonal_neighbors_at_node=grid.status_at_node[grid.neighbors_at_node]
+
+        if method == 'D8':
+            status_of_diag_neighbors_at_node=mg.status_at_node[mg._diagonal_neighbors_at_node]
+            status_of_neighbors_at_node=np.concatenate((status_of_orthogonal_neighbors_at_node,
+                                                    status_of_diag_neighbors_at_node),
+                                                   axis=1)
+        elif method == 'D4':
+            status_of_neighbors_at_node=status_of_orthogonal_neighbors_at_node
+        else:
+            raise ValueError('If specified explicitly, method must be D4 or D8 (default)')
+
+        max_boundary_condition_status=np.max(status_of_neighbors_at_node, axis=1)
+        has_closed_neigbor=max_boundary_condition_status==4
+        need_to_be_closed=has_closed_neigbor==4
+
+        node_data[need_to_be_closed]=nodata_value
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
+        nodata_locations = numpy.nonzero(node_data == nodata_value)
+        self._node_status[nodata_locations] = CLOSED_BOUNDARY
+
+        # Recreate the list of active cell IDs
+        self._update_links_nodes_cells_to_new_BCs()
+
 
     def set_watershed_boundary_condition_outlet_coords(
                         self, outlet_coords, node_data, nodata_value=-9999.):
