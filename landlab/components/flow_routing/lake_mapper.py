@@ -424,14 +424,17 @@ class DepressionFinderAndRouter(Component):
                         self.flood_status[nbr] = _CURRENT_LAKE
         if lowest_elev == self._BIG_ELEV:
             print('Unable to find drainage outlet for a lake.')
-            print('In lake with these nodes:')
+            print('In lake with '+str(nodes_this_depression), 'nodes:')
             for i in nodes_this_depression:
-                print((i, self._elev[i], self.flood_status[i]), end="")
-                print((self._grid.status_at_node[i]), end="")
-                print((self._node_nbrs[i]), end="")
-                print((self._elev[self._node_nbrs[i]]) , end="")
-                print((self.flood_status[self._node_nbrs[i]]), end="")
-                print((self._grid.status_at_node[self._node_nbrs[i]]))
+                print('Node ID: ', i)
+                print('Node Elevation: ', self._elev[i])
+                print('Node Flood Status: ', self.flood_status[i])
+                print('Node Grid Status: ', self._grid.status_at_node[i])
+                print('Node Neigbors: ', self._node_nbrs[i])
+                print('Neighbor Elevations: ', self._elev[self._node_nbrs[i]])
+                print('Neigbor Flood Status: ', self.flood_status[self._node_nbrs[i]])
+                print('Neigbor Status: ', self._grid.status_at_node[self._node_nbrs[i]])
+            print('If you see no data values in ... Consider checking')
         assert (lowest_elev < self._BIG_ELEV), \
             'failed to find lowest perim node'
         return lowest_node
