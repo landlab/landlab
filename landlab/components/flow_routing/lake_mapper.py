@@ -391,7 +391,7 @@ class DepressionFinderAndRouter(Component):
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = np.count_nonzero(self.is_pit)
         self.pit_node_ids = as_id_array(np.where(self.is_pit)[0])
-        print ('There are ',  str(np.count_nonzero(self.is_pit)), ' pits on this grid')
+        #print ('There are ',  str(np.count_nonzero(self.is_pit)), ' pits on this grid')
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
         """Locate the lowest node on the margin of the "lake".

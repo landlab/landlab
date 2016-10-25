@@ -5408,7 +5408,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         While set_nodata_nodes_to_closed will set the nodes with no data to
         closed to make the flow routing algorithms run, a boundary node with
         defined elevation is required.
-        
+
         Sets node status to :any:`CLOSED_BOUNDARY` for all nodes whose neighbors
         have a node status of :any:`CLOSED_BOUNDARY`.
 
@@ -5421,23 +5421,76 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Data values.
         nodata_value : float
             Value that indicates an invalid value.
-        method : string
+        method : string, optional
             Method for identifying neighbors : D4 or D8(default)
 
         Examples
         --------
 
+        The example will use a 6,6 grid with node data values
+        as illustrated:
 
+        -9999. -9999. -9999. -9999. -9999. -9999.
+        -9999.    67.    85.   102. -9999. -9999.
+        -9999.    72.    67.    50.    23. -9999.
+        -9999.    67.    72.    40.    10. -9999.
+        -9999.   103.    82.    30. -9999. -9999.
+        -9999. -9999. -9999. -9999. -9999. -9999.
+
+        ---------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> rmg1 = RasterModelGrid((6,6))
+        >>> z = np.array([-9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.,
+                            -9999.,   103.,     82.,     30.,  -9999.,  -9999.,
+                            -9999.,    67.,     72.,     40.,     10.,  -9999.,
+                            -9999.,    72.,     67.,     50.,     23.,  -9999.,
+                            -9999.,    67.,     85.,    102.,  -9999.,  -9999.,
+                            -9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.])
+        >>> rmg1.set_nodata_nodes_to_closed(z, -9999.)
+        >>> rmg1.status_at_node
+        array([4, 4, 4, 4, 4, 4,
+               4, 0, 0, 0, 4, 4,
+               4, 0, 0, 0, 0, 4,
+               4, 0, 0, 0, 0, 4,
+               4, 0, 0, 0, 4, 4,
+               4, 4, 4, 4, 4, 4], dtype=int8)
+
+        >>> rmg1.set_closed_boundaries_next_to_closed_neighbors(z, -9999., method='D4')
+        >>> rmg1.status_at_node
+        array([4, 4, 4, 4, 4, 4,
+               4, 4, 4, 4, 4, 4,
+               4, 4, 0, 0, 4, 4,
+               4, 4, 0, 0, 4, 4,
+               4, 4, 4, 4, 4, 4,
+               4, 4, 4, 4, 4, 4], dtype=int8)
+
+        >>> rmg2 = RasterModelGrid((6,6))
+        >>> z2 = np.array([-9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.,
+                            -9999.,   103.,     82.,     30.,  -9999.,  -9999.,
+                            -9999.,    67.,     72.,     40.,     10.,  -9999.,
+                            -9999.,    72.,     67.,     50.,     23.,  -9999.,
+                            -9999.,    67.,     85.,    102.,  -9999.,  -9999.,
+                            -9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.])
+        >>> rmg2.set_nodata_nodes_to_closed(z2, -9999.)
+        >>> rmg2.set_closed_boundaries_next_to_closed_neighbors(z2, -9999., method='D8')
+        >>> rmg2.status_at_node
+        array([4, 4, 4, 4, 4, 4,
+               4, 4, 4, 4, 4, 4,
+               4, 4, 0, 4, 4, 4,
+               4, 4, 0, 4, 4, 4,
+               4, 4, 4, 4, 4, 4,
+               4, 4, 4, 4, 4, 4], dtype=int8)
 
         LLCATS: BC NINF
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
 
-        status_of_orthogonal_neighbors_at_node=grid.status_at_node[grid.neighbors_at_node]
+        status_of_orthogonal_neighbors_at_node=self.status_at_node[self.neighbors_at_node]
 
         if method == 'D8':
-            status_of_diag_neighbors_at_node=mg.status_at_node[mg._diagonal_neighbors_at_node]
+            status_of_diag_neighbors_at_node=self.status_at_node[self._diagonal_neighbors_at_node]
             status_of_neighbors_at_node=np.concatenate((status_of_orthogonal_neighbors_at_node,
                                                     status_of_diag_neighbors_at_node),
                                                    axis=1)
@@ -5448,12 +5501,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         max_boundary_condition_status=np.max(status_of_neighbors_at_node, axis=1)
         has_closed_neigbor=max_boundary_condition_status==4
-        need_to_be_closed=has_closed_neigbor==4
+        need_to_be_closed=has_closed_neigbor==True
 
         node_data[need_to_be_closed]=nodata_value
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
-        nodata_locations = numpy.nonzero(node_data == nodata_value)
+        nodata_locations = np.nonzero(node_data == nodata_value)
         self._node_status[nodata_locations] = CLOSED_BOUNDARY
 
         # Recreate the list of active cell IDs
