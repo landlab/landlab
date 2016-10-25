@@ -5441,13 +5441,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg1 = RasterModelGrid((6,6))
-        >>> z = np.array([-9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.,
-                            -9999.,   103.,     82.,     30.,  -9999.,  -9999.,
-                            -9999.,    67.,     72.,     40.,     10.,  -9999.,
-                            -9999.,    72.,     67.,     50.,     23.,  -9999.,
-                            -9999.,    67.,     85.,    102.,  -9999.,  -9999.,
-                            -9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.])
-        >>> rmg1.set_nodata_nodes_to_closed(z, -9999.)
+        >>> z1 = np.array([-9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.,
+        ...                -9999.,   103.,     82.,     30.,  -9999.,  -9999.,
+        ...                -9999.,    67.,     72.,     40.,     10.,  -9999.,
+        ...                -9999.,    72.,     67.,     50.,     23.,  -9999.,
+        ...                -9999.,    67.,     85.,    102.,  -9999.,  -9999.,
+        ...                -9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.])
+        >>> rmg1.set_nodata_nodes_to_closed(z1, -9999.)
         >>> rmg1.status_at_node
         array([4, 4, 4, 4, 4, 4,
                4, 0, 0, 0, 4, 4,
@@ -5456,7 +5456,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                4, 0, 0, 0, 4, 4,
                4, 4, 4, 4, 4, 4], dtype=int8)
 
-        >>> rmg1.set_closed_boundaries_next_to_closed_neighbors(z, -9999., method='D4')
+        >>> rmg1.set_closed_boundaries_next_to_closed_neighbors(z1, -9999., method='D4')
         >>> rmg1.status_at_node
         array([4, 4, 4, 4, 4, 4,
                4, 4, 4, 4, 4, 4,
@@ -5467,11 +5467,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         >>> rmg2 = RasterModelGrid((6,6))
         >>> z2 = np.array([-9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.,
-                            -9999.,   103.,     82.,     30.,  -9999.,  -9999.,
-                            -9999.,    67.,     72.,     40.,     10.,  -9999.,
-                            -9999.,    72.,     67.,     50.,     23.,  -9999.,
-                            -9999.,    67.,     85.,    102.,  -9999.,  -9999.,
-                            -9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.])
+        ...                -9999.,   103.,     82.,     30.,  -9999.,  -9999.,
+        ...                -9999.,    67.,     72.,     40.,     10.,  -9999.,
+        ...                -9999.,    72.,     67.,     50.,     23.,  -9999.,
+        ...                -9999.,    67.,     85.,    102.,  -9999.,  -9999.,
+        ...                -9999., -9999.,  -9999.,  -9999.,  -9999.,  -9999.])
         >>> rmg2.set_nodata_nodes_to_closed(z2, -9999.)
         >>> rmg2.set_closed_boundaries_next_to_closed_neighbors(z2, -9999., method='D8')
         >>> rmg2.status_at_node
