@@ -434,7 +434,13 @@ class DepressionFinderAndRouter(Component):
                 print('Neighbor Elevations: ', self._elev[self._node_nbrs[i]])
                 print('Neigbor Flood Status: ', self.flood_status[self._node_nbrs[i]])
                 print('Neigbor Status: ', self._grid.status_at_node[self._node_nbrs[i]])
-            print('If you see no data values in ... Consider checking')
+            print('If you see no data values in any of the elevation terms')
+            print('this may because you have disconnected open nodes (which')
+            print('sometimes occurs durring raster clipping.')
+
+            print('Consider running set_open_nodes_disconnected_from_watershed_to_closed')
+            print('which will remove isolated open nodes.')
+
         assert (lowest_elev < self._BIG_ELEV), \
             'failed to find lowest perim node'
         return lowest_node
