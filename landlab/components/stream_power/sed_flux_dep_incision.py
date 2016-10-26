@@ -522,7 +522,7 @@ class SedDepEroder(Component):
         node_S = grid.at_node['topographic__steepest_slope']
 
         if type(flooded_depths) is str:
-            flooded_depths = mg.at_node[flooded_depths]
+            flooded_depths = self.grid.at_node[flooded_depths]
             # also need a map of initial flooded conds:
             flooded_nodes = flooded_depths > 0.
         elif type(flooded_depths) is np.ndarray:
@@ -561,7 +561,7 @@ class SedDepEroder(Component):
                 # role of the value of the sed flux fn in modifying the calc;
                 # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
 
-            max_tstep_wave = 0.2 * np.nanmin(link_length /
+            max_tstep_wave = 0.7 * np.nanmin(link_length /
                                              wave_stab_cond_denominator)
             # ^adding 0.2 scaling per CHILD approach
             self.wave_denom = wave_stab_cond_denominator
@@ -570,11 +570,14 @@ class SedDepEroder(Component):
 
             t_elapsed_internal = 0.
             break_flag = False
-            dt_secs = dt * 31557600.
             rel_sed_flux = np.empty_like(node_A)
             counter = 0
+            dt_secs = dt * 31557600.
 
             while 1:
+                flood_node = None  # int if timestep is limited by flooding
+                conv_factor = 0.8
+                flood_tstep = dt_secs
                 slopes_tothen = downward_slopes**self._n
                 slopes_tothent = downward_slopes**self._nt
                 transport_capacities = (transport_capacity_prefactor_withA *
@@ -628,19 +631,17 @@ class SedDepEroder(Component):
                             # we want flooded nodes which have already been
                             # filled to enter the else statement
                         else:
-########modify ->
-                            height_excess = -dz_here - flood_depth
-                            # ...above water level
-                            if height_excess <= 0.:
-                                vol_pass = 0.
-                                # dz_here is already correct
-                                flooded_depths[i] += dz_here
-                            else:
-                                dz_here = -flood_depth
-                                vol_pass = height_excess * cell_area
-                                # ^bit cheeky?
-                                flooded_depths[i] = 0.
-
+                            # Reduce the timestep to only just fill this node.
+                            # This means the timestep of the whole model is
+                            # set by the smallest depression, but will have to
+                            # do.
+                            vol_pass_rate = 0.
+                            time_to_fill = -flood_depth/dzbydt_here
+                            if time_to_fill < flood_tstep:
+                                flood_node = i
+                                flood_tstep = time_to_fill
+                                conv_factor = 1.
+                                # ^this necessary to let this node to fill fully
                     dzbydt[i] -= dzbydt_here
                     # minus returns us to the correct sign convention
                     sed_rate_into_node[flow_receiver[i]] += vol_pass_rate
@@ -650,35 +651,36 @@ class SedDepEroder(Component):
                 # if this is +ve, the nodes are converging
                 downstr_vert_diff = node_z - node_z[flow_receiver]
                 # ^+ve when dstr is lower
-                botharepositive = np.logical_and(
-                    np.logical_and(ratediff > 0., downstr_vert_diff > 0.),
-                    np.logical_not(self.grid.at_node['flow__sink_flag'][
-                        flow_receiver]))
+                botharepositive = np.logical_and(ratediff > 0.,
+                                                 downstr_vert_diff > 0.)
                 try:
                     t_to_converge = np.amin(downstr_vert_diff[botharepositive] /
                                             ratediff[botharepositive])
                 except ValueError:  # no node pair converges
                     t_to_converge = dt_secs
-                t_to_converge *= 0.8  # arbitrary safety factor; CHILD uses 0.3
+                t_to_converge *= conv_factor
+                # ^arbitrary safety factor; CHILD uses 0.3
                 # check this is a more restrictive condition than Courant:
                 t_to_converge = min((t_to_converge, max_tstep_wave))
-                if t_to_converge < 3600.:
+                if t_to_converge < 3600. and flood_node is not None:
                     t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
                 # without this, it's possible for the component to get stuck in
                 # a loop, presumably when the gradient is "supposed" to level
-                # out
+                # out. We make exception got nodes that need to be filled in
+                # "just so"
+                # the new handling of flooded nodes as of 25/10/16 should make
+                # this redundant
                 this_tstep = min((t_to_converge, dt_secs))
-                # print(this_tstep)
-                # self.t_to_converge = t_to_converge
                 t_elapsed_internal += this_tstep
-                # print(t_elapsed_internal)
-                # print('***')
                 if t_elapsed_internal >= dt_secs:
                     break_flag = True
                     t_to_converge = dt_secs - t_elapsed_internal + this_tstep
                     self.t_to_converge = t_to_converge
 
                 node_z[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
+                if flood_node is not None:
+                    flooded_depths[i] = 0.
+                    flooded_nodes[i] = False
                 if break_flag:
                     break
                 # do we need to reroute the flow/recalc the slopes here?
