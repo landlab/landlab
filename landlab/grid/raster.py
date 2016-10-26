@@ -450,6 +450,7 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.raster.RasterModelGrid.set_open_nodes_disconnected_from_watershed_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_status_at_node_on_edges
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_coords
@@ -5239,7 +5240,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._reset_lists_of_nodes_cells()
 
     def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
-                                         return_outlet_id=False):
+                                         return_outlet_id=False,
+                                         remove_disconnected=False,
+                                         method='D8'):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
@@ -5261,8 +5264,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         data values.  In other words, there are no islands of nodata_values
         surrounded by nodes with data.
 
-        This also assumes that the grid has a single watershed.  If this is not
-        the case this will not work.
+        This also assumes that the grid has a single watershed.
+
+        If you would like to verify that there are no non-closed nodes
+        surrounded only by closed nodes, set the parameter: *remove_disconnected*
+        to True (default is False). This will run the function:
+        set_open_nodes_disconnected_from_watershed_to_closed
+        which will set any isolated open nodes that are disconnected from the
+        main watershed as closed. This may be useful if there are stray points
+        from clipping and is necessary for the flow router to function as
+        intended.
 
         Finally, the developer has seen cases in which DEM data that has been
         filled results in a different outlet from DEM data which has not been
@@ -5280,6 +5291,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
             Indicates whether or not to return the id of the found outlet
+        remove_disconnected : boolean, optional
+            Indicates whether to search for and remove disconnected nodes.
+        method : string, optional. Default is 'D8'.
+            Sets the connection method. for use if remove_disconnected==True
 
         Examples:
         ---------
@@ -5393,12 +5408,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
+        if remove_disconnected==True:
+            self.set_open_nodes_disconnected_from_watershed_to_closed(as_id_array(np.array(outlet_loc)),
+                                                                      node_data,nodata_value)
         if return_outlet_id:
             return as_id_array(np.array(outlet_loc))
 
-    def set_open_nodes_disconnected_from_watershed_to_closed(self,
-                                                             outlet_id=None,
-                                                             method='D8'):
+    def set_open_nodes_disconnected_from_watershed_to_closed(
+                        self, outlet_id=None, node_data,
+                        nodata_value='-9999.',method='D8'):
         """
         Identifys all non-closed nodes that are disconnected from the node given in
         *outlet_id* and sets them as closed.
@@ -5409,13 +5427,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        outlet_id : integer, optional. The node ID of the outlet that all open
-        nodes must be connected to. If provided, it does not need have the
-        status FIXED_VALUE_BOUNDARY. However, it must not have the status of
-        CLOSED_BOUNDARY.
+        outlet_id : integer, optional.
+            The node ID of the outlet that all open nodes must be connected to.
+            If provided, it does not need have the status FIXED_VALUE_BOUNDARY.
+            However, it must not have the status of CLOSED_BOUNDARY.
+
+        node_data : ndarray
+            Data values.
+
+        nodata_value : float, optional
+            Value that indicates an invalid value.
 
         method : string, optional. Default is 'D8'.
-        Sets the connection method.
+            Sets the connection method.
 
         Examples:
         ---------
@@ -5426,14 +5450,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if outlet_id is None:
             # verify that there is one and only one node with the status
             # FIXED_VALUE_BOUNDARY.
-            possible_outlets=np.where(self.status_at_node==FIXED_VALUE_BOUNDARY)
+            possible_outlets=np.where(self.status_at_node==FIXED_VALUE_BOUNDARY)[0]
 
             if len(possible_outlets)>1:
                 raise ValueError('Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has %r' % len(possible_outlets))
             if len(possible_outlets)<1:
                 raise ValueError('Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has none')
 
-            outlet_id=possible_outlets[0][0]
+            outlet_id=possible_outlets
 
         elif outlet_id is not int:
             # check that the value given by outlet_id is an integer
@@ -5448,7 +5472,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # now test that the method given is either 'D8' or 'D4'
         if method != 'D8':
-            assert(method=='D4'), "method must be either 'D8'(default) or 'D4'")
+            assert(method=='D4'), "method must be either 'D8'(default) or 'D4'"
 
         # begin main code portion.
         # initialize list of core nodes and new nodes
@@ -5469,7 +5493,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # if method is D8 (default), add the diagonal nodes.
             if method=='D8':
                 connected_diagonal_nodes = self._diagonal_neighbors_at_node[newNodes]
-                potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]==!=CLOSED_BOUNDARY])
+                potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]!=CLOSED_BOUNDARY])
 
             # filter new nodes further based on if they are already present in
             # the connected node list
@@ -5485,16 +5509,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         not_connected[np.array(connected_nodes)]=0
 
         #identify those nodes that should be closed, but are not
-        is_not_connected_to_outlet=(self.status_at_node!=4)&(not_connected==1)
+        is_not_connected_to_outlet=(self.status_at_node!=CLOSED_BOUNDARY)&(not_connected==1)
 
-        # construct a dummy array to us to set the new closed nodes to zero
-        temp=self.status_at_node # start with the status at node
-        temp[temp==CLOSED_BOUNDARY]=-9999. # set those with closed boundaries to
-        # the no data value.
-        temp[is_not_connected_to_outlet]=-9999. # set those that are disconnected
+        # modify the node_data array.
+        node_data[is_not_connected_to_outlet]=-nodata_value # set those that are disconnected
         # to the no data value.
 
-        mg.set_nodata_nodes_to_closed(temp, -9999.) # finally update the status. 
+        self.set_nodata_nodes_to_closed(node_data, nodata_value) # finally update the status.
 
 
     def set_watershed_boundary_condition_outlet_coords(
