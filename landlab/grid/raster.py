@@ -5396,6 +5396,107 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         if return_outlet_id:
             return as_id_array(np.array(outlet_loc))
 
+    def set_open_nodes_disconnected_from_watershed_to_closed(self,
+                                                             outlet_id=None,
+                                                             method='D8'):
+        """
+        Identifys all non-closed nodes that are disconnected from the node given in
+        *outlet_id* and sets them as closed.
+
+        If *outlet_id* is not given, the outlet will be identified as the node
+        for which the status at the node is FIXED_VALUE_BOUNDARY. If more than
+        one node has this value, the algorithm will fail.
+
+        Parameters
+        ----------
+        outlet_id : integer, optional. The node ID of the outlet that all open
+        nodes must be connected to. If provided, it does not need have the
+        status FIXED_VALUE_BOUNDARY. However, it must not have the status of
+        CLOSED_BOUNDARY.
+
+        method : string, optional. Default is 'D8'.
+        Sets the connection method.
+
+        Examples:
+        ---------
+
+        LLCATS: BC
+        """
+
+        if outlet_id is None:
+            # verify that there is one and only one node with the status
+            # FIXED_VALUE_BOUNDARY.
+            possible_outlets=np.where(self.status_at_node==FIXED_VALUE_BOUNDARY)
+
+            if len(possible_outlets)>1:
+                raise ValueError('Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has %r' % len(possible_outlets))
+            if len(possible_outlets)<1:
+                raise ValueError('Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has none')
+
+            outlet_id=possible_outlets[0][0]
+
+        elif outlet_id is not int:
+            # check that the value given by outlet_id is an integer
+            raise ValueError('outlet_id must be an integer')
+        else:
+            # check that the node status at the node given by outlet_id is not
+            # CLOSED_BOUNDARY
+
+            if self.status_at_node[outlet_id][0]==CLOSED_BOUNDARY:
+                raise ValueError ('The node given by outlet_id must not have the status: CLOSED_BOUNDARY')
+
+
+        # now test that the method given is either 'D8' or 'D4'
+        if method != 'D8':
+            assert(method=='D4'), "method must be either 'D8'(default) or 'D4'")
+
+        # begin main code portion.
+        # initialize list of core nodes and new nodes
+        connected_nodes=list(outlet_id)
+        newNodes=connected_nodes
+
+        # keep track of the number of nodes added in the previous itteration.
+        numAdded=len(newNodes)
+
+        # continue running until no new nodes are added.
+        while numAdded>0:
+
+            # find all potential new nodes by filtering the nodes connected to
+            # the most recent set of new nodes based on their status.
+            connected_orthogonal_nodes = self.neighbors_at_node[newNodes]
+            potentialNewNodes=list(connected_orthogonal_nodes[self.status_at_node[connected_orthogonal_nodes]!=CLOSED_BOUNDARY])
+
+            # if method is D8 (default), add the diagonal nodes.
+            if method=='D8':
+                connected_diagonal_nodes = self._diagonal_neighbors_at_node[newNodes]
+                potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]==!=CLOSED_BOUNDARY])
+
+            # filter new nodes further based on if they are already present in
+            # the connected node list
+            newNodes=list(set(potentialNewNodes) - set(connected_nodes))
+            connected_nodes.extend(newNodes)
+
+            # update number added, when this is zero, the loop will end
+            numAdded=len(newNodes)
+
+        # create a list that identifies the nodes that should be closed
+        # of closed boundary nodes
+        not_connected=np.array((0*self.status_at_node)+1)
+        not_connected[np.array(connected_nodes)]=0
+
+        #identify those nodes that should be closed, but are not
+        is_not_connected_to_outlet=(self.status_at_node!=4)&(not_connected==1)
+
+        # construct a dummy array to us to set the new closed nodes to zero
+        temp=self.status_at_node # start with the status at node
+        temp[temp==CLOSED_BOUNDARY]=-9999. # set those with closed boundaries to
+        # the no data value.
+        temp[is_not_connected_to_outlet]=-9999. # set those that are disconnected
+        # to the no data value.
+
+        mg.set_nodata_nodes_to_closed(temp, -9999.) # finally update the status. 
+
+
     def set_watershed_boundary_condition_outlet_coords(
                         self, outlet_coords, node_data, nodata_value=-9999.):
         """
