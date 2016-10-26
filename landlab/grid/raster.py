@@ -5409,14 +5409,18 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
         if remove_disconnected==True:
-            self.set_open_nodes_disconnected_from_watershed_to_closed(as_id_array(np.array(outlet_loc)),
-                                                                      node_data,nodata_value)
+            self.set_open_nodes_disconnected_from_watershed_to_closed(node_data=node_data,
+                                                                      outlet_id=as_id_array(np.array(outlet_loc)),
+                                                                      nodata_value=nodata_value,
+                                                                      method=method)
         if return_outlet_id:
             return as_id_array(np.array(outlet_loc))
 
-    def set_open_nodes_disconnected_from_watershed_to_closed(
-                        self, outlet_id=None, node_data,
-                        nodata_value='-9999.',method='D8'):
+    def set_open_nodes_disconnected_from_watershed_to_closed(self,
+                                                            node_data,
+                                                            outlet_id=None,
+                                                            nodata_value=-9999.,
+                                                            method='D8'):
         """
         Identifys all non-closed nodes that are disconnected from the node given in
         *outlet_id* and sets them as closed.
@@ -5425,17 +5429,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         for which the status at the node is FIXED_VALUE_BOUNDARY. If more than
         one node has this value, the algorithm will fail.
 
+        This function can be run directly, or by setting the flag
+        remove_disconnected to True in set_watershed_boundary_condition
+
         Parameters
         ----------
-        outlet_id : integer, optional.
+        node_data : ndarray
+            Data values.
+
+        outlet_id : one element numpy array, optional.
             The node ID of the outlet that all open nodes must be connected to.
             If provided, it does not need have the status FIXED_VALUE_BOUNDARY.
             However, it must not have the status of CLOSED_BOUNDARY.
 
-        node_data : ndarray
-            Data values.
-
-        nodata_value : float, optional
+        nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
 
         method : string, optional. Default is 'D8'.
@@ -5443,6 +5450,40 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Examples:
         ---------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg1 = RasterModelGrid((4,6))
+        >>> z1 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        ...                        -9999.,    67.,    67.,  -9999.,    50., -9999.,
+        ...                        -9999.,    67.,     0.,  -9999., -9999., -9999.,
+        ...                        -9999., -9999., -9999.,  -9999., -9999., -9999.])
+        >>> mg2 = RasterModelGrid((4,6))
+        >>> z2 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        ...                        -9999.,    67.,    67.,  -9999.,    50., -9999.,
+        ...                        -9999.,    67.,     0.,  -9999., -9999., -9999.,
+        ...                        -9999., -9999., -9999.,  -9999., -9999., -9999.])
+        >>> mg1.set_watershed_boundary_condition(z1, remove_disconnected=True)
+        >>> mg2.set_watershed_boundary_condition(z2)
+        >>> mg2.status_at_node
+        array([[4, 4, 4, 4, 4, 4],
+        ...    [4, 0, 0, 4, 0, 4],
+        ...    [4, 0, 1, 4, 4, 4],
+        ...    [4, 4, 4, 4, 4, 4]], dtype=int8)
+        >>> mg2.set_open_nodes_disconnected_from_watershed_to_closed(z2)
+        >>> np.allclose(mg1.status_at_node, mg2.status_at_node)
+        True
+        >> np.allclose(z1, z2)
+        True
+        >>> mg2.status_at_node.reshape(mg2.shape)
+        array([[4, 4, 4, 4, 4, 4],
+        ...    [4, 0, 0, 4, 4, 4],
+        ...    [4, 0, 1, 4, 4, 4],
+        ...    [4, 4, 4, 4, 4, 4]], dtype=int8)
+        >>> z1.reshape(m1.shape)
+        array([[-9999., -9999., -9999., -9999., -9999., -9999.],
+        ...    [-9999.,    67.,    67., -9999., -9999., -9999.],
+        ...    [-9999.,    67.,     0., -9999., -9999., -9999.],
+        ...    [-9999., -9999., -9999., -9999., -9999., -9999.]])
 
         LLCATS: BC
         """
@@ -5459,9 +5500,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             outlet_id=possible_outlets
 
-        elif outlet_id is not int:
+        elif outlet_id.shape!=(1,) or (isinstance(outlet_id, np.ndarray)==False):
             # check that the value given by outlet_id is an integer
-            raise ValueError('outlet_id must be an integer')
+            raise ValueError('outlet_id must be a length 1 numpy array')
         else:
             # check that the node status at the node given by outlet_id is not
             # CLOSED_BOUNDARY
@@ -5512,7 +5553,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         is_not_connected_to_outlet=(self.status_at_node!=CLOSED_BOUNDARY)&(not_connected==1)
 
         # modify the node_data array.
-        node_data[is_not_connected_to_outlet]=-nodata_value # set those that are disconnected
+        node_data[is_not_connected_to_outlet]=nodata_value # set those that are disconnected
         # to the no data value.
 
         self.set_nodata_nodes_to_closed(node_data, nodata_value) # finally update the status.
