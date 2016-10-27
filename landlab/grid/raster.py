@@ -5250,30 +5250,37 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         return_outlet_id is set to True.
 
         All nodes with nodata_value are set to CLOSED_BOUNDARY
-        (grid.status_at_node == 4). All nodes with data values
-        are set to CORE_NODES (grid.status_at_node == 0), with
-        the exception that the outlet node is set to a
-        FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+        (grid.status_at_node == 4). All nodes with data values are set to
+        CORE_NODES (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
         Note that the outer ring (perimeter) of the raster is set to
-        CLOSED_BOUNDARY, even if there are nodes that have values.
-        The only exception to this would be if the outlet node
-        is on the perimeter, which is acceptable.
+        CLOSED_BOUNDARY, even if there are nodes that have values. The only
+        exception to this would be if the outlet node is on the perimeter, which
+        is acceptable.
 
-        This assumes that all of the nodata_values are on the outside of the
-        data values.  In other words, there are no islands of nodata_values
+        This routine assumes that all of the nodata_values are on the outside of
+        the data values. In other words, there are no islands of nodata_values
         surrounded by nodes with data.
 
-        This also assumes that the grid has a single watershed.
+        This also assumes that the grid has a single watershed (that is a single
+        outlet node).
 
-        If you would like to verify that there are no non-closed nodes
-        surrounded only by closed nodes, set the parameter: *remove_disconnected*
-        to True (default is False). This will run the function:
+        If you are considering running flow routing algorithms on this model
+        grid, it is recommended that you verify the absence of non-closed nodes
+        surrounded only by closed nodes. The presence of these isolated non-
+        closed nodes may result from clipping a raster to a polygon and will
+        prevent the flow router from functioning as intended.
+
+        This can be acomplished by setting the
+        parameter: *remove_disconnected* to True (default is False).
+
+        This will run the function:
         set_open_nodes_disconnected_from_watershed_to_closed
-        which will set any isolated open nodes that are disconnected from the
-        main watershed as closed. This may be useful if there are stray points
-        from clipping and is necessary for the flow router to function as
-        intended.
+        which will find any isolated open nodes that have no neigbors in the
+        main watershed and set them to closed. The neigborhood algorithm used
+        to assess connectivity can be set to either 'D8'(default) or 'D4' using
+        the flag *method*.
 
         Finally, the developer has seen cases in which DEM data that has been
         filled results in a different outlet from DEM data which has not been
@@ -5429,6 +5436,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         for which the status at the node is FIXED_VALUE_BOUNDARY. If more than
         one node has this value, the algorithm will fail.
 
+        If *outlet_id* is given, the algorithm will check that it is not a node
+        with status of CLOSED_BOUNDARY.
+
+        The method supports both D4 and D8 (default) neighborhood evaluation in
+        determining if a node is connected. This can be modified with the flag
+        *method*.
+
         This function can be run directly, or by setting the flag
         remove_disconnected to True in set_watershed_boundary_condition
 
@@ -5439,8 +5453,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         outlet_id : one element numpy array, optional.
             The node ID of the outlet that all open nodes must be connected to.
-            If provided, it does not need have the status FIXED_VALUE_BOUNDARY.
-            However, it must not have the status of CLOSED_BOUNDARY.
+            If a node ID is provided, it does not need have the status
+            FIXED_VALUE_BOUNDARY. However, it must not have the status of
+            CLOSED_BOUNDARY.
 
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
@@ -5506,14 +5521,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             # check that the node status at the node given by outlet_id is not
             # CLOSED_BOUNDARY
-
             if self.status_at_node[outlet_id][0]==CLOSED_BOUNDARY:
                 raise ValueError ('The node given by outlet_id must not have the status: CLOSED_BOUNDARY')
 
 
         # now test that the method given is either 'D8' or 'D4'
         if method != 'D8':
-            assert(method=='D4'), "method must be either 'D8'(default) or 'D4'"
+            assert(method=='D4'), "Method must be either 'D8'(default) or 'D4'"
 
         # begin main code portion.
         # initialize list of core nodes and new nodes
@@ -5544,19 +5558,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # update number added, when this is zero, the loop will end
             numAdded=len(newNodes)
 
-        # create a list that identifies the nodes that should be closed
+        # create an array that identifies the nodes that should be closed
         # of closed boundary nodes
         not_connected=np.array((0*self.status_at_node)+1)
         not_connected[np.array(connected_nodes)]=0
 
-        #identify those nodes that should be closed, but are not
+        #identify those nodes that should be closed, but are not yet closed.
         is_not_connected_to_outlet=(self.status_at_node!=CLOSED_BOUNDARY)&(not_connected==1)
 
-        # modify the node_data array.
-        node_data[is_not_connected_to_outlet]=nodata_value # set those that are disconnected
+        # modify the node_data array to set those that are disconnected
         # to the no data value.
+        node_data[is_not_connected_to_outlet]=nodata_value #
 
-        self.set_nodata_nodes_to_closed(node_data, nodata_value) # finally update the status.
+        # finally update the status of the nodes based on the modified node_data.
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
 
     def set_watershed_boundary_condition_outlet_coords(

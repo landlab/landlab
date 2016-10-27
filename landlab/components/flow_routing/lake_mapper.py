@@ -391,7 +391,6 @@ class DepressionFinderAndRouter(Component):
         # Record the number of pits and the IDs of pit nodes.
         self.number_of_pits = np.count_nonzero(self.is_pit)
         self.pit_node_ids = as_id_array(np.where(self.is_pit)[0])
-        #print ('There are ',  str(np.count_nonzero(self.is_pit)), ' pits on this grid')
 
     def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
         """Locate the lowest node on the margin of the "lake".
@@ -424,7 +423,9 @@ class DepressionFinderAndRouter(Component):
                         self.flood_status[nbr] = _CURRENT_LAKE
         if lowest_elev == self._BIG_ELEV:
             print('Unable to find drainage outlet for a lake.')
-            print('In lake with '+str(nodes_this_depression), 'nodes:')
+            print('In lake with '+str(len(nodes_this_depression)), 'nodes:')
+            print(str(nodes_this_depression))
+
             for i in nodes_this_depression:
                 print('Node ID: ', i)
                 print('Node Elevation: ', self._elev[i])
