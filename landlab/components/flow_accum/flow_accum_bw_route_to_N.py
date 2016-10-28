@@ -1,28 +1,40 @@
 #!/usr/env/python
 
 """
-flow_accum_bw.py:
+flow_accum_bw_route_to_N.py:
 
-Implementation of Braun & Willett (2012) algorithm for calculating drainage
-area and (optionally) water discharge. Assumes each node has only one downstream
-receiver. If water discharge is calculated, the result assumes steady flow
-(that is, hydrologic equilibrium).
+Implementation of a modified Braun & Willett (2012) algorithm for calculating
+drainage area and (optionally) water discharge that relaxes the asumption that
+each node has only one downstream receiver. If water discharge is calculated,
+the result assumes steady flow (that is, hydrologic equilibrium).
 
 The main public function is::
 
-    a, q, s = flow_accumulation(r, b)
+    a, q, s = flow_accumulation(r, p, b)
 
-which takes an array of receiver-node IDs, r (the nodes that "receive" the flow
-from a each node; this array would be returned by the flow_routing component's
-calc_flowdirs() method), and an array of baselevel nodes, b. It returns Numpy
-arrays with the drainage area (a) and discharge (q) at each node, along with an
-array (s) that contains the IDs of the nodes in downstream-to-upstream order.
+which takes the following inputs:
+
+    r, an (np, q) array of receiver-node IDs, where np is the total number of
+    nodes and q is the maximum number of receivers any node in the grid has.
+    This array would be returned by the flow_routing component's INSERT FUTURE FUNCTION HERE
+
+    p, an (np, q) array that identifies the proportion of flow going to each
+    reciever. For each q elements along the np axis, sum(p(i, :)) must equal
+    1.
+    b, a (nb,) array of baselevel nodes where nb is the number of base level
+    nodes.
+
+It returns Numpy arrays with the drainage area (a) and discharge (q) at each node,
+along with an array (s) that contains the IDs of the nodes in downstream-to-upstream
+order.
 
 If you simply want the ordered list by itself, use::
 
     s = make_ordered_node_array(r, b)
 
 Created: GT Nov 2013
+Modified: KRB Oct 2016 to route to many instead of route to one.
+
 """
 from six.moves import range
 from .cfuncs import _add_to_stack
@@ -65,25 +77,26 @@ class _DrainageStack():
         self.j = _add_to_stack(l, self.j, self.s, self.delta, self.D)
 
 
-def _make_number_of_donors_array(r):
+def _make_number_of_donors_array(r, p):
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
 
     Parameters
     ----------
-    r : ndarray
-        ID of receiver for each node.
+    r : ndarray size (np, q) where r[i,:] gives all recievers of node i.
+    p : ndarray size (np, q) where p[i,v] give the proportion of flow going from
+        node i to the reciever listed in r[i,v].
 
     Returns
     -------
-    ndarray
+    ndarray size (np, q)
         Number of donors for each node.
 
     Examples
     --------
-    The example below is from Braun and Willett (2012); nd corresponds to their
-    d_i in Table 1.
+    The example below is modified from Braun and Willett (2012); nd corresponds
+    to their d_i in Table 1.
 
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
@@ -98,9 +111,14 @@ def _make_number_of_donors_array(r):
 #    for i in range(np):
 #        nd[r[i]] += 1
 
-    nd = numpy.zeros(r.size, dtype=int)
-    max_index = numpy.max(r)
-    nd[:(max_index + 1)] = numpy.bincount(r)
+    nd = numpy.zeros(r.shape[0], dtype=int)
+    max_index = numpy.amax(r)
+
+    # filter r based on p and flatten
+    r_filter_flat = r.flatten()[p.flatten()>0]
+
+
+    nd[:(max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd
 
 
@@ -121,8 +139,8 @@ def _make_delta_array(nd):
 
     Examples
     --------
-    The example below is from Braun and Willett (2012), and represents
-    \delta_i in their Table 1. Here, the numbers are all one less than in their
+    MODIFIED FROM THIS EXAMPLE TO TO R2N: The example below is from Braun and Willett (2012), and represents
+    delta_i in their Table 1. Here, the numbers are all one less than in their
     table because here we number indices from 0 rather than 1.
 
     >>> import numpy as np
@@ -140,10 +158,13 @@ def _make_delta_array(nd):
     #return delta
 
     #DEJH efficient delooping (only a small gain)
+
+    nt = sum(nd)
     np = len(nd)
     delta = numpy.zeros(np+1, dtype=int)
     delta.fill(np)
     delta[-2::-1] -= numpy.cumsum(nd[::-1])
+
     return delta
 
 def _make_array_of_donors(r, delta):
@@ -193,7 +214,7 @@ def _make_array_of_donors(r, delta):
     #return D
 
 
-def make_ordered_node_array(receiver_nodes, baselevel_nodes):
+def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes):
     """Create an array of node IDs that is arranged in order from.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -299,7 +320,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
+def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, node_cell_area=1.0,
                       runoff_rate=1.0, boundary_nodes=None):
     """Calculate drainage area and (steady) discharge.
 
@@ -321,12 +342,16 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
 
-    s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
+
+    assert(receiver_nodes.shape==receiver_proportions.shape), 'r and p arrays are not the same shape'
+
+
+    s = make_ordered_node_array(receiver_nodes, receiver_proportions, baselevel_nodes)
     #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.
 
-    a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
+    a, q = find_drainage_area_and_discharge(s, receiver_nodes, receiver_proportions, node_cell_area,
                                             runoff_rate, boundary_nodes)
 
     return a, q, s
