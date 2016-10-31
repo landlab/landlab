@@ -54,9 +54,10 @@ class _DrainageStack():
         and stores references to delta and D.
         """
         self.j = 0
-        self.s = numpy.zeros(len(D), dtype=int)
+        self.s = list()
         self.delta = delta
         self.D = D
+        self.lastIndexUsed=numpy.zeros(len(delta)-1, dtype=int)
 
     def add_to_stack(self, l):
         """
@@ -74,8 +75,28 @@ class _DrainageStack():
         array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
         # we invoke cython here to attempt to suppress Python's RecursionLimit
-        self.j = _add_to_stack(l, self.j, self.s, self.delta, self.D)
+        self.j, self.lastIndexUsed = _add_to_stack_route_N(l, self.j, self.s, self.delta, self.D, self.lastIndexUsed)
 
+def _add_to_stack_route_N(l, j, s, delta, donors, lastIndex):
+
+    """
+    Adds node l to the stack and increments the current index (j).
+    Keeps track of last index used for each node for route-to-N
+    functionality
+    """
+    print j, l
+    s.append(l)
+    lastIndex[l] = j
+    j += 1
+    delta_l = delta[l]
+    delta_lplus1 = delta[l+1]
+
+    for n in range(delta_l, delta_lplus1):
+        m = donors[n]
+        if m != l:
+            j, lastIndex = _add_to_stack_route_N(m, j, s, delta, donors, lastIndex)
+
+    return j, lastIndex
 
 def _make_number_of_donors_array(r, p):
     """Number of donors for each node.
@@ -247,7 +268,7 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum import make_ordered_node_array
-    >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
+    >>> r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
                   [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
     >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
                   [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
