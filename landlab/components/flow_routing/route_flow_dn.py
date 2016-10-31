@@ -215,7 +215,7 @@ class FlowRouter(Component):
         except FieldError:
             self.links_to_receiver = grid.at_node[
                 'flow__link_to_receiver_node']
-        grid.add_zeros('flow__sink_flag', at='node', dtype=int,
+        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
                        noclobber=False)
 
     def updated_boundary_conditions(self):
@@ -368,10 +368,6 @@ class FlowRouter(Component):
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
 
-        #print('Sink @ 371:')
-        #print(sink)
-        #print('Recv @ 373:')
-        #print(receiver)
         # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.
 
