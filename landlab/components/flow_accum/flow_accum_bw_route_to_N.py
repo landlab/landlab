@@ -84,13 +84,15 @@ def _make_number_of_donors_array(r, p):
 
     Parameters
     ----------
-    r : ndarray size (np, q) where r[i,:] gives all recievers of node i.
+    r : ndarray size (np, q) where r[i,:] gives all recievers of node i. Each
+        node recieves flow fom up to q donors.
+
     p : ndarray size (np, q) where p[i,v] give the proportion of flow going from
         node i to the reciever listed in r[i,v].
 
     Returns
     -------
-    ndarray size (np, q)
+    ndarray size (np)
         Number of donors for each node.
 
     Examples
@@ -100,10 +102,13 @@ def _make_number_of_donors_array(r, p):
 
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
+    >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
+              [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
+              [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> nd = _make_number_of_donors_array(r)
     >>> nd
-    array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
+    array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     """
     # Vectorized, DEJH, 5/20/14
 #    np = len(r)
@@ -111,12 +116,13 @@ def _make_number_of_donors_array(r, p):
 #    for i in range(np):
 #        nd[r[i]] += 1
 
+    # modified by KRB 10/31/2016 to support route to multiple.
+
     nd = numpy.zeros(r.shape[0], dtype=int)
     max_index = numpy.amax(r)
 
     # filter r based on p and flatten
     r_filter_flat = r.flatten()[p.flatten()>0]
-
 
     nd[:(max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd
@@ -145,10 +151,12 @@ def _make_delta_array(nd):
 
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
-    >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
+    >>> nd = np.array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     >>> delta = _make_delta_array(nd)
     >>> delta
-    array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
+    >>> sum(nd)==max(delta)
+    True
     """
     #np = len(nd)
     #delta = numpy.zeros(np+1, dtype=int)
@@ -162,12 +170,12 @@ def _make_delta_array(nd):
     nt = sum(nd)
     np = len(nd)
     delta = numpy.zeros(np+1, dtype=int)
-    delta.fill(np)
+    delta.fill(nt)
     delta[-2::-1] -= numpy.cumsum(nd[::-1])
 
     return delta
 
-def _make_array_of_donors(r, delta):
+def _make_array_of_donors(r, p, delta):
     """
     Creates and returns an array containing the IDs of donors for each node.
     Essentially, the array is a series of lists (not in the Python list object
@@ -183,22 +191,34 @@ def _make_array_of_donors(r, delta):
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-    >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
+              [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
+              [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
+    >>> delta = np.array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
     >>> D = _make_array_of_donors(r, delta)
     >>> D
     array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
     """
-    np = len(r)
-    w = numpy.zeros(np, dtype=int)
-    D = numpy.zeros(np, dtype=int)
+    np = r.shape[0]
+    q = r.shape[1]
+    nt = delta[-1]-1
 
-    for i in range(np):
-        ri = r[i]
-        D[delta[ri]+w[ri]] = i
-        w[ri] += 1
 
-    return D
+    w = numpy.zeros(nn, dtype=int)
+    D = numpy.nan*np.zeros(nt, dtype=int)
+    P = numpy.nan*np.zeros(nt, dtype=float)
+    for v in range(q):
+        for i in range(nn):
+            ri = r[i,v]
+            pi = p[i,v]
+            if pi>0:
+                ind = delta[ri]+w[ri]
+                D[ind] = i
+                P[ind] = pi
+                w[ri] += 1
+
+    return D, P
 
     #DEJH notes that for reasons he's not clear on, this looped version is
     #actually much slower!
@@ -227,7 +247,10 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum import make_ordered_node_array
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
+                  [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
+                  [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> b = np.array([4])
     >>> s = make_ordered_node_array(r, b)
     >>> s
@@ -331,7 +354,10 @@ def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, nod
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum import flow_accumulation
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
+              [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
+              [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> b = np.array([4])
     >>> a, q, s = flow_accumulation(r, b)
     >>> a
