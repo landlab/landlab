@@ -54,16 +54,14 @@ class _DrainageStack():
         and stores references to delta and D.
         """
         self.j = 0
-        self.s =-2+numpy.zeros(len(delta)-1, dtype=int)
+        self.s =list()
         self.delta = delta
         self.D = D
         self.d = d
-        self.lastIndexUsed=numpy.zeros(len(delta)-1, dtype=int)
-        self.alreadySeen=numpy.zeros(len(delta)-1, dtype=bool)
-
-    def add_to_stack(self, l):
+  
+    def construct__stack(self, l):
         """
-        Adds node l to the stack and increments the current index (j).
+        description
 
         Examples
         --------
@@ -76,98 +74,9 @@ class _DrainageStack():
         >>> ds.s
         array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
-        # we invoke cython here to attempt to suppress Python's RecursionLimit
+       
 
-        l_reciever_ID = l
-        l_D_index = numpy.nan
-
-        self.j, self.s, self.lastIndexUsed, self.alreadySeen = _add_to_stack_route_N(l, self.j, self.s, self.d, self.delta, self.D, l_D_index, l_reciever_ID, self.lastIndexUsed, self.alreadySeen)
-
-def _add_to_stack_route_N(l, j, s, d, delta, donors,
-                          l_D_index, l_reciever_ID,
-                          lastIndexUsed, alreadySeen):
-
-    """
-    Adds node l to the stack and increments the current index (j).
-    Keeps track of last index used for each node for route-to-N
-    functionality
-    """
-    # if a node has not already been seen, call the recurisive algorithm
-    # developed by Braun and Willett
-    if alreadySeen[l]==False:
-        print 'never seen ', l, 'before, adding it!'
-
-        alreadySeen[l]=True
-        s[j]=l
-        lastIndexUsed[l] = j
-        j += 1
-        delta_l = delta[l]
-        delta_lplus1 = delta[l+1]
-
-        for n in range(delta_l, delta_lplus1):
-            m = donors[n]
-            if m != l:
-                l_reciever_ID = l
-                l_D_index = n
-                j, s, lastIndexUsed, alreadySeen = _add_to_stack_route_N(m, j, s, d, delta, donors,
-                                                                      l_D_index, l_reciever_ID,
-                                                                      lastIndexUsed, alreadySeen)
-    else:
-        # pull out the already seen node and all the elements that drain to it
-        # this is a bit tricky, since knowing which elements drain to our node
-        # would require further recursion.
-
-        # however we take advantage of our data structure D. We pass n, the index
-        # location where the node we are working with is located within D and l
-        # the value of the reciever.
-
-        # we pass n as the value source_D_index and the reciever ID l as the value
-        # reciever_ID
-
-        # removing the values located between the last
-
-        sind=lastIndexUsed[l]
-
-        if d[l]==0: # node has no donors, just remove the one element
-            j-=1
-            print j
-
-            print 'oof, a duplicate with no donors, this is easy!'            
-            
-            print 'original stack      : ', s
-            print 'original last index : ', lastIndexUsed
-            eind=sind+1
-            poppedStack=s[sind:eind]
-            presentAfter=s[eind:j+1]
-            numMoved=len(poppedStack)
-
-            # reconstruct stack
-            s=numpy.concatenate((s[0:sind], presentAfter, poppedStack, s[j+1:]))
-
-            # change indicies
-            lastIndexUsed[presentAfter]-=numMoved
-            lastIndexUsed[poppedStack]+=len(presentAfter)
-            print 'new stack           : ', s
-            print 'new last index      : ', lastIndexUsed
-
-        else:
-            print 'Egads! more than one donor to a duplicate!'
-            if donors[l_D_index+1]==l_reciever_ID:
-                eind=lastIndexUsed[donors[l_D_index+1]]
-            else:
-                eind=lastIndexUsed[donors[l_D_index+2]]
-
-            print 'l = ', l
-            print 'lastIndexUsed[l] = ', lastIndexUsed[l]
-            print 'indices = ', sind, ':', eind
-            print 'l_D_index = ', l_D_index
-            print 'l_reciever_ID = ', l_reciever_ID
-            print 'next two donors', donors[l_D_index+1:l_D_index+3], '\n'
-            j+=1
-        # next
-
-
-    return j, s, lastIndexUsed, alreadySeen
+        
 
 def _make_number_of_donors_array(r, p):
     """Number of donors for each node.
