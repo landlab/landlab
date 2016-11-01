@@ -48,7 +48,7 @@ class _DrainageStack():
     function (as a method) and also keeps track of the counter (j) and the
     stack (s). It is used by the make_ordered_node_array() function.
     """
-    def __init__(self, delta, D, d):
+    def __init__(self, delta, D):
         """
         Initializes the index counter j to zero, creates the stack array s,
         and stores references to delta and D.
@@ -57,8 +57,7 @@ class _DrainageStack():
         self.s =list()
         self.delta = delta
         self.D = D
-        self.d = d
-  
+
     def construct__stack(self, l):
         """
         description
@@ -74,7 +73,22 @@ class _DrainageStack():
         >>> ds.s
         array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
-       
+    
+        base=set([l])
+        self.s.extend(base)
+        upstream=set(self.D[self.delta[l]:self.delta[l+1]])
+        base=upstream-base # only need to do this here. 
+        
+        while len(upstream)>0:
+            upstream=set()
+            for node_i in base:
+                upstream.update(self.D[self.delta[node_i]:self.delta[node_i+1]])
+        
+            add_to_stack=base-upstream
+            self.s.extend(add_to_stack)
+            base=base-add_to_stack
+            base.update(upstream)
+
 
         
 
@@ -204,14 +218,13 @@ def _make_array_of_donors(r, p, delta):
     """
     np = r.shape[0]
     q = r.shape[1]
-    nt = delta[-1]-1
-
-
-    w = numpy.zeros(nn, dtype=int)
-    D = numpy.nan*np.zeros(nt, dtype=int)
-    P = numpy.nan*np.zeros(nt, dtype=float)
+    nt = delta[-1]
+    
+    w = numpy.zeros(np, dtype=int)
+    D = numpy.zeros(nt, dtype=int)
+    P = numpy.zeros(nt, dtype=float)
     for v in range(q):
-        for i in range(nn):
+        for i in range(np):
             ri = r[i,v]
             pi = p[i,v]
             if pi>0:
@@ -219,8 +232,8 @@ def _make_array_of_donors(r, p, delta):
                 D[ind] = i
                 P[ind] = pi
                 w[ri] += 1
-
-    return D, P
+       
+    return D
 
     #DEJH notes that for reasons he's not clear on, this looped version is
     #actually much slower!
@@ -258,18 +271,18 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     >>> s
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
-    nd = _make_number_of_donors_array(receiver_nodes)
+    nd = _make_number_of_donors_array(receiver_nodes, reciever_proportion)
     delta = _make_delta_array(nd)
-    D = _make_array_of_donors(receiver_nodes, delta)
+    D = _make_array_of_donors(receiver_nodes, reciever_proportion, delta)
     dstack = _DrainageStack(delta, D)
-    add_it = dstack.add_to_stack
+    construct_it = dstack.construct__stack
     for k in baselevel_nodes:
-        add_it(k) #don't think this is a bottleneck, so no C++
+        construct_it(k) #don't think this is a bottleneck, so no C++
 
     return dstack.s
 
 
-def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
+def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
                                      boundary_nodes=None):
     """Calculate the drainage area and water discharge at each node.
 
@@ -320,7 +333,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
     # Number of points
     np = len(s)
-
+    q=r.shape[1]
     # Initialize the drainage_area and discharge arrays. Drainage area starts
     # out as the area of the cell in question, then (unless the cell has no
     # donors) grows from there. Discharge starts out as the cell's local runoff
@@ -337,10 +350,13 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     # downstream.
     for i in range(np-1, -1, -1):
         donor = s[i]
-        recvr = r[donor]
-        if donor != recvr:
-            drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += discharge[donor]
+        for v in range(q):
+            recvr = r[donor, v]
+            proportion = p[donor, v]
+            if proportion>0:
+                if donor != recvr:
+                    drainage_area[recvr] += proportion*drainage_area[donor]
+                    discharge[recvr] += proportion*discharge[donor]
 
     return drainage_area, discharge
 
