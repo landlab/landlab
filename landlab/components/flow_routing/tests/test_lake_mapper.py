@@ -224,8 +224,6 @@ def check_array_values1(rmg, lm):
     """
     Check values of the various fields against known values.
     """
-#    for i in range(rmg.number_of_nodes):
-#        print i, rmg.at_node['topographic__elevation'][i], lm.is_pit[i]
 
     assert_array_equal(lm.is_pit,
     [False, False, False, False, False, False, False, False,
