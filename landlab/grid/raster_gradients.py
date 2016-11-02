@@ -478,7 +478,7 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     True
     >>> len(eight_tris)
     8
-    >>> eight_tris[0].shape==(mg.number_of_cells,3)
+    >>> eight_tris[0].shape == (mg.number_of_cells,3)
     True
     >>> eight_tris
     (array([[-0.9486833 ,  0.        ,  0.31622777]]),
@@ -673,25 +673,27 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z=np.array([np.sqrt(3),0,4./3.,0,0,0,1,0,1./np.sqrt(3)])
+    >>> z = np.array([np.sqrt(3), 0., 4./3.,
+    ...               0., 0., 0.,
+    ...               1., 0., 1./np.sqrt(3.)])
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
-    >>> S=mg.calc_slope_at_cell_subtriangles(z, eight_tris)
-    >>> S0=mg.calc_slope_at_cell_subtriangles(z)
+    >>> S = mg.calc_slope_at_cell_subtriangles(z, eight_tris)
+    >>> S0 = mg.calc_slope_at_cell_subtriangles(z)
     >>> np.allclose(S, S0)
     True
     >>> type(S) is tuple
     True
     >>> len(S)
     8
-    >>> len(S[0])==mg.number_of_cells
+    >>> len(S[0]) == mg.number_of_cells
     True
-    >>> np.allclose(S[0],S[1])
+    >>> np.allclose(S[0], S[1])
     True
-    >>> np.allclose(S[2],S[3])
+    >>> np.allclose(S[2], S[3])
     True
-    >>> np.allclose(S[4],S[5])
+    >>> np.allclose(S[4], S[5])
     True
-    >>> np.allclose(S[6],S[7])
+    >>> np.allclose(S[6], S[7])
     True
     >>> np.allclose(np.rad2deg(S[0])[0], 30.)
     True
@@ -699,7 +701,7 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     True
     >>> np.allclose(np.rad2deg(S[4])[0], 60.)
     True
-    >>> np.allclose(np.cos(S[6])[0],3./5)
+    >>> np.allclose(np.cos(S[6])[0], 3./5.)
     True
 
     LLCATS: CINF GRAD
