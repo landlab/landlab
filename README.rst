@@ -1,3 +1,21 @@
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.154179.svg
+   :target: https://doi.org/10.5281/zenodo.154179
+   
+.. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
+    :target: https://readthedocs.org/projects/landlab/?badge=latest
+
+.. image:: https://travis-ci.org/landlab/landlab.svg?branch=master
+    :target: https://travis-ci.org/landlab/landlab
+
+.. image:: https://coveralls.io/repos/landlab/landlab/badge.png
+    :target: https://coveralls.io/r/landlab/landlab
+
+.. image:: https://ci.appveyor.com/api/projects/status/6u0bj0pggxrmf7s1?svg=true
+    :target: https://ci.appveyor.com/project/mcflugen/landlab/branch/master
+
+.. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg
+    :target: https://landscape.io/github/landlab/landlab/master
+
 =======
 landlab
 =======
@@ -24,23 +42,3 @@ The most current development version is always available from our git
 repository:
 
 http://github.com/landlab/landlab
-
-
-Project Status
---------------
-
-.. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
-    :target: https://readthedocs.org/projects/landlab/?badge=latest
-
-.. image:: https://travis-ci.org/landlab/landlab.svg?branch=master
-    :target: https://travis-ci.org/landlab/landlab
-
-.. image:: https://coveralls.io/repos/landlab/landlab/badge.png
-    :target: https://coveralls.io/r/landlab/landlab
-
-.. image:: https://ci.appveyor.com/api/projects/status/6u0bj0pggxrmf7s1?svg=true
-    :target: https://ci.appveyor.com/project/mcflugen/landlab/branch/master
-
-.. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg
-    :target: https://landscape.io/github/landlab/landlab/master
-
