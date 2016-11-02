@@ -478,7 +478,7 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     True
     >>> len(eight_tris)
     8
-    >>> eight_tris[0].shape == (mg.number_of_cells,3)
+    >>> eight_tris[0].shape == (mg.number_of_cells, 3)
     True
     >>> eight_tris
     (array([[-0.9486833 ,  0.        ,  0.31622777]]),
@@ -627,7 +627,7 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     nmag_ESE = np.sqrt(np.square(nhat_ESE).sum(axis=1))
 
     # normalize the cross product with its magnitude so it is a unit normal
-    # instead of a variable lenth normal.
+    # instead of a variable length normal.
     n_ENE = nhat_ENE/nmag_ENE.reshape(grid.number_of_cells, 1)
     n_NNE = nhat_NNE/nmag_NNE.reshape(grid.number_of_cells, 1)
     n_NNW = nhat_NNW/nmag_NNW.reshape(grid.number_of_cells, 1)
@@ -673,7 +673,7 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = np.array([np.sqrt(3), 0., 4./3.,
+    >>> z = np.array([np.sqrt(3.), 0., 4./3.,
     ...               0., 0., 0.,
     ...               1., 0., 1./np.sqrt(3.)])
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
@@ -790,7 +790,7 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
     Returns
     -------
     (a_ENE, a_NNE, a_NNW, a_WNW, a_WSW, a_SSW, a_SSE, a_ESE) :
-        each a length num-cells array
+            each a length num-cells array
         Len-8 tuple of the aspect of each of the eight cell subtriangles.
         Aspect is returned as angle clockwise of north. Units are given as
         radians unless input parameter units is set to 'degrees'.
@@ -803,7 +803,7 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z=np.array([1,0,1,0,0,0,1,0,1])
+    >>> z = np.array([1., 0., 1., 0., 0., 0., 1., 0., 1.])
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
     >>> A = mg.calc_aspect_at_cell_subtriangles(z, eight_tris)
     >>> A0 = mg.calc_aspect_at_cell_subtriangles(z)
@@ -813,7 +813,7 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
     True
     >>> len(A)
     8
-    >>> len(A[0])==mg.number_of_cells
+    >>> len(A[0]) == mg.number_of_cells
     True
     >>> A0  # doctest: +NORMALIZE_WHITESPACE
     (array([ 180.]), array([ 270.]), array([ 90.]), array([ 180.]),
