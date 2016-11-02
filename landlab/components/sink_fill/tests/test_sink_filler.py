@@ -313,12 +313,12 @@ def test_filler_inclined2():
     Tests an inclined fill into an inclined surface, with two holes.
     """
     z_init = z.copy()
-    hf = hf = SinkFiller(mg, apply_slope=True)
+    hf = SinkFiller(mg, apply_slope=True)
     hf.fill_pits()
-    hole1 = np.array([4.00009091, 4.00018182, 4.00027273, 4.00063636,
-                      4.00045455, 4.00036364, 4.00081818, 4.00072727,
-                      4.00054545])
-    hole2 = np.array([7.16666667, 7.33333333, 7.66666667, 7.5])
+    hole1 = np.array([4.00009091, 4.00018182, 4.00027273, 4.00036364,
+                      4.00045455, 4.00054545, 4.00063636, 4.00072727,
+                      4.00081818,])
+    hole2 = np.array([7.16666667, 7.33333333, 7.5, 7.66666667])
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
@@ -334,12 +334,11 @@ def test_stupid_shaped_hole():
     """
     hf = SinkFiller(mg, apply_slope=True)
     hf.fill_pits()
-    hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00053846,
-                      4.00038462, 4.00030769, 4.00069231, 4.00061538,
-                      4.00046154, 4.00076923, 4.00084615])
+    hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00030769,
+                      4.00038462, 4.00046154, 4.00053846, 4.00061538,
+                      4.00069231, 4.00076923, 4.00084615])
     hole2 = np.array([7.4, 7.2, 7.6])
-    # print this to check out the funky drainage arrangement...
-    # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
+
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
@@ -356,13 +355,14 @@ def test_D4_routing():
     """
     hf = SinkFiller(mg, routing='D4', apply_slope=True)
     hf.fill_pits()
-    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
-                      4.0005, 4.00083333, 4.00066667, 4.00058333, 4.00075,
+#    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
+#                      4.0005, 4.00066667, 4.00058333, 4.00075,
+#                      4.334])
+    hole1 = np.array([4.00016667, 4.00033333, 4.0005, 4.00008333, 4.00025,
+                      4.00041667, 4.000833, 4.00066667, 4.00058333, 4.00075,
                       4.334])
     hole2 = np.array([7.6, 7.2, 7.4])
-    # np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
-    # print this to check out the funky drainage arrangement...
-    # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
+
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
@@ -382,9 +382,7 @@ def test_D4_filling():
     hole1 = 4.*np.ones_like(lake1, dtype=float)
     hole1[-1] += 0.001
     hole2 = 7.*np.ones_like(lake2, dtype=float)
-    # np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
-    # print this to check out the funky drainage arrangement...
-    # print(mg.at_node['topographic__elevation'].reshape((10, 10))[3:8, 4:7])
+
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake1],
                               hole1)
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
