@@ -1,7 +1,7 @@
 #!/usr/env/python
 
 """
-flow_accum_bw_route_to_N.py:
+flow_accum_to_N.py:
 
 Algorithm for route to multiple (N) flow routing. Inspiration for data 
 structures and attempting O(n) taken from Braun and Willet(2013).
