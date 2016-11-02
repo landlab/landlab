@@ -56,7 +56,7 @@ class ChiFinder(Component):
     >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
     >>> fr = FlowRouter(mg)
     >>> cf = ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
-    >>> _ = fr.route_flow()
+    >>> fr.run_one_step()
     >>> cf.calculate_chi()
     >>> mg.at_node['channel__chi_index'].reshape(mg.shape)[1, :]
     array([ 0.5,  1. ,  2. ,  0. ])
@@ -76,9 +76,9 @@ class ChiFinder(Component):
     >>> cf2 = ChiFinder(mg2, min_drainage_area=0., reference_concavity=0.5)
     >>> for i in range(10):
     ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
-    ...     _ = fr2.route_flow()
+    ...     fr2.run_one_step()
     ...     sp2.run_one_step(1000.)
-    >>> _ = fr2.route_flow()
+    >>> fr2.run_one_step()
     >>> cf2.calculate_chi()
     >>> mg2.at_node['channel__chi_index'].reshape(
     ...     mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
@@ -255,7 +255,7 @@ class ChiFinder(Component):
         >>> _ = mg.add_field('node', 'topographic__elevation', z)
         >>> fr = FlowRouter(mg)
         >>> cf = ChiFinder(mg)
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> ch_nodes = np.array([4, 8, 12, 5, 9, 13, 6, 10, 14])
         >>> ch_integrand = 3.*np.ones(9, dtype=float)  # to make calc clearer
         >>> chi_array = np.zeros(mg.number_of_nodes, dtype=float)
@@ -307,7 +307,7 @@ class ChiFinder(Component):
         >>> _ = mg.add_field('node', 'topographic__elevation', z)
         >>> fr = FlowRouter(mg)
         >>> cf = ChiFinder(mg)
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> ch_nodes = np.array([4, 8, 12, 5, 9, 13, 6, 10, 14])
         >>> ch_integrand = 2.*np.ones(mg.number_of_nodes,
         ...                           dtype=float)  # to make calc clearer
@@ -338,9 +338,9 @@ class ChiFinder(Component):
         ...                 use_true_dx=True)
         >>> for i in range(10):
         ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
-        ...     _ = fr2.route_flow()
+        ...     fr2.run_one_step()
         ...     sp2.run_one_step(1000.)
-        >>> _ = fr2.route_flow()
+        >>> fr2.run_one_step()
         >>> output_array = np.zeros(25, dtype=float)
         >>> cf2.integrate_chi_each_dx(mg2.at_node['flow__upstream_node_order'],
         ...                           np.ones(25, dtype=float),
@@ -397,7 +397,7 @@ class ChiFinder(Component):
         >>> _ = mg.add_field('node', 'topographic__elevation', z)
         >>> fr = FlowRouter(mg)
         >>> cf = ChiFinder(mg)
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> ch_nodes = np.array([4, 8, 12, 5, 9, 13, 6, 10, 14])
         >>> cf.mean_channel_node_spacing(ch_nodes)
         2.2761423749153966
@@ -454,7 +454,7 @@ class ChiFinder(Component):
         >>> z[4:8] = np.array([0.5, 1., 2., 0.])
         >>> fr = FlowRouter(mg)
         >>> cf = ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> cf.calculate_chi()
         >>> mg.at_node['channel__chi_index'].reshape(mg.shape)[1, :]
         array([ 0.5,  1. ,  2. ,  0. ])
@@ -493,7 +493,7 @@ class ChiFinder(Component):
         ...                  mg.node_x.copy())
         >>> z[4:8] = np.array([0.5, 1., 2., 0.])
         >>> fr = FlowRouter(mg)
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node']
         array([ 0,  1,  2,  3,  4,  4,  5,  7,  8,  9, 10, 11])
         >>> cf = ChiFinder(mg, min_drainage_area=0., reference_concavity=1.)
@@ -599,9 +599,9 @@ class ChiFinder(Component):
         >>> cf = ChiFinder(mg, min_drainage_area=20000.)
         >>> for i in range(10):
         ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
-        ...     _ = fr.route_flow()
+        ...     fr.run_one_step()
         ...     sp.run_one_step(1000.)
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> cf.calculate_chi()
 
         >>> imshow_grid_at_node(mg, 'topographic__elevation',
