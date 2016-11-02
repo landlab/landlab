@@ -3,10 +3,16 @@
 """
 flow_accum_bw_route_to_N.py:
 
-Implementation of a modified Braun & Willett (2012) algorithm for calculating
-drainage area and (optionally) water discharge that relaxes the asumption that
-each node has only one downstream receiver. If water discharge is calculated,
-the result assumes steady flow (that is, hydrologic equilibrium).
+Algorithm for route to multiple (N) flow routing. Inspiration for data 
+structures and attempting O(n) taken from Braun and Willet(2013).
+A lgorithm constructs drainage area and (optionally) water discharge. Can 
+handle the case in which each node has more than one downstream reciever. 
+
+Computationally, for a grid of the same size this algorithm will take about
+1.5*(avg downstream nodes per cell)*(duration of flow_accum_bw)
+
+If water discharge is calculated, the result assumes steady flow (that is, 
+hydrologic equilibrium).
 
 The main public function is::
 
@@ -32,8 +38,8 @@ If you simply want the ordered list by itself, use::
 
     s = make_ordered_node_array(r, b)
 
-Created: GT Nov 2013
-Modified: KRB Oct 2016 to route to many instead of route to one.
+flow_accumu_bw Created: GT Nov 2013
+Original File Modified: KRB Oct 2016 to route to many instead of route to one.
 
 """
 from six.moves import range
