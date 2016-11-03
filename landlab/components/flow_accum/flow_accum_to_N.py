@@ -389,17 +389,19 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
+    hasZero=numpy.prod(p, axis=1)==0
     for i in range(np-1, -1, -1):
         donor = s[i]
-        rcvrs=set(r[donor, :])
-        if donor not in rcvrs:
+        
+        if donor not in set(r[donor, :]):
             recvr = r[donor, :]
-            proportion = p[donor, :]
-            
-            use=proportion>0
-                
-            drainage_area[recvr[use]] += proportion[use]*drainage_area[donor]
-            discharge[recvr[use]] += proportion[use]*discharge[donor]
+            if hasZero[i]:
+                use=p[donor, :]>0                
+                drainage_area[recvr[use]] += p[donor, use]*drainage_area[donor]
+                discharge[recvr[use]] += p[donor, use][use]*discharge[donor]
+            else:
+                drainage_area[recvr] += p[donor, :]*drainage_area[donor]
+                discharge[recvr] += p[donor, :]*discharge[donor]
 
     return drainage_area, discharge
 
