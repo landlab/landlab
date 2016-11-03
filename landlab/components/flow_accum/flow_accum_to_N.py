@@ -307,15 +307,16 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
                   [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> b = np.array([4])
-    >>> s = make_ordered_node_array(r, b)
+    >>> s = make_ordered_node_array(r, p,  b)
     >>> s
-    array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    
     """
     nd = _make_number_of_donors_array(receiver_nodes, reciever_proportion)
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, reciever_proportion, delta)
     dstack = _DrainageStack(delta, D)
     construct_it = dstack.construct__stack
+    
     for k in baselevel_nodes:
         construct_it(k) #don't think this is a bottleneck, so no C++
 
@@ -373,7 +374,7 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
 
     # Number of points
     np = len(s)
-    q=r.shape[1]
+    #q=r.shape[1]
     # Initialize the drainage_area and discharge arrays. Drainage area starts
     # out as the area of the cell in question, then (unless the cell has no
     # donors) grows from there. Discharge starts out as the cell's local runoff
@@ -390,13 +391,15 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     # downstream.
     for i in range(np-1, -1, -1):
         donor = s[i]
-        for v in range(q):
-            recvr = r[donor, v]
-            proportion = p[donor, v]
-            if proportion>0:
-                if donor != recvr:
-                    drainage_area[recvr] += proportion*drainage_area[donor]
-                    discharge[recvr] += proportion*discharge[donor]
+        rcvrs=set(r[donor, :])
+        if donor not in rcvrs:
+            recvr = r[donor, :]
+            proportion = p[donor, :]
+            
+            use=proportion>0
+                
+            drainage_area[recvr[use]] += proportion[use]*drainage_area[donor]
+            discharge[recvr[use]] += proportion[use]*discharge[donor]
 
     return drainage_area, discharge
 
