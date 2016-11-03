@@ -66,7 +66,8 @@ class _DrainageStack():
         Creates the stack array s and stores references to delta and D.
         """
 
-        self.s =list()
+        self.s = list()
+        self.ss = list()
         self.delta = delta
         self.D = D
 
@@ -118,6 +119,7 @@ class _DrainageStack():
     
         base=set([l])
         self.s.extend(base)
+        self.ss.append(list(base))
         upstream=set(self.D[self.delta[l]:self.delta[l+1]])
         base=upstream-base # only need to do this here. 
         
@@ -128,6 +130,7 @@ class _DrainageStack():
         
             add_to_stack=base-upstream
             self.s.extend(add_to_stack)
+            self.ss.append(list(add_to_stack))
             base=base-add_to_stack
             base.update(upstream)
 
@@ -158,7 +161,7 @@ def _make_number_of_donors_array(r, p):
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
     >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-              [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+              [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
     >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
               [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> nd = _make_number_of_donors_array(r)
@@ -248,7 +251,7 @@ def _make_array_of_donors(r, p, delta):
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
     >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-              [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+              [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
     >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
               [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> delta = np.array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
@@ -289,7 +292,8 @@ def _make_array_of_donors(r, p, delta):
     #return D
 
 
-def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes):
+def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes,
+                            set_stack=False):
     """Create an array of node IDs that is arranged in order from.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -303,7 +307,7 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     >>> import numpy as np
     >>> from landlab.components.flow_accum import make_ordered_node_array
     >>> r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-                  [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+                  [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
     >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
                   [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> b = np.array([4])
@@ -319,8 +323,10 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     
     for k in baselevel_nodes:
         construct_it(k) #don't think this is a bottleneck, so no C++
-
-    return dstack.s
+    if set_stack==False:
+        return dstack.s
+    else:
+        return dstack.ss
 
 
 def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
@@ -389,19 +395,13 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    hasZero=numpy.prod(p, axis=1)==0
     for i in range(np-1, -1, -1):
         donor = s[i]
-        
-        if donor not in set(r[donor, :]):
+        if donor not in r[donor, :]:
             recvr = r[donor, :]
-            if hasZero[i]:
-                use=p[donor, :]>0                
-                drainage_area[recvr[use]] += p[donor, use]*drainage_area[donor]
-                discharge[recvr[use]] += p[donor, use][use]*discharge[donor]
-            else:
-                drainage_area[recvr] += p[donor, :]*drainage_area[donor]
-                discharge[recvr] += p[donor, :]*discharge[donor]
+            proportion = p[donor, :]
+            drainage_area[recvr] += proportion*drainage_area[donor]
+            discharge[recvr] += proportion*discharge[donor]
 
     return drainage_area, discharge
 
@@ -418,7 +418,7 @@ def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, nod
     >>> import numpy as np
     >>> from landlab.components.flow_accum import flow_accumulation
     >>> r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-              [2, 5, 5, 2, -999, -999, 7, 5, 7, 8 ]])
+              [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
     >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
               [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
     >>> b = np.array([4])
