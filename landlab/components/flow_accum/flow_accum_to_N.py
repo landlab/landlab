@@ -3,13 +3,16 @@
 """
 flow_accum_to_N.py:
 
-Algorithm for route to multiple (N) flow routing. Inspiration for data 
-structures and attempting O(n) taken from Braun and Willet(2013).
-A lgorithm constructs drainage area and (optionally) water discharge. Can 
+Algorithm for route to multiple (N) flow accumulation. Inspiration for data 
+structures and attempting O(n) efficiency taken from Braun and Willet(2013).
+
+Algorithm constructs drainage area and (optionally) water discharge. Can 
 handle the case in which each node has more than one downstream reciever. 
 
 Computationally, for a grid of the same size this algorithm will take about
-1.5*(avg downstream nodes per cell)*(duration of flow_accum_bw)
+    1.5*(avg number of downstream nodes per cell)
+        *(duration of flow_accum_bw for the same grid using route-to-one method)
+
 
 If water discharge is calculated, the result assumes steady flow (that is, 
 hydrologic equilibrium).
@@ -22,11 +25,12 @@ which takes the following inputs:
 
     r, an (np, q) array of receiver-node IDs, where np is the total number of
     nodes and q is the maximum number of receivers any node in the grid has.
-    This array would be returned by the flow_routing component's INSERT FUTURE FUNCTION HERE
+    This array would be returned by the flow_routing component.
 
     p, an (np, q) array that identifies the proportion of flow going to each
     reciever. For each q elements along the np axis, sum(p(i, :)) must equal
-    1.
+    1. This array would be returned by the flow_routing component. 
+    
     b, a (nb,) array of baselevel nodes where nb is the number of base level
     nodes.
 
@@ -36,10 +40,10 @@ order.
 
 If you simply want the ordered list by itself, use::
 
-    s = make_ordered_node_array(r, b)
+    s = make_ordered_node_array(r, p, b)
 
-flow_accumu_bw Created: GT Nov 2013
-Original File Modified: KRB Oct 2016 to route to many instead of route to one.
+Created: KRB Oct 2016 (modified from flow_accumu_bw)
+
 
 """
 from six.moves import range
@@ -47,37 +51,69 @@ from six.moves import range
 
 import numpy
 
-
 class _DrainageStack():
     """
-    The _DrainageStack() class implements Braun & Willett's add_to_stack
-    function (as a method) and also keeps track of the counter (j) and the
-    stack (s). It is used by the make_ordered_node_array() function.
+    The _DrainageStack() class implements a set based approach to constructing
+    a stack with similar properties to the stack constructed by Braun and 
+    Willet (2013). It constructs an list, s, of all nodes in the grid such that
+    a given node is always located earlier in the list than all upstream nodes
+    that contribute to it. 
+    
+    It is used by the make_ordered_node_array() function.
     """
     def __init__(self, delta, D):
         """
-        Initializes the index counter j to zero, creates the stack array s,
-        and stores references to delta and D.
+        Creates the stack array s and stores references to delta and D.
         """
-        self.j = 0
+
         self.s =list()
         self.delta = delta
         self.D = D
 
     def construct__stack(self, l):
         """
-        description
-
+        Function to add all nodes upstream of base level node l in an order 
+        such that downstream nodes always occur before upstream nodes.
+        
+        This function contains the major algorithmic difference between the 
+        route to 1 method of Braun and Willet (2013) and the route to N method
+        presented here. 
+        
+        Rather than recursively moving up the tributary tree this method uses
+        sets test that a node is downstream and add it to the stack. 
+        
+        An important note: Since sets are un-ordered, we cannot expect the 
+        stack to be exactly the same each time. It will always put nodes that 
+        are downstream before those that are upstream, but because it will move
+        up multiple branches at the same time, it may put three nodes into the
+        stack at the same time that are on different branches of the flow
+        network. Because these nodes are in different parts of the network, 
+        the relative order of them does not matter. 
+        
+        For example, in the example below, the nodes 1 and 7 must be added 
+        after 5 but before 2 and 6. 
+        
         Examples
         --------
         >>> import numpy as np
         >>> from landlab.components.flow_accum.flow_accum_bw import _DrainageStack
-        >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
-        >>> D = np.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
+        >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
+        >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
         >>> ds = _DrainageStack(delta, D)
         >>> ds.add_to_stack(4)
-        >>> ds.s
-        array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+        >>> ds.s[0]==4
+        True
+        >>> ds.s[1]==5
+        True
+        >>> ds.s[9]==9
+        True        
+        >>> set([1, 7])-set(ds.s[2:4])
+        set([])
+        >>> set([2, 6])-set(ds.s[4:6])
+        set([])
+        >>> set([0, 3, 8])-set(ds.s[6:9])
+        set([])
+        
         """
     
         base=set([l])
@@ -95,8 +131,6 @@ class _DrainageStack():
             base=base-add_to_stack
             base.update(upstream)
 
-
-        
 
 def _make_number_of_donors_array(r, p):
     """Number of donors for each node.
