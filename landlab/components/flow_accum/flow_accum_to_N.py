@@ -379,7 +379,6 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     """
 
     # Number of points
-    nsets = len(s)
     
     np=r.shape[0]
     
@@ -399,38 +398,37 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    for i in range(nsets-1, -1, -1):
+    for i in range(np-1, -1, -1):
+        donor = s[i]
+        for v in range(q):
+            recvr = r[donor, v]
+            proportion = p[donor, v]
+            if proportion>0:
+                if donor != recvr:
+            
+                    drainage_area[recvr] += proportion*drainage_area[donor]
+                    discharge[recvr] += proportion*discharge[donor]
+
+
 #        donors = s[i]
+#        #print donors
+#        recvrs = r[donors, :].flatten()
 #        
+#        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
+#            recvrs = r[donors, :].flatten()
 #        
-#        if donors not in r[donors, :]:
-#            recvrs = r[donors, :]
-#            proportions = p[donors, :]
+#            unique_recvrs=numpy.unique(recvrs)        
 #            
+#            proportions = p[donors, :].flatten()
 #            
-#            drainage_area[recvrs] += np.sum(proportions*drainage_area[donors], axis=1)
-#            discharge[recvrs] += np.sum(proportions*discharge[donors], axis=1)
-
-
-        donors = s[i]
-        #print donors
-        recvrs = r[donors, :].flatten()
-        
-        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
-            recvrs = r[donors, :].flatten()
-        
-            unique_recvrs=numpy.unique(recvrs)        
-            
-            proportions = p[donors, :].flatten()
-            
-            new_da=proportions*numpy.repeat(drainage_area[donors], q)
-            new_di=proportions*numpy.repeat(discharge[donors], q)
-            
-            for u_r in unique_recvrs:
-                ur_ind=np.where(recvrs==u_r)
-        
-                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
-                discharge[u_r] += numpy.sum(new_di[ur_ind])
+#            new_da=proportions*numpy.repeat(drainage_area[donors], q)
+#            new_di=proportions*numpy.repeat(discharge[donors], q)
+#            
+#            for u_r in unique_recvrs:
+#                ur_ind=np.where(recvrs==u_r)
+#        
+#                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
+#                discharge[u_r] += numpy.sum(new_di[ur_ind])
 
     return drainage_area, discharge
 
@@ -464,7 +462,7 @@ def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, nod
     assert(receiver_nodes.shape==receiver_proportions.shape), 'r and p arrays are not the same shape'
 
 
-    s = make_ordered_node_array(receiver_nodes, receiver_proportions, baselevel_nodes, set_stack=True)
+    s = make_ordered_node_array(receiver_nodes, receiver_proportions, baselevel_nodes)
     #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.
