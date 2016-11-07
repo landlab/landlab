@@ -102,7 +102,7 @@ class _DrainageStack():
         >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
         >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
         >>> ds = _DrainageStack(delta, D)
-        >>> ds.construct_stack(4)
+        >>> ds.construct__stack(4)
         >>> ds.s[0]==4
         True
         >>> ds.s[1]==5
@@ -110,11 +110,11 @@ class _DrainageStack():
         >>> ds.s[9]==9
         True        
         >>> set([1, 7])-set(ds.s[2:4])
-        set()
+        set([])
         >>> set([2, 6])-set(ds.s[4:6])
-        set()
+        set([])
         >>> set([0, 3, 8])-set(ds.s[6:9])
-        set()
+        set([])
         
         """
     
@@ -124,7 +124,7 @@ class _DrainageStack():
         base=upstream-base # only need to do this here. 
         
         while len(upstream)>0:
-            upstream=set()
+            upstream=set([])
             for node_i in base:
                 upstream.update(self.D[self.delta[node_i]:self.delta[node_i+1]])
         
@@ -177,7 +177,7 @@ def _make_number_of_donors_array(r, p):
     ...               [ 0.55,  0.45],
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
-    >>> nd = _make_number_of_donors_array(r)
+    >>> nd = _make_number_of_donors_array(r, p)
     >>> nd
     array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     """
@@ -283,7 +283,7 @@ def _make_array_of_donors(r, p, delta):
     >>> delta = np.array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
     >>> D = _make_array_of_donors(r, p, delta)
     >>> D
-    array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8,s 9])
+    array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
     """
     np = r.shape[0]
     q = r.shape[1]
@@ -358,11 +358,11 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     >>> s[9]==9
     True        
     >>> set([1, 7])-set(s[2:4])
-    set()
+    set([])
     >>> set([2, 6])-set(s[4:6])
-    set()
+    set([])
     >>> set([0, 3, 8])-set(s[6:9])
-    set()
+    set([])
         
     
     """
@@ -445,9 +445,11 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     >>> s = np.array([4, 5, 1, 7, 2, 6, 0, 8, 3, 9])
     >>> a, q = find_drainage_area_and_discharge(s, r, p)
     >>> a
-    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
+    array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
+             2.74  ,   2.845 ,   1.05  ,   1.    ])
     >>> q
-    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
+    array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
+             2.74  ,   2.845 ,   1.05  ,   1.    ])
     
     """
 
@@ -514,7 +516,7 @@ def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, nod
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum import flow_accumulation
+    >>> from landlab.components.flow_accum.flow_accum_to_N import flow_accumulation
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -538,21 +540,23 @@ def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, nod
     >>> b = np.array([4])
     >>> a, q, s = flow_accumulation(r, p, b)
     >>> a
-    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
+    array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
+             2.74  ,   2.845 ,   1.05  ,   1.    ])
     >>> q
-    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
-        >>> s[0]==4
+    array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
+             2.74  ,   2.845 ,   1.05  ,   1.    ])
+    >>> s[0]==4
     True
     >>> s[1]==5
     True
     >>> s[9]==9
     True        
     >>> set([1, 7])-set(s[2:4])
-    set()
+    set([])
     >>> set([2, 6])-set(s[4:6])
-    set()
+    set([])
     >>> set([0, 3, 8])-set(s[6:9])
-    set()
+    set([])
     """
 
 
