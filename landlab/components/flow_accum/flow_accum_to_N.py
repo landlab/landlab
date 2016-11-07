@@ -13,6 +13,8 @@ Computationally, for a grid of the same size this algorithm will take about
     1.5*(avg number of downstream nodes per cell)
         *(duration of flow_accum_bw for the same grid using route-to-one method)
 
+So under route-to-one direction schemes, using the Braun and Willet method is 
+recommended. 
 
 If water discharge is calculated, the result assumes steady flow (that is, 
 hydrologic equilibrium).
@@ -25,7 +27,7 @@ which takes the following inputs:
 
     r, an (np, q) array of receiver-node IDs, where np is the total number of
     nodes and q is the maximum number of receivers any node in the grid has.
-    This array would be returned by the flow_routing component.
+    This array would be returned by the flow_routing component. 
 
     p, an (np, q) array that identifies the proportion of flow going to each
     reciever. For each q elements along the np axis, sum(p(i, :)) must equal
@@ -67,7 +69,6 @@ class _DrainageStack():
         """
 
         self.s = list()
-        self.ss = list()
         self.delta = delta
         self.D = D
 
@@ -97,11 +98,11 @@ class _DrainageStack():
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.flow_accum.flow_accum_bw import _DrainageStack
+        >>> from landlab.components.flow_accum.flow_accum_to_N import _DrainageStack
         >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
         >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
         >>> ds = _DrainageStack(delta, D)
-        >>> ds.add_to_stack(4)
+        >>> ds.construct_stack(4)
         >>> ds.s[0]==4
         True
         >>> ds.s[1]==5
@@ -109,17 +110,16 @@ class _DrainageStack():
         >>> ds.s[9]==9
         True        
         >>> set([1, 7])-set(ds.s[2:4])
-        set([])
+        set()
         >>> set([2, 6])-set(ds.s[4:6])
-        set([])
+        set()
         >>> set([0, 3, 8])-set(ds.s[6:9])
-        set([])
+        set()
         
         """
     
         base=set([l])
         self.s.extend(base)
-        self.ss.append(list(base))
         upstream=set(self.D[self.delta[l]:self.delta[l+1]])
         base=upstream-base # only need to do this here. 
         
@@ -130,7 +130,6 @@ class _DrainageStack():
         
             add_to_stack=base-upstream
             self.s.extend(add_to_stack)
-            self.ss.append(list(add_to_stack))
             base=base-add_to_stack
             base.update(upstream)
 
@@ -155,15 +154,29 @@ def _make_number_of_donors_array(r, p):
 
     Examples
     --------
-    The example below is modified from Braun and Willett (2012); nd corresponds
-    to their d_i in Table 1.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
-    >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-              [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
-    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
-              [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
+    >>> from landlab.components.flow_accum.flow_accum_to_N import _make_number_of_donors_array
+    >>> r = np.array([[ 1,  2],
+    ...               [ 4,  5],
+    ...               [ 1,  5],
+    ...               [ 6,  2],
+    ...               [ 4, -1],
+    ...               [ 4, -1],
+    ...               [ 5,  7],
+    ...               [ 4,  5],
+    ...               [ 6,  7],
+    ...               [ 7,  8]])
+    >>> p = np.array([[ 0.6,   0.4 ],
+    ...               [ 0.85,  0.15],
+    ...               [ 0.65,  0.35],
+    ...               [ 0.9,   0.1 ],
+    ...               [ 1.,    0.  ],
+    ...               [ 1.,    0.  ],
+    ...               [ 0.75,  0.25],
+    ...               [ 0.55,  0.45],
+    ...               [ 0.8,   0.2 ],
+    ...               [ 0.95,  0.05]])
     >>> nd = _make_number_of_donors_array(r)
     >>> nd
     array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
@@ -204,12 +217,9 @@ def _make_delta_array(nd):
 
     Examples
     --------
-    MODIFIED FROM THIS EXAMPLE TO TO R2N: The example below is from Braun and Willett (2012), and represents
-    delta_i in their Table 1. Here, the numbers are all one less than in their
-    table because here we number indices from 0 rather than 1.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
+    >>> from landlab.components.flow_accum.flow_accum_to_N import _make_delta_array
     >>> nd = np.array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     >>> delta = _make_delta_array(nd)
     >>> delta
@@ -249,15 +259,31 @@ def _make_array_of_donors(r, p, delta):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
-    >>> r = r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-              [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
-    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
-              [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
+    >>> from landlab.components.flow_accum.flow_accum_to_N import _make_array_of_donors
+    >>> r = np.array([[ 1,  2],
+    ...               [ 4,  5],
+    ...               [ 1,  5],
+    ...               [ 6,  2],
+    ...               [ 4, -1],
+    ...               [ 4, -1],
+    ...               [ 5,  7],
+    ...               [ 4,  5],
+    ...               [ 6,  7],
+    ...               [ 7,  8]])
+    >>> p = np.array([[ 0.6,   0.4 ],
+    ...               [ 0.85,  0.15],
+    ...               [ 0.65,  0.35],
+    ...               [ 0.9,   0.1 ],
+    ...               [ 1.,    0.  ],
+    ...               [ 1.,    0.  ],
+    ...               [ 0.75,  0.25],
+    ...               [ 0.55,  0.45],
+    ...               [ 0.8,   0.2 ],
+    ...               [ 0.95,  0.05]])
     >>> delta = np.array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
-    >>> D = _make_array_of_donors(r, delta)
+    >>> D = _make_array_of_donors(r, p, delta)
     >>> D
-    array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
+    array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8,s 9])
     """
     np = r.shape[0]
     q = r.shape[1]
@@ -265,15 +291,12 @@ def _make_array_of_donors(r, p, delta):
     
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(nt, dtype=int)
-    P = numpy.zeros(nt, dtype=float)
     for v in range(q):
         for i in range(np):
             ri = r[i,v]
-            pi = p[i,v]
-            if pi>0:
+            if p[i,v]>0:
                 ind = delta[ri]+w[ri]
                 D[ind] = i
-                P[ind] = pi
                 w[ri] += 1
        
     return D
@@ -305,14 +328,42 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum import make_ordered_node_array
-    >>> r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-                  [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
-    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
-                  [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
+    >>> from landlab.components.flow_accum.flow_accum_to_N import make_ordered_node_array
+    >>> r = np.array([[ 1,  2],
+    ...               [ 4,  5],
+    ...               [ 1,  5],
+    ...               [ 6,  2],
+    ...               [ 4, -1],
+    ...               [ 4, -1],
+    ...               [ 5,  7],
+    ...               [ 4,  5],
+    ...               [ 6,  7],
+    ...               [ 7,  8]])
+    >>> p = np.array([[ 0.6,   0.4 ],
+    ...               [ 0.85,  0.15],
+    ...               [ 0.65,  0.35],
+    ...               [ 0.9,   0.1 ],
+    ...               [ 1.,    0.  ],
+    ...               [ 1.,    0.  ],
+    ...               [ 0.75,  0.25],
+    ...               [ 0.55,  0.45],
+    ...               [ 0.8,   0.2 ],
+    ...               [ 0.95,  0.05]])
     >>> b = np.array([4])
     >>> s = make_ordered_node_array(r, p,  b)
-    >>> s
+    >>> s[0]==4
+    True
+    >>> s[1]==5
+    True
+    >>> s[9]==9
+    True        
+    >>> set([1, 7])-set(s[2:4])
+    set()
+    >>> set([2, 6])-set(s[4:6])
+    set()
+    >>> set([0, 3, 8])-set(s[6:9])
+    set()
+        
     
     """
     nd = _make_number_of_donors_array(receiver_nodes, reciever_proportion)
@@ -337,8 +388,10 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     ----------
     s : ndarray of int
         Ordered (downstream to upstream) array of node IDs
-    r : ndarray of int
-        Receiver IDs for each node
+    r : ndarray size (np, q) where r[i,:] gives all recievers of node i. Each
+        node recieves flow fom up to q donors.
+    p : ndarray size (np, q) where p[i,v] give the proportion of flow going from
+        node i to the reciever listed in r[i,v].
     node_cell_area : float or ndarray
         Cell surface areas for each node. If it's an array, must have same
         length as s (that is, the number of nodes).
@@ -367,29 +420,48 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum import (
+    >>> from landlab.components.flow_accum.flow_accum_to_N import (
     ...     find_drainage_area_and_discharge)
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-    >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
-    >>> a, q = find_drainage_area_and_discharge(s, r)
+    >>> r = np.array([[ 1,  2],
+    ...               [ 4,  5],
+    ...               [ 1,  5],
+    ...               [ 6,  2],
+    ...               [ 4, -1],
+    ...               [ 4, -1],
+    ...               [ 5,  7],
+    ...               [ 4,  5],
+    ...               [ 6,  7],
+    ...               [ 7,  8]])
+    >>> p = np.array([[ 0.6,   0.4 ],
+    ...               [ 0.85,  0.15],
+    ...               [ 0.65,  0.35],
+    ...               [ 0.9,   0.1 ],
+    ...               [ 1.,    0.  ],
+    ...               [ 1.,    0.  ],
+    ...               [ 0.75,  0.25],
+    ...               [ 0.55,  0.45],
+    ...               [ 0.8,   0.2 ],
+    ...               [ 0.95,  0.05]])
+    >>> s = np.array([4, 5, 1, 7, 2, 6, 0, 8, 3, 9])
+    >>> a, q = find_drainage_area_and_discharge(s, r, p)
     >>> a
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
     >>> q
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
+    
     """
 
     # Number of points
     
     np=r.shape[0]
-    
     q=r.shape[1]
     
     # Initialize the drainage_area and discharge arrays. Drainage area starts
     # out as the area of the cell in question, then (unless the cell has no
     # donors) grows from there. Discharge starts out as the cell's local runoff
     # rate times the cell's surface area.
-    drainage_area = numpy.zeros(np, dtype=int) + node_cell_area
-    discharge = numpy.zeros(np, dtype=int) + node_cell_area*runoff
+    drainage_area = numpy.zeros(np) + node_cell_area
+    discharge = numpy.zeros(np) + node_cell_area*runoff
 
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:
@@ -405,7 +477,6 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
             proportion = p[donor, v]
             if proportion>0:
                 if donor != recvr:
-            
                     drainage_area[recvr] += proportion*drainage_area[donor]
                     discharge[recvr] += proportion*discharge[donor]
 
@@ -444,18 +515,44 @@ def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, nod
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum import flow_accumulation
-    >>> r = np.array([[1, 4, 1, 6,    4,    4, 5, 4, 6, 7],
-              [2, 5, 5, 2, -1, -1, 7, 5, 7, 8 ]])
-    >>> p = np.array([[0.6, 0.85, 0.65, 0.9, 1., 1., 0.75, 0.55, 0.8, 0.95],
-              [0.4, 0.15, 0.35, 0.1, 0., 0., 0.25, 0.45, 0.2, 0.05]])
+    >>> r = np.array([[ 1,  2],
+    ...               [ 4,  5],
+    ...               [ 1,  5],
+    ...               [ 6,  2],
+    ...               [ 4, -1],
+    ...               [ 4, -1],
+    ...               [ 5,  7],
+    ...               [ 4,  5],
+    ...               [ 6,  7],
+    ...               [ 7,  8]])
+    >>> p = np.array([[ 0.6,   0.4 ],
+    ...               [ 0.85,  0.15],
+    ...               [ 0.65,  0.35],
+    ...               [ 0.9,   0.1 ],
+    ...               [ 1.,    0.  ],
+    ...               [ 1.,    0.  ],
+    ...               [ 0.75,  0.25],
+    ...               [ 0.55,  0.45],
+    ...               [ 0.8,   0.2 ],
+    ...               [ 0.95,  0.05]])
     >>> b = np.array([4])
-    >>> a, q, s = flow_accumulation(r, b)
+    >>> a, q, s = flow_accumulation(r, p, b)
     >>> a
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
     >>> q
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
-    >>> s
-    array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    array([ 1., 2.575, 1.5, 1., 10., 5.2465, 2.74, 2.845, 1.05, 1.])
+        >>> s[0]==4
+    True
+    >>> s[1]==5
+    True
+    >>> s[9]==9
+    True        
+    >>> set([1, 7])-set(s[2:4])
+    set()
+    >>> set([2, 6])-set(s[4:6])
+    set()
+    >>> set([0, 3, 8])-set(s[6:9])
+    set()
     """
 
 
