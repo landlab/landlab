@@ -506,7 +506,7 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation(receiver_nodes, receiver_proportions, baselevel_nodes, node_cell_area=1.0,
+def flow_accumulation_to_N(receiver_nodes, receiver_proportions, baselevel_nodes, node_cell_area=1.0,
                       runoff_rate=1.0, boundary_nodes=None):
     """Calculate drainage area and (steady) discharge.
 
