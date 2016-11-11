@@ -163,26 +163,13 @@ class PrecipitationDistribution(Component):
         based on the poisson distribution about the mean.
         This is accomplished using the expovariate function
         from the "random" standard library.
-        Additionally, it is rounded to contain 4 significant figures,
-        for neatness.
-
-        The if-else statement is very important here. Values of 0
-        can exist in the Poission distribution, but it does not make
-        sense to have 0 duration storms, so to avoid that,
-        we return a storm duration IF it is greater than 0,
-        otherwise, recursion is employed to re-call the storm
-        generator function and get a new value.
 
         Returns
         -------
         float
             The storm duration.
         """
-        storm = round(random.expovariate(1 / self.mean_storm_duration), 2)
-        while storm == 0:
-            storm = round(random.expovariate(1 / self.mean_storm_duration), 2)
-        self.storm_duration = storm
-        return self.storm_duration
+        return random.expovariate(1.0 / self.mean_storm_duration)
 
     def get_interstorm_event_duration(self):
         """Generate interstorm events.
@@ -197,29 +184,13 @@ class PrecipitationDistribution(Component):
         based on the poisson distribution about the mean.
         This is accomplished using the expovariate function
         from the "random" standard library.
-        Additionally, it is rounded to contain 4 significant figures, for
-        neatness.
-
-        The if-else statement is very important here. Values of 0
-        can exist in the Poission distribution, but it does not make
-        sense to have 0 hour interstorm durations.
-        To avoid 0 hour interstorm durations, we return a
-        interstorm duration IF it is greater than 0,
-        otherwise, recursion is employed to re-call the interstorm
-        duration generator function and get a new value.
 
         Returns
         -------
         float
             The interstorm duration.
         """
-        interstorm = (round(random.expovariate(
-                                        1 / self.mean_interstorm_duration), 2))
-        while interstorm == 0:
-            interstorm = (round(random.expovariate(
-                                        1 / self.mean_interstorm_duration), 2))
-        self.interstorm_duration = interstorm
-        return self.interstorm_duration
+        return random.expovariate(1.0 / self.mean_interstorm_duration)
 
     def get_storm_depth(self):
         """Generate storm depth.
@@ -231,9 +202,7 @@ class PrecipitationDistribution(Component):
 
         This method requires storm_duration, mean_storm_duration
         and the mean_storm_depth. Storm_duration is generated through
-        the initialize() or update() method. mean_storm_duration and
-        mean_storm_depth
-        are read in using the ModelParameterDictionary.
+        the initialize() or update() method.
 
         Numpy has a random number generator to get values
         from a given Gamma distribution. It takes two arguments,
@@ -368,18 +337,21 @@ class PrecipitationDistribution(Component):
             yield (storm_duration - step_time, intensity)
             self._elapsed_time += storm_duration
 
-            interstorm_duration = self.get_interstorm_event_duration()
-            if self._elapsed_time + interstorm_duration > self.run_time:
-                interstorm_duration = self.run_time - self._elapsed_time
-            if subdivide_interstorms:
-                step_time = 0.
-                while interstorm_duration-step_time > delta_t:
-                    yield (delta_t, 0.)
-                    step_time += delta_t
-                yield (interstorm_duration - step_time, 0.)
-            else:
-                yield (interstorm_duration, 0.)
-            self._elapsed_time += interstorm_duration
+            # If the last storm did not use up all our elapsed time, generate
+            # an inter-storm period.
+            if self._elapsed_time < self.run_time:
+                interstorm_duration = self.get_interstorm_event_duration()
+                if self._elapsed_time + interstorm_duration > self.run_time:
+                    interstorm_duration = self.run_time - self._elapsed_time
+                if subdivide_interstorms:
+                    step_time = 0.
+                    while interstorm_duration-step_time > delta_t:
+                        yield (delta_t, 0.)
+                        step_time += delta_t
+                    yield (interstorm_duration - step_time, 0.)
+                else:
+                    yield (interstorm_duration, 0.)
+                self._elapsed_time += interstorm_duration
 
     @property
     def elapsed_time(self):
