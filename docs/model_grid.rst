@@ -1045,7 +1045,7 @@ In the next example, we create a version of the storage-cell overland-flow model
 		t = []
 		q_outlet.append(0.)
 		t.append(0.)
-		outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, node_next_to_outlet)
+		outlet_link = mg.active_link_connecting_node_pair(outlet_node, node_next_to_outlet)
 	
 		# Display a message
 		print( 'Running ...' )
@@ -1261,10 +1261,10 @@ Preparing to track discharge at the outlet
     t = []
     q_outlet.append(0.)
     t.append(0.)
-    outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, 
+    outlet_link = mg.active_link_connecting_node_pair(outlet_node, 
                                                           node_next_to_outlet)
 
-For this model, it would be nice to track discharge through time at the watershed outlet. To do this, we create two new lists: one for the time corresponding to each iteration, and one for the outlet discharge. Using lists will be slightly slower than using pre-defined Numpy arrays, but avoids forcing us to guess how many iterations there will be (recall that time-step size depends on the flow conditions in any given iteration). We append zeros to each list to represent the starting condition. To find out which active link represents the watershed outlet, we use ModelGrid's ``get_active_link_connecting_node_pair()`` method. This method takes a pair of node IDs as arguments. If the nodes are connected by an active link, it returns the ID of that active link; otherwise, it returns ``ModelGrid.BAD_INDEX_VALUE``.
+For this model, it would be nice to track discharge through time at the watershed outlet. To do this, we create two new lists: one for the time corresponding to each iteration, and one for the outlet discharge. Using lists will be slightly slower than using pre-defined Numpy arrays, but avoids forcing us to guess how many iterations there will be (recall that time-step size depends on the flow conditions in any given iteration). We append zeros to each list to represent the starting condition. To find out which active link represents the watershed outlet, we use ModelGrid's ``active_link_connecting_node_pair()`` method. This method takes a pair of node IDs as arguments. If the nodes are connected by an active link, it returns the ID of that active link; otherwise, it returns ``ModelGrid.BAD_INDEX_VALUE``.
 
 Main loop
 >>>>>>>>>

@@ -3432,7 +3432,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._cell_area_at_node
 
     @deprecated(use='no replacement', version=1.0)
-    def get_active_link_connecting_node_pair(self, node1, node2):
+    def active_link_connecting_node_pair(self, node1, node2):
         """Get the active link that connects a pair of nodes.
 
         Returns the ID number of the active link that connects the given pair
@@ -3445,7 +3445,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> rmg.get_active_link_connecting_node_pair(8, 3)
+        >>> rmg.active_link_connecting_node_pair(8, 3)
         array([2])
 
         LLCATS: DEPR LINF NINF CONN
@@ -4701,17 +4701,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._node_status[nodes] = CLOSED_BOUNDARY
         self._update_links_nodes_cells_to_new_BCs()
 
-    @deprecated(use='calc_distances_of_nodes_to_point', version=1.0)
-    def get_distances_of_nodes_to_point(self, coord, get_az=None,
-                                        node_subset=None,
-                                        out_distance=None, out_azimuth=None):
-        """
-        LLCATS: DEPR NINF MEAS
-        """
-        return self.calc_distances_of_nodes_to_point(
-            coord, get_az=get_az, node_subset=node_subset,
-            out_distance=out_distance, out_azimuth=out_azimuth)
-
     def calc_distances_of_nodes_to_point(self, coord, get_az=None,
                                          node_subset=None,
                                          out_distance=None, out_azimuth=None):
@@ -5026,19 +5015,19 @@ class ModelGrid(ModelDataFieldsMixIn):
         indices = argsort_points_by_x_then_y(pts)
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
-        
+
     def move_origin(self, origin):
         """Changes the x, y values of all nodes.  Initially a grid will have
-        an origin of 0,0, and all x,y values will be relative to 0,0.  This 
+        an origin of 0,0, and all x,y values will be relative to 0,0.  This
         will add origin[0] to all x values and origin[1] to all y values.
-        
+
         Note this is most likely useful when importing a DEM that has an
         absolute location, however it can be used generally.
 
         Parameters
         ----------
         origin : list of two float values, can be negative.
-            [x,y], where x is the value to add to all x values and  
+            [x,y], where x is the value to add to all x values and
             y is the value to add to all y values
 
         Examples

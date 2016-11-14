@@ -154,7 +154,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index_at_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.face_index_at_links
-.. automethod:: landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
+.. automethod:: landlab.grid.base.ModelGrid.active_link_connecting_node_pair
 .. autoattribute:: landlab.grid.base.ModelGrid.link_length
 .. automethod:: landlab.grid.base.ModelGrid.is_boundary
 .. automethod:: landlab.grid.base.ModelGrid.node_axis_coordinates
@@ -171,7 +171,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.corner_nodes
 .. automethod:: landlab.grid.raster.RasterModelGrid.create_diagonal_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.create_neighbor_list
-.. automethod:: landlab.grid.raster.RasterModelGrid.get_active_link_connecting_node_pair
+.. automethod:: landlab.grid.raster.RasterModelGrid.active_link_connecting_node_pair
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_diagonal_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_face_connecting_cell_pair
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_link_connecting_node_pair

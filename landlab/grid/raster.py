@@ -80,7 +80,6 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
     ~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.fixed_value_boundary_nodes
-    ~landlab.grid.raster.RasterModelGrid.get_active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
@@ -1446,15 +1445,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         LLCATS: GINF MEAS
         """
         return self._dy
-
-    @property
-    @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
-    @make_return_array_immutable
-    def get_diagonal_neighbors_at_node(self):
-        """
-        LLCATS: DEPR
-        """
-        return self._diagonal_neighbors_at_node
 
     @property
     @make_return_array_immutable
@@ -3948,56 +3938,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             data[ncols * i + offset:ncols *
                  (i + 1) - offset] = top_rows_to_move[i, :]
 
-    @deprecated(use='active_neighbors_at_node', version=1.0)
-    def get_active_neighbors_at_node(self, *args, **kwds):
-        """active_neighbors_at_node([ids], bad_index=BAD_INDEX_VALUE)
-        Get list of neighbor node IDs.
-
-        Return lists of neighbor nodes for nodes with given *ids*. If *ids*
-        is not given, return the neighbors for all of the nodes in the grid.
-        For each node, the list gives neighbor ids as [right, top, left,
-        bottom]. Boundary nodes receive their actual neighbors (see example
-        below); references to positions which are off the grid from boundary
-        nodes receive BAD_INDEX_VALUE. Only nodes which can be reached along an
-        active link are returned, otherwise again we get BAD_INDEX_VALUE.
-
-        Parameter *bad_index* can be used to override the grid default for the
-        BAD_INDEX_VALUE.
-
-        Examples
-        --------
-        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> np.array_equal(rmg.get_active_neighbors_at_node([-1, 6, 2]),
-        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
-        True
-        >>> rmg.get_active_neighbors_at_node(7)
-        array([ 8, 12,  6,  2])
-        >>> rmg.get_active_neighbors_at_node(2, bad_index=-1)
-        array([-1,  7, -1, -1])
-        >>> np.array_equal(rmg.get_active_neighbors_at_node(2), [X, 7, X, X])
-        True
-
-        .. todo:: could use inlink_matrix, outlink_matrix
-
-        LLCATS: NINF CONN
-        """
-        bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
-        if len(args) not in (0, 1):
-            raise ValueError('only zero or one arguments accepted')
-
-        if bad_index not in self._neighbor_node_dict:
-            self._neighbor_node_dict[bad_index] = (
-                self._create_neighbor_list(bad_index=bad_index))
-
-        neighbor_nodes = self._neighbor_node_dict[bad_index]
-
-        if len(args) == 0:
-            return neighbor_nodes
-        else:
-            return neighbor_nodes[args[0], :]
-
     def _create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of neighbor node IDs.
 
@@ -4259,68 +4199,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         cell_faces = self.faces_at_cell[[cell_a, cell_b]]
         return as_id_array(np.intersect1d(cell_faces[0], cell_faces[1],
                                           assume_unique=True))
-
-    @deprecated(use='no replacement', version=1.0)
-    def get_link_connecting_node_pair(self, node_a, node_b):
-        """Get the link that connects two nodes.
-
-        Returns the link ID that connects *node_a* and *node_b*.
-        If the nodes do not share any links, raises `ValueError`.
-
-        Parameters
-        ----------
-        node_a : int
-            Node ID
-        node_b : int
-            Node ID
-
-        Returns
-        -------
-        ndarray
-            Links that connect the nodes pairs.
-
-        Raises
-        ------
-        ValueError
-            If the given nodes are not connected by a link or the nodes are
-            the same.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5))
-
-        Nodes 6 and 7 are connected by link 20.
-
-        >>> rmg.get_link_connecting_node_pair(6, 7)
-        10
-
-        Nodes 6 and 8 are not connected by a link, so raise an exception.
-
-        >>> rmg.get_link_connecting_node_pair(6, 8)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        ValueError: disconnected nodes
-
-        If *node_a* and *node_b* are the same node, also raise a `ValueError`.
-
-        >>> rmg.get_link_connecting_node_pair(6, 6)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        ValueError: nodes are the same
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        if node_a == node_b:
-            raise ValueError('nodes are the same')
-
-        links_at_a = self.links_at_node[node_a]
-        links_at_b = self.links_at_node[node_b]
-
-        try:
-            return as_id_array(np.intersect1d(links_at_a, links_at_b)[0])
-        except IndexError:
-            raise ValueError('disconnected nodes')
 
     @return_id_array
     def grid_coords_to_node_id(self, row, col, **kwds):
@@ -4732,13 +4610,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('format not understood')
 
-    @deprecated(use='looped_neighbors_at_cell', version=1.0)
-    def get_looped_cell_neighbor_list(self, cell_ids):
-        """
-        LLCATS: DEPR NINF BC CONN
-        """
-        return self.looped_neighbors_at_cell[cell_ids, :]
-
     @property
     @make_return_array_immutable
     def looped_neighbors_at_cell(self):
@@ -4864,13 +4735,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             looped_cell_neighbors[cell] = neighbor_
 
         return looped_cell_neighbors
-
-    @deprecated(use='second_ring_looped_neighbors_at_cell', version=1.0)
-    def get_second_ring_looped_cell_neighbor_list(self, cell_ids):
-        """
-        LLCATS: DEPR CINF CONN BC
-        """
-        return self.second_ring_looped_neighbors_at_cell[cell_ids, :]
 
     @property
     @make_return_array_immutable
