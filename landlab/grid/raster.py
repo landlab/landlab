@@ -42,6 +42,7 @@ Information about the grid as a whole
     ~landlab.grid.raster.RasterModelGrid.dy
     ~landlab.grid.raster.RasterModelGrid.extent
     ~landlab.grid.raster.RasterModelGrid.from_dict
+    ~landlab.grid.raster.RasterModelGrid.grid_xdimension
     ~landlab.grid.raster.RasterModelGrid.grid_ydimension
     ~landlab.grid.raster.RasterModelGrid.imshow
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
@@ -2373,13 +2374,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._face_at_link = squad_faces.face_at_link(self.shape)
         return self._face_at_link
 
-    @deprecated(use='extent', version=1.0)
-    def get_grid_xdimension(self):
-        """
-        LLCATS: DEPR GINF MEAS
-        """
-        return self.extent[1]
-
     @property
     def extent(self):
         """Extent of the grid in the y and x-dimensions.
@@ -2417,12 +2411,36 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             (self.number_of_node_rows - 1) * self._dy,
             (self.number_of_node_columns - 1) * self._dx)
 
-    @deprecated(use='extent', version=1.0)
-    def get_grid_ydimension(self):
+    @property
+    def grid_xdimension(self):
+        """Length of the grid in the x-dimension.
+
+        Return the x-dimension of the grid. Because boundary nodes don't have
+        cells, the dimension of the grid is num_cols-1, not num_cols.
+
+        Returns
+        -------
+        float
+            Length of the grid in the x-dimension.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.grid_xdimension
+        4.0
+
+        >>> grid = RasterModelGrid((4, 5), 0.5)
+        >>> grid.grid_xdimension
+        2.0
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.grid_xdimension
+        12.0
+
+        LLCATS: GINF MEAS
         """
-        LLCATS: DEPR GINF MEAS
-        """
-        return self.extent[0]
+        return ((self.number_of_node_columns - 1) * self._dx)
 
     @property
     def grid_ydimension(self):
