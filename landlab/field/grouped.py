@@ -562,7 +562,12 @@ class ModelDataFields(object):
             group, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-
+            
+        if group=='grid':
+            raise ValueError("add_empty is not supported for at_grid values"
+                             "use \n grid.at_grid['value_name']=value \n"
+                             "instead")        
+                             
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -631,6 +636,11 @@ class ModelDataFields(object):
         else:
             raise ValueError('number of arguments must be 1 or 2')
 
+        if group=='grid':
+            raise ValueError("add_ones is not supported for at_grid values"
+                             "use \n grid.at_grid['value_name']=value \n"
+                             "instead")                
+        
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -682,7 +692,12 @@ class ModelDataFields(object):
             group, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-
+        
+        if group=='grid':
+            raise ValueError("add_zeros is not supported for at_grid values"
+                             "use \n grid.at_grid['value_name']=value \n"
+                             "instead")                
+        
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -772,7 +787,12 @@ class ModelDataFields(object):
 
         if not group:
             raise ValueError('missing group name')
-
+        
+        if group=='grid':
+            raise ValueError("add_field is not supported for at_grid values"
+                             "use \n grid.at_grid['value_name']=value \n"
+                             "instead")        
+        
         return self[group].add_field(name, value_array, **kwds)
 
     def set_units(self, group, name, units):
