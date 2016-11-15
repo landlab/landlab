@@ -788,11 +788,6 @@ class ModelDataFields(object):
         if not group:
             raise ValueError('missing group name')
         
-        if group=='grid':
-            raise ValueError("add_field is not supported for at_grid values"
-                             "use \n grid.at_grid['value_name']=value \n"
-                             "instead")        
-        
         return self[group].add_field(name, value_array, **kwds)
 
     def set_units(self, group, name, units):
