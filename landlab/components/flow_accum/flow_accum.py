@@ -5,9 +5,7 @@ from __future__ import print_function
 import warnings
 
 from landlab import FieldError, Component
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import ModelParameterDictionary
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_file_name_or_kwds
 
 
@@ -178,28 +176,21 @@ class FlowAccumulator(Component):
                 'flow__upstream_node_order']
 
         try:
-            self.drainage_area = grid.add_zeros('flow__data_structure_delta', at='node',
+            self.delta_structure = grid.add_zeros('flow__data_structure_delta', at='node',
                                                 dtype=float)
         except FieldError:
-            self.drainage_area = grid.at_node['flow__data_structure_delta']
+            self.delta_structure = grid.at_node['flow__data_structure_delta']
     
-        try:
-            self.drainage_area = grid.add_zeros('flow__data_structure_delta', at='node',
-                                                dtype=int)
-        except FieldError:
-            self.drainage_area = grid.at_node['flow__data_structure_delta']
             
         try:
-            self.drainage_area = grid.add_zeros('flow__data_structure_D', at='link',
+            self.D_structure = grid.add_zeros('flow__data_structure_D', at='link',
                                                 dtype=int)
         except FieldError:
-            self.drainage_area = grid.at_node['flow__data_structure_D']
+            self.D_structure = grid.at_node['flow__data_structure_D']
         
-        try:
-            self.drainage_area = grid.add_zeros('flow__nodes_not_in_stack', at='grid',
-                                                dtype=bool)
-        except FieldError:
-            self.drainage_area = grid.at_node['flow__nodes_not_in_stack']
+        
+        self.nodes_not_in_stack = True 
+        
             
     def updated_boundary_conditions(self):
         """
@@ -220,8 +211,27 @@ class FlowAccumulator(Component):
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
 
-
-
     if __name__ == '__main__':
         import doctest
         doctest.testmod()
+
+
+class FlowAccumulator_D4(FlowAccumulator):
+    """ 
+    Info here
+    """
+    
+    _name = 'FlowAccumulator_D4'
+
+
+    def run_one_step(depressionFinder=None):
+        # step 0. load correct direction finder        
+        
+        # step 1. Find flow directions by specified method
+        
+        # step 2. Stack, D, delta construction
+        
+        # step 3. Depression finder/router if called for
+        
+        # step 4. Accumulate (to one or to N depending on direction method. )
+    
