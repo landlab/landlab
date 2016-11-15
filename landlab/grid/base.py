@@ -190,7 +190,7 @@ store data values that are associated with the different types grid elements
 data field *groups* are added to the `ModelGrid` that provide containers to
 put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
-There is an additional group at_everywhere that can store arrays of length one
+There is an additional group at_grid that can store arrays of length one
 intended as a place to store varibles global to the grid.
 
 To access these groups, use the same methods as accessing groups with
@@ -207,7 +207,7 @@ itself that provide access to the values groups:
     ~landlab.grid.base.ModelGrid.at_face
     ~landlab.grid.base.ModelGrid.at_patch
     ~landlab.grid.base.ModelGrid.at_corner
-    ~landlab.grid.base.ModelGrid.at_everywhere
+    ~landlab.grid.base.ModelGrid.at_grid
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -417,8 +417,8 @@ Use the groups attribute to see the group names.
 >>> grid = RasterModelGrid((3, 3))
 >>> groups = list(grid.groups)
 >>> groups.sort()
->>> groups # doctest: +NORMALIZE_WHITESPACE
- ['cell', 'corner', 'everywhere', 'face', 'link', 'node', 'patch']
+>>> groups
+['cell', 'corner', 'face', 'grid', 'link', 'node', 'patch']
 
 Create Field Arrays
 +++++++++++++++++++
@@ -507,11 +507,10 @@ _ARRAY_LENGTH_ATTRIBUTES = {
     'active_face': 'number_of_active_faces',
     'core_node': 'number_of_core_nodes',
     'core_cell': 'number_of_core_cells',
-    'everywhere' : 'number_of_value_at_everywhere'
 }
 
 # Fields whose sizes can not change.
-_SIZED_FIELDS = {'node', 'link', 'patch', 'corner', 'face', 'cell', 'everywhere'}
+_SIZED_FIELDS = {'node', 'link', 'patch', 'corner', 'face', 'cell', }
 
 # Define the boundary-type codes
 
@@ -785,7 +784,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Values at links.
     at_face : dict-like
         Values at faces.
-    at_everywhere: dict-like
+    at_grid: dict-like
         Global values
     Other Parameters
     ----------------
@@ -804,7 +803,6 @@ class ModelGrid(ModelDataFieldsMixIn):
     at_corner = {}  # : Values defined at corners
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
-    at_everywhere = {}  # : Values defined globally across the grid
 
     # : Nodes on the other end of links pointing into a node.
     _node_inlink_matrix = numpy.array([], dtype=numpy.int32)
@@ -835,6 +833,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         for loc in _SIZED_FIELDS:
             size = self.number_of_elements(loc)
             ModelDataFields.new_field_location(self, loc, size=size)
+        ModelDataFields.new_field_location(self, 'grid', size=1)
         # for loc in _UNSIZED_FIELDS:
         #     ModelDataFields.new_field_location(self, loc, size=None)
         ModelDataFields.set_default_group(self, 'node')
@@ -1773,23 +1772,6 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._reset_link_status_list()
             return self._fixed_links.size
 
-    @property
-    def number_of_value_at_everywhere(self):
-        """ Size of global attribute, by definition equal to one.
-
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> mg.number_of_value_at_everywhere
-        1
-
-
-        LLCATS:
-        """
-        return 1
-
     def number_of_elements(self, name):
         """Number of instances of an element.
 
@@ -1798,7 +1780,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         Parameters
         ----------
         name : {'node', 'cell', 'link', 'face', 'core_node', 'core_cell',
-                'active_link', 'active_face', 'everywhere'}
+                'active_link', 'active_face'}
             Name of the grid element.
 
         Returns
@@ -1823,8 +1805,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         31
         >>> mg.number_of_elements('active_link')
         13
-        >>> mg.number_of_elements('everywhere')
-        1
 
         LLCATS: GINF
         """
