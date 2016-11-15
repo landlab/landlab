@@ -172,3 +172,14 @@ def test_delete_field():
     fields.delete_field('link', 'vals')
     assert_raises(KeyError, lambda: fields.field_units('link', 'vals'))
     assert_raises(KeyError, lambda: fields.at_link['vals'])
+
+
+def test_scalar_field():
+    fields = ModelDataFields()
+    fields.new_field_location('all_over_the_place', 1)
+
+    assert_dict_equal(dict(), fields.at_all_over_the_place)
+    assert_raises(AttributeError, lambda: fields.at_cell)
+
+    fields.at_all_over_the_place['const'] = 1.
+    assert_array_equal(np.array(1.), fields.at_all_over_the_place['const'])
