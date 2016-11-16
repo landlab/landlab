@@ -195,6 +195,6 @@ def test_grid_field():
     assert_raises(ValueError, fields.add_empty, 'value', at='grid')
     assert_raises(ValueError, fields.add_ones, 'value', at='grid')
     
-    assert_raises(ValueError, fields.zeros, at='grid')
-    assert_raises(ValueError, fields.empty, at='grid')
-    assert_raises(ValueError, fields.ones, at='grid')
+    assert_raises(ValueError, fields.zeros, 'grid')
+    assert_raises(ValueError, fields.empty, 'grid')
+    assert_raises(ValueError, fields.ones, 'grid')
