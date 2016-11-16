@@ -183,3 +183,15 @@ def test_scalar_field():
 
     fields.at_all_over_the_place['const'] = 1.
     assert_array_equal(np.array(1.), fields.at_all_over_the_place['const'])
+
+def test_grid_field():
+    fields = ModelDataFields()
+    fields.new_field_location('grid', 1)
+    
+    assert_raises(ValueError, fields.add_zeros, 'value', at='grid')
+    assert_raises(ValueError, fields.add_empty, 'value', at='grid')
+    assert_raises(ValueError, fields.add_ones, 'value', at='grid')
+    
+    assert_raises(ValueError, fields.zeros, at='grid')
+    assert_raises(ValueError, fields.empty, at='grid')
+    assert_raises(ValueError, fields.ones, at='grid')
