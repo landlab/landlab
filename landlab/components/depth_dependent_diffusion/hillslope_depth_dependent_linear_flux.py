@@ -7,7 +7,7 @@ Created on Fri Apr  8 08:32:48 2016
 
 from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK, CLOSED_BOUNDARY, OPEN_BOUNDARY
+from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
 class DepthDependentDiffuser(Component):
     
@@ -207,7 +207,6 @@ class DepthDependentDiffuser(Component):
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
         dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
-        dqdx[self.grid.status_at_node == OPEN_BOUNDARY] = 0.
         
         #Calculate change in soil depth
         dhdt = self.weather-dqdx
@@ -225,18 +224,15 @@ class DepthDependentDiffuser(Component):
         self.elev[self._active_nodes] = self.depth[self._active_nodes]+self.bedrock[self._active_nodes]
 
 
-    def run_one_step(self, dt, k, star, **kwds):
-        “””
+    def run_one_step(self, dt, **kwds):
+        """
 
         Parameters
         ----------
         dt: float (time)
             The imposed timestep.
-        k: float
-            Hillslope efficiency, m/yr
-        hstar: float
-            characteristic transport soil depth, m
-        “””
+        """
+       
         
 
-        self.soilflux(grid=self._grid, dt=dt, k=k, hstar=hstar)
+        self.soilflux(dt, **kwds)
