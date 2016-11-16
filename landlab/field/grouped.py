@@ -441,6 +441,11 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("empty is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.")
         return self[group].empty(**kwds)
 
     def ones(self, group, **kwds):
@@ -479,6 +484,12 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("ones is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.\nAlternatively, if you want ones "
+                             "of the shape stored at_grid, use np.array(1).")
         return self[group].ones(**kwds)
 
     def zeros(self, group, **kwds):
@@ -517,6 +528,13 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("zeros is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.\nAlternatively, if you want zeros"
+                             "of the shape stored at_grid, use np.array(0).")
+                             
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
