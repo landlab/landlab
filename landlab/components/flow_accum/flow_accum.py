@@ -30,7 +30,7 @@ class FlowAccumulator(Component):
 
     _var_units = {'flow__receiver_node': 'm',
                   'runoff_rate': 'm/s',
-                  'drainage_area': 'm**2',
+                  'drainage_area'   : 'm**2',
                   'surface_water__discharge': 'm**3/s',
                   'flow__upstream_node_order':'-',
                   'flow__data_structure_delta':'-',
@@ -210,6 +210,10 @@ class FlowAccumulator(Component):
             self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
+    def run_one_step():
+        print ('You have called run_one_step() on the base FlowAccumulator class'
+                'This does not accumulate flow. You probably want to initiate a ...')
+              
 
     if __name__ == '__main__':
         import doctest
@@ -222,8 +226,10 @@ class FlowAccumulator_D4(FlowAccumulator):
     """
     
     _name = 'FlowAccumulator_D4'
-
-
+    
+    # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
+    # and _var_doc , only _name needs to change. 
+    
     def run_one_step(depressionFinder=None):
         # step 0. load correct direction finder        
         
