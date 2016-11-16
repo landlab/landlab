@@ -183,6 +183,9 @@ def test_scalar_field():
 
     fields.at_all_over_the_place['const'] = 1.
     assert_array_equal(np.array(1.), fields.at_all_over_the_place['const'])
+    
+    assert_raises(ValueError, fields.add_field, 'new_value', [0,1], at='all_over_the_place')
+
 
 def test_grid_field():
     fields = ModelDataFields()
