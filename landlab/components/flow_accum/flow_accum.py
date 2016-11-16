@@ -16,8 +16,8 @@ class FlowAccumulator(Component):
     """
     _name = 'FlowAccumulator'
 
-    _input_var_names = ('flow__receiver_node',
-                        'runoff_rate',
+    _input_var_names = ('topographic__elevation',
+                        'water__unit_flux_in'
                         )
 
     _output_var_names = ('drainage_area',
@@ -28,8 +28,9 @@ class FlowAccumulator(Component):
                          'flow__data_structure_D'
                          )
 
-    _var_units = {'flow__receiver_node': 'm',
-                  'runoff_rate': 'm/s',
+    _var_units = {'topographic__elevation': 'm',
+                  'flow__receiver_node': 'm',
+                  'water__unit_flux_in': 'm/s',
                   'drainage_area'   : 'm**2',
                   'surface_water__discharge': 'm**3/s',
                   'flow__upstream_node_order':'-',
@@ -38,8 +39,9 @@ class FlowAccumulator(Component):
                   'flow__nodes_not_in_stack': '-'
                   }
 
-    _var_mapping = {'flow__receiver_node': 'node',
-                    'runoff_rate': 'node',
+    _var_mapping = {'topographic__elevation': 'node',
+                    'flow__receiver_node': 'node',
+                    'water__unit_flux_in': 'node',
                     'drainage_area': 'node',
                     'surface_water__discharge': 'node',
                     'flow__upstream_node_order': 'node',
@@ -48,6 +50,7 @@ class FlowAccumulator(Component):
                     'flow__data_structure_D':'link',
                     }
     _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
         'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
             'node)',
@@ -55,8 +58,9 @@ class FlowAccumulator(Component):
             "Upstream accumulated surface area contributing to the node's "
             "discharge",
         'surface_water__discharge': 'Discharge of water through each node',
-        'runoff_rate':
-            'Local runoff rate at each cell.',
+        'water__unit_flux_in':
+            'External volume water per area per time input to each node ' 
+             '(e.g., rainfall rate)',
         'flow__upstream_node_order':
             'Node array containing downstream-to-upstream ordered list of '
             'node IDs',
@@ -74,7 +78,7 @@ class FlowAccumulator(Component):
 
    
     @use_file_name_or_kwds
-    def __init__(self, grid, surface='topographic_elevation', runoff_rate=None, **kwds):
+    def __init__(self, grid, surface='topographic__elevation', runoff_rate=None, **kwds):
         # We keep a local reference to the grid
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
@@ -103,8 +107,26 @@ class FlowAccumulator(Component):
         
         
         # make sure the surface that will be routed/accumulated is present
-        grid.at_node[surface]
+        # surface must either be a field at node or be array like of size 
+        # number_of nodes
         
+        if surface!='topographic__elevation' and grid.at_node['topographic__elevation']:
+            print ("FlowAccumulator found both the field " +
+                   "topographic__elevation' and a provided string or " +
+                   "array for the surface argument. THE FIELD "+
+                   "topographic__elevation WILL NOT BE USED FOR FLOW " +
+                   "DIRECTION OR ACCUMULATION! THE FIELD CODE OR ARRAY" +
+                   "GIVEN IN surface WILL BE USED INSTEAD.")
+                   
+        if surface is str:
+            # note that this will test grid.at_node['topographic__elevation']
+            # if user doesn't supply a value for surface. 
+            grid.at_node[surface]
+        else:
+            # or be a number_of_nodes sized array
+            assert surface.size == grid.number_of_nodes
+            
+            
         # test for water__unit_flux_in
         try:
             grid.at_node['water__unit_flux_in']
@@ -211,8 +233,11 @@ class FlowAccumulator(Component):
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step():
-        print ('You have called run_one_step() on the base FlowAccumulator class'
-                'This does not accumulate flow. You probably want to initiate a ...')
+        print ('You have called run_one_step() on the base FlowAccumulator class. ' +
+               'This component does not actually accumulate flow, but instead ' +
+               'sets up all of the core functionallity of the FlowAccumulators. ' +
+               'You probably want to initiate a flow accumulator with a name like:\n'+
+               'FlowAccumulator_method\n such as FlowAccumulator_D4 or FlowAccumulator_D8')
               
 
     if __name__ == '__main__':
@@ -230,8 +255,17 @@ class FlowAccumulator_D4(FlowAccumulator):
     # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
     # and _var_doc , only _name needs to change. 
     
-    def run_one_step(depressionFinder=None):
-        # step 0. load correct direction finder        
+    def __init__(self, grid, depressionFinder=None, **kwds):
+        super(FlowAccumulator_D4, self).__init__(**kwds)
+
+        # save method as attribute
+        self.method = 'D4'
+        
+        # load correct flow d
+        from landlab.flow_direction import FlowDirection_D4 as fd
+        from landlab.flow_accum import flow_accum_bw as flow_accum        
+        
+    def run_one_step():
         
         # step 1. Find flow directions by specified method
         
