@@ -115,7 +115,7 @@ class ExponentialWeathering(Component):
         """
        
 
-        self.soilflux(dt, **kwds)
+        self.exponentialweather(dt, **kwds)
 
 
         
