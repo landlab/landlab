@@ -49,3 +49,7 @@ def test_add_ones_zeros_empty_to_at_grid():
     assert_raises(ValueError, grid.add_zeros, 'value', at='grid')
     assert_raises(ValueError, grid.add_empty, 'value', at='grid')
     assert_raises(ValueError, grid.add_ones, 'value', at='grid')
+    
+    assert_raises(ValueError, grid.zeros, at='grid')
+    assert_raises(ValueError, grid.empty, at='grid')
+    assert_raises(ValueError, grid.ones, at='grid')
