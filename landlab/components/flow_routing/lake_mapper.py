@@ -627,6 +627,32 @@ class DepressionFinderAndRouter(Component):
         not_too_high = self._elev[nbrs] < self._elev[the_node]
         not_current_lake = np.not_equal(self.flood_status[nbrs], _CURRENT_LAKE)
         not_flooded = np.not_equal(self.flood_status[nbrs], _FLOODED)
+        
+        # The following logic block handles the case when a neighbor is 
+        # flooded but its outlet is LOWER than the_node, so the_node could
+        # be an outlet that flows into a lower lake.
+        #
+        # We proceed only if there is at least one flooded node
+        if np.any(np.logical_not(not_flooded)):
+            
+            # Examine each neighbor
+            for i in range(len(nbrs)):
+                
+                # If the neighbor is flooded...
+                if not not_flooded[i]:
+                    
+                    # Check to see whether its own outlet is lower than 
+                    # the_node. If so, then it does not "count" as being
+                    # flooded, because its water level is lower than our
+                    # current potential lake outlet.
+                    dep_out = self.depression_outlet_map[nbrs[i]]
+                    if self._elev[the_node] > self._elev[dep_out]:
+                        not_flooded[i] = True
+
+        # Now combine all the issues: any neighbor(s) that is not "bad",
+        # too high, part of the current lake, or flooded at a level equal to
+        # or higher than the_node, is a potential outlet. So, if there are any
+        # neighbor nodes that pass all these tests, then the_node can drain.
         all_probs = np.logical_and(
             np.logical_and(not_bad, not_too_high),
             np.logical_and(not_current_lake, not_flooded))
@@ -677,6 +703,12 @@ class DepressionFinderAndRouter(Component):
         """
         n = nodes_this_depression
 
+        #print('in RDDO:')
+        #print(outlet_id)
+        #print(pit_node)
+        #print(n)
+        #print(self._lake_map[n])
+        #print(LOCAL_BAD_INDEX_VALUE)
         # three cases possible - new lake is fresh; new lake is smaller than
         # an existing lake (subsumed, and unimportant), new lake is equal to
         # or bigger than old lake (or multiple old lakes). It SHOULDN'T be
@@ -684,6 +716,7 @@ class DepressionFinderAndRouter(Component):
         # assertion that out total # of *tracked* lakes matches the accumulated
         # total of unique vals in lake_map.
         fresh_nodes = np.equal(self._lake_map[n], LOCAL_BAD_INDEX_VALUE)
+        #print(fresh_nodes)
         if np.all(fresh_nodes):  # a new lake
             self.flood_status[n] = _FLOODED
             self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
@@ -693,6 +726,11 @@ class DepressionFinderAndRouter(Component):
             pit_node_where = np.searchsorted(self.pit_node_ids,
                                              pit_node)
             self._unique_pits[pit_node_where] = True
+            #print(' new lake')
+            #print(self._elev[outlet_id])
+            #print(self._elev[n])
+            #print(self.depression_depth[n])
+            #print(self.depression_outlet_map[n])
         elif np.any(fresh_nodes):  # lake is bigger than one or more existing
             self.flood_status[n] = _FLOODED
             depth_this_lake = self._elev[outlet_id] - self._elev[n]
@@ -711,7 +749,13 @@ class DepressionFinderAndRouter(Component):
             # -1 for the LOCAL_BAD_INDEX_VALUE that must be present; another -1
             # because a single lake is just replaced by a new lake.
             self._lake_map[n] = pit_node
+            #print(' bigger lake')
+            #print(self._elev[outlet_id])
+            #print(self._elev[n])
+            #print(self.depression_depth[n])
+            #print(self.depression_outlet_map[n])
         else:  # lake is subsumed within an existing lake
+            print(' eaten lake')
             assert np.all(np.equal(self.flood_status[n], _CURRENT_LAKE))
             self.flood_status[n] = _FLOODED
 

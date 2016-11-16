@@ -356,7 +356,9 @@ methods tend to start with `calc_`.
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_patch
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_cell_subtriangles
 
 Mappers
 -------
@@ -491,7 +493,7 @@ find in GIS software.
 
 .. autosummary::
     :toctree: generated/
-
+    ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_hillshade_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
