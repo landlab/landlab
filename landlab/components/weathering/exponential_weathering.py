@@ -104,6 +104,19 @@ class ExponentialWeathering(Component):
         
         #weather
         self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
+        
+    def run_one_step(self, dt, **kwds):
+        """
+
+        Parameters
+        ----------
+        dt: float (time)
+            The imposed timestep.
+        """
+       
+
+        self.soilflux(dt, **kwds)
+
 
         
         
