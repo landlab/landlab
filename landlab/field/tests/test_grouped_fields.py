@@ -175,6 +175,7 @@ def test_delete_field():
 
 
 def test_scalar_field():
+    """Test adding a generic scalar field."""
     fields = ModelDataFields()
     fields.new_field_location('all_over_the_place', 1)
 
@@ -187,14 +188,19 @@ def test_scalar_field():
     assert_raises(ValueError, fields.add_field, 'new_value', [0,1], at='all_over_the_place')
 
 
-def test_grid_field():
+def test_grid_field_add_zeros_ones_empty():
+    """Test creating scalar fields with add_zeros, add_empty, and add_ones."""
     fields = ModelDataFields()
     fields.new_field_location('grid', 1)
     
     assert_raises(ValueError, fields.add_zeros, 'value', at='grid')
     assert_raises(ValueError, fields.add_empty, 'value', at='grid')
     assert_raises(ValueError, fields.add_ones, 'value', at='grid')
-    
+
+def test_grid_field_zeros_ones_empty():
+    """Test creating scalar fields with zeros, empty, and ones."""
+    fields = ModelDataFields()
+    fields.new_field_location('grid', 1)    
     assert_raises(ValueError, fields.zeros, 'grid')
     assert_raises(ValueError, fields.empty, 'grid')
     assert_raises(ValueError, fields.ones, 'grid')
