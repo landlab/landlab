@@ -1,7 +1,7 @@
 #!/usr/env/python
 
 """
-flow_accum_to_N.py:
+flow_accum_to_n.py:
 
 Algorithm for route to multiple (N) flow accumulation. Inspiration for data 
 structures and attempting O(n) efficiency taken from Braun and Willet(2013).
@@ -53,7 +53,7 @@ from six.moves import range
 
 import numpy
 
-class _DrainageStack():
+class _DrainageStack_to_n():
     """
     The _DrainageStack() class implements a set based approach to constructing
     a stack with similar properties to the stack constructed by Braun and 
@@ -82,7 +82,11 @@ class _DrainageStack():
         presented here. 
         
         Rather than recursively moving up the tributary tree this method uses
-        sets test that a node is downstream and add it to the stack. 
+        sets test that a node is downstream and add it to the stack. Both 
+        methods are functionally depth first searches. The method that Braun
+        and Willet (2013) implement is optimized given that each node only has
+        one reciever. This method is optimized to visit more than one vertex/
+        node of the graph at a time. 
         
         An important note: Since sets are un-ordered, we cannot expect the 
         stack to be exactly the same each time. It will always put nodes that 
@@ -98,7 +102,7 @@ class _DrainageStack():
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.flow_accum.flow_accum_to_N import _DrainageStack
+        >>> from landlab.components.flow_accum.flow_accum_to_n import _DrainageStack_to_n as _DrainageStack
         >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
         >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
         >>> ds = _DrainageStack(delta, D)
@@ -134,7 +138,7 @@ class _DrainageStack():
             base.update(upstream)
 
 
-def _make_number_of_donors_array(r, p):
+def _make_number_of_donors_array_to_n(r, p):
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
@@ -156,7 +160,7 @@ def _make_number_of_donors_array(r, p):
     --------
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_N import _make_number_of_donors_array
+    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_number_of_donors_array_to_n as _make_number_of_donors_array
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -200,7 +204,7 @@ def _make_number_of_donors_array(r, p):
     return nd
 
 
-def _make_delta_array(nd):
+def _make_delta_array_to_n(nd):
     r"""
     Creates and returns the "delta" array, which is a list containing, for each
     node, the array index where that node's donor list begins.
@@ -219,7 +223,7 @@ def _make_delta_array(nd):
     --------
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_N import _make_delta_array
+    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_delta_array_to_n as _make_delta_array
     >>> nd = np.array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     >>> delta = _make_delta_array(nd)
     >>> delta
@@ -244,7 +248,7 @@ def _make_delta_array(nd):
 
     return delta
 
-def _make_array_of_donors(r, p, delta):
+def _make_array_of_donors_to_n(r, p, delta):
     """
     Creates and returns an array containing the IDs of donors for each node.
     Essentially, the array is a series of lists (not in the Python list object
@@ -259,7 +263,7 @@ def _make_array_of_donors(r, p, delta):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_N import _make_array_of_donors
+    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_array_of_donors_to_n as _make_array_of_donors
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -315,7 +319,7 @@ def _make_array_of_donors(r, p, delta):
     #return D
 
 
-def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes,
+def make_ordered_node_array_to_n(receiver_nodes, reciever_proportion, baselevel_nodes,
                             set_stack=False):
     """Create an array of node IDs that is arranged in order from.
 
@@ -328,7 +332,7 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_N import make_ordered_node_array
+    >>> from landlab.components.flow_accum.flow_accum_to_n import make_ordered_node_array_to_n as make_ordered_node_array
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -366,10 +370,10 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
         
     
     """
-    nd = _make_number_of_donors_array(receiver_nodes, reciever_proportion)
-    delta = _make_delta_array(nd)
-    D = _make_array_of_donors(receiver_nodes, reciever_proportion, delta)
-    dstack = _DrainageStack(delta, D)
+    nd = _make_number_of_donors_array_to_n(receiver_nodes, reciever_proportion)
+    delta = _make_delta_array_to_n(nd)
+    D = _make_array_of_donors_to_n(receiver_nodes, reciever_proportion, delta)
+    dstack = _DrainageStack_to_n(delta, D)
     construct_it = dstack.construct__stack
     
     for k in baselevel_nodes:
@@ -380,7 +384,7 @@ def make_ordered_node_array(receiver_nodes, reciever_proportion, baselevel_nodes
         return dstack.ss
 
 
-def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
+def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0, runoff=1.0,
                                      boundary_nodes=None):
     """Calculate the drainage area and water discharge at each node.
 
@@ -420,8 +424,7 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_N import (
-    ...     find_drainage_area_and_discharge)
+    >>> from landlab.components.flow_accum.flow_accum_to_n import find_drainage_area_and_discharge_to_n as find_drainage_area_and_discharge
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -506,7 +509,7 @@ def find_drainage_area_and_discharge(s, r, p, node_cell_area=1.0, runoff=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation_to_N(receiver_nodes, receiver_proportions, baselevel_nodes, node_cell_area=1.0,
+def flow_accumulation_to_n(receiver_nodes, receiver_proportions, baselevel_nodes, node_cell_area=1.0,
                       runoff_rate=1.0, boundary_nodes=None):
     """Calculate drainage area and (steady) discharge.
 
@@ -516,7 +519,7 @@ def flow_accumulation_to_N(receiver_nodes, receiver_proportions, baselevel_nodes
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_N import flow_accumulation
+    >>> from landlab.components.flow_accum.flow_accum_to_n import flow_accumulation_to_n as flow_accumulation
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -563,12 +566,12 @@ def flow_accumulation_to_N(receiver_nodes, receiver_proportions, baselevel_nodes
     assert(receiver_nodes.shape==receiver_proportions.shape), 'r and p arrays are not the same shape'
 
 
-    s = make_ordered_node_array(receiver_nodes, receiver_proportions, baselevel_nodes)
+    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions, baselevel_nodes)
     #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.
 
-    a, q = find_drainage_area_and_discharge(s, receiver_nodes, receiver_proportions, node_cell_area,
+    a, q = find_drainage_area_and_discharge_to_n(s, receiver_nodes, receiver_proportions, node_cell_area,
                                             runoff_rate, boundary_nodes)
 
     return a, q, s
