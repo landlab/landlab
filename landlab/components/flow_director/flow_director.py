@@ -1,42 +1,18 @@
 #! /usr/env/python
-
-"""Information HERE!
-"""
-
 from __future__ import print_function
 
-import landlab
-import warnings
-from landlab.components.flow_routing import flow_direction_DN
-from landlab.components.flow_accum import flow_accum_bw
+
+#from landlab.components.flow_routing import flow_direction_DN
 from landlab import FieldError, Component
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import ModelParameterDictionary
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import RasterModelGrid
 from landlab.utils.decorators import use_file_name_or_kwds
-import numpy
 
-
-class FlowDirection(Component):
+class FlowDirector(Component):
 
     """
     """
 
-    _name = 'FlowDirection'
-
-    _input_var_names = ()
-
-    _output_var_names = ('flow__sink_flag'
-                         )
-
-    _var_units = {'flow__sink_flag': '-',
-                  }
-
-    _var_mapping = {'flow__sink_flag': 'node',
-                    }
-
-    _var_doc = {'flow__sink_flag': 'Boolean array, True at local lows',
-    }
+    _name = 'FlowDirector'
 
     @use_file_name_or_kwds
     def __init__(self, grid, surface='topographic_elevation'):
@@ -81,3 +57,16 @@ class FlowDirection(Component):
             self._active_links = self.grid.active_links
             self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
+    
+    def run_one_step(self):
+        print ('You have called run_one_step() on the base FlowDirection class. ' +
+               'This component does not actually direct flow, but instead ' +
+               'sets up all of the core functionallity of the FlowDirection components. ' +
+               'You probably want to initiate a flow direction finder with a name like:\n'+
+               'FlowDirection*method*\n such as FlowDirection_D4 or ' +
+               'FlowDirection_D8')
+
+        
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

@@ -8,6 +8,11 @@ from landlab import FieldError, Component
 from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_file_name_or_kwds
 
+from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+from landlab import ModelParameterDictionary
+
+import numpy as np
+
 
 class FlowAccumulator(Component):
 
@@ -45,7 +50,7 @@ class FlowAccumulator(Component):
                     'drainage_area': 'node',
                     'surface_water__discharge': 'node',
                     'flow__upstream_node_order': 'node',
-                    'flow__nodes_not_in_stack':'grid',
+                    'flow__nodes_not_in_stack': 'grid',
                     'flow__data_structure_delta':'node',
                     'flow__data_structure_D':'link',
                     }
@@ -175,7 +180,13 @@ class FlowAccumulator(Component):
         #   - D array
         #   - delta array
         #   - missing nodes in stack.
- 
+         
+         
+         # Find the baselevel nodes
+        (self.baselevel_nodes, ) = np.where(
+            np.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))         
+         
         try:
             self.drainage_area = grid.add_zeros('drainage_area', at='node',
                                                 dtype=float)
@@ -237,41 +248,10 @@ class FlowAccumulator(Component):
                'This component does not actually accumulate flow, but instead ' +
                'sets up all of the core functionallity of the FlowAccumulators. ' +
                'You probably want to initiate a flow accumulator with a name like:\n'+
-               'FlowAccumulator_method\n such as FlowAccumulator_D4 or FlowAccumulator_D8')
-              
+               'FlowAccumulator_*method*\n such as FlowAccumulator_D4 or ' +
+               'FlowAccumulator_D8')
 
-    if __name__ == '__main__':
-        import doctest
-        doctest.testmod()
-
-
-class FlowAccumulator_D4(FlowAccumulator):
-    """ 
-    Info here
-    """
-    
-    _name = 'FlowAccumulator_D4'
-    
-    # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
-    # and _var_doc , only _name needs to change. 
-    
-    def __init__(self, grid, depressionFinder=None, **kwds):
-        super(FlowAccumulator_D4, self).__init__(**kwds)
-
-        # save method as attribute
-        self.method = 'D4'
         
-        # load correct flow d
-        from landlab.flow_direction import FlowDirection_D4 as fd
-        from landlab.flow_accum import flow_accum_bw as flow_accum        
-        
-    def run_one_step():
-        
-        # step 1. Find flow directions by specified method
-        
-        # step 2. Stack, D, delta construction
-        
-        # step 3. Depression finder/router if called for
-        
-        # step 4. Accumulate (to one or to N depending on direction method. )
-    
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()    
