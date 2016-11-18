@@ -33,6 +33,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab.grid.divergence import calc_flux_div_at_node
     >>> rg = RasterModelGrid(3, 4, 10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
@@ -44,22 +45,11 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, -lg)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-    >>> fg = lg[rg.link_at_face]  # there are 7 faces
-    >>> fg
-    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-    >>> calc_flux_div_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_links = np.zeros(rg.number_of_links)
     >>> unit_flux_at_links[rg.active_links] = -lg[rg.active_links]
     >>> calc_flux_div_at_node(rg, unit_flux_at_links)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
-    >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
-    >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
-    >>> calc_flux_div_at_node(rg, unit_flux_at_faces)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
