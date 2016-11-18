@@ -2,11 +2,12 @@
 
 from __future__ import print_function
 
+import sys
 import warnings
 
 from landlab import FieldError, Component
 from landlab import RasterModelGrid  # for type tests
-from landlab.utils.decorators import use_file_name_or_kwds
+from landlab.utils.decorators import use_field_name_or_array
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import ModelParameterDictionary
@@ -54,7 +55,7 @@ class FlowAccumulator(Component):
                     'flow__data_structure_delta':'node',
                     'flow__data_structure_D':'link',
                     }
-    _var_doc = {
+    _var_doc = {   
         'topographic__elevation': 'Land surface topographic elevation',
         'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
@@ -82,8 +83,9 @@ class FlowAccumulator(Component):
             }
 
    
-    @use_file_name_or_kwds
-    def __init__(self, grid, surface='topographic__elevation', runoff_rate=None, **kwds):
+    @use_field_name_or_array('node')
+    def __init__(self, grid, surface, runoff_rate=None): 
+        
         # We keep a local reference to the grid
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
@@ -115,21 +117,21 @@ class FlowAccumulator(Component):
         # surface must either be a field at node or be array like of size 
         # number_of nodes
         
-        if surface!='topographic__elevation' and grid.at_node['topographic__elevation']:
-            print ("FlowAccumulator found both the field " +
-                   "topographic__elevation' and a provided string or " +
-                   "array for the surface argument. THE FIELD "+
-                   "topographic__elevation WILL NOT BE USED FOR FLOW " +
-                   "DIRECTION OR ACCUMULATION! THE FIELD CODE OR ARRAY" +
-                   "GIVEN IN surface WILL BE USED INSTEAD.")
-                   
-        if surface is str:
-            # note that this will test grid.at_node['topographic__elevation']
-            # if user doesn't supply a value for surface. 
-            grid.at_node[surface]
-        else:
-            # or be a number_of_nodes sized array
-            assert surface.size == grid.number_of_nodes
+#        if surface!='topographic__elevation' and 'topographic__elevation' not in grid.at_node:
+#            print("FlowAccumulator found both the field " +
+#                  "topographic__elevation' and a provided string or " +
+#                  "array for the surface argument. THE FIELD "+
+#                  "topographic__elevation WILL NOT BE USED FOR FLOW " +
+#                  "DIRECTION OR ACCUMULATION! THE FIELD CODE OR ARRAY" +
+#                  "GIVEN IN surface WILL BE USED INSTEAD.", file=sys.stderr)
+#                   
+#        if surface is str:
+#            # note that this will test grid.at_node['topographic__elevation']
+#            # if user doesn't supply a value for surface. 
+#            grid.at_node[surface]
+#        else:
+#            # or be a number_of_nodes sized array
+#            assert surface.size == grid.number_of_nodes
             
             
         # test for water__unit_flux_in
@@ -187,6 +189,8 @@ class FlowAccumulator(Component):
             np.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))         
          
+             
+        self.elevs = surface
         try:
             self.drainage_area = grid.add_zeros('drainage_area', at='node',
                                                 dtype=float)
@@ -244,13 +248,8 @@ class FlowAccumulator(Component):
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step():
-        print ('You have called run_one_step() on the base FlowAccumulator class. ' +
-               'This component does not actually accumulate flow, but instead ' +
-               'sets up all of the core functionallity of the FlowAccumulators. ' +
-               'You probably want to initiate a flow accumulator with a name like:\n'+
-               'FlowAccumulator_*method*\n such as FlowAccumulator_D4 or ' +
-               'FlowAccumulator_D8')
-
+        raise NotImplementedError('run_one_step()')
+        
         
 if __name__ == '__main__':
     import doctest

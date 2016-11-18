@@ -28,7 +28,7 @@ class FlowDirector_D4(FlowDirector):
     # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
     # and _var_doc , all need to change. 
     @use_file_name_or_kwds
-    def __init__(self, grid, surface='topographic_elevation', **kwds):
+    def __init__(self, grid, surface='topographic__elevation', **kwds):
         super(FlowDirector_D4, self).__init__(grid, surface, **kwds)
 
         # save method as attribute

@@ -1,9 +1,9 @@
 
 from landlab.components.flow_accum import FlowAccumulator 
-from landlab.components.flow_director import FlowDirector_D4 as FlowDirector
+from landlab.components.flow_director import FlowDirectorD4 as FlowDirector
 #from landlab.components.flow_accum import flow_accum_bw 
 
-class FlowAccumulator_D4(FlowAccumulator):
+class FlowAccumulatorD4(FlowAccumulator):
     """ 
     Info here
     """
@@ -13,15 +13,15 @@ class FlowAccumulator_D4(FlowAccumulator):
     # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
     # and _var_doc , only _name needs to change. 
     
-    def __init__(self, grid, depression_finder=None, **kwds):
-        super(FlowAccumulator_D4, self).__init__(**kwds)
+    def __init__(self, grid, surface='topographic__elevation', depression_finder=None):
+        super(FlowAccumulatorD4, self).__init__(grid, surface)
 
         # save method as attribute
         self.method = 'D4'
         
-        # need to pass surface to FlowDirection
-        self.FlowDirector=FlowDirector()
-        self.DepressionFinder=depression_finder
+        # save 
+        self.flow_director=FlowDirector()
+        self.depression_finder=depression_finder
         
         
     def run_one_step(self):
@@ -39,10 +39,6 @@ class FlowAccumulator_D4(FlowAccumulator):
        #p ut theese in grid so that d finder can use it.         
         # store the generated data in the grid
         
-        elevs = self._grid['node']['topographic__elevation']
-
-        node_cell_area = self._grid.cell_area_at_node.copy()
-        node_cell_area[self._grid.closed_boundary_nodes] = 0.
         
         
         self._grid['node']['drainage_area'][:] = a
