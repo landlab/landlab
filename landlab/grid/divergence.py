@@ -22,8 +22,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     grid : ModelGrid
         A ModelGrid.
     unit_flux : ndarray or field name
-        Flux per unit width along links (x number of links) or across faces
-        (x number of faces).
+        Flux per unit width along links (x number of links).
 
     Returns
     -------
@@ -59,21 +58,17 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
 
     LLCATS: NINF GRAD
     """
-    if unit_flux.size not in (grid.number_of_links, grid.number_of_faces):
-        raise ValueError('Parameter unit_flux must be num links or num faces '
+    if unit_flux.size != grid.number_of_links:
+        raise ValueError('Parameter unit_flux must be num links '
                          'long')
     if out is None:
         out = grid.zeros(at='node')
     elif out.size != grid.number_of_nodes:
         raise ValueError('output buffer length mismatch with number of nodes')
 
-    if unit_flux.size == grid.number_of_links:
-        out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
+    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
                                     unit_flux[grid.link_at_face]) \
                                     / grid.area_of_cell
-    elif unit_flux.size == grid.number_of_faces:
-        out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, unit_flux) \
-                                / grid.area_of_cell
 
     return out
 
