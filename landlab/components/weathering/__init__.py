@@ -1,4 +1,4 @@
-from .exponential_weathering import ExponentialWeathering
+from .exponential_weathering import ExponentialWeatherer
 
-__all__ = ['ExponentialWeathering', ]
+__all__ = ['ExponentialWeatherer', ]
 

@@ -21,7 +21,7 @@ from .plant_competition_ca import VegCA
 from .gflex import gFlex
 from .drainage_density import DrainageDensity
 from .fire_generator import FireGenerator
-from .weathering import ExponentialWeathering
+from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
 
 
@@ -34,7 +34,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
-	      ExponentialWeathering, DepthDependentDiffuser]
+	      ExponentialWeatherer, DepthDependentDiffuser]
 
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
