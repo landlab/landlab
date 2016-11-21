@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import sys
 import warnings
 
 from landlab import FieldError, Component
@@ -10,7 +9,6 @@ from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import ModelParameterDictionary
 
 import numpy as np
 
@@ -191,6 +189,7 @@ class FlowAccumulator(Component):
          
              
         self.elevs = surface
+        
         try:
             self.drainage_area = grid.add_zeros('drainage_area', at='node',
                                                 dtype=float)

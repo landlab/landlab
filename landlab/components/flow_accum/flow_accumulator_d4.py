@@ -8,7 +8,7 @@ class FlowAccumulatorD4(FlowAccumulator):
     Info here
     """
     
-    _name = 'FlowAccumulator_D4'
+    _name = 'FlowAccumulatorD4'
     
     # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
     # and _var_doc , only _name needs to change. 
@@ -41,13 +41,13 @@ class FlowAccumulatorD4(FlowAccumulator):
         
         
         
-        self._grid['node']['drainage_area'][:] = a
-        self._grid['node']['flow__receiver_node'][:] = receiver
-        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['surface_water__discharge'][:] = q
-        self._grid['node']['flow__upstream_node_order'][:] = s
-        self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
-        
+#        self._grid['node']['drainage_area'][:] = a
+#        self._grid['node']['flow__receiver_node'][:] = receiver
+#        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
+#        self._grid['node']['surface_water__discharge'][:] = q
+#        self._grid['node']['flow__upstream_node_order'][:] = s
+#        self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
+#        
         
 
         # step 3. Depression finder/router if called for

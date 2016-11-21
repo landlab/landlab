@@ -3,9 +3,9 @@ from __future__ import print_function
 
 
 #from landlab.components.flow_routing import flow_direction_DN
-from landlab import FieldError, Component
+from landlab import Component
 from landlab import RasterModelGrid
-from landlab.utils.decorators import use_file_name_or_kwds
+from landlab.utils.decorators import use_field_name_or_array
 
 class FlowDirector(Component):
 
@@ -14,8 +14,8 @@ class FlowDirector(Component):
 
     _name = 'FlowDirector'
 
-    @use_file_name_or_kwds
-    def __init__(self, grid, surface='topographic_elevation'):
+    @use_field_name_or_array('node')
+    def __init__(self, grid, surface):
         # We keep a local reference to the grid
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
@@ -27,18 +27,11 @@ class FlowDirector(Component):
 
         self.updated_boundary_conditions()
 
-        
         # test input variables are present:
         grid.at_node[surface]
         
-        # Keep track of the following variables:
-        #   - flow__sink_flag
-        #  Note: all other output fields are method specific.  
-        try:
-            self.sink_flag = grid.add_zeros('flow__sink_flag', at='node',
-                                                dtype=float)
-        except FieldError:
-            self.sink_flag = grid.at_node['flow__sink_flag']   
+        # add elevations as a local variable.
+        self.elevs = surface        
 
     def updated_boundary_conditions(self):
         """
@@ -59,12 +52,7 @@ class FlowDirector(Component):
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
     
     def run_one_step(self):
-        print ('You have called run_one_step() on the base FlowDirection class. ' +
-               'This component does not actually direct flow, but instead ' +
-               'sets up all of the core functionallity of the FlowDirection components. ' +
-               'You probably want to initiate a flow direction finder with a name like:\n'+
-               'FlowDirection*method*\n such as FlowDirection_D4 or ' +
-               'FlowDirection_D8')
+        raise NotImplementedError('run_one_step()')
 
         
 if __name__ == '__main__':
