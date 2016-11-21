@@ -171,6 +171,15 @@ class FlowAccumulator(Component):
                           "your code if you intended the FlowRouter to use " +
                           "that field.", DeprecationWarning)
 
+
+        # save elevations and node_cell_area to class properites.         
+        self.elevs = surface
+        
+        node_cell_area = self._grid.cell_area_at_node.copy()
+        node_cell_area[self._grid.closed_boundary_nodes] = 0.        
+        
+        self.node_cell_area = node_cell_area
+        
         # This component will track of the following variables. 
         # Attempt to create each, if they already exist, assign the existing
         # version to the local copy. 
@@ -180,16 +189,6 @@ class FlowAccumulator(Component):
         #   - D array
         #   - delta array
         #   - missing nodes in stack.
-         
-         
-         # Find the baselevel nodes
-        (self.baselevel_nodes, ) = np.where(
-            np.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))         
-         
-             
-        self.elevs = surface
-        
         try:
             self.drainage_area = grid.add_zeros('drainage_area', at='node',
                                                 dtype=float)
@@ -249,7 +248,18 @@ class FlowAccumulator(Component):
     def run_one_step():
         raise NotImplementedError('run_one_step()')
         
-        
+    @property
+    def node_drainage_area(self):
+        return self._grid['node']['drainage_area']
+
+    @property
+    def node_water_discharge(self):
+        return self._grid['node']['surface_water__discharge']
+
+    @property
+    def node_order_upstream(self):
+        return self._grid['node']['flow__upstream_node_order']
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()    

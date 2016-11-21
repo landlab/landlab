@@ -1,15 +1,10 @@
-from __future__ import print_function
-
 from landlab import FieldError
 from landlab.components.flow_director import FlowDirector
-from landlab.utils.decorators import use_field_name_or_array
 import numpy
 
 class FlowDirectorToOne(FlowDirector):
     """
     """
-    # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
-    # and _var_doc , all need to change. 
     
     _name = 'FlowDirectorToOne'
 
@@ -51,12 +46,11 @@ class FlowDirectorToOne(FlowDirector):
     }
     
 
-    @use_field_name_or_array
     def __init__(self, grid, surface):
+        # run init for the inherited class
         super(FlowDirectorToOne, self).__init__(grid, surface)
         
         # initialize new fields
-        
         try:
             self.receiver = grid.add_zeros('flow__receiver_node', at='node',
                                            dtype=int)
@@ -82,7 +76,20 @@ class FlowDirectorToOne(FlowDirector):
     
     def run_one_step(self):
         raise NotImplementedError('run_one_step()')
-        
+    
+    
+    # set properties. These are the same for all DirectToOne Directors
+    @property
+    def node_receiving_flow(self):
+        return self._grid['node']['flow__receiver_node']
+
+    @property
+    def node_steepest_slope(self):
+        return self._grid['node']['topographic__steepest_slope']
+
+    @property
+    def link_to_flow_receiving_node(self):
+        return self._grid['node']['flow__link_to_receiver_node']    
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
