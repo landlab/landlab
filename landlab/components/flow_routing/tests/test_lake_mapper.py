@@ -153,8 +153,8 @@ def setup_D4_grid():
 
     frD8 = FlowRouter(mg1, method='D8')
     frD4 = FlowRouter(mg2, method='D4')
-    lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
-    lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
+    lfD8 = DepressionFinderAndRouter(mg1, method='D8')
+    lfD4 = DepressionFinderAndRouter(mg2, method='D4')
 
 
 def check_fields1(grid):

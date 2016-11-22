@@ -35,13 +35,13 @@ class SinkFiller(Component):
 
     Construction::
 
-        SinkFiller(grid, routing='D8', apply_slope=False, fill_slope=1.e-5):
+        SinkFiller(grid, method='D8', apply_slope=False, fill_slope=1.e-5):
 
     Parameters
     ----------
     grid : ModelGrid
         A landlab grid.
-    routing : {'D8', 'D4'} (optional)
+    method : {'D8', 'D4'} (optional)
         If grid is a raster type, controls whether fill connectivity can
         occur on diagonals ('D8', default), or only orthogonally ('D4').
         Has no effect if grid is not a raster.
@@ -124,14 +124,14 @@ class SinkFiller(Component):
                 }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, routing='D8', apply_slope=False,
+    def __init__(self, grid, method='D8', apply_slope=False,
                  fill_slope=1.e-5, **kwds):
         self._grid = grid
-        if routing is not 'D8':
-            assert routing is 'D4'
-        self._routing = routing
+        if method is not 'D8':
+            assert method is 'D4'
+        self._method = method
         if ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
-                (routing is 'D8')):
+                (method is 'D8')):
             self._D8 = True
             self.num_nbrs = 8
         else:
@@ -194,8 +194,8 @@ class SinkFiller(Component):
                                                    'sediment_fill__depth',
                                                    noclobber=False)
 
-        self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
-        self._fr = FlowRouter(self._grid, method=self._routing)
+        self._lf = DepressionFinderAndRouter(self._grid, method=self._method)
+        self._fr = FlowRouter(self._grid, method=self._method)
 
     def fill_pits(self, **kwds):
         """

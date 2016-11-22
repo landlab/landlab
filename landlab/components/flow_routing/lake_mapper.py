@@ -55,13 +55,13 @@ class DepressionFinderAndRouter(Component):
 
     Construction::
 
-        DepressionFinderAndRouter(grid, grid, routing='D8')
+        DepressionFinderAndRouter(grid, grid, method='D8')
 
     Parameters
     ----------
     grid : RasterModelGrid
         A landlab RasterModelGrid.
-    routing : {'D8', 'D4'} (optional)
+     method : {'D8', 'D4'} (optional)
         If grid is a raster type, controls whether lake connectivity can
         occur on diagonals ('D8', default), or only orthogonally ('D4').
         Has no effect if grid is not a raster.
@@ -150,7 +150,7 @@ class DepressionFinderAndRouter(Component):
             'otherwise BAD_INDEX_VALUE'
     }
 
-    def __init__(self, grid, routing='D8', **kwds):
+    def __init__(self, grid, method='D8', **kwds):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -160,18 +160,18 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        routing : 'D8' or 'D4' (optional)
+        method : 'D8' or 'D4' (optional)
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
         """
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
-        if routing is not 'D8':
-            assert routing is 'D4'
-        self._routing = routing
+        if method is not 'D8':
+            assert method is 'D4'
+        self._method = method
         if ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
-                (routing is 'D8')):
+                (method is 'D8')):
             self._D8 = True
             self.num_nbrs = 8
         else:
@@ -287,7 +287,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[3] = dy
             self._link_lengths[4:].fill(np.sqrt(dx*dx + dy*dy))
         elif ((type(self.grid) is landlab.grid.raster.RasterModelGrid) and
-                (self._routing is 'D4')):
+                (self._method is 'D4')):
             self._link_lengths = np.empty(4, dtype=float)
             self._link_lengths[0] = dx
             self._link_lengths[2] = dx
