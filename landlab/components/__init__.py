@@ -22,10 +22,7 @@ from .gflex import gFlex
 from .drainage_density import DrainageDensity
 from .weathering import ExponentialWeathering
 from .depth_dependent_diffusion import DepthDependentDiffuser
-from .flow_accum import FlowAccumulator # eventually remove these
 from .flow_accum import FlowAccumulatorD4
-from .flow_director import FlowDirector # two as they are base class
-from .flow_director import FlowDirectorToOne# two as they are base class
 from .flow_director import FlowDirectorD4
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
@@ -39,8 +36,6 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeathering, DepthDependentDiffuser,
-              FlowAccumulator, 
-              FlowDirector,FlowDirectorToOne, 
               FlowAccumulatorD4, 
               FlowDirectorD4
               ]
