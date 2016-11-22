@@ -324,7 +324,8 @@ class PotentialEvapotranspiration(Component):
                                np.tan(self._sdecl)) / (self._x ** 2.0)))
 
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 21, (48)
+        # Jan-2005 - Eqn 21, (48) 
+        # Note: 11.57 converts 1MJ/m^2/day into W/m^2
         self._Ra = (
                     11.57 * (24.0 / np.pi) * 4.92 * self._dr *
                     ((self._ws * np.sin(self._phi) * np.sin(self._sdecl)) +
