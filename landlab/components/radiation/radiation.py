@@ -226,10 +226,10 @@ class Radiation(Component):
         if self._alpha <= 0.25 * np.pi / 180.0:    # If altitude is -ve,
             self._alpha = 0.25 * np.pi / 180.0     # sun is beyond the horizon
 
+        # Counting for Albedo, Cloudiness and Atmospheric turbidity
         self._Rgl = (self._Io * np.exp((-1) * self._n * (
             0.128 - 0.054 * np.log10(1. / np.sin(self._alpha)))*(
                 1. / np.sin(self._alpha))))
-        # Counting for Albedo, Cloudiness and Atmospheric turbidity
 
         self._phisun = (np.arctan(- np.sin(self._tau) / (np.tan(self._delta) *
                         np.cos(self._phi) - np.sin(self._phi) *
@@ -244,24 +244,25 @@ class Radiation(Component):
                       np.sin(np.arctan(0)) * np.cos(self._alpha) *
                       np.cos(self._phisun - 0))   # flat surface reference
 
-        self._Rsflat = self._Rgl * self._flat
         # flat surface total incoming shortwave radiation
+        self._Rsflat = self._Rgl * self._flat
 
+        # flat surface Net incoming shortwave radiation
         self._Rnetflat = ((1 - self._A) * (1 - 0.65 * (self._N ** 2)) *
                           self._Rsflat)
-        # flat surface Net incoming shortwave radiation
 
         self._sloped = (np.cos(self._slope) * np.sin(self._alpha) +
                         np.sin(self._slope) * np.cos(self._alpha) *
                         np.cos(self._phisun - self._aspect))
-
+        # Ratio of cosine of solar incidence angle of sloped surface to that
+        # of a flat surface
         self._radf = self._sloped / self._flat
 
         self._radf[self._radf <= 0.] = 0.
         self._radf[self._radf > 6.] = 6.
 
-        self._Rs = self._Rsflat * self._radf
         # Sloped surface Toatl Incoming Shortwave Radn
+        self._Rs = self._Rsflat * self._radf
         self._Rnet = self._Rnetflat * self._radf
 
         self._cell_values['radiation__ratio_to_flat_surface'] = self._radf

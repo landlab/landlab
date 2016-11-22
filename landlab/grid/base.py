@@ -190,6 +190,8 @@ store data values that are associated with the different types grid elements
 data field *groups* are added to the `ModelGrid` that provide containers to
 put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
+There is an additional group at_grid that can store arrays of length one
+intended as a place to store varibles global to the grid.
 
 To access these groups, use the same methods as accessing groups with
 `~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
@@ -205,6 +207,7 @@ itself that provide access to the values groups:
     ~landlab.grid.base.ModelGrid.at_face
     ~landlab.grid.base.ModelGrid.at_patch
     ~landlab.grid.base.ModelGrid.at_corner
+    ~landlab.grid.base.ModelGrid.at_grid
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -414,8 +417,8 @@ Use the groups attribute to see the group names.
 >>> grid = RasterModelGrid((3, 3))
 >>> groups = list(grid.groups)
 >>> groups.sort()
->>> groups # doctest: +NORMALIZE_WHITESPACE
-['cell', 'corner', 'face', 'link', 'node', 'patch']
+>>> groups
+['cell', 'corner', 'face', 'grid', 'link', 'node', 'patch']
 
 Create Field Arrays
 +++++++++++++++++++
@@ -781,7 +784,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         Values at links.
     at_face : dict-like
         Values at faces.
-
+    at_grid: dict-like
+        Global values
     Other Parameters
     ----------------
     axis_name : tuple, optional
@@ -829,6 +833,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         for loc in _SIZED_FIELDS:
             size = self.number_of_elements(loc)
             ModelDataFields.new_field_location(self, loc, size=size)
+        ModelDataFields.new_field_location(self, 'grid', size=1)
         # for loc in _UNSIZED_FIELDS:
         #     ModelDataFields.new_field_location(self, loc, size=None)
         ModelDataFields.set_default_group(self, 'node')

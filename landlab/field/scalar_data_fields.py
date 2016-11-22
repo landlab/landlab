@@ -403,7 +403,8 @@ class ScalarDataFields(dict):
             raise FieldError('{name}: already exists'. format(name=name))
 
         value_array = np.asarray(value_array)
-        value_array.shape = (-1, )
+        if value_array.ndim > 0:
+            value_array.shape = (-1, )
 
         if copy:
             value_array = value_array.copy()
