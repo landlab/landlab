@@ -15,7 +15,7 @@ from __future__ import print_function
 
 import landlab
 import warnings
-from landlab.components.flow_routing import flow_direction_DN
+from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError, Component
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY

@@ -1,5 +1,5 @@
 from landlab.components.flow_director import FlowDirectorToOne
-from landlab.components.flow_routing import flow_direction_DN
+from landlab.components.flow_director import flow_direction_DN
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
@@ -10,7 +10,7 @@ class FlowDirectorD4(FlowDirectorToOne):
     _name = 'FlowDirectorD4'
 
     def __init__(self, grid, surface='topographic_elevation'):
-        super(FlowDirectorD4, self).__init__(grid, surface)
+        super(FlowDirectorD4, self).__init__(self, grid, surface)
         self.method = 'D4'
        
     def run_one_step(self):   
