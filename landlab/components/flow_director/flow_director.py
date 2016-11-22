@@ -3,9 +3,15 @@ from __future__ import print_function
 
 
 #from landlab.components.flow_routing import flow_direction_DN
-from landlab import Component
-from landlab import RasterModelGrid
+import landlab
+import warnings
+
+from landlab import FieldError, Component
+from landlab import ModelParameterDictionary
+from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
+import numpy
+
 
 class FlowDirector(Component):
 

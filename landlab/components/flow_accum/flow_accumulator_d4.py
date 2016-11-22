@@ -1,4 +1,4 @@
-from landlab.components.flow_accum import FlowAccumulator 
+from landlab.components.flow_accum.flow_accumulator import FlowAccumulator 
 from landlab.components.flow_director import FlowDirectorD4 as FlowDirector
 from landlab.components.flow_accum import flow_accum_bw 
 
@@ -19,7 +19,7 @@ class FlowAccumulatorD4(FlowAccumulator):
         self.method = 'D4'
         
         # save 
-        self.fd = FlowDirector(self._grid, surface)
+        self.fd = FlowDirector(self._grid, self.elevs)
         self.df = depression_finder
         
     def run_one_step(self):

@@ -1,5 +1,5 @@
 from landlab import FieldError
-from landlab.components.flow_director import FlowDirector
+from landlab.components.flow_director.flow_director import FlowDirector
 import numpy
 
 class FlowDirectorToOne(FlowDirector):

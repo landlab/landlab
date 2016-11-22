@@ -4,12 +4,11 @@ from __future__ import print_function
 
 import warnings
 
+import landlab
 from landlab import FieldError, Component
-from landlab import RasterModelGrid  # for type tests
+from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
-
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-
 import numpy as np
 
 
@@ -82,7 +81,7 @@ class FlowAccumulator(Component):
 
    
     @use_field_name_or_array('node')
-    def __init__(self, grid, surface, runoff_rate=None): 
+    def __init__(self, grid, surface, runoff_rate=None):
         
         # We keep a local reference to the grid
         self._grid = grid
@@ -109,28 +108,6 @@ class FlowAccumulator(Component):
                 pass
             else:
                 assert runoff_rate.size == grid.number_of_nodes
-        
-        
-        # make sure the surface that will be routed/accumulated is present
-        # surface must either be a field at node or be array like of size 
-        # number_of nodes
-        
-#        if surface!='topographic__elevation' and 'topographic__elevation' not in grid.at_node:
-#            print("FlowAccumulator found both the field " +
-#                  "topographic__elevation' and a provided string or " +
-#                  "array for the surface argument. THE FIELD "+
-#                  "topographic__elevation WILL NOT BE USED FOR FLOW " +
-#                  "DIRECTION OR ACCUMULATION! THE FIELD CODE OR ARRAY" +
-#                  "GIVEN IN surface WILL BE USED INSTEAD.", file=sys.stderr)
-#                   
-#        if surface is str:
-#            # note that this will test grid.at_node['topographic__elevation']
-#            # if user doesn't supply a value for surface. 
-#            grid.at_node[surface]
-#        else:
-#            # or be a number_of_nodes sized array
-#            assert surface.size == grid.number_of_nodes
-            
             
         # test for water__unit_flux_in
         try:
