@@ -51,7 +51,10 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, unit_flux_at_links)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-
+    >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
+    >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
+            0.  ,  0.  ,  0.  ])
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
@@ -73,7 +76,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     return out
 
 
-@use_field_name_or_array('links')
+@use_field_name_or_array('link')
 def calc_flux_div_at_cell(grid, unit_flux, out=None):
     """Calculate divergence of link-based fluxes at cells.
 
@@ -105,6 +108,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.grid.divergence import calc_flux_div_at_cell
     >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> import numpy as np
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -116,15 +120,16 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_flux_div_at_cell(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([ 1.64,  0.94])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> calc_flux_div_at_cell(rg, unit_flux_at_faces)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([ 1.14,  0.22])
+    >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
+    >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
+    array([ 1.64,  0.94])
             
     Notes
     -----
@@ -141,11 +146,11 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
         raise ValueError('output buffer length mismatch with number of cells')
 
     if unit_flux.size == grid.number_of_links:
-        out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
+        out = _calc_net_face_flux_at_cell(grid, 
                                     unit_flux[grid.link_at_face]) \
                                     / grid.area_of_cell
     elif unit_flux.size == grid.number_of_faces:
-        out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, unit_flux) \
+        out = _calc_net_face_flux_at_cell(grid, unit_flux) \
                                 / grid.area_of_cell
 
     return out
