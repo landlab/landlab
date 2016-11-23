@@ -214,9 +214,7 @@ class use_field_name_or_array(object):
                 vals = grid[self._at][vals]
             else:
                 vals = np.asarray(vals).flatten()
-                if vals.size != grid.number_of_elements(self._at):
-                    raise ValueError('Element Size Mismatch')
-
+    
             return func(grid, vals, *args, **kwds)
         return _wrapped
 
