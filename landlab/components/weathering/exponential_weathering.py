@@ -11,11 +11,11 @@ import numpy as np
 
 
 
-class ExponentialWeathering(Component):
+class ExponentialWeatherer(Component):
     
     """
     This component implements exponential weathering of bedrock on hillslopes. 
-    Uses exponential soil production function in the style of Heimsath 1997.
+    Uses exponential soil production function in the style of Ahnert (1976).
         
     Parameters
     ----------
@@ -32,78 +32,76 @@ class ExponentialWeathering(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import ExponentialWeathering
+    >>> from landlab.components import ExponentialWeatherer
     >>> mg = RasterModelGrid((5, 5))
     >>> soilz = mg.add_zeros('node', 'soil__depth')
-    >>> soilrate = mg.add_ones('node', 'weathering__rate')
-    >>> expw = ExponentialWeathering(mg)
-    >>> expw.exponentialweather()
-    >>> np.allclose(mg.at_node['weathering__rate'], 1.)
+    >>> soilrate = mg.add_ones('node', 'soil_production__rate')
+    >>> expw = ExponentialWeatherer(mg)
+    >>> expw.calc_soil_prod_rate()
+    >>> np.allclose(mg.at_node['soil_production__rate'], 1.)
     True
     """
 
-    _name = 'ExponentialWeathering'
+    _name = 'ExponentialWeatherer'
 
     _input_var_names = (
         'soil__depth',
     )
     
     _output_var_names = (
-        'weathering__rate',
+        'soil_production__rate',
     )
         
     _var_units = {
         'soil__depth' : 'm',
-        'weathering__rate' : 'm/yr',
+        'soil_production__rate' : 'm/yr',
     }
     
     _var_mapping = {
         'soil__depth' : 'node',
-        'weathering__rate' : 'node',
+        'soil_production__rate' : 'node',
         
     }
         
     _var_doc = {
         'soil__depth':
                 'depth of soil/weather bedrock',
-        'weathering__rate':
+        'soil_production__rate':
                 'rate of soil production at nodes',
 
     }
 
-    def __init__(self, grid, wnot=1, wstar=1, **kwds):
+    def __init__(self, grid, max_soil_production_rate=1.0,
+                 soil_production_decay_depth=1.0, **kwds):
         
-                
         #Store grid and parameters
         self._grid = grid
-        self.wstar = wstar
-        self.wnot = wnot
-        
-        #create fields
-    
-        
-        #soil depth
+        self.wstar = soil_production_decay_depth
+        self.w0 = max_soil_production_rate
+
+        # Create fields:  
+        # soil depth
         if 'soil__depth' in grid.at_node:
             self.depth = grid.at_node['soil__depth']
         else:
-            self.depth = grid.add_zeros('node','soil__depth')
+            self.depth = grid.add_zeros('node', 'soil__depth')
 
-            
-        #weathering rate
-        if 'weathering__rate' in grid.at_node:
-            self.weather = grid.at_node['weathering__rate']
+        # weathering rate
+        if 'soil_production__rate' in grid.at_node:
+            self.soil_prod_rate = grid.at_node['soil_production__rate']
         else:
-            self.weather = grid.add_zeros('node','weathering__rate')
+            self.soil_prod_rate = grid.add_zeros('node',
+                                                 'soil_production__rate')
 
+        # Why not just use core nodes?
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
-        
+
     
-    def exponentialweather(self, current_time=0.0, **kwds):
-        """Calculate soil flux for a time period 'dt'.
+    def calc_soil_prod_rate(self, **kwds):
+        """Calculate soil production rate.
         """
         
-        #weather
-        self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
-
-        
-        
+        # apply exponential function
+        self.soil_prod_rate[self._active_nodes] = (
+                self.w0
+                * np.exp(-self.depth[self._active_nodes] / self.wstar))
