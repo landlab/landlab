@@ -55,6 +55,8 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
+            
+            
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
