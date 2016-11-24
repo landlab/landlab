@@ -59,7 +59,7 @@ def calc_grad_at_link(grid, node_values, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> calc_grad_at_link(hg, z)  # there are 11 faces
@@ -130,7 +130,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = grid.empty(centering='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
     return np.divide(node_values[grid._activelink_tonode] -
                      node_values[grid._activelink_fromnode],
                      grid.length_of_link[grid.active_links], out=out)
@@ -175,7 +175,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> calculate_gradients_at_faces(hg, z)  # there are 11 faces
@@ -289,7 +289,7 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = grid.empty(at='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
     node_values = np.asarray(node_values)
     return np.subtract(node_values[grid._activelink_tonode],
                        node_values[grid._activelink_fromnode], out=out)

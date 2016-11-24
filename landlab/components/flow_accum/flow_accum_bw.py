@@ -216,11 +216,10 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
-    len_bl_nodes = baselevel_nodes.size
-    s = numpy.zeros(D.size, dtype=int)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
         add_it(k) #don't think this is a bottleneck, so no C++
+
     return dstack.s
 
 
@@ -290,7 +289,6 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    num_pts = len(s)
     for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]

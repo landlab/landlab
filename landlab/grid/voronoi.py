@@ -538,18 +538,18 @@ class VoronoiDelaunayGrid(ModelGrid):
     25
 
     >>> import numpy as np
-    >>> x = [0, 0, 0, 0,
-    ...      1, 1, 1, 1,
-    ...      2, 2, 2, 2,]
+    >>> x = [0, 0.1, 0.2, 0.3,
+    ...      1, 1.1, 1.2, 1.3,
+    ...      2, 2.1, 2.2, 2.3,]
     >>> y = [0, 1, 2, 3,
     ...      0, 1, 2, 3,
     ...      0, 1, 2, 3]
     >>> vmg = VoronoiDelaunayGrid(x, y)
     >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  1.,  2.,
-            0.,  1.,  2.,
-            0.,  1.,  2.,
-            0.,  1.,  2.])
+    array([ 0. ,  1. ,  2. ,
+            0.1,  1.1,  2.1,
+            0.2,  1.2,  2.2,
+            0.3,  1.3,  2.3])
     >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  0.,
             1.,  1.,  1.,

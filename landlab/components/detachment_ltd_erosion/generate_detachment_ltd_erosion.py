@@ -6,6 +6,11 @@ order, links to flow receiver and flow receiver fields. Instead, takes in
 the discharge values on NODES calculated by the OverlandFlow class and
 erodes the landscape in response to the output discharge.
 
+As of right now, this component relies on the OverlandFlow component 
+for stability. There are no stability criteria implemented in this class. 
+To ensure model stability, use StreamPowerEroder or FastscapeEroder
+components instead. 
+
 .. codeauthor:: Jordan Adams
 
 Examples
@@ -198,6 +203,8 @@ class DetachmentLtdErosion(Component):
         S_to_n = np.power(S, self.n)
 
         self.I = (self.K * (Q_to_m * S_to_n - self.entraiment_threshold))
+
+        self.I[self.I < 0.0] = 0.0
 
         self.dzdt = (self.uplift_rate - self.I)
 
