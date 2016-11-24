@@ -280,9 +280,9 @@ class VegCA(Component):
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS
         bare_cells = np.where(self._VegType == BARE)[0]
         n_bare = len(bare_cells)
-        first_ring = self.grid.get_looped_cell_neighbor_list(bare_cells)
+        first_ring = self.grid.looped_neighbors_at_cell[bare_cells]
         second_ring =                                                   \
-            self.grid.get_second_ring_looped_cell_neighbor_list(bare_cells)
+            self.grid.second_ring_looped_neighbors_at_cell[bare_cells]
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
         Sh_WS_fr = WS_PFT(veg_type_fr, SHRUB, self._live_index[first_ring])

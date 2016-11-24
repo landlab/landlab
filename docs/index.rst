@@ -123,6 +123,7 @@ Flow routing
    :maxdepth: 4
 
    landlab.components.flow_routing
+   landlab.components.sink_fill
 
 Shallow water hydrodynamics
 ---------------------------

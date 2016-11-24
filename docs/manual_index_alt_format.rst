@@ -3,7 +3,7 @@ An index for key functions in the Landlab grid
 ==============================================
 
 This document is designed to present a more ordered list of methods available in
-the Landlab grids. It is broken down primarily into functional groups according to 
+the Landlab grids. It is broken down primarily into functional groups according to
 the type of task you may want to achieve:
 
 * `Grid creation`_
@@ -19,7 +19,7 @@ the type of task you may want to achieve:
 
 At the moment, the raster grid is much better developed than the Voronoi grid (and its
 derived unstructured grids). Most calls to ModelGrid methods below will work for such
-unstructured grids, but some may result in errors. Please report such missing 
+unstructured grids, but some may result in errors. Please report such missing
 functionality through the github page if you need it urgently!
 
 
@@ -72,15 +72,15 @@ Access data in the grid fields
 ==============================
 
 *Once you've created the fields, these methods can be used to access and modify the data
-stored in them. Many other methods are available, see the docstring of base.py.* 
+stored in them. Many other methods are available, see the docstring of base.py.*
 
     **grid.at_node['my_data_name']**
-    
+
     **grid['node']['my_data_name']**
-    
+
     **grid.at_node.keys()**
         Get the names of the data fields already stored on nodes in the grid.
-    
+
 (see also entry for ModelGrid.create_node_array_zeros, and the docstrings of
 the base.py module.)
 
@@ -125,8 +125,7 @@ of them are properties, so are accessed like grid.my_property, not grid.my_metho
 
 .. automethod:: landlab.grid.raster.RasterModelGrid.d8_active_links
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.dx
-.. automethod:: landlab.grid.raster.RasterModelGrid.get_grid_xdimension
-.. automethod:: landlab.grid.raster.RasterModelGrid.get_grid_ydimension
+.. autoattribute:: landlab.grid.raster.RasterModelGrid.extent
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.link_length
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.node_spacing
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.number_of_interior_nodes
@@ -134,7 +133,7 @@ of them are properties, so are accessed like grid.my_property, not grid.my_metho
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.number_of_node_columns
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.number_of_node_rows
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.shape
-                           
+
 
 Access the grid geometry
 ========================
@@ -155,7 +154,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.base.ModelGrid.core_cell_index_at_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.core_nodes
 .. autoattribute:: landlab.grid.base.ModelGrid.face_index_at_links
-.. automethod:: landlab.grid.base.ModelGrid.get_active_link_connecting_node_pair
+.. automethod:: landlab.grid.base.ModelGrid.active_link_connecting_node_pair
 .. autoattribute:: landlab.grid.base.ModelGrid.link_length
 .. automethod:: landlab.grid.base.ModelGrid.is_boundary
 .. automethod:: landlab.grid.base.ModelGrid.node_axis_coordinates
@@ -172,7 +171,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 .. autoattribute:: landlab.grid.raster.RasterModelGrid.corner_nodes
 .. automethod:: landlab.grid.raster.RasterModelGrid.create_diagonal_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.create_neighbor_list
-.. automethod:: landlab.grid.raster.RasterModelGrid.get_active_link_connecting_node_pair
+.. automethod:: landlab.grid.raster.RasterModelGrid.active_link_connecting_node_pair
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_diagonal_list
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_face_connecting_cell_pair
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_link_connecting_node_pair
@@ -184,7 +183,7 @@ open/closed; interior/perimeter), their lengths and sizes, and their positions.*
 Link coordinates and distances to nodes
 =======================================
 
-*These methods are focused on the specifically spatial relationships between grid 
+*These methods are focused on the specifically spatial relationships between grid
 elements. e.g., Where in x,y space is my element? How far is it from one node to another?*
 
 .. automethod:: landlab.grid.base.ModelGrid.build_all_node_distances_azimuths_maps
@@ -196,7 +195,7 @@ elements. e.g., Where in x,y space is my element? How far is it from one node to
 .. automethod:: landlab.grid.raster.RasterModelGrid.find_nearest_node
 .. automethod:: landlab.grid.raster.RasterModelGrid.get_nodes_around_point
 .. automethod:: landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
-.. automethod:: landlab.grid.raster.RasterModelGrid.is_point_on_grid                
+.. automethod:: landlab.grid.raster.RasterModelGrid.is_point_on_grid
 
 
 Derive offsets, gradients, flux divergences, and steepest descents
@@ -211,19 +210,19 @@ data defined on the grid.*
 .. automethod:: landlab.grid.base.ModelGrid.calculate_flux_divergence_at_nodes
 .. automethod:: landlab.grid.base.ModelGrid.calculate_gradients_at_links
 .. automethod:: landlab.grid.base.ModelGrid.calculate_gradients_at_active_links
-    
+
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_flux_divergence_at_nodes
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_gradient_across_cell_faces
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_gradient_across_cell_corners
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_steepest_descent_across_adjacent_cells
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_steepest_descent_across_cell_corners
 .. automethod:: landlab.grid.raster.RasterModelGrid.calculate_steepest_descent_across_cell_faces
-                
-                
+
+
 Control boundary conditions
 ===========================
 
-*These methods allow explicit control of the boundary nodes in the grid, and their 
+*These methods allow explicit control of the boundary nodes in the grid, and their
 properties.*
 *Note that boundary condition handling may change somewhat in future development, in
 particular improving functionality for Voronoi grids and rasters with non-perimeter
@@ -245,12 +244,12 @@ boundary nodes.*
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
 .. automethod:: landlab.grid.raster.RasterModelGrid.set_looped_boundaries
 
-                
+
 Manipulate arrays for plotting and display
 ==========================================
 
 *These methods are intended to make plotting up visualizations of the grid easier.
-NB: these slope and aspect methods were devised for display purposes, and not 
+NB: these slope and aspect methods were devised for display purposes, and not
 intended or tested for quantitative use. But if you wish to explore their uses for such,
 have at it!*
 
