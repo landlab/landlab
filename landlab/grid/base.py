@@ -3437,7 +3437,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._cell_area_at_node
 
     @deprecated(use='no replacement', version=1.0)
-    def get_active_link_connecting_node_pair(self, node1, node2):
+    def active_link_connecting_node_pair(self, node1, node2):
         """Get the active link that connects a pair of nodes.
 
         Returns the ID number of the active link that connects the given pair
@@ -3450,7 +3450,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> rmg.get_active_link_connecting_node_pair(8, 3)
+        >>> rmg.active_link_connecting_node_pair(8, 3)
         array([2])
 
         LLCATS: DEPR LINF NINF CONN
@@ -4705,17 +4705,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         self._node_status[nodes] = CLOSED_BOUNDARY
         self._update_links_nodes_cells_to_new_BCs()
-
-    @deprecated(use='calc_distances_of_nodes_to_point', version=1.0)
-    def get_distances_of_nodes_to_point(self, coord, get_az=None,
-                                        node_subset=None,
-                                        out_distance=None, out_azimuth=None):
-        """
-        LLCATS: DEPR NINF MEAS
-        """
-        return self.calc_distances_of_nodes_to_point(
-            coord, get_az=get_az, node_subset=node_subset,
-            out_distance=out_distance, out_azimuth=out_azimuth)
 
     def calc_distances_of_nodes_to_point(self, coord, get_az=None,
                                          node_subset=None,

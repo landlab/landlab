@@ -29,7 +29,7 @@ is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
 
 A couple notes about creating a new version:
 
-1. landlab follows `Symantic Versioning <http://semver.org/>`_
+1. landlab follows `Semantic Versioning <http://semver.org/>`_
    rules for version assignment and formatting. Please stick to them.
 
 2. The version given in the tag name must match that in
@@ -76,14 +76,14 @@ The Release Checklist
 
       $ git checkout release
 2. Make sure all the version strings match and use
-   `Symantic Versioning <http://semver.org/>`_.
+   `Semantic Versioning <http://semver.org/>`_.
 
    *  ``landlab/__init__.py``
    *  ``.conda-recipe/meta.yaml``
 3. Commit your changes.
 4. Create a tag for this release that matches the string in ``__init__.py``
    but that starts with the letter ``v``.
-  
+
    .. code-block:: bash
 
       $ git tag v0.1.1
@@ -107,5 +107,5 @@ Helpful links
    Travis builds of landlab.
 5. `landlab on Anaconda <https://anaconda.org/landlab/landlab>`_: The
    conda packages for landlab releases.
-6. `Symantic Versioning <http://semver.org/>`_: Rules for assigning and
+6. `Semantic Versioning <http://semver.org/>`_: Rules for assigning and
    formatting versions.
