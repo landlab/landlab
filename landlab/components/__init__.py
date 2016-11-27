@@ -14,7 +14,7 @@ from .soil_moisture import SoilMoisture
 from .vegetation_dynamics import Vegetation
 from .sink_fill import SinkFiller
 from .steepness_index import SteepnessFinder
-from .stream_power import StreamPowerEroder, FastscapeEroder, SedDepEroder
+from .stream_power import StreamPowerEroder, FastscapeEroder, StreamPowerSmoothThresholdEroder, SedDepEroder
 from .uniform_precip import PrecipitationDistribution
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
