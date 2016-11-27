@@ -236,7 +236,7 @@ class PotentialEvapotranspiration(Component):
                Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350., **kwds):
         """Update fields with current conditions.
 
-        Parameters:
+        Parameters
         ----------
         current_time: float, required only for 'Cosine' method
             Current time (Years)

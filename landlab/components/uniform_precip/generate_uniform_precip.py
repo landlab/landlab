@@ -370,8 +370,8 @@ class PrecipitationDistribution(Component):
         (2) when we use a value other than the default, we get a different
             sequence
 
-        Example
-        -------
+        Examples
+        --------
         >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
         ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
         ...     total_t = 100.0, delta_t = 1.)

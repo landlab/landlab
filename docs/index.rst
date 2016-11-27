@@ -12,7 +12,7 @@ Find Landlab's
 Landlab Reference Manual and API Documentation
 ==============================================
 
-A guide to Landlab's classes and code. 
+A guide to Landlab's classes and code.
 
 Grids
 =====

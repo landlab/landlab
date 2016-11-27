@@ -10,10 +10,10 @@ import numpy as np
 from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
 class DepthDependentDiffuser(Component):
-    
+
     """
     This component implements a depth and slope dependent linear diffusion rule
-    in the style of Johnstone and Hilley (2014). 
+    in the style of Johnstone and Hilley (2014).
 
     Parameters
     ----------
@@ -82,15 +82,15 @@ class DepthDependentDiffuser(Component):
         'soil__depth',
         'soil_production__rate',
     )
-    
+
     _output_var_names = (
         'soil__flux',
         'topographic__slope',
         'topographic__elevation',
         'bedrock__elevation',
-        'soil__depth',   
+        'soil__depth',
     )
-        
+
     _var_units = {
         'topographic__elevation' : 'm',
         'topographic__slope' : 'm/m',
@@ -99,7 +99,7 @@ class DepthDependentDiffuser(Component):
         'soil_production__rate' : 'm/yr',
         'bedrock__elevation' : 'm',
     }
-    
+
     _var_mapping = {
         'topographic__elevation' : 'node',
         'topographic__slope' : 'link',
@@ -108,7 +108,7 @@ class DepthDependentDiffuser(Component):
         'soil_production__rate' : 'node',
         'bedrock__elevation' :'node',
     }
-        
+
     _var_doc = {
         'topographic__elevation':
                 'elevation of the ground surface',
@@ -117,7 +117,7 @@ class DepthDependentDiffuser(Component):
         'soil__depth':
                 'depth of soil/weather bedrock',
         'soil__flux':
-                'flux of soil in direction of link', 
+                'flux of soil in direction of link',
         'soil_production__rate':
                 'rate of soil production at nodes',
         'bedrock__elevation':
@@ -127,7 +127,7 @@ class DepthDependentDiffuser(Component):
     def __init__(self,grid, soil_creep_efficiency=1.0,
                  soil_transport_decay_depth=1.0, **kwds):
         """Initialize the DepthDependentDiffuser."""
-       
+
         # Store grid and parameters
         self._grid = grid
         self._kd = soil_creep_efficiency * soil_transport_decay_depth
@@ -139,32 +139,32 @@ class DepthDependentDiffuser(Component):
             self.elev = self.grid.at_node['topographic__elevation']
         else:
             self.elev = self.grid.add_zeros('node', 'topographic__elevation')
-        
+
         # slope
         if 'topographic__slope' in self.grid.at_link:
             self.slope = self.grid.at_link['topographic__slope']
         else:
             self.slope = self.grid.add_zeros('link', 'topographic__slope')
-        
+
         # soil depth
         if 'soil__depth' in self.grid.at_node:
             self.depth = self.grid.at_node['soil__depth']
         else:
             self.depth = self.grid.add_zeros('node', 'soil__depth')
-        
+
         # soil flux
         if 'soil__flux' in self.grid.at_link:
             self.flux = self.grid.at_link['soil__flux']
         else:
             self.flux=self.grid.add_zeros('link', 'soil__flux')
-            
+
         # weathering rate
         if 'soil_production__rate' in self.grid.at_node:
             self.soil_prod_rate = self.grid.at_node['soil_production__rate']
         else:
             self.soil_prod_rate = self.grid.add_zeros('node',
                                                       'soil_production__rate')
-            
+
         # bedrock elevation
         if 'bedrock__elevation' in self.grid.at_node:
             self.bedrock = self.grid.at_node['bedrock__elevation']
@@ -177,7 +177,7 @@ class DepthDependentDiffuser(Component):
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
 
-        Parameters:
+        Parameters
         ----------
 
         dt: float (time)
@@ -199,7 +199,7 @@ class DepthDependentDiffuser(Component):
 
         #Calculate flux
         self.flux[:] = (-self._kd
-                        * slope 
+                        * slope
                         * (1.0 - np.exp(-H_link
                                         / self.soil_transport_decay_depth)))
 
@@ -212,7 +212,7 @@ class DepthDependentDiffuser(Component):
 
         #Calculate soil depth at nodes
         self.depth[self._active_nodes] += dhdt[self._active_nodes] * dt
-        
+
         #prevent negative soil thickness
         self.depth[self.depth < 0.0] = 0.0
 
