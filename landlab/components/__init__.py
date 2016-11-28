@@ -35,7 +35,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
-	      ExponentialWeatherer, DepthDependentDiffuser]
+	      ExponentialWeatherer, DepthDependentDiffuser,
 	      CubicNonLinearDiffuser ]
 
 
