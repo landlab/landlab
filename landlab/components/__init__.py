@@ -20,12 +20,8 @@ from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
 from .drainage_density import DrainageDensity
-<<<<<<< HEAD
-from .weathering import ExponentialWeathering
-=======
 from .fire_generator import FireGenerator
 from .weathering import ExponentialWeatherer
->>>>>>> master
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .flow_accum import FlowAccumulatorD4
 from .flow_director import FlowDirectorD4
@@ -40,14 +36,11 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
-<<<<<<< HEAD
-              ExponentialWeathering, DepthDependentDiffuser,
+              ExponentialWeatherer, DepthDependentDiffuser,
               FlowAccumulatorD4, 
               FlowDirectorD4
               ]
-=======
-	      ExponentialWeatherer, DepthDependentDiffuser]
->>>>>>> master
+
 
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
