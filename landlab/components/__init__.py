@@ -20,7 +20,6 @@ from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
 from .drainage_density import DrainageDensity
-from .fire_generator import FireGenerator
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .flow_accum import FlowAccumulatorD4
