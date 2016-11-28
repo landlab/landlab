@@ -38,6 +38,17 @@ class StreamPowerEroder(Component):
     DEJH Sept 2013, major modifications Sept 14 and May 16. This component
     now wraps Fastscape-style functionality under the hood.
 
+    Note that although the Braun-Willett (2013) scheme that underlies this
+    component is nominally implicit, and will reach a numerically-correct
+    solution under topographic steady state regardless of timestep length, the
+    accuracy of transient solutions is *not* timestep independent (see
+    Braun & Willett 2013, Appendix B for further details).
+    Although the scheme remains significantly more robust and permits longer
+    timesteps than a traditional explicit solver under such conditions, it
+    is still possible to create numerical instability through use of too long
+    a timestep while using this component. The user is cautioned to check their
+    implementation is behaving stably before fully trusting it.
+
     NB: If you want spatially or temporally variable runoff, pass the
     runoff values at each pixel to the flow router using the input argument
     *use_Q*.
@@ -616,19 +627,19 @@ class StreamPowerEroder(Component):
         # self.stream_power_erosion[active_nodes] = stream_power_active_nodes
         # grid.at_node['stream_power_erosion'][:] = self.stream_power_erosion
         # erosion_increment = (self.stream_power_erosion - self.sp_crit).clip(0.)
-        # 
+        #
         # # this prevents any node from incising below any node downstream of it
         # # we have to go in upstream order in case our rate is so big we impinge
         # # on baselevels > 1 node away
-        # 
+        #
         # elev_dstr = node_z[flow_receiver]
         # # ^we substract erosion_increment[flow_receiver] in the loop, as it
         # # can update
-        # 
+        #
         # method = 'cython'
         # if method == 'cython':
         #     from .cfuncs import erode_avoiding_pits
-        # 
+        #
         #     erode_avoiding_pits(node_order_upstream, flow_receiver, node_z,
         #                         erosion_increment)
         # else:
@@ -646,7 +657,7 @@ class StreamPowerEroder(Component):
         # # clip the erosion increments one more time to remove regatives
         # # introduced by any pit filling algorithms or the above procedure:
         # node_z -= erosion_increment.clip(0.)
-        # 
+        #
         # self._grid = grid
 
         return grid, node_z, self.stream_power_erosion

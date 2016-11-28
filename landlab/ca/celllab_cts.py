@@ -968,7 +968,8 @@ class CellLabCTSModel(object):
         if _DEBUG:
             print()
             print('py do_transition() for link',event.link,'time',event.time, ' cur time ', current_time)
-
+            print(np.count_nonzero(self.node_state != 0))
+            print(self.link_state[event.link])
         # We'll process the event if its update time matches the one we have
         # recorded for the link in question. If not, it means that the link has
         # changed state since the event was pushed onto the event queue, and
@@ -980,9 +981,18 @@ class CellLabCTSModel(object):
 
             tail_node = self.grid.node_at_link_tail[event.link]
             head_node = self.grid.node_at_link_head[event.link]
+            #DEBUG
+            if plot_each_transition:
+                print(self.node_state[tail_node])
+                print(self.node_state[head_node])
+                print(self.link_orientation[event.link])
             tail_changed, head_changed = self.update_node_states(
                 tail_node, head_node, event.xn_to)
             self.update_link_state(event.link, event.xn_to, event.time)
+            if plot_each_transition:
+                print(self.node_state[tail_node])
+                print(self.node_state[head_node])
+                print(self.link_orientation[event.link])
 
             # Next, when the state of one of the link's nodes changes, we have
             # to update the states of the OTHER links attached to it. This
@@ -1069,21 +1079,21 @@ class CellLabCTSModel(object):
                     event.prop_update_fn(
                         self, tail_node, head_node, event.time)
 
-            if False and _DEBUG:
-                n = self.grid.number_of_nodes
-                for r in range(self.grid.number_of_node_rows):
-                    for c in range(self.grid.number_of_node_columns):
-                        n -= 1
-                        print('{0:.0f}'.format(self.node_state[n]), end=' ')
-                    print()
-                if self.propid is not None:
-                    print()
-                    n = self.grid.number_of_nodes
-                    for r in range(self.grid.number_of_node_rows):
-                        for c in range(self.grid.number_of_node_columns):
-                            n -= 1
-                            print('{0:2.0f}'.format(self.propid[n]), end=' ')
-                        print()
+#            if False and _DEBUG:
+#                n = self.grid.number_of_nodes
+#                for r in range(self.grid.number_of_node_rows):
+#                    for c in range(self.grid.number_of_node_columns):
+#                        n -= 1
+#                        print('{0:.0f}'.format(self.node_state[n]), end=' ')
+#                    print()
+#                if self.propid is not None:
+#                    print()
+#                    n = self.grid.number_of_nodes
+#                    for r in range(self.grid.number_of_node_rows):
+#                        for c in range(self.grid.number_of_node_columns):
+#                            n -= 1
+#                            print('{0:2.0f}'.format(self.propid[n]), end=' ')
+#                        print()
 
         elif _DEBUG:
             print('  event time is', event.time, 'but update time is',
