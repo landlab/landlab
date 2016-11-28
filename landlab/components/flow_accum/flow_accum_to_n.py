@@ -113,12 +113,12 @@ class _DrainageStack_to_n():
         True
         >>> ds.s[9]==9
         True        
-        >>> set([1, 7])-set(ds.s[2:4])
-        set([])
-        >>> set([2, 6])-set(ds.s[4:6])
-        set([])
-        >>> set([0, 3, 8])-set(ds.s[6:9])
-        set([])
+        >>> len(set([1, 7])-set(ds.s[2:4]))
+        0
+        >>> len(set([2, 6])-set(ds.s[4:6]))
+        0
+        >>> len(set([0, 3, 8])-set(ds.s[6:9]))
+        0
         
         """
     
@@ -361,12 +361,12 @@ def make_ordered_node_array_to_n(receiver_nodes, reciever_proportion, baselevel_
     True
     >>> s[9]==9
     True        
-    >>> set([1, 7])-set(s[2:4])
-    set([])
-    >>> set([2, 6])-set(s[4:6])
-    set([])
-    >>> set([0, 3, 8])-set(s[6:9])
-    set([])
+    >>> len(set([1, 7])-set(s[2:4]))
+    0
+    >>> len(set([2, 6])-set(s[4:6]))
+    0
+    >>> len(set([0, 3, 8])-set(s[6:9]))
+    0
         
     
     """
@@ -554,12 +554,12 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions, baselevel_nodes
     True
     >>> s[9]==9
     True        
-    >>> set([1, 7])-set(s[2:4])
-    set([])
-    >>> set([2, 6])-set(s[4:6])
-    set([])
-    >>> set([0, 3, 8])-set(s[6:9])
-    set([])
+    >>> len(set([1, 7])-set(s[2:4]))
+    0
+    >>> len(set([2, 6])-set(s[4:6]))
+    0
+    >>> len(set([0, 3, 8])-set(s[6:9]))
+    0
     """
 
 
