@@ -23,6 +23,7 @@ from .drainage_density import DrainageDensity
 from .fire_generator import FireGenerator
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
+from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
@@ -35,6 +36,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
 	      ExponentialWeatherer, DepthDependentDiffuser]
+	      CubicNonLinearDiffuser ]
 
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
