@@ -16,6 +16,30 @@ import numpy
 class FlowDirector(Component):
 
     """
+    Base class for calculating flow directions. 
+    
+    This component is not meant to be used directly in modeling efforts. 
+    Instead it has the functionality that all flow direction calculators need
+    
+    
+
+    The primary method of this class, :func:`run_one_step` is not implemented.
+
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    method : {'D8', 'D4'}, optional
+        Routing method ('D8' is the default). This keyword has no effect for a
+        Voronoi-based grid.
+    runoff_rate : float, optional (m/time)
+        If provided, sets the (spatially constant) runoff rate. If a spatially
+        variable runoff rate is desired, use the input field
+        'water__unit_flux_in'. If both the field and argument are present at
+        the time of initialization, runoff_rate will *overwrite* the field.
+        If neither are set, defaults to spatially constant unit input.
+    """
     """
 
     _name = 'FlowDirector'
