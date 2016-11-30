@@ -37,11 +37,12 @@ class FlowDirectorD8(FlowDirectorToOne):
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
-    array([0, 1, 2, 3, 1, 5, 6, 7, 8])
+    array([0, 1, 2, 3, 0, 5, 6, 7, 8])
     >>> mg.at_node['topographic__steepest_slope']
-    array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+    array([ 0.        ,  0.        ,  0.        ,  0.        ,  1.41421356,
+            0.        ,  0.        ,  0.        ,  0.        ])
     >>> mg.at_node['flow__link_to_receiver_node']
-    array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
+    array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
     >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
