@@ -13,6 +13,10 @@ from landlab.utils.decorators import use_field_name_or_array
 import numpy
 
 
+@use_field_name_or_array('node')
+def return_surface(grid, surface):
+    return(surface)
+
 class FlowDirector(Component):
 
     """
@@ -20,9 +24,8 @@ class FlowDirector(Component):
     
     This component is not meant to be used directly in modeling efforts. 
     Instead it has the functionality that all flow direction calculators need
+    to initialize and check boundary conditions.
     
-    
-
     The primary method of this class, :func:`run_one_step` is not implemented.
 
 
@@ -30,21 +33,26 @@ class FlowDirector(Component):
     ----------
     grid : ModelGrid
         A grid.
-    method : {'D8', 'D4'}, optional
-        Routing method ('D8' is the default). This keyword has no effect for a
-        Voronoi-based grid.
-    runoff_rate : float, optional (m/time)
-        If provided, sets the (spatially constant) runoff rate. If a spatially
-        variable runoff rate is desired, use the input field
-        'water__unit_flux_in'. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field.
-        If neither are set, defaults to spatially constant unit input.
+    surface : field name at node or array of length node
+        The surface to direct flow across.   
+        
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_director.flow_director import FlowDirector
+    >>> mg = RasterModelGrid((10,10), spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    >>> fd=FlowDirector(mg, 'topographic__elevation')
+    >>> fd.elevs
+    >>> print mg.at_node.keys()
+    >>> fd.run_one_step()
+
     """
-    """
+   
 
     _name = 'FlowDirector'
-
-    @use_field_name_or_array('node')
+    
     def __init__(self, grid, surface):
         # We keep a local reference to the grid
         self._grid = grid
@@ -58,10 +66,11 @@ class FlowDirector(Component):
         self.updated_boundary_conditions()
 
         # test input variables are present:
-        grid.at_node[surface]
+        self.surface=surface
+        surf=return_surface(grid, surface)
         
         # add elevations as a local variable.
-        self.elevs = surface        
+        self.elevs = surf        
 
     def updated_boundary_conditions(self):
         """

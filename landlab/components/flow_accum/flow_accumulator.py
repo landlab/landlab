@@ -12,6 +12,11 @@ from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy as np
 
 
+@use_field_name_or_array('node')
+def return_surface(grid, surface):
+    return(surface)
+
+
 class FlowAccumulator(Component):
 
     """
@@ -80,7 +85,6 @@ class FlowAccumulator(Component):
             }
 
    
-    @use_field_name_or_array('node')
     def __init__(self, grid, surface, runoff_rate=None):
         
         # We keep a local reference to the grid
@@ -150,7 +154,12 @@ class FlowAccumulator(Component):
 
 
         # save elevations and node_cell_area to class properites.         
-        self.elevs = surface
+        self.surface=surface
+        surf=return_surface(grid, surface)
+        
+        # add elevations as a local variable.
+        self.elevs = surf        
+        
         
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.        
