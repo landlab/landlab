@@ -32,15 +32,14 @@ class CubicNonLinearDiffuser(Component):
     >>> import decimal
     >>> from landlab import RasterModelGrid 
     >>> from landlab.plot.imshow import imshow_node_grid
-    >>> from cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = mg.add_zeros('node','topographic__elevation')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> initial_slope=1.0
     >>> leftmost_elev=1000.
     >>> z[:] = leftmost_elev
     >>> z[:] += (initial_slope * np.amax(mg.x_of_node)) - (initial_slope * mg.x_of_node)
-    >>> mg.set_closed_boundaries_at_grid_edges(False,True,False,True)
-    >>> cubicflux=CubicNonLinearDiffuser(mg,k=0.5,slope_crit=0.1)
+    >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+    >>> cubicflux=CubicNonLinearDiffuser(mg, k=0.5, slope_crit=0.1)
     >>> cubicflux.run_one_step(1.)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'],
