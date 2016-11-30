@@ -20,7 +20,58 @@ def return_surface(grid, surface):
 class FlowAccumulator(Component):
 
     """
-    FlowAccumulator Base class Description text here
+    Base class for accumulating flow. 
+    
+    This component is not meant to be used directly in modeling efforts. 
+    Instead it has the functionality that all flow accumulators need
+    to initialize, check boundary conditions, and create all necesary fields.
+    
+    Stores as ModelGrid fields:
+               
+        -  Node array of drainage areas: *'drainage_area'*
+        -  Node array of discharges: *'surface_water__discharge'*
+        -  Node array containing downstream-to-upstream ordered list of node
+           IDs: *'flow__upstream_node_order'*
+        -  Node array of all but the first element of the delta data structure: 
+            *flow__data_structure_delta*. The first element is always zero.
+        -  Link array of the D data structure: *flow__data_structure_D*
+
+    
+    
+    The primary method of this class, :func:`run_one_step` is not implemented.
+
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    surface : field name at node or array of length node
+        The surface to direct flow across.   
+    runoff_rate : float, optional (m/time)
+        If provided, sets the (spatially constant) runoff rate. If a spatially
+        variable runoff rate is desired, use the input field
+        'water__unit_flux_in'. If both the field and argument are present at
+        the time of initialization, runoff_rate will *overwrite* the field.
+        If neither are set, defaults to spatially constant unit input.  
+        
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
+    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    >>> fa=FlowAccumulator(mg, 'topographic__elevation')
+    >>> fa.elevs
+    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    >>> keys = ['drainage_area', 'flow__data_structure_D', 
+    ...         'water__unit_flux_in', 'surface_water__discharge', 
+    ...         'flow__upstream_node_order', 'topographic__elevation', 
+    ...         'flow__data_structure_delta']
+    >>> len(mg.at_node.keys()-keys)
+    0
+
+
     """
     _name = 'FlowAccumulator'
 
@@ -204,10 +255,13 @@ class FlowAccumulator(Component):
     
             
         try:
-            self.D_structure = grid.add_zeros('flow__data_structure_D', at='node',
+            # needs to be -1 
+            self.D_structure = grid.add_zeros('flow__data_structure_D', at='link',
                                                 dtype=int)
+            
+            
         except FieldError:
-            self.D_structure = grid.at_node['flow__data_structure_D']
+            self.D_structure = grid.at_link['flow__data_structure_D']
         
         
         self.nodes_not_in_stack = True 
@@ -231,7 +285,7 @@ class FlowAccumulator(Component):
             self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
             self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
-    def run_one_step():
+    def run_one_step(self):
         raise NotImplementedError('run_one_step()')
         
     @property

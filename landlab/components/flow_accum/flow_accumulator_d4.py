@@ -4,7 +4,66 @@ from landlab.components.flow_accum import flow_accum_bw
 
 class FlowAccumulatorD4(FlowAccumulator):
     """ 
-    Info here
+    Base class for accumulating flow. 
+    
+    This component is not meant to be used directly in modeling efforts. 
+    Instead it has the functionality that all flow accumulators need
+    to initialize, check boundary conditions, and create all necesary fields.
+
+    Stores as ModelGrid fields:
+               
+        -  Node array of drainage areas: *'drainage_area'*
+        -  Node array of discharges: *'surface_water__discharge'*
+        -  Node array containing downstream-to-upstream ordered list of node
+           IDs: *'flow__upstream_node_order'*
+        -  Node array of all but the first element of the delta data structure: 
+            *flow__data_structure_delta*. The first element is always zero.
+        -  Link array of the D data structure: *flow__data_structure_D*
+
+    The primary method of this class, :func:`run_one_step` is not implemented.
+
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    surface : field name at node or array of length node
+        The surface to direct flow across.   
+    runoff_rate : float, optional (m/time)
+        If provided, sets the (spatially constant) runoff rate. If a spatially
+        variable runoff rate is desired, use the input field
+        'water__unit_flux_in'. If both the field and argument are present at
+        the time of initialization, runoff_rate will *overwrite* the field.
+        If neither are set, defaults to spatially constant unit input.  
+        
+        
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulatorD4
+    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    >>> fa=FlowAccumulator(mg, 'topographic__elevation')
+    >>> fa.elevs
+    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> elev = np.array([0.,  0.,  0., 0.,
+    ...                  0., 21., 10., 0.,
+    ...                  0., 31., 20., 0.,
+    ...                  0., 32., 30., 0.,
+    ...                  0.,  0.,  0., 0.])
+    >>> _ = mg_2.add_field('node','topographic__elevation', elev)
+    >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> fa_2 = FlowAccumulatorD4(mg_2)
+    >>> fd_2.run_one_step()
+    >>> mg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    array([  0,  1,  2,  3,
+             4,  1,  2,  7,
+             8,  6,  6, 11,
+            12, 10, 10, 15,
+            16, 17, 18, 19])
+
     """
     
     _name = 'FlowAccumulatorD4'
@@ -44,8 +103,8 @@ class FlowAccumulatorD4(FlowAccumulator):
         
         #put theese in grid so that depression finder can use it.         
         # store the generated data in the grid
-        self._grid['node']['flow__data_structure_delta'][:] = delta
-        self._grid['node']['flow__data_structure_D'][:] = D
+        self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
+        self._grid['link']['flow__data_structure_D'][:len(D)] = D
         self._grid['node']['flow__upstream_node_order'][:] = s
         
         # step 3. Initialize and Run depression finder if passed 
@@ -56,8 +115,8 @@ class FlowAccumulatorD4(FlowAccumulator):
         # step 4. Accumulate (to one or to N depending on direction method. )
         a, q = flow_accum_bw.find_drainage_area_and_discharge(self._grid['node']['flow__upstream_node_order'], 
                                                               self._grid['node']['flow__receiver_node'], 
-                                                              node_cell_area=self.node_cell_area,
-                                                              runoff_rate=self._grid.at_node['water__unit_flux_in'])
+                                                              self.node_cell_area,
+                                                              self._grid.at_node['water__unit_flux_in'])
         
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
