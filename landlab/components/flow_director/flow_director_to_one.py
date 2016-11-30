@@ -122,7 +122,11 @@ class FlowDirectorToOne(FlowDirector):
 
     @property
     def link_to_flow_receiving_node(self):
-        return self._grid['node']['flow__link_to_receiver_node']    
+        return self._grid['node']['flow__link_to_receiver_node'] 
+        
+    @property
+    def sink_flag(self):
+        return self._grid['node']['flow__sink_flag'] 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

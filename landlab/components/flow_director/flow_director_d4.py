@@ -9,6 +9,24 @@ class FlowDirectorD4(FlowDirectorToOne):
      D4 and D8 methods. For Raster grids, the D4 method does not consider the
      diagonal connections between nodes. 
 
+     Stores as ModelGrid fields:
+              
+        -  Node array containing downstream-to-upstream ordered list of node
+           IDs: *'flow__upstream_node_order'*
+        -  Node array of drainage areas: *'drainage_area'*
+        -  Node array of discharges: *'surface_water__discharge'*
+        
+        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+           there is no receiver: *'flow__receiver_node'*
+        -  Node array of steepest downhill slopes:
+           *'topographic__steepest_slope'*
+        -  Node array containing ID of link that leads from each node to its
+           receiver, or BAD_INDEX_VALUE if no link:
+           *'flow__link_to_receiver_node'*
+        -  Boolean node array of all local lows: *'flow__sink_flag'*
+
+        
+        
     The primary method of this class is :func:`run_one_step`.
 
     Construction::

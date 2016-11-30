@@ -204,7 +204,7 @@ class FlowAccumulator(Component):
     
             
         try:
-            self.D_structure = grid.add_zeros('flow__data_structure_D', at='link',
+            self.D_structure = grid.add_zeros('flow__data_structure_D', at='node',
                                                 dtype=int)
         except FieldError:
             self.D_structure = grid.at_node['flow__data_structure_D']
@@ -245,6 +245,15 @@ class FlowAccumulator(Component):
     @property
     def node_order_upstream(self):
         return self._grid['node']['flow__upstream_node_order']
+        
+        
+    @property
+    def node_D_structure(self):
+        return self._grid['node']['flow__data_structure_D']
+
+    @property
+    def node_delta_structure(self):
+        return self._grid['node']['flow__data_structure_delta']
 
 if __name__ == '__main__':
     import doctest
