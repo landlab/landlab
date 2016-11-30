@@ -4,12 +4,68 @@ from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
 class FlowDirectorD4(FlowDirectorToOne):
-    """
+    """Single-path (steepest direction) flow direction finding by the D4 
+     method. Note that for Voronoi-based grids there is no difference between
+     D4 and D8 methods. For Raster grids, the D4 method does not consider the
+     diagonal connections between nodes. 
+
+    The primary method of this class is :func:`run_one_step`.
+
+    Construction::
+
+        FlowDirectorD4(grid, surface='topographic__elevation')
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    surface : field name at node or array of length node, optional
+        The surface to direct flow across, default is field at node: 
+        topographic__elevation,.   
+  
+   
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowDirectorD4
+    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    >>> fd=FlowDirectorD4(mg, 'topographic__elevation')
+    >>> fd.elevs
+    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    >>> fd.run_one_step()
+    >>> mg.at_node['flow__receiver_node']
+    array([0, 1, 2, 3, 1, 5, 6, 7, 8])
+    >>> mg.at_node['topographic__steepest_slope']
+    array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+    >>> mg.at_node['flow__link_to_receiver_node']
+    array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
+    >>> mg.at_node['flow__sink_flag']
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
+    >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> elev = np.array([0.,  0.,  0., 0.,
+    ...                  0., 21., 10., 0.,
+    ...                  0., 31., 20., 0.,
+    ...                  0., 32., 30., 0.,
+    ...                  0.,  0.,  0., 0.])
+    >>> _ = mg_2.add_field('node','topographic__elevation', elev)
+    >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> fd_2 = FlowDirectorD4(mg_2)
+    >>> fd_2.run_one_step()
+    >>> mg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0,  1,  2,  3,  
+            4,  1,  2,  7,  
+            8, 10,  6, 11,
+           12, 14, 10, 15, 
+           16, 17, 18, 19])
+    
     """
 
     _name = 'FlowDirectorD4'
 
-    def __init__(self, grid, surface='topographic_elevation'):
+    def __init__(self, grid, surface='topographic__elevation'):
         super(FlowDirectorD4, self).__init__(grid, surface)
         self.method = 'D4'
        

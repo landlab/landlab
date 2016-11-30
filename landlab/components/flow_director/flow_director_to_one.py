@@ -4,6 +4,39 @@ import numpy
 
 class FlowDirectorToOne(FlowDirector):
     """
+    Intermediate level class for calculating flow directions. 
+    
+    This component is not meant to be used directly in modeling efforts. 
+    Instead it has the functionality that all flow direction calculators need
+    if they route flow only to one cell, as in D4 or D8 direction finding. 
+    It mostly creates model grid fields. 
+    
+    The primary method of this class, :func:`run_one_step` is not implemented.
+
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    surface : field name at node or array of length node
+        The surface to direct flow across.   
+        
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
+    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    >>> fd=FlowDirectorToOne(mg, 'topographic__elevation')
+    >>> fd.elevs
+    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    >>> keys=set(['flow__link_to_receiver_node', 'flow__sink_flag',
+    ...           'topographic__steepest_slope', 'topographic__elevation', 
+    ...           'flow__receiver_node'])
+    >>> len(mg.at_node.keys()-keys)
+    0
+
     """
     
     _name = 'FlowDirectorToOne'
