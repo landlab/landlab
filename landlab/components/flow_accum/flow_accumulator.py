@@ -8,7 +8,7 @@ import landlab
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy as np
 
 
@@ -255,9 +255,11 @@ class FlowAccumulator(Component):
     
             
         try:
-            # needs to be -1 
-            self.D_structure = grid.add_zeros('flow__data_structure_D', at='link',
-                                                dtype=int)
+            # needs to be BAD_INDEX_VALUE
+            self.D_structure = grid.add_field('flow__data_structure_D', 
+                                              BAD_INDEX_VALUE*grid.ones(at='link'), 
+                                              at='link',
+                                              dtype=int)
             
             
         except FieldError:
