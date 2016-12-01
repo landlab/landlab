@@ -139,7 +139,7 @@ class FlowAccumulatorD4(FlowAccumulator):
         # step 3. Initialize and Run depression finder if passed 
         if self.df:
             df=self.df(self.grid)
-            df.run_one_step()
+            df.map_depressions()
         
         # step 4. Accumulate (to one or to N depending on direction method. )
         a, q = flow_accum_bw.find_drainage_area_and_discharge(self._grid['node']['flow__upstream_node_order'], 
