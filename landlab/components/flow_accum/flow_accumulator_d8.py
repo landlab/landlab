@@ -29,7 +29,7 @@ class FlowAccumulatorD8(FlowAccumulator):
                
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
-        -  Node array containing downstream-to-upstream ordered list of node
+        -  Node array containing downstream-to-upstream ordered list of nodes
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure: 
             *flow__data_structure_delta*. The first element is always zero.
@@ -117,14 +117,26 @@ class FlowAccumulatorD8(FlowAccumulator):
                0.,  1300.,  1400.,     0.,
                0.,     0.,     0.,     0.])
     
-    Finally, lets add a depression finder and router
+    Finally, see what happens when there is a depression. 
     
     >>> from landlab.components import DepressionFinderAndRouter
     >>> mg_4 = RasterModelGrid((7, 7), 0.5)
     >>> z = mg_4.add_field('node', 'topographic__elevation', mg_4.node_x.copy())
     >>> z += 0.01 * mg_4.node_y
     >>> mg_4.at_node['topographic__elevation'].reshape(mg_4.shape)[2:5, 2:5] *= 0.1
-    >>> fa_4 = FlowAccumulatorD8(mg_4)
+    >>> mg_4.set_closed_boundaries_at_grid_edges(True, True, False, True)
+
+    This model grid has a depression in the center. 
+    
+    >>> mg_4.at_node['topographic__elevation'].reshape(mg_4.shape)
+    array([[ 0.    ,  0.5   ,  1.    ,  1.5   ,  2.    ,  2.5   ,  3.    ],
+           [ 0.005 ,  0.505 ,  1.005 ,  1.505 ,  2.005 ,  2.505 ,  3.005 ],
+           [ 0.01  ,  0.51  ,  0.101 ,  0.151 ,  0.201 ,  2.51  ,  3.01  ],
+           [ 0.015 ,  0.515 ,  0.1015,  0.1515,  0.2015,  2.515 ,  3.015 ],
+           [ 0.02  ,  0.52  ,  0.102 ,  0.152 ,  0.202 ,  2.52  ,  3.02  ],
+           [ 0.025 ,  0.525 ,  1.025 ,  1.525 ,  2.025 ,  2.525 ,  3.025 ],
+           [ 0.03  ,  0.53  ,  1.03  ,  1.53  ,  2.03  ,  2.53  ,  3.03  ]])
+    >>> fa_4 = FlowAccumulatorD8(mg_4) 
     >>> fa_4.run_one_step()  # the flow "gets stuck" in the hole
     >>> mg_4.at_node['flow__receiver_node'].reshape(mg_4.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
@@ -142,9 +154,16 @@ class FlowAccumulatorD8(FlowAccumulator):
            [ 0.25,  0.25,  2.  ,  1.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-    >>> fa_4 = FlowAccumulatorD8(mg_4, depression_finder=DepressionFinderAndRouter)
-    >>> fa_4.run_one_step()
-    >>> mg_4.at_node['flow__receiver_node'].reshape(mg.shape)
+    
+    Now we use a flow accumulator with a depression finder specified. 
+    
+    >>> mg_5 = RasterModelGrid((7, 7), 0.5)
+    >>> z = mg_5.add_field('node', 'topographic__elevation', mg_5.node_x.copy())
+    >>> z += 0.01 * mg_5.node_y
+    >>> mg_5.at_node['topographic__elevation'].reshape(mg_5.shape)[2:5, 2:5] *= 0.1
+    >>> fa_5 = FlowAccumulatorD8(mg_5, depression_finder=DepressionFinderAndRouter)
+    >>> fa_5.run_one_step()
+    >>> mg_5.at_node['flow__receiver_node'].reshape(mg_5.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
            [ 7,  7, 16, 17, 18, 18, 13],
            [14, 14,  8, 16, 17, 18, 20],
@@ -152,7 +171,7 @@ class FlowAccumulatorD8(FlowAccumulator):
            [28, 28, 23, 24, 24, 32, 34],
            [35, 35, 30, 31, 32, 32, 41],
            [42, 43, 44, 45, 46, 47, 48]])
-    >>> mg_4.at_node['drainage_area'].reshape(mg.shape)
+    >>> mg_5.at_node['drainage_area'].reshape(mg_5.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
            [ 5.25,  5.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
@@ -160,7 +179,7 @@ class FlowAccumulatorD8(FlowAccumulator):
            [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-    >>> fa_4.df.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.df.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -168,7 +187,7 @@ class FlowAccumulatorD8(FlowAccumulator):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> fa_4.df.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.df.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -176,11 +195,11 @@ class FlowAccumulatorD8(FlowAccumulator):
            [-1, -1, 16, 16, 16, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1]])
-    >>> fa_4.df.lake_codes  # a unique code for each lake present on the grid
+    >>> fa_5.df.lake_codes  # a unique code for each lake present on the grid
     array([16])
-    >>> fa_4.df.lake_outlets  # the outlet node of each lake in lake_codes
+    >>> fa_5.df.lake_outlets  # the outlet node of each lake in lake_codes
     array([8])
-    >>> fa_4.df.lake_areas  # the area of each lake in lake_codes
+    >>> fa_5.df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
     
     """
@@ -198,7 +217,8 @@ class FlowAccumulatorD8(FlowAccumulator):
         # save 
         self.fd = FlowDirector(self._grid, self.elevs)
         self.df = depression_finder
-        
+               
+
     def run_one_step(self):
         
         # step 0. Check and update BCs
@@ -208,16 +228,17 @@ class FlowAccumulatorD8(FlowAccumulator):
         
         # step 1. Find flow directions by specified method
         self.fd.run_one_step()
+        self.baselevel_nodes = self.fd.baselevel_nodes
+        self.sink = self.fd.sink
         
         # step 2. Get r (and potentially p) array(s)        
         r = self._grid['node']['flow__receiver_node']
-        s = self.fd.baselevel_nodes       
         
         # step 2. Stack, D, delta construction
         nd = flow_accum_bw._make_number_of_donors_array(r)
         delta = flow_accum_bw._make_delta_array(nd)
         D = flow_accum_bw._make_array_of_donors(r, delta)
-        s = flow_accum_bw.make_ordered_node_array(r, s)
+        s = flow_accum_bw.make_ordered_node_array(r, self.sink)
         
         #put theese in grid so that depression finder can use it.         
         # store the generated data in the grid
@@ -228,19 +249,20 @@ class FlowAccumulatorD8(FlowAccumulator):
         # step 3. Initialize and Run depression finder if passed 
         # at present this might need to go at the very end... also need to 
         #make sure that the df. properties work. 
-        if self.df:
-            df=self.df(self.grid)
-            df.map_depressions()
+  
         
         # step 4. Accumulate (to one or to N depending on direction method. )
-        a, q = flow_accum_bw.find_drainage_area_and_discharge(self._grid['node']['flow__upstream_node_order'], 
-                                                              self._grid['node']['flow__receiver_node'], 
+        a, q = flow_accum_bw.find_drainage_area_and_discharge(s, 
+                                                              r, 
                                                               self.node_cell_area,
                                                               self._grid.at_node['water__unit_flux_in'])
-        
+  
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
         
+        if self.df:
+            df=self.df(self.grid)
+            df.map_depressions()
 
     
 if __name__ == '__main__':

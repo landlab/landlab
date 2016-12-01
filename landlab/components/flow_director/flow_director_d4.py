@@ -97,10 +97,11 @@ class FlowDirectorD4(FlowDirectorToOne):
                 self.elevs)
                 
         # Step 2. Find and save base level nodes. 
-        (self.baselevel_nodes, ) = numpy.where(
+        (baselevel_nodes, ) = numpy.where(
             numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
-                             
+                   
+        
         # Calculate flow directions
         num_d4_active = self._grid.number_of_active_links  
         receiver, steepest_slope, sink, recvr_link = \
@@ -109,8 +110,10 @@ class FlowDirectorD4(FlowDirectorToOne):
                                          self._activelink_head[:num_d4_active],
                                          link_slope,
                                          grid=self._grid,
-                                         baselevel_nodes=self.baselevel_nodes)
-                                         
+                                         baselevel_nodes=baselevel_nodes)
+        
+        self.baselevel_nodes = baselevel_nodes
+        self.sink = sink                                  
        
        # Save the four ouputs of this component.                                  
         self._grid['node']['flow__receiver_node'][:] = receiver

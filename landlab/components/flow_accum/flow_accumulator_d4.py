@@ -119,16 +119,17 @@ class FlowAccumulatorD4(FlowAccumulator):
         
         # step 1. Find flow directions by specified method
         self.fd.run_one_step()
+        self.baselevel_nodes = self.fd.baselevel_nodes
+        self.sink = self.fd.sink
         
         # step 2. Get r (and potentially p) array(s)        
         r = self._grid['node']['flow__receiver_node']
-        s = self.fd.baselevel_nodes       
         
         # step 2. Stack, D, delta construction
         nd = flow_accum_bw._make_number_of_donors_array(r)
         delta = flow_accum_bw._make_delta_array(nd)
         D = flow_accum_bw._make_array_of_donors(r, delta)
-        s = flow_accum_bw.make_ordered_node_array(r, s)
+        s = flow_accum_bw.make_ordered_node_array(r, self.sink)
         
         #put theese in grid so that depression finder can use it.         
         # store the generated data in the grid
@@ -137,18 +138,22 @@ class FlowAccumulatorD4(FlowAccumulator):
         self._grid['node']['flow__upstream_node_order'][:] = s
         
         # step 3. Initialize and Run depression finder if passed 
+        # at present this might need to go at the very end... also need to 
+        #make sure that the df. properties work. 
+  
+        
+        # step 4. Accumulate (to one or to N depending on direction method. )
+        a, q = flow_accum_bw.find_drainage_area_and_discharge(s, 
+                                                              r, 
+                                                              self.node_cell_area,
+                                                              self._grid.at_node['water__unit_flux_in'])
+  
+        self._grid['node']['drainage_area'][:] = a
+        self._grid['node']['surface_water__discharge'][:] = q
+        
         if self.df:
             df=self.df(self.grid)
             df.map_depressions()
-        
-        # step 4. Accumulate (to one or to N depending on direction method. )
-        a, q = flow_accum_bw.find_drainage_area_and_discharge(self._grid['node']['flow__upstream_node_order'], 
-                                                              self._grid['node']['flow__receiver_node'], 
-                                                              self.node_cell_area,
-                                                              self._grid.at_node['water__unit_flux_in'])
-        
-        self._grid['node']['drainage_area'][:] = a
-        self._grid['node']['surface_water__discharge'][:] = q
         
 
     
