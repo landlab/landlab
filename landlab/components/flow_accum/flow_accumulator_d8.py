@@ -3,9 +3,28 @@ from landlab.components.flow_director import FlowDirectorD8 as FlowDirector
 from landlab.components.flow_accum import flow_accum_bw 
 
 class FlowAccumulatorD8(FlowAccumulator):
-    """ 
-    Method to do D8 flow accumulation
+    """
+    Single-path (steepest direction) flow routing by the D8 method.
 
+    This class implements single-path (steepest direction) flow routing, and
+    calculates flow directions, drainage area, and discharge.
+
+    Note that for Voronoi-based grids there is no difference between
+    D4 and D8 methods. 
+    
+    The perimeter nodes  NEVER contribute to the accumulating flux, even if the 
+    gradients from them point inwards to the main body of the grid. This is 
+    because under Landlab definitions, perimeter nodes lack cells, so cannot 
+    accumulate any discharge.
+
+    This is accomplished by first finding D8 flow directions using the 
+    component FlowDirectorD8, and then calculating the accumulation area and
+    discharge. 
+    
+    Optionally a depression finding component can be specified and flow
+    directing, depression finding, and flow routing can all be accomplished 
+    together. 
+    
     Stores as ModelGrid fields:
                
         -  Node array of drainage areas: *'drainage_area'*
@@ -15,6 +34,16 @@ class FlowAccumulatorD8(FlowAccumulator):
         -  Node array of all but the first element of the delta data structure: 
             *flow__data_structure_delta*. The first element is always zero.
         -  Link array of the D data structure: *flow__data_structure_D*
+        
+    The FlowDirectorD8 component adds the additional ModelGrid fields:
+        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+           there is no receiver: *'flow__receiver_node'*
+        -  Node array of steepest downhill slopes:
+           *'topographic__steepest_slope'*
+        -  Node array containing ID of link that leads from each node to its
+           receiver, or BAD_INDEX_VALUE if no link:
+           *'flow__link_to_receiver_node'*
+        -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`
 
@@ -30,7 +59,8 @@ class FlowAccumulatorD8(FlowAccumulator):
         'water__unit_flux_in'. If both the field and argument are present at
         the time of initialization, runoff_rate will *overwrite* the field.
         If neither are set, defaults to spatially constant unit input.  
-        
+    depression_finder : Component, optional
+        A depression finding component
         
     Examples
     --------
@@ -88,20 +118,20 @@ class FlowAccumulatorD8(FlowAccumulator):
                0.,     0.,     0.,     0.])
     
     Finally, lets add a depression finder and router
+    
     >>> from landlab.components import DepressionFinderAndRouter
     
     """
-    
-    _name = 'FlowAccumulatorD8'
-    
+    _name = 'FlowAccumulatorD8'  
     # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
     # and _var_doc , only _name needs to change. 
     
+
     def __init__(self, grid, surface='topographic__elevation', depression_finder=None):
         super(FlowAccumulatorD8, self).__init__(grid, surface)
 
         # save method as attribute
-        self.method = 'D4'
+        self.method = 'D8'
         
         # save 
         self.fd = FlowDirector(self._grid, self.elevs)

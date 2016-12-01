@@ -34,9 +34,7 @@ class FlowAccumulator(Component):
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure: 
             *flow__data_structure_delta*. The first element is always zero.
-        -  Link array of the D data structure: *flow__data_structure_D*
-
-    
+        -  Link array of the D data structure: *flow__data_structure_D
     
     The primary method of this class, :func:`run_one_step` is not implemented.
 

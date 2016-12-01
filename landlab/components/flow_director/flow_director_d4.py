@@ -1,6 +1,6 @@
 from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
 from landlab.components.flow_director import flow_direction_DN
-from landlab.components import VoronoiDelaunayGrid
+from landlab import VoronoiDelaunayGrid
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
