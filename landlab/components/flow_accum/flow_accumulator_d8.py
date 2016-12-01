@@ -226,6 +226,8 @@ class FlowAccumulatorD8(FlowAccumulator):
         self._grid['node']['flow__upstream_node_order'][:] = s
         
         # step 3. Initialize and Run depression finder if passed 
+        # at present this might need to go at the very end... also need to 
+        #make sure that the df. properties work. 
         if self.df:
             df=self.df(self.grid)
             df.map_depressions()
