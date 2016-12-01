@@ -1,10 +1,10 @@
 from landlab.components.flow_accum.flow_accumulator import FlowAccumulator 
-from landlab.components.flow_director import FlowDirectorD4 as FlowDirector
+from landlab.components.flow_director import FlowDirectorD8 as FlowDirector
 from landlab.components.flow_accum import flow_accum_bw 
 
-class FlowAccumulatorD4(FlowAccumulator):
+class FlowAccumulatorD8(FlowAccumulator):
     """ 
-    Method to do D4 flow accumulation
+    Method to do D8 flow accumulation
 
     Stores as ModelGrid fields:
                
@@ -17,7 +17,6 @@ class FlowAccumulatorD4(FlowAccumulator):
         -  Link array of the D data structure: *flow__data_structure_D*
 
     The primary method of this class is :func:`run_one_step`
-
 
     Parameters
     ----------
@@ -37,7 +36,7 @@ class FlowAccumulatorD4(FlowAccumulator):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowAccumulatorD4
+    >>> from landlab.components import FlowAccumulatorD8
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
@@ -52,24 +51,54 @@ class FlowAccumulatorD4(FlowAccumulator):
     ...                  0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field('node','topographic__elevation', elev)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa_2 = FlowAccumulatorD4(mg_2)
+    >>> fa_2 = FlowAccumulatorD8(mg_2)
     >>> fa_2.run_one_step()
     >>> mg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0,  1,  2,  3,  
-            4,  1,  2,  7,  
-            8, 10,  6, 11,
-           12, 14, 10, 15, 
-           16, 17, 18, 19])
+    array([  0,  1,  2,  3,
+             4,  1,  2,  7,
+             8,  6,  6, 11,
+            12, 10, 10, 15,
+            16, 17, 18, 19])
 
+    >>> mg_2.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  1.,  5.,  0.,
+            0.,  1.,  5.,  0.,
+            0.,  1.,  3.,  0.,
+            0.,  1.,  1.,  0.,
+            0.,  0.,  0.,  0.])
+
+    Now let's change the cell area (100.) and the runoff rates:
+
+    >>> mg_3 = RasterModelGrid((5, 4), spacing=(10., 10))
+
+    Put the data back into the new grid.
+
+    >>> _ = mg_3.add_field('node','topographic__elevation', elev)
+    >>> mg_3.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> fa_3 = FlowAccumulatorD8(mg_3)
+    >>> runoff_rate = np.arange(mg_3.number_of_nodes)
+    >>> _ = mg_3.add_field('node', 'water__unit_flux_in', runoff_rate,
+    ...                  noclobber=False)
+    >>> fa_3.run_one_step()
+    >>> mg_3.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    array([    0.,   500.,  5200.,     0.,
+               0.,   500.,  5200.,     0.,
+               0.,   900.,  3700.,     0.,
+               0.,  1300.,  1400.,     0.,
+               0.,     0.,     0.,     0.])
+    
+    Finally, lets add a depression finder and router
+    >>> from landlab.components import DepressionFinderAndRouter
+    
     """
     
-    _name = 'FlowAccumulatorD4'
+    _name = 'FlowAccumulatorD8'
     
     # of _name, _input_var_names, _output_var_names, _var_units, _var_mapping, 
     # and _var_doc , only _name needs to change. 
     
     def __init__(self, grid, surface='topographic__elevation', depression_finder=None):
-        super(FlowAccumulatorD4, self).__init__(grid, surface)
+        super(FlowAccumulatorD8, self).__init__(grid, surface)
 
         # save method as attribute
         self.method = 'D4'
