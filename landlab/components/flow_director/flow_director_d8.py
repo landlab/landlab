@@ -6,9 +6,21 @@ import numpy
 class FlowDirectorD8(FlowDirectorToOne):
     """Single-path (steepest direction) flow direction finding by the D8 
      method. Note that for Voronoi-based grids there is no difference between
-     D4 and D8 methods. For Raster grids, the D4 method does not consider the
+     D4 and D8 methods.  For Raster grids, the D4 method does not consider the
      diagonal connections between nodes. 
 
+    Stores as ModelGrid fields:
+        
+        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+           there is no receiver: *'flow__receiver_node'*
+        -  Node array of steepest downhill slopes:
+           *'topographic__steepest_slope'*
+        -  Node array containing ID of link that leads from each node to its
+           receiver, or BAD_INDEX_VALUE if no link:
+           *'flow__link_to_receiver_node'*
+        -  Boolean node array of all local lows: *'flow__sink_flag'*
+        
+        
     The primary method of this class is :func:`run_one_step`.
 
     Construction::

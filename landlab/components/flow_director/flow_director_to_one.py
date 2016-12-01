@@ -6,10 +6,25 @@ class FlowDirectorToOne(FlowDirector):
     """
     Intermediate level class for calculating flow directions. 
     
-    This component is not meant to be used directly in modeling efforts. 
-    Instead it has the functionality that all flow direction calculators need
-    if they route flow only to one cell, as in D4 or D8 direction finding. 
-    It mostly creates model grid fields. 
+    This component is not meant to be used directly in modeling efforts. It
+    inherits from the FlowDirector class and builds on it to provide the 
+    functionality that all flow direction calculators need if they direct flow 
+    only to one cell, as in D4 or D8 direction finding. It exists in contrast
+    to the other intermediate flow director class FlowDirectorToMany. As the 
+    primary difference between these two methods is the names of the fields
+    they create and use, the primary function of this class is to create model
+    grid fields. 
+    
+    Specifically, it stores as ModelGrid fields:
+        
+    -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+       there is no receiver: *'flow__receiver_node'*
+    -  Node array of steepest downhill slopes:
+       *'topographic__steepest_slope'*
+    -  Node array containing ID of link that leads from each node to its
+       receiver, or BAD_INDEX_VALUE if no link:
+       *'flow__link_to_receiver_node'*
+    -  Boolean node array of all local lows: *'flow__sink_flag'*
     
     The primary method of this class, :func:`run_one_step` is not implemented.
 

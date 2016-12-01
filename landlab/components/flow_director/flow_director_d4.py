@@ -1,20 +1,17 @@
 from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
 from landlab.components.flow_director import flow_direction_DN
+from landlab.components import VoronoiDelaunayGrid
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
 class FlowDirectorD4(FlowDirectorToOne):
     """Single-path (steepest direction) flow direction finding by the D4 
      method. Note that for Voronoi-based grids there is no difference between
-     D4 and D8 methods. For Raster grids, the D4 method does not consider the
-     diagonal connections between nodes. 
+     D4 and D8 methods. For this reason the D4 method is not implemented for
+     Voroni grids. Use FlowDirectorD8  instead. For Raster grids, the D4 method 
+     does not consider the diagonal connections between nodes. 
 
      Stores as ModelGrid fields:
-              
-        -  Node array containing downstream-to-upstream ordered list of node
-           IDs: *'flow__upstream_node_order'*
-        -  Node array of drainage areas: *'drainage_area'*
-        -  Node array of discharges: *'surface_water__discharge'*
         
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
            there is no receiver: *'flow__receiver_node'*
@@ -24,8 +21,6 @@ class FlowDirectorD4(FlowDirectorToOne):
            receiver, or BAD_INDEX_VALUE if no link:
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
-
-        
         
     The primary method of this class is :func:`run_one_step`.
 
@@ -85,7 +80,10 @@ class FlowDirectorD4(FlowDirectorToOne):
 
     def __init__(self, grid, surface='topographic__elevation'):
         super(FlowDirectorD4, self).__init__(grid, surface)
+        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         self.method = 'D4'
+        if self._is_Voroni:
+            raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorD8')
        
     def run_one_step(self):   
         
