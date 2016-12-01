@@ -26,8 +26,8 @@ from landlab.components.cellular_automata.oriented_raster_cts import OrientedRas
 
 class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
     """
-    Example
-    -------
+    Examples
+    ---------
     >>> from six import StringIO
     >>> p = StringIO('''
     ... model_grid_row__count: number of rows in grid
@@ -61,8 +61,8 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
         """
         Reads in parameters and initializes the model.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from six import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
@@ -237,8 +237,8 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
         """
         Updates the luminescence signal at node.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from six import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
@@ -271,8 +271,8 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
         Updates the luminescence signal at a pair of nodes that have just
         undergone a transition, if either or both nodes is a grain.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from six import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
@@ -328,8 +328,8 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
             We don't call bleach_grain(), because we want to take advantage of
         numpy array operations rather than calling a method for each node.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from six import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid

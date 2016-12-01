@@ -53,8 +53,8 @@ class PotentialityFlowRouter(Component):
         PotentialityFlowRouter(grid, method='D8', flow_equation='default',
                      Chezys_C=30., Mannings_n=0.03)
 
-    Note
-    ----
+    Notes
+    -----
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
