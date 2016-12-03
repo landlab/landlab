@@ -91,19 +91,42 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     
     Parameters
     ----------
-    
-    
+    grid : ModelGrid
+        A grid.
+    K_sp : float, array, or field name
+        K in the stream power equation (units vary with other parameters).
+    m_sp : float, optional
+        m in the stream power equation (power on drainage area).
+    n_sp : float, optional, ~ 0.5<n_sp<4.
+        n in the stream power equation (power on slope). NOTE: NOT PRESENTLY
+        HONORED BY StreamPowerSmoothThresholdEroder (TODO)
+    threshold_sp : float (TODO: array, or field name)
+        The threshold stream power.
+    rainfall_intensity : float; optional
+        NOT PRESENTLY HONORED (TODO)
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((3, 3), 1.0)
+    >>> rg = RasterModelGrid((3, 4), 1.0)
+    >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z[5] = 2.0
+    >>> z[6] = 1.0
+    >>> from landlab.components import FlowRouter
+    >>> fr = FlowRouter(rg, method='D4')
+    >>> fr.run_one_step()
     >>> from landlab.components import StreamPowerSmoothThresholdEroder
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
     >>> sp.thresholds
     1.0
+    >>> sp.run_one_step(dt=1.0)
+    >>> import numpy as np
+    >>> np.round(z, 3)
+    array([ 0.   ,  0.   ,  0.   ,  0.   ,  0.   ,  1.846,  0.667,  0.   ,
+            0.   ,  0.   ,  0.   ,  0.   ])
     """
-    
+
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
                  rainfall_intensity=1., **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
@@ -121,7 +144,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
     def run_one_step(self, dt, flooded_nodes=None, runoff_rate=None, **kwds):
         """Run one forward iteration of duration dt.
-        
+
         Parameters
         ----------
         dt : float
@@ -130,7 +153,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             Indices of nodes in lakes/depressions
         runoff_rate : (not used yet)
             (to be added later)
-            
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -148,10 +171,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         >>> sp.beta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
-        >>> sp.gamma
+        >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  2.,  0.,  0.,  0.,  0.])
         """
-        
+
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream
@@ -167,7 +190,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
             self._grid['node']['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
-                
+
         # (Later on, add functionality for a runoff rate, or discharge, or
         # variable K)
 
@@ -176,7 +199,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         #   First, compute drainage area raised to the power m.
         np.power(self._grid['node']['drainage_area'], self.m,
                  out=self.A_to_the_m)
-                 
+
         #   Alpha
         self.alpha[defined_flow_receivers] = (self.K * dt
             * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths)
@@ -195,7 +218,6 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
         for node in upstream_order_IDs:
-            print(node)
             if defined_flow_receivers[node]:
                 z[node] = newton(new_elev, z[node],
                                  fprime=new_elev_prime,
@@ -203,22 +225,21 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                                        z[flow_receivers[node]],
                                        self.delta[node]), 
                                  fprime2=new_elev_prime2)
-                print(node, z[node])
 
         # TODO: handle case self.thresholds = 0
 
 
 
-
-if __name__ == '__main__':
-    from landlab import RasterModelGrid
-    rg = RasterModelGrid((3, 4), 1.0)
-    z = rg.add_zeros('node', 'topographic__elevation')
-    rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-    z[5] = 2.0
-    z[6] = 1.0
-    from landlab.components import FlowRouter
-    fr = FlowRouter(rg, method='D4')
-    fr.run_one_step()
-    sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
-    sp.run_one_step(dt=1.0)
+#if __name__ == '__main__':
+#    from landlab import RasterModelGrid
+#    rg = RasterModelGrid((3, 4), 1.0)
+#    z = rg.add_zeros('node', 'topographic__elevation')
+#    rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
+#    z[5] = 2.0
+#    z[6] = 1.0
+#    from landlab.components import FlowRouter
+#    fr = FlowRouter(rg, method='D4')
+#    fr.run_one_step()
+#    sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
+#    sp.run_one_step(dt=1.0)
+#    print(z)
