@@ -49,7 +49,7 @@ def new_elev(x, a, b, c, d, e):
     return x * (1.0 + a) + c * np.exp(-d * (x - b)) - e
 
 
-def new_elev_prime(x, a, b, c, d=0.0):
+def new_elev_prime(x, a, b, c, d, e=0.0):
     """Equation for elevation of a node at timestep t+1.
     
     Parameters
@@ -59,33 +59,36 @@ def new_elev_prime(x, a, b, c, d=0.0):
     a : float
         Parameter = K A^m dt / L
     b : float
-        Parameter = K A^m / wc L
-    c : float
         Elevation of downstream node, z_j
-    d : n/a
+    c : float
+        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
+    d : float
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])       
+    e : n/a
         Placeholder; not used
     """
-    return (1.0 + a) - b * np.exp(-b * (x - c))
+    return (1.0 + a) - c * d * np.exp(-d * (x - b))
 
 
-def new_elev_prime2(x, a, b, c, d=0.0):
+def new_elev_prime2(x, a, b, c, d, e=0.0):
     """Equation for elevation of a node at timestep t+1.
     
     Parameters
     ----------
     x : float
         Value of new elevation
-    a : n/a
+    a : float
         Placeholder; not used
     b : float
-        Parameter = K A^m / wc L
-    c : float
         Elevation of downstream node, z_j
-    d : n/a
+    c : float
+        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
+    d : float
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])       
+    e : n/a
         Placeholder; not used
     """
-    return b * b * np.exp(-b * (x - c))
-
+    return c * d * d * np.exp(-d * (x - b))
 
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
@@ -232,7 +235,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         for node in upstream_order_IDs:
             if defined_flow_receivers[node]:
                 z[node] = newton(new_elev, z[node],
-                                 #fprime=new_elev_prime,
+                                 fprime=new_elev_prime,
                                  args=(self.alpha[node],
                                        z[flow_receivers[node]],
                                        self.gamma[node],
