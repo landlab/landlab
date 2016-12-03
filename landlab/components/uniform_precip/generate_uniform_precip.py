@@ -77,7 +77,7 @@ class PrecipitationDistribution(Component):
     _var_doc = dict()
 
     def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
-                 mean_storm_depth=0.0, total_t=0.0, delta_t=None, 
+                 mean_storm_depth=0.0, total_t=0.0, delta_t=None,
                  random_seed=0, **kwds):
         """Create the storm generator.
 
@@ -117,7 +117,7 @@ class PrecipitationDistribution(Component):
 
         # If a time series is created later, this blank list will be used.
         self.storm_time_series = []
-        
+
         # Seed the random-number generator
         self.seed_generator(random_seed)
 
@@ -262,7 +262,7 @@ class PrecipitationDistribution(Component):
         average intensity (mm/hr) of the storm lasting from x to y and a to be,
         respectively.
 
-        Retruns
+        Returns
         -------
         array
             containing several sub-arrays of events [start, finish, intensity]
@@ -360,18 +360,18 @@ class PrecipitationDistribution(Component):
                 else:
                     yield (interstorm_duration, 0.)
                 self._elapsed_time += interstorm_duration
-                
+
     def seed_generator(self, seedval=0):
         """Seed the random-number generator.
-        
+
         The examples illustrate:
         (1) that we can get the same sequence again by re-seeding with the
             same value (the default is zero)
         (2) when we use a value other than the default, we get a different
             sequence
-        
-        Example
-        -------
+
+        Examples
+        --------
         >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
         ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
         ...     total_t = 100.0, delta_t = 1.)

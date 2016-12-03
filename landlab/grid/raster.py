@@ -1,4 +1,4 @@
-set#! /usr/env/python
+#! /usr/env/python
 """
 A class used to create and manage regular square raster
 grids for 2D numerical models in Landlab.
@@ -5187,7 +5187,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         method : string, optional. Default is 'D8'.
             Sets the connection method. for use if remove_disconnected==True
 
-        Examples:
+        Examples
         ---------
         The first example will use a 4,4 grid with node data values
         as illustrated:
@@ -5347,7 +5347,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         method : string, optional. Default is 'D8'.
             Sets the connection method.
 
-        Examples:
+        Examples
         ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
@@ -5489,7 +5489,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional
             Value that indicates an invalid value.
 
-        Examples:
+        Examples
         ---------
         The example will use a 4,4 grid with node data values
         as illustrated:
@@ -5554,12 +5554,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional
             Value that indicates an invalid value.
 
-        Returns:
+        Returns
         --------
         outlet_loc : int
             id of outlet location
 
-        Examples:
+        Examples
         ---------
         The example will use a 4,4 grid with node data values
         as illustrated:
