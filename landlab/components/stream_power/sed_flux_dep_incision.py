@@ -59,6 +59,7 @@ class SedDepEroder(Component):
                      kappa_hump=13.683, nu_hump=1.13, phi_hump=4.24,
                      c_hump=0.00181, Qc='power_law', m_sp=0.5, n_sp=1.,
                      K_t=1.e-4, m_t=1.5, n_t=1.,
+                     hillslope_sediment=False,
                      pseudoimplicit_repeats=5,
                      return_stream_properties=False)
 
@@ -80,6 +81,11 @@ class SedDepEroder(Component):
     runoff_rate : float, array or field name (m/s)
         The rate of excess overland flow production at each node (i.e.,
         rainfall rate less infiltration).
+    external_sediment : bool
+        If False, assume that the erosion performed by this component is the
+        only sediment in the fluvial system. If True, use field
+        'channel_sediment__depth' as an additional supply to the
+        fluvial sediment flux.
     pseudoimplicit_repeats : int
         Number of loops to perform with the pseudoimplicit iterator,
         seeking a stable solution. Convergence is typically rapid.
@@ -143,11 +149,13 @@ class SedDepEroder(Component):
         'flow__upstream_node_order',
         'topographic__steepest_slope',
         'flow__link_to_receiver_node',
-        'flow__sink_flag'
+        'flow__sink_flag',
+        'channel_sediment__depth'
     )
 
     _output_var_names = (
         'topographic__elevation',
+        'channel_sediment__depth',
         'channel__bed_shear_stress',
         'channel_sediment__volumetric_transport_capacity',
         'channel_sediment__volumetric_flux',
@@ -169,6 +177,7 @@ class SedDepEroder(Component):
                   'flow__upstream_node_order': '-',
                   'flow__link_to_receiver_node': '-',
                   'flow__sink_flag': '-',
+                  'channel_sediment__depth': 'm',
                   'channel__bed_shear_stress': 'Pa',
                   'channel_sediment__volumetric_transport_capacity': 'm**3/s',
                   'channel_sediment__volumetric_flux': 'm**3/s',
@@ -185,6 +194,7 @@ class SedDepEroder(Component):
                     'flow__upstream_node_order': 'node',
                     'flow__link_to_receiver_node': 'node',
                     'flow__sink_flag': 'node',
+                    'channel_sediment__depth': 'node',
                     'channel__bed_shear_stress': 'node',
                     'channel_sediment__volumetric_transport_capacity': 'node',
                     'channel_sediment__volumetric_flux': 'node',
@@ -201,6 +211,7 @@ class SedDepEroder(Component):
                  'flow__upstream_node_order': int,
                  'flow__link_to_receiver_node': int,
                  'flow__sink_flag': bool,                            # CHECK
+                 'channel_sediment__depth': float,
                  'channel__bed_shear_stress': float,
                  'channel_sediment__volumetric_transport_capacity': float,
                  'channel_sediment__volumetric_flux': float,
@@ -226,6 +237,11 @@ class SedDepEroder(Component):
         'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
         'flow__sink_flag': 'Boolean array, True at local lows',
+        'channel_sediment__depth':
+            ('Optional additional loose sediment source at each node. Can be' +
+             ' freely entrained by the flow, and must be to permit erosion. ' +
+             'Note that the sediment is assumed to be distributed across the' +
+             ' whole cell area.'),
         'channel__bed_shear_stress':
             ('Shear exerted on the bed of the channel, assuming all ' +
              'discharge travels along a single, self-formed channel'),
@@ -256,6 +272,7 @@ class SedDepEroder(Component):
                  sed_dependency_type='generalized_humped', kappa_hump=13.683,
                  nu_hump=1.13, phi_hump=4.24, c_hump=0.00181,
                  Qc='power_law', m_sp=0.5, n_sp=1., K_t=1.e-4, m_t=1.5, n_t=1.,
+                 external_sediment=False,
                  # params for model numeric behavior:
                  pseudoimplicit_repeats=5, return_stream_properties=False,
                  **kwds):
@@ -300,6 +317,19 @@ class SedDepEroder(Component):
             self._mt = m_t
             self._nt = n_t
 
+        self._hillslope_sediment_flux_wzeros = self.grid.zeros('node',
+                                                               dtype=float)
+        if external_sediment is True:
+            self._ext_sed = True
+            try:
+                self._hillslope_sediment = self.grid.at_node[
+                    'channel_sediment__depth']
+            except FieldError:
+                self._hillslope_sediment = self.grid.add_zeros(
+                    'node', 'channel_sediment__depth')
+        else:
+            self._ext_sed = False
+
         # now conditional inputs
         if self.type == 'generalized_humped':
             self.kappa = kappa_hump
@@ -342,9 +372,9 @@ class SedDepEroder(Component):
         return sed_flux_fn
 
     def get_sed_flux_function_pseudoimplicit_old(self, sed_in,
-                                             trans_cap_vol_out,
-                                             prefactor_for_volume,
-                                             prefactor_for_dz):
+                                                 trans_cap_vol_out,
+                                                 prefactor_for_volume,
+                                                 prefactor_for_dz):
         rel_sed_flux_in = sed_in/trans_cap_vol_out
         rel_sed_flux = rel_sed_flux_in
 
@@ -438,6 +468,23 @@ class SedDepEroder(Component):
             f(Q_s/Q_c)
         error_in_sed_flux_fn : float
             Measure of how well converged rel_sed_flux is
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import SedDepEroder
+        >>> mg = RasterModelGrid((25, 25), 10.)
+        >>> sde = SedDepEroder(mg, sed_dependency_type='almost_parabolic')
+        >>> (dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn) = (
+        ...   sde.get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.))
+        >>> dzbydt
+        1.0533880900236678
+        >>> sed_flux_out_bydt
+        2053.3880778333764
+        >>> rel_sed_flux
+        0.0020533880778333762
+        >>> error_in_sed_flux_fn
+        1.1572460282464668e-08
         """
         rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
         rel_sed_flux = rel_sed_flux_in
@@ -493,7 +540,9 @@ class SedDepEroder(Component):
         last_sed_flux_fn = sed_flux_fn
         sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
         # this error could alternatively be used to break the loop
-        error_in_sed_flux_fn = sed_flux_fn-last_sed_flux_fn
+        error_in_sed_flux_fn = abs(
+            (sed_flux_fn-last_sed_flux_fn)/last_sed_flux_fn)
+        #assert error_in_sed_flux_fn < 0.01, error_in_sed_flux_fn  # 1% slop is permitted, only
         dzbydt = prefactor_for_dz_bydt*sed_flux_fn
         sed_flux_out_bydt = rel_sed_flux*trans_cap_vol_out_bydt
         return dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn
@@ -521,6 +570,8 @@ class SedDepEroder(Component):
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
 
+        dt_secs = dt * 31557600.
+
         if type(flooded_depths) is str:
             flooded_depths = self.grid.at_node[flooded_depths]
             # also need a map of initial flooded conds:
@@ -542,6 +593,25 @@ class SedDepEroder(Component):
                                              assume_unique=True)
         link_length[core_draining_nodes] = grid._length_of_link_with_diagonals[
             grid.at_node[steepest_link][core_draining_nodes]]
+
+        # calc fluxes from hillslopes into each node:
+        # we're going to budget the sediment coming IN as part of the fluvial
+        # budget, on the basis this flux will be higher than the out-flux in
+        # a convergent flow node
+        # ...worst that can happen is that the river can't move it, and dumps
+        # it in the first node
+        # Take care to add this sed to the cover, but not to actually move it.
+        if self._ext_sed:                                                       ######
+            # turn depth into a supply flux:
+            sed_in_cells = self._hillslope_sediment[self.grid.node_at_cell]
+            flux_in_cells = sed_in_cells * self.grid.area_of_cell / dt_secs
+            self._hillslope_sediment_flux_wzeros[
+                self.grid.node_at_cell] = flux_in_cells
+            self._voldroprate = self.grid.zeros('node', dtype=float)
+            self._hillslope_sediment.fill(0.)
+            # ^ this will get refilled below
+        else:
+            pass  # as self._hillslope_sediment_flux_wzeros is already 0
 
         if self.Qc == 'power_law':
             transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
@@ -572,8 +642,9 @@ class SedDepEroder(Component):
             break_flag = False
             rel_sed_flux = np.empty_like(node_A)
             counter = 0
-            dt_secs = dt * 31557600.
 
+            dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
+            self._loopcounter = 0
             while 1:
                 flood_node = None  # int if timestep is limited by flooding
                 conv_factor = 0.8
@@ -585,16 +656,21 @@ class SedDepEroder(Component):
                 erosion_prefactor_withS = (
                     erosion_prefactor_withA * slopes_tothen)  # no time, no fqs
 
-                sed_rate_into_node = np.zeros(grid.number_of_nodes, dtype=float)
-                dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
+                river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
+                                                       dtype=float)
+                dzbydt.fill(0.)
                 cell_areas = self.cell_areas
+
+                self._is_it_TL = np.zeros(self.grid.number_of_nodes, dtype=int)  #########
                 for i in s_in[::-1]:  # work downstream
                     cell_area = cell_areas[i]
                     if flooded_nodes is not None:
                         flood_depth = flooded_depths[i]
                     else:
                         flood_depth = 0.
-                    sed_flux_into_this_node_bydt = sed_rate_into_node[i]
+                    sed_flux_into_this_node_bydt = (
+                        self._hillslope_sediment_flux_wzeros[i] +
+                        river_volume_flux_into_node[i])
                     node_capacity = transport_capacities[i]
                     # ^we work in volume flux, not volume per se here
                     if flood_depth > 0.:
@@ -617,10 +693,21 @@ class SedDepEroder(Component):
                                 sed_flux_out_bydt/node_capacity))
                         rel_sed_flux[i] = rel_sed_flux_here
                         vol_pass_rate = sed_flux_out_bydt
+                        # erode off the surplus sed from hillslopes (already
+                        # budgeted):
+                        if self._ext_sed:
+                            dzbydt_here += (
+                                self._hillslope_sediment_flux_wzeros[i] /
+                                cell_area)
+                            # no change to voldroprate or voldropped, as both
+                            # should already be 0
                     else:
+                        self._is_it_TL[i] = 1
                         rel_sed_flux[i] = 1.
-                        vol_drop_rate = (sed_flux_into_this_node_bydt -
-                                       node_capacity)
+                        vol_drop_rate = (river_volume_flux_into_node[i] -
+                                         node_capacity)
+                        # ^ note this can now go negative. This permits TL
+                        # erosion of any hillslope seds left in the channel
                         dzbydt_here = -vol_drop_rate/cell_area
                         try:
                             isflooded = flooded_nodes[i]
@@ -641,21 +728,28 @@ class SedDepEroder(Component):
                                 flood_node = i
                                 flood_tstep = time_to_fill
                                 conv_factor = 1.
-                                # ^this necessary to let this node to fill fully
+                                # ^this needed to let this node to fill fully
+                        if self._ext_sed:
+                            self._voldroprate[i] = (
+                                self._hillslope_sediment_flux_wzeros[i] +
+                                vol_drop_rate)
                     dzbydt[i] -= dzbydt_here
-                    # minus returns us to the correct sign convention
-                    sed_rate_into_node[flow_receiver[i]] += vol_pass_rate
+                    # ^minus returns us to the correct sign convention
+                    river_volume_flux_into_node[
+                        flow_receiver[i]] += vol_pass_rate
 
+                self._dzbydt = dzbydt                                           ######
                 # now perform a CHILD-like convergence-based stability test:
-                ratediff =  dzbydt[flow_receiver] - dzbydt
+                ratediff = dzbydt[flow_receiver] - dzbydt
                 # if this is +ve, the nodes are converging
                 downstr_vert_diff = node_z - node_z[flow_receiver]
                 # ^+ve when dstr is lower
                 botharepositive = np.logical_and(ratediff > 0.,
                                                  downstr_vert_diff > 0.)
                 try:
-                    t_to_converge = np.amin(downstr_vert_diff[botharepositive] /
-                                            ratediff[botharepositive])
+                    t_to_converge = np.amin(
+                        downstr_vert_diff[botharepositive] /
+                        ratediff[botharepositive])
                 except ValueError:  # no node pair converges
                     t_to_converge = dt_secs
                 t_to_converge *= conv_factor
@@ -676,13 +770,23 @@ class SedDepEroder(Component):
                     break_flag = True
                     t_to_converge = dt_secs - t_elapsed_internal + this_tstep
                     self.t_to_converge = t_to_converge
+                    this_tstep -= t_elapsed_internal - dt_secs
 
+                print("t: " + str(t_elapsed_internal) + " of " + str(dt_secs) +", this dt: " + str(this_tstep))
                 node_z[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
+                # back-calc the sed budget in the nodes, as appropriate:
+                if self._ext_sed:
+                    self._hillslope_sediment[self.grid.node_at_cell] += (
+                        self._voldroprate[self.grid.node_at_cell] /
+                        self.grid.area_of_cell * this_tstep)
+
                 if flood_node is not None:
                     flooded_depths[i] = 0.
                     flooded_nodes[i] = False
                 if break_flag:
                     break
+                else:
+                    self._loopcounter += 1
                 # do we need to reroute the flow/recalc the slopes here?
                 # -> NO, slope is such a minor component of Diff we'll be OK
                 # BUT could be important not for the stability, but for the
@@ -693,9 +797,11 @@ class SedDepEroder(Component):
                     core_draining_nodes]/link_length[core_draining_nodes]
                 downward_slopes = node_S.clip(0.)
         else:
-            raise TypeError # should never trigger
+            raise TypeError  # should never trigger
 
         active_nodes = grid.core_nodes
+
+
 
         if self.return_ch_props:
             # add the channel property field entries,
@@ -710,10 +816,12 @@ class SedDepEroder(Component):
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
         grid.at_node['channel_sediment__volumetric_flux'][
-            :] = sed_rate_into_node
+            :] = river_volume_flux_into_node
+        # ^note this excludes the hillslope fluxes now, i.e., it's the
+        # incoming sed flux to the node. Including the local flux in would
+        # make little sense as it could easily exceed capacity.
         grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
         # elevs set automatically to the name used in the function call.
-        self.iterations_in_dt = counter
 
         return grid, grid.at_node['topographic__elevation']
 
