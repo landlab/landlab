@@ -105,3 +105,17 @@ class ExponentialWeatherer(Component):
         self.soil_prod_rate[self._active_nodes] = (
                 self.w0
                 * np.exp(-self.depth[self._active_nodes] / self.wstar))
+
+        #weather
+        #self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
+        
+    def run_one_step(self, dt=None, **kwds):
+        """
+
+        Parameters
+        ----------
+        dt: float
+            Used only for compatibility with standard run_one_step.
+        """
+        self.calc_soil_prod_rate(**kwds)
+

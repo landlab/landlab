@@ -627,21 +627,21 @@ class DepressionFinderAndRouter(Component):
         not_too_high = self._elev[nbrs] < self._elev[the_node]
         not_current_lake = np.not_equal(self.flood_status[nbrs], _CURRENT_LAKE)
         not_flooded = np.not_equal(self.flood_status[nbrs], _FLOODED)
-
+        
         # The following logic block handles the case when a neighbor is
         # flooded but its outlet is LOWER than the_node, so the_node could
         # be an outlet that flows into a lower lake.
         #
         # We proceed only if there is at least one flooded node
         if np.any(np.logical_not(not_flooded)):
-
+            
             # Examine each neighbor
             for i in range(len(nbrs)):
-
+                
                 # If the neighbor is flooded...
                 if not not_flooded[i]:
-
-                    # Check to see whether its own outlet is lower than
+                    
+                    # Check to see whether its own outlet is lower than 
                     # the_node. If so, then it does not "count" as being
                     # flooded, because its water level is lower than our
                     # current potential lake outlet.

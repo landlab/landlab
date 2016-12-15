@@ -12,7 +12,7 @@ Find Landlab's
 Landlab Reference Manual and API Documentation
 ==============================================
 
-The *Landlab Developer API* is a general reference manual for Landlab.
+A guide to Landlab's classes and code.
 
 Grids
 =====
