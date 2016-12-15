@@ -491,13 +491,13 @@ class SedDepEroder(Component):
         >>> (dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn) = (
         ...   sde.get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.))
         >>> dzbydt
-        1.0533880900236678
+        1.0393380000000001
         >>> sed_flux_out_bydt
-        2053.3880778333764
+        1776.1689999999999
         >>> rel_sed_flux
-        0.0020533880778333762
+        0.001776169
         >>> error_in_sed_flux_fn
-        1.1572460282464668e-08
+        0.0013337999999999961
         """
         rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
         rel_sed_flux = rel_sed_flux_in
