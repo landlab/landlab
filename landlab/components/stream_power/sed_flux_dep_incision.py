@@ -146,6 +146,52 @@ class SedDepEroder(Component):
     n_t : float
         Power on slope in the transport capacity equation.
 
+    Examples
+    --------
+    >>> from six.moves import range
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab.components import FlowRouter, SedDepEroder
+
+    >>> mg = RasterModelGrid((10, 3), 200.)
+    >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
+    ...              mg.nodes_at_right_edge):
+    ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
+
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> th = mg.add_zeros('node', 'channel_sediment__depth')
+    >>> th += 0.0007
+
+    >>> fr = FlowRouter(mg)
+    >>> sde = SedDepEroder(mg, K_sp=1.e-4,
+    ...                    sed_dependency_type='almost_parabolic',
+    ...                    Qc='power_law', K_t=1.e-4, external_sediment=True)
+
+    >>> z[:] = mg.node_y/10000.
+
+    >>> initz = z.copy()
+
+    >>> dt = 100.
+    >>> up = 0.05
+
+    >>> for i in range(1):
+    ...     fr.run_one_step()
+    ...     sde.run_one_step(dt)
+
+    Where TL conditions predominate, the incision is linked only to movement
+    of the sediment layer:
+
+    >>> TLs = mg.core_nodes[sde.is_it_TL[mg.core_nodes]]
+    >>> np.allclose(th[TLs] + (initz - z)[TLs], 0.0007)
+    True
+
+    Otherwise, incision procedes in the naked nodes according to the sediment
+    dependent bedrock incision rules:
+
+    >>> incising_nodes = mg.core_nodes[
+    ...     np.logical_not(sde.is_it_TL)[mg.core_nodes]]
+    >>> np.all((initz - z)[incising_nodes] > 0.0007)
+    True
     """
 
     _name = 'SedDepEroder'
@@ -680,7 +726,8 @@ class SedDepEroder(Component):
                 dzbydt.fill(0.)
                 cell_areas = self.cell_areas
 
-                self._is_it_TL = np.zeros(self.grid.number_of_nodes, dtype=int)
+                self._is_it_TL = np.zeros(
+                    self.grid.number_of_nodes, dtype=bool)
                 for i in s_in[::-1]:  # work downstream
                     cell_area = cell_areas[i]
                     if flooded_nodes is not None:
@@ -721,7 +768,7 @@ class SedDepEroder(Component):
                             # no change to voldroprate or voldropped, as both
                             # should already be 0
                     else:
-                        self._is_it_TL[i] = 1
+                        self._is_it_TL[i] = True
                         rel_sed_flux[i] = 1.
                         vol_drop_rate = (river_volume_flux_into_node[i] -
                                          node_capacity)
