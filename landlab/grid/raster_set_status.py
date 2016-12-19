@@ -63,6 +63,8 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
     array([3, 4, 4, 4,
            3, 0, 0, 1,
            2, 2, 2, 1], dtype=int8)
+
+    LLCATS: BC
     """
     status_at_edge = (('bottom', bottom), ('left', left), ('top', top),
                       ('right', right), )

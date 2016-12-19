@@ -38,22 +38,27 @@ Information about the grid as a whole
     ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
     ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.corner_cells
-    ~landlab.grid.raster.RasterModelGrid.corner_nodes
     ~landlab.grid.raster.RasterModelGrid.dx
     ~landlab.grid.raster.RasterModelGrid.dy
     ~landlab.grid.raster.RasterModelGrid.extent
     ~landlab.grid.raster.RasterModelGrid.from_dict
+    ~landlab.grid.raster.RasterModelGrid.grid_xdimension
     ~landlab.grid.raster.RasterModelGrid.grid_ydimension
+    ~landlab.grid.raster.RasterModelGrid.imshow
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
     ~landlab.grid.raster.RasterModelGrid.move_origin
+    ~landlab.grid.raster.RasterModelGrid.ndim
     ~landlab.grid.raster.RasterModelGrid.node_axis_coordinates
     ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
     ~landlab.grid.raster.RasterModelGrid.number_of_elements
     ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
     ~landlab.grid.raster.RasterModelGrid.save
     ~landlab.grid.raster.RasterModelGrid.shape
+    ~landlab.grid.raster.RasterModelGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
@@ -66,11 +71,11 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
     ~landlab.grid.raster.RasterModelGrid.all_node_distances_map
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
     ~landlab.grid.raster.RasterModelGrid.cell_at_node
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_nodes
-    ~landlab.grid.raster.RasterModelGrid.corner_nodes
     ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
     ~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes
@@ -109,8 +114,10 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
     ~landlab.grid.raster.RasterModelGrid.number_of_nodes
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.patches_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.roll_nodes_ud
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -143,12 +150,16 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
     ~landlab.grid.raster.RasterModelGrid.link_dirs_at_node
     ~landlab.grid.raster.RasterModelGrid.links_at_node
+    ~landlab.grid.raster.RasterModelGrid.links_at_patch
     ~landlab.grid.raster.RasterModelGrid.node_at_link_head
     ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
     ~landlab.grid.raster.RasterModelGrid.number_of_active_links
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
     ~landlab.grid.raster.RasterModelGrid.number_of_links
     ~landlab.grid.raster.RasterModelGrid.number_of_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_links
     ~landlab.grid.raster.RasterModelGrid.status_at_link
@@ -156,6 +167,8 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.unit_vector_ycomponent_at_link
     ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
     ~landlab.grid.raster.RasterModelGrid.vertical_links
+    ~landlab.grid.raster.RasterModelGrid.x_of_link
+    ~landlab.grid.raster.RasterModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -170,9 +183,7 @@ Information about cells
     ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.core_cells
-    ~landlab.grid.raster.RasterModelGrid.corner_cells
     ~landlab.grid.raster.RasterModelGrid.faces_at_cell
-    ~landlab.grid.raster.RasterModelGrid.map_node_to_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
@@ -180,6 +191,8 @@ Information about cells
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
     ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
+    ~landlab.grid.raster.RasterModelGrid.x_of_cell
+    ~landlab.grid.raster.RasterModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -188,7 +201,6 @@ Information about faces
     :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.active_faces
-    ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces
     ~landlab.grid.raster.RasterModelGrid.face_at_link
     ~landlab.grid.raster.RasterModelGrid.faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.link_at_face
@@ -196,6 +208,8 @@ Information about faces
     ~landlab.grid.raster.RasterModelGrid.number_of_faces
     ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.width_of_face
+    ~landlab.grid.raster.RasterModelGrid.x_of_face
+    ~landlab.grid.raster.RasterModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -203,9 +217,24 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.raster.RasterModelGrid.links_at_patch
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
     ~landlab.grid.raster.RasterModelGrid.number_of_patches
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_at_link
     ~landlab.grid.raster.RasterModelGrid.patches_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
+
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.raster.RasterModelGrid.number_of_corners
+
 
 Data Fields in ModelGrid
 ------------------------
@@ -229,6 +258,8 @@ itself that provide access to the values groups:
     ~landlab.grid.raster.RasterModelGrid.at_cell
     ~landlab.grid.raster.RasterModelGrid.at_link
     ~landlab.grid.raster.RasterModelGrid.at_face
+    ~landlab.grid.raster.RasterModelGrid.at_patch
+    ~landlab.grid.raster.RasterModelGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -325,7 +356,9 @@ methods tend to start with `calc_`.
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_patch
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_cell_subtriangles
 
 Mappers
 -------
@@ -341,23 +374,27 @@ nodes.
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link
     ~landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_link_vector_sum_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_link_vector_to_nodes
     ~landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_patch_nodes_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_active_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_link_nodes_to_link
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_patch_nodes_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_active_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_min_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_min_of_link_nodes_to_link
     ~landlab.grid.raster.RasterModelGrid.map_min_of_node_links_to_node
     ~landlab.grid.raster.RasterModelGrid.map_min_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_patch_nodes_to_patch
     ~landlab.grid.raster.RasterModelGrid.map_node_to_cell
     ~landlab.grid.raster.RasterModelGrid.map_sum_of_inlinks_to_node
     ~landlab.grid.raster.RasterModelGrid.map_sum_of_outlinks_to_node
@@ -382,6 +419,7 @@ defined at other grid elements automatically.
 
     ~landlab.grid.raster.RasterModelGrid.active_faces
     ~landlab.grid.raster.RasterModelGrid.active_links
+    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_cells
@@ -404,6 +442,8 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
     ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
@@ -412,6 +452,8 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.raster.RasterModelGrid.set_open_nodes_disconnected_from_watershed_to_closed
+    ~landlab.grid.raster.RasterModelGrid.set_status_at_node_on_edges
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_coords
     ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_id
@@ -428,8 +470,6 @@ to a point; nodes at edges.
     :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.corner_cells
-    ~landlab.grid.raster.RasterModelGrid.corner_nodes
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
@@ -453,7 +493,7 @@ find in GIS software.
 
 .. autosummary::
     :toctree: generated/
-
+    ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_hillshade_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
@@ -485,7 +525,7 @@ from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
 from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
-                   FIXED_GRADIENT_BOUNDARY, TRACKS_CELL_BOUNDARY,
+                   FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
                    CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK,
                    INACTIVE_LINK)
 from landlab.field.scalar_data_fields import FieldError
@@ -605,6 +645,8 @@ class RasterModelGridPlotter(object):
         See Also
         --------
         landlab.plot.imshow_grid
+
+        LLCATS: GINF
         """
         from landlab.plot import imshow_grid
         kwds['values_at'] = group
@@ -766,9 +808,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     (4, 5)
     >>> rmg.number_of_active_links
     17
-    >>> vals = rmg.add_zeros('vals', at='active_link')
-    >>> vals.size
-    17
 
     Set the nodes along the top edge of the grid to be *closed* boundaries.
     This means that any links touching these nodes will be *inactive*.
@@ -777,9 +816,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
-    14
-    >>> vals = rmg.add_zeros('vals', at='active_link')
-    >>> vals.size
     14
 
     A `RasterModelGrid` can have different node spacings in the *x* and *y*
@@ -885,6 +921,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...     {'shape': (3, 4), 'bc': {'top': 'closed'}})
         >>> grid.number_of_nodes
         12
+
+        LLCATS: GINF
         """
         shape = params['shape']
         spacing = params.get('spacing', (1., ) * len(shape))
@@ -1181,6 +1219,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.nodes[0] = 99 # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: assignment destination is read-only
+
+        LLCATS: NINF
         """
         return super(RasterModelGrid, self).nodes
 
@@ -1198,6 +1238,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_right_edge]
         array([ 3,  7, 11])
+
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[:, -1]
 
@@ -1215,6 +1257,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_top_edge]
         array([ 8,  9, 10, 11])
+
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[-1, :]
 
@@ -1232,6 +1276,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_left_edge]
         array([0, 4, 8])
+
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[:, 0]
 
@@ -1249,6 +1295,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_bottom_edge]
         array([0, 1, 2, 3])
+
+        LLCATS: NINF BC SUBSET
         """
         return self.nodes[0, :]
 
@@ -1275,6 +1323,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                   8,  9, 10, 11])
         >>> vals[grid.nodes_at_edge('left')]
         array([0, 4, 8])
+
+        LLCATS: NINF BC SUBSET
         """
         if edge not in ('right', 'top', 'left', 'bottom'):
             raise ValueError('value for edge not understood')
@@ -1322,6 +1372,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((3, 4))
         >>> grid.shape
         (3, 4)
+
+        LLCATS: GINF NINF
         """
         return (self.number_of_node_rows, self.number_of_node_columns)
 
@@ -1341,6 +1393,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((3, 4))
         >>> grid.cell_grid_shape
         (1, 2)
+
+        LLCATS: GINF CINF
         """
         return (self.number_of_cell_rows, self.number_of_cell_columns)
 
@@ -1362,6 +1416,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5), 2.0)
         >>> grid.dx
         2.0
+
+        LLCATS: GINF MEAS
         """
         return self._dx
 
@@ -1385,14 +1441,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5), spacing=(2, 4))
         >>> grid.dy
         2.0
+
+        LLCATS: GINF MEAS
         """
         return self._dy
-
-    @property
-    @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
-    @make_return_array_immutable
-    def get_diagonal_neighbors_at_node(self):
-        return self._diagonal_neighbors_at_node
 
     @property
     @make_return_array_immutable
@@ -1415,6 +1467,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [ 7, -1, -1,  1], [ 8,  6,  0,  2], [-1,  7,  1, -1],
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
+
+       LLCATS: DEPR NINF CONN
         """
         return self.__diagonal_neighbors_at_node
 
@@ -1458,6 +1512,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
+
+       LLCATS: DEPR LINF NINF
         """
         if len(args) == 0:
             return np.vstack((self._node_active_inlink_matrix2,
@@ -1476,6 +1532,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
+
+        LLCATS: GINF LINF
         """
         return self.number_of_links + self._number_of_diagonal_links
 
@@ -1484,6 +1542,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         """
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
+
+        LLCATS: GINF NINF BC
         """
         try:
             return self._num_d8_active_links
@@ -1523,6 +1583,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([25, 24, 17, 20])
         >>> mg._diagonal_links_at_node[7]
         array([-1, 28, 21, -1])
+
+        LLCATS: NINF LINF CONN
         """
         try:
             return self._diag_links_at_node
@@ -1608,6 +1670,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     @make_return_array_immutable
     def horizontal_links(self):
+        """
+        LLCATS: LINF
+        """
         try:
             return self._horizontal_links
         except AttributeError:
@@ -1618,6 +1683,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     @make_return_array_immutable
     def vertical_links(self):
+        """
+        LLCATS: LINF
+        """
         try:
             return self._vertical_links
         except AttributeError:
@@ -1634,6 +1702,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         grid.
         The four possible patches are returned in order CCW from east, i.e.,
         NE, NW, SW, SE.
+
         Missing patches are indexed -1.
 
         Examples
@@ -1650,6 +1719,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [-1, -1, -1,  2],
                [-1, -1,  2,  3],
                [-1, -1,  3, -1]])
+
+        LLCATS: PINF NINF CONN
         """
         try:
             return self.node_patch_matrix
@@ -1700,6 +1771,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [5, 4, 1, 2],
                [7, 6, 3, 4],
                [8, 7, 4, 5]])
+
+        LLCATS: NINF PINF CONN
         """
         self._patches_created = True
         base = np.arange(self.number_of_patches)
@@ -1724,6 +1797,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [11, 14, 10,  7],
                [12, 15, 11,  8],
                [13, 16, 12,  9]])
+
+        LLCATS: PINF LINF CONN
         """
         self._patches_created = True
         base = np.arange(self.number_of_patches)
@@ -1761,6 +1836,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [ 3, -1],
                [ 4, -1],
                [ 5, -1]])
+
+        LLCATS: PINF LINF CONN
         """
         try:
             return self._patches_at_link
@@ -1769,20 +1846,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             return self._patches_at_link
 
     def _create_patches_at_link(self):
+        from .cfuncs import create_patches_at_element
         self._patches_created = True
         self._patches_at_link = np.empty((self.number_of_links, 2),
                                          dtype=int)
         self._patches_at_link.fill(-1)
-        to_sort = np.empty((2, 2), dtype=int)
-        for i in range(self.number_of_links):
-            patches_with_link = np.where((
-                self.links_at_patch == i).sum(axis=1))[0]
-            if patches_with_link.size == 2:
+        create_patches_at_element(self.links_at_patch, self.number_of_links,
+                                  self._patches_at_link)
 # a sort of the links will be performed here once we have corners
-                midpt = (self.x_of_link[i], self.y_of_link[i])
-                # ...
-            self._patches_at_link[
-                i, :patches_with_link.size] = patches_with_link
 
     def _create_link_dirs_at_node(self):
         """Make array with link directions at each node
@@ -2293,10 +2364,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._face_at_link = squad_faces.face_at_link(self.shape)
         return self._face_at_link
 
-    @deprecated(use='extent', version=1.0)
-    def get_grid_xdimension(self):
-        return self.extent[1]
-
     @property
     def extent(self):
         """Extent of the grid in the y and x-dimensions.
@@ -2325,6 +2392,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
         >>> grid.extent
         (6.0, 12.0)
+
+        LLCATS: GINF MEAS
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14 to reflect fact
         # boundary nodes don't have defined
@@ -2332,9 +2401,36 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             (self.number_of_node_rows - 1) * self._dy,
             (self.number_of_node_columns - 1) * self._dx)
 
-    @deprecated(use='extent', version=1.0)
-    def get_grid_ydimension(self):
-        return self.extent[0]
+    @property
+    def grid_xdimension(self):
+        """Length of the grid in the x-dimension.
+
+        Return the x-dimension of the grid. Because boundary nodes don't have
+        cells, the dimension of the grid is num_cols-1, not num_cols.
+
+        Returns
+        -------
+        float
+            Length of the grid in the x-dimension.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.grid_xdimension
+        4.0
+
+        >>> grid = RasterModelGrid((4, 5), 0.5)
+        >>> grid.grid_xdimension
+        2.0
+
+        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid.grid_xdimension
+        12.0
+
+        LLCATS: GINF MEAS
+        """
+        return ((self.number_of_node_columns - 1) * self._dx)
 
     @property
     def grid_ydimension(self):
@@ -2362,6 +2458,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
         >>> grid.grid_ydimension
         6.0
+
+        LLCATS: GINF MEAS
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14, as above.
         return ((self.number_of_node_rows - 1) * self._dy)
@@ -2379,6 +2477,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_interior_nodes
         6
+
+        LLCATS: NINF
         """
         return sgrid.interior_node_count(self.shape)
 
@@ -2394,6 +2494,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_node_columns
         5
+
+        LLCATS: GINF NINF
         """
         return self._ncols
 
@@ -2409,6 +2511,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_node_rows
         4
+
+        LLCATS: GINF NINF
         """
         return self._nrows
 
@@ -2424,6 +2528,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_cell_columns
         3
+
+        LLCATS: GINF NINF
         """
         return self._ncols - 2
 
@@ -2439,6 +2545,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_cell_rows
         2
+
+        LLCATS: GINF CINF
         """
         return self._nrows - 2
 
@@ -2454,6 +2562,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_patches
         12
+
+        LLCATS: PINF
         """
         return (self._nrows - 1) * (self._ncols - 1)
 
@@ -2479,6 +2589,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> _ = grid._diagonal_links_at_node
         >>> grid._number_of_diagonal_links
         24
+
+        LLCATS: GINF LINF
         """
         assert self._diagonal_links_created, \
             "No diagonal links have been created in the grid yet!"
@@ -2553,6 +2665,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5), 3.0)
         >>> grid.node_spacing
         3.0
+
+        LLCATS: DEPR GINF NINF MEAS
         """
         if self._dx != self._dy:
             raise RuntimeError('dx and dy are not the same')
@@ -2561,6 +2675,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @property
     @deprecated(use='nodes_at_corners_of_grid', version=1.0)
     def corner_nodes(self):
+        """
+        LLCATS: DEPR GINF NINF SUBSET
+        """
         return self.nodes_at_corners_of_grid
 
     @property
@@ -2580,12 +2697,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.nodes_at_corners_of_grid
         array([ 0,  4, 15, 19])
+
+        LLCATS: GINF NINF SUBSET
         """
         return sgrid.corners((self._nrows, self._ncols))
 
     @property
     @deprecated(use='cells_at_corners_of_grid', version=1.0)
     def corner_cells(self):
+        """
+        LLCATS: DEPR GINF CINF SUBSET
+        """
         return self.cells_at_corners_of_grid
 
     @property
@@ -2605,6 +2727,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.cells_at_corners_of_grid
         array([0, 2, 3, 5])
+
+        LLCATS: GINF CINF SUBSET
         """
         return sgrid.corners(self.cell_grid_shape)
 
@@ -2640,6 +2764,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ True,  True, False], dtype=bool)
         >>> grid.is_point_on_grid((-.1, .1, 3.9, 4.1), (1, 1, 1, 1))
         array([False,  True,  True, False], dtype=bool)
+
+        LLCATS: GINF MEAS SUBSET
         """
         xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
 
@@ -2702,6 +2828,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((3, 4))
         >>> grid.nodes_around_point(.5, 1.5)
         array([4, 8, 9, 5])
+
+        LLCATS: NINF SUBSET
         """
         xcoord, ycoord = np.broadcast_arrays(xcoord, ycoord)
 
@@ -2721,6 +2849,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This method takes existing coordinates, inside the grid, and returns
         the ID of the closest grid node. That node can be a boundary node.
+
+        LLCATS: DEPR NINF SUBSET
         """
         # DEJH, 9/24/13.
         # This testing suppressed for speed. While suppressed, coordinates
@@ -2791,6 +2921,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([12,  9])
         >>> rmg.find_nearest_node((-.4999, 1.))
         5
+
+        LLCATS: NINF SUBSET
         """
         return rfuncs.find_nearest_node(self, coords, mode=mode)
 
@@ -2819,6 +2951,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> _ = grid._diagonal_links_at_node
         >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,  3.,  4.,  4.,  4.,  3.,  3.,  4.,  4.,  4.,  3.,  3.])
+
+        LLCATS: LINF MEAS
         """
         if self._link_length is None:
             self._create_length_of_link()
@@ -2859,6 +2993,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 4.,  4.,  3.,  3.,  3.,
                 4.,  4.,  5.,  5.,  5.,
                 5.,  5.,  5.,  5.,  5.])
+
+        LLCATS: LINF MEAS
         """
         if self._link_length is None:
             return self._create_length_of_link()
@@ -2940,6 +3076,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([1, 3, 4, 4, 0, 2, 4, 4])
         >>> to_nodes
         array([4, 4, 5, 7, 4, 4, 6, 8])
+
+        LLCATS: LINF NINF GEOM BC
         """
         if not self._diagonal_links_created:
             self._create_diag_links_at_node()
@@ -2956,6 +3094,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @make_return_array_immutable
     def _all_d8_active_links(self):
         """Return all the active links, both orthogonal and diagonal.
+
+        LLCATS: LINF NINF GEOM BC
         """
         try:
             return self._all__d8_active_links
@@ -2967,6 +3107,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     @make_return_array_immutable
     def _all_d8_inactive_links(self):
         """Return all the inactive links, both orthogonal and diagonal.
+
+        LLCATS: LINF NINF GEOM BC
         """
         try:
             return self._all__d8_inactive_links
@@ -3033,6 +3175,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This scheme is necessary for internal consistency with looped
         boundaries.
+
+        LLCATS: DEPR BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_inactive_boundaries')
@@ -3145,6 +3289,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=int8)
+
+      LLCATS: BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
@@ -3258,6 +3404,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This scheme is necessary for internal consistency with looped
         boundaries.
+
+        LLCATS: BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
@@ -3379,6 +3527,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
         >>> rmg.looped_node_properties['linked_node_IDs']
         array([10, 11, 12, 13, 14,  8,  6, 13, 11,  5,  6,  7,  8,  9])
+
+        LLCATS: BC SUBSET
         """
         # Added DEJH Feb 2014
         # TODO: Assign BC_statuses also to *links*
@@ -3398,8 +3548,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         these_linked_nodes = np.array([])
 
         if top_bottom_are_looped:
-            self._node_status[bottom_edge] = TRACKS_CELL_BOUNDARY
-            self._node_status[top_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[bottom_edge] = LOOPED_BOUNDARY
+            self._node_status[top_edge] = LOOPED_BOUNDARY
             these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                                  bottom_edge, top_edge))
             these_linked_nodes = np.concatenate((
@@ -3408,8 +3558,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 bottom_edge + self.number_of_node_columns))
 
         if sides_are_looped:
-            self._node_status[right_edge] = TRACKS_CELL_BOUNDARY
-            self._node_status[left_edge] = TRACKS_CELL_BOUNDARY
+            self._node_status[right_edge] = LOOPED_BOUNDARY
+            self._node_status[left_edge] = LOOPED_BOUNDARY
             these_boundary_IDs = np.concatenate((these_boundary_IDs,
                                                  left_edge, right_edge))
             these_linked_nodes = np.concatenate((
@@ -3454,6 +3604,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         It currently works only with fixed value (type 1) and fixed gradient
         (type 2) conditions. Looping must be handled internally to a component,
         and is not dealt with here.
+
+        LLCATS: DEPR NINF BC
         """
         try:
             fixed_nodes = self.fixed_value_node_properties['boundary_node_IDs']
@@ -3507,6 +3659,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...     # doctest: +NORMALIZE_WHITESPACE
         array([ 0.  , -1.  ,  0.  , -0.75,  0.  , -1.  ,  0.  ,  0.  , -0.6 ,
                 0.  , -0.6 ,  0.  , -0.6 ,  0.  , 0. ])
+
+        LLCATS: LINF GRAD
         """
         (active_links, _, _) = self._d8_active_links()
         diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
@@ -3576,6 +3730,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
 
         In this case, the function will not have to create the df array.
+
+        LLCATS: DEPR NINF GRAD
         """
         if out is None:
             out = self.zeros(at='node')
@@ -3592,6 +3748,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         This is like calculate_flux_divergences (plural!), but only does
         it for cell "id".
+
+        LLCATS: DEPR NINF GRAD
         """
 
         if self._DEBUG_TRACK_METHODS:
@@ -3613,12 +3771,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Sets the value of u at all noflux boundary cells equal to the
         value of their interior neighbors, as recorded in the
         "boundary_nbrs" array.
+
+        LLCATS: DEPR BC
         """
 
         if bc is None:
             bc = self.default_bc
 
-        inds = (bc.boundary_code[id] == bc.TRACKS_CELL_BOUNDARY)
+        inds = (bc.boundary_code[id] == bc.LOOPED_BOUNDARY)
         u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
 
         return u
@@ -3664,6 +3824,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [ 10.,  11.,  12.,  13.,  14.],
                [  5.,   6.,   7.,   8.,   9.],
                [  0.,   1.,   2.,   3.,   4.]])
+
+       LLCATS: GINF NINF
         """
         return sgrid.reshape_array(self.shape, u,
                                    flip_vertically=flip_vertically)
@@ -3695,6 +3857,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> ur
         array([[ 3.,  4.,  5.],
                [ 0.,  1.,  2.]])
+
+       LLCATS: GINF CINF
         """
         return sgrid.reshape_array((self.shape[0] - 2, self.shape[1] - 2),
                                    u, flip_vertically=flip_vertically)
@@ -3736,6 +3900,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> data # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
                 2.])
+
+        LLCATS: NINF
         """
         # Get the data
         data = self.at_node[data_name]
@@ -3772,54 +3938,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             data[ncols * i + offset:ncols *
                  (i + 1) - offset] = top_rows_to_move[i, :]
 
-    @deprecated(use='active_neighbors_at_node', version=1.0)
-    def get_active_neighbors_at_node(self, *args, **kwds):
-        """active_neighbors_at_node([ids], bad_index=BAD_INDEX_VALUE)
-        Get list of neighbor node IDs.
-
-        Return lists of neighbor nodes for nodes with given *ids*. If *ids*
-        is not given, return the neighbors for all of the nodes in the grid.
-        For each node, the list gives neighbor ids as [right, top, left,
-        bottom]. Boundary nodes receive their actual neighbors (see example
-        below); references to positions which are off the grid from boundary
-        nodes receive BAD_INDEX_VALUE. Only nodes which can be reached along an
-        active link are returned, otherwise again we get BAD_INDEX_VALUE.
-
-        Parameter *bad_index* can be used to override the grid default for the
-        BAD_INDEX_VALUE.
-
-        Examples
-        --------
-        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> np.array_equal(rmg.get_active_neighbors_at_node([-1, 6, 2]),
-        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
-        True
-        >>> rmg.get_active_neighbors_at_node(7)
-        array([ 8, 12,  6,  2])
-        >>> rmg.get_active_neighbors_at_node(2, bad_index=-1)
-        array([-1,  7, -1, -1])
-        >>> np.array_equal(rmg.get_active_neighbors_at_node(2), [X, 7, X, X])
-        True
-
-        .. todo:: could use inlink_matrix, outlink_matrix
-        """
-        bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
-        if len(args) not in (0, 1):
-            raise ValueError('only zero or one arguments accepted')
-
-        if bad_index not in self._neighbor_node_dict:
-            self._neighbor_node_dict[bad_index] = (
-                self._create_neighbor_list(bad_index=bad_index))
-
-        neighbor_nodes = self._neighbor_node_dict[bad_index]
-
-        if len(args) == 0:
-            return neighbor_nodes
-        else:
-            return neighbor_nodes[args[0], :]
-
     def _create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of neighbor node IDs.
 
@@ -3847,6 +3965,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @deprecated(use='node_has_boundary_neighbor', version=1.0)
     def has_boundary_neighbor(self, ids, method='d8'):
+        """
+        LLCATS: DEPR NINF CONN BC
+        """
         return self.node_has_boundary_neighbor(ids, method=method)
 
     def node_has_boundary_neighbor(self, ids, method='d8'):
@@ -3871,6 +3992,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         Traceback (most recent call last):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
+
+        LLCATS: NINF CONN BC
         """
         ans = _node_has_boundary_neighbor(self, ids, method=method)
 
@@ -3903,6 +4026,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([13, 11,  1,  3])
 
         .. todo:: could use inlink_matrix, outlink_matrix
+
+        LLCATS: NINF CONN
         """
         # Added DEJH 051513
         bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
@@ -3973,6 +4098,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         (Interior status is typically indicated by a value of 0 in
         node_status.)
+
+        LLCATS: DEPR NINF BC
         """
         # NG changed this.
         # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
@@ -3986,6 +4113,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @deprecated(use='node_is_core', version=1.0)
     def is_core(self, *args):
+        """
+        LLCATS: DEPR NINF BC
+        """
         return self.node_is_core(*args)
 
     def node_is_core(self, *args):
@@ -3997,6 +4127,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         If no IDs are provided, method returns a boolean array for every node.
 
         (Core status is typically indicated by a value of 0 in node_status.)
+
+        LLCATS: NINF BC
         """
         # NG changed this.
         # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
@@ -4014,11 +4146,16 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         Returns a single boolean truth value, True if all nodes with *IDs* are
         interior nodes, False if not.
+
+        LLCATS: DEPR NINF BC
         """
         return np.all(np.equal(self._node_status[IDs], CORE_NODE))
 
     @deprecated(use='nodes_are_all_core', version=1.0)
     def are_all_core(self, ids):
+        """
+        LLCATS: DEPR NINF BC
+        """
         return self.nodes_are_all_core(ids)
 
     def nodes_are_all_core(self, ids):
@@ -4036,6 +4173,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -------
         boolean
             ``True`` if all the given nodes are *core* nodes.
+
+        LLCATS: NINF BC
         """
         return np.all(np.equal(self._node_status[ids], CORE_NODE))
 
@@ -4054,70 +4193,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([4])
         >>> mg.face_connecting_cell_pair(0, 2).size  # empty array returned
         0
+
+        LLCATS: DEPR FINF CINF CONN
         """
         cell_faces = self.faces_at_cell[[cell_a, cell_b]]
         return as_id_array(np.intersect1d(cell_faces[0], cell_faces[1],
                                           assume_unique=True))
-
-    @deprecated(use='no replacement', version=1.0)
-    def get_link_connecting_node_pair(self, node_a, node_b):
-        """Get the link that connects two nodes.
-
-        Returns the link ID that connects *node_a* and *node_b*.
-        If the nodes do not share any links, raises `ValueError`.
-
-        Parameters
-        ----------
-        node_a : int
-            Node ID
-        node_b : int
-            Node ID
-
-        Returns
-        -------
-        ndarray
-            Links that connect the nodes pairs.
-
-        Raises
-        ------
-        ValueError
-            If the given nodes are not connected by a link or the nodes are
-            the same.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5))
-
-        Nodes 6 and 7 are connected by link 20.
-
-        >>> rmg.get_link_connecting_node_pair(6, 7)
-        10
-
-        Nodes 6 and 8 are not connected by a link, so raise an exception.
-
-        >>> rmg.get_link_connecting_node_pair(6, 8)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        ValueError: disconnected nodes
-
-        If *node_a* and *node_b* are the same node, also raise a `ValueError`.
-
-        >>> rmg.get_link_connecting_node_pair(6, 6)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        ValueError: nodes are the same
-        """
-        if node_a == node_b:
-            raise ValueError('nodes are the same')
-
-        links_at_a = self.links_at_node[node_a]
-        links_at_b = self.links_at_node[node_b]
-
-        try:
-            return as_id_array(np.intersect1d(links_at_a, links_at_b)[0])
-        except IndexError:
-            raise ValueError('disconnected nodes')
 
     @return_id_array
     def grid_coords_to_node_id(self, row, col, **kwds):
@@ -4160,6 +4241,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
         array([13,  4])
+
+        LLCATS: NINF SUBSET MEAS
         """
         return np.ravel_multi_index((row, col), self.shape, **kwds)
 
@@ -4197,6 +4280,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This method is not defined on a raster, as there is no unique unit
         normal for a square patch. Use
         `_calc_unit_normals_to_patch_subtriangles` instead.
+
+        LLCATS: PINF GRAD
         """
         raise NotImplementedError(
             'This method is not defined on a raster, as there is no unique '
@@ -4224,6 +4309,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -------
         ndarray
             Aspect at the nodes given by id
+
+        LLCATS: DEPR NINF SURF
         """
         # additional note, KRB has written three codes in raster.py
         # one to calculate slope, one to calculate aspect, and one
@@ -4279,6 +4366,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -------
         ndarray
             Slope at the nodes given by id
+
+        LLCATS: DEPR NINF GRAD SURF
         """
         #
         # additional note, KRB has written three codes in raster.py
@@ -4367,6 +4456,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([ 0.75,  0.75])
         >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
         array([ 180.,  180.])
+
+        LLCATS: DEPR NINF SURF GRAD
         """
         if ids is None:
             ids = self.node_at_cell
@@ -4440,6 +4531,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         -------
         (slope, aspect) : tuple of floats
             Tuple containing (*slope*, *aspect*)
+
+        LLCATS: DEPR NINF GRAD SURF
         """
         # additional note, KRB has written three codes in raster.py
         # one to calculate slope, one to calculate aspect, and one
@@ -4503,6 +4596,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg = RasterModelGrid((4, 5))
         >>> rmg.save('./mysave.nc')
         >>> os.remove('mysave.nc') #to remove traces of this test
+
+        LLCATS: GINF
         """
         format = format or _guess_format_from_name(path)
         path = _add_format_extension(path, format)
@@ -4514,10 +4609,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             write_esri_ascii(path, self, names=names)
         else:
             raise ValueError('format not understood')
-
-    @deprecated(use='looped_neighbors_at_cell', version=1.0)
-    def get_looped_cell_neighbor_list(self, cell_ids):
-        return self.looped_neighbors_at_cell[cell_ids, :]
 
     @property
     @make_return_array_immutable
@@ -4550,6 +4641,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> grid.looped_neighbors_at_cell[np.array([1, 5]), :]
         array([[2, 5, 4, 3, 0, 3, 4, 5],
                [3, 0, 2, 1, 4, 1, 2, 0]])
+
+       LLCATS: DEPR CINF CONN BC
         """
         if self._looped_cell_neighbor_list is not None:
             return self._looped_cell_neighbor_list
@@ -4643,10 +4736,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return looped_cell_neighbors
 
-    @deprecated(use='second_ring_looped_neighbors_at_cell', version=1.0)
-    def get_second_ring_looped_cell_neighbor_list(self, cell_ids):
-        return self.second_ring_looped_neighbors_at_cell[cell_ids, :]
-
     @property
     @make_return_array_immutable
     def second_ring_looped_neighbors_at_cell(self):
@@ -4677,6 +4766,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         [16, 17, 18, 19, 20, 21, 22, 23]
         [ 8,  9, 10, 11, 12, 13, 14, 15]
         [ 0,  1,  2,  3,  4,  5,  6,  7]
+
+        LLCATS: CINF CONN BC
         """
         if self._looped_second_ring_cell_neighbor_list_created:
             return self.second_ring_looped_cell_neighbor_list
@@ -4836,6 +4927,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         'topographic__slope'
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
         'topographic__elevation'
+
+        LLCATS: BC SUBSET
         """
         # THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
         # IF NOT ALREADY SET.
@@ -5030,32 +5123,53 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
 
-    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.):
+    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
+                                         return_outlet_id=False,
+                                         remove_disconnected=False,
+                                         method='D8'):
         """
         Finds the node adjacent to a boundary node with the smallest value.
-        This node is set as the outlet.
+        This node is set as the outlet.  The outlet node must have a data
+        value.  Can return the outlet id as a one element numpy array if
+        return_outlet_id is set to True.
 
         All nodes with nodata_value are set to CLOSED_BOUNDARY
-        (grid.status_at_node == 4). All nodes with data values
-        are set to CORE_NODES (grid.status_at_node == 0), with
-        the exception that the outlet node is set to a
-        FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+        (grid.status_at_node == 4). All nodes with data values are set to
+        CORE_NODES (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
-        Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
-        if there are nodes that have values.  The only exception to this would
-        be if the outlet node is on the boundary, which is acceptable.
+        Note that the outer ring (perimeter) of the raster is set to
+        CLOSED_BOUNDARY, even if there are nodes that have values. The only
+        exception to this would be if the outlet node is on the perimeter, which
+        is acceptable.
 
-        This assumes that all of the nodata_values are on the outside of the
-        data values.  In other words, there are no islands of nodata_values
+        This routine assumes that all of the nodata_values are on the outside of
+        the data values. In other words, there are no islands of nodata_values
         surrounded by nodes with data.
 
-        This also assumes that the grid has a single watershed.  If this is not
-        the case this will not work.
+        This also assumes that the grid has a single watershed (that is a single
+        outlet node).
+
+        If you are considering running flow routing algorithms on this model
+        grid, it is recommended that you verify the absence of non-closed nodes
+        surrounded only by closed nodes. The presence of these isolated non-
+        closed nodes may result from clipping a raster to a polygon and will
+        prevent the flow router from functioning as intended.
+
+        This can be acomplished by setting the
+        parameter: *remove_disconnected* to True (default is False).
+
+        This will run the function:
+        set_open_nodes_disconnected_from_watershed_to_closed
+        which will find any isolated open nodes that have no neigbors in the
+        main watershed and set them to closed. The neigborhood algorithm used
+        to assess connectivity can be set to either 'D8'(default) or 'D4' using
+        the flag *method*.
 
         Finally, the developer has seen cases in which DEM data that has been
         filled results in a different outlet from DEM data which has not been
         filled.  Be aware that if you identify an outlet on a filled DEM, make
-        sure that filled DEM is what is being used for your modeling.
+        sure that the filled DEM is what is being used for your modeling.
         Otherwise, this may find a different outlet.  To force the outlet
         location, use either set_watershed_boundary_condition_outlet_coords
         or set_watershed_boundary_condition_outlet_id.
@@ -5066,8 +5180,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
+        return_outlet_id : boolean, optional
+            Indicates whether or not to return the id of the found outlet
+        remove_disconnected : boolean, optional
+            Indicates whether to search for and remove disconnected nodes.
+        method : string, optional. Default is 'D8'.
+            Sets the connection method. for use if remove_disconnected==True
 
-        Examples:
+        Examples
         ---------
         The first example will use a 4,4 grid with node data values
         as illustrated:
@@ -5092,7 +5212,10 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> rmg.set_watershed_boundary_condition(node_data, -9999.)
+        >>> out_id = rmg.set_watershed_boundary_condition(node_data, -9999.,
+        ...                                              True)
+        >>> out_id
+        array([10])
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
@@ -5103,86 +5226,240 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> rmg2.set_watershed_boundary_condition(node_data2, -9999.)
         >>> rmg2.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=int8)
+
+        LLCATS: BC
         """
-        #for this to be a watershed, need to make sure that there is a ring
-        #of no data values around the outside of the watershed, barring the
-        #outlet location.  So enforce that all outer nodes
-        #are inactive boundaries now, then set the outlet location later.
-        #By enforcing the ring of closed values first, then fixing the outlet
-        #later, it should be OK if the outlet is on the outer ring.
+        # For this to be a watershed, need to make sure that there is a ring
+        # of closed boundary nodes around the outside of the watershed,
+        # barring the outlet location.  So enforce that all perimeter nodes
+        # are inactive boundaries now, then set the outlet location later.
+        # By enforcing the perimeter of closed values first, then fixing the
+        # outlet later, it should be OK if the outlet is on the perimeter.
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
-        #set no data nodes to inactive boundaries
-        #this may be redundant, but must do in case there are no data
-        #values that are not on the outer boundary
+        # Set no data nodes to inactive boundaries.
+        # This may be redundant, but must do in case there are no data
+        # values that are not on the perimeter.
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
-        #This method works well if the watershed topography is already
-        #established.  If it's not, then this is an ineffiient method, but
-        #seems likely that one would only call this if the watershed
-        #topography was already established.
-
-        #need to find values that are not no_data
+        # need to find values that are not no_data
 
         #locs is a list that contains locations where
-        #node data is greater than the nodata value
+        #node data is not equal to the nodata value
         locs = np.where(node_data != nodata_value)
         if len(locs) < 1:
             raise ValueError('All data values are no_data values')
 
-        #now find minimum of the data values
-        min_val=np.min(node_data[locs])
+        # now find minimum of the data values
+        min_val = np.min(node_data[locs])
 
-        #now find where minimum values are
-        min_locs=np.where(node_data == min_val)
+        # now find where minimum values are
+        min_locs = np.where(node_data == min_val)
 
-        #check all the locations with the minimum value to see if one
-        #is adjacent to a boundary location.  If so, that will be the
-        #watershed outlet.  If none of these points qualify, then
-        #increase the minimum value and check again.  Keep checking
-        #until a point next to the boundary is found.
-        #
-        #NG I think the only way this would become an infinite loop
-        #is if there are no interior nodes.  Should be checking for
-        #this above.
-        not_found=True
+        # check all the locations with the minimum value to see if one
+        # is adjacent to a boundary location.  If so, that will be the
+        # watershed outlet.  If none of these points qualify, then
+        # increase the minimum value and check again.  Keep checking
+        # until a point next to the boundary is found.
+        # NG I think the only way this would become an infinite loop
+        # is if there are no interior nodes.  Should be checking for
+        # this above.
+        not_found = True
         while not_found:
-            #now check the min locations to see if any are next to
-            #a boundary node
+            # now check the min locations to see if any are next to
+            # a boundary node
             local_not_found = True
             i = 0
             while (i < len(min_locs) and local_not_found):
                 if self.has_boundary_neighbor(min_locs[i]):
                     local_not_found = False
-                    #outlet_loc contains the index of the outlet location
-                    #in the node_data array
+                    # outlet_loc contains the index of the outlet location
+                    # in the node_data array
                     outlet_loc = min_locs[i]
                 else:
                     i += 1
 
-            #checked all of the min vals, (so done with inner while)
-            #and none of the min values were outlet candidates
+            # checked all of the min vals, (so done with inner while)
+            # and none of the min values were outlet candidates
             if local_not_found:
-                #need to find the next largest minimum value
-                #first find the locations of all values greater
-                #than the old minimum
-                #not done with outer while
-                locs=np.where((node_data > min_val) & \
-                     (node_data != nodata_value))
-                #now find new minimum of these values
+                # need to find the next largest minimum value
+                # first find the locations of all values greater
+                # than the old minimum
+                # not done with outer while
+                locs = np.where((node_data > min_val) &
+                                (node_data != nodata_value))
+                # now find new minimum of these values
                 min_val = np.min(node_data[locs])
                 min_locs = list(np.where(node_data == min_val)[0])
             else:
-                #if locally found, it is also globally found
-                #so done with outer while
+                # if locally found, it is also globally found
+                # so done with outer while
                 not_found = False
 
-        #set outlet boundary condition
+        # set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
+        if remove_disconnected==True:
+            self.set_open_nodes_disconnected_from_watershed_to_closed(node_data=node_data,
+                                                                      outlet_id=as_id_array(np.array(outlet_loc)),
+                                                                      nodata_value=nodata_value,
+                                                                      method=method)
+        if return_outlet_id:
+            return as_id_array(np.array(outlet_loc))
 
-    def set_watershed_boundary_condition_outlet_coords(self, outlet_coords,
-                                                     node_data, nodata_value=-9999.):
+    def set_open_nodes_disconnected_from_watershed_to_closed(self,
+                                                            node_data,
+                                                            outlet_id=None,
+                                                            nodata_value=-9999.,
+                                                            method='D8'):
+        """
+        Identifys all non-closed nodes that are disconnected from the node given in
+        *outlet_id* and sets them as closed.
+
+        If *outlet_id* is not given, the outlet will be identified as the node
+        for which the status at the node is FIXED_VALUE_BOUNDARY. If more than
+        one node has this value, the algorithm will fail.
+
+        If *outlet_id* is given, the algorithm will check that it is not a node
+        with status of CLOSED_BOUNDARY.
+
+        The method supports both D4 and D8 (default) neighborhood evaluation in
+        determining if a node is connected. This can be modified with the flag
+        *method*.
+
+        This function can be run directly, or by setting the flag
+        remove_disconnected to True in set_watershed_boundary_condition
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+
+        outlet_id : one element numpy array, optional.
+            The node ID of the outlet that all open nodes must be connected to.
+            If a node ID is provided, it does not need have the status
+            FIXED_VALUE_BOUNDARY. However, it must not have the status of
+            CLOSED_BOUNDARY.
+
+        nodata_value : float, optional, default is -9999.
+            Value that indicates an invalid value.
+
+        method : string, optional. Default is 'D8'.
+            Sets the connection method.
+
+        Examples
+        ---------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg1 = RasterModelGrid((4,6))
+        >>> z1 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        ...                -9999.,    67.,    67.,  -9999.,    50., -9999.,
+        ...                -9999.,    67.,     0.,  -9999., -9999., -9999.,
+        ...                -9999., -9999., -9999.,  -9999., -9999., -9999.])
+        >>> mg2 = RasterModelGrid((4,6))
+        >>> z2 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        ...                -9999.,    67.,    67.,  -9999.,    50., -9999.,
+        ...                -9999.,    67.,     0.,  -9999., -9999., -9999.,
+        ...                -9999., -9999., -9999.,  -9999., -9999., -9999.])
+        >>> mg1.set_watershed_boundary_condition(z1, remove_disconnected=True)
+        >>> mg2.set_watershed_boundary_condition(z2)
+        >>> mg2.status_at_node.reshape(mg2.shape)
+        array([[4, 4, 4, 4, 4, 4],
+              [4, 0, 0, 4, 0, 4],
+              [4, 0, 1, 4, 4, 4],
+              [4, 4, 4, 4, 4, 4]], dtype=int8)
+        >>> mg2.set_open_nodes_disconnected_from_watershed_to_closed(z2)
+        >>> np.allclose(mg1.status_at_node, mg2.status_at_node)
+        True
+        >>> np.allclose(z1, z2)
+        True
+        >>> mg2.status_at_node.reshape(mg2.shape)
+        array([[4, 4, 4, 4, 4, 4],
+               [4, 0, 0, 4, 4, 4],
+               [4, 0, 1, 4, 4, 4],
+               [4, 4, 4, 4, 4, 4]], dtype=int8)
+        >>> z1.reshape(mg1.shape)
+        array([[-9999., -9999., -9999., -9999., -9999., -9999.],
+               [-9999.,    67.,    67., -9999., -9999., -9999.],
+               [-9999.,    67.,     0., -9999., -9999., -9999.],
+               [-9999., -9999., -9999., -9999., -9999., -9999.]])
+
+        LLCATS: BC
+        """
+
+        if outlet_id is None:
+            # verify that there is one and only one node with the status
+            # FIXED_VALUE_BOUNDARY.
+            possible_outlets=np.where(self.status_at_node==FIXED_VALUE_BOUNDARY)[0]
+
+            if len(possible_outlets)>1:
+                raise ValueError('Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has %r' % len(possible_outlets))
+            if len(possible_outlets)<1:
+                raise ValueError('Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has none')
+
+            outlet_id=possible_outlets
+
+        elif outlet_id.shape!=(1,) or (isinstance(outlet_id, np.ndarray)==False):
+            # check that the value given by outlet_id is an integer
+            raise ValueError('outlet_id must be a length 1 numpy array')
+        else:
+            # check that the node status at the node given by outlet_id is not
+            # CLOSED_BOUNDARY
+            if self.status_at_node[outlet_id][0]==CLOSED_BOUNDARY:
+                raise ValueError ('The node given by outlet_id must not have the status: CLOSED_BOUNDARY')
+
+
+        # now test that the method given is either 'D8' or 'D4'
+        if method != 'D8':
+            assert(method=='D4'), "Method must be either 'D8'(default) or 'D4'"
+
+        # begin main code portion.
+        # initialize list of core nodes and new nodes
+        connected_nodes=list(outlet_id)
+        newNodes=connected_nodes
+
+        # keep track of the number of nodes added in the previous itteration.
+        numAdded=len(newNodes)
+
+        # continue running until no new nodes are added.
+        while numAdded>0:
+
+            # find all potential new nodes by filtering the nodes connected to
+            # the most recent set of new nodes based on their status.
+            connected_orthogonal_nodes = self.neighbors_at_node[newNodes]
+            potentialNewNodes=list(connected_orthogonal_nodes[self.status_at_node[connected_orthogonal_nodes]!=CLOSED_BOUNDARY])
+
+            # if method is D8 (default), add the diagonal nodes.
+            if method=='D8':
+                connected_diagonal_nodes = self._diagonal_neighbors_at_node[newNodes]
+                potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]!=CLOSED_BOUNDARY])
+
+            # filter new nodes further based on if they are already present in
+            # the connected node list
+            newNodes=list(set(potentialNewNodes) - set(connected_nodes))
+            connected_nodes.extend(newNodes)
+
+            # update number added, when this is zero, the loop will end
+            numAdded=len(newNodes)
+
+        # create an array that identifies the nodes that should be closed
+        # of closed boundary nodes
+        not_connected=np.array((0*self.status_at_node)+1)
+        not_connected[np.array(connected_nodes)]=0
+
+        #identify those nodes that should be closed, but are not yet closed.
+        is_not_connected_to_outlet=(self.status_at_node!=CLOSED_BOUNDARY)&(not_connected==1)
+
+        # modify the node_data array to set those that are disconnected
+        # to the no data value.
+        node_data[is_not_connected_to_outlet]=nodata_value #
+
+        # finally update the status of the nodes based on the modified node_data.
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
+
+    def set_watershed_boundary_condition_outlet_coords(
+                        self, outlet_coords, node_data, nodata_value=-9999.):
         """
         Set the boundary conditions for a watershed.
         All nodes with nodata_value are set to CLOSED_BOUNDARY
@@ -5212,7 +5489,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional
             Value that indicates an invalid value.
 
-        Examples:
+        Examples
         ---------
         The example will use a 4,4 grid with node data values
         as illustrated:
@@ -5232,11 +5509,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> rmg.set_watershed_boundary_condition_outlet_coords((2, 2), node_data, -9999.)
+        >>> rmg.set_watershed_boundary_condition_outlet_coords(
+        ...     (2, 2), node_data, -9999.)
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+
+        LLCATS: BC
         """
-        #make ring of no data nodes
+        # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
         # set no data nodes to inactive boundaries
@@ -5247,7 +5527,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                   outlet_coords[1])
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
-
 
     def set_watershed_boundary_condition_outlet_id(self, outlet_id, node_data,
                                                    nodata_value=-9999.):
@@ -5275,12 +5554,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional
             Value that indicates an invalid value.
 
-        Returns:
+        Returns
         --------
         outlet_loc : int
             id of outlet location
 
-        Examples:
+        Examples
         ---------
         The example will use a 4,4 grid with node data values
         as illustrated:
@@ -5300,18 +5579,20 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> outlet = rmg.set_watershed_boundary_condition_outlet_id(10, node_data, -9999.)
+        >>> outlet = rmg.set_watershed_boundary_condition_outlet_id(
+        ...     10, node_data, -9999.)
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+
+        LLCATS: BC
         """
-        #make ring of no data nodes
+        # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
-
-        #set no data nodes to inactive boundaries
+        # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
-
-        #set the boundary condition (fixed value) at the outlet_node
+        # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+
 
 def _is_closed_boundary(boundary_string):
     """Check if boundary string indicates a closed boundary.

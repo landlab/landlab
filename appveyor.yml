@@ -5,6 +5,7 @@ environment:
     # MINICONDA_VERSION: "3.5.5"
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
     # NUMPY_VERSION: "1.9.1"
+    CONDA_NPY: 1.10
     PYPI_PASS:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
     ANACONDA_TOKEN:
@@ -18,9 +19,9 @@ environment:
     - PYTHON: "C:\\Python27"
       DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "2.7"
-    # - PYTHON: "C:\\Python34"
+    - PYTHON: "C:\\Python34"
     #   DISTUTILS_USE_SDK: "1"
-    #   PYTHON_VERSION: "3.4"
+      PYTHON_VERSION: "3.4"
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5"
     #   PYTHON_ARCH: "64"
@@ -41,7 +42,8 @@ install:
   - "set PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%/Scripts;%PYTHON%%SUFFIX%/Library/bin;%PATH%"
   - conda info
   - conda config --set always_yes yes
-  - conda install -q --force --no-deps conda psutil ruamel_yaml requests
+  - conda update conda
+  - conda install -q --force --no-deps psutil ruamel_yaml requests
   - conda install -q python=%PYTHON_VERSION%
   - conda install -q conda-build
   - conda install -q anaconda-client

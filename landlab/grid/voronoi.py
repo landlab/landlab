@@ -36,19 +36,11 @@ Information about the grid as a whole
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.move_origin
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.ndim
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_elements
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.save
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
@@ -57,9 +49,11 @@ Information about nodes
     :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
@@ -85,8 +79,10 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
@@ -115,18 +111,24 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_xcomponent_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_ycomponent_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -144,6 +146,8 @@ Information about cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -159,6 +163,8 @@ Information about faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.width_of_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -166,9 +172,24 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
+
+Information about corners
++++++++++++++++++++++++++
+
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
+
 
 Data Fields in ModelGrid
 ------------------------
@@ -192,6 +213,8 @@ itself that provide access to the values groups:
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_face
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -299,12 +322,16 @@ nodes.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_mean_to_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_head_node_to_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_tail_node_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_sum_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_link_nodes_to_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_node_links_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_patch_nodes_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_patch_nodes_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_link_nodes_to_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_node_links_to_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_patch_nodes_to_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_max_to_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_mean_to_node
@@ -327,6 +354,7 @@ defined at other grid elements automatically.
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
@@ -341,6 +369,8 @@ defined at other grid elements automatically.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
@@ -384,8 +414,7 @@ following code,
 
 Without this, the new grid class will not have the ``at_*`` attributes.
 """
-
-import numpy
+import numpy as np
 from six.moves import range
 
 from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
@@ -472,7 +501,7 @@ def calculate_link_lengths(pts, link_from, link_to):
     """
     dx = pts[link_to, 0] - pts[link_from, 0]
     dy = pts[link_to, 1] - pts[link_from, 1]
-    link_length = numpy.sqrt(dx * dx + dy * dy)
+    link_length = np.sqrt(dx * dx + dy * dy)
     return link_length
 
 
@@ -509,18 +538,18 @@ class VoronoiDelaunayGrid(ModelGrid):
     25
 
     >>> import numpy as np
-    >>> x = [0, 0, 0, 0,
-    ...      1, 1, 1, 1,
-    ...      2, 2, 2, 2,]
+    >>> x = [0, 0.1, 0.2, 0.3,
+    ...      1, 1.1, 1.2, 1.3,
+    ...      2, 2.1, 2.2, 2.3,]
     >>> y = [0, 1, 2, 3,
     ...      0, 1, 2, 3,
     ...      0, 1, 2, 3]
     >>> vmg = VoronoiDelaunayGrid(x, y)
     >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  1.,  2.,
-            0.,  1.,  2.,
-            0.,  1.,  2.,
-            0.,  1.,  2.])
+    array([ 0. ,  1. ,  2. ,
+            0.1,  1.1,  2.1,
+            0.2,  1.2,  2.2,
+            0.3,  1.3,  2.3])
     >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  0.,
             1.,  1.,  1.,
@@ -566,15 +595,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
-        x = numpy.asarray(x, dtype=float).reshape((-1, ))
-        y = numpy.asarray(y, dtype=float).reshape((-1, ))
+        x = np.asarray(x, dtype=float).reshape((-1, ))
+        y = np.asarray(y, dtype=float).reshape((-1, ))
 
         if x.size != y.size:
             raise ValueError('x and y arrays must have the same size')
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
-        pts = numpy.zeros((len(x), 2))
+        pts = np.zeros((len(x), 2))
         pts[:, 0] = x
         pts[:, 1] = y
         self.pts = sort_points_by_x_then_y(pts)
@@ -610,7 +639,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # each active cell.
         vor = Voronoi(self.pts)
         self.vor = vor
-        self._area_of_cell = numpy.zeros(self.number_of_cells)
+        self._area_of_cell = np.zeros(self.number_of_cells)
         for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
@@ -624,8 +653,8 @@ class VoronoiDelaunayGrid(ModelGrid):
          _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
-        self._status_at_link = numpy.full(len(self._node_at_link_tail),
-                                          INACTIVE_LINK, dtype=int)
+        self._status_at_link = np.full(len(self._node_at_link_tail),
+                                       INACTIVE_LINK, dtype=int)
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
@@ -664,6 +693,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         """Number of patches.
 
         Returns the number of patches over the grid.
+
+        LLCATS: PINF
         """
         try:
             return self._number_of_patches
@@ -674,6 +705,8 @@ class VoronoiDelaunayGrid(ModelGrid):
     @property
     def nodes_at_patch(self):
         """Get the four nodes at the corners of each patch in a regular grid.
+
+        LLCATS: PINF NINF CONN
         """
         try:
             return self._nodes_at_patch
@@ -706,6 +739,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 5,  8, -1, -1, -1, -1],
                [ 8,  6,  9, -1, -1, -1],
                [ 9,  7, -1, -1, -1, -1]])
+
+        LLCATS: NINF PINF CONN
         """
         try:
             return self._patches_at_node
@@ -729,6 +764,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 8,  7,  5],
                [10,  9,  6],
                [11,  8,  9]])
+
+        LLCATS: LINF PINF CONN
         """
         try:
             return self._links_at_patch
@@ -758,6 +795,8 @@ class VoronoiDelaunayGrid(ModelGrid):
                [ 4,  5],
                [ 4, -1],
                [ 5, -1]])
+
+        LLCATS: PINF LINF CONN
         """
         try:
             return self._patches_at_link
@@ -794,9 +833,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         # the list of boundary_nodes. To deal with this, we pass the 'Qt'
         # option to ConvexHull, which makes it generate a list of coplanar
         # points. We include these in our set of boundary nodes.
-        convex_hull_nodes = numpy.array(list(set(hull.simplices.flatten())))
+        convex_hull_nodes = np.array(list(set(hull.simplices.flatten())))
         coplanar_nodes = hull.coplanar[:, 0]
-        boundary_nodes = as_id_array(numpy.concatenate(
+        boundary_nodes = as_id_array(np.concatenate(
             (convex_hull_nodes, coplanar_nodes)))
 
         # Now we'll create the "node_status" array, which contains the code
@@ -804,15 +843,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         # boundary (=1). This means that all perimeter (convex hull) nodes are
         # initially flagged as boundary code 1. An application might wish to
         # change this so that, for example, some boundaries are inactive.
-        node_status = numpy.zeros(len(pts[:, 0]), dtype=numpy.int8)
+        node_status = np.zeros(len(pts[:, 0]), dtype=np.int8)
         node_status[boundary_nodes] = 1
 
         # It's also useful to have a list of interior nodes
-        core_nodes = as_id_array(numpy.where(node_status == 0)[0])
+        core_nodes = as_id_array(np.where(node_status == 0)[0])
 
         # save the arrays and update the properties
         self._node_status = node_status
-        self._core_cells = numpy.arange(len(core_nodes), dtype=numpy.int)
+        self._core_cells = np.arange(len(core_nodes), dtype=np.int)
         self._node_at_cell = core_nodes
         self._boundary_nodes = boundary_nodes
 
@@ -856,12 +895,12 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> cell_node
         array([1, 2, 4])
         """
-        assert ncells == numpy.count_nonzero(node_status == CORE_NODE), \
+        assert ncells == np.count_nonzero(node_status == CORE_NODE), \
             'ncells must equal number of CORE_NODE values in node_status'
 
         cell = 0
-        node_cell = numpy.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
-        cell_node = numpy.zeros(ncells, dtype=int)
+        node_cell = np.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
+        cell_node = np.zeros(ncells, dtype=int)
         for node in range(len(node_cell)):
             if node_status[node] == CORE_NODE:
                 node_cell[node] = cell
@@ -903,10 +942,10 @@ class VoronoiDelaunayGrid(ModelGrid):
         # tri.neighbors array that is > -1 (indicating that the triangle has a
         # neighbor opposite a given vertex; in other words, two triangles are
         # sharing an edge).
-        num_shared_links = numpy.count_nonzero(tri.neighbors > -1)
+        num_shared_links = np.count_nonzero(tri.neighbors > -1)
         num_links = 3 * tri.nsimplex - num_shared_links // 2
-        link_fromnode = numpy.zeros(num_links, dtype=int)
-        link_tonode = numpy.zeros(num_links, dtype=int)
+        link_fromnode = np.zeros(num_links, dtype=int)
+        link_tonode = np.zeros(num_links, dtype=int)
 
         # Sweep through the list of triangles, assigning "from" and "to" nodes
         # to the list of links.
@@ -922,15 +961,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         # edge. If neither condition is true, then this edge has already been
         # added, so we skip it.
         link_id = 0
-        tridone = numpy.zeros(tri.nsimplex, dtype=bool)
+        tridone = np.zeros(tri.nsimplex, dtype=bool)
         for t in range(tri.nsimplex):  # loop over triangles
             for i in range(0, 3):       # loop over vertices & neighbors
                 if tri.neighbors[t, i] == -1 or not tridone[
                         tri.neighbors[t, i]]:
                     link_fromnode[link_id] = tri.simplices[
-                        t, numpy.mod(i + 1, 3)]
+                        t, np.mod(i + 1, 3)]
                     link_tonode[link_id] = tri.simplices[
-                        t, numpy.mod(i + 2, 3)]
+                        t, np.mod(i + 2, 3)]
                     link_id += 1
             tridone[t] = True
 
@@ -947,7 +986,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         SUSPICIOUSLY_BIG = 40000000.0
         return (vor.ridge_vertices[n][0] != -1 and
                 vor.ridge_vertices[n][1] != -1 and
-                numpy.amax(numpy.abs(vor.vertices[
+                np.amax(np.abs(vor.vertices[
                     vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG)
 
     @staticmethod
@@ -1000,8 +1039,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         num_links = len(vor.ridge_points)
 
         # Create the arrays for link from and to nodes
-        link_fromnode = -numpy.ones(num_links, dtype=int)
-        link_tonode = -numpy.ones(num_links, dtype=int)
+        link_fromnode = -np.ones(num_links, dtype=int)
+        link_tonode = -np.ones(num_links, dtype=int)
 
         # Ridges along the perimeter of the grid will have one of their
         # endpoints undefined. The endpoints of each ridge are contained in
@@ -1012,15 +1051,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         # total number of links the number of occurrences of an undefined
         # vertex.
         num_active_links = num_links \
-            - numpy.count_nonzero(numpy.array(vor.ridge_vertices) == -1)
+            - np.count_nonzero(np.array(vor.ridge_vertices) == -1)
 
         # Create arrays for active links and width of faces (which are Voronoi
         # ridges).
-        active_links = -numpy.ones(num_active_links, dtype=int)
-        face_width = -numpy.ones(num_active_links)
+        active_links = -np.ones(num_active_links, dtype=int)
+        face_width = -np.ones(num_active_links)
 
         # Find the order to sort by link midpoints
-        link_midpoints = numpy.zeros((num_links, 2))
+        link_midpoints = np.zeros((num_links, 2))
         for i in range(num_links):
             link_midpoints[i][:] = (vor.points[vor.ridge_points[i, 0]] +
                                     vor.points[vor.ridge_points[i, 1]])/2.
@@ -1042,7 +1081,7 @@ class VoronoiDelaunayGrid(ModelGrid):
                     vor.vertices[face_corner1, 0]
                 dy = vor.vertices[face_corner2, 1] - \
                     vor.vertices[face_corner1, 1]
-                face_width[j] = numpy.sqrt(dx * dx + dy * dy)
+                face_width[j] = np.sqrt(dx * dx + dy * dy)
                 active_links[j] = i
                 j += 1
 
@@ -1080,18 +1119,18 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
-        link_angle = numpy.arctan2(link_dx, link_dy) + numpy.pi / 4
+        link_angle = np.arctan2(link_dx, link_dy) + np.pi / 4
 
         # The range of values should be -180 to +180 degrees (but in radians).
         # It won't be after the above operation, because angles that were
         # > 135 degrees will now have values > 180. To correct this, we
         # subtract 360 (i.e., 2 pi radians) from those that are > 180 (i.e.,
         # > pi radians).
-        link_angle -= 2 * numpy.pi * (link_angle >= numpy.pi)
+        link_angle -= 2 * np.pi * (link_angle >= np.pi)
 
         # Find locations where the angle is negative; these are the ones we
         # want to flip
-        (flip_locs, ) = numpy.where(link_angle < 0.)
+        (flip_locs, ) = np.where(link_angle < 0.)
 
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
@@ -1113,97 +1152,83 @@ class VoronoiDelaunayGrid(ModelGrid):
         DEJH, 10/3/14, modified May 16.
         """
         from scipy.spatial import Delaunay
+        from landlab.core.utils import anticlockwise_argsort_points_multiline
+        from .cfuncs import find_rows_containing_ID, \
+            create_patches_at_element, create_links_at_patch
         tri = Delaunay(pts)
-        assert numpy.array_equal(tri.points, vor.points)
+        assert np.array_equal(tri.points, vor.points)
         nodata = -1
-        self._nodes_at_patch = tri.simplices
-        # self._nodes_at_patch = numpy.empty_like(_nodes_at_patch)
+        self._nodes_at_patch = as_id_array(tri.simplices)
+        # self._nodes_at_patch = np.empty_like(_nodes_at_patch)
         self._number_of_patches = tri.simplices.shape[0]
         # get the patches in order:
-        patches_xy = numpy.empty((self._number_of_patches, 2), dtype=float)
-        patches_xy[:, 0] = numpy.mean(self.node_x[self._nodes_at_patch],
-                                      axis=1)
-        patches_xy[:, 1] = numpy.mean(self.node_y[self._nodes_at_patch],
-                                      axis=1)
+        patches_xy = np.empty((self._number_of_patches, 2), dtype=float)
+        patches_xy[:, 0] = np.mean(self.node_x[self._nodes_at_patch],
+                                   axis=1)
+        patches_xy[:, 1] = np.mean(self.node_y[self._nodes_at_patch],
+                                   axis=1)
         orderforsort = argsort_points_by_x_then_y(patches_xy)
         self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
         patches_xy = patches_xy[orderforsort, :]
         # get the nodes around the patch in order:
-        nodes_xy = numpy.empty((3, 2), dtype=float)
-        for i in range(self._number_of_patches):
-            these_nodes = self._nodes_at_patch[i]
-            nodes_xy[:, 0] = self.node_x[these_nodes]
-            nodes_xy[:, 1] = self.node_y[these_nodes]
-            sortorder = anticlockwise_argsort_points(nodes_xy)
-            try:
-                self._nodes_at_patch[i, :] = these_nodes[sortorder]
-            except TypeError:  # sortorder was an int
-                pass
-        max_dimension = 0
+        nodes_xy = np.empty((3, 2), dtype=float)
+
+        # perform a CCW sort without a line-by-line loop:
+        patch_nodes_x = self.node_x[self._nodes_at_patch]
+        patch_nodes_y = self.node_y[self._nodes_at_patch]
+        anticlockwise_argsort_points_multiline(patch_nodes_x, patch_nodes_y,
+                                               out=self._nodes_at_patch)
+
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
         # the side-iest voronoi region.
-        for i in range(len(vor.regions)):
-            if len(vor.regions[i]) > max_dimension:
-                max_dimension = len(vor.regions[i])
-        _patches_at_node = numpy.empty(
-            (self.number_of_nodes, max_dimension), dtype=int)
-        _patches_at_node.fill(nodata)
-        for i in range(self.number_of_nodes):
-            patches_with_node = numpy.argwhere(
-                numpy.equal(self._nodes_at_patch, i))[:, 0]
-            _patches_at_node[
-                i, :patches_with_node.size] = patches_with_node[:]
-        self._patches_at_node = _patches_at_node
+        max_dimension = len(max(vor.regions, key=len))
+
+        self._patches_at_node = np.full(
+            (self.number_of_nodes, max_dimension), nodata, dtype=int)
+
+        self._nodes_at_patch = as_id_array(self._nodes_at_patch)
+        self._patches_at_node = as_id_array(self._patches_at_node)
+
+        create_patches_at_element(self._nodes_at_patch,
+                                  self.number_of_nodes,
+                                  self._patches_at_node)
+
         # build the patch-link connectivity:
-        self._links_at_patch = numpy.empty((self._number_of_patches, 3),
-                                           dtype=int)
-        link_coords = numpy.empty((3, 2), dtype=float)
-        for i in range(self._number_of_patches):
-            nodes_on_patch = self._nodes_at_patch[i, :]
-            links_at_patch_nodes = self.links_at_node[nodes_on_patch, :]
-            vals, counts = numpy.unique(links_at_patch_nodes,
-                                        return_counts=True)
-            duplicated_vals = vals[counts == 2]
-            assert duplicated_vals.size in (3, 4), duplicated_vals
-            # if it's 4, contains a -1; strip it
-            links_at_patch = duplicated_vals[-3:]
-            link_coords[:, 0] = self.x_of_link[links_at_patch]
-            link_coords[:, 1] = self.y_of_link[links_at_patch]
-            ordered_links = links_at_patch[anticlockwise_argsort_points(
-                link_coords)]
-            self._links_at_patch[i, :] = ordered_links
-        self._patches_at_link = numpy.empty((self.number_of_links, 2),
-                                            dtype=int)
+        self._links_at_patch = np.empty((self._number_of_patches, 3),
+                                        dtype=int)
+        create_links_at_patch(self._nodes_at_patch, self._links_at_node,
+                              self._number_of_patches, self._links_at_patch)
+        patch_links_x = self.x_of_link[self._links_at_patch]
+        patch_links_y = self.y_of_link[self._links_at_patch]
+        anticlockwise_argsort_points_multiline(patch_links_x, patch_links_y,
+                                               out=self._links_at_patch)
+
+        self._patches_at_link = np.empty((self.number_of_links, 2),
+                                         dtype=int)
         self._patches_at_link.fill(-1)
-        to_sort = numpy.empty((2, 2), dtype=int)
-        for i in range(self.number_of_links):
-            patches_with_link = numpy.where((
-                self._links_at_patch == i).sum(axis=1))[0]
-            if patches_with_link.size == 2:
+        create_patches_at_element(self._links_at_patch, self.number_of_links,
+                                  self._patches_at_link)
 # a sort of the links will be performed here once we have corners
-                midpt = (self.x_of_link[i], self.y_of_link[i])
-                # ...
-            self._patches_at_link[
-                i, :patches_with_link.size] = patches_with_link
+
         self._patches_created = True
 
     def _create_neighbors(self):
         """Create the _neighbors_at_node property.
         """
         self._neighbors_at_node = self.links_at_node.copy()
-        nodes_at_link = numpy.empty((self.number_of_links, 2))
+        nodes_at_link = np.empty((self.number_of_links, 2))
         nodes_at_link[:, 0] = self.node_at_link_tail
         nodes_at_link[:, 1] = self.node_at_link_head
         both_nodes = nodes_at_link[self.links_at_node]
 
-        nodes = numpy.arange(self.number_of_nodes, dtype=int)
+        nodes = np.arange(self.number_of_nodes, dtype=int)
         # ^we have to do this, as for a hex it's possible that mg.nodes is
         # returned not just in ID order.
 
         for i in range(both_nodes.shape[1]):
-            centernottail = numpy.not_equal(both_nodes[:, i, 0], nodes)
-            centernothead = numpy.not_equal(both_nodes[:, i, 1], nodes)
+            centernottail = np.not_equal(both_nodes[:, i, 0], nodes)
+            centernothead = np.not_equal(both_nodes[:, i, 1], nodes)
             self._neighbors_at_node[centernottail, i] = both_nodes[
                 centernottail, i, 0]
             self._neighbors_at_node[centernothead, i] = both_nodes[
@@ -1250,6 +1275,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         >>> vmg = VoronoiDelaunayGrid(x,y)
         >>> vmg.save('./mytestsave.grid')
         >>> os.remove('mytestsave.grid') #to remove traces of this test
+
+        LLCATS: GINF
         """
         import os
         from six.moves import cPickle

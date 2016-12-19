@@ -1,0 +1,168 @@
+import numpy as np
+
+from ..voronoi.voronoi import VoronoiGraph
+
+
+def number_of_nodes(shape):
+    if shape[0] % 2 == 0:
+        return (2 * shape[1] + 1) * (shape[0] // 2)
+    else:
+        return (2 * shape[1] + 1) * (shape[0] // 2) + shape[1]
+
+
+def number_of_links(shape):
+    """The total number of links on the hex grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of the grid in node rows and cols.
+
+    Examples
+    --------
+    >>> from landlab.graph.hex.hex import number_of_links
+    >>> number_of_links((3, 3))
+    19
+    >>> number_of_links((2, 3))
+    11
+    >>> number_of_links((3, 2))
+    12
+    """
+    n_short_rows = (shape[0] + 1) // 2
+    n_long_rows = shape[0] // 2
+
+    return (n_short_rows * (shape[1] - 1 + 2 * shape[1]) +
+            n_long_rows * (shape[1] + 2 * shape[1])) - 2 * shape[1]
+
+
+def number_of_patches(shape):
+    """The total number of patches on the hex grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of the grid in node rows and cols.
+
+    Examples
+    --------
+    >>> from landlab.graph.hex.hex import number_of_links
+    >>> number_of_patches((3, 3))
+    10
+    >>> number_of_patches((2, 3))
+    5
+    >>> number_of_patches((3, 2))
+    6
+    """
+    return (shape[1] - 1 + shape[1]) * (shape[0] - 1)
+
+
+def create_xy_of_node(shape, spacing=(1., 1.), origin=(0., 0.)):
+    """Create arrays of coordinates of a node on a hex grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Number of rows and columns of the hex grid. The first value
+        is the number of nodes in the first column and the second the
+        number of nodes in the first column.
+    spacing : tuple of float, optional
+        Vertical and horizontal spacing of nodes.
+    origin : tuple of float, optional
+        Coordinates of lower-left corner of the grid.
+
+    Examples
+    --------
+    >>> from landlab.graph.hex.hex import create_xy_of_node
+    >>> y, x = create_xy_of_node((3, 2))
+    (array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5]),
+     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.]))
+    >>> y, x = create_xy_of_node((2, 2))
+    (array([ 0.5,  1.5,  0. ,  1. ,  2. ]),
+     array([ 0.,  0.,  1.,  1.,  1.]))
+
+    >>> y, x = create_xy_of_node((2, 2), spacing=(2, 3), origin=(1, 2))
+    (array([ 3.5,  6.5,  2. ,  5. ,  8. ]),
+     array([ 1.,  1.,  3.,  3.,  3.]))
+    """
+    from .ext.hex import get_xy_of_node
+
+    n_nodes = number_of_nodes(shape)
+
+    x_of_node = np.empty((n_nodes, ), dtype=float)
+    y_of_node = np.empty((n_nodes, ), dtype=float)
+
+    get_xy_of_node(shape, x_of_node, y_of_node)
+
+    x_of_node *= spacing[1]
+    x_of_node += origin[1]
+    y_of_node *= spacing[0]
+    y_of_node += origin[0]
+
+    return (x_of_node, y_of_node)
+
+
+def create_nodes_at_link(shape):
+    from .ext.hex import get_nodes_at_link
+
+    n_links = number_of_links(shape)
+
+    nodes_at_link = np.empty((n_links, 2), dtype=int)
+
+    get_nodes_at_link(shape, nodes_at_link)
+
+    return nodes_at_link
+
+
+def create_links_at_patch(shape):
+    from .ext.hex import get_links_at_patch
+
+    n_patches = number_of_patches(shape)
+
+    links_at_patch = np.empty((n_patches, 3), dtype=int)
+
+    get_links_at_patch(shape, links_at_patch)
+
+    return links_at_patch
+
+
+class HexGraph(VoronoiGraph):
+
+    """Graph of a structured grid of triangles.
+
+    Examples
+    --------
+    >>> from landlab.graph import HexGraph
+    >>> graph = StructuredQuadGraph((3, 2))
+    >>> graph.number_of_nodes
+    7
+    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
+    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    """
+
+    def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+        """Create a structured grid of triangles.
+
+        Parameters
+        ----------
+        shape : tuple of int
+            Number of rows and columns of the hex grid. The first value
+            is the number of nodes in the first column and the second the
+            number of nodes in the first column.
+        spacing : tuple of float, optional
+            Vertical and horizontal spacing of nodes.
+        origin : tuple of float, optional
+            Coordinates of lower-left corner of the grid.
+        """
+        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing,
+                                                 origin=origin)
+        # nodes_at_link = create_nodes_at_link(shape)
+        # links_at_patch = create_links_at_patch(shape)
+
+        # super(HexGraph, self).__init__(
+        #     (y_of_node, x_of_node), links=nodes_at_link,
+        #     patches=links_at_patch, xy_sort=True, rot_sort=True)
+
+        super(HexGraph, self).__init__(
+            (y_of_node, x_of_node), xy_sort=True, rot_sort=True)

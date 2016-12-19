@@ -380,9 +380,9 @@ class Vegetation(Component):
 
         Parameters
         ----------
-        Tb: float, optional
-            Storm duration (hours).
         Tr: float, optional
+            Storm duration (hours).
+        Tb: float, optional
             Inter-storm duration (hours).
         """
         PETthreshold_ = PETthreshold_switch

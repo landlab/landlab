@@ -6,6 +6,11 @@ order, links to flow receiver and flow receiver fields. Instead, takes in
 the discharge values on NODES calculated by the OverlandFlow class and
 erodes the landscape in response to the output discharge.
 
+As of right now, this component relies on the OverlandFlow component 
+for stability. There are no stability criteria implemented in this class. 
+To ensure model stability, use StreamPowerEroder or FastscapeEroder
+components instead. 
+
 .. codeauthor:: Jordan Adams
 
 Examples
@@ -42,7 +47,7 @@ Using the set topography, now we will calculate slopes on all nodes.
 
 
 Now we will arbitrarily add water discharge to each node for simplicity.
->>> grid.at_node['water__discharge'] = np.array([
+>>> grid.at_node['surface_water__discharge'] = np.array([
 ...     30., 30., 30., 30., 30.,
 ...     20., 20., 20., 20., 20.,
 ...     10., 10., 10., 10., 10.,
@@ -99,7 +104,7 @@ class DetachmentLtdErosion(Component):
     _input_var_names = (
         'topographic__elevation',
         'topographic__slope',
-        'water__discharge',
+        'surface_water__discharge',
     )
 
     _output_var_names = (
@@ -109,19 +114,19 @@ class DetachmentLtdErosion(Component):
     _var_units = {
         'topographic__elevation': 'm',
         'topographic__slope': '-',
-        'water__discharge': 'm^3/s',
+        'surface_water__discharge': 'm^3/s',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'topographic__slope': 'node',
-        'water__discharge': 'node',
+        'surface_water__discharge': 'node',
     }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
         'topographic__slope': 'Slope of ',
-        'water__discharge': 'node',
+        'surface_water__discharge': 'node',
     }
 
     def __init__(self, grid, K_sp = 0.00002, m_sp = 0.5, n_sp = 1.0,
@@ -164,7 +169,7 @@ class DetachmentLtdErosion(Component):
 
         self.dzdt = self._grid.zeros(at='node')
 
-    def erode(self, dt, discharge_cms='water__discharge',
+    def erode(self, dt, discharge_cms='surface_water__discharge',
               slope='topographic__slope'):
         """Erode into grid topography.
 
@@ -198,6 +203,8 @@ class DetachmentLtdErosion(Component):
         S_to_n = np.power(S, self.n)
 
         self.I = (self.K * (Q_to_m * S_to_n - self.entraiment_threshold))
+
+        self.I[self.I < 0.0] = 0.0
 
         self.dzdt = (self.uplift_rate - self.I)
 

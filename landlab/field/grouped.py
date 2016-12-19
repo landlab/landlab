@@ -102,6 +102,7 @@ class ModelDataFields(object):
 
     def __init__(self, **kwds):
         self._groups = dict()
+        self._default_group = None
         super(ModelDataFields, self).__init__(**kwds)
 
     @property
@@ -114,6 +115,31 @@ class ModelDataFields(object):
             Set of quantity names.
         """
         return set(self._groups.keys())
+
+    def set_default_group(self, group):
+        """Set the default group for which fields are added.
+
+        Parameters
+        ----------
+        group : str
+            Name of a group to use as a default.
+
+        Examples
+        --------
+        >>> from landlab.field import ModelDataFields
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 12)
+
+        >>> fields.add_field('z', [1.] * 12)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: missing group name
+        >>> fields.set_default_group('node')
+        >>> _ = fields.add_field('z', [1.] * 12)
+        >>> 'z' in fields.at_node
+        True
+        """
+        self._default_group = group
 
     def has_group(self, group):
         """Check if a group exists.
@@ -139,6 +165,8 @@ class ModelDataFields(object):
         True
         >>> fields.has_group('cell')
         False
+
+        LLCATS: FIELDINF
         """
         return group in self._groups
 
@@ -170,6 +198,8 @@ class ModelDataFields(object):
         True
         >>> fields.has_field('cell', 'topographic__elevation')
         False
+
+        LLCATS: FIELDINF
         """
         try:
             return field in self[group]
@@ -201,6 +231,8 @@ class ModelDataFields(object):
         >>> _ = fields.add_empty('node', 'topographic__elevation')
         >>> list(fields.keys('node'))
         ['topographic__elevation']
+
+        LLCATS: FIELDINF
         """
         return self[group].keys()
 
@@ -224,6 +256,8 @@ class ModelDataFields(object):
         >>> fields.new_field_location('node', 4)
         >>> fields.size('node')
         4
+
+        LLCATS: GINF FIELDINF
         """
         return self[group].size
 
@@ -276,6 +310,8 @@ class ModelDataFields(object):
         >>> fields.at_core_node['air__temperature'] = [0, 1]
         >>> fields.at_core_node.size
         2
+
+        LLCATS: FIELDCR
         """
         if self.has_group(group):
             raise ValueError('ModelDataFields already contains %s' % group)
@@ -337,6 +373,8 @@ class ModelDataFields(object):
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
+
+        LLCATS: FIELDIO
         """
         return self[group][field]
 
@@ -362,6 +400,8 @@ class ModelDataFields(object):
         ------
         KeyError
             If either *field* or *group* does not exist.
+
+        LLCATS: FIELDINF
         """
         return self[group].units[field]
 
@@ -398,7 +438,14 @@ class ModelDataFields(object):
 
         >>> list(field.keys('node'))
         []
+
+        LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("empty is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.")
         return self[group].empty(**kwds)
 
     def ones(self, group, **kwds):
@@ -434,7 +481,15 @@ class ModelDataFields(object):
 
         >>> list(field.keys('node'))
         []
+
+        LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("ones is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.\nAlternatively, if you want ones "
+                             "of the shape stored at_grid, use np.array(1).")
         return self[group].ones(**kwds)
 
     def zeros(self, group, **kwds):
@@ -448,6 +503,8 @@ class ModelDataFields(object):
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
 
+        This method is not valid for the group *grid*.        
+        
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
@@ -468,7 +525,16 @@ class ModelDataFields(object):
 
         >>> list(field.keys('node'))
         []
+
+        LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("zeros is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.\nAlternatively, if you want zeros"
+                             "of the shape stored at_grid, use np.array(0).")
+                             
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
@@ -479,7 +545,9 @@ class ModelDataFields(object):
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
-
+        
+        This method is not valid for the group *grid*.
+        
         Construction::
 
             add_empty(group, name, units='-', noclobber=True)
@@ -507,6 +575,8 @@ class ModelDataFields(object):
             does not initialize the new array.
         landlab.field.ModelDataFields.zeros : Equivalent method that
             initializes the data to 0.
+
+        LLCATS: FIELDCR
         """
         if len(args) == 2:
             group, name = args
@@ -514,7 +584,12 @@ class ModelDataFields(object):
             group, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-
+            
+        if group=='grid':
+            raise ValueError("add_empty is not supported for at_grid values "
+                             "use\ngrid.at_grid['value_name']=value\n"
+                             "instead")        
+                             
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -529,6 +604,8 @@ class ModelDataFields(object):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
+        
+        This method is not valid for the group *grid*.
 
         Construction::
 
@@ -573,6 +650,8 @@ class ModelDataFields(object):
         array([ 1.,  1.,  1.,  1.])
         >>> field.at_node['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
+
+        LLCATS: FIELDCR
         """
         if len(args) == 2:
             group, name = args
@@ -581,6 +660,11 @@ class ModelDataFields(object):
         else:
             raise ValueError('number of arguments must be 1 or 2')
 
+        if group=='grid':
+            raise ValueError("add_ones is not supported for at_grid values"
+                             " use\ngrid.at_grid['value_name']=value\n"
+                             "instead")                
+        
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -623,6 +707,8 @@ class ModelDataFields(object):
             does not initialize the new array.
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
+
+        LLCATS: FIELDCR
         """
         if len(args) == 2:
             group, name = args
@@ -630,7 +716,12 @@ class ModelDataFields(object):
             group, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-
+        
+        if group=='grid':
+            raise ValueError("add_zeros is not supported for at_grid values "
+                             "use\ngrid.at_grid['value_name']=value\n"
+                             "instead")                
+        
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -643,6 +734,9 @@ class ModelDataFields(object):
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
         copy of the provided array.
+        
+        In the case of adding to the collection *grid*, the added field is a
+        numpy scalar rather than a numpy array. 
 
         Construction::
 
@@ -707,14 +801,20 @@ class ModelDataFields(object):
         ...     noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation
+
+        LLCATS: FIELDCR
         """
         if len(args) == 3:
             group, name, value_array = args
         elif len(args) == 2:
-            group, name, value_array = kwds.pop('at'), args[0], args[1]
+            group, name, value_array = (kwds.pop('at', self._default_group),
+                                        args[0], args[1])
         else:
             raise ValueError('number of arguments must be 2 or 3')
 
+        if not group:
+            raise ValueError('missing group name')
+        
         return self[group].add_field(name, value_array, **kwds)
 
     def set_units(self, group, name, units):
@@ -733,6 +833,8 @@ class ModelDataFields(object):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR FIELDIO
         """
         self[group].set_units(name, units)
 
@@ -750,6 +852,8 @@ class ModelDataFields(object):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR
         """
         del self._groups[group].units[name]
         del self._groups[group][name]

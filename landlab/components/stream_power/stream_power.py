@@ -38,6 +38,17 @@ class StreamPowerEroder(Component):
     DEJH Sept 2013, major modifications Sept 14 and May 16. This component
     now wraps Fastscape-style functionality under the hood.
 
+    Note that although the Braun-Willett (2013) scheme that underlies this
+    component is nominally implicit, and will reach a numerically-correct
+    solution under topographic steady state regardless of timestep length, the
+    accuracy of transient solutions is *not* timestep independent (see
+    Braun & Willett 2013, Appendix B for further details).
+    Although the scheme remains significantly more robust and permits longer
+    timesteps than a traditional explicit solver under such conditions, it
+    is still possible to create numerical instability through use of too long
+    a timestep while using this component. The user is cautioned to check their
+    implementation is behaving stably before fully trusting it.
+
     NB: If you want spatially or temporally variable runoff, pass the
     runoff values at each pixel to the flow router using the input argument
     *use_Q*.
@@ -147,7 +158,7 @@ class StreamPowerEroder(Component):
     >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
     >>> mg3.at_node['water__unit_flux_in'] = mg3.node_y
     >>> fr3 = FlowRouter(mg3)
-    >>> Q = mg3.at_node['water__discharge']
+    >>> Q = mg3.at_node['surface_water__discharge']
     >>> sp3 = StreamPowerEroder(mg3, K_sp=1., sp_type='Unit', a_sp=1.,
     ...                         b_sp=0.5, c_sp=1., use_Q=Q)
     >>> fr3.run_one_step()
@@ -214,6 +225,8 @@ class StreamPowerEroder(Component):
     def __init__(self, grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
                  m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
                  use_W=None, use_Q=None, **kwds):
+        if use_Q == 'water__discharge':
+            use_Q = 'surface_water__discharge'
         self._grid = grid
         self.fraction_gradient_change = 1.
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1)
@@ -614,19 +627,19 @@ class StreamPowerEroder(Component):
         # self.stream_power_erosion[active_nodes] = stream_power_active_nodes
         # grid.at_node['stream_power_erosion'][:] = self.stream_power_erosion
         # erosion_increment = (self.stream_power_erosion - self.sp_crit).clip(0.)
-        # 
+        #
         # # this prevents any node from incising below any node downstream of it
         # # we have to go in upstream order in case our rate is so big we impinge
         # # on baselevels > 1 node away
-        # 
+        #
         # elev_dstr = node_z[flow_receiver]
         # # ^we substract erosion_increment[flow_receiver] in the loop, as it
         # # can update
-        # 
+        #
         # method = 'cython'
         # if method == 'cython':
         #     from .cfuncs import erode_avoiding_pits
-        # 
+        #
         #     erode_avoiding_pits(node_order_upstream, flow_receiver, node_z,
         #                         erosion_increment)
         # else:
@@ -644,7 +657,7 @@ class StreamPowerEroder(Component):
         # # clip the erosion increments one more time to remove regatives
         # # introduced by any pit filling algorithms or the above procedure:
         # node_z -= erosion_increment.clip(0.)
-        # 
+        #
         # self._grid = grid
 
         return grid, node_z, self.stream_power_erosion

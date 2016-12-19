@@ -25,6 +25,7 @@ If you simply want the ordered list by itself, use::
 Created: GT Nov 2013
 """
 from six.moves import range
+from .cfuncs import _add_to_stack
 
 import numpy
 
@@ -60,19 +61,8 @@ class _DrainageStack():
         >>> ds.s
         array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
-        self.s[self.j] = l
-        self.j += 1
-        #make some aliases to make the weave faster & better
-        delta = self.delta
-        D = self.D
-        add_it = self.add_to_stack
-        delta_l = int(numpy.take(delta,l))
-        delta_lplus1 = int(numpy.take(delta,l+1))
-
-        for n in range(delta_l, delta_lplus1):
-            m = self.D[n]
-            if m != l:
-                self.add_to_stack(m)
+        # we invoke cython here to attempt to suppress Python's RecursionLimit
+        self.j = _add_to_stack(l, self.j, self.s, self.delta, self.D)
 
 
 def _make_number_of_donors_array(r):
@@ -226,11 +216,10 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
-    len_bl_nodes = baselevel_nodes.size
-    s = numpy.zeros(D.size, dtype=int)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
         add_it(k) #don't think this is a bottleneck, so no C++
+
     return dstack.s
 
 
@@ -300,7 +289,6 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    num_pts = len(s)
     for i in range(np-1, -1, -1):
         donor = s[i]
         recvr = r[donor]
