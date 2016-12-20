@@ -149,11 +149,12 @@ if _CYTEST:
     from landlab.ca.cfuncs import (update_node_states,
                                    push_transitions_to_event_queue_new,
                                    do_transition_new,
-                                   update_link_states_and_transitions_new)
+                                   update_link_states_and_transitions_new,
+                                   run_cts_new)
 
 _NEVER = 1e50
 
-_DEBUG = False
+_DEBUG = True
 
 _TEST = False
 
@@ -1852,8 +1853,35 @@ class CellLabCTSModel(object):
 
         elif _RUN_NEW:
             
-            self.run_new(run_to, plot_each_transition, plotter)
-            
+            # switch off the run fn: 
+            #self.run_new(run_to, plot_each_transition, plotter)
+            run_cts_new(run_to, self.current_time,
+                        self.priority_queue,
+                        self.next_update,                  
+                        self.grid.node_at_link_tail,                  
+                        self.grid.node_at_link_head,                  
+                        self.node_state,            
+                        self.next_trn_id,            
+                        self.trn_to,
+                        self.grid.status_at_node,
+                        self.num_node_states,
+                        self.num_node_states_sq,
+                        self.bnd_lnk,
+                        self.link_orientation,
+                        self.link_state,
+                        self.n_trn,
+                        self.trn_id,
+                        self.trn_rate, 
+                        self.grid.links_at_node,
+                        self.grid.active_link_dirs_at_node,
+                        self.trn_propswap,
+                        self.propid,
+                        self.prop_data,
+                        self.prop_reset_value,
+                        self.trn_prop_update_fn,
+                        self,
+                        plot_each_transition,
+                        plotter)         
         else:
 
             # Continue until we've run out of either time or events

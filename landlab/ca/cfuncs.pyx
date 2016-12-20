@@ -292,6 +292,8 @@ cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                        DTYPE_INT_t new_link_state,
                        DTYPE_INT_t num_states):
     """Update the states of 2 nodes that underwent a transition."""
+    if _DEBUG:
+        print(('UNS', tail_node, head_node, new_link_state, num_states))
     # Change to the new states
     if status_at_node[tail_node] == _CORE:
         node_state[tail_node] = (new_link_state / num_states) % num_states # assume integer division!!
@@ -828,6 +830,8 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
     cdef char orientation          # Orientation code for link
     cdef int i
 
+    if _DEBUG:
+        print(('DTN', event_time, event_link, next_update[event_link]))
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
     # changed state since the event was pushed onto the event queue, and
@@ -924,6 +928,109 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
             if trn_prop_update_fn[this_trn_id] is not None:
                 trn_prop_update_fn[this_trn_id](
                     this_cts_model, tail_node, head_node, event_time)
+
+
+cpdef double run_cts_new(double run_to, double current_time,
+                     PriorityQueue priority_queue,
+                     np.ndarray[DTYPE_t, ndim=1] next_update,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
+                     np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
+                     np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,            
+                     np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     DTYPE_INT_t num_node_states,
+                     DTYPE_INT_t num_node_states_sq,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
+                     np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                     np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                     np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                     np.ndarray[DTYPE_t, ndim=1] trn_rate, 
+                     np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
+                     np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
+                     np.ndarray[DTYPE_INT8_t, ndim=1] trn_propswap,
+                     np.ndarray[DTYPE_INT_t, ndim=1] propid,
+                     object prop_data,
+                     DTYPE_INT_t prop_reset_value,
+                     trn_prop_update_fn,
+                     this_cts_model,
+                     char plot_each_transition,
+                     object plotter):
+    """Run the model forward for a specified period of time.
+
+    Parameters
+    ----------
+    run_to : float
+        Time to run to, starting from self.current_time
+    node_state_grid : 1D array of ints (x number of nodes) (optional)
+        Node states (if given, replaces model's current node state grid)
+    plot_each_transition : bool (optional)
+        Option to display the grid after each transition
+    plotter : CAPlotter object (optional)
+        Needed if caller wants to plot after every transition
+    (see celllab_cts.py for other parameters)
+    """
+    cdef double ev_time
+    cdef int ev_idx
+    cdef int ev_link
+
+    #print(('run_cts_new here', run_to, current_time))
+    #print(priority_queue._queue)
+
+    # Continue until we've run out of either time or events
+    while current_time < run_to and priority_queue._queue:
+
+        if _DEBUG:
+            print('current time = ', current_time)
+
+        # Is there an event scheduled to occur within this run?
+        if priority_queue._queue[0][0] <= run_to:
+
+            # If so, pick the next transition event from the event queue
+            (ev_time, ev_idx, ev_link) = priority_queue.pop()
+
+            if _DEBUG:
+                print('event:', ev_time, ev_link, trn_to[next_trn_id[ev_link]])
+                
+            # ... and execute the transition
+            do_transition_new(ev_link, ev_time, priority_queue, next_update,
+                              node_at_link_tail,
+                              node_at_link_head,
+                              node_state, 
+                              next_trn_id,
+                              trn_to,
+                              status_at_node,
+                              num_node_states,
+                              num_node_states_sq,
+                              bnd_lnk,
+                              link_orientation,
+                              link_state,
+                              n_trn,
+                              trn_id,
+                              trn_rate,
+                              links_at_node,
+                              active_link_dirs_at_node,
+                              trn_propswap,
+                              propid, prop_data,
+                              prop_reset_value,
+                              trn_prop_update_fn,
+                              this_cts_model,
+                              plot_each_transition,
+                              plotter)
+
+            # Update current time
+            current_time = ev_time
+
+        # If there is no event scheduled for this span of time, simply
+        # advance current_time to the end of the current run period.
+        else:
+            current_time = run_to
+
+        if _DEBUG:
+            print(node_state)
+
+    return current_time
 
 
 cpdef double run_cts(double run_to, double current_time,

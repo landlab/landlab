@@ -299,7 +299,7 @@ def test_grain_hill_model():
                  int(params['number_of_node_columns']))
     grain_hill_model = GrainHill(grid_size, **params)
     grain_hill_model.run()
-    
+
     # Now test
     assert_array_equal(grain_hill_model.grid.at_node['node_state'][:18],
                        [8, 7, 7, 7, 7, 7, 7, 7, 7, 8, 0, 7, 7, 7, 7, 0, 7, 7])
@@ -311,15 +311,15 @@ def test_grain_hill_model():
     grain_hill_model.run()
 
     # Test
-    assert_array_equal(grain_hill_model.grid.at_node['node_state'][20:38],
-                       [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7])
+    assert_array_equal(grain_hill_model.grid.at_node['node_state'][30:48],
+                       [0, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 7, 7, 7, 0, 0, 7, 7])
 
 
 if __name__ == '__main__':
     test_grain_hill_model()
-    test_transition()
-    test_raster_cts()
-    test_oriented_raster_cts()
-    test_hex_cts()
-    test_oriented_hex_cts()
-    test_run_oriented_raster()
+#    test_transition()
+#    test_raster_cts()
+#    test_oriented_raster_cts()
+#    test_hex_cts()
+#    test_oriented_hex_cts()
+#    test_run_oriented_raster()
