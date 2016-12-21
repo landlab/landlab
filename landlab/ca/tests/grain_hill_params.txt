@@ -20,4 +20,4 @@ plot_interval:
 friction_coef:
 1.0
 show_plots:
-True
+False

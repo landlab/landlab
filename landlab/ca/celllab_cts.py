@@ -1855,7 +1855,7 @@ class CellLabCTSModel(object):
             
             # switch off the run fn: 
             #self.run_new(run_to, plot_each_transition, plotter)
-            run_cts_new(run_to, self.current_time,
+            self.current_time = run_cts_new(run_to, self.current_time,
                         self.priority_queue,
                         self.next_update,                  
                         self.grid.node_at_link_tail,                  

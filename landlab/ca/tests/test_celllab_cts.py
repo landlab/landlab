@@ -51,21 +51,21 @@ def test_transition():
     assert_equal(t.prop_update_fn, None)
 
 
-def test_event_init():
-    """Test instantiation of Event() object"""
-    e = Event(2.0, 3, 4, propswap=False, prop_update_fn=None)
-    assert_equal(e.time, 2.0)
-    assert_equal(e.link, 3)
-    assert_equal(e.xn_to, 4)
-    assert_equal(e.propswap, False)
-    assert_equal(e.prop_update_fn, None)
+#def test_event_init():
+#    """Test instantiation of Event() object"""
+#    e = Event(2.0, 3, 4, propswap=False, prop_update_fn=None)
+#    assert_equal(e.time, 2.0)
+#    assert_equal(e.link, 3)
+#    assert_equal(e.xn_to, 4)
+#    assert_equal(e.propswap, False)
+#    assert_equal(e.prop_update_fn, None)
 
 
-def test_event_lt():
-    """Test Event.__lt__()"""
-    e1 = Event(2.0, 3, 4)
-    e2 = Event(5.0, 2, 3)
-    assert_equal(e1<e2, True)
+#def test_event_lt():
+#    """Test Event.__lt__()"""
+#    e1 = Event(2.0, 3, 4)
+#    e2 = Event(5.0, 2, 3)
+#    assert_equal(e1<e2, True)
 
 
 def test_raster_cts():
@@ -316,10 +316,10 @@ def test_grain_hill_model():
 
 
 if __name__ == '__main__':
+    test_transition()
+    test_raster_cts()
+    test_oriented_raster_cts()
+    test_hex_cts()
+    test_oriented_hex_cts()
+    test_run_oriented_raster()
     test_grain_hill_model()
-#    test_transition()
-#    test_raster_cts()
-#    test_oriented_raster_cts()
-#    test_hex_cts()
-#    test_oriented_hex_cts()
-#    test_run_oriented_raster()
