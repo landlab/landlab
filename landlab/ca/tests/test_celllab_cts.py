@@ -291,10 +291,21 @@ def test_run_oriented_raster():
 
 def test_grain_hill_model():
     """Run a lattice-grain-based hillslope evolution model."""
-    import grain_hill_as_class
     from grain_hill_as_class import GrainHill
 
-    params = grain_hill_as_class.get_params_from_input_file('grain_hill_params.txt')
+    params = {
+        'number_of_node_rows' : 10,
+        'number_of_node_columns' : 10,
+        'report_interval' : 5.0,
+        'run_duration' : 10.0,
+        'output_interval' : 1.0e5,
+        'settling_rate' : 220000000.0,
+        'disturbance_rate' : 0.01,
+        'uplift_interval' : 4000.0,
+        'friction_coef' : 1.0,
+        'plot_interval' : 1.0,
+        'show_plots' : False,
+        }
     grid_size = (int(params['number_of_node_rows']), 
                  int(params['number_of_node_columns']))
     grain_hill_model = GrainHill(grid_size, **params)

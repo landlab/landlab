@@ -154,7 +154,7 @@ if _CYTEST:
 
 _NEVER = 1e50
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -1596,24 +1596,24 @@ class CellLabCTSModel(object):
             else:
                 tail_changed, head_changed = self.update_node_states(
                                                 tail_node, head_node, trn_to)
-            if _CYTEST:
-                update_link_state_new(event_link, trn_to, event_time,
-                                          self.bnd_lnk, 
-                                          self.node_state,
-                                          self.grid.node_at_link_tail,
-                                          self.grid.node_at_link_head,
-                                          self.link_orientation,
-                                          self.num_node_states,
-                                          self.num_node_states_sq,
-                                          self.link_state,
-                                          self.n_trn,
-                                          self.priority_queue,
-                                          self.next_update,
-                                          self.next_trn_id,
-                                          self.trn_id,
-                                          self.trn_rate)
-            else:
-                self.update_link_state_new(event_link, trn_to, event_time)
+#            if _CYTEST:
+#                update_link_state_new(event_link, trn_to, event_time,
+#                                          self.bnd_lnk, 
+#                                          self.node_state,
+#                                          self.grid.node_at_link_tail,
+#                                          self.grid.node_at_link_head,
+#                                          self.link_orientation,
+#                                          self.num_node_states,
+#                                          self.num_node_states_sq,
+#                                          self.link_state,
+#                                          self.n_trn,
+#                                          self.priority_queue,
+#                                          self.next_update,
+#                                          self.next_trn_id,
+#                                          self.trn_id,
+#                                          self.trn_rate)
+#            else:
+            self.update_link_state_new(event_link, trn_to, event_time)
 
             # Next, when the state of one of the link's nodes changes, we have
             # to update the states of the OTHER links attached to it. This
@@ -1647,21 +1647,21 @@ class CellLabCTSModel(object):
                             self.node_state[this_link_fromnode] * self.num_node_states +
                             self.node_state[this_link_tonode])
                         assert new_link_state == new_link_state2, 'oops'
-                        if _CYTEST:
-                            update_link_state_new(link, new_link_state, event_time,
-                                          self.bnd_lnk, self.node_state,
-                                          self.grid.node_at_link_tail,
-                                          self.grid.node_at_link_head,
-                                          self.link_orientation,
-                                          self.num_node_states,
-                                          self.num_node_states_sq,
-                                          self.link_state, self.n_trn,
-                                          self.priority_queue,
-                                          self.next_update,
-                                          self.next_trn_id,
-                                          self.trn_id, self.trn_rate)
-                        else:
-                            self.update_link_state_new(
+#                        if _CYTEST:
+#                            update_link_state_new(link, new_link_state, event_time,
+#                                          self.bnd_lnk, self.node_state,
+#                                          self.grid.node_at_link_tail,
+#                                          self.grid.node_at_link_head,
+#                                          self.link_orientation,
+#                                          self.num_node_states,
+#                                          self.num_node_states_sq,
+#                                          self.link_state, self.n_trn,
+#                                          self.priority_queue,
+#                                          self.next_update,
+#                                          self.next_trn_id,
+#                                          self.trn_id, self.trn_rate)
+#                        else:
+                        self.update_link_state_new(
                                             link, new_link_state, event_time)
 
             if head_changed:
@@ -1688,21 +1688,21 @@ class CellLabCTSModel(object):
                             self.node_state[this_link_fromnode] * self.num_node_states +
                             self.node_state[this_link_tonode])
                         assert new_link_state == new_link_state2, 'oops'
-                        if _CYTEST:
-                            update_link_state_new(link, new_link_state, event_time,
-                                          self.bnd_lnk, self.node_state,
-                                          self.grid.node_at_link_tail,
-                                          self.grid.node_at_link_head,
-                                          self.link_orientation,
-                                          self.num_node_states,
-                                          self.num_node_states_sq,
-                                          self.link_state, self.n_trn,
-                                          self.priority_queue,
-                                          self.next_update,
-                                          self.next_trn_id,
-                                          self.trn_id, self.trn_rate)
-                        else:
-                            self.update_link_state_new(
+#                        if _CYTEST:
+#                            update_link_state_new(link, new_link_state, event_time,
+#                                          self.bnd_lnk, self.node_state,
+#                                          self.grid.node_at_link_tail,
+#                                          self.grid.node_at_link_head,
+#                                          self.link_orientation,
+#                                          self.num_node_states,
+#                                          self.num_node_states_sq,
+#                                          self.link_state, self.n_trn,
+#                                          self.priority_queue,
+#                                          self.next_update,
+#                                          self.next_trn_id,
+#                                          self.trn_id, self.trn_rate)
+#                        else:
+                        self.update_link_state_new(
                                             link, new_link_state, event_time)
 
             # If requested, display a plot of the grid
