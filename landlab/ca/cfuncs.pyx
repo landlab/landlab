@@ -124,7 +124,7 @@ cdef class Event:
         return self.time < other.time
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cdef int current_link_state(DTYPE_INT_t link_id,
                        np.ndarray[DTYPE_INT_t, ndim=1] node_state, 
@@ -176,7 +176,7 @@ cdef int current_link_state(DTYPE_INT_t link_id,
             tail_node_state * num_node_states + head_node_state)
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef update_link_states_and_transitions(
                              np.ndarray[DTYPE_INT_t, ndim=1] active_links,
@@ -213,7 +213,7 @@ cpdef update_link_states_and_transitions(
         cdef int i, j
 
         for j in range(len(active_links)):
-            i = active_links[i]
+            i = active_links[j]
             current_state = current_link_state(i, node_state,
                                                node_at_link_tail,
                                                node_at_link_head,
@@ -230,7 +230,7 @@ cpdef update_link_states_and_transitions(
                                   xn_prop_update_fn)
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef update_link_states_and_transitions_new(
                              np.ndarray[DTYPE_INT_t, ndim=1] active_links,
@@ -266,7 +266,7 @@ cpdef update_link_states_and_transitions_new(
         cdef int i, j
 
         for j in range(len(active_links)):
-            i = active_links[i]
+            i = active_links[j]
             current_state = current_link_state(i, node_state,
                                                node_at_link_tail,
                                                node_at_link_head,
@@ -282,7 +282,7 @@ cpdef update_link_states_and_transitions_new(
                                   next_trn_id, trn_id, trn_rate)
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 @cython.cdivision(True)
 cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
@@ -301,7 +301,7 @@ cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
         node_state[head_node] = new_link_state % num_states
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
@@ -376,7 +376,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
     return my_event
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
@@ -471,7 +471,7 @@ cpdef push_transitions_to_event_queue_new(int number_of_active_links,
         else:
             next_update[i] = _NEVER
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
@@ -527,7 +527,7 @@ cdef void update_link_state(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         next_update[link] = _NEVER
 
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state, 
                       DTYPE_t current_time,
@@ -585,7 +585,7 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         next_update[link] = _NEVER
         next_trn_id[link] = -1
 
-@cython.boundscheck(False)
+@cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void do_transition(Event event,
                   np.ndarray[DTYPE_t, ndim=1] next_update,                  
@@ -974,10 +974,7 @@ cpdef double run_cts_new(double run_to, double current_time,
     cdef double ev_time
     cdef int ev_idx
     cdef int ev_link
-
-    #print(('run_cts_new here', run_to, current_time))
-    #print(priority_queue._queue)
-
+    
     # Continue until we've run out of either time or events
     while current_time < run_to and priority_queue._queue:
 
@@ -1401,8 +1398,6 @@ cpdef double run_cts_lean(double run_to, double current_time,
     """
     cdef Event ev
     
-    print 'in ctsl'
-
     # Continue until we've run out of either time or events
     while current_time < run_to and event_queue:
 

@@ -322,8 +322,8 @@ def test_grain_hill_model():
     grain_hill_model.run()
 
     # Test
-    assert_array_equal(grain_hill_model.grid.at_node['node_state'][30:48],
-                       [0, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 7, 7, 7, 0, 0, 7, 7])
+    assert_array_equal(grain_hill_model.grid.at_node['node_state'][20:38],
+                       [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7])
 
 
 if __name__ == '__main__':

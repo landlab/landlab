@@ -189,12 +189,12 @@ class GrainHill(CTSModel):
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
-                print('Current sim time' + str(current_time) + '(' + \
-                      str(100 * current_time / self.run_duration) + '%)')
+                #print('Current sim time' + str(current_time) + '(' + \
+                #      str(100 * current_time / self.run_duration) + '%)')
                 next_report = current_real_time + self.report_interval
     
             # Run the model forward in time until the next output step
-            print('Running to...' + str(next_pause))
+            #print('Running to...' + str(next_pause))
             self.ca.run(next_pause, self.ca.node_state) 
                    #plot_each_transition=pet, plotter=self.ca_plotter)
             current_time = next_pause
