@@ -120,10 +120,13 @@ class GrainHill(CTSModel):
         xn_list.append( Transition((0,7,2), (6,0,2), d, 'disturbance') )
     
         if _DEBUG:
-            print
-            print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+            print()
+            print('setup_transition_list(): list has' + str(len(xn_list))
+                  + str('transitions:'))
             for t in xn_list:
-                print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+                print('  From state ' + str(t.from_state) + ' to state '
+                      + str(t.to_state) + ' at rate ' + str(t.rate)
+                      + ' called ' + str(t.name))
             
         return xn_list
 
@@ -189,14 +192,10 @@ class GrainHill(CTSModel):
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
-                #print('Current sim time' + str(current_time) + '(' + \
-                #      str(100 * current_time / self.run_duration) + '%)')
                 next_report = current_real_time + self.report_interval
     
             # Run the model forward in time until the next output step
-            #print('Running to...' + str(next_pause))
             self.ca.run(next_pause, self.ca.node_state) 
-                   #plot_each_transition=pet, plotter=self.ca_plotter)
             current_time = next_pause
             
             # Handle output to file
