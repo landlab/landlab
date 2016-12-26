@@ -12,9 +12,9 @@ TODO NOTES:
 _DEBUG = False
 
 import sys
-from cts_model import CTSModel
-from lattice_grain import (lattice_grain_node_states,
-                           lattice_grain_transition_list)
+from .cts_model import CTSModel
+from .lattice_grain import (lattice_grain_node_states,
+                            lattice_grain_transition_list)
 import time
 from numpy import zeros, count_nonzero, where, amax, logical_and
 from matplotlib.pyplot import axis
@@ -127,7 +127,7 @@ class GrainHill(CTSModel):
                 print('  From state ' + str(t.from_state) + ' to state '
                       + str(t.to_state) + ' at rate ' + str(t.rate)
                       + ' called ' + str(t.name))
-            
+
         return xn_list
 
     def initialize_node_state_grid(self):
