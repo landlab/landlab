@@ -10,7 +10,7 @@ class FlowAccumulatorD4(FlowAccumulator):
     node across faces (no flow on diagonal links). The method that considers 
     diagonal links for raster grids is FlowAccumulatorD8.
     
-    For Voroni Grids use FlowAccumulatorSteepestDecent. 
+    For Voroni Grids use FlowAccumulatorSteepestDescent. 
 
     This class implements single-path (steepest direction) flow routing, and
     calculates flow directions, drainage area, and discharge.
@@ -53,7 +53,7 @@ class FlowAccumulatorD4(FlowAccumulator):
     Parameters
     ----------
     grid : ModelGrid
-        A grid.
+        A grid of type RasterModelGrid.
     surface : field name at node or array of length node
         The surface to direct flow across.   
     runoff_rate : float, optional (m/time)
@@ -73,7 +73,7 @@ class FlowAccumulatorD4(FlowAccumulator):
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    >>> fa=FlowAccumulator(mg, 'topographic__elevation')
+    >>> fa=FlowAccumulatorD4(mg, 'topographic__elevation')
     >>> fa.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))

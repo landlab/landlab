@@ -13,7 +13,7 @@ class FlowDirectorD4(FlowDirectorToOne):
      FlowDirectorD8.
 
      This method is not implemented for Voroni grids, use 
-     FlowDirectorSteepestDecent instead. 
+     FlowDirectorSteepestDescent instead. 
      
      Stores as ModelGrid fields:
         
@@ -35,7 +35,7 @@ class FlowDirectorD4(FlowDirectorToOne):
     Parameters
     ----------
     grid : ModelGrid
-        A grid.
+        A grid of type RasterModelGrid.
     surface : field name at node or array of length node, optional
         The surface to direct flow across, default is field at node: 
         topographic__elevation,.   
