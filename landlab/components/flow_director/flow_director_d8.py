@@ -1,13 +1,20 @@
 from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
 from landlab.components.flow_director import flow_direction_DN
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+from landlab import VoronoiDelaunayGrid
+
 import numpy
 
 class FlowDirectorD8(FlowDirectorToOne):
-    """Single-path (steepest direction) flow direction finding by the D8 
-     method. Note that for Voronoi-based grids there is no difference between
-     D4 and D8 methods.  For Raster grids, the D4 method does not consider the
-     diagonal connections between nodes. 
+    """Single-path (steepest direction) flow direction finding on raster grids
+     by the D8 method. This method considers flow on all eight links such that
+     flow is possible on orthogonal and on diagonal links. 
+     
+     The method that considers only orthogonal links for raster grids is 
+     FlowDirectorD4.
+
+     This method is not implemented for Voroni grids, use 
+     FlowDirectorSteepestDecent instead. 
 
     Stores as ModelGrid fields:
         
@@ -80,6 +87,11 @@ class FlowDirectorD8(FlowDirectorToOne):
 
     def __init__(self, grid, surface='topographic__elevation'):
         super(FlowDirectorD8, self).__init__(grid, surface)
+        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        self.method = 'D4'
+        if self._is_Voroni:
+            raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorSteepestDecent')
+        
         self.method = 'D8'
        
     def run_one_step(self):   
@@ -98,7 +110,6 @@ class FlowDirectorD8(FlowDirectorToOne):
             numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
                    
-        
         
         # Calculate flow directions by D8 method       
         receiver, steepest_slope, sink, recvr_link = \

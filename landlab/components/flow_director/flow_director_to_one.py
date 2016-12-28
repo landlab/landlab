@@ -10,8 +10,10 @@ class FlowDirectorToOne(FlowDirector):
     inherits from the FlowDirector class and builds on it to provide the 
     functionality that all flow direction calculators need if they direct flow 
     only to one cell, as in D4 or D8 direction finding. It exists in contrast
-    to the other intermediate flow director class FlowDirectorToMany. As the 
-    primary difference between these two methods is the names of the fields
+    to the other intermediate flow director class FlowDirectorToMany which 
+    provides equivalent functionality for flow direction algorithms such as 
+    D infinity or D trig that route flow from one cell to multiple cells. As 
+    the primary difference between these two methods is the names of the fields
     they create and use, the primary function of this class is to create model
     grid fields. 
     

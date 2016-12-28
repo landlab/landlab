@@ -1,16 +1,21 @@
 from landlab.components.flow_accum.flow_accumulator import FlowAccumulator 
 from landlab.components.flow_director import FlowDirectorD8 as FlowDirector
 from landlab.components.flow_accum import flow_accum_bw 
+from landlab import VoronoiDelaunayGrid
 
 class FlowAccumulatorD8(FlowAccumulator):
     """
-    Single-path (steepest direction) flow routing by the D8 method.
+    Single-path (steepest direction) flow routing by the D8 method on raster
+    grids. This method considers flow on all eight links such that
+    flow is possible on orthogonal and on diagonal links. 
+     
+     The method that considers only orthogonal links for raster grids is 
+     FlowAccumulatorD4.
+    
+    For Voroni Grids use FlowAccumulatorSteepest decent. 
 
     This class implements single-path (steepest direction) flow routing, and
     calculates flow directions, drainage area, and discharge.
-
-    Note that for Voronoi-based grids there is no difference between
-    D4 and D8 methods. 
     
     The perimeter nodes  NEVER contribute to the accumulating flux, even if the 
     gradients from them point inwards to the main body of the grid. This is 
@@ -119,7 +124,6 @@ class FlowAccumulatorD8(FlowAccumulator):
     
     Finally, see what happens when there is a depression. 
     
-    >>> from landlab.components import DepressionFinderAndRouter
     >>> mg_4 = RasterModelGrid((7, 7), 0.5)
     >>> z = mg_4.add_field('node', 'topographic__elevation', mg_4.node_x.copy())
     >>> z += 0.01 * mg_4.node_y
@@ -155,7 +159,67 @@ class FlowAccumulatorD8(FlowAccumulator):
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
     
-    Now we use a flow accumulator with a depression finder specified. 
+    Because of the depression, the flow 'got stuck' in the hole in the center
+    of the grid. We can fix this by using a depression finder, such as 
+    DepressionFinderAndRouter.
+    
+    >>> from landlab.components import DepressionFinderAndRouter
+    
+    We can either run the depression finder separately from the flow 
+    accumulator or we can specify the depression finder and router when we
+    instantiate the accumulator and it will run automatically. 
+    
+    First let's try running them separately. 
+    
+    >>> df_4 = DepressionFinderAndRouter(mg_4)
+    >>> df_4.map_depressions()
+    >>> mg_4.at_node['flow__receiver_node'].reshape(mg_4.shape)
+    array([[ 0,  1,  2,  3,  4,  5,  6],
+           [ 7,  7, 16, 17, 18, 18, 13],
+           [14, 14,  8, 16, 17, 18, 20],
+           [21, 21, 16, 16, 24, 25, 27],
+           [28, 28, 23, 24, 24, 32, 34],
+           [35, 35, 30, 31, 32, 32, 41],
+           [42, 43, 44, 45, 46, 47, 48]])
+    >>> mg_4.at_node['drainage_area'].reshape(mg_4.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 5.25,  5.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.75,  2.25,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    
+    Now the flow is routed correctly. The depression finder has properties that 
+    including whether there is a lake at the node, which lake is at each node,
+    the outlet node of each lake, and the area of each lake. 
+    
+    >>> df_4.lake_at_node.reshape(mg_4.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[False, False, False, False, False, False, False],
+           [False, False, False, False, False, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True, False, False],
+           [False, False, False, False, False, False, False],
+           [False, False, False, False, False, False, False]], dtype=bool)
+    >>> df_4.lake_map.reshape(mg_4.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[-1, -1, -1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, -1, -1, -1],
+           [-1, -1, 16, 16, 16, -1, -1],
+           [-1, -1, 16, 16, 16, -1, -1],
+           [-1, -1, 16, 16, 16, -1, -1],
+           [-1, -1, -1, -1, -1, -1, -1],
+           [-1, -1, -1, -1, -1, -1, -1]])
+    >>> df_4.lake_codes  # a unique code for each lake present on the grid
+    array([16])
+    >>> df_4.lake_outlets  # the outlet node of each lake in lake_codes
+    array([8])
+    >>> df_4.lake_areas  # the area of each lake in lake_codes
+    array([ 2.25])
+    
+    Alternatively, we can initialize a flow accumulator with a depression 
+    finder specified. Calling run_one_step() will run both the accumulator
+    and the depression finder with one call. 
     
     >>> mg_5 = RasterModelGrid((7, 7), 0.5)
     >>> z = mg_5.add_field('node', 'topographic__elevation', mg_5.node_x.copy())
@@ -163,6 +227,10 @@ class FlowAccumulatorD8(FlowAccumulator):
     >>> mg_5.at_node['topographic__elevation'].reshape(mg_5.shape)[2:5, 2:5] *= 0.1
     >>> fa_5 = FlowAccumulatorD8(mg_5, depression_finder=DepressionFinderAndRouter)
     >>> fa_5.run_one_step()
+    
+    This has the same effect of first calling the accumulator and then calling
+    the depression finder. 
+    
     >>> mg_5.at_node['flow__receiver_node'].reshape(mg_5.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
            [ 7,  7, 16, 17, 18, 18, 13],
@@ -179,7 +247,11 @@ class FlowAccumulatorD8(FlowAccumulator):
            [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-    >>> fa_5.df.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    
+    The depression finder is stored as part of the flow accumulator, so its 
+    properties can be accessed through the depression finder. 
+    
+    >>> fa_5.df.lake_at_node.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -187,7 +259,7 @@ class FlowAccumulatorD8(FlowAccumulator):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> fa_5.df.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.df.lake_map.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -210,13 +282,15 @@ class FlowAccumulatorD8(FlowAccumulator):
 
     def __init__(self, grid, surface='topographic__elevation', depression_finder=None):
         super(FlowAccumulatorD8, self).__init__(grid, surface)
-
+        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        if self._is_Voroni:
+            raise NotImplementedError('FlowAccumulatorD4 not implemented for irregular grids, use FlowAccumulatorSteepestDecent')
         # save method as attribute
         self.method = 'D8'
         
         # save 
         self.fd = FlowDirector(self._grid, self.elevs)
-        self.df = depression_finder
+        self.df_component = depression_finder
                
 
     def run_one_step(self):
@@ -260,9 +334,9 @@ class FlowAccumulatorD8(FlowAccumulator):
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
         
-        if self.df:
-            df=self.df(self.grid)
-            df.map_depressions()
+        if self.df_component:
+            self.df=self.df_component(self.grid)
+            self.df.map_depressions()
 
     
 if __name__ == '__main__':
