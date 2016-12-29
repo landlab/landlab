@@ -101,7 +101,7 @@ class FlowDirectorD4(FlowDirectorToOne):
                 self.elevs)
                 
         # Step 2. Find and save base level nodes. 
-        (baselevel_nodes, ) = numpy.where(
+        (self.baselevel_nodes, ) = numpy.where(
             numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
                    
@@ -114,9 +114,9 @@ class FlowDirectorD4(FlowDirectorToOne):
                                          self._activelink_head[:num_d4_active],
                                          link_slope,
                                          grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes)
+                                         baselevel_nodes=self.baselevel_nodes)
         
-        self.baselevel_nodes = baselevel_nodes
+
         self.sink = sink                                  
        
        # Save the four ouputs of this component.                                  

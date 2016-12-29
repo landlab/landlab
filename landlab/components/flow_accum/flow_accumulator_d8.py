@@ -291,7 +291,8 @@ class FlowAccumulatorD8(FlowAccumulator):
         # save 
         self.fd = FlowDirector(self._grid, self.elevs)
         self.df_component = depression_finder
-               
+        if self.df_component:
+            self.df=self.df_component(self.grid)       
 
     def run_one_step(self):
         
@@ -335,7 +336,6 @@ class FlowAccumulatorD8(FlowAccumulator):
         self._grid['node']['surface_water__discharge'][:] = q
         
         if self.df_component:
-            self.df=self.df_component(self.grid)
             self.df.map_depressions()
 
     

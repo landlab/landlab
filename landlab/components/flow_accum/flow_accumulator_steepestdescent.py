@@ -312,6 +312,9 @@ class FlowAccumulatorSteepestDescent(FlowAccumulator):
         self.fd = FlowDirector(self._grid, self.elevs)
         self.df_component = depression_finder
         
+        if self.df_component:
+            self.df=self.df_component(self.grid)
+        
     def run_one_step(self):
         
         # step 0. Check and update BCs
@@ -342,19 +345,19 @@ class FlowAccumulatorSteepestDescent(FlowAccumulator):
         # step 3. Initialize and Run depression finder if passed 
         # at present this might need to go at the very end... also need to 
         #make sure that the df. properties work. 
-  
+       
         
         # step 4. Accumulate (to one or to N depending on direction method. )
         a, q = flow_accum_bw.find_drainage_area_and_discharge(s, 
                                                               r, 
                                                               self.node_cell_area,
                                                               self._grid.at_node['water__unit_flux_in'])
-  
+      
+        
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
         
         if self.df_component:
-            self.df=self.df_component(self.grid)
             self.df.map_depressions()
 
 
