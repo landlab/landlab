@@ -46,8 +46,8 @@ class FlowDirector(Component):
     >>> fd=FlowDirector(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> mg.at_node.keys()
-    dict_keys(['topographic__elevation'])
+    >>> list(mg.at_node.keys())
+    ['topographic__elevation']
 
     """
 

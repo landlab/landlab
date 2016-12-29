@@ -40,6 +40,7 @@ class FlowDirectorToOne(FlowDirector):
         
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
@@ -48,11 +49,10 @@ class FlowDirectorToOne(FlowDirector):
     >>> fd=FlowDirectorToOne(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> keys=set(['flow__link_to_receiver_node', 'flow__sink_flag',
-    ...           'topographic__steepest_slope', 'topographic__elevation', 
-    ...           'flow__receiver_node'])
-    >>> len(mg.at_node.keys()-keys)
-    0
+    >>> sorted(list(mg.at_node.keys()))
+    ['flow__link_to_receiver_node', 'flow__receiver_node',
+           'flow__sink_flag', 'topographic__elevation',
+           'topographic__steepest_slope']
 
     """
     

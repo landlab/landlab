@@ -54,6 +54,7 @@ class FlowAccumulator(Component):
         
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
@@ -62,12 +63,10 @@ class FlowAccumulator(Component):
     >>> fa=FlowAccumulator(mg, 'topographic__elevation')
     >>> fa.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> keys = ['drainage_area', 'flow__data_structure_D', 
-    ...         'water__unit_flux_in', 'surface_water__discharge', 
-    ...         'flow__upstream_node_order', 'topographic__elevation', 
-    ...         'flow__data_structure_delta']
-    >>> len(mg.at_node.keys()-keys)
-    0
+    >>> sorted(list(mg.at_node.keys()))
+    ['drainage_area', 'flow__data_structure_delta',
+       'flow__upstream_node_order', 'surface_water__discharge',
+       'topographic__elevation', 'water__unit_flux_in']
 
 
     """
