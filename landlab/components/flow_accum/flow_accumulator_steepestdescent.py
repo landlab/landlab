@@ -341,8 +341,8 @@ class FlowAccumulatorSteepestDescent(FlowAccumulator):
         self._grid['node']['flow__upstream_node_order'][:] = s
         
         # step 3. Initialize and Run depression finder if passed 
-        # at present this might need to go at the very end... also need to 
-        #make sure that the df. properties work. 
+        # at present this must go at the end. 
+
        
         
         # step 4. Accumulate (to one or to N depending on direction method. )
