@@ -61,15 +61,14 @@ class FlowDirectorToOne(FlowDirector):
                         )
 
     _output_var_names = ('flow__receiver_node',
-                         'topographic__steepest_slope',
-                         'flow__upstream_node_order',
+                         'topographic__steepest_slope',                         
+                         'flow__link_to_receiver_node',
                          'flow__sink_flag',
                          )
 
     _var_units = {'topographic__elevation': 'm',
                   'flow__receiver_node': '-',
                   'topographic__steepest_slope': '-',
-                  'flow__upstream_node_order': '-',
                   'flow__link_to_receiver_node': '-',
                   'flow__sink_flag': '-',
                   }
@@ -88,7 +87,6 @@ class FlowDirectorToOne(FlowDirector):
             'node)',
         'topographic__steepest_slope':
             'Node array of steepest *downhill* slopes',
-        'surface_water__discharge': 'Discharge of water through each node',
         'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
         'flow__sink_flag': 'Boolean array, True at local lows',
