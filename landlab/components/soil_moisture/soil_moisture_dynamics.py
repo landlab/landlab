@@ -408,7 +408,7 @@ class SoilMoisture(Component):
              LAIR_max_grass, LAIR_max_shrub, LAIR_max_tree,
              LAIR_max_bare, LAIR_max_shrub, LAIR_max_tree])
 
-    def update(self, current_time, Tb=24., Tr=0., **kwds):
+    def update(self, current_time, ordered_cells, Tb=24., Tr=0., **kwds):
         """
         Update fields with current loading conditions.
 
@@ -444,7 +444,7 @@ class SoilMoisture(Component):
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape)
 
-        for cell in range(0, self.grid.number_of_cells):
+        for cell in ordered_cells:
             P = P_[cell]
             # print cell
             s = self._SO[cell]
