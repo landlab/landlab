@@ -40,7 +40,6 @@ class FlowDirectorToOne(FlowDirector):
         
     Examples
     --------
-    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))

@@ -54,7 +54,6 @@ class FlowAccumulator(Component):
         
     Examples
     --------
-    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
