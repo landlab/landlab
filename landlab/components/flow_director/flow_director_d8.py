@@ -118,7 +118,6 @@ class FlowDirectorD8(FlowDirectorToOne):
                                      self._activelink_head, link_slope,
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
-        self.baselevel_nodes = baselevel_nodes
         self.sink = sink
         
        # Save the four ouputs of this component.                                  

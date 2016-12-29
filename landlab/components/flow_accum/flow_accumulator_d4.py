@@ -298,8 +298,6 @@ class FlowAccumulatorD4(FlowAccumulator):
         
         # step 1. Find flow directions by specified method
         self.fd.run_one_step()
-        self.baselevel_nodes = self.fd.baselevel_nodes
-        self.sink = self.fd.sink
         
         # step 2. Get r (and potentially p) array(s)        
         r = self._grid['node']['flow__receiver_node']
@@ -308,7 +306,7 @@ class FlowAccumulatorD4(FlowAccumulator):
         nd = flow_accum_bw._make_number_of_donors_array(r)
         delta = flow_accum_bw._make_delta_array(nd)
         D = flow_accum_bw._make_array_of_donors(r, delta)
-        s = flow_accum_bw.make_ordered_node_array(r, self.sink)
+        s = flow_accum_bw.make_ordered_node_array(r, self.fd.sink)
         
         #put theese in grid so that depression finder can use it.         
         # store the generated data in the grid
