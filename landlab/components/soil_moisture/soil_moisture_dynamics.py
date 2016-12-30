@@ -144,6 +144,7 @@ class SoilMoisture(Component):
         'soil_moisture__saturation_fraction',
         'soil_moisture__root_zone_leakage',
         'surface__runoff',
+        'surface__runon',
         'surface__evapotranspiration',
     )
 
@@ -157,6 +158,7 @@ class SoilMoisture(Component):
         'soil_moisture__initial_saturation_fraction': 'None',
         'soil_moisture__root_zone_leakage': 'mm',
         'surface__runoff': 'mm',
+        'surface__runon': 'mm',
         'surface__evapotranspiration': 'mm',
         'rainfall__daily_depth': 'mm',
     }
@@ -171,6 +173,7 @@ class SoilMoisture(Component):
         'soil_moisture__initial_saturation_fraction': 'cell',
         'soil_moisture__root_zone_leakage': 'cell',
         'surface__runoff': 'cell',
+        'surface__runon': 'cell',
         'surface__evapotranspiration': 'cell',
         'rainfall__daily_depth': 'cell',
     }
@@ -196,7 +199,9 @@ class SoilMoisture(Component):
             'leakage of water into deeper portions of the soil not accessible \
              to the plant',
         'surface__runoff':
-            'runoff from ground surface',
+            'infiltration excess runoff from ground surface',
+        'surface__runon':
+            'infiltration excess runon',
         'surface__evapotranspiration':
             'actual sum of evaporation and plant transpiration',
         'rainfall__daily_depth':
@@ -305,7 +310,7 @@ class SoilMoisture(Component):
 
         self._cell_values = self.grid['cell']
 
-    def initialize(self, runon=0., f_bare=0.7, soil_ew=0.1,
+    def initialize(self, runon_switch=1, f_bare=0.7, soil_ew=0.1,
                    intercept_cap_grass=1., zr_grass=0.3, I_B_grass=20.,
                    I_V_grass=24., pc_grass=0.43, fc_grass=0.56, sc_grass=0.33,
                    wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
@@ -365,7 +370,7 @@ class SoilMoisture(Component):
         """
 
         self._vegtype = self.grid['cell']['vegetation__plant_functional_type']
-        self._runon = runon
+        self._runon_switch = runon_switch
         self._fbare = f_bare
         self._interception_cap = np.choose(self._vegtype, [
              intercept_cap_grass, intercept_cap_shrub, intercept_cap_tree,
@@ -434,6 +439,7 @@ class SoilMoisture(Component):
         self._fr = (self._cell_values['vegetation__live_leaf_area_index'] /
                     self._LAIR_max)
         self._runoff = self._cell_values['surface__runoff']
+        self._runon = self._cell_values['surface__runon']
         # LAIl = self._cell_values['vegetation__live_leaf_area_index']
         # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         # if LAIt.all() == 0.:
