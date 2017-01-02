@@ -1,3 +1,4 @@
+
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
@@ -210,7 +211,7 @@ class SoilMoisture(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, runon=0., f_bare=0.7, soil_ew=0.1,
+    def __init__(self, grid, runon_switch=1, f_bare=0.7, soil_ew=0.1,
                  intercept_cap_grass=1., zr_grass=0.3, I_B_grass=20.,
                  I_V_grass=24., pc_grass=0.43, fc_grass=0.56, sc_grass=0.33,
                  wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
@@ -271,7 +272,8 @@ class SoilMoisture(Component):
 
         super(SoilMoisture, self).__init__(grid)
 
-        self.initialize(runon=runon, f_bare=f_bare, soil_ew=soil_ew,
+        self.initialize(runon_switch=runon_switch, f_bare=f_bare,
+                        soil_ew=soil_ew,
                         intercept_cap_grass=intercept_cap_grass,
                         zr_grass=zr_grass, I_B_grass=I_B_grass,
                         I_V_grass=I_V_grass, pc_grass=pc_grass,
@@ -413,7 +415,8 @@ class SoilMoisture(Component):
              LAIR_max_grass, LAIR_max_shrub, LAIR_max_tree,
              LAIR_max_bare, LAIR_max_shrub, LAIR_max_tree])
 
-    def update(self, current_time, ordered_cells, Tb=24., Tr=0., **kwds):
+    def update(self, current_time, Tb=24., Tr=0.,
+               ordered_cells=range(0, self.grid.number_of_cells), **kwds):
         """
         Update fields with current loading conditions.
 
@@ -449,9 +452,17 @@ class SoilMoisture(Component):
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape)
+        # Adding routine to add runon & runoff
+        if self._runon_switch:
+            r = self.grid.flow_receiver_node
 
         for cell in ordered_cells:
+            if self._runon_switch:
+                node_ = self.grid.node_at_cell[cell]                
+                donors = []
+                donors = list(self.grid.node_at_cell[np.where(r==node_)[0]])
             P = P_[cell]
+            runon = self._runon[cell]
             # print cell
             s = self._SO[cell]
             fbare = self._fbare
@@ -473,7 +484,7 @@ class SoilMoisture(Component):
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
                           P)
             # Interception capacity
-            Peff = max(P-Int_cap, 0.)         # Effective precipitation depth
+            Peff = max(P + max(runon, 0.) - Int_cap, 0.)         # Effective precipitation depth
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell] +
                      fbare*self._PET[cell]*(1.-self._fr[cell])) -
