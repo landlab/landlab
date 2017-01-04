@@ -3,20 +3,20 @@
 """
 flow_accum_to_n.py:
 
-Algorithm for route to multiple (N) flow accumulation. Inspiration for data 
+Algorithm for route to multiple (N) flow accumulation. Inspiration for data
 structures and attempting O(n) efficiency taken from Braun and Willet(2013).
 
-Algorithm constructs drainage area and (optionally) water discharge. Can 
-handle the case in which each node has more than one downstream reciever. 
+Algorithm constructs drainage area and (optionally) water discharge. Can
+handle the case in which each node has more than one downstream receiver.
 
 Computationally, for a grid of the same size this algorithm will take about
     1.5*(avg number of downstream nodes per cell)
-        *(duration of flow_accum_bw for the same grid using route-to-one method)
+        *(duration of flow_accum_bw for same grid using route-to-one method)
 
-So under route-to-one direction schemes, using the Braun and Willet method is 
-recommended. 
+So under route-to-one direction schemes, using the Braun and Willet method is
+recommended.
 
-If water discharge is calculated, the result assumes steady flow (that is, 
+If water discharge is calculated, the result assumes steady flow (that is,
 hydrologic equilibrium).
 
 The main public function is::
@@ -27,18 +27,18 @@ which takes the following inputs:
 
     r, an (np, q) array of receiver-node IDs, where np is the total number of
     nodes and q is the maximum number of receivers any node in the grid has.
-    This array would be returned by the flow_routing component. 
+    This array would be returned by the flow_routing component.
 
     p, an (np, q) array that identifies the proportion of flow going to each
-    reciever. For each q elements along the np axis, sum(p(i, :)) must equal
-    1. This array would be returned by the flow_routing component. 
-    
+    receiver. For each q elements along the np axis, sum(p(i, :)) must equal
+    1. This array would be returned by the flow_routing component.
+
     b, a (nb,) array of baselevel nodes where nb is the number of base level
     nodes.
 
-It returns Numpy arrays with the drainage area (a) and discharge (q) at each node,
-along with an array (s) that contains the IDs of the nodes in downstream-to-upstream
-order.
+It returns Numpy arrays with the drainage area (a) and discharge (q) at each
+node, along with an array (s) that contains the IDs of the nodes in downstream-
+to-upstream order.
 
 If you simply want the ordered list by itself, use::
 
@@ -49,18 +49,19 @@ Created: KRB Oct 2016 (modified from flow_accumu_bw)
 
 """
 from six.moves import range
-#from .cfuncs import _add_to_stack
+# from .cfuncs import _add_to_stack
 
 import numpy
+
 
 class _DrainageStack_to_n():
     """
     The _DrainageStack() class implements a set based approach to constructing
-    a stack with similar properties to the stack constructed by Braun and 
+    a stack with similar properties to the stack constructed by Braun and
     Willet (2013). It constructs an list, s, of all nodes in the grid such that
     a given node is always located earlier in the list than all upstream nodes
-    that contribute to it. 
-    
+    that contribute to it.
+
     It is used by the make_ordered_node_array() function.
     """
     def __init__(self, delta, D):
@@ -74,31 +75,31 @@ class _DrainageStack_to_n():
 
     def construct__stack(self, l):
         """
-        Function to add all nodes upstream of base level node l in an order 
+        Function to add all nodes upstream of base level node l in an order
         such that downstream nodes always occur before upstream nodes.
-        
-        This function contains the major algorithmic difference between the 
+
+        This function contains the major algorithmic difference between the
         route to 1 method of Braun and Willet (2013) and the route to N method
-        presented here. 
-        
+        presented here.
+
         Rather than recursively moving up the tributary tree this method uses
-        sets test that a node is downstream and add it to the stack. Both 
+        sets test that a node is downstream and add it to the stack. Both
         methods are functionally depth first searches. The method that Braun
         and Willet (2013) implement is optimized given that each node only has
-        one reciever. This method is optimized to visit more than one vertex/
-        node of the graph at a time. 
-        
-        An important note: Since sets are un-ordered, we cannot expect the 
-        stack to be exactly the same each time. It will always put nodes that 
+        one receiver. This method is optimized to visit more than one vertex/
+        node of the graph at a time.
+
+        An important note: Since sets are un-ordered, we cannot expect the
+        stack to be exactly the same each time. It will always put nodes that
         are downstream before those that are upstream, but because it will move
         up multiple branches at the same time, it may put three nodes into the
         stack at the same time that are on different branches of the flow
-        network. Because these nodes are in different parts of the network, 
-        the relative order of them does not matter. 
-        
-        For example, in the example below, the nodes 1 and 7 must be added 
-        after 5 but before 2 and 6. 
-        
+        network. Because these nodes are in different parts of the network,
+        the relative order of them does not matter.
+
+        For example, in the example below, the nodes 1 and 7 must be added
+        after 5 but before 2 and 6.
+
         Examples
         --------
         >>> import numpy as np
@@ -112,29 +113,30 @@ class _DrainageStack_to_n():
         >>> ds.s[1]==5
         True
         >>> ds.s[9]==9
-        True        
+        True
         >>> len(set([1, 7])-set(ds.s[2:4]))
         0
         >>> len(set([2, 6])-set(ds.s[4:6]))
         0
         >>> len(set([0, 3, 8])-set(ds.s[6:9]))
         0
-        
+
         """
-    
-        base=set([l])
+
+        base = set([l])
         self.s.extend(base)
-        upstream=set(self.D[self.delta[l]:self.delta[l+1]])
-        base=upstream-base # only need to do this here. 
-        
-        while len(upstream)>0:
-            upstream=set([])
+        upstream = set(self.D[self.delta[l]:self.delta[l+1]])
+        base = upstream-base  # only need to do this here.
+
+        while len(upstream) > 0:
+            upstream = set([])
             for node_i in base:
-                upstream.update(self.D[self.delta[node_i]:self.delta[node_i+1]])
-        
-            add_to_stack=base-upstream
+                upstream.update(self.D[self.delta[node_i]:self.delta[
+                    node_i+1]])
+
+            add_to_stack = base-upstream
             self.s.extend(add_to_stack)
-            base=base-add_to_stack
+            base = base-add_to_stack
             base.update(upstream)
 
 
@@ -145,11 +147,11 @@ def _make_number_of_donors_array_to_n(r, p):
 
     Parameters
     ----------
-    r : ndarray size (np, q) where r[i,:] gives all recievers of node i. Each
+    r : ndarray size (np, q) where r[i,:] gives all receivers of node i. Each
         node recieves flow fom up to q donors.
 
-    p : ndarray size (np, q) where p[i,v] give the proportion of flow going from
-        node i to the reciever listed in r[i,v].
+    p : ndarray size (np, q) where p[i,v] give the proportion of flow going
+        from node i to the receiver listed in r[i,v].
 
     Returns
     -------
@@ -198,7 +200,7 @@ def _make_number_of_donors_array_to_n(r, p):
     max_index = numpy.amax(r)
 
     # filter r based on p and flatten
-    r_filter_flat = r.flatten()[p.flatten()>0]
+    r_filter_flat = r.flatten()[p.flatten() > 0]
 
     nd[:(max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd
@@ -231,14 +233,14 @@ def _make_delta_array_to_n(nd):
     >>> sum(nd)==max(delta)
     True
     """
-    #np = len(nd)
-    #delta = numpy.zeros(np+1, dtype=int)
-    #delta[np] = np   # not np+1 as in B&W because here we number from 0
-    #for i in range(np-1, -1, -1):
-    #    delta[i] = delta[i+1] - nd[i]
-    #return delta
+    # np = len(nd)
+    # delta = numpy.zeros(np+1, dtype=int)
+    # delta[np] = np   # not np+1 as in B&W because here we number from 0
+    # for i in range(np-1, -1, -1):
+    #     delta[i] = delta[i+1] - nd[i]
+    # return delta
 
-    #DEJH efficient delooping (only a small gain)
+    # DEJH efficient delooping (only a small gain)
 
     nt = sum(nd)
     np = len(nd)
@@ -247,6 +249,7 @@ def _make_delta_array_to_n(nd):
     delta[-2::-1] -= numpy.cumsum(nd[::-1])
 
     return delta
+
 
 def _make_array_of_donors_to_n(r, p, delta):
     """
@@ -292,35 +295,35 @@ def _make_array_of_donors_to_n(r, p, delta):
     np = r.shape[0]
     q = r.shape[1]
     nt = delta[-1]
-    
+
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(nt, dtype=int)
     for v in range(q):
         for i in range(np):
-            ri = r[i,v]
-            if p[i,v]>0:
+            ri = r[i, v]
+            if p[i, v] > 0:
                 ind = delta[ri]+w[ri]
                 D[ind] = i
                 w[ri] += 1
-       
+
     return D
 
-    #DEJH notes that for reasons he's not clear on, this looped version is
-    #actually much slower!
-    #D = numpy.zeros(np, dtype=int)
-    #wri_fin = numpy.bincount(r)
-    #wri_fin_nz = wri_fin.nonzero()[0]
-    #wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
-    #logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
-    #cum_logical = numpy.cumsum(logical, axis=1)
-    #wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
-    #D_index = delta[r] + wri
-    #D[D_index] = numpy.arange(r.size)
-    #return D
+    # DEJH notes that for reasons he's not clear on, this looped version is
+    # actually much slower!
+    # D = numpy.zeros(np, dtype=int)
+    # wri_fin = numpy.bincount(r)
+    # wri_fin_nz = wri_fin.nonzero()[0]
+    # wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
+    # logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
+    # cum_logical = numpy.cumsum(logical, axis=1)
+    # wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
+    # D_index = delta[r] + wri
+    # D[D_index] = numpy.arange(r.size)
+    # return D
 
 
-def make_ordered_node_array_to_n(receiver_nodes, reciever_proportion, baselevel_nodes,
-                            set_stack=False):
+def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
+                                 baselevel_nodes, set_stack=False):
     """Create an array of node IDs that is arranged in order from.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -360,42 +363,42 @@ def make_ordered_node_array_to_n(receiver_nodes, reciever_proportion, baselevel_
     >>> s[1]==5
     True
     >>> s[9]==9
-    True        
+    True
     >>> len(set([1, 7])-set(s[2:4]))
     0
     >>> len(set([2, 6])-set(s[4:6]))
     0
     >>> len(set([0, 3, 8])-set(s[6:9]))
     0
-        
-    
+
+
     """
-    nd = _make_number_of_donors_array_to_n(receiver_nodes, reciever_proportion)
+    nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
     delta = _make_delta_array_to_n(nd)
-    D = _make_array_of_donors_to_n(receiver_nodes, reciever_proportion, delta)
+    D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
     dstack = _DrainageStack_to_n(delta, D)
     construct_it = dstack.construct__stack
-    
+
     for k in baselevel_nodes:
-        construct_it(k) #don't think this is a bottleneck, so no C++
-    if set_stack==False:
+        construct_it(k)  # don't think this is a bottleneck, so no C++
+    if set_stack is False:
         return dstack.s
     else:
         return dstack.ss
 
 
-def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0, runoff=1.0,
-                                     boundary_nodes=None):
+def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
+                                          runoff=1.0, boundary_nodes=None):
     """Calculate the drainage area and water discharge at each node.
 
     Parameters
     ----------
     s : ndarray of int
         Ordered (downstream to upstream) array of node IDs
-    r : ndarray size (np, q) where r[i,:] gives all recievers of node i. Each
+    r : ndarray size (np, q) where r[i, :] gives all receivers of node i. Each
         node recieves flow fom up to q donors.
-    p : ndarray size (np, q) where p[i,v] give the proportion of flow going from
-        node i to the reciever listed in r[i,v].
+    p : ndarray size (np, q) where p[i, v] give the proportion of flow going
+        from node i to the receiver listed in r[i, v].
     node_cell_area : float or ndarray
         Cell surface areas for each node. If it's an array, must have same
         length as s (that is, the number of nodes).
@@ -453,14 +456,14 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0, runoff=1.
     >>> q
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    
+
     """
 
     # Number of points
-    
-    np=r.shape[0]
-    q=r.shape[1]
-    
+
+    np = r.shape[0]
+    q = r.shape[1]
+
     # Initialize the drainage_area and discharge arrays. Drainage area starts
     # out as the area of the cell in question, then (unless the cell has no
     # donors) grows from there. Discharge starts out as the cell's local runoff
@@ -480,7 +483,7 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0, runoff=1.
         for v in range(q):
             recvr = r[donor, v]
             proportion = p[donor, v]
-            if proportion>0:
+            if proportion > 0:
                 if donor != recvr:
                     drainage_area[recvr] += proportion*drainage_area[donor]
                     discharge[recvr] += proportion*discharge[donor]
@@ -489,28 +492,29 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0, runoff=1.
 #        donors = s[i]
 #        #print donors
 #        recvrs = r[donors, :].flatten()
-#        
+#
 #        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
 #            recvrs = r[donors, :].flatten()
-#        
-#            unique_recvrs=numpy.unique(recvrs)        
-#            
+#
+#            unique_recvrs=numpy.unique(recvrs)
+#
 #            proportions = p[donors, :].flatten()
-#            
+#
 #            new_da=proportions*numpy.repeat(drainage_area[donors], q)
 #            new_di=proportions*numpy.repeat(discharge[donors], q)
-#            
+#
 #            for u_r in unique_recvrs:
 #                ur_ind=np.where(recvrs==u_r)
-#        
+#
 #                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
 #                discharge[u_r] += numpy.sum(new_di[ur_ind])
 
     return drainage_area, discharge
 
 
-def flow_accumulation_to_n(receiver_nodes, receiver_proportions, baselevel_nodes, node_cell_area=1.0,
-                      runoff_rate=1.0, boundary_nodes=None):
+def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
+                           baselevel_nodes, node_cell_area=1.0,
+                           runoff_rate=1.0, boundary_nodes=None):
     """Calculate drainage area and (steady) discharge.
 
     Calculates and returns the drainage area and (steady) discharge at each
@@ -553,7 +557,7 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions, baselevel_nodes
     >>> s[1]==5
     True
     >>> s[9]==9
-    True        
+    True
     >>> len(set([1, 7])-set(s[2:4]))
     0
     >>> len(set([2, 6])-set(s[4:6]))
@@ -562,17 +566,19 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions, baselevel_nodes
     0
     """
 
+    assert receiver_nodes.shape == receiver_proportions.shape, \
+        'r and p arrays are not the same shape'
 
-    assert(receiver_nodes.shape==receiver_proportions.shape), 'r and p arrays are not the same shape'
+    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions,
+                                     baselevel_nodes)
+    # Note that this ordering of s DOES INCLUDE closed nodes. It really
+    # shouldn't!
+    # But as we don't have a copy of the grid accessible here, we'll solve this
+    # problem as part of route_flow_dn.
 
-
-    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions, baselevel_nodes)
-    #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
-    #But as we don't have a copy of the grid accessible here, we'll solve this
-    #problem as part of route_flow_dn.
-
-    a, q = find_drainage_area_and_discharge_to_n(s, receiver_nodes, receiver_proportions, node_cell_area,
-                                            runoff_rate, boundary_nodes)
+    a, q = find_drainage_area_and_discharge_to_n(
+        s, receiver_nodes, receiver_proportions, node_cell_area, runoff_rate,
+        boundary_nodes)
 
     return a, q, s
 
