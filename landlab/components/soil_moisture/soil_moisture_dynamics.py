@@ -416,7 +416,7 @@ class SoilMoisture(Component):
              LAIR_max_bare, LAIR_max_shrub, LAIR_max_tree])
 
     def update(self, current_time, Tb=24., Tr=0.,
-               ordered_cells=range(0, self.grid.number_of_cells), **kwds):
+               ordered_cells=None, **kwds):
         """
         Update fields with current loading conditions.
 
@@ -455,6 +455,8 @@ class SoilMoisture(Component):
         # Adding routine to add runon & runoff
         if self._runon_switch:
             r = self.grid.flow_receiver_node
+        if ordered_cells==None:
+            ordered_cells = range(0, self.grid.number_of_cells)
 
         for cell in ordered_cells:
             if self._runon_switch:
