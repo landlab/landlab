@@ -105,7 +105,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     n_sp : float, optional, ~ 0.5<n_sp<4.
         n in the stream power equation (power on slope). NOTE: NOT PRESENTLY
         HONORED BY StreamPowerSmoothThresholdEroder (TODO)
-    threshold_sp : float (TODO: array, or field name)
+    threshold_sp : float, array, or field name
         The threshold stream power.
     rainfall_intensity : float; optional
         NOT PRESENTLY HONORED (TODO)
@@ -181,6 +181,33 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         >>> sp.epsilon
         array([ 0.,  0.,  0.,  0.,  2.,  0.,  0.,  0.,  0.])
+        
+        >>> import numpy as np
+        >>> z[4] = 1.0
+        >>> omega_c = rg.add_ones('node', 'erosion__threshold')
+        >>> omega_c[4] = 0.5
+        >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0, threshold_sp='erosion__threshold')
+        >>> sp.run_one_step(dt=1.0)
+        >>> np.round(sp.alpha, 1)
+        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        >>> np.round(sp.gamma, 1)
+        array([ 0. ,  0. ,  0. ,  0. ,  0.5,  0. ,  0. ,  0. ,  0. ])
+        >>> np.round(sp.delta, 1)
+        array([ 0.,  0.,  0.,  0.,  2.,  0.,  0.,  0.,  0.])
+        >>> np.round(sp.epsilon, 1)
+        array([ 0. ,  0. ,  0. ,  0. ,  1.5,  0. ,  0. ,  0. ,  0. ])
+
+        >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0, threshold_sp=omega_c)
+        >>> z[4] = 1.0
+        >>> sp.run_one_step(dt=1.0)
+        >>> np.round(sp.alpha, 1)
+        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        >>> np.round(sp.gamma, 1)
+        array([ 0. ,  0. ,  0. ,  0. ,  0.5,  0. ,  0. ,  0. ,  0. ])
+        >>> np.round(sp.delta, 1)
+        array([ 0.,  0.,  0.,  0.,  2.,  0.,  0.,  0.,  0.])
+        >>> np.round(sp.epsilon, 1)
+        array([ 0. ,  0. ,  0. ,  0. ,  1.5,  0. ,  0. ,  0. ,  0. ])
         """
 
         # Set up needed arrays
@@ -215,16 +242,22 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.alpha[defined_flow_receivers] = (self.K * dt
             * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths)
 
-        #   Gamma
+        #   Gamma and Delta
         self.gamma[defined_flow_receivers==False] = 0.0
-        self.gamma[defined_flow_receivers] = dt * self.thresholds
-
-        #   Delta
-        self.delta[defined_flow_receivers] = ((self.K
-            * self.A_to_the_m[defined_flow_receivers] ) 
-            / (self.thresholds * flow_link_lengths))
+        self.delta[defined_flow_receivers==False] = 0.0
+        if type(self.thresholds) is float:
+            self.gamma[defined_flow_receivers] = dt * self.thresholds
+            self.delta[defined_flow_receivers] = ((self.K
+                * self.A_to_the_m[defined_flow_receivers] ) 
+                / (self.thresholds * flow_link_lengths))
+        else:  # threshold is a field
+            self.gamma[defined_flow_receivers] = dt * self.thresholds[defined_flow_receivers]
+            self.delta[defined_flow_receivers] = ((self.K
+                * self.A_to_the_m[defined_flow_receivers] ) 
+                / (self.thresholds[defined_flow_receivers] * flow_link_lengths))
 
         #   Epsilon
+        self.epsilon[defined_flow_receivers==False] = 0.0
         self.epsilon[defined_flow_receivers] = (
             (self.alpha[defined_flow_receivers] 
              * z[flow_receivers[defined_flow_receivers]])
