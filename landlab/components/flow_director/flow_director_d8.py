@@ -10,8 +10,8 @@ class FlowDirectorD8(FlowDirectorToOne):
      by the D8 method. This method considers flow on all eight links such that
      flow is possible on orthogonal and on diagonal links. 
      
-     The method that considers only orthogonal links for raster grids is 
-     FlowDirectorD4.
+     The method that considers only orthogonal links (D4 method) for raster 
+     grids is FlowDirectorSteepest. 
 
      This method is not implemented for Voroni grids, use 
      FlowDirectorSteepestDescent instead. 
@@ -29,6 +29,7 @@ class FlowDirectorD8(FlowDirectorToOne):
         
         
     The primary method of this class is :func:`run_one_step`.
+
 
     Construction::
 
@@ -81,6 +82,16 @@ class FlowDirectorD8(FlowDirectorToOne):
             12, 10, 10, 15,
             16, 17, 18, 19])
     
+    The flow directors also have the ability to return the flow reciever nodes
+    
+    >>> receiver = fd.direct_flow()
+    >>> receiver 
+    array([0, 1, 2, 
+           3, 0, 5, 
+           6, 7, 8])
+    
+    
+    
     """
 
     _name = 'FlowDirectorD8'
@@ -90,7 +101,7 @@ class FlowDirectorD8(FlowDirectorToOne):
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
-            raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorSteepestDecent')
+            raise NotImplementedError('FlowDirectorD8 not implemented for irregular grids, use FlowDirectorSteepest')
         self.updated_boundary_conditions()
         
     def updated_boundary_conditions(self):

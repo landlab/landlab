@@ -75,6 +75,14 @@ class FlowDirectorSteepest(FlowDirectorToOne):
            12, 14, 10, 15, 
            16, 17, 18, 19])
     
+    The flow directors also have the ability to return the flow reciever nodes
+    
+    >>> receiver = fd.direct_flow()
+    >>> receiver 
+    array([0, 1, 2, 
+           3, 1, 5, 
+           6, 7, 8])
+    
     For the second example we will use a Hexagonal Model Grid, a special type  
     of Voroni Grid that has regularly spaced hexagonal cells. 
     
@@ -113,6 +121,14 @@ class FlowDirectorSteepest(FlowDirectorToOne):
          1, 0, 0, 0, 1,
           1, 0, 0, 1, 
             1, 1, 1], dtype=int8)
+    >>> receiver = fd.direct_flow()
+    >>> receiver 
+    array([ 0,  1,  2,  
+          3,  0,  1,  6,  
+        7,  3,  4,  5, 11, 
+         12,  8,  9, 15, 
+          16, 17, 18])
+    
     
     
     """
