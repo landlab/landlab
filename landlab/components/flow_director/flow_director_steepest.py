@@ -123,7 +123,17 @@ class FlowDirectorSteepest(FlowDirectorToOne):
         self.method = 'D4'
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-
+        self.updated_boundary_conditions()
+        
+    def updated_boundary_conditions(self):
+        """
+        Call this if boundary conditions on the grid are updated after the
+        component is instantiated.
+        """
+        self._active_links = self.grid.active_links
+        self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
+        self._activelink_head = self.grid.node_at_link_head[self.grid.active_links] 
+    
     def run_one_step(self):   
         self.direct_flow()
        

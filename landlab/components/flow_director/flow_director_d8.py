@@ -91,8 +91,19 @@ class FlowDirectorD8(FlowDirectorToOne):
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
             raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorSteepestDecent')
+        self.updated_boundary_conditions()
         
-       
+    def updated_boundary_conditions(self):
+        """
+        Call this if boundary conditions on the grid are updated after the
+        component is instantiated.
+        """
+        
+        dal, d8t, d8h = self.grid._d8_active_links()
+        self._active_links = dal
+        self._activelink_tail = d8t
+        self._activelink_head = d8h
+        
     def run_one_step(self):   
         self.direct_flow()
         

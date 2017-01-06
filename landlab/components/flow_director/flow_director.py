@@ -66,7 +66,6 @@ class FlowDirector(Component):
         if not self._is_raster:
             self.method = None
 
-        self.updated_boundary_conditions()
 
         # test input variables are present:
         self.surface=surface
@@ -74,21 +73,6 @@ class FlowDirector(Component):
         
         # add elevations as a local variable.
         self.elevs = surf        
-
-    def updated_boundary_conditions(self):
-        """
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
-        """
-        if self.method == 'D8':
-            dal, d8t, d8h = self.grid._d8_active_links()
-            self._active_links = dal
-            self._activelink_tail = d8t
-            self._activelink_head = d8h
-        else:
-            self._active_links = self.grid.active_links
-            self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
-            self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
     
     def run_one_step(self):
         raise NotImplementedError('run_one_step()')
