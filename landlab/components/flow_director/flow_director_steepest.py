@@ -4,16 +4,9 @@ from landlab import VoronoiDelaunayGrid
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
-class FlowDirectorD4(FlowDirectorToOne):
-    """Single-path (steepest direction) flow direction finding on raster grids
-     by the D4 method. This method considers flow on the four links that 
-     connect a given node across faces (no flow on diagonal links). 
-     
-     The method that considers diagonal links for raster grids is 
-     FlowDirectorD8.
-
-     This method is not implemented for Voroni grids, use 
-     FlowDirectorSteepestDescent instead. 
+class FlowDirectorSteepest(FlowDirectorToOne):
+    """Single-path (steepest direction) flow direction. This method is 
+    equivalent to D4 method in the special case of a raster grid. 
      
      Stores as ModelGrid fields:
         
@@ -30,12 +23,12 @@ class FlowDirectorD4(FlowDirectorToOne):
 
     Construction::
 
-        FlowDirectorD4(grid, surface='topographic__elevation')
+        FlowDirectorSteepest(grid, surface='topographic__elevation')
 
     Parameters
     ----------
     grid : ModelGrid
-        A grid of type RasterModelGrid.
+        A grid.
     surface : field name at node or array of length node, optional
         The surface to direct flow across, default is field at node: 
         topographic__elevation,.   
@@ -43,13 +36,17 @@ class FlowDirectorD4(FlowDirectorToOne):
    
     Examples
     --------
+    
+    This method works for both raster and irregular grids. First we will look
+    at a raster example, and then an irregular example. 
+    
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowDirectorD4
+    >>> from landlab.components import FlowDirectorSteepest
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    >>> fd=FlowDirectorD4(mg, 'topographic__elevation')
+    >>> fd=FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd.run_one_step()
@@ -69,7 +66,7 @@ class FlowDirectorD4(FlowDirectorToOne):
     ...                  0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field('node','topographic__elevation', elev)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fd_2 = FlowDirectorD4(mg_2)
+    >>> fd_2 = FlowDirectorSteepest(mg_2)
     >>> fd_2.run_one_step()
     >>> mg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
     array([ 0,  1,  2,  3,  
@@ -78,17 +75,55 @@ class FlowDirectorD4(FlowDirectorToOne):
            12, 14, 10, 15, 
            16, 17, 18, 19])
     
+    For the second example we will use a Hexagonal Model Grid, a special type  
+    of Voroni Grid that has regularly spaced hexagonal cells. 
+    
+    >>> from landlab import HexModelGrid
+    >>> mg = HexModelGrid(5,3)
+    >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
+    >>> fd=FlowDirectorSteepest(mg, 'topographic__elevation')
+    >>> fd.elevs
+    array([ 0. ,  1. ,  2. ,    
+        0.5,  1.5,  2.5,  3.5,  
+      1. ,  2. ,  3. ,  4. , 5. ,
+        2.5,  3.5,  4.5,  5.5,  
+            3. ,  4. ,  5. ])
+    >>> fd.run_one_step()
+    >>> mg.at_node['flow__receiver_node']
+    array([ 0,  1,  2,  
+          3,  0,  1,  6,  
+        7,  3,  4,  5,  11, 
+          12,  8,  9, 15, 
+            16, 17, 18])
+    >>> mg.at_node['topographic__steepest_slope']
+    array([ 0. ,  0. ,  0. ,  
+        0. ,  1.5,  1.5,   0. ,  
+      0. ,  1.5,  1.5,  1.5,  0. , 
+        0. ,  1.5,  1.5,  0. ,  
+            0. ,  0. ,  0. ])
+    >>> mg.at_node['flow__link_to_receiver_node']
+    array([-1, -1, -1, 
+         -1,  3,  5, -1, 
+       -1, 12, 14, 16, -1, 
+         -1, 25, 27, -1, 
+           -1, -1, -1])
+    >>> mg.at_node['flow__sink_flag']
+    array([1, 1, 1,
+          1, 0, 0, 1, 
+         1, 0, 0, 0, 1,
+          1, 0, 0, 1, 
+            1, 1, 1], dtype=int8)
+    
+    
     """
 
-    _name = 'FlowDirectorD4'
+    _name = 'FlowDirectorSteepest'
 
     def __init__(self, grid, surface='topographic__elevation'):
         self.method = 'D4'
-        super(FlowDirectorD4, self).__init__(grid, surface)
+        super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-        if self._is_Voroni:
-            raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorSteepestDecent')
-       
+
     def run_one_step(self):   
         self.direct_flow()
        

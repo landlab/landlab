@@ -1,5 +1,5 @@
 from landlab.components.flow_accum.flow_accumulator import FlowAccumulator 
-from landlab.components.flow_director import FlowDirectorSteepestDescent as FlowDirector
+from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest as FlowDirector
 from landlab.components.flow_accum import flow_accum_bw 
 from landlab import VoronoiDelaunayGrid
 

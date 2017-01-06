@@ -94,7 +94,9 @@ class FlowDirectorD8(FlowDirectorToOne):
         
        
     def run_one_step(self):   
+        self.direct_flow()
         
+    def direct_flow(self):
         # step 0. Check and update BCs
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
@@ -127,6 +129,7 @@ class FlowDirectorD8(FlowDirectorToOne):
                                                                     dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True
     
+        return receiver
         
 if __name__ == '__main__':
     import doctest
