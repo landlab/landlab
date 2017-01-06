@@ -136,7 +136,7 @@ class FlowAccumulator(Component):
     def __init__(self, grid, surface, runoff_rate=None):
         # We keep a local reference to the grid
         self._grid = grid
-        self._bc_set_code = self.grid.bc_set_code
+#        self._bc_set_code = self.grid.bc_set_code
 
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
@@ -144,7 +144,7 @@ class FlowAccumulator(Component):
             self.method = 'base'
             
         
-        self.updated_boundary_conditions()
+#        self.updated_boundary_conditions()
 
         # START: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -262,25 +262,25 @@ class FlowAccumulator(Component):
 
         self.nodes_not_in_stack = True
 
-    def updated_boundary_conditions(self):
-        """
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
-        """
-        # We'll also keep track of the active links; if raster, then these are
-        # the "D8" links; otherwise, it's just activelinks
-        if self.method == 'D8':
-            dal, d8t, d8h = self.grid._d8_active_links()
-            self._active_links = dal
-            self._activelink_tail = d8t
-            self._activelink_head = d8h
-            # needs modifying in the loop if D4 (now done)
-        else:
-            self._active_links = self.grid.active_links
-            self._activelink_tail = self.grid.node_at_link_tail[
-                self.grid.active_links]
-            self._activelink_head = self.grid.node_at_link_head[
-                self.grid.active_links]
+#    def updated_boundary_conditions(self):
+#        """
+#        Call this if boundary conditions on the grid are updated after the
+#        component is instantiated.
+#        """
+#        # We'll also keep track of the active links; if raster, then these are
+#        # the "D8" links; otherwise, it's just activelinks
+#        if self.method == 'D8':
+#            dal, d8t, d8h = self.grid._d8_active_links()
+#            self._active_links = dal
+#            self._activelink_tail = d8t
+#            self._activelink_head = d8h
+#            # needs modifying in the loop if D4 (now done)
+#        else:
+#            self._active_links = self.grid.active_links
+#            self._activelink_tail = self.grid.node_at_link_tail[
+#                self.grid.active_links]
+#            self._activelink_head = self.grid.node_at_link_head[
+#                self.grid.active_links]
 
     def run_one_step(self):
         raise NotImplementedError('run_one_step()')

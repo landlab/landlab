@@ -292,10 +292,10 @@ class FlowAccumulatorD4(FlowAccumulator):
             self.df=self.df_component(self.grid)
     def run_one_step(self):
 
-        # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
-            self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+#        # step 0. Check and update BCs
+#        if self._bc_set_code != self.grid.bc_set_code:
+#            self.updated_boundary_conditions()
+#            self._bc_set_code = self.grid.bc_set_code
 
         # step 1. Find flow directions by specified method
         self.fd.run_one_step()
