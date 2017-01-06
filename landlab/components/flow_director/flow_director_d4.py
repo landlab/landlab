@@ -83,15 +83,18 @@ class FlowDirectorD4(FlowDirectorToOne):
     _name = 'FlowDirectorD4'
 
     def __init__(self, grid, surface='topographic__elevation'):
+        self.method = 'D4'
         super(FlowDirectorD4, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-        self.method = 'D4'
         if self._is_Voroni:
             raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorSteepestDecent')
        
     def run_one_step(self):   
-        
-        # step 0. Check and update BCs
+        self.direct_flow()
+       
+
+    def direct_flow(self):
+         # step 0. Check and update BCs
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self.grid.bc_set_code           
@@ -107,15 +110,14 @@ class FlowDirectorD4(FlowDirectorToOne):
                    
         
         # Calculate flow directions
-        num_d4_active = self._grid.number_of_active_links  
         receiver, steepest_slope, sink, recvr_link = \
         flow_direction_DN.flow_directions(self.elevs, self._active_links,
-                                         self._activelink_tail[:num_d4_active],
-                                         self._activelink_head[:num_d4_active],
+                                         self._activelink_tail,
+                                         self._activelink_head,
                                          link_slope,
                                          grid=self._grid,
                                          baselevel_nodes=baselevel_nodes)
-        
+         
 
         self.sink = sink                                  
        
@@ -126,7 +128,8 @@ class FlowDirectorD4(FlowDirectorToOne):
         self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
                                                                     dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True
-    
+        
+        return receiver
         
 if __name__ == '__main__':
     import doctest

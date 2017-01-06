@@ -281,12 +281,13 @@ class FlowAccumulatorD8(FlowAccumulator):
     
 
     def __init__(self, grid, surface='topographic__elevation', depression_finder=None):
+        self.method = 'D8'
         super(FlowAccumulatorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
             raise NotImplementedError('FlowAccumulatorD4 not implemented for irregular grids, use FlowAccumulatorSteepestDecent')
         # save method as attribute
-        self.method = 'D8'
+
         
         # save 
         self.fd = FlowDirector(self._grid, self.elevs)

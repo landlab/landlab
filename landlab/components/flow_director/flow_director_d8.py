@@ -86,13 +86,12 @@ class FlowDirectorD8(FlowDirectorToOne):
     _name = 'FlowDirectorD8'
 
     def __init__(self, grid, surface='topographic__elevation'):
+        self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-        self.method = 'D4'
         if self._is_Voroni:
             raise NotImplementedError('FlowDirectorD4 not implemented for irregular grids, use FlowDirectorSteepestDecent')
         
-        self.method = 'D8'
        
     def run_one_step(self):   
         

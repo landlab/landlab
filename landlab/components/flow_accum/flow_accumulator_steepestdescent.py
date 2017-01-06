@@ -302,13 +302,14 @@ class FlowAccumulatorSteepestDescent(FlowAccumulator):
     # and _var_doc , only _name needs to change. 
     
     def __init__(self, grid, surface='topographic__elevation', depression_finder=None):
+        self.method = 'SteepestDescent'
         super(FlowAccumulatorSteepestDescent, self).__init__(grid, surface)
 
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if not self._is_Voroni:
             raise NotImplementedError('FlowAccumulatorSteepestDescent not implemented for regular grids, use FlowAccumulatorD4 or FlowAccumulatorD8 instead')
         # save method as attribute
-        self.method = 'SteepestDescent'
+        
         self.fd = FlowDirector(self._grid, self.elevs)
         self.df_component = depression_finder
         

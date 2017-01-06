@@ -55,6 +55,9 @@ class FlowDirector(Component):
     
     def __init__(self, grid, surface):
         # We keep a local reference to the grid
+        if hasattr(self, 'method') == False:
+            self.method = 'base'
+            
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
         
@@ -77,14 +80,11 @@ class FlowDirector(Component):
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
         """
-        # We'll also keep track of the active links; if raster, then these are
-        # the "D8" links; otherwise, it's just activelinks
-        if self._is_raster:
+        if self.method == 'D8':
             dal, d8t, d8h = self.grid._d8_active_links()
             self._active_links = dal
             self._activelink_tail = d8t
             self._activelink_head = d8h
-            # needs modifying in the loop if D4 (now done)
         else:
             self._active_links = self.grid.active_links
             self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]

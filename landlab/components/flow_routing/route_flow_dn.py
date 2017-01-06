@@ -225,7 +225,7 @@ class FlowRouter(Component):
         """
         # We'll also keep track of the active links; if raster, then these are
         # the "D8" links; otherwise, it's just activelinks
-        if self._is_raster:
+        if self.method == 'D8':
             dal, d8t, d8h = self.grid._d8_active_links()
             self._active_links = dal
             self._activelink_tail = d8t
@@ -351,24 +351,14 @@ class FlowRouter(Component):
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
 
         # Calculate flow directions
-        if self.method == 'D4':
-            num_d4_active = self._grid.number_of_active_links  # only d4
-            receiver, steepest_slope, sink, recvr_link = \
-                flow_direction_DN.flow_directions(elevs, self._active_links,
-                                         self._activelink_tail[:num_d4_active],
-                                         self._activelink_head[:num_d4_active],
-                                         link_slope,
-                                         grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes)
-        else:  # Voronoi or D8
-            receiver, steepest_slope, sink, recvr_link = \
-                flow_direction_DN.flow_directions(elevs, self._active_links,
-                                     self._activelink_tail,
-                                     self._activelink_head, link_slope,
-                                     grid=self._grid,
-                                     baselevel_nodes=baselevel_nodes)
+        receiver, steepest_slope, sink, recvr_link = \
+            flow_direction_DN.flow_directions(elevs, self._active_links,
+                                 self._activelink_tail,
+                                 self._activelink_head, link_slope,
+                                 grid=self._grid,
+                                 baselevel_nodes=baselevel_nodes)
 
-        # TODO: either need a way to calculate and return the *length* of the
+            # TODO: either need a way to calculate and return the *length* of the
         # flow links, OR the caller has to handle the raster / non-raster case.
 
         # Calculate drainage area, discharge, and ...
@@ -429,7 +419,59 @@ class FlowRouter(Component):
                 0.,  1.,  1.,  0.,
                 0.,  0.,  0.,  0.])
 
-        Now let's change the cell area (100.) and the runoff rates:
+        The default behavior of FlowRouter is to use the D8 method. Next we 
+        will examine the alternative case of the D4 method that does not 
+        consider diagonal links bewtween nodes. 
+
+        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> elev = np.array([0.,  0.,  0., 0.,
+        ...                  0., 21., 10., 0.,
+        ...                  0., 31., 20., 0.,
+        ...                  0., 32., 30., 0.,
+        ...                  0.,  0.,  0., 0.])
+        >>> _ = mg.add_field('node','topographic__elevation', elev)
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fr = FlowRouter(mg, method = 'D4')
+        >>> fr.run_one_step()
+        >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  3,
+                4,  1,  2,  7,
+                8, 10,  6, 11,
+               12, 14, 10, 15,
+               16, 17, 18, 19])
+        >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  1.,  5.,  0.,
+                0.,  1.,  5.,  0.,
+                0.,  1.,  4.,  0.,
+                0.,  1.,  2.,  0.,
+                0.,  0.,  0.,  0.])
+        
+        The flow router can also work on irregular grids.  For the example we 
+        will use a Hexagonal Model Grid, a special type of Voroni Grid that has 
+        regularly spaced hexagonal cells. We will also set the dx spacing such 
+        that each cell has an area of one. 
+        
+        >>> from landlab import HexModelGrid
+        >>> dx=(2./(3.**0.5))**0.5
+        >>> mg = HexModelGrid(5,3, dx)
+        >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
+        >>> fr = FlowRouter(mg)
+        >>> fr.run_one_step()
+        >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  
+                3,  0,  1,  6,  
+                7,  3,  4,  5, 11, 
+               12,  8,  9, 15, 
+               16, 17, 18])
+        >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 3.,  2.,  0., 
+                2.,  3.,  2.,  0.,  
+                0.,  2.,  2.,  1.,  0.,  
+                0., 1.,  1.,  0.,  
+                0.,  0.,  0.])
+
+        Now let's return to the first example and change the cell area (100.) 
+        and the runoff rates:
 
         >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
 

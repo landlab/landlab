@@ -134,16 +134,16 @@ class FlowAccumulator(Component):
             }
 
     def __init__(self, grid, surface, runoff_rate=None):
-
         # We keep a local reference to the grid
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
 
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
-        if not self._is_raster:
-            self.method = None
-
+        if hasattr(self, 'method') == False:
+            self.method = 'base'
+            
+        
         self.updated_boundary_conditions()
 
         # START: Testing of input values, supplied either in function call or
@@ -269,7 +269,7 @@ class FlowAccumulator(Component):
         """
         # We'll also keep track of the active links; if raster, then these are
         # the "D8" links; otherwise, it's just activelinks
-        if self._is_raster:
+        if self.method == 'D8':
             dal, d8t, d8h = self.grid._d8_active_links()
             self._active_links = dal
             self._activelink_tail = d8t

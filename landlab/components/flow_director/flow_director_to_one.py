@@ -95,6 +95,10 @@ class FlowDirectorToOne(FlowDirector):
 
     def __init__(self, grid, surface):
         # run init for the inherited class
+        if hasattr(self, 'method') == False:
+            self.method = 'toOne'
+            
+            
         super(FlowDirectorToOne, self).__init__(grid, surface)
         
         # initialize new fields
