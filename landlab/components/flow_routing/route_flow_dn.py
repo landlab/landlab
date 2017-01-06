@@ -324,6 +324,8 @@ class FlowRouter(Component):
                 self.method = kwds['method']
             if not self._is_raster:
                 self.method = None
+                
+            self.updated_boundary_conditions()
 
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
