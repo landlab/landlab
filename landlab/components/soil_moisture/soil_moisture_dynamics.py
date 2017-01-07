@@ -460,9 +460,14 @@ class SoilMoisture(Component):
 
         for cell in ordered_cells:
             if self._runon_switch:
-                node_ = self.grid.node_at_cell[cell]                
+                node_ = self.grid.node_at_core_cell[cell]                
                 donors = []
-                donors = list(self.grid.node_at_cell[np.where(r==node_)[0]])
+                donors = \
+                    list(self.grid.node_at_core_cell[np.where(r==node_)[0]])
+                if len(donors) != 0:
+                    for k in range(0, len(donors)):
+                        self._runon[node_] += self._runoff[donors[k]]
+            
             P = P_[cell]
             runon = self._runon[cell]
             # print cell
