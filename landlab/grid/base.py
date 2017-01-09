@@ -3660,7 +3660,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         active_links = (((fromnode_status == CORE_NODE) & ~
                          (tonode_status == CLOSED_BOUNDARY)) |
                         ((tonode_status == CORE_NODE) & ~
-                         (fromnode_status == CLOSED_BOUNDARY)))
+                         (fromnode_status == CLOSED_BOUNDARY)) |
+                        ((tonode_status == CORE_NODE) &
+                         (fromnode_status == FIXED_VALUE_BOUNDARY)) |
+                         ((tonode_status == FIXED_VALUE_BOUNDARY) &
+                         (fromnode_status == CORE_NODE)))
         # ...this still includes things that will become fixed_link
 
         fixed_links = ((((fromnode_status == FIXED_GRADIENT_BOUNDARY) &
@@ -3697,6 +3701,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+        self._create_links_and_link_dirs_at_node()
 
     def _reset_lists_of_nodes_cells(self):
         """Create of reset lists of nodes and cells based on their status.
