@@ -21,24 +21,63 @@ def return_surface(grid, surface):
 class FlowAccumulator(Component):
 
     """
-    Base class for accumulating flow.
+    Method to accumulate flow and calculate drainage area. 
+ 
 
-    This component is not meant to be used directly in modeling efforts.
-    Instead it has the functionality that all flow accumulators need
-    to initialize, check boundary conditions, and create all necesary fields.
+    This class implements single-path (steepest direction) flow routing, and
+    calculates flow directions, drainage area, and discharge.
+    
+    The perimeter nodes  NEVER contribute to the accumulating flux, even if the 
+    gradients from them point inwards to the main body of the grid. This is 
+    because under Landlab definitions, perimeter nodes lack cells, so cannot 
+    accumulate any discharge.
 
+    This is accomplished by first finding steepest descent flow directions 
+    using the component FlowDirectorSteepestDescent, and then calculating the 
+    accumulation area and discharge. 
+    
+    Optionally a depression finding component can be specified and flow
+    directing, depression finding, and flow routing can all be accomplished 
+    together. 
+    
     Stores as ModelGrid fields:
-
+               
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
         -  Node array containing downstream-to-upstream ordered list of node
            IDs: *'flow__upstream_node_order'*
-        -  Node array of all but the first element of the delta data structure:
+        -  Node array of all but the first element of the delta data structure: 
             *flow__data_structure_delta*. The first element is always zero.
-        -  Link array of the D data structure: *flow__data_structure_D
+        -  Link array of the D data structure: *flow__data_structure_D*
+        
+    The FlowDirector component will add additional ModelGrid fields. 
+    DirectToOne methods (Steepest/D4 and D8) :
+        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+           there is no receiver: *'flow__receiver_node'*
+        -  Node array of steepest downhill slopes:
+           *'topographic__steepest_slope'*
+        -  Node array containing ID of link that leads from each node to its
+           receiver, or BAD_INDEX_VALUE if no link:
+           *'flow__link_to_receiver_node'*
+        -  Boolean node array of all local lows: *'flow__sink_flag'*
 
-    The primary method of this class, :func:`run_one_step` is not implemented.
+    The primary method of this class is :func:`run_one_step`
 
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid of type Voroni.
+    surface : field name at node or array of length node
+        The surface to direct flow across.   
+    runoff_rate : float, optional (m/time)
+        If provided, sets the (spatially constant) runoff rate. If a spatially
+        variable runoff rate is desired, use the input field
+        'water__unit_flux_in'. If both the field and argument are present at
+        the time of initialization, runoff_rate will *overwrite* the field.
+        If neither are set, defaults to spatially constant unit input.  
+    depression_finder : Component, optional
+        A depression finding component
+        
 
     Parameters
     ----------
@@ -71,6 +110,7 @@ class FlowAccumulator(Component):
 
 
     """
+    
     _name = 'FlowAccumulator'
 
     _input_var_names = ('topographic__elevation',
