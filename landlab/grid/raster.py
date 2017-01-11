@@ -5254,7 +5254,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         min_val = np.min(node_data[locs])
 
         # now find where minimum values are
-        min_locs = np.where(node_data == min_val)
+        min_locs = list(np.where(node_data == min_val)[0])
 
         # check all the locations with the minimum value to see if one
         # is adjacent to a boundary location.  If so, that will be the
@@ -5301,11 +5301,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if remove_disconnected==True:
             self.set_open_nodes_disconnected_from_watershed_to_closed(node_data=node_data,
-                                                                      outlet_id=as_id_array(np.array(outlet_loc)),
+                                                                      outlet_id=as_id_array(np.array([outlet_loc])),
                                                                       nodata_value=nodata_value,
                                                                       method=method)
         if return_outlet_id:
-            return as_id_array(np.array(outlet_loc))
+            return as_id_array(np.array([outlet_loc]))
 
     def set_open_nodes_disconnected_from_watershed_to_closed(self,
                                                             node_data,
@@ -5352,12 +5352,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg1 = RasterModelGrid((4,6))
-        >>> z1 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        >>> z1 = np.array([-9999., -9999., -9999.,  -9999., -9999., -9999.,
         ...                -9999.,    67.,    67.,  -9999.,    50., -9999.,
         ...                -9999.,    67.,     0.,  -9999., -9999., -9999.,
         ...                -9999., -9999., -9999.,  -9999., -9999., -9999.])
         >>> mg2 = RasterModelGrid((4,6))
-        >>> z2 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        >>> z2 = np.array([-9999., -9999., -9999.,  -9999., -9999., -9999.,
         ...                -9999.,    67.,    67.,  -9999.,    50., -9999.,
         ...                -9999.,    67.,     0.,  -9999., -9999., -9999.,
         ...                -9999., -9999., -9999.,  -9999., -9999., -9999.])
@@ -5399,13 +5399,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             outlet_id=possible_outlets
 
-        elif outlet_id.shape!=(1,) or (isinstance(outlet_id, np.ndarray)==False):
+        elif outlet_id.size!=1 or (isinstance(outlet_id, np.ndarray)==False):
             # check that the value given by outlet_id is an integer
             raise ValueError('outlet_id must be a length 1 numpy array')
         else:
             # check that the node status at the node given by outlet_id is not
             # CLOSED_BOUNDARY
-            if self.status_at_node[outlet_id][0]==CLOSED_BOUNDARY:
+            if self.status_at_node[outlet_id]==CLOSED_BOUNDARY:
                 raise ValueError ('The node given by outlet_id must not have the status: CLOSED_BOUNDARY')
 
 
