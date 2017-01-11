@@ -5256,6 +5256,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # now find where minimum values are
         min_locs = list(np.where(node_data == min_val)[0])
 
+        
         # check all the locations with the minimum value to see if one
         # is adjacent to a boundary location.  If so, that will be the
         # watershed outlet.  If none of these points qualify, then
@@ -5269,15 +5270,22 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # now check the min locations to see if any are next to
             # a boundary node
             local_not_found = True
-            i = 0
-            while (i < len(min_locs) and local_not_found):
-                if self.has_boundary_neighbor(min_locs[i]):
-                    local_not_found = False
-                    # outlet_loc contains the index of the outlet location
-                    # in the node_data array
-                    outlet_loc = min_locs[i]
+            next_to_boundary=[]
+            
+            # check all nodes rather than selecting the first node that meets
+            # the criteria
+            for i in range(len(min_locs)):
+                next_to_boundary.append(self.has_boundary_neighbor(min_locs[i]))
+            
+            # if any of those nodes were adjacent to the boundary, check 
+            #that  there is only one. If only one, set as outlet loc, else,
+            # raise a value error
+            if any(next_to_boundary):
+                local_not_found = False
+                if sum(next_to_boundary)>1:
+                    raise ValueError('Grid has two potential outlet nodes')
                 else:
-                    i += 1
+                    outlet_loc = min_locs[np.where(next_to_boundary)[0][0]]
 
             # checked all of the min vals, (so done with inner while)
             # and none of the min values were outlet candidates
