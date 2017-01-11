@@ -3697,6 +3697,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+        #self._create_links_and_link_dirs_at_node()
 
     def _reset_lists_of_nodes_cells(self):
         """Create of reset lists of nodes and cells based on their status.
