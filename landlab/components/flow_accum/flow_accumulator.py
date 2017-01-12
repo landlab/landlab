@@ -11,7 +11,7 @@ from landlab.utils.decorators import use_field_name_or_array
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, \
     BAD_INDEX_VALUE
 import numpy as np
-
+import six
 
 @use_field_name_or_array('node')
 def return_surface(grid, surface):
@@ -23,24 +23,24 @@ class FlowAccumulator(Component):
     """
     Method to accumulate flow and calculate drainage area. 
  
-
-    This class implements single-path (steepest direction) flow routing, and
-    calculates flow directions, drainage area, and discharge.
+    This is accomplished by first finding flow directions by a user-specified
+    method and then calculating the drainage area and discharge. 
     
-    The perimeter nodes  NEVER contribute to the accumulating flux, even if the 
-    gradients from them point inwards to the main body of the grid. This is 
-    because under Landlab definitions, perimeter nodes lack cells, so cannot 
-    accumulate any discharge.
-
-    This is accomplished by first finding steepest descent flow directions 
-    using the component FlowDirectorSteepestDescent, and then calculating the 
-    accumulation area and discharge. 
+    Optionally, spatially variable runoff can be set either by the model grid 
+    field 'water__unit_flux_in' or the input variable *runoff_rate**.
     
     Optionally a depression finding component can be specified and flow
     directing, depression finding, and flow routing can all be accomplished 
     together. 
     
-    Stores as ModelGrid fields:
+    
+    NOTE: The perimeter nodes  NEVER contribute to the accumulating flux, even 
+    if the  gradients from them point inwards to the main body of the grid. 
+    This is because under Landlab definitions, perimeter nodes lack cells, so 
+    cannot accumulate any discharge.
+
+
+    Flow Accumulator stores as ModelGrid fields:
                
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
@@ -51,7 +51,12 @@ class FlowAccumulator(Component):
         -  Link array of the D data structure: *flow__data_structure_D*
         
     The FlowDirector component will add additional ModelGrid fields. 
-    DirectToOne methods (Steepest/D4 and D8) :
+    DirectToOne methods(Steepest/D4 and D8) and DirectToMany(NAMES HERE) use
+    different model grid fields. 
+    
+    DirectToOne Methods (Steeptest/D4 and D8) store the following as ModelGrid 
+    fields:
+        
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
            there is no receiver: *'flow__receiver_node'*
         -  Node array of steepest downhill slopes:
@@ -61,12 +66,27 @@ class FlowAccumulator(Component):
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
+    DirectToMany Methods (NAMES HERE) store the following as ModelGrid 
+    fields:
+        
+        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+           there is no receiver: *'flow__receiver_nodes'*
+        -  Node array of receiver proportions: *'flow__receiver_proportions'*
+        -  Node array of steepest downhill slopes:
+           *'topographic__steepest_slope'*
+        -  Boolean node array of all local lows: *'flow__sink_flag'*
+        
     The primary method of this class is :func:`run_one_step`
 
     Parameters
     ----------
     grid : ModelGrid
         A grid of type Voroni.
+    flow_director : string, class, instance of class. 
+        A string of method or class name (e.g. 'D4' or 'FlowDirectorD4'), an 
+        uninstantiated FlowDirector class, or an instance of a FlowDirector 
+        class. This sets the method used to calculate flow directions. 
+        Default is 'FlowDirectorD4'
     surface : field name at node or array of length node
         The surface to direct flow across.   
     runoff_rate : float, optional (m/time)
@@ -75,38 +95,16 @@ class FlowAccumulator(Component):
         'water__unit_flux_in'. If both the field and argument are present at
         the time of initialization, runoff_rate will *overwrite* the field.
         If neither are set, defaults to spatially constant unit input.  
-    depression_finder : Component, optional
-        A depression finding component
+    depression_finder : string, class, instance of class, optional
+         A string of class name (e.g., 'DepressionFinderAndRouter'), an 
+         uninstantiated DepressionFinder class, or an instance of a 
+         DepressionFinder class. 
+         This sets the method for depression finding. 
         
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node
-        The surface to direct flow across.
-    runoff_rate : float, optional (m/time)
-        If provided, sets the (spatially constant) runoff rate. If a spatially
-        variable runoff rate is desired, use the input field
-        'water__unit_flux_in'. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field.
-        If neither are set, defaults to spatially constant unit input.
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y, at='node')
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation')
-    >>> fa.elevs
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> sorted(list(mg.at_node.keys()))
-    ['drainage_area', 'flow__data_structure_delta',
-       'flow__upstream_node_order', 'surface_water__discharge',
-       'topographic__elevation', 'water__unit_flux_in']
+
 
 
     """
@@ -173,18 +171,63 @@ class FlowAccumulator(Component):
             'been added to the stack stored in flow__upstream_node_order.'
             }
 
-    def __init__(self, grid, surface, runoff_rate=None):
+    def __init__(self, grid, surface, flow_director = 'FlowDirectorD4', runoff_rate=None, depression_finder = None):
         # We keep a local reference to the grid
         self._grid = grid
 #        self._bc_set_code = self.grid.bc_set_code
 
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
-        if hasattr(self, 'method') == False:
-            self.method = 'base'
-            
+        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+
+
+        # identify Flow Director method, save name, import and initialize the correct
+        # flow director component if necessary        
+                
         
-#        self.updated_boundary_conditions()
+        # flow director is provided as a string.            
+        if isinstance(flow_director, six.string_types):
+            if flow_director[:12] == 'FlowDirector':
+                flow_director[12:]
+            
+            from landlab.components.flow_director import FlowDirectorSteepest, FlowDirectorD8
+            DIRECTOR_METHODS = {'D4': FlowDirectorSteepest,
+                            'Steepest': FlowDirectorSteepest,
+                            'D8': FlowDirectorD8,
+                            }
+                
+            try:
+                FlowDirector = DIRECTOR_METHODS[flow_director]
+            except KeyError:
+                raise ValueError('String provided in flow_director is not a valid method or component name')
+                
+            self.fd = FlowDirector(self._grid, self.elevs)
+        # flow director is provided as an instantiated flow director   
+        elif isinstance(flow_director, Component):
+    
+            FlowDirector = flow_director
+            self.fd = flow_director
+        # flow director is provided as an uninstantiated flow director 
+        else:
+            permittedComponents = ['FlowDirectorSteepest',
+                                   'FlowDirectorD8']
+            if flow_director._name in permittedComponents:
+                self.fd = FlowDirector(self._grid, self.elevs)
+                
+       
+                
+        # save method as attribute    
+        self.method = fd.method
+        
+        
+        
+        
+        self.df_component = depression_finder
+        
+        if self.df_component:
+            self.df=self.df_component(self.grid)
+        
+        
 
         # START: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -250,7 +293,8 @@ class FlowAccumulator(Component):
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
 
         self.node_cell_area = node_cell_area
-
+            
+            
         # This component will track of the following variables.
         # Attempt to create each, if they already exist, assign the existing
         # version to the local copy.
@@ -302,26 +346,6 @@ class FlowAccumulator(Component):
 
         self.nodes_not_in_stack = True
 
-#    def updated_boundary_conditions(self):
-#        """
-#        Call this if boundary conditions on the grid are updated after the
-#        component is instantiated.
-#        """
-#        # We'll also keep track of the active links; if raster, then these are
-#        # the "D8" links; otherwise, it's just activelinks
-#        if self.method == 'D8':
-#            dal, d8t, d8h = self.grid._d8_active_links()
-#            self._active_links = dal
-#            self._activelink_tail = d8t
-#            self._activelink_head = d8h
-#            # needs modifying in the loop if D4 (now done)
-#        else:
-#            self._active_links = self.grid.active_links
-#            self._activelink_tail = self.grid.node_at_link_tail[
-#                self.grid.active_links]
-#            self._activelink_head = self.grid.node_at_link_head[
-#                self.grid.active_links]
-
     def run_one_step(self):
         raise NotImplementedError('run_one_step()')
 
@@ -345,6 +369,53 @@ class FlowAccumulator(Component):
     def node_delta_structure(self):
         return self._grid['node']['flow__data_structure_delta']
 
+
+        
+    def run_one_step(self):
+        
+#        # step 0. Check and update BCs
+#        if self._bc_set_code != self.grid.bc_set_code:
+#            self.updated_boundary_conditions()
+#            self._bc_set_code = self.grid.bc_set_code        
+#        
+        # step 1. Find flow directions by specified method
+        self.fd.run_one_step()
+        
+        # step 2. Get r (and potentially p) array(s)        
+        r = self._grid['node']['flow__receiver_node']
+        
+        # step 2. Stack, D, delta construction
+        nd = flow_accum_bw._make_number_of_donors_array(r)
+        delta = flow_accum_bw._make_delta_array(nd)
+        D = flow_accum_bw._make_array_of_donors(r, delta)
+        s = flow_accum_bw.make_ordered_node_array(r, self.fd.sink)
+        
+        #put theese in grid so that depression finder can use it.         
+        # store the generated data in the grid
+        self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
+        self._grid['link']['flow__data_structure_D'][:len(D)] = D
+        self._grid['node']['flow__upstream_node_order'][:] = s
+        
+        # step 3. Initialize and Run depression finder if passed 
+        # at present this must go at the end. 
+
+       
+        
+        # step 4. Accumulate (to one or to N depending on direction method. )
+        a, q = flow_accum_bw.find_drainage_area_and_discharge(s, 
+                                                              r, 
+                                                              self.node_cell_area,
+                                                              self._grid.at_node['water__unit_flux_in'])
+      
+        
+        self._grid['node']['drainage_area'][:] = a
+        self._grid['node']['surface_water__discharge'][:] = q
+        
+        if self.df_component:
+            self.df.map_depressions()
+
+
+    
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()
+    doctest.testmod()    
