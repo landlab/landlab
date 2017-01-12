@@ -22,9 +22,6 @@ from .gflex import gFlex
 from .drainage_density import DrainageDensity
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
-from .flow_accum import FlowAccumulatorD4
-from .flow_accum import FlowAccumulatorD8
-from .flow_accum import FlowAccumulatorSteepestDescent
 from .flow_director import FlowDirectorD8
 from .flow_director import FlowDirectorSteepest
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
@@ -43,7 +40,6 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser,
-              FlowAccumulatorD4, FlowAccumulatorD8, FlowAccumulatorSteepestDescent,
               FlowDirectorD8,FlowDirectorSteepest
               ]
 
