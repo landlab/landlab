@@ -209,4 +209,4 @@ class DetachmentLtdErosion(Component):
 
         self.dzdt = (self.uplift_rate - self.I)
 
-        #self._grid['node'][elevs] += self.dzdt
+        self._grid['node'][elevs] += self.dzdt
