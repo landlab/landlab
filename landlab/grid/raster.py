@@ -5126,7 +5126,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
                                          return_outlet_id=False,
                                          remove_disconnected=False,
-                                         method='D8'):
+                                         adjacency_method='D8'):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
@@ -5162,9 +5162,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This will run the function:
         set_open_nodes_disconnected_from_watershed_to_closed
         which will find any isolated open nodes that have no neigbors in the
-        main watershed and set them to closed. The neigborhood algorithm used
+        main watershed and set them to closed. The adjacency method used
         to assess connectivity can be set to either 'D8'(default) or 'D4' using
-        the flag *method*.
+        the flag *adjacency_method*.
 
         Finally, the developer has seen cases in which DEM data that has been
         filled results in a different outlet from DEM data which has not been
@@ -5184,8 +5184,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Indicates whether or not to return the id of the found outlet
         remove_disconnected : boolean, optional
             Indicates whether to search for and remove disconnected nodes.
-        method : string, optional. Default is 'D8'.
-            Sets the connection method. for use if remove_disconnected==True
+        adjacency_method : string, optional. Default is 'D8'.
+            Sets the connection method for use if remove_disconnected==True
 
         Examples
         ---------
@@ -5311,7 +5311,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             self.set_open_nodes_disconnected_from_watershed_to_closed(node_data=node_data,
                                                                       outlet_id=as_id_array(np.array([outlet_loc])),
                                                                       nodata_value=nodata_value,
-                                                                      method=method)
+                                                                      adjacency_method=adjacency_method)
         if return_outlet_id:
             return as_id_array(np.array([outlet_loc]))
 
@@ -5319,7 +5319,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                                             node_data,
                                                             outlet_id=None,
                                                             nodata_value=-9999.,
-                                                            method='D8'):
+                                                            adjacency_method='D8'):
         """
         Identifys all non-closed nodes that are disconnected from the node given in
         *outlet_id* and sets them as closed.
@@ -5333,7 +5333,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         The method supports both D4 and D8 (default) neighborhood evaluation in
         determining if a node is connected. This can be modified with the flag
-        *method*.
+        *adjacency_method*.
 
         This function can be run directly, or by setting the flag
         remove_disconnected to True in set_watershed_boundary_condition
@@ -5352,7 +5352,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
 
-        method : string, optional. Default is 'D8'.
+        adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method.
 
         Examples
@@ -5418,8 +5418,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
 
         # now test that the method given is either 'D8' or 'D4'
-        if method != 'D8':
-            assert(method=='D4'), "Method must be either 'D8'(default) or 'D4'"
+        if adjacency_method != 'D8':
+            assert(adjacency_method=='D4'), "Method must be either 'D8'(default) or 'D4'"
 
         # begin main code portion.
         # initialize list of core nodes and new nodes
@@ -5438,7 +5438,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             potentialNewNodes=list(connected_orthogonal_nodes[self.status_at_node[connected_orthogonal_nodes]!=CLOSED_BOUNDARY])
 
             # if method is D8 (default), add the diagonal nodes.
-            if method=='D8':
+            if adjacency_method=='D8':
                 connected_diagonal_nodes = self._diagonal_neighbors_at_node[newNodes]
                 potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]!=CLOSED_BOUNDARY])
 
