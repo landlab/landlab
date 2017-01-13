@@ -5254,7 +5254,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         min_val = np.min(node_data[locs])
 
         # now find where minimum values are
-        min_locs = list(np.where(node_data == min_val)[0])
+        min_locs = np.where(node_data == min_val)[0]
 
         
         # check all the locations with the minimum value to see if one
@@ -5283,7 +5283,13 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             if any(next_to_boundary):
                 local_not_found = False
                 if sum(next_to_boundary)>1:
-                    raise ValueError('Grid has two potential outlet nodes')
+                    potential_locs = min_locs[np.where(np.asarray(next_to_boundary))[0]]
+                    raise ValueError(('Grid has two potential outlet nodes.'
+                                      'They have the following node IDs: \n'+str(potential_locs)+
+                                     '\nUse the method set_watershed_boundary_condition_outlet_id '
+                                     'to explicitly select one of these '
+                                     'IDs as the outlet node.'
+                                     ))
                 else:
                     outlet_loc = min_locs[np.where(next_to_boundary)[0][0]]
 
@@ -5298,7 +5304,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                 (node_data != nodata_value))
                 # now find new minimum of these values
                 min_val = np.min(node_data[locs])
-                min_locs = list(np.where(node_data == min_val)[0])
+                min_locs = np.where(node_data == min_val)[0]
             else:
                 # if locally found, it is also globally found
                 # so done with outer while
