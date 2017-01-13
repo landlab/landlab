@@ -183,8 +183,11 @@ class FlowAccumulator(Component):
 
         # identify Flow Director method, save name, import and initialize the correct
         # flow director component if necessary        
-                
+        PERMITTED_DIRECTORS = ['FlowDirectorSteepest',
+                               'FlowDirectorD8']
         
+        PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
+
         # flow director is provided as a string.            
         if isinstance(flow_director, six.string_types):
             if flow_director[:12] == 'FlowDirector':
@@ -204,28 +207,56 @@ class FlowAccumulator(Component):
             self.fd = FlowDirector(self._grid, self.elevs)
         # flow director is provided as an instantiated flow director   
         elif isinstance(flow_director, Component):
-    
-            FlowDirector = flow_director
-            self.fd = flow_director
+             if flow_director._name in PERMITTED_DIRECTORS:
+                 self.fd = flow_director
+             else:
+                 raise ValueError('Component provided in flow_director is not a valid component')
         # flow director is provided as an uninstantiated flow director 
         else:
-            permittedComponents = ['FlowDirectorSteepest',
-                                   'FlowDirectorD8']
-            if flow_director._name in permittedComponents:
+            
+            if flow_director._name in PERMITTED_DIRECTORS:
+                FlowDirector = flow_director
                 self.fd = FlowDirector(self._grid, self.elevs)
-                
-       
-                
+            else:
+                raise ValueError('Component provided in flow_director is not a valid component')
+                           
         # save method as attribute    
-        self.method = fd.method
+        self.method = self.fd.method
         
         
-        
-        
-        self.df_component = depression_finder
-        
-        if self.df_component:
-            self.df=self.df_component(self.grid)
+        # now do a similar thing for the depression finder. 
+        self.depression_finder = depression_finder
+        if self.depression_finder:
+            # depression finder is provided as a string.            
+            if isinstance(self.depression_finder, six.string_types):
+                
+                from landlab.components import DepressionFinderAndRouter
+                DEPRESSION_METHODS = {'DepressionFinderAndRouter': DepressionFinderAndRouter
+                                    }
+                    
+                try:
+                    DepressionFinder = DEPRESSION_METHODS[self.depression_finder]
+                except KeyError:
+                    raise ValueError('Component provided in depression_finder is not a valid component')
+                    
+                self.df = DepressionFinder(self._grid)
+            # flow director is provided as an instantiated depression finder   
+            elif isinstance(self.depression_finder, Component):  
+                
+                if self.depression_finder._name in PERMITTED_DEPRESSION_FINDERS:
+                    self.df = self.depression_finder
+                else:
+                    raise ValueError('Component provided in depression_finder is not a valid component')
+            # depression_fiuner is provided as an uninstantiated depression finder
+            else:
+                                       
+                if self.depression_finder._name in PERMITTED_DEPRESSION_FINDERS:
+                    DepressionFinder = self.depression_finder
+                    self.df = DepressionFinder(self._grid)
+                else:
+                    raise ValueError('Component provided in depression_finder is not a valid component')
+                
+
         
         
 
@@ -411,7 +442,9 @@ class FlowAccumulator(Component):
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
         
-        if self.df_component:
+        
+        # at the moment, this is where the depression finder needs to live. 
+        if self.depression_finder:
             self.df.map_depressions()
 
 
