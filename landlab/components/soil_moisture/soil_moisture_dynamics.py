@@ -454,19 +454,20 @@ class SoilMoisture(Component):
         self._ETmax = np.zeros(self._SO.shape)
         # Adding routine to add runon & runoff
         if self._runon_switch:
-            r = self.grid.flow_receiver_node
-        if ordered_cells==None:
-            ordered_cells = range(0, self.grid.number_of_cells)
+            # Make sure that flow_router has been called before
+            r_cell = \
+               self.grid.cell_at_node[self.grid.at_node['flow__receiver_node']]
+            r_cell = r_cell[r_cell != -1]
 
-        for cell in ordered_cells:
+        for cell in range(0, self.grid.number_of_cells):
+            # Routine to calculate runon
             if self._runon_switch:
-                node_ = self.grid.node_at_core_cell[cell]                
-                donors = []
-                donors = \
-                    list(self.grid.node_at_core_cell[np.where(r==node_)[0]])
-                if len(donors) != 0:
-                    for k in range(0, len(donors)):
-                        self._runon[node_] += self._runoff[donors[k]]
+                if cell in ordered_cells:                
+                    donors = []
+                    donors = list(np.where(r_cell==cell)[0])
+                    if len(donors) != 0:
+                        for k in range(0, len(donors)):
+                            self._runon[cell] += self._runoff[donors[k]]
             
             P = P_[cell]
             runon = self._runon[cell]
