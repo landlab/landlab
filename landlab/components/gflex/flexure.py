@@ -30,15 +30,9 @@ from landlab import FieldError
 try:
     import gflex
 except ImportError:
-    import warnings, sys
-
-    warnings.warn("gFlex not installed.")
-    print("""
-To use the gFlex component you must have gFlex installed on your machine.
-For installation instructions see gFlex on GitHub:
-
-  https://github.com/awickert/gFlex
-          """.strip(), file=sys.stderr)
+    NO_GFLEX = True
+else:
+    NO_GFLEX = False
 
 
 class gFlex(Component):
@@ -119,22 +113,22 @@ class gFlex(Component):
 
     _input_var_names = ('surface_load__stress',)
 
-    _output_var_names = ('lithosphere__vertical_displacement',
+    _output_var_names = ('lithosphere_surface__elevation_increment',
                          'topographic__elevation')
 
     _var_units = {'surface_load__stress': 'Pa',
-                  'lithosphere__vertical_displacement': 'm',
+                  'lithosphere_surface__elevation_increment': 'm',
                   'topographic__elevation': 'm'
                   }
 
     _var_mapping = {'surface_load__stress': 'node',
-                    'lithosphere__vertical_displacement': 'node',
+                    'lithosphere_surface__elevation_increment': 'node',
                     'topographic__elevation': 'node'
                     }
 
     _var_doc = {'surface_load__stress': (
                     'Magnitude of stress exerted by surface load'),
-                'lithosphere__vertical_displacement':
+                'lithosphere_surface__elevation_increment':
                     ('Vertical deflection of the surface and of the ' +
                      'lithospheric plate'),
                 'topographic__elevation': (
@@ -149,6 +143,10 @@ class gFlex(Component):
                  g=9.81, **kwds):
         """Constructor for Wickert's gFlex in Landlab."""
         assert RasterModelGrid in inspect.getmro(grid.__class__)
+        if NO_GFLEX:
+            raise ImportError(
+                "gFlex not installed! For installation instructions see " +
+                "gFlex on GitHub: https://github.com/awickert/gFlex")
         BC_options = ('0Displacement0Slope', '0Moment0Shear', '0Slope0Shear',
                       'Periodic')
 
@@ -225,7 +223,7 @@ class gFlex(Component):
         self.pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
 
         # create the primary output field:
-        self.grid.add_zeros('lithosphere__vertical_displacement', at='node',
+        self.grid.add_zeros('lithosphere_surface__elevation_increment', at='node',
                             dtype=float, noclobber=False)
 
     def flex_lithosphere(self, **kwds):
@@ -242,7 +240,7 @@ class gFlex(Component):
         self.flex.run()
         self.flex.finalize()
 
-        self.grid.at_node['lithosphere__vertical_displacement'][:] = \
+        self.grid.at_node['lithosphere_surface__elevation_increment'][:] = \
             self.flex.w.view().ravel()
 
         try:
@@ -252,7 +250,7 @@ class gFlex(Component):
             pass
         else:
             topo_diff = self.grid.at_node[
-                'lithosphere__vertical_displacement'] - self.pre_flex
+                'lithosphere_surface__elevation_increment'] - self.pre_flex
             self.grid.at_node['topographic__elevation'] += topo_diff
             self.pre_flex += topo_diff
 

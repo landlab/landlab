@@ -40,7 +40,7 @@ def create_test_grid():
 
     # Set 3 sides of the grid to be closed boundaries
     rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    
+
     return rmg
 
 
@@ -54,6 +54,7 @@ def setup_dans_grid():
 
     global fr, lf, mg
     global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
+    global links_old, links_new
 
     mg = RasterModelGrid(7, 7, 1.)
 
@@ -73,9 +74,17 @@ def setup_dans_grid():
                      35, 44, 44, 44, 46, 41, 41,
                      42, 43, 44, 45, 46, 47, 48]).flatten()
 
+#    r_new = np.array([0,  1,  2,  3,  4,  5,  6,
+#                      7,  1,  2,  3,  4,  5, 13,
+#                     14, 14, 23, 23, 24, 20, 20,
+#                     21, 21, 30, 30, 24, 27, 27,
+#                     28, 28, 37, 38, 39, 34, 34,
+#                     35, 44, 44, 44, 46, 41, 41,
+#                     42, 43, 44, 45, 46, 47, 48]).flatten()
+
     r_new = np.array([0,  1,  2,  3,  4,  5,  6,
                       7,  1,  2,  3,  4,  5, 13,
-                     14, 14, 23, 23, 24, 20, 20,
+                     14, 14, 23, 24, 24, 20, 20,
                      21, 21, 30, 30, 24, 27, 27,
                      28, 28, 37, 38, 39, 34, 34,
                      35, 44, 44, 44, 46, 41, 41,
@@ -89,21 +98,61 @@ def setup_dans_grid():
                        0.,  1.,  2.,  2.,  2.,  1.,  1.,
                        0.,  0.,  5.,  0.,  2.,  0.,  0.]]).flatten()
 
+#    A_new = np.array([[0.,  1.,  1.,  1.,  1.,  1.,  0.,
+#                       0.,  1.,  1.,  1.,  1.,  1.,  0.,
+#                       1.,  1.,  1.,  1.,  1.,  1.,  1.,
+#                       1.,  1.,  3.,  3.,  1.,  1.,  1.,
+#                       1.,  1.,  7.,  1.,  1.,  1.,  1.,
+#                       0.,  1.,  8.,  2.,  2.,  1.,  1.,
+#                       0.,  0., 11.,  0.,  2.,  0.,  0.]]).flatten()
+
     A_new = np.array([[0.,  1.,  1.,  1.,  1.,  1.,  0.,
                        0.,  1.,  1.,  1.,  1.,  1.,  0.,
                        1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                       1.,  1.,  3.,  3.,  1.,  1.,  1.,
+                       1.,  1.,  2.,  4.,  1.,  1.,  1.,
                        1.,  1.,  7.,  1.,  1.,  1.,  1.,
                        0.,  1.,  8.,  2.,  2.,  1.,  1.,
                        0.,  0., 11.,  0.,  2.,  0.,  0.]]).flatten()
+
+#    s_new = np.array([0,  1,  8,  2,  9,  3, 10,
+#                      4, 11,  5, 12,  6,  7, 13,
+#                     14, 15, 20, 19, 21, 22, 27,
+#                     26, 28, 29, 34, 33, 35, 41,
+#                     40, 42, 43, 44, 36, 37, 30,
+#                     23, 16, 17, 24, 18, 25, 38,
+#                     31, 45, 46, 39, 32, 47, 48]).flatten()
 
     s_new = np.array([0,  1,  8,  2,  9,  3, 10,
                       4, 11,  5, 12,  6,  7, 13,
                      14, 15, 20, 19, 21, 22, 27,
                      26, 28, 29, 34, 33, 35, 41,
                      40, 42, 43, 44, 36, 37, 30,
-                     23, 16, 17, 24, 18, 25, 38,
+                     23, 16, 24, 17, 18, 25, 38,
                      31, 45, 46, 39, 32, 47, 48]).flatten()
+
+    links_old = np.array([-1,  -1,  -1,  -1,  -1,  -1,  -1,
+                          -1,   7,   8,   9,  10,  11,  -1,
+                          -1,  26,  28,  -1,  29,  31,  -1,
+                          -1,  39, 113,  35, 114,  44,  -1,
+                          -1,  52,  60,  61,  62,  57,  -1,
+                          -1, 146,  73, 149,  75,  70,  -1,
+                          -1,  -1,  -1,  -1,  -1,  -1,  -1]).flatten()
+
+#    links_new = np.array([-1,  -1,  -1,  -1,  -1,  -1,  -1,
+#                          -1,   7,   8,   9,  10,  11,  -1,
+#                          -1,  26,  34, 113, 115,  31,  -1,
+#                          -1,  39,  47, 125,  42,  44,  -1,
+#                          -1,  52,  60,  61,  62,  57,  -1,
+#                          -1, 146,  73, 149,  75,  70,  -1,
+#                          -1,  -1,  -1,  -1,  -1,  -1,  -1]).flatten()
+
+    links_new = np.array([-1,  -1,  -1,  -1,  -1,  -1,  -1,
+                          -1,   7,   8,   9,  10,  11,  -1,
+                          -1,  26,  34,  35, 115,  31,  -1,
+                          -1,  39,  47, 125,  42,  44,  -1,
+                          -1,  52,  60,  61,  62,  57,  -1,
+                          -1, 146,  73, 149,  75,  70,  -1,
+                          -1,  -1,  -1,  -1,  -1,  -1,  -1]).flatten()
 
     depr_outlet_target = np.array([XX, XX, XX, XX, XX, XX, XX,
                                    XX, XX, XX, XX, XX, XX, XX,
@@ -122,6 +171,22 @@ def setup_dans_grid():
 def setup_D4_grid():
     """
     Test functionality of routing when D4 is specified.
+    
+    The elevation field in this test looks like:
+    
+    1   2   3   4   5   6   7
+    
+    1   2   3   0   5   0   7
+    
+    1   2   3   4   0   0   7
+    
+    1   2   3   0   5   6   7
+    
+    1   2   0   0   0   6   7
+    
+    1   2   3   0   5   6   7
+    
+    1   2   3   4   5   6   7
     """
     global frD8, frD4, lfD8, lfD4, mg1, mg2
     global z, lake_nodes
@@ -130,8 +195,7 @@ def setup_D4_grid():
     mg2 = RasterModelGrid(7, 7, 1.)
     z = mg1.node_x.copy() + 1.
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
-    #z[lake_nodes] *= 0.01  #z[lake_nodes] = 0.
-    z[lake_nodes] = 0.    
+    z[lake_nodes] = 0.
     mg1.add_field('node', 'topographic__elevation', z, units='-')
     mg2.add_field('node', 'topographic__elevation', z, units='-')
 
@@ -139,6 +203,7 @@ def setup_D4_grid():
     frD4 = FlowRouter(mg2, method='D4')
     lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
     lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
+
 
 def check_fields1(grid):
     """
@@ -159,10 +224,8 @@ def check_array_values1(rmg, lm):
     """
     Check values of the various fields against known values.
     """
-#    for i in range(rmg.number_of_nodes):
-#        print i, rmg.at_node['topographic__elevation'][i], lm.is_pit[i]
 
-    assert_array_equal(lm.is_pit, \
+    assert_array_equal(lm.is_pit,
     [False, False, False, False, False, False, False, False,
      False, False, False, False, False, False,  True, False,
      False, False, False, False, False, False, False, False,
@@ -171,125 +234,6 @@ def check_array_values1(rmg, lm):
      False, False, False, False, False, False,  True, False,
      False,  True, False, False, False, False, False, False,
      False, False, False, False, False, False, False, False])
-
-    assert_array_equal(lm.flood_status, \
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0,
-     0, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,
-     0, 3, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-
-    dd1 = np.round(lm.depression_depth*100)
-    assert_array_equal(dd1, \
-    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
-      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,   0.,   0.,   0.])
-
-    dd1 = np.round(rmg.at_node['depression__depth']*100)
-    assert_array_equal(dd1, \
-    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
-      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
-      0.,   0.,   0.,   0.])
-      
-    assert_array_equal(lm.depression_outlet_map, \
-    [XX, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX, XX, XX,
-     XX,  5,  5, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX,  5,  5,  5,  5, XX,
-     XX, XX, XX,  5,  5,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX, 50, XX, XX, XX,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX])
-
-    assert_array_equal(rmg.at_node['depression__outlet_node'], \
-    [XX, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX, XX, XX,
-     XX,  5,  5, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX,  5,  5,  5,  5, XX,
-     XX, XX, XX,  5,  5,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX, 50, XX, XX, XX,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX])
-
-
-def setup_dans_grid2():
-    """
-    Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
-    """
-    from landlab import RasterModelGrid
-    from landlab.components.flow_routing import (FlowRouter,
-                                                 DepressionFinderAndRouter)
-
-    global fr, lf, mg
-    global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
-
-    mg = RasterModelGrid((7, 7), (1., 1.))
-
-    z = mg.node_x.copy()
-    guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
-    edges = np.concatenate((np.arange(7), np.arange(42, 49)))
-    hole_here = np.array(([15, 16, 22, 23, 29, 30]))
-    z[guard_sides] = z[13]
-    z[edges] = -2.  # force flow outwards from the tops of the guards
-    z[hole_here] = -1.
-
-    A_new = np.array([[[0.,   1.,   1.,   1.,   1.,   1.,   0.,
-                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
-                       15.,   9.,   4.,   3.,   2.,   1.,   0.,
-                        0.,   6.,   4.,   3.,   2.,   1.,   0.,
-                        0.,   1.,   4.,   3.,   2.,   1.,   0.,
-                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
-                        0.,   1.,   1.,   1.,   1.,   1.,   0.]]]).flatten()
-
-    depr_outlet_target = np.array([XX, XX, XX, XX, XX, XX, XX,
-                                   XX, XX, XX, XX, XX, XX, XX,
-                                   XX, 14, 14, XX, XX, XX, XX,
-                                   XX, 14, 14, XX, XX, XX, XX,
-                                   XX, 14, 14, XX, XX, XX, XX,
-                                   XX, XX, XX, XX, XX, XX, XX,
-                                   XX, XX, XX, XX, XX, XX, XX]).flatten()
-
-    mg.add_field('node', 'topographic__elevation', z, units='-')
-
-    fr = FlowRouter(mg)
-    lf = DepressionFinderAndRouter(mg)
-    
-def check_fields2(grid):
-    """
-    Check to make sure the right fields have been created.
-    """
-    try:
-        grid.at_node['topographic__elevation']
-        grid.at_node['flood_status_code']
-        grid.at_node['depression__depth']
-        grid.at_node['depression__outlet_node']
-        grid.at_node['is_pit']
-    except:
-        print('Test failure in check_fields')
-        raise
-
-
-def check_array_values2(rmg, lm):
-    """
-    Check values of the various fields against known values.
-    """
-    assert_array_equal(lm.is_pit,
-    [False, False, False, False, False, False, False, False, False, False, False, False,
-     False, False,  True, False, False, False, False, False, False, False, False, False,
-     False, False,  True, False, False, False, False, False, False, False, False, False,
-     False, False, False, False, False, False, False, False, False, False,  True, False,
-     False,  True, False, False, False, False, False, False, False, False, False, False,
-     False, False, False, False])
 
     assert_array_equal(lm.flood_status,
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0,
@@ -315,30 +259,161 @@ def check_array_values2(rmg, lm):
       0.,   0.,   0.,   0.])
       
     assert_array_equal(lm.depression_outlet_map,
-    [XX, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX, XX, XX,
-     XX,  5,  5, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX,  5,  5,  5,  5, XX,
-     XX, XX, XX,  5,  5,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX, 50, XX, XX, XX,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX])
+                       [XX, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX, XX, XX,
+                        XX,  5,  5, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX,  5,  5,  5,  5, XX,
+                        XX, XX, XX,  5,  5,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX, 50, XX, XX, XX,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX])
+
+    assert_array_equal(rmg.at_node['depression__outlet_node'],
+                       [XX, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX, XX, XX,
+                        XX,  5,  5, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX,  5,  5,  5,  5, XX,
+                        XX, XX, XX,  5,  5,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX, 50, XX, XX, XX,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX])
+
+
+def setup_dans_grid2():
+    """
+    Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
+    """
+    from landlab import RasterModelGrid
+    from landlab.components.flow_routing import (FlowRouter,
+                                                 DepressionFinderAndRouter)
+
+    global fr, lf, mg
+    global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
+
+    mg = RasterModelGrid((7, 7), (1., 1.))
+
+    z = mg.node_x.copy()
+    guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
+    edges = np.concatenate((np.arange(7), np.arange(42, 49)))
+    hole_here = np.array(([15, 16, 22, 23, 29, 30]))
+    z[guard_sides] = z[13]
+    z[edges] = -2.  # force flow outwards from the tops of the guards
+    z[hole_here] = -1.
+    #print(z)
+
+#    A_new = np.array([[[0.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                       15.,   9.,   4.,   3.,   2.,   1.,   0.,
+#                        0.,   6.,   4.,   3.,   2.,   1.,   0.,
+#                        0.,   1.,   4.,   3.,   2.,   1.,   0.,
+#                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                        0.,   1.,   1.,   1.,   1.,   1.,   0.]]]).flatten()
+
+    A_new = np.array([[[0.,   1.,   1.,   1.,   1.,   1.,   0.,
+                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
+                       15.,   5.,   4.,   3.,   2.,   1.,   0.,
+                        0.,  10.,   4.,   3.,   2.,   1.,   0.,
+                        0.,   1.,   4.,   3.,   2.,   1.,   0.,
+                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
+                        0.,   1.,   1.,   1.,   1.,   1.,   0.]]]).flatten()
+
+    depr_outlet_target = np.array([XX, XX, XX, XX, XX, XX, XX,
+                                   XX, XX, XX, XX, XX, XX, XX,
+                                   XX, 14, 14, XX, XX, XX, XX,
+                                   XX, 14, 14, XX, XX, XX, XX,
+                                   XX, 14, 14, XX, XX, XX, XX,
+                                   XX, XX, XX, XX, XX, XX, XX,
+                                   XX, XX, XX, XX, XX, XX, XX]).flatten()
+
+    mg.add_field('node', 'topographic__elevation', z, units='-')
+
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+
+
+def check_fields2(grid):
+    """
+    Check to make sure the right fields have been created.
+    """
+    try:
+        grid.at_node['topographic__elevation']
+        grid.at_node['flood_status_code']
+        grid.at_node['depression__depth']
+        grid.at_node['depression__outlet_node']
+        grid.at_node['is_pit']
+    except:
+        print('Test failure in check_fields')
+        raise
+
+
+def check_array_values2(rmg, lm):
+    """
+    Check values of the various fields against known values.
+    """
+    F = False
+    T =True
+    assert_array_equal(lm.is_pit,
+                       [F, F, F, F, F, F, F, F, F, F, F, F,
+                        F, F, T, F, F, F, F, F, F, F, F, F,
+                        F, F, T, F, F, F, F, F, F, F, F, F,
+                        F, F, F, F, F, F, F, F, F, F, T, F,
+                        F, T, F, F, F, F, F, F, F, F, F, F,
+                        F, F, F, F])
+
+    assert_array_equal(lm.flood_status,
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+     0, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+     0, 3, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    dd1 = np.round(lm.depression_depth*100)
+    assert_array_equal(dd1,
+    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.])
+
+    dd1 = np.round(rmg.at_node['depression__depth']*100)
+    assert_array_equal(dd1,
+    [ 0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,  71., 100.,  71.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  71., 100.,   0.,
+      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+      0.,   0.,   0.,   0.])
+      
+    assert_array_equal(lm.depression_outlet_map,
+                       [XX, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX, XX, XX,
+                        XX,  5,  5, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX,  5,  5,  5,  5, XX,
+                        XX, XX, XX,  5,  5,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX, 50, XX, XX, XX,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX])
 
     assert_array_equal(rmg.at_node['depression__outlet_node'], \
-    [XX, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX, XX, XX,
-     XX,  5,  5, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX,  5,  5,  5,  5, XX,
-     XX, XX, XX,  5,  5,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX,  5,  5, XX,
-     XX, 50, XX, XX, XX,  5,
-      5, XX, XX, XX, XX, XX,
-     XX, XX, XX, XX])
+                       [XX, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX, XX, XX,
+                        XX,  5,  5, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX,  5,  5,  5,  5, XX,
+                        XX, XX, XX,  5,  5,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX,  5,  5, XX,
+                        XX, 50, XX, XX, XX,  5,
+                         5, XX, XX, XX, XX, XX,
+                        XX, XX, XX, XX])
 
 
 def test_lake_mapper():
@@ -362,6 +437,7 @@ def test_lake_mapper():
     check_fields2(rmg)
     check_array_values2(rmg, lm)
 
+
 @with_setup(setup_dans_grid)
 def test_initial_routing():
     """
@@ -371,26 +447,81 @@ def test_initial_routing():
     assert_array_equal(mg.at_node['flow__receiver_node'], r_old)
     assert_array_almost_equal(mg.at_node['drainage_area'], A_old)
 
+
 @with_setup(setup_dans_grid)
 def test_rerouting_with_supplied_pits():
     """
     Test with the output from a successful run of fr.route_flow.
     """
     fr.route_flow()
+    assert_array_equal(mg.at_node['flow__link_to_receiver_node'], links_old)
     lf.map_depressions()
     assert_array_equal(mg.at_node['flow__receiver_node'], r_new)
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
-    assert_array_almost_equal(mg.at_node['water__discharge'], A_new)
+    assert_array_almost_equal(mg.at_node['surface_water__discharge'], A_new)
     assert_array_equal(mg.at_node['flow__upstream_node_order'], s_new)
+    assert_array_equal(mg.at_node['flow__link_to_receiver_node'], links_new)
+
+
+@with_setup(setup_dans_grid)
+def test_changing_slopes():
+    """
+    Test with the output from a successful run of fr.route_flow.
+    """
+    slope_old = np.array(
+        [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+          0.        ,  0.        ,  0.        ,  2.        ,  2.        ,
+          2.        ,  2.        ,  2.        ,  0.        ,  0.        ,
+          2.        ,  0.1       ,  0.        ,  0.1       ,  2.        ,
+          0.        ,  0.        ,  2.        ,  0.14142136,  0.1       ,
+          0.14142136,  2.        ,  0.        ,  0.        ,  2.        ,
+          1.2       ,  1.        ,  1.        ,  2.        ,  0.        ,
+          0.        ,  1.06066017,  1.1       ,  1.06066017,  1.        ,
+          1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+          0.        ,  0.        ,  0.        ,  0.        ])
+#    slope_new = np.array(
+#        [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+#          0.        ,  0.        ,  0.        ,  2.        ,  2.        ,
+#          2.        ,  2.        ,  2.        ,  0.        ,  0.        ,
+#          2.        ,  0.        ,  0.        ,  0.        ,  2.        ,
+#          0.        ,  0.        ,  2.        ,  0.        ,  0.        ,
+#          0.        ,  2.        ,  0.        ,  0.        ,  2.        ,
+#          1.2       ,  1.        ,  1.        ,  2.        ,  0.        ,
+#          0.        ,  1.06066017,  1.1       ,  1.06066017,  1.        ,
+#          1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+#          0.        ,  0.        ,  0.        ,  0.        ])
+    slope_new = np.array(
+        [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+          0.        ,  0.        ,  0.        ,  2.        ,  2.        ,
+          2.        ,  2.        ,  2.        ,  0.        ,  0.        ,
+          2.        ,  0.        ,  0.        ,  0.        ,  2.        ,
+          0.        ,  0.        ,  2.        ,  0.        ,  0.        ,
+          0.1       ,  2.        ,  0.        ,  0.        ,  2.        ,
+          1.2       ,  1.        ,  1.        ,  2.        ,  0.        ,
+          0.        ,  1.06066017,  1.1       ,  1.06066017,  1.        ,
+          1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+          0.        ,  0.        ,  0.        ,  0.        ])
+    fr.run_one_step()
+    assert_array_almost_equal(mg.at_node['topographic__steepest_slope'],
+                              slope_old)
+    lf.map_depressions()
+    assert_array_almost_equal(mg.at_node['topographic__steepest_slope'],
+                              slope_new)
+
 
 @with_setup(setup_dans_grid)
 def test_filling_alone():
     """
     Test the filler alone, w/o supplying information on the pits.
+    
+    Setting the the *pits* parameter to None causes the mapper to look for pits
+    using its _find_pits method.
     """
     lf.map_depressions(pits=None, reroute_flow=False)
-    assert_array_equal(mg.at_node['flow__receiver_node'], np.zeros(49, dtype=float))
+    assert_array_equal(mg.at_node['flow__receiver_node'],
+                       np.zeros(49, dtype=float))
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
+
 
 @with_setup(setup_dans_grid)
 def test_filling_supplied_pits():
@@ -402,6 +533,7 @@ def test_filling_supplied_pits():
     fr.route_flow()
     lf.map_depressions(pits=mg.at_node['flow__sink_flag'], reroute_flow=False)
     assert_array_equal(mg.at_node['flow__receiver_node'], r_old)
+
 
 @with_setup(setup_dans_grid)
 def test_pits_as_IDs():
@@ -420,16 +552,19 @@ def test_edge_draining():
     is suspected.
     """
     fr.route_flow()
+    #print('after route, before map')
+    #print(fr.grid.at_node['flow__receiver_node'])
     lf.map_depressions()
     assert_array_almost_equal(mg.at_node['drainage_area'], A_new)
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
+
 
 def test_degenerate_drainage():
     """
     This "hourglass" configuration should be one of the hardest to correctly
     re-route.
     """
-    mg = RasterModelGrid(9,5)
+    mg = RasterModelGrid(9, 5)
     z_init = mg.node_x.copy()*0.0001 + 1.
     lake_pits = np.array([7, 11, 12, 13, 17, 27, 31, 32, 33, 37])
     z_init[lake_pits] = -1.
@@ -443,16 +578,26 @@ def test_degenerate_drainage():
     fr.route_flow()
     lf.map_depressions()
 
+#    correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
+#                           0.,   1.,   3.,   1.,   0.,
+#                           0.,   5.,   1.,   2.,   0.,
+#                           0.,   1.,  10.,   1.,   0.,
+#                          21.,  21.,   1.,   1.,   0.,
+#                           0.,   1.,   9.,   1.,   0.,
+#                           0.,   3.,   1.,   2.,   0.,
+#                           0.,   1.,   1.,   1.,   0.,
+#                           0.,   0.,   0.,   0.,   0.])
+    
     correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
                            0.,   1.,   3.,   1.,   0.,
-                           0.,   5.,   1.,   2.,   0.,
+                           0.,   2.,   4.,   2.,   0.,
                            0.,   1.,  10.,   1.,   0.,
                           21.,  21.,   1.,   1.,   0.,
                            0.,   1.,   9.,   1.,   0.,
-                           0.,   3.,   1.,   2.,   0.,
+                           0.,   2.,   2.,   2.,   0.,
                            0.,   1.,   1.,   1.,   0.,
                            0.,   0.,   0.,   0.,   0.])
-    
+
     thelake = np.concatenate((lake_pits, [22])).sort()
 
     assert_array_almost_equal(mg.at_node['drainage_area'], correct_A)
@@ -532,6 +677,10 @@ def test_composite_pits():
     z[57] = -1.
     z[44] = -2.
     z[54] = -10.
+    
+    # make an outlet
+    z[71] = 0.9
+
     fr = FlowRouter(mg)
     lf = DepressionFinderAndRouter(mg)
     fr.route_flow()
@@ -548,14 +697,24 @@ def test_composite_pits():
     # ^all the core nodes
     
     # test the actual flow field:
+#    nA = np.array([  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
+#                     8.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   0.,
+#                     1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                     1.,   1.,   1.,   4.,   2.,   2.,   8.,   4.,   1.,   0.,
+#                     1.,   1.,   1.,   8.,   3.,  15.,   3.,   2.,   1.,   0.,
+#                     1.,   1.,   1.,  13.,  25.,   6.,   3.,   2.,   1.,   0.,
+#                     1.,   1.,   1.,  45.,   3.,   3.,   5.,   2.,   1.,   0.,
+#                    50.,  50.,  49.,   3.,   2.,   2.,   2.,   4.,   1.,   0.,
+#                     1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
+#                     0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.])
     nA = np.array([  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,
                      8.,   8.,   7.,   6.,   5.,   4.,   3.,   2.,   1.,   0.,
                      1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
-                     1.,   1.,   1.,   4.,   2.,   2.,   8.,   4.,   1.,   0.,
-                     1.,   1.,   1.,   8.,   3.,  15.,   3.,   2.,   1.,   0.,
-                     1.,   1.,   1.,  13.,  25.,   6.,   3.,   2.,   1.,   0.,
-                     1.,   1.,   1.,  45.,   3.,   3.,   5.,   2.,   1.,   0.,
-                    50.,  50.,  49.,   3.,   2.,   2.,   2.,   4.,   1.,   0.,
+                     1.,   1.,   1.,   4.,   2.,   2.,   6.,   4.,   1.,   0.,
+                     1.,   1.,   1.,   6.,   3.,  12.,   3.,   2.,   1.,   0.,
+                     1.,   1.,   1.,   8.,  20.,   4.,   3.,   2.,   1.,   0.,
+                     1.,   1.,   1.,  35.,   5.,   4.,   3.,   2.,   1.,   0.,
+                    50.,  50.,  49.,  13.,  10.,   8.,   6.,   4.,   1.,   0.,
                      1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   0.,
                      0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.])
     assert_array_equal(mg.at_node['drainage_area'], nA)
@@ -626,13 +785,21 @@ def test_D8_D4_route():
     assert_equal(lfD8.number_of_lakes, 1)
     assert_equal(lfD4.number_of_lakes, 3)
 
+#    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
+#                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
+#                           33, 27, 28, 28, 24, 24, 24, 32, 34, 35, 35, 38, 32,
+#                           32, 32, 41, 42, 43, 44, 45, 46, 47, 48])
     flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
-                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
+                           13, 14, 14, 15, 16, 17, 18, 20, 21, 16, 16, 16, 18,
                            33, 27, 28, 28, 24, 24, 24, 32, 34, 35, 35, 38, 32,
                            32, 32, 41, 42, 43, 44, 45, 46, 47, 48])
+#    flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 10, 17, 10, 11,
+#                           13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
+#                           33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
+#                           32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
     flow_recD4 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 10, 17, 10, 11,
                            13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
-                           33, 27, 28, 28, 29, 24, 31, 32, 34, 35, 35, 36, 37,
+                           33, 27, 28, 28, 29, 38, 31, 32, 34, 35, 35, 36, 37,
                            32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
     assert_array_equal(mg1.at_node['flow__receiver_node'], flow_recD8)
     assert_array_equal(mg2.at_node['flow__receiver_node'], flow_recD4)
@@ -643,7 +810,11 @@ def test_D8_D4_route():
 
 
 if __name__=='__main__':
-    setup_dans_grid()
-    test_initial_routing()
-    test_pits_as_IDs()
-    test_rerouting_with_supplied_pits()
+    #test_lake_mapper()
+    setup_dans_grid2()
+    test_edge_draining()
+    #test_initial_routing()
+    #test_rerouting_with_supplied_pits()
+    #test_changing_slopes()
+    #test_filling_alone()
+    #    test_pits_as_IDs()

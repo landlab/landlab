@@ -41,6 +41,79 @@ import numpy as np
 from six.moves import range
 
 
+def flatten_jagged_array(jagged, dtype=None):
+    """Flatten a list of lists.
+
+    Parameters
+    ----------
+    jagged : array_like of array_like
+        An array of arrays of unequal length.
+
+    Returns
+    -------
+    (data, offset) : (ndarray, ndarray of int)
+        A tuple the data, as a flat numpy array, and offsets into that array
+        for every item of the original list.
+
+    Examples
+    --------
+    >>> from landlab.utils.jaggedarray import flatten_jagged_array
+    >>> data, offset = flatten_jagged_array([[1, 2], [], [3, 4, 5]], dtype=int)
+    >>> data
+    array([1, 2, 3, 4, 5])
+    >>> offset
+    array([0, 2, 2, 5])
+    """
+    data = np.concatenate(jagged).astype(dtype=dtype)
+    # if len(jagged) > 1:
+    #     data = np.concatenate(jagged).astype(dtype=dtype)
+    # else:
+    #     data = np.array(jagged[0]).astype(dtype=dtype)
+    items_per_block = np.array([len(block) for block in jagged], dtype=int)
+
+    offset = np.empty(len(items_per_block) + 1, dtype=int)
+    offset[0] = 0
+    offset[1:] = np.cumsum(items_per_block)
+
+    return data, offset
+
+
+def unravel(data, offset, out=None, pad=None):
+    """Unravel a jagged array.
+
+    Parameters
+    ----------
+    data : ndarray
+        Flattened-array of the data.
+    offset : ndarray of int
+        Offsets to the start of rows of the jagged array.
+    out : ndarray
+        Buffer into which to place the unravelled data.
+    pad : number
+        Value to use to pad rows of the jagged array.
+
+    Returns
+    -------
+    ndarray
+        Matrix that holds the unravelled jagged array.
+    """
+    from .ext.jaggedarray import unravel
+
+    n_cols = np.diff(offset).max()
+    if out is None:
+        if pad is None:
+            out = np.empty((len(offset) - 1, n_cols), dtype=data.dtype)
+        else:
+            out = np.full((len(offset) - 1, n_cols), pad, dtype=data.dtype)
+    else:
+        if pad is not None:
+            out.fill(pad)
+
+    unravel(data, offset, out)
+
+    return out
+
+
 class JaggedArray(object):
 
     """
@@ -79,6 +152,12 @@ class JaggedArray(object):
         >>> x.array
         array([0, 1, 2, 3, 4])
 
+        >>> x = JaggedArray([[0, 1, 2]])
+        >>> x.array
+        array([0, 1, 2])
+        >>> x.offset
+        array([0, 3])
+
         Create a JaggedArray as a 1D array and a list or row lengths.
 
         >>> x = JaggedArray([0, 1, 2, 3, 4], (3, 2))
@@ -88,6 +167,11 @@ class JaggedArray(object):
         if len(args) == 1:
             values, values_per_row = (np.concatenate(args[0]),
                                       [len(row) for row in args[0]])
+            # if len(args[0]) > 1:
+            #     values, values_per_row = (np.concatenate(args[0]),
+            #                               [len(row) for row in args[0]])
+            # else:
+            #     values, values_per_row = (np.array(args[0]), [len(args[0])])
         else:
             values, values_per_row = (np.array(args[0]), args[1])
 

@@ -1,6 +1,6 @@
 package:
   name: landlab
-  version: "1.0.0beta.1"
+  version: "1.0.2"
 
 source:
   path: ..
@@ -8,8 +8,9 @@ source:
 requirements:
   build:
     - python
+    - libgcc # [linux and py27 and np == '19']
     - scipy
-    - numpy {{environ.get('NUMPY_VERSION', '')}}
+    - numpy x.x
     - nose
     - matplotlib
     - numpydoc
@@ -21,8 +22,9 @@ requirements:
 
   run:
     - python
+    - libgcc # [linux and py27 and np == '19']
     - scipy
-    - numpy {{environ.get('NUMPY_VERSION', '')}}
+    - numpy x.x
     - nose
     - matplotlib
     - numpydoc

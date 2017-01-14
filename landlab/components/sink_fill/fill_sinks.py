@@ -89,9 +89,9 @@ class SinkFiller(Component):
     >>> field[:] = z
     >>> hf = SinkFiller(mg, apply_slope=True)
     >>> hf.run_one_step()
-    >>> hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00053846,
-    ...                   4.00038462, 4.00030769, 4.00069231, 4.00061538,
-    ...                   4.00046154, 4.00076923, 4.00084615])
+    >>> hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00030769,
+    ...                   4.00038462, 4.00046154, 4.00053846, 4.00061538,
+    ...                   4.00069231, 4.00076923, 4.00084615])
     >>> hole2 = np.array([7.4, 7.2, 7.6])
     >>> np.allclose(mg.at_node['topographic__elevation'][lake1], hole1)
     True
@@ -393,7 +393,7 @@ class SinkFiller(Component):
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
         lake_ext_margin = self._get_lake_ext_margin(lake_nodes)
         d = self._grid.calc_distances_of_nodes_to_point(outlet_coord,
-                                                       node_subset=lake_nodes)
+                                                        node_subset=lake_nodes)
         add_vals = slope*d
         new_elevs[lake_nodes] += add_vals
         self.lake_nodes_treated = np.union1d(self.lake_nodes_treated,
@@ -406,11 +406,12 @@ class SinkFiller(Component):
         the *routing* method (D4/D8) if applicable.
         """
         if self._D8 is True:
-            all_poss = np.union1d(self._grid.active_neighbors_at_node(lake_nodes),
-                                  self._grid._get_diagonal_list(lake_nodes))
+            all_poss = np.union1d(
+                self.grid.active_neighbors_at_node[lake_nodes],
+                self.grid._get_diagonal_list(lake_nodes))
         else:
-            all_poss = np.unique(self._grid.active_neighbors_at_node(
-                lake_nodes))
+            all_poss = np.unique(self.grid.active_neighbors_at_node[
+                lake_nodes])
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
@@ -421,10 +422,10 @@ class SinkFiller(Component):
         """
         lee = lake_ext_edge
         if self._D8 is True:
-            all_poss_int = np.union1d(self._grid.active_neighbors_at_node(lee),
+            all_poss_int = np.union1d(self._grid.active_neighbors_at_node[lee],
                                       self._grid._get_diagonal_list(lee))
         else:
-            all_poss_int = np.unique(self._grid.active_neighbors_at_node(lee))
+            all_poss_int = np.unique(self._grid.active_neighbors_at_node[lee])
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
@@ -460,11 +461,12 @@ class SinkFiller(Component):
         """
         ext_edge = self._get_lake_ext_margin(lake_nodes)
         if self._D8:
-            edge_neighbors = np.hstack((self._grid.active_neighbors_at_node(ext_edge),
-                                        self._grid._get_diagonal_list(
-                                            ext_edge)))
+            edge_neighbors = np.hstack(
+                (self.grid.active_neighbors_at_node[ext_edge],
+                 self.grid._get_diagonal_list(ext_edge)))
         else:
-            edge_neighbors = self._grid.active_neighbors_at_node(ext_edge).copy()
+            edge_neighbors = self.grid.active_neighbors_at_node[
+                ext_edge].copy()
         edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]

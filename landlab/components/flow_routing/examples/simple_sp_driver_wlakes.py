@@ -52,7 +52,7 @@ fsp = FastscapeEroder(mg, './drive_sp_params.txt')
 #perform the loop:
 elapsed_time = 0. #total time in simulation
 while elapsed_time < time_to_run:
-#for i in xrange(10):
+#for i in range(10):
     print(elapsed_time)
     if elapsed_time+dt>time_to_run:
         print("Short step!")

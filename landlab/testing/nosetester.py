@@ -69,9 +69,11 @@ class LandlabTester(Tester):
         return LandlabDoctest()
 
     def test(self, **kwds):
-        kwds.setdefault('verbose', 2)
-        kwds.setdefault('doctests', 1)
-        kwds.setdefault('coverage', 1)
-        kwds.setdefault('extra_argv', ['-x'])
+        kwds.setdefault('label', 'fast')
+        kwds.setdefault('verbose', 1)
+        kwds.setdefault('doctests', True)
+        kwds.setdefault('coverage', False)
+        kwds.setdefault('extra_argv', [])
+        kwds.setdefault('raise_warnings', 'release')
         show_system_info()
         return super(LandlabTester, self).test(**kwds)

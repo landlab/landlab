@@ -12,7 +12,7 @@ Find Landlab's
 Landlab Reference Manual and API Documentation
 ==============================================
 
-The *Landlab Developer API* is a general reference manual for Landlab.
+A guide to Landlab's classes and code.
 
 Grids
 =====
@@ -114,6 +114,7 @@ Fluvial geomorphology
    :maxdepth: 4
 
    landlab.components.stream_power
+   landlab.components.detachment_ltd_erosion
 
 Flow routing
 ------------
@@ -122,6 +123,7 @@ Flow routing
    :maxdepth: 4
 
    landlab.components.flow_routing
+   landlab.components.sink_fill
 
 Shallow water hydrodynamics
 ---------------------------
@@ -140,6 +142,14 @@ Land surface hydrology
   landlab.components.radiation
   landlab.components.pet
 ..  landlab.components.soil_moisture
+
+Landslides
+----------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.landslides
 
 .. Vegetation
 .. ----------
@@ -264,6 +274,7 @@ these `specialized developer install instructions
 <https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`_.
 
 For more information about contributing to the Landlab code base (i.e. developing components), see `Developing with git and github <https://github.com/landlab/landlab/wiki/Developing-with-github-and-git>`_.
+
 
 
 References

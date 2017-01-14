@@ -18,6 +18,7 @@ import warnings
 from landlab.components.flow_routing import flow_direction_DN
 from landlab.components.flow_accum import flow_accum_bw
 from landlab import FieldError, Component
+from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import ModelParameterDictionary
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_file_name_or_kwds
@@ -67,7 +68,7 @@ class FlowRouter(Component):
     _output_var_names = ('drainage_area',
                          'flow__receiver_node',
                          'topographic__steepest_slope',
-                         'water__discharge',
+                         'surface_water__discharge',
                          'flow__upstream_node_order',
                          'flow__link_to_receiver_node',
                          'flow__sink_flag',
@@ -78,7 +79,7 @@ class FlowRouter(Component):
                   'drainage_area': 'm**2',
                   'flow__receiver_node': '-',
                   'topographic__steepest_slope': '-',
-                  'water__discharge': 'm**3/s',
+                  'surface_water__discharge': 'm**3/s',
                   'flow__upstream_node_order': '-',
                   'flow__link_to_receiver_node': '-',
                   'flow__sink_flag': '-',
@@ -89,7 +90,7 @@ class FlowRouter(Component):
                     'drainage_area': 'node',
                     'flow__receiver_node': 'node',
                     'topographic__steepest_slope': 'node',
-                    'water__discharge': 'node',
+                    'surface_water__discharge': 'node',
                     'flow__upstream_node_order': 'node',
                     'flow__link_to_receiver_node': 'node',
                     'flow__sink_flag': 'node',
@@ -108,7 +109,7 @@ class FlowRouter(Component):
             'node)',
         'topographic__steepest_slope':
             'Node array of steepest *downhill* slopes',
-        'water__discharge': 'Discharge of water through each node',
+        'surface_water__discharge': 'Discharge of water through each node',
         'flow__upstream_node_order':
             'Node array containing downstream-to-upstream ordered list of '
             'node IDs',
@@ -121,6 +122,7 @@ class FlowRouter(Component):
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
         # We keep a local reference to the grid
         self._grid = grid
+        self._bc_set_code = self.grid.bc_set_code
         if method in ('D8', 'D4', None):
             self.method = method
         else:
@@ -131,36 +133,38 @@ class FlowRouter(Component):
         if not self._is_raster:
             self.method = None
 
-        # We'll also keep track of the active links; if raster, then these are
-        # the "D8" links; otherwise, it's just activelinks
-        if self._is_raster:
-            dal, d8f, d8t = grid._d8_active_links()
-            self._active_links = dal
-            self._activelink_from = d8f
-            self._activelink_to = d8t
-            # needs modifying in the loop if D4 (now done)
-        else:
-            self._active_links = grid.active_links
-            self._activelink_from = grid._activelink_fromnode
-            self._activelink_to = grid._activelink_tonode
+        self.updated_boundary_conditions()
 
+        if runoff_rate is not None:
+            if type(runoff_rate) is str:
+                runoff_rate = grid.at_node[runoff_rate]
+            elif type(runoff_rate) in (float, int):
+                pass
+            else:
+                assert runoff_rate.size == grid.number_of_nodes
         # test input variables are present:
         grid.at_node['topographic__elevation']
         try:
             grid.at_node['water__unit_flux_in']
         except FieldError:
-            grid.add_empty('node', 'water__unit_flux_in')
             if runoff_rate is None:
-                grid.at_node['water__unit_flux_in'].fill(1.)
+                grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
-                grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                if type(runoff_rate) in (float, int):
+                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
+                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                else:
+                    grid.at_node['water__unit_flux_in'] = runoff_rate
         else:
             if runoff_rate is not None:
                 print ("FlowRouter found both the field " +
                        "'water__unit_flux_in' and a provided float or " +
                        "array for the runoff_rate argument. THE FIELD IS " +
                        "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                if type(runoff_rate) in (float, int):
+                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                else:
+                    grid.at_node['water__unit_flux_in'] = runoff_rate
 
         # perform a test (for politeness!) that the old name for the water_in
         # field is not present:
@@ -179,22 +183,58 @@ class FlowRouter(Component):
         # Keep track of the following variables:
         #   - drainage area at each node
         #   - receiver of each node
-        self.drainage_area = grid.add_zeros('drainage_area', at='node',
-                                            noclobber=False)
-        self.receiver = grid.add_zeros('flow__receiver_node', at='node',
-                                       noclobber=False, dtype=int)
-        self.steepest_slope = grid.add_zeros('topographic__steepest_' +
-                                             'slope', at='node',
-                                             noclobber=False)
-        self.discharges = grid.add_zeros('water__discharge', at='node',
-                                         noclobber=False)
-        self.upstream_ordered_nodes = grid.add_zeros('flow__upstream_node_order',
-                                                     at='node', dtype=int,
-                                                     noclobber=False)
-        self.links_to_receiver = grid.add_zeros('flow__link_to_receiver_node',
-                                                at='node', dtype=int,
-                                                noclobber=False)
-        grid.add_zeros('flow__sink_flag', at='node', dtype=int, noclobber=False)
+        try:
+            self.drainage_area = grid.add_zeros('drainage_area', at='node',
+                                                dtype=float)
+        except FieldError:
+            self.drainage_area = grid.at_node['drainage_area']
+        try:
+            self.receiver = grid.add_zeros('flow__receiver_node', at='node',
+                                           dtype=int)
+        except FieldError:
+            self.receiver = grid.at_node['flow__receiver_node']
+        try:
+            self.steepest_slope = grid.add_zeros(
+                'topographic__steepest_slope', at='node', dtype=float)
+        except FieldError:
+            self.steepest_slope = grid.at_node['topographic__steepest_slope']
+        try:
+            self.discharges = grid.add_zeros('surface_water__discharge', at='node',
+                                             dtype=float)
+        except FieldError:
+            self.discharges = grid.at_node['surface_water__discharge']
+        try:
+            self.upstream_ordered_nodes = grid.add_zeros(
+                'flow__upstream_node_order', at='node', dtype=int)
+        except FieldError:
+            self.upstream_ordered_nodes = grid.at_node[
+                'flow__upstream_node_order']
+        try:
+            self.links_to_receiver = grid.add_zeros(
+                'flow__link_to_receiver_node', at='node', dtype=int)
+        except FieldError:
+            self.links_to_receiver = grid.at_node[
+                'flow__link_to_receiver_node']
+        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
+                       noclobber=False)
+
+    def updated_boundary_conditions(self):
+        """
+        Call this if boundary conditions on the grid are updated after the
+        component is instantiated.
+        """
+        # We'll also keep track of the active links; if raster, then these are
+        # the "D8" links; otherwise, it's just activelinks
+        if self._is_raster:
+            dal, d8t, d8h = self.grid._d8_active_links()
+            self._active_links = dal
+            self._activelink_tail = d8t
+            self._activelink_head = d8h
+            # needs modifying in the loop if D4 (now done)
+        else:
+            self._active_links = self.grid.active_links
+            self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
+            self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
@@ -208,7 +248,7 @@ class FlowRouter(Component):
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
            there is no receiver: *'flow__receiver_node'*
         -  Node array of drainage areas: *'drainage_area'*
-        -  Node array of discharges: *'water__discharge'*
+        -  Node array of discharges: *'surface_water__discharge'*
         -  Node array of steepest downhill slopes:
            *'topographic__steepest_slope'*
         -  Node array containing downstream-to-upstream ordered list of node
@@ -264,7 +304,7 @@ class FlowRouter(Component):
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)
         >>> mg = fr.route_flow()
-        >>> mg.at_node['water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
         array([    0.,   500.,  5200.,     0.,
                    0.,   500.,  5200.,     0.,
                    0.,   900.,  3700.,     0.,
@@ -285,8 +325,12 @@ class FlowRouter(Component):
             if not self._is_raster:
                 self.method = None
 
-        # if elevs is not provided, default to stored grid values, which must
-        # be provided as grid
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
+
+        # We assume that elevations are provided in a field called
+        # 'topographic__elevation'
         elevs = self._grid['node']['topographic__elevation']
 
         node_cell_area = self._grid.cell_area_at_node.copy()
@@ -303,24 +347,24 @@ class FlowRouter(Component):
 
         # Find the baselevel nodes
         (baselevel_nodes, ) = numpy.where(
-            numpy.logical_or(self._grid.status_at_node == 1,
-                             self._grid.status_at_node == 2))
+            numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
 
         # Calculate flow directions
         if self.method == 'D4':
             num_d4_active = self._grid.number_of_active_links  # only d4
             receiver, steepest_slope, sink, recvr_link = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
-                                         self._activelink_from[:num_d4_active],
-                                         self._activelink_to[:num_d4_active],
+                                         self._activelink_tail[:num_d4_active],
+                                         self._activelink_head[:num_d4_active],
                                          link_slope,
                                          grid=self._grid,
                                          baselevel_nodes=baselevel_nodes)
         else:  # Voronoi or D8
             receiver, steepest_slope, sink, recvr_link = \
                 flow_direction_DN.flow_directions(elevs, self._active_links,
-                                     self._activelink_from,
-                                     self._activelink_to, link_slope,
+                                     self._activelink_tail,
+                                     self._activelink_head, link_slope,
                                      grid=self._grid,
                                      baselevel_nodes=baselevel_nodes)
 
@@ -337,11 +381,11 @@ class FlowRouter(Component):
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['flow__receiver_node'][:] = receiver
         self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['water__discharge'][:] = q
+        self._grid['node']['surface_water__discharge'][:] = q
         self._grid['node']['flow__upstream_node_order'][:] = s
         self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
         self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
-                                                               dtype=bool)
+                                                                    dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True
 
         return self._grid
@@ -398,7 +442,7 @@ class FlowRouter(Component):
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)
         >>> fr.run_one_step()
-        >>> mg.at_node['water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
         array([    0.,   500.,  5200.,     0.,
                    0.,   500.,  5200.,     0.,
                    0.,   900.,  3700.,     0.,
@@ -421,7 +465,7 @@ class FlowRouter(Component):
 
     @property
     def node_water_discharge(self):
-        return self._grid['node']['water__discharge']
+        return self._grid['node']['surface_water__discharge']
 
     @property
     def node_order_upstream(self):
