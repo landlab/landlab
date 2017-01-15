@@ -337,7 +337,8 @@ class FastscapeEroder(Component):
         else:
             K_here = self.K
         if rainfall_intensity_if_used is not None:
-            assert type(rainfall_intensity_if_used) in (float, int)
+            assert type(rainfall_intensity_if_used) in (float, numpy.float64, 
+                                                        int)
             r_i_here = float(rainfall_intensity_if_used)
         else:
             r_i_here = self._r_i
