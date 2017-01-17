@@ -1,13 +1,13 @@
 from landlab import FieldError
-from landlab.components.flow_director.flow_director import FlowDirector
+from landlab.components.flow_director.flow_director import _FlowDirector
 import numpy
 
-class FlowDirectorToOne(FlowDirector):
+class _FlowDirectorToOne(_FlowDirector):
     """
-    Intermediate level class for calculating flow directions. 
+    Private class for creating components to calculate flow directions. 
     
-    This component is not meant to be used directly in modeling efforts. It
-    inherits from the FlowDirector class and builds on it to provide the 
+    This class is not meant to be used directly in modeling efforts. It
+    inherits from the _FlowDirector class and builds on it to provide the 
     functionality that all flow direction calculators need if they direct flow 
     only to one cell, as in D4 or D8 direction finding. It exists in contrast
     to the other intermediate flow director class FlowDirectorToMany which 
@@ -41,11 +41,11 @@ class FlowDirectorToOne(FlowDirector):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
+    >>> from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    >>> fd=FlowDirectorToOne(mg, 'topographic__elevation')
+    >>> fd=_FlowDirectorToOne(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
@@ -95,12 +95,9 @@ class FlowDirectorToOne(FlowDirector):
 
     def __init__(self, grid, surface):
         # run init for the inherited class
-        if hasattr(self, 'method') == False:
-            self.method = 'toOne'
-            
-            
-        super(FlowDirectorToOne, self).__init__(grid, surface)
-        
+     
+        super(_FlowDirectorToOne, self).__init__(grid, surface)
+        self.to_n_receivers = 'one'
         # initialize new fields
         try:
             self.receiver = grid.add_zeros('flow__receiver_node', at='node',

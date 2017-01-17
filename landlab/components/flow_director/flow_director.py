@@ -17,12 +17,12 @@ import numpy
 def return_surface(grid, surface):
     return(surface)
 
-class FlowDirector(Component):
+class _FlowDirector(Component):
 
     """
-    Base class for calculating flow directions. 
+    Private class for creating components to calculate flow directions. 
     
-    This component is not meant to be used directly in modeling efforts. 
+    This class is not meant to be used directly in modeling efforts. 
     Instead it has the functionality that all flow direction calculators need
     to initialize and check boundary conditions.
     
@@ -39,11 +39,13 @@ class FlowDirector(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_director.flow_director import FlowDirector
+    >>> from landlab.components.flow_director.flow_director import _FlowDirector
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    >>> fd=FlowDirector(mg, 'topographic__elevation')
+    >>> _ = mg.add_field('topographic__elevation', 
+    ...                  mg.node_x + mg.node_y, 
+    ...                  at = 'node')
+    >>> fd=_FlowDirector(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> list(mg.at_node.keys())
@@ -51,12 +53,10 @@ class FlowDirector(Component):
 
     """
 
-    _name = 'FlowDirector'
+    _name = '_FlowDirector'
     
     def __init__(self, grid, surface):
         # We keep a local reference to the grid
-        if hasattr(self, 'method') == False:
-            self.method = 'base'
             
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code

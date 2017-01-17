@@ -24,6 +24,7 @@ from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .flow_director import FlowDirectorD8
 from .flow_director import FlowDirectorSteepest
+from .flow_accum import FlowAccumulator
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 
 

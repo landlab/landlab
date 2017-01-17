@@ -1,10 +1,10 @@
-from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 from landlab.components.flow_director import flow_direction_DN
 from landlab import VoronoiDelaunayGrid
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
-class FlowDirectorSteepest(FlowDirectorToOne):
+class FlowDirectorSteepest(_FlowDirectorToOne):
     """Single-path (steepest direction) flow direction. This method is 
     equivalent to D4 method in the special case of a raster grid. 
      
@@ -45,7 +45,9 @@ class FlowDirectorSteepest(FlowDirectorToOne):
     >>> from landlab.components import FlowDirectorSteepest
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    >>> _ = mg.add_field('topographic__elevation', 
+    ...                  mg.node_x + mg.node_y, 
+    ...                  at = 'node')
     >>> fd=FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
@@ -88,7 +90,9 @@ class FlowDirectorSteepest(FlowDirectorToOne):
     
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid(5,3)
-    >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
+    >>> _ = mg.add_field('topographic__elevation', 
+    ...                  mg.node_x + np.round(mg.node_y), 
+    ...                  at = 'node')
     >>> fd=FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0. ,  1. ,  2. ,    

@@ -1,11 +1,11 @@
-from landlab.components.flow_director.flow_director_to_one import FlowDirectorToOne
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 from landlab.components.flow_director import flow_direction_DN
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import VoronoiDelaunayGrid
 
 import numpy
 
-class FlowDirectorD8(FlowDirectorToOne):
+class FlowDirectorD8(_FlowDirectorToOne):
     """Single-path (steepest direction) flow direction finding on raster grids
      by the D8 method. This method considers flow on all eight links such that
      flow is possible on orthogonal and on diagonal links. 
