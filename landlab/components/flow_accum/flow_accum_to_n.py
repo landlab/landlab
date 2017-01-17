@@ -45,8 +45,6 @@ If you simply want the ordered list by itself, use::
     s = make_ordered_node_array(r, p, b)
 
 Created: KRB Oct 2016 (modified from flow_accumu_bw)
-
-
 """
 from six.moves import range
 # from .cfuncs import _add_to_stack
@@ -64,6 +62,8 @@ class _DrainageStack_to_n():
 
     It is used by the make_ordered_node_array() function.
     """
+    
+    
     def __init__(self, delta, D):
         """
         Creates the stack array s and stores references to delta and D.
@@ -73,6 +73,7 @@ class _DrainageStack_to_n():
         self.delta = delta
         self.D = D
 
+        
     def construct__stack(self, l):
         """
         Function to add all nodes upstream of base level node l in an order
@@ -103,16 +104,16 @@ class _DrainageStack_to_n():
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.flow_accum.flow_accum_to_n import _DrainageStack_to_n as _DrainageStack
+        >>> from landlab.components.flow_accum.flow_accum_to_n import _DrainageStack_to_n
         >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
         >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
-        >>> ds = _DrainageStack(delta, D)
+        >>> ds = _DrainageStack_to_n(delta, D)
         >>> ds.construct__stack(4)
-        >>> ds.s[0]==4
+        >>> ds.s[0] == 4
         True
-        >>> ds.s[1]==5
+        >>> ds.s[1] == 5
         True
-        >>> ds.s[9]==9
+        >>> ds.s[9] == 9
         True
         >>> len(set([1, 7])-set(ds.s[2:4]))
         0
@@ -162,7 +163,7 @@ def _make_number_of_donors_array_to_n(r, p):
     --------
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_number_of_donors_array_to_n as _make_number_of_donors_array
+    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_number_of_donors_array_to_n 
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -183,7 +184,7 @@ def _make_number_of_donors_array_to_n(r, p):
     ...               [ 0.55,  0.45],
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
-    >>> nd = _make_number_of_donors_array(r, p)
+    >>> nd = _make_number_of_donors_array_to_n(r, p)
     >>> nd
     array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     """
@@ -225,12 +226,12 @@ def _make_delta_array_to_n(nd):
     --------
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_delta_array_to_n as _make_delta_array
+    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_delta_array_to_n
     >>> nd = np.array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
-    >>> delta = _make_delta_array(nd)
+    >>> delta = _make_delta_array_to_n(nd)
     >>> delta
     array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
-    >>> sum(nd)==max(delta)
+    >>> sum(nd) == max(delta)
     True
     """
     # np = len(nd)
@@ -266,7 +267,7 @@ def _make_array_of_donors_to_n(r, p, delta):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_array_of_donors_to_n as _make_array_of_donors
+    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_array_of_donors_to_n
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -288,7 +289,7 @@ def _make_array_of_donors_to_n(r, p, delta):
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> delta = np.array([ 0,  0,  2,  4,  4,  8,  12,  14, 17, 18, 18])
-    >>> D = _make_array_of_donors(r, p, delta)
+    >>> D = _make_array_of_donors_to_n(r, p, delta)
     >>> D
     array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
     """
@@ -335,7 +336,7 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import make_ordered_node_array_to_n as make_ordered_node_array
+    >>> from landlab.components.flow_accum.flow_accum_to_n import make_ordered_node_array_to_n 
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -357,12 +358,12 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> b = np.array([4])
-    >>> s = make_ordered_node_array(r, p,  b)
-    >>> s[0]==4
+    >>> s = make_ordered_node_array_to_n(r, p,  b)
+    >>> s[0] == 4
     True
-    >>> s[1]==5
+    >>> s[1] == 5
     True
-    >>> s[9]==9
+    >>> s[9] == 9
     True
     >>> len(set([1, 7])-set(s[2:4]))
     0
@@ -427,7 +428,7 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import find_drainage_area_and_discharge_to_n as find_drainage_area_and_discharge
+    >>> from landlab.components.flow_accum.flow_accum_to_n import find_drainage_area_and_discharge_to_n
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -449,7 +450,7 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> s = np.array([4, 5, 1, 7, 2, 6, 0, 8, 3, 9])
-    >>> a, q = find_drainage_area_and_discharge(s, r, p)
+    >>> a, q = find_drainage_area_and_discharge_to_n(s, r, p)
     >>> a
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
@@ -488,7 +489,6 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
                     drainage_area[recvr] += proportion*drainage_area[donor]
                     discharge[recvr] += proportion*discharge[donor]
 
-
 #        donors = s[i]
 #        #print donors
 #        recvrs = r[donors, :].flatten()
@@ -523,7 +523,7 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import flow_accumulation_to_n as flow_accumulation
+    >>> from landlab.components.flow_accum.flow_accum_to_n import flow_accumulation_to_n
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -545,18 +545,18 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> b = np.array([4])
-    >>> a, q, s = flow_accumulation(r, p, b)
+    >>> a, q, s = flow_accumulation_to_n(r, p, b)
     >>> a
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     >>> q
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> s[0]==4
+    >>> s[0] == 4
     True
-    >>> s[1]==5
+    >>> s[1] == 5
     True
-    >>> s[9]==9
+    >>> s[9] == 9
     True
     >>> len(set([1, 7])-set(s[2:4]))
     0

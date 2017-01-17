@@ -1,7 +1,8 @@
 from landlab import FieldError
 from landlab.components.flow_director.flow_director import _FlowDirector
 import numpy
-
+from landlab import BAD_INDEX_VALUE
+    
 class _FlowDirectorToOne(_FlowDirector):
     """
     Private class for creating components to calculate flow directions. 
@@ -30,7 +31,6 @@ class _FlowDirectorToOne(_FlowDirector):
     
     The primary method of this class, :func:`run_one_step` is not implemented.
 
-
     Parameters
     ----------
     grid : ModelGrid
@@ -44,15 +44,16 @@ class _FlowDirectorToOne(_FlowDirector):
     >>> from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    >>> fd=_FlowDirectorToOne(mg, 'topographic__elevation')
+    >>> _ = mg.add_field('topographic__elevation', 
+    ...                  mg.node_x + mg.node_y, 
+    ...                  at = 'node')
+    >>> fd = _FlowDirectorToOne(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
     ['flow__link_to_receiver_node', 'flow__receiver_node',
            'flow__sink_flag', 'topographic__elevation',
            'topographic__steepest_slope']
-
     """
     
     _name = 'FlowDirectorToOne'
@@ -100,8 +101,10 @@ class _FlowDirectorToOne(_FlowDirector):
         self.to_n_receivers = 'one'
         # initialize new fields
         try:
-            self.receiver = grid.add_zeros('flow__receiver_node', at='node',
-                                           dtype=int)
+            self.receiver = grid.add_field('flow__receiver_node',
+                                           BAD_INDEX_VALUE*grid.ones(at='node'),
+                                           at='node', dtype=int)
+  
         except FieldError:
             self.receiver = grid.at_node['flow__receiver_node']
         
@@ -112,8 +115,10 @@ class _FlowDirectorToOne(_FlowDirector):
             self.steepest_slope = grid.at_node['topographic__steepest_slope']
         
         try:
-            self.links_to_receiver = grid.add_zeros(
-                'flow__link_to_receiver_node', at='node', dtype=int)
+            self.links_to_receiver = grid.add_field('flow__link_to_receiver_node',
+                                                    BAD_INDEX_VALUE*grid.ones(at='node'),
+                                                    at='node', dtype=int)
+            
         except FieldError:
             self.links_to_receiver = grid.at_node[
                 'flow__link_to_receiver_node']
@@ -142,6 +147,8 @@ class _FlowDirectorToOne(_FlowDirector):
     @property
     def sink_flag(self):
         return self._grid['node']['flow__sink_flag'] 
+        
+        
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

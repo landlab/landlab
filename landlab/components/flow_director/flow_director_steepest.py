@@ -32,7 +32,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     surface : field name at node or array of length node, optional
         The surface to direct flow across, default is field at node: 
         topographic__elevation,.   
-  
    
     Examples
     --------
@@ -48,7 +47,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> _ = mg.add_field('topographic__elevation', 
     ...                  mg.node_x + mg.node_y, 
     ...                  at = 'node')
-    >>> fd=FlowDirectorSteepest(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd.run_one_step()
@@ -93,7 +92,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> _ = mg.add_field('topographic__elevation', 
     ...                  mg.node_x + np.round(mg.node_y), 
     ...                  at = 'node')
-    >>> fd=FlowDirectorSteepest(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0. ,  1. ,  2. ,    
         0.5,  1.5,  2.5,  3.5,  
@@ -131,10 +130,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
           3,  0,  1,  6,  
         7,  3,  4,  5, 11, 
          12,  8,  9, 15, 
-          16, 17, 18])
-    
-    
-    
+          16, 17, 18])    
     """
 
     _name = 'FlowDirectorSteepest'
@@ -145,15 +141,18 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         self.updated_boundary_conditions()
         
+        
     def updated_boundary_conditions(self):
         """
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
         """
+        
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links] 
     
+        
     def run_one_step(self):   
         self.direct_flow()
        
@@ -172,7 +171,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         (baselevel_nodes, ) = numpy.where(
             numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
-                   
         
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link = \
@@ -181,9 +179,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                                          self._activelink_head,
                                          link_slope,
                                          grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes)
-         
-
+                                         baselevel_nodes=baselevel_nodes)   
         self.sink = sink                                  
        
        # Save the four ouputs of this component.                                  
@@ -195,6 +191,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._grid['node']['flow__sink_flag'][sink] = True
         
         return receiver
+        
         
 if __name__ == '__main__':
     import doctest

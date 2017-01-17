@@ -27,9 +27,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
         
-        
     The primary method of this class is :func:`run_one_step`.
-
 
     Construction::
 
@@ -51,8 +49,10 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> from landlab.components import FlowDirectorD8
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    >>> fd=FlowDirectorD8(mg, 'topographic__elevation')
+    >>> _ = mg.add_field('topographic__elevation', 
+    ...                  mg.node_x + mg.node_y, 
+    ...                  at = 'node')
+    >>> fd = FlowDirectorD8(mg, 'topographic__elevation')
     >>> fd.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd.run_one_step()
@@ -89,9 +89,6 @@ class FlowDirectorD8(_FlowDirectorToOne):
     array([0, 1, 2, 
            3, 0, 5, 
            6, 7, 8])
-    
-    
-    
     """
 
     _name = 'FlowDirectorD8'
@@ -101,8 +98,12 @@ class FlowDirectorD8(_FlowDirectorToOne):
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
-            raise NotImplementedError('FlowDirectorD8 not implemented for irregular grids, use FlowDirectorSteepest')
+            raise NotImplementedError('FlowDirectorD8 not implemented for'
+                                      'irregular grids, use'
+                                      'FlowDirectorSteepest')
+            
         self.updated_boundary_conditions()
+        
         
     def updated_boundary_conditions(self):
         """
@@ -115,8 +116,10 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._activelink_tail = d8t
         self._activelink_head = d8h
         
+        
     def run_one_step(self):   
         self.direct_flow()
+        
         
     def direct_flow(self):
         # step 0. Check and update BCs
@@ -133,7 +136,6 @@ class FlowDirectorD8(_FlowDirectorToOne):
             numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                              self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
                    
-        
         # Calculate flow directions by D8 method       
         receiver, steepest_slope, sink, recvr_link = \
         flow_direction_DN.flow_directions(self.elevs, self._active_links,
@@ -152,6 +154,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._grid['node']['flow__sink_flag'][sink] = True
     
         return receiver
+        
         
 if __name__ == '__main__':
     import doctest

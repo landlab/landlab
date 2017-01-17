@@ -12,7 +12,6 @@ from landlab.utils.decorators import use_field_name_or_array
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.components.flow_accum import flow_accum_to_n
 
-
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, \
     BAD_INDEX_VALUE
 import numpy as np
@@ -22,11 +21,10 @@ import six
 def return_surface(grid, surface):
     return(surface)
 
-
 class FlowAccumulator(Component):
 
     """
-    Method to accumulate flow and calculate drainage area. 
+    Component to accumulate flow and calculate drainage area. 
  
     This is accomplished by first finding flow directions by a user-specified
     method and then calculating the drainage area and discharge. 
@@ -45,7 +43,7 @@ class FlowAccumulator(Component):
     cannot accumulate any discharge.
 
 
-    Flow Accumulator stores as ModelGrid fields:
+    FlowAccumulator stores as ModelGrid fields:
                
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
@@ -109,8 +107,6 @@ class FlowAccumulator(Component):
 
     Examples
     --------
-
-
 
     """
     
@@ -177,14 +173,12 @@ class FlowAccumulator(Component):
             }
 
     def __init__(self, grid, surface = 'topographic__elevation', flow_director = 'FlowDirectorD4', runoff_rate=None, depression_finder = None):
-        # We keep a local reference to the grid
+        # Keep a local reference to the grid
         self._grid = grid
-#        self._bc_set_code = self.grid.bc_set_code
 
-        # set up the grid type testing
+        # Grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-
 
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -192,6 +186,7 @@ class FlowAccumulator(Component):
         # testing input for runoff rate, can be None, a string associated with
         # a field at node, a single float or int, or an array of size number of
         # nodes.
+        
         if runoff_rate is not None:
             if type(runoff_rate) is str:
                 runoff_rate = grid.at_node[runoff_rate]
@@ -297,7 +292,6 @@ class FlowAccumulator(Component):
         # save method as attribute    
         self.method = self.fd.method
                 
-        
         # now do a similar thing for the depression finder. 
         self.depression_finder = depression_finder
         if self.depression_finder:
@@ -332,12 +326,7 @@ class FlowAccumulator(Component):
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
-
-        
-        
-
-     
-            
+ 
         # This component will track of the following variables.
         # Attempt to create each, if they already exist, assign the existing
         # version to the local copy.
@@ -360,30 +349,26 @@ class FlowAccumulator(Component):
             self.discharges = grid.at_node['surface_water__discharge']
 
         try:
-            self.upstream_ordered_nodes = grid.add_field(
-                'flow__upstream_node_order',
-                BAD_INDEX_VALUE*grid.ones(at='node'),
-                at='node', dtype=int)
-
+            self.upstream_ordered_nodes = grid.add_field('flow__upstream_node_order',
+                                                         BAD_INDEX_VALUE*grid.ones(at='node'),
+                                                         at='node', dtype=int)
+            
         except FieldError:
             self.upstream_ordered_nodes = grid.at_node[
                 'flow__upstream_node_order']
 
         try:
-            self.delta_structure = grid.add_field(
-                'flow__data_structure_delta',
-                BAD_INDEX_VALUE*grid.ones(at='node'),
-                at='node', dtype=int)
+            self.delta_structure = grid.add_field('flow__data_structure_delta',
+                                                  BAD_INDEX_VALUE*grid.ones(at='node'),
+                                                  at='node', dtype=int)
         except FieldError:
             self.delta_structure = grid.at_node['flow__data_structure_delta']
 
         try:
             # needs to be BAD_INDEX_VALUE
-            self.D_structure = grid.add_field(
-                'flow__data_structure_D',
-                BAD_INDEX_VALUE*grid.ones(at='link'),
-                at='link', dtype=int)
-
+            self.D_structure = grid.add_field('flow__data_structure_D',
+                                              BAD_INDEX_VALUE*grid.ones(at='link'),
+                                              at='link', dtype=int)
         except FieldError:
             self.D_structure = grid.at_link['flow__data_structure_D']
 
@@ -411,14 +396,8 @@ class FlowAccumulator(Component):
         return self._grid['node']['flow__data_structure_delta']
 
 
-        
     def run_one_step(self):
         
-#        # step 0. Check and update BCs
-#        if self._bc_set_code != self.grid.bc_set_code:
-#            self.updated_boundary_conditions()
-#            self._bc_set_code = self.grid.bc_set_code        
-#        
         # step 1. Find flow directions by specified method
         self.fd.run_one_step()
         
@@ -435,7 +414,7 @@ class FlowAccumulator(Component):
             D = flow_accum_bw._make_array_of_donors(r, delta)
             s = flow_accum_bw.make_ordered_node_array(r, self.fd.sink)
             
-            #put theese in grid so that depression finder can use it.         
+            # put theese in grid so that depression finder can use it.         
             # store the generated data in the grid
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
             self._grid['link']['flow__data_structure_D'][:len(D)] = D
@@ -443,26 +422,21 @@ class FlowAccumulator(Component):
             
             # step 3. Run depression finder if passed 
             # at present this must go at the end. 
-    
-           
             
             # step 4. Accumulate (to one or to N depending on direction method. )
             a, q = flow_accum_bw.find_drainage_area_and_discharge(s, 
                                                                   r, 
                                                                   self.node_cell_area,
                                                                   self._grid.at_node['water__unit_flux_in'])
-          
-            
+
             self._grid['node']['drainage_area'][:] = a
             self._grid['node']['surface_water__discharge'][:] = q
-            
-        
+
         # at the moment, this is where the depression finder needs to live. 
         if self.depression_finder:
             self.df.map_depressions()
 
-
-    
+            
 if __name__ == '__main__':
     import doctest
     doctest.testmod()    
