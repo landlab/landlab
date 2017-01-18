@@ -130,34 +130,38 @@ class FlowAccumulator(Component):
     name of a flow director as a string to the argument `flow_director`:
 
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-                           flow_director='FlowDirectorSteepest')
+    ...                      flow_director='FlowDirectorSteepest')
 
     Second, we can pass just the method name as a string to the argument
     `flow_director`:
 
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-                           flow_director='Steepest')
+    ...                      flow_director='Steepest')
 
     Third, we can import a FlowDirector component from Landlab and pass it to
     `flow_director`:
     >>> from landlab.components import FlowDirectorSteepest
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-                           flow_director=FlowDirectorSteepest)
+    ...                      flow_director=FlowDirectorSteepest)
 
-    Finally we can instantiate a FlowDirector component and pass this
+    Finally, we can instantiate a FlowDirector component and pass this
     instantiated version to `flow_director`. You might want to do this if you
     used a FlowDirector in order to set up something before starting a
-    time loop.
+    time loop and then want to use the same flow director within the loop.
 
-    >>> fd = FlowDirect(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-                           flow_director=FlowDirectorSteepest)
+    ...                      flow_director=FlowDirectorSteepest)
 
-    Now lets look at what FlowAccumulator does.
+    Now let's look at what FlowAccumulator does. Even before we run
+    FlowAccumulator it has the property `elevs` that stores the surface over
+    which flow is directed and accumulated.
 
-    >>> fa.elevs
     >>> fa.elevs
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+
+    Now let's make a more complicated elevation grid for the next examples.
+
     >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
     ...                  0., 21., 10., 0.,
@@ -166,7 +170,8 @@ class FlowAccumulator(Component):
     ...                  0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field('node','topographic__elevation', elev)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa_2 = FlowAccumulatorD4(mg_2)
+    >>> fa_2 = FlowAccumulator(mg_2, 'topographic__elevation',
+    ...                        flow_director=FlowDirectorSteepest)
     >>> fa_2.run_one_step()
     >>> mg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
     array([ 0,  1,  2,  3,
@@ -189,7 +194,8 @@ class FlowAccumulator(Component):
 
     >>> _ = mg_3.add_field('node','topographic__elevation', elev)
     >>> mg_3.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa_3 = FlowAccumulatorD4(mg_3)
+    >>> fa_3 = FlowAccumulator(mg_3, 'topographic__elevation',
+    ...                        flow_director=FlowDirectorSteepest)
     >>> runoff_rate = np.arange(mg_3.number_of_nodes)
     >>> _ = mg_3.add_field('node', 'water__unit_flux_in', runoff_rate,
     ...                  noclobber=False)
@@ -201,7 +207,67 @@ class FlowAccumulator(Component):
                0.,  1300.,  2700.,     0.,
                0.,     0.,     0.,     0.])
 
-    Finally, see what happens when there is a depression.
+    The FlowAccumulator component will work for both raster grids and irregular
+    grids. For the example we will use a Hexagonal Model Grid, a special type of
+    Voroni Grid that has regularly spaced hexagonal cells.
+
+    >>> from landlab import HexModelGrid
+    >>> hmg = HexModelGrid(5,3)
+    >>> _ = hmg.add_field('topographic__elevation',
+    ...                   hmg.node_x + np.round(hmg.node_y),
+    ...                   at = 'node')
+    >>> fa = FlowAccumulator(hmg, 'topographic__elevation',
+    ...                      flow_director=FlowDirectorSteepest)
+    >>> fa.elevs
+    array([ 0. ,  1. ,  2. ,
+            0.5,  1.5,  2.5,  3.5,
+            1. ,  2. ,  3. ,  4. ,  5. ,
+            2.5,  3.5,  4.5,  5.5,
+            3. ,  4. ,  5. ])
+
+    Next, let's set the dx spacing such that each cell has an area of one.
+
+    >>> dx=(2./(3.**0.5))**0.5
+    >>> hmg_2 = HexModelGrid(5,3, dx)
+    >>> _ = hmg_2.add_field('topographic__elevation',
+    ...                     hmg_2.node_x**2 + np.round(hmg_2.node_y)**2,
+    ...                     at = 'node')
+    >>> fa_2 = FlowAccumulator(hmg_2, 'topographic__elevation',
+    ...                        flow_director=FlowDirectorSteepest)
+    >>> fa_2.run_one_step()
+    >>> hmg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0,  1,  2,
+            3,  0,  1,  6,
+            7,  3,  4,  5, 11,
+           12,  8,  9, 15,
+           16, 17, 18])
+    >>> hmg_2.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 3.,  2.,  0.,
+            2.,  3.,  2.,  0.,
+            0.,  2.,  2.,  1.,  0.,
+            0., 1.,  1.,  0.,
+            0.,  0.,  0.])
+
+    Now let's change the cell area (100.) and the runoff rates:
+
+    >>> hmg_3 = HexModelGrid(5,3, dx*10.)
+
+    Put the data back into the new grid.
+
+    >>> _ = hmg_3.add_field('topographic__elevation',
+    ...                     hmg_3.node_x**2 + np.round(hmg_3.node_y)**2,
+    ...                     at = 'node')
+    >>> fa_3 = FlowAccumulator(hmg_3, 'topographic__elevation',
+    ...                        flow_director=FlowDirectorSteepest)
+    >>> fa_3.run_one_step()
+    >>> hmg_3.at_node['surface_water__discharge']
+    array([ 500.,    0.,    0.,
+            200.,  500.,  200.,    0.,
+              0.,  200.,  200.,  100.,    0.,
+              0.,  100.,  100.,    0.,
+              0.,    0.,    0.])
+
+    Next, let's see what happens to a raster grid when there is a depression.
 
     >>> mg_4 = RasterModelGrid((7, 7), 0.5)
     >>> z = mg_4.add_field('node', 'topographic__elevation', mg_4.node_x.copy())
@@ -219,7 +285,8 @@ class FlowAccumulator(Component):
            [ 0.02  ,  0.52  ,  0.102 ,  0.152 ,  0.202 ,  2.52  ,  3.02  ],
            [ 0.025 ,  0.525 ,  1.025 ,  1.525 ,  2.025 ,  2.525 ,  3.025 ],
            [ 0.03  ,  0.53  ,  1.03  ,  1.53  ,  2.03  ,  2.53  ,  3.03  ]])
-    >>> fa_4 = FlowAccumulatorD4(mg_4)
+    >>> fa_4 = FlowAccumulator(mg_4, 'topographic__elevation',
+    ...                        flow_director=FlowDirectorSteepest)
     >>> fa_4.run_one_step()  # the flow "gets stuck" in the hole
     >>> mg_4.at_node['flow__receiver_node'].reshape(mg_4.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
@@ -246,7 +313,9 @@ class FlowAccumulator(Component):
 
     We can either run the depression finder separately from the flow
     accumulator or we can specify the depression finder and router when we
-    instantiate the accumulator and it will run automatically.
+    instantiate the accumulator and it will run automatically. Similar to
+    specifying the FlowDirector we can provide a depression finder in multiple
+    three ways.
 
     First let's try running them separately.
 
@@ -298,13 +367,16 @@ class FlowAccumulator(Component):
 
     Alternatively, we can initialize a flow accumulator with a depression
     finder specified. Calling run_one_step() will run both the accumulator
-    and the depression finder with one call.
+    and the depression finder with one call. For this example, we will pass the
+    class DepressionFinderAndRouter to the parameter `depression_finder`.
 
     >>> mg_5 = RasterModelGrid((7, 7), 0.5)
     >>> z = mg_5.add_field('node', 'topographic__elevation', mg_5.node_x.copy())
     >>> z += 0.01 * mg_5.node_y
     >>> mg_5.at_node['topographic__elevation'].reshape(mg_5.shape)[2:5, 2:5] *= 0.1
-    >>> fa_5 = FlowAccumulatorD4(mg_5, depression_finder=DepressionFinderAndRouter)
+    >>> fa_5 = FlowAccumulator(mg_5, 'topographic__elevation',
+    ...                        flow_director=FlowDirectorSteepest,
+    ...                        depression_finder=DepressionFinderAndRouter)
     >>> fa_5.run_one_step()
 
     This has the same effect of first calling the accumulator and then calling
