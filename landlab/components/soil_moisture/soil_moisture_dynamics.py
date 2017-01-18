@@ -227,7 +227,8 @@ class SoilMoisture(Component):
                  intercept_cap_bare=1., zr_bare=0.15, I_B_bare=20.,
                  I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
                  wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
-                 LAI_max_bare=0.01, LAIR_max_bare=0.01, **kwds):
+                 LAI_max_bare=0.01, LAIR_max_bare=0.01,
+                 ordered_cells=None, **kwds):
         """
         Parameters
         ----------
@@ -298,7 +299,8 @@ class SoilMoisture(Component):
                         fc_bare=fc_bare, sc_bare=sc_bare, wp_bare=wp_bare,
                         hgw_bare=hgw_bare, beta_bare=beta_bare,
                         LAI_max_bare=LAI_max_bare,
-                        LAIR_max_bare=LAIR_max_bare, **kwds)
+                        LAIR_max_bare=LAIR_max_bare,
+                        ordered_cells=ordered_cells, **kwds)
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -328,7 +330,8 @@ class SoilMoisture(Component):
                    intercept_cap_bare=1., zr_bare=0.15, I_B_bare=20.,
                    I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
                    wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
-                   LAI_max_bare=0.01, LAIR_max_bare=0.01, **kwds):
+                   LAI_max_bare=0.01, LAIR_max_bare=0.01,
+                   ordered_cells=None, **kwds):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         """
@@ -415,8 +418,9 @@ class SoilMoisture(Component):
              LAIR_max_grass, LAIR_max_shrub, LAIR_max_tree,
              LAIR_max_bare, LAIR_max_shrub, LAIR_max_tree])
 
-    def update(self, current_time, Tb=24., Tr=0.,
-               ordered_cells=None, **kwds):
+        self.ordered_cells = ordered_cells
+
+    def update(self, current_time, Tb=24., Tr=0., **kwds):
         """
         Update fields with current loading conditions.
 
@@ -430,10 +434,10 @@ class SoilMoisture(Component):
             Inter-storm duration (hours).
         """
         P_ = self._cell_values['rainfall__daily_depth']
-        self._PET = \
-            self._cell_values['surface__potential_evapotranspiration_rate']
-        self._SO = \
-            self._cell_values['soil_moisture__initial_saturation_fraction']
+        self._PET = (
+            self._cell_values['surface__potential_evapotranspiration_rate'])
+        self._SO = (
+            self._cell_values['soil_moisture__initial_saturation_fraction'])
         self._vegcover = self._cell_values['vegetation__cover_fraction']
         self._water_stress = self._cell_values['vegetation__water_stress']
         self._S = self._cell_values['soil_moisture__saturation_fraction']
@@ -455,14 +459,14 @@ class SoilMoisture(Component):
         # Adding routine to add runon & runoff
         if self._runon_switch:
             # Make sure that flow_router has been called before
-            r_cell = \
-               self.grid.cell_at_node[self.grid.at_node['flow__receiver_node']]
+            r_cell = (
+               self.grid.cell_at_node[self.grid.at_node['flow__receiver_node']])
             r_cell = r_cell[r_cell != -1]
 
         for cell in range(0, self.grid.number_of_cells):
             # Routine to calculate runon
             if self._runon_switch:
-                if cell in ordered_cells:                
+                if cell in self.ordered_cells:                
                     donors = []
                     donors = list(np.where(r_cell==cell)[0])
                     if len(donors) != 0:
