@@ -21,7 +21,7 @@ hydrologic equilibrium).
 
 The main public function is::
 
-    a, q, s = flow_accumulation(r, p, b)
+    a, q, s = flow_accumulation_to_n(r, p, b)
 
 which takes the following inputs:
 
@@ -42,7 +42,7 @@ to-upstream order.
 
 If you simply want the ordered list by itself, use::
 
-    s = make_ordered_node_array(r, p, b)
+    s = make_ordered_node_array_to_n(r, p, b)
 
 Created: KRB Oct 2016 (modified from flow_accumu_bw)
 """
