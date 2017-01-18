@@ -355,7 +355,7 @@ class FlowAccumulator(Component):
 
         try:
             self.upstream_ordered_nodes = grid.add_field('flow__upstream_node_order',
-                                                         BAD_INDEX_VALUE*grid.ones(at='node'),
+                                                         BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                                          at='node', dtype=int)
 
         except FieldError:
@@ -364,7 +364,7 @@ class FlowAccumulator(Component):
 
         try:
             self.delta_structure = grid.add_field('flow__data_structure_delta',
-                                                  BAD_INDEX_VALUE*grid.ones(at='node'),
+                                                  BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                                   at='node', dtype=int)
         except FieldError:
             self.delta_structure = grid.at_node['flow__data_structure_delta']

@@ -103,11 +103,10 @@ class _FlowDirectorToOne(_FlowDirector):
         # initialize new fields
         try:
             self.receiver = grid.add_field('flow__receiver_node',
-                                           BAD_INDEX_VALUE*grid.ones(at='node'),
+                                           BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                            at='node', dtype=int)
-
         except FieldError:
-            self.receiver = grid.at_node['fxlow__receiver_node']
+            self.receiver = grid.at_node['flow__receiver_node']
 
         try:
             self.steepest_slope = grid.add_zeros(
@@ -117,7 +116,7 @@ class _FlowDirectorToOne(_FlowDirector):
 
         try:
             self.links_to_receiver = grid.add_field('flow__link_to_receiver_node',
-                                                    BAD_INDEX_VALUE*grid.ones(at='node'),
+                                                    BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                                     at='node', dtype=int)
 
         except FieldError:
