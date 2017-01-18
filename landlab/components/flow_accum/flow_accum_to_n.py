@@ -62,8 +62,8 @@ class _DrainageStack_to_n():
 
     It is used by the make_ordered_node_array() function.
     """
-    
-    
+
+
     def __init__(self, delta, D):
         """
         Creates the stack array s and stores references to delta and D.
@@ -73,7 +73,7 @@ class _DrainageStack_to_n():
         self.delta = delta
         self.D = D
 
-        
+
     def construct__stack(self, l):
         """
         Function to add all nodes upstream of base level node l in an order
@@ -104,7 +104,8 @@ class _DrainageStack_to_n():
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.flow_accum.flow_accum_to_n import _DrainageStack_to_n
+        >>> from landlab.components.flow_accum.flow_accum_to_n import(
+        ... _DrainageStack_to_n)
         >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
         >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
         >>> ds = _DrainageStack_to_n(delta, D)
@@ -163,7 +164,8 @@ def _make_number_of_donors_array_to_n(r, p):
     --------
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_number_of_donors_array_to_n 
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... _make_number_of_donors_array_to_n)
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -226,7 +228,8 @@ def _make_delta_array_to_n(nd):
     --------
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_delta_array_to_n
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... _make_delta_array_to_n)
     >>> nd = np.array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     >>> delta = _make_delta_array_to_n(nd)
     >>> delta
@@ -267,7 +270,8 @@ def _make_array_of_donors_to_n(r, p, delta):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import _make_array_of_donors_to_n
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... _make_array_of_donors_to_n)
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -336,7 +340,8 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import make_ordered_node_array_to_n 
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... make_ordered_node_array_to_n)
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -428,7 +433,8 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import find_drainage_area_and_discharge_to_n
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... find_drainage_area_and_discharge_to_n)
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],
@@ -523,7 +529,8 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_to_n import flow_accumulation_to_n
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... flow_accumulation_to_n)
     >>> r = np.array([[ 1,  2],
     ...               [ 4,  5],
     ...               [ 1,  5],

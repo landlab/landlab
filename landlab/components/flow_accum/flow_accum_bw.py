@@ -53,7 +53,8 @@ class _DrainageStack():
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.flow_accum.flow_accum_bw import _DrainageStack
+        >>> from landlab.components.flow_accum.flow_accum_bw import(
+        ... _DrainageStack)
         >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
         >>> D = np.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
         >>> ds = _DrainageStack(delta, D)
@@ -86,7 +87,8 @@ def _make_number_of_donors_array(r):
     d_i in Table 1.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import _make_number_of_donors_array
+    >>> from landlab.components.flow_accum.flow_accum_bw import(
+    ... _make_number_of_donors_array)
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> nd = _make_number_of_donors_array(r)
     >>> nd
@@ -126,7 +128,8 @@ def _make_delta_array(nd):
     table because here we number indices from 0 rather than 1.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
+    >>> from landlab.components.flow_accum.flow_accum_bw import(
+    ... _make_delta_array)
     >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     >>> delta = _make_delta_array(nd)
     >>> delta
@@ -161,7 +164,8 @@ def _make_array_of_donors(r, delta):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
+    >>> from landlab.components.flow_accum.flow_accum_bw import(
+    ... _make_array_of_donors)
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     >>> D = _make_array_of_donors(r, delta)

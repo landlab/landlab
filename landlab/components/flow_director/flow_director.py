@@ -10,16 +10,16 @@ from landlab.utils.decorators import use_field_name_or_array
 def return_surface(grid, surface):
     return(surface)
 
-    
+
 class _FlowDirector(Component):
 
     """
-    Private class for creating components to calculate flow directions. 
-    
-    This class is not meant to be used directly in modeling efforts. 
+    Private class for creating components to calculate flow directions.
+
+    This class is not meant to be used directly in modeling efforts.
     Instead it has the functionality that all flow direction calculators need
     to initialize and check boundary conditions.
-    
+
     The primary method of this class, :func:`run_one_step` is not implemented.
 
     Parameters
@@ -27,16 +27,17 @@ class _FlowDirector(Component):
     grid : ModelGrid
         A grid.
     surface : field name at node or array of length node
-        The surface to direct flow across.   
-        
+        The surface to direct flow across.
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_director.flow_director import _FlowDirector
+    >>> from landlab.components.flow_director.flow_director import(
+    ... _FlowDirector)
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation', 
-    ...                  mg.node_x + mg.node_y, 
+    >>> _ = mg.add_field('topographic__elevation',
+    ...                  mg.node_x + mg.node_y,
     ...                  at = 'node')
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.elevs
@@ -46,13 +47,13 @@ class _FlowDirector(Component):
     """
 
     _name = '_FlowDirector'
-    
+
     def __init__(self, grid, surface):
         # We keep a local reference to the grid
-            
+
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
-        
+
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         if not self._is_raster:
@@ -61,15 +62,15 @@ class _FlowDirector(Component):
         # test input variables are present:
         self.surface = surface
         surf = return_surface(grid, surface)
-        
+
         # add elevations as a local variable.
-        self.elevs = surf        
-    
-        
+        self.elevs = surf
+
+
     def run_one_step(self):
         raise NotImplementedError('run_one_step()')
 
-        
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

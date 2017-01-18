@@ -17,9 +17,7 @@ from landlab.grid.raster_steepest_descent import (
     _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
-
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-
 
 def grid_flow_directions(grid, elevations):
     """Flow directions on raster grid.
