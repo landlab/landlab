@@ -62,7 +62,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ...                  mg.node_x + mg.node_y,
     ...                  at = 'node')
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
-    >>> fd.elevs
+    >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
@@ -74,12 +74,14 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
     >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 21., 10., 0.,
-    ...                  0., 31., 20., 0.,
-    ...                  0., 32., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg_2.add_field('node','topographic__elevation', elev)
+    >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
+    ...                                    0., 21., 10., 0.,
+    ...                                    0., 31., 20., 0.,
+    ...                                    0., 32., 30., 0.,
+    ...                                    0.,  0.,  0., 0.])
+    >>> _ = mg_2.add_field('node',
+    ...                    'topographic__elevation', 
+    ...                    topographic__elevation)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorSteepest(mg_2)
     >>> fd_2.run_one_step()
@@ -107,7 +109,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ...                  mg.node_x + np.round(mg.node_y),
     ...                  at = 'node')
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
-    >>> fd.elevs
+    >>> fd.surface_values
     array([ 0. ,  1. ,  2. ,
         0.5,  1.5,  2.5,  3.5,
       1. ,  2. ,  3. ,  4. , 5. ,
@@ -200,7 +202,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         # step 1. Calculate link slopes.
         link_slope = - self._grid.calc_grad_of_active_link(
-                self.elevs)
+                self.surface_values)
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(
@@ -209,13 +211,13 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link = \
-        flow_direction_DN.flow_directions(self.elevs, self._active_links,
-                                         self._activelink_tail,
-                                         self._activelink_head,
-                                         link_slope,
-                                         grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes)
-        self.sink = sink
+        flow_direction_DN.flow_directions(self.surface_values, 
+                                          self._active_links,
+                                          self._activelink_tail,
+                                          self._activelink_head,
+                                          link_slope,
+                                          grid=self._grid,
+                                          baselevel_nodes=baselevel_nodes)
 
        # Save the four ouputs of this component.
         self._grid['node']['flow__receiver_node'][:] = receiver

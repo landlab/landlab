@@ -1,16 +1,19 @@
 #!/usr/env/python
 
 """
-Summary line.
+flow_accumulator.py: Component to accumulate flow and calculate drainage area.
 
-Description text.
+Provides the FlowAccumulator component which accumulates flow and calculates
+drainage area. FlowAccumulator supports multiple methods for calculating flow
+direction. Optionally a depression finding component can be specified and flow 
+directing, depression finding, and flow routing can all be accomplished 
+together.
 """
 
 from __future__ import print_function
 
 import warnings
 
-import landlab
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
@@ -18,13 +21,17 @@ from landlab.utils.decorators import use_field_name_or_array
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.components.flow_accum import flow_accum_to_n
 
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, \
-    BAD_INDEX_VALUE
-import numpy as np
+from landlab import BAD_INDEX_VALUE
 import six
 
 @use_field_name_or_array('node')
-def return_surface(grid, surface):
+def _return_surface(grid, surface):
+    """
+    Private function to return the surface to direct flow over.
+    
+    This function exists to take advantange of the 'use_field_name_or_array
+    decorator which permits providing the surface as a field name or array. 
+    """
     return(surface)
 
 class FlowAccumulator(Component):
@@ -161,21 +168,23 @@ class FlowAccumulator(Component):
     ...                      flow_director=FlowDirectorSteepest)
 
     Now let's look at what FlowAccumulator does. Even before we run
-    FlowAccumulator it has the property `elevs` that stores the surface over
-    which flow is directed and accumulated.
+    FlowAccumulator it has the property `surface_values` that stores the values
+    of the surface over which flow is directed and accumulated.
 
-    >>> fa.elevs
+    >>> fa.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
 
     Now let's make a more complicated elevation grid for the next examples.
 
     >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 21., 10., 0.,
-    ...                  0., 31., 20., 0.,
-    ...                  0., 32., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg_2.add_field('node','topographic__elevation', elev)
+    >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
+    ...                                    0., 21., 10., 0.,
+    ...                                    0., 31., 20., 0.,
+    ...                                    0., 32., 30., 0.,
+    ...                                    0.,  0.,  0., 0.])
+    >>> _ = mg_2.add_field('node',
+    ...                    'topographic__elevation', 
+    ...                    topographic__elevation)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa_2 = FlowAccumulator(mg_2, 'topographic__elevation',
     ...                        flow_director=FlowDirectorSteepest)
@@ -199,7 +208,9 @@ class FlowAccumulator(Component):
 
     Put the data back into the new grid.
 
-    >>> _ = mg_3.add_field('node','topographic__elevation', elev)
+    >>> _ = mg_3.add_field('node',
+    ...                    'topographic__elevation', 
+    ...                    topographic__elevation)
     >>> mg_3.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa_3 = FlowAccumulator(mg_3, 'topographic__elevation',
     ...                        flow_director=FlowDirectorSteepest)
@@ -225,7 +236,7 @@ class FlowAccumulator(Component):
     ...                   at = 'node')
     >>> fa = FlowAccumulator(hmg, 'topographic__elevation',
     ...                      flow_director=FlowDirectorSteepest)
-    >>> fa.elevs
+    >>> fa.surface_values
     array([ 0. ,  1. ,  2. ,
             0.5,  1.5,  2.5,  3.5,
             1. ,  2. ,  3. ,  4. ,  5. ,
@@ -572,10 +583,7 @@ class FlowAccumulator(Component):
 
         # save elevations and node_cell_area to class properites.
         self.surface = surface
-        surf = return_surface(grid, surface)
-
-        # add elevations as a local variable.
-        self.elevs = surf
+        self.surface_values = _return_surface(grid, surface)
 
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
@@ -607,7 +615,7 @@ class FlowAccumulator(Component):
                 raise ValueError('String provided in flow_director is not a valid method or component name. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
 
-            self.fd = FlowDirector(self._grid, self.elevs)
+            self.fd = FlowDirector(self._grid, self.surface_values)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
              if flow_director._name in PERMITTED_DIRECTORS:
@@ -620,7 +628,7 @@ class FlowAccumulator(Component):
 
             if flow_director._name in PERMITTED_DIRECTORS:
                 FlowDirector = flow_director
-                self.fd = FlowDirector(self._grid, self.elevs)
+                self.fd = FlowDirector(self._grid, self.surface_values)
             else:
                 raise ValueError('Component provided in flow_director is not a valid component. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))

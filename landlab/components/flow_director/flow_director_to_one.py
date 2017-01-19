@@ -59,7 +59,7 @@ class _FlowDirectorToOne(_FlowDirector):
     ...                  mg.node_x + mg.node_y,
     ...                  at = 'node')
     >>> fd = _FlowDirectorToOne(mg, 'topographic__elevation')
-    >>> fd.elevs
+    >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
     ['flow__link_to_receiver_node', 'flow__receiver_node',

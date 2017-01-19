@@ -12,10 +12,14 @@ from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
 
 @use_field_name_or_array('node')
-def return_surface(grid, surface):
+def _return_surface(grid, surface):
     """
+    Private function to return the surface to direct flow over.
+    
+    This function exists to take advantange of the 'use_field_name_or_array
+    decorator which permits providing the surface as a field name or array. 
     """
-    return surface
+    return(surface)
 
 
 class _FlowDirector(Component):
@@ -46,7 +50,7 @@ class _FlowDirector(Component):
     ...                  mg.node_x + mg.node_y,
     ...                  at = 'node')
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
-    >>> fd.elevs
+    >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> list(mg.at_node.keys())
     ['topographic__elevation']
@@ -66,12 +70,9 @@ class _FlowDirector(Component):
         if not self._is_raster:
             self.method = None
 
-        # test input variables are present:
+        # save elevations as class properites.
         self.surface = surface
-        surf = return_surface(grid, surface)
-
-        # add elevations as a local variable.
-        self.elevs = surf
+        self.surface_values = _return_surface(grid, surface)
 
     def run_one_step(self):
 

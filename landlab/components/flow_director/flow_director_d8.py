@@ -67,7 +67,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
     ...                  mg.node_x + mg.node_y,
     ...                  at = 'node')
     >>> fd = FlowDirectorD8(mg, 'topographic__elevation')
-    >>> fd.elevs
+    >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
@@ -80,12 +80,14 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
     >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 21., 10., 0.,
-    ...                  0., 31., 20., 0.,
-    ...                  0., 32., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg_2.add_field('node','topographic__elevation', elev)
+    >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
+    ...                                    0., 21., 10., 0.,
+    ...                                    0., 31., 20., 0.,
+    ...                                    0., 32., 30., 0.,
+    ...                                    0.,  0.,  0., 0.])
+    >>> _ = mg_2.add_field('node',
+    ...                    'topographic__elevation',
+    ...                    topographic__elevation)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorD8(mg_2)
     >>> fd_2.run_one_step()
@@ -164,7 +166,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             self._bc_set_code = self.grid.bc_set_code
 
         # step 1. Calculate link slopes.
-        link_slope = - self._grid._calculate_gradients_at_d8_active_links(self.elevs)
+        link_slope = - self._grid._calculate_gradients_at_d8_active_links(self.surface_values)
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(
@@ -173,14 +175,14 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         # Calculate flow directions by D8 method
         receiver, steepest_slope, sink, recvr_link = \
-        flow_direction_DN.flow_directions(self.elevs,
+        flow_direction_DN.flow_directions(self.surface_values,
                                           self._active_links,
                                           self._activelink_tail,
                                           self._activelink_head,
                                           link_slope,
                                           grid=self._grid,
                                           baselevel_nodes=baselevel_nodes)
-        self.sink = sink
+
 
        # Save the four ouputs of this component.
         self._grid['node']['flow__receiver_node'][:] = receiver
