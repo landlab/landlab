@@ -1249,7 +1249,6 @@ class DepressionFinderAndRouter(Component):
         areas[self._grid.closed_boundary_nodes] = 0.
 
         self.a, q, s = flow_accum_bw.flow_accumulation(self.receivers,
-                                                       np.where(self.sinks)[0],
                                                        node_cell_area=areas,
                                                        runoff_rate=Q_in)
 

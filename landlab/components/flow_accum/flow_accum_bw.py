@@ -10,17 +10,17 @@ steady flow (that is, hydrologic equilibrium).
 
 The main public function is::
 
-    a, q, s = flow_accumulation(r, b)
+    a, q, s = flow_accumulation(r)
 
 which takes an array of receiver-node IDs, r (the nodes that "receive" the flow
 from a each node; this array would be returned by the flow_routing component's
-calc_flowdirs() method), and an array of baselevel nodes, b. It returns Numpy
+calc_flowdirs() method). It returns Numpy
 arrays with the drainage area (a) and discharge (q) at each node, along with an
 array (s) that contains the IDs of the nodes in downstream-to-upstream order.
 
 If you simply want the ordered list by itself, use::
 
-    s = make_ordered_node_array(r, b)
+    s = make_ordered_node_array(r)
 
 Created: GT Nov 2013
 """
@@ -210,7 +210,7 @@ def _make_array_of_donors(r, delta):
     #return D
 
 
-def make_ordered_node_array(receiver_nodes, baselevel_nodes):
+def make_ordered_node_array(receiver_nodes):
     
     """Create an array of node IDs that is arranged in order from.
 
@@ -225,11 +225,12 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
     >>> import numpy as np
     >>> from landlab.components.flow_accum import make_ordered_node_array
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-    >>> b = np.array([4])
-    >>> s = make_ordered_node_array(r, b)
+    >>> s = make_ordered_node_array(r)
     >>> s
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
+    node_id = numpy.arange(receiver_nodes.size)
+    baselevel_nodes = numpy.where(node_id==receiver_nodes)[0]
     nd = _make_number_of_donors_array(receiver_nodes)
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
@@ -317,7 +318,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
+def flow_accumulation(receiver_nodes, node_cell_area=1.0,
                       runoff_rate=1.0, boundary_nodes=None):
     
     """Calculate drainage area and (steady) discharge.
@@ -330,8 +331,7 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     >>> import numpy as np
     >>> from landlab.components.flow_accum import flow_accumulation
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-    >>> b = np.array([4])
-    >>> a, q, s = flow_accumulation(r, b)
+    >>> a, q, s = flow_accumulation(r)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
@@ -340,7 +340,7 @@ def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
 
-    s = make_ordered_node_array(receiver_nodes, baselevel_nodes)
+    s = make_ordered_node_array(receiver_nodes)
     #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     #But as we don't have a copy of the grid accessible here, we'll solve this
     #problem as part of route_flow_dn.

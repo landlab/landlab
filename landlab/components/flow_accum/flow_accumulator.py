@@ -754,7 +754,7 @@ class FlowAccumulator(Component):
             nd = flow_accum_bw._make_number_of_donors_array(r)
             delta = flow_accum_bw._make_delta_array(nd)
             D = flow_accum_bw._make_array_of_donors(r, delta)
-            s = flow_accum_bw.make_ordered_node_array(r, self.fd.sink)
+            s = flow_accum_bw.make_ordered_node_array(r)
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid

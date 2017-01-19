@@ -365,7 +365,7 @@ class FlowRouter(Component):
 
         # Calculate drainage area, discharge, and ...
         a, q, s = flow_accum_bw.flow_accumulation(
-            receiver, sink, node_cell_area=node_cell_area,
+            receiver, node_cell_area=node_cell_area,
             runoff_rate=self._grid.at_node['water__unit_flux_in'])
 
         # added DEJH March 2014:

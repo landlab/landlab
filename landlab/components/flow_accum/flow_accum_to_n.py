@@ -22,9 +22,9 @@ recommended.
 If water discharge is calculated, the result assumes steady flow (that is,
 hydrologic equilibrium).
 
-The main public function is::
+The main public function is:
 
-    a, q, s = flow_accumulation_to_n(r, p, b)
+    a, q, s = flow_accumulation_to_n(r, p)
 
 which takes the following inputs:
 
@@ -35,9 +35,6 @@ which takes the following inputs:
     p, an (np, q) array that identifies the proportion of flow going to each
     receiver. For each q elements along the np axis, sum(p(i, :)) must equal
     1. This array would be returned by the flow_routing component.
-
-    b, a (nb,) array of baselevel nodes where nb is the number of base level
-    nodes.
 
 It returns Numpy arrays with the drainage area (a) and discharge (q) at each
 node, along with an array (s) that contains the IDs of the nodes in downstream-
@@ -340,10 +337,11 @@ def _make_array_of_donors_to_n(r, p, delta):
     # return D
 
 
-def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
-                                 baselevel_nodes, set_stack=False):
+def make_ordered_node_array_to_n(receiver_nodes, 
+                                 receiver_proportion,
+                                 set_stack=False):
     
-    """Create an array of node IDs that is arranged in order from.
+    """Create an array of node IDs.
 
     Creates and returns an array of node IDs that is arranged in order from
     downstream to upstream.
@@ -376,8 +374,7 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
     ...               [ 0.55,  0.45],
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
-    >>> b = np.array([4])
-    >>> s = make_ordered_node_array_to_n(r, p,  b)
+    >>> s = make_ordered_node_array_to_n(r, p)
     >>> s[0] == 4
     True
     >>> s[1] == 5
@@ -391,6 +388,8 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
     >>> len(set([0, 3, 8])-set(s[6:9]))
     0
     """
+    node_id = numpy.arange(receiver_nodes.shape[0])
+    baselevel_nodes = numpy.where(node_id==receiver_nodes[:,0])[0]
     nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
     delta = _make_delta_array_to_n(nd)
     D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
@@ -528,9 +527,11 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
-                           baselevel_nodes, node_cell_area=1.0,
-                           runoff_rate=1.0, boundary_nodes=None):
+def flow_accumulation_to_n(receiver_nodes, 
+                           receiver_proportions,
+                           node_cell_area=1.0,
+                           runoff_rate=1.0, 
+                           boundary_nodes=None):
 
     """Calculate drainage area and (steady) discharge.
 
@@ -562,8 +563,7 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
     ...               [ 0.55,  0.45],
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
-    >>> b = np.array([4])
-    >>> a, q, s = flow_accumulation_to_n(r, p, b)
+    >>> a, q, s = flow_accumulation_to_n(r, p)
     >>> a
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
@@ -587,8 +587,7 @@ def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
     assert receiver_nodes.shape == receiver_proportions.shape, \
         'r and p arrays are not the same shape'
 
-    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions,
-                                     baselevel_nodes)
+    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
     # Note that this ordering of s DOES INCLUDE closed nodes. It really
     # shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this
