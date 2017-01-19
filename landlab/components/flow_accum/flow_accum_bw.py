@@ -1,14 +1,12 @@
 #!/usr/env/python
 
 """
-Short Description.
-
-flow_accum_bw.py:
+flow_accum_bw.py: Implementation of the Braun & Willet (2012) stack alorithm. 
 
 Implementation of Braun & Willett (2012) algorithm for calculating drainage
-area and (optionally) water discharge. Assumes each node has only one downstream
-receiver. If water discharge is calculated, the result assumes steady flow
-(that is, hydrologic equilibrium).
+area and (optionally) water discharge. Assumes each node has only one 
+downstream receiver. If water discharge is calculated, the result assumes 
+steady flow (that is, hydrologic equilibrium).
 
 The main public function is::
 
@@ -26,20 +24,26 @@ If you simply want the ordered list by itself, use::
 
 Created: GT Nov 2013
 """
+import numpy
 from six.moves import range
 from .cfuncs import _add_to_stack
 
-import numpy
-
-
 class _DrainageStack():
+    
+    
     """
+    Implements Braun & Willett's add_to_stack function. 
+    
     The _DrainageStack() class implements Braun & Willett's add_to_stack
     function (as a method) and also keeps track of the counter (j) and the
     stack (s). It is used by the make_ordered_node_array() function.
     """
+    
     def __init__(self, delta, D):
+        
         """
+        Initializes the _Drainage_Stack class. 
+        
         Initializes the index counter j to zero, creates the stack array s,
         and stores references to delta and D.
         """
@@ -49,6 +53,7 @@ class _DrainageStack():
         self.D = D
 
     def add_to_stack(self, l):
+        
         """
         Adds node l to the stack and increments the current index (j).
 
@@ -69,6 +74,7 @@ class _DrainageStack():
 
 
 def _make_number_of_donors_array(r):
+    
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
@@ -109,7 +115,10 @@ def _make_number_of_donors_array(r):
 
 
 def _make_delta_array(nd):
+    
     r"""
+    Delta array.
+    
     Creates and returns the "delta" array, which is a list containing, for each
     node, the array index where that node's donor list begins.
 
@@ -152,6 +161,7 @@ def _make_delta_array(nd):
     return delta
 
 def _make_array_of_donors(r, delta):
+    
     """
     Creates and returns an array containing the IDs of donors for each node.
 
@@ -201,6 +211,7 @@ def _make_array_of_donors(r, delta):
 
 
 def make_ordered_node_array(receiver_nodes, baselevel_nodes):
+    
     """Create an array of node IDs that is arranged in order from.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -232,6 +243,7 @@ def make_ordered_node_array(receiver_nodes, baselevel_nodes):
 
 def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
                                      boundary_nodes=None):
+    
     """Calculate the drainage area and water discharge at each node.
 
     Parameters
@@ -278,7 +290,6 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     >>> q
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     """
-
     # Number of points
     np = len(s)
 
@@ -308,6 +319,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
 def flow_accumulation(receiver_nodes, baselevel_nodes, node_cell_area=1.0,
                       runoff_rate=1.0, boundary_nodes=None):
+    
     """Calculate drainage area and (steady) discharge.
 
     Calculates and returns the drainage area and (steady) discharge at each
