@@ -1,6 +1,8 @@
 #!/usr/env/python
 
 """
+Short description.
+
 flow_accum_to_n.py:
 
 Algorithm for route to multiple (N) flow accumulation. Inspiration for data
@@ -54,6 +56,8 @@ import numpy
 
 class _DrainageStack_to_n():
     """
+    Short description.
+
     The _DrainageStack() class implements a set based approach to constructing
     a stack with similar properties to the stack constructed by Braun and
     Willet (2013). It constructs an list, s, of all nodes in the grid such that
@@ -67,6 +71,8 @@ class _DrainageStack_to_n():
     def __init__(self, delta, D):
         """
         Creates the stack array s and stores references to delta and D.
+
+        Long description.
         """
 
         self.s = list()
@@ -76,6 +82,8 @@ class _DrainageStack_to_n():
 
     def construct__stack(self, l):
         """
+        Short description.
+
         Function to add all nodes upstream of base level node l in an order
         such that downstream nodes always occur before upstream nodes.
 
@@ -122,7 +130,6 @@ class _DrainageStack_to_n():
         0
         >>> len(set([0, 3, 8])-set(ds.s[6:9]))
         0
-
         """
 
         base = set([l])
@@ -211,6 +218,8 @@ def _make_number_of_donors_array_to_n(r, p):
 
 def _make_delta_array_to_n(nd):
     r"""
+    Short description.
+
     Creates and returns the "delta" array, which is a list containing, for each
     node, the array index where that node's donor list begins.
 
@@ -258,6 +267,7 @@ def _make_delta_array_to_n(nd):
 def _make_array_of_donors_to_n(r, p, delta):
     """
     Creates and returns an array containing the IDs of donors for each node.
+
     Essentially, the array is a series of lists (not in the Python list object
     sense) of IDs for each node. See Braun & Willett (2012) for details.
 
@@ -376,8 +386,6 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion,
     0
     >>> len(set([0, 3, 8])-set(s[6:9]))
     0
-
-
     """
     nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
     delta = _make_delta_array_to_n(nd)
@@ -463,11 +471,8 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     >>> q
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-
     """
-
     # Number of points
-
     np = r.shape[0]
     q = r.shape[1]
 
@@ -521,6 +526,7 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
 def flow_accumulation_to_n(receiver_nodes, receiver_proportions,
                            baselevel_nodes, node_cell_area=1.0,
                            runoff_rate=1.0, boundary_nodes=None):
+
     """Calculate drainage area and (steady) discharge.
 
     Calculates and returns the drainage area and (steady) discharge at each

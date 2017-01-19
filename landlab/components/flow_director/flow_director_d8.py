@@ -1,4 +1,13 @@
-from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
+#! /usr/env/python
+
+"""
+Summary line.
+
+Description text.
+"""
+
+from landlab.components.flow_director.flow_director_to_one import(
+_FlowDirectorToOne)
 from landlab.components.flow_director import flow_direction_DN
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import VoronoiDelaunayGrid
@@ -6,7 +15,12 @@ from landlab import VoronoiDelaunayGrid
 import numpy
 
 class FlowDirectorD8(_FlowDirectorToOne):
-    """Single-path (steepest direction) flow direction finding on raster grids
+
+
+    """
+    Summary line.
+
+    Single-path (steepest direction) flow direction finding on raster grids
      by the D8 method. This method considers flow on all eight links such that
      flow is possible on orthogonal and on diagonal links.
 
@@ -94,6 +108,12 @@ class FlowDirectorD8(_FlowDirectorToOne):
     _name = 'FlowDirectorD8'
 
     def __init__(self, grid, surface='topographic__elevation'):
+
+        """
+        Short Description.
+
+        Long Description.
+        """
         self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
@@ -106,11 +126,13 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
     def updated_boundary_conditions(self):
+
         """
+        Short description
+
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
         """
-
         dal, d8t, d8h = self.grid._d8_active_links()
         self._active_links = dal
         self._activelink_tail = d8t
@@ -118,18 +140,31 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
     def run_one_step(self):
+
+
+        """
+        Summary line.
+
+        Description text.
+        """
         self.direct_flow()
 
 
     def direct_flow(self):
+
+
+        """
+        Summary line.
+
+        Description text.
+        """
         # step 0. Check and update BCs
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self.grid.bc_set_code
 
         # step 1. Calculate link slopes.
-        link_slope = - self._grid._calculate_gradients_at_d8_active_links(
-                self.elevs)
+        link_slope = - self._grid._calculate_gradients_at_d8_active_links(self.elevs)
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(
@@ -138,11 +173,13 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         # Calculate flow directions by D8 method
         receiver, steepest_slope, sink, recvr_link = \
-        flow_direction_DN.flow_directions(self.elevs, self._active_links,
-                                     self._activelink_tail,
-                                     self._activelink_head, link_slope,
-                                     grid=self._grid,
-                                     baselevel_nodes=baselevel_nodes)
+        flow_direction_DN.flow_directions(self.elevs,
+                                          self._active_links,
+                                          self._activelink_tail,
+                                          self._activelink_head,
+                                          link_slope,
+                                          grid=self._grid,
+                                          baselevel_nodes=baselevel_nodes)
         self.sink = sink
 
        # Save the four ouputs of this component.

@@ -1,6 +1,8 @@
 #!/usr/env/python
 
 """
+Short Description.
+
 flow_accum_bw.py:
 
 Implementation of Braun & Willett (2012) algorithm for calculating drainage
@@ -152,6 +154,7 @@ def _make_delta_array(nd):
 def _make_array_of_donors(r, delta):
     """
     Creates and returns an array containing the IDs of donors for each node.
+
     Essentially, the array is a series of lists (not in the Python list object
     sense) of IDs for each node. See Braun & Willett (2012) for details.
 

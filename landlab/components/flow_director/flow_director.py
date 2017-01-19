@@ -1,18 +1,24 @@
 #! /usr/env/python
-from __future__ import print_function
 
+"""
+Short title.
+
+Description text.
+"""
+
+from __future__ import print_function
 from landlab import Component
 from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
 
-
 @use_field_name_or_array('node')
 def return_surface(grid, surface):
-    return(surface)
+    """
+    """
+    return surface
 
 
 class _FlowDirector(Component):
-
     """
     Private class for creating components to calculate flow directions.
 
@@ -50,6 +56,7 @@ class _FlowDirector(Component):
 
     def __init__(self, grid, surface):
         # We keep a local reference to the grid
+        super(_FlowDirector, self).__init__(grid)
 
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
@@ -66,10 +73,14 @@ class _FlowDirector(Component):
         # add elevations as a local variable.
         self.elevs = surf
 
-
     def run_one_step(self):
-        raise NotImplementedError('run_one_step()')
 
+        """
+        Short Description.
+
+        Long description.
+        """
+        raise NotImplementedError('run_one_step()')
 
 if __name__ == '__main__':
     import doctest

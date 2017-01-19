@@ -1,5 +1,11 @@
 #!/usr/env/python
 
+"""
+Summary line.
+
+Description text.
+"""
+
 from __future__ import print_function
 
 import warnings
@@ -22,6 +28,7 @@ def return_surface(grid, surface):
     return(surface)
 
 class FlowAccumulator(Component):
+
 
     """
     Component to accumulate flow and calculate drainage area.
@@ -494,6 +501,14 @@ class FlowAccumulator(Component):
                  flow_director='FlowDirectorD4',
                  runoff_rate=None,
                  depression_finder=None):
+
+
+        """
+        Summary line.
+
+        Description
+        """
+        super(FlowAccumulator, self).__init__(grid)
         # Keep a local reference to the grid
         self._grid = grid
 
@@ -719,6 +734,12 @@ class FlowAccumulator(Component):
 
     def run_one_step(self):
 
+
+        """
+        Summary line.
+
+        Description
+        """
         # step 1. Find flow directions by specified method
         self.fd.run_one_step()
 

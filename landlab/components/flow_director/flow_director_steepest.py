@@ -1,3 +1,11 @@
+#! /usr/env/python
+
+"""
+Summary line.
+
+Description text.
+"""
+
 from landlab.components.flow_director.flow_director_to_one import(
 _FlowDirectorToOne)
 from landlab.components.flow_director import flow_direction_DN
@@ -6,7 +14,12 @@ from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
-    """Single-path (steepest direction) flow direction. This method is
+
+
+    """
+    Summary line.
+
+    Single-path (steepest direction) flow direction. This method is
     equivalent to D4 method in the special case of a raster grid.
 
      Stores as ModelGrid fields:
@@ -137,6 +150,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     _name = 'FlowDirectorSteepest'
 
     def __init__(self, grid, surface='topographic__elevation'):
+
+        """
+        Short Description.
+
+        Long Description.
+        """
         self.method = 'D4'
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
@@ -144,21 +163,36 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
 
     def updated_boundary_conditions(self):
+
         """
+        Summary line.
+
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
         """
-
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
 
     def run_one_step(self):
+
+        """
+        Summary line.
+
+        Description text.
+        """
+
         self.direct_flow()
 
 
     def direct_flow(self):
+
+        """
+        Summary line.
+
+        Description text.
+        """
          # step 0. Check and update BCs
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
