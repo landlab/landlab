@@ -26,6 +26,8 @@ import six
 
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
+    
+    
     """
     Private function to return the surface to direct flow over.
     
@@ -55,7 +57,6 @@ class FlowAccumulator(Component):
     if the  gradients from them point inwards to the main body of the grid.
     This is because under Landlab definitions, perimeter nodes lack cells, so
     cannot accumulate any discharge.
-
 
     FlowAccumulator stores as ModelGrid fields:
 
@@ -94,6 +95,10 @@ class FlowAccumulator(Component):
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`
+    
+    `run_one_step` takes the optional argument update_flow_director (default is
+    True) that determines if the flow_director is re-run before flow is 
+    accumulated. 
 
     Parameters
     ----------
@@ -117,7 +122,6 @@ class FlowAccumulator(Component):
          uninstantiated DepressionFinder class, or an instance of a
          DepressionFinder class.
          This sets the method for depression finding.
-
 
     Examples
     --------
@@ -515,9 +519,11 @@ class FlowAccumulator(Component):
 
 
         """
-        Summary line.
+        Method to initialize the FlowAccumulator component
 
-        Description
+        Saves the grid, tests grid type, tests imput types and compatability
+        for the flow_director and depression_finder keyword arguments, tests
+        the argument of runoff_rate, and initializes new fields. 
         """
         super(FlowAccumulator, self).__init__(grid)
         # Keep a local reference to the grid
@@ -740,16 +746,25 @@ class FlowAccumulator(Component):
         return self._grid['node']['flow__data_structure_delta']
 
 
-    def run_one_step(self):
+    def run_one_step(self, update_flow_director=True):
 
 
         """
-        Summary line.
+        Function to make FlowAccumulator calculate drainage area and discharge.
 
-        Description
+        Running run_one_step() results in the following to occur:
+            1. Flow directions are updated (unless update_flow_director is set
+            as False).
+            2. Intermediate steps that analyse the drainage network topology
+            and create datastructures for efficient drainage area and discharge
+            calculations.
+            3. Calculation of drainage area and discharge.
+            4. Depression finding and mapping, which updates drainage area and
+            discharge. 
         """
         # step 1. Find flow directions by specified method
-        self.fd.run_one_step()
+        if update_flow_director == True:
+            self.fd.run_one_step()
 
         # further steps vary depending on how many recievers are present
         # one set of steps is for route to one (D8, Steepest/D4)
