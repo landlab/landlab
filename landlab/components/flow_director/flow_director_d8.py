@@ -3,10 +3,10 @@
 """
 flow_director_d8.py: provides the component FlowDirectorsD8.
 
-This components finds the steepest single-path steepest descent flow 
-directions and considers diagonal links between nodes on a raster grid. It is 
-not implemented for irregular grids. For a method that works for irregular 
-grids and does not consider diagonal links for rasters, use 
+This components finds the steepest single-path steepest descent flow
+directions and considers diagonal links between nodes on a raster grid. It is
+not implemented for irregular grids. For a method that works for irregular
+grids and does not consider diagonal links for rasters, use
 FlowDirectorSteepest instead.
 """
 
@@ -22,7 +22,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
     """
-    Single-path (steepest direction) flow direction with diagonals on rasters. 
+    Single-path (steepest direction) flow direction with diagonals on rasters.
 
     Single-path (steepest direction) flow direction finding on raster grids
     by the D8 method. This method considers flow on all eight links such that
@@ -146,14 +146,14 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
         """
-        Find flow directions and save to the model grid. 
+        Find flow directions and save to the model grid.
 
-        run_one_step() checks for updated boundary conditions, calculates 
+        run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
         calculates flow directions, and saves results to the grid.
-        
+
         an alternative to direct_flow() is direct_flow() which does the same
-        things but also returns the reciever nodes not return values. 
+        things but also returns the reciever nodes not return values.
         """
         self.direct_flow()
 
@@ -162,9 +162,18 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
         """
-        Summary line.
+        Find flow directions, save to the model grid, and return recievers.
 
-        Description text.
+        direct_flow() checks for updated boundary conditions, calculates
+        slopes on links, finds baselevel nodes based on the status at node,
+        calculates flow directions, saves results to the grid, and returns a
+        at-node array  of receiver nodes. This array is stored in the grid at:
+        grid['node']['flow__receiver_node']
+
+        an alternative to direct_flow() is run_one_step() which does the same
+        things but also returns a at-node array  of receiver nodes. This array
+        is stored in the grid at:
+        grid['node']['flow__receiver_node']
         """
         # step 0. Check and update BCs
         if self._bc_set_code != self.grid.bc_set_code:

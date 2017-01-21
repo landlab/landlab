@@ -3,7 +3,7 @@
 """
 Short description.
 
-flow_accum_to_n.py: Implementation a route-to-multiple drainage stack alorithm. 
+flow_accum_to_n.py: Implementation a route-to-multiple drainage stack alorithm.
 
 
 Algorithm for route to multiple (N) flow accumulation. Inspiration for data
@@ -50,14 +50,14 @@ import numpy
 from six.moves import range
 
 class _DrainageStack_to_n():
-    
+
     """
-    Implementation of the DrainageStack_to_n class. 
-    
-    The _DrainageStack_to_n() class implements a set based approach to 
-    constructing a stack with similar properties to the stack constructed by 
-    Braun & Willet (2013). It constructs an list, s, of all nodes in the grid 
-    such that a given node is always located earlier in the list than all 
+    Implementation of the DrainageStack_to_n class.
+
+    The _DrainageStack_to_n() class implements a set based approach to
+    constructing a stack with similar properties to the stack constructed by
+    Braun & Willet (2013). It constructs an list, s, of all nodes in the grid
+    such that a given node is always located earlier in the list than all
     upstream nodes that contribute to it.
 
     It is used by the make_ordered_node_array_to_n() function.
@@ -65,12 +65,12 @@ class _DrainageStack_to_n():
 
 
     def __init__(self, delta, D):
-        
+
         """
         Creates the stack array s and stores references to delta and D.
 
-        Initialization of the _DrainageStack_to_n() class including storing 
-        delta and D. 
+        Initialization of the _DrainageStack_to_n() class including storing
+        delta and D.
         """
 
         self.s = list()
@@ -80,7 +80,7 @@ class _DrainageStack_to_n():
 
     def construct__stack(self, l):
         """
-        Function to construct the drainage stack. 
+        Function to construct the drainage stack.
 
         Function to add all nodes upstream of base level node l in an order
         such that downstream nodes always occur before upstream nodes.
@@ -148,7 +148,7 @@ class _DrainageStack_to_n():
 
 
 def _make_number_of_donors_array_to_n(r, p):
-    
+
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
@@ -217,8 +217,8 @@ def _make_number_of_donors_array_to_n(r, p):
 
 def _make_delta_array_to_n(nd):
     r"""
-    Function to create the delta array. 
-    
+    Function to create the delta array.
+
     Creates and returns the "delta" array, which is a list containing, for each
     node, the array index where that node's donor list begins.
 
@@ -264,7 +264,7 @@ def _make_delta_array_to_n(nd):
 
 
 def _make_array_of_donors_to_n(r, p, delta):
-    
+
     """
     Creates and returns an array containing the IDs of donors for each node.
 
@@ -337,10 +337,10 @@ def _make_array_of_donors_to_n(r, p, delta):
     # return D
 
 
-def make_ordered_node_array_to_n(receiver_nodes, 
+def make_ordered_node_array_to_n(receiver_nodes,
                                  receiver_proportion,
                                  set_stack=False):
-    
+
     """Create an array of node IDs.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -406,9 +406,9 @@ def make_ordered_node_array_to_n(receiver_nodes,
 
 def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
                                           runoff=1.0, boundary_nodes=None):
-    
+
     """Calculate the drainage area and water discharge at each node.
-    
+
     Parameters
     ----------
     s : ndarray of int
@@ -527,10 +527,10 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation_to_n(receiver_nodes, 
+def flow_accumulation_to_n(receiver_nodes,
                            receiver_proportions,
                            node_cell_area=1.0,
-                           runoff_rate=1.0, 
+                           runoff_rate=1.0,
                            boundary_nodes=None):
 
     """Calculate drainage area and (steady) discharge.

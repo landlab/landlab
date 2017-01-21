@@ -3,8 +3,8 @@
 """
 flow_director_to_one.py provides a private class to help create FlowDirectors
 
-Provides the _FlowDirectorToOne component which makes sure all model grid 
-fields are set up correctly. 
+Provides the _FlowDirectorToOne component which makes sure all model grid
+fields are set up correctly.
 """
 
 from landlab import FieldError
@@ -147,9 +147,9 @@ class _FlowDirectorToOne(_FlowDirector):
     def run_one_step(self):
 
         """
-        run_one_step is not implemented for this component. 
+        run_one_step is not implemented for this component.
         """
-        
+
         raise NotImplementedError('run_one_step()')
 
 

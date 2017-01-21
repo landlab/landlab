@@ -3,9 +3,9 @@
 """
 flow_director_steepest.py: provides the component FlowDirectorsSteepest.
 
-This components finds the steepest single-path steepest descent flow 
+This components finds the steepest single-path steepest descent flow
 directions. It is equivalent to D4 method in the special case of a raster grid
-in that it does not consider diagonal links between nodes. For that capability, 
+in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
@@ -20,11 +20,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
 
     """
-    Single-path (steepest direction) flow direction without diagonals. 
-    
-    This components finds the steepest single-path steepest descent flow 
-    directions. It is equivalent to D4 method in the special case of a raster 
-    grid in that it does not consider diagonal links between nodes. For that 
+    Single-path (steepest direction) flow direction without diagonals.
+
+    This components finds the steepest single-path steepest descent flow
+    directions. It is equivalent to D4 method in the special case of a raster
+    grid in that it does not consider diagonal links between nodes. For that
     capability, use FlowDirectorD8.
 
      Stores as ModelGrid fields:
@@ -85,7 +85,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field('node',
-    ...                    'topographic__elevation', 
+    ...                    'topographic__elevation',
     ...                    topographic__elevation)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorSteepest(mg_2)
@@ -183,15 +183,15 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     def run_one_step(self):
 
         """
-        Find flow directions and save to the model grid. 
+        Find flow directions and save to the model grid.
 
 
-        run_one_step() checks for updated boundary conditions, calculates 
+        run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
         calculates flow directions, and saves results to the grid.
-        
+
         an alternative to direct_flow() is direct_flow() which does the same
-        things but also returns the reciever nodes not return values. 
+        things but also returns the reciever nodes not return values.
         """
 
         self.direct_flow()
@@ -200,17 +200,17 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     def direct_flow(self):
 
         """
-        Find flow directions, save to the model grid, and return recievers. 
+        Find flow directions, save to the model grid, and return recievers.
 
-        direct_flow() checks for updated boundary conditions, calculates 
+        direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
         calculates flow directions, saves results to the grid, and returns a
-        at-node array  of receiver nodes. This array is stored in the grid at: 
+        at-node array  of receiver nodes. This array is stored in the grid at:
         grid['node']['flow__receiver_node']
-        
+
         an alternative to direct_flow() is run_one_step() which does the same
-        things but also returns a at-node array  of receiver nodes. This array 
-        is stored in the grid at: 
+        things but also returns a at-node array  of receiver nodes. This array
+        is stored in the grid at:
         grid['node']['flow__receiver_node']
         """
          # step 0. Check and update BCs
@@ -229,7 +229,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link = \
-        flow_direction_DN.flow_directions(self.surface_values, 
+        flow_direction_DN.flow_directions(self.surface_values,
                                           self._active_links,
                                           self._activelink_tail,
                                           self._activelink_head,

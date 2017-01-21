@@ -5,7 +5,7 @@ flow_director.py provides a private class to help create FlowDirectors
 
 Provides the _FlowDirector component which does grid type testing, adds the
 surface over which flow will be routed to the component, and sets up part of
-the boundary condition testing. 
+the boundary condition testing.
 """
 
 from __future__ import print_function
@@ -17,9 +17,9 @@ from landlab.utils.decorators import use_field_name_or_array
 def _return_surface(grid, surface):
     """
     Private function to return the surface to direct flow over.
-    
+
     This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array. 
+    decorator which permits providing the surface as a field name or array.
     """
     return(surface)
 
@@ -61,7 +61,7 @@ class _FlowDirector(Component):
     _name = '_FlowDirector'
 
     def __init__(self, grid, surface):
-        
+
         """
         Initialize the _FlowDirector
         """
@@ -83,7 +83,7 @@ class _FlowDirector(Component):
     def run_one_step(self):
 
         """
-        run_one_step is not implemented for this component. 
+        run_one_step is not implemented for this component.
         """
         raise NotImplementedError('run_one_step()')
 

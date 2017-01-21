@@ -5,8 +5,8 @@ flow_accumulator.py: Component to accumulate flow and calculate drainage area.
 
 Provides the FlowAccumulator component which accumulates flow and calculates
 drainage area. FlowAccumulator supports multiple methods for calculating flow
-direction. Optionally a depression finding component can be specified and flow 
-directing, depression finding, and flow routing can all be accomplished 
+direction. Optionally a depression finding component can be specified and flow
+directing, depression finding, and flow routing can all be accomplished
 together.
 """
 
@@ -26,13 +26,13 @@ import six
 
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
-    
-    
+
+
     """
     Private function to return the surface to direct flow over.
-    
+
     This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array. 
+    decorator which permits providing the surface as a field name or array.
     """
     return(surface)
 
@@ -95,10 +95,10 @@ class FlowAccumulator(Component):
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`
-    
+
     `run_one_step` takes the optional argument update_flow_director (default is
-    True) that determines if the flow_director is re-run before flow is 
-    accumulated. 
+    True) that determines if the flow_director is re-run before flow is
+    accumulated.
 
     Parameters
     ----------
@@ -187,7 +187,7 @@ class FlowAccumulator(Component):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field('node',
-    ...                    'topographic__elevation', 
+    ...                    'topographic__elevation',
     ...                    topographic__elevation)
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa_2 = FlowAccumulator(mg_2, 'topographic__elevation',
@@ -213,7 +213,7 @@ class FlowAccumulator(Component):
     Put the data back into the new grid.
 
     >>> _ = mg_3.add_field('node',
-    ...                    'topographic__elevation', 
+    ...                    'topographic__elevation',
     ...                    topographic__elevation)
     >>> mg_3.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa_3 = FlowAccumulator(mg_3, 'topographic__elevation',
@@ -523,7 +523,7 @@ class FlowAccumulator(Component):
 
         Saves the grid, tests grid type, tests imput types and compatability
         for the flow_director and depression_finder keyword arguments, tests
-        the argument of runoff_rate, and initializes new fields. 
+        the argument of runoff_rate, and initializes new fields.
         """
         super(FlowAccumulator, self).__init__(grid)
         # Keep a local reference to the grid
@@ -760,7 +760,7 @@ class FlowAccumulator(Component):
             calculations.
             3. Calculation of drainage area and discharge.
             4. Depression finding and mapping, which updates drainage area and
-            discharge. 
+            discharge.
         """
         # step 1. Find flow directions by specified method
         if update_flow_director == True:
