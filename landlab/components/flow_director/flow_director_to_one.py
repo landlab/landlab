@@ -1,7 +1,7 @@
 #! /usr/env/python
 
 """
-flow_director_to_one.py provides a private class to help create FlowDirectors
+flow_director_to_one.py provides a private class to help create FlowDirectors.
 
 Provides the _FlowDirectorToOne component which makes sure all model grid
 fields are set up correctly.
@@ -12,8 +12,8 @@ from landlab.components.flow_director.flow_director import _FlowDirector
 import numpy
 from landlab import BAD_INDEX_VALUE
 
-class _FlowDirectorToOne(_FlowDirector):
 
+class _FlowDirectorToOne(_FlowDirector):
 
     """
     Private class for creating components to calculate flow directions.
@@ -105,16 +105,9 @@ class _FlowDirectorToOne(_FlowDirector):
         'flow__sink_flag': 'Boolean array, True at local lows',
     }
 
-
     def __init__(self, grid, surface):
-
-
-        """
-        Initialize the _FlowDirectorTo_One
-        """
-
+        """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
-
         super(_FlowDirectorToOne, self).__init__(grid, surface)
         self.to_n_receivers = 'one'
         # initialize new fields
@@ -143,31 +136,30 @@ class _FlowDirectorToOne(_FlowDirector):
         grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
                        noclobber=False)
 
-
     def run_one_step(self):
-
-        """
-        run_one_step is not implemented for this component.
-        """
+        """run_one_step is not implemented for this component."""
 
         raise NotImplementedError('run_one_step()')
-
 
     # set properties. These are the same for all DirectToOne Directors
     @property
     def node_receiving_flow(self):
+        """Return the node id of the node receiving flow."""
         return self._grid['node']['flow__receiver_node']
 
     @property
     def node_steepest_slope(self):
+        """Return the steepest link slope at a node."""
         return self._grid['node']['topographic__steepest_slope']
 
     @property
     def link_to_flow_receiving_node(self):
+        """Return the link id along the link transporting flow."""
         return self._grid['node']['flow__link_to_receiver_node']
 
     @property
     def sink_flag(self):
+        """Return the array with sink flags."""
         return self._grid['node']['flow__sink_flag']
 
 

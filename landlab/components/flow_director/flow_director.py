@@ -1,7 +1,7 @@
 #! /usr/env/python
 
 """
-flow_director.py provides a private class to help create FlowDirectors
+flow_director.py provides a private class to help create FlowDirectors.
 
 Provides the _FlowDirector component which does grid type testing, adds the
 surface over which flow will be routed to the component, and sets up part of
@@ -13,6 +13,7 @@ from landlab import Component
 from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
 
+
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
     """
@@ -21,10 +22,10 @@ def _return_surface(grid, surface):
     This function exists to take advantange of the 'use_field_name_or_array
     decorator which permits providing the surface as a field name or array.
     """
-    return(surface)
-
+    return surface
 
 class _FlowDirector(Component):
+
     """
     Private class for creating components to calculate flow directions.
 
@@ -61,10 +62,7 @@ class _FlowDirector(Component):
     _name = '_FlowDirector'
 
     def __init__(self, grid, surface):
-
-        """
-        Initialize the _FlowDirector
-        """
+        """Initialize the _FlowDirector class."""
         # We keep a local reference to the grid
         super(_FlowDirector, self).__init__(grid)
 
@@ -81,10 +79,7 @@ class _FlowDirector(Component):
         self.surface_values = _return_surface(grid, surface)
 
     def run_one_step(self):
-
-        """
-        run_one_step is not implemented for this component.
-        """
+        """run_one_step is not implemented for this component."""
         raise NotImplementedError('run_one_step()')
 
 if __name__ == '__main__':

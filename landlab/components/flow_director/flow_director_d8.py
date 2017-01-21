@@ -15,11 +15,10 @@ _FlowDirectorToOne)
 from landlab.components.flow_director import flow_direction_DN
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import VoronoiDelaunayGrid
-
 import numpy
 
-class FlowDirectorD8(_FlowDirectorToOne):
 
+class FlowDirectorD8(_FlowDirectorToOne):
 
     """
     Single-path (steepest direction) flow direction with diagonals on rasters.
@@ -101,7 +100,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             12, 10, 10, 15,
             16, 17, 18, 19])
 
-    The flow directors also have the ability to return the flow reciever nodes
+    The flow directors also have the ability to return the flow receiver nodes
 
     >>> receiver = fd.direct_flow()
     >>> receiver
@@ -113,9 +112,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
     _name = 'FlowDirectorD8'
 
     def __init__(self, grid, surface='topographic__elevation'):
-
         """
-        Initializes FlowDirectorD8
+        Initialize FlowDirectorD8
         """
         self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
@@ -127,11 +125,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         self.updated_boundary_conditions()
 
-
     def updated_boundary_conditions(self):
-
         """
-         Method to update FlowDirectorD8 when boundary conditions change.
+        Method to update FlowDirectorD8 when boundary conditions change.
 
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
@@ -141,10 +137,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._activelink_tail = d8t
         self._activelink_head = d8h
 
-
     def run_one_step(self):
-
-
         """
         Find flow directions and save to the model grid.
 
@@ -153,16 +146,13 @@ class FlowDirectorD8(_FlowDirectorToOne):
         calculates flow directions, and saves results to the grid.
 
         an alternative to direct_flow() is direct_flow() which does the same
-        things but also returns the reciever nodes not return values.
+        things but also returns the receiver nodes not return values.
         """
         self.direct_flow()
 
-
     def direct_flow(self):
-
-
         """
-        Find flow directions, save to the model grid, and return recievers.
+        Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
@@ -197,9 +187,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
                                           link_slope,
                                           grid=self._grid,
                                           baselevel_nodes=baselevel_nodes)
-
-
-       # Save the four ouputs of this component.
+        # Save the four ouputs of this component.
         self._grid['node']['flow__receiver_node'][:] = receiver
         self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
         self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
@@ -208,7 +196,6 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._grid['node']['flow__sink_flag'][sink] = True
 
         return receiver
-
 
 if __name__ == '__main__':
     import doctest

@@ -24,6 +24,7 @@ from landlab.components.flow_accum import flow_accum_to_n
 from landlab import BAD_INDEX_VALUE
 import six
 
+
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
 
@@ -37,7 +38,6 @@ def _return_surface(grid, surface):
     return(surface)
 
 class FlowAccumulator(Component):
-
 
     """
     Component to accumulate flow and calculate drainage area.
@@ -424,7 +424,7 @@ class FlowAccumulator(Component):
     The depression finder is stored as part of the flow accumulator, so its
     properties can be accessed through the depression finder.
 
-    >>> fa_5.df.lake_at_node.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.depression_finder.lake_at_node.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -432,7 +432,7 @@ class FlowAccumulator(Component):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> fa_5.df.lake_map.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.depression_finder.lake_map.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -440,11 +440,11 @@ class FlowAccumulator(Component):
            [-1, -1, 16, 16, 16, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1]])
-    >>> fa_5.df.lake_codes  # a unique code for each lake present on the grid
+    >>> fa_5.depression_finder.lake_codes  # a unique code for each lake present on the grid
     array([16])
-    >>> fa_5.df.lake_outlets  # the outlet node of each lake in lake_codes
+    >>> fa_5.depression_finder.lake_outlets  # the outlet node of each lake in lake_codes
     array([8])
-    >>> fa_5.df.lake_areas  # the area of each lake in lake_codes
+    >>> fa_5.depression_finder.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
     """
 
@@ -516,10 +516,8 @@ class FlowAccumulator(Component):
                  flow_director='FlowDirectorD4',
                  runoff_rate=None,
                  depression_finder=None):
-
-
         """
-        Method to initialize the FlowAccumulator component
+        Initialize the FlowAccumulator component.
 
         Saves the grid, tests grid type, tests imput types and compatability
         for the flow_director and depression_finder keyword arguments, tests
@@ -611,9 +609,9 @@ class FlowAccumulator(Component):
 
             from landlab.components.flow_director import FlowDirectorSteepest, FlowDirectorD8
             DIRECTOR_METHODS = {'D4': FlowDirectorSteepest,
-                            'Steepest': FlowDirectorSteepest,
-                            'D8': FlowDirectorD8,
-                            }
+                                'Steepest': FlowDirectorSteepest,
+                                'D8': FlowDirectorD8,
+                                }
 
             try:
                 FlowDirector = DIRECTOR_METHODS[flow_director]
@@ -621,11 +619,11 @@ class FlowAccumulator(Component):
                 raise ValueError('String provided in flow_director is not a valid method or component name. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
 
-            self.fd = FlowDirector(self._grid, self.surface_values)
+            self.flow_director = FlowDirector(self._grid, self.surface_values)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
              if flow_director._name in PERMITTED_DIRECTORS:
-                 self.fd = flow_director
+                 self.flow_director = flow_director
              else:
                  raise ValueError('Component provided in flow_director is not a valid component. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
@@ -634,19 +632,19 @@ class FlowAccumulator(Component):
 
             if flow_director._name in PERMITTED_DIRECTORS:
                 FlowDirector = flow_director
-                self.fd = FlowDirector(self._grid, self.surface_values)
+                self.flow_director = FlowDirector(self._grid, self.surface_values)
             else:
                 raise ValueError('Component provided in flow_director is not a valid component. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
 
         # save method as attribute
-        self.method = self.fd.method
+        self.method = self.flow_director.method
 
         # now do a similar thing for the depression finder.
-        self.depression_finder = depression_finder
-        if self.depression_finder:
+        self.depression_finder_provided = depression_finder
+        if self.depression_finder_provided:
             # depression finder is provided as a string.
-            if isinstance(self.depression_finder, six.string_types):
+            if isinstance(self.depression_finder_provided, six.string_types):
 
                 from landlab.components import DepressionFinderAndRouter
                 DEPRESSION_METHODS = {'DepressionFinderAndRouter': DepressionFinderAndRouter
@@ -658,12 +656,12 @@ class FlowAccumulator(Component):
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                                      'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
 
-                self.df = DepressionFinder(self._grid)
+                self.depression_finder = DepressionFinder(self._grid, self.surface_values)
             # flow director is provided as an instantiated depression finder
             elif isinstance(self.depression_finder, Component):
 
                 if self.depression_finder._name in PERMITTED_DEPRESSION_FINDERS:
-                    self.df = self.depression_finder
+                    self.depression_finder = self.depression_finder
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                                      'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
@@ -672,7 +670,7 @@ class FlowAccumulator(Component):
 
                 if self.depression_finder._name in PERMITTED_DEPRESSION_FINDERS:
                     DepressionFinder = self.depression_finder
-                    self.df = DepressionFinder(self._grid)
+                    self.depression_finder = DepressionFinder(self._grid,, self.surface_values)
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
@@ -724,31 +722,22 @@ class FlowAccumulator(Component):
 
         self.nodes_not_in_stack = True
 
-
     @property
     def node_drainage_area(self):
+        """Return the drainage area."""
         return self._grid['node']['drainage_area']
 
     @property
     def node_water_discharge(self):
+        """Return the surface water discharge."""
         return self._grid['node']['surface_water__discharge']
 
     @property
     def node_order_upstream(self):
+        """Return the upstream node order (drainage stack)."""
         return self._grid['node']['flow__upstream_node_order']
 
-    @property
-    def node_D_structure(self):
-        return self._grid['node']['flow__data_structure_D']
-
-    @property
-    def node_delta_structure(self):
-        return self._grid['node']['flow__data_structure_delta']
-
-
     def run_one_step(self, update_flow_director=True):
-
-
         """
         Function to make FlowAccumulator calculate drainage area and discharge.
 
@@ -764,11 +753,11 @@ class FlowAccumulator(Component):
         """
         # step 1. Find flow directions by specified method
         if update_flow_director == True:
-            self.fd.run_one_step()
+            self.flow_director.run_one_step()
 
         # further steps vary depending on how many recievers are present
         # one set of steps is for route to one (D8, Steepest/D4)
-        if self.fd.to_n_receivers == 'one':
+        if self.flow_director.to_n_receivers == 'one':
 
             # step 2. Get r (and potentially p) array(s)
             r = self._grid['node']['flow__receiver_node']
@@ -798,9 +787,8 @@ class FlowAccumulator(Component):
             self._grid['node']['surface_water__discharge'][:] = q
 
         # at the moment, this is where the depression finder needs to live.
-        if self.depression_finder:
-            self.df.map_depressions()
-
+        if self.depression_finder_provided:
+            self.depression_finder.map_depressions()
 
 if __name__ == '__main__':
     import doctest
