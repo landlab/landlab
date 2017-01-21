@@ -1,9 +1,12 @@
 #! /usr/env/python
 
 """
-Summary line.
+flow_director_steepest.py: provides the component FlowDirectorsSteepest.
 
-Description text.
+This components finds the steepest single-path steepest descent flow 
+directions. It is equivalent to D4 method in the special case of a raster grid
+in that it does not consider diagonal links between nodes. For that capability, 
+use FlowDirectorD8.
 """
 
 from landlab.components.flow_director.flow_director_to_one import(
@@ -17,10 +20,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
 
     """
-    Summary line.
-
-    Single-path (steepest direction) flow direction. This method is
-    equivalent to D4 method in the special case of a raster grid.
+    Single-path (steepest direction) flow direction without diagonals. 
+    
+    This components finds the steepest single-path steepest descent flow 
+    directions. It is equivalent to D4 method in the special case of a raster 
+    grid in that it does not consider diagonal links between nodes. For that 
+    capability, use FlowDirectorD8.
 
      Stores as ModelGrid fields:
 
@@ -154,9 +159,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     def __init__(self, grid, surface='topographic__elevation'):
 
         """
-        Short Description.
-
-        Long Description.
+        Initializes FlowDirectorSteepest
         """
         self.method = 'D4'
         super(FlowDirectorSteepest, self).__init__(grid, surface)
@@ -167,7 +170,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     def updated_boundary_conditions(self):
 
         """
-        Summary line.
+        Method to update FlowDirectorSteepest when boundary conditions change.
 
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
@@ -180,9 +183,15 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     def run_one_step(self):
 
         """
-        Summary line.
+        Find flow directions and save to the model grid. 
 
-        Description text.
+
+        run_one_step() checks for updated boundary conditions, calculates 
+        slopes on links, finds baselevel nodes based on the status at node,
+        calculates flow directions, and saves results to the grid.
+        
+        an alternative to direct_flow() is direct_flow() which does the same
+        things but also returns the reciever nodes not return values. 
         """
 
         self.direct_flow()
@@ -191,9 +200,18 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     def direct_flow(self):
 
         """
-        Summary line.
+        Find flow directions, save to the model grid, and return recievers. 
 
-        Description text.
+        direct_flow() checks for updated boundary conditions, calculates 
+        slopes on links, finds baselevel nodes based on the status at node,
+        calculates flow directions, saves results to the grid, and returns a
+        at-node array  of receiver nodes. This array is stored in the grid at: 
+        grid['node']['flow__receiver_node']
+        
+        an alternative to direct_flow() is run_one_step() which does the same
+        things but also returns a at-node array  of receiver nodes. This array 
+        is stored in the grid at: 
+        grid['node']['flow__receiver_node']
         """
          # step 0. Check and update BCs
         if self._bc_set_code != self.grid.bc_set_code:

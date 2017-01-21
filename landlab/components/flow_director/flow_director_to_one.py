@@ -1,9 +1,10 @@
 #! /usr/env/python
 
 """
-Summary line.
+flow_director_to_one.py provides a private class to help create FlowDirectors
 
-Description text.
+Provides the _FlowDirectorToOne component which makes sure all model grid 
+fields are set up correctly. 
 """
 
 from landlab import FieldError
@@ -109,9 +110,7 @@ class _FlowDirectorToOne(_FlowDirector):
 
 
         """
-        Summary line.
-
-        Description text.
+        Initialize the _FlowDirectorTo_One
         """
 
         # run init for the inherited class
@@ -148,10 +147,9 @@ class _FlowDirectorToOne(_FlowDirector):
     def run_one_step(self):
 
         """
-        Summary line.
-
-        Description text.
+        run_one_step is not implemented for this component. 
         """
+        
         raise NotImplementedError('run_one_step()')
 
 

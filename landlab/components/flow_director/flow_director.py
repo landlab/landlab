@@ -1,9 +1,11 @@
 #! /usr/env/python
 
 """
-Short title.
+flow_director.py provides a private class to help create FlowDirectors
 
-Description text.
+Provides the _FlowDirector component which does grid type testing, adds the
+surface over which flow will be routed to the component, and sets up part of
+the boundary condition testing. 
 """
 
 from __future__ import print_function
@@ -59,6 +61,10 @@ class _FlowDirector(Component):
     _name = '_FlowDirector'
 
     def __init__(self, grid, surface):
+        
+        """
+        Initialize the _FlowDirector
+        """
         # We keep a local reference to the grid
         super(_FlowDirector, self).__init__(grid)
 
@@ -77,9 +83,7 @@ class _FlowDirector(Component):
     def run_one_step(self):
 
         """
-        Short Description.
-
-        Long description.
+        run_one_step is not implemented for this component. 
         """
         raise NotImplementedError('run_one_step()')
 

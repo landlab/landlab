@@ -1,9 +1,13 @@
 #! /usr/env/python
 
 """
-Summary line.
+flow_director_d8.py: provides the component FlowDirectorsD8.
 
-Description text.
+This components finds the steepest single-path steepest descent flow 
+directions and considers diagonal links between nodes on a raster grid. It is 
+not implemented for irregular grids. For a method that works for irregular 
+grids and does not consider diagonal links for rasters, use 
+FlowDirectorSteepest instead.
 """
 
 from landlab.components.flow_director.flow_director_to_one import(
@@ -18,17 +22,17 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
     """
-    Summary line.
+    Single-path (steepest direction) flow direction with diagonals on rasters. 
 
     Single-path (steepest direction) flow direction finding on raster grids
-     by the D8 method. This method considers flow on all eight links such that
-     flow is possible on orthogonal and on diagonal links.
+    by the D8 method. This method considers flow on all eight links such that
+    flow is possible on orthogonal and on diagonal links.
 
-     The method that considers only orthogonal links (D4 method) for raster
-     grids is FlowDirectorSteepest.
+    The method that considers only orthogonal links (D4 method) for raster
+    grids is FlowDirectorSteepest.
 
-     This method is not implemented for Voroni grids, use
-     FlowDirectorSteepestDescent instead.
+    This method is not implemented for Voroni grids, use
+    FlowDirectorSteepest instead.
 
     Stores as ModelGrid fields:
 
@@ -54,7 +58,6 @@ class FlowDirectorD8(_FlowDirectorToOne):
     surface : field name at node or array of length node, optional
         The surface to direct flow across, default is field at node:
         topographic__elevation,.
-
 
     Examples
     --------
@@ -112,9 +115,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
     def __init__(self, grid, surface='topographic__elevation'):
 
         """
-        Short Description.
-
-        Long Description.
+        Initializes FlowDirectorD8
         """
         self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
@@ -130,7 +131,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
     def updated_boundary_conditions(self):
 
         """
-        Short description
+         Method to update FlowDirectorD8 when boundary conditions change.
 
         Call this if boundary conditions on the grid are updated after the
         component is instantiated.
@@ -145,9 +146,14 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
 
         """
-        Summary line.
+        Find flow directions and save to the model grid. 
 
-        Description text.
+        run_one_step() checks for updated boundary conditions, calculates 
+        slopes on links, finds baselevel nodes based on the status at node,
+        calculates flow directions, and saves results to the grid.
+        
+        an alternative to direct_flow() is direct_flow() which does the same
+        things but also returns the reciever nodes not return values. 
         """
         self.direct_flow()
 
