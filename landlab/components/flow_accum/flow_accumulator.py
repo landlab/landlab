@@ -533,57 +533,7 @@ class FlowAccumulator(Component):
 
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
-
-        # testing input for runoff rate, can be None, a string associated with
-        # a field at node, a single float or int, or an array of size number of
-        # nodes.
-
-        if runoff_rate is not None:
-            if type(runoff_rate) is str:
-                runoff_rate = grid.at_node[runoff_rate]
-            elif type(runoff_rate) in (float, int):
-                pass
-            else:
-                assert runoff_rate.size == grid.number_of_nodes
-
-        # test for water__unit_flux_in
-        try:
-            grid.at_node['water__unit_flux_in']
-        except FieldError:
-            if runoff_rate is None:
-                # assume that if runoff rate is not supplied, that the value
-                # should be set to one everywhere.
-                grid.add_ones('node', 'water__unit_flux_in', dtype=float)
-            else:
-                if type(runoff_rate) in (float, int):
-                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
-        else:
-            if runoff_rate is not None:
-                print ("FlowAccumulator found both the field " +
-                       "'water__unit_flux_in' and a provided float or " +
-                       "array for the runoff_rate argument. THE FIELD IS " +
-                       "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                if type(runoff_rate) in (float, int):
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
-
-        # perform a test (for politeness!) that the old name for the water_in
-        # field is not present:
-        try:
-            grid.at_node['water__discharge_in']
-        except FieldError:
-            pass
-        else:
-            warnings.warn("This component formerly took 'water__discharge" +
-                          "_in' as an input field. However, this field is " +
-                          "now named 'water__unit_flux_in'. You are still " +
-                          "using a field with the old name. Please update " +
-                          "your code if you intended the FlowRouter to use " +
-                          "that field.", DeprecationWarning)
+        self.test_water_inputs(grid, runoff_rate)
 
         # save elevations and node_cell_area to class properites.
         self.surface = surface
@@ -597,83 +547,8 @@ class FlowAccumulator(Component):
         # STEP 2:
         # identify Flow Director method, save name, import and initialize the correct
         # flow director component if necessary
-        PERMITTED_DIRECTORS = ['FlowDirectorSteepest',
-                               'FlowDirectorD8']
-
-        PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
-
-        # flow director is provided as a string.
-        if isinstance(flow_director, six.string_types):
-            if flow_director[:12] == 'FlowDirector':
-                flow_director = flow_director[12:]
-
-            from landlab.components.flow_director import FlowDirectorSteepest, FlowDirectorD8
-            DIRECTOR_METHODS = {'D4': FlowDirectorSteepest,
-                                'Steepest': FlowDirectorSteepest,
-                                'D8': FlowDirectorD8,
-                                }
-
-            try:
-                FlowDirector = DIRECTOR_METHODS[flow_director]
-            except KeyError:
-                raise ValueError('String provided in flow_director is not a valid method or component name. '
-                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
-
-            self.flow_director = FlowDirector(self._grid, self.surface_values)
-        # flow director is provided as an instantiated flow director
-        elif isinstance(flow_director, Component):
-             if flow_director._name in PERMITTED_DIRECTORS:
-                 self.flow_director = flow_director
-             else:
-                 raise ValueError('Component provided in flow_director is not a valid component. '
-                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
-        # flow director is provided as an uninstantiated flow director
-        else:
-
-            if flow_director._name in PERMITTED_DIRECTORS:
-                FlowDirector = flow_director
-                self.flow_director = FlowDirector(self._grid, self.surface_values)
-            else:
-                raise ValueError('Component provided in flow_director is not a valid component. '
-                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
-
-        # save method as attribute
-        self.method = self.flow_director.method
-
-        # now do a similar thing for the depression finder.
-        self.depression_finder_provided = depression_finder
-        if self.depression_finder_provided:
-            # depression finder is provided as a string.
-            if isinstance(self.depression_finder_provided, six.string_types):
-
-                from landlab.components import DepressionFinderAndRouter
-                DEPRESSION_METHODS = {'DepressionFinderAndRouter': DepressionFinderAndRouter
-                                    }
-
-                try:
-                    DepressionFinder = DEPRESSION_METHODS[self.depression_finder_provided]
-                except KeyError:
-                    raise ValueError('Component provided in depression_finder is not a valid component. '
-                                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
-
-                self.depression_finder = DepressionFinder(self._grid)
-            # flow director is provided as an instantiated depression finder
-            elif isinstance(self.depression_finder_provided, Component):
-
-                if self.depression_finder_provided._name in PERMITTED_DEPRESSION_FINDERS:
-                    self.depression_finder = self.depression_finder_provided
-                else:
-                    raise ValueError('Component provided in depression_finder is not a valid component. '
-                                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
-            # depression_fiuner is provided as an uninstantiated depression finder
-            else:
-
-                if self.depression_finder_provided._name in PERMITTED_DEPRESSION_FINDERS:
-                    DepressionFinder = self.depression_finder_provided
-                    self.depression_finder = DepressionFinder(self._grid)
-                else:
-                    raise ValueError('Component provided in depression_finder is not a valid component. '
-                    'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+        self.add_director(flow_director)
+        self.add_depression_finder(depression_finder)
 
         # This component will track of the following variables.
         # Attempt to create each, if they already exist, assign the existing
@@ -736,6 +611,140 @@ class FlowAccumulator(Component):
     def node_order_upstream(self):
         """Return the upstream node order (drainage stack)."""
         return self._grid['node']['flow__upstream_node_order']
+
+    def test_water_inputs(self, grid, runoff_rate):
+        """Test inputs for runoff_rate and water__unit_flux_in."""
+        # testing input for runoff rate, can be None, a string associated with
+        # a field at node, a single float or int, or an array of size number of
+        # nodes.
+        if runoff_rate is not None:
+            if type(runoff_rate) is str:
+                runoff_rate = grid.at_node[runoff_rate]
+            elif type(runoff_rate) in (float, int):
+                pass
+            else:
+                assert runoff_rate.size == grid.number_of_nodes
+
+        # test for water__unit_flux_in
+        try:
+            grid.at_node['water__unit_flux_in']
+        except FieldError:
+            if runoff_rate is None:
+                # assume that if runoff rate is not supplied, that the value
+                # should be set to one everywhere.
+                grid.add_ones('node', 'water__unit_flux_in', dtype=float)
+            else:
+                if type(runoff_rate) in (float, int):
+                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
+                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                else:
+                    grid.at_node['water__unit_flux_in'] = runoff_rate
+        else:
+            if runoff_rate is not None:
+                print ("FlowAccumulator found both the field " +
+                       "'water__unit_flux_in' and a provided float or " +
+                       "array for the runoff_rate argument. THE FIELD IS " +
+                       "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
+                if type(runoff_rate) in (float, int):
+                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
+                else:
+                    grid.at_node['water__unit_flux_in'] = runoff_rate
+
+        # perform a test (for politeness!) that the old name for the water_in
+        # field is not present:
+        try:
+            grid.at_node['water__discharge_in']
+        except FieldError:
+            pass
+        else:
+            warnings.warn("This component formerly took 'water__discharge" +
+                          "_in' as an input field. However, this field is " +
+                          "now named 'water__unit_flux_in'. You are still " +
+                          "using a field with the old name. Please update " +
+                          "your code if you intended the FlowRouter to use " +
+                          "that field.", DeprecationWarning)
+
+    def add_director(self, flow_director):
+        """Test and add the flow director component."""
+        PERMITTED_DIRECTORS = ['FlowDirectorSteepest',
+                               'FlowDirectorD8']
+
+        # flow director is provided as a string.
+        if isinstance(flow_director, six.string_types):
+            if flow_director[:12] == 'FlowDirector':
+                flow_director = flow_director[12:]
+
+            from landlab.components.flow_director import FlowDirectorSteepest, FlowDirectorD8
+            DIRECTOR_METHODS = {'D4': FlowDirectorSteepest,
+                                'Steepest': FlowDirectorSteepest,
+                                'D8': FlowDirectorD8,
+                                }
+
+            try:
+                FlowDirector = DIRECTOR_METHODS[flow_director]
+            except KeyError:
+                raise ValueError('String provided in flow_director is not a valid method or component name. '
+                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
+
+            self.flow_director = FlowDirector(self._grid, self.surface_values)
+        # flow director is provided as an instantiated flow director
+        elif isinstance(flow_director, Component):
+             if flow_director._name in PERMITTED_DIRECTORS:
+                 self.flow_director = flow_director
+             else:
+                 raise ValueError('Component provided in flow_director is not a valid component. '
+                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
+        # flow director is provided as an uninstantiated flow director
+        else:
+
+            if flow_director._name in PERMITTED_DIRECTORS:
+                FlowDirector = flow_director
+                self.flow_director = FlowDirector(self._grid, self.surface_values)
+            else:
+                raise ValueError('Component provided in flow_director is not a valid component. '
+                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
+
+        # save method as attribute
+        self.method = self.flow_director.method
+    def add_depression_finder(self,depression_finder):
+        """Test and add the depression finder component."""
+        PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
+
+        # now do a similar thing for the depression finder.
+        self.depression_finder_provided = depression_finder
+        if self.depression_finder_provided:
+            # depression finder is provided as a string.
+            if isinstance(self.depression_finder_provided, six.string_types):
+
+                from landlab.components import DepressionFinderAndRouter
+                DEPRESSION_METHODS = {'DepressionFinderAndRouter': DepressionFinderAndRouter
+                                    }
+
+                try:
+                    DepressionFinder = DEPRESSION_METHODS[self.depression_finder_provided]
+                except KeyError:
+                    raise ValueError('Component provided in depression_finder is not a valid component. '
+                                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+
+                self.depression_finder = DepressionFinder(self._grid)
+            # flow director is provided as an instantiated depression finder
+            elif isinstance(self.depression_finder_provided, Component):
+
+                if self.depression_finder_provided._name in PERMITTED_DEPRESSION_FINDERS:
+                    self.depression_finder = self.depression_finder_provided
+                else:
+                    raise ValueError('Component provided in depression_finder is not a valid component. '
+                                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+            # depression_fiuner is provided as an uninstantiated depression finder
+            else:
+
+                if self.depression_finder_provided._name in PERMITTED_DEPRESSION_FINDERS:
+                    DepressionFinder = self.depression_finder_provided
+                    self.depression_finder = DepressionFinder(self._grid)
+                else:
+                    raise ValueError('Component provided in depression_finder is not a valid component. '
+                    'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+
 
     def run_one_step(self, update_flow_director=True):
         """
