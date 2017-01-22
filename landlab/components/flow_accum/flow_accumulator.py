@@ -424,7 +424,7 @@ class FlowAccumulator(Component):
     The depression finder is stored as part of the flow accumulator, so its
     properties can be accessed through the depression finder.
 
-    >>> fa_5.depression_finder.lake_at_node.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.df.lake_at_node.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -432,7 +432,7 @@ class FlowAccumulator(Component):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> fa_5.depression_finder.lake_map.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa_5.df.lake_map.reshape(mg_5.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -440,11 +440,11 @@ class FlowAccumulator(Component):
            [-1, -1, 16, 16, 16, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1]])
-    >>> fa_5.depression_finder.lake_codes  # a unique code for each lake present on the grid
+    >>> fa_5.df.lake_codes  # a unique code for each lake present on the grid
     array([16])
-    >>> fa_5.depression_finder.lake_outlets  # the outlet node of each lake in lake_codes
+    >>> fa_5.df.lake_outlets  # the outlet node of each lake in lake_codes
     array([8])
-    >>> fa_5.depression_finder.lake_areas  # the area of each lake in lake_codes
+    >>> fa_5.df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
     """
 
@@ -641,10 +641,10 @@ class FlowAccumulator(Component):
         self.method = self.flow_director.method
 
         # now do a similar thing for the depression finder.
-        self.depression_finder_provided = depression_finder
-        if self.depression_finder_provided:
+        self.depression_finder = depression_finder
+        if self.depression_finder:
             # depression finder is provided as a string.
-            if isinstance(self.depression_finder_provided, six.string_types):
+            if isinstance(self.depression_finder, six.string_types):
 
                 from landlab.components import DepressionFinderAndRouter
                 DEPRESSION_METHODS = {'DepressionFinderAndRouter': DepressionFinderAndRouter
@@ -656,12 +656,12 @@ class FlowAccumulator(Component):
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                                      'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
 
-                self.depression_finder = DepressionFinder(self._grid, self.surface_values)
+                self.df = DepressionFinder(self._grid)
             # flow director is provided as an instantiated depression finder
             elif isinstance(self.depression_finder, Component):
 
                 if self.depression_finder._name in PERMITTED_DEPRESSION_FINDERS:
-                    self.depression_finder = self.depression_finder
+                    self.df = self.depression_finder
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                                      'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
@@ -670,7 +670,7 @@ class FlowAccumulator(Component):
 
                 if self.depression_finder._name in PERMITTED_DEPRESSION_FINDERS:
                     DepressionFinder = self.depression_finder
-                    self.depression_finder = DepressionFinder(self._grid,, self.surface_values)
+                    self.df = DepressionFinder(self._grid)
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
@@ -787,8 +787,8 @@ class FlowAccumulator(Component):
             self._grid['node']['surface_water__discharge'][:] = q
 
         # at the moment, this is where the depression finder needs to live.
-        if self.depression_finder_provided:
-            self.depression_finder.map_depressions()
+        if self.depression_finder:
+            self.df.map_depressions()
 
 if __name__ == '__main__':
     import doctest

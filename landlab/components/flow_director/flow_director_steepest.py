@@ -165,7 +165,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         self.updated_boundary_conditions()
 
-    def updated_boundary_conditions(self):]
+    def updated_boundary_conditions(self):
         """
         Method to update FlowDirectorSteepest when boundary conditions change.
 
