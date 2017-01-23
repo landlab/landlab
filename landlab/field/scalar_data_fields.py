@@ -404,7 +404,13 @@ class ScalarDataFields(dict):
 
         value_array = np.asarray(value_array)
         if value_array.ndim > 0:
-            value_array.shape = (-1, )
+            if value_array.size == self.size:
+                value_array.shape = (-1, )
+                
+        elif np.mod(value_array.size,self.size) != 0:
+            raise ValueError(
+                'size of new array must be divisible by the number of elements'
+                ' in of the field')   
 
         if copy:
             value_array = value_array.copy()
@@ -440,10 +446,11 @@ class ScalarDataFields(dict):
 
         if self.size is None:
             self.size = value_array.size
-
-        if value_array.size != self.size:
-            raise ValueError(
-                'total size of the new array must be the same as the field')
+        if value_array.ndim > 0:
+            if value_array.shape[0] != self.size:
+                raise ValueError(
+                    'size of 0th dimention of the new array'
+                    'must be the same as the field')
 
         if name not in self:
             self.set_units(name, None)
@@ -456,3 +463,4 @@ class ScalarDataFields(dict):
             return super(ScalarDataFields, self).__getitem__(name)
         except KeyError:
             raise FieldError(name)
+
