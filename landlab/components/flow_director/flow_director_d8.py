@@ -112,9 +112,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
     _name = 'FlowDirectorD8'
 
     def __init__(self, grid, surface='topographic__elevation'):
-        """
-        Initialize FlowDirectorD8
-        """
+        """Initialize FlowDirectorD8."""
         self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)

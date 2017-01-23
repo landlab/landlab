@@ -24,6 +24,7 @@ def _return_surface(grid, surface):
     """
     return surface
 
+
 class _FlowDirector(Component):
 
     """

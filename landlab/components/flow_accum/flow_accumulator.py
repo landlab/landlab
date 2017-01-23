@@ -28,7 +28,6 @@ import six
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
 
-
     """
     Private function to return the surface to direct flow over.
 
@@ -36,6 +35,7 @@ def _return_surface(grid, surface):
     decorator which permits providing the surface as a field name or array.
     """
     return(surface)
+
 
 class FlowAccumulator(Component):
 

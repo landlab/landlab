@@ -180,7 +180,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         """
         Find flow directions and save to the model grid.
 
-
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
         calculates flow directions, and saves results to the grid.
@@ -188,7 +187,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         an alternative to direct_flow() is direct_flow() which does the same
         things but also returns the receiver nodes not return values.
         """
-
         self.direct_flow()
 
     def direct_flow(self):
