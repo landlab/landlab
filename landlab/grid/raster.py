@@ -5126,7 +5126,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
     def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
                                          return_outlet_id=False,
                                          remove_disconnected=False,
-                                         method='D8'):
+                                         adjacency_method='D8'):
         """
         Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
@@ -5162,9 +5162,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         This will run the function:
         set_open_nodes_disconnected_from_watershed_to_closed
         which will find any isolated open nodes that have no neigbors in the
-        main watershed and set them to closed. The neigborhood algorithm used
+        main watershed and set them to closed. The adjacency method used
         to assess connectivity can be set to either 'D8'(default) or 'D4' using
-        the flag *method*.
+        the flag *adjacency_method*.
 
         Finally, the developer has seen cases in which DEM data that has been
         filled results in a different outlet from DEM data which has not been
@@ -5184,8 +5184,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Indicates whether or not to return the id of the found outlet
         remove_disconnected : boolean, optional
             Indicates whether to search for and remove disconnected nodes.
-        method : string, optional. Default is 'D8'.
-            Sets the connection method. for use if remove_disconnected==True
+        adjacency_method : string, optional. Default is 'D8'.
+            Sets the connection method for use if remove_disconnected==True
 
         Examples
         ---------
@@ -5254,8 +5254,9 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         min_val = np.min(node_data[locs])
 
         # now find where minimum values are
-        min_locs = np.where(node_data == min_val)
+        min_locs = np.where(node_data == min_val)[0]
 
+        
         # check all the locations with the minimum value to see if one
         # is adjacent to a boundary location.  If so, that will be the
         # watershed outlet.  If none of these points qualify, then
@@ -5269,15 +5270,28 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             # now check the min locations to see if any are next to
             # a boundary node
             local_not_found = True
-            i = 0
-            while (i < len(min_locs) and local_not_found):
-                if self.has_boundary_neighbor(min_locs[i]):
-                    local_not_found = False
-                    # outlet_loc contains the index of the outlet location
-                    # in the node_data array
-                    outlet_loc = min_locs[i]
+            next_to_boundary=[]
+            
+            # check all nodes rather than selecting the first node that meets
+            # the criteria
+            for i in range(len(min_locs)):
+                next_to_boundary.append(self.has_boundary_neighbor(min_locs[i]))
+            
+            # if any of those nodes were adjacent to the boundary, check 
+            #that  there is only one. If only one, set as outlet loc, else,
+            # raise a value error
+            if any(next_to_boundary):
+                local_not_found = False
+                if sum(next_to_boundary)>1:
+                    potential_locs = min_locs[np.where(np.asarray(next_to_boundary))[0]]
+                    raise ValueError(('Grid has two potential outlet nodes.'
+                                      'They have the following node IDs: \n'+str(potential_locs)+
+                                     '\nUse the method set_watershed_boundary_condition_outlet_id '
+                                     'to explicitly select one of these '
+                                     'IDs as the outlet node.'
+                                     ))
                 else:
-                    i += 1
+                    outlet_loc = min_locs[np.where(next_to_boundary)[0][0]]
 
             # checked all of the min vals, (so done with inner while)
             # and none of the min values were outlet candidates
@@ -5290,7 +5304,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                 (node_data != nodata_value))
                 # now find new minimum of these values
                 min_val = np.min(node_data[locs])
-                min_locs = list(np.where(node_data == min_val)[0])
+                min_locs = np.where(node_data == min_val)[0]
             else:
                 # if locally found, it is also globally found
                 # so done with outer while
@@ -5301,17 +5315,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         if remove_disconnected==True:
             self.set_open_nodes_disconnected_from_watershed_to_closed(node_data=node_data,
-                                                                      outlet_id=as_id_array(np.array(outlet_loc)),
+                                                                      outlet_id=as_id_array(np.array([outlet_loc])),
                                                                       nodata_value=nodata_value,
-                                                                      method=method)
+                                                                      adjacency_method=adjacency_method)
         if return_outlet_id:
-            return as_id_array(np.array(outlet_loc))
+            return as_id_array(np.array([outlet_loc]))
 
     def set_open_nodes_disconnected_from_watershed_to_closed(self,
                                                             node_data,
                                                             outlet_id=None,
                                                             nodata_value=-9999.,
-                                                            method='D8'):
+                                                            adjacency_method='D8'):
         """
         Identifys all non-closed nodes that are disconnected from the node given in
         *outlet_id* and sets them as closed.
@@ -5325,7 +5339,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         The method supports both D4 and D8 (default) neighborhood evaluation in
         determining if a node is connected. This can be modified with the flag
-        *method*.
+        *adjacency_method*.
 
         This function can be run directly, or by setting the flag
         remove_disconnected to True in set_watershed_boundary_condition
@@ -5344,7 +5358,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
 
-        method : string, optional. Default is 'D8'.
+        adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method.
 
         Examples
@@ -5352,12 +5366,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg1 = RasterModelGrid((4,6))
-        >>> z1 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        >>> z1 = np.array([-9999., -9999., -9999.,  -9999., -9999., -9999.,
         ...                -9999.,    67.,    67.,  -9999.,    50., -9999.,
         ...                -9999.,    67.,     0.,  -9999., -9999., -9999.,
         ...                -9999., -9999., -9999.,  -9999., -9999., -9999.])
         >>> mg2 = RasterModelGrid((4,6))
-        >>> z2 = np.array([-9999., -9999., -9999., -9999., -9999., -9999.,
+        >>> z2 = np.array([-9999., -9999., -9999.,  -9999., -9999., -9999.,
         ...                -9999.,    67.,    67.,  -9999.,    50., -9999.,
         ...                -9999.,    67.,     0.,  -9999., -9999., -9999.,
         ...                -9999., -9999., -9999.,  -9999., -9999., -9999.])
@@ -5399,19 +5413,19 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
             outlet_id=possible_outlets
 
-        elif outlet_id.shape!=(1,) or (isinstance(outlet_id, np.ndarray)==False):
+        elif outlet_id.size!=1 or (isinstance(outlet_id, np.ndarray)==False):
             # check that the value given by outlet_id is an integer
             raise ValueError('outlet_id must be a length 1 numpy array')
         else:
             # check that the node status at the node given by outlet_id is not
             # CLOSED_BOUNDARY
-            if self.status_at_node[outlet_id][0]==CLOSED_BOUNDARY:
+            if self.status_at_node[outlet_id]==CLOSED_BOUNDARY:
                 raise ValueError ('The node given by outlet_id must not have the status: CLOSED_BOUNDARY')
 
 
         # now test that the method given is either 'D8' or 'D4'
-        if method != 'D8':
-            assert(method=='D4'), "Method must be either 'D8'(default) or 'D4'"
+        if adjacency_method != 'D8':
+            assert(adjacency_method=='D4'), "Method must be either 'D8'(default) or 'D4'"
 
         # begin main code portion.
         # initialize list of core nodes and new nodes
@@ -5430,7 +5444,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             potentialNewNodes=list(connected_orthogonal_nodes[self.status_at_node[connected_orthogonal_nodes]!=CLOSED_BOUNDARY])
 
             # if method is D8 (default), add the diagonal nodes.
-            if method=='D8':
+            if adjacency_method=='D8':
                 connected_diagonal_nodes = self._diagonal_neighbors_at_node[newNodes]
                 potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]!=CLOSED_BOUNDARY])
 
