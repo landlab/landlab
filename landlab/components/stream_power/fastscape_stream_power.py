@@ -25,6 +25,16 @@ class FastscapeEroder(Component):
     framework. This should allow it to be stable against larger timesteps
     than an explicit stream power scheme.
 
+    Note that although this scheme is nominally implicit, and will reach a
+    numerically-correct solution under topographic steady state regardless of
+    timestep length, the accuracy of transient solutions is *not* timestep
+    independent (see Braun & Willett 2013, Appendix B for further details).
+    Although the scheme remains significantly more robust and permits longer
+    timesteps than a traditional explicit solver under such conditions, it
+    is still possible to create numerical instability through use of too long
+    a timestep while using this component. The user is cautioned to check their
+    implementation is behaving stably before fully trusting it.
+
     Stream power erosion is implemented as::
 
         E = K * (rainfall_intensity*A)**m * S**n - threshold_sp,
@@ -327,7 +337,8 @@ class FastscapeEroder(Component):
         else:
             K_here = self.K
         if rainfall_intensity_if_used is not None:
-            assert type(rainfall_intensity_if_used) in (float, int)
+            assert type(rainfall_intensity_if_used) in (float, numpy.float64, 
+                                                        int)
             r_i_here = float(rainfall_intensity_if_used)
         else:
             r_i_here = self._r_i

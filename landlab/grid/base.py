@@ -190,6 +190,8 @@ store data values that are associated with the different types grid elements
 data field *groups* are added to the `ModelGrid` that provide containers to
 put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
+There is an additional group at_grid that can store arrays of length one
+intended as a place to store varibles global to the grid.
 
 To access these groups, use the same methods as accessing groups with
 `~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
@@ -205,6 +207,7 @@ itself that provide access to the values groups:
     ~landlab.grid.base.ModelGrid.at_face
     ~landlab.grid.base.ModelGrid.at_patch
     ~landlab.grid.base.ModelGrid.at_corner
+    ~landlab.grid.base.ModelGrid.at_grid
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -414,8 +417,8 @@ Use the groups attribute to see the group names.
 >>> grid = RasterModelGrid((3, 3))
 >>> groups = list(grid.groups)
 >>> groups.sort()
->>> groups # doctest: +NORMALIZE_WHITESPACE
-['cell', 'corner', 'face', 'link', 'node', 'patch']
+>>> groups
+['cell', 'corner', 'face', 'grid', 'link', 'node', 'patch']
 
 Create Field Arrays
 +++++++++++++++++++
@@ -781,7 +784,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         Values at links.
     at_face : dict-like
         Values at faces.
-
+    at_grid: dict-like
+        Global values
     Other Parameters
     ----------------
     axis_name : tuple, optional
@@ -829,6 +833,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         for loc in _SIZED_FIELDS:
             size = self.number_of_elements(loc)
             ModelDataFields.new_field_location(self, loc, size=size)
+        ModelDataFields.new_field_location(self, 'grid', size=1)
         # for loc in _UNSIZED_FIELDS:
         #     ModelDataFields.new_field_location(self, loc, size=None)
         ModelDataFields.set_default_group(self, 'node')
@@ -3432,7 +3437,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._cell_area_at_node
 
     @deprecated(use='no replacement', version=1.0)
-    def get_active_link_connecting_node_pair(self, node1, node2):
+    def active_link_connecting_node_pair(self, node1, node2):
         """Get the active link that connects a pair of nodes.
 
         Returns the ID number of the active link that connects the given pair
@@ -3445,7 +3450,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> rmg.get_active_link_connecting_node_pair(8, 3)
+        >>> rmg.active_link_connecting_node_pair(8, 3)
         array([2])
 
         LLCATS: DEPR LINF NINF CONN
@@ -3692,6 +3697,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
+        #self._create_links_and_link_dirs_at_node()
 
     def _reset_lists_of_nodes_cells(self):
         """Create of reset lists of nodes and cells based on their status.
@@ -4701,17 +4707,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._node_status[nodes] = CLOSED_BOUNDARY
         self._update_links_nodes_cells_to_new_BCs()
 
-    @deprecated(use='calc_distances_of_nodes_to_point', version=1.0)
-    def get_distances_of_nodes_to_point(self, coord, get_az=None,
-                                        node_subset=None,
-                                        out_distance=None, out_azimuth=None):
-        """
-        LLCATS: DEPR NINF MEAS
-        """
-        return self.calc_distances_of_nodes_to_point(
-            coord, get_az=get_az, node_subset=node_subset,
-            out_distance=out_distance, out_azimuth=out_azimuth)
-
     def calc_distances_of_nodes_to_point(self, coord, get_az=None,
                                          node_subset=None,
                                          out_distance=None, out_azimuth=None):
@@ -5026,19 +5021,19 @@ class ModelGrid(ModelDataFieldsMixIn):
         indices = argsort_points_by_x_then_y(pts)
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
-        
+
     def move_origin(self, origin):
         """Changes the x, y values of all nodes.  Initially a grid will have
-        an origin of 0,0, and all x,y values will be relative to 0,0.  This 
+        an origin of 0,0, and all x,y values will be relative to 0,0.  This
         will add origin[0] to all x values and origin[1] to all y values.
-        
+
         Note this is most likely useful when importing a DEM that has an
         absolute location, however it can be used generally.
 
         Parameters
         ----------
         origin : list of two float values, can be negative.
-            [x,y], where x is the value to add to all x values and  
+            [x,y], where x is the value to add to all x values and
             y is the value to add to all y values
 
         Examples
