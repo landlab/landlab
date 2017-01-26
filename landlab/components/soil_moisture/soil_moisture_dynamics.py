@@ -447,6 +447,8 @@ class SoilMoisture(Component):
                     self._LAIR_max)
         self._runoff = self._cell_values['surface__runoff']
         self._runon = self._cell_values['surface__runon']
+        self._runoff[:] = 0.   # Initializing runoff to zero
+        self._runon[:] = 0.    # Initializing runon to zero
         # LAIl = self._cell_values['vegetation__live_leaf_area_index']
         # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         # if LAIt.all() == 0.:
