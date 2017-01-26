@@ -123,7 +123,7 @@ def flow_directions_mfd(elev,
     
     # Construct the array of slope to neighbors at node. This also will adjust
     # for the slope convention based on the direction of the link. 
-    slopes_to_neighbors_at_node = -link_slope[links_at_node]*active_link_dir_at_node
+    slopes_to_neighbors_at_node = link_slope[links_at_node]*active_link_dir_at_node
     
     # Make a copy so this can be changed based on where no flow occurs. 
     receiver_links = links_at_node.copy()
@@ -190,7 +190,7 @@ def flow_directions_mfd(elev,
     
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned. 
-    slope_sort = np.argsort(flow_slopes, 1) == max_number_of_neighbors-11
+    slope_sort = np.argsort(flow_slopes, 1) == max_number_of_neighbors-1
     steepest_slope = flow_slopes[slope_sort]
     
     ## identify the steepest link and steepest receiever. 
