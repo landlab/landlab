@@ -272,7 +272,7 @@ References
 * :ref:`search`
 
 
-Search the Index
-==================
+.. Search the Index
+.. ==================
 
-* :ref:`genindex`
+.. * :ref:`genindex`
