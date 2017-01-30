@@ -31,155 +31,37 @@ as in the example `area_of_cell`.
 Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.axis_name
-    ~landlab.grid.base.ModelGrid.axis_units
-    ~landlab.grid.base.ModelGrid.move_origin
-    ~landlab.grid.base.ModelGrid.ndim
-    ~landlab.grid.base.ModelGrid.node_axis_coordinates
-    ~landlab.grid.base.ModelGrid.number_of_elements
-    ~landlab.grid.base.ModelGrid.size
+LLCATKEY: GINF
 
 Information about nodes
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
-    ~landlab.grid.base.ModelGrid.all_node_azimuths_map
-    ~landlab.grid.base.ModelGrid.all_node_distances_map
-    ~landlab.grid.base.ModelGrid.boundary_nodes
-    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
-    ~landlab.grid.base.ModelGrid.cell_area_at_node
-    ~landlab.grid.base.ModelGrid.cell_at_node
-    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
-    ~landlab.grid.base.ModelGrid.core_nodes
-    ~landlab.grid.base.ModelGrid.downwind_links_at_node
-    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
-    ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
-    ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
-    ~landlab.grid.base.ModelGrid.link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.links_at_node
-    ~landlab.grid.base.ModelGrid.neighbors_at_node
-    ~landlab.grid.base.ModelGrid.node_at_cell
-    ~landlab.grid.base.ModelGrid.node_at_core_cell
-    ~landlab.grid.base.ModelGrid.node_at_link_head
-    ~landlab.grid.base.ModelGrid.node_at_link_tail
-    ~landlab.grid.base.ModelGrid.node_axis_coordinates
-    ~landlab.grid.base.ModelGrid.node_is_boundary
-    ~landlab.grid.base.ModelGrid.node_x
-    ~landlab.grid.base.ModelGrid.node_y
-    ~landlab.grid.base.ModelGrid.nodes
-    ~landlab.grid.base.ModelGrid.number_of_core_nodes
-    ~landlab.grid.base.ModelGrid.number_of_links_at_node
-    ~landlab.grid.base.ModelGrid.number_of_nodes
-    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.base.ModelGrid.open_boundary_nodes
-    ~landlab.grid.base.ModelGrid.patches_present_at_node
-    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
-    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.base.ModelGrid.status_at_node
-    ~landlab.grid.base.ModelGrid.unit_vector_sum_xcomponent_at_node
-    ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node
-    ~landlab.grid.base.ModelGrid.upwind_links_at_node
-    ~landlab.grid.base.ModelGrid.x_of_node
-    ~landlab.grid.base.ModelGrid.y_of_node
+LLCATKEY: NINF
 
 Information about links
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.active_links
-    ~landlab.grid.base.ModelGrid.angle_of_link
-    ~landlab.grid.base.ModelGrid.angle_of_link_about_head
-    ~landlab.grid.base.ModelGrid.downwind_links_at_node
-    ~landlab.grid.base.ModelGrid.face_at_link
-    ~landlab.grid.base.ModelGrid.fixed_links
-    ~landlab.grid.base.ModelGrid.length_of_link
-    ~landlab.grid.base.ModelGrid.link_at_face
-    ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
-    ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
-    ~landlab.grid.base.ModelGrid.link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.links_at_node
-    ~landlab.grid.base.ModelGrid.node_at_link_head
-    ~landlab.grid.base.ModelGrid.node_at_link_tail
-    ~landlab.grid.base.ModelGrid.number_of_active_links
-    ~landlab.grid.base.ModelGrid.number_of_fixed_links
-    ~landlab.grid.base.ModelGrid.number_of_links
-    ~landlab.grid.base.ModelGrid.number_of_links_at_node
-    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.base.ModelGrid.patches_present_at_link
-    ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
-    ~landlab.grid.base.ModelGrid.resolve_values_on_links
-    ~landlab.grid.base.ModelGrid.status_at_link
-    ~landlab.grid.base.ModelGrid.unit_vector_xcomponent_at_link
-    ~landlab.grid.base.ModelGrid.unit_vector_ycomponent_at_link
-    ~landlab.grid.base.ModelGrid.upwind_links_at_node
-    ~landlab.grid.base.ModelGrid.x_of_link
-    ~landlab.grid.base.ModelGrid.y_of_link
+LLCATKEY: LINF
 
 Information about cells
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.area_of_cell
-    ~landlab.grid.base.ModelGrid.cell_area_at_node
-    ~landlab.grid.base.ModelGrid.cell_at_node
-    ~landlab.grid.base.ModelGrid.core_cells
-    ~landlab.grid.base.ModelGrid.faces_at_cell
-    ~landlab.grid.base.ModelGrid.node_at_cell
-    ~landlab.grid.base.ModelGrid.node_at_core_cell
-    ~landlab.grid.base.ModelGrid.number_of_cells
-    ~landlab.grid.base.ModelGrid.number_of_core_cells
-    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
-    ~landlab.grid.base.ModelGrid.x_of_cell
-    ~landlab.grid.base.ModelGrid.y_of_cell
+LLCATKEY: CINF
 
 Information about faces
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.active_faces
-    ~landlab.grid.base.ModelGrid.face_at_link
-    ~landlab.grid.base.ModelGrid.faces_at_cell
-    ~landlab.grid.base.ModelGrid.link_at_face
-    ~landlab.grid.base.ModelGrid.number_of_active_faces
-    ~landlab.grid.base.ModelGrid.number_of_faces
-    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
-    ~landlab.grid.base.ModelGrid.width_of_face
-    ~landlab.grid.base.ModelGrid.x_of_face
-    ~landlab.grid.base.ModelGrid.y_of_face
+LLCATKEY: FINF
 
 Information about patches
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.base.ModelGrid.patches_present_at_link
-    ~landlab.grid.base.ModelGrid.patches_present_at_node
+LLCATKEY: PINF
 
 Information about corners
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.number_of_corners
+LLCATKEY: CNINF
 
 
 Data Fields in ModelGrid
@@ -192,7 +74,7 @@ data field *groups* are added to the `ModelGrid` that provide containers to
 put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
 There is an additional group at_grid that can store arrays of length one
-intended as a place to store varibles global to the grid.
+intended as a place to store variables global to the grid.
 
 To access these groups, use the same methods as accessing groups with
 `~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
@@ -290,17 +172,7 @@ grid, and to construct fluxes and flux divergences from them. Because these
 calculations tend to be a little more involved than property lookups, the
 methods tend to start with `calc_`.
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.calc_diff_at_link
-    ~landlab.grid.base.ModelGrid.calc_flux_div_at_node
-    ~landlab.grid.base.ModelGrid.calc_grad_at_link
-    ~landlab.grid.base.ModelGrid.calc_grad_at_patch
-    ~landlab.grid.base.ModelGrid.calc_net_flux_at_node
-    ~landlab.grid.base.ModelGrid.calc_slope_at_node
-    ~landlab.grid.base.ModelGrid.calc_slope_at_patch
-    ~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch
+LLCATKEY: GRAD
 
 Mappers
 -------
@@ -309,30 +181,7 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.map_downwind_node_link_max_to_node
-    ~landlab.grid.base.ModelGrid.map_downwind_node_link_mean_to_node
-    ~landlab.grid.base.ModelGrid.map_link_head_node_to_link
-    ~landlab.grid.base.ModelGrid.map_link_tail_node_to_link
-    ~landlab.grid.base.ModelGrid.map_link_vector_sum_to_patch
-    ~landlab.grid.base.ModelGrid.map_link_vector_to_nodes
-    ~landlab.grid.base.ModelGrid.map_max_of_link_nodes_to_link
-    ~landlab.grid.base.ModelGrid.map_max_of_node_links_to_node
-    ~landlab.grid.base.ModelGrid.map_max_of_patch_nodes_to_patch
-    ~landlab.grid.base.ModelGrid.map_mean_of_link_nodes_to_link
-    ~landlab.grid.base.ModelGrid.map_mean_of_patch_nodes_to_patch
-    ~landlab.grid.base.ModelGrid.map_min_of_link_nodes_to_link
-    ~landlab.grid.base.ModelGrid.map_min_of_node_links_to_node
-    ~landlab.grid.base.ModelGrid.map_min_of_patch_nodes_to_patch
-    ~landlab.grid.base.ModelGrid.map_node_to_cell
-    ~landlab.grid.base.ModelGrid.map_upwind_node_link_max_to_node
-    ~landlab.grid.base.ModelGrid.map_upwind_node_link_mean_to_node
-    ~landlab.grid.base.ModelGrid.map_value_at_downwind_node_link_max_to_node
-    ~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link
-    ~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link
-    ~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node
+LLCATKEY: MAP
 
 Boundary condition control
 --------------------------
@@ -342,33 +191,7 @@ conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
 :meth:`~.ModelGrid.status_at_node` will automatically update the conditions
 defined at other grid elements automatically.
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.active_faces
-    ~landlab.grid.base.ModelGrid.active_links
-    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
-    ~landlab.grid.base.ModelGrid.boundary_nodes
-    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
-    ~landlab.grid.base.ModelGrid.core_cells
-    ~landlab.grid.base.ModelGrid.core_nodes
-    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.base.ModelGrid.fixed_links
-    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
-    ~landlab.grid.base.ModelGrid.node_at_core_cell
-    ~landlab.grid.base.ModelGrid.node_is_boundary
-    ~landlab.grid.base.ModelGrid.number_of_active_faces
-    ~landlab.grid.base.ModelGrid.number_of_active_links
-    ~landlab.grid.base.ModelGrid.number_of_core_cells
-    ~landlab.grid.base.ModelGrid.number_of_core_nodes
-    ~landlab.grid.base.ModelGrid.number_of_fixed_links
-    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.base.ModelGrid.open_boundary_nodes
-    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
-    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.base.ModelGrid.status_at_link
-    ~landlab.grid.base.ModelGrid.status_at_node
+LLCATKEY: BC
 
 Identifying node subsets
 ------------------------
@@ -376,7 +199,7 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-(None are available for this grid type)
+LLCATKEY: SUBSET
 
 Surface analysis
 ----------------
@@ -384,12 +207,7 @@ Surface analysis
 These methods permit the kinds of surface analysis that you might expect to
 find in GIS software.
 
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.base.ModelGrid.calc_aspect_at_node
-    ~landlab.grid.base.ModelGrid.calc_slope_at_node
-    ~landlab.grid.base.ModelGrid.calc_hillshade_at_node
+LLCATKEY: SURF
 
 Notes
 -----
