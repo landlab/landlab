@@ -18,20 +18,6 @@ This script is designed to be run as part of the commit process for LL.
 
 Any changes made directly to the above files will be lost whenever this script
 is run.
-
-'''
-Information about the grid as a whole
-+++++++++++++++++++++++++++++++++++++
-
-.. autosummary::
-    :toctree: generated/
-
-    ~landlab.grid.raster.RasterModelGrid.axis_name
-    ~landlab.grid.raster.RasterModelGrid.axis_units
-    ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
-    ...
-
-'''
 """
 from landlab.core.utils import get_categories_from_grid_methods
 from copy import copy
