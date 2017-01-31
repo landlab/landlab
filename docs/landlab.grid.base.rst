@@ -7,8 +7,9 @@
 General class methods and attributes of the `landlab.grid.base` module
 ----------------------------------------------------------------------
 
-Python implementation of ModelGrid, a base class used to create and manage
-grids for 2D numerical models.
+This describes Landlab's implementation of ModelGrid, a base class used to
+create and manage grids for 2D numerical models in Python using Landlab.
+This text lists grid methods available for the class:
 
 Getting Information about a Grid
 --------------------------------

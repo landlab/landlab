@@ -48,9 +48,11 @@ autosummary = '.. autosummary::\n    :toctree: generated/\n\n'
 
 LLCATS = ('GINF', 'NINF', 'LINF', 'CINF', 'PINF', 'FINF', 'CNINF', 'GRAD',
           'MAP', 'BC', 'SUBSET', 'SURF')
-grid_name_to_class = {'base': 'ModelGrid', }
-#                       'raster': 'RasterModelGrid',
-#                       'voronoi': 
+grid_name_to_class = {'base': 'ModelGrid',
+                      'hex': 'HexModelGrid',
+                      'radial': 'RadialModelGrid',
+                      'raster': 'RasterModelGrid',
+                      'voronoi': 'VoronoiDelaunayGrid'}
 
 
 def create_dicts_of_cats():

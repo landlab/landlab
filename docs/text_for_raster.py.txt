@@ -4,18 +4,18 @@
    rst files will be PERMANENTLY LOST whenever the documentation is updated.
    Make changes directly to the txt files instead.
 
-General class methods and attributes of the `landlab.grid.base` module
-----------------------------------------------------------------------
+General class methods and attributes of the `landlab.grid.raster` module
+------------------------------------------------------------------------
 
-This describes Landlab's implementation of ModelGrid, a base class used to
-create and manage grids for 2D numerical models in Python using Landlab.
-This text lists grid methods available for the class:
+Landlab's regular, raster grids are implemented by the class `RasterModelGrid`,
+which inherits from `ModelGrid`. This text lists grid methods available for the
+class:
 
 Getting Information about a Grid
 --------------------------------
-The following attributes, properties, and methods provide data about the grid,
-its geometry, and the connectivity among the various elements. Each grid
-element has an ID number, which is also its position in an array that
+The following attributes, properties, and methods provide data about a
+RasterModelGrid, its geometry, and the connectivity among the various elements.
+Each grid element has an ID number, which is also its position in an array that
 contains information about that type of element. For example, the *x*
 coordinate of node 5 would be found at `grid.node_x[5]`.
 
@@ -63,7 +63,6 @@ Information about corners
 +++++++++++++++++++++++++
 
 LLCATKEY: CNINF
-
 Data Fields in ModelGrid
 ------------------------
 :class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
@@ -73,8 +72,6 @@ store data values that are associated with the different types grid elements
 data field *groups* are added to the `ModelGrid` that provide containers to
 put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
-There is an additional group at_grid that can store arrays of length one
-intended as a place to store variables global to the grid.
 
 To access these groups, use the same methods as accessing groups with
 `~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
@@ -84,13 +81,12 @@ itself that provide access to the values groups:
     :toctree: generated/
     :nosignatures:
 
-    ~landlab.grid.base.ModelGrid.at_node
-    ~landlab.grid.base.ModelGrid.at_cell
-    ~landlab.grid.base.ModelGrid.at_link
-    ~landlab.grid.base.ModelGrid.at_face
-    ~landlab.grid.base.ModelGrid.at_patch
-    ~landlab.grid.base.ModelGrid.at_corner
-    ~landlab.grid.base.ModelGrid.at_grid
+    ~landlab.grid.raster.RasterModelGrid.at_node
+    ~landlab.grid.raster.RasterModelGrid.at_cell
+    ~landlab.grid.raster.RasterModelGrid.at_link
+    ~landlab.grid.raster.RasterModelGrid.at_face
+    ~landlab.grid.raster.RasterModelGrid.at_patch
+    ~landlab.grid.raster.RasterModelGrid.at_corner
 
 Each of these attributes returns a ``dict``-like object whose keys are value
 names as strings and values are numpy arrays that gives quantities at
@@ -127,12 +123,12 @@ array to the ModelGrid:
     :toctree: generated/
     :nosignatures:
 
-    ~landlab.grid.base.ModelGrid.add_empty
-    ~landlab.grid.base.ModelGrid.add_field
-    ~landlab.grid.base.ModelGrid.add_ones
-    ~landlab.grid.base.ModelGrid.add_zeros
-    ~landlab.grid.base.ModelGrid.delete_field
-    ~landlab.grid.base.ModelGrid.set_units
+    ~landlab.grid.raster.RasterModelGrid.add_empty
+    ~landlab.grid.raster.RasterModelGrid.add_field
+    ~landlab.grid.raster.RasterModelGrid.add_ones
+    ~landlab.grid.raster.RasterModelGrid.add_zeros
+    ~landlab.grid.raster.RasterModelGrid.delete_field
+    ~landlab.grid.raster.RasterModelGrid.set_units
 
 These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the
@@ -155,8 +151,8 @@ fields:
     ~landlab.field.grouped.ModelDataFields.keys
     ~landlab.field.grouped.ModelDataFields.has_group
     ~landlab.field.grouped.ModelDataFields.has_field
-    ~landlab.grid.base.ModelGrid.field_units
-    ~landlab.grid.base.ModelGrid.field_values
+    ~landlab.grid.raster.RasterModelGrid.field_units
+    ~landlab.grid.raster.RasterModelGrid.field_values
     ~landlab.field.grouped.ModelDataFields.groups
 
     i.e., call, e.g. mg.has_field('node', 'my_field_name')
@@ -219,66 +215,3 @@ following code,
             # Code that initializes the NewGrid
 
 Without this, the new grid class will not have the ``at_*`` attributes.
-
-Examples
---------
-Although the following examples use a :class:`~.RasterModelGrid`, they apply
-equally to any grid that inherits from :class:`~.ModelGrid`.  The new grid
-comes with a set of pre-defined value groups. One group for each grid element.
-Use the groups attribute to see the group names.
-
->>> from landlab import RasterModelGrid
->>> grid = RasterModelGrid((3, 3))
->>> groups = list(grid.groups)
->>> groups.sort()
->>> groups
-['cell', 'corner', 'face', 'grid', 'link', 'node', 'patch']
-
-Create Field Arrays
-+++++++++++++++++++
-If you just want to create an array but not add it to the grid, you can use
-the :meth:`~.ModelGrid.ones` method.
-
->>> grid.ones(at='node')
-array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
->>> list(grid.at_node.keys()) # Nothing has been added to the grid
-[]
-
-Add Field Arrays
-++++++++++++++++
-Use the ``add_*`` methods to add value arrays attached to grid elements. Each
-of these methods accepts two arguments. The first is name of the grid element
-where values are associated and the second the name of the quantity. The
-quantity name must be unique within a group but the same quantity can appear
-in multiple goups.
-
->>> list(grid.at_node.keys()) # There a no values defined at grid nodes
-[]
->>> z = grid.add_ones('node', 'topographic__elevation')
-
-We now see that the array has been added to the grid as a reference to the
-array returned by ``add_ones``.
-
->>> list(grid.at_node.keys())
-['topographic__elevation']
->>> grid.at_node['topographic__elevation']
-array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
->>> z is grid.at_node['topographic__elevation']
-True
-
-To add a previously created array to the grid, use the
-:meth:`~.ModelGrid.add_field` method but be aware that it must be of the
-correct size (if it's not a ``ValueError`` will be raised).
-
->>> grid.has_field('node', 'air__temperature')
-False
->>> import numpy as np
->>> t = np.zeros(9)
->>> t is grid.add_field('node', 'air__temperature', t)
-True
->>> grid.has_field('node', 'air__temperature')
-True
->>> grid.has_field('cell', 'air__temperature')
-False
->>> t is grid.at_node['air__temperature']
-True
