@@ -28,7 +28,7 @@ Examples
 ...     3., 3., 3., 3., 3.,
 ...     2., 2., 2., 2., 2.,
 ...     1., 1., 1., 1., 1.])
->>> spatially_variable_mannings_n(grid, index_flow_depth=2.)
+>>> depth_dependent_mannings_n(grid, index_flow_depth=2.)
 >>> grid.at_node['mannings_n']
 array([ 0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
         0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
@@ -38,7 +38,7 @@ array([ 0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
 
     Construction::
 
-        spatially_variable_mannings_n(grid, 
+        depth_dependent_mannings_n(grid, 
                                       water_depths='surface_water__depth', 
                                       min_mannings_n=0.06,
                                       index_flow_depth=0.0003, 
@@ -48,7 +48,7 @@ array([ 0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
 
 import numpy as np
 from landlab import FieldError
-def spatially_variable_mannings_n(grid, water_depths='surface_water__depth', 
+def depth_dependent_mannings_n(grid, water_depths='surface_water__depth', 
                                   min_mannings_n=0.06,
                                   index_flow_depth=0.0003, 
                                   veg_drag_exponent=(-1./3.)):
@@ -62,7 +62,7 @@ def spatially_variable_mannings_n(grid, water_depths='surface_water__depth',
         ----------
         grid : A Landlab RasterModelGrid instance
             A Landlab grid - only works with RasterModelGrid instances as of
-            1/9/17.
+            1/31/17.
         water_depths : array or Landlab field of floats
             Array of values, with length of number of nodes, water depths
             at all grid node locations. (m)
