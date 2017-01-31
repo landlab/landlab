@@ -286,10 +286,7 @@ fields:
     ~landlab.grid.hex.HexModelGrid.field_values
     ~landlab.field.grouped.ModelDataFields.groups
 
-    i.e., call, e.g. mg.has_field('node', 'my_field_name')
-
-    # START HERE check that all functions listed below are included above,
-    # ignore ones that start with underscores(_)
+i.e., call, e.g. mg.has_field('node', 'my_field_name')
 
 Gradients, fluxes, and divergences on the grid
 ----------------------------------------------
