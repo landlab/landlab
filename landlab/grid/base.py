@@ -1597,7 +1597,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @property
     def number_of_corners(self):
-        """Total number of nodes.
+        """Total number of corners.
 
         Examples
         --------
