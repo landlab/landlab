@@ -64,6 +64,19 @@ class ScalarDataFields(dict):
     Traceback (most recent call last):
     ValueError: total size of the new array must be the same as the field
 
+    Fields can also be multidimensional arrays so long as they can be
+    resized such that the first dimension is the size of the field.
+    The stored field will be resized view of the input array such that
+    the size of the first dimension is the size of the field.
+
+    >>> fields['air__temperature'] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    >>> fields['air__temperature']
+    array([[ 2,  3],
+           [ 4,  5],
+           [ 6,  7],
+           [ 8,  9],
+           [10, 11]])
+
     You can also create unsized fields. These fields will not be sized until
     the first field is added to the collection. Once the size is set, all
     fields must be the same size.
