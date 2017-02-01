@@ -403,18 +403,9 @@ class ScalarDataFields(dict):
             raise FieldError('{name}: already exists'. format(name=name))
 
         value_array = np.asarray(value_array)
-        if value_array.ndim > 0:
-            if value_array.size == self.size:
-                value_array.shape = (-1, )
-                
-        elif np.mod(value_array.size,self.size) != 0:
-            raise ValueError(
-                'size of new array must be divisible by the number of elements'
-                ' in of the field')   
 
         if copy:
             value_array = value_array.copy()
-            value_array.shape = (value_array.size, )
 
         self[name] = value_array
 
@@ -446,11 +437,10 @@ class ScalarDataFields(dict):
 
         if self.size is None:
             self.size = value_array.size
-        if value_array.ndim > 0:
-            if value_array.shape[0] != self.size:
-                raise ValueError(
-                    'size of 0th dimention of the new array'
-                    'must be the same as the field')
+        if self.size == 1 and value_array.ndim != 0:
+            raise ValueError('size mismatch for scalar field')
+        if value_array.ndim > 0 and value_array.shape != (self.size, ):
+            value_array = value_array.reshape((self.size, -1)).squeeze()
 
         if name not in self:
             self.set_units(name, None)
