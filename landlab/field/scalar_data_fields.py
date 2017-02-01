@@ -25,6 +25,33 @@ class FieldError(Error, KeyError):
         return self._field
 
 
+def need_to_reshape_array(array, field_size):
+    """Check to see if an array needs to be resized before storing.
+
+    When possible, a reference to an array is stored. However, if the
+    array is not of the correct shape, a view of the array (with
+    the correct shape) is stored.
+
+    Parameters
+    ----------
+    array : numpy array
+        Numpy array to check.
+    field_size : int
+        Size of the field the array will be placed into.
+
+    Returns
+    -------
+    bool
+        True is the array should be resized.
+    """
+    if field_size > 1:
+        stored_shape = (field_size, )
+    else:
+        stored_shape = array.squeeze().shape
+
+    return array.shape != stored_shape
+
+
 class ScalarDataFields(dict):
 
     """Collection of named data fields that are of the same size.
@@ -450,9 +477,8 @@ class ScalarDataFields(dict):
 
         if self.size is None:
             self.size = value_array.size
-        if self.size == 1 and value_array.ndim != 0:
-            raise ValueError('size mismatch for scalar field')
-        if value_array.ndim > 0 and value_array.shape != (self.size, ):
+
+        if need_to_reshape_array(value_array, self.size):
             value_array = value_array.reshape((self.size, -1)).squeeze()
 
         if name not in self:
