@@ -225,8 +225,8 @@ class SoilInfiltrationGreenAmpt(Component):
             first_term = self._Ks[active]*dt-2.*wettingfront_depth
             potential_infilt = 0.5*(first_term + np.sqrt(
                 np.square(first_term) + 8.*dt*(
-                    self._Ks*wettingfront_depth +
-                    self._Ks*self._psi_f*self._Md)))
+                    self._Ks[active]*wettingfront_depth +
+                    self._Ks[active]*self._psi_f*self._Md)))
         else:
             potential_infilt = 0.5*(first_term + np.sqrt(
                 np.square(first_term) + 8.*dt*(
