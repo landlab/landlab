@@ -1,5 +1,5 @@
 #! /usr/env/python
-r"""
+"""
 Landlab's Continuous-Time Stochastic (CTS) cellular automata modeling package.
 
 Overview

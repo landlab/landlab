@@ -576,7 +576,7 @@ def get_categories_from_grid_methods(grid_type):
     Create a dict of category:[method_names] for a LL grid type.
 
     Looks in the final line of the docstrings
-    of class methods and propoerties  for a catgory declaration, "LLCATS: ".
+    of class methods and properties for a catgory declaration, "LLCATS: ".
     It then creates and returns a dict with keys found as categories and
     values that are lists of the names of methods that have that category.
 

@@ -5,3 +5,8 @@ General class methods and attributes of the `landlab.grid.base` module
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. automodule:: landlab.grid.grid_funcs
+    :members:
+    :undoc-members:
+    :show-inheritance:
