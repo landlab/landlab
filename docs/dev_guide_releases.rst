@@ -1,7 +1,7 @@
 .. _dev_releases:
 
 ===============================
-How to create a landlab release
+How to create a Landlab release
 ===============================
 
 New releases are built and uploaded to
@@ -25,11 +25,11 @@ is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
 
   Although you can create such a tag on any branch, releases should **only**
   come from the ``release`` branch. Make sure that when you create a tag
-  you are doing so on ``realease`` (and all your changes are committed).
+  you are doing so on ``release`` (and all your changes are committed).
 
 A couple notes about creating a new version:
 
-1. landlab follows `Semantic Versioning <http://semver.org/>`_
+1. Landlab follows `Semantic Versioning <http://semver.org/>`_
    rules for version assignment and formatting. Please stick to them.
 
 2. The version given in the tag name must match that in

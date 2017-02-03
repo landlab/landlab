@@ -15,6 +15,7 @@ requirements:
     - matplotlib
     - numpydoc
     - netcdf4
+    - hdf4 >=4.2.12 # [not win and np == 111]
     - cython
     - six
     - pyyaml
@@ -29,6 +30,7 @@ requirements:
     - matplotlib
     - numpydoc
     - netcdf4
+    - hdf4 >=4.2.12 # [not win and np == 111]
     - cython
     - six
     - pyyaml
