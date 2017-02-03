@@ -185,7 +185,26 @@ def test_scalar_field():
     fields.at_all_over_the_place['const'] = 1.
     assert_array_equal(np.array(1.), fields.at_all_over_the_place['const'])
     
-    assert_raises(ValueError, fields.add_field, 'new_value', [0,1], at='all_over_the_place')
+    val = np.array(2.)
+    fields.at_all_over_the_place['const'] = val
+    assert_is(val, fields.at_all_over_the_place['const'])
+
+
+def test_grid_field_as_array():
+    """Test adding an array as a grid field."""
+    fields = ModelDataFields()
+    fields.new_field_location('grid', 1)
+
+    fields.at_grid['const'] = [1., 2.]
+    assert_array_equal(np.array([1., 2.]), fields.at_grid['const'])
+
+    val = np.array([1., 2.])
+    fields.at_grid['const'] = val
+    assert_is(val, fields.at_grid['const'])
+
+    val.shape = (1, 1, 2, 1)
+    fields.at_grid['const'] = val
+    assert_array_equal(np.array([1., 2.]), fields.at_grid['const'])
 
 
 def test_grid_field_add_zeros_ones_empty():
@@ -204,3 +223,16 @@ def test_grid_field_zeros_ones_empty():
     assert_raises(ValueError, fields.zeros, 'grid')
     assert_raises(ValueError, fields.empty, 'grid')
     assert_raises(ValueError, fields.ones, 'grid')
+
+def test_nd_field():
+    """Test creating fields that are nd in shape."""
+    fields = ModelDataFields()
+    fields.new_field_location('node', 12)
+
+    fields.add_field('new_value', np.ones((12,4,5)), at='node')
+    fields.add_field('newer_value', np.ones((12,4)), at='node')
+
+    assert_raises(ValueError, fields.add_field, 'newest_value', np.ones((13,4,5)), at='node')
+    assert_raises(ValueError, fields.add_field, 'newestest_value', np.ones((13)), at='node')
+
+    
