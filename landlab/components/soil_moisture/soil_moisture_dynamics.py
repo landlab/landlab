@@ -458,6 +458,8 @@ class SoilMoisture(Component):
         self._fr[self._fr > 1.] = 1.
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape)
+        self._ts = np.zeros(self._SO.shape)  # record Time to Saturation
+        self._precip_int = np.zeros(self._SO.shape)
         # Adding routine to add runon & runoff
         if self._runon_switch:
             # Make sure that flow_router has been called before
@@ -500,23 +502,34 @@ class SoilMoisture(Component):
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
                           P)
             # Interception capacity
-            Peff = max(P + max(runon, 0.) - Int_cap, 0.)         # Effective precipitation depth
+            Peff = max((P + max(runon, 0.) - Int_cap), 0.)         # Effective precipitation depth
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell] +
                      fbare*self._PET[cell]*(1.-self._fr[cell])) -
                      Int_cap, 0.0001)  # mm/d
             self._ETmax[cell] = Ep
             nu = ((Ep / 24.) / 1000.) / (pc*ZR)   # Loss function parameter
-            nuw = ((self._soil_Ew/24.)/1000.)/(pc*ZR)
             # Loss function parameter
-            sini = self._SO[cell] + (Peff/(pc*ZR*1000.))
-
-            if sini > 1.:
-                self._runoff[cell] = (sini-1.)*pc*ZR*1000.
-                # print 'Runoff =', self._runoff
-                sini = 1.
+            nuw = ((self._soil_Ew/24.)/1000.)/(pc*ZR)
+            # Precipitation Intensity
+            precip_int = Peff/Tr
+            self._precip_int[cell] = precip_int
+            # Time to saturation Ts
+            if precip_int <= 0.:
+                Ts = np.inf
             else:
-                self._runoff[cell] = 0.
+                Ts = (((1-self._SO[cell])*(pc*ZR*1000.))/
+                       (precip_int*(1-np.exp((-1)*Inf_cap/precip_int))))
+            self._ts[cell] = Ts
+            # Computing runoff
+            if Tr < Ts:
+                self._runoff[cell] = max((precip_int - Inf_cap)*Tr, 0.)
+                sini = min(self._SO[cell] + ((precip_int * Tr -
+                           self._runoff[cell])/(pc*ZR*1000.)), 1.)
+            else:
+                sini = 1
+                self._runoff[cell] = max(((precip_int-Inf_cap)*Ts +
+                                           (precip_int*(Tr-Ts))), 0.)
 
             if sini >= fc:
                 tfc = (1./(beta*(mu-nu)))*(beta*(fc-sini) + np.log((
