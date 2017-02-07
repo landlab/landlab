@@ -4,6 +4,8 @@
    rst files will be PERMANENTLY LOST whenever the documentation is updated.
    Make changes directly to the txt files instead.
 
+..  _Raster:
+
 General class methods and attributes of the `landlab.grid.raster` module
 ------------------------------------------------------------------------
 
