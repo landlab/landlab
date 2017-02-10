@@ -9,7 +9,8 @@ from ...utils.decorators import use_file_name_or_kwds
 
 
 class KinematicWaveRengers(Component):
-    """
+    """A mid-complexity kinematic wave flood model, after Rengers et al (2016)
+
     This code is based on an overland flow model by Francis Rengers and
     colleagues, after Julien et al., 1995. It uses an explicit face-centered
     solution to a depth-varying Manning's equation, broadly following, e.g.,
@@ -202,7 +203,7 @@ class KinematicWaveRengers(Component):
         self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
 
     def run_one_step(self, dt, rainfall_intensity=0.00001,
-                            update_topography=False, track_min_depth=False):
+                     update_topography=False, track_min_depth=False):
         """Update fields with current hydrologic conditions.
 
         Parameters
