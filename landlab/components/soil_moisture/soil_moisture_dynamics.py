@@ -235,9 +235,12 @@ class SoilMoisture(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        runon: float, optional
-            Runon from higher elevation (mm).
-        f_bare: float, optional
+        runon_switch: int, optional
+            To indicate whether runon needs to considered (mm).
+        ordered_cells: numpy.array, required if runon_switch = 1
+            ordered_cells has the grid cells sorted in an order of descending
+            channel length in a delineated watershed
+         f_bare: float, optional
             Fraction to partition PET for bare soil (None).
         soil_ew: float, optional
             Residual Evaporation after wilting (mm/day).
@@ -338,8 +341,11 @@ class SoilMoisture(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        runon: float, optional
-            Runon from higher elevation (mm).
+        runon_switch: int, optional
+            To indicate whether runon needs to considered (mm).
+        ordered_cells: numpy.array, required if runon_switch = 1
+            ordered_cells has the grid cells sorted in an order of descending
+            channel length in a delineated watershed
         f_bare: float, optional
             Fraction to partition PET for bare soil (None).
         soil_ew: float, optional
@@ -466,8 +472,17 @@ class SoilMoisture(Component):
             r_cell = (
                self.grid.cell_at_node[self.grid.at_node['flow__receiver_node']])
             r_cell = r_cell[r_cell != -1]
+            # finding cells that are not part of ordered cells (delineated watershed)
+            diff_cells = (np.setdiff1d(
+                range(0, self.grid.number_of_cells), self.ordered_cells))
+            # trvrsl_order has ordered cells computed first and then the rest of the cells
+            trvrsl_order = np.concatenate((self.ordered_cells, diff_cells),
+                                          axis=0)
+        else:
+            # trvrsl_order is just regular 'all cells' if no runon is computed
+            trvrsl_order = range(0, self.grid.number_of_cells)
 
-        for cell in range(0, self.grid.number_of_cells):
+        for cell in trvrsl_order:
             # Routine to calculate runon
             if self._runon_switch:
                 if cell in self.ordered_cells:                
