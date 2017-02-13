@@ -73,6 +73,7 @@ class SoilInfiltrationGreenAmpt(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components import SoilInfiltrationGreenAmpt
     >>> mg = RasterModelGrid((4,3), spacing=10.)
     >>> hydraulic_conductivity = mg.ones('node')*1.e-6
     >>> hydraulic_conductivity.reshape((4,3))[0:2,:] *= 10000.
@@ -87,13 +88,12 @@ class SoilInfiltrationGreenAmpt(Component):
     >>> mg.at_node['surface_water__depth']
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
-             9.89663678e-03,   9.89663678e-03,   9.89663678e-03,
-             9.89663678e-03,   9.89663678e-03,   9.89663678e-03])
+             9.98966361e-03,   9.98966361e-03,   9.98966361e-03,
+             9.98966361e-03,   9.98966361e-03,   9.98966361e-03])
     >>> mg.at_node['soil_water_infiltration__depth']
-    array([ 0.20999999,  0.20999999,  0.20999999,
-            0.20999999,  0.20999999,  0.20999999,
-            0.20010336,  0.20010336,  0.20010336,
-            0.20010336,  0.20010336,  0.20010336])
+    array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
+            0.20999999,  0.20001034,  0.20001034,  0.20001034,  0.20001034,
+            0.20001034,  0.20001034])
     """
 
     _name = 'SoilInfiltrationGreenAmpt'
@@ -179,7 +179,14 @@ class SoilInfiltrationGreenAmpt(Component):
         coarse_frag_correction = 1. - volume_fraction_coarse_fragments
         self._phi_c = phi * coarse_frag_correction
         moisture_deficit = phi - initial_soil_moisture_content
+        
+        
+        ## DO WE NEED TO ASSERT THAT self._Md is positive?!?!?!?
         self._Md = moisture_deficit
+       # if self._Md < 0.:
+        #    self._Md == 0.
+            
+            
         if wetting_front_capillary_pressure_head is None:
             self._psi_f = ((2.+3.*soil_pore_size_distribution_index) /
                            (1.+3.*soil_pore_size_distribution_index) *
@@ -219,20 +226,24 @@ class SoilInfiltrationGreenAmpt(Component):
         # potential_infilt = infilt_cap*dt  # now defined direct
 
         # implement half-timestep method per Julien
+        #self._water_depth = self.grid.at_node['surface_water__depth']
+        
         try:
             first_term = self._Ks*dt-2.*wettingfront_depth
+            potential_infilt = (0.5 * (1./ dt) *(first_term + np.sqrt(
+                np.square(first_term) + 8.*dt*(
+                    self._Ks*wettingfront_depth +
+                    self._Ks*self._psi_f*self._Md))))
+
         except ValueError:
             first_term = self._Ks[active]*dt-2.*wettingfront_depth
-            potential_infilt = 0.5*(first_term + np.sqrt(
-                np.square(first_term) + 8.*dt*(
+            potential_infilt = (0.5 * (1./ dt) * (first_term + np.sqrt(
+                np.square(first_term) + 8. * dt * (
                     self._Ks[active]*wettingfront_depth +
-                    self._Ks[active]*self._psi_f*self._Md)))
-        else:
-            potential_infilt = 0.5*(first_term + np.sqrt(
-                np.square(first_term) + 8.*dt*(
-                    self._Ks[active]*wettingfront_depth +
-                    self._Ks[active]*self._psi_f*self._Md)))
+                    self._Ks[active]*self._psi_f*self._Md))))
+        #print(potential_infilt)
         # where is depth > Ic?
+       # print(first_term
         all_water_drawn = self._water_depth[active] <= potential_infilt
         not_all_water_drawn = np.logical_not(all_water_drawn)
         actual_infilt = potential_infilt
