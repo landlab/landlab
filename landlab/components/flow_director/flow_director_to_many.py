@@ -1,9 +1,9 @@
 #! /usr/env/python
 
 """
-flow_director_to_one.py provides a private class to help create FlowDirectors.
+flow_director_to_many.py provides a private class to help create FlowDirectors.
 
-Provides the _FlowDirectorToOne component which makes sure all model grid
+Provides the _FlowDirectorToMany component which makes sure all model grid
 fields are set up correctly.
 """
 
@@ -13,7 +13,7 @@ import numpy
 from landlab import BAD_INDEX_VALUE
 
 
-class _FlowDirectorToOne(_FlowDirector):
+class _FlowDirectorToMany(_FlowDirector):
 
     """
     Private class for creating components to calculate flow directions.
@@ -21,21 +21,22 @@ class _FlowDirectorToOne(_FlowDirector):
     This class is not meant to be used directly in modeling efforts. It
     inherits from the _FlowDirector class and builds on it to provide the
     functionality that all flow direction calculators need if they direct flow
-    only to one nodes, as in steepest descent or D8 direction finding. It 
+    only to multiple nodes, as in  D infinity or MFD direction finding. It 
     exists in contrast to the other intermediate flow director class 
-    _FlowDirectorToMany which provides equivalent functionality for flow 
-    direction algorithms such as D infinity or D trig that route flow from one
-    cell to multiple nodes. As the primary difference between these two methods
-    is the names of the fields they create and use, the primary function of
-    this class is to create model grid fields.
+    _FlowDirectorToOne which provides equivalent functionality for flow 
+    direction algorithms such as D8 or steepest descent which directs flow only
+    to one other node. As the primary difference between these two methods is 
+    the names of the fields they create and use, the primary function of this 
+    class is to create model grid fields.
 
     Specifically, it stores as ModelGrid fields:
 
     -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-       there is no receiver: *'flow__receiver_node'*
-    -  Node array of steepest downhill slopes:
+       there is no receiver: *'flow__receiver_nodes'*
+    -  Node array of flow proportion: *'flow__receiver_proportions'*
+    -  Node array of steepest downhill slope from each reciever:
        *'topographic__steepest_slope'*
-    -  Node array containing ID of link that leads from each node to its
+    -  Node array containing ID of steepest link that leads from each node to a
        receiver, or BAD_INDEX_VALUE if no link:
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
@@ -68,26 +69,29 @@ class _FlowDirectorToOne(_FlowDirector):
            'topographic__steepest_slope']
     """
 
-    _name = 'FlowDirectorToOne'
+    _name = 'FlowDirectorToMany'
 
     _input_var_names = ('topographic__elevation',
                         )
 
-    _output_var_names = ('flow__receiver_node',
+    _output_var_names = ('flow__receiver_nodes',
+                         'flow__receiver_proportions'
                          'topographic__steepest_slope',
                          'flow__link_to_receiver_node',
                          'flow__sink_flag',
                          )
 
     _var_units = {'topographic__elevation': 'm',
-                  'flow__receiver_node': '-',
+                  'flow__receiver_nodes': '-',
+                  'flow__receiver_proportions': '-',
                   'topographic__steepest_slope': '-',
                   'flow__link_to_receiver_node': '-',
                   'flow__sink_flag': '-',
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
-                    'flow__receiver_node': 'node',
+                    'flow__receiver_nodes': 'node',
+                    'flow__receiver_proportions': 'node',
                     'topographic__steepest_slope': 'node',
                     'flow__link_to_receiver_node': 'node',
                     'flow__sink_flag': 'node',
@@ -95,9 +99,13 @@ class _FlowDirectorToOne(_FlowDirector):
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
-        'flow__receiver_node':
-            'Node array of receivers (node that receives flow from current '
-            'node)',
+        'flow__receiver_nodes':
+            'Node array of receivers (nodes that receives flow from current '
+            'node). This array is of dimension (number of nodes x max number '
+            'of receivers.',
+         'flow__receiver_proportions':
+            'Node array of proportion of flow sent from current node to '
+            'downstream nodes.',
         'topographic__steepest_slope':
             'Node array of steepest *downhill* slopes',
         'flow__link_to_receiver_node':
@@ -108,15 +116,22 @@ class _FlowDirectorToOne(_FlowDirector):
     def __init__(self, grid, surface):
         """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
-        super(_FlowDirectorToOne, self).__init__(grid, surface)
-        self.to_n_receivers = 'one'
+        super(_FlowDirectorToMany, self).__init__(grid, surface)
+        self.to_n_receivers = 'many'
         # initialize new fields
         try:
-            self.receiver = grid.add_field('flow__receiver_node',
-                                           BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
-                                           at='node', dtype=int)
+            self.receivers = grid.add_field('flow__receiver_nodes',
+                                            BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
+                                            at='node', dtype=int)
         except FieldError:
-            self.receiver = grid.at_node['flow__receiver_node']
+            self.receiver = grid.at_node['flow__receiver_nodes']
+            
+        try:
+            self.proportions = grid.add_field('flow__receiver_proportions',
+                                            BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
+                                            at='node', dtype=int)
+        except FieldError:
+            self.proportions = grid.at_node['flow__receiver_proportions']
 
         try:
             self.steepest_slope = grid.add_zeros(
@@ -141,12 +156,7 @@ class _FlowDirectorToOne(_FlowDirector):
 
         raise NotImplementedError('run_one_step()')
 
-    # set properties. These are the same for all DirectToOne Directors
-    @property
-    def node_receiving_flow(self):
-        """Return the node id of the node receiving flow."""
-        return self._grid['node']['flow__receiver_node']
-
+    # set properties. These are the same for all DirectToMany Directors
     @property
     def node_steepest_slope(self):
         """Return the steepest link slope at a node."""
