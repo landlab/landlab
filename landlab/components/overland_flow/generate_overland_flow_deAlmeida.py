@@ -205,11 +205,17 @@ class OverlandFlow(Component):
 
         self.h_init = h_init
         self.alpha = alpha
-        self.mannings_n = mannings_n
+        
+        if type(mannings_n) is str:
+            self.mannings_n = self.grid.at_link[mannings_n]
+        else:
+            self.mannings_n = mannings_n
+
         self.g = g
         self.theta = theta
         self.rainfall_intensity = rainfall_intensity
         self.steep_slopes = steep_slopes
+
 
         # Now setting up fields at the links...
         # For water discharge
@@ -291,8 +297,15 @@ class OverlandFlow(Component):
         needed for the de Almeida solution.
         """
         # First we identify all active links
+        
         self.active_ids = links.active_link_ids(self.grid.shape,
                                                 self.grid.status_at_node)
+
+        self.active_links_at_open_bdy =self.grid._active_links_at_node(
+                                    self.grid.open_boundary_nodes).transpose()
+        
+        self.active_links_at_open_bdy = self.active_links_at_open_bdy[
+                                np.where(self.active_links_at_open_bdy > -1)]
 
         # And then find all horizontal link IDs (Active and Inactive)
         self.horizontal_ids = links.horizontal_link_ids(self.grid.shape)
@@ -325,7 +338,21 @@ class OverlandFlow(Component):
                 self.vertical_active_link_ids, fixed_vertical_links)
             self.active_neighbors = find_active_neighbors_for_fixed_links(
                 self.grid)
-
+            
+        self.vert_bdy_ids = self.active_links_at_open_bdy[
+                            links.is_vertical_link(self.grid.shape, 
+                                            self.active_links_at_open_bdy)]
+                                                   
+        self.vert_bdy_ids = links.nth_vertical_link(self.grid.shape, 
+                                                    self.vert_bdy_ids)
+        
+        self.horiz_bdy_ids = self.active_links_at_open_bdy[
+                            links.is_horizontal_link(self.grid.shape, 
+                                            self.active_links_at_open_bdy)]
+                                                     
+        self.horiz_bdy_ids = links.nth_horizontal_link(self.grid.shape,
+                                                  self.horiz_bdy_ids)
+        
         # Using the active vertical link ids we can find the north
         # and south vertical neighbors
         self.north_neighbors = links.vertical_north_link_neighbor(
@@ -340,6 +367,23 @@ class OverlandFlow(Component):
         self.east_neighbors = links.horizontal_east_link_neighbor(
             self.grid.shape, self.horizontal_active_link_ids)
 
+        ## replace bdy condition links
+        (ids, ) = np.where(self.west_neighbors[self.horiz_bdy_ids] == -1)
+        ids = self.horiz_bdy_ids[ids]
+        self.west_neighbors[ids] = self.horizontal_active_link_ids[ids]
+        
+        (ids, ) = np.where(self.east_neighbors[self.horiz_bdy_ids] == -1)
+        ids = self.horiz_bdy_ids[ids]
+        self.east_neighbors[ids] = self.horizontal_active_link_ids[ids]
+
+        (ids, ) = np.where(self.north_neighbors[self.vert_bdy_ids] == -1)
+        ids = self.vert_bdy_ids[ids]
+        self.north_neighbors[ids] = self.vertical_active_link_ids[ids]
+        
+        (ids, ) = np.where(self.south_neighbors[self.vert_bdy_ids] == -1)
+        ids = self.vert_bdy_ids[ids]
+        self.south_neighbors[ids] = self.vertical_active_link_ids[ids]
+        
         # Set up arrays for discharge in the horizontal & vertical directions.
         self.q_horizontal = np.zeros(links.number_of_horizontal_links(
             self.grid.shape))
@@ -410,8 +454,8 @@ class OverlandFlow(Component):
                 self.grid.calc_grad_at_link(w)[self.grid.active_links])
 
             # And insert these values into an array of all links
-            self.water_surface_slope[self.active_links] = self.water_surface__gradient
-
+            self.water_surface_slope[self.active_links
+                                      ] = self.water_surface__gradient
             # If the user chooses to set boundary links to the neighbor value,
             # we set the discharge array to have the boundary links set to
             # their neighbor value
@@ -425,28 +469,47 @@ class OverlandFlow(Component):
             # '-1' indices, we will simply insert an value of 0.0 discharge (in
             # units of L^2/T) to the end of the discharge array.
             self.q = np.append(self.q, [0])
-
+            
             horiz = self.horizontal_ids
             vert = self.vertical_ids
             # Now we calculate discharge in the horizontal direction
-            self.q[horiz] = ((
-                self.theta * self.q[horiz] + (1. - self.theta) / 2. *
-                (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
-                self.g * self.h_links[self.horizontal_ids] * self.dt *
-                self.water_surface_slope[self.horizontal_ids]) / (
-                    1 + self.g * self.dt * self.mannings_n ** 2. *
-                    abs(self.q[horiz]) / self.h_links[self.horizontal_ids] **
-                    _SEVEN_OVER_THREE))
-
-            # ... and in the vertical direction
-            self.q[vert] = ((
-                self.theta * self.q[vert] + (1 - self.theta) / 2. *
-                (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
-                self.g * self.h_links[self.vertical_ids] * self.dt *
-                self.water_surface_slope[self.vertical_ids]) / (
-                    1 + self.g * self.dt * self.mannings_n ** 2. *
-                    abs(self.q[vert]) / self.h_links[self.vertical_ids] **
-                    _SEVEN_OVER_THREE))
+            try:
+                self.q[horiz] = ((
+                    self.theta * self.q[horiz] + (1. - self.theta) / 2. *
+                    (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
+                    self.g * self.h_links[horiz] * self.dt *
+                    self.water_surface_slope[horiz]) / (1 + self.g * self.dt 
+                    * self.mannings_n ** 2. * abs(self.q[horiz]) / 
+                    self.h_links[horiz] ** _SEVEN_OVER_THREE))
+    
+                # ... and in the vertical direction
+                self.q[vert] = ((
+                    self.theta * self.q[vert] + (1 - self.theta) / 2. *
+                    (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
+                    self.g * self.h_links[vert] * self.dt *
+                    self.water_surface_slope[vert]) / (1 + self.g * self.dt * 
+                    self.mannings_n ** 2. * abs(self.q[vert]) / 
+                    self.h_links[vert] ** _SEVEN_OVER_THREE))
+                
+            except ValueError:
+                # if manning's n in a field
+                # calc discharge in horizontal
+                self.q[horiz] = ((
+                    self.theta * self.q[horiz] + (1. - self.theta) / 2. *
+                    (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
+                    self.g * self.h_links[horiz] * self.dt *
+                    self.water_surface_slope[horiz]) / (1 + self.g * self.dt 
+                    * self.mannings_n[horiz]** 2. * abs(self.q[horiz]) / 
+                    self.h_links[horiz] ** _SEVEN_OVER_THREE))
+    
+                # ... and in the vertical direction
+                self.q[vert] = ((
+                    self.theta * self.q[vert] + (1 - self.theta) / 2. *
+                    (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
+                    self.g * self.h_links[vert] * self.dt *
+                    self.water_surface_slope[self.vertical_ids]) / (1 + self.g 
+                    * self.dt * self.mannings_n[vert] ** 2. * abs(self.q[vert])
+                    / self.h_links[vert] ** _SEVEN_OVER_THREE))
 
             # Now to return the array to its original length (length of number
             # of all links), we delete the extra 0.0 value from the end of the
@@ -548,7 +611,27 @@ class OverlandFlow(Component):
             # discharge.
             self.grid.at_node['surface_water__depth'] = self.h
             self.grid.at_link['surface_water__discharge'] = self.q
-
+#
+#
+#            self.helper_q = self.grid.map_upwind_node_link_max_to_node(self.q)
+#            self.helper_s = self.grid.map_upwind_node_link_max_to_node(
+#                                                    self.water_surface_slope)
+#            
+#            self.helper_q = self.grid.map_max_of_link_nodes_to_link(self.helper_q)
+#            self.helper_s = self.grid.map_max_of_link_nodes_to_link(self.helper_s)
+#
+#            self.grid['link']['surface_water__discharge'][
+#                     self.active_links_at_open_bdy] = self.helper_q[
+#                     self.active_links_at_open_bdy]
+#
+#            self.grid['link']['water_surface__gradient'][
+#                self.active_links_at_open_bdy] = self.helper_s[
+#                self.active_links_at_open_bdy]
+            ## Update nodes near boundary locations - nodes adjacent to
+            ## boundaries may have discharge and water surface slopes
+            ## artifically reduced due to boundary effects. This step removes
+            ## those errors. 
+            
             if dt is np.inf:
                 break
             local_elapsed_time += self.dt
@@ -598,7 +681,7 @@ class OverlandFlow(Component):
             pass
 
         discharge_vals = (discharge_vals[self.grid.links_at_node] *
-                                        self.grid.active_link_dirs_at_node)
+                                        self.grid.link_dirs_at_node)
 
         discharge_vals = discharge_vals.flatten()
 
