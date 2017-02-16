@@ -32,9 +32,16 @@ class _FlowDirectorToMany(_FlowDirector):
     Specifically, it stores as ModelGrid fields:
 
     -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-       there is no receiver: *'flow__receiver_nodes'*
-    -  Node array of flow proportions: *'flow__receiver_proportions'*
-    -  Node array of steepest downhill slope from each reciever:
+       there is no receiver: *'flow__receiver_nodes'*. This array is 2D, and is
+       of dimension (number of nodes x max number of receivers).
+    -  Node array of flow proportions: *'flow__receiver_proportions'*. This 
+       array is 2D, and is of dimension (number of nodes x max number of 
+       receivers).
+    -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*. 
+       This array is 2D, and is of dimension (number of nodes x max number of
+       receivers).
+    -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*
+    -  Node array of steepest downhill slope from each receiver:
        *'topographic__steepest_slope'*
     -  Node array containing ID of steepest link that leads from each node to a
        receiver, or BAD_INDEX_VALUE if no link:
@@ -64,9 +71,11 @@ class _FlowDirectorToMany(_FlowDirector):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_to_receiver_node', 'flow__receiver_nodes',
-     'flow__receiver_proportions', 'flow__sink_flag',
-     'topographic__elevation', 'topographic__steepest_slope']
+    ['flow__link_to_receiver_node',
+    'flow__receiver_node',
+    'flow__sink_flag',
+    'topographic__elevation',
+    'topographic__steepest_slope']
     """
 
     _name = 'FlowDirectorToMany'
@@ -76,6 +85,8 @@ class _FlowDirectorToMany(_FlowDirector):
 
     _output_var_names = ('flow__receiver_nodes',
                          'flow__receiver_proportions'
+                         'flow__link_to_receiver_nodes',
+                         'flow__receiver_node',
                          'topographic__steepest_slope',
                          'flow__link_to_receiver_node',
                          'flow__sink_flag',
@@ -84,6 +95,8 @@ class _FlowDirectorToMany(_FlowDirector):
     _var_units = {'topographic__elevation': 'm',
                   'flow__receiver_nodes': '-',
                   'flow__receiver_proportions': '-',
+                  'flow__link_to_receiver_nodes': '-',
+                  'flow__receiver_node': '-',
                   'topographic__steepest_slope': '-',
                   'flow__link_to_receiver_node': '-',
                   'flow__sink_flag': '-',
@@ -92,6 +105,8 @@ class _FlowDirectorToMany(_FlowDirector):
     _var_mapping = {'topographic__elevation': 'node',
                     'flow__receiver_nodes': 'node',
                     'flow__receiver_proportions': 'node',
+                    'flow__link_to_receiver_nodes': 'node',
+                    'flow__receiver_node': 'node',
                     'topographic__steepest_slope': 'node',
                     'flow__link_to_receiver_node': 'node',
                     'flow__sink_flag': 'node',
@@ -102,14 +117,20 @@ class _FlowDirectorToMany(_FlowDirector):
         'flow__receiver_nodes':
             'Node array of receivers (nodes that receives flow from current '
             'node). This array is of dimension (number of nodes x max number '
-            'of receivers.',
+            'of receivers).',
          'flow__receiver_proportions':
             'Node array of proportion of flow sent from current node to '
-            'downstream nodes.',
+            'downstream nodes. This array is of dimension (number of nodes '
+            'x max number of receivers).',
+        'flow__link_to_receiver_nodes':
+            'Node array of all links carrying flow This array is of dimension '
+            '(number of nodes x max number of receivers).',
+        'flow__receiver_node':
+            'Node array of reciever at the end of the steepest link.',
         'topographic__steepest_slope':
-            'Node array of steepest *downhill* slopes',
+            'Node array of steepest *downhill* slopes.',
         'flow__link_to_receiver_node':
-            'ID of link downstream of each node, which carries the discharge',
+            'ID of *steepest* link downstream of each node.',
         'flow__sink_flag': 'Boolean array, True at local lows',
     }
 
@@ -119,19 +140,16 @@ class _FlowDirectorToMany(_FlowDirector):
         super(_FlowDirectorToMany, self).__init__(grid, surface)
         self.to_n_receivers = 'many'
         # initialize new fields
+        
+        # can't do receivers, links, or proportions here since we don't know 
+        # size of max_neighbors_at_node
+        
         try:
-            self.receivers = grid.add_field('flow__receiver_nodes',
-                                            BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
-                                            at='node', dtype=int)
+            self.receiver = grid.add_field('flow__receiver_node',
+                                           BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
+                                           at='node', dtype=int)
         except FieldError:
-            self.receiver = grid.at_node['flow__receiver_nodes']
-            
-        try:
-            self.proportions = grid.add_field('flow__receiver_proportions',
-                                            BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
-                                            at='node', dtype=int)
-        except FieldError:
-            self.proportions = grid.at_node['flow__receiver_proportions']
+            self.receiver = grid.at_node['flow__receiver_node']
 
         try:
             self.steepest_slope = grid.add_zeros(
