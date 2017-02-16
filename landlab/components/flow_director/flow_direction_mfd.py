@@ -185,7 +185,9 @@ def flow_directions_mfd(elev,
     
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned. 
-    slope_sort = np.argsort(flow_slopes, 1) == max_number_of_neighbors-1
+    slope_sort = np.argsort(np.argsort(flow_slopes, 
+                                   axis=1), 
+                        axis=1) == (max_number_of_neighbors-1)
     steepest_slope = flow_slopes[slope_sort]
     
     ## identify the steepest link and steepest receiever. 
@@ -197,7 +199,7 @@ def flow_directions_mfd(elev,
         receivers[baselevel_nodes,:] = node_id[baselevel_nodes,]
         receiver_links[baselevel_nodes,:] = UNDEFINED_INDEX
         steepest_slope[baselevel_nodes,:] = 0.
-    
+        
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
