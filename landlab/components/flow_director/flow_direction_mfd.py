@@ -20,8 +20,6 @@ def flow_directions_mfd(elev,
                         neighbors_at_node,
                         links_at_node,
                         active_link_dir_at_node,
-                        tail_node, 
-                        head_node, 
                         link_slope, 
                         baselevel_nodes=None,
                         partition_method='slope'):
@@ -46,9 +44,6 @@ def flow_directions_mfd(elev,
     
     link_dir_at_node: array_like (num nodes, max neighbors at node)
     
-    tail_node : array_like
-        IDs of the tail node for each link.
-    head_node : array_like
         IDs of the head node for each link.
     link_slope : array_like
         slope of each link, defined POSITIVE DOWNHILL (i.e., a negative value
