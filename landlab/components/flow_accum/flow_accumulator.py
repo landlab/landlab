@@ -885,12 +885,14 @@ class FlowAccumulator(Component):
             nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
             delta = flow_accum_to_n._make_delta_array_to_n(nd)
             D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
-            s = flow_accum_to_n.make_ordered_node_array_to_n(r,p)
+            s = flow_accum_to_n.make_ordered_node_array_to_n(r, p)
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-            self._grid['link']['flow__data_structure_D'][:len(D)] = D
+            # links are ONLY non_diagonal links, so D can't be stored there...
+            #self._grid['link']['flow__data_structure_D'][:len(D)] = D
+                      
             self._grid['node']['flow__upstream_node_order'][:] = s
 
             # step 3. Run depression finder if passed
@@ -898,17 +900,13 @@ class FlowAccumulator(Component):
 
             # step 4. Accumulate (to one or to N depending on direction method. )
             a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(s,
-                                                                       r,
-                                                                       p,
-                                                                       self.node_cell_area,
-                                                                       self._grid.at_node['water__unit_flux_in'])
+                                                                         r,
+                                                                         p,
+                                                                         self.node_cell_area,
+                                                                         self._grid.at_node['water__unit_flux_in'])
         # store drainage area and discharge. 
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
-            
-            
-            
-            
             
         # at the moment, this is where the depression finder needs to live.
         if self.depression_finder_provided:

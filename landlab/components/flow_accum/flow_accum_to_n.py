@@ -130,9 +130,15 @@ class _DrainageStack_to_n():
         0
         """
 
-        base = set([l])
+        base = set(l)
         self.s.extend(base)
+        
+        # fix this. 
         upstream = set(self.D[self.delta[l]:self.delta[l+1]])
+        for node_i in base:
+            upstream.update(self.D[self.delta[node_i]:self.delta[
+                    node_i+1]])
+        
         base = upstream-base  # only need to do this here.
 
         while len(upstream) > 0:
@@ -396,8 +402,7 @@ def make_ordered_node_array_to_n(receiver_nodes,
     dstack = _DrainageStack_to_n(delta, D)
     construct_it = dstack.construct__stack
 
-    for k in baselevel_nodes:
-        construct_it(k)  # don't think this is a bottleneck, so no C++
+    construct_it(baselevel_nodes)  # don't think this is a bottleneck, so no C++
     if set_stack is False:
         return dstack.s
     else:
