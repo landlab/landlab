@@ -309,11 +309,21 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     _name = 'FlowDirectorMFD'
 
-    def __init__(self, grid, surface='topographic__elevation',
-                 partition_method='slope', diagonals=False):
+    def __init__(self, grid, surface='topographic__elevation', **kwargs):
         """
         Initialize FlowDirectorMFD
         """
+        
+        # unpack kwargs:  
+        try:
+            partition_method = kwargs.pop('partition_method')
+        except:
+            partition_method = 'slope'
+        try:
+            diagonals = kwargs.pop('diagonals')    
+        except:
+            diagonals=False
+        
         self.method = 'MFD'
         super(FlowDirectorMFD, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
