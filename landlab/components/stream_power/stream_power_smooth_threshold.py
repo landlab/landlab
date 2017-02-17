@@ -133,7 +133,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     """
 
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
-                 rainfall_intensity=1., **kwargs):
+                 rainfall_intensity=1., use_Q=None, **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
         
         # Call base-class init
@@ -141,6 +141,19 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
               self).__init__(grid, K_sp=K_sp, m_sp=m_sp, n_sp=n_sp, 
                              threshold_sp=threshold_sp,
                              rainfall_intensity=rainfall_intensity, **kwargs)
+
+        # Handle "use_Q" option (ideally should be done by base class, but
+        # FastscapeEroder, unlike StreamPowerEroder, lacks this option)
+        if use_Q is not None:
+            if type(use_Q) is str:  # if str, assume it's a field name
+                self.area_or_discharge = self._grid.at_node[use_Q]
+            elif type(use_Q) is np.ndarray:  # if array, use it
+                self.area_or_discharge = use_Q
+            else:
+                print('Warning: use_Q must be field name or array')
+                self.area_or_discharge = self._grid.at_node['drainage_area']
+        else:
+            self.area_or_discharge = self._grid.at_node['drainage_area']
 
         # Arrays with parameters for use in implicit solver
         self.gamma = grid.empty(at='node')
@@ -206,8 +219,9 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         # Set up alpha, beta, delta arrays
         #
-        #   First, compute drainage area raised to the power m.
-        np.power(self._grid['node']['drainage_area'], self.m,
+        #   First, compute drainage area or discharge raised to the power m.
+        ##TODO: INCORPORATE DISCHARGE OR RUNOFF HERE
+        np.power(self.area_or_discharge, self.m,
                  out=self.A_to_the_m)
 
         #   Alpha
