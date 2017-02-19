@@ -221,6 +221,12 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         # (Later on, add functionality for a runoff rate, or discharge, or
         # variable K)
+        
+        # Handle possibility of spatially varying threshold
+        if type(self.thresholds) is np.ndarray:
+            thresh = self.thresholds[defined_flow_receivers]
+        else:
+            thresh = self.thresholds
 
         # Set up alpha, beta, delta arrays
         #
@@ -235,12 +241,12 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         #   Gamma
         self.gamma[defined_flow_receivers==False] = 0.0
-        self.gamma[defined_flow_receivers] = dt * self.thresholds
+        self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
         self.delta[defined_flow_receivers] = ((self.K
             * self.A_to_the_m[defined_flow_receivers] ) 
-            / (self.thresholds * flow_link_lengths))
+            / (thresh * flow_link_lengths))
 
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
