@@ -438,8 +438,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             # active links)
             dal, d8h, d8t = self.grid._d8_active_links()
                     
-            
-            
             # calculate graidents across diagonals
             diag_grads = numpy.zeros(diag_links.shape)
             where_active_diag = dal>=diag_links.min()
