@@ -1,7 +1,7 @@
-Mapping data between different Grid elements
+Extracting and plotting channel longitudinal profiles
 --------------------------------------------
 
-.. automodule:: landlab.grid.raster_mappers
+.. automodule:: landlab.plot.channel_profile
     :members:
     :undoc-members:
     :show-inheritance:

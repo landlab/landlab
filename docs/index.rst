@@ -140,7 +140,7 @@ Land surface hydrology
 
   landlab.components.radiation
   landlab.components.pet
-  landlab.components.soil_moisture
+..  landlab.components.soil_moisture
 
 Landslides
 ----------
@@ -150,14 +150,14 @@ Landslides
 
   landlab.components.landslides
 
-Vegetation
-----------
+.. Vegetation
+.. ----------
 
 .. toctree::
-  :maxdepth: 4
+..  :maxdepth: 4
 
-  landlab.components.vegetation_dynamics
-  landlab.components.plant_competition_ca
+..  landlab.components.single_vegetation
+..  landlab.components.vegetation_ca
 
 Precipitation
 -------------
@@ -185,21 +185,21 @@ Tectonics
   landlab.components.flexure
   landlab.components.gflex
 
-Fire
-----
+.. Fire
+.. ----
 
 .. toctree::
-  :maxdepth: 4
+..  :maxdepth: 4
 
-  landlab.components.fire_generator
+..  landlab.components.fire_generator
 
-Initial conditions: random field generators
--------------------------------------------
+.. Initial conditions: random field generators
+.. -------------------------------------------
 
 .. toctree::
-  :maxdepth: 4
+..  :maxdepth: 4
 
-  landlab.components.fracture_grid
+..  landlab.components.fracture_grid
 
 The Component base class
 ------------------------
@@ -218,7 +218,11 @@ output to a file.
 .. toctree::
   :maxdepth: 4
 
-  landlab.io
+  landlab.io.esri_ascii
+  landlab.io.netcdf
+  landlab.io.vtk
+  landlab.io.native_landlab
+  landlab.core.model_parameter
 
 
 Plotting and Visualization
@@ -227,7 +231,9 @@ Plotting and Visualization
 .. toctree::
   :maxdepth: 4
 
-  landlab.plot
+  landlab.plot.imshow
+  landlab.plot.channel_profile
+  landlab.plot.colors
 
 
 Utilities and Decorators
@@ -238,7 +244,9 @@ Utilities and Decorators
 
   landlab.core.utils
   landlab.utils.decorators
-  landlab.grid.decorators
+..  landlab.utils.jaggedarray
+..  landlab.utils.fault_facet_finder
+..  landlab.utils.structured_grid
 
 
 Cellular Automata (CA)
@@ -247,7 +255,13 @@ Cellular Automata (CA)
 .. toctree::
   :maxdepth: 4
 
-  landlab.ca
+  landlab.ca.celllab_cts
+  landlab.ca.raster_cts
+  landlab.ca.oriented_raster_cts
+  landlab.ca.hex_cts
+  landlab.ca.oriented_hex_cts
+  landlab.ca.boundaries
+
 
 
 Contributing to Landlab
@@ -255,14 +269,11 @@ Contributing to Landlab
 
 If you're intending to make changes to the Landlab code base,
 or want to develop your own components, we recommend you follow
-these specialized developer install instructions.
+these `specialized developer install instructions
+<https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`_.
 
-.. toctree::
- :maxdepth: 3
+For more information about contributing to the Landlab code base (i.e. developing components), see `Developing with git and github <https://github.com/landlab/landlab/wiki/Developing-with-github-and-git>`_.
 
- dev_guide_install
- dev_guide_releases
- dev_guide_components
 
 
 References

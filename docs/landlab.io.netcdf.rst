@@ -1,4 +1,4 @@
-Read and Write netCDF Files
+Read and write netCDF files
 =========================
 
 
@@ -22,6 +22,13 @@ Writing
 Error Handling
 ------------------------------
 .. automodule:: landlab.io.netcdf.errors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Gebco
+------------------------------
+.. automodule:: landlab.io.gebco.read
     :members:
     :undoc-members:
     :show-inheritance:

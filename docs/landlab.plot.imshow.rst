@@ -1,7 +1,7 @@
-Mapping data between different Grid elements
+Plotting Grid data
 --------------------------------------------
 
-.. automodule:: landlab.grid.raster_mappers
+.. automodule:: landlab.plot.imshow
     :members:
     :undoc-members:
     :show-inheritance:

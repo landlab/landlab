@@ -1,7 +1,7 @@
-Mapping data between different Grid elements
+Color maps for grid plotting
 --------------------------------------------
 
-.. automodule:: landlab.grid.raster_mappers
+.. automodule:: landlab.plot.colors
     :members:
     :undoc-members:
     :show-inheritance:

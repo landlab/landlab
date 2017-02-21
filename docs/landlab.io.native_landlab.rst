@@ -1,4 +1,4 @@
-Input and output in native landlab format
+Input and output in native Landlab format
 --------------------------------------------
 
 .. automodule:: landlab.io.native_landlab
