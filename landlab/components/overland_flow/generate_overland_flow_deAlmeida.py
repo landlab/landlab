@@ -430,7 +430,8 @@ class OverlandFlow(Component):
             self.z = self.grid['node']['topographic__elevation']
             self.q = self.grid['link']['surface_water__discharge']
             self.h_links = self.grid['link']['surface_water__depth']
-
+            self.mannings_n = self.grid['link']['mannings_n']
+         
             # Here we identify the core nodes and active links for later use.
             self.core_nodes = self.grid.core_nodes
             self.active_links = self.grid.active_links
