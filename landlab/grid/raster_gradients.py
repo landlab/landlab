@@ -492,13 +492,97 @@ def calc_unit_normals_at_cell_subtriangles(grid,
 
     LLCATS: CINF GRAD
     """
+
+
+    # identify the grid neigbors at each location
+    I = grid.node_at_cell
+    # calculate unit normals at all nodes.
+    (n_ENE,
+     n_NNE,
+     n_NNW,
+     n_WNW,
+     n_WSW,
+     n_SSW,
+     n_SSE,
+     n_ESE)=_calc_subtriangle_unit_normals_at_node(grid,elevs=elevs)
+
+     # return only those at cell.
+    return (n_ENE[I,:], 
+            n_NNE[I,:], 
+            n_NNW[I,:], 
+            n_WNW[I,:],
+            n_WSW[I,:],
+            n_SSW[I,:],
+            n_SSE[I,:],
+            n_ESE[I,:])
+
+def _calc_subtriangle_unit_normals_at_node(grid,
+                                           elevs='topographic__elevation'):
+    """Calculate unit normals on subtriangles at all nodes.
+
+    Calculate the eight unit normal vectors <a, b, c> to the eight
+    subtriangles of a four-cornered (raster) cell. Unlike
+    calc_unit_normals_at_node_subtriangles, this function also
+    calculated unit normals at the degenerate part-cells around the
+    boundary.
+    
+    On the grid boundaries where the cell is not fully defined, the unit normal
+    is given as <10, 10, 10> (so as to provide a normal greater than length 
+    one).
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+    A grid.
+    elevs : str or ndarray, optional
+    Field name or array of node values.
+
+    Returns
+    -------
+    (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE) :
+    each a num-nodes x length-3 array
+    Len-8 tuple of the eight unit normal vectors <a, b, c> for the eight
+    subtriangles in the cell. Order is from north of east, counter
+    clockwise to south of east (East North East, North North East, North
+    North West, West North West, West South West, South South West, South
+    South East, East South East).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_gradients import(
+    ...       _calc_subtriangle_unit_normals_at_node)
+    >>> mg = RasterModelGrid((3, 3))
+    >>> z = mg.node_x ** 2
+    >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
+    >>> type(eight_tris) is tuple
+    True
+    >>> len(eight_tris)
+    8
+    >>> eight_tris[0].shape == (mg.number_of_nodes, 3)
+    True
+    >>> eight_tris[0]
+        array([[ -0.70710678,   0.        ,   0.70710678],
+           [ -0.9486833 ,   0.        ,   0.31622777],
+           [ 10.        ,  10.        ,  10.        ],
+           [ -0.70710678,   0.        ,   0.70710678],
+           [ -0.9486833 ,   0.        ,   0.31622777],
+           [ 10.        ,  10.        ,  10.        ],
+           [ 10.        ,  10.        ,  10.        ],
+           [ 10.        ,  10.        ,  10.        ],
+           [ 10.        ,  10.        ,  10.        ]])
+
+    LLCATS: CINF GRAD
+    """
+    
     try:
         z = grid.at_node[elevs]
     except TypeError:
         z = elevs
     #  cell has center node I
     # orthogonal neighbors P, R, T, V, counter clockwise from East
-    # diagonal neibors Q, S, U, W, counter clocwise from North East
+    # diagonal neihbors Q, S, U, W, counter clocwise from North East
     # There are 8 subtriangles that can be defined  with the following corners
     # (starting from the central node, and progressing counter-clockwise).
     # ENE: IPQ
@@ -513,18 +597,18 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     # There are thus 8 vectors, IP, IQ, IR, IS, IT, IU, IV, IW
 
     # initialized difference matricies for cross product
-    diff_xyz_IP = np.empty((grid.number_of_cells, 3))  # East
+    diff_xyz_IP = np.empty((grid.number_of_nodes, 3))  # East
     # ^this is the vector (xP-xI, yP-yI, zP-yI)
-    diff_xyz_IQ = np.empty((grid.number_of_cells, 3))  # Northeast
-    diff_xyz_IR = np.empty((grid.number_of_cells, 3))  # North
-    diff_xyz_IS = np.empty((grid.number_of_cells, 3))  # Northwest
-    diff_xyz_IT = np.empty((grid.number_of_cells, 3))  # West
-    diff_xyz_IU = np.empty((grid.number_of_cells, 3))  # Southwest
-    diff_xyz_IV = np.empty((grid.number_of_cells, 3))  # South
-    diff_xyz_IW = np.empty((grid.number_of_cells, 3))  # Southeast
+    diff_xyz_IQ = np.empty((grid.number_of_nodes, 3))  # Northeast
+    diff_xyz_IR = np.empty((grid.number_of_nodes, 3))  # North
+    diff_xyz_IS = np.empty((grid.number_of_nodes, 3))  # Northwest
+    diff_xyz_IT = np.empty((grid.number_of_nodes, 3))  # West
+    diff_xyz_IU = np.empty((grid.number_of_nodes, 3))  # Southwest
+    diff_xyz_IV = np.empty((grid.number_of_nodes, 3))  # South
+    diff_xyz_IW = np.empty((grid.number_of_nodes, 3))  # Southeast
 
     # identify the grid neigbors at each location
-    I = grid.node_at_cell
+    I = np.arange(grid.number_of_nodes)
     P = grid.neighbors_at_node[I, 0]
     Q = grid._diagonal_neighbors_at_node[I, 0]
     R = grid.neighbors_at_node[I, 1]
@@ -628,17 +712,84 @@ def calc_unit_normals_at_cell_subtriangles(grid,
 
     # normalize the cross product with its magnitude so it is a unit normal
     # instead of a variable length normal.
-    n_ENE = nhat_ENE/nmag_ENE.reshape(grid.number_of_cells, 1)
-    n_NNE = nhat_NNE/nmag_NNE.reshape(grid.number_of_cells, 1)
-    n_NNW = nhat_NNW/nmag_NNW.reshape(grid.number_of_cells, 1)
-    n_WNW = nhat_WNW/nmag_WNW.reshape(grid.number_of_cells, 1)
-    n_WSW = nhat_WSW/nmag_WSW.reshape(grid.number_of_cells, 1)
-    n_SSW = nhat_SSW/nmag_SSW.reshape(grid.number_of_cells, 1)
-    n_SSE = nhat_SSE/nmag_SSE.reshape(grid.number_of_cells, 1)
-    n_ESE = nhat_ESE/nmag_ESE.reshape(grid.number_of_cells, 1)
+    n_ENE = nhat_ENE/nmag_ENE.reshape(grid.number_of_nodes, 1)
+    n_NNE = nhat_NNE/nmag_NNE.reshape(grid.number_of_nodes, 1)
+    n_NNW = nhat_NNW/nmag_NNW.reshape(grid.number_of_nodes, 1)
+    n_WNW = nhat_WNW/nmag_WNW.reshape(grid.number_of_nodes, 1)
+    n_WSW = nhat_WSW/nmag_WSW.reshape(grid.number_of_nodes, 1)
+    n_SSW = nhat_SSW/nmag_SSW.reshape(grid.number_of_nodes, 1)
+    n_SSE = nhat_SSE/nmag_SSE.reshape(grid.number_of_nodes, 1)
+    n_ESE = nhat_ESE/nmag_ESE.reshape(grid.number_of_nodes, 1)
+
+    # now remove the bad subtriangles based on parts of the grid
+    # make the bad subtriangle of length greater than one. 
+    bad = 10.*np.ones((3,))
+    
+    # first, corners:
+    corners = grid.corner_nodes
+    # lower left corner only has NNE and ENE
+    n_NNW[corners[0],:] = bad
+    n_WNW[corners[0],:] = bad
+    n_WSW[corners[0],:] = bad
+    n_SSW[corners[0],:] = bad
+    n_SSE[corners[0],:] = bad
+    n_ESE[corners[0],:] = bad
+    
+    # lower right corner only has NNW and WNW
+    n_ENE[corners[1],:] = bad
+    n_NNE[corners[1],:] = bad
+    n_WSW[corners[1],:] = bad
+    n_SSW[corners[1],:] = bad
+    n_SSE[corners[1],:] = bad
+    n_ESE[corners[1],:] = bad
+    
+    # upper left corner only has ESE and SSE
+    n_ENE[corners[2],:] = bad
+    n_NNE[corners[2],:] = bad
+    n_NNW[corners[2],:] = bad
+    n_WNW[corners[2],:] = bad
+    n_WSW[corners[2],:] = bad
+    n_SSW[corners[2],:] = bad
+
+    
+    # upper right corner only has WSW and SSW
+    n_ENE[corners[3],:] = bad
+    n_NNE[corners[3],:] = bad
+    n_NNW[corners[3],:] = bad
+    n_WNW[corners[3],:] = bad
+    n_SSE[corners[3],:] = bad
+    n_ESE[corners[3],:] = bad
+    
+    #next, sizes:
+    # bottom row only has Norths
+    bottom = grid.nodes_at_bottom_edge
+    n_WSW[bottom, :] = bad
+    n_SSW[bottom, :] = bad
+    n_SSE[bottom, :] = bad
+    n_ESE[bottom, :] = bad
+    
+    # left side only has Easts
+    left = grid.nodes_at_left_edge
+    n_NNW[left, :] = bad
+    n_WNW[left, :] = bad
+    n_WSW[left, :] = bad
+    n_SSW[left, :] = bad
+    
+    # top row only has Souths
+    top = grid.nodes_at_top_edge
+    n_ENE[top, :] = bad
+    n_NNE[top, :] = bad
+    n_NNW[top, :] = bad
+    n_WNW[top, :] = bad
+    
+    # right side only has Wests
+    right = grid.nodes_at_right_edge
+    n_ENE[right, :] = bad
+    n_NNE[right, :] = bad
+    n_SSE[right, :] = bad
+    n_ESE[right, :] = bad
 
     return (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
-
 
 def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
                                     subtriangle_unit_normals=None):
@@ -707,6 +858,96 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     LLCATS: CINF GRAD
     """
 
+    # calculate all subtriangle slopes
+    (s_ENE,
+     s_NNE,
+     s_NNW,
+     s_WNW,
+     s_WSW,
+     s_SSW,
+     s_SSE,
+     s_ESE) = _calc_subtriangle_slopes_at_node(grid, elevs=elevs, 
+                                               subtriangle_unit_normals=subtriangle_unit_normals)
+    # return only those at cell 
+    I = grid.node_at_cell
+    return (s_ENE[I], s_NNE[I], s_NNW[I], s_WNW[I], s_WSW[I], s_SSW[I], s_SSE[I], s_ESE[I])
+
+def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
+                                     subtriangle_unit_normals=None):
+    """Calculate slope at subtriangles. 
+    
+    Calculate the slope (positive magnitude of gradient) at each of the
+    eight subtriangles, including those at not-full cells along the
+    boundary. 
+    
+    Those subtriangles that that don't exist because they are on the edge
+    of the grid have slopes of NAN.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    elevs : str or ndarray, optional
+        Field name or array of node values.
+    subtriangle_unit_normals : tuple of 8 (ncells, 3) arrays (optional)
+        The unit normal vectors for the eight subtriangles of each cell,
+        if already known. Order is from north of east, counter
+        clockwise to south of east (East North East, North North East, North
+        North West, West North West, West South West, South South West, South
+        South East, East South East).
+
+    Returns
+    -------
+    (s_ENE, s_NNE, s_NNW, s_WNW, s_WSW, s_SSW, s_SSE, s_ESE) :
+        each a length num-cells array
+        Len-8 tuple of the slopes (positive gradient magnitude) of each of the
+        eight cell subtriangles, in radians. Order is from north of east,
+        counter clockwise to south of east (East North East, North North East,
+        North North West, West North West, West South West, South South West,
+        South South East, East South East).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.grid.raster_gradients import(
+    ...                         _calc_subtriangle_unit_normals_at_node,
+    ...                         _calc_subtriangle_slopes_at_node)
+    >>> mg = RasterModelGrid((3, 3))
+    >>> z = np.array([np.sqrt(3.), 0., 4./3.,
+    ...               0., 0., 0.,
+    ...               1., 0., 1./np.sqrt(3.)])
+    >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
+    >>> S = _calc_subtriangle_slopes_at_node(mg, z, eight_tris)
+    >>> S0 = _calc_subtriangle_slopes_at_node(mg, z)
+    >>> np.allclose(S, S0, equal_nan=True)
+    True
+    >>> type(S) is tuple
+    True
+    >>> len(S)
+    8
+    >>> len(S[0]) == mg.number_of_nodes
+    True
+    >>> np.allclose(S[0][mg.core_nodes], S[1][mg.core_nodes])
+    True
+    >>> np.allclose(S[2][mg.core_nodes], S[3][mg.core_nodes])
+    True
+    >>> np.allclose(S[4][mg.core_nodes], S[5][mg.core_nodes])
+    True
+    >>> np.allclose(S[6][mg.core_nodes], S[7][mg.core_nodes])
+    True
+    >>> np.allclose(np.rad2deg(S[0][mg.core_nodes]), 30.)
+    True
+    >>> np.allclose(np.rad2deg(S[2][mg.core_nodes]), 45.)
+    True
+    >>> np.allclose(np.rad2deg(S[4])[mg.core_nodes], 60.)
+    True
+    >>> np.allclose(np.cos(S[6])[mg.core_nodes], 3./5.)
+    True
+
+    LLCATS: CINF GRAD
+    """
+
     # verify that subtriangle_unit_normals is of the correct form.
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 8
@@ -722,11 +963,11 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
          n_WSW, n_SSW, n_SSE, n_ESE) = subtriangle_unit_normals
     else:
         n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
-            grid.calc_unit_normals_at_cell_subtriangles(elevs))
+            _calc_subtriangle_unit_normals_at_node(grid, elevs))
 
     # combine z direction element of all eight so that the arccosine portion
     # only takes one function call.
-    dotprod = np.empty((grid.number_of_cells, 8))
+    dotprod = np.empty((grid.number_of_nodes, 8))
     dotprod[:, 0] = n_ENE[:, 2]  # by definition
     dotprod[:, 1] = n_NNE[:, 2]
     dotprod[:, 2] = n_NNW[:, 2]
@@ -740,17 +981,16 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     slopes_at_cell_subtriangles = np.arccos(dotprod)  #
 
     # split array into each subtriangle component.
-    s_ENE = slopes_at_cell_subtriangles[:, 0].reshape(grid.number_of_cells)
-    s_NNE = slopes_at_cell_subtriangles[:, 1].reshape(grid.number_of_cells)
-    s_NNW = slopes_at_cell_subtriangles[:, 2].reshape(grid.number_of_cells)
-    s_WNW = slopes_at_cell_subtriangles[:, 3].reshape(grid.number_of_cells)
-    s_WSW = slopes_at_cell_subtriangles[:, 4].reshape(grid.number_of_cells)
-    s_SSW = slopes_at_cell_subtriangles[:, 5].reshape(grid.number_of_cells)
-    s_SSE = slopes_at_cell_subtriangles[:, 6].reshape(grid.number_of_cells)
-    s_ESE = slopes_at_cell_subtriangles[:, 7].reshape(grid.number_of_cells)
+    s_ENE = slopes_at_cell_subtriangles[:, 0].reshape(grid.number_of_nodes)
+    s_NNE = slopes_at_cell_subtriangles[:, 1].reshape(grid.number_of_nodes)
+    s_NNW = slopes_at_cell_subtriangles[:, 2].reshape(grid.number_of_nodes)
+    s_WNW = slopes_at_cell_subtriangles[:, 3].reshape(grid.number_of_nodes)
+    s_WSW = slopes_at_cell_subtriangles[:, 4].reshape(grid.number_of_nodes)
+    s_SSW = slopes_at_cell_subtriangles[:, 5].reshape(grid.number_of_nodes)
+    s_SSE = slopes_at_cell_subtriangles[:, 6].reshape(grid.number_of_nodes)
+    s_ESE = slopes_at_cell_subtriangles[:, 7].reshape(grid.number_of_nodes)
 
     return (s_ENE, s_NNE, s_NNW, s_WNW, s_WSW, s_SSW, s_SSE, s_ESE)
-
 
 def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
                                      subtriangle_unit_normals=None,
