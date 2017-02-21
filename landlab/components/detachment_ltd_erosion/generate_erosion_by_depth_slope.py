@@ -1,6 +1,17 @@
 """Calculates erosion rate as a function of the depth-slope product
 
-(Tau = density of fluid (rho) * gravitational acceleration (g) * water depths (h) * slopes (S)
+Erosion rate = k_e * ((Tau**a - Tau_crit**a))
+
+k_e = erodibility coefficient
+Tau = bed shear stress 
+    = density of fluid (rho) * gravitational acceleration (g) * water depths (h) * slopes (S)
+Tau_crit = critical shear stress
+a = positive exponent
+
+Note this equation was presented in Tucker, G.T., 2004, Drainage basin 
+sensitivityto tectonic and climatic forcing: Implications of a stochastic 
+model for the role of entrainment and erosion thresholds, 
+Earth Surface Processes and Landforms.
 
 More generalized than other erosion components, as it doesn't require the 
 upstream node order, links to flow receiver and flow receiver fields. Instead, 
@@ -150,17 +161,17 @@ class DepthSlopeProductErosion(Component):
         grid : RasterModelGrid
             A landlab grid.
         k_e : float
-            Erodibility parameter
+            Erodibility parameter, (m^(1+a_exp)*s^(2*a_exp-1)/kg^a_exp)
         fluid_density : float, optional
             Density of fluid, default set to water density of 1000 kg / m^3
         g : float, optional
             Acceleration due to gravity (m/s^2).
         a_exp : float, optional
-            exponent on shear stress
+            exponent on shear stress, positive, unitless
         tau_crit : float, optional
-            threshold for sediment movement
+            threshold for sediment movement, (kg/m/s^2)
         uplift_rate : float, optional
-            uplift rate applied to the topographic surface
+            uplift rate applied to the topographic surface, m/s
         """
         super(DepthSlopeProductErosion, self).__init__(grid, **kwds)
 
