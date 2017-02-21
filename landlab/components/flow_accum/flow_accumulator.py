@@ -269,9 +269,8 @@ class FlowAccumulator(Component):
     >>> mg = RasterModelGrid((5, 5), spacing=(1, 1))
     >>> topographic__elevation = mg.node_y+mg.node_x
     >>> _ = mg.add_field('node',
-    ...                    'topographic__elevation',
-    ...                    topographic__elevation)
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    ...                  'topographic__elevation',
+    ...                   topographic__elevation)
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
     ...                      flow_director='MFD',
     ...                      diagonals = True)
@@ -283,32 +282,47 @@ class FlowAccumulator(Component):
            [ 3, -1, -1, -1, -1, -1, -1, -1],
            [ 4, -1, -1, -1, -1, -1, -1, -1],
            [ 5, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1,  1, -1, -1,  0, -1],
+           [-1, -1,  5,  1, -1, -1,  0, -1],
            [-1, -1,  6,  2, -1, -1,  1, -1],
            [-1, -1,  7,  3, -1, -1,  2, -1],
-           [ 9, -1, -1, -1, -1, -1, -1, -1],
+           [-1, -1,  8, -1, -1, -1, -1, -1],
            [10, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1,  6, -1, -1, -1, -1],
+           [-1, -1, 10,  6, -1, -1,  5, -1],
            [-1, -1, 11,  7, -1, -1,  6, -1],
            [-1, -1, 12,  8, -1, -1,  7, -1],
-           [14, -1, -1, -1, -1, -1, -1, -1],
+           [-1, -1, 13, -1, -1, -1,  8, -1],
            [15, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1, 11, -1, -1, -1, -1],
+           [-1, -1, 15, 11, -1, -1, 10, -1],
            [-1, -1, 16, 12, -1, -1, 11, -1],
            [-1, -1, 17, 13, -1, -1, 12, -1],
-           [19, -1, -1, -1, -1, -1, -1, -1],
+           [-1, -1, 18, -1, -1, -1, 13, -1],
            [20, -1, -1, -1, -1, -1, -1, -1],
-           [21, -1, -1, -1, -1, -1, -1, -1],
-           [22, -1, -1, -1, -1, -1, -1, -1],
-           [23, -1, -1, -1, -1, -1, -1, -1],
-           [24, -1, -1, -1, -1, -1, -1, -1]])
+           [-1, -1, -1, 16, -1, -1, -1, -1],
+           [-1, -1, -1, 17, -1, -1, 16, -1],
+           [-1, -1, -1, 18, -1, -1, 17, -1],
+           [-1, -1, -1, -1, -1, -1, 18, -1]])
     >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  1.,  5.,  0.,
-            0.,  1.,  5.,  0.,
-            0.,  1.,  4.,  0.,
-            0.,  1.,  2.,  0.,
-            0.,  0.,  0.,  0.])
-        
+    array([ 1.30687782,  2.06348165,  1.34544697,  0.43763247,  0.        ,
+            2.06348165,  3.4557349 ,  2.61532125,  1.40757785,  0.        ,
+            1.34544697,  2.61532125,  2.19333222,  1.31091174,  0.        ,
+            0.43763247,  1.40757785,  1.31091174,  1.        ,  0.        ,
+            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    
+    It may seem odd that there are no round numbers in the drainage area field.
+    This is because flow is directed to all downhill boundary nodes and 
+    partitioned based on slope.
+    
+    To check that flow is conserved, sum along all boundary nodes. 
+    
+    >>> sum(mg.at_node['drainage_area'][mg.boundary_nodes])
+    9.0000000000000018
+    
+    This should be the same as the number of core nodes --- as boundary nodes
+    in landlab do not have area. 
+    
+    >>> len(mg.core_nodes)
+    9
+    
     Next, let's set the dx spacing such that each cell has an area of one.
 
     >>> dx=(2./(3.**0.5))**0.5
@@ -596,7 +610,7 @@ class FlowAccumulator(Component):
         self.kwargs = kwargs
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
-        self.test_water_inputs(grid, runoff_rate)
+        self._test_water_inputs(grid, runoff_rate)
 
         # save elevations and node_cell_area to class properites.
         self.surface = surface
@@ -610,8 +624,8 @@ class FlowAccumulator(Component):
         # STEP 2:
         # identify Flow Director method, save name, import and initialize the correct
         # flow director component if necessary
-        self.add_director(flow_director)
-        self.add_depression_finder(depression_finder)
+        self._add_director(flow_director)
+        self._add_depression_finder(depression_finder)
 
         # This component will track of the following variables.
         # Attempt to create each, if they already exist, assign the existing
@@ -675,7 +689,7 @@ class FlowAccumulator(Component):
         """Return the upstream node order (drainage stack)."""
         return self._grid['node']['flow__upstream_node_order']
 
-    def test_water_inputs(self, grid, runoff_rate):
+    def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
         # testing input for runoff rate, can be None, a string associated with
         # a field at node, a single float or int, or an array of size number of
@@ -727,7 +741,7 @@ class FlowAccumulator(Component):
                           "your code if you intended the FlowRouter to use " +
                           "that field.", DeprecationWarning)
 
-    def add_director(self, flow_director):
+    def _add_director(self, flow_director):
         """Test and add the flow director component."""
         PERMITTED_DIRECTORS = ['FlowDirectorSteepest',
                                'FlowDirectorD8',
@@ -790,7 +804,7 @@ class FlowAccumulator(Component):
         # save method as attribute
         self.method = self.flow_director.method
         
-    def add_depression_finder(self,depression_finder):
+    def _add_depression_finder(self,depression_finder):
         """Test and add the depression finder component."""
         PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
 
