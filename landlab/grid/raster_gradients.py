@@ -698,7 +698,75 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     nhat_SSW = np.cross(diff_xyz_IU, diff_xyz_IV)
     nhat_SSE = np.cross(diff_xyz_IV, diff_xyz_IW)
     nhat_ESE = np.cross(diff_xyz_IW, diff_xyz_IP)
+    
+     # now remove the bad subtriangles based on parts of the grid
+    # make the bad subtriangle of length greater than one. 
+    bad = np.nan*np.ones((3,))
+    
+    # first, corners:
+    corners = grid.corner_nodes
+    # lower left corner only has NNE and ENE
+    nhat_NNW[corners[0],:] = bad
+    nhat_WNW[corners[0],:] = bad
+    nhat_WSW[corners[0],:] = bad
+    nhat_SSW[corners[0],:] = bad
+    nhat_SSE[corners[0],:] = bad
+    nhat_ESE[corners[0],:] = bad
+    
+    # lower right corner only has NNW and WNW
+    nhat_ENE[corners[1],:] = bad
+    nhat_NNE[corners[1],:] = bad
+    nhat_WSW[corners[1],:] = bad
+    nhat_SSW[corners[1],:] = bad
+    nhat_SSE[corners[1],:] = bad
+    nhat_ESE[corners[1],:] = bad
+    
+    # upper left corner only has ESE and SSE
+    nhat_ENE[corners[2],:] = bad
+    nhat_NNE[corners[2],:] = bad
+    nhat_NNW[corners[2],:] = bad
+    nhat_WNW[corners[2],:] = bad
+    nhat_WSW[corners[2],:] = bad
+    nhat_SSW[corners[2],:] = bad
 
+    
+    # upper right corner only has WSW and SSW
+    nhat_ENE[corners[3],:] = bad
+    nhat_NNE[corners[3],:] = bad
+    nhat_NNW[corners[3],:] = bad
+    nhat_WNW[corners[3],:] = bad
+    nhat_SSE[corners[3],:] = bad
+    nhat_ESE[corners[3],:] = bad
+    
+    #next, sizes:
+    # bottom row only has Norths
+    bottom = grid.nodes_at_bottom_edge
+    nhat_WSW[bottom, :] = bad
+    nhat_SSW[bottom, :] = bad
+    nhat_SSE[bottom, :] = bad
+    nhat_ESE[bottom, :] = bad
+    
+    # left side only has Easts
+    left = grid.nodes_at_left_edge
+    nhat_NNW[left, :] = bad
+    nhat_WNW[left, :] = bad
+    nhat_WSW[left, :] = bad
+    nhat_SSW[left, :] = bad
+    
+    # top row only has Souths
+    top = grid.nodes_at_top_edge
+    nhat_ENE[top, :] = bad
+    nhat_NNE[top, :] = bad
+    nhat_NNW[top, :] = bad
+    nhat_WNW[top, :] = bad
+    
+    # right side only has Wests
+    right = grid.nodes_at_right_edge
+    nhat_ENE[right, :] = bad
+    nhat_NNE[right, :] = bad
+    nhat_SSE[right, :] = bad
+    nhat_ESE[right, :] = bad
+    
     # calculate magnitude of cross product so that the result is a unit normal
     nmag_ENE = np.sqrt(np.square(nhat_ENE).sum(axis=1))
     nmag_NNE = np.sqrt(np.square(nhat_NNE).sum(axis=1))
@@ -719,74 +787,6 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     n_SSW = nhat_SSW/nmag_SSW.reshape(grid.number_of_nodes, 1)
     n_SSE = nhat_SSE/nmag_SSE.reshape(grid.number_of_nodes, 1)
     n_ESE = nhat_ESE/nmag_ESE.reshape(grid.number_of_nodes, 1)
-    
-    # now remove the bad subtriangles based on parts of the grid
-    # make the bad subtriangle of length greater than one. 
-    bad = np.nan*np.ones((3,))
-    
-    # first, corners:
-    corners = grid.corner_nodes
-    # lower left corner only has NNE and ENE
-    n_NNW[corners[0],:] = bad
-    n_WNW[corners[0],:] = bad
-    n_WSW[corners[0],:] = bad
-    n_SSW[corners[0],:] = bad
-    n_SSE[corners[0],:] = bad
-    n_ESE[corners[0],:] = bad
-    
-    # lower right corner only has NNW and WNW
-    n_ENE[corners[1],:] = bad
-    n_NNE[corners[1],:] = bad
-    n_WSW[corners[1],:] = bad
-    n_SSW[corners[1],:] = bad
-    n_SSE[corners[1],:] = bad
-    n_ESE[corners[1],:] = bad
-    
-    # upper left corner only has ESE and SSE
-    n_ENE[corners[2],:] = bad
-    n_NNE[corners[2],:] = bad
-    n_NNW[corners[2],:] = bad
-    n_WNW[corners[2],:] = bad
-    n_WSW[corners[2],:] = bad
-    n_SSW[corners[2],:] = bad
-
-    
-    # upper right corner only has WSW and SSW
-    n_ENE[corners[3],:] = bad
-    n_NNE[corners[3],:] = bad
-    n_NNW[corners[3],:] = bad
-    n_WNW[corners[3],:] = bad
-    n_SSE[corners[3],:] = bad
-    n_ESE[corners[3],:] = bad
-    
-    #next, sizes:
-    # bottom row only has Norths
-    bottom = grid.nodes_at_bottom_edge
-    n_WSW[bottom, :] = bad
-    n_SSW[bottom, :] = bad
-    n_SSE[bottom, :] = bad
-    n_ESE[bottom, :] = bad
-    
-    # left side only has Easts
-    left = grid.nodes_at_left_edge
-    n_NNW[left, :] = bad
-    n_WNW[left, :] = bad
-    n_WSW[left, :] = bad
-    n_SSW[left, :] = bad
-    
-    # top row only has Souths
-    top = grid.nodes_at_top_edge
-    n_ENE[top, :] = bad
-    n_NNE[top, :] = bad
-    n_NNW[top, :] = bad
-    n_WNW[top, :] = bad
-    
-    # right side only has Wests
-    right = grid.nodes_at_right_edge
-    n_ENE[right, :] = bad
-    n_NNE[right, :] = bad
-    n_SSE[right, :] = bad
-    n_ESE[right, :] = bad
 
     return (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
 
