@@ -141,6 +141,7 @@ Land surface hydrology
   landlab.components.radiation
   landlab.components.pet
   landlab.components.soil_moisture
+  landlab.components.greenampt
 
 Landslides
 ----------
