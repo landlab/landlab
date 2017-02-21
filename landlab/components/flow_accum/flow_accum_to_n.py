@@ -82,7 +82,8 @@ class _DrainageStack_to_n():
         """
         Function to construct the drainage stack.
 
-        Function to add all nodes upstream of base level node l in an order
+        Function to add all nodes upstream of a set of base level nodes given 
+        by list l in an order
         such that downstream nodes always occur before upstream nodes.
 
         This function contains the major algorithmic difference between the
@@ -129,18 +130,26 @@ class _DrainageStack_to_n():
         >>> len(set([0, 3, 8])-set(ds.s[6:9]))
         0
         """
-
-        base = set(l)
-        self.s.extend(base)
         
-        # fix this. 
-        upstream = set(self.D[self.delta[l]:self.delta[l+1]])
+        # create base nodes set
+        try:
+            base = set(l)
+        except:
+            base = set([l])
+            
+        #create the upstream set by adding all nodes that flow into the base
+        # nodes. 
+        upstream = set()
         for node_i in base:
             upstream.update(self.D[self.delta[node_i]:self.delta[
                     node_i+1]])
         
+        # add the base to the set stack, self.s
+        self.s.extend(base)
+        # then set the base to upstream-base
         base = upstream-base  # only need to do this here.
 
+        # march topologically upstream. 
         while len(upstream) > 0:
             upstream = set([])
             for node_i in base:
