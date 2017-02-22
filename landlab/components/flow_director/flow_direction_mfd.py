@@ -81,27 +81,125 @@ def flow_directions_mfd(elev,
 
     Examples
     --------
-    The example below assigns elevations to the 10-node example network in
-    Braun and Willett (2012), so that their original flow pattern should be
-    re-created.
-
+    >>> from landlab import RasterModelGrid
     >>> import numpy as np
-    >>> from landlab.components.flow_routing import flow_directions
-    >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
-    >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
-    >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
-    >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
-    >>> active_links = np.arange(len(fn))
-    >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s)
-    >>> r
-    array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
-    >>> ss
-    array([ 1.4,  1. ,  1.2,  1. ,  0. ,  1.1,  0.9,  2.3,  1.1,  0.9])
-    >>> snk
-    array([4])
-    >>> rl[3:8]
-    array([15, -1,  1,  6,  2])
-
+    >>> from landlab.components.flow_director.flow_direction_mfd import(
+    ...                                           flow_directions_mfd)
+    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> elev = grid.add_field('topographic__elevation', grid.node_x+grid.node_y, at = 'node')
+    
+    For the first example, we will not pass any diagonal elements to the flow
+    direction algorithm. 
+    
+    >>> neighbors_at_node = grid.neighbors_at_node
+    >>> links_at_node = grid.links_at_node
+    >>> active_link_dir_at_node = grid.active_link_dirs_at_node
+    >>> link_slope = np.arctan(grid.calc_grad_at_link(elev))
+    >>> slopes_to_neighbors_at_node = link_slope[links_at_node]*active_link_dir_at_node
+    >>> (receivers, 
+    ... proportions, 
+    ... steepest_slope, 
+    ... steepest_receiver, 
+    ... sink, 
+    ... receiver_links, 
+    ... steepest_link)= flow_directions_mfd(elev, 
+    ...                                     neighbors_at_node,
+    ...                                     links_at_node,
+    ...                                     active_link_dir_at_node,
+    ...                                     link_slope, 
+    ...                                     baselevel_nodes=None,
+    ...                                     partition_method='slope')
+    >>> receivers
+    array([[ 0, -1, -1, -1],
+           [ 1, -1, -1, -1],
+           [ 2, -1, -1, -1],
+           [ 3, -1, -1, -1],
+           [-1, -1,  3,  1],
+           [-1, -1,  4, -1],
+           [ 6, -1, -1, -1],
+           [-1, -1, -1,  4],
+           [ 8, -1, -1, -1]])
+    >>> proportions
+    array([[ 1. ,  0. ,  0. ,  0. ],
+           [ 1. ,  0. ,  0. ,  0. ],
+           [ 1. ,  0. ,  0. ,  0. ],
+           [ 1. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0.5,  0.5],
+           [ 0. ,  0. ,  1. ,  0. ],
+           [ 1. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  1. ],
+           [ 1. ,  0. ,  0. ,  0. ]])
+    >>> proportions.sum(axis=-1)
+    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    
+    In the second example, we will pass diagonal elements to the flow direction
+    algorithm.
+    
+    >>> grid._create_diag_links_at_node()
+    >>> dal, d8t, d8h = grid._d8_active_links()        
+    >>> neighbors_at_node = np.hstack((grid.neighbors_at_node, 
+    ...                                grid._diagonal_neighbors_at_node))
+    >>> links_at_node = np.hstack((grid.links_at_node,
+    ...                            grid._diagonal_links_at_node))
+    >>> active_link_dir_at_node = np.hstack((grid.active_link_dirs_at_node,
+    ...                                      grid._diag__active_link_dirs_at_node))
+    
+    We need to create a list of diagonal links since it doesn't exist.
+    
+    >>> diag_links = np.sort(np.unique(grid._diag_links_at_node))
+    >>> diag_links = diag_links[diag_links>0]
+    >>> diag_grads = np.zeros(diag_links.shape)
+    >>> where_active_diag = dal>=diag_links.min()
+    >>> active_diags_inds = dal[where_active_diag]-diag_links.min()
+    >>> active_diag_grads = grid._calculate_gradients_at_d8_active_links(elev)
+    >>> diag_grads[active_diags_inds] = active_diag_grads[where_active_diag]
+    >>> ortho_grads = grid.calc_grad_at_link(elev)
+    >>> link_slope = np.hstack((np.arctan(ortho_grads),
+    ...                         np.arctan(diag_grads)))
+    >>> (receivers, 
+    ... proportions, 
+    ... steepest_slope, 
+    ... steepest_receiver, 
+    ... sink, 
+    ... receiver_links, 
+    ... steepest_link)= flow_directions_mfd(elev, 
+    ...                                     neighbors_at_node,
+    ...                                     links_at_node,
+    ...                                     active_link_dir_at_node,
+    ...                                     link_slope, 
+    ...                                     baselevel_nodes=None,
+    ...                                     partition_method='slope')
+    >>> receivers
+    array([[ 0, -1, -1, -1, -1, -1, -1, -1],
+           [ 1, -1, -1, -1, -1, -1, -1, -1],
+           [ 2, -1, -1, -1, -1, -1, -1, -1],
+           [ 3, -1, -1, -1, -1, -1, -1, -1],
+           [-1, -1,  3,  1, -1, -1,  0, -1],
+           [-1, -1,  4, -1, -1, -1, -1, -1],
+           [ 6, -1, -1, -1, -1, -1, -1, -1],
+           [-1, -1, -1,  4, -1, -1, -1, -1],
+           [-1, -1, -1, -1, -1, -1,  4, -1]])
+    >>> proportions
+    array([[ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.31091174,  0.31091174,  0.        ,
+             0.        ,  0.37817653,  0.        ],
+           [ 0.        ,  0.        ,  1.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  1.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  1.        ,  0.        ]])
+    >>> proportions.sum(axis=-1)
+    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     """
     # Calculate the number of nodes.
     num_nodes = len(elev)
