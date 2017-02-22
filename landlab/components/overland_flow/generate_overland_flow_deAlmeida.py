@@ -430,7 +430,6 @@ class OverlandFlow(Component):
             self.z = self.grid['node']['topographic__elevation']
             self.q = self.grid['link']['surface_water__discharge']
             self.h_links = self.grid['link']['surface_water__depth']
-            self.mannings_n = self.grid['link']['mannings_n']
          
             # Here we identify the core nodes and active links for later use.
             self.core_nodes = self.grid.core_nodes
@@ -493,6 +492,7 @@ class OverlandFlow(Component):
                     self.h_links[vert] ** _SEVEN_OVER_THREE))
                 
             except ValueError:
+                self.mannings_n = self.grid['link']['mannings_n']
                 # if manning's n in a field
                 # calc discharge in horizontal
                 self.q[horiz] = ((
