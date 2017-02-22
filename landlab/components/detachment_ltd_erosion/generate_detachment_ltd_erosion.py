@@ -78,9 +78,9 @@ rate.
 
 >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
 array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.99993675,  0.99991056,  0.99991056,  0.99991056,  0.99993675,
-        1.99995528,  1.99993675,  1.99993675,  1.99993675,  1.99995528,
-        2.99996838,  2.99995528,  2.99995528,  2.99995528,  2.99996838])
+        0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
+        1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
+        2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
 
 """
 
@@ -207,6 +207,6 @@ class DetachmentLtdErosion(Component):
 
         self.I[self.I < 0.0] = 0.0
 
-        self.dzdt = (self.uplift_rate - self.I)
+        self.dz = (self.uplift_rate - self.I) * dt
 
-        self._grid['node'][elevs] += self.dzdt
+        self._grid['node'][elevs] += self.dz
