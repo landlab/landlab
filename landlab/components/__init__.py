@@ -25,6 +25,7 @@ from .depth_dependent_diffusion import DepthDependentDiffuser
 from .flow_director import FlowDirectorD8
 from .flow_director import FlowDirectorSteepest
 from .flow_director import FlowDirectorMFD
+from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 
@@ -42,7 +43,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser,
-              FlowDirectorD8,FlowDirectorSteepest,FlowDirectorMFD,
+              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD, FlowDirectorDINF,
               FlowAccumulator
               ]
 
