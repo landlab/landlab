@@ -607,6 +607,7 @@ class FlowAccumulator(Component):
         # Grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+                
         self.kwargs = kwargs
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -666,7 +667,7 @@ class FlowAccumulator(Component):
 
         try:
             
-            
+            # IF director is to two, need to change size here. 
             
             # needs to be BAD_INDEX_VALUE
             self.D_structure = grid.add_field('flow__data_structure_D',
@@ -789,7 +790,7 @@ class FlowAccumulator(Component):
             except KeyError:
                 raise ValueError('String provided in flow_director is not a valid method or component name. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
-            self.flow_director = FlowDirector(self._grid, self.surface_values, **kw)
+            self.flow_director = FlowDirector(self._grid, self.surface, **kw)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
              if flow_director._name in PERMITTED_DIRECTORS:
@@ -802,7 +803,7 @@ class FlowAccumulator(Component):
 
             if flow_director._name in PERMITTED_DIRECTORS:
                 FlowDirector = flow_director
-                self.flow_director = FlowDirector(self._grid, self.surface_values, **kw)
+                self.flow_director = FlowDirector(self._grid, self.surface, **kw)
             else:
                 raise ValueError('Component provided in flow_director is not a valid component. '
                                  'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
@@ -816,7 +817,7 @@ class FlowAccumulator(Component):
 
         # now do a similar thing for the depression finder.
         self.depression_finder_provided = depression_finder
-        if self.depression_finder_provided:
+        if self.depression_finder_provided is not None:
             # depression finder is provided as a string.
             if isinstance(self.depression_finder_provided, six.string_types):
 
@@ -848,6 +849,8 @@ class FlowAccumulator(Component):
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+        else: 
+            self.depression_finder = None
 
 
     def accumulate_flow(self, update_flow_director=True):
@@ -929,7 +932,7 @@ class FlowAccumulator(Component):
         self._grid['node']['surface_water__discharge'][:] = q
             
         # at the moment, this is where the depression finder needs to live.
-        if self.depression_finder_provided:
+        if self.depression_finder_provided is not None:
             self.depression_finder.map_depressions()
          
         return (a, q)

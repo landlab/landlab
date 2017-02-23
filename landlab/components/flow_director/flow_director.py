@@ -12,7 +12,7 @@ from __future__ import print_function
 from landlab import Component
 from landlab import RasterModelGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
-
+import six
 
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
@@ -78,6 +78,17 @@ class _FlowDirector(Component):
         # save elevations as class properites.
         self.surface = surface
         self.surface_values = _return_surface(grid, surface)
+
+    def _changed_surface(self):
+        """Checks if the surface values have changed.
+        
+        If the surface values are stored as a field, it is important to check
+        if they have changed since the component was instantiated. 
+        """
+        
+        if isinstance(self.surface, six.string_types):
+            self.surface_values = _return_surface(self._grid, self.surface)    
+
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
