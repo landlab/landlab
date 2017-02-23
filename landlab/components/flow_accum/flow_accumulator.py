@@ -589,7 +589,7 @@ class FlowAccumulator(Component):
     def __init__(self,
                  grid,
                  surface='topographic__elevation',
-                 flow_director='FlowDirectorD4',
+                 flow_director='FlowDirectorSteepest',
                  runoff_rate=None,
                  depression_finder=None,
                  **kwargs):
@@ -850,7 +850,7 @@ class FlowAccumulator(Component):
                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
 
 
-    def run_one_step(self, update_flow_director=True):
+    def accumulate_flow(self, update_flow_director=True):
         """
         Function to make FlowAccumulator calculate drainage area and discharge.
 
@@ -931,7 +931,23 @@ class FlowAccumulator(Component):
         # at the moment, this is where the depression finder needs to live.
         if self.depression_finder_provided:
             self.depression_finder.map_depressions()
-            
+         
+        return (a, q)
+    
+    def run_one_step(self):
+        """
+        Accumulate flow and save to the model grid.
+
+        run_one_step() checks for updated boundary conditions, calculates
+        slopes on links, finds baselevel nodes based on the status at node,
+        calculates flow directions, and accumulates flow and saves results to 
+        the grid.
+
+        An alternative to run_one_step() is accumulate_flow() which does the 
+        same things but also returns the drainage area and discharge. 
+        """
+        
+        self.accumulate_flow()
 
 if __name__ == '__main__':
     import doctest
