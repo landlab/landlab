@@ -285,22 +285,22 @@ class FlowAccumulator(Component):
            [-1, -1,  5,  1, -1, -1,  0, -1],
            [-1, -1,  6,  2, -1, -1,  1, -1],
            [-1, -1,  7,  3, -1, -1,  2, -1],
-           [-1, -1,  8, -1, -1, -1, -1, -1],
+           [ 9, -1, -1, -1, -1, -1, -1, -1],
            [10, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 10,  6, -1, -1,  5, -1],
            [-1, -1, 11,  7, -1, -1,  6, -1],
            [-1, -1, 12,  8, -1, -1,  7, -1],
-           [-1, -1, 13, -1, -1, -1,  8, -1],
+           [14, -1, -1, -1, -1, -1, -1, -1],
            [15, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 15, 11, -1, -1, 10, -1],
            [-1, -1, 16, 12, -1, -1, 11, -1],
            [-1, -1, 17, 13, -1, -1, 12, -1],
-           [-1, -1, 18, -1, -1, -1, 13, -1],
+           [19, -1, -1, -1, -1, -1, -1, -1],
            [20, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1, 16, -1, -1, -1, -1],
-           [-1, -1, -1, 17, -1, -1, 16, -1],
-           [-1, -1, -1, 18, -1, -1, 17, -1],
-           [-1, -1, -1, -1, -1, -1, 18, -1]])
+           [21, -1, -1, -1, -1, -1, -1, -1],
+           [22, -1, -1, -1, -1, -1, -1, -1],
+           [23, -1, -1, -1, -1, -1, -1, -1],
+           [24, -1, -1, -1, -1, -1, -1, -1]])
     >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
     array([ 1.30687782,  2.06348165,  1.34544697,  0.43763247,  0.        ,
             2.06348165,  3.4557349 ,  2.61532125,  1.40757785,  0.        ,
@@ -665,6 +665,9 @@ class FlowAccumulator(Component):
             self.delta_structure = grid.at_node['flow__data_structure_delta']
 
         try:
+            
+            
+            
             # needs to be BAD_INDEX_VALUE
             self.D_structure = grid.add_field('flow__data_structure_D',
                                               BAD_INDEX_VALUE*grid.ones(at='link'),
@@ -745,7 +748,8 @@ class FlowAccumulator(Component):
         """Test and add the flow director component."""
         PERMITTED_DIRECTORS = ['FlowDirectorSteepest',
                                'FlowDirectorD8',
-                               'FlowDirectorMFD']
+                               'FlowDirectorMFD',
+                               'FlowDirectorDINF']
 
         # find keyword args to pass along:
         try:
@@ -771,11 +775,13 @@ class FlowAccumulator(Component):
 
             from landlab.components.flow_director import (FlowDirectorSteepest,
                                                           FlowDirectorD8,
-                                                          FlowDirectorMFD)
+                                                          FlowDirectorMFD,
+                                                          FlowDirectorDINF)
             DIRECTOR_METHODS = {'D4': FlowDirectorSteepest,
                                 'Steepest': FlowDirectorSteepest,
                                 'D8': FlowDirectorD8,
-                                'MFD': FlowDirectorMFD
+                                'MFD': FlowDirectorMFD,
+                                'DINF': FlowDirectorDINF
                                 }
 
             try:
