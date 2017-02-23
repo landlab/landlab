@@ -1,7 +1,7 @@
 #! /usr/env/python
 
 """
-flow_director_steepest.py: provides the component FlowDirectorsSteepest.
+flow_director_steepest.py: provides the component FlowDirectorSteepest.
 
 This components finds the steepest single-path steepest descent flow
 directions. It is equivalent to D4 method in the special case of a raster grid
