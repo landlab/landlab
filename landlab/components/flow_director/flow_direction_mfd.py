@@ -294,9 +294,12 @@ def flow_directions_mfd(elev,
     
     # Optionally, handle baselevel nodes: they are their own receivers
     if baselevel_nodes is not None:
-        receivers[baselevel_nodes,:] = node_id[baselevel_nodes,]
+        receivers[baselevel_nodes,0] = node_id[baselevel_nodes]
+        receivers[baselevel_nodes,1:] = -1
+        proportions[baselevel_nodes, 0] = 1
+        proportions[baselevel_nodes, 1:] = 0     
         receiver_links[baselevel_nodes,:] = UNDEFINED_INDEX
-        steepest_slope[baselevel_nodes,:] = 0.
+        steepest_slope[baselevel_nodes] = 0.
         
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
