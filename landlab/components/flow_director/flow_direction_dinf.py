@@ -2,11 +2,12 @@
 
 
 """
-flow_direction_mfd.py: calculate multiple-flow-direction flow directions.
+flow_direction_dinf.py: calculate Dinfinity flow direction on raster grids.
 
-Works on both a regular or irregular grid. Also calculates flow proportions.
+Calculates flow direction and proportion on a raster grid by the Dinfinity
+algorithm of Tarboton 1997. 
 
-KRB Jan 2017
+KRB Feb 2017
 """
 
 import numpy as np
@@ -15,11 +16,6 @@ from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 from landlab.utils.decorators import use_field_name_or_array
 from landlab import VoronoiDelaunayGrid  # for type tests
-
-#from landlab.grid.raster_gradients import (
-#         _calc_subtriangle_unit_normals_at_node,
-#         _calc_subtriangle_slopes_at_node,
-#         _calc_subtriangle_aspect_at_node)
 
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
@@ -37,13 +33,15 @@ def flow_directions_dinf(grid,
                          baselevel_nodes=None):
 
     """
-    Find Dinfinity-flow-direction flow directions on a grid.
+    Find Dinfinity flow directions and proportions on a raster grid.
 
     Finds and returns flow directions and proportions for a given elevation 
-    grid by the D infinity method (Tarbotten, 1997). Each node is assigned two 
+    grid by the D infinity method (Tarboton, 1997). Each node is assigned two 
     flow directions, toward the two neighboring nodes that are on the steepest
     subtriangle. Partitioning of flow is done based on the aspect of the 
     subtriangle. 
+    
+    This method does not support irregular grids. 
 
     Parameters
     ----------
@@ -84,25 +82,37 @@ def flow_directions_dinf(grid,
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_direction_dinf import(
     ...                                                  flow_directions_dinf)
+    
+    Dinfinity routes flow based on the relative proportion of flow along the
+    triangular facets around a central raster node. 
+        
     >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
     >>> _ = grid.add_field('topographic__elevation', 
-    ...                     grid.node_x*grid.node_y, 
+    ...                     2.*grid.node_x+grid.node_y, 
     ...                     at = 'node')
     >>> (receivers, proportions, 
     ... steepest_slope, steepest_receiver, 
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid)
     >>> receivers
     array([[ 0, -1],
-           [ 1, -1],
-           [ 2, -1],
-           [ 3, -1],
-           [ 5,  8],
-           [ 1,  2],
-           [ 6, -1],
+           [ 0,  3],
+           [ 1,  4],
+           [ 0,  1],
+           [ 3,  0],
+           [ 4,  1],
+           [ 3,  4],
            [ 6,  3],
            [ 7,  4]])
     >>> proportions
-
+    array([[ 1.        ,  0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447]])
     """
     # grid type testing
     if isinstance(grid, VoronoiDelaunayGrid):
@@ -111,113 +121,116 @@ def flow_directions_dinf(grid,
     # get elevs
     elevs = _return_surface(grid, elevs)
         
+    ### Step 1, some basic set-up, gathering information about the grid. 
+    
     # Calculate the number of nodes.
     num_nodes = len(elevs)
-    
-    # Create a node array
-    node_id = np.arange(num_nodes)
-    closed_node = grid.status_at_node == CLOSED_BOUNDARY
     
     # Set the number of receivers and facets.
     num_receivers = 2
     num_facets = 8
     
+    # Create a node array
+    node_id = np.arange(num_nodes)
+    
+    # find where there are closed nodes. 
+    closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
+    
     # create an array of the triangle numbers
     tri_numbers = np.arange(num_facets)
     
-    # create a arrays
-    ac = np.array([0., 1., 1., 2., 2., 3., 3., 4.])
-    af = np.array([1., -1., 1., -1., 1., -1., 1., -1.])
+    ### Step 3, create some triangle datastructures because landlab (smartly)
+    # makes it hard to deal with diagonals. 
     
-    # Initialize receiver and proportion arrays 
-    receivers = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
-    proportions = np.zeros((num_nodes, num_receivers), dtype=float)
-    receiver_links = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
-    slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
-    
-    # create list of triangle neighbors at node. Give math-orientation array first always. 
+    # create list of triangle neighbors at node. Use orientation associated 
+    # with tarboton's 1997 algorithm, orthogonal link first, then diagonal. 
     # has shape, (nnodes, 8 triangles, 2 neighbors)
     n_at_node = grid.neighbors_at_node
     dn_at_node = grid._diagonal_neighbors_at_node
-    if isinstance(grid, VoronoiDelaunayGrid):
-        pass    # construct TNAN array here by circshifing. 
-    else: 
-        triangle_neighbors_at_node = np.stack([np.vstack((n_at_node[:,0], dn_at_node[:,0])),
-                                               np.vstack((n_at_node[:,1], dn_at_node[:,0])),
-                                               np.vstack((n_at_node[:,1], dn_at_node[:,1])),
-                                               np.vstack((n_at_node[:,2], dn_at_node[:,1])),
-                                               np.vstack((n_at_node[:,2], dn_at_node[:,2])),
-                                               np.vstack((n_at_node[:,3], dn_at_node[:,2])),
-                                               np.vstack((n_at_node[:,3], dn_at_node[:,3])),
-                                               np.vstack((n_at_node[:,0], dn_at_node[:,3]))],
-                                              axis=-1)
-        triangle_neighbors_at_node = triangle_neighbors_at_node.swapaxes(0,1)
     
-        # next create, triangle links at node
-        l_at_node = grid.links_at_node
-        dl_at_node = grid._diagonal_links_at_node
-        triangle_links_at_node = np.stack([np.vstack((l_at_node[:,0], dl_at_node[:,0])),
-                                           np.vstack((l_at_node[:,1], dl_at_node[:,0])),
-                                           np.vstack((l_at_node[:,1], dl_at_node[:,1])),
-                                           np.vstack((l_at_node[:,2], dl_at_node[:,1])),
-                                           np.vstack((l_at_node[:,2], dl_at_node[:,2])),
-                                           np.vstack((l_at_node[:,3], dl_at_node[:,2])),
-                                           np.vstack((l_at_node[:,3], dl_at_node[:,3])),
-                                           np.vstack((l_at_node[:,0], dl_at_node[:,3]))],
+    triangle_neighbors_at_node = np.stack([np.vstack((n_at_node[:,0], dn_at_node[:,0])),
+                                           np.vstack((n_at_node[:,1], dn_at_node[:,0])),
+                                           np.vstack((n_at_node[:,1], dn_at_node[:,1])),
+                                           np.vstack((n_at_node[:,2], dn_at_node[:,1])),
+                                           np.vstack((n_at_node[:,2], dn_at_node[:,2])),
+                                           np.vstack((n_at_node[:,3], dn_at_node[:,2])),
+                                           np.vstack((n_at_node[:,3], dn_at_node[:,3])),
+                                           np.vstack((n_at_node[:,0], dn_at_node[:,3]))],
                                           axis=-1)
-        triangle_links_at_node = triangle_links_at_node.swapaxes(0,1)
-        
-        # next create link directions and active link directions at node
-        # link directions
-        ld_at_node = grid._link_dirs_at_node
-        dld_at_node = grid._diag__link_dirs_at_node
-        triangle_link_dirs_at_node = np.stack([np.vstack((ld_at_node[:,0], dld_at_node[:,0])),
-                                               np.vstack((ld_at_node[:,1], dld_at_node[:,0])),
-                                               np.vstack((ld_at_node[:,1], dld_at_node[:,1])),
-                                               np.vstack((ld_at_node[:,2], dld_at_node[:,1])),
-                                               np.vstack((ld_at_node[:,2], dld_at_node[:,2])),
-                                               np.vstack((ld_at_node[:,3], dld_at_node[:,2])),
-                                               np.vstack((ld_at_node[:,3], dld_at_node[:,3])),
-                                               np.vstack((ld_at_node[:,0], dld_at_node[:,3]))],
-                                              axis=-1)
-        triangle_link_dirs_at_node = triangle_link_dirs_at_node.swapaxes(0,1)
-        
-        # active link directions. 
-        ald_at_node = grid.active_link_dirs_at_node
-        adld_at_node = grid._diag__active_link_dirs_at_node
-        
-        triangle_active_link_dirs_at_node = np.stack([np.vstack((ald_at_node[:,0], adld_at_node[:,0])),
-                                                      np.vstack((ald_at_node[:,1], adld_at_node[:,0])),
-                                                      np.vstack((ald_at_node[:,1], adld_at_node[:,1])),
-                                                      np.vstack((ald_at_node[:,2], adld_at_node[:,1])),
-                                                      np.vstack((ald_at_node[:,2], adld_at_node[:,2])),
-                                                      np.vstack((ald_at_node[:,3], adld_at_node[:,2])),
-                                                      np.vstack((ald_at_node[:,3], adld_at_node[:,3])),
-                                                      np.vstack((ald_at_node[:,0], adld_at_node[:,3]))],
-                                                     axis=-1)
-        triangle_active_link_dirs_at_node = triangle_active_link_dirs_at_node.swapaxes(0,1)
+    triangle_neighbors_at_node = triangle_neighbors_at_node.swapaxes(0,1)
     
-        # need to create a list of diagonal links since it doesn't exist. 
-        diag_links = np.sort(np.unique(grid._diag_links_at_node))
-        diag_links = diag_links[diag_links>0]
-        
-        # calculate graidents across diagonals and orthogonals
-        diag_grads = grid._calculate_gradients_at_d8_links(elevs)
-        ortho_grads = grid.calc_grad_at_link(elevs)
-              
-        # finally compile link slopes               
-        link_slope = np.hstack((np.arctan(ortho_grads),
-                                np.arctan(diag_grads)))
+    # next create, triangle links at node
+    l_at_node = grid.links_at_node
+    dl_at_node = grid._diagonal_links_at_node
+    triangle_links_at_node = np.stack([np.vstack((l_at_node[:,0], dl_at_node[:,0])),
+                                       np.vstack((l_at_node[:,1], dl_at_node[:,0])),
+                                       np.vstack((l_at_node[:,1], dl_at_node[:,1])),
+                                       np.vstack((l_at_node[:,2], dl_at_node[:,1])),
+                                       np.vstack((l_at_node[:,2], dl_at_node[:,2])),
+                                       np.vstack((l_at_node[:,3], dl_at_node[:,2])),
+                                       np.vstack((l_at_node[:,3], dl_at_node[:,3])),
+                                       np.vstack((l_at_node[:,0], dl_at_node[:,3]))],
+                                      axis=-1)
+    triangle_links_at_node = triangle_links_at_node.swapaxes(0,1)
+    
+    # next create link directions and active link directions at node
+    # link directions
+    ld_at_node = grid._link_dirs_at_node
+    dld_at_node = grid._diag__link_dirs_at_node
+    triangle_link_dirs_at_node = np.stack([np.vstack((ld_at_node[:,0], dld_at_node[:,0])),
+                                           np.vstack((ld_at_node[:,1], dld_at_node[:,0])),
+                                           np.vstack((ld_at_node[:,1], dld_at_node[:,1])),
+                                           np.vstack((ld_at_node[:,2], dld_at_node[:,1])),
+                                           np.vstack((ld_at_node[:,2], dld_at_node[:,2])),
+                                           np.vstack((ld_at_node[:,3], dld_at_node[:,2])),
+                                           np.vstack((ld_at_node[:,3], dld_at_node[:,3])),
+                                           np.vstack((ld_at_node[:,0], dld_at_node[:,3]))],
+                                          axis=-1)
+    triangle_link_dirs_at_node = triangle_link_dirs_at_node.swapaxes(0,1)
+    
+#    # active link directions. 
+#    ald_at_node = grid.active_link_dirs_at_node
+#    adld_at_node = grid._diag__active_link_dirs_at_node
+#    
+#    triangle_active_link_dirs_at_node = np.stack([np.vstack((ald_at_node[:,0], adld_at_node[:,0])),
+#                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,0])),
+#                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,1])),
+#                                                  np.vstack((ald_at_node[:,2], adld_at_node[:,1])),
+#                                                  np.vstack((ald_at_node[:,2], adld_at_node[:,2])),
+#                                                  np.vstack((ald_at_node[:,3], adld_at_node[:,2])),
+#                                                  np.vstack((ald_at_node[:,3], adld_at_node[:,3])),
+#                                                  np.vstack((ald_at_node[:,0], adld_at_node[:,3]))],
+#                                                 axis=-1)
+#    triangle_active_link_dirs_at_node = triangle_active_link_dirs_at_node.swapaxes(0,1)
+#    
+    # need to create a list of diagonal links since it doesn't exist. 
+    diag_links = np.sort(np.unique(grid._diag_links_at_node))
+    diag_links = diag_links[diag_links>0]
+    
+    # calculate graidents across diagonals and orthogonals
+    diag_grads = grid._calculate_gradients_at_d8_links(elevs)
+    ortho_grads = grid.calc_grad_at_link(elevs)
+          
+    # finally compile link slopes               
+    link_slope = np.hstack((np.arctan(ortho_grads),
+                            np.arctan(diag_grads)))
     
     
     # Construct the array of slope to triangles at node. This also will adjust
     # for the slope convention based on the direction of the links. 
     # this is a (nnodes, 2, 8) array
     slopes_to_triangles_at_node = link_slope[triangle_links_at_node]*triangle_link_dirs_at_node
-        
+                                       
+    # identify where nodes are closed. 
+    closed_triangle_neighbors = closed_nodes[triangle_neighbors_at_node]                                        
     # construct some arrays that deal with the distances between points on the
     # grid. 
-                                            
+           
+    #### Step 3: make arrays necessary for the specific tarboton algorithm. 
+    # create a arrays
+    ac = np.array([0., 1., 1., 2., 2., 3., 3., 4.])
+    af = np.array([1., -1., 1., -1., 1., -1., 1., -1.])
+                   
     # construct d1 and d2, we know these because we know where the orthogonal 
     # links are 
     diag_length = ((grid.dx)**2+(grid.dy)**2)**0.5
@@ -228,7 +241,14 @@ def flow_directions_dinf(grid,
     
     thresh = np.arctan(d2/d1)
     
-    # begin the algorithm in earnest
+    ##### Step 4, Initialize receiver and proportion arrays 
+    receivers = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
+    receiver_closed = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
+    proportions = np.zeros((num_nodes, num_receivers), dtype=float)
+    receiver_links = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
+    slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
+    
+    #### Step  5  begin the algorithm in earnest
     
     # construct e0, e1, e2 for all triangles at all nodes. 
     # will be (nnodes, nfacets=8 for raster or nfacets = max number of patches 
@@ -280,26 +300,24 @@ def flow_directions_dinf(grid,
     # set slopes that are nan to zero
     s[np.isnan(s)] = 0     
      
-     # sort slopes based on 
+    # sort slopes based on 
     steepest_sort = np.argsort(s)
     
     # determine the steepest triangle
     steepest_triangle = tri_numbers[steepest_sort[:,-1]]
     
     # initialize arrays for the steepest rg and steepest s
-    steepest_r = np.empty_like(node_id, dtype = float)
     steepest_rg = np.empty_like(node_id, dtype = float)
     steepest_s = np.empty_like(node_id, dtype = float)
     
     for n in node_id:
-        steepest_r[n] = radj[n, steepest_sort[n,-1]]
         steepest_rg[n] = rg[n, steepest_sort[n,-1]]
-    
+        receiver_closed[n] = closed_triangle_neighbors[n,:,steepest_sort[n,-1]]
         steepest_s[n] = s[n, steepest_sort[n,-1]]
         receivers[n,:] = triangle_neighbors_at_node[n,:,steepest_sort[n,-1]]
         receiver_links[n,:] = triangle_links_at_node[n,:,steepest_sort[n,-1]]
         slopes_to_receivers[n,:] = slopes_to_triangles_at_node[n,:,steepest_sort[n,-1]]
-    
+        
     # construct the baseline for proportions
     rg_baseline = np.array([0., 1., 1., 2., 2., 3., 3., 4])*np.pi/2.
     #rg_baseline = np.array([0., 0.5, 1., 1.5, 2., 2.5, 3., 3.5])*np.pi/4.
@@ -315,10 +333,45 @@ def flow_directions_dinf(grid,
     proportions[:,0] = (alpha1)/(alpha1+alpha2)
     proportions[:,1] = (alpha2)/(alpha1+alpha2)
     
+    ### END OF THE Tarboton algorithm, start of work to make this code mesh
+    # with other landlab flow directing algorithms. 
+    
     # identify what drains to itself, and set proportion and id values based on 
     # that. 
+    
+    # if proportions is nan, drain to self
     drains_to_self = np.isnan(proportions[:,0])
+    
+    # if all slopes are leading out, drain to self
     drains_to_self[steepest_s<=0]=True
+    
+    # if both receiver nodes are closed, drain to self 
+    drains_to_two_closed = receiver_closed.sum(axis=1)==num_receivers            
+    drains_to_self[drains_to_two_closed]
+    
+    # if drains to one closed receiver, check that the open receiver actually
+    # gets flow. If so, route all to the open receiver. If the receiver getting
+    # all the flow is closed, then drain to self. 
+    all_flow_to_closed = np.sum(receiver_closed*proportions, axis=1)==1
+    drains_to_self[all_flow_to_closed] = True
+    
+    drains_to_one_closed = receiver_closed.sum(axis=1)==1            
+    fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
+    first_column_has_closed = np.array(receiver_closed[:,0]*fix_flow, dtype=bool)
+    second_column_has_closed = np.array(receiver_closed[:,1]*fix_flow, dtype=bool)
+    
+    # remove the link to the closed node                                          
+    receivers[first_column_has_closed,0] = -1                                          
+    receivers[second_column_has_closed,1] = -1                                          
+    
+    # change the proportions         
+    proportions[first_column_has_closed,0]=0.
+    proportions[first_column_has_closed,1]=1.  
+               
+    proportions[second_column_has_closed,0]=1.
+    proportions[second_column_has_closed,1]=0.  
+           
+    # set properties of drains to self. 
     receivers[drains_to_self,0]=node_id[drains_to_self]
     receivers[drains_to_self,1]=-1
     
@@ -346,19 +399,18 @@ def flow_directions_dinf(grid,
                
     # Optionally, handle baselevel nodes: they are their own receivers
     if baselevel_nodes is not None:
-        receivers[baselevel_nodes,:] = node_id[baselevel_nodes,]
+        receivers[baselevel_nodes,0] = node_id[baselevel_nodes]
+        receivers[baselevel_nodes,1:] = -1
+        proportions[baselevel_nodes, 0] = 1
+        proportions[baselevel_nodes, 1:] = 0     
         receiver_links[baselevel_nodes,:] = UNDEFINED_INDEX
-        steepest_slope[baselevel_nodes,:] = 0.
-        
+        steepest_slope[baselevel_nodes] = 0.
+                      
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
     (sink, ) = np.where(node_id==receivers[:,0])
     sink = as_id_array(sink)
-
-    
-    
-    
     
     return (receivers, proportions, steepest_slope, steepest_receiver, sink, 
             receiver_links, steepest_link)
