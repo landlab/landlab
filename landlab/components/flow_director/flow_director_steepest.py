@@ -184,7 +184,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         slopes on links, finds baselevel nodes based on the status at node,
         calculates flow directions, and saves results to the grid.
 
-        An alternative to direct_flow() is direct_flow() which does the same
+        An alternative to direct_flow() is run_one_step() which does the same
         things but also returns the receiver nodes not return values.
         """
         self.direct_flow()
