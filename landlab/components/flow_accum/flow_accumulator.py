@@ -822,10 +822,17 @@ class FlowAccumulator(Component):
     def _add_depression_finder(self,depression_finder):
         """Test and add the depression finder component."""
         PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
-
+        
         # now do a similar thing for the depression finder.
         self.depression_finder_provided = depression_finder
         if self.depression_finder_provided is not None:
+            
+            # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.     
+            if self.flow_director.__name in ('FlowDirectorMFD', 'FlowDirectorDINF'):
+                raise ValueError('The depression finder only works with route to one'
+                                 ' FlowDirector such as FlowDirectorSteepest and '
+                                 'FlowDirectorD8. Provide a different FlowDirector.')
+            
             # depression finder is provided as a string.
             if isinstance(self.depression_finder_provided, six.string_types):
 
