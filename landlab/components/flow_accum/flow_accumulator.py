@@ -828,7 +828,7 @@ class FlowAccumulator(Component):
         if self.depression_finder_provided is not None:
             
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.     
-            if self.flow_director.__name in ('FlowDirectorMFD', 'FlowDirectorDINF'):
+            if self.flow_director._name in ('FlowDirectorMFD', 'FlowDirectorDINF'):
                 raise ValueError('The depression finder only works with route to one'
                                  ' FlowDirector such as FlowDirectorSteepest and '
                                  'FlowDirectorD8. Provide a different FlowDirector.')
