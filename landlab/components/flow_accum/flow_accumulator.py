@@ -667,7 +667,7 @@ class FlowAccumulator(Component):
 
         try:
             
-            if self.flow_director.to_n_receivers == 'many':
+            if self.flow_director.to_n_receivers == 'many' and self._is_raster:
                 # needs to be BAD_INDEX_VALUE
                 self.D_structure = grid.add_field('flow__data_structure_D',
                                                   BAD_INDEX_VALUE*np.ones((self._grid.number_of_links, 2), 
@@ -922,10 +922,12 @@ class FlowAccumulator(Component):
             # store the generated data in the grid
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
             
-            tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links*2))
-            tempD[:len(D)] = D
-            self._grid['link']['flow__data_structure_D'][:] = tempD.reshape((self._grid.number_of_links,2))
-                      
+            if self._is_raster:
+                tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links*2))
+                tempD[:len(D)] = D
+                self._grid['link']['flow__data_structure_D'][:] = tempD.reshape((self._grid.number_of_links,2))
+            else:
+                 self._grid['link']['flow__data_structure_D'][:len(D)] = D
             self._grid['node']['flow__upstream_node_order'][:] = s
 
             # step 3. Run depression finder if passed
