@@ -254,6 +254,7 @@ def imshow_cell_grid(grid, values, **kwds):
 def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
                         var_units=None, grid_units=(None, None),
                         symmetric_cbar=False, cmap='pink', limits=None,
+                        colorbar_label = None, 
                         allow_colorbar=True, vmin=None, vmax=None,
                         norm=None, shrink=1., color_for_closed='black',
                         color_for_background=None, show_elements=False,
@@ -304,7 +305,8 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
 
         if allow_colorbar:
             cb = plt.colorbar(norm=norm, shrink=shrink)
-
+            if colorbar_label:
+                cb.set_label(colorbar_label)
     elif VoronoiDelaunayGrid in gridtypes:
         # This is still very much ad-hoc, and needs prettifying.
         # We should save the modifications needed to plot color all the way
