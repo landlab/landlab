@@ -23,7 +23,7 @@ from landlab.components.flow_accum import flow_accum_to_n
 
 from landlab import BAD_INDEX_VALUE
 import six
-
+import numpy as np
 
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
@@ -667,12 +667,20 @@ class FlowAccumulator(Component):
 
         try:
             
-            # IF director is to two, need to change size here. 
+            if self.flow_director.to_n_receivers == 'many':
+                # needs to be BAD_INDEX_VALUE
+                self.D_structure = grid.add_field('flow__data_structure_D',
+                                                  BAD_INDEX_VALUE*np.ones((self._grid.number_of_links, 2), 
+                                                  dtype=int),
+                                                  at='link', 
+                                                  dtype=int,
+                                                  noclobber=False)                                        
+            else:
             
-            # needs to be BAD_INDEX_VALUE
-            self.D_structure = grid.add_field('flow__data_structure_D',
-                                              BAD_INDEX_VALUE*grid.ones(at='link'),
-                                              at='link', dtype=int)
+                # needs to be BAD_INDEX_VALUE
+                self.D_structure = grid.add_field('flow__data_structure_D',
+                                                  BAD_INDEX_VALUE*grid.ones(at='link'),
+                                                  at='link', dtype=int)
         except FieldError:
             self.D_structure = grid.at_link['flow__data_structure_D']
 
@@ -913,8 +921,10 @@ class FlowAccumulator(Component):
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-            # links are ONLY non_diagonal links, so D can't be stored there...
-            #self._grid['link']['flow__data_structure_D'][:len(D)] = D
+            
+            tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links*2))
+            tempD[:len(D)] = D
+            self._grid['link']['flow__data_structure_D'][:] = tempD.reshape((self._grid.number_of_links,2))
                       
             self._grid['node']['flow__upstream_node_order'][:] = s
 
