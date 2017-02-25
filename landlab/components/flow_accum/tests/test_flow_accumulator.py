@@ -20,6 +20,8 @@ import landlab
 from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
 from landlab.components.flow_accum import FlowAccumulator
 
+from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
+
 from landlab.components.flow_director import(FlowDirectorD8, 
                                              FlowDirectorDINF, 
                                              FlowDirectorMFD, 
@@ -193,3 +195,24 @@ def test_passing_a_bad_component():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     assert_raises(ValueError, FlowAccumulator, mg, 'topographic__elevation', flow_director=ChiFinder)
+    
+def test_error_for_to_many_with_depression():
+    """Check that an error is thrown when to_many methods started DF."""
+    
+    mg0 = RasterModelGrid((10,10), spacing=(1, 1))
+    z0 = mg0.add_field('topographic__elevation', mg0.node_x**2 + mg0.node_y**2, at = 'node') 
+    
+    mg1 = RasterModelGrid((10,10), spacing=(1, 1))
+    z1 = mg1.add_field('topographic__elevation', mg1.node_x**2 + mg1.node_y**2, at = 'node') 
+    
+    
+    assert_raises(ValueError, FlowAccumulator, mg0, flow_director='MFD', depression_finder='DepressionFinderAndRouter')
+    assert_raises(ValueError, FlowAccumulator, mg0, flow_director='DINF', depression_finder='DepressionFinderAndRouter')
+    
+    fa0 = FlowAccumulator(mg0, flow_director='MFD')
+    fa0.run_one_step()
+    assert_raises(ValueError, DepressionFinderAndRouter, mg0)
+    
+    fa1 = FlowAccumulator(mg1, flow_director='DINF')
+    fa1.run_one_step()
+    assert_raises(ValueError, DepressionFinderAndRouter, mg1)
