@@ -12,6 +12,13 @@ os:
 - linux
 - osx
 sudo: false
+before_install:
+- |
+  if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+    brew remove --force $(brew list)
+    brew cleanup -s
+    rm -rf $(brew --cache)
+  fi
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
 - if [[ "$TRAVIS_TAG" == v* ]]; then echo "This is a release."; export BUILD_STR=""; else echo "This is not a release."; export BUILD_STR="dev"; fi
