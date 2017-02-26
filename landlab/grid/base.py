@@ -3275,7 +3275,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._reset_link_status_list()
         self._reset_lists_of_nodes_cells()
         self._create_active_faces()
+
         try:
+            self._active_link_dirs_at_node[:] = self._link_dirs_at_node[:]
             inactive_links = (self.status_at_link[self.links_at_node] ==
                               INACTIVE_LINK)
             inactive_links[self.link_dirs_at_node == 0] = False
