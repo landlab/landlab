@@ -353,8 +353,7 @@ def _make_array_of_donors_to_n(r, p, delta):
 
 
 def make_ordered_node_array_to_n(receiver_nodes,
-                                 receiver_proportion,
-                                 set_stack=False):
+                                 receiver_proportion):
 
     """Create an array of node IDs.
 
@@ -412,10 +411,8 @@ def make_ordered_node_array_to_n(receiver_nodes,
     construct_it = dstack.construct__stack
 
     construct_it(baselevel_nodes)  # don't think this is a bottleneck, so no C++
-    if set_stack is False:
-        return dstack.s
-    else:
-        return dstack.ss
+    return dstack.s
+   
 
 
 def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
