@@ -45,12 +45,12 @@ install:
 - pip install coveralls
 - conda info -a && conda list
 script:
+- conda build -q .conda-recipe --numpy=$NUMPY_VERSION
+- conda install -q landlab --use-local
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
     (cd docs && make html 2> /dev/null)
   fi
-- conda build -q .conda-recipe --numpy=$NUMPY_VERSION
-- conda install -q landlab --use-local
 - bash .ci/travis/run_travis_test.sh
 virtualenv:
   system_site_packages: false
