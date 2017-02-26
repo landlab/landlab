@@ -469,13 +469,15 @@ class SoilMoisture(Component):
         # Adding routine to add runon & runoff
         if self._runon_switch:
             # Make sure that flow_router has been called before
-            r_cell = (
-               self.grid.cell_at_node[self.grid.at_node['flow__receiver_node']])
+            r_cell = (self.grid.cell_at_node[
+                self.grid.at_node['flow__receiver_node']])
             r_cell = r_cell[r_cell != -1]
-            # finding cells that are not part of ordered cells (delineated watershed)
+            # finding cells that aren't part of
+            # ordered cells (delineated watershed)
             diff_cells = (np.setdiff1d(
                 range(0, self.grid.number_of_cells), self.ordered_cells))
-            # trvrsl_order has ordered cells computed first and then the rest of the cells
+            # trvrsl_order has ordered cells computed first and then the rest
+            # of the cells
             trvrsl_order = np.concatenate((self.ordered_cells, diff_cells),
                                           axis=0)
         else:
@@ -485,13 +487,13 @@ class SoilMoisture(Component):
         for cell in trvrsl_order:
             # Routine to calculate runon
             if self._runon_switch:
-                if cell in self.ordered_cells:                
+                if cell in self.ordered_cells:
                     donors = []
-                    donors = list(np.where(r_cell==cell)[0])
+                    donors = list(np.where(r_cell == cell)[0])
                     if len(donors) != 0:
                         for k in range(0, len(donors)):
                             self._runon[cell] += self._runoff[donors[k]]
-            
+
             P = P_[cell]
             runon = self._runon[cell]
             if runon < 0:
@@ -511,13 +513,14 @@ class SoilMoisture(Component):
             else:
                 sc = scc
 
+            # Infiltration capacity
             Inf_cap = (self._soil_Ib[cell]*(1-self._vegcover[cell]) +
                        self._soil_Iv[cell]*self._vegcover[cell])
-            # Infiltration capacity
+            # Interception capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
                           P)
-            # Interception capacity
-            Peff = max((P + max(runon, 0.) - Int_cap), 0.)         # Effective precipitation depth
+            # Effective precipitation depth
+            Peff = max((P + max(runon, 0.) - Int_cap), 0.)
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell] +
                      fbare*self._PET[cell]*(1.-self._fr[cell])) -
@@ -533,18 +536,25 @@ class SoilMoisture(Component):
             if precip_int <= 0.:
                 Ts = np.inf
             else:
-                Ts = (((1-self._SO[cell])*(pc*ZR*1000.))/
-                       (precip_int*(1-np.exp((-1)*Inf_cap/precip_int))))
+                Ts = (((1 - self._SO[cell]) * (pc * ZR * 1000.)) /
+                      (precip_int*(1-np.exp((-1)*Inf_cap/precip_int))))
             self._ts[cell] = Ts
             # Computing runoff
-            if Tr < Ts:
-                self._runoff[cell] = max((precip_int - Inf_cap)*Tr, 0.)
-                sini = min(self._SO[cell] + ((precip_int * Tr -
+            # If using Poisson storms with Tr = 0, (Precip_int * Tr = Precip)
+            if Tr == 0.:
+                self._runoff[cell] = max((Peff - Inf_cap), 0.)
+                sini = min(self._SO[cell] + ((Peff -
                            self._runoff[cell])/(pc*ZR*1000.)), 1.)
+            # If using regular storms with (Tr != 0.)
             else:
-                sini = 1
-                self._runoff[cell] = max(((precip_int-Inf_cap)*Ts +
-                                           (precip_int*(Tr-Ts))), 0.)
+                if Tr < Ts:
+                    self._runoff[cell] = max((precip_int - Inf_cap)*Tr, 0.)
+                    sini = min(self._SO[cell] + ((precip_int * Tr -
+                               self._runoff[cell])/(pc*ZR*1000.)), 1.)
+                else:
+                    sini = 1
+                    self._runoff[cell] = max(((precip_int-Inf_cap)*Ts +
+                                              (precip_int*(Tr-Ts))), 0.)
 
             if sini >= fc:
                 tfc = (1./(beta*(mu-nu)))*(beta*(fc-sini) + np.log((
