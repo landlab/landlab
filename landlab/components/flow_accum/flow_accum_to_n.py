@@ -161,7 +161,18 @@ class _DrainageStack_to_n():
             base = base-add_to_stack
             base.update(upstream)
 
-
+        # in some strange topologies, with nodes contributing to multiple base levels, 
+        # nodes may occur more than once, check and if this happens, choose the later
+        # occurance
+        
+        bincount = numpy.bincount(self.s, minlength=len(self.delta)-1)
+        if any(bincount > 1):
+            needs_fixing = numpy.where(bincount>1)[0]
+            for nf in needs_fixing:
+                nfi = numpy.where(self.s==nf)[0]
+                for nfii in nfi[:-1]:
+                    self.s.pop(nfii)
+    
 def _make_number_of_donors_array_to_n(r, p):
 
     """Number of donors for each node.
