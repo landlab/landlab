@@ -225,7 +225,7 @@ class StreamPowerEroder(Component):
     def __init__(self, grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
                  m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
                  use_W=None, use_Q=None, **kwds):
-        if use_Q == 'water__discharge':
+        if type(use_Q) is str and use_Q == 'water__discharge':
             use_Q = 'surface_water__discharge'
         self._grid = grid
         self.fraction_gradient_change = 1.
@@ -284,19 +284,22 @@ class StreamPowerEroder(Component):
             except (FieldError, TypeError):
                 assert use_W.size == self._grid.number_of_nodes
                 self._W = use_W
+
+        # Handle user's option for discharge
         if type(use_Q) is bool:
             self.use_Q = use_Q
             self._Q = None
         elif use_Q is None:
             self.use_Q = False
             self._Q = None
-        else:
+        else:   # assume user gave us a field name or an array
             self.use_Q = True
             try:
-                self._Q = self.grid.at_node[use_Q]
+                self._Q = self.grid.at_node[use_Q]  # field name
             except (FieldError, TypeError):
                 assert use_Q.size == self._grid.number_of_nodes
-                self._Q = use_Q
+                self._Q = use_Q  # array
+
         self._type = sp_type
         if sp_type is 'set_mn':
             assert (float(m_sp) >= 0.) and (float(n_sp) >= 0.), \
@@ -446,7 +449,6 @@ class StreamPowerEroder(Component):
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
             self._grid['node']['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
-        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         flow_receivers = self.grid['node']['flow__receiver_node']
 
         if W_if_used is not None:
