@@ -82,7 +82,7 @@ class _DrainageStack_to_n():
         """
         Function to construct the drainage stack.
 
-        Function to add all nodes upstream of a set of base level nodes given 
+        Function to add all nodes upstream of a set of base level nodes given
         by list l in an order
         such that downstream nodes always occur before upstream nodes.
 
@@ -130,26 +130,26 @@ class _DrainageStack_to_n():
         >>> len(set([0, 3, 8])-set(ds.s[6:9]))
         0
         """
-        
+
         # create base nodes set
         try:
             base = set(l)
         except:
             base = set([l])
-            
+
         #create the upstream set by adding all nodes that flow into the base
-        # nodes. 
+        # nodes.
         upstream = set()
         for node_i in base:
             upstream.update(self.D[self.delta[node_i]:self.delta[
                     node_i+1]])
-        
+
         # add the base to the set stack, self.s
         self.s.extend(base)
         # then set the base to upstream-base
         base = upstream-base  # only need to do this here.
 
-        # march topologically upstream. 
+        # march topologically upstream.
         while len(upstream) > 0:
             upstream = set([])
             for node_i in base:
@@ -161,10 +161,10 @@ class _DrainageStack_to_n():
             base = base-add_to_stack
             base.update(upstream)
 
-        # in some strange topologies, with nodes contributing to multiple base levels, 
+        # in some strange topologies, with nodes contributing to multiple base levels,
         # nodes may occur more than once, check and if this happens, choose the later
         # occurance
-        
+
         bincount = numpy.bincount(self.s, minlength=len(self.delta)-1)
         if any(bincount > 1):
             needs_fixing = numpy.where(bincount>1)[0]
@@ -172,7 +172,7 @@ class _DrainageStack_to_n():
                 nfi = numpy.where(self.s==nf)[0]
                 for nfii in nfi[:-1]:
                     self.s.pop(nfii)
-    
+
 def _make_number_of_donors_array_to_n(r, p):
 
     """Number of donors for each node.
@@ -423,7 +423,7 @@ def make_ordered_node_array_to_n(receiver_nodes,
 
     construct_it(baselevel_nodes)  # don't think this is a bottleneck, so no C++
     return dstack.s
-   
+
 
 
 def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,

@@ -21,9 +21,9 @@ class _FlowDirectorToOne(_FlowDirector):
     This class is not meant to be used directly in modeling efforts. It
     inherits from the _FlowDirector class and builds on it to provide the
     functionality that all flow direction calculators need if they direct flow
-    only to one nodes, as in steepest descent or D8 direction finding. It 
-    exists in contrast to the other intermediate flow director class 
-    _FlowDirectorToMany which provides equivalent functionality for flow 
+    only to one nodes, as in steepest descent or D8 direction finding. It
+    exists in contrast to the other intermediate flow director class
+    _FlowDirectorToMany which provides equivalent functionality for flow
     direction algorithms such as D infinity or D trig that route flow from one
     cell to multiple nodes. As the primary difference between these two methods
     is the names of the fields they create and use, the primary function of

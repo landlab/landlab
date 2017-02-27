@@ -208,10 +208,10 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         if self._bc_set_code != self.grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self.grid.bc_set_code
-            
-        # update the surface, if it was provided as a model grid field. 
+
+        # update the surface, if it was provided as a model grid field.
         self._changed_surface()
-        
+
         # step 1. Calculate link slopes.
         link_slope = - self._grid.calc_grad_of_active_link(
                 self.surface_values)

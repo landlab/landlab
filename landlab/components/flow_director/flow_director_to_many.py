@@ -21,12 +21,12 @@ class _FlowDirectorToMany(_FlowDirector):
     This class is not meant to be used directly in modeling efforts. It
     inherits from the _FlowDirector class and builds on it to provide the
     functionality that all flow direction calculators need if they direct flow
-    only to multiple nodes, as in  D infinity or MFD direction finding. It 
-    exists in contrast to the other intermediate flow director class 
-    _FlowDirectorToOne which provides equivalent functionality for flow 
+    only to multiple nodes, as in  D infinity or MFD direction finding. It
+    exists in contrast to the other intermediate flow director class
+    _FlowDirectorToOne which provides equivalent functionality for flow
     direction algorithms such as D8 or steepest descent which directs flow only
-    to one other node. As the primary difference between these two methods is 
-    the names of the fields they create and use, the primary function of this 
+    to one other node. As the primary difference between these two methods is
+    the names of the fields they create and use, the primary function of this
     class is to create model grid fields.
 
     Specifically, it stores as ModelGrid fields:
@@ -34,10 +34,10 @@ class _FlowDirectorToMany(_FlowDirector):
     -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
        there is no receiver: *'flow__receiver_nodes'*. This array is 2D, and is
        of dimension (number of nodes x max number of receivers).
-    -  Node array of flow proportions: *'flow__receiver_proportions'*. This 
-       array is 2D, and is of dimension (number of nodes x max number of 
+    -  Node array of flow proportions: *'flow__receiver_proportions'*. This
+       array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*. 
+    -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
     -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*
@@ -140,10 +140,10 @@ class _FlowDirectorToMany(_FlowDirector):
         super(_FlowDirectorToMany, self).__init__(grid, surface)
         self.to_n_receivers = 'many'
         # initialize new fields
-        
-        # can't do receivers, links, or proportions here since we don't know 
+
+        # can't do receivers, links, or proportions here since we don't know
         # size of max_neighbors_at_node
-        
+
         try:
             self.receiver = grid.add_field('flow__receiver_node',
                                            BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),

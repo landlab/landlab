@@ -90,10 +90,10 @@ class FlowAccumulator(Component):
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
            there is no receiver: *'flow__receiver_nodes'*. This array is 2D, and is
            of dimension (number of nodes x max number of receivers).
-        -  Node array of flow proportions: *'flow__receiver_proportions'*. This 
-           array is 2D, and is of dimension (number of nodes x max number of 
+        -  Node array of flow proportions: *'flow__receiver_proportions'*. This
+           array is 2D, and is of dimension (number of nodes x max number of
            receivers).
-        -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*. 
+        -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*.
            This array is 2D, and is of dimension (number of nodes x max number of
            receivers).
         -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*
@@ -132,7 +132,7 @@ class FlowAccumulator(Component):
          uninstantiated DepressionFinder class, or an instance of a
          DepressionFinder class.
          This sets the method for depression finding.
-    **kwargs : any additional parameters to pass to a FlowDirector instance 
+    **kwargs : any additional parameters to pass to a FlowDirector instance
         (e.g., partion_method for FlowDirectorMFD)
 
     Examples
@@ -258,14 +258,14 @@ class FlowAccumulator(Component):
             1. ,  2. ,  3. ,  4. ,  5. ,
             2.5,  3.5,  4.5,  5.5,
             3. ,  4. ,  5. ])
-    
+
     If the FlowDirector you want to use takes keyword arguments and you want
     to specify it using a string or uninstantiated FlowDirector class, include
-    those keyword arguments when you create FlowAccumulator. 
-    
-    For example, in the case of a raster grid, FlowDirectorMFD can use only 
-    orthogonal links, or it can use both orthogonal and diagonal links. 
-    
+    those keyword arguments when you create FlowAccumulator.
+
+    For example, in the case of a raster grid, FlowDirectorMFD can use only
+    orthogonal links, or it can use both orthogonal and diagonal links.
+
     >>> mg = RasterModelGrid((5, 5), spacing=(1, 1))
     >>> topographic__elevation = mg.node_y+mg.node_x
     >>> _ = mg.add_field('node',
@@ -307,22 +307,22 @@ class FlowAccumulator(Component):
             1.34544697,  2.61532125,  2.19333222,  1.31091174,  0.        ,
             0.43763247,  1.40757785,  1.31091174,  1.        ,  0.        ,
             0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
-    
+
     It may seem odd that there are no round numbers in the drainage area field.
-    This is because flow is directed to all downhill boundary nodes and 
+    This is because flow is directed to all downhill boundary nodes and
     partitioned based on slope.
-    
-    To check that flow is conserved, sum along all boundary nodes. 
-    
+
+    To check that flow is conserved, sum along all boundary nodes.
+
     >>> sum(mg.at_node['drainage_area'][mg.boundary_nodes])
     9.0000000000000018
-    
+
     This should be the same as the number of core nodes --- as boundary nodes
-    in landlab do not have area. 
-    
+    in landlab do not have area.
+
     >>> len(mg.core_nodes)
     9
-    
+
     Next, let's set the dx spacing such that each cell has an area of one.
 
     >>> dx=(2./(3.**0.5))**0.5
@@ -607,7 +607,7 @@ class FlowAccumulator(Component):
         # Grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-                
+
         self.kwargs = kwargs
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -666,17 +666,17 @@ class FlowAccumulator(Component):
             self.delta_structure = grid.at_node['flow__data_structure_delta']
 
         try:
-            
+
             if self.flow_director.to_n_receivers == 'many' and self._is_raster:
                 # needs to be BAD_INDEX_VALUE
                 self.D_structure = grid.add_field('flow__data_structure_D',
-                                                  BAD_INDEX_VALUE*np.ones((self._grid.number_of_links, 2), 
+                                                  BAD_INDEX_VALUE*np.ones((self._grid.number_of_links, 2),
                                                   dtype=int),
-                                                  at='link', 
+                                                  at='link',
                                                   dtype=int,
-                                                  noclobber=False)                                        
+                                                  noclobber=False)
             else:
-            
+
                 # needs to be BAD_INDEX_VALUE
                 self.D_structure = grid.add_field('flow__data_structure_D',
                                                   BAD_INDEX_VALUE*grid.ones(at='link'),
@@ -765,10 +765,10 @@ class FlowAccumulator(Component):
             component_name = flow_director._name
         except:
             component_name = None
-            
+
         if (flow_director == 'MFD') or (flow_director == 'FlowDirectorMFD') or \
            (component_name == 'FlowDirectorMFD'):
-            
+
             potential_kwargs = ['partition_method', 'diagonals']
             kw = {}
             for p_k in potential_kwargs:
@@ -818,21 +818,21 @@ class FlowAccumulator(Component):
 
         # save method as attribute
         self.method = self.flow_director.method
-        
+
     def _add_depression_finder(self,depression_finder):
         """Test and add the depression finder component."""
         PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
-        
+
         # now do a similar thing for the depression finder.
         self.depression_finder_provided = depression_finder
         if self.depression_finder_provided is not None:
-            
-            # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.     
+
+            # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
             if self.flow_director._name in ('FlowDirectorMFD', 'FlowDirectorDINF'):
                 raise ValueError('The depression finder only works with route to one'
                                  ' FlowDirector such as FlowDirectorSteepest and '
                                  'FlowDirectorD8. Provide a different FlowDirector.')
-            
+
             # depression finder is provided as a string.
             if isinstance(self.depression_finder_provided, six.string_types):
 
@@ -864,7 +864,7 @@ class FlowAccumulator(Component):
                 else:
                     raise ValueError('Component provided in depression_finder is not a valid component. '
                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
-        else: 
+        else:
             self.depression_finder = None
 
 
@@ -890,7 +890,7 @@ class FlowAccumulator(Component):
         # one set of steps is for route to one (D8, Steepest/D4)
         if self.flow_director.to_n_receivers == 'one':
 
-            # step 2. Get r 
+            # step 2. Get r
             r = self._grid['node']['flow__receiver_node']
 
             # step 2. Stack, D, delta construction
@@ -918,7 +918,7 @@ class FlowAccumulator(Component):
             # step 2. Get r and p
             r = self._grid['node']['flow__receiver_nodes']
             p = self._grid['node']['flow__receiver_proportions']
-            
+
             # step 2. Stack, D, delta construction
             nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
             delta = flow_accum_to_n._make_delta_array_to_n(nd)
@@ -928,7 +928,7 @@ class FlowAccumulator(Component):
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-            
+
             if self._is_raster:
                 tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links*2))
                 tempD[:len(D)] = D
@@ -946,29 +946,29 @@ class FlowAccumulator(Component):
                                                                          p,
                                                                          self.node_cell_area,
                                                                          self._grid.at_node['water__unit_flux_in'])
-        # store drainage area and discharge. 
+        # store drainage area and discharge.
         self._grid['node']['drainage_area'][:] = a
         self._grid['node']['surface_water__discharge'][:] = q
-            
+
         # at the moment, this is where the depression finder needs to live.
         if self.depression_finder_provided is not None:
             self.depression_finder.map_depressions()
-         
+
         return (a, q)
-    
+
     def run_one_step(self):
         """
         Accumulate flow and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
-        calculates flow directions, and accumulates flow and saves results to 
+        calculates flow directions, and accumulates flow and saves results to
         the grid.
 
-        An alternative to run_one_step() is accumulate_flow() which does the 
-        same things but also returns the drainage area and discharge. 
+        An alternative to run_one_step() is accumulate_flow() which does the
+        same things but also returns the drainage area and discharge.
         """
-        
+
         self.accumulate_flow()
 
 if __name__ == '__main__':
