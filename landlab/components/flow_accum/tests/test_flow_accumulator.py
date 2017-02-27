@@ -216,3 +216,63 @@ def test_error_for_to_many_with_depression():
     fa1 = FlowAccumulator(mg1, flow_director='DINF')
     fa1.run_one_step()
     assert_raises(ValueError, DepressionFinderAndRouter, mg1)
+
+def test_fields():
+    """Check to make sure the right fields have been created.
+    
+    Check that the sizes are also correct. 
+    """
+    mg = RasterModelGrid((10,10), spacing=(1, 1))
+    _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    fa = FlowAccumulator(mg)
+    fa.run_one_step()
+    
+    assert_equal(sorted(list(mg.at_node.keys())), ['drainage_area',
+                                                   'flow__data_structure_delta',
+                                                   'flow__link_to_receiver_node',
+                                                   'flow__receiver_node',
+                                                   'flow__sink_flag',
+                                                   'flow__upstream_node_order',
+                                                   'surface_water__discharge',
+                                                   'topographic__elevation',
+                                                   'topographic__steepest_slope',
+                                                   'water__unit_flux_in'])
+    assert_equal(sorted(list(mg.at_link.keys())), ['flow__data_structure_D'])
+    
+    mg2 = RasterModelGrid((10,10), spacing=(1, 1))
+    _ = mg2.add_field('topographic__elevation', mg2.node_x + mg2.node_y, at = 'node')
+    fa2 = FlowAccumulator(mg2, flow_director='MFD')
+    fa2.run_one_step()
+    assert_equal(sorted(list(mg2.at_node.keys())), ['drainage_area',
+                                                    'flow__data_structure_delta',
+                                                    'flow__link_to_receiver_node',
+                                                    'flow__link_to_receiver_nodes',
+                                                    'flow__receiver_node',
+                                                    'flow__receiver_nodes',
+                                                    'flow__receiver_proportions',
+                                                    'flow__sink_flag',
+                                                    'flow__upstream_node_order',
+                                                    'surface_water__discharge',
+                                                    'topographic__elevation',
+                                                    'topographic__steepest_slope',
+                                                    'water__unit_flux_in'])
+    
+    assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D'])
+    
+
+
+def test_accumulated_area_closes():
+    """Check that accumulated area is area of core nodes."""
+    
+    fds= ['Steepest','D8','MFD','DINF']
+    
+    for fd in fds:
+        mg = RasterModelGrid((10,10), spacing=(1, 1))
+        z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+        fa = FlowAccumulator(mg)
+        fa.run_one_step()
+        
+        drainage_area = mg.at_node['drainage_area']
+        drained_area = np.sum(drainage_area[mg.boundary_nodes])
+        core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])    
+        assert_equal(drained_area, core_area)
