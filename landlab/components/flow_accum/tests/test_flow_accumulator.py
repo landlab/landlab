@@ -246,7 +246,7 @@ def test_fields():
     assert_equal(sorted(list(mg2.at_node.keys())), ['drainage_area',
                                                     'flow__data_structure_delta',
                                                     'flow__link_to_receiver_node',
-                                                    'flow__link_to_receiver_nodes',
+                                                    'flow__links_to_receiver_nodes',
                                                     'flow__receiver_node',
                                                     'flow__receiver_nodes',
                                                     'flow__receiver_proportions',
