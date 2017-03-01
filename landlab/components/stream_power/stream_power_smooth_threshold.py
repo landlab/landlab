@@ -22,8 +22,8 @@ else:
     from .fastscape_stream_power import FastscapeEroder
 import numpy as np
 from scipy.optimize import newton
-
-UNDEFINED_INDEX = -1
+from landlab import BAD_INDEX_VALUE
+UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 
@@ -244,6 +244,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
+        self.delta[defined_flow_receivers==False] = 0.0
         self.delta[defined_flow_receivers] = ((self.K
             * self.A_to_the_m[defined_flow_receivers] ) 
             / (thresh * flow_link_lengths))
