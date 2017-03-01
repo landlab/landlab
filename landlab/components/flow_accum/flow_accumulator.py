@@ -93,7 +93,7 @@ class FlowAccumulator(Component):
         -  Node array of flow proportions: *'flow__receiver_proportions'*. This
            array is 2D, and is of dimension (number of nodes x max number of
            receivers).
-        -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*.
+        -  Node array of links carrying flow:  *'flow__links_to_receiver_nodes'*.
            This array is 2D, and is of dimension (number of nodes x max number of
            receivers).
         -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*

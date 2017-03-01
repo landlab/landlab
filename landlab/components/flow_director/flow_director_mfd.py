@@ -36,7 +36,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     -  Node array of flow proportions: *'flow__receiver_proportions'*. This
        array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of links carrying flow:  *'flow__link_to_receiver_nodes'*.
+    -  Node array of links carrying flow:  *'flow__links_to_receiver_nodes'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
     -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*
@@ -125,7 +125,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
              0.        ,  0.        ,  0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  0.        ,  0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_nodes']
+    >>> mg.at_node['flow__links_to_receiver_nodes']
     array([[-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1],
@@ -268,7 +268,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
              0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_nodes']
+    >>> mg.at_node['flow__links_to_receiver_nodes']
     array([[-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
@@ -350,7 +350,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
                                         dtype=int,
                                         noclobber=False)
 
-        self.receiver_links = grid.add_field('flow__link_to_receiver_nodes',
+        self.receiver_links = grid.add_field('flow__links_to_receiver_nodes',
                                              BAD_INDEX_VALUE*numpy.ones((self._grid.number_of_nodes,
                                                                          self.max_receivers),
                                                                         dtype=int),
@@ -482,7 +482,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self._grid['node']['flow__receiver_proportions'][:] = self.proportions
         self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
         self._grid['node']['flow__link_to_receiver_node'][:] = steepest_link
-        self._grid['node']['flow__link_to_receiver_nodes'][:] = receiver_links
+        self._grid['node']['flow__links_to_receiver_nodes'][:] = receiver_links
         self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(steepest_link,
                                                                     dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True

@@ -101,7 +101,7 @@ def test_check_fields():
     z3 = mg3.add_field('topographic__elevation', mg3.node_x**2 + mg3.node_y**2, at = 'node')
     fd3 = FlowDirectorMFD(mg3, 'topographic__elevation')
     assert_equal(sorted(list(mg3.at_node.keys())), ['flow__link_to_receiver_node',
-                                                     'flow__link_to_receiver_nodes',
+                                                     'flow__links_to_receiver_nodes',
                                                      'flow__receiver_node',
                                                      'flow__receiver_nodes',
                                                      'flow__receiver_proportions',
@@ -116,7 +116,7 @@ def test_check_fields():
     z4 = mg4.add_field('topographic__elevation', mg4.node_x**2 + mg4.node_y**2, at = 'node')
     fd4 = FlowDirectorDINF(mg4, 'topographic__elevation')
     assert_equal(sorted(list(mg4.at_node.keys())), ['flow__link_to_receiver_node',
-                                                     'flow__link_to_receiver_nodes',
+                                                     'flow__links_to_receiver_nodes',
                                                      'flow__receiver_node',
                                                      'flow__receiver_nodes',
                                                      'flow__receiver_proportions',
