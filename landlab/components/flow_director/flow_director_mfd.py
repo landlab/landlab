@@ -310,10 +310,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     _name = 'FlowDirectorMFD'
 
     def __init__(self, grid, surface='topographic__elevation', **kwargs):
-        """
-        Initialize FlowDirectorMFD
-        """
-
+        """Initialize FlowDirectorMFD."""
         # unpack kwargs:
         try:
             partition_method = kwargs.pop('partition_method')
@@ -322,7 +319,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         try:
             diagonals = kwargs.pop('diagonals')
         except:
-            diagonals=False
+            diagonals = False
 
         self.method = 'MFD'
         super(FlowDirectorMFD, self).__init__(grid, surface)
@@ -330,7 +327,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         if self._is_Voroni:
             diagonals = False
         self.updated_boundary_conditions()
-        self.partition_method =  partition_method
+        self.partition_method = partition_method
         self.diagonals = diagonals
 
         if self._is_Voroni == False and diagonals == False:
@@ -366,7 +363,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
                                         dtype=int,
                                         noclobber=False)
 
-
     def updated_boundary_conditions(self):
         """
         Method to update FlowDirectorMFD when boundary conditions change.
@@ -383,10 +379,11 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
-        slopes on links, finds basself.surface_valuesel nodes based on the status at node,
-        calculates flow directions, and saves results to the grid.
+        slopes on links, finds basself.surface_valuesel nodes based on the
+        status at node, calculates flow directions, and saves results to the
+        grid.
 
-        An alternative to direct_flow() is direct_flow() which does the same
+        An alternative to run_one_step() is direct_flow() which does the same
         things but also returns the receiver nodes not return values.
         """
         self.direct_flow()
@@ -430,9 +427,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             # Make sure diagonal links have been created
             self.grid._create_diag_links_at_node()
 
-             # need to create a list of diagonal links since it doesn't exist.
+            # need to create a list of diagonal links since it doesn't exist.
             diag_links = numpy.sort(numpy.unique(self.grid._diag_links_at_node))
-            diag_links = diag_links[diag_links>0]
+            diag_links = diag_links[diag_links > 0]
 
             # get diagonal active links (though this actually includes ALL
             # active links)
@@ -440,14 +437,13 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
             # calculate graidents across diagonals
             diag_grads = numpy.zeros(diag_links.shape)
-            where_active_diag = dal>=diag_links.min()
+            where_active_diag = dal >= diag_links.min()
             active_diags_inds = dal[where_active_diag]-diag_links.min()
             active_diag_grads = self.grid._calculate_gradients_at_d8_active_links(self.surface_values)
             diag_grads[active_diags_inds] = active_diag_grads[where_active_diag]
 
             # calculate gradients on orthogonal links
             ortho_grads = self.grid.calc_grad_at_link(self.surface_values)
-
 
             # concatenate the diagonal and orthogonal grid elements
             neighbors_at_node = numpy.hstack((self.grid.neighbors_at_node,
@@ -467,7 +463,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # Calculate flow directions
         (self.receivers, self.proportions, steepest_slope,
         steepest_receiver, sink,
-        receiver_links, steepest_link)= \
+        receiver_links, steepest_link) = \
         flow_direction_mfd.flow_directions_mfd(self.surface_values,
                                                neighbors_at_node,
                                                links_at_node,

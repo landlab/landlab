@@ -10,28 +10,29 @@ algorithm of Tarboton 1997.
 KRB Feb 2017
 """
 
-import numpy as np
 from landlab.core.utils import as_id_array
+from landlab.utils.decorators import use_field_name_or_array
 from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-from landlab.utils.decorators import use_field_name_or_array
 from landlab import VoronoiDelaunayGrid  # for type tests
+
+import numpy as np
+
 
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
-
     """
     Private function to return the surface to direct flow over.
 
     This function exists to take advantange of the 'use_field_name_or_array
     decorator which permits providing the surface as a field name or array.
     """
-    return(surface)
+    return surface
+
 
 def flow_directions_dinf(grid,
                          elevs='topographic__elevation',
                          baselevel_nodes=None):
-
     """
     Find Dinfinity flow directions and proportions on a raster grid.
 
@@ -117,7 +118,7 @@ def flow_directions_dinf(grid,
     # grid type testing
     if isinstance(grid, VoronoiDelaunayGrid):
         raise NotImplementedError('Dinfinity is currently implemented for'
-                              ' Raster grids only')
+                                  ' Raster grids only')
     # get elevs
     elevs = _return_surface(grid, elevs)
 
@@ -215,7 +216,6 @@ def flow_directions_dinf(grid,
     link_slope = np.hstack((np.arctan(ortho_grads),
                             np.arctan(diag_grads)))
 
-
     # Construct the array of slope to triangles at node. This also will adjust
     # for the slope convention based on the direction of the links.
     # this is a (nnodes, 2, 8) array
@@ -237,7 +237,7 @@ def flow_directions_dinf(grid,
 
     # for irregular grids, d1 and d2 will need to be matricies
     d1 = np.array([grid.dx, grid.dy, grid.dy, grid.dx, grid.dx, grid.dy, grid.dy, grid.dy])
-    d2 = np.array([grid.dx ,grid.dx, grid.dy, grid.dy, grid.dx, grid.dx, grid.dy, grid.dy])
+    d2 = np.array([grid.dx, grid.dx, grid.dy, grid.dy, grid.dx, grid.dx, grid.dy, grid.dy])
 
     thresh = np.arctan(d2/d1)
 
@@ -263,8 +263,8 @@ def flow_directions_dinf(grid,
     e2 = elevs[triangle_neighbors_at_node[:,1,:]]
 
     # mask out where nodes do not exits (e.g. triangle_neighbors_at_node == -1)
-    e2[triangle_neighbors_at_node[:,1,:]==-1] = np.nan
-    e1[triangle_neighbors_at_node[:,0,:]==-1] = np.nan
+    e2[triangle_neighbors_at_node[:,1,:] == -1] = np.nan
+    e1[triangle_neighbors_at_node[:,0,:] == -1] = np.nan
 
     # loop through and calculate s1 and s2
     # this will only loop nfacets times.
@@ -272,25 +272,25 @@ def flow_directions_dinf(grid,
     s2 = np.empty_like(e2)
 
     for i in range(num_facets):
-        s1[:,i] = (e0 - e1[:,i])/d1[i]
-        s2[:,i] = (e1[:,i]- e2[:,i])/d2[i]
+        s1[:,i] = (e0 - e1[:, i])/d1[i]
+        s2[:,i] = (e1[:, i]- e2[:, i])/d2[i]
 
     # calculate r and s, the direction and magnitude
-    r = np.arctan2(s2,s1)
+    r = np.arctan2(s2, s1)
     s = ((s1**2)+(s2**2))**0.5
 
-    r[np.isnan(r)]=0
+    r[np.isnan(r)] = 0
     # adjust r if it doesn't sit in the realm of (0, arctan(d2,d1))
-    too_small = r<0
+    too_small = r < 0
     radj = r.copy()
     radj[too_small] = 0
     s[too_small] = s1[too_small]
 
     # to consider two big, we need to look by trangle.
     for i in range(num_facets):
-        too_big = r[:,i]>thresh[i]
+        too_big = r[:, i] > thresh[i]
         radj[too_big, i] = thresh[i]
-        s[too_big, i] = (e0[too_big] - e2[too_big,i])/diag_length
+        s[too_big, i] = (e0[too_big] - e2[too_big, i])/diag_length
 
     # calculate the geospatial version of r based on radj
     rg = np.empty_like(r)
@@ -304,19 +304,19 @@ def flow_directions_dinf(grid,
     steepest_sort = np.argsort(s)
 
     # determine the steepest triangle
-    steepest_triangle = tri_numbers[steepest_sort[:,-1]]
+    steepest_triangle = tri_numbers[steepest_sort[:, -1]]
 
     # initialize arrays for the steepest rg and steepest s
     steepest_rg = np.empty_like(node_id, dtype = float)
     steepest_s = np.empty_like(node_id, dtype = float)
 
     for n in node_id:
-        steepest_rg[n] = rg[n, steepest_sort[n,-1]]
-        receiver_closed[n] = closed_triangle_neighbors[n,:,steepest_sort[n,-1]]
-        steepest_s[n] = s[n, steepest_sort[n,-1]]
-        receivers[n,:] = triangle_neighbors_at_node[n,:,steepest_sort[n,-1]]
-        receiver_links[n,:] = triangle_links_at_node[n,:,steepest_sort[n,-1]]
-        slopes_to_receivers[n,:] = slopes_to_triangles_at_node[n,:,steepest_sort[n,-1]]
+        steepest_rg[n] = rg[n, steepest_sort[n, -1]]
+        receiver_closed[n] = closed_triangle_neighbors[n, :, steepest_sort[n, -1]]
+        steepest_s[n] = s[n, steepest_sort[n, -1]]
+        receivers[n, :] = triangle_neighbors_at_node[n, :, steepest_sort[n, -1]]
+        receiver_links[n, :] = triangle_links_at_node[n, :, steepest_sort[n, -1]]
+        slopes_to_receivers[n, :] = slopes_to_triangles_at_node[n, :, steepest_sort[n, -1]]
 
     # construct the baseline for proportions
     rg_baseline = np.array([0., 1., 1., 2., 2., 3., 3., 4])*np.pi/2.
@@ -324,14 +324,11 @@ def flow_directions_dinf(grid,
 
     # calculate alpha1 and alpha 2
     alpha2 = (steepest_rg-rg_baseline[steepest_triangle])*af[steepest_triangle]
-
-    #flipped_triangles = af[steepest_triangle]==1
-    #alpha2[flipped_triangles] = thresh[steepest_triangle[flipped_triangles]] - alpha2[flipped_triangles]
     alpha1 = thresh[steepest_triangle] - alpha2
 
     # calculate proportions from alpha
-    proportions[:,0] = (alpha1)/(alpha1+alpha2)
-    proportions[:,1] = (alpha2)/(alpha1+alpha2)
+    proportions[:, 0] = (alpha1)/(alpha1+alpha2)
+    proportions[:, 1] = (alpha2)/(alpha1+alpha2)
 
     ### END OF THE Tarboton algorithm, start of work to make this code mesh
     # with other landlab flow directing algorithms.
@@ -340,43 +337,45 @@ def flow_directions_dinf(grid,
     # that.
 
     # if proportions is nan, drain to self
-    drains_to_self = np.isnan(proportions[:,0])
+    drains_to_self = np.isnan(proportions[:, 0])
 
     # if all slopes are leading out, drain to self
-    drains_to_self[steepest_s<=0]=True
+    drains_to_self[steepest_s <= 0] = True
 
     # if both receiver nodes are closed, drain to self
-    drains_to_two_closed = receiver_closed.sum(axis=1)==num_receivers
-    drains_to_self[drains_to_two_closed]
+    drains_to_two_closed = receiver_closed.sum(axis=1) == num_receivers
+    drains_to_self[drains_to_two_closed] = True
 
     # if drains to one closed receiver, check that the open receiver actually
     # gets flow. If so, route all to the open receiver. If the receiver getting
     # all the flow is closed, then drain to self.
-    all_flow_to_closed = np.sum(receiver_closed*proportions, axis=1)==1
+    all_flow_to_closed = np.sum(receiver_closed*proportions, axis=1) == 1
     drains_to_self[all_flow_to_closed] = True
 
     drains_to_one_closed = receiver_closed.sum(axis=1)==1
     fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
-    first_column_has_closed = np.array(receiver_closed[:,0]*fix_flow, dtype=bool)
-    second_column_has_closed = np.array(receiver_closed[:,1]*fix_flow, dtype=bool)
+    first_column_has_closed = np.array(receiver_closed[:, 0]*fix_flow,
+                                       dtype=bool)
+    second_column_has_closed = np.array(receiver_closed[:, 1]*fix_flow,
+                                        dtype=bool)
 
     # remove the link to the closed node
-    receivers[first_column_has_closed,0] = -1
-    receivers[second_column_has_closed,1] = -1
+    receivers[first_column_has_closed, 0] = -1
+    receivers[second_column_has_closed, 1] = -1
 
     # change the proportions
-    proportions[first_column_has_closed,0]=0.
-    proportions[first_column_has_closed,1]=1.
+    proportions[first_column_has_closed,0] = 0.
+    proportions[first_column_has_closed,1] = 1.
 
-    proportions[second_column_has_closed,0]=1.
-    proportions[second_column_has_closed,1]=0.
+    proportions[second_column_has_closed, 0] = 1.
+    proportions[second_column_has_closed, 1] = 0.
 
     # set properties of drains to self.
-    receivers[drains_to_self,0]=node_id[drains_to_self]
-    receivers[drains_to_self,1]=-1
+    receivers[drains_to_self, 0] = node_id[drains_to_self]
+    receivers[drains_to_self, 1] = -1
 
-    proportions[drains_to_self,0]=1.
-    proportions[drains_to_self,1]=0.
+    proportions[drains_to_self, 0] = 1.
+    proportions[drains_to_self, 1] = 0.
 
     # mask the receiver_links by where flow doesn't occur to return
     receiver_links[drains_to_self, :] = UNDEFINED_INDEX
@@ -409,7 +408,7 @@ def flow_directions_dinf(grid,
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
-    (sink, ) = np.where(node_id==receivers[:,0])
+    (sink, ) = np.where(node_id == receivers[:, 0])
     sink = as_id_array(sink)
 
     return (receivers, proportions, steepest_slope, steepest_receiver, sink,

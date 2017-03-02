@@ -118,7 +118,7 @@ class _FlowDirectorToMany(_FlowDirector):
             'Node array of receivers (nodes that receives flow from current '
             'node). This array is of dimension (number of nodes x max number '
             'of receivers).',
-         'flow__receiver_proportions':
+        'flow__receiver_proportions':
             'Node array of proportion of flow sent from current node to '
             'downstream nodes. This array is of dimension (number of nodes '
             'x max number of receivers).',
@@ -171,7 +171,6 @@ class _FlowDirectorToMany(_FlowDirector):
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
-
         raise NotImplementedError('run_one_step()')
 
     # set properties. These are the same for all DirectToMany Directors

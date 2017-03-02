@@ -157,9 +157,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     _name = 'FlowDirectorSteepest'
 
     def __init__(self, grid, surface='topographic__elevation'):
-        """
-        Initialize FlowDirectorSteepest
-        """
+        """Iitialize FlowDirectorSteepest."""
         self.method = 'D4'
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)

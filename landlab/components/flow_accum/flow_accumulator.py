@@ -25,16 +25,16 @@ from landlab import BAD_INDEX_VALUE
 import six
 import numpy as np
 
+
 @use_field_name_or_array('node')
 def _return_surface(grid, surface):
-
     """
     Private function to return the surface to direct flow over.
 
     This function exists to take advantange of the 'use_field_name_or_array
     decorator which permits providing the surface as a field name or array.
     """
-    return(surface)
+    return surface
 
 
 class FlowAccumulator(Component):
@@ -584,7 +584,7 @@ class FlowAccumulator(Component):
         'flow__nodes_not_in_stack':
             'Boolean value indicating if there are any nodes that have not yet'
             'been added to the stack stored in flow__upstream_node_order.'
-            }
+               }
 
     def __init__(self,
                  grid,
@@ -773,9 +773,9 @@ class FlowAccumulator(Component):
             kw = {}
             for p_k in potential_kwargs:
                 if p_k in self.kwargs.keys():
-                    kw[p_k] =  self.kwargs.pop(p_k)
+                    kw[p_k] = self.kwargs.pop(p_k)
         else:
-            kw={}
+            kw = {}
 
         # flow director is provided as a string.
         if isinstance(flow_director, six.string_types):
@@ -796,25 +796,30 @@ class FlowAccumulator(Component):
             try:
                 FlowDirector = DIRECTOR_METHODS[flow_director]
             except KeyError:
-                raise ValueError('String provided in flow_director is not a valid method or component name. '
-                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
+                raise ValueError('String provided in flow_director is not a '
+                                 'valid method or component name. The following'
+                                 'components are valid imputs:\n'\
+                                 + str(PERMITTED_DIRECTORS))
             self.flow_director = FlowDirector(self._grid, self.surface, **kw)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
-             if flow_director._name in PERMITTED_DIRECTORS:
-                 self.flow_director = flow_director
-             else:
-                 raise ValueError('Component provided in flow_director is not a valid component. '
-                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
+            if flow_director._name in PERMITTED_DIRECTORS:
+                self.flow_director = flow_director
+            else:
+                raise ValueError('String provided in flow_director is not a '
+                                 'valid method or component name. The following'
+                                 'components are valid imputs:\n'\
+                                 + str(PERMITTED_DIRECTORS))
         # flow director is provided as an uninstantiated flow director
         else:
-
             if flow_director._name in PERMITTED_DIRECTORS:
                 FlowDirector = flow_director
                 self.flow_director = FlowDirector(self._grid, self.surface, **kw)
             else:
-                raise ValueError('Component provided in flow_director is not a valid component. '
-                                 'The following components are valid imputs:\n'+str(PERMITTED_DIRECTORS))
+                raise ValueError('String provided in flow_director is not a '
+                                 'valid method or component name. The following'
+                                 'components are valid imputs:\n'\
+                                 + str(PERMITTED_DIRECTORS))
 
         # save method as attribute
         self.method = self.flow_director.method
@@ -828,10 +833,12 @@ class FlowAccumulator(Component):
         if self.depression_finder_provided is not None:
 
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
-            if self.flow_director._name in ('FlowDirectorMFD', 'FlowDirectorDINF'):
-                raise ValueError('The depression finder only works with route to one'
-                                 ' FlowDirector such as FlowDirectorSteepest and '
-                                 'FlowDirectorD8. Provide a different FlowDirector.')
+            if self.flow_director._name in ('FlowDirectorMFD',
+                                            'FlowDirectorDINF'):
+                raise ValueError('The depression finder only works with route '
+                                 'to one FlowDirectors such as '
+                                 'FlowDirectorSteepest and  FlowDirectorD8. '
+                                 'Provide a different FlowDirector.')
 
             # depression finder is provided as a string.
             if isinstance(self.depression_finder_provided, six.string_types):
@@ -843,8 +850,10 @@ class FlowAccumulator(Component):
                 try:
                     DepressionFinder = DEPRESSION_METHODS[self.depression_finder_provided]
                 except KeyError:
-                    raise ValueError('Component provided in depression_finder is not a valid component. '
-                                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+                    raise ValueError('Component provided in depression_finder '
+                                     'is not a valid component. The following '
+                                     'components are valid imputs:\n' \
+                                     + str(PERMITTED_DEPRESSION_FINDERS))
 
                 self.depression_finder = DepressionFinder(self._grid)
             # flow director is provided as an instantiated depression finder
@@ -853,8 +862,10 @@ class FlowAccumulator(Component):
                 if self.depression_finder_provided._name in PERMITTED_DEPRESSION_FINDERS:
                     self.depression_finder = self.depression_finder_provided
                 else:
-                    raise ValueError('Component provided in depression_finder is not a valid component. '
-                                     'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+                    raise ValueError('Component provided in depression_finder '
+                                     'is not a valid component. The following '
+                                     'components are valid imputs:\n' \
+                                     + str(PERMITTED_DEPRESSION_FINDERS))
             # depression_fiuner is provided as an uninstantiated depression finder
             else:
 
@@ -862,8 +873,10 @@ class FlowAccumulator(Component):
                     DepressionFinder = self.depression_finder_provided
                     self.depression_finder = DepressionFinder(self._grid)
                 else:
-                    raise ValueError('Component provided in depression_finder is not a valid component. '
-                    'The following components are valid imputs:\n'+str(PERMITTED_DEPRESSION_FINDERS))
+                    raise ValueError('Component provided in depression_finder '
+                                     'is not a valid component. The following '
+                                     'components are valid imputs:\n' \
+                                     + str(PERMITTED_DEPRESSION_FINDERS))
         else:
             self.depression_finder = None
 
@@ -932,9 +945,9 @@ class FlowAccumulator(Component):
             if self._is_raster:
                 tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links*2))
                 tempD[:len(D)] = D
-                self._grid['link']['flow__data_structure_D'][:] = tempD.reshape((self._grid.number_of_links,2))
+                self._grid['link']['flow__data_structure_D'][:] = tempD.reshape((self._grid.number_of_links, 2))
             else:
-                 self._grid['link']['flow__data_structure_D'][:len(D)] = D
+                self._grid['link']['flow__data_structure_D'][:len(D)] = D
             self._grid['node']['flow__upstream_node_order'][:] = s
 
             # step 3. Run depression finder if passed
@@ -968,7 +981,6 @@ class FlowAccumulator(Component):
         An alternative to run_one_step() is accumulate_flow() which does the
         same things but also returns the drainage area and discharge.
         """
-
         self.accumulate_flow()
 
 if __name__ == '__main__':
