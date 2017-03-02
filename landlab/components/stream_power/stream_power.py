@@ -490,9 +490,6 @@ class StreamPowerEroder(Component):
 
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
-            if flooded_nodes.dtype != bool:
-                flooded_nodes = flooded_nodes.astype(bool)
-            flooded_nodes = flooded_nodes
             _K_unit_time[flooded_nodes] = 0.
 
         # Operate the main function:
