@@ -138,8 +138,7 @@ class DepthDependentCubicDiffuser(Component):
         self.slope_crit = slope_crit
 
         # For efficiency, store the quantity Kd / Sc^2
-        self.k_over_slope_crit_sq = (soil_creep_efficiency
-                                     / (slope_crit * slope_crit))
+        self.k_over_slope_crit_sq = self._kd / (slope_crit * slope_crit)
 
         # create fields
         # elevation
