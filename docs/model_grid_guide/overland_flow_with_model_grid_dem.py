@@ -77,7 +77,7 @@ def main():
     t = []
     q_outlet.append(0.)
     t.append(0.)
-    outlet_link = mg.get_active_link_connecting_node_pair(outlet_node, node_next_to_outlet)
+    outlet_link = mg.active_link_connecting_node_pair(outlet_node, node_next_to_outlet)
 
     # Display a message
     print( 'Running ...' )
