@@ -190,8 +190,6 @@ class DepthDependentCubicDiffuser(Component):
         dt: float (time)
             The imposed timestep.
         """
-
-        #update soil thickness
         self.grid.at_node['soil__depth'][:] = (
             self.grid.at_node['topographic__elevation']
             - self.grid.at_node['bedrock__elevation'])
@@ -203,12 +201,13 @@ class DepthDependentCubicDiffuser(Component):
         #Calculate gradients
         slope = self.grid.calc_grad_at_link(self.elev)
         slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+        #print(self.elev[nn])
 
         #Calculate flux
-        self.flux[:] = -((self._kd * slope 
+        self.flux[:] = -((self._kd * slope
                           + self.k_over_slope_crit_sq * np.power(slope, 3))
                          * (1.0 - np.exp(-H_link
-                                        / self.soil_transport_decay_depth)))
+                                         / self.soil_transport_decay_depth)))
 
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
