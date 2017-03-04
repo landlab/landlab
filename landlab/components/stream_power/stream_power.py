@@ -4,12 +4,10 @@ from __future__ import print_function
 import warnings
 
 import numpy as np
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
+from landlab import Component
 
-from landlab.core.model_parameter_dictionary import MissingKeyError, \
-    ParameterValueError
+from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_file_name_or_kwds
 try:
     from .cfuncs import (erode_with_link_alpha_varthresh,
@@ -225,7 +223,8 @@ class StreamPowerEroder(Component):
     def __init__(self, grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
                  m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
                  use_W=None, use_Q=None, **kwds):
-        if use_Q == 'water__discharge':
+        """Initialize the StreamPowerEroder"""
+        if type(use_Q) is str and use_Q == 'water__discharge':
             use_Q = 'surface_water__discharge'
         self._grid = grid
         self.fraction_gradient_change = 1.
@@ -235,7 +234,6 @@ class StreamPowerEroder(Component):
             self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
 
-        # self._K_unit_time = np.empty(active_nodes.sum(), dtype=float)
         self._K_unit_time = self.grid.zeros('node', dtype=float)
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
         if type(K_sp) is np.ndarray:
@@ -446,7 +444,6 @@ class StreamPowerEroder(Component):
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
             self._grid['node']['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
-        active_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
         flow_receivers = self.grid['node']['flow__receiver_node']
 
         if W_if_used is not None:
@@ -468,9 +465,9 @@ class StreamPowerEroder(Component):
                                 "but you didn't set K_sp to 'array' in your " +
                                 "input file! Aborting...")
             try:
-                _K_unit_time = grid.at_node[K_if_used]  # [active_nodes]
+                _K_unit_time = grid.at_node[K_if_used]
             except TypeError:
-                _K_unit_time = K_if_used  # [active_nodes]
+                _K_unit_time = K_if_used
         else:
             # little move to save a bit of memory management time...
             if flooded_nodes is not None:
@@ -493,9 +490,6 @@ class StreamPowerEroder(Component):
 
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
-            if flooded_nodes.dtype != bool:
-                flooded_nodes = flooded_nodes.astype(bool)
-            flooded_nodes = flooded_nodes
             _K_unit_time[flooded_nodes] = 0.
 
         # Operate the main function:
@@ -619,46 +613,6 @@ class StreamPowerEroder(Component):
                 erode_with_link_alpha_varthresh(
                     upstream_order_IDs, flow_receivers, threshdt,
                     self.alpha_divided, self._n, node_z)
-
-        # # Note that we save "stream_power_erosion" incorporating both K and a.
-        # # Most definitions would need this value /K then **(1/a) to give actual
-        # # stream power (unit, total, whatever), and it does not yet include the
-        # # threshold
-        # self.stream_power_erosion[active_nodes] = stream_power_active_nodes
-        # grid.at_node['stream_power_erosion'][:] = self.stream_power_erosion
-        # erosion_increment = (self.stream_power_erosion - self.sp_crit).clip(0.)
-        #
-        # # this prevents any node from incising below any node downstream of it
-        # # we have to go in upstream order in case our rate is so big we impinge
-        # # on baselevels > 1 node away
-        #
-        # elev_dstr = node_z[flow_receiver]
-        # # ^we substract erosion_increment[flow_receiver] in the loop, as it
-        # # can update
-        #
-        # method = 'cython'
-        # if method == 'cython':
-        #     from .cfuncs import erode_avoiding_pits
-        #
-        #     erode_avoiding_pits(node_order_upstream, flow_receiver, node_z,
-        #                         erosion_increment)
-        # else:
-        #     for i in node_order_upstream:
-        #         elev_this_node_before = node_z[i]
-        #         elev_this_node_after = (elev_this_node_before -
-        #                                 erosion_increment[i])
-        #         elev_dstr_node_after = (elev_dstr[i] -
-        #                                 erosion_increment[flow_receiver[i]])
-        #         if elev_this_node_after < elev_dstr_node_after:
-        #             erosion_increment[i] = (elev_this_node_before -
-        #                                     elev_dstr_node_after)*0.999999
-        #         # ^we add a tiny elevation excess to prevent the module from
-        #         # ever totally severing its own flow paths
-        # # clip the erosion increments one more time to remove regatives
-        # # introduced by any pit filling algorithms or the above procedure:
-        # node_z -= erosion_increment.clip(0.)
-        #
-        # self._grid = grid
 
         return grid, node_z, self.stream_power_erosion
 

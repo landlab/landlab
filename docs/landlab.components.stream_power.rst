@@ -6,7 +6,7 @@ FastscapeEroder: Compute fluvial erosion using stream power theory ("fastscape" 
     :undoc-members:
     :show-inheritance:
 
-StreamPower: Compute fluvial erosion using stream power theory (explicit forward-difference solution)
+StreamPower: Compute fluvial erosion using stream power theory (also uses "fastscape" algorithm but provides slightly different formulation and options)
 -----------------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.stream_power.stream_power

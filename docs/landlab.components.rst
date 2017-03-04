@@ -47,7 +47,6 @@ Lake filling and routing (handling depressions in terrain)
 
     landlab.components.chi_index
     landlab.components.craters
-    landlab.components.dem_support
     landlab.components.detachment_ltd_sed_trp
     landlab.components.diffusion
     landlab.components.fire_generator
