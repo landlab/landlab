@@ -24,6 +24,7 @@ from .fire_generator import FireGenerator
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
+from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
