@@ -34,8 +34,7 @@ More information can be found at the website:
 
 http://landlab.github.io
 
-This open-source manuscript is serves as a gateway for entering the 
-Landlab world:
+This open-source manuscript is a gateway for entering the Landlab world:
 
 http://www.earth-surf-dynam.net/5/21/2017/
 
