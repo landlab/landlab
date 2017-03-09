@@ -546,15 +546,14 @@ class SoilMoisture(Component):
                 sini = min(self._SO[cell] + ((Peff -
                            self._runoff[cell])/(pc*ZR*1000.)), 1.)
             # If using regular storms with (Tr != 0.)
+            elif Tr < Ts:
+                self._runoff[cell] = max((precip_int - Inf_cap)*Tr, 0.)
+                sini = min(self._SO[cell] + ((precip_int * Tr -
+                           self._runoff[cell])/(pc*ZR*1000.)), 1.)
             else:
-                if Tr < Ts:
-                    self._runoff[cell] = max((precip_int - Inf_cap)*Tr, 0.)
-                    sini = min(self._SO[cell] + ((precip_int * Tr -
-                               self._runoff[cell])/(pc*ZR*1000.)), 1.)
-                else:
-                    sini = 1
-                    self._runoff[cell] = max(((precip_int-Inf_cap)*Ts +
-                                              (precip_int*(Tr-Ts))), 0.)
+                sini = 1
+                self._runoff[cell] = max(((precip_int-Inf_cap)*Ts +
+                                          (precip_int*(Tr-Ts))), 0.)
 
             if sini >= fc:
                 tfc = (1./(beta*(mu-nu)))*(beta*(fc-sini) + np.log((
