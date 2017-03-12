@@ -234,12 +234,12 @@ class StreamPowerEroder(Component):
             self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
 
-        self._K_unit_time = self.grid.zeros('node', dtype=float)
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
         if type(K_sp) is np.ndarray:
-            self._K_unit_time[:] = K_sp
+            self._K_unit_time = K_sp
         else:
             try:
+                self._K_unit_time = self.grid.zeros('node', dtype=float)
                 self._K_unit_time.fill(K_sp)
             except ValueError:  # could not cast => was a str
                 if K_sp == 'array':
