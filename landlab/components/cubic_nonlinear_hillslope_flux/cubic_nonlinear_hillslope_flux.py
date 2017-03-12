@@ -21,8 +21,8 @@ class CubicNonLinearDiffuser(Component):
     ----------
     grid: ModelGrid
             Landlab ModelGrid object
-    soil_transport_coefficient: float
-            Hillslope efficiency, m/yr
+    k_over_slope_crit_sq: float
+            Hillslope diffusivity, m**2/yr
     slope_crit: float
             Critical slope 
         
@@ -81,7 +81,7 @@ class CubicNonLinearDiffuser(Component):
                 'flux of soil in direction of link', 
     }
 
-    def __init__(self, grid, soil_transport_coefficient=1., slope_crit=1.,
+    def __init__(self, grid, diffusivity=1., slope_crit=1.,
                  **kwds):
         
         """Initialize CubicNonLinearDiffuser.
@@ -89,12 +89,8 @@ class CubicNonLinearDiffuser(Component):
 
         # Store grid and parameters
         self._grid = grid
-        self.k = soil_transport_coefficient
+        self.K = diffusivity
         self.slope_crit = slope_crit
-
-        # For efficiency, store the quantity Kd / Sc^2
-        self.k_over_slope_crit_sq = (soil_transport_coefficient
-                                     / (slope_crit * slope_crit))
 
         # Create fields:
         #
@@ -126,8 +122,8 @@ class CubicNonLinearDiffuser(Component):
         self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
 
         # Calculate flux
-        self.flux[:] = -(self.k * self.slope
-                         + (self.k_over_slope_crit_sq 
+        self.flux[:] = -(self.K * self.slope
+                         + (self.K
                             * np.power(self.slope, 3)))
 
         # Calculate flux divergence
