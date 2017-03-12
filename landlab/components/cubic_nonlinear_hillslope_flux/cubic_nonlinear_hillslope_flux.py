@@ -21,7 +21,7 @@ class CubicNonLinearDiffuser(Component):
     ----------
     grid: ModelGrid
             Landlab ModelGrid object
-    k_over_slope_crit_sq: float
+    diffusivity: float
             Hillslope diffusivity, m**2/yr
     slope_crit: float
             Critical slope 
