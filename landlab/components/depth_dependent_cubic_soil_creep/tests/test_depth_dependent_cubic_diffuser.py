@@ -28,7 +28,7 @@ def test_4x7_grid_vs_analytical_solution():
     # Instantiate components, and set their parameters. Note that traditional
     # diffusivity, D, is D = SCE x H*, where SCE is soil-creep efficiency.
     # Here we want D = 0.01 m2/yr and H* = 0,.5 m, so cwe set SCE = 0.02.
-    diffuser = DepthDependentCubicDiffuser(mg, diffusivity=0.01,
+    diffuser = DepthDependentCubicDiffuser(mg, linear_diffusivity=0.01,
                                            slope_crit=0.8,
                                            soil_transport_decay_depth=0.5)
     weatherer = ExponentialWeatherer(mg, max_soil_production_rate=0.0002,

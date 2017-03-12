@@ -21,7 +21,7 @@ class CubicNonLinearDiffuser(Component):
     ----------
     grid: ModelGrid
             Landlab ModelGrid object
-    diffusivity: float
+    linear_diffusivity: float
             Hillslope diffusivity, m**2/yr
     slope_crit: float
             Critical slope 
@@ -81,7 +81,7 @@ class CubicNonLinearDiffuser(Component):
                 'flux of soil in direction of link', 
     }
 
-    def __init__(self, grid, diffusivity=1., slope_crit=1.,
+    def __init__(self, grid, linear_diffusivity=1., slope_crit=1.,
                  **kwds):
         
         """Initialize CubicNonLinearDiffuser.
@@ -89,7 +89,7 @@ class CubicNonLinearDiffuser(Component):
 
         # Store grid and parameters
         self._grid = grid
-        self.K = diffusivity
+        self.K = linear_diffusivity
         self.slope_crit = slope_crit
 
         # Create fields:

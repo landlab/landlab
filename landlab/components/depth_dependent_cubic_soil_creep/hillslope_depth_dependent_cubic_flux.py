@@ -20,7 +20,7 @@ class DepthDependentCubicDiffuser(Component):
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    diffusivity: float
+    linear_diffusivity: float
         Hillslope diffusivity, m**2/yr
     slope_crit: float
         Critical gradient parameter, m/m
@@ -128,7 +128,7 @@ class DepthDependentCubicDiffuser(Component):
     }
 
     def __init__(self,grid,
-                 diffusivity=1.0,
+                 linear_diffusivity=1.0,
                  slope_crit=1.0,
                  soil_transport_decay_depth=1.0,
                  **kwds):
@@ -136,7 +136,7 @@ class DepthDependentCubicDiffuser(Component):
 
         # Store grid and parameters
         self._grid = grid
-        self.K = diffusivity
+        self.K = linear_diffusivity
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit
 
