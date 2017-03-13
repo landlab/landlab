@@ -230,6 +230,18 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         else:
             thresh = self.thresholds
 
+        # Handle possibility of spatially varying K
+        if type(self.K) is np.ndarray:
+            K = self.K[defined_flow_receivers]
+        else:
+            K = self.K
+
+        # Handle possibility of spatially varying threshold
+        if type(self.thresholds) is np.ndarray:
+            thresh = self.thresholds[defined_flow_receivers]
+        else:
+            thresh = self.thresholds            
+
         # Set up alpha, beta, delta arrays
         #
         #   First, compute drainage area or discharge raised to the power m.
@@ -238,7 +250,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         #   Alpha
         self.alpha[defined_flow_receivers==False] = 0.0
-        self.alpha[defined_flow_receivers] = (self.K * dt
+        self.alpha[defined_flow_receivers] = (K * dt
             * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths)
 
         #   Gamma
@@ -246,9 +258,14 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
+<<<<<<< HEAD
         self.delta[defined_flow_receivers==False] = 0.0
         self.delta[defined_flow_receivers] = ((self.K
             * self.A_to_the_m[defined_flow_receivers] )
+=======
+        self.delta[defined_flow_receivers] = ((K
+            * self.A_to_the_m[defined_flow_receivers] ) 
+>>>>>>> master
             / (thresh * flow_link_lengths))
 
         # Iterate over nodes from downstream to upstream, using scipy's
@@ -267,6 +284,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                                  #fprime2=new_elev_prime2)
 
         # TODO: handle case self.thresholds = 0
+        # THIS WOULD REQUIRE SETTING DELTA = 0 WHEN/WHERE THRESHOLD = 0
 
 
 

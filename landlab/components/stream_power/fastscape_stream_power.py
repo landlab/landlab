@@ -248,8 +248,9 @@ class FastscapeEroder(Component):
                 self.K = self._grid.at_node[K_sp]
         elif type(K_sp) in (float, int):  # a float
             self.K = float(K_sp)
-        elif len(K_sp) == self.grid.number_of_nodes:
-            self.K = numpy.array(K_sp)
+        elif (type(K_sp) is numpy.ndarray
+              and len(K_sp) == self.grid.number_of_nodes):
+            self.K = K_sp
         else:
             raise TypeError('Supplied type of K_sp ' +
                             'was not recognised, or array was ' +

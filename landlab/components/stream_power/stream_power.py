@@ -234,12 +234,12 @@ class StreamPowerEroder(Component):
             self.link_S_with_trailing_blank, dtype=int)
         self.count_active_links[:-1] = 1
 
-        self._K_unit_time = self.grid.zeros('node', dtype=float)
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
         if type(K_sp) is np.ndarray:
-            self._K_unit_time[:] = K_sp
+            self._K_unit_time = K_sp
         else:
             try:
+                self._K_unit_time = self.grid.zeros('node', dtype=float)
                 self._K_unit_time.fill(K_sp)
             except ValueError:  # could not cast => was a str
                 if K_sp == 'array':
@@ -490,9 +490,6 @@ class StreamPowerEroder(Component):
 
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
-            if flooded_nodes.dtype != bool:
-                flooded_nodes = flooded_nodes.astype(bool)
-            flooded_nodes = flooded_nodes
             _K_unit_time[flooded_nodes] = 0.
 
         # Operate the main function:

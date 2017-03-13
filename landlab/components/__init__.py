@@ -28,6 +28,7 @@ from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
+from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,

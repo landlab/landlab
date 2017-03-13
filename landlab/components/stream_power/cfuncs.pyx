@@ -92,7 +92,7 @@ def erode_with_link_alpha_varthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
         dst_id = dst_nodes[src_id]
         threshxdt = threshsxdt[i]
 
-        if src_id != dst_id:
+        if src_id != dst_id and z[src_id] > z[dst_id]:
             next_z = z[src_id]
             prev_z = 0.
             niter = 0
