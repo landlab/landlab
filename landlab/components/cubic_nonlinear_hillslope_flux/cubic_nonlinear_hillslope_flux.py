@@ -123,7 +123,7 @@ class CubicNonLinearDiffuser(Component):
 
         # Calculate flux
         self.flux[:] = -(self.K * self.slope
-                         + (self.K
+                         + ((self.K/(self.slope_crit**2))
                             * np.power(self.slope, 3)))
 
         # Calculate flux divergence
