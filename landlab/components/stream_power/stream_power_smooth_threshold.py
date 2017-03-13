@@ -258,14 +258,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
-<<<<<<< HEAD
+
         self.delta[defined_flow_receivers==False] = 0.0
-        self.delta[defined_flow_receivers] = ((self.K
-            * self.A_to_the_m[defined_flow_receivers] )
-=======
         self.delta[defined_flow_receivers] = ((K
-            * self.A_to_the_m[defined_flow_receivers] ) 
->>>>>>> master
+            * self.A_to_the_m[defined_flow_receivers] )
             / (thresh * flow_link_lengths))
 
         # Iterate over nodes from downstream to upstream, using scipy's
