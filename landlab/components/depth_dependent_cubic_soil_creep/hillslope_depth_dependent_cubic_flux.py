@@ -20,8 +20,8 @@ class DepthDependentCubicDiffuser(Component):
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    soil_creep_efficiency: float
-        Hillslope efficiency, m/yr
+    linear_diffusivity: float
+        Hillslope diffusivity, m**2/yr
     slope_crit: float
         Critical gradient parameter, m/m
     soil_transport_decay_depth: float
@@ -127,18 +127,18 @@ class DepthDependentCubicDiffuser(Component):
                 'elevation of the bedrock surface',
     }
 
-    def __init__(self,grid, soil_creep_efficiency=1.0, slope_crit=1.0,
-                 soil_transport_decay_depth=1.0, **kwds):
+    def __init__(self,grid,
+                 linear_diffusivity=1.0,
+                 slope_crit=1.0,
+                 soil_transport_decay_depth=1.0,
+                 **kwds):
         """Initialize the DepthDependentCubicDiffuser."""
 
         # Store grid and parameters
         self._grid = grid
-        self._kd = soil_creep_efficiency * soil_transport_decay_depth
+        self.K = linear_diffusivity
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit
-
-        # For efficiency, store the quantity Kd / Sc^2
-        self.k_over_slope_crit_sq = self._kd / (slope_crit * slope_crit)
 
         # create fields
         # elevation
@@ -204,10 +204,10 @@ class DepthDependentCubicDiffuser(Component):
         #print(self.elev[nn])
 
         #Calculate flux
-        self.flux[:] = -((self._kd * slope
-                          + self.k_over_slope_crit_sq * np.power(slope, 3))
-                         * (1.0 - np.exp(-H_link
-                                         / self.soil_transport_decay_depth)))
+        self.flux[:] = -((self.K*slope
+                       + (self.K/(self.slope_crit**2)) * np.power(slope, 3))
+                        * (1.0 - np.exp(-H_link
+                                        / self.soil_transport_decay_depth)))
 
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
