@@ -12,7 +12,9 @@ class HybridAlluvium(Component):
     Stream Power with Alluvium Conservation and Entrainment (SPACE)
     
     Algorithm developed by G. Tucker, summer 2016.
-    Component written by C. Shobe, 11/28/2016.
+    Component written by C. Shobe, begun 11/28/2016.
+    
+    Currently only works on square raster grids (3/14/2017).
     """
     
     _name= 'HybridAlluvium'
@@ -72,7 +74,8 @@ class HybridAlluvium(Component):
     }
     
     def __init__(self, grid, K_sed=None, K_br=None, a=None, 
-                 F_f=None, phi=None, H_star=None, v_s=None, m_sp=None, n_sp=None, **kwds):
+                 F_f=None, phi=None, H_star=None, v_s=None, 
+                 m_sp=None, n_sp=None, **kwds):
         """Initialize the HybridAlluvium model.
         
         Parameters
@@ -122,16 +125,25 @@ class HybridAlluvium(Component):
         self.bedrock__elevation = grid.add_zeros(
             'bedrock__elevation', at='node', dtype=float)
         self.bedrock__elevation += self.topographic__elevation.copy()
-        self.qs = grid.add_zeros('sediment__flux', at='node', dtype=float)#take out of dt
+        self.qs = grid.add_zeros('sediment__flux', at='node', dtype=float)
 
     #def simple_shear_stress(self):
     def simple_stream_power(self):
-        self.Es = self.K_sed * np.power(self.grid.at_node['drainage_area'], self.m_sp) * np.power(self.slope, self.n_sp) * \
+        self.Es = self.K_sed * np.power(self.grid.at_node['drainage_area'], 
+                                        self.m_sp) * \
+            np.power(self.slope, self.n_sp) * \
             (1.0 - np.exp(-self.soil__depth / self.H_star))
-        self.Er = self.K_br * np.power(self.grid.at_node['drainage_area'], self.m_sp) * np.power(self.slope, self.n_sp) * np.exp(-self.soil__depth / self.H_star)
+        self.Er = self.K_br * np.power(self.grid.at_node['drainage_area'], 
+                                       self.m_sp) *\
+            np.power(self.slope, self.n_sp) * \
+            np.exp(-self.soil__depth / self.H_star)
         self.q = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-        self.sed_erosion_term = self.K_sed * np.power(self.grid.at_node['drainage_area'], self.m_sp) * np.power(self.slope, self.n_sp)
-        self.br_erosion_term = self.K_br * np.power(self.grid.at_node['drainage_area'], self.m_sp) * np.power(self.slope, self.n_sp)
+        self.sed_erosion_term = self.K_sed * \
+            np.power(self.grid.at_node['drainage_area'], self.m_sp) * \
+            np.power(self.slope, self.n_sp)
+        self.br_erosion_term = self.K_br * \
+            np.power(self.grid.at_node['drainage_area'], self.m_sp) * \
+            np.power(self.slope, self.n_sp)
         return self.Es
     #def threshold_shear_stress(self, ):
         
@@ -157,23 +169,24 @@ class HybridAlluvium(Component):
             if self.q[j] == 0:
                 self.qs[j] = 0
             else:
-                self.qs[j] = (((self.Es[j]) + (1-self.F_f) * self.Er[j]) / (self.v_s / self.q[j])) * \
-                    (1.0 - np.exp(-self.link_lengths[j] * self.v_s / self.q[j])) + (self.qs_in[j] * \
-                    np.exp(-self.link_lengths[j] * self.v_s / self.q[j]))
+                self.qs[j] = (((self.Es[j]) + (1-self.F_f) * self.Er[j]) / \
+                    (self.v_s / self.q[j])) * (1.0 - \
+                    np.exp(-self.link_lengths[j] * self.v_s / self.q[j])) + \
+                    (self.qs_in[j] * np.exp(-self.link_lengths[j] * \
+                    self.v_s / self.q[j]))
             self.qs_in[self.flow_receivers[j]] += self.qs[j]
         erosion_pertime = np.zeros(self.grid.number_of_nodes)
         erosion = np.zeros(self.grid.number_of_nodes)
         deposition_pertime = np.zeros(self.grid.number_of_nodes)
         deposition = np.zeros(self.grid.number_of_nodes)
-        #erosion_pertime[self.q > 0] = self.K_sed * self.q[self.q > 0] * \
-        #    self.slope[self.q > 0] *(1.0 - np.exp(-self.soil__depth[self.q > 0]/self.H_star))
         erosion_pertime = self.simple_stream_power()
         erosion[self.q > 0] = dt * erosion_pertime[self.q > 0]
-        deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * (self.v_s / self.q[self.q > 0]))
+        deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
+            (self.v_s / self.q[self.q > 0]))
         deposition[self.q > 0] = dt * deposition_pertime[self.q > 0]
         
-        #now, the two lines following are the analytical solution to soil thickness in time:
-        #remember, need to distinguish D=kqS from all other cases to save from blowup!
+        #now, the analytical solution to soil thickness in time:
+        #need to distinguish D=kqS from all other cases to save from blowup!
         
         flooded = self._grid.nodes.flatten() == flooded_nodes
         
@@ -182,32 +195,65 @@ class HybridAlluvium(Component):
 
         ##first, potential blowup case:
         #positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & (flooded==False)] = self.H_star * np.log((erosion_pertime[(self.q > 0) & (blowup==True) & (self.slope > 0) & (flooded==False)] / self.H_star) * dt + np.exp(self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & (flooded==False)] / self.H_star))
+        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
+            (flooded==False)] = self.H_star * \
+            np.log((erosion_pertime[(self.q > 0) & (blowup==True) & \
+            (self.slope > 0) & (flooded==False)] / self.H_star) * dt + \
+            np.exp(self.soil__depth[(self.q > 0) & (blowup==True) & \
+            (self.slope > 0) & (flooded==False)] / self.H_star))
         #positive slopes, flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & (flooded==True)] = (deposition_pertime[(self.q > 0) & (blowup==True) & (flooded==True)] / (1 - self.phi)) * dt   
+        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
+            (flooded==True)] = (deposition_pertime[(self.q > 0) & \
+            (blowup==True) & (flooded==True)] / (1 - self.phi)) * dt   
         #non-positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & (flooded==False)] += (deposition_pertime[(self.q > 0) & (blowup==True) & (self.slope <= 0) & (flooded==False)] / (1 - self.phi)) * dt    
+        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
+            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
+            (blowup==True) & (self.slope <= 0) & (flooded==False)] / \
+            (1 - self.phi)) * dt    
         
         ##more general case:
         #positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)] = self.H_star * np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)] * (1 - self.phi)) / (self.sed_erosion_term[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)]) - 1)) * (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)] * (1 - self.phi) - (self.sed_erosion_term[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * (((deposition_pertime[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)] * (1 - self.phi) / (self.sed_erosion_term[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)])) - 1) * np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & (flooded==False)] / self.H_star)  + 1) - 1))
+        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
+            (flooded==False)] = self.H_star * \
+            np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)] * (1 - self.phi)) / \
+            (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)]) - 1)) * \
+            (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)] * (1 - self.phi) - \
+            (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
+            (((deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)] * (1 - self.phi) / \
+            (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)])) - 1) * \
+            np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & \
+            (self.slope > 0) & (flooded==False)] / self.H_star)  + 1) - 1))
         #places where slope <= 0 but not flooded:
-        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope <= 0) & (flooded==False)] += (deposition_pertime[(self.q > 0) & (blowup==False) & (self.slope <= 0) & (flooded==False)] / (1 - self.phi)) * dt     
+        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope <= 0) & \
+            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
+            (blowup==False) & (self.slope <= 0) & (flooded==False)] / \
+            (1 - self.phi)) * dt     
         #flooded nodes:        
-        self.soil__depth[(self.q > 0) & (blowup==False) & (flooded==True)] += (deposition_pertime[(self.q > 0) & (blowup==False) & (flooded==True)] / (1 - self.phi)) * dt     
+        self.soil__depth[(self.q > 0) & (blowup==False) & (flooded==True)] += \
+            (deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (flooded==True)] / (1 - self.phi)) * dt     
 
         #check against negative soil thickness
         self.soil__depth[self.soil__depth + deposition - erosion < 0] = 0
         
         if np.any(self.soil__depth < 0):
             raise ValueError('Negative soil! Killing model.')
-        self.bedrock__elevation[self.q > 0] += dt * (-self.br_erosion_term[self.q > 0] * (np.exp(-self.soil__depth[self.q > 0] /\
-            self.H_star)))
+        self.bedrock__elevation[self.q > 0] += dt * \
+            (-self.br_erosion_term[self.q > 0] * \
+            (np.exp(-self.soil__depth[self.q > 0] / self.H_star)))
 
-        self.topographic__elevation = self.bedrock__elevation + self.soil__depth 
+        self.topographic__elevation = self.bedrock__elevation + \
+            self.soil__depth 
         
         #save as grid fields
-        self._grid['node']['topographic__elevation'] = self.topographic__elevation
+        self._grid['node']['topographic__elevation'] = \
+            self.topographic__elevation
         self._grid['node']['bedrock__elevation'] = self.bedrock__elevation
         self._grid['node']['soil__depth'] = self.soil__depth
         self._grid['node']['water__discharge'] = self.q
