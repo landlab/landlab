@@ -59,12 +59,14 @@ def calc_grad_at_link(grid, node_values, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> calc_grad_at_link(hg, z)  # there are 11 faces
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
+
+    LLCATS: LINF GRAD
     """
     if out is None:
         out = grid.empty(at='link')
@@ -93,6 +95,8 @@ def calc_grad_of_active_link(grid, node_values, out=None):
     >>> vals = grid.calc_grad_at_link(z)
     >>> vals[grid.active_links]
     array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+
+    LLCATS: DEPR
     """
     return calc_grad_at_active_link(grid, node_values, out)
 
@@ -123,25 +127,10 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     ndarray
         Gradients across active links.
 
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((3, 4))
-    >>> z = np.array([0., 0., 0., 0.,
-    ...               1., 1., 1., 1.,
-    ...               3., 3., 3., 3.])
-    >>> grid.calc_grad_at_active_link(z)
-    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
-
-    This method is *deprecated*. Instead, use ``calc_grad_at_link``.
-
-    >>> vals = grid.calc_grad_at_link(z)
-    >>> vals[grid.active_links]
-    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
+    LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = grid.empty(at='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
     return np.divide(node_values[grid._activelink_tonode] -
                      node_values[grid._activelink_fromnode],
                      grid.length_of_link[grid.active_links], out=out)
@@ -186,11 +175,13 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> calculate_gradients_at_faces(hg, z)  # there are 11 faces
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
+
+    LLCATS: DEPR GRAD
     """
     if out is None:
         out = grid.empty(at='face')
@@ -234,6 +225,8 @@ def calc_diff_at_link(grid, node_values, out=None):
     >>> z[4] = 1.
     >>> rmg.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    LLCATS: LINF GRAD
     """
     if out is None:
         out = grid.empty(at='link')
@@ -261,6 +254,8 @@ def calculate_diff_at_links(grid, node_values, out=None):
 
     >>> grid.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    LLCATS: DEPR LINF GRAD
     """
     return calc_diff_at_link(grid, node_values, out)
 
@@ -290,9 +285,11 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     -------
     ndarray
         Differences across active links.
+
+    LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = grid.empty(at='active_link')
+        out = np.empty(grid.number_of_active_links, dtype=float)
     node_values = np.asarray(node_values)
     return np.subtract(node_values[grid._activelink_tonode],
                        node_values[grid._activelink_fromnode], out=out)
@@ -329,6 +326,8 @@ def calc_unit_normal_at_patch(grid, elevs='topographic__elevation'):
            [-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8]])
+
+    LLCATS: PINF GRAD
     """
     try:
         z = grid.at_node[elevs]
@@ -393,6 +392,8 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
     True
     >>> np.allclose(S, np.pi / 4.)
     True
+
+    LLCATS: PINF GRAD
     """
     if unit_normal is not None:
         assert unit_normal.shape[1] == 3
@@ -450,6 +451,8 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
     True
     >>> np.allclose(x_grad, 0.)
     True
+
+    LLCATS: PINF GRAD
     """
     if unit_normal is not None:
         assert unit_normal.shape[1] == 3
@@ -552,6 +555,8 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
     ...                           0.78505793680521629, 0.78661256633611021]
     >>> np.allclose(mean_ring_slope, target_mean_ring_slope)
     True
+
+    LLCATS: NINF GRAD SURF
     """
     if method not in ('patch_mean', 'Horn'):
         raise ValueError('method name not understood')
@@ -663,6 +668,8 @@ def calc_aspect_at_node(grid, slope_component_tuple=None,
 
     Note that a small amount of asymmetry arises at the grid edges due
     to the "missing" nodes beyond the edge of the grid.
+
+    LLCATS: NINF SURF
     """
     if slope_component_tuple:
         if not isinstance(slope_component_tuple, (tuple, list)):

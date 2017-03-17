@@ -25,6 +25,33 @@ class FieldError(Error, KeyError):
         return self._field
 
 
+def need_to_reshape_array(array, field_size):
+    """Check to see if an array needs to be resized before storing.
+
+    When possible, a reference to an array is stored. However, if the
+    array is not of the correct shape, a view of the array (with
+    the correct shape) is stored.
+
+    Parameters
+    ----------
+    array : numpy array
+        Numpy array to check.
+    field_size : int
+        Size of the field the array will be placed into.
+
+    Returns
+    -------
+    bool
+        True is the array should be resized.
+    """
+    if field_size > 1:
+        stored_shape = (field_size, )
+    else:
+        stored_shape = array.squeeze().shape
+
+    return array.shape != stored_shape
+
+
 class ScalarDataFields(dict):
 
     """Collection of named data fields that are of the same size.
@@ -33,6 +60,9 @@ class ScalarDataFields(dict):
     elements and index each of them with a name. This class inherits from
     a standard Python `dict`, which allows access to the fields through
     dict-like syntax.
+
+    The syntax `.at_[element]` can also be used as syntactic sugar to access
+    fields. e.g., `n1 = fields.at_node['name1']`, `n2 = grid.at_link['name2']`.
 
     Parameters
     ----------
@@ -61,6 +91,19 @@ class ScalarDataFields(dict):
     Traceback (most recent call last):
     ValueError: total size of the new array must be the same as the field
 
+    Fields can also be multidimensional arrays so long as they can be
+    resized such that the first dimension is the size of the field.
+    The stored field will be resized view of the input array such that
+    the size of the first dimension is the size of the field.
+
+    >>> fields['air__temperature'] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    >>> fields['air__temperature']
+    array([[ 2,  3],
+           [ 4,  5],
+           [ 6,  7],
+           [ 8,  9],
+           [10, 11]])
+
     You can also create unsized fields. These fields will not be sized until
     the first field is added to the collection. Once the size is set, all
     fields must be the same size.
@@ -73,6 +116,20 @@ class ScalarDataFields(dict):
     ...     # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ValueError: total size of the new array must be the same as the field
+
+    Fields defined on a grid, which inherits from the ScalarModelFields class,
+    behave similarly, though the length of those fields will be forced
+    by the element type they are defined on:
+
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> mg = RasterModelGrid((4, 5))
+    >>> z = mg.add_field('cell', 'topographic__elevation', np.random.rand(
+    ...         mg.number_of_cells), units='m')
+    >>> mg.at_cell['topographic__elevation'].size == mg.number_of_cells
+    True
+
+    LLCATS: FIELDCR, FIELDIO
     """
 
     def __init__(self, size=None):
@@ -227,6 +284,8 @@ class ScalarDataFields(dict):
             does not initialize the new array.
         landlab.field.ScalarDataFields.zeros : Equivalent method that
             initializes the data to 0.
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.empty(**kwds), units=units,
                               noclobber=noclobber)
@@ -273,6 +332,8 @@ class ScalarDataFields(dict):
         ['topographic__elevation']
         >>> field['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.ones(**kwds), units=units,
                               noclobber=noclobber)
@@ -306,6 +367,8 @@ class ScalarDataFields(dict):
             does not initialize the new array.
         landlab.field.ScalarDataFields.add_ones : Equivalent method that
             initializes the data to 1.
+
+        LLCATS: FIELDCR
         """
         return self.add_field(name, self.zeros(**kwds), units=units,
                               noclobber=noclobber)
@@ -373,16 +436,16 @@ class ScalarDataFields(dict):
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation already exists
+
+        LLCATS: FIELDCR
         """
         if noclobber and name in self:
             raise FieldError('{name}: already exists'. format(name=name))
 
         value_array = np.asarray(value_array)
-        value_array.shape = (-1, )
 
         if copy:
             value_array = value_array.copy()
-            value_array.shape = (value_array.size, )
 
         self[name] = value_array
 
@@ -403,6 +466,8 @@ class ScalarDataFields(dict):
         ------
         KeyError
             If the named field does not exist.
+
+        LLCATS: FIELDCR
         """
         self._units[name] = units
 
@@ -413,9 +478,8 @@ class ScalarDataFields(dict):
         if self.size is None:
             self.size = value_array.size
 
-        if value_array.size != self.size:
-            raise ValueError(
-                'total size of the new array must be the same as the field')
+        if need_to_reshape_array(value_array, self.size):
+            value_array = value_array.reshape((self.size, -1)).squeeze()
 
         if name not in self:
             self.set_units(name, None)
@@ -428,3 +492,4 @@ class ScalarDataFields(dict):
             return super(ScalarDataFields, self).__getitem__(name)
         except KeyError:
             raise FieldError(name)
+

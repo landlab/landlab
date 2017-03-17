@@ -18,11 +18,16 @@ environment:
     - PYTHON: "C:\\Python27"
       DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "2.7"
+      CONDA_NPY: 1.11
     # - PYTHON: "C:\\Python34"
     #   DISTUTILS_USE_SDK: "1"
     #   PYTHON_VERSION: "3.4"
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5"
+      CONDA_NPY: 1.11
+    - PYTHON: "C:\\Python36"
+      PYTHON_VERSION: "3.6"
+      CONDA_NPY: 1.11
     #   PYTHON_ARCH: "64"
     #   NUMPY_VERSION: "1.10.4"
 
@@ -41,7 +46,8 @@ install:
   - "set PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%/Scripts;%PYTHON%%SUFFIX%/Library/bin;%PATH%"
   - conda info
   - conda config --set always_yes yes
-  - conda install -q --force --no-deps conda psutil ruamel_yaml requests
+  - conda update conda
+  - conda install -q --force --no-deps psutil ruamel_yaml requests
   - conda install -q python=%PYTHON_VERSION%
   - conda install -q conda-build
   - conda install -q anaconda-client

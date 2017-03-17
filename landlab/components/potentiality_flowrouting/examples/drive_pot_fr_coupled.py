@@ -51,14 +51,14 @@ for i in range(2000):
         print('loop '+str(i))
     mg.at_node['topographic__elevation'][inlet_node] = 1.
     pfr.route_flow(route_on_diagonals=True)
-    #imshow(mg, 'water__discharge')
+    #imshow(mg, 'surface_water__discharge')
     #show()
-    kd = mg.at_node['water__discharge']   # 0.01 m2 per year
+    kd = mg.at_node['surface_water__discharge']   # 0.01 m2 per year
     # dt = np.nanmin(0.2*mg.dx*mg.dx/kd)   # CFL condition
     dt = 0.5
     g = mg.calc_grad_of_active_link(mg.at_node['topographic__elevation'])
-    map_link_end_node_max_value_to_link(mg, 'water__discharge')
-    kd_link = 1.e6*mg.at_link['water__discharge'][mg.active_links]
+    map_link_end_node_max_value_to_link(mg, 'surface_water__discharge')
+    kd_link = 1.e6*mg.at_link['surface_water__discharge'][mg.active_links]
     qs = -kd_link*g
     dqsdx = mg.calculate_flux_divergence_at_nodes(qs)
     dzdt = -dqsdx
@@ -67,6 +67,6 @@ for i in range(2000):
 figure(1)
 imshow_node_grid(mg, 'topographic__elevation')
 figure(2)
-imshow_node_grid(mg, 'water__depth')
+imshow_node_grid(mg, 'surface_water__depth')
 figure(3)
-imshow_node_grid(mg, 'water__discharge')
+imshow_node_grid(mg, 'surface_water__discharge')

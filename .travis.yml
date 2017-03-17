@@ -1,50 +1,63 @@
 env:
   matrix:
-  # - TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="1.9"
-  # - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="==1.9.3" BUILD_DOCS=0
-  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="==1.10.4" BUILD_DOCS=0
-  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=1
-  # - TRAVIS_PYTHON_VERSION="3.3" NUMPY_VERSION="1.9"
-  # - TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="1.9"
-  - TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="==1.10.4" BUILD_DOCS=0
-  - TRAVIS_PYTHON_VERSION="3.4" BUILD_DOCS=0
-  # - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="1.9"
-  - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="==1.10.4" BUILD_DOCS=0
-  - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0
+  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.10" BUILD_DOCS=0 COVERALLS=0
+  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.11" BUILD_DOCS=1 COVERALLS=1
+  - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="1.10" BUILD_DOCS=0 COVERALLS=0
+  - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="1.11" BUILD_DOCS=0 COVERALLS=0
+  - TRAVIS_PYTHON_VERSION="3.6" NUMPY_VERSION="1.11" BUILD_DOCS=0 COVERALLS=0
   global:
+    - CONDA_PREFIX=$HOME/miniconda
+    - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
     - secure: UxPkdFKl0xtk+H+98CNHSnYN8SJrEq5xJjLtPUPR+5UF5lLKL7godwrOdYeO0B0fXPi2Plw0vtoIID6H1AV4x+8QD/AgAizoWIh8KLim3E7rDX0v0M3WnUHctvYwt76mGCYvIGH6qR2Ziml37Ec6nz2aTuz0oex27P6dq0BKkXs=
     - secure: OFyhYR18rMC/MlyG1J8+cRkHWlkn/BOkQP6IM+ZBILG/t33ipoyTjH2qpNJi5Rx3wMCXBn00XnPExf7mqRBAAzSULyt6t6eDbXgInYOCSOQMMZlJ66CdmsD8dKBwDVbcFuGz06amYrIc/22guFP+6GfhsCepHvocrR93A93whug=
 os:
 - linux
 - osx
-matrix:
-  allow_failures:
-  - os: osx
-    env: TRAVIS_PYTHON_VERSION="2.6" NUMPY_VERSION="==1.9.3"
-  - os: linux
-    env: TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="==1.9.3" BUILD_DOCS=0
-  - os: linux
-    env: TRAVIS_PYTHON_VERSION="3.4" NUMPY_VERSION="==1.9.3"
-  - os: linux
-    env: TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="==1.9.3"
 sudo: false
+before_install:
+- |
+  if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+    brew remove --force $(brew list)
+    brew cleanup -s
+    rm -rf $(brew --cache)
+  fi
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
-- if [[ "$TRAVIS_TAG" == v* ]]; then echo "This is a release."; export BUILD_STR=""; else echo "This is not a release."; export BUILD_STR="dev"; fi
-- bash .ci/travis/install_python.sh
-- export PATH="$HOME/miniconda/bin:$PATH"
+- |
+  if [[ "$TRAVIS_TAG" == v* ]]; then
+    export BUILD_STR=""
+  else
+    export BUILD_STR="dev"
+  fi
+- |
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    OS="MacOSX-x86_64"
+  else
+    OS="Linux-x86_64"
+  fi
+- curl $MINICONDA_URL_BASE-$OS.sh > $HOME/minconda.sh
+- bash $HOME/minconda.sh -b -p $CONDA_PREFIX
+- export PATH="$CONDA_PREFIX/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda install python=$TRAVIS_PYTHON_VERSION
+- conda install -q conda-build anaconda-client coverage sphinx
 - pip install coveralls
-- conda build -q .conda-recipe
-- conda install -q landlab --use-local
+- conda info -a && conda list
 script:
-- if [[ "$BUILD_DOCS" == "1" ]]; then (cd docs && make html 2> /dev/null); fi
+- conda build -q .conda-recipe --numpy=$NUMPY_VERSION
+- conda install -q landlab --use-local
+- |
+  if [[ "$BUILD_DOCS" == "1" ]]; then
+    (cd docs && make html 2> /dev/null)
+  fi
 - bash .ci/travis/run_travis_test.sh
 virtualenv:
   system_site_packages: false
 after_success:
   - bash .ci/travis/deploy_to_pypi.sh
   - bash .ci/travis/deploy_to_anaconda.sh
-  - coveralls
+  - if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
 deploy:
   provider: pypi
   user: mcflugen

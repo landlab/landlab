@@ -53,7 +53,7 @@ fsp = Fsc(mg, './drive_sp_params_discharge.txt')
 # perform the loop (once!)
 for i in range(1):
     fr.route_flow(method='D8')
-    my_Q = mg.at_node['water__discharge']*1.
+    my_Q = mg.at_node['surface_water__discharge']*1.
     sp.erode(mg, dt, node_drainage_areas='drainage_area',
              slopes_at_nodes='topographic__steepest_slope',
              Q_if_used=my_Q)

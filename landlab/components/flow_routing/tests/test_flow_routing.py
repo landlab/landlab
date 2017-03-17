@@ -326,7 +326,7 @@ def test_accumulate_D8():
     assert_array_equal(frcvr_target, mg.at_node['flow__receiver_node'])
     assert_array_equal(upids_target, mg.at_node['flow__upstream_node_order'])
     assert_array_equal(links2rcvr_target, mg.at_node['flow__link_to_receiver_node'])
-    assert_array_equal(A_target, mg.at_node['water__discharge'])
+    assert_array_equal(A_target, mg.at_node['surface_water__discharge'])
     assert_array_equal(steepest_target,
                        mg.at_node['topographic__steepest_slope'])
 
@@ -342,7 +342,7 @@ def test_variable_Qin():
     fr.route_flow()
     Qout_local = np.zeros_like(Qin_local)
     Qout_local[10:14] = 200.
-    assert_array_equal(Qout_local, mg.at_node['water__discharge'])
+    assert_array_equal(Qout_local, mg.at_node['surface_water__discharge'])
     assert_array_equal(A_target, mg.at_node['drainage_area'])
     # note that A DOES NOT CHANGE when messing with Q_in
 
@@ -400,7 +400,7 @@ def test_internal_closed():
     assert_array_almost_equal(A_target, mg.at_node['drainage_area'])
     assert_array_equal(frcvr_target, mg.at_node['flow__receiver_node'])
     assert_array_equal(links2rcvr_target, mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(A_target, mg.at_node['water__discharge'])
+    assert_array_almost_equal(A_target, mg.at_node['surface_water__discharge'])
     assert_array_almost_equal(steepest_target,
                               mg.at_node['topographic__steepest_slope'])
 

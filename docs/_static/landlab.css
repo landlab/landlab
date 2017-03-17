@@ -649,4 +649,6 @@ figcaption {
   text-align: center;
 }
 
-
+.logo {
+  width: 200px;
+}
