@@ -148,12 +148,9 @@ class LandslideProbability(Component):
         A grid.
     number_of_simulations: float, optional
         Number of simulations to run Monte Carlo.
-    groundwater__recharge_minimum: float, optional
-        User provided minimum annual maximum recharge
-        recharge (mm/day).
-    groundwater__recharge_maximum: float, optional
-        User provided maximum annual maximum recharge
-        recharge (mm/day).
+    groundwater__recharge: dictionary
+        Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
+        annual maximum recharge (mm/d)
 
     Examples
     --------
@@ -322,8 +319,10 @@ class LandslideProbability(Component):
 # Run Component
     @use_file_name_or_kwds
     def __init__(self, grid, number_of_simulations=250.,
-                 groundwater__recharge_minimum=20.,
-                 groundwater__recharge_maximum=120., **kwds):
+                 groundwater__recharge_params =
+                 ['distribution', 'min_value', 'max_value'],
+                 groundwater__recharge_values = ['uniform', 20., 120.],
+                 **kwds):
 
         """
         Parameters
@@ -332,10 +331,9 @@ class LandslideProbability(Component):
             A grid.
         number_of_simulations: int, optional
             number of simulations to run Monte Carlo (None)
-        groundwater__recharge_minimum: float, optional
-            Minimum annual maximum recharge (mm/d)
-        groundwater__recharge_maximum: float, optional
-            Maximum annual maximum rechage (mm/d)
+        groundwater__recharge: dictionary
+            Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
+            of annual maximum recharge (mm/d)
         g: float, optional
             acceleration due to gravity (m/sec^2)
         """
@@ -343,10 +341,22 @@ class LandslideProbability(Component):
         # Store grid and parameters and do unit conversions
         self._grid = grid
         self.n = number_of_simulations
-        self.recharge_min = groundwater__recharge_minimum/1000.0  # mm->m
-        self.recharge_max = groundwater__recharge_maximum/1000.0
         self.g = 9.81
-
+        self.groundwater__recharge = dict(
+            zip(groundwater__recharge_params, groundwater__recharge_values))
+        if self.groundwater__recharge['distribution'] == 'uniform':
+            self.recharge_min = self.groundwater__recharge['min_value']
+            self.recharge_max = self.groundwater__recharge['max_value']
+            self.Re = np.random.uniform(self.recharge_min, self.recharge_max,
+                                        size=self.n)
+        elif self.groundwater__recharge['distribution'] == 'lognormal':
+            self.recharge_mean = self.groundwater__recharge['mean']
+            self.recharge_sigma = self.groundwater__recharge['sigma']
+            self.Re = np.random.lognormal(mean=self.recharge_mean,
+                                          sigma=self.recharge_sigma,
+                                          size=self.n)
+        elif self.groundwater__recharge['distribution'] == 'VIC':
+            self.Re = self.groundwater__recharge['VIC_dict']
         super(LandslideProbability, self).__init__(grid)
 
         for name in self._input_var_names:
@@ -393,14 +403,24 @@ class LandslideProbability(Component):
         self.rho = self.grid['node']['soil__density'][i]
         self.hs_mode = self.grid['node']['soil__thickness'][i]
 
+        # recharge distribution
+        if self.groundwater__recharge['distribution'] == 'VIC':
+            self.Re = self.groundwater__recharge[i]/1000.0  # mm->m
+        elif self.groundwater__recharge['distribution'] == 'lognormal_spatial':
+            self.recharge_mean = self.groundwater__recharge['mean'][i]
+            self.recharge_sigma = self.groundwater__recharge['sigma'][i]
+            self.Re = np.random.lognormal(mean=self.recharge_mean,
+                                          sigma=self.recharge_sigma,
+                                          size=self.n)
+
         # Transmissivity (T)
         Tmin = self.Tmode-(0.3*self.Tmode)
-        Tmax = self.Tmode+(0.3*self.Tmode)
+        Tmax = self.Tmode+(0.1*self.Tmode)
         self.T = np.random.triangular(Tmin, self.Tmode, Tmax, size=self.n)
         # Cohesion
         # if provide fields of min and max C, uncomment 2 lines below
-        #    Cmin = Cmode-0.3*self.Cmode
-        #    Cmax = Cmode+0.3*self.Cmode
+        #    Cmin = self.Cmode-0.3*self.Cmode
+        #    Cmax = self.Cmode+0.3*self.Cmode
         self.C = np.random.triangular(self.Cmin, self.Cmode,
                                       self.Cmax, size=self.n)
         # phi - internal angle of friction provided in degrees
@@ -410,13 +430,11 @@ class LandslideProbability(Component):
                                         phi_max, size=self.n)
         # soil thickness
         hs_min = self.hs_mode-0.3*self.hs_mode
-        hs_max = self.hs_mode+0.3*self.hs_mode
+        hs_max = self.hs_mode+0.1*self.hs_mode
         self.hs = np.random.triangular(hs_min, self.hs_mode,
                                        hs_max, size=self.n)
         self.hs[self.hs <= 0.] = 0.0001
-        # recharge distribution
-        self.Re = np.random.uniform(self.recharge_min,
-                                    self.recharge_max, size=self.n)
+
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
         self.C_dim = self.C/(self.hs*self.rho*self.g)  # dimensionless cohesion
