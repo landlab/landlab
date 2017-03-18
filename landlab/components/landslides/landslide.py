@@ -3,7 +3,9 @@
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
-
+from scipy import interpolate
+from statsmodels.distributions.empirical_distribution import ECDF
+import copy
 
 # %% Instantiate Object
 
@@ -241,7 +243,12 @@ class LandslideProbability(Component):
                                           sigma=self.recharge_sigma,
                                           size=self.n)
         elif self.groundwater__recharge['distribution'] == 'VIC':
-            self.Re = self.groundwater__recharge['VIC_dict']
+            self.VIC_dict = self.groundwater__recharge['VIC_dict']
+            self.vic_id_dict = self.groundwater__recharge['vic_id_dict']
+            self.fract_dict = self.groundwater__recharge['fract_dict']
+            self.interpolated_VIC_dict = self._interpolate_VIC_dict()
+#            self.Re = self.groundwater__recharge['VIC_dict']
+
         super(LandslideProbability, self).__init__(grid)
 
         for name in self._input_var_names:
@@ -290,7 +297,8 @@ class LandslideProbability(Component):
 
         # recharge distribution
         if self.groundwater__recharge['distribution'] == 'VIC':
-            self.Re = self.groundwater__recharge[i]/1000.0  # mm->m
+            self._calculate_VIC_recharge(i)            
+            self.Re /= 1000.0  # mm->m
         elif self.groundwater__recharge['distribution'] == 'lognormal_spatial':
             self.recharge_mean = self.groundwater__recharge['mean'][i]
             self.recharge_sigma = self.groundwater__recharge['sigma'][i]
@@ -391,3 +399,37 @@ class LandslideProbability(Component):
             self.mean_Relative_Wetness)
         self.grid['node']['landslide__mean_factor_of_safety'] = self.mean_FS
         self.grid['node']['landslide__probability_of_failure'] = self.prob_fail
+
+
+    def _interpolate_VIC_dict(self):
+        VIC_dict = copy.deepcopy(self.VIC_dict)
+        # First generate interpolated Re for each VIC grid
+        Yrand = np.sort(np.random.rand(self.n))
+        # n random numbers (0 to 1) in a column
+        for vkey in VIC_dict.keys():
+            if isinstance(VIC_dict[vkey], int):
+                continue       # loop back up if value is integer, not array
+            Re_temp = VIC_dict[vkey]	 # an array of 91 yrs Re for 1 VIC grid
+            Fx = ECDF(Re_temp)  # instantiate function to get probabilities with Re
+            Fx_ = Fx(Re_temp)    # probability array associated with Re data
+            # interpolate function based on recharge data & probability
+            f = interpolate.interp1d(Fx_, Re_temp, bounds_error=False,
+                                     fill_value=min(Re_temp))
+            # array of Re interpolated from Yrand probabilities (n count)
+            Re_interpolated = f(Yrand)
+            # replace values in VIC_dict with interpolated Re
+            VIC_dict[vkey] = Re_interpolated
+        
+        self.interpolated_VIC_dict = VIC_dict
+            
+
+    def _calculate_VIC_recharge(self, i):
+        store_Re = np.zeros(self.n)
+        vic_id_list = self.vic_id_dict[i]
+        fract_list = self.fract_dict[i]
+        for j in range(0, len(vic_id_list)):
+            Re_temp = self.interpolated_VIC_dict[vic_id_list[j]]
+            fract_temp = fract_list[j]
+            Re_adj = (Re_temp*fract_temp)
+            store_Re = np.vstack((store_Re, np.array(Re_adj)))
+        self.Re = np.sum(store_Re, 0)
