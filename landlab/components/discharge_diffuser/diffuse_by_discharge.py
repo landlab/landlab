@@ -118,7 +118,7 @@ class DischargeDiffuser(Component):
     # if your flow isn't connecting up, this probably needs to be reduced
 
     @use_file_name_or_kwds
-    def __init__(self, grid, **kwds):
+    def __init__(self, grid, slope, **kwds):
         """Initialize flow router.
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
@@ -131,6 +131,7 @@ class DischargeDiffuser(Component):
         assert self._raster = True  # ...for now
 
         self._grid = grid
+        self._slope = slope
 
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
@@ -175,9 +176,14 @@ class DischargeDiffuser(Component):
         self._anp = np.zeros((ni, nj), dtype='float')
         self._anz = np.zeros((ni, nj), dtype='float')
 
-        self._
+        self._slx = np.empty((ni, nj), dtype=float)
+        self._sly = np.empty((ni, nj), dtype=float)
+        self._Qsed_w = np.empty((ni, nj), dtype=float)
+        self._Qsed_e = np.empty((ni, nj), dtype=float)
+        self._Qsed_n = np.empty((ni, nj), dtype=float)
+        self._Qsed_s = np.empty((ni, nj), dtype=float)
 
-    def run_one_step(self, **kwds):
+    def run_one_step(self, dt, Qsource, **kwds):
         """
         """
         grid = self.grid
@@ -190,32 +196,45 @@ class DischargeDiffuser(Component):
             (grid.number_of_node_rows, grid.number_of_node_columns))
         mismatch = 10000.
 
-        slx = np.empty((n, n), dtype=float)
-        sly = np.empty((n, n), dtype=float)
-        offset_slopes1 = np.empty((n, n), dtype=float)
-        offset_slopes2 = np.empty((n, n), dtype=float)
+        ######STABILITY ANALYSIS GOES HERE
+        dt_stab = dt
 
         # elevation at current and new time
         # Note a horizonal surface is the initial condition
-        eta = z.reshape((grid.number_of_node_rows,
-                         grid.number_of_node_columns))
-        etan = self._znew.reshape((grid.number_of_node_rows,
-                                   grid.number_of_node_columns))
+        eta = z.reshape((ni, nj))
+        # etan = self._znew.reshape((grid.number_of_node_rows,
+        #                            grid.number_of_node_columns))
 
-        slice_e = (slice(0, ni, 1), slice(1, nj, 1))
-        slice_n = (slice(1, ni, 1), slice(0, nj, 1))
-        slice_w = (slice(0, ni, 1), slice(0, nj-1, 1))
-        slice_s = (slice(0, ni-1, 1), slice(0, nj, 1))
-        slice_ne = (slice(1, ni, 1), slice(1, nj, 1))
-        slice_sw = (slice(0, ni-1, 1), slice(0, nj-1, 1))
-        slice_nw = (slice(1, ni, 1), slice(0, nj-1, 1))
-        slice_se = (slice(0, ni-1, 1), slice(1, nj, 1))
+        # do the sediment diffusion
+        for dir in ('W', 'E', 'S', 'N'):
+            self._grad_on_link(dir)
+            Cslope = np.sqrt(slx**2 + sly**2)
+            self._link_sed_flux_from_slope(Cslope, self._slope, dir)
 
-        # flux west
-        slx[slice_e] = (eta[slice_w] - eta[slice_e])/self.grid.dx
-        slx[:, 0] = 0.
-        offset_slopes1[]
-        sly[] = 
+        try:
+            Qin = Qsource.reshape((ni, nj))
+        except AttributeError:
+            Qin = float(Qsource)  # if both fail, we're in trouble
+        eta[:] += dt_stab*(
+            self._Qsed_e + self._Qsed_n + self._Qsed_w + self._Qsed_s +
+            Qin)/self.grid.dx/self.grid.dy
+
+        # do the water routing on links
+        # These calculations are based on assuming that the flow is a sheet
+        # flow that can be characterized with a potential equation. If this
+        # flow is isotropic (an assumption we should revisit) with this model
+        # the flow discharge in the x-direction (for example) can be calculated
+        # as a constant (K the 'flow conductivity') times the component of the
+        # sediment slope in that direction. It helps to define a 'slope
+        # velocity' u, with components ustar=-deta/dx and vstar=-deta/dx which
+        # allows us to write down the following advection like gov. eq. for
+        # the flow  ----div(Ku)+Q=0---where Q represents external flow inputs
+
+        # Since we can readily determine u from the current sediment topography
+        # We solve this equation for K using an upwind scheme
+
+
+
 
 
 
@@ -319,3 +338,136 @@ class DischargeDiffuser(Component):
         Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link
+
+    def _grad_on_link(self, direction):
+        """
+        Updates slx and sly with link gradient values according to `direction`.
+
+        direction = {'E', 'N', 'S', 'W'}
+        """
+        slice_e = (slice(0, ni, 1), slice(1, nj, 1))
+        slice_n = (slice(1, ni, 1), slice(0, nj, 1))
+        slice_w = (slice(0, ni, 1), slice(0, nj-1, 1))
+        slice_s = (slice(0, ni-1, 1), slice(0, nj, 1))
+        slice_ne = (slice(1, ni, 1), slice(1, nj, 1))
+        slice_sw = (slice(0, ni-1, 1), slice(0, nj-1, 1))
+        slice_nw = (slice(1, ni, 1), slice(0, nj-1, 1))
+        slice_se = (slice(0, ni-1, 1), slice(1, nj, 1))
+
+        if direction == 'W':
+            self._slx[slice_e] = (eta[slice_w] - eta[slice_e])/self.grid.dx
+            self._slx[:, 0] = 0.  # W col gets 0
+
+            self._sly.fill(0.)
+            self._sly[slice_ne] += eta[slice_sw]
+            self._sly[slice_se] -= eta[slice_nw]
+            self._sly[slice_n] += eta[slice_s]
+            self._sly[slice_s] -= eta[slice_n]
+
+            self._sly[0, 1:] += eta[0, :-1]  # S row add node to W not SW
+            self._sly[0, :] += eta[0, :]  # S row add self not S
+            self._sly[-1, 1:] -= eta[-1, :-1]  # N row less node to W not NW
+            self._sly[-1, :] -= eta[-1, :]  # N row less self not N
+            self._sly[1:, 0] += eta[:-1, 0]  # W col add node to S not SW
+            self._sly[:-1, 0] -= eta[1:, 0]  # W col less node to N not NW
+            self._sly[0, 0] += eta[0, 0]  # SW corner add self, not SW
+            self._sly[-1, 0] -= eta[-1, 0]  # NW corner less self, not NW
+            self._sly *= 0.25
+            self._sly /= self.grid.dy
+
+        elif direction == 'E':
+            self._slx[slice_w] = (eta[slice_e] - eta[slice_w])/self.grid.dx
+            self._slx[:, -1] = 0.  # E col gets 0
+
+            self._sly.fill(0.)
+            self._sly[slice_nw] += eta[slice_se]
+            self._sly[slice_sw] -= eta[slice_ne]
+            self._sly[slice_n] += eta[slice_s]
+            self._sly[slice_s] -= eta[slice_n]
+
+            self._sly[0, :-1] += eta[0, 1:]  # S row add node to E not SE
+            self._sly[0, :] += eta[0, :]  # S row add self not S
+            self._sly[-1, :-1] -= eta[-1, 1:]  # N row less node to E not NE
+            self._sly[-1, :] -= eta[-1, :]  # N row less self not N
+            self._sly[1:, -1] += eta[:-1, -1]  # E col add node to S not SE
+            self._sly[:-1, -1] -= eta[1:, -1]  # E col less node to N not NE
+            self._sly[0, -1] += eta[0, -1]  # SE corner add self, not SE
+            self._sly[-1, -1] -= eta[-1, -1]  # NE corner less self, not NE
+            self._sly *= 0.25
+            self._sly /= self.grid.dy
+
+        elif direction == 'S':
+            self._sly[slice_n] = (eta[slice_s] - eta[slice_n])/self.grid.dy
+            self._sly[0, :] = 0.  # S col gets 0
+
+            self._slx.fill(0.)
+            self._slx[slice_ne] += eta[slice_sw]
+            self._slx[slice_nw] -= eta[slice_se]
+            self._slx[slice_e] += eta[slice_w]
+            self._slx[slice_w] -= eta[slice_e]
+
+            self._slx[1:, 0] += eta[:-1, 0]  # W col add node to S not SW
+            self._slx[:, 0] += eta[:, 0]  # W col add self not W
+            self._slx[1:, -1] -= eta[:-1, -1]  # E col less node to S not SE
+            self._slx[:, -1] -= eta[:, -1]  # E col less self not E
+            self._slx[0, 1:] += eta[0, :-1]  # S row add node to W not SW
+            self._slx[0, :-1] -= eta[0, 1:]  # S row less node to E not SE
+            self._slx[0, 0] += eta[0, 0]  # SW corner add self, not SW
+            self._slx[0, -1] -= eta[0, -1]  # SE corner less self, not SE
+            self._slx *= 0.25
+            self._slx /= self.grid.dx
+
+        elif direction == 'N':
+            self._sly[slice_s] = (eta[slice_n] - eta[slice_s])/self.grid.dy
+            self._sly[-1, :] = 0.  # N col gets 0
+
+            self._slx.fill(0.)
+            self._slx[slice_se] += eta[slice_nw]
+            self._slx[slice_sw] -= eta[slice_ne]
+            self._slx[slice_e] += eta[slice_w]
+            self._slx[slice_w] -= eta[slice_e]
+
+            self._slx[:-1, 0] += eta[1:, 0]  # W col add node to N not NW
+            self._slx[:, 0] += eta[:, 0]  # W col add self not W
+            self._slx[:-1, -1] -= eta[1:, -1]  # E col less node to N not NE
+            self._slx[:, -1] -= eta[:, -1]  # E col less self not E
+            self._slx[-1, 1:] += eta[-1, :-1]  # N row add node to W not NW
+            self._slx[-1, :-1] -= eta[-1, 1:]  # N row less node to E not NE
+            self._slx[-1, 0] += eta[-1, 0]  # NW corner add self, not NW
+            self._slx[-1, -1] -= eta[-1, -1]  # NE corner less self, not NE
+            self._slx *= 0.25
+            self._slx /= self.grid.dx
+
+        else:
+            raise NameError("direction must be {'E', 'N', 'S', 'W'}")
+
+    def _link_sed_flux_from_slope(self, S_val, S_thresh, direction):
+        """
+        Update the sed flux array for a given link dir, assuming a critical S.
+        """
+        if direction == 'W':
+            dir_sed_flux = self._Qsed_w
+            dir_water_flux = self._Qw
+            thisslice = (slice(0, -1, 1), slice(1, -1, 1))
+            deadedge = (slice(0, -1, 1), slice(0, 1, 1))
+        elif direction == 'E':
+            dir_sed_flux = self._Qsed_e
+            dir_water_flux = self._Qe
+            thisslice = (slice(0, -1, 1), slice(1, -2, 1))
+            deadedge = (slice(0, -1, 1), slice(-2, -1, 1))
+        elif direction == 'N':
+            dir_sed_flux = self._Qsed_n
+            dir_water_flux = self._Qn
+            thisslice = (slice(0, -2, 1), slice(0, -1, 1))
+            deadedge = (slice(-2, -1, 1), slice(0, -1, 1))
+        elif direction == 'S':
+            dir_sed_flux = self._Qsed_s
+            dir_water_flux = self._Qs
+            thisslice = (slice(1, -1, 1), slice(0, -1, 1))
+            deadedge = (slice(0, 1, 1), slice(0, -1, 1))
+        else:
+            raise NameError("direction must be {'E', 'N', 'S', 'W'}")
+        slope_diff = (S_val - S_thresh).clip(0.)
+        dir_sed_flux[thisslice] = (dir_water_flux[thisslice] *
+                                   slope_diff[thisslice])
+        dir_sed_flux[deadedge] = 0.
