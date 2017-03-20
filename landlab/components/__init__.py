@@ -20,24 +20,31 @@ from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
 from .drainage_density import DrainageDensity
-from .fire_generator import FireGenerator
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
+from .flow_director import FlowDirectorD8
+from .flow_director import FlowDirectorSteepest
+from .flow_director import FlowDirectorMFD
+from .flow_director import FlowDirectorDINF
+from .flow_accum import FlowAccumulator
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
-
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
-              Radiation, SinkFiller, StreamPowerEroder,
+              Radiation, SinkFiller, 
+              StreamPowerEroder, StreamPowerSmoothThresholdEroder,
               FastscapeEroder, SedDepEroder, KinematicWaveRengers,
+              PrecipitationDistribution,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
-	      ExponentialWeatherer, DepthDependentDiffuser,
-	      CubicNonLinearDiffuser, DepthSlopeProductErosion ]
-
+              ExponentialWeatherer, DepthDependentDiffuser,
+              CubicNonLinearDiffuser, DepthSlopeProductErosion,
+              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD, FlowDirectorDINF,
+              FlowAccumulator
+              ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
