@@ -57,6 +57,7 @@ from six.moves import range
 
 import numpy as np
 import xarray as xr
+import json
 
 from ..core.utils import as_id_array, argsort_points_by_x_then_y
 from ..utils.jaggedarray import flatten_jagged_array
@@ -186,6 +187,12 @@ class Graph(object):
     @property
     def ds(self):
         return self._ds
+
+    def to_dict(self):
+        return self.ds.to_dict()
+
+    def to_json(self):
+        return json.dumps(self.ds.to_dict())
 
     def to_netcdf(self, *args, **kwds):
         """Write graph contents to a netCDF file.
