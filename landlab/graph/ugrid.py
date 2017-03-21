@@ -33,14 +33,6 @@ def ugrid_from_structured_quad(coords, shape=None):
     from .structured_quad.structured_quad import (setup_nodes_at_link,
                                                   setup_links_at_patch,
                                                   setup_node_coords_structured)
-
-    # ugrid = xr.Dataset({'mesh': xr.DataArray(data=1, attrs=MESH_ATTRS)})
-
-    # update_node_coords(ugrid,
-    #                    setup_node_coords_structured(coords, shape=shape))
-    # update_nodes_at_link(ugrid, setup_nodes_at_link(shape))
-    # update_links_at_patch(ugrid, setup_links_at_patch(shape)) 
-
     node_y_and_x = setup_node_coords_structured(coords, shape=shape)
     shape = node_y_and_x[0].shape
 
@@ -123,47 +115,12 @@ def ugrid_from_unstructured(node_y_and_x, links=None, patches=None):
     ugrid = xr.Dataset({'mesh': xr.DataArray(data='a', attrs=MESH_ATTRS)})
 
     update_node_coords(ugrid, node_y_and_x)
-    # update_nodes_at_link(ugrid, setup_nodes_at_link(shape))
-    # update_links_at_patch(ugrid, setup_links_at_patch(shape)) 
-    # topology = xr.DataArray(data=1, attrs=MESH_ATTRS)
-
-    # y_of_node = xr.DataArray(
-    #     data=nodes[0],
-    #     coords={'node': np.arange(len(nodes[0]))},
-    #     attrs={ 'long_name': 'y', 'units': 'm',})
-    # x_of_node = xr.DataArray(data=nodes[1],
-    #     coords={'node': np.arange(len(nodes[1]))},
-    #     attrs={ 'long_name': 'x', 'units': 'm',})
-
-    # graph = xr.Dataset({'mesh': topology, 'x_of_node': x_of_node,
-    #                     'y_of_node': y_of_node})
 
     if links is not None:
         update_nodes_at_link(ugrid, links)
-        # nodes_at_link = xr.DataArray(
-        #     data=np.asarray(links, dtype=np.int).reshape((-1, 2)),
-        #     dims=('link', 'Two'),
-        #     attrs={'cf_role': 'edge_node_connectivity',
-        #            'long_name': 'nodes a link tail and head',
-        #            'start_index': 0})
-        # ugrid.update({'nodes_at_link': nodes_at_link})
 
     if patches is not None and 'nodes_at_link' in ugrid:
         update_links_at_patch(ugrid, patches)
-
-        # from .matrix.at_patch import links_at_patch
-        # if len(patches) > 0:
-        #     patches = flatten_jagged_array(patches, dtype=int)
-        # patch_links = links_at_patch(patches,
-        #                              nodes_at_link=graph.nodes_at_link)
-        # patch_links = xr.DataArray(
-        #     data=patch_links,
-        #     dims=('patch', 'max_patch_links'),
-        #     attrs={'cf_role': 'face_edge_connectivity',
-        #            'long_name': 'Maps every face to its edges',
-        #            'start_index': 0}
-        # )
-        # ugrid.update({'links_at_patch': patch_links})
 
     return ugrid
 
@@ -202,8 +159,7 @@ def update_links_at_patch(ugrid, patches):
 
     if len(patches) > 0:
         patches = flatten_jagged_array(patches, dtype=int)
-    patch_links = links_at_patch(patches) #,
-    #                             nodes_at_link=graph.nodes_at_link)
+    patch_links = links_at_patch(patches)
     links_at_patch = xr.DataArray(
         data=patch_links,
         dims=('patch', 'max_patch_links'),
