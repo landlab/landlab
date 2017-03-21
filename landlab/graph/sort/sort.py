@@ -241,20 +241,13 @@ def reindex_nodes_by_xy(graph):
     graph.y_of_node[:] = graph.y_of_node[sorted_nodes]
     graph.x_of_node[:] = graph.x_of_node[sorted_nodes]
 
-    # if hasattr(graph, '_nodes_at_link'):
     if 'nodes_at_link' in graph.ds:
         remap_graph_element(graph.nodes_at_link.reshape((-1, )),
                             as_id_array(np.argsort(sorted_nodes)))
 
-    # if hasattr(graph, '_nodes_at_patch'):
     if 'nodes_at_patch' in graph.ds:
-        # remap_graph_element(graph._nodes_at_patch.reshape((-1, )),
         remap_graph_element(graph.nodes_at_patch.reshape((-1, )),
                             as_id_array(np.argsort(sorted_nodes)))
-
-    # if hasattr(graph, '_node_at_cell'):
-    #     remap_graph_element(graph._node_at_cell,
-    #                         as_id_array(np.argsort(sorted_nodes)))
 
     return sorted_nodes
 
@@ -344,9 +337,6 @@ def sort_graph(nodes, links=None, patches=None):
         remap_graph_element(links.reshape((-1, )),
                             as_id_array(np.argsort(sorted_nodes,
                                                    kind='mergesort')))
-
-        # _remap_nodes_at_link(links, np.argsort(sorted_nodes, kind='mergesort'))
-
         midpoint_of_link = np.empty((len(links), 2), dtype=float)
         sorted_links = sort_links(links, nodes,
                                   midpoint_of_link=midpoint_of_link) 
@@ -355,8 +345,6 @@ def sort_graph(nodes, links=None, patches=None):
         remap_graph_element(links_at_patch,
                             as_id_array(np.argsort(sorted_links,
                                                    kind='mergesort')))
-        # _remap_links_at_patch(links_at_patch,
-        #                       np.argsort(sorted_links, kind='mergesort'))
         sort_patches(links_at_patch, offset_to_patch, midpoint_of_link)
 
     if links_at_patch is None:
@@ -391,8 +379,6 @@ def sort_nodes(nodes):
     >>> y
     array([ 0. ,  0.5,  1. ])
     """
-    # from .cfuncs import _remap_nodes_at_link
-
     sorted_nodes = argsort_points_by_x_then_y((nodes[1], nodes[0]))
     nodes[0][:] = nodes[0][sorted_nodes]
     nodes[1][:] = nodes[1][sorted_nodes]
@@ -480,7 +466,6 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     >>> offset_to_patch
     array([0, 3, 6])
     """
-    # from .cfuncs import _calc_center_of_patch, _resort_patches
     from .ext.remap_element import calc_center_of_patch, reorder_patches
 
     n_patches = len(offset_to_patch) - 1
@@ -490,10 +475,7 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
                          xy_of_link, xy_at_patch)
 
     sorted_patches = argsort_points_by_x_then_y(xy_at_patch)
-    # _resort_patches(links_at_patch, offset_to_patch, sorted_patches)
     reorder_patches(links_at_patch, offset_to_patch, sorted_patches)
-
-    # reorder_links_at_patch(links_at_patch, offset_to_patch, xy_of_link)
 
     return sorted_patches
 
