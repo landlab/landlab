@@ -61,7 +61,6 @@ import xarray as xr
 from ..core.utils import as_id_array, argsort_points_by_x_then_y
 from ..utils.jaggedarray import flatten_jagged_array
 from ..utils.decorators import store_result_in_grid, read_only_array
-from ..utils.decorators import store_result_in_dataset
 from .sort import sort_graph, reindex_by_xy, reorder_links_at_patch
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch

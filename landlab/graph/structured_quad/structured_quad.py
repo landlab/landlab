@@ -2,7 +2,6 @@ import numpy as np
 
 from ..graph import Graph
 from ...utils.decorators import store_result_in_grid
-from ...utils.decorators import store_result_in_dataset
 from .ext.at_node import (fill_patches_at_node, fill_links_at_node,
                           fill_link_dirs_at_node, fill_perimeter_nodes)
 from .ext.at_link import fill_patches_at_link, fill_nodes_at_link
