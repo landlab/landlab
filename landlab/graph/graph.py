@@ -52,13 +52,16 @@ array([[4, 3, 0, 1],
        [7, 6, 3, 4],
        [8, 7, 4, 5]])
 """
+import six
 from six.moves import range
 
 import numpy as np
+import xarray as xr
 
 from ..core.utils import as_id_array, argsort_points_by_x_then_y
 from ..utils.jaggedarray import flatten_jagged_array
 from ..utils.decorators import store_result_in_grid, read_only_array
+from ..utils.decorators import store_result_in_dataset
 from .sort import sort_graph, reindex_by_xy, reorder_links_at_patch
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
@@ -67,6 +70,8 @@ from .quantity.of_link import (get_angle_of_link, get_length_of_link,
 from .quantity.of_patch import get_centroid_of_patch, get_area_of_patch
 
 from .sort.sort import reverse_one_to_many, reorient_link_dirs
+
+from .ugrid import update_nodes_at_patch
 
 
 def _parse_sorting_opt(sorting):
@@ -109,7 +114,20 @@ class Graph(object):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
 
-    def __init__(self, nodes, links=None, patches=None, sorting=True):
+    def __init__(self, mesh, **kwds):
+        self._ds = mesh
+
+        reorient_link_dirs(self)
+        reindex_by_xy(self)
+        reorder_links_at_patch(self)
+
+        self._origin = (0., 0.)
+
+        self._frozen = False
+        self.freeze()
+
+
+    def _old__init__(self, nodes, links=None, patches=None, sorting=True):
         """Define a graph of connected nodes.
 
         Parameters
@@ -125,6 +143,10 @@ class Graph(object):
             counter-clockwise element ordering when ordering one set
             of elements around another.
         """
+        from .ugrid import ugrid_from_unstructured
+        self._ds = ugrid_from_unstructured(nodes, links=links,
+                                           patches=patches)
+
         sorting = _parse_sorting_opt(sorting)
         if sorting is None:
             raise ValueError('bad argument for sorting keyword')
@@ -133,20 +155,22 @@ class Graph(object):
 
         self._sorting = sorting
 
-        nodes = [np.asarray(coord, dtype=float) for coord in nodes]
+        # nodes = [np.asarray(coord, dtype=float) for coord in nodes]
 
-        if patches is not None:
-            if len(patches) > 0:
-                patches = flatten_jagged_array(patches, dtype=int)
-            else:
-                patches = None
+        # if patches is not None:
+        #     if len(patches) > 0:
+        #         patches = flatten_jagged_array(patches, dtype=int)
+        #     else:
+        #         patches = None
 
-        self._xy_of_node = np.stack((nodes[1], nodes[0])).T.copy()
+        # self._xy_of_node = np.stack((nodes[1], nodes[0])).T.copy()
+
+        # self._xy_of_node = np.stack((self.x_of_node, self.y_of_node)).T.copy()
         # self._y_of_node, self._x_of_node = nodes[0], nodes[1]
-        self._nodes = np.arange(len(nodes[0]), dtype=int)
+        # self._nodes = np.arange(len(nodes[0]), dtype=int)
 
-        self._create_nodes_at_link(links)
-        self._create_links_at_patch(patches)
+        # self._create_nodes_at_link(links)
+        # self._create_links_at_patch(patches)
 
         not sorting['ne'] or reorient_link_dirs(self)
         not sorting['xy'] or reindex_by_xy(self)
@@ -154,26 +178,78 @@ class Graph(object):
 
         self._origin = (0., 0.)
 
-    def _create_nodes_at_link(self, links):
-        """Set up node-link data structures."""
-        if links is not None:
-            self._nodes_at_link = np.asarray(links, dtype=np.int)
-            return self._nodes_at_link
+        self._frozen = False
+        self.freeze()
 
-    def _create_links_at_patch(self, patches):
-        """Set up patch data structures."""
-        from .matrix.at_patch import links_at_patch
+    # def _create_nodes_at_link(self, links):
+    #     """Set up node-link data structures."""
+    #     if links is not None:
+    #         self._nodes_at_link = np.asarray(links, dtype=np.int)
+    #         return self._nodes_at_link
 
-        if patches is not None:
-            self._links_at_patch = links_at_patch(
-                patches, nodes_at_link=self.nodes_at_link)
-            return self._links_at_patch
+    # def _create_links_at_patch(self, patches):
+    #     """Set up patch data structures."""
+    #     from .matrix.at_patch import links_at_patch
+
+    #     if patches is not None:
+    #         self._links_at_patch = links_at_patch(
+    #             patches, nodes_at_link=self.nodes_at_link)
+    #         return self._links_at_patch
+
+    def freeze(self):
+        for var in self.ds:
+            self.ds[var].values.flags.writeable = False
+        self._frozen = True
+
+    def thaw(self):
+        for var in self.ds:
+            self.ds[var].values.flags.writeable = True
+        self._frozen = False
+
+    def _add_variable(self, name, var, dims=None, attrs=None):
+        kwds = dict(data=var, dims=dims, attrs=attrs)
+        self.ds.update({name: xr.DataArray(**kwds)})
+        if self._frozen:
+            self.freeze()
+
+    @property
+    def ds(self):
+        return self._ds
+
+    def to_netcdf(self, *args, **kwds):
+        self.ds.to_netcdf(*args, **kwds)
+
+    @classmethod
+    def from_netcdf(cls, fname):
+        return cls.from_dataset(xr.open_dataset(fname))
+
+    @classmethod
+    def from_dict(cls, meta):
+        return cls((meta['y_of_node'], meta['x_of_node']),
+                   links=meta.get('nodes_at_link', None),
+                   patches=meta.get('links_at_patch', None))
+
+    @classmethod
+    def load(cls, source):
+        if isinstance(source, six.string_types):
+            return cls.from_netcdf(source)
+        elif isinstance(source, (dict, xr.Dataset)):
+            return cls.from_dict(source)
+        else:
+            raise ValueError('source must be dict-like or NetCDF ({type})'.format(type=type(source)))
+
+    def __str__(self):
+        return str(self.ds)
+
+    def __repr__(self):
+        return repr(self.ds)
 
     @property
     def ndim(self):
         return 2
 
     @property
+    @store_result_in_grid()
     def xy_of_node(self):
         """Get x and y-coordinates of node.
 
@@ -187,7 +263,13 @@ class Graph(object):
         >>> graph.xy_of_node[:, 1]
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
         """
-        return self._xy_of_node
+        return np.stack((self.x_of_node, self.y_of_node)).T.copy()
+        # try:
+        #     return self._xy_of_node
+        # except AttributeError:
+        #     self._xy_of_node = np.stack((self.x_of_node,
+        #                                  self.y_of_node)).T.copy()
+        #     return self._xy_of_node
 
     @property
     def x_of_node(self):
@@ -201,7 +283,9 @@ class Graph(object):
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
         """
-        return self._xy_of_node[:, 0]
+        return self.ds['x_of_node'].values
+
+        # return self._xy_of_node[:, 0]
         # return self._x_of_node
 
     @property
@@ -216,7 +300,8 @@ class Graph(object):
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
         """
-        return self._xy_of_node[:, 1]
+        return self.ds['y_of_node'].values
+        # return self._xy_of_node[:, 1]
         # return self._y_of_node
 
     @property
@@ -231,7 +316,8 @@ class Graph(object):
         >>> graph.nodes
         array([0, 1, 2, 3, 4, 5])
         """
-        return self._nodes
+        return self.ds['nodes'].values
+        # return self._nodes
 
     @property
     @store_result_in_grid()
@@ -250,7 +336,8 @@ class Graph(object):
         >>> graph.number_of_nodes
         6
         """
-        return self._nodes.size
+        return self.ds.dims['node']
+        # return self._nodes.size
 
     @property
     def nodes_at_link(self):
@@ -273,7 +360,8 @@ class Graph(object):
                [3, 6], [4, 7], [5, 8],
                [6, 7], [7, 8]])
         """
-        return self._nodes_at_link
+        return self.ds['nodes_at_link'].values
+        # return self._nodes_at_link
 
     @property
     def node_at_link_tail(self):
@@ -292,7 +380,7 @@ class Graph(object):
         >>> graph.node_at_link_tail
         array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
         """
-        return self._nodes_at_link[:, 0]
+        return self.nodes_at_link[:, 0]
 
     @property
     def node_at_link_head(self):
@@ -311,7 +399,7 @@ class Graph(object):
         >>> graph.node_at_link_head
         array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
         """
-        return self._nodes_at_link[:, 1]
+        return self.nodes_at_link[:, 1]
 
     @property
     def number_of_links(self):
@@ -331,9 +419,13 @@ class Graph(object):
         12
         """
         try:
-            return len(self._nodes_at_link)
-        except AttributeError:
+            return self.ds.dims['link']
+        except KeyError:
             return 0
+        # try:
+        #     return len(self._nodes_at_link)
+        # except AttributeError:
+        #     return 0
 
     @property
     def links_at_patch(self):
@@ -354,7 +446,8 @@ class Graph(object):
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
         """
-        return self._links_at_patch
+        return self.ds['links_at_patch'].values
+        # return self._links_at_patch
 
     @property
     def nodes_at_patch(self):
@@ -376,13 +469,24 @@ class Graph(object):
         array([[4, 3, 0, 1],
                [5, 4, 1, 2]])
         """
+        return get_nodes_at_patch(self)
         try:
-            return self._nodes_at_patch
-        except AttributeError:
-            self._nodes_at_patch = get_nodes_at_patch(self)
-            return self._nodes_at_patch
+            return self.ds['nodes_at_patch'].values
+        except KeyError:
+            print 'getting nodes at patch...'
+            print get_nodes_at_patch(self)
+            update_nodes_at_patch(self.ds, get_nodes_at_patch(self))
+            return self.ds['nodes_at_patch'].values
+
+        # try:
+        #     return self._nodes_at_patch
+        # except AttributeError:
+        #     self._nodes_at_patch = get_nodes_at_patch(self)
+        #     return self._nodes_at_patch
 
     @property
+    @store_result_in_grid()
+    @read_only_array
     def patches_at_node(self):
         """Get the patches that touch each node.
 
@@ -400,15 +504,18 @@ class Graph(object):
         array([[ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
         """
-        try:
-            return self._patches_at_node
-        except AttributeError:
-            self._patches_at_node = reverse_one_to_many(self.nodes_at_patch)
-            return self._patches_at_node
+        return reverse_one_to_many(self.nodes_at_patch)
+        # return xr.DataArray(data=reverse_one_to_many(self.nodes_at_patch),
+        #                     dims=('node', 'max_node_patches'))
+        # try:
+        #     return self._patches_at_node
+        # except AttributeError:
+        #     self._patches_at_node = reverse_one_to_many(self.nodes_at_patch)
+        #     return self._patches_at_node
 
     @property
-    @store_result_in_grid()
-    @read_only_array
+    # @store_result_in_grid()
+    # @read_only_array
     def patches_at_link(self):
         """Get the patches on either side of each link.
 
@@ -427,7 +534,18 @@ class Graph(object):
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])
         """
-        return reverse_one_to_many(self._links_at_patch)
+        # return reverse_one_to_many(self._links_at_patch)
+        try:
+            return self.ds['patches_at_link'].values
+        except KeyError:
+            patches_at_link = xr.DataArray(
+                data=reverse_one_to_many(self.links_at_patch, min_counts=2),
+                dims=('link', 'Two'),
+                attrs={'cf_role': 'edge_node_connectivity',
+                       'long_name': 'patches on either side of a link',
+                       'start_index': 0})
+            self.ds.update({'patches_at_link': patches_at_link})
+            return self.ds['patches_at_link'].values
 
     @property
     def number_of_patches(self):
@@ -448,9 +566,13 @@ class Graph(object):
         2
         """
         try:
-            return len(self._links_at_patch)
-        except AttributeError:
+            return self.ds.dims['patch']
+        except KeyError:
             return 0
+        # try:
+        #     return len(self._links_at_patch)
+        # except AttributeError:
+        #     return 0
 
     @property
     def links_at_node(self):

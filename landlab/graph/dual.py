@@ -4,11 +4,14 @@ This class should not be used directly. Instead, it should be used as a base
 class when defining other types of graphs.
 """
 import numpy as np
+import xarray as xr
 
 from ..core.utils import as_id_array
 from ..utils.decorators import store_result_in_grid, read_only_array
 from .graph import Graph, find_perimeter_nodes
 from .sort.sort import reverse_one_to_one
+
+from .ugrid import DUAL_MESH_ATTRS
 
 
 def _sort_dual_graph(graph):
@@ -18,22 +21,125 @@ def _sort_dual_graph(graph):
     sorted_dual = reindex_by_xy(graph._dual)
     sorted = reindex_by_xy(graph)
 
-    graph._node_at_cell = graph._node_at_cell[sorted_dual[2]]
-    remap_graph_element(graph._node_at_cell,
+    node_at_cell = graph.ds['node_at_cell'].values
+    node_at_cell[:] = node_at_cell[sorted_dual[2]]
+    remap_graph_element(graph.node_at_cell,
                         as_id_array(np.argsort(sorted[0])))
 
+    # graph._node_at_cell = graph._node_at_cell[sorted_dual[2]]
+    # remap_graph_element(graph._node_at_cell,
+    #                     as_id_array(np.argsort(sorted[0])))
 
-class DualGraph(object):
-    def __init__(self, *args, **kwds):
+
+def update_node_at_cell(ugrid, node_at_cell):
+    node_at_cell = xr.DataArray(
+        data=node_at_cell,
+        dims=('cell', ),
+        attrs={'cf_role': 'cell_node_connectivity',
+               'long_name': 'nodes centered at cells',
+               'start_index': 0})
+    ugrid.update({'node_at_cell': node_at_cell})
+
+
+def update_nodes_at_face(ugrid, nodes_at_face):
+    nodes_at_face = xr.DataArray(
+        data=nodes_at_face,
+        dims=('face', 'Two'),
+        attrs={'cf_role': 'face_node_connectivity',
+               'long_name': 'nodes on either side of a face',
+               'start_index': 0})
+    ugrid.update({'nodes_at_face': nodes_at_face})
+
+
+class DualGraph(Graph):
+    def __init__(self, mesh, dual, **kwds):
         node_at_cell = kwds.pop('node_at_cell', None)
         nodes_at_face = kwds.pop('nodes_at_face', None)
 
-        self._node_at_cell = as_id_array(node_at_cell)
-        self._nodes_at_face = as_id_array(nodes_at_face)
+        Graph.__init__(self, mesh, **kwds)
+        self._dual = Graph(dual, **kwds)
 
+        # update_node_at_cell(self.ds, as_id_array(node_at_cell))
+        # update_nodes_at_face(self.ds, as_id_array(nodes_at_face))
+
+        # reorient_link_dirs(self._dual)
+        # reindex_by_xy(self._dual)
+        # reorder_links_at_patch(self._dual)
+
+        rename = {
+            'mesh': 'dual',
+            'node': 'corner',
+            'link': 'face',
+            'patch': 'cell',
+            'x_of_node': 'x_of_corner',
+            'y_of_node': 'y_of_corner',
+            'nodes_at_link': 'corners_at_face',
+            # 'nodes_at_patch': 'corners_at_cell',
+            'links_at_patch': 'faces_at_cell',
+            'max_patch_links': 'max_cell_faces',
+        }
+        self._ds = xr.merge([self._ds, self._dual.ds.rename(rename)])
+
+        self._origin = (0., 0.)
+
+        self._frozen = False
+        self.freeze()
+
+    def _old__init__(self, *args, **kwds):
+        node_at_cell = kwds.pop('node_at_cell', None)
+        nodes_at_face = kwds.pop('nodes_at_face', None)
+        dual = kwds.pop('dual', None)
+
+        # corner_y_and_x = kwds.pop('corners', None)
+        # faces = kwds.pop('faces', None)
+        # cells = kwds.pop('cells', None)
+
+        # self._node_at_cell = as_id_array(node_at_cell)
+        # self._nodes_at_face = as_id_array(nodes_at_face)
+
+        if isinstance(dual, Graph):
+            self._dual = dual
+        else:
+            self._dual = Graph.load(dual)
+
+        # Graph.__init__(self, *args, **kwds)
         super(DualGraph, self).__init__(*args, **kwds)
 
+        update_node_at_cell(self.ds, as_id_array(node_at_cell))
+        update_nodes_at_face(self.ds, as_id_array(nodes_at_face))
+
+        self.thaw()
         _sort_dual_graph(self)
+
+        # self._dual.nodes_at_patch
+
+        rename = {
+            'mesh': 'dual',
+            'node': 'corner',
+            'link': 'face',
+            'patch': 'cell',
+            'x_of_node': 'x_of_corner',
+            'y_of_node': 'y_of_corner',
+            'nodes_at_link': 'corners_at_face',
+            # 'nodes_at_patch': 'corners_at_cell',
+            'links_at_patch': 'faces_at_cell',
+            'max_patch_links': 'max_cell_faces',
+        }
+        self._ds = xr.merge([self._ds, self._dual.ds.rename(rename)])
+        self._ds.update({
+            'dual': xr.DataArray(data='b', attrs=DUAL_MESH_ATTRS)})
+
+        self.freeze()
+
+    def freeze(self):
+        Graph.freeze(self)
+        if hasattr(self, 'dual'):
+            self.dual.freeze()
+
+    def thaw(self):
+        Graph.thaw(self)
+        if hasattr(self, 'dual'):
+            self.dual.thaw()
 
     @property
     def dual(self):
@@ -41,7 +147,12 @@ class DualGraph(object):
 
     @property
     def node_at_cell(self):
-        return self._node_at_cell
+        return self.ds['node_at_cell'].values
+        # return self._node_at_cell
+
+    @property
+    def nodes_at_face(self):
+        return self.ds['nodes_at_face'].values
 
     @property
     def cell_at_node(self):
@@ -60,16 +171,19 @@ class DualGraph(object):
             return self._create_link_at_face()
 
     def _create_link_at_face(self):
+
         link_at_nodes = {}
         for link, pair in enumerate(self.nodes_at_link):
-            pair.sort()
-            link_at_nodes[tuple(pair)] = link
+            # pair.sort()
+            link_at_nodes[tuple(np.sort(pair))] = link
 
         link_at_face = np.full((self.number_of_faces, ), -1, dtype=int)
-        for face, pair in enumerate(self._nodes_at_face):
-            pair.sort()
-            link_at_face[face] = link_at_nodes[tuple(pair)]
+        # for face, pair in enumerate(self._nodes_at_face):
+        for face, pair in enumerate(self.nodes_at_face):
+            # pair.sort()
+            link_at_face[face] = link_at_nodes[tuple(np.sort(pair))]
         self._link_at_face = link_at_face
+
         return self._link_at_face
 
     @property
@@ -137,6 +251,7 @@ class DualGraph(object):
 
     @property
     def corners_at_cell(self):
+        print 'getting corners at cell...'
         return self._dual.nodes_at_patch
 
     @property
