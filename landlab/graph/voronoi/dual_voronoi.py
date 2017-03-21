@@ -28,12 +28,8 @@ def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3,
     nodes_at_face = converter.get_corners_at_link()
 
     dual = ugrid_from_unstructured(corners, faces, cells)
-    mesh = ugrid_from_voronoi(node_y_and_x, max_node_spacing=max_node_spacing)
 
-    update_node_at_cell(mesh, node_at_cell)
-    update_nodes_at_face(mesh, nodes_at_face)
-
-    return mesh, dual
+    return dual, node_at_cell, nodes_at_face
 
 
 class DualVoronoiGraph(VoronoiGraph, DualGraph):
@@ -76,8 +72,14 @@ class DualVoronoiGraph(VoronoiGraph, DualGraph):
         array([5, 6])
         """
         max_node_spacing = kwds.pop('max_node_spacing', None)
-        mesh, dual = ugrid_from_voronoi_dual(node_y_and_x,
-                                             min_cell_size=min_cell_size,
-                                             max_node_spacing=max_node_spacing)
+        (dual,
+         node_at_cell,
+         nodes_at_face) = ugrid_from_voronoi_dual(node_y_and_x,
+                                                  min_cell_size=min_cell_size,
+                                                  max_node_spacing=max_node_spacing)
 
-        DualGraph.__init__(self, mesh, dual, **kwds)
+        self._dual = Graph(dual, sort=False)
+        VoronoiGraph.__init__(self, node_y_and_x,
+                              max_node_spacing=max_node_spacing, sort=False)
+        DualGraph.__init__(self, node_at_cell=node_at_cell,
+                           nodes_at_face=nodes_at_face, sort=True)
