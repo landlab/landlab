@@ -26,10 +26,6 @@ def _sort_dual_graph(graph):
     remap_graph_element(graph.node_at_cell,
                         as_id_array(np.argsort(sorted[0])))
 
-    # graph._node_at_cell = graph._node_at_cell[sorted_dual[2]]
-    # remap_graph_element(graph._node_at_cell,
-    #                     as_id_array(np.argsort(sorted[0])))
-
 
 def update_node_at_cell(ugrid, node_at_cell):
     node_at_cell = xr.DataArray(
@@ -59,13 +55,6 @@ class DualGraph(Graph):
         Graph.__init__(self, mesh, **kwds)
         self._dual = Graph(dual, **kwds)
 
-        # update_node_at_cell(self.ds, as_id_array(node_at_cell))
-        # update_nodes_at_face(self.ds, as_id_array(nodes_at_face))
-
-        # reorient_link_dirs(self._dual)
-        # reindex_by_xy(self._dual)
-        # reorder_links_at_patch(self._dual)
-
         rename = {
             'mesh': 'dual',
             'node': 'corner',
@@ -74,7 +63,6 @@ class DualGraph(Graph):
             'x_of_node': 'x_of_corner',
             'y_of_node': 'y_of_corner',
             'nodes_at_link': 'corners_at_face',
-            # 'nodes_at_patch': 'corners_at_cell',
             'links_at_patch': 'faces_at_cell',
             'max_patch_links': 'max_cell_faces',
         }
@@ -83,52 +71,6 @@ class DualGraph(Graph):
         self._origin = (0., 0.)
 
         self._frozen = False
-        self.freeze()
-
-    def _old__init__(self, *args, **kwds):
-        node_at_cell = kwds.pop('node_at_cell', None)
-        nodes_at_face = kwds.pop('nodes_at_face', None)
-        dual = kwds.pop('dual', None)
-
-        # corner_y_and_x = kwds.pop('corners', None)
-        # faces = kwds.pop('faces', None)
-        # cells = kwds.pop('cells', None)
-
-        # self._node_at_cell = as_id_array(node_at_cell)
-        # self._nodes_at_face = as_id_array(nodes_at_face)
-
-        if isinstance(dual, Graph):
-            self._dual = dual
-        else:
-            self._dual = Graph.load(dual)
-
-        # Graph.__init__(self, *args, **kwds)
-        super(DualGraph, self).__init__(*args, **kwds)
-
-        update_node_at_cell(self.ds, as_id_array(node_at_cell))
-        update_nodes_at_face(self.ds, as_id_array(nodes_at_face))
-
-        self.thaw()
-        _sort_dual_graph(self)
-
-        # self._dual.nodes_at_patch
-
-        rename = {
-            'mesh': 'dual',
-            'node': 'corner',
-            'link': 'face',
-            'patch': 'cell',
-            'x_of_node': 'x_of_corner',
-            'y_of_node': 'y_of_corner',
-            'nodes_at_link': 'corners_at_face',
-            # 'nodes_at_patch': 'corners_at_cell',
-            'links_at_patch': 'faces_at_cell',
-            'max_patch_links': 'max_cell_faces',
-        }
-        self._ds = xr.merge([self._ds, self._dual.ds.rename(rename)])
-        self._ds.update({
-            'dual': xr.DataArray(data='b', attrs=DUAL_MESH_ATTRS)})
-
         self.freeze()
 
     def freeze(self):
@@ -148,7 +90,6 @@ class DualGraph(Graph):
     @property
     def node_at_cell(self):
         return self.ds['node_at_cell'].values
-        # return self._node_at_cell
 
     @property
     def nodes_at_face(self):

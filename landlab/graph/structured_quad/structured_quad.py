@@ -202,13 +202,6 @@ class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
     """
 
     def __init__(self, node_y_and_x, shape=None):
-        from ..ugrid import ugrid_from_structured_quad
-
-        mesh = ugrid_from_structured_quad(node_y_and_x, shape=shape)
-        Graph.__init__(self, mesh)
-        # Graph.__init__(self, mesh, **kwds)
-
-    def _old__init__(self, nodes, shape=None):
         """Create a structured grid of quadrilaterals.
 
         Parameters
@@ -218,41 +211,14 @@ class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
         shape : tuple, optional
             Shape of the grid. Otherwise, use the shape of coordinate arrays.
         """
-        node_y, node_x = setup_node_coords_structured(nodes, shape=shape)
+        from ..ugrid import ugrid_from_structured_quad
 
-        self._shape = node_y.shape
-
-        nodes_at_link = setup_nodes_at_link(self._shape)
-        links_at_patch = setup_links_at_patch(self._shape)
-
-        # Graph.__init__(self, (node_y.flat, node_x.flat),
-        #                links=nodes_at_link, patches=links_at_patch,
-        #                sorting={'ne': True, 'ccw': True, 'xy': True})
-
-        super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
-                                                  links=nodes_at_link,
-                                                  patches=links_at_patch,
-                                                  sorting={'ne': True,
-                                                           'ccw': True,
-                                                           'xy': True})
-
-    # def _create_links_and_dirs_at_node(self):
-    #     """Set up node-link data structures."""
-    #     # self._links_at_node = links_at_node(self.shape)
-    #     # self._link_dirs_at_node = link_dirs_at_node(self.shape)
-    #     self._links_at_node = setup_links_at_node(self.shape)
-    #     self._link_dirs_at_node = setup_link_dirs_at_node(self.shape)
-    #     return (self._links_at_node, self._link_dirs_at_node)
-
-    # def _setup_links_at_node(self):
-    #     """Set up node-link data structures."""
-    #     self._links_at_node = links_at_node(self.shape)
-    #     self._link_dirs_at_node = link_dirs_at_node(self.shape)
+        mesh = ugrid_from_structured_quad(node_y_and_x, shape=shape)
+        Graph.__init__(self, mesh)
 
     @property
     # @store_result_in_grid()
     def perimeter_nodes(self):
-        print self.shape
         return setup_perimeter_nodes(self.shape)
 
     @property

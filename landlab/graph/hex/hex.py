@@ -195,7 +195,6 @@ class HexGraph(VoronoiGraph):
         elif node_layout == 'rect1':
             max_node_spacing = shape[1] + 1
 
-        # super(HexGraph, self).__init__(
         VoronoiGraph.__init__(self,
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
             max_node_spacing=max_node_spacing)

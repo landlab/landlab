@@ -63,7 +63,8 @@ def ugrid_from_structured_quad_dual(node_y_and_x, shape=None):
     return mesh, dual
 
 
-class DualStructuredQuadGraph(DualStructuredQuadGraphExtras, StructuredQuadGraph, DualGraph):
+class DualStructuredQuadGraph(DualStructuredQuadGraphExtras,
+                              StructuredQuadGraph, DualGraph):
 
     """Dual graph of a structured grid of quadrilaterals.
 
@@ -88,28 +89,11 @@ class DualStructuredQuadGraph(DualStructuredQuadGraphExtras, StructuredQuadGraph
     """
 
     def __init__(self, nodes, shape=None):
-        # y_of_node, x_of_node = reshape_nodes(nodes, shape=shape)
-        # shape = y_of_node.shape
-
-        # dual_y, dual_x = get_corners((y_of_node, x_of_node), shape)
-
-        # dual_shape = dual_y.shape
-
-        # dual = StructuredQuadGraph((dual_y, dual_x), shape=dual_shape)
-
-        # node_at_cell = get_node_at_cell(shape)
-        # nodes_at_face = get_nodes_at_face(shape)
-
         mesh, dual = ugrid_from_structured_quad_dual(nodes, shape=shape)
 
         DualGraph.__init__(self, mesh, dual) # , **kwds)
 
-        # super(DualStructuredQuadGraph, self).__init__(
-        #     (y_of_node, x_of_node), shape=shape, node_at_cell=node_at_cell,
-        #     nodes_at_face=nodes_at_face, dual=dual)
 
-
-# class DualRectilinearGraph(DualGraph, RectilinearGraph):
 class DualRectilinearGraph(DualStructuredQuadGraph):
 
     """Create a dual graph for a rectilinear grid.
@@ -132,29 +116,12 @@ class DualRectilinearGraph(DualStructuredQuadGraph):
     """
 
     def __init__(self, nodes):
-        # dual_nodes = (np.asarray(nodes[0], dtype=float),
-        #               np.asarray(nodes[1], dtype=float))
-        # dual_nodes = [x[:-1] + np.diff(x) * .5 for x in dual_nodes]
-
         shape = (len(nodes[0]), len(nodes[1]))
         nodes = np.meshgrid(*nodes, indexing='ij')
 
-        # dual = RectilinearGraph(dual_nodes)
-        # self._node_at_cell = get_node_at_cell(self.shape)
-
-        # shape = (len(nodes[0]), len(nodes[1]))
-
-        # node_at_cell = get_node_at_cell(shape)
-        # nodes_at_face = get_nodes_at_face(shape)
-
         super(DualRectilinearGraph, self).__init__(nodes, shape)
 
-        # super(DualRectilinearGraph, self).__init__(
-        #     nodes, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face,
-        #     dual=dual)
 
-
-# class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph, DualStructuredQuadGraphExtras):
 class DualUniformRectilinearGraph(DualRectilinearGraph):
 
     """Create a dual graph for a uniform rectilinear grid.
@@ -185,19 +152,6 @@ class DualUniformRectilinearGraph(DualRectilinearGraph):
         yx_of_nodes = (np.arange(shape[0]) * spacing[0] + origin[0],
                        np.arange(shape[1]) * spacing[1] + origin[1])
 
-        # dual_shape = [dim - 1 for dim in shape]
-        # dual_origin = [x + dx * .5 for x, dx in zip(origin, spacing)]
-
-        # dual = UniformRectilinearGraph(dual_shape,
-        #                                spacing=spacing,
-        #                                origin=dual_origin)
-
-        # node_at_cell = get_node_at_cell(shape)
-        # nodes_at_face = get_nodes_at_face(shape)
-
-        # super(DualUniformRectilinearGraph, self).__init__(
-        #     shape, spacing=spacing, origin=origin, node_at_cell=node_at_cell,
-        #     nodes_at_face=nodes_at_face, dual=dual)
         super(DualUniformRectilinearGraph, self).__init__(yx_of_nodes)
 
 
@@ -244,9 +198,6 @@ def get_nodes_at_face(shape):
 def get_corners(node_y_and_x, shape):
     y_of_node, x_of_node = (np.asarray(node_y_and_x[0], dtype=float),
                             np.asarray(node_y_and_x[1], dtype=float))
-    # if shape is not None:
-    #     y_of_node.shape = shape
-    #     x_of_node.shape = shape
     y_of_node.shape = x_of_node.shape = shape
     
     x_of_corner = (x_of_node[:-1, :-1] + x_of_node[:-1, 1:] +
