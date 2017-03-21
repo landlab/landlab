@@ -9,6 +9,7 @@ Created on Fri Feb 20 09:32:27 2015
 """
 
 import numpy as np
+from six.moves import range
 from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK, \
     CLOSED_BOUNDARY, CORE_NODE
 import inspect
@@ -117,8 +118,7 @@ class DischargeDiffuser(Component):
     _min_slope_thresh = 1.e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
-    @use_file_name_or_kwds
-    def __init__(self, grid, slope, **kwds):
+    def __init__(self, grid, slope, flat_thresh=1.e-4, **kwds):
         """Initialize flow router.
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
@@ -128,10 +128,11 @@ class DischargeDiffuser(Component):
         else:
             self._raster = False
 
-        assert self._raster = True  # ...for now
+        assert self._raster is True  # ...for now
 
         self._grid = grid
         self._slope = slope
+        self._flat_thresh = flat_thresh
 
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
@@ -152,6 +153,7 @@ class DischargeDiffuser(Component):
         nj = grid.number_of_node_columns
 
         self._K = grid.zeros('node', dtype=float)
+        self._Knew = grid.zeros('node', dtype=float)
         self._prevK = grid.zeros('node', dtype=float)
         self._znew = grid.zeros('node', dtype=float)
         # discharge across north, south, west, and east face of control volume
@@ -183,7 +185,7 @@ class DischargeDiffuser(Component):
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
 
-    def run_one_step(self, dt, Qsource, **kwds):
+    def run_one_step(self, dt, **kwds):
         """
         """
         grid = self.grid
@@ -194,7 +196,6 @@ class DischargeDiffuser(Component):
             (grid.number_of_node_rows, grid.number_of_node_columns))
         Qsource = grid.at_node['sediment__discharge_in'].reshape(
             (grid.number_of_node_rows, grid.number_of_node_columns))
-        mismatch = 10000.
 
         ######STABILITY ANALYSIS GOES HERE
         dt_stab = dt
@@ -202,13 +203,17 @@ class DischargeDiffuser(Component):
         # elevation at current and new time
         # Note a horizonal surface is the initial condition
         eta = z.reshape((ni, nj))
+        K = self._K.reshape((ni, nj))
+        Knew = self._Knew.reshape((ni, nj))
         # etan = self._znew.reshape((grid.number_of_node_rows,
         #                            grid.number_of_node_columns))
 
+        # pad eta
+        pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
         # do the sediment diffusion
         for dir in ('W', 'E', 'S', 'N'):
-            self._grad_on_link(dir)
-            Cslope = np.sqrt(slx**2 + sly**2)
+            self._grad_on_link(pad_eta, dir)
+            Cslope = np.sqrt(self._slx**2 + self._sly**2)
             self._link_sed_flux_from_slope(Cslope, self._slope, dir)
 
         try:
@@ -217,7 +222,7 @@ class DischargeDiffuser(Component):
             Qin = float(Qsource)  # if both fail, we're in trouble
         eta[:] += dt_stab*(
             self._Qsed_e + self._Qsed_n + self._Qsed_w + self._Qsed_s +
-            Qin)/self.grid.dx/self.grid.dy
+            Qin)/grid.dx/grid.dy
 
         # do the water routing on links
         # These calculations are based on assuming that the flow is a sheet
@@ -233,102 +238,66 @@ class DischargeDiffuser(Component):
         # Since we can readily determine u from the current sediment topography
         # We solve this equation for K using an upwind scheme
 
+        # Build upwinded coefficients. Vals only 0 if if flow is in upwind dir
+        # note cols/rows which don't get updated will always remain as 0,
+        # which is right provided we want no flow BCs
+        eta_diff = -eta[:-1, :] + eta[1:, :]
+        self._ann[:-1, :] = eta_diff.clip(0.)
+        self._anp[:-1, :] = (-eta_diff).clip(0.)
+        eta_diff = -eta[1:, :] + eta[:-1, :]
+        self._ass[1:, :] = eta_diff.clip(0.)
+        self._asp[1:, :] = (-eta_diff).clip(0.)
+        eta_diff = -eta[:, :-1] + eta[:, 1:]
+        self._aee[:, :-1] = eta_diff.clip(0.)
+        self._aep[:, :-1] = (-eta_diff).clip(0.)
+        eta_diff = -eta[:, 1:] + eta[:, :-1]
+        self._aww[:, 1:] = eta_diff.clip(0.)
+        self._awp[:, 1:] = (-eta_diff).clip(0.)
 
+        self._app[:] = self._awp + self._aep + self._asp + self._anp
 
+        apz = self._app.copy()
+        awz = self._aww.copy()
+        aez = self._aee.copy()
+        asz = self._ass.copy()
+        anz = self._ann.copy()
+        # zero elevation treatment
+        # at a zero elevation we use a simple averaging approach
+        # this rationale is questionable - a propagation across flats may be
+        # preferable
+        flats = np.abs(self._app) < self._flat_thresh
+        apz[flats] = 4
+        for NSEW in (awz, aez, asz, anz):
+            NSEW[flats] = 1
+        # NOTE when we do not have a zero elevation condition the
+        # coefficients a*z are the upwind coefficents
 
+        # Solve upwind equations for nodal K
+        # this involves iteration to a stable solution
+        ######IMPLEMENT IT
+        # calc the new K based on incoming discharges
+        for init in range(1):
+            Knew[:, 1:] += awz[:, 1:] + K[:, :-1]
+            Knew[:, 0] += awz[:, 0] + K[:, 0]
+            Knew[:, :-1] += aez[:, :-1] + K[:, 1:]
+            Knew[:, -1] += awz[:, -1] + K[:, -1]
+            Knew[1:, :] += asz[1:, :] + K[:-1, :]
+            Knew[0, :] += asz[0, :] + K[0, :]
+            Knew[:-1, :] += anz[:-1, :] + K[1:, :]
+            Knew[-1, :] += asz[-1, :] + K[-1, :]
+            Knew += Qsp
+            Knew /= apz
+            K[:] = Knew
 
-
-
-        # do the ortho nodes first, in isolation
-        g = grid.calc_grad_at_link(z)
-        if self.equation != 'default':
-            g = np.sign(g) * np.sqrt(np.fabs(g))
-            # ^...because both Manning and Chezy actually follow sqrt
-            # slope, not slope
-        # weight by face width - NO, because diags
-        # g *= grid.width_of_face[grid.face_at_link]
-        link_grad_at_node_w_dir = (
-            g[grid.links_at_node] * grid.active_link_dirs_at_node)
-        # active_link_dirs strips "wrong" face widths
-
-        # now outgoing link grad sum
-        outgoing_sum = (np.sum((link_grad_at_node_w_dir).clip(0.), axis=1) +
-                        self._min_slope_thresh)
-        pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.)
-
-        if not self.route_on_diagonals or not self._raster:
-            while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
-                incoming_K_sum = (pos_incoming_link_grads*K_link_ends
-                                  ).sum(axis=1) + self._min_slope_thresh
-                self._K[:] = (incoming_K_sum + Qwater_in)/outgoing_sum
-                mismatch = np.sum(np.square(self._K-prev_K))
-                prev_K = self._K.copy()
-
-            upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
-            self._discharges_at_link[:] = upwind_K * g
-            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
-        else:
-            # grad on diags:
-            gwd = np.empty(grid._number_of_d8_links, dtype=float)
-            gd = gwd[grid.number_of_links:]
-            gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
-            gd /= (grid._length_of_link_with_diagonals[grid.number_of_links:])
-            if self.equation != 'default':
-                gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
-            diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
-                                       grid._diag_active_link_dirs_at_node)
-
-            outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
-            pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
-            while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
-                K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
-                incoming_K_sum = ((pos_incoming_link_grads * K_link_ends
-                                   ).sum(axis=1) +
-                                  (pos_incoming_diag_grads * K_diag_ends
-                                   ).sum(axis=1) + self._min_slope_thresh)
-                self._K[:] = (incoming_K_sum + Qwater_in) / outgoing_sum
-                mismatch = np.sum(np.square(self._K - prev_K))
-                prev_K = self._K.copy()
-
-            # ^this is necessary to suppress stupid apparent link Qs at flow
-            # edges, if present.
-            upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
-            upwind_diag_K = np.where(
-                z[grid._diag_link_tonode] > z[grid._diag_link_fromnode],
-                self._K[grid._diag_link_tonode],
-                self._K[grid._diag_link_fromnode])
-            self._discharges_at_link[:grid.number_of_links] = upwind_K * g
-            self._discharges_at_link[grid.number_of_links:] = (
-                upwind_diag_K * gd)
-            self._discharges_at_link[grid._all_d8_inactive_links] = 0.
-
-        np.multiply(self._K, outgoing_sum, out=self._Qw)
-        # there is no sensible way to save discharges at links, if we route
-        # on diagonals.
-        # for now, let's make a property
-
-        # now process uval and vval to give the depths, if Chezy or Manning:
-        if self.equation == 'Chezy':
-            # Chezy: Q = C*Area*sqrt(depth*slope)
-            grid.at_node['surface_water__depth'][:] = (
-                grid.at_node['flow__potential'] / self.chezy_C /
-                self.equiv_circ_diam) ** (2. / 3.)
-        elif self.equation == 'Manning':
-            # Manning: Q = w/n*depth**(5/3)
-            grid.at_node['surface_water__depth'][:] = (
-                grid.at_node['flow__potential'] * self.manning_n /
-                self.equiv_circ_diam) ** 0.6
-        else:
-            pass
-
-    def run_one_step(self, **kwds):
-        """Route surface-water flow over a landscape.
-
-        Both convergent and divergent flow can occur.
-        """
-        self.route_flow(**kwds)
+        Kpad = np.pad(K, ((1, 1), (1, 1)), 'edge')
+        self._Qw += self._aww * Kpad[1:-1, :-2]
+        self._Qw -= self._awp * K
+        self._Qe += self._aee * Kpad[1:-1, 2:]
+        self._Qe -= self._aep * K
+        self._Qs += self._ass * Kpad[:-2, 1:-1]
+        self._Qs -= self._asp * K
+        self._Qn += self._ann * Kpad[2:, 1:-1]
+        self._Qn -= self._anp * K
 
     @property
     def discharges_at_links(self):
@@ -339,7 +308,7 @@ class DischargeDiffuser(Component):
         """
         return self._discharges_at_link
 
-    def _grad_on_link(self, direction):
+    def _grad_on_link_old(self, eta, direction, **kwds):
         """
         Updates slx and sly with link gradient values according to `direction`.
 
@@ -441,6 +410,68 @@ class DischargeDiffuser(Component):
         else:
             raise NameError("direction must be {'E', 'N', 'S', 'W'}")
 
+    def _grad_on_link(self, padded_eta, direction):
+        """
+        Updates slx and sly with link gradient values according to `direction`.
+
+        eta = elevations in grid form
+        direction = {'E', 'N', 'S', 'W'}
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4), (0.5, 1.))
+        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
+        >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')
+        >>> dd = DischargeDiffuser(mg, 0.25)
+        >>> dd._grad_on_link(zpad, 'W')
+        """
+        core = (slice(1, -1, 1), slice(1, -1, 1))
+        if direction == 'W':
+            self._slx[:] = (
+                padded_eta[1:-1, :-2] - padded_eta[core])/self.grid.dx
+            self._sly[:] = padded_eta[:-2, :-2]
+            self._sly -= padded_eta[2:, :-2]
+            self._sly += padded_eta[:-2, 1:-1]
+            self._sly -= padded_eta[2:, 1:-1]
+            self._sly *= 0.25
+            self._sly /= self.grid.dy
+
+        elif direction == 'E':
+            self._slx[:] = (
+                padded_eta[1:-1, 2:] - padded_eta[core])/self.grid.dx
+            self._sly[:] = padded_eta[:-2, 2:]
+            self._sly -= padded_eta[2:, 2:]
+            self._sly += padded_eta[:-2, 1:-1]
+            self._sly -= padded_eta[2:, 1:-1]
+            self._sly *= 0.25
+            self._sly /= self.grid.dy
+
+        elif direction == 'S':
+            self._sly[:] = (
+                padded_eta[:-2, 1:-1] - padded_eta[core])/self.grid.dy
+            self._slx[:] = padded_eta[:-2, :-2]
+            self._slx -= padded_eta[:-2, 2:]
+            self._slx += padded_eta[1:-1, :-2]
+            self._slx -= padded_eta[1:-1, 2:]
+            self._slx *= 0.25
+            self._slx /= self.grid.dx
+
+        elif direction == 'N':
+            self._sly[:] = (
+                padded_eta[2:, 1:-1] - padded_eta[core])/self.grid.dy
+            self._slx[:] = padded_eta[2:, :-2]
+            self._slx -= padded_eta[2:, 2:]
+            self._slx += padded_eta[1:-1, :-2]
+            self._slx -= padded_eta[1:-1, 2:]
+            self._slx *= 0.25
+            self._slx /= self.grid.dx
+
+        else:
+            raise NameError("direction must be {'E', 'N', 'S', 'W'}")
+
     def _link_sed_flux_from_slope(self, S_val, S_thresh, direction):
         """
         Update the sed flux array for a given link dir, assuming a critical S.
@@ -471,3 +502,24 @@ class DischargeDiffuser(Component):
         dir_sed_flux[thisslice] = (dir_water_flux[thisslice] *
                                    slope_diff[thisslice])
         dir_sed_flux[deadedge] = 0.
+
+    def diffuse_sediment(self, Qw_in, Qsed_in, **kwds):
+        """
+        """
+        pass
+
+
+if __name__ == '__main__':
+    import numpy as np
+    from landlab import RasterModelGrid, imshow_grid_at_node
+    S_crit = 0.25
+    mg = RasterModelGrid((20, 20), 0.5)
+    mg.add_zeros('node', 'topographic__elevation')
+    Qw_in = mg.add_zeros('node', 'water__discharge_in')
+    Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
+    Qw_in[0] = 0.5*np.pi
+    Qs_in[0] = (1. - S_crit)*0.5*np.pi
+    dd = DischargeDiffuser(mg, S_crit)
+    for i in range(5):  # 501
+        dd.run_one_step(0.01)  # 0.08
+    imshow_grid_at_node(mg, 'topographic__elevation')
