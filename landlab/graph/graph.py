@@ -71,7 +71,7 @@ from .quantity.of_patch import get_centroid_of_patch, get_area_of_patch
 
 from .sort.sort import reverse_one_to_many, reorient_link_dirs
 
-from .ugrid import update_nodes_at_patch
+from .ugrid import update_nodes_at_patch, ugrid_from_unstructured
 
 
 def _parse_sorting_opt(sorting):
@@ -110,6 +110,19 @@ def find_perimeter_nodes(graph):
     return as_id_array(hull.vertices)
 
 
+class thawed(object):
+    def __init__(self, graph):
+        self._graph = graph
+        self._initially_frozen = graph.frozen
+
+    def __enter__(self):
+        self._graph.thaw()
+
+    def __exit__(self, ex_type, ex_value, traceback):
+        if self._initially_frozen:
+            self._graph.freeze()
+
+
 class Graph(object):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
@@ -122,16 +135,36 @@ class Graph(object):
         mesh : Dataset
             xarray Dataset that defines the topology in ugrid format.
         """
+        if not isinstance(mesh, xr.Dataset):
+            node_y_and_x = mesh
+            links = kwds.get('links', None)
+            patches = kwds.get('patches', None)
+            mesh = ugrid_from_unstructured(node_y_and_x, links=links,
+                                           patches=patches)
         self._ds = mesh
-
-        reorient_link_dirs(self)
-        reindex_by_xy(self)
-        reorder_links_at_patch(self)
-
-        self._origin = (0., 0.)
 
         self._frozen = False
         self.freeze()
+
+        if kwds.get('sort', True):
+            Graph.sort(self)
+
+        self._origin = (0., 0.)
+
+    @property
+    def frozen(self):
+        return self._frozen
+
+    def thawed(self):
+        return thawed(self)
+
+    def sort(self):
+        with self.thawed():
+            reorient_link_dirs(self)
+            sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
+            reorder_links_at_patch(self)
+
+        return sorted_nodes, sorted_links, sorted_patches
 
     def freeze(self):
         """Freeze the graph by making arrays read-only."""
@@ -156,6 +189,39 @@ class Graph(object):
         return self._ds
 
     def to_netcdf(self, *args, **kwds):
+        """Write graph contents to a netCDF file.
+
+        See xarray.Dataset.to_netcdf for a complete list of parameters.
+        Below are only the most common.
+
+        Parameters
+        ----------
+        path : str, optional
+            Path to which to save this graph.
+        mode : {'w', 'a'}, optional
+            Write ('w') or append ('a') mode. If mode='w', any
+            existing file at this location will be overwritten.
+        format : {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC'}, optional
+            File format for the resulting netCDF file:
+
+            * NETCDF4: Data is stored in an HDF5 file, using netCDF4 API
+              features.
+            * NETCDF4_CLASSIC: Data is stored in an HDF5 file, using only
+              netCDF 3 compatible API features.
+            * NETCDF3_64BIT: 64-bit offset version of the netCDF 3 file format,
+              which fully supports 2+ GB files, but is only compatible with
+              clients linked against netCDF version 3.6.0 or later.
+            * NETCDF3_CLASSIC: The classic netCDF 3 file format. It does not
+              handle 2+ GB files very well.
+
+            All formats are supported by the netCDF4-python library.
+            scipy.io.netcdf only supports the last two formats.
+
+            The default format is NETCDF4 if you are saving a file to disk and
+            have the netCDF4-python library available. Otherwise, xarray falls
+            back to using scipy to write netCDF files and defaults to the
+            NETCDF3_64BIT format (scipy does not support netCDF4).
+        """
         self.ds.to_netcdf(*args, **kwds)
 
     @classmethod
@@ -247,7 +313,7 @@ class Graph(object):
         >>> graph.nodes
         array([0, 1, 2, 3, 4, 5])
         """
-        return self.ds['nodes'].values
+        return self.ds['node'].values
 
     @property
     @store_result_in_grid()
@@ -501,7 +567,8 @@ class Graph(object):
             return self._links_at_node
 
     def _create_links_and_dirs_at_node(self):
-        return get_links_at_node(self, sort=self._sorting['ccw'])
+        return get_links_at_node(self, sort=True)
+        # return get_links_at_node(self, sort=self._sorting['ccw'])
 
     @property
     def link_dirs_at_node(self):

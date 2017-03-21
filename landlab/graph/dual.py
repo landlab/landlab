@@ -48,12 +48,13 @@ def update_nodes_at_face(ugrid, nodes_at_face):
 
 
 class DualGraph(Graph):
-    def __init__(self, mesh, dual, **kwds):
+
+    def __init__(self, **kwds):
         node_at_cell = kwds.pop('node_at_cell', None)
         nodes_at_face = kwds.pop('nodes_at_face', None)
 
-        Graph.__init__(self, mesh, **kwds)
-        self._dual = Graph(dual, **kwds)
+        update_node_at_cell(self.ds, node_at_cell)
+        update_nodes_at_face(self.ds, nodes_at_face)
 
         rename = {
             'mesh': 'dual',
@@ -72,6 +73,24 @@ class DualGraph(Graph):
 
         self._frozen = False
         self.freeze()
+
+        if kwds.get('sort', True):
+            self.sort()
+
+    def sort(self):
+        from .sort.ext.remap_element import remap_graph_element
+
+        sorted_nodes, sorted_links, sorted_patches = Graph.sort(self)
+        sorted_corners, sorted_faces, sorted_cells = self.dual.sort()
+
+        with self.thawed():
+            self.node_at_cell[:] = self.node_at_cell[sorted_cells]
+            self.nodes_at_face[:] = self.nodes_at_face[sorted_faces]
+
+            remap_graph_element(as_id_array(self.node_at_cell),
+                                as_id_array(np.argsort(sorted_nodes)))
+            remap_graph_element(as_id_array(self.nodes_at_face).reshape((-1, )),
+                                as_id_array(np.argsort(sorted_nodes)))
 
     def freeze(self):
         Graph.freeze(self)
