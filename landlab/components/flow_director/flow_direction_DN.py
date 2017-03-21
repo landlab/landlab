@@ -1,8 +1,9 @@
 #! /usr/env/python
 
 """
-flow_direction_DN.py: calculates single-direction flow directions on a regular
-or irregular grid.
+flow_direction_DN.py: calculates single-direction flow directions.
+
+Works on both a regular or irregular grid.
 
 GT Nov 2013
 Modified Feb 2014
@@ -17,12 +18,13 @@ from landlab.grid.raster_steepest_descent import (
     _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
-
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 def grid_flow_directions(grid, elevations):
-    """Flow directions on raster grid.
+
+    """
+    Flow directions on raster grid.
 
     Calculate flow directions for node elevations on a raster grid.
     Each node is assigned a single direction, toward one of its neighboring
@@ -113,7 +115,9 @@ def grid_flow_directions(grid, elevations):
 
 def flow_directions(elev, active_links, tail_node, head_node, link_slope,
                     grid=None, baselevel_nodes=None):
-    """Find flow directions on a grid.
+
+    """
+    Find flow directions on a grid.
 
     Finds and returns flow directions for a given elevation grid. Each node is
     assigned a single direction, toward one of its N neighboring nodes (or

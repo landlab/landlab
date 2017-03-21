@@ -27,5 +27,5 @@ cpdef _add_to_stack(DTYPE_INT_t l, DTYPE_INT_t j,
         m = donors[n]
         if m != l:
             j = _add_to_stack(m, j, s, delta, donors)
-    
+
     return j

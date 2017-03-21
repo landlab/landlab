@@ -3,7 +3,7 @@
 stream_power_smooth_threshold.py: Defines the StreamPowerSmoothThresholdEroder,
 which is a version of the FastscapeEroder (derived from it).
 
-StreamPowerSmoothThresholdEroder uses a mathematically smooth threshold 
+StreamPowerSmoothThresholdEroder uses a mathematically smooth threshold
 formulation, rather than one with a singularity. The erosion rate is defined as
 follows:
 
@@ -22,15 +22,15 @@ else:
     from .fastscape_stream_power import FastscapeEroder
 import numpy as np
 from scipy.optimize import newton
-
-UNDEFINED_INDEX = -1
+from landlab import BAD_INDEX_VALUE
+UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 
 
 def new_elev(x, a, b, c, d, e):
     """Equation for elevation of a node at timestep t+1.
-    
+
     Parameters
     ----------
     x : float
@@ -42,7 +42,7 @@ def new_elev(x, a, b, c, d, e):
     c : float
         Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
     d : float
-        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])       
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
     e : float
         z(t) + a z_j + (wc * dt)
     """
@@ -51,7 +51,7 @@ def new_elev(x, a, b, c, d, e):
 
 def new_elev_prime(x, a, b, c, d, e=0.0):
     """Equation for elevation of a node at timestep t+1.
-    
+
     Parameters
     ----------
     x : float
@@ -63,7 +63,7 @@ def new_elev_prime(x, a, b, c, d, e=0.0):
     c : float
         Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
     d : float
-        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])       
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
     e : n/a
         Placeholder; not used
     """
@@ -72,7 +72,7 @@ def new_elev_prime(x, a, b, c, d, e=0.0):
 
 def new_elev_prime2(x, a, b, c, d, e=0.0):
     """Equation for elevation of a node at timestep t+1.
-    
+
     Parameters
     ----------
     x : float
@@ -84,7 +84,7 @@ def new_elev_prime2(x, a, b, c, d, e=0.0):
     c : float
         Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
     d : float
-        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])       
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
     e : n/a
         Placeholder; not used
     """
@@ -93,7 +93,7 @@ def new_elev_prime2(x, a, b, c, d, e=0.0):
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     """Stream erosion component with smooth threshold function.
-    
+
     Parameters
     ----------
     grid : ModelGrid
@@ -143,10 +143,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
                  rainfall_intensity=1., use_Q=None, **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
-        
+
         # Call base-class init
-        super(StreamPowerSmoothThresholdEroder, 
-              self).__init__(grid, K_sp=K_sp, m_sp=m_sp, n_sp=n_sp, 
+        super(StreamPowerSmoothThresholdEroder,
+              self).__init__(grid, K_sp=K_sp, m_sp=m_sp, n_sp=n_sp,
                              threshold_sp=threshold_sp,
                              rainfall_intensity=rainfall_intensity, **kwargs)
 
@@ -205,6 +205,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream
         # ordered array of node IDs ("upstream_order_IDs")
+        node_id = np.arange(self._grid.number_of_nodes)
         upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
         z = self._grid['node']['topographic__elevation']
         flow_receivers = self._grid['node']['flow__receiver_node']
@@ -213,6 +214,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # receiver (i.e., that drains to another node).
         defined_flow_receivers = np.not_equal(self._grid['node'][
             'flow__link_to_receiver_node'], UNDEFINED_INDEX)
+        defined_flow_receivers[flow_receivers == node_id] = False
         if flooded_nodes is not None:
             defined_flow_receivers[flooded_nodes] = False
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
@@ -221,12 +223,24 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         # (Later on, add functionality for a runoff rate, or discharge, or
         # variable K)
-        
+
         # Handle possibility of spatially varying threshold
         if type(self.thresholds) is np.ndarray:
             thresh = self.thresholds[defined_flow_receivers]
         else:
             thresh = self.thresholds
+
+        # Handle possibility of spatially varying K
+        if type(self.K) is np.ndarray:
+            K = self.K[defined_flow_receivers]
+        else:
+            K = self.K
+
+        # Handle possibility of spatially varying threshold
+        if type(self.thresholds) is np.ndarray:
+            thresh = self.thresholds[defined_flow_receivers]
+        else:
+            thresh = self.thresholds            
 
         # Set up alpha, beta, delta arrays
         #
@@ -236,7 +250,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         #   Alpha
         self.alpha[defined_flow_receivers==False] = 0.0
-        self.alpha[defined_flow_receivers] = (self.K * dt
+        self.alpha[defined_flow_receivers] = (K * dt
             * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths)
 
         #   Gamma
@@ -244,8 +258,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
-        self.delta[defined_flow_receivers] = ((self.K
-            * self.A_to_the_m[defined_flow_receivers] ) 
+
+        self.delta[defined_flow_receivers==False] = 0.0
+        self.delta[defined_flow_receivers] = ((K
+            * self.A_to_the_m[defined_flow_receivers] )
             / (thresh * flow_link_lengths))
 
         # Iterate over nodes from downstream to upstream, using scipy's
@@ -260,10 +276,11 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                                        z[flow_receivers[node]],
                                        self.gamma[node],
                                        self.delta[node],
-                                       epsilon))  #, 
+                                       epsilon))  #,
                                  #fprime2=new_elev_prime2)
 
         # TODO: handle case self.thresholds = 0
+        # THIS WOULD REQUIRE SETTING DELTA = 0 WHEN/WHERE THRESHOLD = 0
 
 
 
