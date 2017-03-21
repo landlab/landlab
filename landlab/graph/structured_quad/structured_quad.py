@@ -213,6 +213,10 @@ class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
         """
         from ..ugrid import ugrid_from_structured_quad
 
+        if shape is None:
+            self._shape = node_y_and_x[0].shape
+        else:
+            self._shape = shape
         mesh = ugrid_from_structured_quad(node_y_and_x, shape=shape)
         Graph.__init__(self, mesh)
 
@@ -227,7 +231,7 @@ class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
         return setup_links_at_node(self.shape)
 
     @property
-    @store_result_in_grid()
+    # @store_result_in_grid()
     def link_dirs_at_node(self):
         return setup_link_dirs_at_node(self.shape)
 
