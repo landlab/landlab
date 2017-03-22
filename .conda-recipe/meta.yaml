@@ -35,6 +35,7 @@ requirements:
     - six
     - pyyaml
     - setuptools
+    - xarray
 
 build:
   string: {{ environ.get('BUILD_STR', '') }}
