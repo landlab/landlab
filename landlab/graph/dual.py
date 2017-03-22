@@ -29,7 +29,7 @@ def _sort_dual_graph(graph):
 
 def update_node_at_cell(ugrid, node_at_cell):
     node_at_cell = xr.DataArray(
-        data=node_at_cell,
+        data=as_id_array(node_at_cell),
         dims=('cell', ),
         attrs={'cf_role': 'cell_node_connectivity',
                'long_name': 'nodes centered at cells',
@@ -39,7 +39,7 @@ def update_node_at_cell(ugrid, node_at_cell):
 
 def update_nodes_at_face(ugrid, nodes_at_face):
     nodes_at_face = xr.DataArray(
-        data=nodes_at_face,
+        data=as_id_array(nodes_at_face),
         dims=('face', 'Two'),
         attrs={'cf_role': 'face_node_connectivity',
                'long_name': 'nodes on either side of a face',
