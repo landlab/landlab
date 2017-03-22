@@ -334,8 +334,8 @@ class Graph(object):
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
-        >>> graph.number_of_nodes
-        6
+        >>> graph.number_of_nodes == 6
+        True
         """
         return self.ds.dims['node']
 
@@ -414,8 +414,8 @@ class Graph(object):
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.number_of_links
-        12
+        >>> graph.number_of_links == 12
+        True
         """
         try:
             return self.ds.dims['link']
@@ -538,8 +538,8 @@ class Graph(object):
         ...          (6, 7), (7, 8))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.number_of_patches
-        2
+        >>> graph.number_of_patches == 2
+        True
         """
         try:
             return self.ds.dims['patch']
