@@ -56,7 +56,6 @@ class store_result_in_dataset(object):
                 ds = grid
 
             if name not in ds:
-                print 'adding {name} to grid'.format(name=name)
                 setattr(grid, self._dataset, ds.update(dict(name=func(grid))))
 
             return getattr(grid, self._dataset)[name].values
