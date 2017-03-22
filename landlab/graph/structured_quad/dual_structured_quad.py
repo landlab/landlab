@@ -50,8 +50,8 @@ class DualStructuredQuadGraph(DualStructuredQuadGraphExtras,
     ...            0,  2,  3,
     ...            0,  1,  2]
     >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3))
-    >>> graph.number_of_corners
-    4
+    >>> graph.number_of_corners == 4
+    True
     >>> graph.y_of_corner
     array([-1.25, -0.75,  0.75,  1.25])
     >>> graph.x_of_corner
@@ -86,8 +86,8 @@ class DualRectilinearGraph(DualStructuredQuadGraph):
     >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5, 0.5, 0.5,
             2. , 2. , 2. ])
-    >>> graph.number_of_cells
-    2
+    >>> graph.number_of_cells == 2
+    True
     >>> graph.faces_at_cell
     array([[3, 5, 2, 0],
            [4, 6, 3, 1]])
@@ -116,8 +116,8 @@ class DualUniformRectilinearGraph(DualRectilinearGraph):
     array([ 0.5, 0.5,
             1.5, 1.5,
             2.5, 2.5])
-    >>> graph.number_of_cells
-    2
+    >>> graph.number_of_cells == 2
+    True
     >>> graph.faces_at_cell
     array([[2, 3, 1, 0],
            [5, 6, 4, 3]])

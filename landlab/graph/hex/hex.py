@@ -142,8 +142,8 @@ class HexGraph(VoronoiGraph):
     >>> from landlab.graph import HexGraph
 
     >>> graph = HexGraph((3, 2))
-    >>> graph.number_of_nodes
-    6
+    >>> graph.number_of_nodes == 6
+    True
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  1.,  1.,  2.,  2.])
