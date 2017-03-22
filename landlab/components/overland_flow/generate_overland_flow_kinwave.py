@@ -11,11 +11,12 @@ Created on Fri May 27 14:26:13 2016
 from landlab import Component
 import numpy as np
 
+
 class KinwaveOverlandFlowModel(Component):
     """
     Calculate water flow over topography.
-    
-    Landlab component that implements a two-dimensional 
+
+    Landlab component that implements a two-dimensional
     kinematic wave model. This is an extremely simple, unsophisticated
     model, originally built simply to demonstrate the component creation
     process. Limitations to the present version include: infiltration is
@@ -26,12 +27,12 @@ class KinwaveOverlandFlowModel(Component):
     to be stable over time. Caveat emptor!
 
     Construction:
-    
-        KinwaveOverlandFlowModel(grid, precip_rate=1.0, 
-                                 precip_duration=1.0, 
+
+        KinwaveOverlandFlowModel(grid, precip_rate=1.0,
+                                 precip_duration=1.0,
                                  infilt_rate=0.0,
                                  roughness=0.01, **kwds)
-    
+
     Parameters
     ----------
     grid : ModelGrid
@@ -52,7 +53,7 @@ class KinwaveOverlandFlowModel(Component):
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0
-    >>> rg.at_node['water__depth']
+    >>> rg.at_node['surface_water__depth']
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
             0.,  0.,  0.,  0.,  0.,  0.,  0.])
     """
@@ -65,25 +66,25 @@ class KinwaveOverlandFlowModel(Component):
     )
 
     _output_var_names = (
-        'water__depth',
+        'surface_water__depth',
         'water__velocity',
         'water__specific_discharge',
     )
 
     _var_units = {
-        'topographic__elevation' : 'm',
-        'topographic__slope' : 'm/m',
-        'water__depth' : 'm',
-        'water__velocity' : 'm/s',
-        'water__specific_discharge' : 'm2/s',
+        'topographic__elevation': 'm',
+        'topographic__slope': 'm/m',
+        'surface_water__depth': 'm',
+        'water__velocity': 'm/s',
+        'water__specific_discharge': 'm2/s',
     }
 
     _var_mapping = {
-        'topographic__elevation' : 'node',
-        'topographic__gradient' : 'link',
-        'water__depth' : 'node',
-        'water__velocity' : 'link',
-        'water__specific_discharge' : 'link',
+        'topographic__elevation': 'node',
+        'topographic__gradient': 'link',
+        'surface_water__depth': 'node',
+        'water__velocity': 'link',
+        'water__specific_discharge': 'link',
     }
 
     _var_doc = {
@@ -91,15 +92,15 @@ class KinwaveOverlandFlowModel(Component):
             'elevation of the ground surface relative to some datum',
         'topographic__gradient':
             'gradient of the ground surface',
-        'water__depth':
+        'surface_water__depth':
             'depth of water',
         'water__velocity':
             'flow velocity component in the direction of the link',
         'water__specific_discharge':
-            'flow discharge component in the direction of the link',    
+            'flow discharge component in the direction of the link',
     }
 
-    def __init__(self, grid, precip_rate=1.0, precip_duration=1.0, 
+    def __init__(self, grid, precip_rate=1.0, precip_duration=1.0,
                  infilt_rate=0.0, roughness=0.01, **kwds):
         """Initialize the KinwaveOverlandFlowModel.
 
@@ -119,9 +120,9 @@ class KinwaveOverlandFlowModel(Component):
 
         # Store grid and parameters and do unit conversion
         self._grid = grid
-        self.precip = precip_rate / 3600000.0 # convert to m/s
+        self.precip = precip_rate / 3600000.0  # convert to m/s
         self.precip_duration = precip_duration * 3600.0  # h->s
-        self.infilt = infilt_rate / 3600000.0 # convert to m/s
+        self.infilt = infilt_rate / 3600000.0  # convert to m/s
         self.vel_coef = 1.0 / roughness  # do division now to save time
 
         # Create fields...
@@ -132,10 +133,10 @@ class KinwaveOverlandFlowModel(Component):
             self.elev = grid.add_zeros('node',
                                        'topographic__elevation')
         #  Water depth
-        if 'water__depth' in grid.at_node:
-            self.depth = grid.at_node['water__depth']
+        if 'surface_water__depth' in grid.at_node:
+            self.depth = grid.at_node['surface_water__depth']
         else:
-            self.depth = grid.add_zeros('node', 'water__depth')
+            self.depth = grid.add_zeros('node', 'surface_water__depth')
         #   Slope
         if 'topographic__gradient' in grid.at_link:
             self.slope = grid.at_link['topographic__gradient']
@@ -156,9 +157,8 @@ class KinwaveOverlandFlowModel(Component):
         # Calculate the ground-surface slope (assume it won't change)
         self.slope[self._grid.active_links] = \
             self._grid.calc_grad_at_link(self.elev)[self._grid.active_links]
-        self.sqrt_slope = np.sqrt( self.slope )
-        self.sign_slope = np.sign( self.slope )
-
+        self.sqrt_slope = np.sqrt(self.slope)
+        self.sign_slope = np.sign(self.slope)
 
     def run_one_step(self, dt, current_time=0.0, **kwds):
         """Calculate water flow for a time period `dt`.
@@ -167,11 +167,11 @@ class KinwaveOverlandFlowModel(Component):
         # in which water depth at the links is the depth at the higher of the
         # two nodes.
         H_link = self._grid.map_value_at_max_node_to_link(
-                'topographic__elevation', 'water__depth')
+                'topographic__elevation', 'surface_water__depth')
 
         # Calculate velocity using the Manning equation.
-        self.vel = -self.sign_slope * self.vel_coef * H_link**0.66667 \
-                    * self.sqrt_slope
+        self.vel = (-self.sign_slope * self.vel_coef * H_link**0.66667 *
+                    self.sqrt_slope)
 
         # Calculate discharge
         self.disch = H_link * self.vel
@@ -196,4 +196,3 @@ class KinwaveOverlandFlowModel(Component):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    

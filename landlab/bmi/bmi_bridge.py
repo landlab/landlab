@@ -128,7 +128,7 @@ def wrap_as_bmi(cls):
     >>> flexure = BmiFlexure()
 
     >>> config = \"\"\"
-    ... eet: 10e3
+    ... eet: 10.e+3
     ... method: flexure
     ... clock:
     ...     start: 0.
@@ -221,7 +221,7 @@ def wrap_as_bmi(cls):
             followed by grid and then time information. An example input
             file looks like::
 
-                eet: 15e3
+                eet: 15.e+3
                 clock:
                     start: 0
                     stop: 100.

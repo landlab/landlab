@@ -237,7 +237,7 @@ class use_field_name_or_array(object):
                 vals = grid[self._at][vals]
             else:
                 vals = np.asarray(vals).flatten()
-
+    
             return func(grid, vals, *args, **kwds)
         return _wrapped
 
