@@ -261,6 +261,7 @@ class Graph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def xy_of_node(self):
         """Get x and y-coordinates of node.
 
@@ -289,9 +290,6 @@ class Graph(object):
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
         """
         return self.ds['x_of_node'].values
-
-        # return self._xy_of_node[:, 0]
-        # return self._x_of_node
 
     @property
     def y_of_node(self):
@@ -323,6 +321,7 @@ class Graph(object):
 
     @property
     @store_result_in_grid()
+    @read_only_array
     def perimeter_nodes(self):
         return find_perimeter_nodes(self)
 
@@ -445,6 +444,8 @@ class Graph(object):
         return self.ds['links_at_patch'].values
 
     @property
+    # @store_result_in_grid()
+    @read_only_array
     def nodes_at_patch(self):
         """Get the nodes that define a patch.
 
@@ -489,8 +490,8 @@ class Graph(object):
         return reverse_one_to_many(self.nodes_at_patch)
 
     @property
-    # @store_result_in_grid()
-    # @read_only_array
+    @store_result_in_grid()
+    @read_only_array
     def patches_at_link(self):
         """Get the patches on either side of each link.
 
