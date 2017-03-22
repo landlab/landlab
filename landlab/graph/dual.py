@@ -211,7 +211,6 @@ class DualGraph(Graph):
 
     @property
     def corners_at_cell(self):
-        print 'getting corners at cell...'
         return self._dual.nodes_at_patch
 
     @property
