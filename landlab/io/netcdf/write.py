@@ -24,7 +24,6 @@ except ImportError:
 
 from scipy.io import netcdf as nc
 
-
 from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
                                           _NP_TO_NC_TYPE)
@@ -252,6 +251,18 @@ def _set_netcdf_variables(root, fields, **kwds):
     _add_variables_at_points(root, fields, names=names)
 
 
+def _set_netcdf_raster_variables(root, fields, **kwds):
+    """Set the field variables for rasters.
+
+    First set the variables that define the grid and then the variables at
+    the grid nodes and cells.
+    """
+    names = kwds.pop('names', None)
+
+    _add_raster_spatial_variables(root, fields, **kwds)
+    _add_variables_at_points(root, fields, names=names)
+
+
 def _set_netcdf_cell_variables(root, fields, **kwds):
     """Set the cell field variables.
 
@@ -326,6 +337,52 @@ def _add_spatial_variables(root, grid, **kwds):
 
         coords = grid.node_axis_coordinates(axis=axis).view()
         coords.shape = var.shape
+        var[:] = coords
+
+        var.units = grid.axis_units[axis]
+        try:
+            var.long_name = long_name[name]
+        except KeyError:
+            var.long_name = grid.axis_name[axis]
+            
+            
+def _add_raster_spatial_variables(root, grid, **kwds):
+    """Add spatial variables to a NetCDF file for rasters.
+
+    Add the variables to *root* that define the structured grid, *grid*.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+    grid : RasterModelGrid
+        A structured grid.
+    long_name : dict, optional
+        Long name for each spatial variable to add. Keys are grid field
+        names, values are corresponding long names.
+    """
+    long_name = kwds.get('long_name', {})
+
+    netcdf_vars = root.variables
+    
+    spatial_variable_names = _get_axes_names(grid.shape)
+    spatial_variable_shape = _get_dimension_names(grid.shape)
+
+    for (axis, name) in enumerate(spatial_variable_names):
+        try:
+            var = netcdf_vars[name]
+        except KeyError:
+            var = root.createVariable(name, 'f8', [spatial_variable_shape[axis]])
+
+        coords = grid.node_axis_coordinates(axis=axis).view().reshape(grid.shape)
+        if axis == 1:
+            coords = coords[1,:]
+        elif axis == 0:
+            coords = coords[:, 1]
+        else:
+            raise NotImplementedError('')
+        coords.shape = var.shape
+        
         var[:] = coords
 
         var.units = grid.axis_units[axis]
@@ -577,5 +634,120 @@ def write_netcdf(path, fields, attrs=None, append=False,
     else:
         _set_netcdf_cell_structured_dimensions(root, fields.shape)
         _set_netcdf_cell_variables(root, fields, names=names)
+
+    root.close()
+
+
+def write_raster_netcdf(path, fields, attrs=None, append=False,
+                        format='NETCDF4', names=None, at=None):
+    
+    """Write Raster Model Grid landlab fields to netcdf.
+
+    Write the data and grid information for *fields* to *path* as NetCDF.
+    
+    This method is for Raster Grids only and takes advantage of regular x and
+    y spacing to save memory. 
+    
+    If the *append* keyword argument in True, append the data to an existing
+    file, if it exists. Otherwise, clobber an existing files.
+
+    Parameters
+    ----------
+    path : str
+        Path to output file.
+    fields : field-like
+        Landlab field object that holds a grid and associated values. This must
+        be a Raster type. 
+    append : boolean, optional
+        Append data to an existing file, otherwise clobber the file.
+    format : {'NETCDF4'}
+        Format of output netcdf file.
+    attrs : dict
+        Attributes to add to netcdf file.
+    names : iterable of str, optional
+        Names of the fields to include in the netcdf file. If not provided,
+        write all fields.
+    at : {'node'}, optional
+        The location where values are defined. Presently only implemented for 
+        type 'node'.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.io.netcdf import write_raster_netcdf
+
+    Create a uniform rectilinear grid with four rows and 3 columns, and add
+    some data fields to it.
+
+    >>> rmg = RasterModelGrid(4, 3)
+    >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
+    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+
+    Create a temporary directory to write the netcdf file into.
+
+    >>> import tempfile, os
+    >>> temp_dir = tempfile.mkdtemp()
+    >>> os.chdir(temp_dir)
+
+    Write the grid to a netcdf4 file but only include the *uplift_rate*
+    data in the file.
+
+    >>> write_raster_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
+    ...     names='uplift_rate')
+
+    Read the file back in and check its contents.
+
+    >>> from scipy.io import netcdf
+    >>> fp = netcdf.netcdf_file('test.nc', 'r')
+    >>> 'uplift_rate' in fp.variables
+    True
+    >>> 'topographic__elevation' in fp.variables
+    False
+    >>> fp.variables['uplift_rate'][:].flatten()
+    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+            22.])
+
+    """
+    from landlab import RasterModelGrid
+    if isinstance(fields, RasterModelGrid):
+        pass
+    else:
+        raise NotImplementedError("This method only supports grids of type Raster, "
+                                  "for other grid types use write_netcdf")
+    
+    if format not in _VALID_NETCDF_FORMATS:
+        raise ValueError('format not understood')
+    if at not in (None, 'cell', 'node'):
+        raise ValueError('value location not understood')
+
+    if isinstance(names, six.string_types):
+        names = (names, )
+
+    at = 'node'
+    
+    names = names or fields[at].keys()
+
+    if not set(fields[at].keys()).issuperset(names):
+        raise ValueError('values must be on either cells or nodes, not both')
+
+    attrs = attrs or {}
+
+    if os.path.isfile(path) and append:
+        mode = 'a'
+    else:
+        mode = 'w'
+
+    if format == 'NETCDF3_CLASSIC':
+        root = nc.netcdf_file(path, mode, version=1)
+    elif format == 'NETCDF3_64BIT':
+        root = nc.netcdf_file(path, mode, version=2)
+    else:
+        root = nc4.Dataset(path, mode, format=format)
+
+    _set_netcdf_attributes(root, attrs)
+   
+    _set_netcdf_structured_dimensions(root, fields.shape)
+    _set_netcdf_raster_variables(root, fields, names=names)
 
     root.close()
