@@ -286,18 +286,19 @@ class DischargeDiffuser(Component):
 
         self._app[:] = self._awp + self._aep + self._asp + self._anp
 
-        apz = self._app.copy()
-        awz = self._aww.copy()
-        aez = self._aee.copy()
-        asz = self._ass.copy()
-        anz = self._ann.copy()
+        # This copy is redundant if we don't use VV's 4/1/1/1/1 scheme
+        # apz = self._app
+        # awz = self._aww
+        # aez = self._aee
+        # asz = self._ass
+        # anz = self._ann
         # zero elevation treatment
         # at a zero elevation we use a simple averaging approach
         # this rationale is questionable - a propagation across flats may be
         # preferable
-        apz += self._min_slope_thresh
+        self._app += self._min_slope_thresh
         # this is VV's treatment for flats; now replaced with a simple-minded
-        # addition of small vals to apz and axz ->
+        # addition of small vals to app and axx ->
         # flats = np.abs(self._app) < self._flat_thresh
         # apz[flats] = 4
         # for NSEW in (awz, aez, asz, anz):
@@ -310,19 +311,25 @@ class DischargeDiffuser(Component):
         # calc the new K based on incoming discharges
         mismatch = 1.
         # if VV's 4/1/1/1/1 flat scheme is used, this thresh is too low
-        # current approach with tiny addition to apz and axz works better
+        # current approach with tiny addition to app and axx works better
         while mismatch > 1.e-6:
+            # in here, without VV's method, we can use axx and app instead of
+            # axz and apz
             Knew.fill(self._min_slope_thresh)
-            Knew[self._east] += awz[self._east] * K[self._west]
-            Knew[self._westedge] += awz[self._westedge] * K[self._westedge]
-            Knew[self._west] += aez[self._west] * K[self._east]
-            Knew[self._eastedge] += aez[self._eastedge] * K[self._eastedge]
-            Knew[self._north] += asz[self._north] * K[self._south]
-            Knew[self._southedge] += asz[self._southedge] * K[self._southedge]
-            Knew[self._south] += anz[self._south] * K[self._north]
-            Knew[self._northedge] += anz[self._northedge] * K[self._northedge]
+            Knew[self._east] += self._aww[self._east] * K[self._west]
+            Knew[self._westedge] += self._aww[self._westedge] * K[
+                self._westedge]
+            Knew[self._west] += self._aee[self._west] * K[self._east]
+            Knew[self._eastedge] += self._aee[self._eastedge] * K[
+                self._eastedge]
+            Knew[self._north] += self._ass[self._north] * K[self._south]
+            Knew[self._southedge] += self._ass[self._southedge] * K[
+                self._southedge]
+            Knew[self._south] += self._ann[self._south] * K[self._north]
+            Knew[self._northedge] += self._ann[self._northedge] * K[
+                self._northedge]
             Knew += Qsp
-            Knew /= apz
+            Knew /= self._app
             mismatch = np.sum(np.square(Knew - K))
             K[:] = Knew
 
@@ -336,7 +343,7 @@ class DischargeDiffuser(Component):
         self._Qn[:] = self._ann * Kpad[self._northpad]
         self._Qn -= self._anp * K
 
-        self._K = K
+        self._K = K  # ...to make it accessible
 
     @property
     def discharges_at_links(self):
@@ -449,13 +456,13 @@ if __name__ == '__main__':
     import numpy as np
     from landlab import RasterModelGrid, imshow_grid_at_node
     S_crit = 0.25
-    mg = RasterModelGrid((20, 20), 0.5)
+    mg = RasterModelGrid((50, 50), 0.5)
     mg.add_zeros('node', 'topographic__elevation')
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
     Qw_in[0] = 0.5*np.pi
     Qs_in[0] = (1. - S_crit)*0.5*np.pi
     dd = DischargeDiffuser(mg, S_crit)
-    for i in range(501):  # 501
+    for i in range(2001):  # 501
         dd.run_one_step(0.08)  # 0.08
     imshow_grid_at_node(mg, 'topographic__elevation')
