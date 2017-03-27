@@ -283,7 +283,7 @@ def read_netcdf(nc_file, just_grid=False):
             
             node_coords = _read_netcdf_raster_structured_grid(root)
         else:
-            assert ValueError('x and y dimensions must both either be 1D '
+            assert ValueError('x and y dimensions must both either be 2D '
                               '(nj, ni) or 1D (ni,) and (nj).')
             
     assert len(node_coords) == 2
