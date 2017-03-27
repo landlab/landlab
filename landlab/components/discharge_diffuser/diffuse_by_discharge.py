@@ -185,6 +185,9 @@ class DischargeDiffuser(Component):
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
 
+        self._dxbyy = grid.dx/grid.dy
+        self._dybyx = grid.dy/grid.dx
+
     def run_one_step(self, dt, **kwds):
         """
         """
@@ -267,19 +270,23 @@ class DischargeDiffuser(Component):
         # note cols/rows which don't get updated will always remain as 0,
         # which is right provided we want no flow BCs
         # N
-        eta_diff = -pad_eta[self._centpad] + pad_eta[self._northpad]
+        eta_diff = (
+            -pad_eta[self._centpad] + pad_eta[self._northpad]) * self._dxbyy
         self._ann[:] = eta_diff.clip(0.)
         self._anp[:] = (-eta_diff).clip(0.)
         # S
-        eta_diff = -pad_eta[self._centpad] + pad_eta[self._southpad]
+        eta_diff = (
+            -pad_eta[self._centpad] + pad_eta[self._southpad]) * self._dxbyy
         self._ass[:] = eta_diff.clip(0.)
         self._asp[:] = (-eta_diff).clip(0.)
         # E
-        eta_diff = -pad_eta[self._centpad] + pad_eta[self._eastpad]
+        eta_diff = (
+            -pad_eta[self._centpad] + pad_eta[self._eastpad]) * self._dybyx
         self._aee[:] = eta_diff.clip(0.)
         self._aep[:] = (-eta_diff).clip(0.)
         # W
-        eta_diff = -pad_eta[self._centpad] + pad_eta[self._westpad]
+        eta_diff = (
+            -pad_eta[self._centpad] + pad_eta[self._westpad]) * self._dybyx
         self._aww[:] = eta_diff.clip(0.)
         self._awp[:] = (-eta_diff).clip(0.)
         ##
@@ -456,13 +463,13 @@ if __name__ == '__main__':
     import numpy as np
     from landlab import RasterModelGrid, imshow_grid_at_node
     S_crit = 0.25
-    mg = RasterModelGrid((50, 50), 0.5)
+    mg = RasterModelGrid((20, 20), (0.5, 0.5))
     mg.add_zeros('node', 'topographic__elevation')
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
     Qw_in[0] = 0.5*np.pi
     Qs_in[0] = (1. - S_crit)*0.5*np.pi
     dd = DischargeDiffuser(mg, S_crit)
-    for i in range(2001):  # 501
+    for i in range(501):  # 501
         dd.run_one_step(0.08)  # 0.08
     imshow_grid_at_node(mg, 'topographic__elevation')
