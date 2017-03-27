@@ -225,132 +225,154 @@ class DischargeDiffuser(Component):
         self._SEpad = (self._lowpad, self._highpad)
         self._NWpad = (self._highpad, self._lowpad)
 
-        ######STABILITY ANALYSIS GOES HERE
-        dt_stab = dt
-
-        # elevation at current and new time
-        # Note a horizonal surface is the initial condition
         eta = z.reshape((ni, nj))
         K = self._K.reshape((ni, nj))
         Knew = self._Knew.reshape((ni, nj))
-        # etan = self._znew.reshape((grid.number_of_node_rows,
-        #                            grid.number_of_node_columns))
 
-        # pad eta
-        pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
-        # do the sediment diffusion
-        for dir in ('W', 'E', 'S', 'N'):
-            self._grad_on_link(pad_eta, dir)
-            Cslope = np.sqrt(self._slx**2 + self._sly**2)
-            self._link_sed_flux_from_slope(Cslope, self._slope, dir)
+        # begin the component stability loop:
+        current_internal_time = 0.
+        breakcheck = False
+        while not breakcheck:
+            # pad eta
+            pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
 
-        try:
-            Qin = Qsource.reshape((ni, nj))
-        except AttributeError:
-            Qin = float(Qsource)  # if both fail, we're in trouble
-        eta[:] += dt_stab*(
-            self._Qsed_e + self._Qsed_n + self._Qsed_w + self._Qsed_s +
-            Qin)/grid.dx/grid.dy
+            # must do water part 1st for stab analysis to work OK:
+            # do the water routing on links
+            # These calculations are based on assuming that the flow is a sheet
+            # flow that can be characterized with a potential equation. If this
+            # flow is isotropic (an assumption we should revisit) with this
+            # model the flow discharge in the x-direction (for example) can be
+            # calculated as a constant (K the 'flow conductivity') times the
+            # component of the sediment slope in that direction. It helps to
+            # define a 'slope velocity' u, with components ustar=-deta/dx and
+            # vstar=-deta/dx which allows us to write down the following
+            # advection like gov. eq. for the flow  ----div(Ku)+Q=0---where Q
+            # represents external flow inputs
 
-        # do the water routing on links
-        # These calculations are based on assuming that the flow is a sheet
-        # flow that can be characterized with a potential equation. If this
-        # flow is isotropic (an assumption we should revisit) with this model
-        # the flow discharge in the x-direction (for example) can be calculated
-        # as a constant (K the 'flow conductivity') times the component of the
-        # sediment slope in that direction. It helps to define a 'slope
-        # velocity' u, with components ustar=-deta/dx and vstar=-deta/dx which
-        # allows us to write down the following advection like gov. eq. for
-        # the flow  ----div(Ku)+Q=0---where Q represents external flow inputs
+            # Since we can readily determine u from the current sediment
+            # topography, We solve this equation for K using an upwind scheme
 
-        # Since we can readily determine u from the current sediment topography
-        # We solve this equation for K using an upwind scheme
+            # Build upwinded coefficients. Vals only 0 if if flow is in upwind
+            # direction
+            # note cols/rows which don't get updated will always remain as 0,
+            # which is right provided we want no flow BCs
+            # N
+            eta_diff = (-pad_eta[self._centpad] +
+                        pad_eta[self._northpad]) * self._dxbyy
+            self._ann[:] = eta_diff.clip(0.)
+            self._anp[:] = (-eta_diff).clip(0.)
+            # S
+            eta_diff = (-pad_eta[self._centpad] +
+                        pad_eta[self._southpad]) * self._dxbyy
+            self._ass[:] = eta_diff.clip(0.)
+            self._asp[:] = (-eta_diff).clip(0.)
+            # E
+            eta_diff = (-pad_eta[self._centpad] +
+                        pad_eta[self._eastpad]) * self._dybyx
+            self._aee[:] = eta_diff.clip(0.)
+            self._aep[:] = (-eta_diff).clip(0.)
+            # W
+            eta_diff = (-pad_eta[self._centpad] +
+                        pad_eta[self._westpad]) * self._dybyx
+            self._aww[:] = eta_diff.clip(0.)
+            self._awp[:] = (-eta_diff).clip(0.)
+            ##
 
-        # Build upwinded coefficients. Vals only 0 if if flow is in upwind dir
-        # note cols/rows which don't get updated will always remain as 0,
-        # which is right provided we want no flow BCs
-        # N
-        eta_diff = (
-            -pad_eta[self._centpad] + pad_eta[self._northpad]) * self._dxbyy
-        self._ann[:] = eta_diff.clip(0.)
-        self._anp[:] = (-eta_diff).clip(0.)
-        # S
-        eta_diff = (
-            -pad_eta[self._centpad] + pad_eta[self._southpad]) * self._dxbyy
-        self._ass[:] = eta_diff.clip(0.)
-        self._asp[:] = (-eta_diff).clip(0.)
-        # E
-        eta_diff = (
-            -pad_eta[self._centpad] + pad_eta[self._eastpad]) * self._dybyx
-        self._aee[:] = eta_diff.clip(0.)
-        self._aep[:] = (-eta_diff).clip(0.)
-        # W
-        eta_diff = (
-            -pad_eta[self._centpad] + pad_eta[self._westpad]) * self._dybyx
-        self._aww[:] = eta_diff.clip(0.)
-        self._awp[:] = (-eta_diff).clip(0.)
-        ##
+            self._app[:] = self._awp + self._aep + self._asp + self._anp
 
-        self._app[:] = self._awp + self._aep + self._asp + self._anp
+            # This copy is redundant if we don't use VV's 4/1/1/1/1 scheme
+            # apz = self._app
+            # awz = self._aww
+            # aez = self._aee
+            # asz = self._ass
+            # anz = self._ann
+            # zero elevation treatment
+            # at a zero elevation we use a simple averaging approach
+            # this rationale is questionable - a propagation across flats may
+            # be preferable
+            self._app += self._min_slope_thresh
+            # this is VV's treatment for flats; now replaced with a simple-
+            # minded addition of small vals to app and axx ->
+            # flats = np.abs(self._app) < self._flat_thresh
+            # apz[flats] = 4
+            # for NSEW in (awz, aez, asz, anz):
+            #     NSEW[flats] = 1
+            # NOTE when we do not have a zero elevation condition the
+            # coefficients a*z are the upwind coefficents
 
-        # This copy is redundant if we don't use VV's 4/1/1/1/1 scheme
-        # apz = self._app
-        # awz = self._aww
-        # aez = self._aee
-        # asz = self._ass
-        # anz = self._ann
-        # zero elevation treatment
-        # at a zero elevation we use a simple averaging approach
-        # this rationale is questionable - a propagation across flats may be
-        # preferable
-        self._app += self._min_slope_thresh
-        # this is VV's treatment for flats; now replaced with a simple-minded
-        # addition of small vals to app and axx ->
-        # flats = np.abs(self._app) < self._flat_thresh
-        # apz[flats] = 4
-        # for NSEW in (awz, aez, asz, anz):
-        #     NSEW[flats] = 1
-        # NOTE when we do not have a zero elevation condition the
-        # coefficients a*z are the upwind coefficents
+            # Solve upwind equations for nodal K
+            # this involves iteration to a stable solution
+            # calc the new K based on incoming discharges
+            mismatch = 1.
+            # if VV's 4/1/1/1/1 flat scheme is used, this thresh is too low
+            # current approach with tiny addition to app and axx works better
+            while mismatch > 1.e-6:
+                # in here, without VV's method, we can use axx and app instead
+                # of axz and apz
+                Knew.fill(self._min_slope_thresh)
+                Knew[self._east] += self._aww[self._east] * K[self._west]
+                Knew[self._westedge] += self._aww[self._westedge] * K[
+                    self._westedge]
+                Knew[self._west] += self._aee[self._west] * K[self._east]
+                Knew[self._eastedge] += self._aee[self._eastedge] * K[
+                    self._eastedge]
+                Knew[self._north] += self._ass[self._north] * K[self._south]
+                Knew[self._southedge] += self._ass[self._southedge] * K[
+                    self._southedge]
+                Knew[self._south] += self._ann[self._south] * K[self._north]
+                Knew[self._northedge] += self._ann[self._northedge] * K[
+                    self._northedge]
+                Knew += Qsp
+                Knew /= self._app
+                mismatch = np.sum(np.square(Knew - K))
+                K[:] = Knew
 
-        # Solve upwind equations for nodal K
-        # this involves iteration to a stable solution
-        # calc the new K based on incoming discharges
-        mismatch = 1.
-        # if VV's 4/1/1/1/1 flat scheme is used, this thresh is too low
-        # current approach with tiny addition to app and axx works better
-        while mismatch > 1.e-6:
-            # in here, without VV's method, we can use axx and app instead of
-            # axz and apz
-            Knew.fill(self._min_slope_thresh)
-            Knew[self._east] += self._aww[self._east] * K[self._west]
-            Knew[self._westedge] += self._aww[self._westedge] * K[
-                self._westedge]
-            Knew[self._west] += self._aee[self._west] * K[self._east]
-            Knew[self._eastedge] += self._aee[self._eastedge] * K[
-                self._eastedge]
-            Knew[self._north] += self._ass[self._north] * K[self._south]
-            Knew[self._southedge] += self._ass[self._southedge] * K[
-                self._southedge]
-            Knew[self._south] += self._ann[self._south] * K[self._north]
-            Knew[self._northedge] += self._ann[self._northedge] * K[
-                self._northedge]
-            Knew += Qsp
-            Knew /= self._app
-            mismatch = np.sum(np.square(Knew - K))
-            K[:] = Knew
+            Kpad = np.pad(K, ((1, 1), (1, 1)), 'edge')
+            self._Qw[:] = self._aww * Kpad[self._westpad]
+            self._Qw -= self._awp * K
+            self._Qe[:] = self._aee * Kpad[self._eastpad]
+            self._Qe -= self._aep * K
+            self._Qs[:] = self._ass * Kpad[self._southpad]
+            self._Qs -= self._asp * K
+            self._Qn[:] = self._ann * Kpad[self._northpad]
+            self._Qn -= self._anp * K
 
-        Kpad = np.pad(K, ((1, 1), (1, 1)), 'edge')
-        self._Qw[:] = self._aww * Kpad[self._westpad]
-        self._Qw -= self._awp * K
-        self._Qe[:] = self._aee * Kpad[self._eastpad]
-        self._Qe -= self._aep * K
-        self._Qs[:] = self._ass * Kpad[self._southpad]
-        self._Qs -= self._asp * K
-        self._Qn[:] = self._ann * Kpad[self._northpad]
-        self._Qn -= self._anp * K
+            self._K = K  # ...to make it accessible
 
-        self._K = K  # ...to make it accessible
+            # STABILITY ANALYSIS:
+            # assume rectangular grid (can't be warped)
+            # establish the max flux across a face:
+            EWmax = max(np.fabs(self._Qw).max(),
+                        np.fabs(self._Qe).max())/self.grid.dy
+            NSmax = max(np.fabs(self._Qn).max(),
+                        np.fabs(self._Qs).max())/self.grid.dx
+            maxwaterflux = max(EWmax, NSmax)
+            if np.isclose(maxwaterflux, 0.):
+                dt_stab = dt
+                breakcheck = True
+            else:
+                dt_stab = self.grid.dx * self.grid.dy / (2. * maxwaterflux)
+                dt_stab = min(dt_stab, dt)
+                if current_internal_time + dt_stab >= dt:
+                    breakcheck = True
+                    dt_stab = dt - current_internal_time
+
+            # do the sediment diffusion
+            for dir in ('W', 'E', 'S', 'N'):
+                self._grad_on_link(pad_eta, dir)
+                Cslope = np.sqrt(self._slx**2 + self._sly**2)
+                self._link_sed_flux_from_slope(Cslope, self._slope, dir)
+
+            try:
+                Qin = Qsource.reshape((ni, nj))
+            except AttributeError:
+                Qin = float(Qsource)  # if both fail, we're in trouble
+            eta[:] += dt_stab*(
+                self._Qsed_e + self._Qsed_n + self._Qsed_w + self._Qsed_s +
+                Qin)/grid.dx/grid.dy
+
+            # increment the component time:
+            current_internal_time += dt_stab
 
     @property
     def discharges_at_links(self):
@@ -463,7 +485,7 @@ if __name__ == '__main__':
     import numpy as np
     from landlab import RasterModelGrid, imshow_grid_at_node
     S_crit = 0.25
-    mg = RasterModelGrid((20, 20), (0.5, 0.5))
+    mg = RasterModelGrid((40, 40), (0.25, 0.25))
     mg.add_zeros('node', 'topographic__elevation')
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
