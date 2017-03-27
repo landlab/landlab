@@ -277,9 +277,15 @@ def read_netcdf(nc_file, just_grid=False):
 
     try:
         node_coords = _read_netcdf_structured_grid(root)
-    except:
-        node_coords = _read_netcdf_raster_structured_grid(root)
-        
+    except ValueError:
+        if ((len(root.variables['x'].dimensions) == 1) and 
+            (len(root.variables['y'].dimensions) ==1)):
+            
+            node_coords = _read_netcdf_raster_structured_grid(root)
+        else:
+            assert ValueError('x and y dimensions must both either be 1D '
+                              '(nj, ni) or 1D (ni,) and (nj).')
+            
     assert len(node_coords) == 2
 
     spacing = _get_raster_spacing(node_coords)
