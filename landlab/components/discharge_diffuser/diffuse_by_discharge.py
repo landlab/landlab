@@ -313,46 +313,53 @@ class DischargeDiffuser(Component):
         # at a zero elevation we use a simple averaging approach
         # this rationale is questionable - a propagation across flats may be
         # preferable
-        flats = np.abs(self._app) < self._flat_thresh
-        apz[flats] = 4
-        for NSEW in (awz, aez, asz, anz):
-            NSEW[flats] = 1
+        apz += self._min_slope_thresh
+        # this is VV's treatment for flats; now replaced with a simple-minded
+        # addition of small vals to apz and axz
+        # flats = np.abs(self._app) < self._flat_thresh
+        # apz[flats] = 4
+        # for NSEW in (awz, aez, asz, anz):
+        #     NSEW[flats] = 1
         # NOTE when we do not have a zero elevation condition the
         # coefficients a*z are the upwind coefficents
 
         # Solve upwind equations for nodal K
         # this involves iteration to a stable solution
-        ######IMPLEMENT IT
         # calc the new K based on incoming discharges
-        for init in range(1):
-            # Knew.fill(0.)
-            # Knew[self._east] += awz[self._east] + K[self._west]
-            # Knew[self._westedge] += awz[self._westedge] + K[self._westedge]
-            # Knew[self._west] += aez[self._west] + K[self._east]
-            # Knew[self._eastedge] += aez[self._eastedge] + K[self._eastedge]
-            # Knew[self._north] += asz[self._north] + K[self._south]
-            # Knew[self._southedge] += asz[self._southedge] + K[self._southedge]
-            # Knew[self._south] += anz[self._south] + K[self._north]
-            # Knew[self._northedge] += anz[self._northedge] + K[self._northedge]
-            # Knew += Qsp
-            # Knew /= apz
-            # K[:] = Knew
-            for i in range(ni):
-                for j in range(nj):
-                    Ei = i
-                    Ej = np.minimum(j+1, nj-1)
-                    Ni = np.minimum(i+1, ni-1)
-                    Nj = j
-                    Wi = i
-                    Wj = np.maximum(j-1, 0)
-                    Si = np.maximum(i-1, 0)
-                    Sj = j
+        mismatch = 1.
+        # if VV's 4/1/1/1/1 flat scheme is used, this thresh is too low
+        # current approach with tiny addition to apz and axz works better
+        while mismatch > 1.e-6:
+            Knew.fill(self._min_slope_thresh)
+            Knew[self._east] += awz[self._east] * K[self._west]
+            Knew[self._westedge] += awz[self._westedge] * K[self._westedge]
+            Knew[self._west] += aez[self._west] * K[self._east]
+            Knew[self._eastedge] += aez[self._eastedge] * K[self._eastedge]
+            Knew[self._north] += asz[self._north] * K[self._south]
+            Knew[self._southedge] += asz[self._southedge] * K[self._southedge]
+            Knew[self._south] += anz[self._south] * K[self._north]
+            Knew[self._northedge] += anz[self._northedge] * K[self._northedge]
+            Knew += Qsp
+            Knew /= apz
+            mismatch = np.sum(np.square(Knew - K))
+            K[:] = Knew
 
-                    # this is a discharge calculation
-                    K[i, j] = (
-                        awz[i, j] * K[Wi, Wj] + aez[i, j] * K[Ei, Ej] +
-                        asz[i, j] * K[Si, Sj] + anz[i, j] * K[Ni, Nj] +
-                        Qsp[i, j])/apz[i, j]
+        # for i in range(ni):
+        #     for j in range(nj):
+        #         Ei = i
+        #         Ej = np.minimum(j+1, nj-1)
+        #         Ni = np.minimum(i+1, ni-1)
+        #         Nj = j
+        #         Wi = i
+        #         Wj = np.maximum(j-1, 0)
+        #         Si = np.maximum(i-1, 0)
+        #         Sj = j
+        # 
+        #         # this is a discharge calculation
+        #         K[i, j] = (
+        #             awz[i, j] * K[Wi, Wj] + aez[i, j] * K[Ei, Ej] +
+        #             asz[i, j] * K[Si, Sj] + anz[i, j] * K[Ni, Nj] +
+        #             Qsp[i, j])/apz[i, j]
 
         Kpad = np.pad(K, ((1, 1), (1, 1)), 'edge')
         self._Qw[:] = self._aww * Kpad[self._westpad]
@@ -364,6 +371,8 @@ class DischargeDiffuser(Component):
         self._Qn[:] = self._ann * Kpad[self._northpad]
         self._Qn -= self._anp * K
 
+        self._K = K
+
     @property
     def discharges_at_links(self):
         """Return the discharges at links.
@@ -372,108 +381,6 @@ class DischargeDiffuser(Component):
         Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link
-
-    # def _grad_on_link_old(self, eta, direction, **kwds):
-    #     """
-    #     Updates slx and sly with link gradient values according to `direction`.
-    # 
-    #     direction = {'E', 'N', 'S', 'W'}
-    #     """
-    #     slice_e = (slice(0, ni, 1), slice(1, nj, 1))
-    #     slice_n = (slice(1, ni, 1), slice(0, nj, 1))
-    #     slice_w = (slice(0, ni, 1), slice(0, nj-1, 1))
-    #     slice_s = (slice(0, ni-1, 1), slice(0, nj, 1))
-    #     slice_ne = (slice(1, ni, 1), slice(1, nj, 1))
-    #     slice_sw = (slice(0, ni-1, 1), slice(0, nj-1, 1))
-    #     slice_nw = (slice(1, ni, 1), slice(0, nj-1, 1))
-    #     slice_se = (slice(0, ni-1, 1), slice(1, nj, 1))
-    # 
-    #     if direction == 'W':
-    #         self._slx[slice_e] = (eta[slice_w] - eta[slice_e])/self.grid.dx
-    #         self._slx[:, 0] = 0.  # W col gets 0
-    # 
-    #         self._sly.fill(0.)
-    #         self._sly[slice_ne] += eta[slice_sw]
-    #         self._sly[slice_se] -= eta[slice_nw]
-    #         self._sly[slice_n] += eta[slice_s]
-    #         self._sly[slice_s] -= eta[slice_n]
-    # 
-    #         self._sly[0, 1:] += eta[0, :-1]  # S row add node to W not SW
-    #         self._sly[0, :] += eta[0, :]  # S row add self not S
-    #         self._sly[-1, 1:] -= eta[-1, :-1]  # N row less node to W not NW
-    #         self._sly[-1, :] -= eta[-1, :]  # N row less self not N
-    #         self._sly[1:, 0] += eta[:-1, 0]  # W col add node to S not SW
-    #         self._sly[:-1, 0] -= eta[1:, 0]  # W col less node to N not NW
-    #         self._sly[0, 0] += eta[0, 0]  # SW corner add self, not SW
-    #         self._sly[-1, 0] -= eta[-1, 0]  # NW corner less self, not NW
-    #         self._sly *= 0.25
-    #         self._sly /= self.grid.dy
-    # 
-    #     elif direction == 'E':
-    #         self._slx[slice_w] = (eta[slice_e] - eta[slice_w])/self.grid.dx
-    #         self._slx[:, -1] = 0.  # E col gets 0
-    # 
-    #         self._sly.fill(0.)
-    #         self._sly[slice_nw] += eta[slice_se]
-    #         self._sly[slice_sw] -= eta[slice_ne]
-    #         self._sly[slice_n] += eta[slice_s]
-    #         self._sly[slice_s] -= eta[slice_n]
-    # 
-    #         self._sly[0, :-1] += eta[0, 1:]  # S row add node to E not SE
-    #         self._sly[0, :] += eta[0, :]  # S row add self not S
-    #         self._sly[-1, :-1] -= eta[-1, 1:]  # N row less node to E not NE
-    #         self._sly[-1, :] -= eta[-1, :]  # N row less self not N
-    #         self._sly[1:, -1] += eta[:-1, -1]  # E col add node to S not SE
-    #         self._sly[:-1, -1] -= eta[1:, -1]  # E col less node to N not NE
-    #         self._sly[0, -1] += eta[0, -1]  # SE corner add self, not SE
-    #         self._sly[-1, -1] -= eta[-1, -1]  # NE corner less self, not NE
-    #         self._sly *= 0.25
-    #         self._sly /= self.grid.dy
-    # 
-    #     elif direction == 'S':
-    #         self._sly[slice_n] = (eta[slice_s] - eta[slice_n])/self.grid.dy
-    #         self._sly[0, :] = 0.  # S col gets 0
-    # 
-    #         self._slx.fill(0.)
-    #         self._slx[slice_ne] += eta[slice_sw]
-    #         self._slx[slice_nw] -= eta[slice_se]
-    #         self._slx[slice_e] += eta[slice_w]
-    #         self._slx[slice_w] -= eta[slice_e]
-    # 
-    #         self._slx[1:, 0] += eta[:-1, 0]  # W col add node to S not SW
-    #         self._slx[:, 0] += eta[:, 0]  # W col add self not W
-    #         self._slx[1:, -1] -= eta[:-1, -1]  # E col less node to S not SE
-    #         self._slx[:, -1] -= eta[:, -1]  # E col less self not E
-    #         self._slx[0, 1:] += eta[0, :-1]  # S row add node to W not SW
-    #         self._slx[0, :-1] -= eta[0, 1:]  # S row less node to E not SE
-    #         self._slx[0, 0] += eta[0, 0]  # SW corner add self, not SW
-    #         self._slx[0, -1] -= eta[0, -1]  # SE corner less self, not SE
-    #         self._slx *= 0.25
-    #         self._slx /= self.grid.dx
-    # 
-    #     elif direction == 'N':
-    #         self._sly[slice_s] = (eta[slice_n] - eta[slice_s])/self.grid.dy
-    #         self._sly[-1, :] = 0.  # N col gets 0
-    # 
-    #         self._slx.fill(0.)
-    #         self._slx[slice_se] += eta[slice_nw]
-    #         self._slx[slice_sw] -= eta[slice_ne]
-    #         self._slx[slice_e] += eta[slice_w]
-    #         self._slx[slice_w] -= eta[slice_e]
-    # 
-    #         self._slx[:-1, 0] += eta[1:, 0]  # W col add node to N not NW
-    #         self._slx[:, 0] += eta[:, 0]  # W col add self not W
-    #         self._slx[:-1, -1] -= eta[1:, -1]  # E col less node to N not NE
-    #         self._slx[:, -1] -= eta[:, -1]  # E col less self not E
-    #         self._slx[-1, 1:] += eta[-1, :-1]  # N row add node to W not NW
-    #         self._slx[-1, :-1] -= eta[-1, 1:]  # N row less node to E not NE
-    #         self._slx[-1, 0] += eta[-1, 0]  # NW corner add self, not NW
-    #         self._slx[-1, -1] -= eta[-1, -1]  # NE corner less self, not NE
-    #         self._slx *= 0.25
-    #         self._slx /= self.grid.dx
-    # 
-    #     else:
-    #         raise NameError("direction must be {'E', 'N', 'S', 'W'}")
 
     def _grad_on_link(self, padded_eta, direction):
         """
@@ -496,7 +403,8 @@ class DischargeDiffuser(Component):
         core = (slice(1, -1, 1), slice(1, -1, 1))
         if direction == 'W':
             self._slx[:] = (
-                padded_eta[self._westpad] - padded_eta[self._centpad])/self.grid.dx
+                padded_eta[self._westpad] -
+                padded_eta[self._centpad])/self.grid.dx
             self._sly[:] = padded_eta[self._SWpad]
             self._sly -= padded_eta[self._NWpad]
             self._sly += padded_eta[self._southpad]
@@ -506,7 +414,8 @@ class DischargeDiffuser(Component):
 
         elif direction == 'E':
             self._slx[:] = (
-                padded_eta[self._eastpad] - padded_eta[self._centpad])/self.grid.dx
+                padded_eta[self._eastpad] -
+                padded_eta[self._centpad])/self.grid.dx
             self._sly[:] = padded_eta[self._SEpad]
             self._sly -= padded_eta[self._NEpad]
             self._sly += padded_eta[self._southpad]
@@ -516,7 +425,8 @@ class DischargeDiffuser(Component):
 
         elif direction == 'S':
             self._sly[:] = (
-                padded_eta[self._southpad] - padded_eta[self._centpad])/self.grid.dy
+                padded_eta[self._southpad] -
+                padded_eta[self._centpad])/self.grid.dy
             self._slx[:] = padded_eta[self._SWpad]
             self._slx -= padded_eta[self._SEpad]
             self._slx += padded_eta[self._westpad]
@@ -526,7 +436,8 @@ class DischargeDiffuser(Component):
 
         elif direction == 'N':
             self._sly[:] = (
-                padded_eta[self._northpad] - padded_eta[self._centpad])/self.grid.dy
+                padded_eta[self._northpad] -
+                padded_eta[self._centpad])/self.grid.dy
             self._slx[:] = padded_eta[self._NWpad]
             self._slx -= padded_eta[self._NEpad]
             self._slx += padded_eta[self._westpad]
@@ -567,11 +478,6 @@ class DischargeDiffuser(Component):
         dir_sed_flux[thisslice] = (dir_water_flux[thisslice] *
                                    slope_diff[thisslice])
         dir_sed_flux[deadedge] = 0.
-
-    def diffuse_sediment(self, Qw_in, Qsed_in, **kwds):
-        """
-        """
-        pass
 
 
 if __name__ == '__main__':
