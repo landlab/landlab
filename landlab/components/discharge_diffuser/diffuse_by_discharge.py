@@ -266,24 +266,6 @@ class DischargeDiffuser(Component):
         # Build upwinded coefficients. Vals only 0 if if flow is in upwind dir
         # note cols/rows which don't get updated will always remain as 0,
         # which is right provided we want no flow BCs
-        ## REPLACE THIS SECTION:
-        # # N
-        # eta_diff = -eta[self._south] + eta[self._north]
-        # self._ann[self._south] = eta_diff.clip(0.)
-        # self._anp[self._south] = (-eta_diff).clip(0.)
-        # # S
-        # eta_diff = -eta[self._north] + eta[self._south]
-        # self._ass[self._north] = eta_diff.clip(0.)
-        # self._asp[self._north] = (-eta_diff).clip(0.)
-        # # E
-        # eta_diff = -eta[self._west] + eta[self._east]
-        # self._aee[self._west] = eta_diff.clip(0.)
-        # self._aep[self._west] = (-eta_diff).clip(0.)
-        # # W
-        # eta_diff = -eta[self._east] + eta[self._west]
-        # self._aww[self._east] = eta_diff.clip(0.)
-        # self._awp[self._east] = (-eta_diff).clip(0.)
-        ## WITH THIS
         # N
         eta_diff = -pad_eta[self._centpad] + pad_eta[self._northpad]
         self._ann[:] = eta_diff.clip(0.)
@@ -315,7 +297,7 @@ class DischargeDiffuser(Component):
         # preferable
         apz += self._min_slope_thresh
         # this is VV's treatment for flats; now replaced with a simple-minded
-        # addition of small vals to apz and axz
+        # addition of small vals to apz and axz ->
         # flats = np.abs(self._app) < self._flat_thresh
         # apz[flats] = 4
         # for NSEW in (awz, aez, asz, anz):
@@ -343,23 +325,6 @@ class DischargeDiffuser(Component):
             Knew /= apz
             mismatch = np.sum(np.square(Knew - K))
             K[:] = Knew
-
-        # for i in range(ni):
-        #     for j in range(nj):
-        #         Ei = i
-        #         Ej = np.minimum(j+1, nj-1)
-        #         Ni = np.minimum(i+1, ni-1)
-        #         Nj = j
-        #         Wi = i
-        #         Wj = np.maximum(j-1, 0)
-        #         Si = np.maximum(i-1, 0)
-        #         Sj = j
-        # 
-        #         # this is a discharge calculation
-        #         K[i, j] = (
-        #             awz[i, j] * K[Wi, Wj] + aez[i, j] * K[Ei, Ej] +
-        #             asz[i, j] * K[Si, Sj] + anz[i, j] * K[Ni, Nj] +
-        #             Qsp[i, j])/apz[i, j]
 
         Kpad = np.pad(K, ((1, 1), (1, 1)), 'edge')
         self._Qw[:] = self._aww * Kpad[self._westpad]
