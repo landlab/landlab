@@ -238,9 +238,13 @@ class LandslideProbability(Component):
                                         size=self.n)
         elif self.groundwater__recharge['distribution'] == 'lognormal':
             self.recharge_mean = self.groundwater__recharge['mean']
-            self.recharge_sigma = self.groundwater__recharge['sigma']
-            self.Re = np.random.lognormal(mean=self.recharge_mean,
-                                          sigma=self.recharge_sigma,
+            self.recharge_stdev = self.groundwater__recharge['standard_deviation']
+            mu_lognormal = np.log((self.recharge_mean**2)/np.sqrt(
+                self.recharge_stdev**2 + self.recharge_mean**2))
+            sigma_lognormal = np.sqrt(np.log((self.recharge_stdev**2)/(
+                self.recharge_mean**2)+1))
+            self.Re = np.random.lognormal(mean=mu_lognormal,
+                                          sigma=sigma_lognormal,
                                           size=self.n)
         elif self.groundwater__recharge['distribution'] == 'VIC':
             self.VIC_dict = self.groundwater__recharge['VIC_dict']
