@@ -206,9 +206,12 @@ class LandslideProbability(Component):
 # Run Component
     @use_file_name_or_kwds
     def __init__(self, grid, number_of_simulations=250.,
-                 groundwater__recharge_params =
-                 ['distribution', 'min_value', 'max_value'],
-                 groundwater__recharge_values = ['uniform', 20., 120.],
+                 groundwater__recharge_distribution = 'uniform',
+                 groundwater__recharge_min_value = 20.,
+                 groundwater__recharge_max_value = 120.,
+                 groundwater__recharge_mean = None,
+                 groundwater__recharge_standard_deviation = None,
+                 groundwater__recharge_vic_inputs = [],
                  **kwds):
 
         """
@@ -229,16 +232,14 @@ class LandslideProbability(Component):
         self._grid = grid
         self.n = number_of_simulations
         self.g = 9.81
-        self.groundwater__recharge = dict(
-            zip(groundwater__recharge_params, groundwater__recharge_values))
-        if self.groundwater__recharge['distribution'] == 'uniform':
-            self.recharge_min = self.groundwater__recharge['min_value']
-            self.recharge_max = self.groundwater__recharge['max_value']
+        if self.groundwater__recharge_distribution == 'uniform':
+            self.recharge_min = self.groundwater__recharge_min_value
+            self.recharge_max = self.groundwater__recharge_max_value
             self.Re = np.random.uniform(self.recharge_min, self.recharge_max,
                                         size=self.n)
-        elif self.groundwater__recharge['distribution'] == 'lognormal':
-            self.recharge_mean = self.groundwater__recharge['mean']
-            self.recharge_stdev = self.groundwater__recharge['standard_deviation']
+        elif self.groundwater__recharge_distribution == 'lognormal_uniform':
+            self.recharge_mean = self.groundwater__recharge_mean
+            self.recharge_stdev = self.groundwater__recharge_standard_deviation
             mu_lognormal = np.log((self.recharge_mean**2)/np.sqrt(
                 self.recharge_stdev**2 + self.recharge_mean**2))
             sigma_lognormal = np.sqrt(np.log((self.recharge_stdev**2)/(
@@ -246,12 +247,11 @@ class LandslideProbability(Component):
             self.Re = np.random.lognormal(mean=mu_lognormal,
                                           sigma=sigma_lognormal,
                                           size=self.n)
-        elif self.groundwater__recharge['distribution'] == 'VIC':
-            self.VIC_dict = self.groundwater__recharge['VIC_dict']
-            self.vic_id_dict = self.groundwater__recharge['vic_id_dict']
-            self.fract_dict = self.groundwater__recharge['fract_dict']
+        elif self.groundwater__recharge_distribution == 'VIC':
+            self.VIC_dict = self.groundwater__recharge_vic_inputs[0]#['VIC_dict']
+            self.vic_id_dict = self.groundwater__recharge_vic_inputs[1]#['vic_id_dict']
+            self.fract_dict = self.groundwater__recharge_vic_inputs[2]#['fract_dict']
             self._interpolate_VIC_dict()
-#            self.Re = self.groundwater__recharge['VIC_dict']
 
         super(LandslideProbability, self).__init__(grid)
 
@@ -300,12 +300,13 @@ class LandslideProbability(Component):
         self.hs_mode = self.grid['node']['soil__thickness'][i]
 
         # recharge distribution
-        if self.groundwater__recharge['distribution'] == 'VIC':
+        if self.groundwater__recharge_distribution == 'VIC':
             self._calculate_VIC_recharge(i)            
             self.Re /= 1000.0  # mm->m
-        elif self.groundwater__recharge['distribution'] == 'lognormal_spatial':
-            self.recharge_mean = self.groundwater__recharge['mean'][i]
-            self.recharge_sigma = self.groundwater__recharge['sigma'][i]
+        elif self.groundwater__recharge_distribution == 'lognormal_spatial':
+            self.recharge_mean = self.groundwater__recharge_mean[i]
+            self.recharge_sigma = (
+                self.groundwater__recharge_standard_deviation[i])
             self.Re = np.random.lognormal(mean=self.recharge_mean,
                                           sigma=self.recharge_sigma,
                                           size=self.n)
