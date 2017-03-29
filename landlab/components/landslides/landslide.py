@@ -250,7 +250,7 @@ class LandslideProbability(Component):
             self.VIC_dict = self.groundwater__recharge['VIC_dict']
             self.vic_id_dict = self.groundwater__recharge['vic_id_dict']
             self.fract_dict = self.groundwater__recharge['fract_dict']
-            self.interpolated_VIC_dict = self._interpolate_VIC_dict()
+            self._interpolate_VIC_dict()
 #            self.Re = self.groundwater__recharge['VIC_dict']
 
         super(LandslideProbability, self).__init__(grid)
