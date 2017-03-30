@@ -197,12 +197,12 @@ class LandslideProbability(Component):
 # Run Component
     @use_file_name_or_kwds
     def __init__(self, grid, number_of_iterations=250.,
-                 groundwater__recharge_distribution = 'uniform',
-                 groundwater__recharge_min_value = 20.,
-                 groundwater__recharge_max_value = 120.,
-                 groundwater__recharge_mean = None,
-                 groundwater__recharge_standard_deviation = None,
-                 groundwater__recharge_vic_inputs = [],
+                 groundwater__recharge_distribution='uniform',
+                 groundwater__recharge_min_value=20.,
+                 groundwater__recharge_max_value=120.,
+                 groundwater__recharge_mean=None,
+                 groundwater__recharge_standard_deviation=None,
+                 groundwater__recharge_vic_inputs=[],
                  **kwds):
 
         """
@@ -211,7 +211,7 @@ class LandslideProbability(Component):
         grid: RasterModelGrid
             A grid.
         number_of_iterations: int, optional
-            number of iterations to run Monte Carlo (None)
+            number of iterations to run Monte Carlo simulation (None)
         groundwater__recharge: dictionary
             Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
             of annual maximum recharge (mm/d)
@@ -223,6 +223,7 @@ class LandslideProbability(Component):
         self._grid = grid
         self.n = number_of_iterations
         self.g = 9.81
+        self.groundwater__recharge_distribution = groundwater__recharge_distribution
         # Following code will deal with the input distribution and associated
         # parameters
         # Uniform distribution
@@ -311,7 +312,7 @@ class LandslideProbability(Component):
 
         # recharge distribution based on distribution type
         if self.groundwater__recharge_distribution == 'VIC':
-            self._calculate_VIC_recharge(i)            
+            self._calculate_VIC_recharge(i)
             self.Re /= 1000.0  # mm->m
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
             mu_lognormal = np.log((self.recharge_mean[i]**2)/np.sqrt(
