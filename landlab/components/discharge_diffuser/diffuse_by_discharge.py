@@ -144,8 +144,10 @@ class DischargeDiffuser(Component):
             stress.
         flow_law_slope_exponent : float
             The power, c, on slope in the relation q_w = K * S**c. This is
-            1. in Voller's original derivation, but should be set to 0.5
-            for equivalence to the Chezy or Manning equations.
+            1. in Voller's original derivation, which equates to a time-
+            averaged sheetflow solution. If <1., this will result in a
+            channel closure condition, and can lead to preferential flow on
+            grid diagonals.
         sediment_flux_equation : {'powerlaw', 'MPM'}
             The equation form to use for sediment transport. If 'powerlaw',
             the component uses q_sed = a * q_water * (S**n - S_crit**n)**m,
@@ -510,7 +512,8 @@ class DischargeDiffuser(Component):
                 dt_stab = dt
                 breakcheck = True
             else:
-                dt_stab = self.grid.dx * self.grid.dy / (2. * maxwaterflux)
+                dt_stab = self.grid.dx * self.grid.dy / (
+                    2. * self._a * maxwaterflux)
                 dt_stab = min(dt_stab, dt)
                 if current_internal_time + dt_stab >= dt:
                     breakcheck = True
@@ -665,15 +668,20 @@ if __name__ == '__main__':
     S_crit = 0.25
     mg = RasterModelGrid((40, 40), (0.25, 0.25))
     z = mg.add_zeros('node', 'topographic__elevation')
+    # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
+    # source_count = np.sum(source_nodes.astype(float))
+    source_nodes = 0
+    source_count = 1.
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
     # z -= mg.node_x/10000.
     # z -= mg.node_y/10000.
-    Qw_in[820] = 0.5*np.pi
-    Qs_in[820] = (1. - S_crit)*0.5*np.pi
-    dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=1.)
-                           # sediment_flux_equation='MPM')
-########MPM IS BROKEN
+    Qw_in[source_nodes] = 0.5*np.pi/source_count
+    Qs_in[source_nodes] = (1. - S_crit)*0.5*np.pi/source_count
+    # Qw_in[0] = 0.5*np.pi  # 820 puts it about in the middle
+    # Qs_in[0] = (1. - S_crit)*0.5*np.pi
+    dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=1.,
+                           sediment_flux_equation='powerlaw')
     for i in range(501):  # 501
         dd.run_one_step(0.08)  # 0.08
     imshow_grid_at_node(mg, 'topographic__elevation')
