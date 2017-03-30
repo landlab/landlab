@@ -126,7 +126,7 @@ def test_diffusion():
 def test_diffusion_no_deposit():
     # Make an array with three core nodes, in one column.
     # Because there is zero slope between two of the nodes, there 
-    # would be deposition. However, with the deposit flag as 'no',
+    # would be deposition. However, with the deposit flag as 'False',
     # the elevation of the node with zero downslope gradient will not change.
     # Use closed boundaries all around because this is a simpler scenario.
     mg = RasterModelGrid((5, 3), (10, 10))
@@ -138,7 +138,7 @@ def test_diffusion_no_deposit():
     
     # The gradient at node 7 should be zero, so the elevation here would
     # go up if deposition was allowed. Maker sure it doesn't change with 
-    # deposit set to 'no'
+    # deposit set to 'False'
     z_7_before = z[7]
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
