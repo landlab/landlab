@@ -202,7 +202,7 @@ class LandslideProbability(Component):
                  groundwater__recharge_max_value=120.,
                  groundwater__recharge_mean=None,
                  groundwater__recharge_standard_deviation=None,
-                 groundwater__recharge_vic_inputs=[],
+                 groundwater__recharge_HSD_inputs=[],
                  **kwds):
 
         """
@@ -251,18 +251,18 @@ class LandslideProbability(Component):
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
             assert (groundwater__recharge_mean.shape[0] == (
                 self.grid.number_of_core_nodes)), (
-                'Input array should be of the length of grid.core_nodes!')
+                'Input array should be of the length of grid.number_of_nodes!')
             assert (groundwater__recharge_standard_deviation.shape[0] == (
                 self.grid.number_of_core_nodes)), (
-                'Input array should be of the length of grid.core_nodes!')
+                'Input array should be of the length of grid.number_of_nodes!')
             self.recharge_mean = groundwater__recharge_mean
             self.recharge_stdev = groundwater__recharge_standard_deviation
-        # Custom VIC inputs - Hydrologic Source Domain -> Model Domain
-        elif self.groundwater__recharge_distribution == 'VIC':
-            self.VIC_dict = groundwater__recharge_vic_inputs[0]#['VIC_dict']
-            self.vic_id_dict = groundwater__recharge_vic_inputs[1]#['vic_id_dict']
-            self.fract_dict = groundwater__recharge_vic_inputs[2]#['fract_dict']
-            self._interpolate_VIC_dict()
+        # Custom HSD inputs - Hydrologic Source Domain -> Model Domain
+        elif self.groundwater__recharge_distribution == 'fully_distributed':
+            self.HSD_dict = groundwater__recharge_HSD_inputs[0]
+            self.HSD_id_dict = groundwater__recharge_HSD_inputs[1]
+            self.fract_dict = groundwater__recharge_HSD_inputs[2]
+            self._interpolate_HSD_dict()
             
         super(LandslideProbability, self).__init__(grid)
 
@@ -311,8 +311,8 @@ class LandslideProbability(Component):
         self.hs_mode = self.grid['node']['soil__thickness'][i]
 
         # recharge distribution based on distribution type
-        if self.groundwater__recharge_distribution == 'VIC':
-            self._calculate_VIC_recharge(i)
+        if self.groundwater__recharge_distribution == 'fully_distributed':
+            self._calculate_HSD_recharge(i)
             self.Re /= 1000.0  # mm->m
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
             mu_lognormal = np.log((self.recharge_mean[i]**2)/np.sqrt(
@@ -411,15 +411,14 @@ class LandslideProbability(Component):
             self.mean_Relative_Wetness)
         self.grid['node']['landslide__probability_of_failure'] = self.prob_fail
 
-    def _interpolate_VIC_dict(self):
-        VIC_dict = copy.deepcopy(self.VIC_dict)
-        # First generate interpolated Re for each VIC grid
+    def _interpolate_HSD_dict(self):
+        HSD_dict = copy.deepcopy(self.HSD_dict)
+        # First generate interpolated Re for each HSD grid
         Yrand = np.sort(np.random.rand(self.n))
         # n random numbers (0 to 1) in a column
-        for vkey in VIC_dict.keys():
-            if isinstance(VIC_dict[vkey], int):
+        for vkey in HSD_dict.keys():
+            if isinstance(HSD_dict[vkey], int):
                 continue       # loop back up if value is integer, not array
-            Re_temp = VIC_dict[vkey]	 # an array of 91 yrs Re for 1 VIC grid
             Fx = ECDF(Re_temp)  # instantiate to get probabilities with Re
             Fx_ = Fx(Re_temp)    # probability array associated with Re data
             # interpolate function based on recharge data & probability
@@ -427,17 +426,17 @@ class LandslideProbability(Component):
                                      fill_value=min(Re_temp))
             # array of Re interpolated from Yrand probabilities (n count)
             Re_interpolated = f(Yrand)
-            # replace values in VIC_dict with interpolated Re
-            VIC_dict[vkey] = Re_interpolated
+            # replace values in HSD_dict with interpolated Re
+            HSD_dict[vkey] = Re_interpolated
 
-        self.interpolated_VIC_dict = VIC_dict
+        self.interpolated_HSD_dict = HSD_dict
 
-    def _calculate_VIC_recharge(self, i):
+    def _calculate_HSD_recharge(self, i):
         store_Re = np.zeros(self.n)
-        vic_id_list = self.vic_id_dict[i]
+        HSD_id_list = self.HSD_id_dict[i]
         fract_list = self.fract_dict[i]
-        for j in range(0, len(vic_id_list)):
-            Re_temp = self.interpolated_VIC_dict[vic_id_list[j]]
+        for j in range(0, len(HSD_id_list)):
+            Re_temp = self.interpolated_HSD_dict[HSD_id_list[j]]
             fract_temp = fract_list[j]
             Re_adj = (Re_temp*fract_temp)
             store_Re = np.vstack((store_Re, np.array(Re_adj)))
