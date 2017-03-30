@@ -232,27 +232,50 @@ class LandslideProbability(Component):
         self._grid = grid
         self.n = number_of_simulations
         self.g = 9.81
+        # Following code will deal with the input distribution and associated
+        # parameters
+        # Uniform distribution
         if self.groundwater__recharge_distribution == 'uniform':
-            self.recharge_min = self.groundwater__recharge_min_value
-            self.recharge_max = self.groundwater__recharge_max_value
+            self.recharge_min = groundwater__recharge_min_value
+            self.recharge_max = groundwater__recharge_max_value
             self.Re = np.random.uniform(self.recharge_min, self.recharge_max,
                                         size=self.n)
+        # Lognormal Distribution - Uniform in space
         elif self.groundwater__recharge_distribution == 'lognormal_uniform':
-            self.recharge_mean = self.groundwater__recharge_mean
-            self.recharge_stdev = self.groundwater__recharge_standard_deviation
-            mu_lognormal = np.log((self.recharge_mean**2)/np.sqrt(
+            assert (groundwater__recharge_mean != None), (
+                'Input mean of the distribution!')
+            assert (groundwater__recharge_standard_deviation != None), (
+                'Input standard deviation of the distribution!')
+            self.recharge_mean = groundwater__recharge_mean
+            self.recharge_stdev = groundwater__recharge_standard_deviation
+            self.mu_lognormal = np.log((self.recharge_mean**2)/np.sqrt(
                 self.recharge_stdev**2 + self.recharge_mean**2))
-            sigma_lognormal = np.sqrt(np.log((self.recharge_stdev**2)/(
+            self.sigma_lognormal = np.sqrt(np.log((self.recharge_stdev**2)/(
                 self.recharge_mean**2)+1))
-            self.Re = np.random.lognormal(mean=mu_lognormal,
-                                          sigma=sigma_lognormal,
+            self.Re = np.random.lognormal(mean=self.mu_lognormal,
+                                          sigma=self.sigma_lognormal,
                                           size=self.n)
+        # Lognormal Distribution - Variable in space                                  
+        elif self.groundwater__recharge_distribution == 'lognormal_spatial':
+            assert (groundwater__recharge_mean.shape[0] == (
+                self.grid.number_of_core_nodes)), (
+                'Input array should be of the length of grid.core_nodes!')
+            assert (groundwater__recharge_standard_deviation.shape[0] == (
+                self.grid.number_of_core_nodes)), (
+                'Input array should be of the length of grid.core_nodes!')
+            self.recharge_mean = groundwater__recharge_mean
+            self.recharge_stdev = groundwater__recharge_standard_deviation
+            self.mu_lognormal = np.log((self.recharge_mean**2)/np.sqrt(
+                self.recharge_stdev**2 + self.recharge_mean**2))
+            self.sigma_lognormal = np.sqrt(np.log((self.recharge_stdev**2)/(
+                self.recharge_mean**2)+1))
+        # Custom VIC inputs - Hydrologic Source Domain -> Model Domain
         elif self.groundwater__recharge_distribution == 'VIC':
-            self.VIC_dict = self.groundwater__recharge_vic_inputs[0]#['VIC_dict']
-            self.vic_id_dict = self.groundwater__recharge_vic_inputs[1]#['vic_id_dict']
-            self.fract_dict = self.groundwater__recharge_vic_inputs[2]#['fract_dict']
+            self.VIC_dict = groundwater__recharge_vic_inputs[0]#['VIC_dict']
+            self.vic_id_dict = groundwater__recharge_vic_inputs[1]#['vic_id_dict']
+            self.fract_dict = groundwater__recharge_vic_inputs[2]#['fract_dict']
             self._interpolate_VIC_dict()
-
+            
         super(LandslideProbability, self).__init__(grid)
 
         for name in self._input_var_names:
@@ -299,16 +322,13 @@ class LandslideProbability(Component):
         self.rho = self.grid['node']['soil__density'][i]
         self.hs_mode = self.grid['node']['soil__thickness'][i]
 
-        # recharge distribution
+        # recharge distribution based on distribution type
         if self.groundwater__recharge_distribution == 'VIC':
             self._calculate_VIC_recharge(i)            
             self.Re /= 1000.0  # mm->m
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
-            self.recharge_mean = self.groundwater__recharge_mean[i]
-            self.recharge_sigma = (
-                self.groundwater__recharge_standard_deviation[i])
-            self.Re = np.random.lognormal(mean=self.recharge_mean,
-                                          sigma=self.recharge_sigma,
+            self.Re = np.random.lognormal(mean=self.mu_lognormal[i],
+                                          sigma=self.sigma_lognormal[i],
                                           size=self.n)
 
         # Transmissivity (T)
