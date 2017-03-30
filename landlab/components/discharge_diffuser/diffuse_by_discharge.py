@@ -227,38 +227,36 @@ class DischargeDiffuser(Component):
         # stab_thresh needs to not vary according to nnodes, so:
         self._stab_thresh = stab_thresh / ni / nj
 
-        self._K = grid.zeros('node', dtype=float)
-        self._Knew = grid.zeros('node', dtype=float)
-        self._prevK = grid.zeros('node', dtype=float)
-        self._znew = grid.zeros('node', dtype=float)
+        self._K = np.zeros((ni-2, nj-2), dtype='float')
+        self._Knew = np.zeros((ni-2, nj-2), dtype='float')
         # discharge across north, south, west, and east face of control volume
-        self._Qn = np.zeros((ni, nj), dtype='float')
-        self._Qs = np.zeros((ni, nj), dtype='float')
-        self._Qw = np.zeros((ni, nj), dtype='float')
-        self._Qe = np.zeros((ni, nj), dtype='float')
+        self._Qn = np.zeros((ni-2, nj-2), dtype='float')
+        self._Qs = np.zeros((ni-2, nj-2), dtype='float')
+        self._Qw = np.zeros((ni-2, nj-2), dtype='float')
+        self._Qe = np.zeros((ni-2, nj-2), dtype='float')
 
         # coefficenst used in solition of flow conductivity K
-        self._app = np.zeros((ni, nj), dtype='float')
-        self._apz = np.zeros((ni, nj), dtype='float')
-        self._aww = np.zeros((ni, nj), dtype='float')
-        self._awp = np.zeros((ni, nj), dtype='float')
-        self._awz = np.zeros((ni, nj), dtype='float')
-        self._aee = np.zeros((ni, nj), dtype='float')
-        self._aep = np.zeros((ni, nj), dtype='float')
-        self._aez = np.zeros((ni, nj), dtype='float')
-        self._ass = np.zeros((ni, nj), dtype='float')
-        self._asp = np.zeros((ni, nj), dtype='float')
-        self._asz = np.zeros((ni, nj), dtype='float')
-        self._ann = np.zeros((ni, nj), dtype='float')
-        self._anp = np.zeros((ni, nj), dtype='float')
-        self._anz = np.zeros((ni, nj), dtype='float')
+        self._app = np.zeros((ni-2, nj-2), dtype='float')
+        self._apz = np.zeros((ni-2, nj-2), dtype='float')
+        self._aww = np.zeros((ni-2, nj-2), dtype='float')
+        self._awp = np.zeros((ni-2, nj-2), dtype='float')
+        self._awz = np.zeros((ni-2, nj-2), dtype='float')
+        self._aee = np.zeros((ni-2, nj-2), dtype='float')
+        self._aep = np.zeros((ni-2, nj-2), dtype='float')
+        self._aez = np.zeros((ni-2, nj-2), dtype='float')
+        self._ass = np.zeros((ni-2, nj-2), dtype='float')
+        self._asp = np.zeros((ni-2, nj-2), dtype='float')
+        self._asz = np.zeros((ni-2, nj-2), dtype='float')
+        self._ann = np.zeros((ni-2, nj-2), dtype='float')
+        self._anp = np.zeros((ni-2, nj-2), dtype='float')
+        self._anz = np.zeros((ni-2, nj-2), dtype='float')
 
-        self._slx = np.empty((ni, nj), dtype=float)
-        self._sly = np.empty((ni, nj), dtype=float)
-        self._Qsed_w = np.empty((ni, nj), dtype=float)
-        self._Qsed_e = np.empty((ni, nj), dtype=float)
-        self._Qsed_n = np.empty((ni, nj), dtype=float)
-        self._Qsed_s = np.empty((ni, nj), dtype=float)
+        self._slx = np.empty((ni-2, nj-2), dtype=float)
+        self._sly = np.empty((ni-2, nj-2), dtype=float)
+        self._Qsed_w = np.empty((ni-2, nj-2), dtype=float)
+        self._Qsed_e = np.empty((ni-2, nj-2), dtype=float)
+        self._Qsed_n = np.empty((ni-2, nj-2), dtype=float)
+        self._Qsed_s = np.empty((ni-2, nj-2), dtype=float)
 
         self._dxbyy = grid.dx/grid.dy
         self._dybyx = grid.dy/grid.dx
@@ -301,9 +299,11 @@ class DischargeDiffuser(Component):
             (grid.number_of_node_rows, grid.number_of_node_columns))
 
         # make the fields (ni, nj) to enable efficient slicing
-        eta = z.reshape((ni, nj))
-        K = self._K.reshape((ni, nj))
-        Knew = self._Knew.reshape((ni, nj))
+#        K = self._K.reshape((ni, nj))[1:-1, 1:-1]
+#        Knew = self._Knew.reshape((ni, nj))[1:-1, 1:-1]
+        eta = z.reshape((ni, nj))[1:-1, 1:-1]
+        Knew = self._Knew
+        K = self._K
 
         # begin the component stability loop:
         current_internal_time = 0.
@@ -311,6 +311,7 @@ class DischargeDiffuser(Component):
         while not breakcheck:
             # pad eta
             pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
+#            pad_eta = z.reshape((ni, nj))
 
             # must do water part 1st for stab analysis to work OK:
             # do the water routing on links
@@ -482,7 +483,7 @@ class DischargeDiffuser(Component):
                 Knew[self._south] += anz[self._south] * K[self._north]
                 Knew[self._northedge] += anz[self._northedge] * K[
                     self._northedge]
-                Knew += Qsp
+                Knew += Qsp[1:-1, 1:-1]
                 Knew /= apz
                 mismatch = np.sum(np.square(Knew - K))
                 K[:] = Knew
@@ -496,8 +497,6 @@ class DischargeDiffuser(Component):
             self._Qs -= aspz * K
             self._Qn[:] = anz * Kpad[self._northpad]
             self._Qn -= anpz * K
-
-            self._K = K  # ...to make it accessible
 
             # STABILITY ANALYSIS:
             # not immediately clear if messing with powers in equations will
@@ -534,7 +533,7 @@ class DischargeDiffuser(Component):
                                                a=self._a, m=self._m, n=self._n)
 
             try:
-                Qin = Qsource.reshape((ni, nj))
+                Qin = Qsource.reshape((ni, nj))[1:-1, 1:-1]
             except AttributeError:
                 Qin = float(Qsource)  # if both fail, we're in trouble
             eta[:] += dt_stab*(
@@ -671,7 +670,7 @@ if __name__ == '__main__':
     z = mg.add_zeros('node', 'topographic__elevation')
     # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
     # source_count = np.sum(source_nodes.astype(float))
-    source_nodes = 0  # 820 puts it in the middle
+    source_nodes = 41  # 820 puts it in the middle
     source_count = 1.
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
