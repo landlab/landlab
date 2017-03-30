@@ -40,11 +40,12 @@ class DischargeDiffuser(Component):
     that S, q_water, and q_sed are all vector terms.
 
     As of 28/3/17, this component needs the following enhancements:
-        * m, n powers on the slope terms.
         * demonstration of effectiveness on non-flat topos
         * Optional water depth to fill (probably a second component)
         * Forcing to follow a specific flow law
+            -> Implemented, but with problematic channel closure condition
         * Forcing to follow a specific transport law
+            -> Implemented for MPM, but not well tested
         * BC control (as of now, all boundaries are open and fixed grad (?))
 
     The primary method of this class is :func:`run_one_step`.
@@ -670,16 +671,14 @@ if __name__ == '__main__':
     z = mg.add_zeros('node', 'topographic__elevation')
     # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
     # source_count = np.sum(source_nodes.astype(float))
-    source_nodes = 0
+    source_nodes = 0  # 820 puts it in the middle
     source_count = 1.
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
-    # z -= mg.node_x/10000.
-    # z -= mg.node_y/10000.
-    Qw_in[source_nodes] = 0.5*np.pi/source_count
-    Qs_in[source_nodes] = (1. - S_crit)*0.5*np.pi/source_count
-    # Qw_in[0] = 0.5*np.pi  # 820 puts it about in the middle
-    # Qs_in[0] = (1. - S_crit)*0.5*np.pi
+    z -= mg.node_x/10000.
+    z -= mg.node_y/10000.
+    Qw_in[source_nodes] = 0.5 * np.pi / source_count
+    Qs_in[source_nodes] = (1. - S_crit) * 0.5 * np.pi / source_count
     dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=1.,
                            sediment_flux_equation='powerlaw')
     for i in range(501):  # 501
