@@ -74,7 +74,7 @@ class LinearDiffuser(Component):
         performed on a raster. 'on_diagonals' pretends that the "faces" of a
         cell with 8 links are represented by a stretched regular octagon set
         within the true cell.
-    deposit : {'yes', 'no'}
+    deposit : {'True', 'False'}
         Whether diffusive material can be deposited. 'yes' means that diffusive 
         material will be deposited if the divergence of sediment flux is 
         negative. 'no' means that even when the divergence of sediment flux is 
@@ -168,7 +168,7 @@ class LinearDiffuser(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, linear_diffusivity=None, method='simple',
-                 deposit='yes', **kwds):
+                 deposit='True', **kwds):
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
         assert method in ('simple', 'resolve_on_patches', 'on_diagonals')
@@ -213,12 +213,9 @@ class LinearDiffuser(Component):
         if self._use_patches:
             assert self._kd_on_links
         # set _deposit flag to tell code whether or not diffusion can deposit.    
-        if deposit == 'yes':
-            self._deposit = True
-        else:
-            self._deposit = False
         
-
+        self._deposit = deposit
+    
         # for component back compatibility (undocumented):
         # note component can NO LONGER do internal uplift, at all.
         # ###

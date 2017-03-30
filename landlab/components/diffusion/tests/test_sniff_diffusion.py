@@ -145,7 +145,7 @@ def test_diffusion_no_deposit():
 
     # instantiate:
     dfn = LinearDiffuser(mg, linear_diffusivity=1., method='simple',
-                 deposit='no')
+                 deposit='False')
     
     dfn.run_one_step(100)
     
