@@ -74,16 +74,16 @@ class LinearDiffuser(Component):
         performed on a raster. 'on_diagonals' pretends that the "faces" of a
         cell with 8 links are represented by a stretched regular octagon set
         within the true cell.
-    deposit : {'True', 'False'}
-        Whether diffusive material can be deposited. 'True' means that diffusive 
+    deposit : {True, False}
+        Whether diffusive material can be deposited. True means that diffusive 
         material will be deposited if the divergence of sediment flux is 
-        negative. 'False' means that even when the divergence of sediment flux is 
-        negative, no material is deposited. (No deposition ever.) The 'False'
+        negative. False means that even when the divergence of sediment flux is 
+        negative, no material is deposited. (No deposition ever.) The False
         case is a bit of a band-aid to account for cases when fluvial incision
         likely removes any material that would be deposited. If one couples
         fluvial detachment-limited incision with linear diffusion, the channels
         will not reach the predicted analytical solution unless deposit is set
-        to 'False'.
+        to False.
 
     Examples
     --------
@@ -168,7 +168,7 @@ class LinearDiffuser(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, linear_diffusivity=None, method='simple',
-                 deposit='True', **kwds):
+                 deposit=True, **kwds):
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
         assert method in ('simple', 'resolve_on_patches', 'on_diagonals')
