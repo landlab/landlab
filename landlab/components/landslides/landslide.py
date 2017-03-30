@@ -265,10 +265,6 @@ class LandslideProbability(Component):
                 'Input array should be of the length of grid.core_nodes!')
             self.recharge_mean = groundwater__recharge_mean
             self.recharge_stdev = groundwater__recharge_standard_deviation
-            self.mu_lognormal = np.log((self.recharge_mean**2)/np.sqrt(
-                self.recharge_stdev**2 + self.recharge_mean**2))
-            self.sigma_lognormal = np.sqrt(np.log((self.recharge_stdev**2)/(
-                self.recharge_mean**2)+1))
         # Custom VIC inputs - Hydrologic Source Domain -> Model Domain
         elif self.groundwater__recharge_distribution == 'VIC':
             self.VIC_dict = groundwater__recharge_vic_inputs[0]#['VIC_dict']
@@ -327,8 +323,12 @@ class LandslideProbability(Component):
             self._calculate_VIC_recharge(i)            
             self.Re /= 1000.0  # mm->m
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
-            self.Re = np.random.lognormal(mean=self.mu_lognormal[i],
-                                          sigma=self.sigma_lognormal[i],
+            mu_lognormal = np.log((self.recharge_mean[i]**2)/np.sqrt(
+                self.recharge_stdev[i]**2 + self.recharge_mean[i]**2))
+            sigma_lognormal = np.sqrt(np.log((self.recharge_stdev[i]**2)/(
+                self.recharge_mean[i]**2)+1))
+            self.Re = np.random.lognormal(mean=mu_lognormal,
+                                          sigma=sigma_lognormal,
                                           size=self.n)
 
         # Transmissivity (T)
