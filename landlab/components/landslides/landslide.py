@@ -17,24 +17,24 @@ class LandslideProbability(Component):
     stability index (Factor of Safety).
 
     The driving force for failure is provided by the user in the form of
-    groundwater recharge, simply user provided minimum and maximum annual
-    peak values of recharge. The model uses topographic and soils
-    characteristics provided as input in the landslide_driver.
+    groundwater recharge; 4 options for providing recharge are included.
+    The model uses topographic and soils characteristics provided as input
+    by the user in the landslide_driver.
 
     A LandslideProbability calcuation function provides the user with the
     mean soil relative wetness, mean factor-of-safety, and probabilty
     of failure at each node.
 
-    Construction::
-        LandslideProbability(grid, number_of_simulations"=250,
-        rechare_minimum=5., groundwater__recharge_maximum=120.)
+    Construction::  UPDATE
+        LandslideProbability(grid, number_of_iterations=250,
+        recharge_minimum=5., groundwater__recharge_maximum=120.)
 
     Parameters
     ----------
     grid: RasterModelGrid
         A grid.
-    number_of_simulations: float, optional
-        Number of simulations to run Monte Carlo.
+    number_of_iterations: float, optional
+        Number of iterations to run Monte Carlo.
     groundwater__recharge: dictionary
         Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
         annual maximum recharge (mm/d)
@@ -60,12 +60,9 @@ class LandslideProbability(Component):
      'topographic__slope',
      'topographic__specific_contributing_area']
     >>> sorted(LS_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['landslide__mean_factor_of_safety',
-     'landslide__probability_of_failure',
-     'soil__mean_relative_wetness']
+    ['landslide__probability_of_failure','soil__mean_relative_wetness']
     >>> sorted(LS_prob.units) # doctest: +NORMALIZE_WHITESPACE
-    [('landslide__mean_factor_of_safety', 'None'),
-     ('landslide__probability_of_failure', 'None'),
+    [('landslide__probability_of_failure', 'None'),
      ('soil__density', 'kg/m3'),
      ('soil__internal_friction_angle', 'degrees'),
      ('soil__maximum_total_cohesion', 'Pa or kg/m-s2'),
@@ -134,7 +131,6 @@ class LandslideProbability(Component):
 #  component creates these output values
     _output_var_names = (
         'soil__mean_relative_wetness',
-        'landslide__mean_factor_of_safety',
         'landslide__probability_of_failure',
         )
 
@@ -150,7 +146,6 @@ class LandslideProbability(Component):
         'soil__density': 'kg/m3',
         'soil__thickness': 'm',
         'soil__mean_relative_wetness': 'None',
-        'landslide__mean_factor_of_safety': 'None',
         'landslide__probability_of_failure': 'None',
         }
 
@@ -166,7 +161,6 @@ class LandslideProbability(Component):
         'soil__density': 'node',
         'soil__thickness': 'node',
         'soil__mean_relative_wetness': 'node',
-        'landslide__mean_factor_of_safety': 'node',
         'landslide__probability_of_failure': 'node',
         }
 
@@ -195,17 +189,14 @@ class LandslideProbability(Component):
             ('Indicator of soil wetness;' +
              ' relative depth perched water table' +
              ' within the soil layer'),
-        'landslide__mean_factor_of_safety':
-            ('(FS) dimensionless index of stability' +
-             ' based on infinite slope stabiliity model'),
         'landslide__probability_of_failure':
-            ('number of times FS is <1 out of number of' +
-             ' interations user selected'),
+            ('number of times FS is <=1 out of number of' +
+             ' iterations user selected'),
         }
 
 # Run Component
     @use_file_name_or_kwds
-    def __init__(self, grid, number_of_simulations=250.,
+    def __init__(self, grid, number_of_iterations=250.,
                  groundwater__recharge_distribution = 'uniform',
                  groundwater__recharge_min_value = 20.,
                  groundwater__recharge_max_value = 120.,
@@ -219,8 +210,8 @@ class LandslideProbability(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        number_of_simulations: int, optional
-            number of simulations to run Monte Carlo (None)
+        number_of_iterations: int, optional
+            number of iterations to run Monte Carlo (None)
         groundwater__recharge: dictionary
             Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
             of annual maximum recharge (mm/d)
@@ -230,7 +221,7 @@ class LandslideProbability(Component):
 
         # Store grid and parameters and do unit conversions
         self._grid = grid
-        self.n = number_of_simulations
+        self.n = number_of_iterations
         self.g = 9.81
         # Following code will deal with the input distribution and associated
         # parameters
@@ -369,7 +360,6 @@ class LandslideProbability(Component):
             (self.Y/np.sin(np.arctan(self.theta))))
         self.FS_store = np.array(self.FS)        # array of factor of safety
         self.FS_distribution = self.FS_store
-        self.landslide__mean_factor_of_safety = np.mean(self.FS)
         count = 0
         for val in self.FS:                   # find how many FS values <= 1
             if val <= 1.0:
@@ -391,13 +381,12 @@ class LandslideProbability(Component):
         self.landslide__factor_of_safety_histogram: numpy.ndarray([
             self.grid.number_of_nodes, self.n], dtype=float)
             This is an output - distribution of factor-of-safety from
-            Monte Carlo simulations (units='None')
+            Monte Carlo simulation (units='None')
         """
 
         # Create arrays for data with -9999 as default to store output
         self.mean_Relative_Wetness = -9999*np.ones(self.grid.number_of_nodes,
                                                    dtype='float')
-        self.mean_FS = -9999*np.ones(self.grid.number_of_nodes, dtype='float')
         self.prob_fail = -9999*np.ones(
             self.grid.number_of_nodes, dtype='float')
         self.landslide__factor_of_safety_histogram = -9999*np.ones(
@@ -408,7 +397,6 @@ class LandslideProbability(Component):
             self.calculate_factor_of_safety(i)
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self.soil__mean_relative_wetness
-            self.mean_FS[i] = self.landslide__mean_factor_of_safety
             self.prob_fail[i] = self.landslide__probability_of_failure
             self.landslide__factor_of_safety_histogram[i] = (
                 self.FS_distribution)
@@ -416,15 +404,11 @@ class LandslideProbability(Component):
         # replace unrealistic values in arrays
         self.mean_Relative_Wetness[
             self.mean_Relative_Wetness < 0.] = 0.  # so can't be negative
-        self.mean_FS[self.mean_FS < 0.] = 0.       # can't be negative
-        self.mean_FS[self.mean_FS == np.inf] = 0.  # to deal with NaN in data
         self.prob_fail[self.prob_fail < 0.] = 0.   # can't be negative
         # assign output fields to nodes
         self.grid['node']['soil__mean_relative_wetness'] = (
             self.mean_Relative_Wetness)
-        self.grid['node']['landslide__mean_factor_of_safety'] = self.mean_FS
         self.grid['node']['landslide__probability_of_failure'] = self.prob_fail
-
 
     def _interpolate_VIC_dict(self):
         VIC_dict = copy.deepcopy(self.VIC_dict)
@@ -435,7 +419,7 @@ class LandslideProbability(Component):
             if isinstance(VIC_dict[vkey], int):
                 continue       # loop back up if value is integer, not array
             Re_temp = VIC_dict[vkey]	 # an array of 91 yrs Re for 1 VIC grid
-            Fx = ECDF(Re_temp)  # instantiate function to get probabilities with Re
+            Fx = ECDF(Re_temp)  # instantiate to get probabilities with Re
             Fx_ = Fx(Re_temp)    # probability array associated with Re data
             # interpolate function based on recharge data & probability
             f = interpolate.interp1d(Fx_, Re_temp, bounds_error=False,
@@ -444,9 +428,8 @@ class LandslideProbability(Component):
             Re_interpolated = f(Yrand)
             # replace values in VIC_dict with interpolated Re
             VIC_dict[vkey] = Re_interpolated
-        
+
         self.interpolated_VIC_dict = VIC_dict
-            
 
     def _calculate_VIC_recharge(self, i):
         store_Re = np.zeros(self.n)
