@@ -310,8 +310,15 @@ class DischargeDiffuser(Component):
         breakcheck = False
         while not breakcheck:
             # pad eta
+            # this is the primary array to modify to propagate new BCs
+            # will also need to be changes to how we do things when assigning
+            # the "westedge" slices, below
+            # as of now, this is the "closed" BC, in that it prevents all flow
+            # out of the grid.
+            # this whole approach is going to get problematic. All our internal
+            # grids probable need to be (ni, nj), and we should then have
+            # zero gradients, etc as appropriate
             pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
-#            pad_eta = z.reshape((ni, nj))
 
             # must do water part 1st for stab analysis to work OK:
             # do the water routing on links
