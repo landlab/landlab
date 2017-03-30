@@ -75,15 +75,15 @@ class LinearDiffuser(Component):
         cell with 8 links are represented by a stretched regular octagon set
         within the true cell.
     deposit : {'True', 'False'}
-        Whether diffusive material can be deposited. 'yes' means that diffusive 
+        Whether diffusive material can be deposited. 'True' means that diffusive 
         material will be deposited if the divergence of sediment flux is 
-        negative. 'no' means that even when the divergence of sediment flux is 
-        negative, no material is deposited. (No deposition ever.) The 'no'
+        negative. 'False' means that even when the divergence of sediment flux is 
+        negative, no material is deposited. (No deposition ever.) The 'False'
         case is a bit of a band-aid to account for cases when fluvial incision
         likely removes any material that would be deposited. If one couples
         fluvial detachment-limited incision with linear diffusion, the channels
         will not reach the predicted analytical solution unless deposit is set
-        to 'no'.
+        to 'False'.
 
     Examples
     --------
