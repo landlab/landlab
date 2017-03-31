@@ -419,6 +419,7 @@ class LandslideProbability(Component):
         for vkey in HSD_dict.keys():
             if isinstance(HSD_dict[vkey], int):
                 continue       # loop back up if value is integer, not array
+            Re_temp = HSD_dict[vkey]	 # an array of years Re for 1 HSD grid
             Fx = ECDF(Re_temp)  # instantiate to get probabilities with Re
             Fx_ = Fx(Re_temp)    # probability array associated with Re data
             # interpolate function based on recharge data & probability
