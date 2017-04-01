@@ -228,7 +228,8 @@ class KinwaveImplicitOverlandFlow(Component):
 
         # Instantiate flow router
         self.flow_accum = FlowAccumulator(grid, 'topographic__elevation',
-                                          flow_director='MFD')
+                                    flow_director='MFD',
+                                    partition_method='square_root_of_slope')
 
         # Flag to let us know whether this is our first iteration
         self.first_iteration = True
