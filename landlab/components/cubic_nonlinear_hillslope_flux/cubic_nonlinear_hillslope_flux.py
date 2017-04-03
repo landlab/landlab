@@ -135,7 +135,7 @@ class CubicNonLinearDiffuser(Component):
         dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
 
         # Update topography
-        self.elev -= dqdx
+        self.elev -= dqdx * dt
 
 
     def run_one_step(self, dt, **kwds):
