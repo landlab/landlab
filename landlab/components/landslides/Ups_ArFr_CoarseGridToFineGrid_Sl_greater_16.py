@@ -1,6 +1,7 @@
 
 ###########################################################################
 ## 26 Jan 2016 - SN & EI
+## Authors: Sai Nudurupati & Erkan Istanbulluoglu
 ##
 ## Derived from Recharge_estimation.py
 ## - convert a coarser grid to finer grid
@@ -16,6 +17,7 @@
 ## Latest Edit - SN 26Jan16
 ###########################################################################
 
+# %% Import required libraries
 import numpy as np
 #from landlab import RasterModelGrid as rmg
 #from landlab.components.flow_routing.route_flow_dn import FlowRouter
@@ -29,6 +31,7 @@ import cPickle as pickle
 # Start the clock
 startTime = datetime.now()
 
+# %% 
 #Start of Script
 grid,z = \
   read_esri_ascii('./Input_files/elevation.txt',\
@@ -56,7 +59,8 @@ grid.set_nodata_nodes_to_closed(grid['node']['slp_g16'], -9999.)
 r_arc_raw = np.log2(flow_dir_arc) # gives receiver of each node starting at
                                   # right and going clockwise
 r_arc_raw = r_arc_raw.astype('int')
-# convert Arc flow_directions file to be represented in node ids
+# %% Convert Arc flow_directions file to be represented in node ids
+
 neigh_ = grid.neighbors_at_node
 diag_ = grid.diagonals_at_node
 neigh_ = np.fliplr(neigh_)
@@ -71,7 +75,7 @@ r = np.zeros(grid.number_of_nodes,dtype=int)
 r[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes], \
         np.transpose(neighbors[grid.core_nodes]))
 #r = np.choose(r_arc_raw, np.transpose(neighbors))
-
+# %% Source Routing Algorithm
 core_nodes = grid.core_nodes
 core_elev = z[core_nodes]
 sor_z = core_nodes[np.argsort(core_elev)[::-1]]
@@ -123,7 +127,7 @@ for i in sor_z:
 
 OrderingTime = datetime.now() - startTime
 
-## Algorithm to calculate coefficients of each upstream Vic ID
+# %% Algorithm to calculate coefficients of each upstream Vic ID
 # vic_upstr = {1 : [21,22,23,24,25], 2: [23, 24, 25, 26, 25, 24]} #for testing
 B = {}  # Holds unique upstream vic ids
 C = {}  # Holds corresponding total numbers
@@ -142,6 +146,7 @@ for ke in vic_upstr.keys():
 
 TotalTime = datetime.now() - startTime
 
+# %% Plot or/and Save files
 sim = '04Jan16_'
 pickle.dump(B,open("dict_uniq_ids.p","wb"))    # Saving dict{30m id: uniq ids}
 pickle.dump(coeff, open("dict_coeff.p","wb"))  # Saving dict{30m id: coeff}
