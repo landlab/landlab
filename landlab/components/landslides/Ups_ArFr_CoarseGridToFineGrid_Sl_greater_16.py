@@ -56,25 +56,24 @@ grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
 grid.set_nodata_nodes_to_closed(grid['node']['flow_dir'], -9999.)
 grid.set_nodata_nodes_to_closed(grid['node']['slp_g16'], -9999.)
 
+# %% Convert Arc flow_directions file to be represented in node ids
 r_arc_raw = np.log2(flow_dir_arc) # gives receiver of each node starting at
                                   # right and going clockwise
 r_arc_raw = r_arc_raw.astype('int')
-# %% Convert Arc flow_directions file to be represented in node ids
-
 neigh_ = grid.neighbors_at_node
 diag_ = grid.diagonals_at_node
 neigh_ = np.fliplr(neigh_)
 diag_ = np.fliplr(diag_)
-a_n = np.hsplit(neigh_,4)
-a_d = np.hsplit(diag_,4)
-neighbors = np.hstack((a_n[-1],a_d[0],a_n[0],a_d[1],a_n[1],a_d[2],a_n[2],  \
-                            a_d[3]))
+a_n = np.hsplit(neigh_, 4)
+a_d = np.hsplit(diag_, 4)
+neighbors = np.hstack((a_n[-1], a_d[0], a_n[0], a_d[1], a_n[1], a_d[2], a_n[2],
+                       a_d[3]))
 # Now neighbors has node ids of neighboring nodes in cw order starting at
 # right, hence the order of neighbors = [r, br, b, bl, l, tl, t, tr]
-r = np.zeros(grid.number_of_nodes,dtype=int)
-r[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes], \
-        np.transpose(neighbors[grid.core_nodes]))
-#r = np.choose(r_arc_raw, np.transpose(neighbors))
+r = np.zeros(grid.number_of_nodes, dtype=int)
+r[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes],
+                               np.transpose(neighbors[grid.core_nodes]))
+
 # %% Source Routing Algorithm
 # Note 1: This algorithm works on core nodes only because core nodes
 # have neighbors that are real values and not -1s.
@@ -84,13 +83,13 @@ core_elev = z[core_nodes]
 # Sort all nodes in the descending order of elevation
 sor_z = core_nodes[np.argsort(core_elev)[::-1]]
 # Create a list to record all nodes that have been visited
-alr_counted = [] # To store nodes that have already been counted
-r_core=r[core_nodes]
-flow_accum = np.zeros(grid.number_of_nodes,dtype=int)
+# To store nodes that have already been counted
+alr_counted = []
+r_core = r[core_nodes]
+flow_accum = np.zeros(grid.number_of_nodes, dtype=int)
 vic_upstr = {}
 # Loop through all nodes
 for i in sor_z:
-    #print 'i= ', i
     # Check 1: Check if this node has been visited earlier. If yes,
     # then skip to next node
     if i in alr_counted:
@@ -119,7 +118,6 @@ for i in sor_z:
             j = r[j]
             if j not in core_nodes:
                 break
-        #print 'wh_j = ',j
         # If the node being visited hasn't been visited before,
         # this if statement will executed.
         if flow_accum[j] == 0.:
@@ -131,19 +129,14 @@ for i in sor_z:
         # If the node is being visited for the first time, the dictionary
         # 'vic_upstr' is being updated.
         if j in vic_upstr.keys():
-            #print 'j=',j
-            #print 'before ',vic_upstr[j]
             vic_upstr[j] += copy.copy(stream_buffer)
-            #print 'after ',vic_upstr[j]
-        # If the node has been already visited, then the upstream segment 
+        # If the node has been already visited, then the upstream segment
         # that was not accounted for in the main stem, would be added to
         # all the downstream nodes, one by one, until the outlet is reached.
         else:
-            #print 'j=',j
-            vic_upstr.update({j:copy.copy(stream_buffer)})
-            #print 'after ',vic_upstr[j]
+            vic_upstr.update({j: copy.copy(stream_buffer)})
         # If the outlet is reached, the 'while' loop will be exited.
-        if r[j]==j:
+        if r[j] == j:
             break
         # This will be executed only for the first node of the stream segment.
         if switch_i:
@@ -160,19 +153,21 @@ for ke in vic_upstr.keys():
     cnt = Counter()
     for num in vic_upstr[ke]:
         cnt[num] += 1
-    B.update({ke:cnt.keys()})
+    B.update({ke: cnt.keys()})
     buf = []
     for k in cnt.keys():
         buf.append(cnt[k])
-    C.update({ke:buf})
+    C.update({ke: buf})
     e = [s/float(sum(buf)) for s in buf]
     coeff.update({ke: e})
 
 TotalTime = datetime.now() - startTime
 
 # %% Plot or/and Save files
-sim = '04Jan16_'
-pickle.dump(B,open("dict_uniq_ids.p","wb"))    # Saving dict{30m id: uniq ids}
-pickle.dump(coeff, open("dict_coeff.p","wb"))  # Saving dict{30m id: coeff}
+sim = 'source_tracking_'
+# Saving dict{30m id: uniq ids}
+pickle.dump(B, open("dict_uniq_ids.p", "wb"))
+# Saving dict{30m id: coeff}
+pickle.dump(coeff, open("dict_coeff.p", "wb"))
 np.save(sim + 'OrderingTime', OrderingTime)
 np.save(sim + 'TotalTime', TotalTime)
