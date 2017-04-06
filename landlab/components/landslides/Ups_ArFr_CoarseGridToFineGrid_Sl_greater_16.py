@@ -76,52 +76,76 @@ r[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes], \
         np.transpose(neighbors[grid.core_nodes]))
 #r = np.choose(r_arc_raw, np.transpose(neighbors))
 # %% Source Routing Algorithm
+# Note 1: This algorithm works on core nodes only because core nodes
+# have neighbors that are real values and not -1s.
+# Note 2: Nodes in the following comments in this section refer to core nodes.
 core_nodes = grid.core_nodes
 core_elev = z[core_nodes]
+# Sort all nodes in the descending order of elevation
 sor_z = core_nodes[np.argsort(core_elev)[::-1]]
+# Create a list to record all nodes that have been visited
 alr_counted = [] # To store nodes that have already been counted
 r_core=r[core_nodes]
-
 flow_accum = np.zeros(grid.number_of_nodes,dtype=int)
 vic_upstr = {}
+# Loop through all nodes
 for i in sor_z:
     #print 'i= ', i
+    # Check 1: Check if this node has been visited earlier. If yes,
+    # then skip to next node
     if i in alr_counted:
         continue
+    # Check 2: If the visited node is a sink
     if r[i]==i:
         vic_upstr.update({i:[vic_ids[i]]})
         flow_accum[i] += 1.
         alr_counted.append(i)
         continue
-    carry_ = []
+    # Check 3: Now, if the node is not a sink and hasn't been visited, it
+    # belongs to a stream segment. Hence, all the nodes in the stream will
+    # have to betraversed.
+    # stream_buffer is a list that will hold the upstream contributing
+    # node information for that particular segment until reaching the outlet.
+    stream_buffer = []
     j = i
     switch_i = True
     a = 0.
+    # Loop below will traverse the segment of the stream until an outlet
+    # is reached.
     while True:
+        # Following if loop is to execute the contents once the first node
+        # in the segment is visited.
         if not switch_i:
             j = r[j]
             if j not in core_nodes:
                 break
         #print 'wh_j = ',j
+        # If the node being visited hasn't been visited before,
+        # this if statement will executed.
         if flow_accum[j] == 0.:
             a += 1.
             alr_counted.append(j)
-            carry_.append(vic_ids[j])
-
+            stream_buffer.append(vic_ids[j])
+        # Update number of upstream nodes.
         flow_accum[j] += a
-
+        # If the node is being visited for the first time, the dictionary
+        # 'vic_upstr' is being updated.
         if j in vic_upstr.keys():
             #print 'j=',j
             #print 'before ',vic_upstr[j]
-            vic_upstr[j] += copy.copy(carry_)
+            vic_upstr[j] += copy.copy(stream_buffer)
             #print 'after ',vic_upstr[j]
+        # If the node has been already visited, then the upstream segment 
+        # that was not accounted for in the main stem, would be added to
+        # all the downstream nodes, one by one, until the outlet is reached.
         else:
             #print 'j=',j
-            vic_upstr.update({j:copy.copy(carry_)})
+            vic_upstr.update({j:copy.copy(stream_buffer)})
             #print 'after ',vic_upstr[j]
-
+        # If the outlet is reached, the 'while' loop will be exited.
         if r[j]==j:
             break
+        # This will be executed only for the first node of the stream segment.
         if switch_i:
             switch_i = False
 
