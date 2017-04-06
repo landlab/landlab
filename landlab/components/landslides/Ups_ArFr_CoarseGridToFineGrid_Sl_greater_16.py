@@ -1,28 +1,18 @@
 
-###########################################################################
-## 26 Jan 2016 - SN & EI
-## Authors: Sai Nudurupati & Erkan Istanbulluoglu
-##
-## Derived from Recharge_estimation.py
-## - convert a coarser grid to finer grid
-## - calculate fractions of upstream drainage area from each
-##   Vic Grid cell
-## - These fractions will be used to estimate recharge at
-##   each grid cell of the finer grid
-##
-## This code is exactly the same as Upstream_AreaFraction_CoarserGridToFinerGrid.py
-## - Only difference is that we will consider slopes > 16 degrees using a
-##   mask
-##
-## Latest Edit - SN 26Jan16
-###########################################################################
+"""
+26 Jan 2016 - SN & EI
+Authors: Sai Nudurupati & Erkan Istanbulluoglu
+HSD: Hydrologic Source Domain; MD: Model Domain
+
+This algorithm is a customized variant of ‘flow accumulation’ algorithm.
+This algorithm uses brute force method (will visit each MD node, sometimes
+multiple times) to calculate all unique upstream contributing HSD nodes and
+their fractions of contribution.
+"""
 
 # %% Import required libraries
 import numpy as np
-#from landlab import RasterModelGrid as rmg
-#from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.io.esri_ascii import read_esri_ascii
-#from landlab.plot.imshow import imshow_grid, imshow_field
 import copy
 from collections import Counter
 from datetime import datetime
@@ -31,34 +21,30 @@ import cPickle as pickle
 # Start the clock
 startTime = datetime.now()
 
-# %% 
-#Start of Script
-grid,z = \
-  read_esri_ascii('./Input_files/elevation.txt',\
-    name='topographic__elevation')
+# %%
+# Import inputs and define model domain
+grid, z = read_esri_ascii('./Input_files/elevation.txt',
+                          name='topographic__elevation')
 grid.set_nodata_nodes_to_closed(grid['node']['topographic__elevation'], -9999.)
 
-grid, flow_dir_arc = \
- read_esri_ascii('./Input_files/flow_direction.txt',\
-   name='flow_dir',grid=grid)
+grid, flow_dir_arc = read_esri_ascii('./Input_files/flow_direction.txt',
+                                     name='flow_dir', grid=grid)
 
-grid,vic_ids = \
-  read_esri_ascii('./Input_files/vic_idsnoca.txt',\
-    name='vic_id', grid=grid)
+grid, hsd_ids = read_esri_ascii('./Input_files/vic_idsnoca.txt',
+                                name='hsd_id', grid=grid)
 
-grid,slp_g16 = \
-  read_esri_ascii('./Input_files/slp_g16msk.txt',\
-    name='slp_g16', grid=grid)
+grid, slp_g16 = read_esri_ascii('./Input_files/slp_g16msk.txt',
+                                name='slp_g16', grid=grid)
 
-vic_ids = vic_ids.astype(int)
+hsd_ids = hsd_ids.astype(int)
 
 grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
 grid.set_nodata_nodes_to_closed(grid['node']['flow_dir'], -9999.)
 grid.set_nodata_nodes_to_closed(grid['node']['slp_g16'], -9999.)
 
 # %% Convert Arc flow_directions file to be represented in node ids
-r_arc_raw = np.log2(flow_dir_arc) # gives receiver of each node starting at
-                                  # right and going clockwise
+# gives receiver of each node starting at right and going clockwise
+r_arc_raw = np.log2(flow_dir_arc)
 r_arc_raw = r_arc_raw.astype('int')
 neigh_ = grid.neighbors_at_node
 diag_ = grid.diagonals_at_node
@@ -87,7 +73,7 @@ sor_z = core_nodes[np.argsort(core_elev)[::-1]]
 alr_counted = []
 r_core = r[core_nodes]
 flow_accum = np.zeros(grid.number_of_nodes, dtype=int)
-vic_upstr = {}
+hsd_upstr = {}
 # Loop through all nodes
 for i in sor_z:
     # Check 1: Check if this node has been visited earlier. If yes,
@@ -95,8 +81,8 @@ for i in sor_z:
     if i in alr_counted:
         continue
     # Check 2: If the visited node is a sink
-    if r[i]==i:
-        vic_upstr.update({i:[vic_ids[i]]})
+    if r[i] == i:
+        hsd_upstr.update({i: [hsd_ids[i]]})
         flow_accum[i] += 1.
         alr_counted.append(i)
         continue
@@ -118,23 +104,23 @@ for i in sor_z:
             j = r[j]
             if j not in core_nodes:
                 break
-        # If the node being visited hasn't been visited before,
-        # this if statement will executed.
+        # If this node is being visited for the first time,
+        # this 'if statement' will executed.
         if flow_accum[j] == 0.:
             a += 1.
             alr_counted.append(j)
-            stream_buffer.append(vic_ids[j])
+            stream_buffer.append(hsd_ids[j])
         # Update number of upstream nodes.
         flow_accum[j] += a
         # If the node is being visited for the first time, the dictionary
-        # 'vic_upstr' is being updated.
-        if j in vic_upstr.keys():
-            vic_upstr[j] += copy.copy(stream_buffer)
+        # 'hsd_upstr' will be updated.
+        if j in hsd_upstr.keys():
+            hsd_upstr[j] += copy.copy(stream_buffer)
         # If the node has been already visited, then the upstream segment
         # that was not accounted for in the main stem, would be added to
         # all the downstream nodes, one by one, until the outlet is reached.
         else:
-            vic_upstr.update({j: copy.copy(stream_buffer)})
+            hsd_upstr.update({j: copy.copy(stream_buffer)})
         # If the outlet is reached, the 'while' loop will be exited.
         if r[j] == j:
             break
@@ -144,16 +130,16 @@ for i in sor_z:
 
 OrderingTime = datetime.now() - startTime
 
-# %% Algorithm to calculate coefficients of each upstream Vic ID
-# vic_upstr = {1 : [21,22,23,24,25], 2: [23, 24, 25, 26, 25, 24]} #for testing
-B = {}  # Holds unique upstream vic ids
+# %% Algorithm to calculate coefficients of each upstream HSD ID
+# hsd_upstr = {1 : [21,22,23,24,25], 2: [23, 24, 25, 26, 25, 24]} #for testing
+uniq_ids = {}  # Holds unique upstream HSD ids
 C = {}  # Holds corresponding total numbers
 coeff = {}  # Holds corresponding coefficients of contribution
-for ke in vic_upstr.keys():
+for ke in hsd_upstr.keys():
     cnt = Counter()
-    for num in vic_upstr[ke]:
+    for num in hsd_upstr[ke]:
         cnt[num] += 1
-    B.update({ke: cnt.keys()})
+    uniq_ids.update({ke: cnt.keys()})
     buf = []
     for k in cnt.keys():
         buf.append(cnt[k])
@@ -166,7 +152,7 @@ TotalTime = datetime.now() - startTime
 # %% Plot or/and Save files
 sim = 'source_tracking_'
 # Saving dict{30m id: uniq ids}
-pickle.dump(B, open("dict_uniq_ids.p", "wb"))
+pickle.dump(uniq_ids, open("dict_uniq_ids.p", "wb"))
 # Saving dict{30m id: coeff}
 pickle.dump(coeff, open("dict_coeff.p", "wb"))
 np.save(sim + 'OrderingTime', OrderingTime)
