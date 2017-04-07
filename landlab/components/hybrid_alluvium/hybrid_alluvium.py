@@ -112,7 +112,7 @@ class HybridAlluvium(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
         >>> from landlab.components import DepressionFinderAndRouter
-        >>> from hybrid_alluvium import HybridAlluvium
+        >>> from landlab.components import HybridAlluvium
         >>> from landlab.components import FastscapeEroder
         >>> np.random.seed(seed = 5000)
         
