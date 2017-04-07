@@ -225,31 +225,42 @@ class DischargeDiffuser(Component):
         nj = grid.number_of_node_columns
 
         # stab_thresh needs to not vary according to nnodes, so:
-        self._stab_thresh = stab_thresh / ni / nj
+        self._stab_thresh = stab_thresh
 
-        self._K = np.zeros((ni-2, nj-2), dtype='float')
-        self._Knew = np.zeros((ni-2, nj-2), dtype='float')
+        self._K = np.zeros((ni-2, nj-2), dtype=float)
+        self._Knew = np.zeros((ni-2, nj-2), dtype=float)
         # discharge across north, south, west, and east face of control volume
-        self._Qn = np.zeros((ni-2, nj-2), dtype='float')
-        self._Qs = np.zeros((ni-2, nj-2), dtype='float')
-        self._Qw = np.zeros((ni-2, nj-2), dtype='float')
-        self._Qe = np.zeros((ni-2, nj-2), dtype='float')
+        self._Qn = np.zeros((ni-2, nj-2), dtype=float)
+        self._Qs = np.zeros((ni-2, nj-2), dtype=float)
+        self._Qw = np.zeros((ni-2, nj-2), dtype=float)
+        self._Qe = np.zeros((ni-2, nj-2), dtype=float)
 
         # coefficenst used in solition of flow conductivity K
-        self._app = np.zeros((ni-2, nj-2), dtype='float')
-        self._apz = np.zeros((ni-2, nj-2), dtype='float')
-        self._aww = np.zeros((ni-2, nj-2), dtype='float')
-        self._awp = np.zeros((ni-2, nj-2), dtype='float')
-        self._awz = np.zeros((ni-2, nj-2), dtype='float')
-        self._aee = np.zeros((ni-2, nj-2), dtype='float')
-        self._aep = np.zeros((ni-2, nj-2), dtype='float')
-        self._aez = np.zeros((ni-2, nj-2), dtype='float')
-        self._ass = np.zeros((ni-2, nj-2), dtype='float')
-        self._asp = np.zeros((ni-2, nj-2), dtype='float')
-        self._asz = np.zeros((ni-2, nj-2), dtype='float')
-        self._ann = np.zeros((ni-2, nj-2), dtype='float')
-        self._anp = np.zeros((ni-2, nj-2), dtype='float')
-        self._anz = np.zeros((ni-2, nj-2), dtype='float')
+        self._app = np.zeros((ni-2, nj-2), dtype=float)
+        self._apz = np.zeros((ni-2, nj-2), dtype=float)
+        self._aww = np.zeros((ni-2, nj-2), dtype=float)
+        self._awp = np.zeros((ni-2, nj-2), dtype=float)
+        self._awz = np.zeros((ni-2, nj-2), dtype=float)
+        self._aee = np.zeros((ni-2, nj-2), dtype=float)
+        self._aep = np.zeros((ni-2, nj-2), dtype=float)
+        self._aez = np.zeros((ni-2, nj-2), dtype=float)
+        self._ass = np.zeros((ni-2, nj-2), dtype=float)
+        self._asp = np.zeros((ni-2, nj-2), dtype=float)
+        self._asz = np.zeros((ni-2, nj-2), dtype=float)
+        self._ann = np.zeros((ni-2, nj-2), dtype=float)
+        self._anp = np.zeros((ni-2, nj-2), dtype=float)
+        self._anz = np.zeros((ni-2, nj-2), dtype=float)
+
+        if not self._simple_flow:
+            self._a_w = np.zeros((ni-2, nj-2), dtype=float)
+            self._a_e = np.zeros((ni-2, nj-2), dtype=float)
+            self._a_n = np.zeros((ni-2, nj-2), dtype=float)
+            self._a_s = np.zeros((ni-2, nj-2), dtype=float)
+        else:
+            self._a_w = 1.
+            self._a_e = 1.
+            self._a_n = 1.
+            self._a_s = 1.
 
         self._slx = np.empty((ni-2, nj-2), dtype=float)
         self._sly = np.empty((ni-2, nj-2), dtype=float)
@@ -318,8 +329,11 @@ class DischargeDiffuser(Component):
             # this whole approach is going to get problematic. All our internal
             # grids probable need to be (ni, nj), and we should then have
             # zero gradients, etc as appropriate
-            pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
-
+#######            pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
+            pad_eta = z.reshape((ni, nj)).copy()
+            pad_eta[0, :] = pad_eta[1, :]
+            pad_eta[:, 0] = pad_eta[:, 1]
+#####JANKY AD HOC HANDLING, needs to work with LL BCs
             # must do water part 1st for stab analysis to work OK:
             # do the water routing on links
             # These calculations are based on assuming that the flow is a sheet
@@ -340,30 +354,7 @@ class DischargeDiffuser(Component):
             # direction
             # note cols/rows which don't get updated will always remain as 0,
             # which is right provided we want no flow BCs
-# replace w more explicit treatment to check
-            # # N
-            # eta_diff = (-pad_eta[self._centpad] +
-            #             pad_eta[self._northpad]) * self._dxbyy
-            # self._ann[:] = eta_diff.clip(0.)
-            # self._anp[:] = (-eta_diff).clip(0.)
-            # # S
-            # eta_diff = (-pad_eta[self._centpad] +
-            #             pad_eta[self._southpad]) * self._dxbyy
-            # self._ass[:] = eta_diff.clip(0.)
-            # self._asp[:] = (-eta_diff).clip(0.)
-            # # E
-            # eta_diff = (-pad_eta[self._centpad] +
-            #             pad_eta[self._eastpad]) * self._dybyx
-            # self._aee[:] = eta_diff.clip(0.)
-            # self._aep[:] = (-eta_diff).clip(0.)
-            # # W
-            # eta_diff = (-pad_eta[self._centpad] +
-            #             pad_eta[self._westpad]) * self._dybyx
-            # self._aww[:] = eta_diff.clip(0.)
-            # self._awp[:] = (-eta_diff).clip(0.)
-            # 
-            # self._app[:] = self._awp + self._aep + self._asp + self._anp
-            # 
+
             # # zero elevation treatment
             # # at a zero elevation we use a simple averaging approach
             # # this rationale is questionable - a propagation across flats may
@@ -423,7 +414,16 @@ class DischargeDiffuser(Component):
                         pad_eta[self._westpad]) / grid.dx
             self._aww[:] = eta_diff.clip(0.)
             self._awp[:] = (-eta_diff).clip(0.)
-
+            if not self._simple_flow:
+                for dir, a in zip(
+                        ('W', 'E', 'S', 'N'),
+                        (self._a_w, self._a_e, self._a_s, self._a_n)):
+                    self._grad_on_link(pad_eta, dir, self._slx, self._sly)
+                    mean_slope = np.sqrt(self._slx**2 + self._sly**2)
+                    a[:] = mean_slope**(self._c-1.)
+                    # this will pick up infs where 0, so:
+                    a[a == np.inf] = 0.
+                    # a_e, a_w etc are 1. if simple_flow
             ##self._app[:] = self._awp + self._aep + self._asp + self._anp
 
             # zero elevation treatment
@@ -440,33 +440,18 @@ class DischargeDiffuser(Component):
             # NOTE when we do not have a zero elevation condition the
             # coefficients a*z are the upwind coefficents
 
-            if self._simple_flow:  # c == 1
-                # these are now discharge prefactors
-                # self._app[:] = (self._awp*grid.dy + self._aep*grid.dy +
-                #                 self._asp*grid.dx + self._anp*grid.dx)
-                # self._app += self._min_slope_thresh
-                # _app is no longer well defined
-                awz = self._aww * grid.dy
-                aez = self._aee * grid.dy
-                asz = self._ass * grid.dx
-                anz = self._ann * grid.dx
-                awpz = self._awp * grid.dy
-                aepz = self._aep * grid.dy
-                aspz = self._asp * grid.dx
-                anpz = self._anp * grid.dx
-                apz = awpz + aepz + aspz + anpz + self._min_slope_thresh
-            else:  # Manning/Chezy style routing
-                # second correction here accounts for fact it should be
-                # slope, not d_eta, inside the term
-                awz = self._aww**self._c * self.grid.dy
-                aez = self._aee**self._c * self.grid.dy
-                asz = self._ass**self._c * self.grid.dx
-                anz = self._ann**self._c * self.grid.dx
-                awpz = self._awp**self._c * self.grid.dy
-                aepz = self._aep**self._c * self.grid.dy
-                aspz = self._asp**self._c * self.grid.dx
-                anpz = self._anp**self._c * self.grid.dx
-                apz = awpz + aepz + aspz + anpz + self._min_slope_thresh
+            # these are now discharge prefactors
+            # _app is no longer well defined
+            awz = self._aww * self._a_w * grid.dy
+            aez = self._aee * self._a_e * grid.dy
+            asz = self._ass * self._a_s * grid.dx
+            anz = self._ann * self._a_n * grid.dx
+            awpz = self._awp * self._a_w * grid.dy
+            aepz = self._aep * self._a_e * grid.dy
+            aspz = self._asp * self._a_s * grid.dx
+            anpz = self._anp * self._a_n * grid.dx
+            apz = awpz + aepz + aspz + anpz + self._min_slope_thresh
+            self._apz = apz
 
             # Solve upwind equations for nodal K
             # this involves iteration to a stable solution
@@ -474,7 +459,8 @@ class DischargeDiffuser(Component):
             mismatch = 1.
             # if VV's 4/1/1/1/1 flat scheme is used, this thresh is too low
             # current approach with tiny addition to app and axx works better
-            while mismatch > self._stab_thresh:
+            thisthresh = self._stab_thresh/self.grid.number_of_nodes
+            while mismatch > thisthresh:
                 # in here, without VV's method, we can use axx and app instead
                 # of axz and apz
                 Knew.fill(self._min_slope_thresh)
@@ -515,6 +501,7 @@ class DischargeDiffuser(Component):
             NSmax = max(np.fabs(self._Qn).max(),
                         np.fabs(self._Qs).max())/self.grid.dx
             maxwaterflux = max(EWmax, NSmax)
+            self._maxwaterflux = maxwaterflux
             if np.isclose(maxwaterflux, 0.):
                 dt_stab = dt
                 breakcheck = True
@@ -526,6 +513,7 @@ class DischargeDiffuser(Component):
                     breakcheck = True
                     dt_stab = dt - current_internal_time
 
+            self._numloops = dt/dt_stab
             # modify S if we're using MPM:
             if self._powerlaw is True:
                 thresh = self._slope
@@ -557,7 +545,9 @@ class DischargeDiffuser(Component):
         Note that if diagonal routing, this will return number_of_d8_links.
         Otherwise, it will be number_of_links.
         """
-        return self._discharges_at_link
+        Qx = (self._Qw - self._Qe) / 2.
+        Qy = (self._Qs - self._Qn) / 2.
+        return np.sqrt(Qx**2 + Qy**2)
 
     def _grad_on_link(self, padded_eta, direction, slx, sly):
         """
@@ -673,20 +663,24 @@ if __name__ == '__main__':
     import numpy as np
     from landlab import RasterModelGrid, imshow_grid_at_node
     S_crit = 0.25
-    mg = RasterModelGrid((40, 40), (0.25, 0.25))
+    width = 40
+    mg = RasterModelGrid((width, width), (0.25, 0.25))  # 40, 0.25
     z = mg.add_zeros('node', 'topographic__elevation')
     # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
     # source_count = np.sum(source_nodes.astype(float))
-    source_nodes = 41  # 820 puts it in the middle
+    source_nodes = width+1  # 820 puts it in the middle
     source_count = 1.
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
-    z -= mg.node_x/10000.
-    z -= mg.node_y/10000.
+    z -= mg.node_x/100.
+    z -= mg.node_y/100.
+    z[mg.nodes_at_bottom_edge] = 1.
+    z[mg.nodes_at_left_edge] = 1.
     Qw_in[source_nodes] = 0.5 * np.pi / source_count
     Qs_in[source_nodes] = (1. - S_crit) * 0.5 * np.pi / source_count
-    dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=1.,
+    dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=0.5,
                            sediment_flux_equation='powerlaw')
     for i in range(501):  # 501
         dd.run_one_step(0.08)  # 0.08
+        print(i)
     imshow_grid_at_node(mg, 'topographic__elevation')
