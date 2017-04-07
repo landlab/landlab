@@ -54,7 +54,7 @@ Remean = 4.
 Restandard_deviation = 0.25
 #Option 3 - Lognormal-Spatial
 distribution3 = 'lognormal_spatial'
-Remean3 = np.random.randint(2,7,grid_size)
+Remean3 = np.random.randint(20,120,grid_size)
 Restandard_deviation3 = np.random.rand(grid_size)
 #Option 4 - Fully distributed
 VIC_dict = {}
