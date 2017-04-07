@@ -434,7 +434,7 @@ class HybridAlluvium(Component):
         #now, the analytical solution to soil thickness in time:
         #need to distinguish D=kqS from all other cases to save from blowup!
         
-        flooded = self._grid.nodes.flatten() == flooded_nodes
+        flooded = np.equal(self._grid.nodes.flatten(), flooded_nodes)
         
         #distinguish cases:
         blowup = deposition_pertime == self.K_sed * self.q * self.slope
