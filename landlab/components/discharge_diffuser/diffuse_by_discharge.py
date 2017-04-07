@@ -48,6 +48,12 @@ class DischargeDiffuser(Component):
             -> Implemented for MPM, but not well tested
         * BC control (as of now, all boundaries are open and fixed grad (?))
 
+    At present, this component runs only with closed or generic "open" BCs,
+    i.e., only BCs set to CLOSED_BOUNDARY will be "felt".
+    It also only runs for grids where the perimeter nodes are the only closed
+    nodes present.
+    All nodes along an edge must share the same BC.
+
     The primary method of this class is :func:`run_one_step`.
 
     Construction::
@@ -227,6 +233,19 @@ class DischargeDiffuser(Component):
         # stab_thresh needs to not vary according to nnodes, so:
         self._stab_thresh = stab_thresh
 
+        # perform BC handling:
+        # we enforce that edges are all the same...
+        self._closed_edges = {}  # E,N,W,S
+        for edge in ('right', 'top', 'left', 'bottom'):
+            edgenodes = grid.nodes_at_edge(edge)
+            BCs = grid.status_at_node[edgenodes]
+            closed = BCs[1] == 4
+            if closed:
+                assert np.all(BCs[1:-1] == 4), (
+                    'All nodes on an edge must be CLOSED!')
+            self._closed_edges[edge] = closed
+
+        # set up private params for speed in run method:
         self._K = np.zeros((ni-2, nj-2), dtype=float)
         self._Knew = np.zeros((ni-2, nj-2), dtype=float)
         # discharge across north, south, west, and east face of control volume
@@ -329,11 +348,17 @@ class DischargeDiffuser(Component):
             # this whole approach is going to get problematic. All our internal
             # grids probable need to be (ni, nj), and we should then have
             # zero gradients, etc as appropriate
-#######            pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
             pad_eta = z.reshape((ni, nj)).copy()
-            pad_eta[0, :] = pad_eta[1, :]
-            pad_eta[:, 0] = pad_eta[:, 1]
-#####JANKY AD HOC HANDLING, needs to work with LL BCs
+            for edge in ('right', 'top', 'left', 'bottom'):
+                if self._closed_edges[edge]:  # it's closed
+                    if edge == 'right':
+                        pad_eta[:, -1] = pad_eta[:, -2]
+                    elif edge == 'left':
+                        pad_eta[:, 0] = pad_eta[:, 1]
+                    elif edge == 'top':
+                        pad_eta[-1, :] = pad_eta[-2, :]
+                    else:  # bottom
+                        pad_eta[0, :] = pad_eta[1, :]
             # must do water part 1st for stab analysis to work OK:
             # do the water routing on links
             # These calculations are based on assuming that the flow is a sheet
@@ -665,15 +690,19 @@ if __name__ == '__main__':
     S_crit = 0.25
     width = 40
     mg = RasterModelGrid((width, width), (0.25, 0.25))  # 40, 0.25
+    for edge in ('top', 'left', 'bottom'):
+        mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
     z = mg.add_zeros('node', 'topographic__elevation')
     # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
     # source_count = np.sum(source_nodes.astype(float))
-    source_nodes = width+1  # 820 puts it in the middle
+    # source_nodes = [width+1, ]
+    source_nodes = [width+1, mg.number_of_nodes-2*width+1]
+    # ^820 puts it in the middle
     source_count = 1.
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
     z -= mg.node_x/100.
-    z -= mg.node_y/100.
+    # z -= mg.node_y/100
     z[mg.nodes_at_bottom_edge] = 1.
     z[mg.nodes_at_left_edge] = 1.
     Qw_in[source_nodes] = 0.5 * np.pi / source_count
