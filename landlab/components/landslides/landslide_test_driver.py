@@ -48,7 +48,7 @@ n = 10
 distribution1 = 'uniform'
 Remin_value = 20.
 Remax_value = 120.
-#Opton 2 - Lognormal-Uniform
+#Option 2 - Lognormal-Uniform
 distribution2 = 'lognormal_uniform'
 Remean = 4.
 Restandard_deviation = 0.25
