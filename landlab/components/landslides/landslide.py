@@ -119,7 +119,7 @@ True
 
 # %% Import Libraries
 from landlab import Component
-from ...utils.decorators import use_file_name_or_kwds
+from landlab.utils.decorators import use_file_name_or_kwds
 import numpy as np
 from scipy import interpolate
 from statsmodels.distributions.empirical_distribution import ECDF
