@@ -10,7 +10,8 @@ multiple times) to calculate all unique upstream contributing HSD nodes and
 their fractions of contribution.
 """
 
-# %% Import required libraries
+# %%
+# Import required libraries
 import numpy as np
 from landlab.io.esri_ascii import read_esri_ascii
 import copy
@@ -22,27 +23,25 @@ import cPickle as pickle
 startTime = datetime.now()
 
 # %%
-# Import inputs and define model domain
+# Import input files. Create a RasterModelGrid object 'grid' and assign
+# input data as fields or assigned to a variable
 grid, z = read_esri_ascii('./Input_files/elevation.txt',
                           name='topographic__elevation')
 grid.set_nodata_nodes_to_closed(grid['node']['topographic__elevation'], -9999.)
-
 grid, flow_dir_arc = read_esri_ascii('./Input_files/flow_direction.txt',
                                      name='flow_dir', grid=grid)
-
 grid, hsd_ids = read_esri_ascii('./Input_files/vic_idsnoca.txt',
                                 name='hsd_id', grid=grid)
-
 grid, slp_g16 = read_esri_ascii('./Input_files/slp_g16msk.txt',
                                 name='slp_g16', grid=grid)
-
 hsd_ids = hsd_ids.astype(int)
-
+# Define model domain
 grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
 grid.set_nodata_nodes_to_closed(grid['node']['flow_dir'], -9999.)
 grid.set_nodata_nodes_to_closed(grid['node']['slp_g16'], -9999.)
 
-# %% Convert Arc flow_directions file to be represented in node ids
+# %%
+# Convert Arc flow_directions file to be represented in node ids
 # gives receiver of each node starting at right and going clockwise
 r_arc_raw = np.log2(flow_dir_arc)
 r_arc_raw = r_arc_raw.astype('int')
@@ -60,7 +59,8 @@ r = np.zeros(grid.number_of_nodes, dtype=int)
 r[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes],
                                np.transpose(neighbors[grid.core_nodes]))
 
-# %% Source Routing Algorithm
+# %%
+# Source Routing Algorithm
 # Note 1: This algorithm works on core nodes only because core nodes
 # have neighbors that are real values and not -1s.
 # Note 2: Nodes in the following comments in this section refer to core nodes.
@@ -130,8 +130,8 @@ for i in sor_z:
 
 OrderingTime = datetime.now() - startTime
 
-# %% Algorithm to calculate coefficients of each upstream HSD ID
-# hsd_upstr = {1 : [21,22,23,24,25], 2: [23, 24, 25, 26, 25, 24]} #for testing
+# %%
+# Algorithm to calculate coefficients of each upstream HSD ID
 uniq_ids = {}  # Holds unique upstream HSD ids
 C = {}  # Holds corresponding total numbers
 coeff = {}  # Holds corresponding coefficients of contribution
@@ -149,11 +149,13 @@ for ke in hsd_upstr.keys():
 
 TotalTime = datetime.now() - startTime
 
-# %% Plot or/and Save files
+# %%
+# Plot or/and Save files
 sim = 'source_tracking_'
-# Saving dict{30m id: uniq ids}
+# Saving dict{MD id: unique HSD ids}
 pickle.dump(uniq_ids, open("dict_uniq_ids.p", "wb"))
-# Saving dict{30m id: coeff}
+# Saving dict{MD id: Fraction of unique HSD ids
+# contributing to this MD id}
 pickle.dump(coeff, open("dict_coeff.p", "wb"))
 np.save(sim + 'OrderingTime', OrderingTime)
 np.save(sim + 'TotalTime', TotalTime)
