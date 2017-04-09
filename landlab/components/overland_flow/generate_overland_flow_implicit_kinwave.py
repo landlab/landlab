@@ -16,6 +16,41 @@ import numpy as np
 
 
 def water_fn(x, a, b, c, d, e):
+    """Evaluates the solution to the water-depth equation.
+    
+    Parameters
+    ----------
+    x : float
+        Water depth at new time step.
+    a : float
+        "alpha" parameter (see below)
+    b : float
+        Weighting factor on new versus old time step. $b=1$ means purely
+        implicit solution with all weight on $H$ at new time step. $b=0$ (not
+        recommended) would mean purely explicit.
+    c : float
+        Water depth at old time step (time step $t$ instead of $t+1$)
+    d : float
+        Depth-discharge exponent; normally either 5/3 (Manning) or 3/2 (Chezy)
+    e : float
+        Water inflow volume per unit cell area in one time step.
+
+    This equation represents the implicit solution for water depth $H$ at the
+    next time step. In the code below, it is formulated in a generic way. 
+    Written using more familiar terminology, the equation is:
+
+    $H - H_0 + \alpha ( w H + (w-1) H_0)^d - \Delta t (R + Q_{in} / A)$
+    
+    $\alpha = \frac{\Delta t \sum S^{1/2}}{C_f A}$
+    
+    where $H$ is water depth at the given node at the new time step, $H_0$ is
+    water depth at the prior time step, $w$ is a weighting factor, $d$ is the
+    depth-discharge exponent (2/3 or 1/2), $\Delta t$ is time-step duration,
+    $R$ is local runoff rate, $Q_{in}$ is inflow discharge, $A$ is cell area,
+    $C_f$ is a dimensional roughness coefficient, and $\sum S^{1/2}$ represents
+    the sum of square-root-of-downhill-gradient over all outgoing (downhill)
+    links.
+    """
     return x - c + a * (b * x + (b - 1.0) * c) ** d - e
 
 
