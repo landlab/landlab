@@ -84,9 +84,8 @@ def test_steady_basic_ramp():
     for i in range(22):
         kw.run_one_step(1.0)
 
-    # Look at a column of nodes down the middle. The inflow from uphill should
-    # be, from top to bottom: 0, 0.004, 0.008, 0.012, 0.016, 0.02, 0.024, 0.028
-    assert_equal(kw.disch_in[85], 0.0)
+    # Again, look at a column of nodes down the middle. The inflow from uphill 
+    # should now be 1/10 of the prior example.
     assert_equal(round(kw.disch_in[75], 4), 0.0004)
     assert_equal(round(kw.disch_in[65], 4), 0.0008)
     assert_equal(round(kw.disch_in[55], 4), 0.0012)

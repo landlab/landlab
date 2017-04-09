@@ -17,7 +17,9 @@ import numpy as np
 
 def water_fn(x, a, b, c, d, e):
     """Evaluates the solution to the water-depth equation.
-    
+
+    Called by scipy.newton() to find solution for $x$ using Newton's method.
+
     Parameters
     ----------
     x : float
