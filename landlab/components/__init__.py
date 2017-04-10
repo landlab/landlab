@@ -5,8 +5,13 @@ from .detachment_ltd_erosion import DetachmentLtdErosion, DepthSlopeProductErosi
 from .flexure import Flexure
 from .flow_routing import FlowRouter, DepressionFinderAndRouter
 from .nonlinear_diffusion import PerronNLDiffuse
+from .flow_director import FlowDirectorD8
+from .flow_director import FlowDirectorSteepest
+from .flow_director import FlowDirectorMFD
+from .flow_director import FlowDirectorDINF
+from .flow_accum import FlowAccumulator
 from .overland_flow import OverlandFlowBates, OverlandFlow
-from .overland_flow import KinematicWaveRengers
+from .overland_flow import KinematicWaveRengers, KinwaveImplicitOverlandFlow
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .pet import PotentialEvapotranspiration
 from .radiation import Radiation
@@ -22,11 +27,6 @@ from .gflex import gFlex
 from .drainage_density import DrainageDensity
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
-from .flow_director import FlowDirectorD8
-from .flow_director import FlowDirectorSteepest
-from .flow_director import FlowDirectorMFD
-from .flow_director import FlowDirectorDINF
-from .flow_accum import FlowAccumulator
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 from .hybrid_alluvium import HybridAlluvium
@@ -34,6 +34,7 @@ from .hybrid_alluvium import HybridAlluvium
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
+	      KinwaveImplicitOverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, 
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
