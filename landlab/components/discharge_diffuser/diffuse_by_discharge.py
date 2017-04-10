@@ -38,12 +38,20 @@ class DischargeDiffuser(Component):
     where S_crit is a critical slope threshold, and c, a, m, and n are constant
     parameters which reflect the chosen transport law. In this context, note
     that S, q_water, and q_sed are all vector terms.
+    
+    Note that although nonlinear (e.g., Manning or Chezy style; c=0.5) routing
+    of water is permitted within the component, this will have almost no
+    impact on the final topographies produced by the coupled output. Diffusion
+    occurring proportional to discharge will always result in a smooth fan
+    and hence in the same discharge-radius relationship for a given diffusion
+    law, regardless of the value of c specified.
 
     As of 28/3/17, this component needs the following enhancements:
         * demonstration of effectiveness on non-flat topos
         * Optional water depth to fill (probably a second component)
         * Forcing to follow a specific flow law
-            -> Implemented, but with problematic channel closure condition
+            -> Implemented, but note unintuitive behaviour when fully coupled
+               model is employed
         * Forcing to follow a specific transport law
             -> Implemented for MPM, but not well tested
         * BC control (as of now, all boundaries are open and fixed grad (?))
@@ -439,6 +447,8 @@ class DischargeDiffuser(Component):
                         pad_eta[self._westpad]) / grid.dx
             self._aww[:] = eta_diff.clip(0.)
             self._awp[:] = (-eta_diff).clip(0.)
+            a = np.ones((ni, nj), dtype=float)
+            self._mod_a = a
             if not self._simple_flow:
                 for dir, a in zip(
                         ('W', 'E', 'S', 'N'),
@@ -448,7 +458,14 @@ class DischargeDiffuser(Component):
                     a[:] = mean_slope**(self._c-1.)
                     # this will pick up infs where 0, so:
                     a[a == np.inf] = 0.
-                    # a_e, a_w etc are 1. if simple_flow
+                #     # a_e, a_w etc are 1. if simple_flow
+                # slope_mag = np.tan(
+                #     self.grid.calc_slope_at_node().reshape(ni, nj)[1:-1, 1:-1])
+                # a[1:-1, 1:-1] = slope_mag**(self._c - 1.)
+                # a[0, :] = a[1, :]
+                # a[-1, :] = a[-2, :]
+                # a[:, 0] = a[:, 1]
+                # a[:, -1] = a[:, -2]
             ##self._app[:] = self._awp + self._aep + self._asp + self._anp
 
             # zero elevation treatment
@@ -467,6 +484,14 @@ class DischargeDiffuser(Component):
 
             # these are now discharge prefactors
             # _app is no longer well defined
+            # awz = self._aww * a[self._westpad] * grid.dy
+            # aez = self._aee * a[self._eastpad] * grid.dy
+            # asz = self._ass * a[self._southpad] * grid.dx
+            # anz = self._ann * a[self._northpad] * grid.dx
+            # awpz = self._awp * a[self._centpad] * grid.dy
+            # aepz = self._aep * a[self._centpad] * grid.dy
+            # aspz = self._asp * a[self._centpad] * grid.dx
+            # anpz = self._anp * a[self._centpad] * grid.dx
             awz = self._aww * self._a_w * grid.dy
             aez = self._aee * self._a_e * grid.dy
             asz = self._ass * self._a_s * grid.dx
@@ -687,29 +712,78 @@ class DischargeDiffuser(Component):
 if __name__ == '__main__':
     import numpy as np
     from landlab import RasterModelGrid, imshow_grid_at_node
-    S_crit = 0.25
-    width = 40
+    # S_crit = 0.00001
+    # width = 40
+    # mg = RasterModelGrid((width, width), (0.25, 0.25))  # 40, 0.25
+    # for edge in ('top', 'left', 'bottom'):
+    #     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+    # z = mg.add_zeros('node', 'topographic__elevation')
+    # # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
+    # # source_count = np.sum(source_nodes.astype(float))
+    # # source_nodes = [width+1, ]
+    # source_nodes = [width+1, mg.number_of_nodes-2*width+1]
+    # # ^820 puts it in the middle
+    # source_count = len(source_nodes)
+    # Qw_in = mg.add_zeros('node', 'water__discharge_in')
+    # Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
+    # z -= mg.node_x/100.
+    # #z -= (mg.node_x**2)/30.
+    # #z -= mg.node_y/300.
+    # z[mg.nodes_at_bottom_edge] = 1.
+    # z[mg.nodes_at_left_edge] = 1.
+    # Qw_in[source_nodes] = 0.5 * np.pi / source_count
+    # Qw_in[source_nodes[1]] *= 2.
+    # Qs_in[source_nodes] = (1. - S_crit) * 0.5 * np.pi / source_count
+    # Qs_in[source_nodes[1]] *= 2.
+    # dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=0.5,
+    #                        sediment_flux_equation='powerlaw')
+    # for i in range(101):  # 501
+    #     dd.run_one_step(0.08)  # 0.08
+    #     print(i)
+    # imshow_grid_at_node(mg, 'topographic__elevation')
+
+    # S_crit = 0.00001
+    # width = 4
+    # mg = RasterModelGrid((width, width), (0.25, 0.25))  # 40, 0.25
+    # for edge in ('top', 'left', 'bottom'):
+    #     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+    # z = mg.add_zeros('node', 'topographic__elevation')
+    # source_nodes = [width+1, ]
+    # # ^820 puts it in the middle
+    # source_count = len(source_nodes)
+    # Qw_in = mg.add_zeros('node', 'water__discharge_in')
+    # Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
+    # z.reshape((4, 4))[1:-1, 1:] = [[3, 2, 0.], [1, 1.6666667, 0.]]
+    # Qw_in[source_nodes] = 0.5 * np.pi / source_count
+    # dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=1.,
+    #                        sediment_flux_equation='powerlaw', a=0.)
+    # for i in range(1):  # 501
+    #     dd.run_one_step(0.08)  # 0.08
+    #     print(i)
+    # imshow_grid_at_node(mg, 'topographic__elevation')
+
+    S_crit = 0.00001
+    width = 30
     mg = RasterModelGrid((width, width), (0.25, 0.25))  # 40, 0.25
     for edge in ('top', 'left', 'bottom'):
         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
     z = mg.add_zeros('node', 'topographic__elevation')
-    # source_nodes = np.sqrt(mg.node_x**2 + mg.node_y**2) < 3.
-    # source_count = np.sum(source_nodes.astype(float))
-    # source_nodes = [width+1, ]
+    source_nodes = [width+1, ]
     source_nodes = [width+1, mg.number_of_nodes-2*width+1]
     # ^820 puts it in the middle
-    source_count = 1.
+    source_count = len(source_nodes)
     Qw_in = mg.add_zeros('node', 'water__discharge_in')
     Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
-    z -= mg.node_x/100.
-    # z -= mg.node_y/100
-    z[mg.nodes_at_bottom_edge] = 1.
-    z[mg.nodes_at_left_edge] = 1.
+    z -= mg.node_y*2.
+    z -= mg.node_x/2.
+    z_0 = z.copy()
     Qw_in[source_nodes] = 0.5 * np.pi / source_count
-    Qs_in[source_nodes] = (1. - S_crit) * 0.5 * np.pi / source_count
+    Qs_in[source_nodes] = 10.
+    Qw_in[source_nodes[1]] *= 2.
+    Qs_in[source_nodes[1]] *= 2.
     dd = DischargeDiffuser(mg, S_crit, flow_law_slope_exponent=0.5,
-                           sediment_flux_equation='powerlaw')
-    for i in range(501):  # 501
-        dd.run_one_step(0.08)  # 0.08
+                           sediment_flux_equation='powerlaw', a=1., m=1.5)
+    for i in range(10000):  # 501
+        dd.run_one_step(0.001)  # 0.08
         print(i)
     imshow_grid_at_node(mg, 'topographic__elevation')
