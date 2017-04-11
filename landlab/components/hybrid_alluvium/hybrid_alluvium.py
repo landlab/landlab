@@ -215,10 +215,10 @@ class HybridAlluvium(Component):
             self.qs = grid.add_zeros(
                 'sediment__flux', at='node', dtype=float)
         try:
-            self.q = grid.at_node['water__discharge']
+            self.q = grid.at_node['surface_water__discharge']
         except KeyError:
             self.q = grid.add_zeros(
-                'water__discharge', at='node', dtype=float)
+                'surface_water__discharge', at='node', dtype=float)
                 
         self._grid = grid #store grid
         
@@ -451,7 +451,7 @@ class HybridAlluvium(Component):
         #positive slopes, flooded
         self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
             (flooded==True)] = (deposition_pertime[(self.q > 0) & \
-            (blowup==True) & (flooded==True)] / (1 - self.phi)) * dt   
+            (blowup==True) & (self.slope > 0) & (flooded==True)] / (1 - self.phi)) * dt   
         #non-positive slopes, not flooded
         self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
             (flooded==False)] += (deposition_pertime[(self.q > 0) & \
