@@ -179,18 +179,18 @@ class HybridAlluvium(Component):
         Now we test to see if soil depth and topography are right:
         
         >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.50017567,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
-            0.5       ,  0.31533263,  0.43666479,  0.48101243,  0.5       ,
-            0.5       ,  0.43665641,  0.43665331,  0.48040033,  0.5       ,
-            0.5       ,  0.48085485,  0.48039718,  0.47769967,  0.5       ,
-            0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
+        array([ 0.50003494,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
+               0.5       ,  0.11887907,  0.16197065,  0.21999913,  0.5       ,
+               0.5       ,  0.1619594 ,  0.1504285 ,  0.21048366,  0.5       ,
+               0.5       ,  0.21974902,  0.21047882,  0.21695828,  0.5       ,
+               0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
         
         >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.52328045,  2.03606698,  3.0727653 ,  4.01126678,  5.06077707,
-            2.08157495,  0.7439511 ,  0.87235011,  0.92742108,  6.00969486,
-            3.04008677,  0.87235537,  0.87236022,  0.92797578,  7.02641123,
-            4.05874171,  0.9275681 ,  0.92797857,  0.94313036,  8.05334077,
-            5.05922478,  6.0409473 ,  7.07035008,  8.0038935 ,  9.01034357])
+        array([ 0.52313972,  2.03606698,  3.0727653 ,  4.01126678,  5.06077707,
+               2.08157495,  0.54749666,  0.59765511,  0.66640713,  6.00969486,
+               3.04008677,  0.5976575 ,  0.58613448,  0.65805841,  7.02641123,
+               4.05874171,  0.66646161,  0.65805951,  0.68238831,  8.05334077,
+               5.05922478,  6.0409473 ,  7.07035008,  8.0038935 ,  9.01034357])
         """
         #assign class variables to grid fields; create necessary fields
         self.flow_receivers = grid.at_node['flow__receiver_node']
@@ -215,10 +215,10 @@ class HybridAlluvium(Component):
             self.qs = grid.add_zeros(
                 'sediment__flux', at='node', dtype=float)
         try:
-            self.q = grid.at_node['water__discharge']
+            self.q = grid.at_node['surface_water__discharge']
         except KeyError:
             self.q = grid.add_zeros(
-                'water__discharge', at='node', dtype=float)
+                'surface_water__discharge', at='node', dtype=float)
                 
         self._grid = grid #store grid
         
@@ -451,7 +451,7 @@ class HybridAlluvium(Component):
         #positive slopes, flooded
         self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
             (flooded==True)] = (deposition_pertime[(self.q > 0) & \
-            (blowup==True) & (flooded==True)] / (1 - self.phi)) * dt   
+            (blowup==True) & (self.slope > 0) & (flooded==True)] / (1 - self.phi)) * dt   
         #non-positive slopes, not flooded
         self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
             (flooded==False)] += (deposition_pertime[(self.q > 0) & \
