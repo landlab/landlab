@@ -1,4 +1,8 @@
-"""Utility functions that operate on landlab grids."""
+"""
+Utility functions that operate on landlab grids.
+------------------------------------------------
+
+"""
 
 
 import numpy as np

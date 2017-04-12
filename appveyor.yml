@@ -5,7 +5,6 @@ environment:
     # MINICONDA_VERSION: "3.5.5"
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
     # NUMPY_VERSION: "1.9.1"
-    CONDA_NPY: 1.10
     PYPI_PASS:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
     ANACONDA_TOKEN:
@@ -19,11 +18,16 @@ environment:
     - PYTHON: "C:\\Python27"
       DISTUTILS_USE_SDK: "1"
       PYTHON_VERSION: "2.7"
-    - PYTHON: "C:\\Python34"
+      CONDA_NPY: 1.11
+    # - PYTHON: "C:\\Python34"
     #   DISTUTILS_USE_SDK: "1"
-      PYTHON_VERSION: "3.4"
+    #   PYTHON_VERSION: "3.4"
     - PYTHON: "C:\\Python35"
       PYTHON_VERSION: "3.5"
+      CONDA_NPY: 1.11
+    - PYTHON: "C:\\Python36"
+      PYTHON_VERSION: "3.6"
+      CONDA_NPY: 1.11
     #   PYTHON_ARCH: "64"
     #   NUMPY_VERSION: "1.10.4"
 

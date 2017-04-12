@@ -26,6 +26,7 @@ class SoilInfiltrationGreenAmpt(Component):
                                   initial_soil_moisture_content=0.15,
                                   soil_type='sandy loam',
                                   volume_fraction_coarse_fragments=0.2,
+                                  coarse_sed_flag=False,
                                   surface_water_minimum_depth=1.e-8,
                                   soil_pore_size_distribution_index=None,
                                   soil_bubbling_pressure=None,
@@ -52,6 +53,9 @@ class SoilInfiltrationGreenAmpt(Component):
     volume_fraction_coarse_fragments : float (m**3/m**3, 0. to 1.)
         The fraction of the soil made up of rocky fragments with very
         little porosity, with diameter > 2 mm.
+    coarse_sed_flag : boolean, optional
+        If this flag is set to true, the fraction of coarse material in the
+        soil column with be used as a correction for phi, the porosity factor.
     surface_water_minimum_depth : float (m), optional
         A minimum water depth to stabilize the solutions for surface flood
         modelling. Leave as the default in most normal use cases.
@@ -73,6 +77,7 @@ class SoilInfiltrationGreenAmpt(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components import SoilInfiltrationGreenAmpt
     >>> mg = RasterModelGrid((4,3), spacing=10.)
     >>> hydraulic_conductivity = mg.ones('node')*1.e-6
     >>> hydraulic_conductivity.reshape((4,3))[0:2,:] *= 10000.
@@ -87,13 +92,12 @@ class SoilInfiltrationGreenAmpt(Component):
     >>> mg.at_node['surface_water__depth']
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
-             9.89663678e-03,   9.89663678e-03,   9.89663678e-03,
-             9.89663678e-03,   9.89663678e-03,   9.89663678e-03])
+             9.88530416e-03,   9.88530416e-03,   9.88530416e-03,
+             9.88530416e-03,   9.88530416e-03,   9.88530416e-03])
     >>> mg.at_node['soil_water_infiltration__depth']
-    array([ 0.20999999,  0.20999999,  0.20999999,
-            0.20999999,  0.20999999,  0.20999999,
-            0.20010336,  0.20010336,  0.20010336,
-            0.20010336,  0.20010336,  0.20010336])
+    array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
+           0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
+           0.2001147 ,  0.2001147 ])
     """
 
     _name = 'SoilInfiltrationGreenAmpt'
@@ -131,6 +135,7 @@ class SoilInfiltrationGreenAmpt(Component):
                  soil_bulk_density=1590., rock_density=2650.,
                  initial_soil_moisture_content=0.15, soil_type='sandy loam',
                  volume_fraction_coarse_fragments=0.2,
+                 coarse_sed_flag=False,
                  surface_water_minimum_depth=1.e-8,
                  soil_pore_size_distribution_index=None,
                  soil_bubbling_pressure=None,
@@ -155,6 +160,11 @@ class SoilInfiltrationGreenAmpt(Component):
                       'clay': (0.165, 0.3730),
                       }
 
+        # set up the soil properties. if a string is passed as a keyword
+        # when the component is initialized, the component solves this 
+        # automatically. if no soil_type is passed, lambda and h_b must be
+        # set manually by the user using the soil_pore_size_distribution_index
+        # (lambda) and soil_bubbling_pressure (h_b) keywords.
         assert (soil_type in soil_props.keys()) or (soil_type is None), \
             "Soil type must be a recognised soil type string, or None"
         if soil_pore_size_distribution_index is None:
@@ -167,31 +177,50 @@ class SoilInfiltrationGreenAmpt(Component):
                 ("If you do not supply a soil_type, you must provide lambda " +
                  "and hb manually!")
 
+        # sets hydraulic conductivity as a field or as a float.
         if type(hydraulic_conductivity) is str:
             self._Ks = self.grid.at_node[hydraulic_conductivity]
         else:
             self._Ks = hydraulic_conductivity
+          
+        # maintaining some layer of water on the surface at all times...
         self._lilwater = surface_water_minimum_depth
-        # build the key model params from the inputs
+        
+        # set the soil porosity. 
         phi = 1. - float(soil_bulk_density)/float(rock_density)
         assert 0. < phi < 1.
-        assert 0. <= volume_fraction_coarse_fragments < 1.
-        coarse_frag_correction = 1. - volume_fraction_coarse_fragments
-        self._phi_c = phi * coarse_frag_correction
+        
+        # if the user wants to correct for coarse sediment, this flag
+        # recalculate porosity
+        if coarse_sed_flag == True:
+            assert 0. <= volume_fraction_coarse_fragments < 1.
+            coarse_frag_correction = 1. - volume_fraction_coarse_fragments
+            phi = phi * coarse_frag_correction
+        
+        # setting the soil moisture deficit - making sure it is positive. 
+        # code will crash if moisture deficit is <= 0.
         moisture_deficit = phi - initial_soil_moisture_content
         self._Md = moisture_deficit
+        assert self._Md > 0., \
+                    "Moisture deficit must be positive! Initial " \
+                    "soil moisture content must be less than porosity."
+        
+        # Pressure head is set using lambda and h_b from above, using an
+        # equation after Brooks-Corey, following Rawls et al., 1992
         if wetting_front_capillary_pressure_head is None:
             self._psi_f = ((2.+3.*soil_pore_size_distribution_index) /
                            (1.+3.*soil_pore_size_distribution_index) *
                            soil_bubbling_pressure/2.)
-            # equ. after Brooks-Corey, following Rawls et al., 1992
         else:
             self._psi_f = wetting_front_capillary_pressure_head
 
+        # Setting water depth field, assuring that water depth is POSITIVE.
         self._water_depth = self.grid.at_node['surface_water__depth']
         assert np.sum(self._water_depth[
                           self.grid.core_nodes] < self._lilwater) == 0, \
             "Water depths must all be positive!"
+        
+        # Setting up the array of infiltration depths. 
         self._infiltration_depth = self.grid.at_node[
             'soil_water_infiltration__depth']
         # ^This guy is in "surface water equivalent", i.e., the actual depth
@@ -205,40 +234,53 @@ class SoilInfiltrationGreenAmpt(Component):
         dt : float (s)
             The imposed timestep for the model.
         """
-        active = self.grid.status_at_node != CLOSED_BOUNDARY
-        active_IDs = np.where(active)[0]
-        wettingfront_depth = self._infiltration_depth[active]/self._Md
-        # try:
-        #     infilt_cap = self._Ks * ((wettingfront_depth + self._psi_f +
-        #                               self._water_depth[active]) /
-        #                              wettingfront_depth)
-        # except ValueError:  # broadcasting error...
-        #     infilt_cap = self._Ks[active]*((wettingfront_depth+self._psi_f +
-        #                                     self._water_depth[active]) /
-        #                                    wettingfront_depth)
-        # potential_infilt = infilt_cap*dt  # now defined direct
-
-        # implement half-timestep method per Julien
+        # Actual infiltration capacity for a given time step.
+        self.i_act = np.zeros(self.grid.number_of_nodes)
+        
+        # wetting front is a function of total infiltration depth and 
+        # moisture deficit.
+        self.wettingfront_depth = self._infiltration_depth/self._Md
+        
+        # Calculate infilitration capacity (m/s) if Ks is a float...
         try:
-            first_term = self._Ks*dt-2.*wettingfront_depth
-        except ValueError:
-            first_term = self._Ks[active]*dt-2.*wettingfront_depth
-            potential_infilt = 0.5*(first_term + np.sqrt(
-                np.square(first_term) + 8.*dt*(
-                    self._Ks*wettingfront_depth +
-                    self._Ks*self._psi_f*self._Md)))
-        else:
-            potential_infilt = 0.5*(first_term + np.sqrt(
-                np.square(first_term) + 8.*dt*(
-                    self._Ks[active]*wettingfront_depth +
-                    self._Ks[active]*self._psi_f*self._Md)))
-        # where is depth > Ic?
-        all_water_drawn = self._water_depth[active] <= potential_infilt
-        not_all_water_drawn = np.logical_not(all_water_drawn)
-        actual_infilt = potential_infilt
-        actual_infilt[all_water_drawn] = self._water_depth[active][
-                                            all_water_drawn] - self._lilwater
-        self._water_depth[active_IDs[all_water_drawn]] = self._lilwater
-        self._water_depth[active_IDs[not_all_water_drawn]] -= actual_infilt[
-            not_all_water_drawn]
-        self._infiltration_depth[active] += actual_infilt
+            self.infilt_cap = self._Ks * ((self.wettingfront_depth + 
+                                          self._psi_f +
+                                       self._water_depth) /
+                                      self.wettingfront_depth)
+        # Calculate infilitration capacity (m/s) if Ks is an array...    
+        except ValueError:  
+            self.infilt_cap = self._Ks*((self.wettingfront_depth+
+                                            self._psi_f +
+                                             self._water_depth) /
+                                            self.wettingfront_depth)
+            
+        # Potential infiltration depth (m)
+        self.potential_infilt = self.infilt_cap * dt  
+        
+        self.potential_infilt[np.where(self.potential_infilt < 0.0)] = 0.0
+
+        # Where is water depth (per time, m/s) less than infil rate (m/s)?
+        full_infil_indx = np.where(self._water_depth <= self.potential_infilt)
+        
+        # Where is water depth (per time, m/s) more than infil rate?
+        notfull = np.where(self._water_depth > self.potential_infilt)
+        
+        # Set actual infiltration rate (m/s) to the calculated value (m/s)
+        self.i_act = self.potential_infilt
+        self.i_act[full_infil_indx] = (self._water_depth) - self._lilwater
+        
+        # Where water is completely infiltrated set to the minimum water value
+        self._water_depth[full_infil_indx]= self._lilwater
+
+        
+        # Where water is not completely infiltrated, only subtract that 
+        self._water_depth[notfull] = (self._water_depth[notfull] - 
+                                                        (self.i_act[notfull]))
+        
+        # Assure water depths are all positive. Code will break if not!
+        assert np.all(self._water_depth[
+                          self.grid.core_nodes]) > 0, \
+            "Water depths must all be positive!"
+            
+        # Update infiltration depth field. 
+        self._infiltration_depth += self.i_act 

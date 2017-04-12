@@ -22,8 +22,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     grid : ModelGrid
         A ModelGrid.
     unit_flux : ndarray or field name
-        Flux per unit width along links (x number of links) or across faces
-        (x number of faces).
+        Flux per unit width along links (x number of links).
 
     Returns
     -------
@@ -33,6 +32,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab.grid.divergence import calc_flux_div_at_node
     >>> rg = RasterModelGrid(3, 4, 10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
@@ -44,12 +44,6 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, -lg)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-    >>> fg = lg[rg.link_at_face]  # there are 7 faces
-    >>> fg
-    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-    >>> calc_flux_div_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
     >>> unit_flux_at_links = np.zeros(rg.number_of_links)
@@ -57,32 +51,108 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, unit_flux_at_links)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-    >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
-    >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
-    >>> calc_flux_div_at_node(rg, unit_flux_at_faces)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
+    >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
+    >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-
+            
+            
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
 
     LLCATS: NINF GRAD
     """
-    if unit_flux.size not in (grid.number_of_links, grid.number_of_faces):
-        raise ValueError('Parameter unit_flux must be num links or num faces '
+    if unit_flux.size != grid.number_of_links:
+        raise ValueError('Parameter unit_flux must be num links '
                          'long')
     if out is None:
         out = grid.zeros(at='node')
     elif out.size != grid.number_of_nodes:
         raise ValueError('output buffer length mismatch with number of nodes')
 
+    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
+                                    unit_flux[grid.link_at_face]) \
+                                    / grid.area_of_cell
+
+    return out
+
+
+@use_field_name_or_array('link')
+def calc_flux_div_at_cell(grid, unit_flux, out=None):
+    """Calculate divergence of link-based fluxes at cells.
+
+    This function is very similar to the function *calc_flux_div_at_node*. 
+    
+    Given a flux per unit width across each cell face in the grid, calculate 
+    the net outflux (or influx, if negative) divided by cell area, at each 
+    cell.
+
+    Construction::
+
+        calc_flux_div_at_cell(grid, unit_flux_at_links_across_faces, out=None)
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    unit_flux_at_links_across_faces : ndarray or field name
+        Flux per unit width along links at faces (x number of faces) or link
+        field.
+
+    Returns
+    -------
+    ndarray (x number of cells)
+        Flux divergence at cells.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab.grid.divergence import calc_flux_div_at_cell
+    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> import numpy as np
+    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z[5] = 50.0
+    >>> z[6] = 36.0
+    >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
+    >>> lg
+    array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
+           -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
+    >>> fg = lg[rg.link_at_face]  # there are 7 faces
+    >>> fg
+    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
+    >>> calc_flux_div_at_cell(rg, -fg)
+    array([ 1.64,  0.94])
+    >>> rg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
+    >>> rg.set_status_at_node_on_edges(top=CLOSED_BOUNDARY)
+    >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
+    >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
+    >>> calc_flux_div_at_cell(rg, unit_flux_at_faces)
+    array([ 1.14,  0.22])
+    >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
+    >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
+    array([ 1.64,  0.94])
+            
+    Notes
+    -----
+    Performs a numerical flux divergence operation at cells.
+
+    LLCATS: NINF GRAD
+    """
+    if unit_flux.size not in (grid.number_of_links, grid.number_of_faces):
+        raise ValueError('Parameter unit_flux must be num faces long'
+                         'or the field name for a at_link array')
+    if out is None:
+        out = grid.zeros(at='cell')
+    elif out.size != grid.number_of_cells:
+        raise ValueError('output buffer length mismatch with number of cells')
+
     if unit_flux.size == grid.number_of_links:
-        out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
+        out = _calc_net_face_flux_at_cell(grid, 
                                     unit_flux[grid.link_at_face]) \
                                     / grid.area_of_cell
     elif unit_flux.size == grid.number_of_faces:
-        out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, unit_flux) \
+        out = _calc_net_face_flux_at_cell(grid, unit_flux) \
                                 / grid.area_of_cell
 
     return out
@@ -140,7 +210,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> lg = hg.calc_grad_at_link(z)  # there are ? links
@@ -218,7 +288,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> lg = hg.calc_grad_at_link(z)
@@ -344,7 +414,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
@@ -475,7 +545,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> lg = hg.calc_grad_at_link(z)  # there are ? links
@@ -613,7 +683,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
@@ -686,7 +756,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces

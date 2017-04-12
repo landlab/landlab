@@ -92,11 +92,22 @@ def erode_with_link_alpha_varthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
         dst_id = dst_nodes[src_id]
         threshxdt = threshsxdt[i]
 
-        if src_id != dst_id:
+        if src_id != dst_id and z[src_id] > z[dst_id]:
             next_z = z[src_id]
             prev_z = 0.
+            niter = 0
 
             while True:
+                niter += 1
+                if niter > 40:
+                    print('===============')
+                    print(z[src_id])
+                    print(z[dst_id])
+                    print(next_z)
+                    print(z_diff)
+                    print(f)
+                    print(alpha[src_id])
+                assert niter < 50, 'failure to converge in SP solver'
                 z_diff = next_z - z[dst_id]
                 f = alpha[src_id] * pow(z_diff, n - 1.)
                 excess_thresh = f * z_diff - threshxdt
@@ -145,6 +156,7 @@ def erode_with_link_alpha_fixthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     cdef unsigned int src_id
     cdef unsigned int dst_id
     cdef unsigned int i
+    cdef unsigned int niter
     cdef double z_diff
     cdef double prev_z
     cdef double next_z
@@ -155,12 +167,22 @@ def erode_with_link_alpha_fixthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
 
-        if src_id != dst_id:
+        if src_id != dst_id and z[src_id] > z[dst_id]:
             next_z = z[src_id]
             prev_z = 0.
+            niter = 0
 
             while True:
-
+                niter += 1
+                if niter > 40:
+                    print('===============')
+                    print(z[src_id])
+                    print(z[dst_id])
+                    print(next_z)
+                    print(z_diff)
+                    print(f)
+                    print(alpha[src_id])
+                assert niter < 50, 'failure to converge in SP solver'
                 z_diff = next_z - z[dst_id]
                 f = alpha[src_id] * pow(z_diff, n - 1.)
                 excess_thresh = f * z_diff - threshxdt

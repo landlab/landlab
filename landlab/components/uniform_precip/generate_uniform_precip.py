@@ -29,7 +29,7 @@ class PrecipitationDistribution(Component):
         PrecipitationDistribution(mean_storm_duration=0.0,
                                   mean_interstorm_duration=0.0,
                                   mean_storm_depth=0.0, total_t=0.0,
-                                  delta_t=0.0)
+                                  delta_t=0.0, random_seed=0)
 
     Parameters
     ----------
@@ -44,6 +44,8 @@ class PrecipitationDistribution(Component):
     delta_t : float, optional
         If you want to break up storms into determined subsections using
         yield_storm_interstorm_duration_intensity, a delta_t is needed.
+    random_seed : int or float, optional
+        Seed value for random-number generator.
 
     Examples
     --------
@@ -75,7 +77,8 @@ class PrecipitationDistribution(Component):
     _var_doc = dict()
 
     def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
-                 mean_storm_depth=0.0, total_t=0.0, delta_t=None, **kwds):
+                 mean_storm_depth=0.0, total_t=0.0, delta_t=None,
+                 random_seed=0, **kwds):
         """Create the storm generator.
 
         Parameters
@@ -91,6 +94,8 @@ class PrecipitationDistribution(Component):
         delta_t : float or None, optional
             If you want to break up storms into determined subsections using
             yield_storm_interstorm_duration_intensity, a delta_t is needed.
+        random_seed : int or float, optional
+            Seed value for random-number generator.
         """
 
         self.mean_storm_duration = mean_storm_duration
@@ -112,6 +117,9 @@ class PrecipitationDistribution(Component):
 
         # If a time series is created later, this blank list will be used.
         self.storm_time_series = []
+
+        # Seed the random-number generator
+        self.seed_generator(random_seed)
 
         # Given the mean values assigned above using either the model
         # parameter dictionary or the init function, we can call the
@@ -163,26 +171,13 @@ class PrecipitationDistribution(Component):
         based on the poisson distribution about the mean.
         This is accomplished using the expovariate function
         from the "random" standard library.
-        Additionally, it is rounded to contain 4 significant figures,
-        for neatness.
-
-        The if-else statement is very important here. Values of 0
-        can exist in the Poission distribution, but it does not make
-        sense to have 0 duration storms, so to avoid that,
-        we return a storm duration IF it is greater than 0,
-        otherwise, recursion is employed to re-call the storm
-        generator function and get a new value.
 
         Returns
         -------
         float
             The storm duration.
         """
-        storm = round(random.expovariate(1 / self.mean_storm_duration), 2)
-        while storm == 0:
-            storm = round(random.expovariate(1 / self.mean_storm_duration), 2)
-        self.storm_duration = storm
-        return self.storm_duration
+        return random.expovariate(1.0 / self.mean_storm_duration)
 
     def get_interstorm_event_duration(self):
         """Generate interstorm events.
@@ -197,29 +192,13 @@ class PrecipitationDistribution(Component):
         based on the poisson distribution about the mean.
         This is accomplished using the expovariate function
         from the "random" standard library.
-        Additionally, it is rounded to contain 4 significant figures, for
-        neatness.
-
-        The if-else statement is very important here. Values of 0
-        can exist in the Poission distribution, but it does not make
-        sense to have 0 hour interstorm durations.
-        To avoid 0 hour interstorm durations, we return a
-        interstorm duration IF it is greater than 0,
-        otherwise, recursion is employed to re-call the interstorm
-        duration generator function and get a new value.
 
         Returns
         -------
         float
             The interstorm duration.
         """
-        interstorm = (round(random.expovariate(
-                                        1 / self.mean_interstorm_duration), 2))
-        while interstorm == 0:
-            interstorm = (round(random.expovariate(
-                                        1 / self.mean_interstorm_duration), 2))
-        self.interstorm_duration = interstorm
-        return self.interstorm_duration
+        return random.expovariate(1.0 / self.mean_interstorm_duration)
 
     def get_storm_depth(self):
         """Generate storm depth.
@@ -231,9 +210,7 @@ class PrecipitationDistribution(Component):
 
         This method requires storm_duration, mean_storm_duration
         and the mean_storm_depth. Storm_duration is generated through
-        the initialize() or update() method. mean_storm_duration and
-        mean_storm_depth
-        are read in using the ModelParameterDictionary.
+        the initialize() or update() method.
 
         Numpy has a random number generator to get values
         from a given Gamma distribution. It takes two arguments,
@@ -285,7 +262,7 @@ class PrecipitationDistribution(Component):
         average intensity (mm/hr) of the storm lasting from x to y and a to be,
         respectively.
 
-        Retruns
+        Returns
         -------
         array
             containing several sub-arrays of events [start, finish, intensity]
@@ -368,18 +345,67 @@ class PrecipitationDistribution(Component):
             yield (storm_duration - step_time, intensity)
             self._elapsed_time += storm_duration
 
-            interstorm_duration = self.get_interstorm_event_duration()
-            if self._elapsed_time + interstorm_duration > self.run_time:
-                interstorm_duration = self.run_time - self._elapsed_time
-            if subdivide_interstorms:
-                step_time = 0.
-                while interstorm_duration-step_time > delta_t:
-                    yield (delta_t, 0.)
-                    step_time += delta_t
-                yield (interstorm_duration - step_time, 0.)
-            else:
-                yield (interstorm_duration, 0.)
-            self._elapsed_time += interstorm_duration
+            # If the last storm did not use up all our elapsed time, generate
+            # an inter-storm period.
+            if self._elapsed_time < self.run_time:
+                interstorm_duration = self.get_interstorm_event_duration()
+                if self._elapsed_time + interstorm_duration > self.run_time:
+                    interstorm_duration = self.run_time - self._elapsed_time
+                if subdivide_interstorms:
+                    step_time = 0.
+                    while interstorm_duration-step_time > delta_t:
+                        yield (delta_t, 0.)
+                        step_time += delta_t
+                    yield (interstorm_duration - step_time, 0.)
+                else:
+                    yield (interstorm_duration, 0.)
+                self._elapsed_time += interstorm_duration
+
+    def seed_generator(self, seedval=0):
+        """Seed the random-number generator.
+
+        The examples illustrate:
+        (1) that we can get the same sequence again by re-seeding with the
+            same value (the default is zero)
+        (2) when we use a value other than the default, we get a different
+            sequence
+
+        Examples
+        --------
+        >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
+        ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
+        ...     total_t = 100.0, delta_t = 1.)
+        >>> round(precip.storm_duration, 2)
+        2.79
+        >>> round(precip.interstorm_duration, 2)
+        21.28
+        >>> round(precip.storm_depth, 2)
+        2.45
+        >>> round(precip.intensity, 2)
+        0.88
+        >>> precip.seed_generator() # re-seed and get same sequence again
+        >>> round(precip.get_precipitation_event_duration(), 2)
+        2.79
+        >>> round(precip.get_interstorm_event_duration(), 2)
+        21.28
+        >>> round(precip.get_storm_depth(), 2)
+        2.45
+        >>> round(precip.get_storm_intensity(), 2)
+        0.88
+        >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
+        ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
+        ...     total_t = 100.0, delta_t = 1., random_seed=1)
+        >>> round(precip.storm_duration, 2) # diff't vals with diff't seed
+        0.22
+        >>> round(precip.interstorm_duration, 2)
+        28.2
+        >>> round(precip.storm_depth, 4)
+        0.0012
+        >>> round(precip.intensity, 4)
+        0.0054
+        """
+        random.seed(seedval)
+        np.random.seed(seedval)
 
     @property
     def elapsed_time(self):
