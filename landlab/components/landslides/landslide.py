@@ -44,10 +44,9 @@ class LandslideProbability(Component):
     by the user in the landslide_driver.
 
     A LandslideProbability calcuation function provides the user with the
-    mean soil relative wetness, mean factor-of-safety, and probabilty
-    of failure at each node.
+    mean soil relative wetness and probabilty of failure at each node.
 
-    Construction::  UPDATE
+    Construction::
         LandslideProbability(grid, number_of_iterations=250,
         recharge_minimum=5., groundwater__recharge_maximum=120.)
 
@@ -57,9 +56,22 @@ class LandslideProbability(Component):
         A grid.
     number_of_iterations: float, optional
         Number of iterations to run Monte Carlo.
-    groundwater__recharge: dictionary
-        Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
-        annual maximum recharge (mm/d)
+    groundwater__recharge_distribution: str, optional
+        single word indicating recharge distribution, either 'uniform',
+        'lognormal', 'lognormal_spatial,' or 'data_driven_spatial' (None)
+    groundwater__recharge_min_value: float, optional
+        minium groundwater recharge for 'uniform' (mm/d)
+    groundwater__recharge_max_value: float, optional
+        maximum groundwater recharge for 'uniform' (mm/d)
+    groundwater__recharge_mean: float, optional
+        mean grounwater recharge for 'lognormal' (mm/d)
+    groundwater__recharge_standard_deviation: float, optional
+        standard deviation of grounwater recharge for 'lognormal' (mm/d)
+    groundwater__recharge_HSD_inputs: list, optional
+        list of 3 dictionaries in order - HSD_dict {Hydroligic Source
+        Domain (HSD) keys: recharge numpy array values}, {node IDs keys:
+        list of HSD_Id values}, HSD_fractions {node IDS keys: list of
+        HSD fractions values} (none)
 
     Examples
     ----------
@@ -153,7 +165,7 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = LS_prob.grid.core_nodes
-    >>> (isinstance(LS_prob.landslide__factor_of_safety_histogram[
+    >>> (isinstance(LS_prob.landslide__factor_of_safety_distribution[
     ...      core_nodes[0]], np.ndarray) == True)
     True
     """
@@ -258,9 +270,22 @@ class LandslideProbability(Component):
             A grid.
         number_of_iterations: int, optional
             number of iterations to run Monte Carlo simulation (None)
-        groundwater__recharge: dictionary
-            Key - node ID, Values - numpy.ndarray([91, self.n], dtype=float)
-            of annual maximum recharge (mm/d)
+        groundwater__recharge_distribution: str, optional
+            single word indicating recharge distribution, either 'uniform',
+            'lognormal', 'lognormal_spatial,' or 'data_driven_spatial' (None)
+        groundwater__recharge_min_value: float, optional
+            minium groundwater recharge for 'uniform' (mm/d)
+        groundwater__recharge_max_value: float, optional
+            maximum groundwater recharge for 'uniform' (mm/d)
+        groundwater__recharge_mean: float, optional
+            mean grounwater recharge for 'lognormal' (mm/d)
+        groundwater__recharge_standard_deviation: float, optional
+            standard deviation of grounwater recharge for 'lognormal' (mm/d)
+        groundwater__recharge_HSD_inputs: list, optional
+            list of 3 dictionaries in order - HSD_dict {Hydroligic Source
+            Domain (HSD) keys: recharge numpy array values}, {node IDs keys:
+            list of HSD_Id values}, HSD_fractions {node IDS keys: list of
+            HSD fractions values} (none)
         g: float, optional
             acceleration due to gravity (m/sec^2)
         """
@@ -305,7 +330,7 @@ class LandslideProbability(Component):
             self.recharge_mean = groundwater__recharge_mean
             self.recharge_stdev = groundwater__recharge_standard_deviation
         # Custom HSD inputs - Hydrologic Source Domain -> Model Domain
-        elif self.groundwater__recharge_distribution == 'fully_distributed':
+        elif self.groundwater__recharge_distribution == 'data_driven_spatial':
             self.HSD_dict = groundwater__recharge_HSD_inputs[0]
             self.HSD_id_dict = groundwater__recharge_HSD_inputs[1]
             self.fract_dict = groundwater__recharge_HSD_inputs[2]
@@ -358,7 +383,7 @@ class LandslideProbability(Component):
         self.hs_mode = self.grid.at_node['soil__thickness'][i]
 
         # recharge distribution based on distribution type
-        if self.groundwater__recharge_distribution == 'fully_distributed':
+        if self.groundwater__recharge_distribution == 'data_driven_spatial':
             self._calculate_HSD_recharge(i)
             self.Re /= 1000.0  # mm->m
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
@@ -386,7 +411,7 @@ class LandslideProbability(Component):
         self.phi = np.random.triangular(phi_min, self.phi_mode,
                                         phi_max, size=self.n)
         # soil thickness
-        hs_min = self.hs_mode-0.3*self.hs_mode
+        hs_min = min(0.005, self.hs_mode-0.3*self.hs_mode)
         hs_max = self.hs_mode+0.1*self.hs_mode
         self.hs = np.random.triangular(hs_min, self.hs_mode,
                                        hs_max, size=self.n)
@@ -426,7 +451,7 @@ class LandslideProbability(Component):
 
         Parameters
         ----------
-        self.landslide__factor_of_safety_histogram: numpy.ndarray([
+        self.landslide__factor_of_safety_distribution: numpy.ndarray([
             self.grid.number_of_nodes, self.n], dtype=float)
             This is an output - distribution of factor-of-safety from
             Monte Carlo simulation (units='None')
@@ -437,7 +462,7 @@ class LandslideProbability(Component):
                                                    dtype='float')
         self.prob_fail = -9999*np.ones(
             self.grid.number_of_nodes, dtype='float')
-        self.landslide__factor_of_safety_histogram = -9999*np.ones(
+        self.landslide__factor_of_safety_distribution = -9999*np.ones(
             [self.grid.number_of_nodes, self.n], dtype='float')
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
@@ -446,7 +471,7 @@ class LandslideProbability(Component):
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self.soil__mean_relative_wetness
             self.prob_fail[i] = self.landslide__probability_of_failure
-            self.landslide__factor_of_safety_histogram[i] = (
+            self.landslide__factor_of_safety_distribution[i] = (
                 self.FS_distribution)
             # stores FS values from last loop (node)
         # replace unrealistic values in arrays
