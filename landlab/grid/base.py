@@ -3296,7 +3296,6 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._fixed_grad_links_created
         except AttributeError:
             self._create_fixed_gradient_boundary_node_anchor_node()
-            self._create_fixed_gradient_boundary_node_links()
         try:
             self._patches_created
             self._reset_patch_status()
