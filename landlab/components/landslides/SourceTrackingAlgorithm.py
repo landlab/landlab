@@ -4,7 +4,7 @@
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 HSD: Hydrologic Source Domain; MD: Model Domain
 
-This algorithm is a customized variant of ‘flow accumulation’ algorithm.
+This algorithm is a customized variant of flow-accumulation algorithm.
 This algorithm uses brute force method (will visit each MD node, sometimes
 multiple times) to calculate all unique upstream contributing HSD nodes and
 their fractions of contribution.
@@ -112,7 +112,7 @@ def track_source(grid, r, hsd_ids):
             # stream segment.
             if switch_i:
                 switch_i = False
-            return (hsd_upstr, flow_accum)
+    return (hsd_upstr, flow_accum)
 
 
 # %%

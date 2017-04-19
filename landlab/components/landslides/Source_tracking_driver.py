@@ -31,7 +31,7 @@ grid.set_nodata_nodes_to_closed(grid['node']['slp_g16'], -9999.)
 
 # %%
 r = STA.convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc)
-(hsd_upstr, flow_accum) = STA.track_source(grid, r)
+(hsd_upstr, flow_accum) = STA.track_source(grid, r, hsd_ids)
 (uniq_ids, coeff) = STA.find_unique_upstream_hsd_ids_and_fractions(hsd_upstr)
 
 
