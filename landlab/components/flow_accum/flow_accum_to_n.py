@@ -143,46 +143,49 @@ class _DrainageStack_to_n():
         # the last time it is visited. 
         i = 0
         visit_time = -1*numpy.ones((self.delta.size-1))
+        visit_time[list(base)] = i
+            
+                   
+        # construct the nodes upstream of the current set of nodes. 
+        upstream = set([])
         
-        #create the upstream set by adding all nodes that flow into the base
-        # nodes.
-        upstream = set()
         for node_i in base:
-            upstream.update(self.D[self.delta[node_i]:self.delta[
-                    node_i+1]])
-
-        # set the visit time for the first nodes.
-        visit_time[list(base)]=i
-
-        # then set the base to upstream-base
-        base = upstream-base  # only need to do this here.
-
+            # select the nodes that have been visited and record their 
+            # visit time. 
+            visited = self.D[self.delta[node_i]:self.delta[node_i+1]]
+            visit_time[visited] = i
+            
+            # add nodes that are upstream of base nodes into the upstream
+            # stack
+            upstream.update(visited)
+        
+        # the initial set includes nodes that drain to themselves, so we must
+        # remove those here. 
+        base = upstream-base
+                   
         # march topologically upstream, identifing the itteration time when
         # each node is visited.
         # if a node sends flow to m nodes, it will be visited m times. 
         
-        while len(upstream) > 0:
-            
+        while len(base) > 0:   
             # add to the time counter. 
             i+=1
-            
+   
             # construct the nodes upstream of the current set of nodes. 
             upstream = set([])
+            
             for node_i in base:
+                # select the nodes that have been visited and record their 
+                # visit time. 
+                visited = self.D[self.delta[node_i]:self.delta[node_i+1]]
+                visit_time[visited] = i
                 
                 # add nodes that are upstream of base nodes into the upstream
                 # stack
-                upstream.update(self.D[self.delta[node_i]:self.delta[
-                    node_i+1]])
+                upstream.update(visited)
             
-            # select the nodes that have been visited and record their visit 
-            # time. 
-            visited = base-upstream
-            visit_time[list(visited)] = i
-    
             # update the base. 
-            base = base-visited
-            base.update(upstream)
+            base = upstream
     
         # the stack is the argsort of visit time. 
         self.s = numpy.argsort(visit_time)
