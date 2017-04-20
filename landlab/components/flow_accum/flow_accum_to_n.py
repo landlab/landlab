@@ -145,13 +145,13 @@ class _DrainageStack_to_n():
         visit_time = -1*numpy.ones((self.delta.size-1))
         
         #create the upstream set by adding all nodes that flow into the base
-        # nodes.     
+        # nodes.
         upstream = set()
         for node_i in base:
             upstream.update(self.D[self.delta[node_i]:self.delta[
                     node_i+1]])
 
-        # set the visit time for the first nodes. 
+        # set the visit time for the first nodes.
         visit_time[list(base)]=i
 
         # then set the base to upstream-base
