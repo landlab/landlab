@@ -137,6 +137,13 @@ class _DrainageStack_to_n():
         except:
             base = set([l])
 
+        # instantiate the time keeping variable i, and a variable to keep track
+        # of the visit time. Using visit time allows us to itterate through
+        # the entire graph and make sure that only put a node in the stack 
+        # the last time it is visited. 
+        i = 0
+        visit_time = -1*numpy.ones((self.delta.size-1))
+        
         #create the upstream set by adding all nodes that flow into the base
         # nodes.
         upstream = set()
@@ -144,37 +151,41 @@ class _DrainageStack_to_n():
             upstream.update(self.D[self.delta[node_i]:self.delta[
                     node_i+1]])
 
-        # add the base to the set stack, self.s
-        self.s.extend(base)
+        # set the visit time for the first nodes.
+        visit_time[list(base)]=i
+
         # then set the base to upstream-base
         base = upstream-base  # only need to do this here.
 
-        # march topologically upstream.
+        # march topologically upstream, identifing the itteration time when
+        # each node is visited.
+        # if a node sends flow to m nodes, it will be visited m times. 
+        
         while len(upstream) > 0:
+            
+            # add to the time counter. 
+            i+=1
+            
+            # construct the nodes upstream of the current set of nodes. 
             upstream = set([])
             for node_i in base:
+                
+                # add nodes that are upstream of base nodes into the upstream
+                # stack
                 upstream.update(self.D[self.delta[node_i]:self.delta[
                     node_i+1]])
-
-            add_to_stack = base-upstream
-            self.s.extend(add_to_stack)
-            base = base-add_to_stack
+            
+            # select the nodes that have been visited and record their visit 
+            # time. 
+            visited = base-upstream
+            visit_time[list(visited)] = i
+    
+            # update the base. 
+            base = base-visited
             base.update(upstream)
-        
-        # verify that every element has been added once. If not, add it. 
-        bincount = numpy.bincount(self.s, minlength=len(self.delta)-1)
-        self.s.extend(numpy.where(bincount<1)[0])
-
-        # in some strange topologies, with nodes contributing to multiple base levels,
-        # nodes may occur more than once, check and if this happens, choose the later
-        # occurance
-        bincount = numpy.bincount(self.s, minlength=len(self.delta)-1)
-        if any(bincount > 1):
-            needs_fixing = numpy.where(bincount>1)[0]
-            for nf in needs_fixing:
-                num_remove = bincount[nf]-1
-                for rep in range(num_remove):
-                    self.s.remove(nf)
+    
+        # the stack is the argsort of visit time. 
+        self.s = numpy.argsort(visit_time)
 
 def _make_number_of_donors_array_to_n(r, p):
 
