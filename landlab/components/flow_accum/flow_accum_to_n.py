@@ -64,7 +64,7 @@ class _DrainageStack_to_n():
     """
 
 
-    def __init__(self, delta, D):
+    def __init__(self, delta, D, num_receivers):
 
         """
         Creates the stack array s and stores references to delta and D.
@@ -72,7 +72,8 @@ class _DrainageStack_to_n():
         Initialization of the _DrainageStack_to_n() class including storing
         delta and D.
         """
-
+        
+        self.num_receivers = num_receivers
         self.s = list()
         self.delta = delta
         self.D = D
@@ -114,8 +115,9 @@ class _DrainageStack_to_n():
         >>> from landlab.components.flow_accum.flow_accum_to_n import(
         ... _DrainageStack_to_n)
         >>> delta = np.array([0, 0, 2, 4, 4, 8, 12, 14, 17, 18, 18])
+        >>> num_receivers = np.array([2, 2, 2, 2, 1, 1, 2, 2, 2, 2])
         >>> D = np.array([0, 2, 0, 3, 1, 4, 5, 7, 6, 1, 2, 7, 3, 8, 9, 6, 8, 9])
-        >>> ds = _DrainageStack_to_n(delta, D)
+        >>> ds = _DrainageStack_to_n(delta, D, num_receivers)
         >>> ds.construct__stack(4)
         >>> ds.s[0] == 4
         True
@@ -130,60 +132,75 @@ class _DrainageStack_to_n():
         >>> len(set([0, 3, 8])-set(ds.s[6:9]))
         0
         """
-
         # create base nodes set
         try:
             base = set(l)
         except:
             base = set([l])
-
+        
         # instantiate the time keeping variable i, and a variable to keep track
         # of the visit time. Using visit time allows us to itterate through
         # the entire graph and make sure that only put a node in the stack 
         # the last time it is visited. 
+        
         i = 0
         visit_time = -1*numpy.ones((self.delta.size-1))
+        num_visits = numpy.zeros((self.delta.size-1))
         
-        #create the upstream set by adding all nodes that flow into the base
-        # nodes.
-        upstream = set()
+        # deal with the first node, which goes to it 
+        visit_time[list(base)] = i
+        num_visits[list(base)] += 1 
+        
+        i = 1
+        visited = set([])
         for node_i in base:
-            upstream.update(self.D[self.delta[node_i]:self.delta[
-                    node_i+1]])
-
-        # set the visit time for the first nodes.
-        visit_time[list(base)]=i
-
-        # then set the base to upstream-base
-        base = upstream-base  # only need to do this here.
-
-        # march topologically upstream, identifing the itteration time when
-        # each node is visited.
-        # if a node sends flow to m nodes, it will be visited m times. 
-        
-        while len(upstream) > 0:
-            
-            # add to the time counter. 
-            i+=1
-            
-            # construct the nodes upstream of the current set of nodes. 
-            upstream = set([])
-            for node_i in base:
+                # select the nodes to visit
+                visit = set(self.D[self.delta[node_i]:self.delta[node_i+1]])
+                visit = visit-base
                 
-                # add nodes that are upstream of base nodes into the upstream
-                # stack
-                upstream.update(self.D[self.delta[node_i]:self.delta[
-                    node_i+1]])
+                # record the visit time.
+                visit_time[list(visit)] = i
+                          
+                # record that they have been visited. 
+                num_visits[list(visit)] += 1
+                
+                visited.update(list(visit))
+        
+        visited = numpy.array(list(visited))
+        visited_enough = num_visits[visited]==self.num_receivers[visited]
+        completed = set(visited[visited_enough])
+        
+        # recurse through the remainder. Only look above completed nodes, 
+        # this prevents repeat link walking. 
+        while len(completed)>0:
+            # increase counter
+            i += 1
             
-            # select the nodes that have been visited and record their visit 
-            # time. 
-            visited = base-upstream
-            visit_time[list(visited)] = i
-    
-            # update the base. 
-            base = base-visited
-            base.update(upstream)
-    
+            visited = set([])
+            new_completes = set([])
+            
+            for node_i in completed:
+                    
+                    # select the nodes to visit
+                    visit = self.D[self.delta[node_i]:self.delta[node_i+1]]
+                    # record the visit time.
+                    visit_time[visit] = i
+                              
+                    # record that they have been visited. 
+                    num_visits[visit] += 1
+                              
+                    # add nodes that have been visited enough times to complete
+                    # to the upstream stack. We can ignore the rest, they will
+                    # be re-visited. This should reduce the number of times each
+                    # link is walked to the number of active links. 
+                    visited_enough = num_visits[numpy.array(visit)]==self.num_receivers[numpy.array(visit)]
+                    
+                    visited.update(visit)
+                    new_completes.update(visit[visited_enough])
+            completed = new_completes
+            
+        
+        
         # the stack is the argsort of visit time. 
         self.s = numpy.argsort(visit_time)
 
@@ -432,7 +449,10 @@ def make_ordered_node_array_to_n(receiver_nodes,
     nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
     delta = _make_delta_array_to_n(nd)
     D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
-    dstack = _DrainageStack_to_n(delta, D)
+    
+    num_receivers = numpy.sum(receiver_nodes>=0, axis=1)
+    
+    dstack = _DrainageStack_to_n(delta, D, num_receivers)
     construct_it = dstack.construct__stack
 
     construct_it(baselevel_nodes)  # don't think this is a bottleneck, so no C++
