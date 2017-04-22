@@ -8,33 +8,6 @@ from .grouped import GroupError
 FIELD_LOCATIONS = ('node', 'link', 'patch', 'corner', 'face', 'cell', )
 
 
-def need_to_reshape_array(array, field_size):
-    """Check to see if an array needs to be resized before storing.
-
-    When possible, a reference to an array is stored. However, if the
-    array is not of the correct shape, a view of the array (with
-    the correct shape) is stored.
-
-    Parameters
-    ----------
-    array : numpy array
-        Numpy array to check.
-    field_size : int
-        Size of the field the array will be placed into.
-
-    Returns
-    -------
-    bool
-        True is the array should be resized.
-    """
-    if field_size > 1:
-        stored_shape = (field_size, )
-    else:
-        stored_shape = array.squeeze().shape
-
-    return array.shape != stored_shape
-
-
 def reshape_for_storage(array, field_size=None):
     """Reshape an array to be stored as a field.
 
