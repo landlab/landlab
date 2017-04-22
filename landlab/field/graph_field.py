@@ -79,34 +79,34 @@ def shape_for_storage(array, field_size=None):
     The shape will be such that the first dimension in the field size.
 
     >>> data = np.arange(6)
-    >>> shape_for_storage(data, 3)
-    (3, 2)
-    >>> shape_for_storage(data, 2)
-    (2, 3)
-    >>> shape_for_storage(data, 6)
-    (6,)
+    >>> shape_for_storage(data, 3) == (3, 2)
+    True
+    >>> shape_for_storage(data, 2) == (2, 3)
+    True
+    >>> shape_for_storage(data, 6) == (6, )
+    True
 
     If a field size is not given, the array will be stored as a
     flattened array.
 
-    >>> shape_for_storage(data)
-    (6,)
+    >>> shape_for_storage(data) == (6, )
+    True
     >>> data = np.arange(6).reshape((3, 2))
-    >>> shape_for_storage(data)
-    (3, 2)
+    >>> shape_for_storage(data) == (3, 2)
+    True
 
     For field sizes of 1, the array is always flattened.
 
-    >>> shape_for_storage(data, 1)
-    (6,)
+    >>> shape_for_storage(data, 1) == (6, )
+    True
 
     For scalar arrays, the field size must be 1.
 
     >>> data = np.array(1.)
-    >>> shape_for_storage(data)
-    (1,)
-    >>> shape_for_storage(data, field_size=1)
-    (1,)
+    >>> shape_for_storage(data) == (1, )
+    True
+    >>> shape_for_storage(data, field_size=1) == (1, )
+    True
 
     If the array cannot be shaped into a storage shape, a `ValueError`
     is raised.
@@ -115,12 +115,12 @@ def shape_for_storage(array, field_size=None):
     >>> shape_for_storage(data, field_size=4) # DOCTEST: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    ValueError: unable to reshape array for field ((), 4)
+    ValueError: unable to reshape array to field size
     >>> data = np.arange(6.)
     >>> shape_for_storage(data, field_size=4) # DOCTEST: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    ValueError: unable to reshape array for field ((6,), 4)
+    ValueError: unable to reshape array to field size
     """
     if field_size is None:
         try:
@@ -129,9 +129,7 @@ def shape_for_storage(array, field_size=None):
             field_size = array.size
 
     if array.size % field_size != 0:
-        raise ValueError(
-            'unable to reshape array for field ({shape}, {size})'.format(
-                shape=array.shape, size=field_size))
+        raise ValueError('unable to reshape array to field size')
 
     if field_size == 1:
         shape = (array.size, )
