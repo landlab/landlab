@@ -1,6 +1,8 @@
 import numpy as np
 import xarray as xr
 
+import six
+
 from .scalar_data_fields import FieldError
 from .grouped import GroupError
 
@@ -92,7 +94,7 @@ def shape_for_storage(array, field_size=None):
     >>> shape_for_storage(data) == (6, )
     True
     >>> data = np.arange(6).reshape((3, 2))
-    >>> shape_for_storage(data) == (3, 2)
+    >>> shape_for_storage(data) == (6, )
     True
 
     For field sizes of 1, the array is always flattened.
@@ -123,20 +125,15 @@ def shape_for_storage(array, field_size=None):
     ValueError: unable to reshape array to field size
     """
     if field_size is None:
-        try:
-            field_size = len(array)
-        except TypeError:
-            field_size = array.size
+        field_size = array.size
 
     if array.size % field_size != 0:
         raise ValueError('unable to reshape array to field size')
 
-    if field_size == 1:
+    if field_size in (1, array.size):
         shape = (array.size, )
-    elif len(array) != field_size:
-        shape = (field_size, array.size // field_size)
     else:
-        shape = array.shape
+        shape = (field_size, array.size // field_size)
 
     return shape
 
@@ -169,7 +166,13 @@ class FieldDataset(dict):
         return self._ds.variables
 
     def __getitem__(self, name):
-        return self._ds[name].values
+        if isinstance(name, six.string_types):
+            try:
+                return self._ds[name].values
+            except KeyError:
+                raise FieldError(name)
+        else:
+            raise TypeError('field name not a string')
 
     def __setitem__(self, name, value_array):
         value_array = np.asarray(value_array)
@@ -291,7 +294,7 @@ class GraphFields(object):
 
     @property
     def default_group(self):
-        return self._defualt_group
+        return self._default_group
 
     @default_group.setter
     def default_group(self, loc):
@@ -807,6 +810,7 @@ class GraphFields(object):
         units = kwds.get('units', '?')
         copy = kwds.get('copy', False)
         noclobber = kwds.get('noclobber', True)
+        value_array = np.asarray(value_array)
 
         attrs = {'long_name': name}
         attrs['units'] = units
@@ -825,7 +829,7 @@ class GraphFields(object):
             value_array = value_array.reshape((value_array.shape[0], -1))
 
         ds[name] = value_array
-        return value_array
+        return ds[name]
 
     def delete_field(self, loc, name):
         """Erases an existing field.
