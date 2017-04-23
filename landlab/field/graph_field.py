@@ -153,10 +153,15 @@ class FieldDataset(dict):
     def __init__(self, *args, **kwds):
         self._name, self._size = args[0], args[1]
         self._ds = xr.Dataset()
+        self._units = {}
 
     @property
     def size(self):
         return self._size
+
+    @property
+    def units(self):
+        return self._units
 
     @property
     def dataset(self):
@@ -165,16 +170,10 @@ class FieldDataset(dict):
     def keys(self):
         return self._ds.variables
 
-    def __getitem__(self, name):
-        if isinstance(name, six.string_types):
-            try:
-                return self._ds[name].values
-            except KeyError:
-                raise FieldError(name)
-        else:
-            raise TypeError('field name not a string')
+    def set_value(self, name, value_array, attrs=None):
+        attrs = attrs or {}
+        attrs.setdefault('units', '?')
 
-    def __setitem__(self, name, value_array):
         value_array = np.asarray(value_array)
 
         if not self._size:
@@ -197,7 +196,24 @@ class FieldDataset(dict):
             if value_array.ndim > 1:
                 dims += (name + '_per_' + self._name, )
 
-        self._ds.update({name: xr.DataArray(value_array, dims=dims)})
+        if name in self._ds:
+            self._ds = self._ds.drop(name)
+
+        self._ds.update({name: xr.DataArray(value_array, dims=dims,
+                                            attrs=attrs)})
+        self._units[name] = attrs['units']
+
+    def __getitem__(self, name):
+        if isinstance(name, six.string_types):
+            try:
+                return self._ds[name].values
+            except KeyError:
+                raise FieldError(name)
+        else:
+            raise TypeError('field name not a string')
+
+    def __setitem__(self, name, value_array):
+        self.set_value(name, value_array)
 
     def __contains__(self, name):
         return name in self._ds
@@ -720,8 +736,6 @@ class GraphFields(object):
         allocated.fill(0)
         return allocated
 
-    # def add_field(self, *args, at='node', units=None, copy=False,
-    #               noclobber=True, **kwds):
     def add_field(self, *args, **kwds):
         """Add an array of values to the field.
 
@@ -901,7 +915,11 @@ class GraphFields(object):
             loc, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-        return self.add_field(name, self.empty(at=loc), at=loc, **kwds)
+        units = kwds.pop('units', '?')
+        copy = kwds.pop('copy', False)
+        noclobber = kwds.pop('noclobber', True)
+        return self.add_field(name, self.empty(at=loc, **kwds), at=loc,
+                              units=units, copy=copy, noclobber=noclobber)
 
     def add_ones(self, *args, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
