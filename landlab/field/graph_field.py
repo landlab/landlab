@@ -1024,3 +1024,41 @@ class GraphFields(object):
         data = self.add_empty(*args, **kwds)
         data.fill(0)
         return data
+
+    def add_full(self, *args, **kwds):
+        """Create and add an array of values, fill with `fill_value`.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new field to add.
+        fill_value : scalar
+            Fill value.
+        at : str, optional
+            Grid location to store values. If not given, values are
+            assumed to be on `node`.
+        units : str, optional
+            Optionally specify the units of the field.
+        copy : boolean, optional
+            If True, add a *copy* of the array to the field. Otherwise save add
+            a reference to the array.
+        noclobber : boolean, optional
+            Raise an exception if adding to an already existing field.
+
+        Returns
+        -------
+        array :
+            A reference to the newly-created array.
+
+        LLCATS: FIELDCR
+        """
+        if len(args) == 3:
+            fill_value = args[2]
+        elif len(args) == 2:
+            fill_value = args[1]
+        else:
+            raise ValueError('number of arguments must be 2 or 3')
+
+        data = self.add_empty(*args, **kwds)
+        data.fill(fill_value)
+        return data
