@@ -8,6 +8,22 @@ from .ext.at_link import fill_patches_at_link, fill_nodes_at_link
 from .ext.at_patch import fill_links_at_patch
 
 
+def setup_horizontal_links(shape):
+    from .ext.at_link import fill_horizontal_links
+    n_horizontal_links = shape[0] * (shape[1] - 1)
+    horizontal_links = np.empty(n_horizontal_links, dtype=int)
+    fill_horizontal_links(shape, horizontal_links)
+    return horizontal_links
+
+
+def setup_vertical_links(shape):
+    from .ext.at_link import fill_vertical_links
+    n_vertical_links = (shape[0] - 1) * shape[1]
+    vertical_links = np.empty(n_vertical_links, dtype=int)
+    fill_vertical_links(shape, vertical_links)
+    return vertical_links
+
+
 def setup_perimeter_nodes(shape):
     n_perimeter_nodes = 2 * shape[0] + 2 * (shape[1] - 2)
     perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
@@ -80,7 +96,85 @@ def setup_patches_at_link(shape):
     return patches_at_link
 
 
-class StructuredQuadGraph(Graph):
+def setup_node_coords(shape, spacing=1., origin=0.):
+    spacing = np.broadcast_to(spacing, 2)
+    origin = np.broadcast_to(origin, 2)
+
+    rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
+    cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
+
+    return setup_node_coords_rectilinear((rows, cols))
+
+
+def setup_node_coords_rectilinear(coords):
+    rows = np.asarray(coords[0], dtype=float)
+    cols = np.asarray(coords[1], dtype=float)
+
+    node_y_and_x = np.meshgrid(rows, cols, indexing='ij')
+    return setup_node_coords_structured(node_y_and_x)
+
+
+def setup_node_coords_structured(coords, shape=None):
+    node_y = np.asarray(coords[0], dtype=float)
+    node_x = np.asarray(coords[1], dtype=float)
+
+    if shape:
+        node_y.shape = shape
+        node_x.shape = shape
+    else:
+        node_x.shape = node_y.shape
+
+    if node_y.shape != node_x.shape:
+        raise ValueError('shape mismatch in node x and y coordinates')
+
+    return (node_y, node_x)
+
+
+class StructuredQuadGraphExtras(object):
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def number_of_node_rows(self):
+        return self._shape[0]
+
+    @property
+    def number_of_node_columns(self):
+        return self._shape[1]
+
+    @property
+    def nodes_at_right_edge(self):
+        return np.arange(self.shape[1] - 1, self.number_of_nodes, self.shape[1])
+
+    @property
+    def nodes_at_top_edge(self):
+        return np.arange(self.number_of_nodes - self.shape[1],
+                         self.number_of_nodes)
+
+    @property
+    def nodes_at_left_edge(self):
+        return np.arange(0, self.number_of_nodes, self.shape[1])
+
+    @property
+    def nodes_at_bottom_edge(self):
+        return np.arange(self.shape[1])
+
+    def nodes_at_edge(self, edge):
+        if edge not in ('right', 'top', 'left', 'bottom'):
+            raise ValueError('value for edge not understood')
+        return getattr(self, 'nodes_at_{edge}_edge'.format(edge=edge))
+
+    @property
+    def horizontal_links(self):
+        return setup_horizontal_links(self.shape)
+
+    @property
+    def vertical_links(self):
+        return setup_vertical_links(self.shape)
+
+
+class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
 
     """Graph of a structured grid of quadrilaterals.
 
@@ -106,7 +200,7 @@ class StructuredQuadGraph(Graph):
             0.,  1.,  2.])
     """
 
-    def __init__(self, nodes, shape=None):
+    def __init__(self, node_y_and_x, shape=None):
         """Create a structured grid of quadrilaterals.
 
         Parameters
@@ -116,48 +210,29 @@ class StructuredQuadGraph(Graph):
         shape : tuple, optional
             Shape of the grid. Otherwise, use the shape of coordinate arrays.
         """
-        node_y, node_x = (np.asarray(nodes[0], dtype=float),
-                          np.asarray(nodes[1], dtype=float))
+        from ..ugrid import ugrid_from_structured_quad
 
-        if shape is not None:
-            node_y.shape = shape
-            node_x.shape = shape
+        if shape is None:
+            self._shape = node_y_and_x[0].shape
         else:
-            shape = node_y.shape
-
-        self._shape = shape
-
-        nodes_at_link = setup_nodes_at_link(shape)
-        links_at_patch = setup_links_at_patch(shape)
-
-        super(StructuredQuadGraph, self).__init__((node_y.flat, node_x.flat),
-                                                  links=nodes_at_link,
-                                                  patches=links_at_patch,
-                                                  sorting={'ne': True,
-                                                           'ccw': True,
-                                                           'xy': True})
-
-    def _create_links_and_dirs_at_node(self):
-        """Set up node-link data structures."""
-        # self._links_at_node = links_at_node(self.shape)
-        # self._link_dirs_at_node = link_dirs_at_node(self.shape)
-        self._links_at_node = setup_links_at_node(self.shape)
-        self._link_dirs_at_node = setup_link_dirs_at_node(self.shape)
-        return (self._links_at_node, self._link_dirs_at_node)
-
-    # def _setup_links_at_node(self):
-    #     """Set up node-link data structures."""
-    #     self._links_at_node = links_at_node(self.shape)
-    #     self._link_dirs_at_node = link_dirs_at_node(self.shape)
+            self._shape = shape
+        mesh = ugrid_from_structured_quad(node_y_and_x, shape=shape)
+        Graph.__init__(self, mesh)
 
     @property
-    def shape(self):
-        return self._shape
+    # @store_result_in_grid()
+    def perimeter_nodes(self):
+        return setup_perimeter_nodes(self.shape)
 
     @property
     @store_result_in_grid()
-    def perimeter_nodes(self):
-        return setup_perimeter_nodes(self.shape)
+    def links_at_node(self):
+        return setup_links_at_node(self.shape)
+
+    @property
+    # @store_result_in_grid()
+    def link_dirs_at_node(self):
+        return setup_link_dirs_at_node(self.shape)
 
     @property
     @store_result_in_grid()
@@ -193,12 +268,12 @@ class RectilinearGraph(StructuredQuadGraph):
     """
 
     def __init__(self, nodes):
-        node_y, node_x = np.meshgrid(nodes[0], nodes[1], indexing='ij')
+        node_y_and_x = setup_node_coords_rectilinear(nodes)
 
-        super(RectilinearGraph, self).__init__((node_y, node_x))
+        super(RectilinearGraph, self).__init__(node_y_and_x)
 
 
-class UniformRectilinearGraph(RectilinearGraph):
+class UniformRectilinearGraph(StructuredQuadGraph):
 
     """Graph of a structured grid of quadrilaterals.
 
@@ -243,12 +318,7 @@ class UniformRectilinearGraph(RectilinearGraph):
            [10,  9,  6,  7], [11, 10,  7,  8]])
     """
 
-    def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+    def __init__(self, shape, spacing=1., origin=0.):
+        node_y_and_x = setup_node_coords(shape, spacing, origin)
 
-        spacing = np.broadcast_to(spacing, 2)
-        origin = np.broadcast_to(origin, 2)
-
-        rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
-        cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
-
-        super(UniformRectilinearGraph, self).__init__((rows, cols))
+        super(UniformRectilinearGraph, self).__init__(node_y_and_x)

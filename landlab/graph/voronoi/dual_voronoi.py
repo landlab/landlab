@@ -5,17 +5,38 @@ from ..graph import Graph
 from ..dual import DualGraph
 from .voronoi import VoronoiGraph
 from ...utils.jaggedarray import JaggedArray
-# from .voronoi_helpers import (get_nodes, get_nodes_at_link,
-#                               get_links_at_patch, get_corner_at_patch,
-#                               get_corners_at_link)
 from .voronoi_helpers import VoronoiConverter
 
 
-class DualVoronoiGraph(DualGraph, VoronoiGraph):
+def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3,
+                            max_node_spacing=None):
+    from .voronoi import ugrid_from_voronoi
+    from ..ugrid import (ugrid_from_unstructured,
+                         update_node_at_cell, update_nodes_at_face)
+
+    voronoi = Voronoi(list(zip(node_y_and_x[1], node_y_and_x[0])))
+
+    converter = VoronoiConverter(voronoi, min_patch_size=min_cell_size)
+
+    corners = converter.get_nodes()
+    corners = (corners[:, 1], corners[:, 0])
+    faces = converter.get_nodes_at_link()
+    cells = converter.get_links_at_patch()
+    cells = [cell for cell in JaggedArray(cells)]
+
+    node_at_cell = converter.get_corner_at_patch()
+    nodes_at_face = converter.get_corners_at_link()
+
+    dual = ugrid_from_unstructured(corners, faces, cells)
+
+    return dual, node_at_cell, nodes_at_face
+
+
+class DualVoronoiGraph(VoronoiGraph, DualGraph):
 
     """Dual graph of a voronoi grid."""
 
-    def __init__(self, nodes, min_cell_size=3, **kwds):
+    def __init__(self, node_y_and_x, min_cell_size=3, **kwds):
         """Create a voronoi grid.
 
         Parameters
@@ -50,23 +71,15 @@ class DualVoronoiGraph(DualGraph, VoronoiGraph):
         >>> graph.node_at_cell
         array([5, 6])
         """
-        voronoi = Voronoi(list(zip(nodes[1], nodes[0])))
+        max_node_spacing = kwds.pop('max_node_spacing', None)
+        (dual,
+         node_at_cell,
+         nodes_at_face) = ugrid_from_voronoi_dual(node_y_and_x,
+                                                  min_cell_size=min_cell_size,
+                                                  max_node_spacing=max_node_spacing)
 
-        converter = VoronoiConverter(voronoi, min_patch_size=min_cell_size)
-
-        corners = converter.get_nodes()
-        corners = (corners[:, 1], corners[:, 0])
-        faces = converter.get_nodes_at_link()
-        cells = converter.get_links_at_patch()
-        cells = [cell for cell in JaggedArray(cells)]
-
-        node_at_cell = converter.get_corner_at_patch()
-        nodes_at_face = converter.get_corners_at_link()
-
-        self._dual = Graph(corners, links=faces,
-                           patches=cells, sorting={'xy': False, 'ne': True,
-                                                   'ccw': True})
-
-        super(DualVoronoiGraph, self).__init__(
-            nodes, cells=cells, node_at_cell=node_at_cell,
-            nodes_at_face=nodes_at_face, sorting=False, **kwds)
+        self._dual = Graph(dual, sort=False)
+        VoronoiGraph.__init__(self, node_y_and_x,
+                              max_node_spacing=max_node_spacing, sort=False)
+        DualGraph.__init__(self, node_at_cell=node_at_cell,
+                           nodes_at_face=nodes_at_face, sort=True)
