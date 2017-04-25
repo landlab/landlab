@@ -57,20 +57,20 @@ distribution3 = 'lognormal_spatial'
 Remean3 = np.random.randint(20,120,grid_size)
 Restandard_deviation3 = np.random.rand(grid_size)
 #Option 4 - Fully distributed
-VIC_dict = {}
-vic_id_dict = {}
+HSD_dict = {}
+HSD_id_dict = {}
 fract_dict = {}
 # VIC id and recharge array
 for vkey in range(2,8):
-    VIC_dict[vkey] = np.random.randint(20,120,10)
+    HSD_dict[vkey] = np.random.randint(20,120,10)
 # node id and vic grid ids
 for ckey in grid.core_nodes:
-    vic_id_dict[ckey] = np.random.randint(2,8,2)
+    HSD_id_dict[ckey] = np.random.randint(2,8,2)
 # node id and vic grid fraction
 for ckey in grid.core_nodes:
     fract_dict[ckey] =  np.random.rand(2)
-distribution4 = 'VIC'
-vic_inputs = [VIC_dict,vic_id_dict, fract_dict]
+distribution4 = 'data_driven_spatial'
+HSD_inputs = [HSD_dict, HSD_id_dict, fract_dict]
 
 # Instantiate the 'LandslideProbability' component to work on this grid,
 # and run it.
@@ -95,7 +95,7 @@ vic_inputs = [VIC_dict,vic_id_dict, fract_dict]
 #VIC
 LS_prob4 = LandslideProbability(grid,number_of_iterations=n,
     groundwater__recharge_distribution=distribution4,
-    groundwater__recharge_vic_inputs=vic_inputs)
+    groundwater__recharge_HSD_inputs=HSD_inputs)
 LS_prob4.calculate_landslide_probability()
 
 

@@ -50,8 +50,7 @@ def test_input_var_names():
 @with_setup(setup_grid)
 def test_output_var_names():
     assert_equal(sorted(LS_prob.output_var_names),
-                 ['landslide__mean_factor_of_safety',
-                  'landslide__probability_of_failure',
+                 ['landslide__probability_of_failure',
                   'soil__mean_relative_wetness'])
 
 
@@ -77,7 +76,6 @@ def test_var_units():
     assert_equal(LS_prob.var_units('soil__thickness'), 'm')
     assert_equal(LS_prob.var_units('soil__mean_relative_wetness'), 'None')
     assert_equal(LS_prob.var_units('landslide__probability_of_failure'), 'None')
-    assert_equal(LS_prob.var_units('landslide__mean_factor_of_safety'), 'None')
 
 
 @with_setup(setup_grid)

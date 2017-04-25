@@ -292,7 +292,7 @@ class LandslideProbability(Component):
 
         # Store grid and parameters and do unit conversions
         self._grid = grid
-        self.n = number_of_iterations
+        self.n = int(number_of_iterations)
         self.g = 9.81
         self.groundwater__recharge_distribution = (
             groundwater__recharge_distribution)
