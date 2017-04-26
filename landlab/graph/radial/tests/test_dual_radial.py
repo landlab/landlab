@@ -120,7 +120,7 @@ def test_cells_at_face():
                        [[ 0, -1], [0, 1], [ 1, -1],
                         [ 0,  2], [1, 3],
                         [ 2, -1], [2, 3], [ 3, -1]])
-    assert_array_equal(graph.cells_at_face, [[0], [0], [0], [0]])
+    assert_array_equal(graph.cells_at_face, [[0, -1], [0, -1], [0, -1], [0, -1]])
 
 
 def test_faces_at_cell():

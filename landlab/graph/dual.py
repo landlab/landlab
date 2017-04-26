@@ -4,11 +4,14 @@ This class should not be used directly. Instead, it should be used as a base
 class when defining other types of graphs.
 """
 import numpy as np
+import xarray as xr
 
 from ..core.utils import as_id_array
 from ..utils.decorators import store_result_in_grid, read_only_array
 from .graph import Graph, find_perimeter_nodes
 from .sort.sort import reverse_one_to_one
+
+from .ugrid import DUAL_MESH_ATTRS
 
 
 def _sort_dual_graph(graph):
@@ -18,22 +21,86 @@ def _sort_dual_graph(graph):
     sorted_dual = reindex_by_xy(graph._dual)
     sorted = reindex_by_xy(graph)
 
-    graph._node_at_cell = graph._node_at_cell[sorted_dual[2]]
-    remap_graph_element(graph._node_at_cell,
+    node_at_cell = graph.ds['node_at_cell'].values
+    node_at_cell[:] = node_at_cell[sorted_dual[2]]
+    remap_graph_element(graph.node_at_cell,
                         as_id_array(np.argsort(sorted[0])))
 
 
-class DualGraph(object):
-    def __init__(self, *args, **kwds):
+def update_node_at_cell(ugrid, node_at_cell):
+    node_at_cell = xr.DataArray(
+        data=as_id_array(node_at_cell),
+        dims=('cell', ),
+        attrs={'cf_role': 'cell_node_connectivity',
+               'long_name': 'nodes centered at cells',
+               'start_index': 0})
+    ugrid.update({'node_at_cell': node_at_cell})
+
+
+def update_nodes_at_face(ugrid, nodes_at_face):
+    nodes_at_face = xr.DataArray(
+        data=as_id_array(nodes_at_face),
+        dims=('face', 'Two'),
+        attrs={'cf_role': 'face_node_connectivity',
+               'long_name': 'nodes on either side of a face',
+               'start_index': 0})
+    ugrid.update({'nodes_at_face': nodes_at_face})
+
+
+class DualGraph(Graph):
+
+    def __init__(self, **kwds):
         node_at_cell = kwds.pop('node_at_cell', None)
         nodes_at_face = kwds.pop('nodes_at_face', None)
 
-        self._node_at_cell = as_id_array(node_at_cell)
-        self._nodes_at_face = as_id_array(nodes_at_face)
+        update_node_at_cell(self.ds, node_at_cell)
+        update_nodes_at_face(self.ds, nodes_at_face)
 
-        super(DualGraph, self).__init__(*args, **kwds)
+        rename = {
+            'mesh': 'dual',
+            'node': 'corner',
+            'link': 'face',
+            'patch': 'cell',
+            'x_of_node': 'x_of_corner',
+            'y_of_node': 'y_of_corner',
+            'nodes_at_link': 'corners_at_face',
+            'links_at_patch': 'faces_at_cell',
+            'max_patch_links': 'max_cell_faces',
+        }
+        self._ds = xr.merge([self._ds, self._dual.ds.rename(rename)])
 
-        _sort_dual_graph(self)
+        self._origin = (0., 0.)
+
+        self._frozen = False
+        self.freeze()
+
+        if kwds.get('sort', True):
+            self.sort()
+
+    def sort(self):
+        from .sort.ext.remap_element import remap_graph_element
+
+        sorted_nodes, sorted_links, sorted_patches = Graph.sort(self)
+        sorted_corners, sorted_faces, sorted_cells = self.dual.sort()
+
+        with self.thawed():
+            self.node_at_cell[:] = self.node_at_cell[sorted_cells]
+            self.nodes_at_face[:] = self.nodes_at_face[sorted_faces]
+
+            remap_graph_element(as_id_array(self.node_at_cell),
+                                as_id_array(np.argsort(sorted_nodes)))
+            remap_graph_element(as_id_array(self.nodes_at_face).reshape((-1, )),
+                                as_id_array(np.argsort(sorted_nodes)))
+
+    def freeze(self):
+        Graph.freeze(self)
+        if hasattr(self, 'dual'):
+            self.dual.freeze()
+
+    def thaw(self):
+        Graph.thaw(self)
+        if hasattr(self, 'dual'):
+            self.dual.thaw()
 
     @property
     def dual(self):
@@ -41,7 +108,11 @@ class DualGraph(object):
 
     @property
     def node_at_cell(self):
-        return self._node_at_cell
+        return self.ds['node_at_cell'].values
+
+    @property
+    def nodes_at_face(self):
+        return self.ds['nodes_at_face'].values
 
     @property
     def cell_at_node(self):
@@ -60,16 +131,19 @@ class DualGraph(object):
             return self._create_link_at_face()
 
     def _create_link_at_face(self):
+
         link_at_nodes = {}
         for link, pair in enumerate(self.nodes_at_link):
-            pair.sort()
-            link_at_nodes[tuple(pair)] = link
+            # pair.sort()
+            link_at_nodes[tuple(np.sort(pair))] = link
 
         link_at_face = np.full((self.number_of_faces, ), -1, dtype=int)
-        for face, pair in enumerate(self._nodes_at_face):
-            pair.sort()
-            link_at_face[face] = link_at_nodes[tuple(pair)]
+        # for face, pair in enumerate(self._nodes_at_face):
+        for face, pair in enumerate(self.nodes_at_face):
+            # pair.sort()
+            link_at_face[face] = link_at_nodes[tuple(np.sort(pair))]
         self._link_at_face = link_at_face
+
         return self._link_at_face
 
     @property

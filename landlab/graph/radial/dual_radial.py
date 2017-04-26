@@ -10,8 +10,8 @@ class DualRadialGraph(DualVoronoiGraph):
     --------
     >>> from landlab.graph import DualRadialGraph
     >>> graph = DualRadialGraph((1, 4))
-    >>> graph.number_of_corners
-    4
+    >>> graph.number_of_corners == 4
+    True
     >>> graph.y_of_corner
     array([-0.5, -0.5,  0.5,  0.5])
     >>> graph.x_of_corner
