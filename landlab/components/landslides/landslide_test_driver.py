@@ -20,24 +20,24 @@ from landlab.components.landslides import LandslideProbability
 grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
 # Add required fields for component.
 gridnum = grid.number_of_nodes
-grid['node']['topographic__slope'] = np.random.rand(gridnum)
+grid.at_node['topographic__slope'] = np.random.rand(gridnum)
 scatter_dat = np.random.randint(1, 10, gridnum)
-grid['node']['topographic__specific_contributing_area']= \
-         np.sort(np.random.randint(30, 900, gridnum))
-grid['node']['soil__transmissivity']= \
-         np.sort(np.random.randint(5, 20, gridnum),-1)
-grid['node']['soil__mode_total_cohesion']= \
-         np.sort(np.random.randint(30, 900, gridnum))
-grid['node']['soil__minimum_total_cohesion']= \
-         grid.at_node['soil__mode_total_cohesion'] - scatter_dat
-grid['node']['soil__maximum_total_cohesion']= \
-         grid.at_node['soil__mode_total_cohesion'] + scatter_dat
-grid['node']['soil__internal_friction_angle']= \
-         np.sort(np.random.randint(26, 40, gridnum))
-grid['node']['soil__thickness']= \
-         np.sort(np.random.randint(1, 10, gridnum))
-grid['node']['soil__density']= \
-         2000. * np.ones(grid.number_of_nodes)
+grid.at_node['topographic__specific_contributing_area']= (
+         np.sort(np.random.randint(30, 900, gridnum)))
+grid.at_node['soil__transmissivity']= (
+         np.sort(np.random.randint(5, 20, gridnum),-1))
+grid.at_node['soil__mode_total_cohesion']= (
+         np.sort(np.random.randint(30, 900, gridnum)))
+grid.at_node['soil__minimum_total_cohesion']= (
+         grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
+grid.at_node['soil__maximum_total_cohesion']= (
+         grid.at_node['soil__mode_total_cohesion'] + scatter_dat)
+grid.at_node['soil__internal_friction_angle']= (
+         np.sort(np.random.randint(26, 40, gridnum)))
+grid.at_node['soil__thickness']= (
+         np.sort(np.random.randint(1, 10, gridnum)))
+grid.at_node['soil__density']= (
+         2000. * np.ones(grid.number_of_nodes))
          
 grid_size = grid.number_of_core_nodes
 # number of iterations to run Monte Carlo simulation

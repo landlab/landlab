@@ -20,8 +20,8 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((20, 20), spacing=10e0)
-    grid['node']['topographic__slope'] = \
-        np.zeros(grid.number_of_nodes, dtype=float)
+    grid.at_node['topographic__slope'] = (
+        np.zeros(grid.number_of_nodes, dtype=float))
     LS_prob = LandslideProbability(grid)
     globals().update({
         'LS_prob': LandslideProbability(grid)
@@ -112,3 +112,39 @@ def test_field_initialized_to_zero():
         field = LS_prob.grid['node'][name]
         assert_array_almost_equal(field, np.zeros(
            LS_prob.grid.number_of_nodes))
+
+
+def test_calculate_landslide_probability():
+    from landlab import RasterModelGrid
+    grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    gridnum = grid.number_of_nodes
+    np.random.seed(seed=0)
+    grid.at_node['topographic__slope'] = np.random.rand(gridnum)
+    scatter_dat = np.random.randint(1, 10, gridnum)
+    grid.at_node['topographic__specific_contributing_area']= (
+             np.sort(np.random.randint(30, 900, gridnum)))
+    grid.at_node['soil__transmissivity']= (
+             np.sort(np.random.randint(5, 20, gridnum),-1))
+    grid.at_node['soil__mode_total_cohesion']= (
+             np.sort(np.random.randint(30, 900, gridnum)))
+    grid.at_node['soil__minimum_total_cohesion']= (
+             grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
+    grid.at_node['soil__maximum_total_cohesion']= (
+             grid.at_node['soil__mode_total_cohesion'] + scatter_dat)
+    grid.at_node['soil__internal_friction_angle']= (
+             np.sort(np.random.randint(26, 40, gridnum)))
+    grid.at_node['soil__thickness']= (
+             np.sort(np.random.randint(1, 10, gridnum)))
+    grid.at_node['soil__density']= (
+             2000. * np.ones(grid.number_of_nodes))
+
+    LS_prob = LandslideProbability(grid, number_of_iterations=10,
+        groundwater__recharge_distribution='uniform',
+        groundwater__recharge_min_value=20.,
+        groundwater__recharge_max_value=120.)
+    LS_prob.calculate_landslide_probability()
+    np.testing.assert_almost_equal(
+        grid.at_node['landslide__probability_of_failure'][5], 1.)
+    np.testing.assert_almost_equal(
+        grid.at_node['landslide__probability_of_failure'][9], 0.6)
+    

@@ -261,7 +261,7 @@ class LandslideProbability(Component):
                  groundwater__recharge_mean=None,
                  groundwater__recharge_standard_deviation=None,
                  groundwater__recharge_HSD_inputs=[],
-                 **kwds):
+                 seed=0, **kwds):
 
         """
         Parameters
@@ -288,7 +288,15 @@ class LandslideProbability(Component):
             HSD fractions values} (none)
         g: float, optional
             acceleration due to gravity (m/sec^2)
+        seed: int, optional
+            seed for random number generation. if seed is assigned any value
+            other than the default value of zero, it will create different
+            sequence. to create a certain sequence repititively, use the same
+            value as input for seed.
         """
+
+        # Initialize seeded random number generation        
+        self.seed_generator(seed)
 
         # Store grid and parameters and do unit conversions
         self._grid = grid
@@ -483,6 +491,16 @@ class LandslideProbability(Component):
             self.mean_Relative_Wetness)
         self.grid.at_node['landslide__probability_of_failure'] = self.prob_fail
 
+
+    def seed_generator(self, seed=0):
+        """Seed the random-number generator. This method will create the same
+        sequence again by re-seeding with the same value (default value is
+        zero). To create a sequence other than the default, assign non-zero
+        value for seed.
+        """
+        np.random.seed(seed)
+
+
     def _interpolate_HSD_dict(self):
         HSD_dict = copy.deepcopy(self.HSD_dict)
         # First generate interpolated Re for each HSD grid
@@ -503,6 +521,7 @@ class LandslideProbability(Component):
             HSD_dict[vkey] = Re_interpolated
 
         self.interpolated_HSD_dict = HSD_dict
+
 
     def _calculate_HSD_recharge(self, i):
         store_Re = np.zeros(self.n)
