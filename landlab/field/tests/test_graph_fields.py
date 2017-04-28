@@ -9,7 +9,7 @@ except ImportError:
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.field import ModelDataFields
+from landlab.field.graph_field import GraphFields as ModelDataFields
 from landlab.field import GroupError, FieldError
 
 
@@ -206,7 +206,7 @@ def test_grid_field_as_array():
     val.shape = (1, 1, 2, 1)
     fields.at_grid['const'] = val
     assert_array_equal(np.array([1., 2.]), fields.at_grid['const'])
-    assert_is(val, fields.at_grid['const'].base)
+    assert_is(val, fields.at_grid['const'])
 
 
 def test_grid_field_add_zeros_ones_empty():
