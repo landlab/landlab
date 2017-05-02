@@ -1,5 +1,5 @@
 """
-Unit tests for landlab.components.landslides.landslide
+Unit tests for landlab.components.landslides.landslide_probability
 """
 from nose.tools import assert_equal, assert_true, assert_raises, with_setup
 from numpy.testing import assert_array_almost_equal
@@ -18,7 +18,6 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def setup_grid():
-    from landlab import RasterModelGrid
     grid = RasterModelGrid((20, 20), spacing=10e0)
     grid.at_node['topographic__slope'] = (
         np.zeros(grid.number_of_nodes, dtype=float))
@@ -115,7 +114,6 @@ def test_field_initialized_to_zero():
 
 
 def test_calculate_landslide_probability():
-    from landlab import RasterModelGrid
     grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     gridnum = grid.number_of_nodes
     np.random.seed(seed=0)
