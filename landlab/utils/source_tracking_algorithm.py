@@ -1,13 +1,7 @@
 
 """
-26 Jan 2016 - SN & EI
+26 Jan 2016
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
-HSD: Hydrologic Source Domain; MD: Model Domain
-
-This algorithm is a customized variant of flow-accumulation algorithm.
-This algorithm uses brute force method (will visit each MD node, sometimes
-multiple times) to calculate all unique upstream contributing HSD nodes and
-their fractions of contribution.
 """
 
 # %%
@@ -17,13 +11,26 @@ import copy
 from collections import Counter
 
 # %%
-"""
- Convert Arc flow_directions file to be represented in node ids
- gives receiver of each node starting at right and going clockwise.
-"""
-
-
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
+    """
+    Convert Arc flow_directions file to be represented in node ids
+    gives receiver of each node starting at right and going clockwise.
+    
+    Parameters:
+    ----------
+    grid: RasterModelGrid
+        A grid.
+    flow_dir_arc: array_like
+        numpy.array of shape=[grid.number_of_nodes]; flow directions derived
+        from ESRII ArcGIS.
+    
+    Returns:
+    -------
+    receiver_nodes: array_like
+        A numpy.array of shape=[grid.number_of_nodes]. Please note that this
+        array gives the receiver nodes only for the core nodes. For non-core
+        nodes, a zero is used.  
+    """
     r_arc_raw = np.log2(flow_dir_arc)
     r_arc_raw = r_arc_raw.astype('int')
     neigh_ = grid.neighbors_at_node
@@ -36,10 +43,10 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
                            a_n[2], a_d[3]))
     # Now neighbors has node ids of neighboring nodes in cw order starting at
     # right, hence the order of neighbors = [r, br, b, bl, l, tl, t, tr]
-    r = np.zeros(grid.number_of_nodes, dtype=int)
-    r[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes],
+    receiver_nodes = np.zeros(grid.number_of_nodes, dtype=int)
+    receiver_nodes[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes],
                                    np.transpose(neighbors[grid.core_nodes]))
-    return (r)
+    return (receiver_nodes)
 
 
 # %%
@@ -47,7 +54,36 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
 # Note 1: This algorithm works on core nodes only because core nodes
 # have neighbors that are real values and not -1s.
 # Note 2: Nodes in the following comments in this section refer to core nodes.
-def track_source(grid, r, hsd_ids):
+def track_source(grid, hsd_ids, flow_directions=None):
+    """
+    This algorithm traverses the grid, and records all upstream nodes for each
+    node, given the flow directions. Alternatively, flow directions can be
+    attached to the grid as a field.
+    
+    Parameters:
+    ----------
+    grid: RasterModelGrid
+        A grid.
+    hsd_ids: array_like
+        numpy.array of shape=[grid.number_of_nodes]; array that maps the
+        nodes of the grid to, possibly coarser, Hydrologic Source Domain (HSD)
+        grid ids.
+    flow_directions: array_like, optional.
+        numpy.array of shape=[grid.number_of_nodes]; array of receivers.
+        Alternatively, this data can be provided as a nodal field
+        'flow__receiver_node' on the grid.
+    
+    Returns:
+    -------
+    (hsd_upstr, flow_accum): (dictionary, array_like)
+        'hsd_upstr' maps each Model Domain (MD) grid node to corresponding
+        contributing upstream HSD ids. 'flow_accum' is an array of the number
+        of upstream contributing nodes.
+    """   
+    if flow_directions==None:
+        r = grid.at_node['flow__receiver_node']
+    else:
+        r = flow_directions
     z = grid.at_node['topographic__elevation']
     core_nodes = grid.core_nodes
     core_elev = z[core_nodes]
@@ -118,18 +154,36 @@ def track_source(grid, r, hsd_ids):
 # %%
 # Algorithm to calculate coefficients of each upstream HSD ID
 def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
-    uniq_ids = {}  # Holds unique upstream HSD ids
+    """
+    Counts repeated HSD ids and maps MD nodes with unique upstream HSD ids
+    and corresponding fraction of contribution.
+    
+    Parameters:
+    ----------
+    hsd_upstr: dictionary
+        'hsd_upstr' maps each Model Domain (MD) grid node to corresponding
+        contributing upstream HSD ids.
+        
+    Returns:
+    -------
+    (unique_ids, fractions): (dictionary, dictionary)
+        Tuple of data. 'unique_ids' maps each MD node with all upstream HSD
+        ids without repitition. 'fractions' maps each MD node with the
+        fractions of contributions of the corresponding upstream HSD ids in
+        the same order as uniques_ids[node_id].
+    """
+    unique_ids = {}  # Holds unique upstream HSD ids
     C = {}  # Holds corresponding total numbers
-    coeff = {}  # Holds corresponding coefficients of contribution
+    fractions = {}  # Holds corresponding fractions of contribution
     for ke in hsd_upstr.keys():
         cnt = Counter()
         for num in hsd_upstr[ke]:
             cnt[num] += 1
-        uniq_ids.update({ke: cnt.keys()})
+        unique_ids.update({ke: cnt.keys()})
         buf = []
         for k in cnt.keys():
             buf.append(cnt[k])
         C.update({ke: buf})
         e = [s/float(sum(buf)) for s in buf]
-        coeff.update({ke: e})
-    return (uniq_ids, coeff)
+        fractions.update({ke: e})
+    return (unique_ids, fractions)

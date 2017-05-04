@@ -37,7 +37,7 @@ def test_track_source():
     hsd_ids[:] = 1
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
-    (hsd_upstr, flow_accum) = track_source(grid, r, hsd_ids)
+    (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
     assert_equal(hsd_upstr[8], [1, 0, 0])
     assert_equal(hsd_upstr[14], [1, 1, 1, 1, 0, 0, 1])
     assert_equal(flow_accum[14], 7)
@@ -53,12 +53,11 @@ def test_find_unique_upstream_hsd_ids_and_fractions():
     grid.status_at_node[14] = 0
     fr = FlowRouter(grid)
     fr.route_flow()
-    r = grid.at_node['flow__receiver_node']
     hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
     hsd_ids[:] = 1
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
-    (hsd_upstr, flow_accum) = track_source(grid, r, hsd_ids)
+    (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
     (uniq_ids, coeff) = find_unique_upstream_hsd_ids_and_fractions(hsd_upstr)
     assert_almost_equal(coeff[8][0], 0.666666667)
     
