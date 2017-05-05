@@ -21,6 +21,7 @@ requirements:
     - six
     - pyyaml
     - setuptools
+    - statsmodels
 
   run:
     - python
@@ -38,6 +39,7 @@ requirements:
     - pyyaml
     - setuptools
     - xarray
+    - statsmodels
 
 build:
   string: {{ environ.get('BUILD_STR', '') }}
