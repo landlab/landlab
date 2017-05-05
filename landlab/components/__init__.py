@@ -35,7 +35,7 @@ from .landslides import LandslideProbability
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
-	      KinwaveImplicitOverlandFlow,
+              KinwaveImplicitOverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, 
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
@@ -46,8 +46,8 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser, DepthSlopeProductErosion,
-              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD, FlowDirectorDINF,
-              FlowAccumulator, HybridAlluvium, LandslideProbability
-              ]
+              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
+              FlowDirectorDINF, FlowAccumulator, HybridAlluvium,
+              LandslideProbability, DepthDependentCubicDiffuser]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

@@ -10,7 +10,7 @@ except ImportError:
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.landslides.landslide import LandslideProbability
+from landlab.components import LandslideProbability
 
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0., 0.))
