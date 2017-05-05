@@ -4,13 +4,7 @@ Unit tests for source_tracking_algorithm.py
 @author: Sai Nudurupati & Erkan Istanbulluoglu
 """
 
-from nose.tools import (assert_equal, assert_true, assert_raises, with_setup,
-                        assert_almost_equal)
-from numpy.testing import assert_array_almost_equal
-try:
-    from nose.tools import assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is_instance
+from nose.tools import (assert_equal)
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -59,6 +53,5 @@ def test_find_unique_upstream_hsd_ids_and_fractions():
     hsd_ids[7:10] = 0
     (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
     (uniq_ids, coeff) = find_unique_upstream_hsd_ids_and_fractions(hsd_upstr)
-    assert_almost_equal(coeff[8][0], 0.666666667)
-    
-    
+    np.testing.assert_almost_equal(
+        np.sort(np.array(coeff[8])), np.array([0.33333333, 0.66666667]))
