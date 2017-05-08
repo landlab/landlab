@@ -284,82 +284,44 @@ class HybridAlluvium(Component):
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
         self.discharge_method = str(discharge_method) 
-        if method == 'simple_stream_power' and discharge_method == None:
-            self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-        elif method == 'simple_stream_power' and discharge_method is not None: 
-            if self.discharge_method == 'drainage_area':
-                if area_field is not None:
-                    if type(area_field) is str:
-                        self.drainage_area = self._grid.at_node[area_field]
-                    elif len(area_field) == self.grid.number_of_nodes:
-                        self.drainage_area = np.array(area_field)
-                    else:
-                        raise TypeError('Supplied type of area_field ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')  
-                self.q[:] = np.power(self.drainage_area, self.m_sp)
-            elif self.discharge_method == 'discharge_field':
-                if discharge_field is not None:                    
-                    if type(discharge_field) is str:
-                        self.q[:] = self._grid.at_node[discharge_field]
-                    elif len(discharge_field) == self.grid.number_of_nodes:
-                        self.q[:] = np.array(discharge_field)
-                    else:
-                        raise TypeError('Supplied type of discharge_field ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')
-        if method == 'threshold_stream_power' and discharge_method == None:
-            self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-        elif method == 'threshold_stream_power' and discharge_method is not None:
-            if self.discharge_method == 'drainage_area':
-                if area_field is not None:
-                    if type(area_field) is str:
-                        self.drainage_area = self._grid.at_node[area_field]
-                    elif len(area_field) == self.grid.number_of_nodes:
-                        self.drainage_area = np.array(area_field)
-                    else:
-                        raise TypeError('Supplied type of area_field ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')  
-                self.q[:] = np.power(self.drainage_area, self.m_sp)
-            elif self.discharge_method == 'discharge_field':
-                if discharge_field is not None:                    
-                    if type(discharge_field) is str:
-                        self.q[:] = self._grid.at_node[discharge_field]
-                    elif len(discharge_field) == self.grid.number_of_nodes:
-                        self.q[:] = np.array(discharge_field)
-                    else:
-                        raise TypeError('Supplied type of discharge_field ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')
-        if method == 'stochastic_hydrology' and discharge_method == None:
-            raise TypeError('Supply a discharge method to use stoc. hydro!')
-        elif discharge_method is not None:
-            if self.discharge_method == 'drainage_area':
-                if area_field is not None:
-                    if type(area_field) is str:
-                        self.drainage_area = self._grid.at_node[area_field]
-                    elif len(area_field) == self.grid.number_of_nodes:
-                        self.drainage_area = np.array(area_field)
-                    else:
-                        raise TypeError('Supplied type of area_field ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')  
-                self.q[:] = np.power(self.drainage_area, self.m_sp)
-            elif self.discharge_method == 'discharge_field':
-                if discharge_field is not None:                    
-                    if type(discharge_field) is str:
-                        self.q[:] = self._grid.at_node[discharge_field]
-                    elif len(discharge_field) == self.grid.number_of_nodes:
-                        self.q[:] = np.array(discharge_field)
-                    else:
-                        raise TypeError('Supplied type of discharge_field ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')  
-            else:
-                raise ValueError('Specify discharge method for stoch hydro!')
+        self.area_field = str(area_field)
+        self.discharge_field = str(discharge_field)
+        
+        if self.method == 'simple_stream_power':
+            self.simple_stream_power()
+        elif self.method == 'threshold_stream_power':
+            self.threshold_stream_power()
+        elif self.method == 'stochastic_hydrology':
+            self.stochastic_hydrology()
+        else:
+            raise ValueError('Specify erosion method (simple stream power,\
+                            threshold stream power, or stochastic hydrology)!')
     #three choices for erosion methods:
     def simple_stream_power(self):
+        if self.method == 'simple_stream_power' and self.discharge_method == None:
+            self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
+        elif self.method == 'simple_stream_power' and self.discharge_method is not None: 
+            if self.discharge_method == 'drainage_area':
+                if self.area_field is not None:
+                    if type(self.area_field) is str:
+                        self.drainage_area = self._grid.at_node[self.area_field]
+                    elif len(self.area_field) == self.grid.number_of_nodes:
+                        self.drainage_area = np.array(self.area_field)
+                    else:
+                        raise TypeError('Supplied type of area_field ' +
+                                'was not recognised, or array was ' +
+                                'not nnodes long!')  
+                self.q[:] = np.power(self.drainage_area, self.m_sp)
+            elif self.discharge_method == 'discharge_field':
+                if self.discharge_field is not None:                    
+                    if type(self.discharge_field) is str:
+                        self.q[:] = self._grid.at_node[self.discharge_field]
+                    elif len(self.discharge_field) == self.grid.number_of_nodes:
+                        self.q[:] = np.array(self.discharge_field)
+                    else:
+                        raise TypeError('Supplied type of discharge_field ' +
+                                'was not recognised, or array was ' +
+                                'not nnodes long!')
         self.Es = self.K_sed * self.q * np.power(self.slope, self.n_sp) * \
             (1.0 - np.exp(-self.soil__depth / self.H_star))
         self.Er = self.K_br * self.q * np.power(self.slope, self.n_sp) * \
@@ -370,6 +332,30 @@ class HybridAlluvium(Component):
             np.power(self.slope, self.n_sp)
             
     def threshold_stream_power(self):
+        if self.method == 'threshold_stream_power' and self.discharge_method == None:
+            self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
+        elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
+            if self.discharge_method == 'drainage_area':
+                if self.area_field is not None:
+                    if type(self.area_field) is str:
+                        self.drainage_area = self._grid.at_node[self.area_field]
+                    elif len(self.area_field) == self.grid.number_of_nodes:
+                        self.drainage_area = np.array(self.area_field)
+                    else:
+                        raise TypeError('Supplied type of area_field ' +
+                                'was not recognised, or array was ' +
+                                'not nnodes long!')  
+                self.q[:] = np.power(self.drainage_area, self.m_sp)
+            elif self.discharge_method == 'discharge_field':
+                if self.discharge_field is not None:                    
+                    if type(self.discharge_field) is str:
+                        self.q[:] = self._grid.at_node[self.discharge_field]
+                    elif len(self.discharge_field) == self.grid.number_of_nodes:
+                        self.q[:] = np.array(self.discharge_field)
+                    else:
+                        raise TypeError('Supplied type of discharge_field ' +
+                                'was not recognised, or array was ' +
+                                'not nnodes long!')
         omega_sed = self.K_sed * self.q * \
             np.power(self.slope, self.n_sp)
         omega_br = self.K_br * self.q * \
@@ -385,6 +371,32 @@ class HybridAlluvium(Component):
         self.br_erosion_term = omega_br - self.sp_crit_br * \
             (1 - np.exp(-omega_br / self.sp_crit_br))
     def stochastic_hydrology(self):
+        if self.method == 'stochastic_hydrology' and self.discharge_method == None:
+            raise TypeError('Supply a discharge method to use stoc. hydro!')
+        elif self.discharge_method is not None:
+            if self.discharge_method == 'drainage_area':
+                if self.area_field is not None:
+                    if type(self.area_field) is str:
+                        self.drainage_area = self._grid.at_node[self.area_field]
+                    elif len(self.area_field) == self.grid.number_of_nodes:
+                        self.drainage_area = np.array(self.area_field)
+                    else:
+                        raise TypeError('Supplied type of area_field ' +
+                                'was not recognised, or array was ' +
+                                'not nnodes long!')  
+                self.q[:] = np.power(self.drainage_area, self.m_sp)
+            elif self.discharge_method == 'discharge_field':
+                if self.discharge_field is not None:                    
+                    if type(self.discharge_field) is str:
+                        self.q[:] = self._grid.at_node[self.discharge_field]
+                    elif len(self.discharge_field) == self.grid.number_of_nodes:
+                        self.q[:] = np.array(self.discharge_field)
+                    else:
+                        raise TypeError('Supplied type of discharge_field ' +
+                                'was not recognised, or array was ' +
+                                'not nnodes long!')  
+            else:
+                raise ValueError('Specify discharge method for stoch hydro!')
         self.Es = self.K_sed * self.q * np.power(self.slope, self.n_sp) * \
             (1.0 - np.exp(-self.soil__depth / self.H_star))
         self.Er = self.K_br * self.q * np.power(self.slope, self.n_sp) * \
