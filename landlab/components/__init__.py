@@ -11,7 +11,7 @@ from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
 from .overland_flow import OverlandFlowBates, OverlandFlow
-from .overland_flow import KinematicWaveRengers, KinwaveImplicitOverlandFlow
+from .overland_flow import KinwaveImplicitOverlandFlow
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .pet import PotentialEvapotranspiration
 from .radiation import Radiation
@@ -38,7 +38,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, 
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
-              FastscapeEroder, SedDepEroder, KinematicWaveRengers,
+              FastscapeEroder, SedDepEroder,
               PrecipitationDistribution,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,

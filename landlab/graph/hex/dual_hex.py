@@ -56,6 +56,6 @@ class DualHexGraph(DualVoronoiGraph):
         else:
             max_node_spacing = shape[1] + 1
 
-        super(DualHexGraph, self).__init__(
+        DualVoronoiGraph.__init__(self,
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
             min_cell_size=6, max_node_spacing=max_node_spacing)
