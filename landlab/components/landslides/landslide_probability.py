@@ -312,6 +312,7 @@ class LandslideProbability(Component):
             self.recharge_max = groundwater__recharge_max_value
             self.Re = np.random.uniform(self.recharge_min, self.recharge_max,
                                         size=self.n)
+			self.Re /= 1000. # Convert mm to m
         # Lognormal Distribution - Uniform in space
         elif self.groundwater__recharge_distribution == 'lognormal_uniform':
             assert (groundwater__recharge_mean != None), (
@@ -327,6 +328,7 @@ class LandslideProbability(Component):
             self.Re = np.random.lognormal(mean=self.mu_lognormal,
                                           sigma=self.sigma_lognormal,
                                           size=self.n)
+			self.Re /= 1000. # Convert mm to m
         # Lognormal Distribution - Variable in space                                  
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
             assert (groundwater__recharge_mean.shape[0] == (
@@ -402,6 +404,7 @@ class LandslideProbability(Component):
             self.Re = np.random.lognormal(mean=mu_lognormal,
                                           sigma=sigma_lognormal,
                                           size=self.n)
+			self.Re /= 1000. # Convert mm to m
 
         # Transmissivity (T)
         Tmin = self.Tmode-(0.3*self.Tmode)
