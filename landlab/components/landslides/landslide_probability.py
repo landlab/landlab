@@ -314,7 +314,7 @@ class LandslideProbability(Component):
                                         size=self.n)
             self.Re /= 1000. # Convert mm to m
         # Lognormal Distribution - Uniform in space
-        elif self.groundwater__recharge_distribution == 'lognormal_uniform':
+        elif self.groundwater__recharge_distribution == 'lognormal':
             assert (groundwater__recharge_mean != None), (
                 'Input mean of the distribution!')
             assert (groundwater__recharge_standard_deviation != None), (
@@ -332,10 +332,10 @@ class LandslideProbability(Component):
         # Lognormal Distribution - Variable in space                                  
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
             assert (groundwater__recharge_mean.shape[0] == (
-                self.grid.number_of_core_nodes)), (
+                self.grid.number_of_nodes)), (
                 'Input array should be of the length of grid.number_of_nodes!')
             assert (groundwater__recharge_standard_deviation.shape[0] == (
-                self.grid.number_of_core_nodes)), (
+                self.grid.number_of_nodes)), (
                 'Input array should be of the length of grid.number_of_nodes!')
             self.recharge_mean = groundwater__recharge_mean
             self.recharge_stdev = groundwater__recharge_standard_deviation
@@ -411,11 +411,12 @@ class LandslideProbability(Component):
         Tmax = self.Tmode+(0.1*self.Tmode)
         self.T = np.random.triangular(Tmin, self.Tmode, Tmax, size=self.n)
         # Cohesion
-        # if provide fields of min and max C, uncomment 2 lines below
+        # if don't provide fields of min and max C, uncomment 2 lines below
         #    Cmin = self.Cmode-0.3*self.Cmode
         #    Cmax = self.Cmode+0.3*self.Cmode
         self.C = np.random.triangular(self.Cmin, self.Cmode,
                                       self.Cmax, size=self.n)
+
         # phi - internal angle of friction provided in degrees
         phi_min = self.phi_mode-0.18*self.phi_mode
         phi_max = self.phi_mode+0.32*self.phi_mode
@@ -426,13 +427,13 @@ class LandslideProbability(Component):
         hs_max = self.hs_mode+0.1*self.hs_mode
         self.hs = np.random.triangular(hs_min, self.hs_mode,
                                        hs_max, size=self.n)
-        self.hs[self.hs <= 0.] = 0.0001
+        self.hs[self.hs <= 0.] = 0.005
 
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
         self.C_dim = self.C/(self.hs*self.rho*self.g)  # dimensionless cohesion
         self.Rel_wetness = ((self.Re)/self.T)*(self.a/np.sin(
-            np.arctan(self.theta)))                       # relative wetness
+            np.arctan(self.theta)))                    # relative wetness
         np.place(self.Rel_wetness, self.Rel_wetness > 1, 1.0)
         # maximum Rel_wetness = 1.0
         self.soil__mean_relative_wetness = np.mean(self.Rel_wetness)
@@ -484,7 +485,6 @@ class LandslideProbability(Component):
             self.prob_fail[i] = self.landslide__probability_of_failure
             self.landslide__factor_of_safety_distribution[i] = (
                 self.FS_distribution)
-            # stores FS values from last loop (node)
         # replace unrealistic values in arrays
         self.mean_Relative_Wetness[
             self.mean_Relative_Wetness < 0.] = 0.  # so can't be negative
