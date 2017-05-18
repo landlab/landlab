@@ -282,23 +282,19 @@ class KinwaveImplicitOverlandFlow(Component):
         # do flow routing and calculate square root of slopes at links     
         if self.changing_topo or self.first_iteration:
 
-            print('FIRST ITER')
             # Calculate the ground-surface slope
             self.slope[self.grid.active_links] = \
                 self._grid.calc_grad_at_link(self.elev)[self._grid.active_links]
                 
-            print('ROOT SLOPE')
             # Take square root of slope magnitude for use in velocity eqn
             self.sqrt_slope = np.sqrt(np.abs(self.slope))
 
-            print('FLOW ROUTE')
             # Re-route flow, which gives us the downstream-to-upstream
             # ordering
             self.flow_accum.run_one_step()
             self.nodes_ordered = self.grid.at_node['flow__upstream_node_order']
             self.flow_lnks = self.grid.at_node['flow__links_to_receiver_nodes']
 
-            print('GRAD WID SUM')
             # (Re)calculate, for each node, sum of sqrt(gradient) x width
             self.grad_width_sum[:] = 0.0
             for i in range(self.flow_lnks.shape[1]):
@@ -306,7 +302,6 @@ class KinwaveImplicitOverlandFlow(Component):
                     * self._grid.width_of_face[
                             self.grid.face_at_link[self.flow_lnks[:,i]]])
 
-            print('ALPHA')
             # Calculate values of alpha, which is defined as
             #
             #   $\alpha = \frac{\Sigma W S^{1/2} \Delta t}{A C_r}$
@@ -318,13 +313,11 @@ class KinwaveImplicitOverlandFlow(Component):
         # Zero out inflow discharge
         self.disch_in[:] = 0.0
 
-        print('LOOP STARTS HERE')
         # Upstream-to-downstream loop
         for i in range(len(self.nodes_ordered) - 1, -1, -1):
             n = self.nodes_ordered[i]
             if self.grid.status_at_node[n] == 0:
 
-                print('node ' + str(n) + ' ' + str(self.alpha[n]) + ' ' + str(self.disch_in[n]))
                 # Solve for new water depth
                 aa = self.alpha[n]
                 cc = self.depth[n]
