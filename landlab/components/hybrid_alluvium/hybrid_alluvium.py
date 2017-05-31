@@ -225,14 +225,10 @@ class HybridAlluvium(Component):
         #store other constants
         self.m_sp = float(m_sp)
         self.n_sp = float(n_sp)
-        self.K_sed = float(K_sed)
-        self.K_br = float(K_br)
         self.F_f = float(F_f)
         self.phi = float(phi)
         self.H_star = float(H_star)
         self.v_s = float(v_s)
-        self.sp_crit_sed = float(sp_crit_sed)
-        self.sp_crit_br = float(sp_crit_br)
         
         #K's and critical values can be floats, grid fields, or arrays
         if type(K_sed) is str:
