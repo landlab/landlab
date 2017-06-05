@@ -153,10 +153,10 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     flow on that link.
 
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.78539816,
-            0.95531662,  1.24904577,  1.37340077,  0.        ,  1.24904577,
-            1.33931896,  1.39582728,  0.        ,  1.37340077,  1.39582728,
-            1.43030663])
+    array([ 0.        ,  0.        ,  0.        ,  0.        ,  1.        ,
+            1.41421356,  3.        ,  5.        ,  0.        ,  3.        ,
+            4.24264069,  5.65685425,  0.        ,  5.        ,  5.65685425,
+            7.07106781])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1,  0,  1,  2,  3, 24,  8,  9, -1, 11, 32, 34, -1, 18, 38, 40])
     >>> mg.at_node['flow__receiver_node']

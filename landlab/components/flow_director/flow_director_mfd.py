@@ -115,8 +115,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
              0.        ,  0.        ,  0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.45119291,  0.        ,
-             0.        ,  0.54880709,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.41421356,  0.        ,
+             0.        ,  0.58578644,  0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  0.        ,  0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
@@ -142,7 +142,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     flow on that link.
 
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.95531662,
+    array([ 0.        ,  0.        ,  0.        ,  0.        ,  1.41421356,
             0.        ,  0.        ,  0.        ,  0.        ])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
@@ -238,28 +238,28 @@ class FlowDirectorMFD(_FlowDirectorToMany):
              0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.34638492,  0.38747637,
-             0.26613871],
-           [ 0.        ,  0.        ,  0.        ,  0.34638492,  0.38747637,
-             0.26613871],
+           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
+             0.24118095],
+           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
+             0.24118095],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.34638492,  0.38747637,
-             0.26613871],
-           [ 0.        ,  0.        ,  0.        ,  0.34638492,  0.38747637,
-             0.26613871],
-           [ 0.        ,  0.        ,  0.        ,  0.34638492,  0.38747637,
-             0.26613871],
+           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
+             0.24118095],
+           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
+             0.24118095],
+           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
+             0.24118095],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ],
-           [ 0.        ,  0.        ,  0.21019712,  0.27357581,  0.30602995,
-             0.21019712],
-           [ 0.        ,  0.        ,  0.21019712,  0.27357581,  0.30602995,
-             0.21019712],
+           [ 0.        ,  0.        ,  0.19431571,  0.27480391,  0.33656468,
+             0.19431571],
+           [ 0.        ,  0.        ,  0.19431571,  0.27480391,  0.33656468,
+             0.19431571],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ],
            [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
@@ -289,10 +289,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1]])
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.98279372,
-            0.98279372,  0.        ,  0.        ,  0.98279372,  0.98279372,
-            0.98279372,  0.        ,  0.        ,  0.98279372,  0.98279372,
-            0.        ,  0.        ,  0.        ,  0.        ])
+    array([ 0. ,  0. ,  0. ,  0. ,  1.5,  1.5,  0. ,  0. ,  1.5,  1.5,  1.5,
+            0. ,  0. ,  1.5,  1.5,  0. ,  0. ,  0. ,  0. ])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1,
            -1,  3,  5, 10,
@@ -418,8 +416,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node
 
-            # this needs to change from the gradient to the slope.
-            link_slope = numpy.arctan(self.grid.calc_grad_at_link(self.surface_values))
+            # this needs to be the gradient
+            link_slope = self.grid.calc_grad_at_link(self.surface_values)
 
         # Option with diagonals.
         else:
@@ -452,8 +450,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
                                           self.grid._diagonal_links_at_node))
             active_link_dir_at_node = numpy.hstack((self.grid.active_link_dirs_at_node,
                                                     self.grid._diag__active_link_dirs_at_node))
-            link_slope = numpy.hstack((numpy.arctan(ortho_grads),
-                                       numpy.arctan(diag_grads)))
+            link_slope = numpy.hstack((ortho_grads,
+                                       diag_grads))
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(
