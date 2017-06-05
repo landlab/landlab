@@ -11,6 +11,7 @@ requirements:
     - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy x.x
+    - xarray
     - nose
     - matplotlib
     - numpydoc
@@ -26,6 +27,7 @@ requirements:
     - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy x.x
+    - xarray
     - nose
     - matplotlib
     - numpydoc
@@ -35,6 +37,7 @@ requirements:
     - six
     - pyyaml
     - setuptools
+    - xarray
 
 build:
   string: {{ environ.get('BUILD_STR', '') }}
