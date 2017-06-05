@@ -13,9 +13,37 @@ from landlab.core.model_parameter_dictionary import MissingKeyError, \
     ParameterValueError
 from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.field.scalar_data_fields import FieldError
-from scipy.optimize import newton, fsolve
+from scipy.optimize import newton
 
 UNDEFINED_INDEX = -1
+
+def erode_fn(z_new, z_old, z_downstream, alpha, beta, delta_x, n):
+    """Evaluates the solution to the water-depth equation.
+
+    Called by scipy.brentq() to find solution for $x$ using Brent's method.
+
+    Parameters
+    ----------
+    z_new : float
+        topographic elevation.
+    z_old : float
+        value of topographic elevation in prior timestep
+    z_downstream : float
+        value of topographic elevation downstream. 
+    beta : float
+        beta paramter, given by dt * K * (rainfall_intensity*A)**m
+    delta_x : float
+        horizontal grid spacing
+    n : float
+        n exponent
+
+    This equation represents the implicit solution for topographic elevation 
+    $z$ at the  next time step. In the code below, it is formulated in a generic way. 
+    Written using more familiar terminology, the equation is:
+
+    
+    """
+    return z_new - z_old + alpha - (((beta*(z_new-z_downstream)/delta_x))**n)
 
 
 class FastscapeEroder(Component):
@@ -85,7 +113,7 @@ class FastscapeEroder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-    >>> from landlab.components import FlowRouter
+    >>> from landlab.components import FlowRouter, FastscapeEroder
     >>> mg = RasterModelGrid((5, 5), 10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
@@ -331,6 +359,9 @@ class FastscapeEroder(Component):
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
             self._grid['node']['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
+        
+        all_flow_link_lengths = self._grid._length_of_link_with_diagonals[
+            self._grid['node']['flow__link_to_receiver_node']]
 
         # make arrays from input the right size
         if type(self.K) is numpy.ndarray:
@@ -357,18 +388,21 @@ class FastscapeEroder(Component):
                     out=self.A_to_the_m)
         self.alpha[defined_flow_receivers] = r_i_here**self.m * K_here * dt * \
             self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
+        
+        brent_beta =  self.K * dt * (r_i_here**self.m)* (numpy.power(self._grid['node']['drainage_area'], self.m))
 
         flow_receivers = self._grid['node']['flow__receiver_node']
-        n_nodes = upstream_order_IDs.size
         alpha = self.alpha
 
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
             alpha[flooded_nodes] = 0.
+            brent_beta[flooded_nodes] = 0.
         else:
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across depressions
             alpha[reversed_flow] = 0.
+            brent_beta[reversed_flow] = 0
 
         self.alpha_by_flow_link_lengthtothenless1[
             defined_flow_receivers] = (alpha[defined_flow_receivers] /
@@ -376,42 +410,31 @@ class FastscapeEroder(Component):
         alpha_divided = self.alpha_by_flow_link_lengthtothenless1
         n = float(self.n)
         threshdt = self.thresholds * dt
-        if type(self.thresholds) is float:
-            from .cfuncs import erode_with_link_alpha_fixthresh
-            erode_with_link_alpha_fixthresh(upstream_order_IDs, flow_receivers,
-                                            threshdt, alpha_divided, n, z)
-        else:
-            from .cfuncs import erode_with_link_alpha_varthresh
-            erode_with_link_alpha_varthresh(upstream_order_IDs, flow_receivers,
-                                            threshdt, alpha_divided, n, z)
-            # # This replicates the cython for testing:
-            # for i in range(upstream_order_IDs.size):
-            #     src_id = upstream_order_IDs[i]
-            #     dst_id = flow_receivers[src_id]
-            #     thresh = threshdt[i]
-            #     if src_id != dst_id:
-            #         next_z = z[src_id]
-            #         prev_z = 0.
-            #         while True:
-            #         #for j in range(2):
-            #             z_diff = next_z - z[dst_id]
-            #             f = alpha_divided[src_id] * pow(z_diff, n - 1.)
-            #             # if z_diff -> 0, pow -> nan (in reality, inf)
-            #             # print (f, prev_z, next_z, z_diff, z[dst_id])
-            #             next_z = next_z - ((next_z - z[src_id] + (
-            #                 f*z_diff - thresh).clip(0.)) / (1. + n * f))
-            #             if next_z < z[dst_id]:
-            #                 next_z = z[dst_id] + 1.e-15
-            #                 # ^maintain connectivity
-            #             if next_z != 0.:
-            #                 if (numpy.fabs((next_z - prev_z)/next_z) <
-            #                     1.48e-08) or (n == 1.):
-            #                     break
-            #             else:
-            #                 break
-            #             prev_z = next_z
-            #         if next_z < z[src_id]:
-            #             z[src_id] = next_z
+
+        # Solve using newtons method
+        for i in range(upstream_order_IDs.size):
+            src_id = upstream_order_IDs[i]
+            dst_id = flow_receivers[src_id]
+            if src_id != dst_id:
+                 
+                z_old = z[src_id]
+                z_downstream = z[dst_id]
+                
+                try:
+                    brent_alpha_value = threshdt[src_id]
+                except TypeError:
+                    brent_alpha_value = threshdt
+                    
+                brent_beta_value = brent_beta[src_id]
+                delta_x = all_flow_link_lengths[src_id]
+                 
+                try:
+                    z[src_id] = newton(erode_fn, z_old, 
+                                        args=(z_old, z_downstream, brent_alpha_value, brent_beta_value, delta_x, n))
+                except RuntimeError:
+                     # error could occur because threshold is not exceeded
+                     # OR because convergence doesn't occur
+                    z[src_id] = z_old
 
         return self._grid
 
