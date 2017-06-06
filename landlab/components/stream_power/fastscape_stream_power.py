@@ -88,16 +88,21 @@ def erode_fn(x, alpha, beta, n, check=True):
     check=False. 
     
     """
-    f = x - 1.0 + (alpha*(x**n)) - beta
+    f = x - 1.0 + (alpha * (x ** n)) - beta
     
     # if f evaluated at x = 1 (or z_new = z_old), results in a value for f that
     # is less than or equal to zero, then the erosion threshold has not been 
     # exceeded and this function should not have a zero in the interval 
     # x = [0, 1]
     # if this is the case, raise an error. 
-    if (1.0 - 1.0 + (alpha*(1.0**n)) - beta) <= 0:
+    if (1.0 - 1.0 + (alpha * (1.0 ** n)) - beta) <= 0:
         if check==True:
-            raise ValueError('')
+            raise ValueError('Value passed to erode_fn provides a value of '
+                 'less than zero for values of x=1. This means '
+                 'that the threshold was not exceeded and this '
+                 'function should not be used in a solver. If you '
+                 'are useing this function as a check outide a '
+                 'solver, use check=False.')
         else:
             pass
     else:
@@ -482,7 +487,7 @@ class FastscapeEroder(Component):
                     thresholddt = threshdt
                     
                 # calculate the difference between z_old and z_downstream
-                z_diff_old = z_old-z_downstream
+                z_diff_old = z_old - z_downstream
                 
                 # if flow was reversed, z_diff_old may be negative, which can
                 # lead to Runtime or Floating PointErrors. This is dealt with 
@@ -490,15 +495,15 @@ class FastscapeEroder(Component):
                 # here we also set z_diff_old, alpha, and beta to zero. 
                 # this will result in a value of 
                 
-                if z_diff_old<0:
+                if z_diff_old < 0:
                     pass
                 else:
                 # using z_diff_old, calculate the alpha paramter of Braun and
                 # Willet by calculating alpha times z
                 
-                    alpha_param = alpha[src_id]*numpy.power(z_diff_old, n-1.0)
+                    alpha_param = alpha[src_id] * numpy.power(z_diff_old, n-1.0)
                                     
-                    beta_param = thresholddt/z_diff_old
+                    beta_param = thresholddt / z_diff_old
                         
                     # check if the threshold has been exceeded:
                     check_function = erode_fn(1, alpha_param, beta_param, n, check=False)
@@ -516,14 +521,19 @@ class FastscapeEroder(Component):
                         
                         # solve using brenth, which requires a zero to exist 
                         # in between the two end values
-                        x = brenth(erode_fn, 
-                                   0.0,                                  
-                                   1.0,
-                                   args=(alpha_param, beta_param, n),
-                                   maxiter=200)
+                        
+                        # if n is 1, solution has an analytical solution. 
+                        if n != 1.0:
+                            x = brenth(erode_fn, 
+                                       0.0,                                  
+                                       1.0,
+                                       args=(alpha_param, beta_param, n),
+                                       maxiter=200)
+                        else:
+                            x = (1.0 + beta_param)/(1.0 + alpha_param)
                         # just in case, 
                         if x>0:
-                            z[src_id] = z_downstream + x*(z_old - z_downstream)
+                            z[src_id] = z_downstream + x * (z_old - z_downstream)
                         else:
                             z[src_id] = z_downstream + 1.e-15
 
