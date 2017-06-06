@@ -167,9 +167,9 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = LS_prob.grid.core_nodes
-    >>> (isinstance(LS_prob.landslide__factor_of_safety_distribution[
-    ...      core_nodes[0]], np.ndarray) == True)
-    True
+#    >>> (isinstance(LS_prob.landslide__factor_of_safety_distribution[
+#    ...      core_nodes[0]], np.ndarray) == True)
+#    True
     """
 
 # component name
@@ -388,6 +388,8 @@ class LandslideProbability(Component):
             'topographic__specific_contributing_area'][i]
         self.theta = self.grid.at_node['topographic__slope'][i]
         self.Tmode = self.grid.at_node['soil__transmissivity'][i]
+        self.Ksatmode = self.grid.at_node[
+            'soil__saturated_hydraulic_conductivity'][i]
         self.Cmode = self.grid.at_node['soil__mode_total_cohesion'][i]
         self.Cmin = self.grid.at_node['soil__minimum_total_cohesion'][i]
         self.Cmax = self.grid.at_node['soil__maximum_total_cohesion'][i]
@@ -408,10 +410,6 @@ class LandslideProbability(Component):
                                           sigma_lognormal, self.n)
             self.Re /= 1000. # Convert mm to m
 
-        # Transmissivity (T)
-        Tmin = self.Tmode-(0.3*self.Tmode)
-        Tmax = self.Tmode+(0.1*self.Tmode)
-        self.T = np.random.triangular(Tmin, self.Tmode, Tmax, size=self.n)
         # Cohesion
         # if don't provide fields of min and max C, uncomment 2 lines below
         #    Cmin = self.Cmode-0.3*self.Cmode
@@ -432,13 +430,24 @@ class LandslideProbability(Component):
                                        hs_max, size=self.n)
         self.hs[self.hs <= 0.] = 0.005
 
+        # Hydraulic conductivity (Ksat)
+        Ksatmin = self.Ksatmode-(0.3*self.Ksatmode)
+        Ksatmax = self.Ksatmode+(0.1*self.Ksatmode)
+        self.Ksat = np.random.triangular(Ksatmin, self.Ksatmode, Ksatmax, size=self.n)
+
+        # Transmissivity (T)
+        Tmin = self.Tmode-(0.3*self.Tmode)
+        Tmax = self.Tmode+(0.1*self.Tmode)
+        self.T = np.random.triangular(Tmin, self.Tmode, Tmax, size=self.n)
+        self.T = self.Ksat*self.hs
+
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
         self.C_dim = self.C/(self.hs*self.rho*self.g)  # dimensionless cohesion
         self.Rel_wetness = ((self.Re)/self.T)*(self.a/np.sin(
             np.arctan(self.theta)))                    # relative wetness
         # calculate probability of saturation
-        self.RW_distribution =np.array(self.Rel_wetness)
+#        self.RW_distribution =np.array(self.Rel_wetness)
         countr = 0
         for val in self.Rel_wetness:            # find how many RW values >= 1
             if val >= 1.0:
@@ -455,7 +464,7 @@ class LandslideProbability(Component):
         self.FS = (self.C_dim/np.sin(np.arctan(self.theta))) + (
             np.cos(np.arctan(self.theta)) *
             (self.Y/np.sin(np.arctan(self.theta))))
-        self.FS_distribution = np.array(self.FS)   # array of factor of safety
+#        self.FS_distribution = np.array(self.FS)   # array of factor of safety
         count = 0
         for val in self.FS:                   # find how many FS values <= 1
             if val <= 1.0:
@@ -490,12 +499,12 @@ class LandslideProbability(Component):
                                                    dtype='float')
         self.prob_fail = -9999*np.ones(
             self.grid.number_of_nodes, dtype='float')
-        self.landslide__factor_of_safety_distribution = -9999*np.ones(
-            [self.grid.number_of_nodes, self.n], dtype='float')
+#        self.landslide__factor_of_safety_distribution = -9999*np.ones(
+#            [self.grid.number_of_nodes, self.n], dtype='float')
         self.prob_sat = -9999*np.ones(
             self.grid.number_of_nodes, dtype='float')  
-        self.soil__relative_wetness_distribution = -9999*np.ones(
-            [self.grid.number_of_nodes, self.n], dtype='float')
+#        self.soil__relative_wetness_distribution = -9999*np.ones(
+#            [self.grid.number_of_nodes, self.n], dtype='float')
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self.grid.core_nodes:
@@ -503,11 +512,11 @@ class LandslideProbability(Component):
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self.soil__mean_relative_wetness
             self.prob_fail[i] = self.landslide__probability_of_failure
-            self.landslide__factor_of_safety_distribution[i] = (
-                self.FS_distribution)
+#            self.landslide__factor_of_safety_distribution[i] = (
+#                self.FS_distribution)
             self.prob_sat[i] = self.soil__probability_of_saturation
-            self.soil__relative_wetness_distribution[i] = (
-                self.RW_distribution)
+#            self.soil__relative_wetness_distribution[i] = (
+#                self.RW_distribution)
         # Values can't be negative
         self.mean_Relative_Wetness[
             self.mean_Relative_Wetness < 0.] = 0.
