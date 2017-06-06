@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import warnings
-
 import numpy as np
 from scipy.optimize import brenth
 
@@ -12,7 +10,6 @@ from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import use_file_name_or_kwds
 
-from copy import deepcopy as copy
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
@@ -254,12 +251,6 @@ class StreamPowerEroder(Component):
         if type(use_Q) is str and use_Q == 'water__discharge':
             use_Q = 'surface_water__discharge'
         self._grid = grid
-        self.fraction_gradient_change = 1.
-        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1)
-        # ^needs to be filled with values in execution
-        self.count_active_links = np.zeros_like(
-            self.link_S_with_trailing_blank, dtype=int)
-        self.count_active_links[:-1] = 1
 
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
         if type(K_sp) is np.ndarray:
@@ -368,7 +359,6 @@ class StreamPowerEroder(Component):
 
         self.stream_power_erosion = grid.zeros(centering='node')
         self.alpha = self.grid.zeros('node')
-        self.alpha_divided = self.grid.zeros('node')
 
     def erode(self, grid, dt, elevs='topographic__elevation',
               drainage_areas='drainage_area',
@@ -465,7 +455,11 @@ class StreamPowerEroder(Component):
             stream_power_erosion is not an excess stream power; any specified
             erosion threshold is not incorporated into it.
         """
-        upstream_order_IDs = self._grid['node'][order_upstream]
+        if type(order_upstream) is str:
+            upstream_order_IDs = grid.at_node[order_upstream]
+        else:
+            upstream_order_IDs = self._grid['node'][order_upstream]
+            
         defined_flow_receivers = np.not_equal(self._grid['node'][
             link_mapping], UNDEFINED_INDEX)
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
@@ -511,9 +505,6 @@ class StreamPowerEroder(Component):
             A = grid.at_node[drainage_areas]
         else:
             A = drainage_areas
-
-        if type(order_upstream) is str:
-            order_upstream = grid.at_node[order_upstream]
             
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
@@ -641,6 +632,7 @@ class StreamPowerEroder(Component):
                     # this means that the maximum possible slope value 
                     # does not produce stream power needed to exceed the erosion
                     # threshold
+                    self.stream_power_erosion[src_id] = 0
                     pass
                 else:
                     # if the threshold was exceeded, then there will be a zero
@@ -656,9 +648,10 @@ class StreamPowerEroder(Component):
                     # just in case, 
                     if x>0:
                         z[src_id] = z_downstream + x*(z_old - z_downstream)
+                        self.stream_power_erosion[src_id] = z_old - x*(z_old - z_downstream)
                     else:
                         z[src_id] = z_downstream + 1.e-15
-            
+                        self.stream_power_erosion[src_id] = (1.0-1.e-15)*(z_old - z_downstream)
             
             
         return grid, z, self.stream_power_erosion

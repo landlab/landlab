@@ -7,7 +7,6 @@ Created DEJH, March 2014.
 from __future__ import print_function
 
 import numpy
-import warnings
 from landlab import ModelParameterDictionary, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError, \
     ParameterValueError
@@ -255,8 +254,6 @@ class FastscapeEroder(Component):
         # make storage variables
         self.A_to_the_m = grid.zeros(at='node')
         self.alpha = grid.empty(at='node')
-        self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
-                                                        self.alpha)
 
         try:
             self.grid._diagonal_links_at_node  # calc number of diagonal links
