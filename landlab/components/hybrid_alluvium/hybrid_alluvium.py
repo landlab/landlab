@@ -283,9 +283,9 @@ class HybridAlluvium(Component):
                                 
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
-        self.discharge_method = str(discharge_method) 
-        self.area_field = str(area_field)
-        self.discharge_field = str(discharge_field)
+        self.discharge_method = discharge_method
+        self.area_field = area_field
+        self.discharge_field = discharge_field
         
         if self.method == 'simple_stream_power':
             self.simple_stream_power()
@@ -300,9 +300,11 @@ class HybridAlluvium(Component):
     def simple_stream_power(self):
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-        elif self.method == 'simple_stream_power' and self.discharge_method is not None: 
+        elif self.method == 'simple_stream_power' and self.discharge_method is not None:
+            self.discharge_method = str(discharge_method) 
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
+                    self.area_field = str(area_field)
                     if type(self.area_field) is str:
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
@@ -313,7 +315,8 @@ class HybridAlluvium(Component):
                                 'not nnodes long!')  
                 self.q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                if self.discharge_field is not None:                    
+                if self.discharge_field is not None:
+                    self.discharge_field = str(discharge_field)
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -335,8 +338,10 @@ class HybridAlluvium(Component):
         if self.method == 'threshold_stream_power' and self.discharge_method == None:
             self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
+            self.discharge_method = str(discharge_method) 
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
+                    self.area_field = str(area_field)
                     if type(self.area_field) is str:
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
@@ -347,7 +352,8 @@ class HybridAlluvium(Component):
                                 'not nnodes long!')  
                 self.q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                if self.discharge_field is not None:                    
+                if self.discharge_field is not None:
+                    self.discharge_field = str(discharge_field)
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -374,8 +380,10 @@ class HybridAlluvium(Component):
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
         elif self.discharge_method is not None:
+            self.discharge_method = str(discharge_method) 
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
+                    self.area_field = str(area_field)
                     if type(self.area_field) is str:
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
@@ -386,7 +394,8 @@ class HybridAlluvium(Component):
                                 'not nnodes long!')  
                 self.q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                if self.discharge_field is not None:                    
+                if self.discharge_field is not None:
+                    self.discharge_field = str(discharge_field)
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
