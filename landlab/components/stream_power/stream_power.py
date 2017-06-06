@@ -159,7 +159,7 @@ class StreamPowerEroder(Component):
             7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
 
     >>> mg2 = RasterModelGrid((3, 7), 1.)
-    >>> z = np.array(mg2.x**2.)
+    >>> z = np.array(mg2.node_x**2.)
     >>> z = mg2.add_field('node', 'topographic__elevation', z)
     >>> mg2.status_at_node[mg2.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
     >>> mg2.status_at_node[mg2.nodes_at_top_edge] = CLOSED_BOUNDARY
@@ -175,13 +175,13 @@ class StreamPowerEroder(Component):
             13.29039716,  18.44367965,  36.        ])
 
     >>> mg3 = RasterModelGrid((5, 5), 2.)
-    >>> z = mg.x/100.
+    >>> z = mg.node_x/100.
     >>> z = mg3.add_field('node', 'topographic__elevation', z)
     >>> mg3.status_at_node[mg3.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
     >>> mg3.status_at_node[mg3.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> mg3.at_node['water__unit_flux_in'] = mg3.y
+    >>> mg3.at_node['water__unit_flux_in'] = mg3.node_y
     >>> fr3 = FlowRouter(mg3)
     >>> Q = mg3.at_node['surface_water__discharge']
     >>> sp3 = StreamPowerEroder(mg3, K_sp=1., sp_type='Unit', a_sp=1.,
@@ -651,7 +651,7 @@ class StreamPowerEroder(Component):
                     x = brenth(erode_fn, 
                                0.0,                                  
                                1.0,
-                               args=(alpha_param, beta_param, n),
+                               args=(alpha_param, beta_param, self._n),
                                maxiter=200)
                     # just in case, 
                     if x>0:
