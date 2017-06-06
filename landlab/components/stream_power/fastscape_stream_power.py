@@ -15,9 +15,9 @@ from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.field.scalar_data_fields import FieldError
 from scipy.optimize import newton
 
-UNDEFINED_INDEX = -1
+from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
-def erode_fn(z_new, z_old, z_downstream, alpha, beta, delta_x, n):
+def erode_fn(x, alpha, n):
     """Evaluates the solution to the water-depth equation.
 
     Called by scipy.brentq() to find solution for $x$ using Brent's method.
@@ -43,7 +43,7 @@ def erode_fn(z_new, z_old, z_downstream, alpha, beta, delta_x, n):
 
     
     """
-    return z_new - z_old + alpha - (((beta*(z_new-z_downstream)/delta_x))**n)
+    return x - 1.0 + (alpha*(x**n))
 
 
 class FastscapeEroder(Component):
@@ -359,9 +359,6 @@ class FastscapeEroder(Component):
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
             self._grid['node']['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
-        
-        all_flow_link_lengths = self._grid._length_of_link_with_diagonals[
-            self._grid['node']['flow__link_to_receiver_node']]
 
         # make arrays from input the right size
         if type(self.K) is numpy.ndarray:
@@ -383,58 +380,76 @@ class FastscapeEroder(Component):
         if self.K is None:  # "old style" setting of array
             assert K_if_used is not None
             self.K = K_if_used
-
+            
+        n = float(self.n)
         numpy.power(self._grid['node']['drainage_area'], self.m,
                     out=self.A_to_the_m)
         self.alpha[defined_flow_receivers] = r_i_here**self.m * K_here * dt * \
-            self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
+            self.A_to_the_m[defined_flow_receivers] / (flow_link_lengths**self.n)
         
-        brent_beta =  self.K * dt * (r_i_here**self.m)* (numpy.power(self._grid['node']['drainage_area'], self.m))
-
         flow_receivers = self._grid['node']['flow__receiver_node']
         alpha = self.alpha
 
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
             alpha[flooded_nodes] = 0.
-            brent_beta[flooded_nodes] = 0.
         else:
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across depressions
             alpha[reversed_flow] = 0.
-            brent_beta[reversed_flow] = 0
-
-        self.alpha_by_flow_link_lengthtothenless1[
-            defined_flow_receivers] = (alpha[defined_flow_receivers] /
-                                       flow_link_lengths**(self.n - 1.))
-        alpha_divided = self.alpha_by_flow_link_lengthtothenless1
-        n = float(self.n)
+        
         threshdt = self.thresholds * dt
 
         # Solve using newtons method
         for i in range(upstream_order_IDs.size):
+            
+            # get IDs for source and reciever nodes
             src_id = upstream_order_IDs[i]
             dst_id = flow_receivers[src_id]
+            
+            # if a node does not flow to itself, continue
             if src_id != dst_id:
                  
+                # Get values for z at present node and present time, 
+                # and z downstream at t + delta t (which should have just been
+                # solved for)
                 z_old = z[src_id]
                 z_downstream = z[dst_id]
                 
+                # Get the threshold value. This may or may not be constant 
+                # across space. 
                 try:
-                    brent_alpha_value = threshdt[src_id]
+                    thresholddt = threshdt[src_id]
                 except TypeError:
-                    brent_alpha_value = threshdt
+                    thresholddt = threshdt
                     
-                brent_beta_value = brent_beta[src_id]
-                delta_x = all_flow_link_lengths[src_id]
-                 
-                try:
-                    z[src_id] = newton(erode_fn, z_old, 
-                                        args=(z_old, z_downstream, brent_alpha_value, brent_beta_value, delta_x, n))
-                except RuntimeError:
-                     # error could occur because threshold is not exceeded
-                     # OR because convergence doesn't occur
-                    z[src_id] = z_old
+                # calculate the difference between z_old and z_downstream
+                z_diff_old = z_old-z_downstream
+                
+                # using z_diff_old, calculate the alpha paramter of Braun and
+                # Willet by calculating alpha times z
+                alpha_param = alpha[src_id]*numpy.power(z_diff_old, n-1.0)
+                                        
+                # calculate erosion as if there is no threshold
+                x = newton(erode_fn, 
+                               1.0, 
+                               args=(alpha_param, n),
+                               tol=1.48e-08,
+                               maxiter=200)
+                
+                z_new = z_downstream + x*(z_old - z_downstream)
+                          
+                z_diff = z_old - z_new
+                if z_diff>thresholddt: #threshold is a L/T, so threshdt hs units L
+                    # if threshold is zero, then z[src_id] will be
+                    # equal to z_new
+                    # otherwise, put back the material that would have been eroded
+                    # but was used up to exceed the threshold.
+                    z[src_id] = z_new + thresholddt
+                     
+                else:
+                    # z[src_id] does not change b/c threshold wasnt exceeded
+                    pass
 
         return self._grid
 
