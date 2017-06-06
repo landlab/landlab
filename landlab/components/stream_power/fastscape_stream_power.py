@@ -10,7 +10,7 @@ import numpy
 from landlab import Component
 
 from landlab.utils.decorators import use_file_name_or_kwds
-from scipy.optimize import brenth
+from scipy.optimize import brentq
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
@@ -81,7 +81,7 @@ def erode_fn(x, alpha, beta, n, check=True):
     When the threshold term is greater than zero, it is possible that the no
     erosion will occur. In this case, an evaluation of f(x=1) will yeild a 
     negative number. This case is checked for by default as it is expected 
-    that this function will be used by a solver such as newton or brenth. Under
+    that this function will be used by a solver such as newton or brentq. Under
     default operation, this will yeild a ValueError.
     
     If evaluation of the function without this check is desired, specify
@@ -519,12 +519,12 @@ class FastscapeEroder(Component):
                         # if the threshold was exceeded, then there will be a zero
                         # between x = 0 and x= 1
                         
-                        # solve using brenth, which requires a zero to exist 
+                        # solve using brentq, which requires a zero to exist 
                         # in between the two end values
                         
                         # if n is 1, solution has an analytical solution. 
                         if n != 1.0:
-                            x = brenth(erode_fn, 
+                            x = brentq(erode_fn, 
                                        0.0,                                  
                                        1.0,
                                        args=(alpha_param, beta_param, n),
