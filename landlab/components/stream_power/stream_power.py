@@ -682,40 +682,57 @@ class StreamPowerEroder(Component):
                 # calculate the difference between z_old and z_downstream
                 z_diff_old = z_old-z_downstream
                 
+                
+                # calculate the difference between z_old and z_downstream
+                z_diff_old = z_old-z_downstream
+                
+                # if flow was reversed, z_diff_old may be negative, which can
+                # lead to Runtime or Floating PointErrors. This is dealt with 
+                #in part by setting alpha to zero. But to prevent these errors, 
+                # here we also set z_diff_old, alpha, and beta to zero. 
+                # this will result in a value of 
+                
+                if z_diff_old<0:
+                    pass
+                    self.stream_power_erosion[src_id] = 0
+                else:
                 # using z_diff_old, calculate the alpha paramter of Braun and
                 # Willet by calculating alpha times z
-                alpha_param = self.alpha[src_id]*np.power(z_diff_old, self._n-1.0)
-                beta_param = thresholddt/z_diff_old
+                
+                    alpha_param = self.alpha[src_id]*np.power(z_diff_old, self._n-1.0)
+                                    
+                    beta_param = thresholddt/z_diff_old
                         
-                # check if the threshold has been exceeded:
-                check_x = erode_fn(1, alpha_param, beta_param, self._n, check=False)
-                if check_x <= 0: 
-                    # if the threshold was not exceeded 
-                    # do not change the elevation
-                    # this means that the maximum possible slope value 
-                    # does not produce stream power needed to exceed the erosion
-                    # threshold
-                    self.stream_power_erosion[src_id] = 0
-                    pass
-                else:
-                    # if the threshold was exceeded, then there will be a zero
-                    # between x = 0 and x= 1
+                    # check if the threshold has been exceeded:
+                    check_function = erode_fn(1, alpha_param, beta_param, self._n, check=False)
                     
-                    # solve using brenth, which requires a zero to exist 
-                    # in between the two end values
-                    x = brenth(erode_fn, 
-                               0.0,                                  
-                               1.0,
-                               args=(alpha_param, beta_param, self._n),
-                               maxiter=200)
-                    # just in case, 
-                    if x>0:
-                        z[src_id] = z_downstream + x*(z_old - z_downstream)
-                        self.stream_power_erosion[src_id] = z_old - x*(z_old - z_downstream)
+                    if check_function <= 0: 
+                        # if the threshold was not exceeded 
+                        # do not change the elevation
+                        # this means that the maximum possible slope value 
+                        # does not produce stream power needed to exceed the erosion
+                        # threshold
+                        pass
+                        self.stream_power_erosion[src_id] = 0
                     else:
-                        z[src_id] = z_downstream + 1.e-15
-                        self.stream_power_erosion[src_id] = (1.0-1.e-15)*(z_old - z_downstream)
-            
+                        # if the threshold was exceeded, then there will be a zero
+                        # between x = 0 and x= 1
+                        
+                        # solve using brenth, which requires a zero to exist 
+                        # in between the two end values
+                        x = brenth(erode_fn, 
+                                   0.0,                                  
+                                   1.0,
+                                   args=(alpha_param, beta_param, self._n),
+                                   maxiter=200)
+    
+                        # just in case, 
+                        if x>0:
+                            z[src_id] = z_downstream + x*(z_old - z_downstream)
+                            self.stream_power_erosion[src_id] = z_old - x*(z_old - z_downstream)
+                        else:
+                            z[src_id] = z_downstream + 1.e-15
+                            self.stream_power_erosion[src_id] = (1.0-1.e-15)*(z_old - z_downstream)
             
         return grid, z, self.stream_power_erosion
 

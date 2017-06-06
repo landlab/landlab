@@ -484,37 +484,48 @@ class FastscapeEroder(Component):
                 # calculate the difference between z_old and z_downstream
                 z_diff_old = z_old-z_downstream
                 
-                # using z_diff_old, calculate the alpha paramter of Braun and
-                # Willet by calculating alpha times z
-                alpha_param = alpha[src_id]*numpy.power(z_diff_old, n-1.0)
-                beta_param = thresholddt/z_diff_old
-                        
-                # check if the threshold has been exceeded:
-                check_function = erode_fn(1, alpha_param, beta_param, n, check=False)
+                # if flow was reversed, z_diff_old may be negative, which can
+                # lead to Runtime or Floating PointErrors. This is dealt with 
+                #in part by setting alpha to zero. But to prevent these errors, 
+                # here we also set z_diff_old, alpha, and beta to zero. 
+                # this will result in a value of 
                 
-                if check_function <= 0: 
-                    # if the threshold was not exceeded 
-                    # do not change the elevation
-                    # this means that the maximum possible slope value 
-                    # does not produce stream power needed to exceed the erosion
-                    # threshold
+                if z_diff_old<0:
                     pass
                 else:
-                    # if the threshold was exceeded, then there will be a zero
-                    # between x = 0 and x= 1
+                # using z_diff_old, calculate the alpha paramter of Braun and
+                # Willet by calculating alpha times z
+                
+                    alpha_param = alpha[src_id]*numpy.power(z_diff_old, n-1.0)
+                                    
+                    beta_param = thresholddt/z_diff_old
+                        
+                    # check if the threshold has been exceeded:
+                    check_function = erode_fn(1, alpha_param, beta_param, n, check=False)
                     
-                    # solve using brenth, which requires a zero to exist 
-                    # in between the two end values
-                    x = brenth(erode_fn, 
-                               0.0,                                  
-                               1.0,
-                               args=(alpha_param, beta_param, n),
-                               maxiter=200)
-                    # just in case, 
-                    if x>0:
-                        z[src_id] = z_downstream + x*(z_old - z_downstream)
+                    if check_function <= 0: 
+                        # if the threshold was not exceeded 
+                        # do not change the elevation
+                        # this means that the maximum possible slope value 
+                        # does not produce stream power needed to exceed the erosion
+                        # threshold
+                        pass
                     else:
-                        z[src_id] = z_downstream + 1.e-15
+                        # if the threshold was exceeded, then there will be a zero
+                        # between x = 0 and x= 1
+                        
+                        # solve using brenth, which requires a zero to exist 
+                        # in between the two end values
+                        x = brenth(erode_fn, 
+                                   0.0,                                  
+                                   1.0,
+                                   args=(alpha_param, beta_param, n),
+                                   maxiter=200)
+                        # just in case, 
+                        if x>0:
+                            z[src_id] = z_downstream + x*(z_old - z_downstream)
+                        else:
+                            z[src_id] = z_downstream + 1.e-15
 
         return self._grid
 
