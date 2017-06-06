@@ -13,11 +13,11 @@ from landlab.core.model_parameter_dictionary import MissingKeyError, \
     ParameterValueError
 from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.field.scalar_data_fields import FieldError
-from scipy.optimize import newton
+from scipy.optimize import brenth
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
-def erode_fn(x, alpha, n):
+def erode_fn(x, alpha, beta, n):
     """Evaluates the solution to the water-depth equation.
 
     Called by scipy.brentq() to find solution for $x$ using Brent's method.
@@ -43,7 +43,7 @@ def erode_fn(x, alpha, n):
 
     
     """
-    return x - 1.0 + (alpha*(x**n))
+    return x - 1.0 + (alpha*(x**n)) - beta
 
 
 class FastscapeEroder(Component):
@@ -400,7 +400,7 @@ class FastscapeEroder(Component):
         
         threshdt = self.thresholds * dt
 
-        # Solve using newtons method
+        # Solve using Brent's method
         for i in range(upstream_order_IDs.size):
             
             # get IDs for source and reciever nodes
@@ -429,27 +429,33 @@ class FastscapeEroder(Component):
                 # using z_diff_old, calculate the alpha paramter of Braun and
                 # Willet by calculating alpha times z
                 alpha_param = alpha[src_id]*numpy.power(z_diff_old, n-1.0)
-                                        
-                # calculate erosion as if there is no threshold
-                x = newton(erode_fn, 
-                               1.0, 
-                               args=(alpha_param, n),
-                               tol=1.48e-08,
-                               maxiter=200)
-                
-                z_new = z_downstream + x*(z_old - z_downstream)
-                          
-                z_diff = z_old - z_new
-                if z_diff>thresholddt: #threshold is a L/T, so threshdt hs units L
-                    # if threshold is zero, then z[src_id] will be
-                    # equal to z_new
-                    # otherwise, put back the material that would have been eroded
-                    # but was used up to exceed the threshold.
-                    z[src_id] = z_new + thresholddt
-                     
-                else:
-                    # z[src_id] does not change b/c threshold wasnt exceeded
+                beta_param = thresholddt/z_diff_old
+                        
+                # check if the threshold has been exceeded:
+                check_x = erode_fn(1, alpha_param, beta_param, n)
+                if check_x <= 0: 
+                    # if the threshold was not exceeded 
+                    # do not change the elevation
+                    # this means that the maximum possible slope value 
+                    # does not produce stream power needed to exceed the erosion
+                    # threshold
                     pass
+                else:
+                    # if the threshold was exceeded, then there will be a zero
+                    # between x = 0 and x= 1
+                    
+                    # solve using brenth, which requires a zero to exist 
+                    # in between the two end values
+                    x = brenth(erode_fn, 
+                               0.0,                                  
+                               1.0,
+                               args=(alpha_param, beta_param, n),
+                               maxiter=200)
+                    # just in case, 
+                    if x>0:
+                        z[src_id] = z_downstream + x*(z_old - z_downstream)
+                    else:
+                        z[src_id] = z_downstream + 1.e-15
 
         return self._grid
 
