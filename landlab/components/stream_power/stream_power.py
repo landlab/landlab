@@ -13,33 +13,96 @@ from landlab.utils.decorators import use_file_name_or_kwds
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
-def erode_fn(x, alpha, beta, n):
+def erode_fn(x, alpha, beta, n, check=True):
     """Evaluates the solution to the water-depth equation.
 
     Called by scipy.brentq() to find solution for $x$ using Brent's method.
 
     Parameters
     ----------
-    z_new : float
-        topographic elevation.
-    z_old : float
-        value of topographic elevation in prior timestep
-    z_downstream : float
-        value of topographic elevation downstream. 
+    x : float
+        normalized elevation, see below.
+    alpha : float
+        alpha parameter, see below.
     beta : float
-        beta paramter, given by dt * K * (rainfall_intensity*A)**m
-    delta_x : float
-        horizontal grid spacing
+        beta parameter, see below.
     n : float
         n exponent
+    check : boolean, default is True
+        flag to determine if a ValueError should be thrown if a check 
+        identifies that the threshold value is high enough such that no erosion
+        will occur.
+        
+    
+    This equation represents the implicit solution for normalized topographic 
+    elevation $x$ at the  next time step. This solution is inspired by the 
+    Appendix of Braun and Willet (2012) but was generalized to include an a 
+    threshold value such that if the threshold is not exceeded, no erosion will
+    occur. 
+    
+    Consider stream power erosion under the equation:
 
-    This equation represents the implicit solution for topographic elevation 
-    $z$ at the  next time step. In the code below, it is formulated in a generic way. 
-    Written using more familiar terminology, the equation is:
-
+        E = K * (rainfall_intensity*A)**m * S**n - threshold_sp,
+    
+    on a grid with link delta_x and for a timestep of delta_t. 
+    
+    When iterating from downstream to upstream in the drainage stack, at a 
+    given node at time = t+delta_t, the value of the node at time = t, and the
+    value of the downstream node at time t+delta_t is known. 
+    
+    Define 
+    x = (z_node(t+delta_t) - z_downstream(t+delta_t))/(z_node(t) - z_downstream(t+delta_t)).
+    
+    A discretized version of the stream power equation above yeilds the equation
+    
+    f = x - 1 + alpha*(x**n) - beta
+    
+    where 
+    
+    alpha = delta_t*K * (rainfall_intensity*A)**m/(delta_x**n) * (z_node(t) - z_downstream(t+delta_t))**(n-1)
+    
+    and 
+    
+    beta = threshold_sp*delta_t/(z_node(t) - z_downstream(t+delta_t))
+    
+    Finding the root of f provides the implicit solution for the stream power
+    equation. 
+    
+    If f(x=1) = 0, then no erosion occurs as potential erosion is cancelled by
+    the erosion threshold and the topography at the given node does not change. 
+    
+    If f(x=0) = 0, then the topography at the given node becomes that of the 
+    the downstream mode. 
+    
+    If the threshold term, beta is zero, this equation collapses to the form 
+    given by Braun and Willet (2012).
+    
+    When the threshold term is greater than zero, it is possible that the no
+    erosion will occur. In this case, an evaluation of f(x=1) will yeild a 
+    negative number. This case is checked for by default as it is expected 
+    that this function will be used by a solver such as newton or brenth. Under
+    default operation, this will yeild a ValueError.
+    
+    If evaluation of the function without this check is desired, specify
+    check=False. 
     
     """
-    return x - 1.0 + (alpha*(x**n)) - beta
+    f = x - 1.0 + (alpha*(x**n)) - beta
+    
+    # if f evaluated at x = 1 (or z_new = z_old), results in a value for f that
+    # is less than or equal to zero, then the erosion threshold has not been 
+    # exceeded and this function should not have a zero in the interval 
+    # x = [0, 1]
+    # if this is the case, raise an error. 
+    if (1.0 - 1.0 + (alpha*(1.0**n)) - beta) <= 0:
+        if check==True:
+            raise ValueError('')
+        else:
+            pass
+    else:
+        pass
+                  
+    return f
 
 
 class StreamPowerEroder(Component):
@@ -625,7 +688,7 @@ class StreamPowerEroder(Component):
                 beta_param = thresholddt/z_diff_old
                         
                 # check if the threshold has been exceeded:
-                check_x = erode_fn(1, alpha_param, beta_param, self._n)
+                check_x = erode_fn(1, alpha_param, beta_param, self._n, check=False)
                 if check_x <= 0: 
                     # if the threshold was not exceeded 
                     # do not change the elevation
