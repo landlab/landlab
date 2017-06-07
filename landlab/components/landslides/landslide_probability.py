@@ -3,22 +3,23 @@
 """
 landslide_probability.py:
 
-Landlab component that simulates relative wetness and probability of failure.
+Landlab component that simulates probability of failure as well as 
+mean relative wetness and probability of saturation.
 
 Relative wetness and factor-of-safety are based on the infinite slope
 stability model driven by topographic and soils inputs and recharge provided
-by user in a "landslide_driver" file. In addition, the component simulates
-the probability of failure for each node based on Monte Carlo simulations
-of the factor-of-safety as the number of simulations with factor-of-safety
-<= 1.0 divided by the number of simulations.
-
-Modified to add calculation of soil probability of saturation and output
-a distribution of relative wetness
+by user in a "landslide_driver" file. For each node, component simulates mean
+relative wetness as well as the probability of saturation based on Monte Carlo
+simulation of relative wetness where the probability is the number of
+iterations with relative wetness >= 1.0 divided by the number of iterations.
+Probability of failure for each node is also simulated in the Monte Carlo
+simulation as the number of iterations with factor-of-safety <= 1.0
+divided by the number of iterations.
 
 .. codauthor:: R.Strauch, E.Istanbulluoglu, & S.Nudurupati
 University of Washington
 Created on Thu Aug 20, 2015
-Last edit May 23, 2017
+Last edit June 7, 2017
 """
 
 # %% Import Libraries
@@ -45,10 +46,12 @@ class LandslideProbability(Component):
 
     A LandslideProbability calcuation function provides the user with the
     mean soil relative wetness and probabilty of failure at each node.
-
+SAI
     Construction::
         LandslideProbability(grid, number_of_iterations=250,
-        recharge_minimum=5., groundwater__recharge_maximum=120.)
+        groundwater__recharge_distribution='uniform', 
+        groundwater__recharge_min_value=5.,
+        groundwater__recharge_max_value = 121.)
 
     Parameters
     ----------
@@ -100,6 +103,7 @@ class LandslideProbability(Component):
      'soil__maximum_total_cohesion',
      'soil__minimum_total_cohesion',
      'soil__mode_total_cohesion',
+     'soil__saturated_hydraulic_conductivity,
      'soil__thickness',
      'soil__transmissivity',
      'topographic__slope',
@@ -121,7 +125,7 @@ class LandslideProbability(Component):
     name: soil__transmissivity
     description:
       mode rate of water transmitted through a unit width of
-    saturated soil
+    saturated soil - either provided or calculate with Ksat
     units: m2/day
     at: node
     intent: in
@@ -133,7 +137,9 @@ class LandslideProbability(Component):
     ...      np.random.randint(30, 900, grid.number_of_nodes))
     >>> grid.at_node['soil__transmissivity'] = np.sort(
     ...      np.random.randint(5, 20, grid.number_of_nodes), -1)
-    >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
+    >>> grid.at_node['soil__saturated_hydraulic_conductivity'] = np.sort(
+    ...      np.random.randint(2, 10, grid.number_of_nodes), -1) 
+   >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
     ...      np.random.randint(30, 900, grid.number_of_nodes))
     >>> grid.at_node['soil__minimum_total_cohesion'] = (
     ...      grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
@@ -160,16 +166,14 @@ class LandslideProbability(Component):
     Check the output variable names.
     
     >>> sorted(LS_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['landslide__probability_of_failure', 'soil__mean_relative_wetness']
+    ['landslide__probability_of_failure','soil__mean_relative_wetness',
+    'soil__probability_of_saturation']
     
     Check the output from the component, including array at one node.
     
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = LS_prob.grid.core_nodes
-#    >>> (isinstance(LS_prob.landslide__factor_of_safety_distribution[
-#    ...      core_nodes[0]], np.ndarray) == True)
-#    True
     """
 
 # component name
@@ -180,6 +184,7 @@ class LandslideProbability(Component):
         'topographic__specific_contributing_area',
         'topographic__slope',
         'soil__transmissivity',
+        'soil__saturated_hydraulic_conductivity',
         'soil__mode_total_cohesion',
         'soil__minimum_total_cohesion',
         'soil__maximum_total_cohesion',
@@ -192,6 +197,7 @@ class LandslideProbability(Component):
     _output_var_names = (
         'soil__mean_relative_wetness',
         'landslide__probability_of_failure',
+        'soil__probability_of_saturation',
         )
 
 # units for each parameter and output
@@ -199,6 +205,7 @@ class LandslideProbability(Component):
         'topographic__specific_contributing_area': 'm',
         'topographic__slope': 'tan theta',
         'soil__transmissivity': 'm2/day',
+        'soil__saturated_hydraulic_conductivity': 'm/day',
         'soil__mode_total_cohesion': 'Pa or kg/m-s2',
         'soil__minimum_total_cohesion': 'Pa or kg/m-s2',
         'soil__maximum_total_cohesion': 'Pa or kg/m-s2',
@@ -207,6 +214,7 @@ class LandslideProbability(Component):
         'soil__thickness': 'm',
         'soil__mean_relative_wetness': 'None',
         'landslide__probability_of_failure': 'None',
+        'soil__probability_of_saturation': 'None',
         }
 
 # grid centering of each field and variable
@@ -214,6 +222,7 @@ class LandslideProbability(Component):
         'topographic__specific_contributing_area': 'node',
         'topographic__slope': 'node',
         'soil__transmissivity': 'node',
+        'soil__saturated_hydraulic_conductivity': 'node',
         'soil__mode_total_cohesion': 'node',
         'soil__minimum_total_cohesion': 'node',
         'soil__maximum_total_cohesion': 'node',
@@ -222,6 +231,7 @@ class LandslideProbability(Component):
         'soil__thickness': 'node',
         'soil__mean_relative_wetness': 'node',
         'landslide__probability_of_failure': 'node',
+        'soil__probability_of_saturation': 'node',
         }
 
 # short description of each field
@@ -233,13 +243,20 @@ class LandslideProbability(Component):
         'slope of surface at node represented by tan theta',
         'soil__transmissivity':
             ('mode rate of water transmitted' +
-             ' through a unit width of saturated soil'),
+             ' through a unit width of saturated soil - ' +
+              'either provided or calculated with Ksat ' + 
+               'and soil depth),
+        'soil__saturated_hydraulic_conductivity':
+            ('mode rate of water transmitted' +
+             ' through soil - provided if transmissivity ' +
+              'is NOT provided to calculate tranmissivity ' + 
+               ' with soil depth'),
         'soil__mode_total_cohesion':
-        'mode of combined root and soil cohesion at node',
+            'mode of combined root and soil cohesion at node',
         'soil__minimum_total_cohesion':
-        'minimum of combined root and soil cohesion at node',
+            'minimum of combined root and soil cohesion at node',
         'soil__maximum_total_cohesion':
-        'maximum of combined root and soil cohesion at node',
+            'maximum of combined root and soil cohesion at node',
         'soil__internal_friction_angle':
             ('critical angle just before failure' +
              ' due to friction between particles'),
@@ -252,6 +269,9 @@ class LandslideProbability(Component):
         'landslide__probability_of_failure':
             ('number of times FS is <=1 out of number of' +
              ' iterations user selected'),
+        'soil__probability_of_saturation':
+            ('number of times relative wetness is >=1 out of' +
+             ' number of iterations user selected'),
         }
 
 # Run Component
@@ -381,7 +401,7 @@ class LandslideProbability(Component):
 
         The index is calculated from the 'infinite slope stabilty
         factor-of-safety equation' in the format of Pack RT, Tarboton DG,
-        and Goodwin CN (1998)The SINMAP approach to terrain stability mapping.
+        and Goodwin CN (1998),The SINMAP approach to terrain stability mapping.
 
         Parameters
         ----------
@@ -484,20 +504,9 @@ class LandslideProbability(Component):
         """
         Method creates arrays for output variables then loops through all
         the core nodes to run the method 'calculate_factor_of_safety.'
-        Some output variables are assigned as fields to nodes. Two output
-        parameters are an factor-of-safety and relative wetness
-        distributions at each node.
+        Output parameters probability of failure, mean relative wetness,
+        and probability of saturation are assigned as fields to nodes. 
 
-        Parameters
-        ----------
-        self.landslide__factor_of_safety_distribution: numpy.ndarray([
-            self.grid.number_of_nodes, self.n], dtype=float)
-            This is an output - distribution of factor-of-safety from
-            Monte Carlo simulation (units='None')
-        self.soil__relative_wetness_distribution: numpy.ndarray([
-            self.grid.number_of_nodes, self.n], dtype=float)
-            This is an output - distribution of soil relative wetness from
-            Monte Carlo simulation (units='None')
         """
 
         # Create arrays for data with -9999 as default to store output
