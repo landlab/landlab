@@ -239,6 +239,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
         Node elevations.
     """     
 
+    # define internally used variables. 
     cdef unsigned int n_nodes = src_nodes.size
     cdef unsigned int src_id
     cdef unsigned int dst_id
@@ -253,84 +254,85 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
     cdef double check_function
     cdef double x
                 
-    # Solve using Brent's method
+    # Loop through nodes. 
     for i in range(n_nodes):
         
         # get IDs for source and reciever nodes
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
         
-        # if a node does not flow to itself, continue
-        if src_id != dst_id:
+        # if a node does not flow to itself, and the source node is above the 
+        # destination node
+        if src_id != dst_id and z[src_id] > z[dst_id]:
              
             # Get values for z at present node and present time, 
-            # and z downstream at t + delta t (which should have just been
-            # solved for)
+            # and z downstream at t + delta t (which should have been 
+            # previously solved for)
             z_old = z[src_id]
             z_downstream = z[dst_id]
             
-            # Get the threshold value. 
+            # Get the threshold value. In this function, it is spatially variable
             thresholddt = threshsxdt[src_id]
        
             # calculate the difference between z_old and z_downstream
             z_diff_old = z_old - z_downstream
             
-            # if flow was reversed, z_diff_old may be negative, which can
-            # lead to Runtime or Floating PointErrors. This is dealt with 
-            #in part by setting alpha to zero. But to prevent these errors, 
-            # here we also set z_diff_old, alpha, and beta to zero. 
-            # this will result in a value of 
-            
-            if z_diff_old >=0:
-
-                # using z_diff_old, calculate the alpha paramter of Braun and
-                # Willet by calculating alpha times z
-            
-                alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
-                                
-                beta_param = thresholddt / z_diff_old
-                    
-                # check if the threshold has been exceeded:
-                check_function = erode_fn(1, alpha_param, beta_param, n)
+            # using z_diff_old, calculate the alpha paramter of Braun and
+            # Willet by calculating alpha times z
+        
+            alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
                 
-                if check_function <= 0: 
-                    # if the threshold was not exceeded 
-                    # do not change the elevation
-                    # this means that the maximum possible slope value 
-                    # does not produce stream power needed to exceed the erosion
-                    # threshold
-                    pass
+            # Calculate the beta parameter that accounts for the possible 
+            # presence of a threshold.             
+            beta_param = thresholddt / z_diff_old
+                
+            # check if the threshold has been exceeded by passing a value of
+            # x = 1 to the erode_fn. If this returns a value of less than
+            # zero, this means that the the maximum possible slope value  does 
+            # not produce stream power needed to exceed the erosion threshold
+            check_function = erode_fn(1, alpha_param, beta_param, n)
+            
+            # if the threshold was not exceeded do not change the elevation,
+            # otherwise calculate the erosion rate
+            if check_function > 0:
+                # if the threshold was exceeded, then there will be a zero
+                # between x = 0 and x= 1
+                
+                # solve using brentq, which requires a zero to exist 
+                # in between the two end values
+                
+                # if n is 1, finding x has an analytical solution. Otherwise,
+                # use the the numerical solution given by root finding
+                if n != 1.0:
+                    
+                    # The threshold values passed here are the defaults if one
+                    # were to import brentq from scipy.optimize
+                    x = brentq(erode_fn, 
+                                       0.0, 1.0, 
+                                       1e-12,4.4408920985006262e-16, 
+                                       100, 
+                                       (alpha_param, beta_param, n),
+                                       False,
+                                       True)
+                    
                 else:
-                    # if the threshold was exceeded, then there will be a zero
-                    # between x = 0 and x= 1
+                    # Analytical solution
+                    x = (1.0 + beta_param)/(1.0 + alpha_param)
+                
+                # If x is provided as a value greater than zero, calculate 
+                # z at t=t+delta_t useing the values of x, z_downstream and 
+                # z_old as given by the definition of x (see erode_fn for 
+                # details). If x is equal to zero, set it as just slightly 
+                # higher than x_downstream. 
+                if x>0:
+                    z[src_id] = z_downstream + x * (z_old - z_downstream)
+                else:
+                    z[src_id] = z_downstream + 1.0e-15
                     
-                    # solve using brentq, which requires a zero to exist 
-                    # in between the two end values
-                    
-                    # if n is 1, solution has an analytical solution. 
-                    if n != 1.0:
-                        
-                        x = brentq(erode_fn, 
-                                           0.0, 1.0, 
-                                           1e-12,4.4408920985006262e-16, 
-                                           100, 
-                                           (alpha_param, beta_param, n),
-                                           False,
-                                           True)
-                        
-#                        x = brentq(erode_fn, 
-#                                   0.0,                                  
-#                                   1.0,
-#                                   args=(alpha_param, beta_param, n),
-#                                   maxiter=200)
-                    else:
-                        x = (1.0 + beta_param)/(1.0 + alpha_param)
-                    # just in case, 
-                    if x>0:
-                        z[src_id] = z_downstream + x * (z_old - z_downstream)
-                    else:
-                        z[src_id] = z_downstream + 1.0e-15
-                        
+                # Nothing is returned from this function as it serves to update
+                # the array z. 
+               
+                
 def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                        np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
                                        DTYPE_FLOAT_t threshsxdt,
@@ -365,7 +367,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
     z : array_like
         Node elevations.
     """     
-
+    # define internally used variables.
     cdef unsigned int n_nodes = src_nodes.size
     cdef unsigned int src_id
     cdef unsigned int dst_id
@@ -379,85 +381,86 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
     cdef double check_function
     cdef double x
                 
-    # Solve using Brent's method
+    # Loop through nodes. 
     for i in range(n_nodes):
         
         # get IDs for source and reciever nodes
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
         
-        # if a node does not flow to itself, continue
-        if src_id != dst_id:
+        # if a node does not flow to itself, and the source node is above the 
+        # destination node
+        if src_id != dst_id and z[src_id] > z[dst_id]:
              
             # Get values for z at present node and present time, 
-            # and z downstream at t + delta t (which should have just been
-            # solved for)
+            # and z downstream at t + delta t (which should have been 
+            # previously solved for)
             z_old = z[src_id]
             z_downstream = z[dst_id]
             
-            # Get the threshold value. 
-            # its constant so we already have it. 
+            # Get the threshold value. In this function, it is constant, so we
+            # already have it.
+            # threshsxdt = threshsxdt
        
             # calculate the difference between z_old and z_downstream
             z_diff_old = z_old - z_downstream
             
-            # if flow was reversed, z_diff_old may be negative, which can
-            # lead to Runtime or Floating PointErrors. This is dealt with 
-            #in part by setting alpha to zero. But to prevent these errors, 
-            # here we also set z_diff_old, alpha, and beta to zero. 
-            # this will result in a value of 
-            
-            if z_diff_old >=0:
-
-                # using z_diff_old, calculate the alpha paramter of Braun and
-                # Willet by calculating alpha times z
-            
-                alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
-                                
-                beta_param = threshsxdt / z_diff_old
-                    
-                # check if the threshold has been exceeded:
-                check_function = erode_fn(1, alpha_param, beta_param, n)
+            # using z_diff_old, calculate the alpha paramter of Braun and
+            # Willet by calculating alpha times z
+        
+            alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
                 
-                if check_function <= 0: 
-                    # if the threshold was not exceeded 
-                    # do not change the elevation
-                    # this means that the maximum possible slope value 
-                    # does not produce stream power needed to exceed the erosion
-                    # threshold
-                    pass
+            # Calculate the beta parameter that accounts for the possible 
+            # presence of a threshold.             
+            beta_param = threshsxdt / z_diff_old
+                
+            # check if the threshold has been exceeded by passing a value of
+            # x = 1 to the erode_fn. If this returns a value of less than
+            # zero, this means that the the maximum possible slope value  does 
+            # not produce stream power needed to exceed the erosion threshold
+            check_function = erode_fn(1, alpha_param, beta_param, n)
+            
+            # if the threshold was not exceeded do not change the elevation,
+            # otherwise calculate the erosion rate
+            if check_function > 0:
+                # if the threshold was exceeded, then there will be a zero
+                # between x = 0 and x= 1
+                
+                # solve using brentq, which requires a zero to exist 
+                # in between the two end values
+                
+                # if n is 1, finding x has an analytical solution. Otherwise,
+                # use the the numerical solution given by root finding
+                if n != 1.0:
+                    
+                    # The threshold values passed here are the defaults if one
+                    # were to import brentq from scipy.optimize
+                    x = brentq(erode_fn, 
+                                       0.0, 1.0, 
+                                       1e-12,4.4408920985006262e-16, 
+                                       100, 
+                                       (alpha_param, beta_param, n),
+                                       False,
+                                       True)
+                    
                 else:
-                    # if the threshold was exceeded, then there will be a zero
-                    # between x = 0 and x= 1
+                    # Analytical solution
+                    x = (1.0 + beta_param)/(1.0 + alpha_param)
+                
+                # If x is provided as a value greater than zero, calculate 
+                # z at t=t+delta_t useing the values of x, z_downstream and 
+                # z_old as given by the definition of x (see erode_fn for 
+                # details). If x is equal to zero, set it as just slightly 
+                # higher than x_downstream. 
+                if x>0:
+                    z[src_id] = z_downstream + x * (z_old - z_downstream)
+                else:
+                    z[src_id] = z_downstream + 1.0e-15
                     
-                    # solve using brentq, which requires a zero to exist 
-                    # in between the two end values
+                # Nothing is returned from this function as it serves to update
+                # the array z.
                     
-                    # if n is 1, solution has an analytical solution. 
-                    if n != 1.0:
-                        
-                        x = brentq(erode_fn, 
-                                           0.0, 1.0, 
-                                           1e-12,4.4408920985006262e-16, 
-                                           100, 
-                                           (alpha_param, beta_param, n),
-                                           False,
-                                           True)
-                        
-#                        x = brentq(erode_fn, 
-#                                   0.0,                                  
-#                                   1.0,
-#                                   args=(alpha_param, beta_param, n),
-#                                   maxiter=200)
-                    else:
-                        x = (1.0 + beta_param)/(1.0 + alpha_param)
-                    # just in case, 
-                    if x>0:
-                        z[src_id] = z_downstream + x * (z_old - z_downstream)
-                    else:
-                        z[src_id] = z_downstream + 1.0e-15
-                        
-                        
+                
 def erode_fn(DTYPE_FLOAT_t x, 
              DTYPE_FLOAT_t alpha, 
              DTYPE_FLOAT_t beta, 
@@ -522,12 +525,19 @@ def erode_fn(DTYPE_FLOAT_t x,
     If f(x=0) = 0, then the topography at the given node becomes that of the 
     the downstream mode. 
     
-    If the threshold term, beta is zero, this equation collapses to the form 
+    If the threshold term, beta, is zero, this equation collapses to the form 
     given by Braun and Willet (2012).
     
-    When the threshold term is greater than zero, it is possible that the no
+    When the threshold term is greater than zero, it is possible that no
     erosion will occur. In this case, an evaluation of f(x=1) will yeild a 
     negative number. 
+    
+    If for the values of alpha and beta provided, f(x=1)<0, then this function
+    has no root and use in a solver such as Brent's method in which a solution
+    interval is required will fail. 
+    
+    It is recommended that before using this method in a solver, that the 
+    function be evaluated with x=1 to determine if it any erosion occured. 
     
     """
     cdef double f
