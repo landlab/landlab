@@ -46,12 +46,28 @@ class LandslideProbability(Component):
 
     A LandslideProbability calcuation function provides the user with the
     mean soil relative wetness and probabilty of failure at each node.
-SAI
+
     Construction::
+    Option 1 - Uniform recharge
         LandslideProbability(grid, number_of_iterations=250,
         groundwater__recharge_distribution='uniform', 
         groundwater__recharge_min_value=5.,
-        groundwater__recharge_max_value = 121.)
+        groundwater__recharge_max_value=121.)
+    Option 2 - Lognormal recharge
+        LandslideProbability(grid, number_of_iterations=250,
+        groundwater__recharge_distribution='lognormal', 
+        groundwater__recharge_mean=30.,
+        groundwater__recharge_standard_deviation = 0.25)
+    Option 3 - Lognormal_spatial recharge
+        LandslideProbability(grid, number_of_iterations=250,
+        groundwater__recharge_distribution='lognormal_spatial', 
+        groundwater__recharge_mean=np.random.randint(20,120,grid_size),
+        groundwater__recharge_standard_deviation=np.random.rand(grid_size))
+    Option 4 - Data_driven_spatial recharge
+        LandslideProbability(grid, number_of_iterations=250,
+        groundwater__recharge_distribution='data_driven_spatial', 
+        groundwater__recharge_HSD_inputs=[HSD_dict, HSD_id_dict,
+        fract_dict])
 
     Parameters
     ----------
@@ -76,7 +92,8 @@ SAI
         list of 3 dictionaries in order - HSD_dict {Hydrologic Source
         Domain (HSD) keys: recharge numpy array values}, {node IDs keys:
         list of HSD_Id values}, HSD_fractions {node IDS keys: list of
-        HSD fractions values} (none)
+        HSD fractions values} (none) - for more information refer to
+        Strauch et al., 2017
 
     Examples
     ----------
