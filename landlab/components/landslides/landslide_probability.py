@@ -245,7 +245,7 @@ SAI
             ('mode rate of water transmitted' +
              ' through a unit width of saturated soil - ' +
               'either provided or calculated with Ksat ' + 
-               'and soil depth),
+               'and soil depth'),
         'soil__saturated_hydraulic_conductivity':
             ('mode rate of water transmitted' +
              ' through soil - provided if transmissivity ' +
