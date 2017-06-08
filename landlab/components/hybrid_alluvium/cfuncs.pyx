@@ -1,7 +1,9 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from math import exp
+
+cdef extern from "math.h":
+    double exp(double x) nogil
 
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
@@ -20,22 +22,33 @@ np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
     DTYPE_FLOAT_t v_s,
     DTYPE_FLOAT_t F_f):
-    """Calculate qs.
-    
-    """
+    """Calculate and qs and qs_in."""
+    # define internal variables
     cdef unsigned int n_nodes = stack_flip_ud.size
-    cdef unsigned int j
+    cdef unsigned int node_id
     cdef unsigned int i
     
-    #iterate top to bottom through the stack, calculate qs
+    # iterate top to bottom through the stack, calculate qs and adjust  qs_in
     for i in range(n_nodes):
-        j = stack_flip_ud[i]
-        if q[j] == 0:
-            qs[j] = 0
+        
+        # choose the node id
+        node_id = stack_flip_ud[i]
+        
+        # if q at the current node is zero, set qs at that node is zero. 
+        if q[node_id] == 0:
+            qs[node_id] = 0
+            
+        # otherwise, calculate qs based on a local analytical solution. This
+        # local analytical solution depends on qs_in, the sediment flux coming
+        # into the node from upstream (hence the upstream to downstream node
+        # ordering). 
+                                       
+        # Because calculation of qs requires qs_in, this operation must be done
+        # in an upstream to downstream loop, and cannot be vectorized.                                
         else:
-            qs[j] = (((Es[j]) + (1-F_f) * Er[j]) / \
-            (v_s / q[j])) * (1.0 - \
-            exp(-link_lengths[j] * v_s / q[j])) + \
-            (qs_in[j] * exp(-link_lengths[j] * \
-            v_s / q[j]))
-        qs_in[flow_receivers[j]] += qs[j]
+            qs[node_id] = ((((Es[node_id]) + (1-F_f) * Er[node_id]) / (v_s / q[node_id])) * 
+                           (1.0 - exp(-link_lengths[node_id] * v_s / q[node_id])) + 
+                           (qs_in[node_id] * exp(-link_lengths[node_id] * v_s / q[node_id])))
+        
+        # finally, add this nodes qs to recieiving nodes qs_in.
+        qs_in[flow_receivers[node_id]] += qs[node_id]
