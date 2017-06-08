@@ -34,21 +34,24 @@ np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
         # choose the node id
         node_id = stack_flip_ud[i]
         
-        # if q at the current node is zero, set qs at that node is zero. 
-        if q[node_id] == 0:
-            qs[node_id] = 0
-            
-        # otherwise, calculate qs based on a local analytical solution. This
-        # local analytical solution depends on qs_in, the sediment flux coming
-        # into the node from upstream (hence the upstream to downstream node
-        # ordering). 
+        # If q at current node is greather than zero, calculate qs based on a 
+        # local analytical solution. This local analytical solution depends on 
+        # qs_in, the sediment flux coming into the node from upstream (hence 
+        # the upstream to downstream node ordering). 
                                        
         # Because calculation of qs requires qs_in, this operation must be done
-        # in an upstream to downstream loop, and cannot be vectorized.                                
-        else:
+        # in an upstream to downstream loop, and cannot be vectorized.   
+                             
+        if q[node_id] > 0:
             qs[node_id] = ((((Es[node_id]) + (1-F_f) * Er[node_id]) / (v_s / q[node_id])) * 
                            (1.0 - exp(-link_lengths[node_id] * v_s / q[node_id])) + 
                            (qs_in[node_id] * exp(-link_lengths[node_id] * v_s / q[node_id])))
         
-        # finally, add this nodes qs to recieiving nodes qs_in.
-        qs_in[flow_receivers[node_id]] += qs[node_id]
+            # finally, add this nodes qs to recieiving nodes qs_in.
+            # if qs[node_id] == 0, then there is no need for this line to be
+            # evaluated. 
+            qs_in[flow_receivers[node_id]] += qs[node_id]
+            
+        else:
+            # if q at the current node is zero, set qs at that node is zero. 
+            qs[node_id] = 0
