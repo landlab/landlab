@@ -198,8 +198,9 @@ class LandslideProbability(Component):
     Check the output variable names.
     
     >>> sorted(ls_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['landslide__probability_of_failure','soil__mean_relative_wetness',
-    'soil__probability_of_saturation']
+    ['landslide__probability_of_failure',
+     'soil__mean_relative_wetness',
+     'soil__probability_of_saturation']
     
     Check the output from the component, including array at one node.
     
@@ -208,10 +209,10 @@ class LandslideProbability(Component):
     >>> core_nodes = ls_prob.grid.core_nodes
     """
 
-# component name
+    # component name
     _name = 'Landslide Probability'
     __version__ = '1.0'
-# component requires these values to do its calculation, get from driver
+    # component requires these values to do its calculation, get from driver
     _input_var_names = (
         'topographic__specific_contributing_area',
         'topographic__slope',
@@ -225,14 +226,14 @@ class LandslideProbability(Component):
         'soil__thickness',
         )
 
-#  component creates these output values
+    #  component creates these output values
     _output_var_names = (
         'soil__mean_relative_wetness',
         'landslide__probability_of_failure',
         'soil__probability_of_saturation',
         )
 
-# units for each parameter and output
+    # units for each parameter and output
     _var_units = {
         'topographic__specific_contributing_area': 'm',
         'topographic__slope': 'tan theta',
@@ -249,7 +250,7 @@ class LandslideProbability(Component):
         'soil__probability_of_saturation': 'None',
         }
 
-# grid centering of each field and variable
+    # grid centering of each field and variable
     _var_mapping = {
         'topographic__specific_contributing_area': 'node',
         'topographic__slope': 'node',
@@ -266,7 +267,7 @@ class LandslideProbability(Component):
         'soil__probability_of_saturation': 'node',
         }
 
-# short description of each field
+    # short description of each field
     _var_doc = {
         'topographic__specific_contributing_area':
             ('specific contributing (upslope area/cell face )' +
@@ -306,7 +307,7 @@ class LandslideProbability(Component):
              ' number of iterations user selected'),
         }
 
-# Run Component
+    # Run Component
     @use_file_name_or_kwds
     def __init__(self, grid, number_of_iterations=250,
                  groundwater__recharge_distribution='uniform',
@@ -390,10 +391,10 @@ class LandslideProbability(Component):
             self._Re /= 1000. # Convert mm to m
         # Lognormal Distribution - Variable in space                                  
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
-            assert (groundwater__recharge_mean.shape[0] != (
+            assert (groundwater__recharge_mean.shape[0] == (
                 self.grid.number_of_nodes)), (
                 'Input array should be of the length of grid.number_of_nodes!')
-            assert (groundwater__recharge_standard_deviation.shape[0] != (
+            assert (groundwater__recharge_standard_deviation.shape[0] == (
                 self.grid.number_of_nodes)), (
                 'Input array should be of the length of grid.number_of_nodes!')
             self._recharge_mean = groundwater__recharge_mean
