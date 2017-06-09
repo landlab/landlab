@@ -135,7 +135,7 @@ class LandslideProbability(Component):
      'soil__maximum_total_cohesion',
      'soil__minimum_total_cohesion',
      'soil__mode_total_cohesion',
-     'soil__saturated_hydraulic_conductivity,
+     'soil__saturated_hydraulic_conductivity',
      'soil__thickness',
      'soil__transmissivity',
      'topographic__slope',
@@ -156,8 +156,8 @@ class LandslideProbability(Component):
     >>> LandslideProbability.var_help('soil__transmissivity')  # doctest: +NORMALIZE_WHITESPACE
     name: soil__transmissivity
     description:
-      mode rate of water transmitted through a unit width of
-    saturated soil - either provided or calculate with Ksat
+      mode rate of water transmitted through a unit width of saturated
+      soil - either provided or calculated with Ksat and soil depth
     units: m2/day
     at: node
     intent: in
@@ -357,6 +357,8 @@ class LandslideProbability(Component):
         # Initialize seeded random number generation        
         self._seed_generator(seed)
 
+        super(LandslideProbability, self).__init__(grid)
+
         # Store grid and parameters and do unit conversions
         self.n = int(number_of_iterations)
         self._g = kwds.get('g', scipy.constants.g)
@@ -402,14 +404,14 @@ class LandslideProbability(Component):
             self._HSD_id_dict = groundwater__recharge_HSD_inputs[1]
             self._fract_dict = groundwater__recharge_HSD_inputs[2]
             self._interpolate_HSD_dict()
-            
-        super(LandslideProbability, self).__init__(grid)
 
+        # Check if all input fields are initialized
         for name in self._input_var_names:
             if name not in self.grid.at_node:
                 self.grid.add_zeros(name, at=self._var_mapping[name],
                                     units=self._var_units[name])
 
+        # Check if all output fields are initialized
         for name in self._output_var_names:
             if name not in self.grid.at_node:
                 self.grid.add_zeros(name, at=self._var_mapping[name],
