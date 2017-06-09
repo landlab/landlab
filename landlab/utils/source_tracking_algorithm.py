@@ -1,7 +1,13 @@
 
 """
 26 Jan 2016
+last_edited: 08 Jun 2017
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
+
+Additional Reference: source_tracking_algorithm_user_manual.
+
+MD - Modeling Domain
+HSD - Hydrologic Source Domain
 """
 
 # %%
@@ -12,23 +18,29 @@ from collections import Counter
 
 # %%
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
-    """
-    Convert Arc flow_directions file to be represented in node ids
-    gives receiver of each node starting at right and going clockwise.
+    """Convert Arc flow_directions to RasterModelGrid node ids
+
+    This function receives flow directions (D8) from ESRI ArcGIS and converts
+    them to Landlab's RasterModelGrid node id. ESRI ArcGIS D8 flow directions
+    are either of the eight valid output directions relating to the eight
+    adjacent cells into which flow could travel. The valid output directions
+    are powers of 2 starting from 2^0 (1) in the Eastern neighbor going
+    clockwise to 2^7 (128) at Northeastern neighbor. For more information
+    refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
+    how-flow-direction-works.htm'
     
     Parameters:
     ----------
     grid: RasterModelGrid
         A grid.
-    flow_dir_arc: array_like
-        numpy.array of shape=[grid.number_of_nodes]; flow directions derived
-        from ESRII ArcGIS.
+    flow_dir_arc: ndarray of int, shape (n_nodes, )
+        flow directions derived from ESRII ArcGIS.
     
     Returns:
     -------
-    receiver_nodes: array_like
-        A numpy.array of shape=[grid.number_of_nodes]. Please note that this
-        array gives the receiver nodes only for the core nodes. For non-core
+    receiver_nodes: ndarray of int, shape (n_nodes, )
+        downstream node at each node. Note that this array gives the
+        receiver nodes only for the core nodes. For non-core
         nodes, a zero is used.  
     """
     r_arc_raw = np.log2(flow_dir_arc)
@@ -55,32 +67,51 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
 # have neighbors that are real values and not -1s.
 # Note 2: Nodes in the following comments in this section refer to core nodes.
 def track_source(grid, hsd_ids, flow_directions=None):
-    """
+    """Track all contributing upstream core nodes for each core node
+
     This algorithm traverses the grid, and records all upstream nodes for each
     node, given the flow directions. Alternatively, flow directions can be
-    attached to the grid as a field.
+    attached to the grid as a field. This function works similar to
+    flow accumulation routine, that include even a single contributing
+    upstream node, but is executed at each node in the Modeling Domain (MD).
+    The algorithm uses brute force method and is time intensive. This
+    function might not work on huge watersheds (we haven't derived the
+    maximum size of the watershed that this function can execute).
+
+    This function was initially developed to find contributing area of a
+    30 m grid (MD), where the quantitative data that we were interested in was
+    available in significantly coarser resolution (called Hydrologic Source
+    Domain (HSD)). Therefore, we started working with re-sampled HSD,
+    that is at the same resolution as MD, and represents exactly the same
+    landscape. Alternatively, one can use the node ids of the modeling domain
+    (grid.nodes.flatten()) as input for hsd_ids.
+    
+    For more information, refer to source_tracking_algorithm_user_manual
+    at ------.
     
     Parameters:
     ----------
     grid: RasterModelGrid
         A grid.
-    hsd_ids: array_like
-        numpy.array of shape=[grid.number_of_nodes]; array that maps the
-        nodes of the grid to, possibly coarser, Hydrologic Source Domain (HSD)
-        grid ids.
-    flow_directions: array_like, optional.
-        numpy.array of shape=[grid.number_of_nodes]; array of receivers.
-        Alternatively, this data can be provided as a nodal field
-        'flow__receiver_node' on the grid.
+    hsd_ids: ndarray of int, shape (n_nodes, )
+        array that maps the nodes of the grid to, possibly coarser,
+        Hydrologic Source Domain (HSD) grid ids.
+    flow_directions: ndarray of int, shape (n_nodes, ), optional.
+        downstream node at each node. Alternatively, this data can be
+        provided as a nodal field 'flow__receiver_node' on the grid.
     
     Returns:
     -------
-    (hsd_upstr, flow_accum): (dictionary, array_like)
-        'hsd_upstr' maps each Model Domain (MD) grid node to corresponding
-        contributing upstream HSD ids. 'flow_accum' is an array of the number
-        of upstream contributing nodes.
+    (hsd_upstr, flow_accum): (dictionary, ndarray of shape (n_nodes))
+        'hsd_upstr' maps each grid node to corresponding
+        contributing upstream hsd_ids. hsd_upstr.keys() will return
+        node_ids of the grid. hsd_upstr.values() will return lists of
+        all upstream contributing hsd_ids, including repitions of hsd_ids,
+        at corresponding node_ids.
+        'flow_accum' is an array of the number of upstream contributing
+        nodes at each node.
     """   
-    if flow_directions==None:
+    if flow_directions is None:
         r = grid.at_node['flow__receiver_node']
     else:
         r = flow_directions
@@ -154,14 +185,28 @@ def track_source(grid, hsd_ids, flow_directions=None):
 # %%
 # Algorithm to calculate coefficients of each upstream HSD ID
 def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
-    """
-    Counts repeated HSD ids and maps MD nodes with unique upstream HSD ids
-    and corresponding fraction of contribution.
+    """Finds unique entries in hsd_upstr.values()
+
+    This function operates on hsd_upstr.values(), that are lists of hsd_ids.
+    Two new Python dictionaries, 'unique_ids' and 'fractions' are created.
+
+    unique_ids.keys() = hsd_upstr.keys()
+    unique_ids.values()[i] = list of unique entries in hsd_upstr.values()[i]
+
+    fractions.keys() = hsd_upstr.keys()
+    fractions.values()[i] = (number of entries of each unique_id.values()[i]/
+    length of hsd_upstr.values()[i]) for each unique_id.values()[i] in the
+    same order.
+
+    Note that 'hsd_upstr' is the output of track_source(). You can use
+    an alternative input. In that case, please refer to the documentation
+    of track_source() or refer source_tracking_algorithm_user_manual for
+    more information.
     
     Parameters:
     ----------
     hsd_upstr: dictionary
-        'hsd_upstr' maps each Model Domain (MD) grid node to corresponding
+        'hsd_upstr' maps each MD grid node to corresponding
         contributing upstream HSD ids.
         
     Returns:

@@ -29,7 +29,7 @@ Last edit June 7, 2017
 from landlab import Component
 from landlab.utils.decorators import use_file_name_or_kwds
 import numpy as np
-import scipy
+import scipy.constants
 from scipy import interpolate
 from statsmodels.distributions.empirical_distribution import ECDF
 import copy

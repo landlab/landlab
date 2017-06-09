@@ -13,6 +13,8 @@ from landlab.utils import (track_source,
                            find_unique_upstream_hsd_ids_and_fractions)
 
 def test_track_source():
+    """Unit tests for track_source().
+    """
     grid = RasterModelGrid((5, 5), spacing=(1., 1.))
     grid.at_node['topographic__elevation'] = np.array([5., 5., 5., 5., 5.,
                                                        5., 4., 5., 1., 5.,
@@ -37,6 +39,8 @@ def test_track_source():
     assert_equal(flow_accum[14], 7)
 
 def test_find_unique_upstream_hsd_ids_and_fractions():
+    """Unit tests find_unique_upstream_hsd_ids_and_fractions().
+    """
     grid = RasterModelGrid((5, 5), spacing=(1., 1.))
     grid.at_node['topographic__elevation'] = np.array([5., 5., 5., 5., 5.,
                                                        5., 4., 5., 1., 5.,
