@@ -41,7 +41,7 @@ def test_input_var_names():
     """Testing if the input_var_names outputs the right list.
     """
     assert_equal(sorted(ls_prob.input_var_names),
-                 ('topographic__specific_contributing_area',
+                 ['topographic__specific_contributing_area',
                   'topographic__slope',
                   'soil__transmissivity',
                   'soil__saturated_hydraulic_conductivity',
@@ -50,7 +50,7 @@ def test_input_var_names():
                   'soil__maximum_total_cohesion',
                   'soil__internal_friction_angle',
                   'soil__density',
-                  'soil__thickness'))
+                  'soil__thickness'])
 
 
 @with_setup(setup_grid)
@@ -58,9 +58,9 @@ def test_output_var_names():
     """Testing if output_var_names outputs the right list.
     """
     assert_equal(sorted(ls_prob.output_var_names),
-                 ('soil__mean_relative_wetness',
+                 ['soil__mean_relative_wetness',
                   'landslide__probability_of_failure',
-                  'soil__probability_of_saturation'))
+                  'soil__probability_of_saturation'])
 
 
 @with_setup(setup_grid)
