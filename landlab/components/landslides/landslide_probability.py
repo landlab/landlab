@@ -171,7 +171,7 @@ class LandslideProbability(Component):
     ...      np.random.randint(5, 20, grid.number_of_nodes), -1)
     >>> grid.at_node['soil__saturated_hydraulic_conductivity'] = np.sort(
     ...      np.random.randint(2, 10, grid.number_of_nodes), -1) 
-   >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
+    >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
     ...      np.random.randint(30, 900, grid.number_of_nodes))
     >>> grid.at_node['soil__minimum_total_cohesion'] = (
     ...      grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
