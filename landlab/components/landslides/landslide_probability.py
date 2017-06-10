@@ -371,8 +371,9 @@ class LandslideProbability(Component):
         if self.groundwater__recharge_distribution == 'uniform':
             self._recharge_min = groundwater__recharge_min_value
             self._recharge_max = groundwater__recharge_max_value
-            self._Re = np.random.uniform(self._recharge_min, self._recharge_max,
-                                        size=self.n)
+            self._Re = np.random.uniform(self._recharge_min,
+                                         self._recharge_max,
+                                         size=self.n)
             self._Re /= 1000. # Convert mm to m
         # Lognormal Distribution - Uniform in space
         elif self.groundwater__recharge_distribution == 'lognormal':
@@ -499,14 +500,15 @@ class LandslideProbability(Component):
             # Hydraulic conductivity (Ksat)
             Ksatmin = self._Ksatmode-(0.3*self._Ksatmode)
             Ksatmax = self._Ksatmode+(0.1*self._Ksatmode)
-            self._Ksat = np.random.triangular(Ksatmin, self._Ksatmode, Ksatmax,
-                                             size=self.n)
+            self._Ksat = np.random.triangular(Ksatmin, self._Ksatmode,
+                                              Ksatmax, size=self.n)
             self._T = self._Ksat*self._hs
         else:
             # Transmissivity (T)
             Tmin = self._Tmode-(0.3*self._Tmode)
             Tmax = self._Tmode+(0.1*self._Tmode)
-            self._T = np.random.triangular(Tmin, self._Tmode, Tmax, size=self.n)
+            self._T = np.random.triangular(Tmin, self._Tmode,
+                                           Tmax, size=self.n)
 
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
@@ -547,7 +549,8 @@ class LandslideProbability(Component):
         """
 
         # Create arrays for data with -9999 as default to store output
-        self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes, -9999.)
+        self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes,
+                                             -9999.)
         self.prob_fail = np.full(self.grid.number_of_nodes, -9999.)
         self.prob_sat = np.full(self.grid.number_of_nodes, -9999.) 
         # Run factor of safety Monte Carlo for all core nodes in domain
@@ -565,7 +568,8 @@ class LandslideProbability(Component):
         # assign output fields to nodes
         self.grid.at_node['soil__mean_relative_wetness'] = (
             self.mean_Relative_Wetness)
-        self.grid.at_node['landslide__probability_of_failure'] = self.prob_fail
+        self.grid.at_node['landslide__probability_of_failure'] = (
+                self.prob_fail)
         self.grid.at_node['soil__probability_of_saturation'] = self.prob_sat
 
     def _seed_generator(self, seed=0):
