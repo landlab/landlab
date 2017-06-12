@@ -16,11 +16,11 @@ requirements:
     - matplotlib
     - numpydoc
     - netcdf4
-    - hdf4 >=4.2.12 # [not win and np == 111]
     - cython
     - six
     - pyyaml
     - setuptools
+    - jpeg <=8 # [osx and np==111]
 
   run:
     - python
@@ -32,12 +32,12 @@ requirements:
     - matplotlib
     - numpydoc
     - netcdf4
-    - hdf4 >=4.2.12 # [not win and np == 111]
     - cython
     - six
     - pyyaml
     - setuptools
     - xarray
+    - jpeg <=8 # [osx and np==111]
 
 build:
   string: {{ environ.get('BUILD_STR', '') }}
