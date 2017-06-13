@@ -21,75 +21,9 @@ if __name__ == '__main__':
 else:
     from .fastscape_stream_power import FastscapeEroder
 import numpy as np
-from scipy.optimize import newton
+from .cfuncs import smooth_stream_power_eroder_solver
 from landlab import BAD_INDEX_VALUE
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-
-
-
-
-def new_elev(x, a, b, c, d, e):
-    """Equation for elevation of a node at timestep t+1.
-
-    Parameters
-    ----------
-    x : float
-        Value of new elevation
-    a : float
-        Parameter = K A^m dt / L (nondimensional)
-    b : float
-        Elevation of downstream node, z_j
-    c : float
-        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
-    d : float
-        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
-    e : float
-        z(t) + a z_j + (wc * dt)
-    """
-    return x * (1.0 + a) + c * np.exp(-d * (x - b)) - e
-
-
-def new_elev_prime(x, a, b, c, d, e=0.0):
-    """Equation for elevation of a node at timestep t+1.
-
-    Parameters
-    ----------
-    x : float
-        Value of new elevation
-    a : float
-        Parameter = K A^m dt / L
-    b : float
-        Elevation of downstream node, z_j
-    c : float
-        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
-    d : float
-        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
-    e : n/a
-        Placeholder; not used
-    """
-    return (1.0 + a) - c * d * np.exp(-d * (x - b))
-
-
-def new_elev_prime2(x, a, b, c, d, e=0.0):
-    """Equation for elevation of a node at timestep t+1.
-
-    Parameters
-    ----------
-    x : float
-        Value of new elevation
-    a : float
-        Placeholder; not used
-    b : float
-        Elevation of downstream node, z_j
-    c : float
-        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
-    d : float
-        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
-    e : n/a
-        Placeholder; not used
-    """
-    return c * d * d * np.exp(-d * (x - b))
-
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     """Stream erosion component with smooth threshold function.
@@ -266,18 +200,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
-        for node in upstream_order_IDs:
-            if defined_flow_receivers[node]:
-                epsilon = (self.alpha[node] * z[flow_receivers[node]]
-                           + self.gamma[node] + z[node])
-                z[node] = newton(new_elev, z[node],
-                                 fprime=new_elev_prime,
-                                 args=(self.alpha[node],
-                                       z[flow_receivers[node]],
-                                       self.gamma[node],
-                                       self.delta[node],
-                                       epsilon))  #,
-                                 #fprime2=new_elev_prime2)
+        smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers, 
+                                         z, self.alpha, self.gamma, self.delta)
 
         # TODO: handle case self.thresholds = 0
         # THIS WOULD REQUIRE SETTING DELTA = 0 WHEN/WHERE THRESHOLD = 0

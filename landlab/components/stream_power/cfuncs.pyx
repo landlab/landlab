@@ -1,7 +1,7 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-
+from scipy.optimize import newton
 #from libc.math cimport fabs
 
 
@@ -202,3 +202,98 @@ def erode_with_link_alpha_fixthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
 
             if next_z < z[src_id]:
                 z[src_id] = next_z
+                
+def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
+                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
+                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
+                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] gamma,
+                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
+    """
+    """
+    cdef unsigned int n_nodes = src_nodes.size
+    cdef unsigned int src_id
+    cdef unsigned int dst_id
+    cdef unsigned int i
+
+    cdef double epilon
+
+    
+    
+    for i in range(len(src_nodes)):
+        src_id = src_nodes[i]
+        dst_id = dst_nodes[src_id]
+                    
+        if src_id != dst_id and z[src_id] > z[dst_id]:
+            
+            # calculate epsilon
+            epsilon = (alpha[src_id] * z[dst_id]
+                       + gamma[src_id] + z[src_id])
+            
+            # calculate new z
+            z[src_id] = newton(new_elev, z[src_id],
+                             fprime=new_elev_prime,
+                             args=(alpha[src_id],
+                                   z[dst_id],
+                                   gamma[src_id],
+                                   delta[src_id],
+                                   epsilon))  
+            
+def new_elev(DTYPE_FLOAT_t x, 
+             DTYPE_FLOAT_t a, 
+             DTYPE_FLOAT_t b, 
+             DTYPE_FLOAT_t c, 
+             DTYPE_FLOAT_t d, 
+             DTYPE_FLOAT_t e):
+    """Equation for elevation of a node at timestep t+1.
+
+    Parameters
+    ----------
+    x : float
+        Value of new elevation
+    a : float
+        Parameter = K A^m dt / L (nondimensional)
+    b : float
+        Elevation of downstream node, z_j
+    c : float
+        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
+    d : float
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
+    e : float
+        z(t) + a z_j + (wc * dt)
+    """
+    cdef double f
+    
+    f = x * (1.0 + a) + c * np.exp(-d * (x - b)) - e
+    
+    return f
+
+
+def new_elev_prime(DTYPE_FLOAT_t x, 
+                   DTYPE_FLOAT_t a, 
+                   DTYPE_FLOAT_t b, 
+                   DTYPE_FLOAT_t c, 
+                   DTYPE_FLOAT_t d,
+                   DTYPE_FLOAT_t e):
+    """Equation for elevation of a node at timestep t+1.
+
+    Parameters
+    ----------
+    x : float
+        Value of new elevation
+    a : float
+        Parameter = K A^m dt / L
+    b : float
+        Elevation of downstream node, z_j
+    c : float
+        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
+    d : float
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
+    e : n/a
+        Placeholder; not used
+    """
+    cdef double f
+
+    f = (1.0 + a) - c * d * np.exp(-d * (x - b))
+    
+    return f
