@@ -181,7 +181,7 @@ class DepthDependentCubicDiffuser(Component):
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
 
 
-    def soilflux(self, dt):
+    def soilflux(self, dt, dynamic_dt = False, warning=False, courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -189,24 +189,74 @@ class DepthDependentCubicDiffuser(Component):
 
         dt: float (time)
             The imposed timestep.
+        dynamic_dt : boolean (optional, default is False)
+            Keyword argument to turn on or off dynamic time-stepping
+        warning : boolean (optional, false)
+            Keyword argument to turn on or off warnings about potential 
+            instability due to slopes that are too high. 
+        courant_factor : float (optional, default = 0.2)
+            Factor to identify stable time-step duration when using dynamic
+            timestepping. 
         """
-        self.grid.at_node['soil__depth'][:] = (
-            self.grid.at_node['topographic__elevation']
-            - self.grid.at_node['bedrock__elevation'])
+        
+        time_left = dt
+        
+        while time_left>0.0:
+            
+            self.grid.at_node['soil__depth'][:] = (
+                                    self.grid.at_node['topographic__elevation']
+                                    - self.grid.at_node['bedrock__elevation'])
 
-        #Calculate soil depth at links.
-        H_link = self.grid.map_value_at_max_node_to_link(
-            'topographic__elevation','soil__depth')
+            #Calculate soil depth at links.
+            self.H_link = self.grid.map_value_at_max_node_to_link(
+                'topographic__elevation','soil__depth')
+    
+            #Calculate gradients
+            self.slope = self.grid.calc_grad_at_link(self.elev)
+            self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+            
+            if (np.any(np.isinf(self.slope)) or np.any(np.isnan(self.slope))) and (
+                    warning == True):
+                raise Warning('Topographic slopes are either infinite or nan. '
+                              'This likely occured because slopes are too '
+                              'steep for the timestep given.')
+                            
+            # Test for time stepping courant condition
+            De_max = self.K * (1.0 + (self.slope.max()/self.slope_crit)**2.0)
+            dt_max = courant_factor * (self.grid.dx**2) / De_max
+            
+            if (dt_max < dt) and (dynamic_dt == False) and (warning == True):
+                raise Warning('Topographic slopes are high enough such that the '
+                              'Courant condition is exceeded AND you have not '
+                              'selected dynamic timestepping with dynamic_dt=True. '
+                              'This may lead to infinite and/or nan values for '
+                              'slope, elevation, and soil depth. Consider using a '
+                              'smaller time step or dynamic timestepping. The '
+                              'Courant condition recommends a timestep of '
+                              ''+str(dt_max)+' or smaller.')
+            
+            if dynamic_dt:
+                sub_dt = np.min([dt, dt_max])
+                time_left -= sub_dt
+            else:
+                sub_dt = dt
+                time_left = 0
+            
+            self._update_flux_topography_soil_and_bedrock(sub_dt)
+      
+    def _update_flux_topography_soil_and_bedrock(self, dt):
+        """Calculate soil flux and update topography for a time period 'dt'.
 
-        #Calculate gradients
-        slope = self.grid.calc_grad_at_link(self.elev)
-        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
-        #print(self.elev[nn])
+        Parameters
+        ----------
 
+        dt: float (time)
+            The imposed timestep.
+        """
         #Calculate flux
-        self.flux[:] = -((self.K*slope
-                       + (self.K/(self.slope_crit**2)) * np.power(slope, 3))
-                        * (1.0 - np.exp(-H_link
+        self.flux[:] = -((self.K*self.slope
+                       + (self.K/(self.slope_crit**2)) * np.power(self.slope, 3))
+                        * (1.0 - np.exp(-self.H_link
                                         / self.soil_transport_decay_depth)))
 
         #Calculate flux divergence
@@ -215,7 +265,7 @@ class DepthDependentCubicDiffuser(Component):
 
         #Calculate change in soil depth
         dhdt = self.soil_prod_rate - dqdx
-
+        
         #Calculate soil depth at nodes
         self.depth[self._active_nodes] += dhdt[self._active_nodes] * dt
 
@@ -229,7 +279,6 @@ class DepthDependentCubicDiffuser(Component):
         #Update topography
         self.elev[self._active_nodes] = (self.depth[self._active_nodes]
                                          + self.bedrock[self._active_nodes])
-
 
     def run_one_step(self, dt, **kwds):
         """
