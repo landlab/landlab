@@ -96,16 +96,19 @@ class DepthDependentCubicDiffuser(Component):
     
     The DepthDependentCubicDiffuser has a boolean flag that permits a user
     to be warned if timesteps are too large for the slopes in the model grid
-    (warning = True) and a boolean flag that turns on dynamic timesteppping
+    (if_unstable = 'warn') and a boolean flag that turns on dynamic timesteppping
     (dynamic_dt = False). 
     
-    >>> DDdiff.soilflux(2., warning=True)
+    >>> DDdiff.soilflux(2., if_unstable='warn')
     Topographic slopes are high enough such that the Courant condition is 
     exceeded AND you have not selected dynamic timestepping with 
     dynamic_dt=True. This may lead to infinite and/or nan values for slope, 
     elevation, and soil depth. Consider using a smaller time step or dynamic 
     timestepping. The Courant condition recommends a timestep of 
     0.0953407607307 or smaller.
+    
+    Alternatively you can specify if_unstable='raise', and a Runtime Error will 
+    be raised if this condition is not met. 
 
     Next, lets do an example with dynamic timestepping.
     
@@ -129,7 +132,7 @@ class DepthDependentCubicDiffuser(Component):
     and should use a smaller timestep. We could either use the smaller timestep,
     or specify that we want to use adynamic timestep. 
     
-    >>> DDdiff.soilflux(10, warning=True, dynamic_dt=False)
+    >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=False)
     Topographic slopes are high enough such that the Courant condition is 
     exceeded AND you have not selected dynamic timestepping with 
     dynamic_dt=True. This may lead to infinite and/or nan values for slope, 
@@ -150,7 +153,7 @@ class DepthDependentCubicDiffuser(Component):
     >>> DDdiff = DepthDependentCubicDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
     >>> mynodes = mg.nodes[2, :]
-    >>> DDdiff.soilflux(10, warning=True, dynamic_dt=True)
+    >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=True)
     >>> np.any(np.isnan(z))
     False
     """
@@ -258,7 +261,7 @@ class DepthDependentCubicDiffuser(Component):
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
 
 
-    def soilflux(self, dt, dynamic_dt = False, warning=False, courant_factor=0.2):
+    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -268,9 +271,10 @@ class DepthDependentCubicDiffuser(Component):
             The imposed timestep.
         dynamic_dt : boolean (optional, default is False)
             Keyword argument to turn on or off dynamic time-stepping
-        warning : boolean (optional, false)
-            Keyword argument to turn on or off warnings about potential 
-            instability due to slopes that are too high. 
+        if_unstable : string (optional, default is "pass")
+            Keyword argument to determine how potential instability due to 
+            slopes that are too high is handled. Options are "pass", "warn", 
+            and "raise". 
         courant_factor : float (optional, default = 0.2)
             Factor to identify stable time-step duration when using dynamic
             timestepping. 
@@ -296,15 +300,21 @@ class DepthDependentCubicDiffuser(Component):
             De_max = self.K * (1.0 + (self.slope.max()/self.slope_crit)**2.0)
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
             
-            if (self.dt_max < dt) and (dynamic_dt == False) and (warning == True):
-                print('Topographic slopes are high enough such that the '
-                       'Courant condition is exceeded AND you have not '
-                       'selected dynamic timestepping with dynamic_dt=True. '
-                       'This may lead to infinite and/or nan values for '
-                       'slope, elevation, and soil depth. Consider using a '
-                       'smaller time step or dynamic timestepping. The '
-                       'Courant condition recommends a timestep of '
-                       ''+str(self.dt_max)+' or smaller.')
+            if (self.dt_max < dt) and (dynamic_dt == False) and (if_unstable != 'pass'):
+                message = ('Topographic slopes are high enough such that the '
+                           'Courant condition is exceeded AND you have not '
+                           'selected dynamic timestepping with dynamic_dt=True. '
+                           'This may lead to infinite and/or nan values for '
+                           'slope, elevation, and soil depth. Consider using a '
+                           'smaller time step or dynamic timestepping. The '
+                           'Courant condition recommends a timestep of '
+                           ''+str(self.dt_max)+' or smaller.')
+                if if_unstable == 'raise':
+                    raise RuntimeError(message)
+                if if_unstable == 'warn':
+                    print(message)
+                
+                
             
             if dynamic_dt:
                 self.sub_dt = np.min([dt, self.dt_max])
