@@ -213,8 +213,8 @@ def flow_directions_dinf(grid,
     ortho_grads = grid.calc_grad_at_link(elevs)
 
     # finally compile link slopes
-    link_slope = np.hstack((np.arctan(ortho_grads),
-                            np.arctan(diag_grads)))
+    link_slope = np.hstack((ortho_grads,
+                            diag_grads))
 
     # Construct the array of slope to triangles at node. This also will adjust
     # for the slope convention based on the direction of the links.
