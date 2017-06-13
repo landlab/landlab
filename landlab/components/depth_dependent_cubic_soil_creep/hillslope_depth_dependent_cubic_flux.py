@@ -9,7 +9,6 @@ from landlab import Component
 import numpy as np
 from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
-
 class DepthDependentCubicDiffuser(Component):
 
     """
@@ -29,6 +28,8 @@ class DepthDependentCubicDiffuser(Component):
 
     Examples
     --------
+    First lets make a simple example with flat topography.
+    
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import ExponentialWeatherer
@@ -50,7 +51,8 @@ class DepthDependentCubicDiffuser(Component):
     >>> np.allclose(mg.at_node['soil__depth'], 2.)
     True
 
-    Now with a slope:
+    Now a more complicated example with a slope.
+        
     >>> mg = RasterModelGrid((5, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
@@ -76,6 +78,81 @@ class DepthDependentCubicDiffuser(Component):
     True
     >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
     True
+    
+    The DepthDependentCubicDiffuser makes and moves soil at a rate proportional
+    to slope, this means that there is a characteristic time scale for soil \
+    transport and an associated stability criteria for the timestep. The 
+    maximum characteristic time scale, Demax, is given as a function of the
+    hillslope diffustivity, D, the maximum slope, Smax, and the critical slope
+    Sc. 
+    
+        Demax = D ( 1 + (Smax / Sc)**2 )
+    
+    The maximum stable time step is given by
+    
+        dtmax = courant_factor * dx * dx / Demax
+    
+    Where the courant factor is a user defined scale (default is 0.2)
+    
+    The DepthDependentCubicDiffuser has a boolean flag that permits a user
+    to be warned if timesteps are too large for the slopes in the model grid
+    (warning = True) and a boolean flag that turns on dynamic timesteppping
+    (dynamic_dt = False). 
+    
+    >>> DDdiff.soilflux(2., warning=True)
+    Topographic slopes are high enough such that the Courant condition is 
+    exceeded AND you have not selected dynamic timestepping with 
+    dynamic_dt=True. This may lead to infinite and/or nan values for slope, 
+    elevation, and soil depth. Consider using a smaller time step or dynamic 
+    timestepping. The Courant condition recommends a timestep of 
+    0.0953407607307 or smaller.
+
+    Next, lets do an example with dynamic timestepping.
+    
+    >>> mg = RasterModelGrid((5, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+        
+    We'll use a steep slope and very little soil.
+    
+    >>> z += mg.node_x.copy()**2
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> expweath = ExponentialWeatherer(mg)
+    >>> DDdiff = DepthDependentCubicDiffuser(mg)
+    >>> expweath.calc_soil_prod_rate()
+    >>> mynodes = mg.nodes[2, :]
+    
+    Lets try to move the soil with a large timestep. Without dynamic time
+    steps, this gives a warning that we've exceeded the dynamic timestep size 
+    and should use a smaller timestep. We could either use the smaller timestep,
+    or specify that we want to use adynamic timestep. 
+    
+    >>> DDdiff.soilflux(10, warning=True, dynamic_dt=False)
+    Topographic slopes are high enough such that the Courant condition is 
+    exceeded AND you have not selected dynamic timestepping with 
+    dynamic_dt=True. This may lead to infinite and/or nan values for slope, 
+    elevation, and soil depth. Consider using a smaller time step or dynamic 
+    timestepping. The Courant condition recommends a timestep of 
+    0.004 or smaller.
+    
+    Now, we'll re-build the grid and do the same exapmle with dynamic timesteps. 
+    
+    >>> mg = RasterModelGrid((5, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> z += mg.node_x.copy()**2
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> expweath = ExponentialWeatherer(mg)
+    >>> DDdiff = DepthDependentCubicDiffuser(mg)
+    >>> expweath.calc_soil_prod_rate()
+    >>> mynodes = mg.nodes[2, :]
+    >>> DDdiff.soilflux(10, warning=True, dynamic_dt=True)
+    >>> np.any(np.isnan(z))
+    False
     """
 
     _name = 'DepthDependentCubicDiffuser'
@@ -214,37 +291,32 @@ class DepthDependentCubicDiffuser(Component):
             #Calculate gradients
             self.slope = self.grid.calc_grad_at_link(self.elev)
             self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
-            
-            if (np.any(np.isinf(self.slope)) or np.any(np.isnan(self.slope))) and (
-                    warning == True):
-                raise Warning('Topographic slopes are either infinite or nan. '
-                              'This likely occured because slopes are too '
-                              'steep for the timestep given.')
                             
             # Test for time stepping courant condition
             De_max = self.K * (1.0 + (self.slope.max()/self.slope_crit)**2.0)
-            dt_max = courant_factor * (self.grid.dx**2) / De_max
+            self.dt_max = courant_factor * (self.grid.dx**2) / De_max
             
-            if (dt_max < dt) and (dynamic_dt == False) and (warning == True):
-                raise Warning('Topographic slopes are high enough such that the '
-                              'Courant condition is exceeded AND you have not '
-                              'selected dynamic timestepping with dynamic_dt=True. '
-                              'This may lead to infinite and/or nan values for '
-                              'slope, elevation, and soil depth. Consider using a '
-                              'smaller time step or dynamic timestepping. The '
-                              'Courant condition recommends a timestep of '
-                              ''+str(dt_max)+' or smaller.')
+            if (self.dt_max < dt) and (dynamic_dt == False) and (warning == True):
+                print('Topographic slopes are high enough such that the '
+                       'Courant condition is exceeded AND you have not '
+                       'selected dynamic timestepping with dynamic_dt=True. '
+                       'This may lead to infinite and/or nan values for '
+                       'slope, elevation, and soil depth. Consider using a '
+                       'smaller time step or dynamic timestepping. The '
+                       'Courant condition recommends a timestep of '
+                       ''+str(self.dt_max)+' or smaller.')
             
             if dynamic_dt:
-                sub_dt = np.min([dt, dt_max])
-                time_left -= sub_dt
+                self.sub_dt = np.min([dt, self.dt_max])
+                time_left -= self.sub_dt
             else:
-                sub_dt = dt
+                self.sub_dt = dt
                 time_left = 0
             
-            self._update_flux_topography_soil_and_bedrock(sub_dt)
-      
-    def _update_flux_topography_soil_and_bedrock(self, dt):
+            # update sed flux, topography, soil, and bedrock
+            self._update_flux_topography_soil_and_bedrock()
+            
+    def _update_flux_topography_soil_and_bedrock(self):
         """Calculate soil flux and update topography for a time period 'dt'.
 
         Parameters
@@ -267,14 +339,14 @@ class DepthDependentCubicDiffuser(Component):
         dhdt = self.soil_prod_rate - dqdx
         
         #Calculate soil depth at nodes
-        self.depth[self._active_nodes] += dhdt[self._active_nodes] * dt
+        self.depth[self._active_nodes] += dhdt[self._active_nodes] * self.sub_dt
 
         #prevent negative soil thickness
         self.depth[self.depth < 0.0] = 0.0
 
         #Calculate bedrock elevation
         self.bedrock[self._active_nodes] -= (
-            self.soil_prod_rate[self._active_nodes] * dt)
+            self.soil_prod_rate[self._active_nodes] * self.sub_dt)
 
         #Update topography
         self.elev[self._active_nodes] = (self.depth[self._active_nodes]
