@@ -19,7 +19,8 @@ University of Washington
 Ref 1: Strauch et. al. 2017, 'A hydro-climatological approach to predicting
 regional landslide probability using Landlab, Earth Surface Dynamics, In prep.
 
-Ref 2: 'The Landlab LandslideProbability Component User Manual'
+Ref 2: 'The Landlab LandslideProbability Component User Manual' @
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
 
 Created on Thu Aug 20, 2015
 Last edit June 7, 2017
@@ -38,7 +39,9 @@ import copy
 
 
 class LandslideProbability(Component):
-    """
+    """Landslide probability component using the infinite slope stability
+    model.
+    
     Landlab component designed to calculate probability of failure at
     each grid node based on the infinite slope stability model
     stability index (Factor of Safety).
@@ -99,9 +102,10 @@ class LandslideProbability(Component):
         list of 3 dictionaries in order (default=[]) - HSD_dict {Hydrologic
         Source Domain (HSD) keys: recharge numpy array values}, {node IDs keys:
         list of HSD_Id values}, HSD_fractions {node IDS keys: list of
-        HSD fractions values} (none) - for more information refer to
-        Ref 1 & Ref 2 mentioned above, as this set of inputs require
-        rigorous pre-processing of data.
+        HSD fractions values} (none) 
+        Note: this input method is a very specific one, and to use this method,
+        one has to refer Ref 1 & Ref 2 mentioned above, as this set of
+        inputs require rigorous pre-processing of data.
     g: float, optional (m/sec^2)
         acceleration due to gravity.
     seed: int, optional
@@ -317,7 +321,6 @@ class LandslideProbability(Component):
                  groundwater__recharge_standard_deviation=None,
                  groundwater__recharge_HSD_inputs=[],
                  seed=0, **kwds):
-
         """
         Parameters
         ----------
@@ -342,9 +345,10 @@ class LandslideProbability(Component):
         groundwater__recharge_HSD_inputs: list, optional
             list of 3 dictionaries in order (default=[]) - HSD_dict
             {Hydrologic Source Domain (HSD) keys: recharge numpy array values},
-            {node IDs keys: list of HSD_Id values}, HSD_fractions
-            {node IDS keys: list of HSD fractions values} (none) - for more
-            information refer to Ref 1 & Ref 2 mentioned above, as this set of
+            {node IDs keys: list of HSD_Id values}, HSD_fractions {node IDS
+            keys: list of HSD fractions values} (none) 
+            Note: this input method is a very specific one, and to use this method,
+            one has to refer Ref 1 & Ref 2 mentioned above, as this set of
             inputs require rigorous pre-processing of data.
         g: float, optional (m/sec^2)
             acceleration due to gravity.
@@ -354,7 +358,6 @@ class LandslideProbability(Component):
             sequence. To create a certain sequence repititively, use the same
             value as input for seed.
         """
-
         # Initialize seeded random number generation        
         self._seed_generator(seed)
 
@@ -428,13 +431,10 @@ class LandslideProbability(Component):
 
         self._nodal_values = self.grid.at_node
 
-        # Raise an error if no grid provided
-        if self.grid is None:
-            raise ValueError('You must now provide an existing grid!')
 
     def calculate_factor_of_safety(self, i):
+        """Method to calculate factor of safety.
 
-        """
         Method calculates factor-of-safety stability index by using
         node specific parameters, creating distributions of these parameters,
         and calculating the index by sampling these distributions 'n' times.
@@ -448,7 +448,6 @@ class LandslideProbability(Component):
         i: int
             index of core node ID.
         """
-
         # generate distributions to sample from to provide input parameters
         # currently triangle distribution using mode, min, & max
         self._a = np.float32(self.grid.at_node[
@@ -542,16 +541,15 @@ class LandslideProbability(Component):
         # probability: No. unstable values/total No. of values (n)
         self._landslide__probability_of_failure = np.float32(count)/self.n
 
-    def calculate_landslide_probability(self, **kwds):
 
-        """
+    def calculate_landslide_probability(self, **kwds):
+        """Main method of Landslide Probability class.
+
         Method creates arrays for output variables then loops through all
         the core nodes to run the method 'calculate_factor_of_safety.'
         Output parameters probability of failure, mean relative wetness,
         and probability of saturation are assigned as fields to nodes. 
-
         """
-
         # Create arrays for data with -9999 as default to store output
         self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes,
                                              -9999.)
@@ -576,8 +574,11 @@ class LandslideProbability(Component):
                 self.prob_fail)
         self.grid.at_node['soil__probability_of_saturation'] = self.prob_sat
 
+
     def _seed_generator(self, seed=0):
-        """Seed the random-number generator. This method will create the same
+        """Method to initiate random seed.
+        
+        Seed the random-number generator. This method will create the same
         sequence again by re-seeding with the same value (default value is
         zero). To create a sequence other than the default, assign non-zero
         value for seed.
@@ -586,7 +587,9 @@ class LandslideProbability(Component):
 
 
     def _interpolate_HSD_dict(self):
-        """This method uses a non-parametric approach to expand the input
+        """Method to extrapolate input data.
+        
+        This method uses a non-parametric approach to expand the input
         recharge array to the length of number of iterations. Output is
         a new dictionary of interpolated recharge for each HSD id.
         """
@@ -612,7 +615,9 @@ class LandslideProbability(Component):
 
 
     def _calculate_HSD_recharge(self, i):
-        """This method calculates the resultant recharge at node i of the
+        """Method to calculate recharge based on upstream fractions.
+        
+        This method calculates the resultant recharge at node i of the
         model domain, using recharge of contributing HSD ids and the areal
         fractions of upstream contributing HSD ids. Output is a numpy array
         of recharge at node i.        

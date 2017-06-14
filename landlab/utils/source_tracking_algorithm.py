@@ -4,10 +4,15 @@
 last_edited: 08 Jun 2017
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
-Additional Reference: source_tracking_algorithm_user_manual.
+Ref 1: source_tracking_algorithm_user_manual. @
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/SourceTrackingAlgorithm_RefManual_draft.docx
 
-MD - Modeling Domain
-HSD - Hydrologic Source Domain
+Ref 2: 'The Landlab LandslideProbability Component User Manual' @
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
+
+MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
+HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
+      more info, refer Ref 1
 """
 
 # %%
@@ -69,25 +74,36 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
 def track_source(grid, hsd_ids, flow_directions=None):
     """Track all contributing upstream core nodes for each core node
 
-    This algorithm traverses the grid, and records all upstream nodes for each
-    node, given the flow directions. Alternatively, flow directions can be
-    attached to the grid as a field. This function works similar to
-    flow accumulation routine, that include even a single contributing
-    upstream node, but is executed at each node in the Modeling Domain (MD).
-    The algorithm uses brute force method and is time intensive. This
-    function might not work on huge watersheds (we haven't derived the
-    maximum size of the watershed that this function can execute).
+    This algorithm traverses the grid based on information of flow directions
+    at nodes and at every node identifies all the nodes upstream of a given
+    node. The algorithm creates a dictionary with an entry for each node;
+    a node's entry in the dictionary will contain a list with the node_ids
+    of all upstream nodes. Thus this method permits identification of the
+    source area contributing to each and every node in the model grid. This
+    function is different from a standard flow accumulation routine in that
+    it not only calculates the amount of flow at each node, but records the
+    IDs of all upstream nodes. However, similar to a standard
+    flow accumulation routine, it produces an at_node array of the amount
+    of flow passing through the node. It also differs from a standard
+    flow accumulation routing in that it permits the mapping of flow inputs
+    from a coarser grid to to a finer model grid.
+
+    In its present implementation, the algorithm has not been optimized
+    for efficient time use. Its methods are brute force and it should be
+    expected to be time intensive. It is not recommended to be run frequently
+    in a modeling exercise. Due to its intensive nature, this algorithm may
+    fail with large watersheds (a present, the development team has not
+    derived a maximum stable watershed size).
 
     This function was initially developed to find contributing area of a
     30 m grid (MD), where the quantitative data that we were interested in was
     available in significantly coarser resolution (called Hydrologic Source
     Domain (HSD)). Therefore, we started working with re-sampled HSD,
     that is at the same resolution as MD, and represents exactly the same
-    landscape. Alternatively, one can use the node ids of the modeling domain
+    landscape. Alternatively, one can use the node ids of MD
     (grid.nodes.flatten()) as input for hsd_ids.
     
-    For more information, refer to source_tracking_algorithm_user_manual
-    at ------.
+    For more information, refer Ref 1 and Ref 2.
     
     Parameters:
     ----------
