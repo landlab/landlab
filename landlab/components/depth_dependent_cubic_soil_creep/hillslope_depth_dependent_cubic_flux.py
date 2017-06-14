@@ -260,7 +260,6 @@ class DepthDependentCubicDiffuser(Component):
 
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
 
-
     def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
@@ -280,10 +279,13 @@ class DepthDependentCubicDiffuser(Component):
             timestepping. 
         """
         
+        # establish time left as all of dt
         time_left = dt
         
-        while time_left>0.0:
+        # begin while loop for time left
+        while time_left > 0.0:
             
+            # calculate soil__depth
             self.grid.at_node['soil__depth'][:] = (
                                     self.grid.at_node['topographic__elevation']
                                     - self.grid.at_node['bedrock__elevation'])
@@ -300,6 +302,8 @@ class DepthDependentCubicDiffuser(Component):
             De_max = self.K * (1.0 + (self.slope.max()/self.slope_crit)**2.0)
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
             
+            # Test for the Courant condition and print warning if user intended
+            # for it to be printed. 
             if (self.dt_max < dt) and (dynamic_dt == False) and (if_unstable != 'pass'):
                 message = ('Topographic slopes are high enough such that the '
                            'Courant condition is exceeded AND you have not '
@@ -313,9 +317,8 @@ class DepthDependentCubicDiffuser(Component):
                     raise RuntimeError(message)
                 if if_unstable == 'warn':
                     print(message)
-                
-                
             
+            # if dynamic dt is selected, use it, otherwise, use the entire time
             if dynamic_dt:
                 self.sub_dt = np.min([dt, self.dt_max])
                 time_left -= self.sub_dt
@@ -323,18 +326,12 @@ class DepthDependentCubicDiffuser(Component):
                 self.sub_dt = dt
                 time_left = 0
             
-            # update sed flux, topography, soil, and bedrock
+            # update sed flux, topography, soil, and bedrock based on the 
+            # current self.sub_dt
             self._update_flux_topography_soil_and_bedrock()
             
     def _update_flux_topography_soil_and_bedrock(self):
-        """Calculate soil flux and update topography for a time period 'dt'.
-
-        Parameters
-        ----------
-
-        dt: float (time)
-            The imposed timestep.
-        """
+        """Calculate soil flux and update topography. """
         #Calculate flux
         self.flux[:] = -((self.K*self.slope
                        + (self.K/(self.slope_crit**2)) * np.power(self.slope, 3))
