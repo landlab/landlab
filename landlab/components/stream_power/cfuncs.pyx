@@ -4,7 +4,6 @@ cimport cython
 from scipy.optimize import newton
 #from libc.math cimport fabs
 
-
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
@@ -210,42 +209,63 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] gamma,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
     """
+    Erode node elevations for SmoothStreamPower eroder.  
+
+    Parameters
+    ----------
+    src_nodes : array_like
+        Ordered upstream node ids.
+    dst_nodes : array_like
+        Node ids of nodes receiving flow.
+    z : array_like
+        Node elevations.
+    alpha : array_like
+        Parameter = K A^m dt / L (nondimensional) at all nodes
+    gamma : array_like
+        Parameter = omega_c * dt (dimension of L, because omega_c [=] L/T)
+    delta : array_like
+        Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
     """
+    # define internal variables
     cdef unsigned int n_nodes = src_nodes.size
     cdef unsigned int src_id
     cdef unsigned int dst_id
     cdef unsigned int i
-
-    cdef double epilon
-
+    cdef double epsilon
     
-    
+    # loop through nodes from bottom of the stream network. 
     for i in range(len(src_nodes)):
+        
+        # get the node ids of the source and reciever. 
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
                     
+        # if the node doesn't drain to iteself and the source is above the 
+        # reciever, continue. 
         if src_id != dst_id and z[src_id] > z[dst_id]:
             
             # calculate epsilon
             epsilon = (alpha[src_id] * z[dst_id]
                        + gamma[src_id] + z[src_id])
             
-            # calculate new z
-            z[src_id] = newton(new_elev, z[src_id],
-                             fprime=new_elev_prime,
-                             args=(alpha[src_id],
-                                   z[dst_id],
-                                   gamma[src_id],
-                                   delta[src_id],
-                                   epsilon))  
+            # calculate new z using newton's method. 
+            z[src_id] = newton(smooth_stream_power_erosion_equation, 
+                               z[src_id],
+                               fprime=smooth_stream_power_erosion_prime,
+                               args=(alpha[src_id],
+                                     z[dst_id],
+                                     gamma[src_id],
+                                     delta[src_id],
+                                     epsilon)) 
+        # nothing needs to be returned as this method updates z. 
             
-def new_elev(DTYPE_FLOAT_t x, 
-             DTYPE_FLOAT_t a, 
-             DTYPE_FLOAT_t b, 
-             DTYPE_FLOAT_t c, 
-             DTYPE_FLOAT_t d, 
-             DTYPE_FLOAT_t e):
-    """Equation for elevation of a node at timestep t+1.
+def smooth_stream_power_erosion_equation(DTYPE_FLOAT_t x, 
+                                         DTYPE_FLOAT_t a, 
+                                         DTYPE_FLOAT_t b, 
+                                         DTYPE_FLOAT_t c, 
+                                         DTYPE_FLOAT_t d, 
+                                         DTYPE_FLOAT_t e):
+    """Equation for elevation of a node at timestep t+1 for SmoothStreamPower.
 
     Parameters
     ----------
@@ -269,14 +289,15 @@ def new_elev(DTYPE_FLOAT_t x,
     return f
 
 
-def new_elev_prime(DTYPE_FLOAT_t x, 
-                   DTYPE_FLOAT_t a, 
-                   DTYPE_FLOAT_t b, 
-                   DTYPE_FLOAT_t c, 
-                   DTYPE_FLOAT_t d,
-                   DTYPE_FLOAT_t e):
-    """Equation for elevation of a node at timestep t+1.
-
+def smooth_stream_power_erosion_prime(DTYPE_FLOAT_t x, 
+                                      DTYPE_FLOAT_t a, 
+                                      DTYPE_FLOAT_t b, 
+                                      DTYPE_FLOAT_t c, 
+                                      DTYPE_FLOAT_t d,
+                                      DTYPE_FLOAT_t e):
+    
+    """Derivative of the equation for elevation of a node for SmoothStreamPower.
+    
     Parameters
     ----------
     x : float
@@ -290,7 +311,7 @@ def new_elev_prime(DTYPE_FLOAT_t x,
     d : float
         Parameter = K A^m / (L * wc) [=] L^{-1} (so d * z [=] [-])
     e : n/a
-        Placeholder; not used
+        Placeholder; not used but must be input for solver.
     """
     cdef double f
 
