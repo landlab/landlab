@@ -209,9 +209,9 @@ def test_calculate_landslide_probability_lognormal_method():
         seed=6)
     ls_prob_lognormal.calculate_landslide_probability()
     np.testing.assert_almost_equal(
-        grid_2.at_node['landslide__probability_of_failure'][5], 0.)
+        grid_2.at_node['landslide__probability_of_failure'][5], 0.8)
     np.testing.assert_almost_equal(
-        grid_2.at_node['landslide__probability_of_failure'][9], 0.)
+        grid_2.at_node['landslide__probability_of_failure'][9], 0.4)
 
 
 def test_calculate_landslide_probability_lognormal_spatial_method():
@@ -247,6 +247,6 @@ def test_calculate_landslide_probability_lognormal_spatial_method():
         seed=7)
     ls_prob_lognormal_spatial.calculate_landslide_probability()
     np.testing.assert_almost_equal(
-        grid_3.at_node['landslide__probability_of_failure'][5], 0.)
+        grid_3.at_node['landslide__probability_of_failure'][5], 0.4)
     np.testing.assert_almost_equal(
-        grid_3.at_node['landslide__probability_of_failure'][9], 0.)
+        grid_3.at_node['landslide__probability_of_failure'][9], 0.29999999)

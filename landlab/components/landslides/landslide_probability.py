@@ -451,18 +451,22 @@ class LandslideProbability(Component):
 
         # generate distributions to sample from to provide input parameters
         # currently triangle distribution using mode, min, & max
-        self._a = self.grid.at_node[
-            'topographic__specific_contributing_area'][i]
-        self._theta = self.grid.at_node['topographic__slope'][i]
-        self._Tmode = self.grid.at_node['soil__transmissivity'][i]
-        self._Ksatmode = self.grid.at_node[
-            'soil__saturated_hydraulic_conductivity'][i]
-        self._Cmode = self.grid.at_node['soil__mode_total_cohesion'][i]
-        self._Cmin = self.grid.at_node['soil__minimum_total_cohesion'][i]
-        self._Cmax = self.grid.at_node['soil__maximum_total_cohesion'][i]
-        self._phi_mode = self.grid.at_node['soil__internal_friction_angle'][i]
-        self._rho = self.grid.at_node['soil__density'][i]
-        self._hs_mode = self.grid.at_node['soil__thickness'][i]
+        self._a = np.float32(self.grid.at_node[
+            'topographic__specific_contributing_area'][i])
+        self._theta = np.float32(self.grid.at_node['topographic__slope'][i])
+        self._Tmode = np.float32(self.grid.at_node['soil__transmissivity'][i])
+        self._Ksatmode = np.float32(self.grid.at_node[
+            'soil__saturated_hydraulic_conductivity'][i])
+        self._Cmode = np.float32(
+                self.grid.at_node['soil__mode_total_cohesion'][i])
+        self._Cmin = np.float32(
+                self.grid.at_node['soil__minimum_total_cohesion'][i])
+        self._Cmax = np.float32(
+                self.grid.at_node['soil__maximum_total_cohesion'][i])
+        self._phi_mode = np.float32(
+                self.grid.at_node['soil__internal_friction_angle'][i])
+        self._rho = np.float32(self.grid.at_node['soil__density'][i])
+        self._hs_mode = np.float32(self.grid.at_node['soil__thickness'][i])
 
         # recharge distribution based on distribution type
         if self.groundwater__recharge_distribution == 'data_driven_spatial':
@@ -521,7 +525,7 @@ class LandslideProbability(Component):
             if val >= 1.0:
                 countr = countr + 1  # number with RW values (>=1)
         # probability: No. high RW values/total No. of values (n)
-        self._soil__probability_of_saturation = countr/self.n
+        self._soil__probability_of_saturation = np.float32(countr)/self.n
         # Maximum Rel_wetness = 1.0        
         np.place(self._rel_wetness, self._rel_wetness > 1, 1.0)
         self._soil__mean_relative_wetness = np.mean(self._rel_wetness)
@@ -536,7 +540,7 @@ class LandslideProbability(Component):
             if val <= 1.0:
                 count = count + 1   # number with unstable FS values (<=1)
         # probability: No. unstable values/total No. of values (n)
-        self._landslide__probability_of_failure = np.array(count/self.n)
+        self._landslide__probability_of_failure = np.float32(count)/self.n
 
     def calculate_landslide_probability(self, **kwds):
 
