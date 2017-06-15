@@ -4,8 +4,8 @@ cimport cython
 from scipy.optimize import newton
 #from libc.math cimport fabs
 
-# as best as KRB can tell, the function _brentq is in c.
-# not sure what, if anything I need to do to 
+# suspect that the function _brentq is in c and thus this is the most effective
+# method for using the brentq method in cython.
 from scipy.optimize._zeros import _brentq as brentq
 
 DTYPE_FLOAT = np.double
@@ -204,6 +204,8 @@ def erode_with_link_alpha_fixthresh(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
 
             if next_z < z[src_id]:
                 z[src_id] = next_z
+
+
 def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                           np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
                                           np.ndarray[DTYPE_FLOAT_t, ndim=1] threshsxdt,
@@ -237,7 +239,6 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
     z : array_like
         Node elevations.
     """
-
     # define internally used variables.
     cdef unsigned int n_nodes = src_nodes.size
     cdef unsigned int src_id
@@ -338,7 +339,6 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
                                        np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
                                        DTYPE_FLOAT_t n,
                                        np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
-
     """Erode node elevations.
 
     The alpha value is given as
@@ -551,7 +551,32 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] gamma,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
-    """
+    """Erode node elevations using Newtons Method for smoothed Stream Power. "
+
+    This method takes three parameters, alpha, gamma, and delta. 
+
+    alpha = K A^m dt / L
+    
+    delta = K A^m / (L * wc)
+    
+    gamma = omega_c * dt 
+
+    This method will use the new_elev and new_elev_prime equations. 
+
+    Parameters
+    ----------
+    src_nodes : array_like
+        Ordered upstream node ids.
+    dst_nodes : array_like
+        Node ids of nodes receiving flow.
+    alpha : array_like
+        Erosion equation parameter. 
+    gamma : array_like
+        Erosion equation parameter. 
+    delta : array_like
+        Erosion equation parameter. 
+    z : array_like
+        Node elevations.
     """
     cdef unsigned int n_nodes = src_nodes.size
     cdef unsigned int src_id
@@ -580,6 +605,7 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                    gamma[src_id],
                                    delta[src_id],
                                    epsilon))
+
 
 def new_elev(DTYPE_FLOAT_t x,
              DTYPE_FLOAT_t a,
