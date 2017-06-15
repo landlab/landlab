@@ -16,6 +16,7 @@ from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 from .cfuncs import (brent_method_erode_fixed_threshold,
                      brent_method_erode_variable_threshold)
 
+
 class FastscapeEroder(Component):
     '''
     This class uses the Braun-Willett Fastscape approach to calculate the
@@ -244,8 +245,8 @@ class FastscapeEroder(Component):
                 self.K = self._grid.at_node[K_sp]
         elif type(K_sp) in (float, int):  # a float
             self.K = float(K_sp)
-        elif (type(K_sp) is numpy.ndarray
-              and len(K_sp) == self.grid.number_of_nodes):
+        elif (type(K_sp) is numpy.ndarray and
+              len(K_sp) == self.grid.number_of_nodes):
             self.K = K_sp
         else:
             raise TypeError('Supplied type of K_sp ' +
@@ -334,7 +335,7 @@ class FastscapeEroder(Component):
         else:
             K_here = self.K
         if rainfall_intensity_if_used is not None:
-            assert type(rainfall_intensity_if_used) in (float, numpy.float64, 
+            assert type(rainfall_intensity_if_used) in (float, numpy.float64,
                                                         int)
             r_i_here = float(rainfall_intensity_if_used)
         else:
@@ -348,13 +349,14 @@ class FastscapeEroder(Component):
         if self.K is None:  # "old style" setting of array
             assert K_if_used is not None
             self.K = K_if_used
-            
+
         n = float(self.n)
         numpy.power(self._grid['node']['drainage_area'], self.m,
                     out=self.A_to_the_m)
-        self.alpha[defined_flow_receivers] = r_i_here**self.m * K_here * dt * \
-            self.A_to_the_m[defined_flow_receivers] / (flow_link_lengths**self.n)
-        
+        self.alpha[defined_flow_receivers] = (
+            r_i_here**self.m * K_here * dt * self.A_to_the_m[
+                defined_flow_receivers] / (flow_link_lengths**self.n))
+
         flow_receivers = self._grid['node']['flow__receiver_node']
         alpha = self.alpha
 
@@ -365,15 +367,17 @@ class FastscapeEroder(Component):
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across depressions
             alpha[reversed_flow] = 0.
-        
+
         threshsdt = self.thresholds * dt
-        
+
         # solve using Brent's Method in Cython for Speed
         if type(self.thresholds) == float:
-            brent_method_erode_fixed_threshold(upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
+            brent_method_erode_fixed_threshold(
+                upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
         else:
-            brent_method_erode_variable_threshold(upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
-        
+            brent_method_erode_variable_threshold(
+                upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
+
         return self._grid
 
     def run_one_step(self, dt, flooded_nodes=None,

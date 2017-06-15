@@ -432,7 +432,7 @@ class StreamPowerEroder(Component):
             upstream_order_IDs = grid.at_node[order_upstream]
         else:
             upstream_order_IDs = self._grid['node'][order_upstream]
-            
+
         defined_flow_receivers = np.not_equal(self._grid['node'][
             link_mapping], UNDEFINED_INDEX)
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
@@ -478,16 +478,17 @@ class StreamPowerEroder(Component):
             A = grid.at_node[drainage_areas]
         else:
             A = drainage_areas
-            
+
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
             _K_unit_time[flooded_nodes] = 0.
 
         # Operate the main function:
         if self.use_W is False and self.use_Q is False:  # normal case
-            self.alpha[defined_flow_receivers] = _K_unit_time[
-                defined_flow_receivers]*dt*A[
-                    defined_flow_receivers]**self._m / (flow_link_lengths**self._n)
+            self.alpha[defined_flow_receivers] = (
+                _K_unit_time[defined_flow_receivers]*dt*A[
+                    defined_flow_receivers]**self._m /
+                (flow_link_lengths**self._n))
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
                 self.alpha[flooded_nodes] = 0.
@@ -495,9 +496,9 @@ class StreamPowerEroder(Component):
             # this check necessary if flow has been routed across
             # depressions
             self.alpha[reversed_flow] = 0.
-            
+
             threshdt = self.sp_crit * dt
-            
+
         elif self.use_W:
             if self._W is None:
                 try:
@@ -525,9 +526,9 @@ class StreamPowerEroder(Component):
                 # this check necessary if flow has been routed across
                 # depressions
                 self.alpha[reversed_flow] = 0.
-                
+
                 threshdt = self.sp_crit * dt
-                
+
             else:  # just W to be used
                 self.alpha[defined_flow_receivers] = (
                     _K_unit_time[defined_flow_receivers]*dt *
@@ -540,9 +541,9 @@ class StreamPowerEroder(Component):
                 # this check necessary if flow has been routed across
                 # depressions
                 self.alpha[reversed_flow] = 0.
-                
+
                 threshdt = self.sp_crit * dt
-              
+
         else:  # just use_Q
             if self._Q is None:
                 try:
@@ -565,14 +566,17 @@ class StreamPowerEroder(Component):
             self.alpha[reversed_flow] = 0.
 
             threshdt = self.sp_crit * dt
-           
+
         # solve using Brent's Method in Cython for Speed
         if type(threshdt) == float:
-            brent_method_erode_fixed_threshold(upstream_order_IDs, flow_receivers, threshdt, self.alpha, self._n, z)
+            brent_method_erode_fixed_threshold(
+                upstream_order_IDs, flow_receivers, threshdt, self.alpha,
+                self._n, z)
         else:
-            brent_method_erode_variable_threshold(upstream_order_IDs, flow_receivers, threshdt, self.alpha, self._n, z)
-        
-            
+            brent_method_erode_variable_threshold(
+                upstream_order_IDs, flow_receivers, threshdt, self.alpha,
+                self._n, z)
+
         return grid, z, self.stream_power_erosion
 
     def run_one_step(self, dt, flooded_nodes=None, **kwds):
