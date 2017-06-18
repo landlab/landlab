@@ -513,3 +513,53 @@ class HybridAlluvium(Component):
         #finally, determine topography by summing bedrock and soil
         self.topographic__elevation[:] = self.bedrock__elevation + \
             self.soil__depth 
+
+    def experimental_local_solver(self):
+        """Experimental solver that sweeps downstream, then upstream."""
+
+        self.qs_in = np.zeros(self.grid.number_of_nodes)            
+        self.qs_out = np.zeros(self.grid.number_of_nodes)            
+    
+        # (for efficiency, we'd want to pre-allocate qs_in and qs_out init,
+        # and then zero out qs_in here)
+        
+        # get references to useful fields
+        r = self.grid.at_node['flow__receiver_node']
+        node_stack = self.grid.at_node['flow__upstream_node_order']
+        S = self.grid.at_node['topographic__steepest_slope']
+        a = self.grid.at_node['drainage_area']
+        H = self.grid.at_node['soil__depth']
+        z = self.grid.at_node['topographic__elevation']
+
+        # Sweep downstream, accumulating qs_in and qs_out
+        nn = self.grid.number_of_nodes
+        for i in range(nn - 1, -1, -1):
+            src = node_stack[i]
+            dest = r[src]
+            if src != dest:
+                ehhstar = np.exp(-H[src] / self.H_star)
+                amsn = a[src]**0.5 * S[src]
+                Es = self.K_sed * amsn * (1.0 - ehhstar)
+                Er = self.K_br * amsn * ehhstar
+                E = Es + Er
+                print(str(i) + ' ' + str(Es) + ' ' + str(Er) + ' ' + str(E))
+                print(' A^1/2 S = ' + str(amsn))
+                eav = E * a[src] / self.v_s
+                elam = np.exp(-self.v_s * self.grid._dx * self.grid._dx
+                              / a[src])
+                print(' len scale=' + str(a[src]/(self.grid._dx*self.v_s)))
+                self.qs_out[src] = (self.qs_in[src] * elam
+                                    + (1.0 - elam) * eav)
+                print(' qs_in = ' + str(self.qs_in[src]))
+                print(' qs_out = ' + str(self.qs_out[src]))
+                self.qs_in[dest] += self.qs_out[src]
+
+        # Sweep upstream, finding the joint solution for alluvium and rock
+        # simultaneously using fsolve
+        print('\nUpstream loop here:')
+        for i in range(0, nn):
+            src = node_stack[i]
+            dest = r[src]
+            if src != dest:
+                print((src, dest))
+        
