@@ -519,7 +519,7 @@ def test_filling_alone():
     """
     lf.map_depressions(pits=None, reroute_flow=False)
     assert_array_equal(mg.at_node['flow__receiver_node'],
-                       np.zeros(49, dtype=float))
+                       XX*np.ones(49, dtype=int))
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
 
 

@@ -136,6 +136,34 @@ def _read_netcdf_structured_grid(root):
 
     return coordinates
 
+def _read_netcdf_raster_structured_grid(root):
+    """Get node coordinates for a structured grid written as a raster.
+
+    Parameters
+    ----------
+    root : netcdf_file
+        A NetCDF file.
+
+    Returns
+    -------
+    tuple of ndarray
+        Node coordinates for each dimension reshaped to match the shape
+        of the grid.
+    """
+    shape = _read_netcdf_grid_shape(root)
+    coordinates = _read_netcdf_coordinate_values(root)
+    units = _read_netcdf_coordinate_units(root)
+    
+    if len(coordinates) != 2:
+        assert ValueError('Rasters must have only two spatial coordinate dimensions')
+    else:
+        coordinates = np.meshgrid(coordinates[0], coordinates[1], indexing='ij')
+        
+    for coordinate in coordinates:
+        coordinate.shape = shape
+
+    return coordinates
+
 
 def _read_netcdf_structured_data(root):
     """Get data values for a structured grid.
@@ -247,8 +275,17 @@ def read_netcdf(nc_file, just_grid=False):
     except TypeError:
         root = nc4.Dataset(nc_file, 'r', format='NETCDF4')
 
-    node_coords = _read_netcdf_structured_grid(root)
-
+    try:
+        node_coords = _read_netcdf_structured_grid(root)
+    except ValueError:
+        if ((len(root.variables['x'].dimensions) == 1) and 
+            (len(root.variables['y'].dimensions) ==1)):
+            
+            node_coords = _read_netcdf_raster_structured_grid(root)
+        else:
+            assert ValueError('x and y dimensions must both either be 2D '
+                              '(nj, ni) or 1D (ni,) and (nj).')
+            
     assert len(node_coords) == 2
 
     spacing = _get_raster_spacing(node_coords)

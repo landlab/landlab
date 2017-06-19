@@ -198,6 +198,13 @@ class DepressionFinderAndRouter(Component):
                 self.num_nbrs = 4
             else:
                 self.num_nbrs = self.grid.links_at_node.shape[1]
+                
+        if ('flow__receiver_nodes' in self._grid.at_node.keys()):
+                raise ValueError('A route-to-multiple flow director has been '
+                                 'run on this grid. The depression finder is '
+                                 'not compatible with the grid anymore. Use '
+                                 'DepressionFinderAndRouter with reroute_flow='
+                                 'True only with route-to-one methods.')
         self._initialize()
 
     def _initialize(self, input_stream=None):
@@ -938,6 +945,7 @@ class DepressionFinderAndRouter(Component):
 
         if reroute_flow and ('flow__receiver_node' in
                              self._grid.at_node.keys()):
+            
             self.receivers = self._grid.at_node['flow__receiver_node']
             self.sinks = self._grid.at_node['flow__sink_flag']
             self.grads = self._grid.at_node['topographic__steepest_slope']
@@ -1249,7 +1257,6 @@ class DepressionFinderAndRouter(Component):
         areas[self._grid.closed_boundary_nodes] = 0.
 
         self.a, q, s = flow_accum_bw.flow_accumulation(self.receivers,
-                                                       np.where(self.sinks)[0],
                                                        node_cell_area=areas,
                                                        runoff_rate=Q_in)
 

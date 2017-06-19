@@ -74,6 +74,16 @@ class LinearDiffuser(Component):
         performed on a raster. 'on_diagonals' pretends that the "faces" of a
         cell with 8 links are represented by a stretched regular octagon set
         within the true cell.
+    deposit : {True, False}
+        Whether diffusive material can be deposited. True means that diffusive 
+        material will be deposited if the divergence of sediment flux is 
+        negative. False means that even when the divergence of sediment flux is 
+        negative, no material is deposited. (No deposition ever.) The False
+        case is a bit of a band-aid to account for cases when fluvial incision
+        likely removes any material that would be deposited. If one couples
+        fluvial detachment-limited incision with linear diffusion, the channels
+        will not reach the predicted analytical solution unless deposit is set
+        to False.
 
     Examples
     --------
@@ -158,7 +168,7 @@ class LinearDiffuser(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, linear_diffusivity=None, method='simple',
-                 **kwds):
+                 deposit=True, **kwds):
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
         assert method in ('simple', 'resolve_on_patches', 'on_diagonals')
@@ -202,7 +212,10 @@ class LinearDiffuser(Component):
         # *directionality* in the diffusivities.
         if self._use_patches:
             assert self._kd_on_links
-
+        # set _deposit flag to tell code whether or not diffusion can deposit.    
+        
+        self._deposit = deposit
+    
         # for component back compatibility (undocumented):
         # note component can NO LONGER do internal uplift, at all.
         # ###
@@ -533,6 +546,8 @@ class LinearDiffuser(Component):
 
             # Calculate the total rate of elevation change
             dzdt = - self.dqsds
+            if not self._deposit :
+                dzdt[np.where(dzdt>0)] = 0.
             # Update the elevations
             timestep = self.dt
             if i == (repeats):

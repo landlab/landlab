@@ -12,20 +12,21 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 # Modified to save data to grid directly, DEJH March 2014
 
 from __future__ import print_function
-
-import landlab
+#
+#import landlab
 import warnings
-from landlab.components.flow_routing import flow_direction_DN
-from landlab.components.flow_accum import flow_accum_bw
-from landlab import FieldError, Component
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+#from landlab.components.flow_director import flow_direction_DN
+#from landlab.components.flow_accum import flow_accum_bw
+#from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import ModelParameterDictionary
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_file_name_or_kwds
-import numpy
+#import numpy
+
+from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
 
 
-class FlowRouter(Component):
+class FlowRouter(FlowAccumulator):
 
     """Single-path (steepest direction) flow routing.
 
@@ -120,122 +121,58 @@ class FlowRouter(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
-        # We keep a local reference to the grid
+        """Initialize FlowDirector."""
+        
+        self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         self._grid = grid
-        self._bc_set_code = self.grid.bc_set_code
-        if method in ('D8', 'D4', None):
-            self.method = method
+        if 'method' in kwds:
+            warnings.warn("'method' should be set at initialization now. " +
+                          "Please update your code.", DeprecationWarning)
+            # raise NameError
+            if kwds['method'] not in ('D8', 'D4'):
+                raise ValueError('method not understood ({method})'.format(
+                    method=method))
+
+        if method == 'D4' or self._is_Voroni == True:
+            flow_director = 'Steepest'
         else:
-            raise AttributeError("method argument must be 'D8' or 'D4'")
+            flow_director = 'D8'
+        
+        super(FlowRouter, self).__init__(grid, 
+                                         surface = 'topographic__elevation',
+                                         flow_director=flow_director,
+                                         runoff_rate=runoff_rate)
 
-        # set up the grid type testing
-        self._is_raster = isinstance(self._grid, RasterModelGrid)
-        if not self._is_raster:
-            self.method = None
-
-        self.updated_boundary_conditions()
-
-        if runoff_rate is not None:
-            if type(runoff_rate) is str:
-                runoff_rate = grid.at_node[runoff_rate]
-            elif type(runoff_rate) in (float, int):
-                pass
-            else:
-                assert runoff_rate.size == grid.number_of_nodes
-        # test input variables are present:
-        grid.at_node['topographic__elevation']
-        try:
-            grid.at_node['water__unit_flux_in']
-        except FieldError:
-            if runoff_rate is None:
-                grid.add_ones('node', 'water__unit_flux_in', dtype=float)
-            else:
-                if type(runoff_rate) in (float, int):
-                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
-        else:
-            if runoff_rate is not None:
-                print ("FlowRouter found both the field " +
-                       "'water__unit_flux_in' and a provided float or " +
-                       "array for the runoff_rate argument. THE FIELD IS " +
-                       "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                if type(runoff_rate) in (float, int):
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
-
-        # perform a test (for politeness!) that the old name for the water_in
-        # field is not present:
-        try:
-            grid.at_node['water__discharge_in']
-        except FieldError:
-            pass
-        else:
-            warnings.warn("This component formerly took 'water__discharge" +
-                          "_in' as an input field. However, this field is " +
-                          "now named 'water__unit_flux_in'. You are still " +
-                          "using a field with the old name. Please update " +
-                          "your code if you intended the FlowRouter to use " +
-                          "that field.", DeprecationWarning)
-
-        # Keep track of the following variables:
-        #   - drainage area at each node
-        #   - receiver of each node
-        try:
-            self.drainage_area = grid.add_zeros('drainage_area', at='node',
-                                                dtype=float)
-        except FieldError:
-            self.drainage_area = grid.at_node['drainage_area']
-        try:
-            self.receiver = grid.add_zeros('flow__receiver_node', at='node',
-                                           dtype=int)
-        except FieldError:
-            self.receiver = grid.at_node['flow__receiver_node']
-        try:
-            self.steepest_slope = grid.add_zeros(
-                'topographic__steepest_slope', at='node', dtype=float)
-        except FieldError:
-            self.steepest_slope = grid.at_node['topographic__steepest_slope']
-        try:
-            self.discharges = grid.add_zeros('surface_water__discharge', at='node',
-                                             dtype=float)
-        except FieldError:
-            self.discharges = grid.at_node['surface_water__discharge']
-        try:
-            self.upstream_ordered_nodes = grid.add_zeros(
-                'flow__upstream_node_order', at='node', dtype=int)
-        except FieldError:
-            self.upstream_ordered_nodes = grid.at_node[
-                'flow__upstream_node_order']
-        try:
-            self.links_to_receiver = grid.add_zeros(
-                'flow__link_to_receiver_node', at='node', dtype=int)
-        except FieldError:
-            self.links_to_receiver = grid.at_node[
-                'flow__link_to_receiver_node']
-        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
-                       noclobber=False)
-
-    def updated_boundary_conditions(self):
+    def _test_for_method_change(self, **kwds):
+        """Provides backwards compatability for method keyword.
+        
+        The original flow router allowed the method to be specified as a 
+        keyword argument to run_one_step. Under the new flow accumulator 
+        framework this requires resetting which flow director is used. 
         """
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
-        """
-        # We'll also keep track of the active links; if raster, then these are
-        # the "D8" links; otherwise, it's just activelinks
-        if self._is_raster:
-            dal, d8t, d8h = self.grid._d8_active_links()
-            self._active_links = dal
-            self._activelink_tail = d8t
-            self._activelink_head = d8h
-            # needs modifying in the loop if D4 (now done)
-        else:
-            self._active_links = self.grid.active_links
-            self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
-            self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
-
+        
+        # this retained for back compatibility - method now set in __init__.
+        if 'method' in kwds:
+            
+            method = kwds.pop('method')
+            warnings.warn("'method' should be set at initialization now. " +
+                          "Please update your code.", DeprecationWarning)
+            # raise NameError
+            if method not in ('D8', 'D4'):
+                raise ValueError('method not understood ({method})'.format(
+                    method=method))
+            else:
+                self.method = method
+            if not self._is_raster:
+                self.method = None
+                
+            if method == 'D4' or self._is_Voroni == True:
+                flow_director = 'Steepest'
+            else:
+                flow_director = 'D8'
+                
+            self._add_director(flow_director)
+        
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
 
@@ -312,81 +249,8 @@ class FlowRouter(Component):
                    0.,     0.,     0.,     0.])
 
         """
-        # this retained for back compatibility - method now set in __init__.
-        if 'method' in kwds:
-            warnings.warn("'method' should be set at initialization now. " +
-                          "Please update your code.", DeprecationWarning)
-            # raise NameError
-            if kwds['method'] not in ('D8', 'D4'):
-                raise ValueError('method not understood ({method})'.format(
-                    method=method))
-            else:
-                self.method = kwds['method']
-            if not self._is_raster:
-                self.method = None
-
-        if self._bc_set_code != self.grid.bc_set_code:
-            self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
-
-        # We assume that elevations are provided in a field called
-        # 'topographic__elevation'
-        elevs = self._grid['node']['topographic__elevation']
-
-        node_cell_area = self._grid.cell_area_at_node.copy()
-        node_cell_area[self._grid.closed_boundary_nodes] = 0.
-        # closed cells can't contribute
-
-        # Calculate the downhill-positive slopes at the d8 active links
-        if self.method == 'D8':
-            link_slope = - self._grid._calculate_gradients_at_d8_active_links(
-                elevs)
-        else:
-            link_slope = - self._grid.calc_grad_of_active_link(
-                elevs)
-
-        # Find the baselevel nodes
-        (baselevel_nodes, ) = numpy.where(
-            numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
-
-        # Calculate flow directions
-        if self.method == 'D4':
-            num_d4_active = self._grid.number_of_active_links  # only d4
-            receiver, steepest_slope, sink, recvr_link = \
-                flow_direction_DN.flow_directions(elevs, self._active_links,
-                                         self._activelink_tail[:num_d4_active],
-                                         self._activelink_head[:num_d4_active],
-                                         link_slope,
-                                         grid=self._grid,
-                                         baselevel_nodes=baselevel_nodes)
-        else:  # Voronoi or D8
-            receiver, steepest_slope, sink, recvr_link = \
-                flow_direction_DN.flow_directions(elevs, self._active_links,
-                                     self._activelink_tail,
-                                     self._activelink_head, link_slope,
-                                     grid=self._grid,
-                                     baselevel_nodes=baselevel_nodes)
-
-        # TODO: either need a way to calculate and return the *length* of the
-        # flow links, OR the caller has to handle the raster / non-raster case.
-
-        # Calculate drainage area, discharge, and ...
-        a, q, s = flow_accum_bw.flow_accumulation(
-            receiver, sink, node_cell_area=node_cell_area,
-            runoff_rate=self._grid.at_node['water__unit_flux_in'])
-
-        # added DEJH March 2014:
-        # store the generated data in the grid
-        self._grid['node']['drainage_area'][:] = a
-        self._grid['node']['flow__receiver_node'][:] = receiver
-        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['surface_water__discharge'][:] = q
-        self._grid['node']['flow__upstream_node_order'][:] = s
-        self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
-        self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
-                                                                    dtype=bool)
-        self._grid['node']['flow__sink_flag'][sink] = True
+        self._test_for_method_change(**kwds)
+        self.accumulate_flow()
 
         return self._grid
 
@@ -429,7 +293,59 @@ class FlowRouter(Component):
                 0.,  1.,  1.,  0.,
                 0.,  0.,  0.,  0.])
 
-        Now let's change the cell area (100.) and the runoff rates:
+        The default behavior of FlowRouter is to use the D8 method. Next we 
+        will examine the alternative case of the D4 method that does not 
+        consider diagonal links bewtween nodes. 
+
+        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> elev = np.array([0.,  0.,  0., 0.,
+        ...                  0., 21., 10., 0.,
+        ...                  0., 31., 20., 0.,
+        ...                  0., 32., 30., 0.,
+        ...                  0.,  0.,  0., 0.])
+        >>> _ = mg.add_field('node','topographic__elevation', elev)
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fr = FlowRouter(mg, method = 'D4')
+        >>> fr.run_one_step()
+        >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  3,
+                4,  1,  2,  7,
+                8, 10,  6, 11,
+               12, 14, 10, 15,
+               16, 17, 18, 19])
+        >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.,  1.,  5.,  0.,
+                0.,  1.,  5.,  0.,
+                0.,  1.,  4.,  0.,
+                0.,  1.,  2.,  0.,
+                0.,  0.,  0.,  0.])
+        
+        The flow router can also work on irregular grids.  For the example we 
+        will use a Hexagonal Model Grid, a special type of Voroni Grid that has 
+        regularly spaced hexagonal cells. We will also set the dx spacing such 
+        that each cell has an area of one. 
+        
+        >>> from landlab import HexModelGrid
+        >>> dx=(2./(3.**0.5))**0.5
+        >>> mg = HexModelGrid(5,3, dx)
+        >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
+        >>> fr = FlowRouter(mg)
+        >>> fr.run_one_step()
+        >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  1,  2,  
+                3,  0,  1,  6,  
+                7,  3,  4,  5, 11, 
+               12,  8,  9, 15, 
+               16, 17, 18])
+        >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 3.,  2.,  0., 
+                2.,  3.,  2.,  0.,  
+                0.,  2.,  2.,  1.,  0.,  
+                0., 1.,  1.,  0.,  
+                0.,  0.,  0.])
+
+        Now let's return to the first example and change the cell area (100.) 
+        and the runoff rates:
 
         >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
 
@@ -449,7 +365,9 @@ class FlowRouter(Component):
                    0.,  1300.,  1400.,     0.,
                    0.,     0.,     0.,     0.])
         """
-        self.route_flow(**kwds)
+        
+        self._test_for_method_change(**kwds)
+        self.accumulate_flow()
 
     @property
     def node_drainage_area(self):

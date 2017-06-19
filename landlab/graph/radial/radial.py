@@ -44,8 +44,8 @@ class RadialGraph(VoronoiGraph):
     >>> import numpy as np
     >>> from landlab.graph import RadialGraph
     >>> graph = RadialGraph((1, 4))
-    >>> graph.number_of_nodes
-    5
+    >>> graph.number_of_nodes == 5
+    True
     >>> graph.y_of_node
     array([-1.,  0.,  0.,  0.,  1.])
     >>> graph.x_of_node
