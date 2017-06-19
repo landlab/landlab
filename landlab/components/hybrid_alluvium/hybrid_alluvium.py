@@ -1,5 +1,6 @@
 import numpy as np
 from landlab import Component
+from .cfuncs import calculate_qs_in
 
 class HybridAlluvium(Component):
     """
@@ -179,18 +180,18 @@ class HybridAlluvium(Component):
         Now we test to see if soil depth and topography are right:
         
         >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.50003494,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
-               0.5       ,  0.11887907,  0.16197065,  0.21999913,  0.5       ,
-               0.5       ,  0.1619594 ,  0.1504285 ,  0.21048366,  0.5       ,
-               0.5       ,  0.21974902,  0.21047882,  0.21695828,  0.5       ,
-               0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
+        array([ 0.50017567,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
+            0.5       ,  0.31533263,  0.43666479,  0.48101243,  0.5       ,
+            0.5       ,  0.43665641,  0.43665331,  0.48040033,  0.5       ,
+            0.5       ,  0.48085485,  0.48039718,  0.47769967,  0.5       ,
+            0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
         
         >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.52313972,  2.03606698,  3.0727653 ,  4.01126678,  5.06077707,
-               2.08157495,  0.54749666,  0.59765511,  0.66640713,  6.00969486,
-               3.04008677,  0.5976575 ,  0.58613448,  0.65805841,  7.02641123,
-               4.05874171,  0.66646161,  0.65805951,  0.68238831,  8.05334077,
-               5.05922478,  6.0409473 ,  7.07035008,  8.0038935 ,  9.01034357])
+        array([ 0.52328045,  2.03606698,  3.0727653 ,  4.01126678,  5.06077707,
+            2.08157495,  0.7439511 ,  0.87235011,  0.92742108,  6.00969486,
+            3.04008677,  0.87235537,  0.87236022,  0.92797578,  7.02641123,
+            4.05874171,  0.9275681 ,  0.92797857,  0.94313036,  8.05334077,
+            5.05922478,  6.0409473 ,  7.07035008,  8.0038935 ,  9.01034357])
         """
         #assign class variables to grid fields; create necessary fields
         self.flow_receivers = grid.at_node['flow__receiver_node']
@@ -225,14 +226,10 @@ class HybridAlluvium(Component):
         #store other constants
         self.m_sp = float(m_sp)
         self.n_sp = float(n_sp)
-        self.K_sed = float(K_sed)
-        self.K_br = float(K_br)
         self.F_f = float(F_f)
         self.phi = float(phi)
         self.H_star = float(H_star)
         self.v_s = float(v_s)
-        self.sp_crit_sed = float(sp_crit_sed)
-        self.sp_crit_br = float(sp_crit_br)
         
         #K's and critical values can be floats, grid fields, or arrays
         if type(K_sed) is str:
@@ -283,9 +280,9 @@ class HybridAlluvium(Component):
                                 
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
-        self.discharge_method = str(discharge_method) 
-        self.area_field = str(area_field)
-        self.discharge_field = str(discharge_field)
+        self.discharge_method = discharge_method
+        self.area_field = area_field
+        self.discharge_field = discharge_field
         
         if self.method == 'simple_stream_power':
             self.simple_stream_power()
@@ -300,9 +297,11 @@ class HybridAlluvium(Component):
     def simple_stream_power(self):
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-        elif self.method == 'simple_stream_power' and self.discharge_method is not None: 
+        elif self.method == 'simple_stream_power' and self.discharge_method is not None:
+            self.discharge_method = str(self.discharge_method) 
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
+                    self.area_field = str(self.area_field)
                     if type(self.area_field) is str:
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
@@ -313,7 +312,8 @@ class HybridAlluvium(Component):
                                 'not nnodes long!')  
                 self.q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                if self.discharge_field is not None:                    
+                if self.discharge_field is not None:
+                    self.discharge_field = str(self.discharge_field)
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -335,8 +335,10 @@ class HybridAlluvium(Component):
         if self.method == 'threshold_stream_power' and self.discharge_method == None:
             self.q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
+            self.discharge_method = str(self.discharge_method) 
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
+                    self.area_field = str(self.area_field)
                     if type(self.area_field) is str:
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
@@ -347,7 +349,8 @@ class HybridAlluvium(Component):
                                 'not nnodes long!')  
                 self.q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                if self.discharge_field is not None:                    
+                if self.discharge_field is not None:
+                    self.discharge_field = str(str.discharge_field)
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -374,8 +377,10 @@ class HybridAlluvium(Component):
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
         elif self.discharge_method is not None:
+            self.discharge_method = str(self.discharge_method) 
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
+                    self.area_field = str(self.area_field)
                     if type(self.area_field) is str:
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
@@ -386,7 +391,8 @@ class HybridAlluvium(Component):
                                 'not nnodes long!')  
                 self.q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                if self.discharge_field is not None:                    
+                if self.discharge_field is not None:
+                    self.discharge_field = str(self.discharge_field)
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -429,20 +435,22 @@ class HybridAlluvium(Component):
         self.qs_in = np.zeros(self.grid.number_of_nodes)            
             
         #iterate top to bottom through the stack, calculate qs
-        for j in np.flipud(self.stack):
-            if self.q[j] == 0:
-                self.qs[j] = 0
-            else:
-                self.qs[j] = (((self.Es[j]) + (1-self.F_f) * self.Er[j]) / \
-                    (self.v_s / self.q[j])) * (1.0 - \
-                    np.exp(-self.link_lengths[j] * self.v_s / self.q[j])) + \
-                    (self.qs_in[j] * np.exp(-self.link_lengths[j] * \
-                    self.v_s / self.q[j]))
-            self.qs_in[self.flow_receivers[j]] += self.qs[j]
+        # cythonized version of calculating qs_in
+        calculate_qs_in(np.flipud(self.stack),
+                        self.flow_receivers,
+                        self.link_lengths,
+                        self.q,
+                        self.qs,
+                        self.qs_in,
+                        self.Es,
+                        self.Er,
+                        self.v_s,
+                        self.F_f)
+    
         deposition_pertime = np.zeros(self.grid.number_of_nodes)
         deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
-            (self.v_s / self.q[self.q > 0]))
-        
+                                         (self.v_s / self.q[self.q > 0]))
+
         #now, the analytical solution to soil thickness in time:
         #need to distinguish D=kqS from all other cases to save from blowup!
         
