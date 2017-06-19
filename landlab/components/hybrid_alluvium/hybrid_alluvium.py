@@ -514,8 +514,17 @@ class HybridAlluvium(Component):
         self.topographic__elevation[:] = self.bedrock__elevation + \
             self.soil__depth 
 
-    def experimental_local_solver(self):
+    def rock_alluv_func(x, H0, d, s, a, etad, Hstar, R0, r):
+        """Functions of x0 (H) and x1 (R) that should evaluate to zero."""
+
+        f1 = (((x[0] - H0) - d) + s * a * ((x[0] + x[1]) - etad)
+             * (1.0 - np.exp( -x[0] / Hstar)))
+        f2 = (x[1] - R0) + r * a * ((x[1] + x[0]) - etad) * np.exp( -x[0] / Hstar)
+        return [f1, f2]
+
+    def experimental_local_solver(self, dt=1.0):
         """Experimental solver that sweeps downstream, then upstream."""
+        from scipy.optimize import fsolve
 
         self.qs_in = np.zeros(self.grid.number_of_nodes)            
         self.qs_out = np.zeros(self.grid.number_of_nodes)            
@@ -562,4 +571,15 @@ class HybridAlluvium(Component):
             dest = r[src]
             if src != dest:
                 print((src, dest))
+
+                d = (self.v_s * self.qs_in[src] * dt) / a[src]
+                aa = (self.a[src] ** 0.5) * dt / self.grid._dx
+                R0 = z[src] - H[src]
+
+                print(' old H: ' + str(H[src]) + ' old R: ' + str(R0) + ' old z: ' + str(z[src]))
+                x0 = np.array([H[src], R0])
+                (H, R) = fsolve(self.rock_alluv_func, x0,
+                                args=(H[src], d, self.K_sed, aa, z[dest],
+                                      self.H_star, R0, self.K_br))
+                print(' new H: ' + str(H) + ' new R: ' + str(R) + ' new z: ' + str(R+H))
         
