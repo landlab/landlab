@@ -2,6 +2,15 @@ import numpy as np
 from landlab import Component
 from .cfuncs import calculate_qs_in
 
+def rock_alluv_func(x, H0, d, s, a, etad, Hstar, R0, r):
+    """Functions of x0 (H) and x1 (R) that should evaluate to zero."""
+
+    f1 = (((x[0] - H0) - d) + s * a * ((x[0] + x[1]) - etad)
+             * (1.0 - np.exp( -x[0] / Hstar)))
+    f2 = (x[1] - R0) + r * a * ((x[1] + x[0]) - etad) * np.exp( -x[0] / Hstar)
+    return [f1, f2]
+
+
 class HybridAlluvium(Component):
     """
     Stream Power with Alluvium Conservation and Entrainment (SPACE)
@@ -514,14 +523,6 @@ class HybridAlluvium(Component):
         self.topographic__elevation[:] = self.bedrock__elevation + \
             self.soil__depth 
 
-    def rock_alluv_func(x, H0, d, s, a, etad, Hstar, R0, r):
-        """Functions of x0 (H) and x1 (R) that should evaluate to zero."""
-
-        f1 = (((x[0] - H0) - d) + s * a * ((x[0] + x[1]) - etad)
-             * (1.0 - np.exp( -x[0] / Hstar)))
-        f2 = (x[1] - R0) + r * a * ((x[1] + x[0]) - etad) * np.exp( -x[0] / Hstar)
-        return [f1, f2]
-
     def experimental_local_solver(self, dt=1.0):
         """Experimental solver that sweeps downstream, then upstream."""
         from scipy.optimize import fsolve
@@ -535,19 +536,21 @@ class HybridAlluvium(Component):
         # get references to useful fields
         r = self.grid.at_node['flow__receiver_node']
         node_stack = self.grid.at_node['flow__upstream_node_order']
-        S = self.grid.at_node['topographic__steepest_slope']
+        #S = self.grid.at_node['topographic__steepest_slope']
         a = self.grid.at_node['drainage_area']
         H = self.grid.at_node['soil__depth']
         z = self.grid.at_node['topographic__elevation']
 
         # Sweep downstream, accumulating qs_in and qs_out
+        print('\nDownstream loop:')
         nn = self.grid.number_of_nodes
         for i in range(nn - 1, -1, -1):
             src = node_stack[i]
             dest = r[src]
             if src != dest:
                 ehhstar = np.exp(-H[src] / self.H_star)
-                amsn = a[src]**0.5 * S[src]
+                S = (z[src] - z[dest]) / self.grid._dx
+                amsn = a[src]**0.5 * S
                 Es = self.K_sed * amsn * (1.0 - ehhstar)
                 Er = self.K_br * amsn * ehhstar
                 E = Es + Er
@@ -563,6 +566,10 @@ class HybridAlluvium(Component):
                 print(' qs_out = ' + str(self.qs_out[src]))
                 self.qs_in[dest] += self.qs_out[src]
 
+        # for testing only
+        delz = np.zeros(self.grid.number_of_nodes)
+        qs_actual = np.zeros(self.grid.number_of_nodes)
+           
         # Sweep upstream, finding the joint solution for alluvium and rock
         # simultaneously using fsolve
         print('\nUpstream loop here:')
@@ -573,13 +580,31 @@ class HybridAlluvium(Component):
                 print((src, dest))
 
                 d = (self.v_s * self.qs_in[src] * dt) / a[src]
-                aa = (self.a[src] ** 0.5) * dt / self.grid._dx
+                aa = (a[src] ** 0.5) * dt / self.grid._dx
                 R0 = z[src] - H[src]
 
                 print(' old H: ' + str(H[src]) + ' old R: ' + str(R0) + ' old z: ' + str(z[src]))
                 x0 = np.array([H[src], R0])
-                (H, R) = fsolve(self.rock_alluv_func, x0,
-                                args=(H[src], d, self.K_sed, aa, z[dest],
-                                      self.H_star, R0, self.K_br))
-                print(' new H: ' + str(H) + ' new R: ' + str(R) + ' new z: ' + str(R+H))
-        
+                (Hnew, Rnew) = fsolve(rock_alluv_func, x0,
+                                      args=(H[src], d, self.K_sed, aa, z[dest],
+                                            self.H_star, R0, self.K_br))
+                Hnew = max(Hnew, 0.0)
+                print(' new H: ' + str(Hnew) + ' new R: ' + str(Rnew) + ' new z: ' + str(Rnew+Hnew))
+                delz[src] = (Hnew + Rnew) - z[src]
+                H[src] = Hnew
+                z[src] = Hnew + Rnew
+                
+
+        # Now, for testing, check mass balance
+        print('\nChecking mass balance:')
+        for i in range(nn - 1, -1, -1):
+            src = node_stack[i]
+            dest = r[src]
+            if src != dest:
+                qs_actual[src] -= delz[src]
+                qs_actual[dest] += qs_actual[src]
+                print(str(i) + ' qs_act = ' + str(qs_actual[src]))
+                print(' vs ' + str(self.qs_out[src]))
+                print(' delz ' + str(delz[src]))
+                
+
