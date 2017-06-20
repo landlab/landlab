@@ -30,6 +30,7 @@ from .depth_dependent_diffusion import DepthDependentDiffuser
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 from .hybrid_alluvium import HybridAlluvium
+from .transport_length_diff import TransportLengthHillslopeDiffuser
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
@@ -46,7 +47,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser, DepthSlopeProductErosion,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD, FlowDirectorDINF,
-              FlowAccumulator, HybridAlluvium
+              FlowAccumulator, HybridAlluvium, TransportLengthHillslopeDiffuser
               ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
