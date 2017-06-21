@@ -1,5 +1,6 @@
 import numpy as np
 from landlab import Component
+from .cfuncs import calculate_qs_in
 
 class HybridAlluvium(Component):
     """
@@ -225,14 +226,10 @@ class HybridAlluvium(Component):
         #store other constants
         self.m_sp = float(m_sp)
         self.n_sp = float(n_sp)
-        self.K_sed = float(K_sed)
-        self.K_br = float(K_br)
         self.F_f = float(F_f)
         self.phi = float(phi)
         self.H_star = float(H_star)
         self.v_s = float(v_s)
-        self.sp_crit_sed = float(sp_crit_sed)
-        self.sp_crit_br = float(sp_crit_br)
         
         #K's and critical values can be floats, grid fields, or arrays
         if type(K_sed) is str:
@@ -283,10 +280,19 @@ class HybridAlluvium(Component):
                                 
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
-        self.discharge_method = str(discharge_method)
-        self.area_field = str(area_field)
-        self.discharge_field = str(discharge_field)
-        
+        if discharge_method is not None:
+            self.discharge_method = str(discharge_method)
+        else:
+            self.discharge_method = None
+        if area_field is not None:
+            self.area_field = str(area_field)
+        else:
+            self.area_field = None
+        if discharge_field is not None:
+            self.discharge_field = str(discharge_field)
+        else:
+            self.discharge_field = None
+            
         if self.method == 'simple_stream_power':
             self.simple_stream_power()
         elif self.method == 'threshold_stream_power':
@@ -434,22 +440,22 @@ class HybridAlluvium(Component):
             
         self.qs_in[:] = 0# np.zeros(self.grid.number_of_nodes)            
         #iterate top to bottom through the stack, calculate qs
-        for j in np.flipud(self.stack):
-            if self.q[j] == 0:
-                self.qs[j] = 0
-            else:
-                self.qs[j] = (self.qs_in[j] + self.Es[j] * \
-                    self.grid.node_spacing**2)\
-                    / (1 + (self.v_s * self.grid.node_spacing**2 \
-                    / (self.q[j])))
-                self.qs_in[self.flow_receivers[j]] += ((self.qs_in[j] + \
-                    self.Es[j] * self.grid.node_spacing**2)\
-                    / (1 + (self.v_s * self.grid.node_spacing**2 \
-                    / (self.q[j]))))
-            
+        # cythonized version of calculating qs_in
+        calculate_qs_in(np.flipud(self.stack),
+                        self.flow_receivers,
+                        self.grid.node_spacing,
+                        self.q,
+                        self.qs,
+                        self.qs_in,
+                        self.Es,
+                        self.Er,
+                        self.v_s,
+                        self.F_f)
+    
         deposition_pertime = np.zeros(self.grid.number_of_nodes)
         deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
-            (self.v_s / self.q[self.q > 0]))
+                                         (self.v_s / self.q[self.q > 0]))
+
         #now, the analytical solution to soil thickness in time:
         #need to distinguish D=kqS from all other cases to save from blowup!
         

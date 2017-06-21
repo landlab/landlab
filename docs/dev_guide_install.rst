@@ -200,7 +200,8 @@ interpreter::
   >>> landlab.test()
 
 This will run a series of tests and print our the result of each test. If
-there are any failures, you can report that at the `landlab issue tracker <https://github.com/landlab/landlab/issues>`_.
+there are any failures, you can report that at the `landlab issue tracker <https://github.com/landlab/landlab/issues>`_. 
+Note that these tests will fail if you try to run them in a spyder iPython console. They should not fail if you start Python (or iPython) from a command line. 
 
 
 Coding Style
