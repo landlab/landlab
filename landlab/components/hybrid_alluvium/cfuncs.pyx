@@ -43,7 +43,7 @@ np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
         # in an upstream to downstream loop, and cannot be vectorized.   
                              
         if q[node_id] > 0:
-            qs[node_id] = (qs_in[node_id] + Es[node_id] * node_spacing**2) / \
+            qs[node_id] = (qs_in[node_id] + (Es[node_id] + (1.0 - F_f) * (E_r)) * node_spacing**2)
                             (1.0 + (v_s * node_spacing**2 / (q[node_id])))
         
             # finally, add this nodes qs to recieiving nodes qs_in.
