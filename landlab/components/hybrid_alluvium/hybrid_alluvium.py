@@ -556,12 +556,17 @@ class HybridAlluvium(Component):
                 E = Es + Er
                 print(str(i) + ' ' + str(Es) + ' ' + str(Er) + ' ' + str(E))
                 print(' A^1/2 S = ' + str(amsn))
-                eav = E * a[src] / self.v_s
-                elam = np.exp(-self.v_s * self.grid._dx * self.grid._dx
-                              / a[src])
+                #eav = E * a[src] / self.v_s
+                #elam = np.exp(-self.v_s * self.grid._dx * self.grid._dx
+                #              / a[src])
                 print(' len scale=' + str(a[src]/(self.grid._dx*self.v_s)))
-                self.qs_out[src] = (self.qs_in[src] * elam
-                                    + (1.0 - elam) * eav)
+                #self.qs_out[src] = (self.qs_in[src] * elam
+                #                    + (1.0 - elam) * eav)
+                
+                # alternative version:
+                denom = 1.0 + self.v_s * self.grid._dx**2 / (2.0 * a[src])
+                self.qs_out[src] = (self.qs_in[src] + E) / denom
+                
                 print(' qs_in = ' + str(self.qs_in[src]))
                 print(' qs_out = ' + str(self.qs_out[src]))
                 self.qs_in[dest] += self.qs_out[src]
