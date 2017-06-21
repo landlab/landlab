@@ -318,13 +318,15 @@ class HybridAlluvium(Component):
                         raise TypeError('Supplied type of area_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
-                self.q[:] = np.power(self.drainage_area, self.m_sp)
+                self.lil_q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
+                        self.lil_q[:] = np.power(self.q, self.m_sp)
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
                         self.q[:] = np.array(self.discharge_field)
+                        self.lil_q[:] = np.power(self.q, self.m_sp)
                     else:
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
@@ -354,13 +356,15 @@ class HybridAlluvium(Component):
                         raise TypeError('Supplied type of area_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
-                self.q[:] = np.power(self.drainage_area, self.m_sp)
+                self.lil_q[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
+                        self.lil_q[:] = np.power(self.q, self.m_sp)
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
                         self.q[:] = np.array(self.discharge_field)
+                        self.lil_q[:] = np.power(self.q, self.m_sp)
                     else:
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
@@ -380,6 +384,7 @@ class HybridAlluvium(Component):
         self.br_erosion_term = omega_br - self.sp_crit_br * \
             (1 - np.exp(-omega_br / self.sp_crit_br))
     def stochastic_hydrology(self):
+        self.lil_q = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
         elif self.discharge_method is not None:
@@ -393,16 +398,16 @@ class HybridAlluvium(Component):
                         raise TypeError('Supplied type of area_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
-                self.lil_q = np.zeros(len(self.grid.at_node['drainage_area']))
+                #self.q stays as just srface_water__discharge b/c that's A*r
                 self.lil_q[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
                     if type(self.discharge_field) is str:
-                        self.lil_q = np.zeros(len(self.grid.at_node['drainage_area']))
-                        self.lil_q[:] = self._grid.at_node[self.discharge_field]
+                        self.q[:] = self._grid.at_node[self.discharge_field]
+                        self.lil_q[:] = np.power(self.q, self.m_sp)
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
-                        self.lil_q = np.zeros(len(self.grid.at_node['drainage_area']))
-                        self.lil_q[:] = np.array(self.discharge_field)
+                        self.q[:] = np.array(self.discharge_field)
+                        self.lil_q[:] = np.power(self.q, self.m_sp)
                     else:
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
