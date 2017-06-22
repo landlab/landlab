@@ -30,11 +30,12 @@ from .depth_dependent_diffusion import DepthDependentDiffuser
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 from .hybrid_alluvium import HybridAlluvium
+from .landslides import LandslideProbability
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
-	      KinwaveImplicitOverlandFlow,
+              KinwaveImplicitOverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller, 
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
@@ -45,8 +46,8 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser, DepthSlopeProductErosion,
-              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD, FlowDirectorDINF,
-              FlowAccumulator, HybridAlluvium
-              ]
+              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
+              FlowDirectorDINF, FlowAccumulator, HybridAlluvium,
+              LandslideProbability, DepthDependentCubicDiffuser]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
