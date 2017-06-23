@@ -20,12 +20,235 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
+from __future__ import print_function
+
+import os
+import sys
+import textwrap
+import re
 
 import numpy as np
-
+import six
 
 
 SIZEOF_INT = np.dtype(np.int).itemsize
+
+
+def split_paragraphs(msg):
+    """Split text into paragraphs.
+
+    Split a block of text into paragraphs. A paragraph is
+    defined as adjacent new-line characters (possibly separated
+    by some whitespace).
+
+    Parameters
+    ----------
+    msg : str
+        Text to split into paragraphs.
+    
+    Returns
+    -------
+    list of str
+        List of paragraphs.
+
+    Examples
+    --------
+    >>> from landlab.core.utils import split_paragraphs
+    >>> text = '''
+    ... Pharetra pharetra massa massa ultricies mi quis hendrerit.
+    ...
+    ... Dictumst vestibulum rhoncus est pellentesque.
+    ... '''
+    >>> split_paragraphs(text) #doctest: +NORMALIZE_WHITESPACE
+    ['Pharetra pharetra massa massa ultricies mi quis hendrerit.',
+     'Dictumst vestibulum rhoncus est pellentesque.']
+
+    >>> text = '''
+    ... Pharetra pharetra massa massa ultricies mi quis hendrerit.
+    ... Dictumst vestibulum rhoncus est pellentesque.
+    ... '''
+    >>> len(split_paragraphs(text))
+    1
+    """
+    pattern = os.linesep + '\s*' + os.linesep
+    return re.sub(pattern, os.linesep * 2, msg.strip()).split(os.linesep * 2)
+
+
+def format_message(msg, header=None, footer=None):
+    """Format a message, landlab-style.
+
+    Create a nicely formatted message that splits paragraphs,
+    dedents paragraphs, and wraps text at 70 characters.
+    Optionally, add a header and footer to the resulting message.
+
+
+    Parameters
+    ----------
+    msg : str
+        The message to be formatted.
+    header : str or list of str, optional
+        String to add before *msg*.
+    footer : str or list of str, optional
+        String to add after *msg*.
+
+    Returns
+    -------
+    str
+        The formatted message.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.core.utils import format_message
+    >>> text = '''
+    ... Lorem ipsum dolor sit amet, consectetur
+    ... adipiscing elit, sed do eiusmod tempor
+    ... incididunt ut labore et dolore magna aliqua.
+    ...
+    ... Pharetra pharetra massa massa ultricies mi
+    ... quis hendrerit.
+    ...
+    ... Dictumst vestibulum rhoncus est pellentesque.
+    ... Sed viverra tellus in hac habitasse platea
+    ... dictumst vestibulum rhoncus.'''
+    >>> print(format_message(text))
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+    eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    <BLANKLINE>
+    Pharetra pharetra massa massa ultricies mi quis hendrerit.
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in
+    hac habitasse platea dictumst vestibulum rhoncus.
+    """
+    if isinstance(header, six.string_types):
+        header = [header]
+    header = header or []
+
+    if isinstance(footer, six.string_types):
+        footer = [footer]
+    footer = footer or []
+
+    paragraphs = header
+    if msg is not None:
+        for paragraph in split_paragraphs(msg.strip()):
+            paragraphs.append(textwrap.fill(textwrap.dedent(paragraph)))
+    paragraphs += footer
+
+    return (os.linesep * 2).join(paragraphs)
+
+
+def warning_message(msg=None, **kwds):
+    """Create a warning message, landlab-style.
+
+    Parameters
+    ----------
+    msg : str, optional
+        Warning message.
+
+    Returns
+    -------
+    str
+        The formatted warning message.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.core.utils import warning_message
+    >>> print(warning_message('Dictumst vestibulum rhoncus est pellentesque.'))
+    WARNING
+    =======
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque.
+    """
+    return format_message(msg,
+                          header=os.linesep.join(['WARNING', '=======']),
+                          **kwds)
+
+
+def error_message(msg=None, **kwds):
+    """Create an error  message, landlab-style.
+
+    Parameters
+    ----------
+    msg : str, optional
+        Warning message.
+
+    Returns
+    -------
+    str
+        The formatted warning message.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.core.utils import error_message
+    >>> print(error_message('Dictumst vestibulum rhoncus est pellentesque.'))
+    ERROR
+    =====
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque.
+    """
+    return format_message(msg,
+                          header=os.linesep.join(['ERROR', '=====']),
+                          **kwds)
+
+
+def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
+    """Make an assertion printing a message if it fails.
+
+    Specify an action to take if an assertion fails, depending on
+    the values of *onerror*. *onerror* must be one of:
+        *  "pass": do nothing if the assertion passes or fails.
+        *  "warn": print a warning message if the assertion fails.
+        *  "error": print an error message and raise an `AssertionError`
+           on failure.
+
+    Parameters
+    ----------
+    cond : expression
+        An expression to test.
+    msg : str, optional
+        Message to print if the condition is not met.
+    onerror: {'pass', 'warn', 'raise'}, optional
+        What to do if the condition evaluates to `False`.
+    file : file_like, optional
+        File-like object where the message is printed.
+
+    Examples
+    --------
+    >>> from landlab.core.utils import assert_or_print
+    >>> assert_or_print(True, 'Lorem ipsum', onerror='pass')
+    >>> assert_or_print(False, 'Lorem ipsum', onerror='pass')
+
+    >>> assert_or_print(True, 'Lorem ipsum', onerror='warn')
+    >>> assert_or_print(False, 'Lorem ipsum', onerror='warn')
+    WARNING
+    =======
+    <BLANKLINE>
+    Lorem ipsum
+
+    >>> assert_or_print(True, 'Lorem ipsum', onerror='raise')
+    >>> assert_or_print(False, 'Lorem ipsum', onerror='raise')
+    ...     #doctest: +IGNORE_EXCEPTION_DETAIL
+    ERROR
+    =====
+    <BLANKLINE>
+    Lorem ipsum
+    Traceback (most recent call last):
+    ...
+    AssertionError
+    """
+    if onerror not in ('pass', 'warn', 'raise'):
+        raise ValueError("onerror must be one of 'pass', 'warn', or 'raise'")
+
+    try:
+        assert(cond)
+    except AssertionError:
+        if onerror == 'warn':
+            print(warning_message(msg), file=file)
+        elif onerror == 'raise':
+            print(error_message(msg), file=file)
+            raise
 
 
 def radians_to_degrees(rads):
