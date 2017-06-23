@@ -217,23 +217,16 @@ def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
     Examples
     --------
     >>> from landlab.core.utils import assert_or_print
+
     >>> assert_or_print(True, 'Lorem ipsum', onerror='pass')
     >>> assert_or_print(False, 'Lorem ipsum', onerror='pass')
 
     >>> assert_or_print(True, 'Lorem ipsum', onerror='warn')
     >>> assert_or_print(False, 'Lorem ipsum', onerror='warn')
-    WARNING
-    =======
-    <BLANKLINE>
-    Lorem ipsum
 
     >>> assert_or_print(True, 'Lorem ipsum', onerror='raise')
     >>> assert_or_print(False, 'Lorem ipsum', onerror='raise')
     ...     #doctest: +IGNORE_EXCEPTION_DETAIL
-    ERROR
-    =====
-    <BLANKLINE>
-    Lorem ipsum
     Traceback (most recent call last):
     ...
     AssertionError
@@ -245,9 +238,9 @@ def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
         assert(cond)
     except AssertionError:
         if onerror == 'warn':
-            print(warning_message(msg), file=file)
+            print(warning_message(msg), file=file, end='')
         elif onerror == 'raise':
-            print(error_message(msg), file=file)
+            print(error_message(msg), file=file, end='')
             raise
 
 
