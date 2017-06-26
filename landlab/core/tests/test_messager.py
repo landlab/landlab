@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import os
+
 from nose.tools import assert_equal, assert_raises
 
 from landlab.core.utils import (format_message, error_message,
@@ -79,11 +81,11 @@ Pharetra pharetra massa massa ultricies mi quis hendrerit.
 
 
 def test_warning_message_is_none():
-    assert_equal(warning_message(),"WARNING\n=======")
+    assert_equal(warning_message(), os.linesep.join(["WARNING", "======="]))
 
 
 def test_error_message_is_none():
-    assert_equal(error_message(),"ERROR\n=====")
+    assert_equal(error_message(), os.linesep.join(["ERROR", "====="]))
 
 
 def test_assert_or_pass():
