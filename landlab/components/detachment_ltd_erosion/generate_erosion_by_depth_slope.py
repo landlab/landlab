@@ -221,7 +221,14 @@ class DepthSlopeProductErosion(Component):
             raise ValueError('Depth field is missing!')
 
         self.tau = self.rho * self.g * h * S
-        self.E = self.k_e * ((self.tau ** self.a) - (self.tau_crit ** self.a))
+        
+        greater_than_tc,  = np.where(self.tau >= self.tau_crit)
+        less_than_tc,  = np.where(self.tau < self.tau_crit)
+        
+        self.E[less_than_tc] = 0.0
+        
+        self.E[greater_than_tc] = (self.k_e * ((self.tau[greater_than_tc])
+                                ** self.a) - (self.tau_crit ** self.a))
 
         self.E[self.E < 0.0] = 0.0
 

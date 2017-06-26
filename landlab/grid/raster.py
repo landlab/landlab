@@ -3177,6 +3177,40 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return np.concatenate((diffs, diagonal_link_slopes))
 
+    def _calculate_gradients_at_d8_links(self, node_values):
+        """Calculate gradients over all D8 links.
+
+        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
+        methods like this may be soon superceded.
+
+        Parameters
+        ----------
+        node_values : ndarray
+            Values at nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> z = np.array([3., 3., 3., 3.,
+        ...               3., 3., 0., 0.,
+        ...               3., 0., 0., 0.])
+        >>> grid._calculate_gradients_at_d8_links(z)
+        ...     # doctest: +NORMALIZE_WHITESPACE
+        array([ 0. ,  0. , -0.6,  0. , -0.6, -0.6, -0.6,  0. , -0.6,  0. ,  0. ,
+                0. ])
+
+        LLCATS: LINF GRAD
+        """
+        self._create_diag_links_at_node()
+        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
+        diagonal_link_slopes = (
+            (node_values[self._diag_link_tonode] -
+             node_values[self._diag_link_fromnode]) / diag_dist)
+
+        return diagonal_link_slopes
+
     @deprecated(use='calc_flux_div_at_node', version=1.0)
     def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
         """Flux divergence at nodes.

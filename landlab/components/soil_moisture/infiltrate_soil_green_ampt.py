@@ -256,6 +256,8 @@ class SoilInfiltrationGreenAmpt(Component):
             
         # Potential infiltration depth (m)
         self.potential_infilt = self.infilt_cap * dt  
+        
+        self.potential_infilt[np.where(self.potential_infilt < 0.0)] = 0.0
 
         # Where is water depth (per time, m/s) less than infil rate (m/s)?
         full_infil_indx = np.where(self._water_depth <= self.potential_infilt)

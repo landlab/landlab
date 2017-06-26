@@ -19,8 +19,10 @@ class DepthDependentDiffuser(Component):
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    soil_creep_efficiency: float
-        Hillslope efficiency, m/yr
+    linear_diffusivity: float
+        Hillslope diffusivity, m**2/yr
+        Equivalent to the soil creep efficiency 
+        times the soil transport decay depth.
     soil_transport_decay_depth: float
         characteristic transport soil depth, m
 
@@ -124,13 +126,13 @@ class DepthDependentDiffuser(Component):
                 'elevation of the bedrock surface',
     }
 
-    def __init__(self,grid, soil_creep_efficiency=1.0,
+    def __init__(self,grid, linear_diffusivity=1.0,
                  soil_transport_decay_depth=1.0, **kwds):
         """Initialize the DepthDependentDiffuser."""
 
         # Store grid and parameters
         self._grid = grid
-        self._kd = soil_creep_efficiency * soil_transport_decay_depth
+        self.K = linear_diffusivity
         self.soil_transport_decay_depth = soil_transport_decay_depth
 
         # create fields
@@ -198,7 +200,7 @@ class DepthDependentDiffuser(Component):
         slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
 
         #Calculate flux
-        self.flux[:] = (-self._kd
+        self.flux[:] = (-self.K
                         * slope
                         * (1.0 - np.exp(-H_link
                                         / self.soil_transport_decay_depth)))

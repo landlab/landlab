@@ -6,7 +6,8 @@ functionality is working.
 import os
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal, \
+     assert_equal
 try:
     from nose.tools import assert_is
 except ImportError:
@@ -121,3 +122,36 @@ def test_diffusion():
                             5.80291603e-05,   4.34416626e-04])
 
     assert_array_almost_equal(mg.at_node['topographic__elevation'], z_target)
+    
+def test_diffusion_no_deposit():
+    # Make an array with three core nodes, in one column.
+    # Because there is zero slope between two of the nodes, there 
+    # would be deposition. However, with the deposit flag as 'False',
+    # the elevation of the node with zero downslope gradient will not change.
+    # Use closed boundaries all around because this is a simpler scenario.
+    mg = RasterModelGrid((5, 3), (10, 10))
+    z = mg.zeros(at='node')
+    z[4]=3.
+    z[7]=3.
+    z[10]=4.
+    mg['node']['topographic__elevation'] = z
+    
+    # The gradient at node 7 should be zero, so the elevation here would
+    # go up if deposition was allowed. Maker sure it doesn't change with 
+    # deposit set to 'False'
+    z_7_before = z[7]
+
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
+    # instantiate:
+    dfn = LinearDiffuser(mg, linear_diffusivity=1., method='simple',
+                 deposit=False)
+    
+    dfn.run_one_step(100)
+    
+    z_7_after = z[7]
+    
+    assert_equal(z_7_before, z_7_after)
+    
+    
+
