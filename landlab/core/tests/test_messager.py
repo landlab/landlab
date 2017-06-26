@@ -4,7 +4,8 @@ import os
 from nose.tools import assert_equal, assert_raises
 
 from landlab.core.utils import (format_message, error_message,
-                                warning_message, assert_or_print)
+                                warning_message, assert_or_print,
+                                split_paragraphs)
 
 
 LOREM_IPSUM = """
@@ -14,6 +15,37 @@ Pharetra pharetra massa massa ultricies mi quis hendrerit.
 
 Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in hac habitasse platea dictumst vestibulum rhoncus.
 """
+
+
+def test_split_paragraphs_cr():
+    """Test splitting paragraphs with carriage returns."""
+    text = """
+Pharetra pharetra massa massa ultricies mi quis hendrerit.\r\rDictumst vestibulum rhoncus est pellentesque.
+    """
+    assert_equal(split_paragraphs(text, linesep='\r'), [
+        "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+        "Dictumst vestibulum rhoncus est pellentesque."])
+
+
+def test_split_paragraphs_lf():
+    """Test splitting paragraphs with line feeds."""
+    text = """
+Pharetra pharetra massa massa ultricies mi quis hendrerit.\n\nDictumst vestibulum rhoncus est pellentesque.
+    """
+    assert_equal(split_paragraphs(text, linesep='\n'), [
+        "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+        "Dictumst vestibulum rhoncus est pellentesque."])
+
+
+def test_split_paragraphs_crlf():
+    """Test splitting paragraphs with carriage returns and line feeds."""
+    text = """
+Pharetra pharetra massa massa ultricies mi quis hendrerit.\r\n\r\nDictumst vestibulum rhoncus est pellentesque.
+    """
+    assert_equal(split_paragraphs(text, linesep='\r\n'), [
+        "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+        "Dictumst vestibulum rhoncus est pellentesque."])
+
 
 def test_empty_message():
     """Test formatting an empty string."""
