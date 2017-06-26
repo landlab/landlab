@@ -691,6 +691,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         try:
             self._hexplot_configured is True
+            if self._hexplot_pc.cmap != color_map:
+                self._configure_hexplot(data, data_label, color_map)
         except:
             self._configure_hexplot(data, data_label, color_map)
 
