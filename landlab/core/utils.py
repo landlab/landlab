@@ -34,7 +34,7 @@ import six
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
-def split_paragraphs(msg):
+def split_paragraphs(msg, linesep=os.linesep):
     """Split text into paragraphs.
 
     Split a block of text into paragraphs. A paragraph is
@@ -45,6 +45,8 @@ def split_paragraphs(msg):
     ----------
     msg : str
         Text to split into paragraphs.
+    linesep : str, optional
+        Line separator used in the message string.
     
     Returns
     -------
@@ -59,7 +61,7 @@ def split_paragraphs(msg):
     ...
     ... Dictumst vestibulum rhoncus est pellentesque.
     ... '''
-    >>> split_paragraphs(text) #doctest: +NORMALIZE_WHITESPACE
+    >>> split_paragraphs(text, linesep='\\n') #doctest: +NORMALIZE_WHITESPACE
     ['Pharetra pharetra massa massa ultricies mi quis hendrerit.',
      'Dictumst vestibulum rhoncus est pellentesque.']
 
@@ -67,11 +69,12 @@ def split_paragraphs(msg):
     ... Pharetra pharetra massa massa ultricies mi quis hendrerit.
     ... Dictumst vestibulum rhoncus est pellentesque.
     ... '''
-    >>> len(split_paragraphs(text))
+    >>> len(split_paragraphs(text, linesep='\\n'))
     1
     """
-    pattern = os.linesep + '\s*' + os.linesep
-    return re.sub(pattern, os.linesep * 2, msg.strip()).split(os.linesep * 2)
+    pattern = linesep + '\s*' + linesep
+    parsep = linesep * 2
+    return re.sub(pattern, parsep, msg.strip()).split(parsep)
 
 
 def format_message(msg, header=None, footer=None):
