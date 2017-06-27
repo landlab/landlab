@@ -27,7 +27,7 @@ def create_precip_plot(storm_arr):
 
     # Labeling the x and y axes
     plt.xlabel('Time (years)', fontsize=14)
-    plt.ylabel('Rainfall Intensity (mm/hr)', fontsize=14)
+    plt.ylabel('Rainfall Intensity (mm/day)’, fontsize=14)
 
     # Setting the plot title
     plt.title('Randomly Generated Rainfall Time Series', fontsize=16)
@@ -50,7 +50,7 @@ def create_precip_plot(storm_arr):
 
     # Setting the limits for the x and y
     plt.xlim(0, 36524.2)
-    #plt.ylim(ymin=0, ymax=20)
+    plt.ylim(ymin=0, ymax=20)
 
     # Looping through the storm array to plot the intensity as the height of each bar plot
     # and the width will correspond to the storm duration.
@@ -69,7 +69,7 @@ def main():
     # First we will create an instance of PrecipitationDistribution
     PD = PrecipitationDistribution(mean_storm_duration = 2.0,
                                    mean_interstorm_duration = 50.0,
-                                   mean_storm_depth = 5.0, total_t = 37000.)
+                                   mean_storm_depth = 0.05, total_t = 37000.)
 
     # Because the values for storm duration, interstorm duration, storm
     # depth and intensity are set stochastically in the initialization
