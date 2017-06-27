@@ -426,7 +426,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
     """Handles vertical uplift of interior (not edges) for a hexagonal lattice
     with vertical node orientation and rectangular node arrangement.
     """
-    def __init__(self, grid=None, node_state=None, propid=None, prop_data=None, prop_reset_value=None):
+    def __init__(self, grid=None, node_state=None, propid=None, prop_data=None,
+                 prop_reset_value=None, opt_block_layer=False, block_ID=9,
+                 block_layer_dip_angle=0.0, block_layer_thickness=1.0):
         """
         Create and initialize a LatticeUplifter
 
@@ -459,6 +461,45 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.inner_top_row_nodes = self.inner_base_row_nodes + \
                                        ((self.nr - 1) * self.nc)
 
+        # Handle option for a layer of "blocks"
+        self.opt_block_layer = opt_block_layer
+        if opt_block_layer:
+            self.cum_uplift = 0.0
+            self.block_ID = block_ID
+            self.block_layer_dip_angle = block_layer_dip_angle
+            self.block_layer_thickness = block_layer_thickness
+
+    def _get_new_base_nodes(self, rock_state):
+        """
+        Return an array (or scalar) of states for the newly uplifted bottom
+        inner row.
+        
+        Examples
+        --------
+        >>> lu = LatticeUplifter(opt_block_layer=True)
+        >>> lu._get_new_base_nodes(rock_state=7)
+        array([9, 9, 9])
+        >>> lu.uplift_interior_nodes(rock_state=7)
+        >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
+        array([ 0,  9,  0,  9,  9,
+                0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0])
+        """
+        new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
+
+        if self.block_layer_dip_angle == 0.0:  # flat
+            
+            if self.cum_uplift < self.block_layer_thickness:
+                new_base_nodes[:] = self.block_ID
+            else:
+                new_base_nodes[:] = rock_state
+                
+        
+        
+        return new_base_nodes
+        
 
     def uplift_interior_nodes(self, rock_state=1):
         """
@@ -484,8 +525,14 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.node_state[self.inner_base_row_nodes+self.nc*r] = \
                     self.node_state[self.inner_base_row_nodes+self.nc*(r-1)]
 
-        # Fill the bottom rows with "fresh material" (code = rock_state)
-        self.node_state[self.inner_base_row_nodes] = rock_state
+        # Fill the bottom rows with "fresh material" (code = rock_state), or
+        # if using a block layer, with the right pattern of states.
+        if self.opt_block_layer:
+            new_base_nodes = self._get_new_base_nodes(rock_state)
+            self.cum_uplift += 1.0
+        else:
+            new_base_nodes = rock_state
+        self.node_state[self.inner_base_row_nodes] = new_base_nodes
 
         # Shift the node states up by two rows: two because the grid is
         # staggered, and we don't want any horizontal offset.
