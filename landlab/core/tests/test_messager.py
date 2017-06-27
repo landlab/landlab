@@ -79,37 +79,43 @@ ipsum
 
 
 def test_multiple_paragraphs():
-    assert_equal(format_message(LOREM_IPSUM, linesep='\n'), """
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-Pharetra pharetra massa massa ultricies mi quis hendrerit.
-
-Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in
-hac habitasse platea dictumst vestibulum rhoncus.
-""".strip())
+    assert_equal(
+        format_message(LOREM_IPSUM, linesep='\n'),
+        os.linesep.join([
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do",
+            "eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            "",
+            "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+            "",
+            "Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in",
+            "hac habitasse platea dictumst vestibulum rhoncus.",
+        ]))
 
 
 def test_warning_message():
     msg = "Pharetra pharetra massa massa ultricies mi quis hendrerit."
 
-    assert_equal(warning_message(msg, linesep='\n'),"""
-WARNING
-=======
-
-Pharetra pharetra massa massa ultricies mi quis hendrerit.
-                """.strip())
+    assert_equal(
+        warning_message(msg, linesep='\n'),
+        os.linesep.join([
+            "WARNING",
+            "=======",
+            "",
+            "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+        ]))
 
 
 def test_error_message():
     msg = "Pharetra pharetra massa massa ultricies mi quis hendrerit."
 
-    assert_equal(error_message(msg, linesep='\n'),"""
-ERROR
-=====
-
-Pharetra pharetra massa massa ultricies mi quis hendrerit.
-                """.strip())
+    assert_equal(
+        error_message(msg, linesep='\n'),
+        os.linesep.join([
+            "ERROR",
+            "=====",
+            "",
+            "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+        ]))
 
 
 def test_warning_message_is_none():
