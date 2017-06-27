@@ -8,13 +8,13 @@ from landlab.core.utils import (format_message, error_message,
                                 split_paragraphs)
 
 
-LOREM_IPSUM = """
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-Pharetra pharetra massa massa ultricies mi quis hendrerit.
-
-Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in hac habitasse platea dictumst vestibulum rhoncus.
-"""
+LOREM_IPSUM = os.linesep.join([
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+"",
+"Pharetra pharetra massa massa ultricies mi quis hendrerit.",
+"",
+"Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in hac habitasse platea dictumst vestibulum rhoncus.",
+])
 
 
 def test_split_paragraphs_cr():
@@ -80,7 +80,7 @@ ipsum
 
 def test_multiple_paragraphs():
     assert_equal(
-        format_message(LOREM_IPSUM, linesep='\n'),
+        format_message(LOREM_IPSUM),
         os.linesep.join([
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do",
             "eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -96,7 +96,7 @@ def test_warning_message():
     msg = "Pharetra pharetra massa massa ultricies mi quis hendrerit."
 
     assert_equal(
-        warning_message(msg, linesep='\n'),
+        warning_message(msg),
         os.linesep.join([
             "WARNING",
             "=======",
@@ -109,7 +109,7 @@ def test_error_message():
     msg = "Pharetra pharetra massa massa ultricies mi quis hendrerit."
 
     assert_equal(
-        error_message(msg, linesep='\n'),
+        error_message(msg),
         os.linesep.join([
             "ERROR",
             "=====",
@@ -119,11 +119,19 @@ def test_error_message():
 
 
 def test_warning_message_is_none():
-    assert_equal(warning_message(), os.linesep.join(["WARNING", "======="]))
+    assert_equal(
+        warning_message(),
+        os.linesep.join([
+            "WARNING",
+            "======="]))
 
 
 def test_error_message_is_none():
-    assert_equal(error_message(), os.linesep.join(["ERROR", "====="]))
+    assert_equal(
+        error_message(),
+        os.linesep.join([
+            "ERROR",
+            "====="]))
 
 
 def test_assert_or_pass():
