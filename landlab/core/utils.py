@@ -134,7 +134,8 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
     paragraphs = header
     if msg is not None:
         for paragraph in split_paragraphs(msg.strip(), linesep=linesep):
-            paragraphs.append(textwrap.fill(textwrap.dedent(paragraph)))
+            paragraphs.append(
+                os.linesep.join(textwrap.wrap(textwrap.dedent(paragraph))))
     paragraphs += footer
 
     return (os.linesep * 2).join(paragraphs)
