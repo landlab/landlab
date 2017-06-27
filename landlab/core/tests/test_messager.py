@@ -79,7 +79,7 @@ ipsum
 
 
 def test_multiple_paragraphs():
-    assert_equal(format_message(LOREM_IPSUM), """
+    assert_equal(format_message(LOREM_IPSUM, linesep='\n'), """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
@@ -93,7 +93,7 @@ hac habitasse platea dictumst vestibulum rhoncus.
 def test_warning_message():
     msg = "Pharetra pharetra massa massa ultricies mi quis hendrerit."
 
-    assert_equal(warning_message(msg),"""
+    assert_equal(warning_message(msg, linesep='\n'),"""
 WARNING
 =======
 
@@ -104,7 +104,7 @@ Pharetra pharetra massa massa ultricies mi quis hendrerit.
 def test_error_message():
     msg = "Pharetra pharetra massa massa ultricies mi quis hendrerit."
 
-    assert_equal(error_message(msg),"""
+    assert_equal(error_message(msg, linesep='\n'),"""
 ERROR
 =====
 
