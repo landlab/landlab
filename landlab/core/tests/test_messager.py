@@ -66,10 +66,13 @@ def test_one_long_line():
     """Test a line that needs to be wrapped."""
     msg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
-    assert_equal(format_message(msg),
-                 """
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-eiusmod tempor incididunt ut labore et dolore magna aliqua.""".strip())
+    assert_equal(
+        format_message(msg),
+        os.linesep.join([
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do",
+            "eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        ]))
+
 
 def test_multiline():
     msg = """lorem
