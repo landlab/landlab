@@ -77,7 +77,7 @@ def split_paragraphs(msg, linesep=os.linesep):
     return re.sub(pattern, parsep, msg.strip()).split(parsep)
 
 
-def format_message(msg, header=None, footer=None):
+def format_message(msg, header=None, footer=None, linesep=os.linesep):
     """Format a message, landlab-style.
 
     Create a nicely formatted message that splits paragraphs,
@@ -133,7 +133,7 @@ def format_message(msg, header=None, footer=None):
 
     paragraphs = header
     if msg is not None:
-        for paragraph in split_paragraphs(msg.strip()):
+        for paragraph in split_paragraphs(msg.strip(), linesep=linesep):
             paragraphs.append(textwrap.fill(textwrap.dedent(paragraph)))
     paragraphs += footer
 
