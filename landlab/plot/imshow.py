@@ -47,6 +47,9 @@ def imshow_grid_at_node(grid, values, **kwds):
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
 
+    Node coordinates are printed when a mouse button is pressed on a cell in
+    the plot.
+
     This function happily works with both regular and irregular grids.
 
     Construction ::

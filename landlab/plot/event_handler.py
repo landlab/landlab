@@ -14,9 +14,9 @@ def query_grid_on_button_press(event, grid):
     figure connected by event. Coordinates of grid and its node attributes are
     printed only when the event location is within the axes of the figure.
     The node whose attributes are printed is the node at the center of the
-    patch that envelopes the event coordinates.
+    cell that contains the event coordinates.
 
-    This function works only with raster model grids.
+    This function only works with raster model grids.
 
     Parameters
     ----------
