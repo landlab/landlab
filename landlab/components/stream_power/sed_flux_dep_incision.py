@@ -666,18 +666,15 @@ class SedDepEroder(Component):
         # ...worst that can happen is that the river can't move it, and dumps
         # it in the first node
         # Take care to add this sed to the cover, but not to actually move it.
-        if self._ext_sed:
-            # turn depth into a supply flux:
-            sed_in_cells = self._hillslope_sediment[self.grid.node_at_cell]
-            flux_in_cells = sed_in_cells * self.grid.area_of_cell / dt_secs
-            self._hillslope_sediment_flux_wzeros[
-                self.grid.node_at_cell] = flux_in_cells
-            self._voldroprate = self.grid.zeros('node', dtype=float)
-            self._hillslope_sediment.fill(0.)
-            # ^ this will get refilled below. For now, the sed has been "fully
-            # mobilised" off the bed; at the end of the step it can resettle.
-        else:
-            pass  # as self._hillslope_sediment_flux_wzeros is already 0
+        # turn depth into a supply flux:
+        sed_in_cells = self._hillslope_sediment[self.grid.node_at_cell]
+        flux_in_cells = sed_in_cells * self.grid.area_of_cell / dt_secs
+        self._hillslope_sediment_flux_wzeros[
+            self.grid.node_at_cell] = flux_in_cells
+        self._voldroprate = self.grid.zeros('node', dtype=float)
+        self._hillslope_sediment.fill(0.)
+        # ^ this will get refilled below. For now, the sed has been "fully
+        # mobilised" off the bed; at the end of the step it can resettle.
 
         if self.Qc == 'power_law':
             transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
@@ -739,7 +736,8 @@ class SedDepEroder(Component):
                         river_volume_flux_into_node[i])
                     node_capacity = transport_capacities[i]
                     # ^we work in volume flux, not volume per se here
-                    if flood_depth > 0.:
+                    if flood_depth - self._hillslope_sediment[i] > 0.:
+                        # ...node is truly flooded
                         node_capacity = 0.
                     if sed_flux_into_this_node_bydt < node_capacity:
                         # ^note incision is forbidden at capacity
@@ -759,36 +757,38 @@ class SedDepEroder(Component):
                                 sed_flux_out_bydt/node_capacity))
                         rel_sed_flux[i] = rel_sed_flux_here
                         vol_pass_rate = sed_flux_out_bydt
-                        # erode off the surplus sed from hillslopes (already
-                        # budgeted):
-                        if self._ext_sed:
-                            dzbydt_here += (
-                                self._hillslope_sediment_flux_wzeros[i] /
-                                cell_area)
-                            # no change to voldroprate or voldropped, as both
-                            # should already be 0
+                        # # As of 29/6/17 approach, this shouldn't happen
+                        # # (all sed is virtual)
+                        # # erode off the surplus sed from hillslopes (already
+                        # # budgeted):
+                        # if self._ext_sed:
+                        #     dzbydt_here += (
+                        #         self._hillslope_sediment_flux_wzeros[i] /
+                        #         cell_area)
+                        #     # no change to voldroprate or voldropped, as both
+                        #     # should already be 0 -> consider role of inner vs outer loop!
                     else:
                         self._is_it_TL[i] = True
                         rel_sed_flux[i] = 1.
-                        vol_drop_rate = (river_volume_flux_into_node[i] -
-                                         node_capacity)
-                        # ^ note this can now go negative. This permits TL
-                        # erosion of any hillslope seds left in the channel
-                        dzbydt_here = -vol_drop_rate/cell_area
+                        dzbydt_here = 0.
                         try:
                             isflooded = flooded_nodes[i]
                         except TypeError:  # was None
                             isflooded = False
-                        if flood_depth <= 0. and not isflooded:
+                        # flood handling adjusted as of 29/6/17 (untested) such
+                        # that sed can flux through as long as the sed depth
+                        # at the start of the loop was capable of filling the
+                        # hole in the underlying topo.
+                        # Under this scheme, there should be no such thing as a
+                        # lake hosted only in surface sediment
+                        if (flood_depth - self._hillslope_sediment[i] <= 0. and
+                                not isflooded):
                             vol_pass_rate = node_capacity
                             # we want flooded nodes which have already been
                             # filled to enter the else statement
                         else:
-                            # Reduce the timestep to only just fill this node.
-                            # This means the timestep of the whole model is
-                            # set by the smallest depression, but will have to
-                            # do.
                             vol_pass_rate = 0.
+                            ########################################this probably isn't needed any more vv
                             time_to_fill = -flood_depth/dzbydt_here
                             if time_to_fill < flood_tstep:
                                 flood_node = i
@@ -797,8 +797,8 @@ class SedDepEroder(Component):
                                 # ^this needed to let this node to fill fully
                         if self._ext_sed:
                             self._voldroprate[i] = (
-                                self._hillslope_sediment_flux_wzeros[i] +
-                                vol_drop_rate)
+                                sed_flux_into_this_node_bydt - vol_pass_rate)
+                            assert self._voldroprate[i] >= 0.
                     dzbydt[i] -= dzbydt_here
                     # ^minus returns us to the correct sign convention
                     river_volume_flux_into_node[
@@ -840,13 +840,10 @@ class SedDepEroder(Component):
                 node_z[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
                 # back-calc the sed budget in the nodes, as appropriate:
                 if self._ext_sed:
-                    self._hillslope_sediment[self.grid.node_at_cell] += (
+                    self._hillslope_sediment[self.grid.node_at_cell] = (
                         self._voldroprate[self.grid.node_at_cell] /
                         self.grid.area_of_cell * this_tstep)
 
-                if flood_node is not None:
-                    flooded_depths[i] = 0.
-                    flooded_nodes[i] = False
                 if break_flag:
                     break
                 else:
