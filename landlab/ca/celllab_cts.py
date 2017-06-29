@@ -309,7 +309,7 @@ class CAPlotter(object):
         Colormap to be used in plotting
     """
 
-    def __init__(self, ca, cmap=None):
+    def __init__(self, ca, cmap=None, **kwds):
         """
         CAPlotter() constructor keeps a reference to the CA model, and
         optionally a colormap to be used with plots.
