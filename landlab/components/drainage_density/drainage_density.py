@@ -4,7 +4,7 @@ Created on Mon Jul 11 10:00:25 2016
 
 @author: Charlie Shobe
 
-for West Valley Project: Landlab component to calculate drainage density
+Landlab component to calculate drainage density
 
 """
 from warnings import warn
@@ -24,28 +24,44 @@ class DrainageDensity(Component):
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.
 
-    Written by C. Shobe on 7/11/2016
+    This component requires EITHER a channel__mask array with 1's
+    where channels exist and 0's elsewhere, OR a set of coefficients
+    and exponents for a slope-area relationship and a
+    channelization threshold to compare against that relationship.
+
+    Written by C. Shobe on 7/11/2016, modified 10/7/2016.
 
     Construction::
 
-        DrainageDensity(grid, channel__mask=None)
+        DrainageDensity(grid, channel__mask=None, area_coefficient=None,
+                        slope_coefficient=None, area_exponent=None,
+                        slope_exponent=None,
+                        channelization_threshold=None)
 
     Parameters
     ----------
     grid : ModelGrid
-    channel_network_name : string naming a grid field with 1
-        in channels and 0 elsewhere.
+    channel__mask : Array that holds 1's where
+        channels exist and 0's elsewhere
+    area_coefficient : coefficient to multiply drainage area by,
+        for calculating channelization threshold
+    slope_coefficient : coefficient to multiply slope by,
+        for calculating channelization threshold
+    area_exponent : exponent to raise drainage area to,
+        for calculating channelization threshold
+    slope_exponent : exponent to raise slope to,
+        for calculating channelization threshold
+    channelization_threshold : threshold value above
+        which channels exist
 
     Examples
-    ---------
+    --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_routing import FlowRouter
     >>> from landlab.components import FastscapeEroder
-
     >>> mg = RasterModelGrid((10, 10), 1.0)
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
-
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
     >>> mg.at_node['topographic__elevation'] += noise
@@ -70,14 +86,12 @@ class DrainageDensity(Component):
         0.82165703,  0.73749168,  0.84034417,  0.4015291 ,  0.74862   ,
         0.55962945,  0.61323757,  0.29810165,  0.60237917,  0.42567684,
         0.53854438,  0.48672986,  0.49989164,  0.91745948,  0.26287702])
-
     >>> fr = FlowRouter(mg)
     >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
     ...     fsc.run_one_step(dt = 10.0)
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-
     >>> channels = mg.at_node['drainage_area'] > 5
     >>> dd = DrainageDensity(mg, channel__mask=channels)
     >>> mean_drainage_density = dd.calc_drainage_density()
@@ -90,7 +104,13 @@ class DrainageDensity(Component):
     _input_var_names = (
         'flow__receiver_node',
         'flow__link_to_receiver_node',
+        'topographic__steepest_slope',
         'channel__mask',
+        'area_coefficient',
+        'slope_coefficient',
+        'area_exponent',
+        'slope_exponent',
+        'channelization_threshold',
     )
 
     _output_var_names = (
@@ -100,6 +120,7 @@ class DrainageDensity(Component):
     _var_units = {
         'flow__receiver_node': '-',
         'flow__link_to_receiver_node': '-',
+        'topographic__steepest_slope': '-',
         'channel__mask': '-',
         'surface_to_channel__minimum_distance': 'm',
     }
@@ -107,6 +128,7 @@ class DrainageDensity(Component):
     _var_mapping = {
         'flow__receiver_node': 'node',
         'flow__link_to_receiver_node': 'node',
+        'topographic__steepest_slope': 'node',
         'channel__mask': 'node',
         'surface_to_channel__minimum_distance': 'node',
     }
@@ -117,13 +139,18 @@ class DrainageDensity(Component):
             'node)',
         'flow__link_to_receiver_node':
             'ID of link downstream of each node, which carries the discharge',
+        'topographic__steepest_slope':
+            'Topographic slope at each node',
         'channel__mask':
             'Logical map of at which grid nodes channels are present',
         'surface_to_channel__minimum_distance':
             'Distance from each node to the nearest channel',
     }
 
-    def __init__(self, grid, channel__mask=None, **kwds):
+    def __init__(self, grid, channel__mask=None, area_coefficient=None,
+                 slope_coefficient=None, area_exponent=None,
+                 slope_exponent=None, channelization_threshold=None,
+                 **kwds):
         """Initialize the DrainageDensity component.
 
         Parameters
@@ -132,8 +159,44 @@ class DrainageDensity(Component):
             Landlab ModelGrid object
         channel__mask : array, optional (default is None)
             Array that holds 1's where channels exist and 0's elsewhere
+        area_coefficient : coefficient to multiply drainage area by,
+            for calculating channelization threshold
+        slope_coefficient : coefficient to multiply slope by,
+            for calculating channelization threshold
+        area_exponent : exponent to raise drainage area to,
+            for calculating channelization threshold
+        slope_exponent : exponent to raise slope to,
+            for calculating channelization threshold
+        channelization_threshold : threshold value above
+            which channels exist
         """
+
         if channel__mask is not None:
+            if area_coefficient is not None:
+                warn('Channel mask and area '
+                     'coefficient supplied. Defaulting '
+                     'to channel mask, ignoring area '
+                     'coefficient.')
+            if slope_coefficient is not None:
+                warn('Channel mask and slope '
+                     'coefficient supplied. Defaulting '
+                     'to channel mask, ignoring slope '
+                     'coefficient.')
+            if area_exponent is not None:
+                warn('Channel mask and area '
+                     'exponent supplied. Defaulting '
+                     'to channel mask, ignoring area '
+                     'exponent.')
+            if slope_exponent is not None:
+                warn('Channel mask and slope '
+                     'exponent supplied. Defaulting '
+                     'to channel mask, ignoring slope '
+                     'exponent.')
+            if channelization_threshold is not None:
+                warn('Channel mask and channelization '
+                     'threshold supplied. Defaulting '
+                     'to channel mask, ignoring '
+                     'threshold.')
             if grid.number_of_nodes != len(channel__mask):
                 raise ValueError('Length of channel mask is not equal to '
                                  'number of grid nodes')
@@ -142,8 +205,41 @@ class DrainageDensity(Component):
 
             grid.at_node['channel__mask'] = channel__mask
 
+        if channel__mask is None:
+            if area_coefficient is None:
+                raise FieldError('No channel mask and no area '
+                                 'coefficient supplied. Either '
+                                 'a channel mask or all 5 threshold '
+                                 'parameters are needed.')
+            if slope_coefficient is None:
+                raise FieldError('No channel mask and no slope '
+                                 'coefficient supplied. Either '
+                                 'a channel mask or all 5 threshold '
+                                 'parameters are needed.')
+            if area_exponent is None:
+                raise FieldError('No channel mask and no area '
+                                 'exponent supplied. Either '
+                                 'a channel mask or all 5 threshold '
+                                 'parameters are needed.')
+            if slope_exponent is None:
+                raise FieldError('No channel mask and no slope '
+                                 'exponent supplied. Either '
+                                 'a channel mask or all 5 threshold '
+                                 'parameters are needed.')
+            if channelization_threshold is None:
+                raise FieldError('No channel mask and no channelization '
+                                 'threshold supplied. Either '
+                                 'a channel mask or all 5 threshold '
+                                 'parameters are needed.')
+            channel__mask = (area_coefficient * \
+                np.power(grid.at_node['drainage_area'], area_exponent) \
+                * slope_coefficient * \
+                np.power(grid.at_node['topographic__steepest_slope'], \
+                slope_exponent)) > channelization_threshold
+            grid.at_node['channel__mask'] = channel__mask
+
         required = ('flow__receiver_node', 'flow__link_to_receiver_node',
-                    'channel__mask')
+                    'topographic__steepest_slope')
         for name in required:
             if name not in grid.at_node:
                 raise FieldError(

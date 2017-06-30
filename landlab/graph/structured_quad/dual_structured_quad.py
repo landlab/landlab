@@ -5,7 +5,38 @@ from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
                               UniformRectilinearGraph, )
 
 
-class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
+class DualStructuredQuadGraphExtras(object):
+    @property
+    def corners_at_right_edge(self):
+        return self.dual.nodes_at_right_edge
+
+    @property
+    def corners_at_top_edge(self):
+        return self.dual.nodes_at_top_edge
+
+    @property
+    def corners_at_left_edge(self):
+        return self.dual.nodes_at_left_edge
+
+    @property
+    def corners_at_bottom_edge(self):
+        return self.dual.nodes_at_bottom_edge
+
+    @property
+    def perimeter_corners(self):
+        return self.dual.perimeter_nodes
+
+    @property
+    def horizontal_faces(self):
+        return self.dual.horizontal_links
+
+    @property
+    def vertical_faces(self):
+        return self.dual.vertical_links
+
+
+class DualStructuredQuadGraph(DualStructuredQuadGraphExtras,
+                              StructuredQuadGraph, DualGraph):
 
     """Dual graph of a structured grid of quadrilaterals.
 
@@ -19,8 +50,8 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     ...            0,  2,  3,
     ...            0,  1,  2]
     >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3))
-    >>> graph.number_of_corners
-    4
+    >>> graph.number_of_corners == 4
+    True
     >>> graph.y_of_corner
     array([-1.25, -0.75,  0.75,  1.25])
     >>> graph.x_of_corner
@@ -29,29 +60,19 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     array([4])
     """
 
-    def __init__(self, nodes, shape=None):
-        y_of_node, x_of_node = reshape_nodes(nodes, shape=shape)
-        shape = y_of_node.shape
-
-        dual_y, dual_x = get_corners((y_of_node, x_of_node), shape)
-
+    def __init__(self, node_y_and_x, shape=None):
+        dual_y, dual_x = get_corners(node_y_and_x, shape)
         dual_shape = dual_y.shape
-
-        self._dual = StructuredQuadGraph((dual_y, dual_x), shape=dual_shape)
-
         node_at_cell = get_node_at_cell(shape)
         nodes_at_face = get_nodes_at_face(shape)
 
-        super(DualStructuredQuadGraph, self).__init__(
-            (y_of_node, x_of_node), shape=shape, node_at_cell=node_at_cell,
-            nodes_at_face=nodes_at_face)
-
-    @property
-    def perimeter_corners(self):
-        return self.dual.perimeter_nodes
+        self._dual = StructuredQuadGraph((dual_y, dual_x), shape=dual_shape)
+        StructuredQuadGraph.__init__(self, node_y_and_x, shape=shape)
+        DualGraph.__init__(self, node_at_cell=node_at_cell,
+                           nodes_at_face=nodes_at_face)
 
 
-class DualRectilinearGraph(DualGraph, RectilinearGraph):
+class DualRectilinearGraph(DualStructuredQuadGraph):
 
     """Create a dual graph for a rectilinear grid.
 
@@ -65,32 +86,21 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
     >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5, 0.5, 0.5,
             2. , 2. , 2. ])
-    >>> graph.number_of_cells
-    2
+    >>> graph.number_of_cells == 2
+    True
     >>> graph.faces_at_cell
     array([[3, 5, 2, 0],
            [4, 6, 3, 1]])
     """
 
-    def __init__(self, nodes):
-        dual_nodes = (np.asarray(nodes[0], dtype=float),
-                      np.asarray(nodes[1], dtype=float))
-        dual_nodes = [x[:-1] + np.diff(x) * .5 for x in dual_nodes]
+    def __init__(self, node_y_and_x):
+        shape = (len(node_y_and_x[0]), len(node_y_and_x[1]))
+        node_y_and_x = np.meshgrid(*node_y_and_x, indexing='ij')
 
-        self._dual = RectilinearGraph(dual_nodes)
-        # self._node_at_cell = get_node_at_cell(self.shape)
-
-        shape = (len(nodes[0]), len(nodes[1]))
-
-        node_at_cell = get_node_at_cell(shape)
-        nodes_at_face = get_nodes_at_face(shape)
-
-        super(DualRectilinearGraph, self).__init__(nodes,
-                                                   node_at_cell=node_at_cell,
-                                                   nodes_at_face=nodes_at_face)
+        super(DualRectilinearGraph, self).__init__(node_y_and_x, shape)
 
 
-class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
+class DualUniformRectilinearGraph(DualRectilinearGraph):
 
     """Create a dual graph for a uniform rectilinear grid.
 
@@ -106,8 +116,8 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
     array([ 0.5, 0.5,
             1.5, 1.5,
             2.5, 2.5])
-    >>> graph.number_of_cells
-    2
+    >>> graph.number_of_cells == 2
+    True
     >>> graph.faces_at_cell
     array([[2, 3, 1, 0],
            [5, 6, 4, 3]])
@@ -117,24 +127,10 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
         spacing = np.broadcast_to(spacing, 2)
         origin = np.broadcast_to(origin, 2)
 
-        dual_shape = [dim - 1 for dim in shape]
-        dual_origin = [x + dx * .5 for x, dx in zip(origin, spacing)]
+        node_y_and_x = (np.arange(shape[0]) * spacing[0] + origin[0],
+                       np.arange(shape[1]) * spacing[1] + origin[1])
 
-        self._dual = UniformRectilinearGraph(dual_shape,
-                                             spacing=spacing,
-                                             origin=dual_origin)
-
-        node_at_cell = get_node_at_cell(shape)
-        nodes_at_face = get_nodes_at_face(shape)
-
-        super(DualUniformRectilinearGraph, self).__init__(
-            shape, spacing=spacing, origin=origin, node_at_cell=node_at_cell,
-            nodes_at_face=nodes_at_face)
-
-
-    @property
-    def dual(self):
-        return self._dual
+        super(DualUniformRectilinearGraph, self).__init__(node_y_and_x)
 
 
 def get_node_at_cell(shape):
@@ -177,13 +173,11 @@ def get_nodes_at_face(shape):
     return nodes_at_face
 
 
-def get_corners(nodes, shape):
-    y_of_node, x_of_node = (np.array(nodes[0], dtype=float),
-                            np.array(nodes[1], dtype=float))
-    if shape is not None:
-        y_of_node.shape = shape
-        x_of_node.shape = shape
-
+def get_corners(node_y_and_x, shape):
+    y_of_node, x_of_node = (np.asarray(node_y_and_x[0], dtype=float),
+                            np.asarray(node_y_and_x[1], dtype=float))
+    y_of_node.shape = x_of_node.shape = shape
+    
     x_of_corner = (x_of_node[:-1, :-1] + x_of_node[:-1, 1:] +
                    x_of_node[1:, :-1] + x_of_node[1:, 1:]) * .25
     y_of_corner = (y_of_node[:-1, :-1] + y_of_node[:-1, 1:] +
@@ -192,9 +186,9 @@ def get_corners(nodes, shape):
     return y_of_corner, x_of_corner
 
 
-def reshape_nodes(nodes, shape=None):
-    y_of_node, x_of_node = (np.asarray(nodes[0], dtype=float),
-                            np.asarray(nodes[1], dtype=float))
+def reshape_nodes(y_and_x, shape=None):
+    y_of_node, x_of_node = (np.asarray(y_and_x[0], dtype=float),
+                            np.asarray(y_and_x[1], dtype=float))
 
     if y_of_node.size != x_of_node.size:
         raise ValueError('size mismatch for size of x and y')

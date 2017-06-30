@@ -22,6 +22,16 @@ class VegCA(Component):
     Landlab component that simulates inter-species plant competition using
     a 2D cellular automata model.
 
+    This code is based on Cellular Automata Tree Grass Shrub Simulator (CATGraSS).
+    It simulates spatial competition of multiple plant functional types through
+    establishment and mortality. In the current code, tree, grass and
+    shrubs are used.
+
+    Ref: Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
+    ecohydrological role of aspect controlled radiation on tree grass shrub
+    coexistence in a semiarid climate. Water Resources Research,
+    49(5), 2872-2895.
+
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
     Construction::
@@ -280,9 +290,9 @@ class VegCA(Component):
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS
         bare_cells = np.where(self._VegType == BARE)[0]
         n_bare = len(bare_cells)
-        first_ring = self.grid.get_looped_cell_neighbor_list(bare_cells)
+        first_ring = self.grid.looped_neighbors_at_cell[bare_cells]
         second_ring =                                                   \
-            self.grid.get_second_ring_looped_cell_neighbor_list(bare_cells)
+            self.grid.second_ring_looped_neighbors_at_cell[bare_cells]
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
         Sh_WS_fr = WS_PFT(veg_type_fr, SHRUB, self._live_index[first_ring])

@@ -236,7 +236,7 @@ class PotentialEvapotranspiration(Component):
                Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350., **kwds):
         """Update fields with current conditions.
 
-        Parameters:
+        Parameters
         ----------
         current_time: float, required only for 'Cosine' method
             Current time (Years)
@@ -325,6 +325,7 @@ class PotentialEvapotranspiration(Component):
 
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 21, (48)
+        # 11.57 converts 1 MJ/m^2/day to W/m^2
         self._Ra = (
                     11.57 * (24.0 / np.pi) * 4.92 * self._dr *
                     ((self._ws * np.sin(self._phi) * np.sin(self._sdecl)) +

@@ -55,6 +55,7 @@ clean:
 	rm -rf $(BUILDDIR)/*
 
 html: pre-hook
+	python build_grid_func_docs.py
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

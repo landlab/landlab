@@ -9,7 +9,8 @@ except ImportError:
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.field import ModelDataFields, GroupError, FieldError
+from landlab.field import ModelDataFields
+from landlab.field import GroupError, FieldError
 
 
 def test_init():
@@ -172,3 +173,68 @@ def test_delete_field():
     fields.delete_field('link', 'vals')
     assert_raises(KeyError, lambda: fields.field_units('link', 'vals'))
     assert_raises(KeyError, lambda: fields.at_link['vals'])
+
+
+def test_scalar_field():
+    """Test adding a generic scalar field."""
+    fields = ModelDataFields()
+    fields.new_field_location('all_over_the_place', 1)
+
+    assert_dict_equal(dict(), fields.at_all_over_the_place)
+    assert_raises(AttributeError, lambda: fields.at_cell)
+
+    fields.at_all_over_the_place['const'] = 1.
+    assert_array_equal(np.array(1.), fields.at_all_over_the_place['const'])
+    
+    val = np.array(2.)
+    fields.at_all_over_the_place['const'] = val
+    assert_is(val, fields.at_all_over_the_place['const'])
+
+
+def test_grid_field_as_array():
+    """Test adding an array as a grid field."""
+    fields = ModelDataFields()
+    fields.new_field_location('grid', 1)
+
+    fields.at_grid['const'] = [1., 2.]
+    assert_array_equal(np.array([1., 2.]), fields.at_grid['const'])
+
+    val = np.array([1., 2.])
+    fields.at_grid['const'] = val
+    assert_is(val, fields.at_grid['const'])
+
+    val.shape = (1, 1, 2, 1)
+    fields.at_grid['const'] = val
+    assert_array_equal(np.array([1., 2.]), fields.at_grid['const'])
+    assert_is(val, fields.at_grid['const'].base)
+
+
+def test_grid_field_add_zeros_ones_empty():
+    """Test creating scalar fields with add_zeros, add_empty, and add_ones."""
+    fields = ModelDataFields()
+    fields.new_field_location('grid', 1)
+    
+    assert_raises(ValueError, fields.add_zeros, 'value', at='grid')
+    assert_raises(ValueError, fields.add_empty, 'value', at='grid')
+    assert_raises(ValueError, fields.add_ones, 'value', at='grid')
+
+def test_grid_field_zeros_ones_empty():
+    """Test creating scalar fields with zeros, empty, and ones."""
+    fields = ModelDataFields()
+    fields.new_field_location('grid', 1)    
+    assert_raises(ValueError, fields.zeros, 'grid')
+    assert_raises(ValueError, fields.empty, 'grid')
+    assert_raises(ValueError, fields.ones, 'grid')
+
+def test_nd_field():
+    """Test creating fields that are nd in shape."""
+    fields = ModelDataFields()
+    fields.new_field_location('node', 12)
+
+    fields.add_field('new_value', np.ones((12,4,5)), at='node')
+    fields.add_field('newer_value', np.ones((12,4)), at='node')
+
+    assert_raises(ValueError, fields.add_field, 'newest_value', np.ones((13,4,5)), at='node')
+    assert_raises(ValueError, fields.add_field, 'newestest_value', np.ones((13)), at='node')
+
+    
