@@ -1,0 +1,11 @@
+# Input file for prototype Landlab version of Sequence
+# Set up grid and run parameters
+grid = {number_of_node_rows: 200, number_of_node_columns: 3, dx: 500.0, run_duration: 10000.0, dt: 10.0, output_interval: 1000.0, output_filename: seq_test}
+#
+# Initial profile parameters
+profile  ={sl_cp: 0.0008, hgt: 15., alpha: 0.0005, wavebase: 60., sl_sh:   0.001}
+#
+# Initial run parameters
+run = {load: 0.3}
+#sealevel_file:
+diff = {k_sh: 100.}
