@@ -361,6 +361,29 @@ class PrecipitationDistribution(Component):
                     yield (interstorm_duration, 0.)
                 self._elapsed_time += interstorm_duration
 
+    def generate_from_stretched_exponential(self, scale, shape):
+        """Generate and return a random variable from a stretched exponential
+        distribution with given scale and shape.
+        
+        Examples
+        --------
+        >>> np.random.seed(0)
+        >>> np.round(np.random.rand(3), 6)  # these are our 3 rand #s to test
+        array([ 0.548814,  0.715189,  0.602763])
+        >>> from landlab.components import PrecipitationDistribution
+        >>> pd = PrecipitationDistribution(mean_storm_duration=1.0,
+        ...                                mean_interstorm_duration=1.0,
+        ...                                mean_storm_depth=1.0)
+        >>> np.random.seed(0)  # re-set seed so we get the same 3 #s
+        >>> np.round(1000 * pd.generate_from_stretched_exponential(2.0, 0.5))
+        720.0
+        >>> np.round(1000 * pd.generate_from_stretched_exponential(2.0, 0.5))
+        225.0
+        >>> np.round(1000 * pd.generate_from_stretched_exponential(2.0, 0.5))
+        513.0
+        """
+        return scale * ((-np.log(np.random.rand())) ** (1.0 / shape))
+
     def seed_generator(self, seedval=0):
         """Seed the random-number generator.
 

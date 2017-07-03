@@ -24,6 +24,8 @@ ext_modules = [
               ['landlab/components/flow_director/cfuncs.pyx']),
     Extension('landlab.components.stream_power.cfuncs',
               ['landlab/components/stream_power/cfuncs.pyx']),
+    Extension('landlab.components.hybrid_alluvium.cfuncs',
+              ['landlab/components/hybrid_alluvium/cfuncs.pyx']),
     Extension('landlab.components.drainage_density.cfuncs',
               ['landlab/components/drainage_density/cfuncs.pyx']),
     Extension('landlab.utils.ext.jaggedarray',
