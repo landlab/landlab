@@ -209,7 +209,8 @@ class Space(Component):
         except KeyError:
             self.bedrock__elevation = grid.add_zeros(
                 'bedrock__elevation', at='node', dtype=float)
-            self.bedrock__elevation[:] += self.topographic__elevation.copy()
+            self.bedrock__elevation[:] = self.topographic__elevation -\
+                self.soil__depth
         try:
             self.qs = grid.at_node['sediment__flux']
         except KeyError:
@@ -304,8 +305,8 @@ class Space(Component):
                             threshold stream power, or stochastic hydrology)!')
     #three choices for erosion methods:
     def simple_stream_power(self):
+        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
-            self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'simple_stream_power' and self.discharge_method is not None:
             if self.discharge_method == 'drainage_area':
@@ -342,8 +343,8 @@ class Space(Component):
         self.qs_in = np.zeros(self.grid.number_of_nodes) 
             
     def threshold_stream_power(self):
+        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'threshold_stream_power' and self.discharge_method == None:
-            self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
             if self.discharge_method == 'drainage_area':
