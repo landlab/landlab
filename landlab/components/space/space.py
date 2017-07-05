@@ -493,15 +493,15 @@ class Space(Component):
         self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
             (flooded==False)] = self.H_star * \
             np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] * (1 - self.phi)) / \
+            (self.slope > 0) & (flooded==False)] / (1 - self.phi)) / \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)]) - 1)) * \
             (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] * (1 - self.phi) - \
+            (self.slope > 0) & (flooded==False)] / (1 - self.phi) - \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
             (((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] * (1 - self.phi) / \
+            (self.slope > 0) & (flooded==False)] / (1 - self.phi) / \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)])) - 1) * \
             np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & \
