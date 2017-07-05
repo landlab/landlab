@@ -160,7 +160,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1,  0,  1,  2,  3, 24,  8,  9, -1, 11, 32, 34, -1, 18, 38, 40])
     >>> mg.at_node['flow__receiver_node']
-    array([-1,  0,  1,  2,  0,  0,  5,  6, -1,  5,  5,  6, -1,  9,  9, 10])
+    array([ 0,  0,  1,  2,  0,  0,  5,  6,  8,  5,  5,  6, 12,  9,  9, 10])
 
     Finally, FlowDirectorDINF identifies sinks, or local lows.
 
