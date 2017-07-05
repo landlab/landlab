@@ -96,6 +96,15 @@ class Space(Component):
             Either "simple_stream_power", "threshold_stream_power", or
             "stochastic_hydrology". Method for calculating sediment
             and bedrock entrainment/erosion.
+            -simple_stream_power uses no entrainment or erosion thresholds,
+             and uses either q=A^m or q=Q^m depending on discharge method. If
+             discharge method is None, default is q=A^m.
+            -threshold_stream_power works the same way but includes user-
+             defined thresholds for sediment entrainment and bedrock erosion.
+            -stochastic_hydrology forces the user to supply either an array or 
+             field name for either drainage area or discharge, and will not 
+             default to q=A^m.
+            
         discharge_method : string
             Either "area_field" or "discharge_field". If using stochastic
             hydrology, determines whether component is supplied with
