@@ -2,7 +2,7 @@ import numpy as np
 from landlab import Component
 from .cfuncs import calculate_qs_in
 
-class HybridAlluvium(Component):
+class Space(Component):
     """
     Stream Power with Alluvium Conservation and Entrainment (SPACE)
     
@@ -10,7 +10,7 @@ class HybridAlluvium(Component):
     Component written by C. Shobe, begun 11/28/2016.
     """
     
-    _name= 'HybridAlluvium'
+    _name= 'Space'
     
     _input_var_names = (
         'flow__receiver_node',
@@ -66,7 +66,7 @@ class HybridAlluvium(Component):
                  m_sp=None, n_sp=None, sp_crit_sed=None, 
                  sp_crit_br=None, method=None, discharge_method=None, 
                  area_field=None, discharge_field=None, **kwds):
-        """Initialize the HybridAlluvium model.
+        """Initialize the Space model.
         
         Parameters
         ----------
@@ -113,7 +113,7 @@ class HybridAlluvium(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
         >>> from landlab.components import DepressionFinderAndRouter
-        >>> from landlab.components import HybridAlluvium
+        >>> from landlab.components import Space
         >>> from landlab.components import FastscapeEroder
         >>> np.random.seed(seed = 5000)
         
@@ -136,7 +136,7 @@ class HybridAlluvium(Component):
         >>> mg.set_watershed_boundary_condition_outlet_id(0,\
                 mg['node']['topographic__elevation'], -9999.)
         >>> fsc_dt = 100. 
-        >>> hybrid_dt = 100.
+        >>> space_dt = 100.
         
         Instantiate Fastscape eroder, flow router, and depression finder        
         
@@ -159,23 +159,23 @@ class HybridAlluvium(Component):
         >>> mg.at_node['soil__depth'] += 0.5
         >>> mg.at_node['topographic__elevation'] += mg.at_node['soil__depth']
         
-        Instantiate the hybrid component:        
+        Instantiate the Space component:        
         
-        >>> ha = HybridAlluvium(mg, K_sed=0.00001, K_br=0.00000000001,\
+        >>> ha = Space(mg, K_sed=0.00001, K_br=0.00000000001,\
                                 F_f=0.5, phi=0.1, H_star=1., v_s=0.001,\
                                 m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
                                 sp_crit_br=0, method='simple_stream_power',\
                                 discharge_method=None, area_field=None,\
                                 discharge_field=None)
                                 
-        Now run the hybrid component for 2000 short timesteps:                            
+        Now run the Space component for 2000 short timesteps:                            
                                 
-        >>> for x in range(2000): #hybrid component loop
+        >>> for x in range(2000): #Space component loop
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     flooded = np.where(df.flood_status==3)[0]
-        ...     ha.run_one_step(dt = hybrid_dt, flooded_nodes=flooded)
-        ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * hybrid_dt
+        ...     ha.run_one_step(dt = space_dt, flooded_nodes=flooded)
+        ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * space_dt
         
         Now we test to see if soil depth and topography are right:
         
