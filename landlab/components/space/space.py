@@ -95,16 +95,7 @@ class Space(Component):
         method : string
             Either "simple_stream_power", "threshold_stream_power", or
             "stochastic_hydrology". Method for calculating sediment
-            and bedrock entrainment/erosion.
-            -simple_stream_power uses no entrainment or erosion thresholds,
-             and uses either q=A^m or q=Q^m depending on discharge method. If
-             discharge method is None, default is q=A^m.
-            -threshold_stream_power works the same way but includes user-
-             defined thresholds for sediment entrainment and bedrock erosion.
-            -stochastic_hydrology forces the user to supply either an array or 
-             field name for either drainage area or discharge, and will not 
-             default to q=A^m.
-            
+            and bedrock entrainment/erosion.         
         discharge_method : string
             Either "area_field" or "discharge_field". If using stochastic
             hydrology, determines whether component is supplied with
@@ -314,6 +305,12 @@ class Space(Component):
                             threshold stream power, or stochastic hydrology)!')
     #three choices for erosion methods:
     def simple_stream_power(self):
+        """Use non-threshold stream power.
+        
+        simple_stream_power uses no entrainment or erosion thresholds,
+        and uses either q=A^m or q=Q^m depending on discharge method. If
+        discharge method is None, default is q=A^m.
+        """
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
@@ -352,6 +349,11 @@ class Space(Component):
         self.qs_in = np.zeros(self.grid.number_of_nodes) 
             
     def threshold_stream_power(self):
+        """Use stream power with entrainment/erosion thresholds.
+        
+        threshold_stream_power works the same way as simple SP but includes 
+        user-defined thresholds for sediment entrainment and bedrock erosion.
+        """
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'threshold_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
@@ -394,6 +396,12 @@ class Space(Component):
         self.br_erosion_term = omega_br - self.sp_crit_br * \
             (1 - np.exp(-omega_br / self.sp_crit_br))
     def stochastic_hydrology(self):
+        """Allows custom area and discharge fields, no default behavior.
+        
+        stochastic_hydrology forces the user to supply either an array or 
+        field name for either drainage area or discharge, and will not 
+        default to q=A^m.
+        """
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
@@ -408,7 +416,6 @@ class Space(Component):
                         raise TypeError('Supplied type of area_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
-                #self.q stays as just srface_water__discharge b/c that's A*r
                 self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
