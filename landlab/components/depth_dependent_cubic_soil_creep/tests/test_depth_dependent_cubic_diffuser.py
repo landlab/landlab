@@ -11,7 +11,7 @@ from landlab.components import (DepthDependentCubicDiffuser,
                                 ExponentialWeatherer)
 import numpy as np
 from numpy.testing import assert_array_equal
-
+from nose.tools import assert_raises
 
 def test_4x7_grid_vs_analytical_solution():
     """Test against known analytical solution."""
@@ -60,7 +60,19 @@ def test_4x7_grid_vs_analytical_solution():
                        np.array([0.0, 4.0, 6.7, 7.7, 6.7, 4.0, 0.0]))
     assert_array_equal(np.round(mg.at_node['soil__depth'][8:13], 2), 
                        np.array([0.35, 0.35, 0.35, 0.35, 0.35]))
-
+    
+def test_raise_error():
+    mg = RasterModelGrid((5, 5))
+    soilTh = mg.add_zeros('node', 'soil__depth')
+    z = mg.add_zeros('node', 'topographic__elevation')
+    BRz = mg.add_zeros('node', 'bedrock__elevation')
+    z += mg.node_x.copy()**2
+    BRz = z.copy() - 1.0
+    soilTh[:] = z - BRz
+    expweath = ExponentialWeatherer(mg)
+    DDdiff = DepthDependentCubicDiffuser(mg)
+    expweath.calc_soil_prod_rate()
+    assert_raises(RuntimeError, DDdiff.soilflux, 10, if_unstable='raise')
 
 if __name__ == '__main__':
     test_4x7_grid_vs_analytical_solution()

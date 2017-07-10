@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-import warnings
-
 import numpy as np
+
 from landlab import Component
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import use_file_name_or_kwds
-try:
-    from .cfuncs import (erode_with_link_alpha_varthresh,
-                         erode_with_link_alpha_fixthresh)
-except ImportError:
-    warnings.warn('Unable to import stream_power extension module.')
-from copy import deepcopy as copy
-UNDEFINED_INDEX = np.iinfo(np.int32).max
+
+from .cfuncs import (brent_method_erode_fixed_threshold,
+                     brent_method_erode_variable_threshold)
+
+from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
 
 class StreamPowerEroder(Component):
@@ -227,12 +224,6 @@ class StreamPowerEroder(Component):
         if type(use_Q) is str and use_Q == 'water__discharge':
             use_Q = 'surface_water__discharge'
         self._grid = grid
-        self.fraction_gradient_change = 1.
-        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links+1)
-        # ^needs to be filled with values in execution
-        self.count_active_links = np.zeros_like(
-            self.link_S_with_trailing_blank, dtype=int)
-        self.count_active_links[:-1] = 1
 
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
         if type(K_sp) is np.ndarray:
@@ -341,14 +332,13 @@ class StreamPowerEroder(Component):
 
         self.stream_power_erosion = grid.zeros(centering='node')
         self.alpha = self.grid.zeros('node')
-        self.alpha_divided = self.grid.zeros('node')
 
-    def erode(self, grid, dt, node_elevs='topographic__elevation',
-              node_drainage_areas='drainage_area',
+    def erode(self, grid, dt, elevs='topographic__elevation',
+              drainage_areas='drainage_area',
               flow_receiver='flow__receiver_node',
-              node_order_upstream='flow__upstream_node_order',
+              order_upstream='flow__upstream_node_order',
               slopes_at_nodes='topographic__steepest_slope',
-              link_node_mapping='flow__link_to_receiver_node',
+              link_mapping='flow__link_to_receiver_node',
               link_slopes=None, slopes_from_elevs=None,
               W_if_used=None, Q_if_used=None, K_if_used=None,
               flooded_nodes=None):
@@ -366,16 +356,16 @@ class StreamPowerEroder(Component):
         dt : float
             Component time step.
 
-        node_elevs : str or ndarray, optional
+        elevs : str or ndarray, optional
             Elevations on the grid, either a field string or nnodes-long array.
 
-        node_drainage_areas: str or ndarray, optional
+        drainage_areas: str or ndarray, optional
             Tells the component where to look for the drainage area values.
             Change to another string to override which grid field the
             component looks at, or pass a nnodes-long array of drainage
             areas values directly instead.
 
-        flow_receiver, node_order_upstream : str or ndarray, optional
+        flow_receiver, order_upstream : str or ndarray, optional
             The downstream node to which each node flows and the ordering of
             the nodes in the network starting at the outlet, respectively,
             are both necessary as inputs to allow stability testing.
@@ -385,12 +375,12 @@ class StreamPowerEroder(Component):
             expected: string gives a name in the grid fields, an array gives
             values direct.
 
-            Alternatively, set *link_slopes* (and *link_node_mapping*) if this
+            Alternatively, set *link_slopes* (and *link_mapping*) if this
             data
             is only available at links. 'topographic__derivative_of_elevation'
             is the default field name for link slopes. Override this name by
             setting the variable as the appropriate string, or override use of
-            grid fields altogether by passing an array. *link_node_mapping*
+            grid fields altogether by passing an array. *link_mapping*
             controls how the component maps these link values onto the arrays.
             We assume there is always a 1:1 mapping (pass the values already
             projected onto the nodes using slopes_at_nodes if not). Other
@@ -405,9 +395,9 @@ class StreamPowerEroder(Component):
             Allows the module to create gradients internally
             from elevations rather than have them provided. Set to True to
             force the component to look for the data in the location specified
-            by node_elevs. Using this option is
+            by elevs. Using this option is
             considerably slower than any of the alternatives, as it also has to
-            calculate the link_node_mapping from stratch each time.
+            calculate the link_mapping from stratch each time.
 
             In both these cases, at present the mapping is to use the maximum
             slope of *any* link attached to the node as the representative
@@ -438,13 +428,17 @@ class StreamPowerEroder(Component):
             stream_power_erosion is not an excess stream power; any specified
             erosion threshold is not incorporated into it.
         """
-        upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
+        if type(order_upstream) is str:
+            upstream_order_IDs = grid.at_node[order_upstream]
+        else:
+            upstream_order_IDs = self._grid['node'][order_upstream]
+
         defined_flow_receivers = np.not_equal(self._grid['node'][
-            'flow__link_to_receiver_node'], UNDEFINED_INDEX)
+            link_mapping], UNDEFINED_INDEX)
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
-            self._grid['node']['flow__link_to_receiver_node'][
+            self._grid['node'][link_mapping][
                 defined_flow_receivers]]
-        flow_receivers = self.grid['node']['flow__receiver_node']
+        flow_receivers = self.grid['node'][flow_receiver]
 
         if W_if_used is not None:
             assert self.use_W, ("Widths were provided, but you didn't set " +
@@ -475,18 +469,15 @@ class StreamPowerEroder(Component):
             else:
                 _K_unit_time = self._K_unit_time
 
-        if type(node_elevs) is str:
-            node_z = grid.at_node[node_elevs]
+        if type(elevs) is str:
+            z = grid.at_node[elevs]
         else:
-            node_z = node_elevs
+            z = elevs
 
-        if type(node_drainage_areas) is str:
-            node_A = grid.at_node[node_drainage_areas]
+        if type(drainage_areas) is str:
+            A = grid.at_node[drainage_areas]
         else:
-            node_A = node_drainage_areas
-
-        if type(node_order_upstream) is str:
-            node_order_upstream = grid.at_node[node_order_upstream]
+            A = drainage_areas
 
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
@@ -494,30 +485,20 @@ class StreamPowerEroder(Component):
 
         # Operate the main function:
         if self.use_W is False and self.use_Q is False:  # normal case
-            self.alpha[defined_flow_receivers] = _K_unit_time[
-                defined_flow_receivers]*dt*node_A[
-                    defined_flow_receivers]**self._m / flow_link_lengths
+            self.alpha[defined_flow_receivers] = (
+                _K_unit_time[defined_flow_receivers]*dt*A[
+                    defined_flow_receivers]**self._m /
+                (flow_link_lengths**self._n))
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
                 self.alpha[flooded_nodes] = 0.
-            reversed_flow = node_z < node_z[flow_receivers]
+            reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across
             # depressions
             self.alpha[reversed_flow] = 0.
-            self.alpha_divided[defined_flow_receivers] = (
-                self.alpha[defined_flow_receivers] /
-                flow_link_lengths**(self._n - 1.))
+
             threshdt = self.sp_crit * dt
-            if type(threshdt) is float:
-                erode_with_link_alpha_fixthresh(upstream_order_IDs,
-                                                flow_receivers,
-                                                threshdt, self.alpha_divided,
-                                                self._n, node_z)
-            else:
-                erode_with_link_alpha_varthresh(upstream_order_IDs,
-                                                flow_receivers,
-                                                threshdt, self.alpha_divided,
-                                                self._n, node_z)
+
         elif self.use_W:
             if self._W is None:
                 try:
@@ -537,50 +518,32 @@ class StreamPowerEroder(Component):
                 self.alpha[defined_flow_receivers] = (
                     _K_unit_time[defined_flow_receivers]*dt *
                     Q_direct[defined_flow_receivers]**self._m /
-                    W[defined_flow_receivers] / flow_link_lengths)
+                    W[defined_flow_receivers] / (flow_link_lengths**self._n))
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
                     self.alpha[flooded_nodes] = 0.
-                reversed_flow = node_z < node_z[flow_receivers]
+                reversed_flow = z < z[flow_receivers]
                 # this check necessary if flow has been routed across
                 # depressions
                 self.alpha[reversed_flow] = 0.
-                self.alpha_divided[defined_flow_receivers] = (
-                    self.alpha[defined_flow_receivers] /
-                    flow_link_lengths**(self._n - 1.))
+
                 threshdt = self.sp_crit * dt
-                if type(threshdt) is float:
-                    erode_with_link_alpha_fixthresh(
-                        upstream_order_IDs, flow_receivers, threshdt,
-                        self.alpha_divided, self._n, node_z)
-                else:
-                    erode_with_link_alpha_varthresh(
-                        upstream_order_IDs, flow_receivers, threshdt,
-                        self.alpha_divided, self._n, node_z)
+
             else:  # just W to be used
                 self.alpha[defined_flow_receivers] = (
                     _K_unit_time[defined_flow_receivers]*dt *
-                    node_A[defined_flow_receivers]**self._m /
-                    W[defined_flow_receivers] / flow_link_lengths)
+                    A[defined_flow_receivers]**self._m /
+                    W[defined_flow_receivers] / flow_link_lengths**self._n)
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
                     self.alpha[flooded_nodes] = 0.
-                reversed_flow = node_z < node_z[flow_receivers]
+                reversed_flow = z < z[flow_receivers]
                 # this check necessary if flow has been routed across
                 # depressions
                 self.alpha[reversed_flow] = 0.
-                self.alpha_divided[defined_flow_receivers] = (
-                    self.alpha[defined_flow_receivers] /
-                    flow_link_lengths**(self._n - 1.))
+
                 threshdt = self.sp_crit * dt
-                if type(threshdt) is float:
-                    erode_with_link_alpha_fixthresh(
-                        upstream_order_IDs, flow_receivers, threshdt,
-                        self.alpha_divided, self._n, node_z)
-                else:
-                    erode_with_link_alpha_varthresh(
-                        upstream_order_IDs, flow_receivers, threshdt,
-                        self.alpha_divided, self._n, node_z)
+
         else:  # just use_Q
             if self._Q is None:
                 try:
@@ -593,28 +556,28 @@ class StreamPowerEroder(Component):
             self.alpha[defined_flow_receivers] = (
                 _K_unit_time[defined_flow_receivers]*dt *
                 Q_direct[defined_flow_receivers]**self._m /
-                flow_link_lengths)
+                flow_link_lengths**self._n)
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
                 self.alpha[flooded_nodes] = 0.
-            reversed_flow = node_z < node_z[flow_receivers]
+            reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across
             # depressions
             self.alpha[reversed_flow] = 0.
-            self.alpha_divided[defined_flow_receivers] = (
-                self.alpha[defined_flow_receivers] /
-                flow_link_lengths**(self._n - 1.))
-            threshdt = self.sp_crit * dt
-            if type(threshdt) is float:
-                erode_with_link_alpha_fixthresh(
-                    upstream_order_IDs, flow_receivers, threshdt,
-                    self.alpha_divided, self._n, node_z)
-            else:
-                erode_with_link_alpha_varthresh(
-                    upstream_order_IDs, flow_receivers, threshdt,
-                    self.alpha_divided, self._n, node_z)
 
-        return grid, node_z, self.stream_power_erosion
+            threshdt = self.sp_crit * dt
+
+        # solve using Brent's Method in Cython for Speed
+        if type(threshdt) == float:
+            brent_method_erode_fixed_threshold(
+                upstream_order_IDs, flow_receivers, threshdt, self.alpha,
+                self._n, z)
+        else:
+            brent_method_erode_variable_threshold(
+                upstream_order_IDs, flow_receivers, threshdt, self.alpha,
+                self._n, z)
+
+        return grid, z, self.stream_power_erosion
 
     def run_one_step(self, dt, flooded_nodes=None, **kwds):
         """

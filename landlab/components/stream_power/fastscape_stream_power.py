@@ -7,15 +7,14 @@ Created DEJH, March 2014.
 from __future__ import print_function
 
 import numpy
-import warnings
-from landlab import ModelParameterDictionary, Component
-from landlab.core.model_parameter_dictionary import MissingKeyError, \
-    ParameterValueError
-from landlab.utils.decorators import use_file_name_or_kwds
-from landlab.field.scalar_data_fields import FieldError
-from scipy.optimize import newton, fsolve
+from landlab import Component
 
-UNDEFINED_INDEX = -1
+from landlab.utils.decorators import use_file_name_or_kwds
+
+from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
+
+from .cfuncs import (brent_method_erode_fixed_threshold,
+                     brent_method_erode_variable_threshold)
 
 
 class FastscapeEroder(Component):
@@ -85,7 +84,7 @@ class FastscapeEroder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-    >>> from landlab.components import FlowRouter
+    >>> from landlab.components import FlowRouter, FastscapeEroder
     >>> mg = RasterModelGrid((5, 5), 10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
@@ -227,8 +226,6 @@ class FastscapeEroder(Component):
         # make storage variables
         self.A_to_the_m = grid.zeros(at='node')
         self.alpha = grid.empty(at='node')
-        self.alpha_by_flow_link_lengthtothenless1 = numpy.empty_like(
-                                                        self.alpha)
 
         try:
             self.grid._diagonal_links_at_node  # calc number of diagonal links
@@ -248,8 +245,8 @@ class FastscapeEroder(Component):
                 self.K = self._grid.at_node[K_sp]
         elif type(K_sp) in (float, int):  # a float
             self.K = float(K_sp)
-        elif (type(K_sp) is numpy.ndarray
-              and len(K_sp) == self.grid.number_of_nodes):
+        elif (type(K_sp) is numpy.ndarray and
+              len(K_sp) == self.grid.number_of_nodes):
             self.K = K_sp
         else:
             raise TypeError('Supplied type of K_sp ' +
@@ -338,7 +335,7 @@ class FastscapeEroder(Component):
         else:
             K_here = self.K
         if rainfall_intensity_if_used is not None:
-            assert type(rainfall_intensity_if_used) in (float, numpy.float64, 
+            assert type(rainfall_intensity_if_used) in (float, numpy.float64,
                                                         int)
             r_i_here = float(rainfall_intensity_if_used)
         else:
@@ -353,13 +350,14 @@ class FastscapeEroder(Component):
             assert K_if_used is not None
             self.K = K_if_used
 
+        n = float(self.n)
         numpy.power(self._grid['node']['drainage_area'], self.m,
                     out=self.A_to_the_m)
-        self.alpha[defined_flow_receivers] = r_i_here**self.m * K_here * dt * \
-            self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
+        self.alpha[defined_flow_receivers] = (
+            r_i_here**self.m * K_here * dt * self.A_to_the_m[
+                defined_flow_receivers] / (flow_link_lengths**self.n))
 
         flow_receivers = self._grid['node']['flow__receiver_node']
-        n_nodes = upstream_order_IDs.size
         alpha = self.alpha
 
         # Handle flooded nodes, if any (no erosion there)
@@ -370,48 +368,15 @@ class FastscapeEroder(Component):
             # this check necessary if flow has been routed across depressions
             alpha[reversed_flow] = 0.
 
-        self.alpha_by_flow_link_lengthtothenless1[
-            defined_flow_receivers] = (alpha[defined_flow_receivers] /
-                                       flow_link_lengths**(self.n - 1.))
-        alpha_divided = self.alpha_by_flow_link_lengthtothenless1
-        n = float(self.n)
-        threshdt = self.thresholds * dt
-        if type(self.thresholds) is float:
-            from .cfuncs import erode_with_link_alpha_fixthresh
-            erode_with_link_alpha_fixthresh(upstream_order_IDs, flow_receivers,
-                                            threshdt, alpha_divided, n, z)
+        threshsdt = self.thresholds * dt
+
+        # solve using Brent's Method in Cython for Speed
+        if type(self.thresholds) == float:
+            brent_method_erode_fixed_threshold(
+                upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
         else:
-            from .cfuncs import erode_with_link_alpha_varthresh
-            erode_with_link_alpha_varthresh(upstream_order_IDs, flow_receivers,
-                                            threshdt, alpha_divided, n, z)
-            # # This replicates the cython for testing:
-            # for i in range(upstream_order_IDs.size):
-            #     src_id = upstream_order_IDs[i]
-            #     dst_id = flow_receivers[src_id]
-            #     thresh = threshdt[i]
-            #     if src_id != dst_id:
-            #         next_z = z[src_id]
-            #         prev_z = 0.
-            #         while True:
-            #         #for j in range(2):
-            #             z_diff = next_z - z[dst_id]
-            #             f = alpha_divided[src_id] * pow(z_diff, n - 1.)
-            #             # if z_diff -> 0, pow -> nan (in reality, inf)
-            #             # print (f, prev_z, next_z, z_diff, z[dst_id])
-            #             next_z = next_z - ((next_z - z[src_id] + (
-            #                 f*z_diff - thresh).clip(0.)) / (1. + n * f))
-            #             if next_z < z[dst_id]:
-            #                 next_z = z[dst_id] + 1.e-15
-            #                 # ^maintain connectivity
-            #             if next_z != 0.:
-            #                 if (numpy.fabs((next_z - prev_z)/next_z) <
-            #                     1.48e-08) or (n == 1.):
-            #                     break
-            #             else:
-            #                 break
-            #             prev_z = next_z
-            #         if next_z < z[src_id]:
-            #             z[src_id] = next_z
+            brent_method_erode_variable_threshold(
+                upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
 
         return self._grid
 

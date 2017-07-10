@@ -27,7 +27,7 @@ def create_precip_plot(storm_arr):
 
     # Labeling the x and y axes
     plt.xlabel('Time (years)', fontsize=14)
-    plt.ylabel('Rainfall Intensity (mm/day)', fontsize=14)
+    plt.ylabel('Rainfall Intensity (mm/day)’, fontsize=14)
 
     # Setting the plot title
     plt.title('Randomly Generated Rainfall Time Series', fontsize=16)
