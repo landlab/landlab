@@ -17,6 +17,7 @@ Created on Mon Nov 17 08:01:49 2014
 
 from landlab import HexModelGrid
 from numpy import amax, zeros, arange, array, sqrt
+import sys
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -487,16 +488,21 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 0,  0,  0,  0,  0,
                 0,  0,  0,  0,  0])
         """
+        print('in gnbn')
+        sys.stdout.flush()
         new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
 
         if self.block_layer_dip_angle == 0.0:  # flat
             
             if self.cum_uplift < self.block_layer_thickness:
+                print('cu ' + str(self.cum_uplift) + ' blt ' + str(self.block_layer_thickness))
                 new_base_nodes[:] = self.block_ID
             else:
+                print('just rock state')
                 new_base_nodes[:] = rock_state
                 
-        
+        print(new_base_nodes)
+        sys.stdout.flush()
         
         return new_base_nodes
         
@@ -517,7 +523,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
         """
-
+        print('UIN here')
+        sys.stdout.flush()
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
         for r in range(self.nr - 1, 0, -1):
@@ -527,12 +534,18 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Fill the bottom rows with "fresh material" (code = rock_state), or
         # if using a block layer, with the right pattern of states.
+        print('fill bot rows')
+        sys.stdout.flush()
         if self.opt_block_layer:
             new_base_nodes = self._get_new_base_nodes(rock_state)
             self.cum_uplift += 1.0
+            print('back from gnbn with cum uplift = ' + str(self.cum_uplift))
+            sys.stdout.flush()
         else:
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
+        print(self.node_state)
+        sys.stdout.flush()
 
         # Shift the node states up by two rows: two because the grid is
         # staggered, and we don't want any horizontal offset.
@@ -547,6 +560,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
                             self.propid[self.inner_base_row_nodes+self.nc*(r-2)]
             self.propid[self.inner_base_row_nodes] = top_row_propid
             self.prop_data[self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
+
+        print('done with uin')
+        print(self.node_state)
+        sys.stdout.flush()
 
 
 if __name__=='__main__':

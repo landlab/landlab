@@ -27,7 +27,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_INT8 = np.int8
 ctypedef np.int8_t DTYPE_INT8_t
 
-cdef char _DEBUG = 0
+cdef char _DEBUG = 1
 
 
 cdef class PriorityQueue:
@@ -832,6 +832,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
 
     if _DEBUG:
         print(('DTN', event_time, event_link, next_update[event_link]))
+
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
     # changed state since the event was pushed onto the event queue, and
@@ -840,7 +841,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
 
         tail_node = node_at_link_tail[event_link]
         head_node = node_at_link_head[event_link]
-
+        
         # Remember the previous state of each node so we can detect whether the
         # state has changed
         old_tail_node_state = node_state[tail_node]
@@ -848,6 +849,12 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
 
         this_trn_id = next_trn_id[event_link]
         this_trn_to = trn_to[this_trn_id]
+
+        if _DEBUG:
+            print(('tail:', tail_node))
+            print(('tail state:', old_tail_node_state))
+            print(('head:', head_node))
+            print(('head state:', old_head_node_state))
 
         update_node_states(node_state, status_at_node, tail_node,
                            head_node, this_trn_to, num_node_states)
@@ -971,6 +978,13 @@ cpdef double run_cts_new(double run_to, double current_time,
         Needed if caller wants to plot after every transition
     (see celllab_cts.py for other parameters)
     """
+    import sys
+    print('run_cts_new here')
+    print(current_time)
+    print(run_to)
+    print(len(priority_queue._queue))
+    print(node_state)
+    sys.stdout.flush()
     cdef double ev_time
     cdef int ev_idx
     cdef int ev_link
@@ -989,7 +1003,8 @@ cpdef double run_cts_new(double run_to, double current_time,
 
             if _DEBUG:
                 print('event:', ev_time, ev_link, trn_to[next_trn_id[ev_link]])
-                
+                print('pq top is now:', priority_queue._queue[0])
+
             # ... and execute the transition
             do_transition_new(ev_link, ev_time, priority_queue, next_update,
                               node_at_link_tail,

@@ -154,7 +154,7 @@ if _CYTEST:
 
 _NEVER = 1e50
 
-_DEBUG = False
+_DEBUG = True
 
 _TEST = False
 
@@ -1806,6 +1806,10 @@ class CellLabCTSModel(object):
         else:
             lean_run = True
 
+        import sys  # for debug
+        print('CL run, lean_run = ' + str(lean_run))
+        sys.stdout.flush()
+
         if _USE_CYTHON and not lean_run:
             self.current_time = run_cts(run_to, self.current_time,
                plot_each_transition,
@@ -1853,6 +1857,8 @@ class CellLabCTSModel(object):
 
         elif _RUN_NEW:
             
+            print('calling run_cts_new')
+            sys.stdout.flush()
             # switch off the run fn: 
             #self.run_new(run_to, plot_each_transition, plotter)
             self.current_time = run_cts_new(run_to, self.current_time,
@@ -1882,6 +1888,8 @@ class CellLabCTSModel(object):
                         self,
                         plot_each_transition,
                         plotter)         
+            print('done with run_cts_new')
+            sys.stdout.flush()
         else:
 
             # Continue until we've run out of either time or events
