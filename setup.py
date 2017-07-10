@@ -28,6 +28,8 @@ ext_modules = [
               ['landlab/components/space/cfuncs.pyx']),
     Extension('landlab.components.drainage_density.cfuncs',
               ['landlab/components/drainage_density/cfuncs.pyx']),
+    Extension('landlab.components.erosion_deposition.cfuncs',
+              ['landlab/components/erosion_deposition/cfuncs.pyx']),
     Extension('landlab.utils.ext.jaggedarray',
               ['landlab/utils/ext/jaggedarray.pyx']),
     Extension('landlab.graph.structured_quad.ext.at_node',

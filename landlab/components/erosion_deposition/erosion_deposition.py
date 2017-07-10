@@ -310,9 +310,7 @@ class ErosionDeposition(Component):
                         self.qs,
                         self.qs_in,
                         self.Es,
-                        self.Er,
-                        self.v_s,
-                        self.F_f)
+                        self.v_s)
     
         deposition_pertime = np.zeros(self.grid.number_of_nodes)
         deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
@@ -324,51 +322,54 @@ class ErosionDeposition(Component):
         flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
         flooded[flooded_nodes] = True        
         
+        #topo elev is old elev + deposition - erosion        
+        self.elev += ((deposition_pertime - self.erosion_term) * dt)        
+        
         #distinguish cases:
-        blowup = deposition_pertime == self.K_sed * self.Q_to_the_m * self.slope
+#        blowup = deposition_pertime == self.K_sed * self.Q_to_the_m * self.slope
 
         ##first, potential blowup case:
         #positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
-            (flooded==False)] = self.H_star * \
-            np.log((self.erosion_term[(self.q > 0) & (blowup==True) & \
-            (self.slope > 0) & (flooded==False)] / self.H_star) * dt + \
-            np.exp(self.soil__depth[(self.q > 0) & (blowup==True) & \
-            (self.slope > 0) & (flooded==False)] / self.H_star))
+#        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
+#            (flooded==False)] = self.H_star * \
+#            np.log((self.erosion_term[(self.q > 0) & (blowup==True) & \
+#            (self.slope > 0) & (flooded==False)] / self.H_star) * dt + \
+#            np.exp(self.soil__depth[(self.q > 0) & (blowup==True) & \
+#            (self.slope > 0) & (flooded==False)] / self.H_star))
         #positive slopes, flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
-            (flooded==True)] = (deposition_pertime[(self.q > 0) & \
-            (blowup==True) & (self.slope > 0) & (flooded==True)] / (1 - self.phi)) * dt   
+#        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
+#            (flooded==True)] = (deposition_pertime[(self.q > 0) & \
+#            (blowup==True) & (self.slope > 0) & (flooded==True)] / (1 - self.phi)) * dt   
         #non-positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
-            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
-            (blowup==True) & (self.slope <= 0) & (flooded==False)] / \
-            (1 - self.phi)) * dt    
+#        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
+#            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
+#            (blowup==True) & (self.slope <= 0) & (flooded==False)] / \
+#            (1 - self.phi)) * dt    
         
         ##more general case:
         #positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
-            (flooded==False)] = self.H_star * \
-            np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / (1 - self.phi)) / \
-            (self.erosion_term[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)]) - 1)) * \
-            (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / (1 - self.phi) - \
-            (self.erosion_term[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
-            (((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / (1 - self.phi) / \
-            (self.erosion_term[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)])) - 1) * \
-            np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / self.H_star)  + 1) - 1))
+#        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
+#            (flooded==False)] = self.H_star * \
+#            np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)] / (1 - self.phi)) / \
+#            (self.erosion_term[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)]) - 1)) * \
+#            (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)] / (1 - self.phi) - \
+#            (self.erosion_term[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
+#            (((deposition_pertime[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)] / (1 - self.phi) / \
+#            (self.erosion_term[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)])) - 1) * \
+#            np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & \
+#            (self.slope > 0) & (flooded==False)] / self.H_star)  + 1) - 1))
         #places where slope <= 0 but not flooded:
-        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope <= 0) & \
-            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
-            (blowup==False) & (self.slope <= 0) & (flooded==False)] / \
-            (1 - self.phi)) * dt     
+#        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope <= 0) & \
+#            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
+#            (blowup==False) & (self.slope <= 0) & (flooded==False)] / \
+#            (1 - self.phi)) * dt     
         #flooded nodes:        
-        self.soil__depth[(self.q > 0) & (blowup==False) & (flooded==True)] += \
-            (deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (flooded==True)] / (1 - self.phi)) * dt     
+#        self.soil__depth[(self.q > 0) & (blowup==False) & (flooded==True)] += \
+#            (deposition_pertime[(self.q > 0) & (blowup==False) & \
+#            (flooded==True)] / (1 - self.phi)) * dt     
