@@ -90,6 +90,87 @@ class ErosionDeposition(Component):
         discharge_field : string or array
             Used if discharge_method = 'discharge_field'.Either field name or
             array of length(number_of_nodes) containing drainage areas [L^2/T].
+        
+        Examples
+        ---------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.flow_routing import FlowRouter
+        >>> from landlab.components import DepressionFinderAndRouter
+        >>> from landlab.components import ErosionDeposition
+        >>> from landlab.components import FastscapeEroder
+        >>> np.random.seed(seed = 5000)
+        
+        Define grid and initial topography:
+            -5x5 grid with baselevel in the lower left corner
+            -all other boundary nodes closed
+            -Initial topography is plane tilted up to the upper right + noise
+        
+        >>> nr = 5
+        >>> nc = 5
+        >>> dx = 10
+        >>> mg = RasterModelGrid((nr, nc), 10.0)
+        >>> _ = mg.add_zeros('node', 'topographic__elevation')
+        >>> mg['node']['topographic__elevation'] += mg.node_y/10 + \
+                mg.node_x/10 + np.random.rand(len(mg.node_y)) / 10
+        >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,\
+                                                       left_is_closed=True,\
+                                                       right_is_closed=True,\
+                                                       top_is_closed=True)
+        >>> mg.set_watershed_boundary_condition_outlet_id(0,\
+                mg['node']['topographic__elevation'], -9999.)
+        >>> fsc_dt = 100. 
+        >>> ed_dt = 1.
+        
+        Check initial topography        
+        
+        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+        array([ 0.02290479,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
+            1.08157495,  2.09812694,  3.00637448,  4.07999597,  5.00969486,
+            2.04008677,  3.06621577,  4.09655859,  5.04809001,  6.02641123,
+            3.05874171,  4.00585786,  5.0595697 ,  6.04425233,  7.05334077,
+            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
+        
+        Instantiate Fastscape eroder, flow router, and depression finder        
+        
+        >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
+        >>> fr = FlowRouter(mg) #instantiate
+        >>> df = DepressionFinderAndRouter(mg)
+        
+        Burn in an initial drainage network using the Fastscape eroder:
+        
+        >>> for x in range(100): 
+        ...     fr.run_one_step()
+        ...     df.map_depressions()
+        ...     flooded = np.where(df.flood_status==3)[0]
+        ...     fsc.run_one_step(dt = fsc_dt, flooded_nodes=flooded)
+        ...     mg.at_node['topographic__elevation'][0] -= 0.001 #uplift
+        
+        Instantiate the E/D component:        
+        
+        >>> ed = ErosionDeposition(mg, K=0.00001, phi=0.0, v_s=0.001,\
+                                m_sp=0.5, n_sp = 1.0, sp_crit=0,\
+                                method='simple_stream_power',\
+                                discharge_method=None, area_field=None,\
+                                discharge_field=None)
+                                
+        Now run the E/D component for 2000 short timesteps:                            
+                                
+        >>> for x in range(2000): #E/D component loop
+        ...     fr.run_one_step()
+        ...     df.map_depressions()
+        ...     flooded = np.where(df.flood_status==3)[0]
+        ...     ed.run_one_step(dt = ed_dt, flooded_nodes=flooded)
+        ...     mg.at_node['topographic__elevation'][0] -= 2e-4 * ed_dt
+        
+        Now we test to see if topography is right:
+        
+        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+        array([-0.47709402,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
+            1.08157495, -0.0799798 , -0.06459322, -0.05380581,  5.00969486,
+            2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
+            3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
+            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
         """
                 #assign class variables to grid fields; create necessary fields
         self.flow_receivers = grid.at_node['flow__receiver_node']
@@ -309,7 +390,7 @@ class ErosionDeposition(Component):
                         self.q,
                         self.qs,
                         self.qs_in,
-                        self.Es,
+                        self.erosion_term,
                         self.v_s)
     
         deposition_pertime = np.zeros(self.grid.number_of_nodes)
