@@ -95,7 +95,7 @@ class Space(Component):
         method : string
             Either "simple_stream_power", "threshold_stream_power", or
             "stochastic_hydrology". Method for calculating sediment
-            and bedrock entrainment/erosion.
+            and bedrock entrainment/erosion.         
         discharge_method : string
             Either "area_field" or "discharge_field". If using stochastic
             hydrology, determines whether component is supplied with
@@ -181,17 +181,17 @@ class Space(Component):
         
         >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0.50005858,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
-            0.5       ,  0.31524353,  0.43662827,  0.48100503,  0.5       ,
-            0.5       ,  0.43661988,  0.43660829,  0.4803908 ,  0.5       ,
-            0.5       ,  0.48084745,  0.48038764,  0.47769259,  0.5       ,
+            0.5       ,  0.31524982,  0.43663631,  0.48100988,  0.5       ,
+            0.5       ,  0.43662792,  0.43661476,  0.48039544,  0.5       ,
+            0.5       ,  0.48085233,  0.48039228,  0.47769742,  0.5       ,
             0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
         
         >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.52316337,  2.03606698,  3.0727653 ,  4.01126678,  5.06077707,
-            2.08157495,  0.743862  ,  0.8723136 ,  0.92741368,  6.00969486,
-            3.04008677,  0.87231884,  0.8723152 ,  0.92796624,  7.02641123,
-            4.05874171,  0.9275607 ,  0.92796903,  0.94312328,  8.05334077,
-            5.05922478,  6.0409473 ,  7.07035008,  8.0038935 ,  9.01034357])
+        array([ 0.02316337,  1.53606698,  2.5727653 ,  3.51126678,  4.56077707,
+            1.58157495,  0.24386828,  0.37232163,  0.42741854,  5.50969486,
+            2.54008677,  0.37232688,  0.37232168,  0.42797088,  6.52641123,
+            3.55874171,  0.42756557,  0.42797367,  0.44312812,  7.55334077,
+            4.55922478,  5.5409473 ,  6.57035008,  7.5038935 ,  8.51034357])
         """
         #assign class variables to grid fields; create necessary fields
         self.flow_receivers = grid.at_node['flow__receiver_node']
@@ -209,7 +209,8 @@ class Space(Component):
         except KeyError:
             self.bedrock__elevation = grid.add_zeros(
                 'bedrock__elevation', at='node', dtype=float)
-            self.bedrock__elevation[:] += self.topographic__elevation.copy()
+            self.bedrock__elevation[:] = self.topographic__elevation -\
+                self.soil__depth
         try:
             self.qs = grid.at_node['sediment__flux']
         except KeyError:
@@ -304,8 +305,14 @@ class Space(Component):
                             threshold stream power, or stochastic hydrology)!')
     #three choices for erosion methods:
     def simple_stream_power(self):
+        """Use non-threshold stream power.
+        
+        simple_stream_power uses no entrainment or erosion thresholds,
+        and uses either q=A^m or q=Q^m depending on discharge method. If
+        discharge method is None, default is q=A^m.
+        """
+        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
-            self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'simple_stream_power' and self.discharge_method is not None:
             if self.discharge_method == 'drainage_area':
@@ -342,8 +349,13 @@ class Space(Component):
         self.qs_in = np.zeros(self.grid.number_of_nodes) 
             
     def threshold_stream_power(self):
+        """Use stream power with entrainment/erosion thresholds.
+        
+        threshold_stream_power works the same way as simple SP but includes 
+        user-defined thresholds for sediment entrainment and bedrock erosion.
+        """
+        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'threshold_stream_power' and self.discharge_method == None:
-            self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
             if self.discharge_method == 'drainage_area':
@@ -384,6 +396,12 @@ class Space(Component):
         self.br_erosion_term = omega_br - self.sp_crit_br * \
             (1 - np.exp(-omega_br / self.sp_crit_br))
     def stochastic_hydrology(self):
+        """Allows custom area and discharge fields, no default behavior.
+        
+        stochastic_hydrology forces the user to supply either an array or 
+        field name for either drainage area or discharge, and will not 
+        default to q=A^m.
+        """
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
@@ -398,7 +416,6 @@ class Space(Component):
                         raise TypeError('Supplied type of area_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
-                #self.q stays as just srface_water__discharge b/c that's A*r
                 self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
@@ -493,15 +510,15 @@ class Space(Component):
         self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
             (flooded==False)] = self.H_star * \
             np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] * (1 - self.phi)) / \
+            (self.slope > 0) & (flooded==False)] / (1 - self.phi)) / \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)]) - 1)) * \
             (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] * (1 - self.phi) - \
+            (self.slope > 0) & (flooded==False)] / (1 - self.phi) - \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
             (((deposition_pertime[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] * (1 - self.phi) / \
+            (self.slope > 0) & (flooded==False)] / (1 - self.phi) / \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)])) - 1) * \
             np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & \
