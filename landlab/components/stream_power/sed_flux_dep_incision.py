@@ -43,6 +43,10 @@ class SedDepEroder(Component):
         E  = K_sp * f(Qs, Qc) * A ** m_sp * S ** n_sp;
         Qc = K_t * A ** m_t * S ** n_t
 
+    If ``Qc == 'Voller_generalized'``::
+
+        Qc = K_t * A ** b_t * max[(S ** n_t - S_crit ** n_t) ** m_t, 0.]
+
     The component uses the field fluvial_sediment__depth as the record of the
     sediment on the bed at any given time. This may be set and/or freely
     modified by the user, but will be created by the component if not found.
@@ -69,7 +73,7 @@ class SedDepEroder(Component):
                      sed_dependency_type='generalized_humped',
                      kappa_hump=13.683, nu_hump=1.13, phi_hump=4.24,
                      c_hump=0.00181, Qc='power_law', m_sp=0.5, n_sp=1.,
-                     K_t=1.e-4, m_t=1.5, n_t=1.,
+                     K_t=1.e-4, m_t=1.5, n_t=1., b_t=1., S_crit=0.,
                      pseudoimplicit_repeats=50,
                      return_stream_properties=False)
 
@@ -107,12 +111,12 @@ class SedDepEroder(Component):
         Hobley et al., 2011. 'None' gives a constant value of 1.
         NB: 'parabolic' is currently not supported, due to numerical
         stability issues at channel heads.
-    Qc : {'power_law', 'MPM'}
-        Whether to use simple stream-power-like equations for both
-        sediment transport capacity and erosion rate, or more complex
-        forms based directly on the Meyer-Peter Muller equation and a
-        shear stress based erosion model consistent with MPM (per
-        Hobley et al., 2011).
+    Qc : {'power_law', 'Voller_generalized'}
+        Whether to use 1. Qc = K_t * A**m_t * S**n_t, or 2. Voller et al.'s (in
+        prep.) slightly more complex version,
+        Qc = K_t * A_w**b_t * max[(S**n_t - S_crit**n_t)**m_t, 0]. Note
+        Voller_generalized is equivalent to MPM if m_t == 3/2, n_t = 2/3,
+        K_t = 8.*np.sqrt(C_f)*k_w/(specific_g - 1).
 
     If ``sed_dependency_type == 'generalized_humped'``...
 
@@ -145,6 +149,14 @@ class SedDepEroder(Component):
         Power on drainage area in the transport capacity equation.
     n_t : float
         Power on slope in the transport capacity equation.
+
+    If ``Qc = 'Voller_generalized'`` we add on top of this list:
+
+    b_t : float
+        Scaling parameter to turn drainage area into water discharge, i.e.,
+        Q_w = k_w * A ** b_t.
+    S_crit : float or array
+        Critical threshold slope below which incision is forbidden.
 
     Examples
     --------
@@ -348,7 +360,7 @@ class SedDepEroder(Component):
         assert self.type in ('generalized_humped', 'None', 'linear_decline',
                              'almost_parabolic')
         self.Qc = Qc
-        assert self.Qc in ('MPM', 'power_law')
+        assert self.Qc in ('MPM', 'power_law', 'Voller_generalized')
         self.return_ch_props = return_stream_properties
         if return_stream_properties:
             assert self.Qc == 'MPM', ("Qc must be 'MPM' to return stream " +
@@ -369,6 +381,15 @@ class SedDepEroder(Component):
             self._Kt = K_t/31557600.  # in sec
             self._mt = m_t
             self._nt = n_t
+        elif self.Qc == 'Voller_generalized':
+            raise NameError('Voller_generalized not yet supported!')
+            self._m = m_sp
+            self._n = n_sp
+            self._Kt = K_t/31557600.  # in sec
+            self._mt = m_t
+            self._nt = n_t
+            self._bt = b_t
+            self._Scrit = S_crit
 
         self._hillslope_sediment_flux_wzeros = self.grid.zeros('node',
                                                                dtype=float)
