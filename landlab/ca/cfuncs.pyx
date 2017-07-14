@@ -299,6 +299,9 @@ cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
         node_state[tail_node] = (new_link_state / num_states) % num_states # assume integer division!!
     if status_at_node[head_node] == _CORE:
         node_state[head_node] = new_link_state % num_states
+    if _DEBUG:
+        print(('UNS new tail state: ', node_state[tail_node]))
+        print(('UNS new head state: ', node_state[head_node]))
 
 
 @cython.boundscheck(True)
@@ -563,6 +566,9 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     cdef int fns, tns
     cdef int this_trn_id
     cdef int orientation
+    
+    if _DEBUG:
+        print(('ULSN', link, link_state[link], new_link_state, current_time))
 
     # If the link connects to a boundary, we might have a different state
     # than the one we planned
@@ -572,6 +578,8 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         orientation = link_orientation[link]
         new_link_state = orientation * num_node_states_sq + \
             fns * num_node_states + tns
+        if _DEBUG:
+            print((' bnd True', new_link_state))
 
     link_state[link] = new_link_state
     if n_trn[new_link_state] > 0:
@@ -581,9 +589,11 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         priority_queue.push(link, event_time)
         next_update[link] = event_time
         next_trn_id[link] = this_trn_id
+        print((' sched for', event_time, this_trn_id))
     else:
         next_update[link] = _NEVER
         next_trn_id[link] = -1
+        print((' NO sched'))
 
 @cython.boundscheck(True)
 @cython.wraparound(False)
@@ -831,7 +841,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
     cdef int i
 
     if _DEBUG:
-        print(('DTN', event_time, event_link, next_update[event_link]))
+        print(('DTN', event_time, event_link, link_state[event_link], next_update[event_link]))
 
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
@@ -851,6 +861,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
         this_trn_to = trn_to[this_trn_id]
 
         if _DEBUG:
+            print((this_trn_id, this_trn_to))
             print(('tail:', tail_node))
             print(('tail state:', old_tail_node_state))
             print(('head:', head_node))

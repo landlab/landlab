@@ -507,6 +507,42 @@ class LatticeUplifter(HexLatticeTectonicizer):
         return new_base_nodes
         
 
+    def shift_link_and_transition_data_upward(self, link_state, next_trn,
+                                              next_update, event_queue):
+        """Applies uplift to links and transitions.
+        
+        For each link that lies above the y = 1.5 cells line, assign the
+        properties of the link one row down.
+
+        Examples
+        --------
+        >>> lu = LatticeUplifter()
+        """
+        
+        # TODO: ADD DOCTEST OF UPWARD SHIFT OF LINK PROPERTIES,
+        # ADD UPDATE OF EVENT QUEUE,
+        # WIRE IT INTO DO_UPLIFT,
+        # REVISIT HANDLING OF RE-SETTING OF NODE AND LINK STATES ALONG BOTTOM
+        # ROW
+
+        # Find the ID of the first link above the y = 1.5 line
+        nc = self.grid.number_of_node_columns
+        first_link = nc + 2 * (nc - 1) + (nc - 1) // 2
+        
+        # Define the offset in ID between a link and its neighbor one row up
+        # (or down)
+        shift = nc + 2 * (nc - 1)
+        
+        # Loop from top to bottom of grid, shifting the following link data
+        # upward: state of link, ID of its next transition, and time of its
+        # next transition.
+        for lnk in range(self.grid.number_of_links - 1, first_link - 1, -1):
+            link_state[lnk] = link_state[lnk - shift]
+            next_trn[lnk] = next_trn[lnk - shift]
+            next_update[lnk] = next_update[lnk - shift]
+            
+        # ADD EVENT QUEUE SHIFT HERE
+
     def uplift_interior_nodes(self, rock_state=1):
         """
         Simulate 'vertical' displacement by shifting contents of node_state
