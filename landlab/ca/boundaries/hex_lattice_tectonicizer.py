@@ -516,10 +516,31 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         Examples
         --------
-        >>> lu = LatticeUplifter()
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+
+        >>> mg = HexModelGrid(4, 3, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {0 : 'yes', 1 : 'no'}
+        >>> xnlist = []
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((0,0,1), (1,1,1), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
+        >>> ohcts.link_state[mg.active_links]
+        array([4, 8, 8, 4, 0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
+        >>> ohcts.next_trn_id[mg.active_links]
+        array([1, 2, 2, 1, 0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
+        >>> lu = LatticeUplifter(grid=mg)
+        >>> ls = ohcts.link_state
+        >>> nt = ohcts.next_trn_id
+        >>> nu = ohcts.next_update
+        >>> eq = ohcts.event_queue
+        >>> lu.shift_link_and_transition_data_upward(ls, nt, nu, eq)
         """
         
-        # TODO: ADD DOCTEST OF UPWARD SHIFT OF LINK PROPERTIES,
+        # TODO: FINISH DOCTEST OF UPWARD SHIFT OF LINK PROPERTIES,
         # ADD UPDATE OF EVENT QUEUE,
         # WIRE IT INTO DO_UPLIFT,
         # REVISIT HANDLING OF RE-SETTING OF NODE AND LINK STATES ALONG BOTTOM
