@@ -2,6 +2,9 @@ import numpy as np
 from landlab import Component
 from .cfuncs import calculate_qs_in
 
+ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
+TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
+
 class Space(Component):
     """
     Stream Power with Alluvium Conservation and Entrainment (SPACE)
@@ -65,7 +68,8 @@ class Space(Component):
                  phi=None, H_star=None, v_s=None, 
                  m_sp=None, n_sp=None, sp_crit_sed=None, 
                  sp_crit_br=None, method=None, discharge_method=None, 
-                 area_field=None, discharge_field=None, **kwds):
+                 area_field=None, discharge_field=None, solver='original',
+                 **kwds):
         """Initialize the Space model.
         
         Parameters
@@ -106,7 +110,17 @@ class Space(Component):
         discharge_field : string or array
             Used if discharge_method = 'discharge_field'.Either field name or
             array of length(number_of_nodes) containing drainage areas [L^2/T].
-            
+        solver : string
+            Solver to use. Options at present include:
+                (1) 'original' (default): explicit forward-time extrapolation.
+                    Simple but will become unstable if time step is too large.
+                (2) 'celerity': calculates maximum time step as minimum of
+                    F x grid-cell width / wave celerity, where wave celerity is
+                    defined as K_sed A^m. F is a factor < 1. Assumes n = 1. 
+                    Global time step is subdivided when needed to keep time
+                    step size less than or equal to the estimated maximum.
+                    K_sed is used because we assume K_sed >= K_br.
+
         Examples
         ---------
         >>> import numpy as np
@@ -303,6 +317,16 @@ class Space(Component):
         else:
             raise ValueError('Specify erosion method (simple stream power,\
                             threshold stream power, or stochastic hydrology)!')
+
+        # Handle option for solver
+        if solver == 'original':
+            self.run_one_step = self.run_one_step_original
+        elif solver == 'celerity':
+            self.run_one_step = self.run_with_simple_time_step_adjuster
+        else:
+            raise ValueError("Parameter 'solver' must be one of: "
+                             + "'original', 'celerity'")
+
     #three choices for erosion methods:
     def simple_stream_power(self):
         """Use non-threshold stream power.
@@ -395,6 +419,7 @@ class Space(Component):
             (1 - np.exp(-omega_sed / self.sp_crit_sed))
         self.br_erosion_term = omega_br - self.sp_crit_br * \
             (1 - np.exp(-omega_br / self.sp_crit_br))
+
     def stochastic_hydrology(self):
         """Allows custom area and discharge fields, no default behavior.
         
@@ -439,7 +464,8 @@ class Space(Component):
             np.power(self.slope, self.n_sp)
         self.br_erosion_term = self.K_br * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
-    def run_one_step(self, dt=1.0, flooded_nodes=None, **kwds):
+
+    def run_one_step_original(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
         
@@ -449,7 +475,7 @@ class Space(Component):
             Model timestep [T]
         flooded_nodes : array
             Indices of flooded nodes, passed from flow router
-        """        
+        """
         #Choose a method for calculating erosion:
         if self.method == 'stochastic_hydrology':        
             self.stochastic_hydrology()        
@@ -459,7 +485,7 @@ class Space(Component):
             self.threshold_stream_power()
         else:
             raise ValueError('Specify an erosion method!')
-            
+
         self.qs_in[:] = 0# np.zeros(self.grid.number_of_nodes)            
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -538,5 +564,159 @@ class Space(Component):
             (np.exp(-self.soil__depth[self.q > 0] / self.H_star)))
 
         #finally, determine topography by summing bedrock and soil
-        self.topographic__elevation[:] = self.bedrock__elevation + \
-            self.soil__depth 
+        #self.topographic__elevation[:] = self.bedrock__elevation + \
+        #    self.soil__depth 
+        #print(('sp a 6=', self.topographic__elevation[6]))
+        cores = self._grid.core_nodes
+        self.topographic__elevation[cores] = self.bedrock__elevation[cores] + \
+            self.soil__depth[cores]
+        #print(('sp b 6=', self.topographic__elevation[6]))
+
+    def _update_flow_link_slopes(self):
+        """Updates gradient between each core node and its receiver.
+
+        Assumes uniform raster grid. Used to update slope values between
+        sub-time-steps, when we do not re-run flow routing.
+
+        (TODO: generalize to other grid types)
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> rg = RasterModelGrid((3, 4))
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z[:] = rg.x_of_node + rg.y_of_node
+        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+        >>> fa.run_one_step()
+        >>> rg.at_node['topographic__steepest_slope'][5:7]
+        array([ 1.41421356,  1.41421356])
+        >>> sp = Space(rg, K_sed=0.00001, K_br=0.00000000001,\
+                                F_f=0.5, phi=0.1, H_star=1., v_s=0.001,\
+                                m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
+                                sp_crit_br=0, method='simple_stream_power',\
+                                discharge_method=None, area_field=None,\
+                                discharge_field=None)
+        >>> z *= 0.1
+        >>> sp._update_flow_link_slopes()
+        >>> rg.at_node['topographic__steepest_slope'][5:7]
+        array([ 0.14142136,  0.14142136])
+        """
+        flowlink = self._grid.at_node['flow__link_to_receiver_node']
+        z = self._grid.at_node['topographic__elevation']
+        r = self._grid.at_node['flow__receiver_node']
+        slp = self._grid.at_node['topographic__steepest_slope']
+        diag_flow_dirs, = np.where(flowlink >= self._grid.number_of_links)
+        slp[:] = (z - z[r]) / self._grid._dx
+        slp[diag_flow_dirs] /= ROOT2
+
+    def run_with_simple_time_step_adjuster(self, dt, flooded_nodes=None):
+        """Estimates and imposes a maximum time step based on K A^m.
+        
+        Subdivides global step size as needed.
+        
+        Assumes linear form (n=1), and that drainage area is used as driver."""
+        max_area = np.amax(self.grid.at_node['drainage_area'])
+        print('max area = ' + str(max_area))
+        dt_max = TIME_STEP_FACTOR * self.K_sed * max_area ** self.m_sp
+        time_remaining = dt
+        first_iter = True
+        while time_remaining > 0.0:
+            dt_max = min(dt_max, time_remaining)
+            print('dt_max = ' + str(dt_max))
+            if not first_iter:
+                self._update_flow_link_slopes()
+            self.run_one_step_original(dt=dt_max, flooded_nodes=flooded_nodes)
+            time_remaining -= dt_max
+            first_iter = False
+
+    def experimental_dynamic_timestep_solver(self, dt=1.0, flooded_nodes=None):
+        """CHILD-like solver that adjusts time steps to prevent slope
+        flattening."""
+        
+        remaining_time = dt
+        factor = 0.5
+        
+        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
+        flooded[flooded_nodes] = True        
+
+        z = self._grid.at_node['topographic__elevation']
+        r = self.flow_receivers
+        time_to_flat = np.zeros(len(z))
+        dzdt = np.zeros(len(z))
+        cores = self._grid.core_nodes
+        slope = np.zeros(len(z))
+
+        # Outer WHILE loop: keep going until time is used up
+        while remaining_time > 0.0:
+        
+            # Sweep through nodes from upstream to downstream, calculating Qs,
+            # E, D, and dz/dt, but not changing topo or sed thickness.
+            #self.simple_stream_power()
+            #slope[cores] = 
+            
+            #TODO: need to recalculate slopes here
+
+            self.Er = self.K_br * self.Q_to_the_m * np.power(slope, self.n_sp)
+
+            calculate_qs_in(np.flipud(self.stack),
+                            self.flow_receivers,
+                            self.grid.node_spacing,
+                            self.q,
+                            self.qs,
+                            self.qs_in,
+                            self.Es,
+                            self.Er,
+                            self.v_s,
+                            self.F_f)
+            deposition_pertime = np.zeros(self.grid.number_of_nodes)
+            deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
+                                             (self.v_s / self.q[self.q > 0]))
+            
+            # TODO handle flooded nodes in the above fn
+
+            # Now look at upstream-downstream node pairs, and recording the
+            # time it would take for each pair to flatten. Take the minimum.
+            dzdt[cores] = deposition_pertime[cores] - (self.Es[cores] + self.Er[cores])
+            rocdif = dzdt - dzdt[r]
+            zdif = z - z[r]
+            time_to_flat[:] = remaining_time
+            
+            converging = np.where(rocdif < 0.0)[0]
+            time_to_flat[converging] = - factor * zdif[converging] / rocdif[converging]
+            time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
+
+            # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
+            for i in range(0, len(dzdt), 10000):
+                if self._grid.status_at_node[i] == 0:
+                    print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
+                           dzdt[self.flow_receivers[i]], zdif[i],
+                           rocdif[i], time_to_flat[i]))
+            watch = np.argmin(time_to_flat)
+            print(watch)
+            print((watch, r[watch], flooded[watch], z[watch], z[r[watch]], dzdt[watch],
+                           dzdt[self.flow_receivers[watch]], zdif[watch],
+                           rocdif[watch], time_to_flat[watch]))
+            # From this, find the maximum stable time step. If it is smaller
+            # than our tolerance, report and quit.
+            dt_max = np.amin(time_to_flat)
+            print(('*** min', np.amin(time_to_flat)))
+            print(('*** dt_max', dt_max))
+            print()
+            
+            # Now a vector operation: apply dzdt and dhdt to all nodes
+            z[cores] += dzdt[cores] * dt_max
+
+            # Update remaining time and continue
+            remaining_time -= dt_max
+            
+            if dt_max < 0.1:
+                print('dt_max = ' + str(dt_max))
+                try:
+                    aaa = bbb
+                except:
+                    raise
+            
+            pass
+
+    
