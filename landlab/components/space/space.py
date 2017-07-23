@@ -564,12 +564,12 @@ class Space(Component):
             (np.exp(-self.soil__depth[self.q > 0] / self.H_star)))
 
         #finally, determine topography by summing bedrock and soil
-        self.topographic__elevation[:] = self.bedrock__elevation + \
-            self.soil__depth 
+#        self.topographic__elevation[:] = self.bedrock__elevation + \
+#            self.soil__depth 
         #print(('sp a 6=', self.topographic__elevation[6]))
-#        cores = self._grid.core_nodes
-#        self.topographic__elevation[cores] = self.bedrock__elevation[cores] + \
-#            self.soil__depth[cores]
+        cores = self._grid.core_nodes
+        self.topographic__elevation[cores] = self.bedrock__elevation[cores] + \
+            self.soil__depth[cores]
         #print(('sp b 6=', self.topographic__elevation[6]))
 
     def _update_flow_link_slopes(self):
