@@ -190,16 +190,16 @@ class Space(Component):
         ...     flooded = np.where(df.flood_status==3)[0]
         ...     ha.run_one_step(dt = space_dt, flooded_nodes=flooded)
         ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * space_dt
-        
+
         Now we test to see if soil depth and topography are right:
-        
+
         >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0.50000906,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
                 0.5       ,  0.49537393,  0.49305759,  0.49193247,  0.5       ,
                 0.5       ,  0.49304854,  0.49304459,  0.4913106 ,  0.5       ,
                 0.5       ,  0.49177241,  0.4913074 ,  0.48573171,  0.5       ,
                 0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
-        
+
         >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0.42290479,  1.53606698,  2.5727653 ,  3.51126678,  4.56077707,
                 1.58157495,  0.42399277,  0.428743  ,  0.43834115,  5.50969486,
@@ -207,6 +207,8 @@ class Space(Component):
                 3.55874171,  0.43848567,  0.43888881,  0.45116241,  7.55334077,
                 4.55922478,  5.5409473 ,  6.57035008,  7.5038935 ,  8.51034357])
         """
+# THESE ARE THE OLD TESTS, BEFORE THE CHANGE THAT NOW HAS ELEVATION CHANGES 
+# ONLY APPLIED TO CORE NODES:
 #        array([ 0.50005858,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
 #            0.5       ,  0.31524982,  0.43663631,  0.48100988,  0.5       ,
 #            0.5       ,  0.43662792,  0.43661476,  0.48039544,  0.5       ,
@@ -620,7 +622,8 @@ class Space(Component):
         slp[:] = (z - z[r]) / self._grid._dx
         slp[diag_flow_dirs] /= ROOT2
 
-    def run_with_simple_time_step_adjuster(self, dt, flooded_nodes=None):
+    def run_with_simple_time_step_adjuster(self, dt, flooded_nodes=None,
+                                           **kwds):
         """Estimates and imposes a maximum time step based on K A^m.
         
         Subdivides global step size as needed.
@@ -628,12 +631,12 @@ class Space(Component):
         Assumes linear form (n=1), and that drainage area is used as driver."""
         max_area = np.amax(self.grid.at_node['drainage_area'])
         print('max area = ' + str(max_area))
-        dt_max = TIME_STEP_FACTOR * self.K_sed * max_area ** self.m_sp
+        dt_max = TIME_STEP_FACTOR * self.grid._dx / (self.K_sed * max_area ** self.m_sp)
+        print('dt_max = ' + str(dt_max))
         time_remaining = dt
         first_iter = True
         while time_remaining > 0.0:
             dt_max = min(dt_max, time_remaining)
-            print('dt_max = ' + str(dt_max))
             if not first_iter:
                 self._update_flow_link_slopes()
             self.run_one_step_original(dt=dt_max, flooded_nodes=flooded_nodes)
