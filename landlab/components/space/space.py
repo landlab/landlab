@@ -304,11 +304,12 @@ class Space(Component):
                 raise TypeError('Supplied type of sp_crit_br ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!') 
-                                
+
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
         if discharge_method is not None:
             self.discharge_method = str(discharge_method)
+            print('INIT: ' + self.discharge_method)
         else:
             self.discharge_method = None
         if area_field is not None:
@@ -335,6 +336,8 @@ class Space(Component):
             self.run_one_step = self.run_one_step_original
         elif solver == 'celerity':
             self.run_one_step = self.run_with_simple_time_step_adjuster
+        elif solver == 'adaptive':
+            self.run_one_step = self.run_with_adaptive_time_step_solver
         else:
             raise ValueError("Parameter 'solver' must be one of: "
                              + "'original', 'celerity'")
@@ -347,13 +350,19 @@ class Space(Component):
         and uses either q=A^m or q=Q^m depending on discharge method. If
         discharge method is None, default is q=A^m.
         """
+        print('SSP')
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
+            print('ssp1')
         elif self.method == 'simple_stream_power' and self.discharge_method is not None:
-            if self.discharge_method == 'drainage_area':
+            print('ssp2')
+            if self.discharge_method == 'area_field':
+                print('here we go')
                 if self.area_field is not None:
+                    print('type af = ' + str(type(self.area_field)))
                     if type(self.area_field) is str:
+                        print('area_field = ' + self.area_field)
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
                         self.drainage_area = np.array(self.area_field)
@@ -362,7 +371,10 @@ class Space(Component):
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
                 self.Q_to_the_m[:] = np.power(self.drainage_area, self.m_sp)
+                print('A[40000] = ' + str(self.drainage_area[40000]))
+                print('Qm[40000] = ' + str(self.Q_to_the_m[40000]))
             elif self.discharge_method == 'discharge_field':
+                print('how did we get here???')
                 if self.discharge_field is not None:
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
@@ -374,6 +386,10 @@ class Space(Component):
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
+            else:
+                print('cannot be right')
+        else:
+            print('UH OH')
         self.Es = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
             (1.0 - np.exp(-self.soil__depth / self.H_star))
         self.Er = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
@@ -382,7 +398,13 @@ class Space(Component):
             np.power(self.slope, self.n_sp)
         self.br_erosion_term = self.K_br * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
-        self.qs_in = np.zeros(self.grid.number_of_nodes) 
+        self.qs_in = np.zeros(self.grid.number_of_nodes)
+        print('Es = ' + str(self.Es[40000]))
+        print('Er = ' + str(self.Er[40000]))
+        print('K_sed = ' + str(self.K_sed))
+        print('Qm = ' + str(self.Q_to_the_m[40000]))
+        print('slp = ' + str(self.slope[40000]))
+        print('H = ' + str(self.soil__depth[40000]))
             
     def threshold_stream_power(self):
         """Use stream power with entrainment/erosion thresholds.
@@ -643,13 +665,14 @@ class Space(Component):
             time_remaining -= dt_max
             first_iter = False
 
-    def experimental_dynamic_timestep_solver(self, dt=1.0, flooded_nodes=None):
+    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=None,
+                                           **kwds):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
-        
+
         remaining_time = dt
         factor = 0.5
-        
+
         flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
         flooded[flooded_nodes] = True        
 
@@ -658,19 +681,24 @@ class Space(Component):
         time_to_flat = np.zeros(len(z))
         dzdt = np.zeros(len(z))
         cores = self._grid.core_nodes
-        slope = np.zeros(len(z))
+        #slope = np.zeros(len(z))
+
+        first_iteration = True
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
-        
+
             # Sweep through nodes from upstream to downstream, calculating Qs,
             # E, D, and dz/dt, but not changing topo or sed thickness.
-            #self.simple_stream_power()
             #slope[cores] = 
-            
-            #TODO: need to recalculate slopes here
 
-            self.Er = self.K_br * self.Q_to_the_m * np.power(slope, self.n_sp)
+            if not first_iteration:
+                self._update_flow_link_slopes()                
+            else:
+                first_iteration = False                
+
+            self.simple_stream_power()
+            #self.Er = self.K_br * self.Q_to_the_m * np.power(slope, self.n_sp)
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
@@ -685,7 +713,7 @@ class Space(Component):
             deposition_pertime = np.zeros(self.grid.number_of_nodes)
             deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
                                              (self.v_s / self.q[self.q > 0]))
-            
+
             # TODO handle flooded nodes in the above fn
 
             # Now look at upstream-downstream node pairs, and recording the
@@ -694,7 +722,7 @@ class Space(Component):
             rocdif = dzdt - dzdt[r]
             zdif = z - z[r]
             time_to_flat[:] = remaining_time
-            
+
             converging = np.where(rocdif < 0.0)[0]
             time_to_flat[converging] = - factor * zdif[converging] / rocdif[converging]
             time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
@@ -705,6 +733,7 @@ class Space(Component):
                     print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
                            dzdt[self.flow_receivers[i]], zdif[i],
                            rocdif[i], time_to_flat[i]))
+                    print((self.Er[i], self.Es[i]))
             watch = np.argmin(time_to_flat)
             print(watch)
             print((watch, r[watch], flooded[watch], z[watch], z[r[watch]], dzdt[watch],
@@ -722,14 +751,12 @@ class Space(Component):
 
             # Update remaining time and continue
             remaining_time -= dt_max
-            
+
             if dt_max < 0.1:
                 print('dt_max = ' + str(dt_max))
                 try:
                     aaa = bbb
                 except:
                     raise
-            
-            pass
 
     
