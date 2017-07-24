@@ -2,13 +2,16 @@ import numpy as np
 from landlab import Component
 from .cfuncs import calculate_qs_in
 
+ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
+TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
+
 class ErosionDeposition(Component):
     """
     Erosion-Deposition model in the style of Davy and Lague (2009)
     
     Component written by C. Shobe, begun July 2016.
     """
-    
+
     _name= 'ErosionDeposition'
     
     _input_var_names = (
@@ -17,11 +20,11 @@ class ErosionDeposition(Component):
         'topographic__steepest_slope',
         'drainage_area',
     )
-    
+
     _output_var_names = (
         'topographic__elevation'
     )
-    
+
     _var_units = {
         'flow__receiver_node': '-',
         'flow__upstream_node_order': '-',
@@ -29,7 +32,7 @@ class ErosionDeposition(Component):
         'drainage_area': 'm**2',
         'topographic__elevation': 'm',
     }
-    
+
     _var_mapping = {
         'flow__receiver_node': 'node',
         'flow__upstream_node_order': 'node',
@@ -37,7 +40,7 @@ class ErosionDeposition(Component):
         'drainage_area': 'node',
         'topographic__elevation': 'node',
     }
-    
+
     _var_doc = {
         'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
@@ -53,13 +56,13 @@ class ErosionDeposition(Component):
         'topographic__elevation': 
             'Land surface topographic elevation',
     }
-    
+
     def __init__(self, grid, K=None, phi=None, v_s=None, 
                  m_sp=None, n_sp=None, sp_crit=None, 
                  method=None, discharge_method=None, 
                  area_field=None, discharge_field=None, **kwds):
         """Initialize the ErosionDeposition model.
-        
+
         Parameters
         ----------
         grid : ModelGrid
@@ -366,6 +369,43 @@ class ErosionDeposition(Component):
         self.erosion_term = self.K * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
         self.qs_in = np.zeros(self.grid.number_of_nodes) 
+
+    def _update_flow_link_slopes(self):
+        """Updates gradient between each core node and its receiver.
+
+        Assumes uniform raster grid. Used to update slope values between
+        sub-time-steps, when we do not re-run flow routing.
+
+        (TODO: generalize to other grid types)
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> rg = RasterModelGrid((3, 4))
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z[:] = rg.x_of_node + rg.y_of_node
+        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+        >>> fa.run_one_step()
+        >>> rg.at_node['topographic__steepest_slope'][5:7]
+        array([ 1.41421356,  1.41421356])
+        >>> sp = ErosionDeposition(rg, K=0.00001, phi=0.1, v_s=0.001,\
+                                   m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
+                                   sp_crit_br=0, method='simple_stream_power',\
+                                   discharge_method=None, area_field=None,\
+                                   discharge_field=None)
+        >>> z *= 0.1
+        >>> sp._update_flow_link_slopes()
+        >>> rg.at_node['topographic__steepest_slope'][5:7]
+        array([ 0.14142136,  0.14142136])
+        """
+        flowlink = self._grid.at_node['flow__link_to_receiver_node']
+        z = self._grid.at_node['topographic__elevation']
+        r = self._grid.at_node['flow__receiver_node']
+        slp = self._grid.at_node['topographic__steepest_slope']
+        diag_flow_dirs, = np.where(flowlink >= self._grid.number_of_links)
+        slp[:] = (z - z[r]) / self._grid._dx
+        slp[diag_flow_dirs] /= ROOT2
 
     def run_one_step(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
