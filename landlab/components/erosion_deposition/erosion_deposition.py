@@ -471,3 +471,120 @@ class ErosionDeposition(Component):
         cores = self.grid.core_nodes
         self.elev[cores] += ((deposition_pertime[cores] 
                               - self.erosion_term[cores]) * dt)
+
+    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=None,
+                                           **kwds):
+        """CHILD-like solver that adjusts time steps to prevent slope
+        flattening."""
+
+        # Initialize remaining_time, which records how much of the global time
+        # step we have yet to use up.
+        remaining_time = dt
+
+        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
+        flooded[flooded_nodes] = True        
+
+        z = self._grid.at_node['topographic__elevation']
+        r = self.flow_receivers
+        time_to_flat = np.zeros(len(z))
+        dzdt = np.zeros(len(z))
+        cores = self._grid.core_nodes
+        #slope = np.zeros(len(z))
+
+        first_iteration = True
+
+        # Outer WHILE loop: keep going until time is used up
+        while remaining_time > 0.0:
+
+            # Update all the flow-link slopes.
+            #
+            # For the first iteration, we assume this has already been done
+            # outside the component (e.g., by flow router), but we need to do
+            # it ourselves on subsequent iterations.
+            if not first_iteration:
+                self._update_flow_link_slopes()                
+            else:
+                first_iteration = False                
+
+            # Calculate rates of entrainment
+            # TODO: implement for all options, not just simple SP
+            self.simple_stream_power()
+
+            # Sweep through nodes from upstream to downstream, calculating Qs.
+            calculate_qs_in(np.flipud(self.stack),
+                            self.flow_receivers,
+                            self.grid.node_spacing,
+                            self.q,
+                            self.qs,
+                            self.qs_in,
+                            self.erosion_term,
+                            self.v_s)
+
+            # Use Qs to calculate deposition rate at each node.
+            # TODO: allocate array for depo just once on init, and keep it
+            deposition_pertime = np.zeros(self.grid.number_of_nodes)
+            deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
+                                             (self.v_s / self.q[self.q > 0]))
+
+            # TODO handle flooded nodes in the above fn
+
+            # Rate of change of elevation at core nodes:
+            dzdt[cores] = deposition_pertime[cores] - self.erosion_term[cores]
+
+            # Difference in elevation between each upstream-downstream pair
+            zdif = z - z[r]
+
+            # Rate of change of the *difference* in elevation between each
+            # upstream-downstream pair.
+            rocdif = dzdt - dzdt[r]
+
+            # (Re)-initialize the array that will contain "time to (almost)
+            # flat" for each node (relative to its downstream neighbor).
+            time_to_flat[:] = remaining_time
+
+            # Find locations where the upstream and downstream node elevations
+            # are converging (e.g., the upstream one is eroding faster than its
+            # downstream neighbor)
+            converging = np.where(rocdif < 0.0)[0]
+
+            # Find the time to (almost) flat by dividing difference by rate of
+            # change of difference, and then multiplying by a "safety factor"
+            time_to_flat[converging] = - (TIME_STEP_FACTOR * zdif[converging] 
+                                          / rocdif[converging])
+
+            # Mask out pairs where the source at the same or lower elevation
+            # as its downstream neighbor (e.g., because it's a pit or a lake).
+            # Here, masking out means simply assigning the remaining time in
+            # the global time step.
+            time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
+
+            # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
+            for i in range(0, len(dzdt), 10000):
+                if self._grid.status_at_node[i] == 0:
+                    print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
+                           dzdt[self.flow_receivers[i]], zdif[i],
+                           rocdif[i], time_to_flat[i]))
+                    print((self.Er[i], self.Es[i]))
+            watch = np.argmin(time_to_flat)
+            print(watch)
+            print((watch, r[watch], flooded[watch], z[watch], z[r[watch]], dzdt[watch],
+                           dzdt[self.flow_receivers[watch]], zdif[watch],
+                           rocdif[watch], time_to_flat[watch]))
+
+            # From this, find the maximum stable time step. If it is smaller
+            # than our tolerance, report and quit.
+            dt_max = np.amin(time_to_flat)
+            if dt_max < 0.1:
+                print('dt_max = ' + str(dt_max) + ' is too small, quitting')
+                raise TypeError  # TODO: figure out a more sensible err
+
+            print(('*** min', np.amin(time_to_flat)))
+            print(('*** dt_max', dt_max))
+            print()
+
+            # Finally, apply dzdt to all nodes for a (sub)step of duration
+            # dt_max
+            z[cores] += dzdt[cores] * dt_max
+
+            # Update remaining time and continue the loop
+            remaining_time -= dt_max
