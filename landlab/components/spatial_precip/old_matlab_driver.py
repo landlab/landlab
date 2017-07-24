@@ -17,7 +17,7 @@ import inspect
 from six.moves import range
 from matplotlib.pyplot import figure
 from scipy.stats import genextreme
-from landlab import RasterModelGrid, CLOSED_BOUNDARY
+from landlab import RasterModelGrid, CLOSED_BOUNDARY, Component
 
 
 class PrecipitationDistribution(Component):
@@ -30,9 +30,13 @@ class PrecipitationDistribution(Component):
         save_outputs : if not None, str path to save
         """
         self._grid = grid
-        self._gauge_dist_km = np.zeros_like(Easting, dtype='float')
-        self._rain_int_gauge = np.zeros_like(Easting, dtype='float')
-        self._temp_dataslots = np.zeros_like(Easting, dtype='float')
+        assert mode in ('simulation', 'validation')
+        self._mode = mode
+        if mode == 'simulation':
+            gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
+        self._gauge_dist_km = np.zeros(Easting, dtype='float')
+        self._rain_int_gauge = np.zeros(Easting, dtype='float')
+        self._temp_dataslots = np.zeros(Easting, dtype='float')
         self._numsims = number_of_simulations
         self._numyrs = number_of_years
         assert ptot_scenario in ('ptotC', 'ptot+', 'ptot-', 'ptotT+', 'ptotT-')
@@ -40,8 +44,6 @@ class PrecipitationDistribution(Component):
         assert storminess_scenario in ('stormsC', 'storms+', 'storms-',
                                        'stormsT+', 'stormsT-')
         self._storms_scenario = storms_scenario
-        assert mode in ('simulation', 'validation')
-        self._mode = mode
         self._buffer_width = buffer_width
         self._savedir = save_outputs
 
@@ -105,8 +107,8 @@ class PrecipitationDistribution(Component):
         Int_arr_pdf_GEV = {'shape': 0.807971, 'sigma': 9.49574, 'mu': 10.6108,
                            'trunc_interval': (0., 120.)}
         # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Recess_pdf % This is the pdf of storm gradient recession coefficiencts from Morin et al, 2005 (normal dist). It will be sampled below.
-        Recess_pdf_norm = ('sigma': 0.08, 'mu': 0.25,
-                           'trunc_interval': (0.15, 0.67))
+        Recess_pdf_norm = {'sigma': 0.08, 'mu': 0.25,
+                           'trunc_interval': (0.15, 0.67)}
 
         opennodes = mg.status_at_node != CLOSED_BOUNDARY
         if self._mode == 'validation':
@@ -231,7 +233,9 @@ class PrecipitationDistribution(Component):
             # (that must be equalled or exceeded) for each year
             Ptot_ann_global[year] = np.random.normal(
                 loc=Ptot_pdf_norm['mu'], scale=Ptot_pdf_norm['sigma'])
-            Storm_total_local_year = np.zeros(self._max_numstorms, numgauges)
+            Storm_total_local_year = np.zeros((self._max_numstorms, numgauges))
+            Storm_running_sum = np.zeros((2, numgauges))
+            # ^ 1st col is running total, 2nd is data to add to it
             ann_cum_Ptot_gauge = np.zeros(numgauges)
             for storm in range(self._max_numstorms):
                 int_arr_val = genextreme.rvs(c=Int_arr_pdf_GEV['shape'],
@@ -448,73 +452,72 @@ class PrecipitationDistribution(Component):
             Storm_total_local_year[storm, :] = (rain_int_gauge *
                                                 duration_val / 60.)
 #             Storm_totals_all = [Storm_totals_all,rain_int_gauge.*duration_val/60]; %#ok<AGROW>
-            Storm_matrix(master_storm_count,8) = intensity_val*duration_val/60;
-            Ptotal = zeros(1,numgauges);
-            for k = 1:numgauges
-                Ptotal(k) = nansum(Storm_total_local_year(:,k)); % %sum the annual storm total at each gauge
-            end
-            %Ptotal_test = find((nanmean(Ptotal) + nanstd(Ptotal)/sqrt(85)) > Ptot_ann_global(syear));    %once the mean of all gauges exceeds the selected annual storm total, a new simulation year begins
-            Ptotal_test = find(nanmedian(Ptotal) > Ptot_ann_global(syear), 1);    %once the median of all gauges exceeds the selected annual storm total, a new simulation year beginsPtotal_test = find(Ptotal > Ptot_ann_global(syear));    %once the first gauge exceeds the selected annual storm total, a new simulation year begins
-            %Ptotal = Ptotal + duration_val(storm)/60*intensity_val(storm);
-            %if ~isempty(nanmedian(Ptotal) > Ptot_ann_global(syear))
-            if ~isempty(Ptotal_test)
-                %eval(['Ptotal_local_',num2str(syear),'(1:numgauges) = Ptotal;'])
-                %Ptotal_local(syear,1:numgauges) = Ptotal;
-                for l = 1:numgauges
-                    Ptotal_local(syear,l) = Ptotal(l); %#ok
-                end
-                break %end storm lopp and start a new simulation year
-            end
-            eval(['Storm_total_local_year_',num2str(syear),'(storm,1:numgauges) = Storm_total_local_year(storm,1:numgauges);']) %collect all local annual storm totals for each gauge.
+            Storm_matrix[master_storm_count, 8] = (intensity_val *
+                                                   duration_val / 60.)
+#             Ptotal = zeros(1,numgauges);
+#             for k = 1:numgauges
+#                 Ptotal(k) = nansum(Storm_total_local_year(:,k)); % %sum the annual storm total at each gauge
+#             end
+            # This bit replaced with:
+            Storm_running_sum[1, :] = Storm_total_local_year[storm, :]
+            np.nansum(Storm_running_sum, axis=0, out=Storm_running_sum[0, :])
 
-        end %storm loop
-        leftstuff = find(Storm_matrix(:,1) == yooo);
-        leftstuff2 = length(leftstuff);
-        leftovers = (153*24*60-sum(Storm_matrix(leftstuff2,1)))/2; %#ok %remaining monsoon time in minutes (not occupied by storms or interstorm periods)
-    end %year loop
-    %hold on
-    %plot(Easting,Northing,'o')
-    %grid on
-    %AA = find(Storm_matrix(:,9)>0);
-    %Storm_matrix = Storm_matrix(AA,:);
-    Storm_matrix = Storm_matrix(Storm_matrix(:,9)>0,:); %#ok %gets rid of trailing zeros from initialized matrix
-    AB = find(Gauge_matrix_1(:,2)>0); %#ok
-    for CC = 1:numgauges
-        eval(['Gauge_matrix_',num2str(CC),' = Gauge_matrix_',num2str(CC),'(AB,:);'])
-    end
-    Gauges_hit_all(Gauges_hit_all == 0) = NaN; %#ok
-    GZ = find(Intensity_local_all>0);
-    Intensity_all = Intensity_local_all(GZ); %#ok
-    Duration_all = Duration_local_all(GZ); %#ok
-    Storm_totals_all = Storm_totals_all(GZ); %#ok
-    Ptot_ann_global = Ptot_ann_global(2:length(Ptot_ann_global)); %#ok
-    Gauges_hit_all = Gauges_hit_all(2:length(Gauges_hit_all)); %#ok
+#             Ptotal_test = find(nanmedian(Ptotal) > Ptot_ann_global(syear), 1);    %once the median of all gauges exceeds the selected annual storm total, a new simulation year beginsPtotal_test = find(Ptotal > Ptot_ann_global(syear));    %once the first gauge exceeds the selected annual storm total, a new simulation year begins
+            # if ~isempty(Ptotal_test)
+            #     %eval(['Ptotal_local_',num2str(syear),'(1:numgauges) = Ptotal;'])
+            #     %Ptotal_local(syear,1:numgauges) = Ptotal;
+            #     for l = 1:numgauges
+            #         Ptotal_local(syear,l) = Ptotal(l); %#ok
+            #     end
+            #     break %end storm lopp and start a new simulation year
+            # end
+            if np.nanmedian(Storm_running_sum[0, :]) > Ptot_ann_global[syear]:
+                # we're not going to create Ptotal_local for now... just
+                break
 
-%     eval(['save model_output\',tx0,'\',t2,'\Ptot_ann_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_global_',t2,' Ptot_ann_global'])
-%     eval(['save model_output\',tx0,'\',t2,'\Storm_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Storm_matrix'])
-%     eval(['save model_output\',tx0,'\',t2,'\Gauges_hit_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Gauges_hit_all'])
-%     eval(['save model_output\',tx0,'\',t2,'\Storm_totals_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Storm_totals_all'])
-%     eval(['save model_output\',tx0,'\',t2,'\Intensity_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Intensity_all'])
-%     eval(['save model_output\',tx0,'\',t2,'\Duration_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Duration_all'])
-%
-%     eval(['save model_output\',tx0,'\',t2,'\ET_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' ET_matrix'])
+#             eval(['Storm_total_local_year_',num2str(syear),'(storm,1:numgauges) = Storm_total_local_year(storm,1:numgauges);']) %collect all local annual storm totals for each gauge.
 
-    eval(['save ',tx2,'\Ptot_ann_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_global_',t2,' Ptot_ann_global'])
-    eval(['save ',tx2,'\Storm_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Storm_matrix'])
-    eval(['save ',tx2,'\Gauges_hit_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Gauges_hit_all'])
-    eval(['save ',tx2,'\Storm_totals_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Storm_totals_all'])
-    eval(['save ',tx2,'\Intensity_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Intensity_all'])
-    eval(['save ',tx2,'\Duration_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Duration_all'])
 
-    eval(['save ',tx2,'\ET_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' ET_matrix'])
 
-    for kk = 1:numgauges
-        %eval(['save model_output\',t2,'\Gauge_matrix_',num2str(kk),'_y_',t2,'.txt Gauge_matrix_',num2str(kk), ' -ASCII';])
-        eval(['save ',tx2,'\Gauge_matrix',num2str(kk),'_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Gauge_matrix_',num2str(kk);])
-    end
-
-    boo = etime(clock,t0);
-    runtime_seconds = boo; %#ok
-    runtime_minutes = boo/60 %#ok
-
-end
+#
+#     Storm_matrix = Storm_matrix(Storm_matrix(:,9)>0,:); %#ok %gets rid of trailing zeros from initialized matrix
+#     AB = find(Gauge_matrix_1(:,2)>0); %#ok
+#     for CC = 1:numgauges
+#         eval(['Gauge_matrix_',num2str(CC),' = Gauge_matrix_',num2str(CC),'(AB,:);'])
+#     end
+#     Gauges_hit_all(Gauges_hit_all == 0) = NaN; %#ok
+#     GZ = find(Intensity_local_all>0);
+#     Intensity_all = Intensity_local_all(GZ); %#ok
+#     Duration_all = Duration_local_all(GZ); %#ok
+#     Storm_totals_all = Storm_totals_all(GZ); %#ok
+#     Ptot_ann_global = Ptot_ann_global(2:length(Ptot_ann_global)); %#ok
+#     Gauges_hit_all = Gauges_hit_all(2:length(Gauges_hit_all)); %#ok
+#
+# %     eval(['save model_output\',tx0,'\',t2,'\Ptot_ann_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_global_',t2,' Ptot_ann_global'])
+# %     eval(['save model_output\',tx0,'\',t2,'\Storm_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Storm_matrix'])
+# %     eval(['save model_output\',tx0,'\',t2,'\Gauges_hit_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Gauges_hit_all'])
+# %     eval(['save model_output\',tx0,'\',t2,'\Storm_totals_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Storm_totals_all'])
+# %     eval(['save model_output\',tx0,'\',t2,'\Intensity_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Intensity_all'])
+# %     eval(['save model_output\',tx0,'\',t2,'\Duration_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Duration_all'])
+# %
+# %     eval(['save model_output\',tx0,'\',t2,'\ET_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' ET_matrix'])
+#
+#     eval(['save ',tx2,'\Ptot_ann_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_global_',t2,' Ptot_ann_global'])
+#     eval(['save ',tx2,'\Storm_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Storm_matrix'])
+#     eval(['save ',tx2,'\Gauges_hit_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Gauges_hit_all'])
+#     eval(['save ',tx2,'\Storm_totals_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Storm_totals_all'])
+#     eval(['save ',tx2,'\Intensity_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Intensity_all'])
+#     eval(['save ',tx2,'\Duration_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Duration_all'])
+#
+#     eval(['save ',tx2,'\ET_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' ET_matrix'])
+#
+#     for kk = 1:numgauges
+#         %eval(['save model_output\',t2,'\Gauge_matrix_',num2str(kk),'_y_',t2,'.txt Gauge_matrix_',num2str(kk), ' -ASCII';])
+#         eval(['save ',tx2,'\Gauge_matrix',num2str(kk),'_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Gauge_matrix_',num2str(kk);])
+#     end
+#
+#     boo = etime(clock,t0);
+#     runtime_seconds = boo; %#ok
+#     runtime_minutes = boo/60 %#ok
+#
+# end
