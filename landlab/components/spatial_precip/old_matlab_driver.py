@@ -24,7 +24,8 @@ class PrecipitationDistribution(Component):
 
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
                  number_of_years=1, buffer_width=5000, ptot_scenario='ptotC',
-                 storminess_scenario='stormsC', save_outputs=None):
+                 storminess_scenario='stormsC', save_outputs=None,
+                 path_to_input_files='/Users/daniel/development/landlab/landlab/components/spatial_precip'):
         """
         It's on the user to ensure the grid is big enough to permit the buffer.
         save_outputs : if not None, str path to save
@@ -34,16 +35,19 @@ class PrecipitationDistribution(Component):
         self._mode = mode
         if mode == 'simulation':
             gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
-        self._gauge_dist_km = np.zeros(Easting, dtype='float')
-        self._rain_int_gauge = np.zeros(Easting, dtype='float')
-        self._temp_dataslots = np.zeros(Easting, dtype='float')
+        else:
+            Eastings = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))
+            gaugecount = Eastings.size
+        self._gauge_dist_km = np.zeros(gaugecount, dtype='float')
+        self._rain_int_gauge = np.zeros(gaugecount, dtype='float')
+        self._temp_dataslots = np.zeros(gaugecount, dtype='float')
         self._numsims = number_of_simulations
         self._numyrs = number_of_years
         assert ptot_scenario in ('ptotC', 'ptot+', 'ptot-', 'ptotT+', 'ptotT-')
         self._ptot_scenario = ptot_scenario
         assert storminess_scenario in ('stormsC', 'storms+', 'storms-',
                                        'stormsT+', 'stormsT-')
-        self._storms_scenario = storms_scenario
+        self._storms_scenario = storminess_scenario
         self._buffer_width = buffer_width
         self._savedir = save_outputs
 
@@ -51,9 +55,14 @@ class PrecipitationDistribution(Component):
         # This is for initializing matrices. Trailing zeros are deleted from
         # the matrix at the end of the code.
 
+        self._Storm_matrix = np.zeros((self._max_numstorms*number_of_years, 11))
+
+        self._path = path_to_input_files
+
     def simple_run(self):
         # what's the dir of this component?
-        thisdir = os.path.dirname(inspect.getfile(PrecipitationDistribution))
+        # this is a nasty hacky way for now
+        thisdir = self._path
         # unnecessary as related to output file gen & documentation?
         # t0 = time()
         # t1 = [datestr(floor(now)) '_' datestr(rem(now,1))];
@@ -110,7 +119,7 @@ class PrecipitationDistribution(Component):
         Recess_pdf_norm = {'sigma': 0.08, 'mu': 0.25,
                            'trunc_interval': (0.15, 0.67)}
 
-        opennodes = mg.status_at_node != CLOSED_BOUNDARY
+        opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
         if self._mode == 'validation':
             Easting = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))  # This is the Longitudinal data for each gauge.
             Northing = np.loadtxt(os.path.join(thisdir, 'Northing.csv'))  # This is the Latitudinal data for each gauge. It will be sampled below.
@@ -123,7 +132,7 @@ class PrecipitationDistribution(Component):
             Xin = X1[opennodes]
             Yin = Y1[opennodes]
             Zz = self.grid.at_node['topographic__elevation'][opennodes]
-            numgauges = length(Xin)  # number of rain gauges in the basin. NOTE: In this version this produces output on a grid, rather than at real gauge locations.
+            numgauges = Xin.size  # number of rain gauges in the basin. NOTE: In this version this produces output on a grid, rather than at real gauge locations.
 
         # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\X % This is the Longitudinal data for each grid point. It will be sampled below to determine storm center location.
         X = np.loadtxt(os.path.join(thisdir, 'X.csv'))
@@ -172,8 +181,8 @@ class PrecipitationDistribution(Component):
         # perimeter. So:
         for node_list in (head_open_node_IDs, tail_open_node_IDs):
             for edgenode in node_list:
-                edgenode_x = self.grid.x_at_node[edgenode]
-                edgenode_y = self.grid.y_at_node[edgenode]
+                edgenode_x = self.grid.x_of_node[edgenode]
+                edgenode_y = self.grid.y_of_node[edgenode]
                 dists_to_edgenode = self.grid.calc_distances_of_nodes_to_point(
                     (edgenode_x, edgenode_y))
                 target_area_nodes[
@@ -181,8 +190,8 @@ class PrecipitationDistribution(Component):
         # finish off by stamping the core nodes over the top:
         target_area_nodes[opennodes] = True
 
-        Xxin = self.grid.x_at_node[target_area_nodes]
-        Yyin = self.grid.y_at_node[target_area_nodes]
+        Xxin = self.grid.x_of_node[target_area_nodes]
+        Yyin = self.grid.y_of_node[target_area_nodes]
 
 # NOTE this is overly specific
         # These are elevation ranges for the 3 orographic groups
@@ -203,7 +212,7 @@ class PrecipitationDistribution(Component):
         # Unlike MS's original implementation, we get our ET rates from the
         # generator fn, below
 
-        Storm_matrix = np.zeros((self._max_numstorms*simyears, 11))
+        Storm_matrix = self._Storm_matrix
         Ptot_ann_global = np.zeros(simyears)
 # NOTE we're trying to avoid needing to use Gauge_matrix_... structures
 
@@ -211,7 +220,6 @@ class PrecipitationDistribution(Component):
         #%Intensity_local_all = zeros(85*simyears,1); %initialize local_all variables (concatenated vector of generated output at each gauge location)
         Storm_totals_all = 0
         Duration_local_all = 0
-        Gauges_hit_all = 0
 
         storm_count = 0
         master_storm_count = 0
@@ -231,7 +239,7 @@ class PrecipitationDistribution(Component):
                 Ptot_pdf_norm['mu'] = mu
             # sample from normal distribution and saves global value of Ptot
             # (that must be equalled or exceeded) for each year
-            Ptot_ann_global[year] = np.random.normal(
+            Ptot_ann_global[syear] = np.random.normal(
                 loc=Ptot_pdf_norm['mu'], scale=Ptot_pdf_norm['sigma'])
             Storm_total_local_year = np.zeros((self._max_numstorms, numgauges))
             Storm_running_sum = np.zeros((2, numgauges))
@@ -264,7 +272,7 @@ class PrecipitationDistribution(Component):
                 # (same below)
                 cx = East
                 cy = North
-                r = np.sqrt(area_val/pi)  # value here should be selected based
+                r = np.sqrt(area_val/np.pi)  # value here should be selected based
                 # on area above in meters to match the UTM values in North and
                 # East vectors.
                 # Determine which gauges are hit by Euclidean geometry:
@@ -275,11 +283,12 @@ class PrecipitationDistribution(Component):
                 mask_name = (gdist <= r**2)  # this is defacto Mike's aa
                 # this short circuits the storm loop in the case that the storm
                 # does not affect any 'gauging' location
+                print(mask_name)
                 if np.all(np.equal(mask_name, False)):
                     continue
                 storm_count += 1
                 master_storm_count += 1
-                gauges_hit = gauges[mask_name]
+                gauges_hit = np.where(mask_name)[0]
                 num_gauges_hit = gauges_hit.size
                 # save some properties:
                 Storm_matrix[master_storm_count, 0] = master_storm_count
@@ -296,11 +305,8 @@ class PrecipitationDistribution(Component):
                 # appropriate set of intensity-duration curves
                 ######
                 Storm_matrix[master_storm_count, 5] = num_gauges_hit
-                # %gauges_hit_all(:,year) = [gauges_hit_all(:,year); gauges_hit];
-                # this is weird sloppy matlab syntax, I believe replaced
-                # correctly, below
-                ## Gauges_hit_all = [Gauges_hit_all, gauges_hit]
-                Gauges_hit_all.append(gauges_hit)
+# NOTE used to calc Gauges_hit all. seems redundant. Replace w anal of mask_name as needed (Flag??)
+
 
                 # This routine below determines to which orographic group the
                 # closest gauge to the storm center belongs to, and censors the
