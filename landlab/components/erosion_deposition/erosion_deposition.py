@@ -53,14 +53,15 @@ class ErosionDeposition(Component):
         'drainage_area':
             "Upstream accumulated surface area contributing to the node's "
             "discharge",
-        'topographic__elevation': 
+        'topographic__elevation':
             'Land surface topographic elevation',
     }
 
     def __init__(self, grid, K=None, phi=None, v_s=None, 
                  m_sp=None, n_sp=None, sp_crit=None, 
                  method=None, discharge_method=None, 
-                 area_field=None, discharge_field=None, **kwds):
+                 area_field=None, discharge_field=None, solver='basic',
+                 **kwds):
         """Initialize the ErosionDeposition model.
 
         Parameters
@@ -93,6 +94,13 @@ class ErosionDeposition(Component):
         discharge_field : string or array
             Used if discharge_method = 'discharge_field'.Either field name or
             array of length(number_of_nodes) containing drainage areas [L^2/T].
+        solver : string
+            Solver to use. Options at present include:
+                (1) 'basic' (default): explicit forward-time extrapolation.
+                    Simple but will become unstable if time step is too large.
+                (2) 'adaptive': adaptive time-step solver that estimates a 
+                    stable step size based on the shortest time to "flattening"
+                    among all upstream-downstream node pairs.
         
         Examples
         ---------
@@ -124,33 +132,33 @@ class ErosionDeposition(Component):
                 mg['node']['topographic__elevation'], -9999.)
         >>> fsc_dt = 100. 
         >>> ed_dt = 1.
-        
+
         Check initial topography        
-        
+
         >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0.02290479,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
             1.08157495,  2.09812694,  3.00637448,  4.07999597,  5.00969486,
             2.04008677,  3.06621577,  4.09655859,  5.04809001,  6.02641123,
             3.05874171,  4.00585786,  5.0595697 ,  6.04425233,  7.05334077,
             4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
-        
+
         Instantiate Fastscape eroder, flow router, and depression finder        
-        
+
         >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
         >>> fr = FlowRouter(mg) #instantiate
         >>> df = DepressionFinderAndRouter(mg)
-        
+
         Burn in an initial drainage network using the Fastscape eroder:
-        
+
         >>> for x in range(100): 
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     flooded = np.where(df.flood_status==3)[0]
         ...     fsc.run_one_step(dt = fsc_dt, flooded_nodes=flooded)
         ...     mg.at_node['topographic__elevation'][0] -= 0.001 #uplift
-        
+
         Instantiate the E/D component:        
-        
+
         >>> ed = ErosionDeposition(mg, K=0.00001, phi=0.0, v_s=0.001,\
                                 m_sp=0.5, n_sp = 1.0, sp_crit=0,\
                                 method='simple_stream_power',\
@@ -253,10 +261,19 @@ class ErosionDeposition(Component):
             raise ValueError('Specify erosion method (simple stream power,\
                             threshold stream power, or stochastic hydrology)!')
 
+        # Handle option for solver
+        if solver == 'basic':
+            self.run_one_step = self.run_one_step_basic
+        elif solver == 'adaptive':
+            self.run_one_step = self.run_with_adaptive_time_step_solver
+        else:
+            raise ValueError("Parameter 'solver' must be one of: "
+                             + "'basic', 'adaptive'")
+
     #three choices for erosion methods:
     def simple_stream_power(self):
         """Use non-threshold stream power.
-        
+
         simple_stream_power uses no entrainment or erosion thresholds,
         and uses either q=A^m or q=Q^m depending on discharge method. If
         discharge method is None, default is q=A^m.
@@ -407,10 +424,10 @@ class ErosionDeposition(Component):
         slp[:] = (z - z[r]) / self._grid._dx
         slp[diag_flow_dirs] /= ROOT2
 
-    def run_one_step(self, dt=1.0, flooded_nodes=None, **kwds):
+    def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
-        
+
         Parameters
         ----------
         dt : float
