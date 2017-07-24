@@ -166,13 +166,18 @@ class ErosionDeposition(Component):
         Now we test to see if topography is right:
         
         >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([-0.47709402,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-            1.08157495, -0.0799798 , -0.06459322, -0.05380581,  5.00969486,
-            2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
-            3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
-            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
+        array([-0.47709521,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
+                1.08157495, -0.07997982, -0.06459322, -0.05380581,  5.00969486,
+                2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
+                3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
+                4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])
         """
-                #assign class variables to grid fields; create necessary fields
+#        array([-0.47709402,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
+#            1.08157495, -0.0799798 , -0.06459322, -0.05380581,  5.00969486,
+#            2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
+#            3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
+#            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
+        # assign class variables to grid fields; create necessary fields
         self.flow_receivers = grid.at_node['flow__receiver_node']
         self.stack = grid.at_node['flow__upstream_node_order']
         self.elev = grid.at_node['topographic__elevation']
@@ -187,16 +192,16 @@ class ErosionDeposition(Component):
         except KeyError:
             self.q = grid.add_zeros(
                 'surface_water__discharge', at='node', dtype=float)
-                
+
         self._grid = grid #store grid
-        
-        #store other constants
+
+        # store other constants
         self.m_sp = float(m_sp)
         self.n_sp = float(n_sp)
         self.phi = float(phi)
         self.v_s = float(v_s)
-        
-        #K's and critical values can be floats, grid fields, or arrays
+
+        # K's and critical values can be floats, grid fields, or arrays
         if type(K) is str:
             self.K = self._grid.at_node[K]
         elif type(K) in (float, int):  # a float
@@ -207,7 +212,7 @@ class ErosionDeposition(Component):
             raise TypeError('Supplied type of K ' +
                             'was not recognised, or array was ' +
                             'not nnodes long!') 
-        
+
         if sp_crit is not None:
             if type(sp_crit) is str:
                 self.sp_crit = self._grid.at_node[sp_crit]
@@ -219,7 +224,7 @@ class ErosionDeposition(Component):
                 raise TypeError('Supplied type of sp_crit ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!') 
-                                
+
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
         if discharge_method is not None:
@@ -234,7 +239,7 @@ class ErosionDeposition(Component):
             self.discharge_field = str(discharge_field)
         else:
             self.discharge_field = None
-            
+
         if self.method == 'simple_stream_power':
             self.simple_stream_power()
         elif self.method == 'threshold_stream_power':
@@ -244,6 +249,7 @@ class ErosionDeposition(Component):
         else:
             raise ValueError('Specify erosion method (simple stream power,\
                             threshold stream power, or stochastic hydrology)!')
+
     #three choices for erosion methods:
     def simple_stream_power(self):
         """Use non-threshold stream power.
@@ -319,7 +325,8 @@ class ErosionDeposition(Component):
         omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         self.erosion_term = omega - self.sp_crit * \
             (1 - np.exp(-omega / self.sp_crit))
-        self.qs_in = np.zeros(self.grid.number_of_nodes) 
+        self.qs_in = np.zeros(self.grid.number_of_nodes)
+
     def stochastic_hydrology(self):
         """Allows custom area and discharge fields, no default behavior.
         
@@ -380,7 +387,7 @@ class ErosionDeposition(Component):
             self.threshold_stream_power()
         else:
             raise ValueError('Specify an erosion method!')
-            
+
         self.qs_in[:] = 0# np.zeros(self.grid.number_of_nodes)            
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -392,7 +399,7 @@ class ErosionDeposition(Component):
                         self.qs_in,
                         self.erosion_term,
                         self.v_s)
-    
+
         deposition_pertime = np.zeros(self.grid.number_of_nodes)
         deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
                                          (self.v_s / self.q[self.q > 0]))
@@ -403,5 +410,7 @@ class ErosionDeposition(Component):
         flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
         flooded[flooded_nodes] = True        
         
-        #topo elev is old elev + deposition - erosion        
-        self.elev += ((deposition_pertime - self.erosion_term) * dt)        
+        #topo elev is old elev + deposition - erosion
+        cores = self.grid.core_nodes
+        self.elev[cores] += ((deposition_pertime[cores] 
+                              - self.erosion_term[cores]) * dt)
