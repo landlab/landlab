@@ -41,7 +41,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               KinwaveImplicitOverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
-              Radiation, SinkFiller, 
+              Radiation, SinkFiller,
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
               FastscapeEroder, SedDepEroder,
               PrecipitationDistribution,
@@ -50,10 +50,10 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser, DepthSlopeProductErosion,
-              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD, FlowDirectorDINF,
-              FlowAccumulator, HybridAlluvium, TransportLengthHillslopeDiffuser
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
-              LandslideProbability, DepthDependentCubicDiffuser]
+              LandslideProbability, DepthDependentCubicDiffuser,
+              TransportLengthHillslopeDiffuser]
+
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
