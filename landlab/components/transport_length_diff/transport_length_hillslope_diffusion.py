@@ -7,10 +7,10 @@ Created on Tue Apr 11 10:13:38 2017
 """
 
 # Hillslope diffusion from Carretier et al 2016, after Davy and Lague 2012
-# L>=dx to keep seposition flux D dx smaller than incoming sediment flux qs
+# L>=dx to keep deposition flux D dx smaller than incoming sediment flux qs
 # Works on regular grid only (dx in definition of transport length L)
-
-# ADD UPLIFT!!!
+# Uses FlowDirectorSteepest so directs to the one node downstream in direction
+# of steepest slope
 
 from landlab import Component
 import numpy as np
@@ -77,7 +77,7 @@ class TransportLengthHillslopeDiffuser(Component):
                 'flux of soil in direction of link', 
     }
         ###############################################
-
+# in __init__ add test for dx==dy raise ValueError if not
 
     def __init__(self, grid, erodibility, slope_crit=1.,
                  **kwds):
@@ -98,7 +98,7 @@ class TransportLengthHillslopeDiffuser(Component):
         else:
             self.elev = self.grid.add_zeros('node', 'topographic__elevation')
 
-        # slope gradient
+        # slope gradient (UNIT??)
         if 'topographic__slope' in self.grid.at_link:
             self.slope = self.grid.at_link['topographic__slope']
         else:
@@ -204,7 +204,7 @@ class TransportLengthHillslopeDiffuser(Component):
 
             # Calculate erosion on node
         for i in (self.grid.core_nodes):
-            if self.steepest[i] > self.slope_crit:
+            if self.steepest[i] > self.slope_crit: # divided by dx
                 self.steepest[i] = self.slope_crit
             else:
                 pass
