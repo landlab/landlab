@@ -30,21 +30,27 @@ class PrecipitationDistribution(Component):
 
     _output_var_names = (
         'rainfall__flux',
+        'rainfall__total_depth_per_year',
     )
 
     _var_units = {
         'topographic__elevation': 'm',
         'rainfall__flux': 'mm/hr',
+        'rainfall__total_depth_per_year': 'mm/yr',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'rainfall__flux': 'node',
+        'rainfall__total_depth_per_year': 'node',
     }
 
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
-        'rainfall__flux': 'Depth of water delivered per unit time',
+        'rainfall__flux':
+            'Depth of water delivered per unit time in each storm',
+        'rainfall__total_depth_per_year':
+            'Depth of water delivered in total in each model year',
     }
 
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
@@ -102,6 +108,8 @@ class PrecipitationDistribution(Component):
         self.initialize_output_fields()
         # bind the field to the internal variable:
         self._rain_int_gauge = self.grid.at_node['rainfall__flux']
+        self._total_rf_year = self.grid.at_node[
+            'rainfall__total_depth_per_year']
 
     def yield_storms(self):
         """
@@ -112,6 +120,29 @@ class PrecipitationDistribution(Component):
             interval that follows it. The rainfall__flux field describes the
             rainfall rate during the interval storm_t as the tuple is yielded.
         """
+        return self._run_the_process(yield_storms=True, yield_years=False)
+
+    def yield_years(self):
+        """
+        Yields
+        ------
+        (storm_t, interval_t) : (float, float)
+            Tuple pair of duration of a single storm, then the interstorm
+            interval that follows it. The rainfall__flux field describes the
+            rainfall rate during the interval storm_t as the tuple is yielded.
+        """
+        return self._run_the_process(yield_storms=False, yield_years=True)
+
+    def _run_the_process(self, yield_storms=True, yield_years=False):
+        """
+        This is the underlying process that runs the component, but it should
+        be run by a user through the yield_storms and yield_years methods.
+        """
+        # safety check for init conds:
+        if yield_storms:
+            assert yield_years is False
+        if yield_years:
+            assert yield_storms is False
         # what's the dir of this component?
         # this is a nasty hacky way for now
         thisdir = self._path
@@ -146,14 +177,11 @@ class PrecipitationDistribution(Component):
         # #### This to be replaced by a Ptot_mu and Ptot_sigma
 # NOTE right now we ignore all poss scenarios, i.e., use the C cases (? Check)
         if self._ptot_scenario == 'ptot+':
-            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 271.,
-                             'trunc_interval': (np.nan, np.nan)}
+            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 271.}
         elif self._ptot_scenario == 'ptot-':
-            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 143.,
-                             'trunc_interval': (np.nan, np.nan)}
+            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 143.}
         else:
-            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 207.489,
-                             'trunc_interval': (1., 460.)}
+            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 207.489}
         # the trending cases need to be handled in the loop
 
         # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Duration_pdf % This is the pdf fitted to all available station duration data (GEV dist). It will be sampled below.
@@ -174,6 +202,7 @@ class PrecipitationDistribution(Component):
                            'trunc_interval': (0.15, 0.67)}
 
         opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
+        num_opennodes = np.sum(opennodes)
         IDs_open = np.where(opennodes)[0]  # need this later
         if self._mode == 'validation':
             Easting = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))  # This is the Longitudinal data for each gauge.
@@ -268,7 +297,7 @@ class PrecipitationDistribution(Component):
         # generator fn, below
 
         Storm_matrix = self._Storm_matrix
-        Ptot_ann_global = np.zeros(simyears)
+        self._Ptot_ann_global = np.zeros(simyears)
 # NOTE we're trying to avoid needing to use Gauge_matrix_... structures
 
         Intensity_local_all = 0  # initialize all variables (concatenated matrices of generated output)
@@ -276,8 +305,8 @@ class PrecipitationDistribution(Component):
         Storm_totals_all = 0
         Duration_local_all = 0
 
-        storm_count = 0
         master_storm_count = 0
+        last_year_count = 0
         storm_trend = 0
 
         for syear in range(simyears):
@@ -294,17 +323,32 @@ class PrecipitationDistribution(Component):
                 Ptot_pdf_norm['mu'] = mu
             # sample from normal distribution and saves global value of Ptot
             # (that must be equalled or exceeded) for each year
-            Ptot_ann_global[syear] = np.random.normal(
+            annual_limit = np.random.normal(
                 loc=Ptot_pdf_norm['mu'], scale=Ptot_pdf_norm['sigma'])
-            Storm_total_local_year = np.zeros((self._max_numstorms, numgauges))
-            Storm_running_sum = np.zeros((2, numgauges))
+            try:
+                annual_limit = np.clip(
+                    annual_limit, Ptot_pdf_norm['trunc_interval'][0],
+                    Ptot_pdf_norm['trunc_interval'][1])
+            except KeyError:
+                pass
+            self._Ptot_ann_global[syear] = annual_limit
+            Storm_total_local_year = np.zeros(
+                (self._max_numstorms, num_opennodes))
+            Storm_running_sum = np.zeros((2, num_opennodes))
             # ^ 1st col is running total, 2nd is data to add to it
             ann_cum_Ptot_gauge = np.zeros(numgauges)
             self._entries = 0
+            storm_count = 0
             for storm in range(self._max_numstorms):
                 int_arr_val = genextreme.rvs(c=Int_arr_pdf_GEV['shape'],
                                              loc=Int_arr_pdf_GEV['mu'],
                                              scale=Int_arr_pdf_GEV['sigma'])
+                try:
+                    int_arr_val = np.clip(
+                        int_arr_val, Int_arr_pdf_GEV['trunc_interval'][0],
+                        Int_arr_pdf_GEV['trunc_interval'][1])
+                except KeyError:
+                    pass
                 # ^Samples from distribution of interarrival times (hr). This
                 # can be used to develop STORM output for use in rainfall-
                 # runoff models or any water balance application.
@@ -322,6 +366,12 @@ class PrecipitationDistribution(Component):
                 area_val = genextreme.rvs(c=Area_pdf_EV['shape'],
                                           loc=Area_pdf_EV['mu'],
                                           scale=Area_pdf_EV['sigma'])
+                try:
+                    area_val = np.clip(
+                        area_val, Area_pdf_EV['trunc_interval'][0],
+                        Area_pdf_EV['trunc_interval'][1])
+                except KeyError:
+                    pass
                 # ^Samples from distribution of storm areas
                 # value of coord should be set to storm center selected
                 # (same below)
@@ -386,6 +436,14 @@ class PrecipitationDistribution(Component):
                                               scale=Duration_pdf_GEV['sigma'])
                 # round to nearest minute for consistency with measured data:
                 duration_val = round(duration_val)
+                # hacky fix to prevent occasional < 0 values:
+                # (I think because Matlab is able to set limits manually)
+                try:
+                    duration_val = np.clip(
+                        duration_val, Duration_pdf_GEV['trunc_interval'][0],
+                        Duration_pdf_GEV['trunc_interval'][1])
+                except KeyError:
+                    pass
                 # %Duration_global(storm,year) = duration_val;
                 Storm_matrix[master_storm_count, 2] = duration_val
                 # we're not going to store the calendar time (DEJH change)
@@ -448,6 +506,12 @@ class PrecipitationDistribution(Component):
                 # area to determine which gauges are hit:
                 recess_val = np.random.normal(
                     loc=Recess_pdf_norm['mu'], scale=Recess_pdf_norm['sigma'])
+                try:
+                    recess_val = np.clip(
+                        recess_val, Recess_pdf_norm['trunc_interval'][0],
+                        Recess_pdf_norm['trunc_interval'][1])
+                except KeyError:
+                    pass
                 # this pdf of recession coefficients determines how intensity
                 # declines with distance from storm center (see below)
                 Storm_matrix[master_storm_count, 6] = recess_val
@@ -502,8 +566,8 @@ class PrecipitationDistribution(Component):
 # TESTER
                 self._ann_cum_Ptot_gauge = ann_cum_Ptot_gauge
                 # collect storm total data for all gauges into rows by storm
-                Storm_total_local_year[storm, :] = (self._rain_int_gauge[opennodes] *
-                                                    duration_val / 60.)
+                Storm_total_local_year[storm, :] = (
+                    self._rain_int_gauge[opennodes] * duration_val / 60.)
                 Storm_matrix[master_storm_count, 7] = (intensity_val *
                                                        duration_val / 60.)
                 self._Storm_total_local_year = Storm_total_local_year
@@ -511,38 +575,60 @@ class PrecipitationDistribution(Component):
                 self._Storm_running_sum = Storm_running_sum
                 np.nansum(Storm_running_sum, axis=0,
                           out=Storm_running_sum[0, :])
-
+                if np.any(Storm_total_local_year < 0.):
+                    raise ValueError(syear, storm)
                 self._median_rf_total = np.nanmedian(Storm_running_sum[0, :])
-                yield(duration_val, int_arr_val)
+                if yield_storms is True:
+                    yield (duration_val, int_arr_val)
                 # now blank the field for the interstorm period
                 self._rain_int_gauge.fill(0.)
 #                yield(int_arr_val)
-
-                if self._median_rf_total > Ptot_ann_global[syear]:
+                if self._median_rf_total > self._Ptot_ann_global[syear]:
                     # we're not going to create Ptotal_local for now... just
                     break
+
+            self._total_rf_year[opennodes] = Storm_running_sum[0, :]
+            if yield_years is True:
+                yield storm_count
 
 
 from landlab.plot import imshow_grid_at_node
 from matplotlib.pyplot import show
-mg = RasterModelGrid((100, 100), 1000.)
+mg = RasterModelGrid((100, 100), 500.)
 closed_nodes = np.zeros((100, 100), dtype=bool)
 closed_nodes[:, :30] = True
 closed_nodes[:, 70:] = True
 closed_nodes[70:, :] = True
+# mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# # imshow_grid_at_node(mg, mg.status_at_node)
+# # show()
+# z = mg.add_zeros('node', 'topographic__elevation')
+# z += 1000.
+# rain = PrecipitationDistribution(mg, number_of_years=2)
+# count = 0
+# total_t = 0.
+# for dt, interval_t in rain.yield_storms():
+#     count += 1
+#     total_t += dt + interval_t
+#     print rain._median_rf_total
+#     if count % 100 == 0:
+#         imshow_grid_at_node(mg, 'rainfall__flux')
+#         show()
+# print("Effective total years:")
+# print(total_t/24./365.)
+# print('*****')
+mg = RasterModelGrid((100, 100), 500.)
 mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # imshow_grid_at_node(mg, mg.status_at_node)
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=2)
+rain = PrecipitationDistribution(mg, number_of_years=5)
 count = 0
-total_t = 0.
-for dt, interval_t in rain.yield_storms():
+total_storms = 0.
+for storms_in_year in rain.yield_years():
     count += 1
-    total_t += dt + interval_t
-    print rain._median_rf_total
-    if count % 100 == 0:
-        imshow_grid_at_node(mg, 'rainfall__flux')
-        show()
-print(total_t/24./365.)
+    total_storms += storms_in_year
+    print(storms_in_year)
+    imshow_grid_at_node(mg, 'rainfall__total_depth_per_year')
+    show()
