@@ -60,7 +60,7 @@ class PrecipitationDistribution(Component):
 
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
                  number_of_years=1, buffer_width=5000, ptot_scenario='ptotC',
-                 storminess_scenario='stormsC', save_outputs=None,
+                 storminess_scenario='stormsC', save_outputs=False,
                  path_to_input_files='/Users/daniel/development/landlab/landlab/components/spatial_precip'):
         """
         It's on the user to ensure the grid is big enough to permit the buffer.
@@ -98,14 +98,20 @@ class PrecipitationDistribution(Component):
                                        'stormsT+', 'stormsT-')
         self._storms_scenario = storminess_scenario
         self._buffer_width = buffer_width
+        if save_outputs is not None:
+            assert type(save_outputs) in (bool, str)
         self._savedir = save_outputs
 
         self._max_numstorms = 2000
         # This is for initializing matrices. Trailing zeros are deleted from
         # the matrix at the end of the code.
 
-        self._Storm_matrix = np.zeros(
-            (self._max_numstorms*number_of_years, 11))
+        if self._savedir is not False:
+            if type(self._savedir) is str:
+                dimension = self._max_numstorms
+            else:
+                dimension = self._max_numstorms*number_of_years
+            self._Storm_matrix = np.zeros((dimension, 11))
 
         self._path = path_to_input_files
 
@@ -297,7 +303,6 @@ class PrecipitationDistribution(Component):
         # Unlike MS's original implementation, we get our ET rates from the
         # generator fn, below
 
-        Storm_matrix = self._Storm_matrix
         self._Ptot_ann_global = np.zeros(simyears)
 # NOTE we're trying to avoid needing to use Gauge_matrix_... structures
 
@@ -311,6 +316,8 @@ class PrecipitationDistribution(Component):
         storm_trend = 0
 
         for syear in range(simyears):
+            if type(self._savedir) is str:
+                self._Storm_matrix.fill(0.)
             calendar_time = 0  # tracks simulation time per year in hours
             storm_trend += storminess_scaling_factor
             Ptotal = 0
@@ -395,12 +402,6 @@ class PrecipitationDistribution(Component):
                 master_storm_count += 1
                 gauges_hit = np.where(mask_name)[0]
                 num_gauges_hit = gauges_hit.size
-                # save some properties:
-                Storm_matrix[master_storm_count, 0] = master_storm_count
-                Storm_matrix[master_storm_count, 1] = area_val
-                Storm_matrix[master_storm_count, 8] = cx
-                Storm_matrix[master_storm_count, 9] = cy
-                Storm_matrix[master_storm_count, 10] = syear
                 # this routine below allows for orography in precip by first
                 # determining the closest gauge and then determining its
                 # orographic grouping
@@ -409,7 +410,7 @@ class PrecipitationDistribution(Component):
                 # against orographic gauge groupings to determine the
                 # appropriate set of intensity-duration curves
                 ######
-                Storm_matrix[master_storm_count, 5] = num_gauges_hit
+
 
 
                 # This routine below determines to which orographic group the
@@ -441,8 +442,6 @@ class PrecipitationDistribution(Component):
                         Duration_pdf_GEV['trunc_interval'][1])
                 except KeyError:
                     pass
-                # %Duration_global(storm,year) = duration_val;
-                Storm_matrix[master_storm_count, 2] = duration_val
                 # we're not going to store the calendar time (DEJH change)
 
                 # original curve# probs for 30%-20%-10%: [0.0636 0.0727 0.0819
@@ -461,7 +460,6 @@ class PrecipitationDistribution(Component):
                             0.0968, 0.0968, 0.1060, 0.1149, 0.0591]
                 # which curve did we pick?:
                 int_dur_curve_val = np.random.choice(numcurves, p=wgts)
-                Storm_matrix[master_storm_count, 3] = int_dur_curve_val
 
                 intensity_val = (lambda_[int_dur_curve_val] *
                                  np.exp(-0.508 * duration_val) +
@@ -498,7 +496,6 @@ class PrecipitationDistribution(Component):
                     # intensity_val += intensity_val * storm_stepchange
                 if self._storms_scenario == 'storms-':
                     raise("this doesn't work right yet")
-                Storm_matrix[master_storm_count, 4] = intensity_val
 
                 # area to determine which gauges are hit:
                 recess_val = np.random.normal(
@@ -511,7 +508,6 @@ class PrecipitationDistribution(Component):
                     pass
                 # this pdf of recession coefficients determines how intensity
                 # declines with distance from storm center (see below)
-                Storm_matrix[master_storm_count, 6] = recess_val
                 # determine cartesian distances to all hit gauges and
                 # associated intensity values at each gauge hit by the storm
                 # This is a data storage solution to avoid issues that can
@@ -563,8 +559,7 @@ class PrecipitationDistribution(Component):
                 # collect storm total data for all gauges into rows by storm
                 Storm_total_local_year[storm, :] = (
                     self._rain_int_gauge[opennodes] * duration_val / 60.)
-                Storm_matrix[master_storm_count, 7] = (intensity_val *
-                                                       duration_val / 60.)
+
                 self._Storm_total_local_year = Storm_total_local_year
                 Storm_running_sum[1, :] = Storm_total_local_year[storm, :]
                 self._Storm_running_sum = Storm_running_sum
@@ -573,18 +568,52 @@ class PrecipitationDistribution(Component):
                 if np.any(Storm_total_local_year < 0.):
                     raise ValueError(syear, storm)
                 self._median_rf_total = np.nanmedian(Storm_running_sum[0, :])
+
+                if self._savedir is not False:
+                    if type(self._savedir) is str:
+                        rowID = storm_count - 1
+                    else:
+                        rowID = master_storm_count - 1
+                    # save some properties:
+                    Storm_matrix = self._Storm_matrix
+                    Storm_matrix[rowID, 0] = master_storm_count
+                    Storm_matrix[rowID, 1] = area_val
+                    Storm_matrix[rowID, 2] = duration_val
+                    Storm_matrix[rowID, 3] = int_dur_curve_val
+                    Storm_matrix[rowID, 4] = intensity_val
+                    Storm_matrix[rowID, 5] = num_gauges_hit
+                    Storm_matrix[rowID, 6] = recess_val
+                    Storm_matrix[rowID, 7] = (intensity_val *
+                                              duration_val / 60.)
+                    Storm_matrix[rowID, 8] = cx
+                    Storm_matrix[rowID, 9] = cy
+                    Storm_matrix[rowID, 10] = syear
+
                 if yield_storms is True:
                     yield (duration_val, int_arr_val)
                 # now blank the field for the interstorm period
                 self._rain_int_gauge.fill(0.)
-#                yield(int_arr_val)
                 if self._median_rf_total > self._Ptot_ann_global[syear]:
                     # we're not going to create Ptotal_local for now... just
                     break
+                if storm + 1 == self._max_numstorms:
+                    raise ValueError('_max_numstorms set too low for this run')
 
+            if type(self._savedir) is str:
+                # crop it down to save:
+                [maxrow, maxcol] = np.argwhere(self._Storm_matrix).max(axis=0)
+                np.savetxt(os.path.join(
+                    self._savedir, 'Storm_matrix_y' + str(syear) + '.csv'),
+                    self._Storm_matrix[:(maxrow+1), :(maxcol+1)])
             self._total_rf_year[opennodes] = Storm_running_sum[0, :]
             if yield_years is True:
                 yield storm_count
+
+        if self._savedir is True:
+            # crop it down for convenience:
+            [maxrow, maxcol] = np.argwhere(self._Storm_matrix).max(axis=0)
+            self._Storm_matrix = self._Storm_matrix[:(maxrow+1), :(maxcol+1)]
+
 
 
 from landlab.plot import imshow_grid_at_node
@@ -599,16 +628,16 @@ mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=2)
+rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
 count = 0
 total_t = 0.
 for dt, interval_t in rain.yield_storms():
     count += 1
     total_t += dt + interval_t
-    print rain._median_rf_total
-    if count % 100 == 0:
-        imshow_grid_at_node(mg, 'rainfall__flux')
-        show()
+    # print rain._median_rf_total
+    # if count % 100 == 0:
+    #     imshow_grid_at_node(mg, 'rainfall__flux')
+    #     show()
 print("Effective total years:")
 print(total_t/24./365.)
 # print('*****')
