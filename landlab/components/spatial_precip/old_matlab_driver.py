@@ -22,6 +22,31 @@ from landlab import RasterModelGrid, CLOSED_BOUNDARY, Component
 
 class PrecipitationDistribution(Component):
 
+    _name = 'PrecipitationDistribution'
+
+    _input_var_names = (
+        'topographic__elevation',
+    )
+
+    _output_var_names = (
+        'rainfall__flux',
+    )
+
+    _var_units = {
+        'topographic__elevation': 'm',
+        'rainfall__flux': 'mm/hr',
+    }
+
+    _var_mapping = {
+        'topographic__elevation': 'node',
+        'rainfall__flux': 'node',
+    }
+
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'rainfall__flux': 'Depth of water delivered per unit time',
+    }
+
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
                  number_of_years=1, buffer_width=5000, ptot_scenario='ptotC',
                  storminess_scenario='stormsC', save_outputs=None,
@@ -52,7 +77,6 @@ class PrecipitationDistribution(Component):
             Eastings = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))
             gaugecount = Eastings.size
         self._gauge_dist_km = np.zeros(gaugecount, dtype='float')
-        self._rain_int_gauge = np.zeros(gaugecount, dtype='float')
         self._temp_dataslots1 = np.zeros(gaugecount, dtype='float')
         self._temp_dataslots2 = np.zeros(gaugecount, dtype='float')
         self._numsims = number_of_simulations
@@ -65,7 +89,7 @@ class PrecipitationDistribution(Component):
         self._buffer_width = buffer_width
         self._savedir = save_outputs
 
-        self._max_numstorms = 1000
+        self._max_numstorms = 2000
         # This is for initializing matrices. Trailing zeros are deleted from
         # the matrix at the end of the code.
 
@@ -74,7 +98,20 @@ class PrecipitationDistribution(Component):
 
         self._path = path_to_input_files
 
-    def simple_run(self):
+        # build LL fields:
+        self.initialize_output_fields()
+        # bind the field to the internal variable:
+        self._rain_int_gauge = self.grid.at_node['rainfall__flux']
+
+    def yield_storms(self):
+        """
+        Yields
+        ------
+        (storm_t, interval_t) : (float, float)
+            Tuple pair of duration of a single storm, then the interstorm
+            interval that follows it. The rainfall__flux field describes the
+            rainfall rate during the interval storm_t as the tuple is yielded.
+        """
         # what's the dir of this component?
         # this is a nasty hacky way for now
         thisdir = self._path
@@ -137,6 +174,7 @@ class PrecipitationDistribution(Component):
                            'trunc_interval': (0.15, 0.67)}
 
         opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
+        IDs_open = np.where(opennodes)[0]  # need this later
         if self._mode == 'validation':
             Easting = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))  # This is the Longitudinal data for each gauge.
             Northing = np.loadtxt(os.path.join(thisdir, 'Northing.csv'))  # This is the Latitudinal data for each gauge. It will be sampled below.
@@ -270,7 +308,6 @@ class PrecipitationDistribution(Component):
                 # ^Samples from distribution of interarrival times (hr). This
                 # can be used to develop STORM output for use in rainfall-
                 # runoff models or any water balance application.
-                self._rain_int_gauge.fill(0.)
                 # sample uniformly from storm center matrix from grid with 10 m
                 # spacings covering basin:
 # NOTE DEJH believes this should be a true random spatial
@@ -424,41 +461,10 @@ class PrecipitationDistribution(Component):
                 else:
                     xcoords = Xin
                     ycoords = Yin
-                # self._gauge_dist_km[mask_name] = xcoords[mask_name]
-                # self._gauge_dist_km[mask_name] -= cx
-                # np.square(self._gauge_dist_km[mask_name],
-                #           out=self._gauge_dist_km[mask_name])
-                # self._temp_dataslots[mask_name] = ycoords[mask_name]
-                # self._temp_dataslots[mask_name] -= cy
-                # np.square(self._temp_dataslots[mask_name],
-                #           out=self._temp_dataslots[mask_name])
-                # self._gauge_dist_km[mask_name] += self._temp_dataslots[
-                #     mask_name]
-                # if np.any(self._gauge_dist_km[mask_name] < 0.):
-                #     raise ValueError(self._test_save, )
-                # np.sqrt(self._gauge_dist_km[mask_name],
-                #         out=self._gauge_dist_km[mask_name])
-                # self._gauge_dist_km[mask_name] /= 1000.
-                # # _rain_int_gauge has already been zeroed earlier in loop, so
-                # self._rain_int_gauge[mask_name] = self._gauge_dist_km[
-                #     mask_name]
-                # np.square(self._rain_int_gauge[mask_name],
-                #           out=self._rain_int_gauge[mask_name])
-                # self._rain_int_gauge[mask_name] *= -2. * recess_val**2
-                # np.exp(self._rain_int_gauge[mask_name],
-                #        out=self._rain_int_gauge[mask_name])
-                # self._rain_int_gauge[mask_name] *= intensity_val
-                # # calc of _rain_int_gauge follows Rodriguez-Iturbe et al.,
-                # # 1986; Morin et al., 2005 but sampled from a distribution
-                # # only need to add the bit that got rained on, so:
-                # self._temp_dataslots[mask_name] = self._rain_int_gauge[
-                #     mask_name]
-                # self._temp_dataslots[mask_name] *= duration_val / 60.
-                # ann_cum_Ptot_gauge[mask_name] += self._temp_dataslots[
-                #     mask_name]
                 self._entries = np.sum(mask_name)
                 entries = self._entries
                 # NOTE _gauge_dist_km only contains the nodes under the storm!
+                # The remaining entries are garbage
                 self._gauge_dist_km[:entries] = xcoords[mask_name]
                 self._gauge_dist_km[:entries] -= cx
                 np.square(self._gauge_dist_km[:entries],
@@ -484,7 +490,8 @@ class PrecipitationDistribution(Component):
                 np.exp(self._temp_dataslots2[:entries],
                        out=self._temp_dataslots2[:entries])
                 self._temp_dataslots2[:entries] *= intensity_val
-                self._rain_int_gauge[mask_name] = self._temp_dataslots2[
+                mask_incl_closed = IDs_open[mask_name]
+                self._rain_int_gauge[mask_incl_closed] = self._temp_dataslots2[
                     :entries]
                 # calc of _rain_int_gauge follows Rodriguez-Iturbe et al.,
                 # 1986; Morin et al., 2005 but sampled from a distribution
@@ -494,97 +501,48 @@ class PrecipitationDistribution(Component):
                     :entries]
 # TESTER
                 self._ann_cum_Ptot_gauge = ann_cum_Ptot_gauge
-# NOTE DEJH thinks this is going to get unworkable real fast for big grids.
-# Need a much better data storage solution. Come back to this when purpose
-# gets more obvious.
-#             for jj = 1:numgauges
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,1) = syear;']) %year
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,2) = master_storm_count;']) %storm #
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,3) = rain_int_gauge(jj);'])
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,4) = duration_val;'])
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,5) = rain_int_gauge(jj)*duration_val/60;']) %storm total
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,6) = ann_cum_Ptot_gauge(jj);']) %ann cum total (Ptot)
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,7) = int_arr_val;']) %interarrival time in hours
-#                 eval(['Gauge_matrix_',num2str(jj),'(master_storm_count,8) = calendar_time;']) %simulation time per year in hours
-#             end
-#             Intensity_local_all = [Intensity_local_all,rain_int_gauge]; %#ok<AGROW> %collect into vector of all simulated intensities (at all gauges)
-#             dur_step(1:numgauges) = duration_val;
-#             Duration_local_all = [Duration_local_all,dur_step]; %#ok<AGROW>
                 # collect storm total data for all gauges into rows by storm
-                Storm_total_local_year[storm, :] = (self._rain_int_gauge *
+                Storm_total_local_year[storm, :] = (self._rain_int_gauge[opennodes] *
                                                     duration_val / 60.)
-    #             Storm_totals_all = [Storm_totals_all,rain_int_gauge.*duration_val/60]; %#ok<AGROW>
                 Storm_matrix[master_storm_count, 7] = (intensity_val *
                                                        duration_val / 60.)
                 self._Storm_total_local_year = Storm_total_local_year
-    #             Ptotal = zeros(1,numgauges);
-    #             for k = 1:numgauges
-    #                 Ptotal(k) = nansum(Storm_total_local_year(:,k)); % %sum the annual storm total at each gauge
-    #             end
-                # This bit replaced with:
                 Storm_running_sum[1, :] = Storm_total_local_year[storm, :]
                 self._Storm_running_sum = Storm_running_sum
-                np.nansum(Storm_running_sum, axis=0, out=Storm_running_sum[0, :])
+                np.nansum(Storm_running_sum, axis=0,
+                          out=Storm_running_sum[0, :])
 
-    #             Ptotal_test = find(nanmedian(Ptotal) > Ptot_ann_global(syear), 1);    %once the median of all gauges exceeds the selected annual storm total, a new simulation year beginsPtotal_test = find(Ptotal > Ptot_ann_global(syear));    %once the first gauge exceeds the selected annual storm total, a new simulation year begins
-                # if ~isempty(Ptotal_test)
-                #     %eval(['Ptotal_local_',num2str(syear),'(1:numgauges) = Ptotal;'])
-                #     %Ptotal_local(syear,1:numgauges) = Ptotal;
-                #     for l = 1:numgauges
-                #         Ptotal_local(syear,l) = Ptotal(l); %#ok
-                #     end
-                #     break %end storm lopp and start a new simulation year
-                # end
+                self._median_rf_total = np.nanmedian(Storm_running_sum[0, :])
+                yield(duration_val, int_arr_val)
+                # now blank the field for the interstorm period
+                self._rain_int_gauge.fill(0.)
+#                yield(int_arr_val)
 
-#                yield self._rain_int_gauge
-
-                if np.nanmedian(Storm_running_sum[0, :]) > Ptot_ann_global[syear]:
+                if self._median_rf_total > Ptot_ann_global[syear]:
                     # we're not going to create Ptotal_local for now... just
                     break
 
-#             eval(['Storm_total_local_year_',num2str(syear),'(storm,1:numgauges) = Storm_total_local_year(storm,1:numgauges);']) %collect all local annual storm totals for each gauge.
 
-
-
-#
-#     Storm_matrix = Storm_matrix(Storm_matrix(:,9)>0,:); %#ok %gets rid of trailing zeros from initialized matrix
-#     AB = find(Gauge_matrix_1(:,2)>0); %#ok
-#     for CC = 1:numgauges
-#         eval(['Gauge_matrix_',num2str(CC),' = Gauge_matrix_',num2str(CC),'(AB,:);'])
-#     end
-#     Gauges_hit_all(Gauges_hit_all == 0) = NaN; %#ok
-#     GZ = find(Intensity_local_all>0);
-#     Intensity_all = Intensity_local_all(GZ); %#ok
-#     Duration_all = Duration_local_all(GZ); %#ok
-#     Storm_totals_all = Storm_totals_all(GZ); %#ok
-#     Ptot_ann_global = Ptot_ann_global(2:length(Ptot_ann_global)); %#ok
-#     Gauges_hit_all = Gauges_hit_all(2:length(Gauges_hit_all)); %#ok
-#
-# %     eval(['save model_output\',tx0,'\',t2,'\Ptot_ann_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_global_',t2,' Ptot_ann_global'])
-# %     eval(['save model_output\',tx0,'\',t2,'\Storm_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Storm_matrix'])
-# %     eval(['save model_output\',tx0,'\',t2,'\Gauges_hit_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Gauges_hit_all'])
-# %     eval(['save model_output\',tx0,'\',t2,'\Storm_totals_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Storm_totals_all'])
-# %     eval(['save model_output\',tx0,'\',t2,'\Intensity_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Intensity_all'])
-# %     eval(['save model_output\',tx0,'\',t2,'\Duration_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Duration_all'])
-# %
-# %     eval(['save model_output\',tx0,'\',t2,'\ET_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' ET_matrix'])
-#
-#     eval(['save ',tx2,'\Ptot_ann_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_global_',t2,' Ptot_ann_global'])
-#     eval(['save ',tx2,'\Storm_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Storm_matrix'])
-#     eval(['save ',tx2,'\Gauges_hit_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Gauges_hit_all'])
-#     eval(['save ',tx2,'\Storm_totals_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_all_',t2,' Storm_totals_all'])
-#     eval(['save ',tx2,'\Intensity_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Intensity_all'])
-#     eval(['save ',tx2,'\Duration_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_selected_',t2,' Duration_all'])
-#
-#     eval(['save ',tx2,'\ET_matrix_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' ET_matrix'])
-#
-#     for kk = 1:numgauges
-#         %eval(['save model_output\',t2,'\Gauge_matrix_',num2str(kk),'_y_',t2,'.txt Gauge_matrix_',num2str(kk), ' -ASCII';])
-#         eval(['save ',tx2,'\Gauge_matrix',num2str(kk),'_',num2str(NUMSIMS),'sims_',num2str(NUMSIMYRS),'y_',t2,' Gauge_matrix_',num2str(kk);])
-#     end
-#
-#     boo = etime(clock,t0);
-#     runtime_seconds = boo; %#ok
-#     runtime_minutes = boo/60 %#ok
-#
-# end
+from landlab.plot import imshow_grid_at_node
+from matplotlib.pyplot import show
+mg = RasterModelGrid((100, 100), 1000.)
+closed_nodes = np.zeros((100, 100), dtype=bool)
+closed_nodes[:, :30] = True
+closed_nodes[:, 70:] = True
+closed_nodes[70:, :] = True
+mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# imshow_grid_at_node(mg, mg.status_at_node)
+# show()
+z = mg.add_zeros('node', 'topographic__elevation')
+z += 1000.
+rain = PrecipitationDistribution(mg, number_of_years=2)
+count = 0
+total_t = 0.
+for dt, interval_t in rain.yield_storms():
+    count += 1
+    total_t += dt + interval_t
+    print rain._median_rf_total
+    if count % 100 == 0:
+        imshow_grid_at_node(mg, 'rainfall__flux')
+        show()
+print(total_t/24./365.)
