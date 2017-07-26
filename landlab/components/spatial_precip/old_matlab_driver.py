@@ -1,15 +1,20 @@
 # %----------------------------------------------------------------------------
-# %STOchastic Rainfall Model (STORM). A rainstorm generator in this case based on empirical data (Walnut Gulch, AZ)
-#
-# %Code name: WG_storms_v3_01  %this version allows for simulations that are much longer than the input series in order to compare the distributions of storm characteristics to the original.
-# %It also includes the 'mean gauge approach' to determine when a simulation year stops. This involves summing storm totals at each gauge for each year until the mean for all gauges exceeds the
-# %selected annual total precip value. It also allows for fuzzy selection of intensity at the storm center based on a fixed value of duration and
-# %incorporates orographic effects, wherein there are separate intensity-duration curves derived for three intervals of basin elevation (1200-1350m, 1351-1500m, 1501-1650m)
-# %Current version also includes interarrival times between storms, allowing for output to drive other model frameworks (rainfall-ruonff, water balance,LEMs)
-# %This version will also include output at each grid location, rather than only at gauge locations.
-# %Author: Michael Singer 2017
-# %Date created: 2015-6
-# %----------------------------------------------------------------------------
+# %STOchastic Rainfall Model (STORM). A rainstorm generator in this case based
+# on empirical data (Walnut Gulch, AZ) # %Code name: WG_storms_v3_01  %this
+# version allows for simulations that are much longer than the input series in
+# order to compare the distributions of storm characteristics to the original.
+# %It also includes the 'mean gauge approach' to determine when a simulation
+# year stops. This involves summing storm totals at each gauge for each year
+# until the mean for all gauges exceeds the selected annual total precip value.
+# It also allows for fuzzy selection of intensity at the storm center based on
+# a fixed value of duration and %incorporates orographic effects, wherein there
+# are separate intensity-duration curves derived for three intervals of basin
+# elevation (1200-1350m, 1351-1500m, 1501-1650m) %Current version also includes
+# interarrival times between storms, allowing for output to drive other model
+# frameworks (rainfall-ruonff, water balance,LEMs) %This version will also
+# include output at each grid location, rather than only at gauge locations.
+# %Author: Michael Singer 2017 %Date created: 2015-6
+# ----------------------------------------------------------------------------
 
 import numpy as np
 import os
@@ -146,13 +151,8 @@ class PrecipitationDistribution(Component):
         # what's the dir of this component?
         # this is a nasty hacky way for now
         thisdir = self._path
-        # unnecessary as related to output file gen & documentation?
-        # t0 = time()
-        # t1 = [datestr(floor(now)) '_' datestr(rem(now,1))];
-        # t2=regexprep(t1,'[^\w'']',''); %for naming output directories and files by current date/time
-        # mkdir('C:\bliss\sacbay\papers\WG_Rainfall_Model\model_output\',t2)
-
-        # Initialize variables for annual rainfall total (mm/h) storm center location (RG1-RG85), etc.
+        # Initialize variables for annual rainfall total (mm/h)
+        # storm center location (RG1-RG85), etc.
 
         # This scalar specifies the fractional change in intensity per year
         # when storm_trend is applied in STORMINESS_SCENARIO
@@ -167,14 +167,16 @@ class PrecipitationDistribution(Component):
 
         # add variable for number of simulations of simyears
         simyears = self._numyrs  # number of years to simulate
-        numcurves = 11  # number of intensity-duration curves (see below for curve equations)
+        numcurves = 11  # number of intensity-duration curves (see below for
+        # curve equations)
 
-        storm_scaling = 1.  # No storm scaling, as problem appears to be fixed with smaller grid spacing.
-        #%storm_scaling = 1.15  # This scales the storm center intensity upward, so the values at each gauge are realistic once the gradient is applied.
+        storm_scaling = 1.  # No storm scaling, as problem appears to be fixed
+        # with smaller grid spacing.
+        # Formerly, this scaled the storm center intensity upward, so the
+        # values at each gauge are realistic once the gradient is applied.
 
-# NOTE risk here that matlab & Python present mirrored GEV & EV dists
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Ptot_pdf % This is the pdf fitted to all available station precip data (normal dist). It will be sampled below.
-        # #### This to be replaced by a Ptot_mu and Ptot_sigma
+        # This is the pdf fitted to all available station precip data (normal
+        # dist). It will be sampled below.
 # NOTE right now we ignore all poss scenarios, i.e., use the C cases (? Check)
         if self._ptot_scenario == 'ptot+':
             Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 271.}
@@ -184,20 +186,24 @@ class PrecipitationDistribution(Component):
             Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 207.489}
         # the trending cases need to be handled in the loop
 
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Duration_pdf % This is the pdf fitted to all available station duration data (GEV dist). It will be sampled below.
+        # This is the pdf fitted to all available station duration data
+        # (GEV dist). It will be sampled below.
         # #### matlab's GEV is (shape_param, scale(sigma), pos(mu))
         # note that in Scipy, we must add a minus to the shape param for a GEV
         # to match Matlab's implementation
-        Duration_pdf_GEV = {'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
-                            'trunc_interval': (1., 1040.)}
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Area_pdf % This is the pdf fitted to all available station area data (EV dist). It will be sampled below.
+        Duration_pdf_GEV = {'shape': -0.570252, 'sigma': 35.7389,
+                            'mu': 34.1409, 'trunc_interval': (1., 1040.)}
+        # This is the pdf fitted to all available station area data (EV dist).
+        # It will be sampled below.
         # #### matlab's EV is (mu, sigma)
         Area_pdf_EV = {'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                        'trunc_interval': (5.e+06, 3.e+08)}
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Int_arr_pdf % This is the pdf fitted to all available station area data (GEV dist). It will be sampled below.
+        # This is the pdf fitted to all available station area data (GEV dist).
+        # It will be sampled below.
         Int_arr_pdf_GEV = {'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
                            'trunc_interval': (0., 120.)}
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Recess_pdf % This is the pdf of storm gradient recession coefficiencts from Morin et al, 2005 (normal dist). It will be sampled below.
+        # This is the pdf of storm gradient recession coefficiencts from Morin
+        # et al, 2005 (normal dist). It will be sampled below.
         Recess_pdf_norm = {'sigma': 0.08, 'mu': 0.25,
                            'trunc_interval': (0.15, 0.67)}
 
@@ -205,9 +211,13 @@ class PrecipitationDistribution(Component):
         num_opennodes = np.sum(opennodes)
         IDs_open = np.where(opennodes)[0]  # need this later
         if self._mode == 'validation':
-            Easting = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))  # This is the Longitudinal data for each gauge.
-            Northing = np.loadtxt(os.path.join(thisdir, 'Northing.csv'))  # This is the Latitudinal data for each gauge. It will be sampled below.
-            gauges = np.loadtxt(os.path.join(thisdir, 'gauges.csv'))  # This is the list of gauge numbers. It will be sampled below.
+            raise ValueError('Not currently supported!')
+            Easting = np.loadtxt(os.path.join(thisdir, 'Easting.csv'))
+            # This is the Longitudinal data for each gauge.
+            Northing = np.loadtxt(os.path.join(thisdir, 'Northing.csv'))
+            # This is the Latitudinal data for each gauge.
+            gauges = np.loadtxt(os.path.join(thisdir, 'gauges.csv'))
+            # This is the list of gauge numbers. It will be sampled below.
             gauge_elev = np.loadtxt(os.path.join(thisdir, 'gauge_elev.csv'))
             numgauges = gauges.size
         else:
@@ -216,29 +226,21 @@ class PrecipitationDistribution(Component):
             Xin = X1[opennodes]
             Yin = Y1[opennodes]
             Zz = self.grid.at_node['topographic__elevation'][opennodes]
-            numgauges = Xin.size  # number of rain gauges in the basin. NOTE: In this version this produces output on a grid, rather than at real gauge locations.
+            numgauges = Xin.size  # number of rain gauges in the basin.
+        # NOTE: In this version this produces output on a grid, rather than at
+        # real gauge locations.
 
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\X % This is the Longitudinal data for each grid point. It will be sampled below to determine storm center location.
-        X = np.loadtxt(os.path.join(thisdir, 'X.csv'))
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Y % This is the Latitudinal data for each grid point. It will be sampled below to determine storm center location.
-        Y = np.loadtxt(os.path.join(thisdir, 'Y.csv'))
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Storm_depth_data % This is the storm depth data for use in model evaluation.
-        Storm_depth_data = np.loadtxt(os.path.join(thisdir,
-                                                   'Storm_depth_data.csv'))
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Intensity_data % This is the intensity data for use in model evaluation.
-        Intensity_data = np.loadtxt(os.path.join(thisdir,
-                                                 'Intensity_data.csv'))
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Duration_data % This is the duration data for use in model evaluation.
-        Duration_data = np.loadtxt(os.path.join(thisdir,
-                                                'Duration_data.csv'))
-        # These three are in mm and hr
-        # # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Gauge_GR1 % This is the lowest elevation gauge grouping used for orography (1200-1350m).
-        # # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Gauge_GR2 % This is the middle elevation gauge grouping used for orography (1351-1500m).
-        # # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\Gauge_GR3 % This is the highest elevation gauge grouping used for orography (1501-1650m).
-        # Gauge_GR1 = np.loadtxt(os.path.join(thisdir, 'Gauge_GR1.csv'))
-        # Gauge_GR2 = np.loadtxt(os.path.join(thisdir, 'Gauge_GR2.csv'))
-        # Gauge_GR3 = np.loadtxt(os.path.join(thisdir, 'Gauge_GR3.csv'))
-        # load C:\bliss\sacbay\papers\WG_Rainfall_Model\model_input\fuzz % This is a vector of fuzzy tolerace values for intensity selection.
+# NOTE this block is for validation & shouldn't live here
+        # # This is the storm depth data for use in model evaluation.
+        # Storm_depth_data = np.loadtxt(os.path.join(thisdir,
+        #                                            'Storm_depth_data.csv'))
+        # # This is the intensity data for use in model evaluation.
+        # Intensity_data = np.loadtxt(os.path.join(thisdir,
+        #                                          'Intensity_data.csv'))
+        # # This is the duration data for use in model evaluation.
+        # Duration_data = np.loadtxt(os.path.join(thisdir,
+        #                                         'Duration_data.csv'))
+        # This is a vector of fuzzy tolerace values for intensity selection:
         fuzz = np.loadtxt(os.path.join(thisdir, 'fuzz.csv'))
         fuzz = fuzz.astype(float)
         ET_monthly_day = np.loadtxt(os.path.join(thisdir,
@@ -283,7 +285,6 @@ class PrecipitationDistribution(Component):
         OroGrp2 = np.arange(1350, 1500)
         OroGrp3 = np.arange(1500, int(np.round(Zz.max())))
 
-
         # lambda_, kappa, and C are parameters of the intensity-duration curves
         # of the form: intensity =
         # lambda*exp(-0.508*duration)+kappa*exp(-0.008*duration)+C
@@ -300,8 +301,8 @@ class PrecipitationDistribution(Component):
         self._Ptot_ann_global = np.zeros(simyears)
 # NOTE we're trying to avoid needing to use Gauge_matrix_... structures
 
-        Intensity_local_all = 0  # initialize all variables (concatenated matrices of generated output)
-        #%Intensity_local_all = zeros(85*simyears,1); %initialize local_all variables (concatenated vector of generated output at each gauge location)
+        Intensity_local_all = 0  # initialize all variables (concatenated
+        # matrices of generated output)
         Storm_totals_all = 0
         Duration_local_all = 0
 
@@ -377,9 +378,9 @@ class PrecipitationDistribution(Component):
                 # (same below)
                 cx = East
                 cy = North
-                r = np.sqrt(area_val/np.pi)  # value here should be selected based
-                # on area above in meters to match the UTM values in North and
-                # East vectors.
+                r = np.sqrt(area_val/np.pi)  # value here should be selected
+                # based on area above in meters to match the UTM values in
+                # North and East vectors.
                 # Determine which gauges are hit by Euclidean geometry:
                 if self._mode == 'simulation':
                     gdist = (Xin-cx)**2 + (Yin-cy)**2
@@ -409,7 +410,6 @@ class PrecipitationDistribution(Component):
                 # appropriate set of intensity-duration curves
                 ######
                 Storm_matrix[master_storm_count, 5] = num_gauges_hit
-# NOTE used to calc Gauges_hit all. seems redundant. Replace w anal of mask_name as needed (Flag??)
 
 
                 # This routine below determines to which orographic group the
@@ -421,13 +421,10 @@ class PrecipitationDistribution(Component):
                 # elevation bands called OroGrp, defined above
 #### NOTE again, DEJH thinks this could be simplified a lot
                 if closest_gauge in OroGrp1:
-                    # %int_dur_curve_num = (2:numcurves)'; % these were empirically determined based on data from WG (monsoon rainfall only)-lowest orographic group.
                     baa = 'a'
                 elif closest_gauge in OroGrp2:
-                    # %int_dur_curve_num = (2:numcurves-1)'; % these were empirically determined based on data from WG (monsoon rainfall only)-middle orographic group.
                     baa = 'b'
                 elif closest_gauge in OroGrp3:
-                    # %int_dur_curve_num = (1:numcurves-1)'; % these were empirically determined based on data from WG (monsoon rainfall only)-highest orographic group.
                     baa = 'c'
                 else:
                     raise ValueError('closest_gauge not found in curve lists!')
@@ -563,8 +560,6 @@ class PrecipitationDistribution(Component):
                 self._temp_dataslots2[:entries] *= duration_val / 60.
                 ann_cum_Ptot_gauge[mask_name] += self._temp_dataslots2[
                     :entries]
-# TESTER
-                self._ann_cum_Ptot_gauge = ann_cum_Ptot_gauge
                 # collect storm total data for all gauges into rows by storm
                 Storm_total_local_year[storm, :] = (
                     self._rain_int_gauge[opennodes] * duration_val / 60.)
@@ -599,36 +594,36 @@ closed_nodes = np.zeros((100, 100), dtype=bool)
 closed_nodes[:, :30] = True
 closed_nodes[:, 70:] = True
 closed_nodes[70:, :] = True
-# mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-# # imshow_grid_at_node(mg, mg.status_at_node)
-# # show()
-# z = mg.add_zeros('node', 'topographic__elevation')
-# z += 1000.
-# rain = PrecipitationDistribution(mg, number_of_years=2)
-# count = 0
-# total_t = 0.
-# for dt, interval_t in rain.yield_storms():
-#     count += 1
-#     total_t += dt + interval_t
-#     print rain._median_rf_total
-#     if count % 100 == 0:
-#         imshow_grid_at_node(mg, 'rainfall__flux')
-#         show()
-# print("Effective total years:")
-# print(total_t/24./365.)
-# print('*****')
-mg = RasterModelGrid((100, 100), 500.)
 mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # imshow_grid_at_node(mg, mg.status_at_node)
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=5)
+rain = PrecipitationDistribution(mg, number_of_years=2)
 count = 0
-total_storms = 0.
-for storms_in_year in rain.yield_years():
+total_t = 0.
+for dt, interval_t in rain.yield_storms():
     count += 1
-    total_storms += storms_in_year
-    print(storms_in_year)
-    imshow_grid_at_node(mg, 'rainfall__total_depth_per_year')
-    show()
+    total_t += dt + interval_t
+    print rain._median_rf_total
+    if count % 100 == 0:
+        imshow_grid_at_node(mg, 'rainfall__flux')
+        show()
+print("Effective total years:")
+print(total_t/24./365.)
+# print('*****')
+# mg = RasterModelGrid((100, 100), 500.)
+# mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# # imshow_grid_at_node(mg, mg.status_at_node)
+# # show()
+# z = mg.add_zeros('node', 'topographic__elevation')
+# z += 1000.
+# rain = PrecipitationDistribution(mg, number_of_years=5)
+# count = 0
+# total_storms = 0.
+# for storms_in_year in rain.yield_years():
+#     count += 1
+#     total_storms += storms_in_year
+#     print(storms_in_year)
+#     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
+#     show()
