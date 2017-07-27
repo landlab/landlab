@@ -60,11 +60,13 @@ class PrecipitationDistribution(Component):
 
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
                  number_of_years=1, buffer_width=5000, ptot_scenario='ptotC',
-                 storminess_scenario='stormsC', save_outputs=False,
+                 storminess_scenario='stormsC', orographic_scenario='Singer',
+                 save_outputs=False,
                  path_to_input_files='/Users/daniel/development/landlab/landlab/components/spatial_precip'):
         """
         It's on the user to ensure the grid is big enough to permit the buffer.
         save_outputs : if not None, str path to save
+        orographic_scenario : {None, 'Singer'}
 
         The Storm_matrix is:
         0  : master storm count
@@ -113,6 +115,9 @@ class PrecipitationDistribution(Component):
                 dimension = self._max_numstorms*number_of_years
             self._Storm_matrix = np.zeros((dimension, 11))
 
+        assert orographic_scenario in {None, 'Singer'}
+        self._orographic_scenario = orographic_scenario
+
         self._path = path_to_input_files
 
         # build LL fields:
@@ -148,7 +153,13 @@ class PrecipitationDistribution(Component):
         """
         This is the underlying process that runs the component, but it should
         be run by a user through the yield_storms and yield_years methods.
+
+        Use the hardwired FUZZMETHOD switch {'MS', 'DEJH'} to control whether
+        the fuzz is applied in a discretised fashion from input file (MS), or
+        as a continuous random variable (DEJH).
         """
+        FUZZMETHOD = 'DEJH'
+        FUZZWIDTH = 5.  # if DEJH
         # safety check for init conds:
         if yield_storms:
             assert yield_years is False
@@ -246,9 +257,11 @@ class PrecipitationDistribution(Component):
         # # This is the duration data for use in model evaluation.
         # Duration_data = np.loadtxt(os.path.join(thisdir,
         #                                         'Duration_data.csv'))
-        # This is a vector of fuzzy tolerace values for intensity selection:
-        fuzz = np.loadtxt(os.path.join(thisdir, 'fuzz.csv'))
-        fuzz = fuzz.astype(float)
+        if FUZZMETHOD == 'MS':
+            # a vector of fuzzy tolerance values for intensity selection
+            # width is +/-5, discretised every 1
+            fuzz = np.loadtxt(os.path.join(thisdir, 'fuzz.csv'))
+            fuzz = fuzz.astype(float)
         ET_monthly_day = np.loadtxt(os.path.join(thisdir,
                                                  'ET_monthly_day.txt'))
         ET_monthly_night = np.loadtxt(os.path.join(thisdir,
@@ -286,10 +299,11 @@ class PrecipitationDistribution(Component):
         Yyin = self.grid.y_of_node[target_area_nodes]
 
 # NOTE this is overly specific
-        # These are elevation ranges for the 3 orographic groups
-        OroGrp1 = np.arange(int(np.round(Zz.min())), 1350)
-        OroGrp2 = np.arange(1350, 1500)
-        OroGrp3 = np.arange(1500, int(np.round(Zz.max())))
+        if self._orographic_scenario == 'Singer':
+            # These are elevation ranges for the 3 orographic groups
+            OroGrp1 = np.arange(int(np.round(Zz.min())), 1350)
+            OroGrp2 = np.arange(1350, 1500)
+            OroGrp3 = np.arange(1500, int(np.round(Zz.max())))
 
         # lambda_, kappa, and C are parameters of the intensity-duration curves
         # of the form: intensity =
@@ -300,11 +314,10 @@ class PrecipitationDistribution(Component):
                  0.9]
         C = [4.5, 4., 3.5, 3., 2.5, 2., 1.5, 1., 0.5, 0.25, 0.05]
 
-        # Unlike MS's original implementation, we get our ET rates from the
-        # generator fn, below
+        # Unlike MS's original implementation, we no longer pull ET values, as
+        # this should be a different component.
 
         self._Ptot_ann_global = np.zeros(simyears)
-# NOTE we're trying to avoid needing to use Gauge_matrix_... structures
 
         Intensity_local_all = 0  # initialize all variables (concatenated
         # matrices of generated output)
@@ -411,8 +424,6 @@ class PrecipitationDistribution(Component):
                 # appropriate set of intensity-duration curves
                 ######
 
-
-
                 # This routine below determines to which orographic group the
                 # closest gauge to the storm center belongs to, and censors the
                 # number of curves accordingly
@@ -421,14 +432,18 @@ class PrecipitationDistribution(Component):
                 # new version of orography compares local 'gauge' elevation to
                 # elevation bands called OroGrp, defined above
 #### NOTE again, DEJH thinks this could be simplified a lot
-                if closest_gauge in OroGrp1:
-                    baa = 'a'
-                elif closest_gauge in OroGrp2:
-                    baa = 'b'
-                elif closest_gauge in OroGrp3:
-                    baa = 'c'
-                else:
-                    raise ValueError('closest_gauge not found in curve lists!')
+                if self._orographic_scenario == 'Singer':
+                    if closest_gauge in OroGrp1:
+                        baa = 'a'
+                    elif closest_gauge in OroGrp2:
+                        baa = 'b'
+                    elif closest_gauge in OroGrp3:
+                        baa = 'c'
+                    else:
+                        raise ValueError(
+                            'closest_gauge not found in curve lists!')
+                elif self._orographic_scenario is None:
+                    baa = None
                 duration_val = genextreme.rvs(c=Duration_pdf_GEV['shape'],
                                               loc=Duration_pdf_GEV['mu'],
                                               scale=Duration_pdf_GEV['sigma'])
@@ -444,8 +459,9 @@ class PrecipitationDistribution(Component):
                     pass
                 # we're not going to store the calendar time (DEJH change)
 
-                # original curve# probs for 30%-20%-10%: [0.0636 0.0727 0.0819
-                # 0.0909 0.0909 0.0909 0.0909 0.0909 0.1001 0.1090 0.1182]
+                # original curve# probs for 30%-20%-10%: [0.0636, 0.0727,
+                # 0.0819, 0.0909, 0.0909, 0.0909, 0.0909, 0.0909, 0.1001,
+                # 0.1090, 0.1182]
                 # original curve# probs are modified as below
                 # add weights to reflect reasonable probabilities that favor
                 # lower curves:
@@ -455,9 +471,12 @@ class PrecipitationDistribution(Component):
                 elif baa == 'b':
                     wgts = [0.0478, 0.0778, 0.0869, 0.0959, 0.0959, 0.0959,
                             0.0959, 0.0959, 0.1051, 0.1141, 0.0888]
-                else:
+                elif baa == 'c':
                     wgts = [0.0696, 0.0786, 0.0878, 0.0968, 0.0968, 0.0968,
                             0.0968, 0.0968, 0.1060, 0.1149, 0.0591]
+                elif baa is None:
+                    wgts = [0.0636, 0.0727, 0.0819, 0.0909, 0.0909, 0.0909,
+                            0.0909, 0.0909, 0.1001, 0.1090, 0.1182]
                 # which curve did we pick?:
                 int_dur_curve_val = np.random.choice(numcurves, p=wgts)
 
@@ -467,8 +486,15 @@ class PrecipitationDistribution(Component):
                                  np.exp(-0.008*duration_val) +
                                  C[int_dur_curve_val])
                 # ...these curves are based on empirical data from Walnut Gulch
+# NOTE DEJH wants to know exactly how these are defined
 
-                fuzz_int_val = np.random.choice(fuzz)
+                if FUZZMETHOD == 'MS':
+                    fuzz_int_val = np.random.choice(fuzz)
+                elif FUZZMETHOD == 'DEJH':
+                    # this dist should look identical, w/o discretisation
+                    fuzz_int_val = FUZZWIDTH * 2. * (np.random.rand() - 0.5)
+                else:
+                    raise NameError
                 intensity_val2 = intensity_val + fuzz_int_val
                 # ^this allows for specified fuzzy tolerance around selected
                 # intensity
@@ -623,36 +649,36 @@ closed_nodes = np.zeros((100, 100), dtype=bool)
 closed_nodes[:, :30] = True
 closed_nodes[:, 70:] = True
 closed_nodes[70:, :] = True
-mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-# imshow_grid_at_node(mg, mg.status_at_node)
-# show()
-z = mg.add_zeros('node', 'topographic__elevation')
-z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
-count = 0
-total_t = 0.
-for dt, interval_t in rain.yield_storms():
-    count += 1
-    total_t += dt + interval_t
-    # print rain._median_rf_total
-    # if count % 100 == 0:
-    #     imshow_grid_at_node(mg, 'rainfall__flux')
-    #     show()
-print("Effective total years:")
-print(total_t/24./365.)
-# print('*****')
-# mg = RasterModelGrid((100, 100), 500.)
 # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # # imshow_grid_at_node(mg, mg.status_at_node)
 # # show()
 # z = mg.add_zeros('node', 'topographic__elevation')
 # z += 1000.
-# rain = PrecipitationDistribution(mg, number_of_years=5)
+# rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
 # count = 0
-# total_storms = 0.
-# for storms_in_year in rain.yield_years():
+# total_t = 0.
+# for dt, interval_t in rain.yield_storms():
 #     count += 1
-#     total_storms += storms_in_year
-#     print(storms_in_year)
-#     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
-#     show()
+#     total_t += dt + interval_t
+#     print rain._median_rf_total
+#     if count % 100 == 0:
+#         imshow_grid_at_node(mg, 'rainfall__flux')
+#         show()
+# print("Effective total years:")
+# print(total_t/24./365.)
+# print('*****')
+mg = RasterModelGrid((100, 100), 500.)
+mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# imshow_grid_at_node(mg, mg.status_at_node)
+# show()
+z = mg.add_zeros('node', 'topographic__elevation')
+z += 1000.
+rain = PrecipitationDistribution(mg, number_of_years=3)
+count = 0
+total_storms = 0.
+for storms_in_year in rain.yield_years():
+    count += 1
+    total_storms += storms_in_year
+    print(storms_in_year)
+    imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
+    show()
