@@ -59,9 +59,8 @@ class PrecipitationDistribution(Component):
     }
 
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
-                 number_of_years=1, buffer_width=5000, ptot_scenario='ptotC',
-                 storminess_scenario='stormsC', orographic_scenario='Singer',
-                 save_outputs=False,
+                 number_of_years=1, buffer_width=5000,
+                 orographic_scenario='Singer', save_outputs=False,
                  path_to_input_files='/Users/daniel/development/landlab/landlab/components/spatial_precip'):
         """
         It's on the user to ensure the grid is big enough to permit the buffer.
@@ -94,11 +93,6 @@ class PrecipitationDistribution(Component):
         self._temp_dataslots2 = np.zeros(gaugecount, dtype='float')
         self._numsims = number_of_simulations
         self._numyrs = number_of_years
-        assert ptot_scenario in ('ptotC', 'ptot+', 'ptot-', 'ptotT+', 'ptotT-')
-        self._ptot_scenario = ptot_scenario
-        assert storminess_scenario in ('stormsC', 'storms+', 'storms-',
-                                       'stormsT+', 'stormsT-')
-        self._storms_scenario = storminess_scenario
         self._buffer_width = buffer_width
         if save_outputs is not None:
             assert type(save_outputs) in (bool, str)
@@ -127,29 +121,164 @@ class PrecipitationDistribution(Component):
         self._total_rf_year = self.grid.at_node[
             'rainfall__total_depth_per_year']
 
-    def yield_storms(self):
+    def yield_storms(self, total_rf_trend=0., storminess_trend=0.,
+                     total_rf_gaussian={
+                         'sigma': 64., 'mu': 207.},
+                     storm_duration_GEV={
+                         'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
+                         'trunc_interval': (1., 1040.)},
+                     storm_area_GEV={
+                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
+                         'trunc_interval': (5.e+06, 3.e+08)},
+                     storm_interarrival_GEV={
+                         'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
+                         'trunc_interval': (0., 120.)},
+                     storm_radial_weakening_gaussian={
+                         'sigma': 0.08, 'mu': 0.25,
+                         'trunc_interval': (0.15, 0.67)}):
         """
+        Yield a timeseries giving the number if storms occurring each year in
+        a rainfall simulation. As
+
+        All default distributions specified as parameters reflect values for
+        Walnut Gulch, see Singer & Michaelides, submitted.
+
+        Parameters
+        ----------
+        total_rf_trend : float
+            Controls if a drift is applied to the total rainfall distribution
+            through time. If 0., no trend. If positive, rainfall totals
+            increase gradually through time. If negative, they fall through
+            time. S&M recommend +/- 0.07 for a realistic climate chage driven
+            drift at Walnut Gulch.
+        storminess_trend : float
+            Controls if a drift is applied to the expected intensity of
+            individual storms through time. If 0., no trend. If positive,
+            storms get more intense through time, if negative, less so. S&M
+            recommend +/- 0.01 for a realistic climate change driven drift at
+            Walnut Gulch.
+        NOTE still an issue with how we do intensity stepchange.
+
+        total_rf_gaussian is a normal distribution controlling the total
+            rainfall expected in each year. S&M use 'mu' in {143., 271.} for
+            step changes up/down in rainfall totals.
+        storm_duration_GEV is a generalised extreme value distribution
+            controlling the duration of each storm.
+        storm_area_GEV is a generalised extreme value distribution controlling
+            the plan view area of each storm. S&M use 'shape': 0., which
+            collapses the distribution to a plain extreme value distribution.
+        storm_interarrival_GEV is a generalised extreme value distribution
+            controlling the interarrival time between each storm.
+        storm_radial_weakening_gaussian is a normal distribution controlling
+            the rate of intensity decline with distance from storm center. For
+            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+
         Yields
         ------
         (storm_t, interval_t) : (float, float)
             Tuple pair of duration of a single storm, then the interstorm
             interval that follows it. The rainfall__flux field describes the
             rainfall rate during the interval storm_t as the tuple is yielded.
+            Note that the rainfall__total_depth_per_year field gives the total
+            accumulated rainfall depth during the *last completed* model year,
+            not the year to the point of yield.
         """
-        return self._run_the_process(yield_storms=True, yield_years=False)
+        return self._run_the_process(
+            yield_storms=True, yield_years=False,
+            total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
+            total_rf_gaussian=total_rf_gaussian,
+            storm_duration_GEV=storm_duration_GEV,
+            storm_area_GEV=storm_area_GEV,
+            storm_interarrival_GEV=storm_interarrival_GEV,
+            storm_radial_weakening_gaussian=storm_radial_weakening_gaussian)
 
-    def yield_years(self):
+    def yield_years(self, total_rf_trend=0., storminess_trend=0.,
+                    total_rf_gaussian={
+                        'sigma': 64., 'mu': 207.},
+                    storm_duration_GEV={
+                        'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
+                        'trunc_interval': (1., 1040.)},
+                    storm_area_GEV={
+                        'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
+                        'trunc_interval': (5.e+06, 3.e+08)},
+                    storm_interarrival_GEV={
+                        'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
+                        'trunc_interval': (0., 120.)},
+                    storm_radial_weakening_gaussian={
+                        'sigma': 0.08, 'mu': 0.25,
+                        'trunc_interval': (0.15, 0.67)}):
         """
+        Yield a timeseries giving the number if storms occurring each year in
+        a rainfall simulation. As
+
+        All default distributions specified as parameters reflect values for
+        Walnut Gulch, see Singer & Michaelides, submitted.
+
+        Parameters
+        ----------
+        total_rf_trend : float
+            Controls if a drift is applied to the total rainfall distribution
+            through time. If 0., no trend. If positive, rainfall totals
+            increase gradually through time. If negative, they fall through
+            time. S&M recommend +/- 0.07 for a realistic climate chage driven
+            drift at Walnut Gulch.
+        storminess_trend : float
+            Controls if a drift is applied to the expected intensity of
+            individual storms through time. If 0., no trend. If positive,
+            storms get more intense through time, if negative, less so. S&M
+            recommend +/- 0.01 for a realistic climate change driven drift at
+            Walnut Gulch.
+        NOTE still an issue with how we do intensity stepchange.
+
+        total_rf_gaussian is a normal distribution controlling the total
+            rainfall expected in each year. S&M use 'mu' in {143., 271.} for
+            step changes up/down in rainfall totals.
+        storm_duration_GEV is a generalised extreme value distribution
+            controlling the duration of each storm.
+        storm_area_GEV is a generalised extreme value distribution controlling
+            the plan view area of each storm. S&M use 'shape': 0., which
+            collapses the distribution to a plain extreme value distribution.
+        storm_interarrival_GEV is a generalised extreme value distribution
+            controlling the interarrival time between each storm.
+        storm_radial_weakening_gaussian is a normal distribution controlling
+            the rate of intensity decline with distance from storm center. For
+            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+
         Yields
         ------
-        (storm_t, interval_t) : (float, float)
-            Tuple pair of duration of a single storm, then the interstorm
-            interval that follows it. The rainfall__flux field describes the
-            rainfall rate during the interval storm_t as the tuple is yielded.
+        number_of_storms_per_year : float
+            Float that gives the number of storms simulated in the year that
+            elapsed since the last yield. The rainfall__total_depth_per_year
+            field gives the total accumulated rainfall depth during the year
+            preceding the yield. rainfall__flux gives the rainfall intensity of
+            the last storm in that year.
         """
-        return self._run_the_process(yield_storms=False, yield_years=True)
+        return self._run_the_process(
+            yield_storms=False, yield_years=True,
+            total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
+            total_rf_gaussian=total_rf_gaussian,
+            storm_duration_GEV=storm_duration_GEV,
+            storm_area_GEV=storm_area_GEV,
+            storm_interarrival_GEV=storm_interarrival_GEV,
+            storm_radial_weakening_gaussian=storm_radial_weakening_gaussian)
 
-    def _run_the_process(self, yield_storms=True, yield_years=False):
+    def _run_the_process(self, yield_storms=True, yield_years=False,
+                         total_rf_trend=0., storminess_trend=0.,
+                         total_rf_gaussian={
+                             'sigma': 64., 'mu': 207.},
+                         storm_duration_GEV={
+                             'shape': -0.570252, 'sigma': 35.7389,
+                             'mu': 34.1409, 'trunc_interval': (1., 1040.)},
+                         storm_area_GEV={
+                             'shape': 0., 'sigma': 2.83876e+07,
+                             'mu': 1.22419e+08,
+                             'trunc_interval': (5.e+06, 3.e+08)},
+                         storm_interarrival_GEV={
+                             'shape': -0.807971, 'sigma': 9.49574,
+                             'mu': 10.6108, 'trunc_interval': (0., 120.)},
+                         storm_radial_weakening_gaussian={
+                             'sigma': 0.08, 'mu': 0.25,
+                             'trunc_interval': (0.15, 0.67)}):
         """
         This is the underlying process that runs the component, but it should
         be run by a user through the yield_storms and yield_years methods.
@@ -157,6 +286,38 @@ class PrecipitationDistribution(Component):
         Use the hardwired FUZZMETHOD switch {'MS', 'DEJH'} to control whether
         the fuzz is applied in a discretised fashion from input file (MS), or
         as a continuous random variable (DEJH).
+
+        total_rf_trend controls if a drift is applied to the total rainfall
+        distribution through time. If 0., no trend. If positive, rainfall
+        totals increase gradually through time. If negative, they fall through
+        time. S&M recommend +/- 0.07 for a realistic climate chage driven drift
+        at Walnut Gulch.
+
+        storminess_trend controls if a drift is applied to the expected
+        intensity of individual storms through time. If 0., no trend. If
+        positive, storms get more intense through time, if negative, less so.
+        S&M recommend +/- 0.01 for a realistic climate change driven drift at
+        Walnut Gulch.
+
+        NOTE still an issue with how we do intensity stepchange.
+
+        All default distributions reflect values for Walnut Gulch, see Singer &
+        Michaelides, submitted:
+
+        total_rf_gaussian is a normal distribution controlling the total
+            rainfall expected in each year. S&M use 'mu' in {143., 271.} for
+            step changes up/down in rainfall totals.
+        storm_duration_GEV is a generalised extreme value distribution
+            controlling the duration of each storm.
+        storm_area_GEV is a generalised extreme value distribution controlling
+            the plan view area of each storm. S&M use 'shape': 0., which
+            collapses the distribution to a plain extreme value distribution.
+        storm_interarrival_GEV is a generalised extreme value distribution
+            controlling the interarrival time between each storm.
+        storm_radial_weakening_gaussian is a normal distribution controlling
+            the rate of intensity decline with distance from storm center. For
+            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+
         """
         FUZZMETHOD = 'DEJH'
         FUZZWIDTH = 5.  # if DEJH
@@ -171,13 +332,7 @@ class PrecipitationDistribution(Component):
         # Initialize variables for annual rainfall total (mm/h)
         # storm center location (RG1-RG85), etc.
 
-        # This scalar specifies the fractional change in intensity per year
-        # when storm_trend is applied in STORMINESS_SCENARIO
-# NOTE this needs to be set dynamically
-        ptot_scaling_factor = 0.07
-        # This scalar specifies the fractional change in intensity per year
-        # when storm_trend is applied in STORMINESS_SCENARIO
-        storminess_scaling_factor = 0.01
+# NOTE this one is currently redundant:
         # This scalar specifies the value of fractional step change in
         # intensity when storms+ or storms- are applied in STORMINESS_SCENARIO
         storm_stepchange = 0.25
@@ -195,12 +350,14 @@ class PrecipitationDistribution(Component):
         # This is the pdf fitted to all available station precip data (normal
         # dist). It will be sampled below.
 # NOTE right now we ignore all poss scenarios, i.e., use the C cases (? Check)
-        if self._ptot_scenario == 'ptot+':
-            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 271.}
-        elif self._ptot_scenario == 'ptot-':
-            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 143.}
-        else:
-            Ptot_pdf_norm = {'sigma': 63.9894, 'mu': 207.489}
+        Ptot_pdf_norm = total_rf_gaussian
+        # This step change case can now be handled direct from input flags
+        # if self._ptot_scenario == 'ptot+':
+        #     Ptot_pdf_norm = {'sigma': 64., 'mu': 271.}
+        # elif self._ptot_scenario == 'ptot-':
+        #     Ptot_pdf_norm = {'sigma': 64., 'mu': 143.}
+        # else:
+        #     Ptot_pdf_norm = {'sigma': 64., 'mu': 207.}
         # the trending cases need to be handled in the loop
 
         # This is the pdf fitted to all available station duration data
@@ -208,21 +365,17 @@ class PrecipitationDistribution(Component):
         # #### matlab's GEV is (shape_param, scale(sigma), pos(mu))
         # note that in Scipy, we must add a minus to the shape param for a GEV
         # to match Matlab's implementation
-        Duration_pdf_GEV = {'shape': -0.570252, 'sigma': 35.7389,
-                            'mu': 34.1409, 'trunc_interval': (1., 1040.)}
+        Duration_pdf_GEV = storm_duration_GEV
         # This is the pdf fitted to all available station area data (EV dist).
         # It will be sampled below.
         # #### matlab's EV is (mu, sigma)
-        Area_pdf_EV = {'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
-                       'trunc_interval': (5.e+06, 3.e+08)}
+        Area_pdf_EV = storm_area_GEV
         # This is the pdf fitted to all available station area data (GEV dist).
         # It will be sampled below.
-        Int_arr_pdf_GEV = {'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
-                           'trunc_interval': (0., 120.)}
+        Int_arr_pdf_GEV = storm_interarrival_GEV
         # This is the pdf of storm gradient recession coefficiencts from Morin
         # et al, 2005 (normal dist). It will be sampled below.
-        Recess_pdf_norm = {'sigma': 0.08, 'mu': 0.25,
-                           'trunc_interval': (0.15, 0.67)}
+        Recess_pdf_norm = storm_radial_weakening_gaussian
 
         opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
         num_opennodes = np.sum(opennodes)
@@ -332,15 +485,11 @@ class PrecipitationDistribution(Component):
             if type(self._savedir) is str:
                 self._Storm_matrix.fill(0.)
             calendar_time = 0  # tracks simulation time per year in hours
-            storm_trend += storminess_scaling_factor
+            storm_trend += storminess_trend
             Ptotal = 0
-            if self._ptot_scenario == 'ptotT+':
+            if not np.isclose(total_rf_trend, 0.):
                 mu = Ptot_pdf_norm.pop('mu')
-                mu += mu * ptot_scaling_factor
-                Ptot_pdf_norm['mu'] = mu
-            elif self._ptot_scenario == 'ptotT-':
-                mu = Ptot * ptot_pdf_norm.pop('mu')
-                mu -= mu * ptot_scaling_factor
+                mu += mu * total_rf_trend
                 Ptot_pdf_norm['mu'] = mu
             # sample from normal distribution and saves global value of Ptot
             # (that must be equalled or exceeded) for each year
@@ -351,7 +500,9 @@ class PrecipitationDistribution(Component):
                     annual_limit, Ptot_pdf_norm['trunc_interval'][0],
                     Ptot_pdf_norm['trunc_interval'][1])
             except KeyError:
-                pass
+                # ...just in case
+                if annual_limit < 0.:
+                    annual_limit = 0.
             self._Ptot_ann_global[syear] = annual_limit
             Storm_total_local_year = np.zeros(
                 (self._max_numstorms, num_opennodes))
@@ -369,7 +520,9 @@ class PrecipitationDistribution(Component):
                         int_arr_val, Int_arr_pdf_GEV['trunc_interval'][0],
                         Int_arr_pdf_GEV['trunc_interval'][1])
                 except KeyError:
-                    pass
+                    # ...just in case
+                    if int_arr_val < 0.:
+                        int_arr_val = 0.
                 # ^Samples from distribution of interarrival times (hr). This
                 # can be used to develop STORM output for use in rainfall-
                 # runoff models or any water balance application.
@@ -392,7 +545,9 @@ class PrecipitationDistribution(Component):
                         area_val, Area_pdf_EV['trunc_interval'][0],
                         Area_pdf_EV['trunc_interval'][1])
                 except KeyError:
-                    pass
+                    # ...just in case
+                    if area_val < 0.:
+                        area_val = 0.
                 # ^Samples from distribution of storm areas
                 # value of coord should be set to storm center selected
                 # (same below)
@@ -456,7 +611,9 @@ class PrecipitationDistribution(Component):
                         duration_val, Duration_pdf_GEV['trunc_interval'][0],
                         Duration_pdf_GEV['trunc_interval'][1])
                 except KeyError:
-                    pass
+                    # ...just in case
+                    if duration_val < 0.:
+                        duration_val = 0.
                 # we're not going to store the calendar time (DEJH change)
 
                 # original curve# probs for 30%-20%-10%: [0.0636, 0.0727,
@@ -508,20 +665,13 @@ class PrecipitationDistribution(Component):
                 # This scales the storm center intensity upward, so the values
                 # at each gauge are realistic once the gradient is applied.
                 # Note the clip to 1 (not 0); < 1mm rain is forbidden
-                if self._storms_scenario == 'stormsT+':
-                    intensity_val += intensity_val * storm_trend
-                    # storminess trend is applied and its effect rises each
-                    # year of simulation
-                    # DEJH has removed the rounding as he believes this will
-                    # prevent trending in the intensity_val for low storm_trend
-                if self._storms_scenario == 'stormsT-':
-                    intensity_val -= intensity_val * storm_trend
-# NOTE this needs clarification, as doesn't seem right in MS's code
-                if self._storms_scenario == 'storms+':
-                    raise("this doesn't work right yet")
-                    # intensity_val += intensity_val * storm_stepchange
-                if self._storms_scenario == 'storms-':
-                    raise("this doesn't work right yet")
+                intensity_val += intensity_val * storm_trend
+                # storminess trend is applied and its effect rises each
+                # year of simulation
+                # DEJH has removed the rounding as he believes this will
+                # prevent trending in the intensity_val for low storm_trend
+# NOTE handling of storms+ case needs clarification, as doesn't seem right in
+# MS's code
 
                 # area to determine which gauges are hit:
                 recess_val = np.random.normal(
@@ -531,7 +681,7 @@ class PrecipitationDistribution(Component):
                         recess_val, Recess_pdf_norm['trunc_interval'][0],
                         Recess_pdf_norm['trunc_interval'][1])
                 except KeyError:
-                    pass
+                    pass  # this one is OK <0., I think
                 # this pdf of recession coefficients determines how intensity
                 # declines with distance from storm center (see below)
                 # determine cartesian distances to all hit gauges and
@@ -649,36 +799,41 @@ closed_nodes = np.zeros((100, 100), dtype=bool)
 closed_nodes[:, :30] = True
 closed_nodes[:, 70:] = True
 closed_nodes[70:, :] = True
-# mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-# # imshow_grid_at_node(mg, mg.status_at_node)
-# # show()
-# z = mg.add_zeros('node', 'topographic__elevation')
-# z += 1000.
-# rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
-# count = 0
-# total_t = 0.
-# for dt, interval_t in rain.yield_storms():
-#     count += 1
-#     total_t += dt + interval_t
-#     print rain._median_rf_total
-#     if count % 100 == 0:
-#         imshow_grid_at_node(mg, 'rainfall__flux')
-#         show()
-# print("Effective total years:")
-# print(total_t/24./365.)
-# print('*****')
-mg = RasterModelGrid((100, 100), 500.)
+
 mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # imshow_grid_at_node(mg, mg.status_at_node)
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=3)
+rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
 count = 0
-total_storms = 0.
-for storms_in_year in rain.yield_years():
+total_t = 0.
+for dt, interval_t in rain.yield_storms(storm_radial_weakening_gaussian={
+                                            'sigma': 0.08, 'mu': 0.25,
+                                            'trunc_interval': (0.15, 0.67)}):
     count += 1
-    total_storms += storms_in_year
-    print(storms_in_year)
-    imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
-    show()
+    total_t += dt + interval_t
+    print rain._median_rf_total
+    if count % 100 == 0:
+        imshow_grid_at_node(mg, 'rainfall__flux', cmap='Blues')
+        show()
+print("Effective total years:")
+print(total_t/24./365.)
+#
+# print('*****')
+#
+# mg = RasterModelGrid((100, 100), 500.)
+# mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# # imshow_grid_at_node(mg, mg.status_at_node)
+# # show()
+# z = mg.add_zeros('node', 'topographic__elevation')
+# z += 1000.
+# rain = PrecipitationDistribution(mg, number_of_years=3)
+# count = 0
+# total_storms = 0.
+# for storms_in_year in rain.yield_years():
+#     count += 1
+#     total_storms += storms_in_year
+#     print(storms_in_year)
+#     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
+#     show()
