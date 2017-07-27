@@ -162,18 +162,20 @@ class PotentialEvapotranspiration(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, method='Cosine', priestley_taylor_const=1.26,
-                 albedo=0.6, latent_heat_of_vaporization=28.34,
+                 albedo=0.12, latent_heat_of_vaporization=28.34,
                  psychometric_const=0.066, stefan_boltzmann_const=0.0000000567,
                  solar_const=1366.67, latitude=34.,
                  elevation_of_measurement=300, adjustment_coeff=0.18,
-                 lt=0., nd=365., MeanTmaxF=12., delta_d=5., **kwds):
+                 lt=0., nd=365., MeanTmaxF=12., delta_d=5.,
+                 rl=130, zveg=0.3, LAI=2., zm=3.3, zh=2.3,
+                 rho_a=1.22, **kwds):
         """
         Parameters
         ----------
         grid: RasterModelGrid
             A grid.
         method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
-                 'Cosine'}, optional
+                 'Cosine', 'PenmanMonteith'}, optional
             Priestley Taylor method will spit out radiation outputs too.
         priestley_taylor_constant: float, optional
             Alpha used in Priestley Taylor method.
@@ -233,7 +235,9 @@ class PotentialEvapotranspiration(Component):
         self._cell_values = self.grid['cell']
 
     def update(self, current_time=None, const_potential_evapotranspiration=12.,
-               Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350., **kwds):
+               Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350.,
+               relative_humidity=None, wind_speed=None, vapor_pressure=None,
+               precipitation=None, **kwds):
         """Update fields with current conditions.
 
         Parameters
@@ -280,7 +284,12 @@ class PotentialEvapotranspiration(Component):
                 max((self._TmaxF_mean + self._DeltaD / 2. *
                      np.cos((2 * np.pi) * (self._J - self._LT - self._ND / 2) /
                             self._ND)), 0.0))
+        elif self._method == 'PenmanMonteith':
+            self._PET_value = (
+                    self._PenmanMonteith(,
+                                         T_avg=)
 
+        # Spatially distributing PET
         self._PET = (
             self._PET_value *
             self._cell_values['radiation__ratio_to_flat_surface'])
