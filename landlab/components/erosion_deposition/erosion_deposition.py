@@ -307,6 +307,8 @@ class ErosionDeposition(Component):
                                 'not nnodes long!')
         self.erosion_term = self.K * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
+#        print('calcing ero term:')
+#        print( self.erosion_term[self.grid.core_nodes])
         self.qs_in = np.zeros(self.grid.number_of_nodes) 
             
     def threshold_stream_power(self):
@@ -466,23 +468,23 @@ class ErosionDeposition(Component):
         
         flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
         flooded[flooded_nodes] = True        
-        
+
         #topo elev is old elev + deposition - erosion
         cores = self.grid.core_nodes
         self.elev[cores] += ((deposition_pertime[cores] 
                               - self.erosion_term[cores]) * dt)
 
-    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=None,
+    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
-
+        #print('rwatss here')
         # Initialize remaining_time, which records how much of the global time
         # step we have yet to use up.
         remaining_time = dt
 
-        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        flooded[flooded_nodes] = True        
+        #flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
+        #flooded[flooded_nodes] = True        
 
         z = self._grid.at_node['topographic__elevation']
         r = self.flow_receivers
@@ -509,6 +511,14 @@ class ErosionDeposition(Component):
             # Calculate rates of entrainment
             # TODO: implement for all options, not just simple SP
             self.simple_stream_power()
+            self.erosion_term[flooded_nodes] = 0.0
+#            print('Qm:')
+#            print(self.Q_to_the_m[cores])
+#            print('S:')
+#            print(self.grid.at_node['topographic__steepest_slope'][cores ])
+#            print('ero:')
+#            print(self.erosion_term[cores])
+            
 
             # Sweep through nodes from upstream to downstream, calculating Qs.
             calculate_qs_in(np.flipud(self.stack),
@@ -526,6 +536,13 @@ class ErosionDeposition(Component):
             deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
                                              (self.v_s / self.q[self.q > 0]))
 
+#            print('depo:')
+#            print(deposition_pertime[cores])
+#            if flooded_nodes is not None:
+#                print('ero dep floods:')
+#                print(len(flooded_nodes))
+            #for f in flooded_nodes:
+            #    print((f, z[f], self.grid.status_at_node[f], self.erosion_term[f], deposition_pertime[f]))
             # TODO handle flooded nodes in the above fn
 
             # Rate of change of elevation at core nodes:
@@ -557,30 +574,33 @@ class ErosionDeposition(Component):
             # Here, masking out means simply assigning the remaining time in
             # the global time step.
             time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
+            time_to_flat[flooded_nodes] = remaining_time
 
             # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
-            for i in range(0, len(dzdt), 10000):
-                if self._grid.status_at_node[i] == 0:
-                    print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
-                           dzdt[self.flow_receivers[i]], zdif[i],
-                           rocdif[i], time_to_flat[i]))
-                    print((self.Er[i], self.Es[i]))
-            watch = np.argmin(time_to_flat)
-            print(watch)
-            print((watch, r[watch], flooded[watch], z[watch], z[r[watch]], dzdt[watch],
-                           dzdt[self.flow_receivers[watch]], zdif[watch],
-                           rocdif[watch], time_to_flat[watch]))
+#            for i in range(0, len(dzdt), 10000):
+#                if self._grid.status_at_node[i] == 0:
+#                    print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
+#                           dzdt[self.flow_receivers[i]], zdif[i],
+#                           rocdif[i], time_to_flat[i]))
+#                    print(self.erosion_term)
+#            watch = np.argmin(time_to_flat)
+#            print(watch)
+#            print((watch, r[watch], flooded[watch], flooded[r[watch]], z[watch], z[r[watch]], dzdt[watch],
+#                           dzdt[self.flow_receivers[watch]], zdif[watch],
+#                           rocdif[watch], time_to_flat[watch]))
+#            print((deposition_pertime[watch], deposition_pertime[r[watch]]))
 
             # From this, find the maximum stable time step. If it is smaller
             # than our tolerance, report and quit.
             dt_max = np.amin(time_to_flat)
-            if dt_max < 0.1:
-                print('dt_max = ' + str(dt_max) + ' is too small, quitting')
-                raise TypeError  # TODO: figure out a more sensible err
+            if dt_max < 0.001:
+                print('dt_max = ' + str(dt_max) + ' is too small')
+                dt_max = 0.001
+                #raise TypeError  # TODO: figure out a more sensible err
 
-            print(('*** min', np.amin(time_to_flat)))
-            print(('*** dt_max', dt_max))
-            print()
+#            print(('*** min', np.amin(time_to_flat)))
+#            print(('*** dt_max', dt_max))
+#            print()
 
             # Finally, apply dzdt to all nodes for a (sub)step of duration
             # dt_max
