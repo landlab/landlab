@@ -206,6 +206,12 @@ class ErosionDeposition(Component):
 
         self._grid = grid #store grid
 
+        # Create arrays for sediment influx at each node, discharge to the
+        # power "m", and deposition rate
+        self.qs_in = np.zeros(grid.number_of_nodes)
+        self.Q_to_the_m = np.zeros(grid.number_of_nodes)
+        self.depo_rate = np.zeros(self.grid.number_of_nodes)
+
         # store other constants
         self.m_sp = float(m_sp)
         self.n_sp = float(n_sp)
@@ -252,11 +258,11 @@ class ErosionDeposition(Component):
             self.discharge_field = None
 
         if self.method == 'simple_stream_power':
-            self.simple_stream_power()
+            self.calc_ero_rate = self.simple_stream_power
         elif self.method == 'threshold_stream_power':
-            self.threshold_stream_power()
+            self.calc_ero_rate = self.threshold_stream_power
         elif self.method == 'stochastic_hydrology':
-            self.stochastic_hydrology()
+            self.calc_ero_rate = self.stochastic_hydrology
         else:
             raise ValueError('Specify erosion method (simple stream power,\
                             threshold stream power, or stochastic hydrology)!')
@@ -266,6 +272,7 @@ class ErosionDeposition(Component):
             self.run_one_step = self.run_one_step_basic
         elif solver == 'adaptive':
             self.run_one_step = self.run_with_adaptive_time_step_solver
+            self.time_to_flat = np.zeros(grid.number_of_nodes)
         else:
             raise ValueError("Parameter 'solver' must be one of: "
                              + "'basic', 'adaptive'")
@@ -278,7 +285,7 @@ class ErosionDeposition(Component):
         and uses either q=A^m or q=Q^m depending on discharge method. If
         discharge method is None, default is q=A^m.
         """
-        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
+        #self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'simple_stream_power' and self.discharge_method is not None:
@@ -309,7 +316,8 @@ class ErosionDeposition(Component):
             np.power(self.slope, self.n_sp)
 #        print('calcing ero term:')
 #        print( self.erosion_term[self.grid.core_nodes])
-        self.qs_in = np.zeros(self.grid.number_of_nodes) 
+#        self.qs_in = np.zeros(self.grid.number_of_nodes) 
+        self.qs_in[:] = 0.0 
             
     def threshold_stream_power(self):
         """Use stream power with entrainment/erosion thresholds.
@@ -317,7 +325,7 @@ class ErosionDeposition(Component):
         threshold_stream_power works the same way as simple SP but includes 
         user-defined thresholds for sediment entrainment and bedrock erosion.
         """
-        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
+        #self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'threshold_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
@@ -347,7 +355,7 @@ class ErosionDeposition(Component):
         omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         self.erosion_term = omega - self.sp_crit * \
             (1 - np.exp(-omega / self.sp_crit))
-        self.qs_in = np.zeros(self.grid.number_of_nodes)
+        self.qs_in[:] = 0.0 
 
     def stochastic_hydrology(self):
         """Allows custom area and discharge fields, no default behavior.
@@ -356,7 +364,7 @@ class ErosionDeposition(Component):
         field name for either drainage area or discharge, and will not 
         default to q=A^m.
         """
-        self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
+        #self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
         elif self.discharge_method is not None:
@@ -387,7 +395,7 @@ class ErosionDeposition(Component):
                 raise ValueError('Specify discharge method for stoch hydro!')
         self.erosion_term = self.K * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
-        self.qs_in = np.zeros(self.grid.number_of_nodes) 
+        self.qs_in[:] = 0.0 
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
@@ -426,7 +434,7 @@ class ErosionDeposition(Component):
         slp[:] = (z - z[r]) / self._grid._dx
         slp[diag_flow_dirs] /= ROOT2
 
-    def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
+    def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
 
@@ -437,17 +445,11 @@ class ErosionDeposition(Component):
         flooded_nodes : array
             Indices of flooded nodes, passed from flow router
         """        
-        #Choose a method for calculating erosion:
-        if self.method == 'stochastic_hydrology':        
-            self.stochastic_hydrology()        
-        elif self.method == 'simple_stream_power':
-            self.simple_stream_power()
-        elif self.method == 'threshold_stream_power':
-            self.threshold_stream_power()
-        else:
-            raise ValueError('Specify an erosion method!')
 
-        self.qs_in[:] = 0# np.zeros(self.grid.number_of_nodes)            
+        self.calc_ero_rate()
+        self.erosion_term[flooded_nodes] = 0.0
+        self.qs_in[:] = 0.0
+            
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
@@ -459,39 +461,28 @@ class ErosionDeposition(Component):
                         self.erosion_term,
                         self.v_s)
 
-        deposition_pertime = np.zeros(self.grid.number_of_nodes)
-        deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
+        self.depo_rate[:] = 0.0
+        self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
                                          (self.v_s / self.q[self.q > 0]))
-
-        #now, the analytical solution to soil thickness in time:
-        #need to distinguish D=kqS from all other cases to save from blowup!
-        
-        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        flooded[flooded_nodes] = True        
 
         #topo elev is old elev + deposition - erosion
         cores = self.grid.core_nodes
-        self.elev[cores] += ((deposition_pertime[cores] 
+        self.elev[cores] += ((self.depo_rate[cores] 
                               - self.erosion_term[cores]) * dt)
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
-        #print('rwatss here')
+
         # Initialize remaining_time, which records how much of the global time
         # step we have yet to use up.
         remaining_time = dt
 
-        #flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        #flooded[flooded_nodes] = True        
-
         z = self._grid.at_node['topographic__elevation']
         r = self.flow_receivers
-        time_to_flat = np.zeros(len(z))
         dzdt = np.zeros(len(z))
         cores = self._grid.core_nodes
-        #slope = np.zeros(len(z))
 
         first_iteration = True
 
@@ -509,16 +500,8 @@ class ErosionDeposition(Component):
                 first_iteration = False                
 
             # Calculate rates of entrainment
-            # TODO: implement for all options, not just simple SP
-            self.simple_stream_power()
+            self.calc_ero_rate()
             self.erosion_term[flooded_nodes] = 0.0
-#            print('Qm:')
-#            print(self.Q_to_the_m[cores])
-#            print('S:')
-#            print(self.grid.at_node['topographic__steepest_slope'][cores ])
-#            print('ero:')
-#            print(self.erosion_term[cores])
-            
 
             # Sweep through nodes from upstream to downstream, calculating Qs.
             calculate_qs_in(np.flipud(self.stack),
@@ -531,22 +514,12 @@ class ErosionDeposition(Component):
                             self.v_s)
 
             # Use Qs to calculate deposition rate at each node.
-            # TODO: allocate array for depo just once on init, and keep it
-            deposition_pertime = np.zeros(self.grid.number_of_nodes)
-            deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
-                                             (self.v_s / self.q[self.q > 0]))
-
-#            print('depo:')
-#            print(deposition_pertime[cores])
-#            if flooded_nodes is not None:
-#                print('ero dep floods:')
-#                print(len(flooded_nodes))
-            #for f in flooded_nodes:
-            #    print((f, z[f], self.grid.status_at_node[f], self.erosion_term[f], deposition_pertime[f]))
-            # TODO handle flooded nodes in the above fn
+            self.depo_rate[:] = 0.0
+            self.depo_rate[self.q > 0] = (self.qs[self.q > 0]
+                                          * (self.v_s / self.q[self.q > 0]))
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = deposition_pertime[cores] - self.erosion_term[cores]
+            dzdt[cores] = self.depo_rate[cores] - self.erosion_term[cores]
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]
@@ -557,7 +530,7 @@ class ErosionDeposition(Component):
 
             # (Re)-initialize the array that will contain "time to (almost)
             # flat" for each node (relative to its downstream neighbor).
-            time_to_flat[:] = remaining_time
+            self.time_to_flat[:] = remaining_time
 
             # Find locations where the upstream and downstream node elevations
             # are converging (e.g., the upstream one is eroding faster than its
@@ -566,15 +539,16 @@ class ErosionDeposition(Component):
 
             # Find the time to (almost) flat by dividing difference by rate of
             # change of difference, and then multiplying by a "safety factor"
-            time_to_flat[converging] = - (TIME_STEP_FACTOR * zdif[converging] 
-                                          / rocdif[converging])
+            self.time_to_flat[converging] = - (TIME_STEP_FACTOR 
+                                               * zdif[converging] 
+                                              / rocdif[converging])
 
             # Mask out pairs where the source at the same or lower elevation
             # as its downstream neighbor (e.g., because it's a pit or a lake).
             # Here, masking out means simply assigning the remaining time in
             # the global time step.
-            time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
-            time_to_flat[flooded_nodes] = remaining_time
+            self.time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
+            self.time_to_flat[flooded_nodes] = remaining_time
 
             # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
 #            for i in range(0, len(dzdt), 10000):
@@ -592,9 +566,9 @@ class ErosionDeposition(Component):
 
             # From this, find the maximum stable time step. If it is smaller
             # than our tolerance, report and quit.
-            dt_max = np.amin(time_to_flat)
+            dt_max = np.amin(self.time_to_flat)
             if dt_max < 0.001:
-                print('dt_max = ' + str(dt_max) + ' is too small')
+                #print('dt_max = ' + str(dt_max) + ' is too small')
                 dt_max = 0.001
                 #raise TypeError  # TODO: figure out a more sensible err
 
