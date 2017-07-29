@@ -11,8 +11,8 @@ from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy.testing import assert_equal
 
-def test_erodep_slope_area():
-    """Test steady state run with Vs << 1, Vs >> 1, and Vs = 1."""
+def test_erodep_slope_area_small_vs():
+    """Test steady state run with Vs << 1."""
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
@@ -52,9 +52,22 @@ def test_erodep_slope_area():
     assert_equal(np.round(s[11], 3), np.round(s11, 3))
     assert_equal(np.round(s[12], 3), np.round(s12, 3))
 
+def test_erodep_slope_area_big_vs():
+    """Test steady state run with Vs >> 1."""
+
+    # Set up a 5x5 grid with open boundaries and low initial elevations.
+    rg = RasterModelGrid((5, 5))
+    z = rg.add_zeros('node', 'topographic__elevation')
+    z[:] = 0.01 * rg.x_of_node
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+
     # Next test: big Vs
     K = 1.0
     vs = 1000.0
+    U = 0.001
+    dt = 10.0
     
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
@@ -70,15 +83,31 @@ def test_erodep_slope_area():
         z[rg.core_nodes] += U * dt
 
     # Test the results
+    s = rg.at_node['topographic__steepest_slope']
     sa_factor = (1.0 + vs) * U / K
+    a11 = 2.0
+    a12 = 1.0
     s11 = sa_factor * (a11 ** -0.5)
     s12 = sa_factor * (a12 ** -0.5)
-    assert_equal(np.round(s[11], 3), np.round(s11, 3))
-    assert_equal(np.round(s[12], 3), np.round(s12, 3))
+    assert_equal(np.round(s[11], 2), np.round(s11, 2))
+    assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
-    # Final test: Vs = 1
+def test_erodep_slope_area_with_vs_unity():
+    """Test steady state run with Vs = 1."""
+
+    # Set up a 5x5 grid with open boundaries and low initial elevations.
+    rg = RasterModelGrid((5, 5))
+    z = rg.add_zeros('node', 'topographic__elevation')
+    z[:] = 0.01 * rg.x_of_node
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+
+    # test: Vs = 1
     K = 0.002
     vs = 1.0
+    U = 0.001
+    dt = 10.0
 
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
@@ -94,12 +123,55 @@ def test_erodep_slope_area():
         z[rg.core_nodes] += U * dt
 
     # Test the results
+    s = rg.at_node['topographic__steepest_slope']
     sa_factor = (1.0 + vs) * U / K
+    a11 = 2.0
+    a12 = 1.0
     s11 = sa_factor * (a11 ** -0.5)
     s12 = sa_factor * (a12 ** -0.5)
-    assert_equal(np.round(s[11], 3), np.round(s11, 3))
-    assert_equal(np.round(s[12], 3), np.round(s12, 3))
+    assert_equal(np.round(s[11], 2), np.round(s11, 2))
+    assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
+def test_erodep_slope_area_shear_stress_scaling():
+    """Test steady state run with m_sp = 0.33, n_sp=0.67, Vs = 1."""
+
+    # Set up a 5x5 grid with open boundaries and low initial elevations.
+    rg = RasterModelGrid((5, 5))
+    rg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    z = rg.add_zeros('node', 'topographic__elevation')
+    z[:] = 0.01 * rg.x_of_node
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+
+    # test: Vs = 1
+    K = 0.002
+    vs = 1.0
+    U = 0.001
+    dt = 10.0
+
+    # Create the ErosionDeposition component...
+    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.33, n_sp=0.67,
+                           method='simple_stream_power',
+                           discharge_method='drainage_area', 
+                           area_field='drainage_area',
+                           solver='adaptive')
+
+    # ... and run it to steady state.
+    for i in range(1500):
+        fa.run_one_step()
+        ed.run_one_step(dt=dt)
+        z[rg.core_nodes] += U * dt
+
+    # Test the results
+    s = rg.at_node['topographic__steepest_slope']
+    sa_factor = ((1.0 + vs) * U / K) ** (1.0 / 0.67)
+    a6 = 5.0
+    a8 = 3.0
+    s6 = sa_factor * (a6 ** -(0.33 / 0.67))
+    s8 = sa_factor * (a8 ** -(0.33 / 0.67))
+    assert_equal(np.round(s[6], 2), np.round(s6, 2))
+    assert_equal(np.round(s[8], 2), np.round(s8, 2))
 
 if __name__ == '__main__':
-    test_erodep_slope_area()
+    test_erodep_slope_area_shear_stress_scaling()
