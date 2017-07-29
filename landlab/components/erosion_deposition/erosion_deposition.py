@@ -4,6 +4,7 @@ from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
+DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 class ErosionDeposition(Component):
     """
@@ -61,6 +62,7 @@ class ErosionDeposition(Component):
                  m_sp=None, n_sp=None, sp_crit=None, 
                  method=None, discharge_method=None, 
                  area_field=None, discharge_field=None, solver='basic',
+                 dt_min=DEFAULT_MINIMUM_TIME_STEP,
                  **kwds):
         """Initialize the ErosionDeposition model.
 
@@ -217,6 +219,7 @@ class ErosionDeposition(Component):
         self.n_sp = float(n_sp)
         self.phi = float(phi)
         self.v_s = float(v_s)
+        self.dt_min = dt_min
 
         # K's and critical values can be floats, grid fields, or arrays
         if type(K) is str:
@@ -314,9 +317,6 @@ class ErosionDeposition(Component):
                                 'not nnodes long!')
         self.erosion_term = self.K * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
-#        print('calcing ero term:')
-#        print( self.erosion_term[self.grid.core_nodes])
-#        self.qs_in = np.zeros(self.grid.number_of_nodes) 
         self.qs_in[:] = 0.0 
             
     def threshold_stream_power(self):
@@ -364,7 +364,6 @@ class ErosionDeposition(Component):
         field name for either drainage area or discharge, and will not 
         default to q=A^m.
         """
-        #self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'stochastic_hydrology' and self.discharge_method == None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
         elif self.discharge_method is not None:
@@ -550,31 +549,11 @@ class ErosionDeposition(Component):
             self.time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
             self.time_to_flat[flooded_nodes] = remaining_time
 
-            # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
-#            for i in range(0, len(dzdt), 10000):
-#                if self._grid.status_at_node[i] == 0:
-#                    print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
-#                           dzdt[self.flow_receivers[i]], zdif[i],
-#                           rocdif[i], time_to_flat[i]))
-#                    print(self.erosion_term)
-#            watch = np.argmin(time_to_flat)
-#            print(watch)
-#            print((watch, r[watch], flooded[watch], flooded[r[watch]], z[watch], z[r[watch]], dzdt[watch],
-#                           dzdt[self.flow_receivers[watch]], zdif[watch],
-#                           rocdif[watch], time_to_flat[watch]))
-#            print((deposition_pertime[watch], deposition_pertime[r[watch]]))
-
             # From this, find the maximum stable time step. If it is smaller
             # than our tolerance, report and quit.
             dt_max = np.amin(self.time_to_flat)
-            if dt_max < 0.001:
-                #print('dt_max = ' + str(dt_max) + ' is too small')
-                dt_max = 0.001
-                #raise TypeError  # TODO: figure out a more sensible err
-
-#            print(('*** min', np.amin(time_to_flat)))
-#            print(('*** dt_max', dt_max))
-#            print()
+            if dt_max < self.dt_min:
+                dt_max = self.dt_min
 
             # Finally, apply dzdt to all nodes for a (sub)step of duration
             # dt_max
