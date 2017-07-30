@@ -267,6 +267,8 @@ class ErosionDeposition(Component):
         elif self.method == 'stochastic_hydrology':
             self.calc_ero_rate = self.stochastic_hydrology
         else:
+            print('METHOD:')
+            print(self.method)
             raise ValueError('Specify erosion method (simple stream power,\
                             threshold stream power, or stochastic hydrology)!')
 
