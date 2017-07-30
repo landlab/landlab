@@ -59,7 +59,7 @@ class ErosionDeposition(Component):
     }
 
     def __init__(self, grid, K=None, phi=None, v_s=None, 
-                 m_sp=None, n_sp=None, sp_crit=None, 
+                 m_sp=None, n_sp=None, sp_crit=None, F_f=0.0,
                  method=None, discharge_method=None, 
                  area_field=None, discharge_field=None, solver='basic',
                  dt_min=DEFAULT_MINIMUM_TIME_STEP,
@@ -82,6 +82,9 @@ class ErosionDeposition(Component):
             Slope exponent (units vary)
         sp_crit : float
             Critical stream power to erode substrate [E/(TL^2)]
+        F_f : float
+            Fraction of eroded material that turns into "fines" that do not
+            contribute to (coarse) sediment load. Defaults to zero.
         method : string
             Either "simple_stream_power", "threshold_stream_power", or
             "stochastic_hydrology". Method for calculating sediment
@@ -220,6 +223,7 @@ class ErosionDeposition(Component):
         self.phi = float(phi)
         self.v_s = float(v_s)
         self.dt_min = dt_min
+        self.frac_coarse = 1.0 - F_f
 
         # K's and critical values can be floats, grid fields, or arrays
         if type(K) is str:
@@ -460,7 +464,8 @@ class ErosionDeposition(Component):
                         self.qs,
                         self.qs_in,
                         self.erosion_term,
-                        self.v_s)
+                        self.v_s,
+                        self.frac_coarse)
 
         self.depo_rate[:] = 0.0
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
@@ -512,7 +517,8 @@ class ErosionDeposition(Component):
                             self.qs,
                             self.qs_in,
                             self.erosion_term,
-                            self.v_s)
+                            self.v_s,
+                            self.frac_coarse)
 
             # Use Qs to calculate deposition rate at each node.
             self.depo_rate[:] = 0.0
