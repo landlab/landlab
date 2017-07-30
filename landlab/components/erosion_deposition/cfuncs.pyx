@@ -19,19 +19,20 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
-                    DTYPE_FLOAT_t v_s):
+                    DTYPE_FLOAT_t v_s,
+                    DTYPE_FLOAT_t F_c):
     """Calculate and qs and qs_in."""
     # define internal variables
     cdef unsigned int n_nodes = stack_flip_ud.size
     cdef unsigned int node_id
     cdef unsigned int i
-    
+
     # iterate top to bottom through the stack, calculate qs and adjust  qs_in
     for i in range(n_nodes):
-        
+
         # choose the node id
         node_id = stack_flip_ud[i]
-        
+
         # If q at current node is greather than zero, calculate qs based on a 
         # local analytical solution. This local analytical solution depends on 
         # qs_in, the sediment flux coming into the node from upstream (hence 
@@ -39,11 +40,12 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                                        
         # Because calculation of qs requires qs_in, this operation must be done
         # in an upstream to downstream loop, and cannot be vectorized.   
-                             
+        #
         if q[node_id] > 0:
-            qs[node_id] = (qs_in[node_id] + Es[node_id] * node_spacing**2) / \
-                            (1.0 + (v_s * node_spacing**2 / (q[node_id])))
-        
+            qs[node_id] = ((qs_in[node_id]
+                            + F_c * Es[node_id] * node_spacing ** 2)
+                           / (1.0 + (v_s * node_spacing**2 / (q[node_id]))))
+
             # finally, add this nodes qs to recieiving nodes qs_in.
             # if qs[node_id] == 0, then there is no need for this line to be
             # evaluated. 
