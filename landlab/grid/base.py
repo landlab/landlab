@@ -27,6 +27,8 @@ from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import (override_array_setitem_and_reset, return_id_array,
                          return_readonly_id_array)
+from ..layers.eventlayers import EventLayersMixIn
+
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
@@ -302,7 +304,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(ModelDataFieldsMixIn):
+class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
