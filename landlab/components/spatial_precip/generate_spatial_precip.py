@@ -321,6 +321,9 @@ class PrecipitationDistribution(Component):
         """
         FUZZMETHOD = 'DEJH'
         FUZZWIDTH = 5.  # if DEJH
+        self._phantom_storm_count = 0
+        # ^this property tracks the number of storms in the run that received
+        # zero intensity (and thus didn't really exist)
         # safety check for init conds:
         if yield_storms:
             assert yield_years is False
@@ -652,26 +655,26 @@ class PrecipitationDistribution(Component):
                     fuzz_int_val = FUZZWIDTH * 2. * (np.random.rand() - 0.5)
                 else:
                     raise NameError
-                intensity_val2 = intensity_val + fuzz_int_val
+                intensity_val += fuzz_int_val
                 # ^this allows for specified fuzzy tolerance around selected
-                # intensity
-# NOTE DEJH believes this is pretty sketchy:
-                # if intensity_val2 < 1.:  # cannot have zero or -ve intensity
-                #     intensity_val = 1.
-                # else:
-                #     intensity_val = intensity_val2
-                intensity_val = intensity_val2.clip(1.)
-                intensity_val *= storm_scaling
+                # intensity (but it can go -ve)
+                # formerly, here MS used a rounding and threshold to prevent
+                # storms with a value < 1. We're going to remove the rounding
+                # and threshold at zero instead. (below)
+
                 # This scales the storm center intensity upward, so the values
                 # at each gauge are realistic once the gradient is applied.
-                # Note the clip to 1 (not 0); < 1mm rain is forbidden
                 intensity_val += intensity_val * storm_trend
                 # storminess trend is applied and its effect rises each
                 # year of simulation
-                # DEJH has removed the rounding as he believes this will
-                # prevent trending in the intensity_val for low storm_trend
-# NOTE handling of storms+ case needs clarification, as doesn't seem right in
-# MS's code
+                # DEJH has removed the rounding
+                # Note that is is now possible for intensity_val to go
+                # negative, so:
+                if intensity_val < 0.:
+                    intensity_val = 0.
+                    self._phantom_storm_count += 1
+                # note storms of zero intensity are now permitted (though
+                # should hopefully remain pretty rare.)
 
                 # area to determine which gauges are hit:
                 recess_val = np.random.normal(
