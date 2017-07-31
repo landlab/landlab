@@ -25,8 +25,11 @@ to track down the source of the problem.
 *  **Use a clear and descriptive title** for the issue that identifies the
    problem.
 *  **Describe the exact steps that reproduce the problem**.
-*  **If possible, provide an example that demonstrates the step** as,
-   for example, a bash script along with input files.
+*  **Provide a [minimal example](https://stackoverflow.com/help/mcve)
+   that demonstrates the steps** as, for example, a bash script
+   along with input files. This example should reproduce your
+   problem with as few lines of code as possible and easily
+   reproducible my another person.
 *  **Describe the behavior you are seeing after these steps**.
 *  **Describe the behavior you expect to see after these steps**.
 
