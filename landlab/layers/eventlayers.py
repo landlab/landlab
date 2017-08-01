@@ -121,6 +121,45 @@ def resize_array(array, newsize, exact=False):
 
 
 def allocate_layers_for(array, nlayers, nstacks):
+    """Allocate a layer matrix.
+
+    Parameters
+    ----------
+    array : number or ndarray
+        Array of layer properties to track.
+    nlayers : int
+        Number of layers to allocate.
+    nstacks : int
+        Number of stacks to allocate.
+
+    Returns
+    -------
+    ndarray of size `(nlayers, nstacks, values_per_stack)`
+        Newly allocated matrix for storing layer properties.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.layers.eventlayers import allocate_layers_for
+
+    >>> layers = allocate_layers_for(3, 2, 4)
+    >>> layers.shape
+    (2, 4)
+    >>> layers.dtype.kind == 'i'
+    True
+
+    >>> layers = allocate_layers_for(np.zeros(4), 2, 4)
+    >>> layers.shape
+    (2, 4)
+    >>> layers.dtype.kind == 'f'
+    True
+
+    >>> layers = allocate_layers_for(np.zeros(2), 2, 4)
+    >>> layers.shape
+    (2, 4, 2)
+    >>> layers.dtype.kind == 'f'
+    True
+    """
     array = np.asarray(array)
 
     if array.ndim > 0 and len(array) != nstacks:
