@@ -26,13 +26,17 @@ class PrecipitationDistribution(Component):
 
     Construction::
 
-        PrecipitationDistribution(mean_storm_duration=0.0,
+        PrecipitationDistribution(grid=None,
+                                  mean_storm_duration=0.0,
                                   mean_interstorm_duration=0.0,
                                   mean_storm_depth=0.0, total_t=0.0,
                                   delta_t=0.0, random_seed=0)
 
     Parameters
     ----------
+    grid : ModelGrid
+        A Landlab grid (optional). If provided, storm intensities will be
+        stored as a grid scalar field as the component simulates storms.
     mean_storm_duration : float
         Average duration of a precipitation event.
     mean_interstorm_duration : float
@@ -88,6 +92,9 @@ class PrecipitationDistribution(Component):
 
         Parameters
         ----------
+        grid : ModelGrid
+            A Landlab grid (optional). If provided, storm intensities will be
+            stored as a grid scalar field as the component simulates storms.
         mean_storm_duration : float
             Average duration of a precipitation event.
         mean_interstorm_duration : float
