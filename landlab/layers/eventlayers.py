@@ -180,12 +180,12 @@ class EventLayersMixIn(object):
         try:
             self._layers
         except AttributeError:
-            self._layers = EventLayerStack(self.number_of_cells)
+            self._layers = EventLayers(self.number_of_cells)
         finally:
             return self._layers
 
 
-class EventLayerStack(object):
+class EventLayers(object):
 
     """Track layers where each event is its own layer.
     
@@ -196,11 +196,11 @@ class EventLayerStack(object):
 
     Examples
     --------
-    >>> from landlab.layers.eventlayers import EventLayerStack
+    >>> from landlab.layers.eventlayers import EventLayers
 
     Create an empty layer stack with 5 stacks.
 
-    >>> layers = EventLayerStack(5)
+    >>> layers = EventLayers(5)
     >>> layers.nstacks
     5
     >>> layers.nlayers
@@ -256,7 +256,7 @@ class EventLayerStack(object):
             attrs=', '.join(self.tracking) or 'null')
 
     def __repr__(self):
-        return 'EventLayerStack({nstacks})'.format(nstacks=self.nstacks)
+        return 'EventLayers({nstacks})'.format(nstacks=self.nstacks)
 
     @property
     def tracking(self):
@@ -264,8 +264,8 @@ class EventLayerStack(object):
         
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
-        >>> layers = EventLayerStack(3)
+        >>> from landlab.layers.eventlayers import EventLayers
+        >>> layers = EventLayers(3)
         >>> layers.tracking
         []
         >>> layers.add(1., age=1.)
@@ -290,11 +290,11 @@ class EventLayerStack(object):
         
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
+        >>> from landlab.layers.eventlayers import EventLayers
 
         Initially there are no layers so the total thickness is 0.
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.thickness
         array([ 0.,  0.,  0.])
 
@@ -313,12 +313,12 @@ class EventLayerStack(object):
         
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
+        >>> from landlab.layers.eventlayers import EventLayers
 
         Initially there are no layers so the elevation to the top
         is 0.
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.z
         array([], shape=(0, 3), dtype=float64)
 
@@ -341,11 +341,11 @@ class EventLayerStack(object):
         
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
+        >>> from landlab.layers.eventlayers import EventLayers
 
         Initially there are no layers so there are not thicknesses.
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.dz
         array([], shape=(0, 3), dtype=float64)
 
@@ -366,9 +366,9 @@ class EventLayerStack(object):
 
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
+        >>> from landlab.layers.eventlayers import EventLayers
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.nlayers
         0
 
@@ -385,9 +385,9 @@ class EventLayerStack(object):
 
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
+        >>> from landlab.layers.eventlayers import EventLayers
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.nlayers, layers.allocated
         (0, 0)
 
@@ -402,7 +402,7 @@ class EventLayerStack(object):
         can allocated enough memory for them when you create your
         layer stacks.
 
-        >>> layers = EventLayerStack(3, allocated=15)
+        >>> layers = EventLayers(3, allocated=15)
         >>> layers.nlayers, layers.allocated
         (0, 15)
 
@@ -425,11 +425,11 @@ class EventLayerStack(object):
 
         Examples
         --------
-        >>> from landlab.layers.eventlayers import EventLayerStack
+        >>> from landlab.layers.eventlayers import EventLayers
 
         Create an empty layer stack with 3 stacks.
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.nlayers
         0
 
@@ -462,7 +462,7 @@ class EventLayerStack(object):
         *age*. You can access the layer properties as if the object
         were a dictionary.
 
-        >>> layers = EventLayerStack(3)
+        >>> layers = EventLayers(3)
         >>> layers.add(1., age=3.)
         >>> layers.dz
         array([[ 1.,  1.,  1.]])
