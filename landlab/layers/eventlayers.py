@@ -6,7 +6,7 @@ import sys
 import numpy as np
 
 
-def deposit_or_erode(layers, n_layers, dz):
+def _deposit_or_erode(layers, n_layers, dz):
     """Add a new layer to the top of a stack.
 
     Parameters
@@ -22,11 +22,11 @@ def deposit_or_erode(layers, n_layers, dz):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.layers.eventlayers import deposit_or_erode
+    >>> from landlab.layers.eventlayers import _deposit_or_erode
 
     >>> layers = np.full((4, 3), -1.)
     >>> dz = np.array([1., 2., 3.])
-    >>> deposit_or_erode(layers, 1, dz)
+    >>> _deposit_or_erode(layers, 1, dz)
     >>> layers
     array([[ 1.,  2.,  3.],
            [-1., -1., -1.],
@@ -34,21 +34,21 @@ def deposit_or_erode(layers, n_layers, dz):
            [-1., -1., -1.]])
 
     >>> dz = np.array([1., 1., 1.])
-    >>> deposit_or_erode(layers, 2, dz)
+    >>> _deposit_or_erode(layers, 2, dz)
     >>> layers
     array([[ 1.,  2.,  3.],
            [ 1.,  1.,  1.],
            [-1., -1., -1.],
            [-1., -1., -1.]])
 
-    >>> deposit_or_erode(layers, 3, [1., -1., -2.])
+    >>> _deposit_or_erode(layers, 3, [1., -1., -2.])
     >>> layers
     array([[ 1.,  2.,  2.],
            [ 1.,  0.,  0.],
            [ 1.,  0.,  0.],
            [-1., -1., -1.]])
     """
-    from .ext.eventlayers import deposit_or_erode as _deposit_or_erode
+    from .ext.eventlayers import deposit_or_erode
 
     layers = layers.reshape((layers.shape[0], -1))
     try:
@@ -58,7 +58,7 @@ def deposit_or_erode(layers, n_layers, dz):
     finally:
         dz = np.asfarray(dz)
 
-    _deposit_or_erode(layers, n_layers, dz)
+    deposit_or_erode(layers, n_layers, dz)
 
 
 def resize_array(array, newsize, exact=False):
@@ -120,7 +120,7 @@ def resize_array(array, newsize, exact=False):
     return larger_array
 
 
-def allocate_layers_for(array, nlayers, nstacks):
+def _allocate_layers_for(array, nlayers, nstacks):
     """Allocate a layer matrix.
 
     Parameters
@@ -140,21 +140,21 @@ def allocate_layers_for(array, nlayers, nstacks):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.layers.eventlayers import allocate_layers_for
+    >>> from landlab.layers.eventlayers import _allocate_layers_for
 
-    >>> layers = allocate_layers_for(3, 2, 4)
+    >>> layers = _allocate_layers_for(3, 2, 4)
     >>> layers.shape
     (2, 4)
     >>> layers.dtype.kind == 'i'
     True
 
-    >>> layers = allocate_layers_for(np.zeros(4), 2, 4)
+    >>> layers = _allocate_layers_for(np.zeros(4), 2, 4)
     >>> layers.shape
     (2, 4)
     >>> layers.dtype.kind == 'f'
     True
 
-    >>> layers = allocate_layers_for(np.zeros(2), 2, 4)
+    >>> layers = _allocate_layers_for(np.zeros(2), 2, 4)
     >>> layers.shape
     (2, 4, 2)
     >>> layers.dtype.kind == 'f'
@@ -277,7 +277,7 @@ class EventLayerStack(object):
     def _setup_layers(self, **kwds):
         dims = (self.allocated, self.nstacks)
         for name, array in kwds.items():
-            self._attrs[name] = allocate_layers_for(array, *dims)
+            self._attrs[name] = _allocate_layers_for(array, *dims)
 
     @property
     def nstacks(self):
@@ -478,7 +478,7 @@ class EventLayerStack(object):
 
         self._add_empty_layer()
 
-        deposit_or_erode(self._attrs['_dz'], self.nlayers, dz)
+        _deposit_or_erode(self._attrs['_dz'], self.nlayers, dz)
 
         for name in kwds:
             try:
