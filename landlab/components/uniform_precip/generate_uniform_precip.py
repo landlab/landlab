@@ -140,7 +140,6 @@ class PrecipitationDistribution(Component):
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
-        self.intensity = self.get_storm_intensity()
         self._elapsed_time = 0.
 
         # Test if we got a grid. If we did, then assign it to _grid, and we
@@ -155,6 +154,12 @@ class PrecipitationDistribution(Component):
         # build LL fields, if a grid is supplied:
         if len_args == 1:
             self.initialize_optional_output_fields()
+            # bind the class variable
+            self._intensity = self.grid.at_grid['rainfall__flux']
+        else:  # no grid was supplied
+            self._intensity = np.array([0., ], dtype=float)
+
+        self._intensity[0] = self.get_storm_intensity()
 
     def update(self):
         """Update the storm values.
@@ -184,7 +189,7 @@ class PrecipitationDistribution(Component):
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
-        self.intensity = self.get_storm_intensity()
+        self._intensity = self.get_storm_intensity()
 
     def get_precipitation_event_duration(self):
         """This method is the storm generator.
@@ -270,8 +275,8 @@ class PrecipitationDistribution(Component):
         float
             The storm intensity.
         """
-        self.intensity = self.storm_depth / self.storm_duration
-        return self.intensity
+        self._intensity = self.storm_depth / self.storm_duration
+        return self._intensity
 
     def get_storm_time_series(self):
         """Get a time series of storms.
@@ -352,10 +357,6 @@ class PrecipitationDistribution(Component):
         """
         # Added DEJH, Dec 2014
         # Modified to use an optional output field, DEJH 1/8/17
-        try:
-            intensity = self.grid.at_grid['rainfall__flux']
-        except AttributeError:  # no grid was supplied
-            intensity = np.array([0., ], dtype=float)
 
         delta_t = self.delta_t
         if delta_t is None:
@@ -367,13 +368,13 @@ class PrecipitationDistribution(Component):
             storm_duration = self.get_precipitation_event_duration()
             step_time = 0.
             self.get_storm_depth()
-            intensity[0] = self.get_storm_intensity()  # this is a rf rate
+            self._intensity[0] = self.get_storm_intensity()  # this is a rate
             if self._elapsed_time + storm_duration > self.run_time:
                 storm_duration = self.run_time - self._elapsed_time
             while delta_t is not None and storm_duration - step_time > delta_t:
-                yield (delta_t, intensity[0])
+                yield (delta_t, self._intensity[0])
                 step_time += delta_t
-            yield (storm_duration - step_time, intensity[0])
+            yield (storm_duration - step_time, self._intensity[0])
             self._elapsed_time += storm_duration
 
             # If the last storm did not use up all our elapsed time, generate
@@ -382,7 +383,7 @@ class PrecipitationDistribution(Component):
                 interstorm_duration = self.get_interstorm_event_duration()
                 if self._elapsed_time + interstorm_duration > self.run_time:
                     interstorm_duration = self.run_time - self._elapsed_time
-                intensity[0] = 0.
+                self._intensity[0] = 0.
                 if subdivide_interstorms:
                     step_time = 0.
                     while interstorm_duration-step_time > delta_t:
