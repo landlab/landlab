@@ -88,6 +88,12 @@ class PrecipitationDistribution(Component):
     True
     >>> len(interstorm_dts) == len(storm_dts)
     True
+    >>> rf_intensities_to_test = np.array([0.8138257984406472,
+    ...                                    0.15929112025199238,
+    ...                                    0.17254519305000884,
+    ...                                    0.09817611240558813])
+    >>> np.allclose(intensities, rf_intensities_to_test)
+    True
     >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # test total_t
     True
     >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated as necessary
@@ -176,13 +182,12 @@ class PrecipitationDistribution(Component):
 
         # build LL fields, if a grid is supplied:
         if grid is not None:
-            self.initialize_optional_output_fields()
-            # bind the class variable
-            self._intensity = self.grid.at_grid['rainfall__flux']
-        else:  # no grid was supplied
-            self._intensity = np.array([0., ], dtype=float)
+            self.grid.add_field('grid', 'rainfall__flux', 0.)
+            self._gridupdate = True
+        else:
+            self._gridupdate = False
 
-        self._intensity[0] = self.get_storm_intensity()
+        self._intensity = self.get_storm_intensity()
 
     def update(self):
         """Update the storm values.
@@ -212,7 +217,7 @@ class PrecipitationDistribution(Component):
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
-        self._intensity[0] = self.get_storm_intensity()
+        self._intensity = self.get_storm_intensity()
 
     def get_precipitation_event_duration(self):
         """This method is the storm generator.
@@ -298,8 +303,10 @@ class PrecipitationDistribution(Component):
         float
             The storm intensity.
         """
-        self._intensity[0] = self.storm_depth / self.storm_duration
-        return self._intensity[0]
+        self._intensity = self.storm_depth / self.storm_duration
+        if self._gridupdate:
+            self.grid.at_grid['rainfall__flux'] = self._intensity
+        return self._intensity
 
     def get_storm_time_series(self):
         """Get a time series of storms.
@@ -394,13 +401,14 @@ class PrecipitationDistribution(Component):
             storm_duration = self.get_precipitation_event_duration()
             step_time = 0.
             self.get_storm_depth()
-            self._intensity[0] = self.get_storm_intensity()  # this is a rate
+            self._intensity = self.get_storm_intensity()  # this is a rate
+            # ^ this updates the grid field, if needed
             if self._elapsed_time + storm_duration > self.run_time:
                 storm_duration = self.run_time - self._elapsed_time
             while delta_t is not None and storm_duration - step_time > delta_t:
-                yield (delta_t, self._intensity[0])
+                yield (delta_t, self._intensity)
                 step_time += delta_t
-            yield (storm_duration - step_time, self._intensity[0])
+            yield (storm_duration - step_time, self._intensity)
             self._elapsed_time += storm_duration
 
             # If the last storm did not use up all our elapsed time, generate
@@ -409,7 +417,9 @@ class PrecipitationDistribution(Component):
                 interstorm_duration = self.get_interstorm_event_duration()
                 if self._elapsed_time + interstorm_duration > self.run_time:
                     interstorm_duration = self.run_time - self._elapsed_time
-                self._intensity[0] = 0.
+                self._intensity = 0.
+                if self._gridupdate:
+                    self.grid.at_grid['rainfall__flux'] = 0.
                 if subdivide_interstorms:
                     step_time = 0.
                     while interstorm_duration-step_time > delta_t:
@@ -478,9 +488,15 @@ class PrecipitationDistribution(Component):
         True
         >>> len(interstorm_dts) == len(storm_dts)
         True
+        >>> rf_intensities_to_test = np.array([0.8138257984406472,
+        ...                                    0.15929112025199238,
+        ...                                    0.17254519305000884,
+        ...                                    0.09817611240558813])
+        >>> np.allclose(intensities, rf_intensities_to_test)
+        True
         >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # total_t
         True
-        >>> np.isclose(interstorm_dts[-1], 0.)  # sequence gets truncated
+        >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated
         True
         """
         # we must have instantiated with a grid, so check:
@@ -497,7 +513,7 @@ class PrecipitationDistribution(Component):
         while not tobreak:
             # we always start with a storm, so:
             try:
-                (storm_dur, self._intensity[0]) = othergen.next()
+                (storm_dur, storm_int) = othergen.next()
             except StopIteration:
                 break  # stop dead. We terminated at a good place
             try:
@@ -505,6 +521,9 @@ class PrecipitationDistribution(Component):
             except StopIteration:
                 tobreak = True
                 interstorm_dur = 0.
+            # reset the rainfall__flux field, that got overstamped in the
+            # interstorm iter:
+            self.grid.at_grid['rainfall__flux'] = storm_int
             yield (storm_dur, interstorm_dur)
         # now, just in case, restore self.delta_t:
         self.delta_t = delta_t
