@@ -21,6 +21,46 @@ def deposit_or_erode(layers, n_layers, dz):
 
 
 def resize_array(array, newsize, exact=False):
+    """Increase the size of an array, leaving room to grow.
+
+    Parameters
+    ----------
+    array : ndarray
+        The array to resize.
+    newsize : int
+        Size of the zero-th dimension of the resized array.
+    exact : bool, optional
+        Should the new array have the exact size provided or
+        at least that size.
+
+    Returns
+    -------
+    ndarray
+        Copy of the input array resized.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.layers.eventlayers import resize_array
+
+    >>> x = np.arange(6)
+    >>> bigger_x = resize_array(x, 10)
+    >>> bigger_x.size
+    17
+    >>> np.all(x[:6] == bigger_x[:6])
+    True
+    >>> x is bigger_x
+    False
+
+    >>> x = np.arange(6).reshape((2, 3))
+    >>> bigger_x = resize_array(x, 4)
+    >>> bigger_x.shape
+    (10, 3)
+
+    >>> bigger_x = resize_array(x, 4, exact=True)
+    >>> bigger_x.shape
+    (4, 3)
+    """
     newsize = int(newsize)
     allocated = array.shape[0]
 
@@ -119,7 +159,7 @@ class EventLayerStack(object):
 
         dims = (self.nlayers, self.nstacks)
         self._attrs['_dz'] = np.empty(dims , dtype=float)
-        self.resize(allocated, exact=True)
+        self._resize(allocated, exact=True)
 
     def __getitem__(self, name):
         return self._attrs[name][:self.nlayers]
@@ -154,7 +194,7 @@ class EventLayerStack(object):
         """
         return [name for name in self._attrs if not name.startswith('_')]
 
-    def setup_layers(self, **kwds):
+    def _setup_layers(self, **kwds):
         dims = (self.allocated, self.nstacks)
         for name, array in kwds.items():
             self._attrs[name] = allocate_layers_for(array, *dims)
@@ -354,9 +394,9 @@ class EventLayerStack(object):
                [ 6.,  6.,  6.]])
         """
         if self.nlayers == 0:
-            self.setup_layers(**kwds)
+            self._setup_layers(**kwds)
 
-        self.add_empty_layer()
+        self._add_empty_layer()
 
         deposit_or_erode(self._attrs['_dz'], self.nlayers, dz)
 
@@ -367,16 +407,16 @@ class EventLayerStack(object):
                 print('{0} is not being tracked. Ignoring'.format(name),
                       file=sys.stderr)
 
-    def add_empty_layer(self):
+    def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
         if self.nlayers >= self.allocated:
-            self.resize(self.allocated + 1)
+            self._resize(self.allocated + 1)
 
         self._nlayers += 1
         for name in self._attrs:
             self._attrs[name][self.nlayers - 1] = 0.
 
-    def resize(self, newsize, exact=False):
+    def _resize(self, newsize, exact=False):
         """Allocate more memory for the layers."""
         for name in self._attrs:
             self._attrs[name] = resize_array(self._attrs[name], newsize,
