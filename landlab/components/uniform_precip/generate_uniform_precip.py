@@ -189,7 +189,7 @@ class PrecipitationDistribution(Component):
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
-        self._intensity = self.get_storm_intensity()
+        self._intensity[0] = self.get_storm_intensity()
 
     def get_precipitation_event_duration(self):
         """This method is the storm generator.
@@ -275,8 +275,8 @@ class PrecipitationDistribution(Component):
         float
             The storm intensity.
         """
-        self._intensity = self.storm_depth / self.storm_duration
-        return self._intensity
+        self._intensity[0] = self.storm_depth / self.storm_duration
+        return self._intensity[0]
 
     def get_storm_time_series(self):
         """Get a time series of storms.
@@ -291,6 +291,9 @@ class PrecipitationDistribution(Component):
         ending times of the precipitation event and z and c represent the
         average intensity (mm/hr) of the storm lasting from x to y and a to be,
         respectively.
+
+        Even if a grid was passed to the component at instantiation, calling
+        this method does not update the grid fields.
 
         Returns
         -------
@@ -470,3 +473,9 @@ class PrecipitationDistribution(Component):
         This will be particularly useful in the midst of a yield loop.
         """
         return self._elapsed_time
+
+    @property
+    def intensity(self):
+        """Get the intensity of the most recent storm simulated.
+        """
+        return self.get_storm_intensity()
