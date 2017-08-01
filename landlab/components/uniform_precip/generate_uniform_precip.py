@@ -34,7 +34,7 @@ class PrecipitationDistribution(Component):
 
     Parameters
     ----------
-    grid : ModelGrid
+    grid : ModelGrid or None
         A Landlab grid (optional). If provided, storm intensities will be
         stored as a grid scalar field as the component simulates storms.
     mean_storm_duration : float
@@ -61,9 +61,9 @@ class PrecipitationDistribution(Component):
     model run time and delta t...  Say we use 1.5 for mean storm, 15 for mean
     interstorm, 0.5 for mean depth, 100 for model run time and 1 for delta t...
 
-    >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
-    ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
-    ...     total_t = 100.0, delta_t = 1.)
+    >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
+    ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+    ...     total_t=100.0, delta_t=1.)
     >>> for (dt, rate) in precip.yield_storm_interstorm_duration_intensity():
     ...     pass  # and so on
     """
@@ -493,9 +493,9 @@ class PrecipitationDistribution(Component):
 
         Examples
         --------
-        >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
-        ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
-        ...     total_t = 100.0, delta_t = 1.)
+        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+        ...     total_t=100.0, delta_t=1.)
         >>> round(precip.storm_duration, 2)
         2.79
         >>> round(precip.interstorm_duration, 2)
@@ -513,9 +513,9 @@ class PrecipitationDistribution(Component):
         2.45
         >>> round(precip.get_storm_intensity(), 2)
         0.88
-        >>> precip = PrecipitationDistribution(mean_storm_duration = 1.5,
-        ...     mean_interstorm_duration = 15.0, mean_storm_depth = 0.5,
-        ...     total_t = 100.0, delta_t = 1., random_seed=1)
+        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+        ...     total_t=100.0, delta_t=1., random_seed=1)
         >>> round(precip.storm_duration, 2) # diff't vals with diff't seed
         0.22
         >>> round(precip.interstorm_duration, 2)
