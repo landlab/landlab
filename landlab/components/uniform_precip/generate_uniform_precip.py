@@ -66,6 +66,32 @@ class PrecipitationDistribution(Component):
     ...     total_t=100.0, delta_t=1.)
     >>> for (dt, rate) in precip.yield_storm_interstorm_duration_intensity():
     ...     pass  # and so on
+
+    Alternatively, we can pass a grid to the component, and call yield_storms()
+    to generate storm-interstorm float pairs while the intensity data is stored
+    in the grid scalar field 'rainfall__flux':
+
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid((4, 5), (1., 1.))
+    >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
+    ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+    ...     total_t=46.)
+    >>> storm_dts = []
+    >>> interstorm_dts = []
+    >>> intensities = []
+    >>> precip.seed_generator(seedval=1)
+    >>> for (storm_dt, interstorm_dt) in precip.yield_storms():
+    ...     storm_dts.append(storm_dt)
+    ...     interstorm_dts.append(interstorm_dt)
+    ...     intensities.append(mg.at_grid['rainfall__flux'])
+    >>> len(storm_dts) == 4  # 4 storms in the simulation
+    True
+    >>> len(interstorm_dts) == len(storm_dts)
+    True
+    >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # test total_t
+    True
+    >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated as necessary
+    True
     """
 
     _name = 'PrecipitationDistribution'
@@ -432,6 +458,30 @@ class PrecipitationDistribution(Component):
         -----
         One recommended procedure is to instantiate the generator, then call
         instance.next() repeatedly to get the sequence.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), (1., 1.))
+        >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+        ...     total_t=46.)
+        >>> storm_dts = []
+        >>> interstorm_dts = []
+        >>> intensities = []
+        >>> precip.seed_generator(seedval=1)
+        >>> for (storm_dt, interstorm_dt) in precip.yield_storms():
+        ...     storm_dts.append(storm_dt)
+        ...     interstorm_dts.append(interstorm_dt)
+        ...     intensities.append(mg.at_grid['rainfall__flux'])
+        >>> len(storm_dts) == 4  # 4 storms in the simulation
+        True
+        >>> len(interstorm_dts) == len(storm_dts)
+        True
+        >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # total_t
+        True
+        >>> np.isclose(interstorm_dts[-1], 0.)  # sequence gets truncated
+        True
         """
         # we must have instantiated with a grid, so check:
         assert hasattr(self, '_grid')
