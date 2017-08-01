@@ -84,7 +84,7 @@ class PrecipitationDistribution(Component):
         'rainfall__flux':
             'Depth of water delivered per unit time in each storm', }
 
-    def __init__(self, *args,
+    def __init__(self, grid=None,
                  mean_storm_duration=0.0, mean_interstorm_duration=0.0,
                  mean_storm_depth=0.0, total_t=0.0, delta_t=None,
                  random_seed=0, **kwds):
@@ -144,15 +144,12 @@ class PrecipitationDistribution(Component):
 
         # Test if we got a grid. If we did, then assign it to _grid, and we
         # are able to use the at_grid field. If not, that's cool too.
-        len_args = len(args)
-        if len_args == 1:
-            assert isinstance(args[0], ModelGrid)  # must be a grid
-            self._grid = args[0]
-        else:
-            assert len_args == 0
+        if grid is not none:
+            assert isinstance(grid, ModelGrid)  # must be a grid
+            self._grid = grid
 
         # build LL fields, if a grid is supplied:
-        if len_args == 1:
+        if grid is not None:
             self.initialize_optional_output_fields()
             # bind the class variable
             self._intensity = self.grid.at_grid['rainfall__flux']
@@ -324,7 +321,7 @@ class PrecipitationDistribution(Component):
 
     def yield_storm_interstorm_duration_intensity(self,
                                                   subdivide_interstorms=False):
-        """Iterator for a time series of storms.
+        """Iterator for a time series of storms interspersed with interstorms.
 
         This method is intended to be equivalent to get_storm_time_series,
         but instead offers a generator functionality. This will be useful in
@@ -396,6 +393,71 @@ class PrecipitationDistribution(Component):
                 else:
                     yield (interstorm_duration, 0.)
                 self._elapsed_time += interstorm_duration
+
+    def yield_storms(self):
+        """Iterator for a time series of storm-interstorm pairs.
+
+        This method is very similar to this component's other generator,
+        yield_storm_interstorm_duration_intensity(), but the way it yields is
+        slightly different. Instead of yielding (interval_duration, rf_rate),
+        with interstorms represented as intervals with rf_rate = 0, it yields:
+
+            (storm_duration, interstorm_duration)
+
+        When each tuple pair is yielded, the grid scalar field 'rainfall__flux'
+        is updated with the rainfall rate occuring during storm_duration.
+
+        This generator method is designed for direct equivalence with the
+        spatially resolved generators found elsewhere in Landlab.
+
+        This generator will be useful in cases where the whole sequence of
+        storms and interstorms doesn't need to be stored, where we can save
+        memory this way.
+
+        This method does not attempt to subdivide timesteps. If you want that,
+        provide a delta_t at instantiation, and use
+        yield_storm_interstorm_duration_intensity(subdivide_interstorms=True).
+
+        The method will keep yielding until it reaches the RUN_TIME, where it
+        will terminate. If it terminates during a storm, the final tuple will
+        be (truncated_storm_duration, 0.). Otherwise it will be
+        (storm_duration, truncated_interstorm_duration.)
+
+        Yields
+        ------
+        tuple of float
+            (storm_duration, interstorm_duration)
+
+        Notes
+        -----
+        One recommended procedure is to instantiate the generator, then call
+        instance.next() repeatedly to get the sequence.
+        """
+        # we must have instantiated with a grid, so check:
+        assert hasattr(self, '_grid')
+
+        # now exploit the existing generator to make this easier & less
+        # redundant:
+        delta_t = self.delta_t
+        self.delta_t = None  # this is necessary to suppress chunking behaviour
+        # in the other generator
+        othergen = self.yield_storm_interstorm_duration_intensity()
+        # enter a loop, to break as needed:
+        tobreak = False
+        while not tobreak:
+            # we always start with a storm, so:
+            try:
+                (storm_dur, self._intensity[0]) = othergen.next()
+            except StopIteration:
+                break  # stop dead. We terminated at a good place
+            try:
+                (interstorm_dur, _) = othergen.next()
+            except StopIteration:
+                tobreak = True
+                interstorm_dur = 0.
+            yield (storm_dur, interstorm_dur)
+        # now, just in case, restore self.delta_t:
+        self.delta_t = delta_t
 
     def generate_from_stretched_exponential(self, scale, shape):
         """Generate and return a random variable from a stretched exponential
