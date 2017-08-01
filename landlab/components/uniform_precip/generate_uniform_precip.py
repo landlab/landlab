@@ -13,7 +13,7 @@ Written by Jordan Adams, 2013, updated May 2016
 
 import random
 import numpy as np
-from landlab import Component
+from landlab import Component, ModelGrid
 
 
 class PrecipitationDistribution(Component):
@@ -70,13 +70,18 @@ class PrecipitationDistribution(Component):
 
     _output_var_names = tuple()
 
-    _var_units = dict()
+    _optional_var_names = ('rainfall__flux', )
 
-    _var_mapping = dict()
+    _var_units = {'rainfall__flux': '[depth unit]/[time unit]', }
 
-    _var_doc = dict()
+    _var_mapping = {'rainfall__flux': 'grid', }
 
-    def __init__(self, mean_storm_duration=0.0, mean_interstorm_duration=0.0,
+    _var_doc = {
+        'rainfall__flux':
+            'Depth of water delivered per unit time in each storm', }
+
+    def __init__(self, *args,
+                 mean_storm_duration=0.0, mean_interstorm_duration=0.0,
                  mean_storm_depth=0.0, total_t=0.0, delta_t=None,
                  random_seed=0, **kwds):
         """Create the storm generator.
@@ -130,6 +135,19 @@ class PrecipitationDistribution(Component):
         self.storm_depth = self.get_storm_depth()
         self.intensity = self.get_storm_intensity()
         self._elapsed_time = 0.
+
+        # Test if we got a grid. If we did, then assign it to _grid, and we
+        # are able to use the at_grid field. If not, that's cool too.
+        len_args = len(args)
+        if len_args == 1:
+            assert isinstance(args[0], ModelGrid)  # must be a grid
+            self._grid = args[0]
+        else:
+            assert len_args == 0
+
+        # build LL fields, if a grid is supplied:
+        if len_args == 1:
+            self.initialize_optional_output_fields()
 
     def update(self):
         """Update the storm values.
@@ -326,6 +344,12 @@ class PrecipitationDistribution(Component):
         instance.next() repeatedly to get the sequence.
         """
         # Added DEJH, Dec 2014
+        # Modified to use an optional output field, DEJH 1/8/17
+        try:
+            intensity = self.grid.at_grid['rainfall__flux']
+        except AttributeError:  # no grid was supplied
+            intensity = np.array([0., ], dtype=float)
+
         delta_t = self.delta_t
         if delta_t is None:
             assert subdivide_interstorms is False, (
@@ -336,13 +360,13 @@ class PrecipitationDistribution(Component):
             storm_duration = self.get_precipitation_event_duration()
             step_time = 0.
             self.get_storm_depth()
-            intensity = self.get_storm_intensity()  # this is a rainfall rate
+            intensity[0] = self.get_storm_intensity()  # this is a rf rate
             if self._elapsed_time + storm_duration > self.run_time:
                 storm_duration = self.run_time - self._elapsed_time
             while delta_t is not None and storm_duration - step_time > delta_t:
-                yield (delta_t, intensity)
+                yield (delta_t, intensity[0])
                 step_time += delta_t
-            yield (storm_duration - step_time, intensity)
+            yield (storm_duration - step_time, intensity[0])
             self._elapsed_time += storm_duration
 
             # If the last storm did not use up all our elapsed time, generate
@@ -351,6 +375,7 @@ class PrecipitationDistribution(Component):
                 interstorm_duration = self.get_interstorm_event_duration()
                 if self._elapsed_time + interstorm_duration > self.run_time:
                     interstorm_duration = self.run_time - self._elapsed_time
+                intensity[0] = 0.
                 if subdivide_interstorms:
                     step_time = 0.
                     while interstorm_duration-step_time > delta_t:
@@ -364,7 +389,7 @@ class PrecipitationDistribution(Component):
     def generate_from_stretched_exponential(self, scale, shape):
         """Generate and return a random variable from a stretched exponential
         distribution with given scale and shape.
-        
+
         Examples
         --------
         >>> np.random.seed(0)
