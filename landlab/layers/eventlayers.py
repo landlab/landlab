@@ -95,12 +95,12 @@ def resize_array(array, newsize, exact=False):
 
     >>> x = np.arange(6).reshape((2, 3))
     >>> bigger_x = resize_array(x, 4)
-    >>> bigger_x.shape
-    (10, 3)
+    >>> bigger_x.shape == (10, 3)
+    True
 
     >>> bigger_x = resize_array(x, 4, exact=True)
-    >>> bigger_x.shape
-    (4, 3)
+    >>> bigger_x.shape == (4, 3)
+    True
     """
     newsize = int(newsize)
     allocated = array.shape[0]
@@ -143,20 +143,20 @@ def _allocate_layers_for(array, nlayers, nstacks):
     >>> from landlab.layers.eventlayers import _allocate_layers_for
 
     >>> layers = _allocate_layers_for(3, 2, 4)
-    >>> layers.shape
-    (2, 4)
+    >>> layers.shape == (2, 4)
+    True
     >>> layers.dtype.kind == 'i'
     True
 
     >>> layers = _allocate_layers_for(np.zeros(4), 2, 4)
-    >>> layers.shape
-    (2, 4)
+    >>> layers.shape == (2, 4)
+    True
     >>> layers.dtype.kind == 'f'
     True
 
     >>> layers = _allocate_layers_for(np.zeros(2), 2, 4)
-    >>> layers.shape
-    (2, 4, 2)
+    >>> layers.shape == (2, 4, 2)
+    True
     >>> layers.dtype.kind == 'f'
     True
     """
@@ -319,8 +319,8 @@ class EventLayers(object):
         is 0.
 
         >>> layers = EventLayers(3)
-        >>> layers.z
-        array([], shape=(0, 3), dtype=float64)
+        >>> layers.z.shape == (0, 3)
+        True
 
         After adding some layers, elevations are to the top of each layer.
 
