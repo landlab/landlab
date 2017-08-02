@@ -77,6 +77,12 @@ should be used in these cases.
 >>> dt = 1e6
 >>> assert_or_print(dt < 1, 'Unstable time step!', onerror='pass')
 >>> assert_or_print(dt < 1, 'Unstable time step!', onerror='warn')
+...     #doctest: +SKIP
+WARNING
+=======
+
+Unstable time step!
+
 >>> assert_or_print(dt < 1, 'Unstable time step!', onerror='raise')
 ...     #doctest: +IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
