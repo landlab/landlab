@@ -9,6 +9,9 @@ from landlab import Component
 import numpy as np
 from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
+import warnings
+import os
+
 class DepthDependentCubicDiffuser(Component):
 
     """
@@ -316,6 +319,10 @@ class DepthDependentCubicDiffuser(Component):
                 if if_unstable == 'raise':
                     raise RuntimeError(message)
                 if if_unstable == 'warn':
+                    warnings.showwarning(message=message, 
+                                         category=RuntimeWarning,
+                                         filename=os.path.dirname(os.path.realpath(__file__)),
+                                         lineno=310)
                     print(message)
             
             # if dynamic dt is selected, use it, otherwise, use the entire time
