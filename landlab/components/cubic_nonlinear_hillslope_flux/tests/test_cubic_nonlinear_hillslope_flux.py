@@ -21,18 +21,18 @@ def test_raise_error():
     Cdiff = CubicNonLinearDiffuser(mg)
     assert_raises(RuntimeError, Cdiff.soilflux, 10, if_unstable='raise')
 
-def test_warn():
-    mg = RasterModelGrid((5, 5))
-    z = mg.add_zeros('node', 'topographic__elevation')
-    z += mg.node_x.copy()**2
-    Cdiff = CubicNonLinearDiffuser(mg)
-    
-    with warnings.catch_warnings(record=True) as w:
-        # Cause all warnings to always be triggered.
-        warnings.simplefilter("always")
-        # Trigger a warning.
-        Cdiff.soilflux(dt=10, if_unstable='warn')
-        # Verify some things
-        assert len(w) == 1
-        assert issubclass(w[-1].category, RuntimeWarning)
+#def test_warn():
+#    mg = RasterModelGrid((5, 5))
+#    z = mg.add_zeros('node', 'topographic__elevation')
+#    z += mg.node_x.copy()**2
+#    Cdiff = CubicNonLinearDiffuser(mg)
+#    
+#    with warnings.catch_warnings(record=True) as w:
+#        # Cause all warnings to always be triggered.
+#        warnings.simplefilter("always")
+#        # Trigger a warning.
+#        Cdiff.soilflux(dt=10, if_unstable='warn')
+#        # Verify some things
+#        assert len(w) == 1
+#        assert issubclass(w[-1].category, RuntimeWarning)
 
