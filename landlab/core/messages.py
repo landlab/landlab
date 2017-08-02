@@ -1,4 +1,88 @@
 #! /usr/bin/env python
+"""Print user messages formatted landlab-style.
+
+This module provides functions for printing nicely-formatted
+messages to the user.  Messages are formatted in a particular
+style so that all of landlab messages will have a similar
+look. Anytime landlab prints something for an end-user to see,
+this module should be used.
+
+This module also provides convenience functions for print
+particular types of messages. Warning and error messages,
+for instance.
+
+Examples
+--------
+>>> from __future__ import print_function
+
+Oftentimes when writing code we may need to print a lengthy
+message for the user. This may result in code that looks like
+the following.
+
+>>> message = ('Lorem ipsum dolor sit amet, consectetur '
+...            'adipiscing elit, sed do eiusmod tempor '
+...            'incididunt ut labore et dolore magna aliqua. '
+...            'Ut enim ad minim veniam, quis nostrud exercitation '
+...            'ullamco laboris nisi ut aliquip ex ea commodo '
+...            'consequat.')
+
+Printing this message string would result in one long line that
+would, most likely, extend beyond the user's terminal and be
+difficult to read. One solution would be to join the lines
+by line separators but then that would result in a bunch of really
+short lines.
+
+To help with this, landlab provides a set of functions with the
+most basic being `format_message`.
+
+>>> from landlab.core.messages import format_message
+>>> print(format_message(message))
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+aliquip ex ea commodo consequat.
+
+landlab also provides functions for printing warning and error
+messages.
+
+
+>>> from landlab.core.messages import warning_message
+>>> message = ('Lorem ipsum dolor sit amet, consectetur\\n'
+...            'adipiscing elit, sed do eiusmod tempor\\n'
+...            'incididunt ut labore et dolore magna aliqua.')
+>>> print(warning_message(message))
+WARNING
+=======
+<BLANKLINE>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+>>> from landlab.core.messages import error_message
+>>> print(error_message(message))
+ERROR
+=====
+<BLANKLINE>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+Another common design pattern used in landlab is to allow the
+user, usually through a keyword, to control what happens
+if a particular assertion fails. For instance, the user
+may want the code to raise an error, or print a warning
+message, or do nothing at all. The `assert_or_print` function
+should be used in these cases.
+
+>>> from landlab.core.messages import assert_or_print
+
+>>> dt = 1e6
+>>> assert_or_print(dt < 1, 'Unstable time step!', onerror='pass')
+>>> assert_or_print(dt < 1, 'Unstable time step!', onerror='warn')
+>>> assert_or_print(dt < 1, 'Unstable time step!', onerror='raise')
+...     #doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+...
+AssertionError
+"""
 from __future__ import print_function
 
 import os
@@ -30,7 +114,7 @@ def split_paragraphs(msg, linesep=os.linesep):
 
     Examples
     --------
-    >>> from landlab.core.utils import split_paragraphs
+    >>> from landlab.core.messages import split_paragraphs
     >>> text = '''
     ... Pharetra pharetra massa massa ultricies mi quis hendrerit.
     ...
@@ -77,7 +161,7 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
     Examples
     --------
     >>> from __future__ import print_function
-    >>> from landlab.core.utils import format_message
+    >>> from landlab.core.messages import format_message
     >>> text = '''
     ... Lorem ipsum dolor sit amet, consectetur
     ... adipiscing elit, sed do eiusmod tempor
@@ -132,7 +216,7 @@ def warning_message(msg=None, **kwds):
     Examples
     --------
     >>> from __future__ import print_function
-    >>> from landlab.core.utils import warning_message
+    >>> from landlab.core.messages import warning_message
     >>> print(warning_message('Dictumst vestibulum rhoncus est pellentesque.'))
     WARNING
     =======
@@ -160,7 +244,7 @@ def error_message(msg=None, **kwds):
     Examples
     --------
     >>> from __future__ import print_function
-    >>> from landlab.core.utils import error_message
+    >>> from landlab.core.messages import error_message
     >>> print(error_message('Dictumst vestibulum rhoncus est pellentesque.'))
     ERROR
     =====
@@ -195,7 +279,7 @@ def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
 
     Examples
     --------
-    >>> from landlab.core.utils import assert_or_print
+    >>> from landlab.core.messages import assert_or_print
 
     >>> assert_or_print(True, 'Lorem ipsum', onerror='pass')
     >>> assert_or_print(False, 'Lorem ipsum', onerror='pass')
@@ -221,5 +305,3 @@ def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
         elif onerror == 'raise':
             print(error_message(msg), file=file, end='')
             raise
-
-
