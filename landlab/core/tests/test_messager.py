@@ -3,9 +3,9 @@ import os
 
 from nose.tools import assert_equal, assert_raises
 
-from landlab.core.utils import (format_message, error_message,
-                                warning_message, assert_or_print,
-                                split_paragraphs)
+from landlab.core.messages import (format_message, error_message,
+                                   warning_message, assert_or_print,
+                                   split_paragraphs)
 
 
 LOREM_IPSUM = os.linesep.join([
