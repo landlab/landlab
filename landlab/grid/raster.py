@@ -393,8 +393,71 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self.looped_node_properties = {}
             
-    def __setstate__(self):
-        """Set state for pickling."""
+    def __setstate__(self, state_dict):
+        """Set state for of RasterModelGrid from pickled state_dict."""
+        if state_dict['type'] != 'RasterModelGrid':
+            assert TypeError('Saved model instance not of '
+                             'RasterModelGrid type.')
+        
+        dx = state_dict['dx']
+        shape = state_dict['shape']
+        num_rows = shape[0]
+        num_cols = shape[1]
+        
+        self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
+        
+        # Set number of nodes, and initialize if caller has given dimensions
+        self._initialize(num_rows, num_cols, dx)
+                                                 
+        super(RasterModelGrid, self).__init__()
+                                                 
+        self.looped_node_properties = {}
+
+        # Recreate the state of the grid and the information it new
+        # about itself
+        
+        # If diagonal links existed, create them
+        if state_dict['_diagonal_links_created']:
+            self._create_diag_links_at_node()
+
+        # If angle of links existed, create them
+        if state_dict['_angle_of_link_created']:
+            self._create_angle_of_link()
+        
+        # If patches existed, create them
+        if state_dict['_patches_created']:
+            temp = self.nodes_at_patch
+            temp2 = self.links_at_patch
+            del temp
+            del temp2
+        
+        # If forced cell area existed.
+        if state_dict['forced_cell_areas_created']:
+            temp = self._create_cell_areas_array_force_inactive()
+            del temp
+            
+        # If neighbor list existed, create them
+        if state_dict['neighbor_list_created']:
+            self._create_neighbor_list()
+        
+        # If diagonal list existed, create them
+        if state_dict['diagonal_list_created']:
+            self._create_diagonal_list()
+                
+        # Set status at links and nodes
+        self._node_status[:] = state_dict['status_at_node']
+        self._update_links_nodes_cells_to_new_BCs()
+
+        # Add fields back to the grid
+        for group in state_dict['_groups'].keys():
+            field_set = state_dict['_groups'][group]
+            fields = field_set.keys()
+            for field in fields:
+                # add field to
+                self.add_field(group,
+                               field,
+                               field_set[field]['value_array'],
+                               units=field_set[field]['units'])
             
     def __getstate__(self):
         """Get state for pickling."""
@@ -411,29 +474,36 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         state_dict['_default_group'] = self._default_group
         
         # save information about things that might have been created
-        #state_dict['_angle_of_link_created'] = self.__getattribute__('_angle_of_link_created')
+        state_dict['_angle_of_link_created'] = self._angle_of_link_created
         state_dict['_diagonal_links_created'] = self._diagonal_links_created
-
         state_dict['_patches_created'] = self._patches_created
         state_dict['neighbor_list_created'] = self.neighbor_list_created
         state_dict['diagonal_list_created'] = self.diagonal_list_created
-
-        # save status information at links and nodes
-        state_dict['status_at_link'] = np.asarray(self.status_at_link)
+        try:
+            if type(self._forced_cell_areas) == np.ndarray:
+                state_dict['forced_cell_areas_created'] = True
+            else:
+                state_dict['forced_cell_areas_created'] = False
+        except AttributeError:
+            state_dict['forced_cell_areas_created'] = False
+            
+        # save status information at nodes (status at link set based on status
+        # at node
         state_dict['status_at_node'] = np.asarray(self.status_at_node)
         
         # save all fields. This is the key part, since saving ScalarDataFields, breaks
         # pickle and/or dill
         
         groups = {}
-        for key in self._groups.keys():
-            field_set = self._groups[key]
+        for group in self._groups.keys():
             field_set_dict = {}
-            fields = field_set.keys()
+            fields = self._groups[group].keys()
             for field in fields:
-                field_set_dict[field] = np.asarray(field_set[field])
-        
-            groups[key] = field_set_dict
+                field_dict = {}
+                field_dict['value_array'] = self.field_values (group, field)
+                field_dict['units'] = self.field_units(group, field)
+                field_set_dict[field] = field_dict
+            groups[group] = field_set_dict
         
         state_dict['_groups'] = groups
         
@@ -442,7 +512,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         #return state_dict
         return state_dict
-                                   
     
     @classmethod
     def from_dict(cls, params):
