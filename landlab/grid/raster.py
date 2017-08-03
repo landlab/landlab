@@ -392,7 +392,58 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
+            
+    def __setstate__(self):
+        """Set state for pickling."""
+            
+    def __getstate__(self):
+        """Get state for pickling."""
+        # initialize state_dict
+        state_dict = {}
+        
+        # save basic information about the shape and size of the grid
+        state_dict['type'] = 'RasterModelGrid'
+        state_dict['dx'] = self.dx
+        state_dict['dy'] = self.dy
+        state_dict['shape'] = self.shape
+        state_dict['_axis_name'] = self._axis_name
+        state_dict['_axis_units'] = self._axis_units
+        state_dict['_default_group'] = self._default_group
+        
+        # save information about things that might have been created
+        #state_dict['_angle_of_link_created'] = self.__getattribute__('_angle_of_link_created')
+        state_dict['_diagonal_links_created'] = self._diagonal_links_created
 
+        state_dict['_patches_created'] = self._patches_created
+        state_dict['neighbor_list_created'] = self.neighbor_list_created
+        state_dict['diagonal_list_created'] = self.diagonal_list_created
+
+        # save status information at links and nodes
+        state_dict['status_at_link'] = np.asarray(self.status_at_link)
+        state_dict['status_at_node'] = np.asarray(self.status_at_node)
+        
+        # save all fields. This is the key part, since saving ScalarDataFields, breaks
+        # pickle and/or dill
+        
+        groups = {}
+        for key in self._groups.keys():
+            field_set = self._groups[key]
+            field_set_dict = {}
+            fields = field_set.keys()
+            for field in fields:
+                field_set_dict[field] = np.asarray(field_set[field])
+        
+            groups[key] = field_set_dict
+        
+        state_dict['_groups'] = groups
+        
+        #save BC set code
+        state_dict['bc_set_code'] = self.bc_set_code
+        
+        #return state_dict
+        return state_dict
+                                   
+    
     @classmethod
     def from_dict(cls, params):
         """Create a RasterModelGrid from a dictionary.
@@ -639,6 +690,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Flag indicating whether we have created diagonal links.
         self._diagonal_links_created = False
+        
+        # Flag indicating whether we have created patches
+        self._patches_created = False
+        
+        # Flag indicating whether we have created link angles
+        self._angle_of_link_created = False
 
         #   set up the list of active links
         self._reset_link_status_list()
@@ -668,6 +725,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via active_neighbors_at_node or
         # _create_neighbor_list, we'll create it if necessary.
+        self.neighbor_list_created = False
         self._neighbor_node_dict = {}
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
