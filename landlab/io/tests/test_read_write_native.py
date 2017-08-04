@@ -3,6 +3,8 @@ from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 import pickle 
 from nose.tools import assert_equal
+import os
+from landlab.io.native_landlab import save_grid, load_grid
 
 def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
     """Compare two dictionaries recursively to find non mathcing elements
@@ -73,3 +75,30 @@ def test_pickle():
         
     a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
     assert_equal(a, '')
+    
+    os.remove('testsavedgrid.grid')
+
+def test_save():
+    # Make a simple-ish grid
+    mg1 = RasterModelGrid(10,10,2.)
+    z = mg1.add_zeros('node', 'topographic__elevation')
+    z += mg1.node_x.copy()
+    fa = FlowAccumulator(mg1, flow_director='D8')
+    fa.run_one_step()
+    
+    save_grid(mg1, 'testsavedgrid.grid')
+    
+    mg2 = load_grid('testsavedgrid.grid')
+    
+    # compare the two
+    len(mg1.__dict__) == len(mg2.__dict__)
+    mg1keys = sorted(list(mg1.__dict__.keys()))
+    mg2keys = sorted(list(mg2.__dict__.keys()))
+    
+    for i in range(len(mg1keys)):        
+        assert_equal(mg1keys[i], mg2keys[i])
+        
+    a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
+    assert_equal(a, '')
+    
+    os.remove('testsavedgrid.grid')
