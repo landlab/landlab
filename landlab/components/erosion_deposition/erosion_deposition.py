@@ -514,8 +514,11 @@ class ErosionDeposition(Component):
             if not first_iteration:
                 # update the link slopes
                 self._update_flow_link_slopes() 
-                # update where nodes are flooded. 
-                flooded_nodes = np.where(self.slope<0)
+                # update where nodes are flooded. This shouuldn't happen because 
+                # of the dynamic timestepper, but just incase, we update here. 
+                new_flooded_nodes = np.where(self.slope<0)[0]
+                flooded_nodes = np.unique(np.concatenate((flooded_nodes, 
+                                                          new_flooded_nodes)))
             else:
                 first_iteration = False                
 
