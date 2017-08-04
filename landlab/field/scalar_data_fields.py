@@ -47,7 +47,7 @@ def need_to_reshape_array(array, field_size):
     if field_size > 1:
         stored_shape = (field_size, )
     else:
-        stored_shape = array.squeeze().shape
+        stored_shape = (1,)
 
     return array.shape != stored_shape
 
@@ -442,6 +442,8 @@ class ScalarDataFields(dict):
         if noclobber and name in self:
             raise FieldError('{name}: already exists'. format(name=name))
 
+        if type(value_array) in [int, float]:
+            value_array = [value_array]
         value_array = np.asarray(value_array)
 
         if copy:
