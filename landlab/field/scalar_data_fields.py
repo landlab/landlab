@@ -442,8 +442,6 @@ class ScalarDataFields(dict):
         if noclobber and name in self:
             raise FieldError('{name}: already exists'. format(name=name))
 
-        if type(value_array) in [int, float]:
-            value_array = [value_array]
         value_array = np.asarray(value_array)
 
         if copy:
@@ -480,7 +478,7 @@ class ScalarDataFields(dict):
         if self.size is None:
             self.size = value_array.size
 
-        if need_to_reshape_array(value_array, self.size):
+        if value_array.size > 1 and need_to_reshape_array(value_array, self.size):
             value_array = value_array.reshape((self.size, -1)).squeeze()
 
         if name not in self:
