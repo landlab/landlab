@@ -458,6 +458,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                field,
                                field_set[field]['value_array'],
                                units=field_set[field]['units'])
+        self.bc_set_code = state_dict['bc_set_code']
             
     def __getstate__(self):
         """Get state for pickling."""
