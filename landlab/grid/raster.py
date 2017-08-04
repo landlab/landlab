@@ -490,7 +490,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             
         # save status information at nodes (status at link set based on status
         # at node
-        state_dict['status_at_node'] = np.asarray(self.status_at_node)
+        state_dict['status_at_node'] = np.asarray(self._node_status)
         
         # save all fields. This is the key part, since saving ScalarDataFields, breaks
         # pickle and/or dill
