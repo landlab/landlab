@@ -13,6 +13,8 @@ import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import assert_raises
 
+import warnings
+
 def test_4x7_grid_vs_analytical_solution():
     """Test against known analytical solution."""
 
@@ -73,6 +75,27 @@ def test_raise_error():
     DDdiff = DepthDependentCubicDiffuser(mg)
     expweath.calc_soil_prod_rate()
     assert_raises(RuntimeError, DDdiff.soilflux, 10, if_unstable='raise')
+
+#def test_warn():
+#    mg = RasterModelGrid((5, 5))
+#    soilTh = mg.add_zeros('node', 'soil__depth')
+#    z = mg.add_zeros('node', 'topographic__elevation')
+#    BRz = mg.add_zeros('node', 'bedrock__elevation')
+#    z += mg.node_x.copy()**2
+#    BRz = z.copy() - 1.0
+#    soilTh[:] = z - BRz
+#    expweath = ExponentialWeatherer(mg)
+#    DDdiff = DepthDependentCubicDiffuser(mg)
+#    expweath.calc_soil_prod_rate()
+#    
+#    with warnings.catch_warnings(record=True) as w:
+#    # Cause all warnings to always be triggered.
+#        warnings.simplefilter("always")
+#        # Trigger a warning.
+#        DDdiff.soilflux(dt=10, if_unstable='warn')
+#        # Verify some things
+#        assert len(w) == 1
+#        assert issubclass(w[-1].category, RuntimeWarning)
 
 if __name__ == '__main__':
     test_4x7_grid_vs_analytical_solution()
