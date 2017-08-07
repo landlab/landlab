@@ -543,93 +543,93 @@ class Space(Component):
         self.topographic__elevation[:] = self.bedrock__elevation + \
             self.soil__depth 
 
-    def experimental_local_solver(self, dt=1.0):
-        """Experimental solver that sweeps downstream, then upstream."""
-        from scipy.optimize import fsolve
-
-        self.qs_in = np.zeros(self.grid.number_of_nodes)            
-        self.qs_out = np.zeros(self.grid.number_of_nodes)            
-    
-        # (for efficiency, we'd want to pre-allocate qs_in and qs_out init,
-        # and then zero out qs_in here)
-        
-        # get references to useful fields
-        r = self.grid.at_node['flow__receiver_node']
-        node_stack = self.grid.at_node['flow__upstream_node_order']
-        #S = self.grid.at_node['topographic__steepest_slope']
-        a = self.grid.at_node['drainage_area']
-        H = self.grid.at_node['soil__depth']
-        z = self.grid.at_node['topographic__elevation']
-
-        # Sweep downstream, accumulating qs_in and qs_out
-        print('\nDownstream loop:')
-        nn = self.grid.number_of_nodes
-        for i in range(nn - 1, -1, -1):
-            src = node_stack[i]
-            dest = r[src]
-            if src != dest:
-                ehhstar = np.exp(-H[src] / self.H_star)
-                S = (z[src] - z[dest]) / self.grid._dx
-                amsn = a[src]**0.5 * S
-                Es = self.K_sed * amsn * (1.0 - ehhstar)
-                Er = self.K_br * amsn * ehhstar
-                E = Es + Er
-                print(str(i) + ' ' + str(Es) + ' ' + str(Er) + ' ' + str(E))
-                print(' A^1/2 S = ' + str(amsn))
-                #eav = E * a[src] / self.v_s
-                #elam = np.exp(-self.v_s * self.grid._dx * self.grid._dx
-                #              / a[src])
-                print(' len scale=' + str(a[src]/(self.grid._dx*self.v_s)))
-                #self.qs_out[src] = (self.qs_in[src] * elam
-                #                    + (1.0 - elam) * eav)
-                
-                # alternative version:
-                denom = 1.0 + self.v_s * self.grid._dx**2 / (2.0 * a[src])
-                self.qs_out[src] = (self.qs_in[src] + E) / denom
-                
-                print(' qs_in = ' + str(self.qs_in[src]))
-                print(' qs_out = ' + str(self.qs_out[src]))
-                self.qs_in[dest] += self.qs_out[src]
-
-        # for testing only
-        delz = np.zeros(self.grid.number_of_nodes)
-        qs_actual = np.zeros(self.grid.number_of_nodes)
-           
-        # Sweep upstream, finding the joint solution for alluvium and rock
-        # simultaneously using fsolve
-        print('\nUpstream loop here:')
-        for i in range(0, nn):
-            src = node_stack[i]
-            dest = r[src]
-            if src != dest:
-                print((src, dest))
-
-                d = (self.v_s * self.qs_in[src] * dt) / a[src]
-                aa = (a[src] ** 0.5) * dt / self.grid._dx
-                R0 = z[src] - H[src]
-
-                print(' old H: ' + str(H[src]) + ' old R: ' + str(R0) + ' old z: ' + str(z[src]))
-                x0 = np.array([H[src], R0])
-                (Hnew, Rnew) = fsolve(rock_alluv_func, x0,
-                                      args=(H[src], d, self.K_sed, aa, z[dest],
-                                            self.H_star, R0, self.K_br))
-                Hnew = max(Hnew, 0.0)
-                print(' new H: ' + str(Hnew) + ' new R: ' + str(Rnew) + ' new z: ' + str(Rnew+Hnew))
-                delz[src] = (Hnew + Rnew) - z[src]
-                H[src] = Hnew
-                z[src] = Hnew + Rnew
-                
-
-        # Now, for testing, check mass balance
-        print('\nChecking mass balance:')
-        for i in range(nn - 1, -1, -1):
-            src = node_stack[i]
-            dest = r[src]
-            if src != dest:
-                qs_actual[src] -= delz[src]
-                qs_actual[dest] += qs_actual[src]
-                print(str(i) + ' qs_act = ' + str(qs_actual[src]))
-                print(' vs ' + str(self.qs_out[src]))
-                print(' delz ' + str(delz[src]))
+#    def experimental_local_solver(self, dt=1.0):
+#        """Experimental solver that sweeps downstream, then upstream."""
+#        from scipy.optimize import fsolve
+#
+#        self.qs_in = np.zeros(self.grid.number_of_nodes)            
+#        self.qs_out = np.zeros(self.grid.number_of_nodes)            
+#    
+#        # (for efficiency, we'd want to pre-allocate qs_in and qs_out init,
+#        # and then zero out qs_in here)
+#        
+#        # get references to useful fields
+#        r = self.grid.at_node['flow__receiver_node']
+#        node_stack = self.grid.at_node['flow__upstream_node_order']
+#        #S = self.grid.at_node['topographic__steepest_slope']
+#        a = self.grid.at_node['drainage_area']
+#        H = self.grid.at_node['soil__depth']
+#        z = self.grid.at_node['topographic__elevation']
+#
+#        # Sweep downstream, accumulating qs_in and qs_out
+#        print('\nDownstream loop:')
+#        nn = self.grid.number_of_nodes
+#        for i in range(nn - 1, -1, -1):
+#            src = node_stack[i]
+#            dest = r[src]
+#            if src != dest:
+#                ehhstar = np.exp(-H[src] / self.H_star)
+#                S = (z[src] - z[dest]) / self.grid._dx
+#                amsn = a[src]**0.5 * S
+#                Es = self.K_sed * amsn * (1.0 - ehhstar)
+#                Er = self.K_br * amsn * ehhstar
+#                E = Es + Er
+#                print(str(i) + ' ' + str(Es) + ' ' + str(Er) + ' ' + str(E))
+#                print(' A^1/2 S = ' + str(amsn))
+#                #eav = E * a[src] / self.v_s
+#                #elam = np.exp(-self.v_s * self.grid._dx * self.grid._dx
+#                #              / a[src])
+#                print(' len scale=' + str(a[src]/(self.grid._dx*self.v_s)))
+#                #self.qs_out[src] = (self.qs_in[src] * elam
+#                #                    + (1.0 - elam) * eav)
+#                
+#                # alternative version:
+#                denom = 1.0 + self.v_s * self.grid._dx**2 / (2.0 * a[src])
+#                self.qs_out[src] = (self.qs_in[src] + E) / denom
+#                
+#                print(' qs_in = ' + str(self.qs_in[src]))
+#                print(' qs_out = ' + str(self.qs_out[src]))
+#                self.qs_in[dest] += self.qs_out[src]
+#
+#        # for testing only
+#        delz = np.zeros(self.grid.number_of_nodes)
+#        qs_actual = np.zeros(self.grid.number_of_nodes)
+#           
+#        # Sweep upstream, finding the joint solution for alluvium and rock
+#        # simultaneously using fsolve
+#        print('\nUpstream loop here:')
+#        for i in range(0, nn):
+#            src = node_stack[i]
+#            dest = r[src]
+#            if src != dest:
+#                print((src, dest))
+#
+#                d = (self.v_s * self.qs_in[src] * dt) / a[src]
+#                aa = (a[src] ** 0.5) * dt / self.grid._dx
+#                R0 = z[src] - H[src]
+#
+#                print(' old H: ' + str(H[src]) + ' old R: ' + str(R0) + ' old z: ' + str(z[src]))
+#                x0 = np.array([H[src], R0])
+#                (Hnew, Rnew) = fsolve(rock_alluv_func, x0,
+#                                      args=(H[src], d, self.K_sed, aa, z[dest],
+#                                            self.H_star, R0, self.K_br))
+#                Hnew = max(Hnew, 0.0)
+#                print(' new H: ' + str(Hnew) + ' new R: ' + str(Rnew) + ' new z: ' + str(Rnew+Hnew))
+#                delz[src] = (Hnew + Rnew) - z[src]
+#                H[src] = Hnew
+#                z[src] = Hnew + Rnew
+#                
+#
+#        # Now, for testing, check mass balance
+#        print('\nChecking mass balance:')
+#        for i in range(nn - 1, -1, -1):
+#            src = node_stack[i]
+#            dest = r[src]
+#            if src != dest:
+#                qs_actual[src] -= delz[src]
+#                qs_actual[dest] += qs_actual[src]
+#                print(str(i) + ' qs_act = ' + str(qs_actual[src]))
+#                print(' vs ' + str(self.qs_out[src]))
+#                print(' delz ' + str(delz[src]))
                 
 
