@@ -517,8 +517,8 @@ class ErosionDeposition(Component):
                 # update where nodes are flooded. This shouuldn't happen because 
                 # of the dynamic timestepper, but just incase, we update here. 
                 new_flooded_nodes = np.where(self.slope<0)[0]
-                flooded_nodes = np.unique(np.concatenate((flooded_nodes, 
-                                                          new_flooded_nodes)))
+                flooded_nodes = np.asarray(np.unique(np.concatenate((flooded_nodes, 
+                                                          new_flooded_nodes))), dtype=np.int64)
             else:
                 first_iteration = False                
 
