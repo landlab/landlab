@@ -4,6 +4,8 @@ from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
+DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
+
 
 class Space(Component):
     """
@@ -12,9 +14,9 @@ class Space(Component):
     Algorithm developed by G. Tucker, summer 2016.
     Component written by C. Shobe, begun 11/28/2016.
     """
-    
+
     _name= 'Space'
-    
+
     _input_var_names = (
         'flow__receiver_node',
         'flow__upstream_node_order',
@@ -22,12 +24,12 @@ class Space(Component):
         'drainage_area',
         'soil__depth'
     )
-    
+
     _output_var_names = (
         'topographic__elevation'
         'soil__depth'
     )
-    
+
     _var_units = {
         'flow__receiver_node': '-',
         'flow__upstream_node_order': '-',
@@ -36,7 +38,7 @@ class Space(Component):
         'soil__depth': 'm',
         'topographic__elevation': 'm',
     }
-    
+
     _var_mapping = {
         'flow__receiver_node': 'node',
         'flow__upstream_node_order': 'node',
@@ -45,7 +47,7 @@ class Space(Component):
         'soil__depth': 'node',
         'topographic__elevation': 'node',
     }
-    
+
     _var_doc = {
         'flow__receiver_node':
             'Node array of receivers (node that receives flow from current '
@@ -63,12 +65,13 @@ class Space(Component):
         'topographic__elevation': 
             'Land surface topographic elevation',
     }
-    
+
     def __init__(self, grid, K_sed=None, K_br=None, F_f=None, 
                  phi=None, H_star=None, v_s=None, 
                  m_sp=None, n_sp=None, sp_crit_sed=None, 
                  sp_crit_br=None, method=None, discharge_method=None, 
-                 area_field=None, discharge_field=None, solver='original',
+                 area_field=None, discharge_field=None, solver='basic',
+                 dt_min=DEFAULT_MINIMUM_TIME_STEP,
                  **kwds):
         """Initialize the Space model.
         
@@ -112,7 +115,7 @@ class Space(Component):
             array of length(number_of_nodes) containing drainage areas [L^2/T].
         solver : string
             Solver to use. Options at present include:
-                (1) 'original' (default): explicit forward-time extrapolation.
+                (1) 'basic' (default): explicit forward-time extrapolation.
                     Simple but will become unstable if time step is too large.
                 (2) 'celerity': calculates maximum time step as minimum of
                     F x grid-cell width / wave celerity, where wave celerity is
@@ -249,14 +252,22 @@ class Space(Component):
                 'surface_water__discharge', at='node', dtype=float)
                 
         self._grid = grid #store grid
-        
-        #store other constants
+
+        # Create arrays for sediment influx at each node, discharge to the
+        # power "m", and deposition rate
+        self.qs_in = np.zeros(grid.number_of_nodes)
+        self.Q_to_the_m = np.zeros(grid.number_of_nodes)
+        self.S_to_the_n = np.zeros(grid.number_of_nodes)
+        self.depo_rate = np.zeros(self.grid.number_of_nodes)
+
+        # store other parameters
         self.m_sp = float(m_sp)
         self.n_sp = float(n_sp)
         self.F_f = float(F_f)
         self.phi = float(phi)
         self.H_star = float(H_star)
         self.v_s = float(v_s)
+        self.dt_min = dt_min
         
         #K's and critical values can be floats, grid fields, or arrays
         if type(K_sed) is str:
@@ -322,25 +333,28 @@ class Space(Component):
             self.discharge_field = None
             
         if self.method == 'simple_stream_power':
-            self.simple_stream_power()
+            self.calc_ero_rates = self.simple_stream_power
         elif self.method == 'threshold_stream_power':
-            self.threshold_stream_power()
+            self.calc_ero_rates = self.threshold_stream_power
         elif self.method == 'stochastic_hydrology':
-            self.stochastic_hydrology()
+            self.calc_ero_rates = self.stochastic_hydrology
         else:
+            print('METHOD:')
+            print(self.method)
             raise ValueError('Specify erosion method (simple stream power,\
                             threshold stream power, or stochastic hydrology)!')
 
         # Handle option for solver
-        if solver == 'original':
-            self.run_one_step = self.run_one_step_original
+        if solver == 'basic':
+            self.run_one_step = self.run_one_step_basic
         elif solver == 'celerity':
             self.run_one_step = self.run_with_simple_time_step_adjuster
         elif solver == 'adaptive':
             self.run_one_step = self.run_with_adaptive_time_step_solver
+            self.time_to_flat = np.zeros(grid.number_of_nodes)
         else:
             raise ValueError("Parameter 'solver' must be one of: "
-                             + "'original', 'celerity'")
+                             + "'basic', 'adaptive', 'celerity'")
 
     #three choices for erosion methods:
     def simple_stream_power(self):
@@ -350,15 +364,15 @@ class Space(Component):
         and uses either q=A^m or q=Q^m depending on discharge method. If
         discharge method is None, default is q=A^m.
         """
-        print('SSP')
+        #print('SSP')
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-            print('ssp1')
+            #print('ssp1')
         elif self.method == 'simple_stream_power' and self.discharge_method is not None:
-            print('ssp2')
+            #print('ssp2')
             if self.discharge_method == 'area_field':
-                print('here we go')
+                #print('here we go')
                 if self.area_field is not None:
                     print('type af = ' + str(type(self.area_field)))
                     if type(self.area_field) is str:
@@ -371,8 +385,8 @@ class Space(Component):
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')  
                 self.Q_to_the_m[:] = np.power(self.drainage_area, self.m_sp)
-                print('A[40000] = ' + str(self.drainage_area[40000]))
-                print('Qm[40000] = ' + str(self.Q_to_the_m[40000]))
+                #print('A[40000] = ' + str(self.drainage_area[40000]))
+                #print('Qm[40000] = ' + str(self.Q_to_the_m[40000]))
             elif self.discharge_method == 'discharge_field':
                 print('how did we get here???')
                 if self.discharge_field is not None:
@@ -390,6 +404,8 @@ class Space(Component):
                 print('cannot be right')
         else:
             print('UH OH')
+        #TODO: FIGURE OUT WHY WE BOTHER TO CALC AND STORE BOTH ES/ER AND
+        #**_EROSION_TERM??
         self.Es = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
             (1.0 - np.exp(-self.soil__depth / self.H_star))
         self.Er = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
@@ -398,13 +414,12 @@ class Space(Component):
             np.power(self.slope, self.n_sp)
         self.br_erosion_term = self.K_br * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
-        self.qs_in = np.zeros(self.grid.number_of_nodes)
-        print('Es = ' + str(self.Es[40000]))
-        print('Er = ' + str(self.Er[40000]))
-        print('K_sed = ' + str(self.K_sed))
-        print('Qm = ' + str(self.Q_to_the_m[40000]))
-        print('slp = ' + str(self.slope[40000]))
-        print('H = ' + str(self.soil__depth[40000]))
+#        print('Es = ' + str(self.Es[40000]))
+#        print('Er = ' + str(self.Er[40000]))
+#        print('K_sed = ' + str(self.K_sed))
+#        print('Qm = ' + str(self.Q_to_the_m[40000]))
+#        print('slp = ' + str(self.slope[40000]))
+#        print('H = ' + str(self.soil__depth[40000]))
             
     def threshold_stream_power(self):
         """Use stream power with entrainment/erosion thresholds.
@@ -499,7 +514,7 @@ class Space(Component):
         self.br_erosion_term = self.K_br * self.Q_to_the_m * \
             np.power(self.slope, self.n_sp)
 
-    def run_one_step_original(self, dt=1.0, flooded_nodes=None, **kwds):
+    def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
         
@@ -520,7 +535,8 @@ class Space(Component):
         else:
             raise ValueError('Specify an erosion method!')
 
-        self.qs_in[:] = 0# np.zeros(self.grid.number_of_nodes)            
+        self.qs_in[:] = 0
+           
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
@@ -534,9 +550,8 @@ class Space(Component):
                         self.v_s,
                         self.F_f)
     
-        deposition_pertime = np.zeros(self.grid.number_of_nodes)
-        deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
-                                         (self.v_s / self.q[self.q > 0]))
+        self.depo_rate[self.q > 0] = (self.qs[self.q > 0] 
+                                      * (self.v_s / self.q[self.q > 0]))
 
         #now, the analytical solution to soil thickness in time:
         #need to distinguish D=kqS from all other cases to save from blowup!
@@ -545,7 +560,7 @@ class Space(Component):
         flooded[flooded_nodes] = True        
         
         #distinguish cases:
-        blowup = deposition_pertime == self.K_sed * self.Q_to_the_m * self.slope
+        blowup = self.depo_rate == self.K_sed * self.Q_to_the_m * self.slope
 
         ##first, potential blowup case:
         #positive slopes, not flooded
@@ -557,11 +572,11 @@ class Space(Component):
             (self.slope > 0) & (flooded==False)] / self.H_star))
         #positive slopes, flooded
         self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
-            (flooded==True)] = (deposition_pertime[(self.q > 0) & \
+            (flooded==True)] = (self.depo_rate[(self.q > 0) & \
             (blowup==True) & (self.slope > 0) & (flooded==True)] / (1 - self.phi)) * dt   
         #non-positive slopes, not flooded
         self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
-            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
+            (flooded==False)] += (self.depo_rate[(self.q > 0) & \
             (blowup==True) & (self.slope <= 0) & (flooded==False)] / \
             (1 - self.phi)) * dt    
         
@@ -569,15 +584,15 @@ class Space(Component):
         #positive slopes, not flooded
         self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
             (flooded==False)] = self.H_star * \
-            np.log((1 / ((deposition_pertime[(self.q > 0) & (blowup==False) & \
+            np.log((1 / ((self.depo_rate[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)] / (1 - self.phi)) / \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)]) - 1)) * \
-            (np.exp((deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (np.exp((self.depo_rate[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)] / (1 - self.phi) - \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
-            (((deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (((self.depo_rate[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)] / (1 - self.phi) / \
             (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
             (self.slope > 0) & (flooded==False)])) - 1) * \
@@ -585,12 +600,12 @@ class Space(Component):
             (self.slope > 0) & (flooded==False)] / self.H_star)  + 1) - 1))
         #places where slope <= 0 but not flooded:
         self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope <= 0) & \
-            (flooded==False)] += (deposition_pertime[(self.q > 0) & \
+            (flooded==False)] += (self.depo_rate[(self.q > 0) & \
             (blowup==False) & (self.slope <= 0) & (flooded==False)] / \
             (1 - self.phi)) * dt     
         #flooded nodes:        
         self.soil__depth[(self.q > 0) & (blowup==False) & (flooded==True)] += \
-            (deposition_pertime[(self.q > 0) & (blowup==False) & \
+            (self.depo_rate[(self.q > 0) & (blowup==False) & \
             (flooded==True)] / (1 - self.phi)) * dt     
 
         self.bedrock__elevation[self.q > 0] += dt * \
@@ -661,7 +676,7 @@ class Space(Component):
             dt_max = min(dt_max, time_remaining)
             if not first_iter:
                 self._update_flow_link_slopes()
-            self.run_one_step_original(dt=dt_max, flooded_nodes=flooded_nodes)
+            self.run_one_step_basic(dt=dt_max, flooded_nodes=flooded_nodes)
             time_remaining -= dt_max
             first_iter = False
 
@@ -670,35 +685,47 @@ class Space(Component):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
 
+        # Initialize remaining_time, which records how much of the global time
+        # step we have yet to use up.
         remaining_time = dt
-        factor = 0.5
-
-        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        flooded[flooded_nodes] = True        
 
         z = self._grid.at_node['topographic__elevation']
+        br = self._grid.at_node['bedrock__elevation']
+        H = self._grid.at_node['soil__depth']
         r = self.flow_receivers
         time_to_flat = np.zeros(len(z))
+        time_to_zero_alluv = np.zeros(len(z))
         dzdt = np.zeros(len(z))
         cores = self._grid.core_nodes
-        #slope = np.zeros(len(z))
 
         first_iteration = True
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
 
-            # Sweep through nodes from upstream to downstream, calculating Qs,
-            # E, D, and dz/dt, but not changing topo or sed thickness.
-            #slope[cores] = 
-
+            # Update all the flow-link slopes.
+            #
+            # For the first iteration, we assume this has already been done
+            # outside the component (e.g., by flow router), but we need to do
+            # it ourselves on subsequent iterations.
             if not first_iteration:
-                self._update_flow_link_slopes()                
+                # update the link slopes
+                self._update_flow_link_slopes()
+                # update where nodes are flooded. This shouuldn't happen because 
+                # of the dynamic timestepper, but just in case, we update here. 
+                new_flooded_nodes = np.where(self.slope<0)[0]
+                flooded_nodes = np.unique(np.concatenate((flooded_nodes, 
+                                                          new_flooded_nodes)))
             else:
                 first_iteration = False                
 
-            self.simple_stream_power()
-            #self.Er = self.K_br * self.Q_to_the_m * np.power(slope, self.n_sp)
+            # Calculate rates of entrainment
+            self.calc_ero_rates()
+            self.Es[flooded_nodes] = 0.0
+            self.Er[flooded_nodes] = 0.0
+
+            # Zero out sediment influx for new iteration
+            self.qs_in[:] = 0.0
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
@@ -710,53 +737,60 @@ class Space(Component):
                             self.Er,
                             self.v_s,
                             self.F_f)
-            deposition_pertime = np.zeros(self.grid.number_of_nodes)
-            deposition_pertime[self.q > 0] = (self.qs[self.q > 0] * \
+            self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
                                              (self.v_s / self.q[self.q > 0]))
 
             # TODO handle flooded nodes in the above fn
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
-            dzdt[cores] = deposition_pertime[cores] - (self.Es[cores] + self.Er[cores])
+            dzdt[cores] = self.depo_rate[cores] - (self.Es[cores] + self.Er[cores])
             rocdif = dzdt - dzdt[r]
             zdif = z - z[r]
             time_to_flat[:] = remaining_time
 
             converging = np.where(rocdif < 0.0)[0]
-            time_to_flat[converging] = - factor * zdif[converging] / rocdif[converging]
+            time_to_flat[converging] = - TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
             time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
 
             # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
             for i in range(0, len(dzdt), 10000):
                 if self._grid.status_at_node[i] == 0:
-                    print((i, r[i], flooded[i], z[i], z[r[i]], dzdt[i],
+                    print((i, r[i], z[i], z[r[i]], dzdt[i],
                            dzdt[self.flow_receivers[i]], zdif[i],
                            rocdif[i], time_to_flat[i]))
                     print((self.Er[i], self.Es[i]))
             watch = np.argmin(time_to_flat)
             print(watch)
-            print((watch, r[watch], flooded[watch], z[watch], z[r[watch]], dzdt[watch],
+            print((watch, r[watch], z[watch], z[r[watch]], dzdt[watch],
                            dzdt[self.flow_receivers[watch]], zdif[watch],
                            rocdif[watch], time_to_flat[watch]))
-            # From this, find the maximum stable time step. If it is smaller
-            # than our tolerance, report and quit.
-            dt_max = np.amin(time_to_flat)
+            # From this, find the maximum stable time step with regard to slope
+            # evolution.
+            dt_max1 = np.amin(time_to_flat)
             print(('*** min', np.amin(time_to_flat)))
-            print(('*** dt_max', dt_max))
+            print(('*** dt_max1', dt_max1))
             print()
+
+            # Next we consider time to exhaust regolith
+            time_to_zero_alluv[:] = remaining_time
+            dHdt = self.depo_rate - self.Es
+            decreasing_H = np.where(dHdt < 0.0)[0]
+            time_to_zero_alluv[decreasing_H] = - (TIME_STEP_FACTOR
+                                                  * H[decreasing_H]
+                                                  / dHdt[decreasing_H])
+
+            # Now find the smallest time that would lead to near-empty alluv
+            dt_max2 = np.amin(time_to_zero_alluv)
             
+            # Take the smaller of the limits
+            dt_max = min(dt_max1, dt_max2)
+            if dt_max < self.dt_min:
+                dt_max = self.dt_min
+
             # Now a vector operation: apply dzdt and dhdt to all nodes
-            z[cores] += dzdt[cores] * dt_max
+            br[cores] -= self.Er[cores] * dt_max
+            H[cores] += dHdt * dt_max
 
             # Update remaining time and continue
             remaining_time -= dt_max
-
-            if dt_max < 0.1:
-                print('dt_max = ' + str(dt_max))
-                try:
-                    aaa = bbb
-                except:
-                    raise
-
-    
