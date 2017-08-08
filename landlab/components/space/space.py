@@ -667,9 +667,9 @@ class Space(Component):
         
         Assumes linear form (n=1), and that drainage area is used as driver."""
         max_area = np.amax(self.grid.at_node['drainage_area'])
-        print('max area = ' + str(max_area))
+        #print('max area = ' + str(max_area))
         dt_max = TIME_STEP_FACTOR * self.grid._dx / (self.K_sed * max_area ** self.m_sp)
-        print('dt_max = ' + str(dt_max))
+        #print('dt_max = ' + str(dt_max))
         time_remaining = dt
         first_iter = True
         while time_remaining > 0.0:
@@ -682,8 +682,35 @@ class Space(Component):
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=None,
                                            **kwds):
-        """CHILD-like solver that adjusts time steps to prevent slope
-        flattening."""
+        """Run step with CHILD-like solver that adjusts time steps to prevent
+        slope flattening.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> rg = RasterModelGrid((3, 4))
+        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z[:] = 0.1 * (rg.x_of_node + rg.y_of_node)
+        >>> H = rg.add_zeros('node', 'soil__depth')
+        >>> H += 0.1
+        >>> br = rg.add_zeros('node', 'bedrock__elevation')
+        >>> br[:] = z - H
+        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorSteepest')
+        >>> fa.run_one_step()
+        >>> sp = Space(rg, K_sed=0.00001, K_br=0.00000000001,\
+                       F_f=0.5, phi=0.1, H_star=1., v_s=0.001,\
+                       m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
+                       sp_crit_br=0, method='simple_stream_power',\
+                       discharge_method=None, area_field=None,\
+                       discharge_field=None, solver='adaptive')
+        >>> sp.run_one_step(dt=10.0)
+        >>> z
+        >>> H
+        >>> br
+        """
+        #TODO: in test above, work out by hand what the changes in elev and
+        # alluv should be
 
         # Initialize remaining_time, which records how much of the global time
         # step we have yet to use up.
@@ -750,27 +777,25 @@ class Space(Component):
             time_to_flat[:] = remaining_time
 
             converging = np.where(rocdif < 0.0)[0]
-            time_to_flat[converging] = - TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
+            time_to_flat[converging] = -(TIME_STEP_FACTOR * zdif[converging] 
+                                         / rocdif[converging])
             time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
 
             # TIME TO FLATTEN SHOULD BE ZDIF / ROCDIF
-            for i in range(0, len(dzdt), 10000):
-                if self._grid.status_at_node[i] == 0:
-                    print((i, r[i], z[i], z[r[i]], dzdt[i],
-                           dzdt[self.flow_receivers[i]], zdif[i],
-                           rocdif[i], time_to_flat[i]))
-                    print((self.Er[i], self.Es[i]))
-            watch = np.argmin(time_to_flat)
-            print(watch)
-            print((watch, r[watch], z[watch], z[r[watch]], dzdt[watch],
-                           dzdt[self.flow_receivers[watch]], zdif[watch],
-                           rocdif[watch], time_to_flat[watch]))
+#            for i in range(0, len(dzdt), 10000):
+#                if self._grid.status_at_node[i] == 0:
+#                    print((i, r[i], z[i], z[r[i]], dzdt[i],
+#                           dzdt[self.flow_receivers[i]], zdif[i],
+#                           rocdif[i], time_to_flat[i]))
+#                    print((self.Er[i], self.Es[i]))
+#            watch = np.argmin(time_to_flat)
+#            print(watch)
+#            print((watch, r[watch], z[watch], z[r[watch]], dzdt[watch],
+#                           dzdt[self.flow_receivers[watch]], zdif[watch],
+#                           rocdif[watch], time_to_flat[watch]))
             # From this, find the maximum stable time step with regard to slope
             # evolution.
             dt_max1 = np.amin(time_to_flat)
-            print(('*** min', np.amin(time_to_flat)))
-            print(('*** dt_max1', dt_max1))
-            print()
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
