@@ -117,12 +117,9 @@ class Space(Component):
             Solver to use. Options at present include:
                 (1) 'basic' (default): explicit forward-time extrapolation.
                     Simple but will become unstable if time step is too large.
-                (2) 'celerity': calculates maximum time step as minimum of
-                    F x grid-cell width / wave celerity, where wave celerity is
-                    defined as K_sed A^m. F is a factor < 1. Assumes n = 1. 
-                    Global time step is subdivided when needed to keep time
-                    step size less than or equal to the estimated maximum.
-                    K_sed is used because we assume K_sed >= K_br.
+                (2) 'adaptive': subdivides global time step as needed to
+                    prevent slopes from reversing and alluvium from going
+                    negative.
 
         Examples
         ---------
@@ -322,7 +319,6 @@ class Space(Component):
         self.method = str(method)
         if discharge_method is not None:
             self.discharge_method = str(discharge_method)
-            #print('INIT: ' + self.discharge_method)
         else:
             self.discharge_method = None
         if area_field is not None:
@@ -349,14 +345,12 @@ class Space(Component):
         # Handle option for solver
         if solver == 'basic':
             self.run_one_step = self.run_one_step_basic
-        elif solver == 'celerity':
-            self.run_one_step = self.run_with_simple_time_step_adjuster
         elif solver == 'adaptive':
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self.time_to_flat = np.zeros(grid.number_of_nodes)
         else:
             raise ValueError("Parameter 'solver' must be one of: "
-                             + "'basic', 'adaptive', 'celerity'")
+                             + "'basic', 'adaptive'")
 
     #three choices for erosion methods:
     def simple_stream_power(self):
@@ -381,7 +375,6 @@ class Space(Component):
                                 'not nnodes long!')  
                 self.Q_to_the_m[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
-                print('how did we get here???')
                 if self.discharge_field is not None:
                     if type(self.discharge_field) is str:
                         self.q[:] = self._grid.at_node[self.discharge_field]
@@ -394,7 +387,7 @@ class Space(Component):
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
             else:
-                print('cannot be right')
+                raise TypeError('Unrecognized discharge_method')
 
         #TODO: FIGURE OUT WHY WE BOTHER TO CALC AND STORE BOTH ES/ER AND
         #**_EROSION_TERM?
