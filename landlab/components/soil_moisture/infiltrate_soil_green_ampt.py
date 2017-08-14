@@ -96,8 +96,8 @@ class SoilInfiltrationGreenAmpt(Component):
              9.88530416e-03,   9.88530416e-03,   9.88530416e-03])
     >>> mg.at_node['soil_water_infiltration__depth']
     array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
-           0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
-           0.2001147 ,  0.2001147 ])
+            0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
+            0.2001147 ,  0.2001147 ])
     """
 
     _name = 'SoilInfiltrationGreenAmpt'
@@ -267,7 +267,8 @@ class SoilInfiltrationGreenAmpt(Component):
         
         # Set actual infiltration rate (m/s) to the calculated value (m/s)
         self.i_act = self.potential_infilt
-        self.i_act[full_infil_indx] = (self._water_depth) - self._lilwater
+        self.i_act[full_infil_indx] = (self._water_depth[full_infil_indx] -
+                                       self._lilwater)
         
         # Where water is completely infiltrated set to the minimum water value
         self._water_depth[full_infil_indx]= self._lilwater
