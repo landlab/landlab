@@ -216,9 +216,9 @@ class SoilInfiltrationGreenAmpt(Component):
 
         # Setting water depth field, assuring that water depth is POSITIVE.
         self._water_depth = self.grid.at_node['surface_water__depth']
-        assert np.sum(self._water_depth[
-                          self.grid.core_nodes] < self._lilwater) == 0, \
-            "Water depths must all be positive!"
+        assert np.all(self._water_depth[self.grid.core_nodes] >=
+                      self._lilwater), \
+                "Water depths must all be positive!"
         
         # Setting up the array of infiltration depths. 
         self._infiltration_depth = self.grid.at_node[
@@ -243,10 +243,9 @@ class SoilInfiltrationGreenAmpt(Component):
         
         # Calculate infilitration capacity (m/s) if Ks is a float...
         try:
-            self.infilt_cap = self._Ks * ((self.wettingfront_depth + 
-                                          self._psi_f +
-                                       self._water_depth) /
-                                      self.wettingfront_depth)
+            self.infilt_cap = self._Ks * ((self.wettingfront_depth +
+                                           self._psi_f + self._water_depth) /
+                                          self.wettingfront_depth)
         # Calculate infilitration capacity (m/s) if Ks is an array...    
         except ValueError:  
             self.infilt_cap = self._Ks*((self.wettingfront_depth+
@@ -279,9 +278,8 @@ class SoilInfiltrationGreenAmpt(Component):
                                                         (self.i_act[notfull]))
         
         # Assure water depths are all positive. Code will break if not!
-        assert np.all(self._water_depth[
-                          self.grid.core_nodes]) > 0, \
-            "Water depths must all be positive!"
+        assert np.all(self._water_depth[self.grid.core_nodes]) > 0, \
+                "Water depths must all be positive!"
             
         # Update infiltration depth field. 
         self._infiltration_depth += self.i_act 
