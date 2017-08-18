@@ -215,6 +215,7 @@ class ErosionDeposition(Component):
         # power "m", and deposition rate
         self.qs_in = np.zeros(grid.number_of_nodes)
         self.Q_to_the_m = np.zeros(grid.number_of_nodes)
+        self.S_to_the_n = np.zeros(grid.number_of_nodes)
         self.depo_rate = np.zeros(self.grid.number_of_nodes)
 
         # store other constants
@@ -321,8 +322,10 @@ class ErosionDeposition(Component):
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
-        self.erosion_term = self.K * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
+        self.S_to_the_n[:] = 0
+        self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
+        self.erosion_term = self.K * self.Q_to_the_m * self.S_to_the_n
+        
         self.qs_in[:] = 0.0 
             
     def threshold_stream_power(self):
@@ -358,7 +361,13 @@ class ErosionDeposition(Component):
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
-        omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
+                        
+        self.S_to_the_n[:] = 0
+        self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
+        self.erosion_term = self.K * self.Q_to_the_m * self.S_to_the_n
+        
+        omega = self.K * self.Q_to_the_m * self.S_to_the_n
+        
         self.erosion_term = omega - self.sp_crit * \
             (1 - np.exp(-omega / self.sp_crit))
         self.qs_in[:] = 0.0 
@@ -398,8 +407,10 @@ class ErosionDeposition(Component):
                                 'not nnodes long!')  
             else:
                 raise ValueError('Specify discharge method for stoch hydro!')
-        self.erosion_term = self.K * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
+        self.S_to_the_n[:] = 0
+        self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
+        self.erosion_term = self.K * self.Q_to_the_m * self.S_to_the_n
+        
         self.qs_in[:] = 0.0 
 
     def _update_flow_link_slopes(self):
@@ -501,7 +512,13 @@ class ErosionDeposition(Component):
             # outside the component (e.g., by flow router), but we need to do
             # it ourselves on subsequent iterations.
             if not first_iteration:
-                self._update_flow_link_slopes()                
+                # update the link slopes
+                self._update_flow_link_slopes() 
+                # update where nodes are flooded. This shouuldn't happen because 
+                # of the dynamic timestepper, but just incase, we update here. 
+                new_flooded_nodes = np.where(self.slope<0)[0]
+                flooded_nodes = np.asarray(np.unique(np.concatenate((flooded_nodes, 
+                                                          new_flooded_nodes))), dtype=np.int64)
             else:
                 first_iteration = False                
 

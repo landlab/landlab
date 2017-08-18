@@ -3281,17 +3281,19 @@ class ModelGrid(ModelDataFieldsMixIn):
                           INACTIVE_LINK)
         inactive_links[self.link_dirs_at_node == 0] = False
         self._active_link_dirs_at_node[inactive_links] = 0
-
+        
         try:
             if self.diagonal_list_created:
                 self.diagonal_list_created = False
         except AttributeError:
             pass
+        
         try:
             if self.neighbor_list_created:
                 self.neighbor_list_created = False
         except AttributeError:
             pass
+        
         try:
             self._fixed_grad_links_created
         except AttributeError:
@@ -3299,11 +3301,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             self._gradient_boundary_node_links()
             self._create_fixed_gradient_boundary_node_anchor_node()
+        
         try:
-            self._patches_created
-            self._reset_patch_status()
+            if self._patches_created:
+                self._reset_patch_status()
         except AttributeError:
             pass
+        
         try:
             self.bc_set_code += 1
         except AttributeError:
