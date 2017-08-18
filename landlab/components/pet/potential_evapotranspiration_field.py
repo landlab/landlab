@@ -285,9 +285,10 @@ class PotentialEvapotranspiration(Component):
                      np.cos((2 * np.pi) * (self._J - self._LT - self._ND / 2) /
                             self._ND)), 0.0))
         elif self._method == 'PenmanMonteith':
-            self._PET_value = (
-                    self._PenmanMonteith(,
-                                         T_avg=)
+            pass
+#            self._PET_value = (
+#                    self._PenmanMonteith(,
+#                                         T_avg=)
 
         # Spatially distributing PET
         self._PET = (
@@ -381,6 +382,20 @@ class PotentialEvapotranspiration(Component):
                         (self._Rn / self._pwhv), 0)
 
         return self._ETp
+
+
+    def _PenmanMonteith(self, Tavg, relative_humidity,
+                        wind_speed, vapor_pressure,
+                        precip_daily, radiation_sw,
+                        Tmax=None, Tmin=None):
+        if Tavg == None:
+            Tavg = (Tmax+Tmin)/2.
+        # Saturated Vapor Pressure
+        EsTa = (0.6108 * np.exp((17.27 * Tavg)/(237.3 + Tavg)))
+        # Actual Vapor Pressure
+        Eact = (EsTa * relative_humidity * 0.01)
+        return None
+
 
     def _MeasuredRadPT(self, Tavg, Rnobs):
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
