@@ -14,6 +14,7 @@ Written by Jordan Adams, 2013, updated May 2016
 import random
 import numpy as np
 from landlab import Component, ModelGrid
+from six import next
 
 
 class PrecipitationDistribution(Component):
@@ -386,7 +387,8 @@ class PrecipitationDistribution(Component):
         Notes
         -----
         One recommended procedure is to instantiate the generator, then call
-        instance.next() repeatedly to get the sequence.
+        instance.next() (in Python 2) or next(instance) (in Python 3)
+        repeatedly to get the sequence.
         """
         # Added DEJH, Dec 2014
         # Modified to use an optional output field, DEJH 1/8/17
@@ -467,7 +469,8 @@ class PrecipitationDistribution(Component):
         Notes
         -----
         One recommended procedure is to instantiate the generator, then call
-        instance.next() repeatedly to get the sequence.
+        instance.next() (in Python 2) or next(instance) (in Python 3)
+        repeatedly to get the sequence.
 
         Examples
         --------
@@ -513,11 +516,11 @@ class PrecipitationDistribution(Component):
         while not tobreak:
             # we always start with a storm, so:
             try:
-                (storm_dur, storm_int) = othergen.next()
+                (storm_dur, storm_int) = next(othergen)
             except StopIteration:
                 break  # stop dead. We terminated at a good place
             try:
-                (interstorm_dur, _) = othergen.next()
+                (interstorm_dur, _) = next(othergen)
             except StopIteration:
                 tobreak = True
                 interstorm_dur = 0.
