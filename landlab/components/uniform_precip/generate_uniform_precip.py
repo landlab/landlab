@@ -37,7 +37,8 @@ class PrecipitationDistribution(Component):
     ----------
     grid : ModelGrid or None
         A Landlab grid (optional). If provided, storm intensities will be
-        stored as a grid scalar field as the component simulates storms.
+        stored as a grid scalar field ('rainfall__flux') as the component
+        simulates storms.
     mean_storm_duration : float
         Average duration of a precipitation event.
     mean_interstorm_duration : float
@@ -98,6 +99,13 @@ class PrecipitationDistribution(Component):
     >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # test total_t
     True
     >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated as necessary
+    True
+
+    We can also turn the generator straight into a list, like this:
+
+    >>> precip.seed_generator(seedval=1)
+    >>> steps = [(dt + istorm_dt) for (dt, istorm_dt) in precip.yield_storms()]
+    >>> np.isclose(sum(steps), 46.)
     True
     """
 
@@ -214,6 +222,22 @@ class PrecipitationDistribution(Component):
         ...     storm_duration_list.append(precip.storm_duration)
         ...     precip.update()
         ...     i += 1
+
+        Note though that alternatively we could also do this, avoiding the
+        method entirely...
+
+        >>> from six import next
+        >>> # ^^this lets you "manually" get the next item from the iterator
+        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+        ...     total_t=46.)
+        >>> storm_duration_list = []
+        >>> for i in range(5):
+        ...     storm_duration_list.append(next(
+        ...         precip.yield_storm_interstorm_duration_intensity())[0])
+
+        Notice that doing this will *not* automatically stop the iteration,
+        however - it will continue ad infinitum.
         """
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
@@ -470,7 +494,7 @@ class PrecipitationDistribution(Component):
         -----
         One recommended procedure is to instantiate the generator, then call
         instance.next() (in Python 2) or next(instance) (in Python 3)
-        repeatedly to get the sequence.
+        repeatedly to get the sequence (See Examples, below).
 
         Examples
         --------
@@ -501,6 +525,38 @@ class PrecipitationDistribution(Component):
         True
         >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated
         True
+
+        An alternative way to use the generator might be:
+
+        >>> from six import next
+        >>> # ^^this lets you "manually" get the next item from the iterator
+        >>> _ = mg.at_grid.pop('rainfall__flux')  # remove the existing field
+        >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
+        ...     total_t=46.)
+        >>> precip.seed_generator(seedval=1)
+        >>> mystorm_generator = precip.yield_storms()
+        >>> my_list_of_storms = []
+        >>> for i in range(4):
+        ...     my_list_of_storms.append(next(mystorm_generator))
+
+        Note that an exception is thrown if you go too far:
+
+        >>> my_list_of_storms.append(next(mystorm_generator))  # the 5th iter
+        Traceback (most recent call last):
+          ...
+        StopIteration
+
+        Also note that the generator won't terminate if you try this without
+        first instantiating the generator:
+
+        >>> allmytimes = []
+        >>> for i in range(20):  # this will run just fine
+        ...     allmytimes.append(next(precip.yield_storms()))
+        >>> total_t = sum([sum(storm) for storm in allmytimes])
+        >>> total_t > 46.
+        True
+
         """
         # we must have instantiated with a grid, so check:
         assert hasattr(self, '_grid')
