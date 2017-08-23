@@ -147,7 +147,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
     >>> mg.at_node['flow__receiver_node']
-    array([-1, -1, -1, -1,  0, -1, -1, -1, -1])
+    array([0, 1, 2, 3, 0, 5, 6, 7, 8])
 
     Finally, FlowDirectorMFD identifies sinks, or local lows.
 

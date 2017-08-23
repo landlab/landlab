@@ -9,6 +9,7 @@ from landlab import Component
 import numpy as np
 from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
+
 class DepthDependentCubicDiffuser(Component):
 
     """
