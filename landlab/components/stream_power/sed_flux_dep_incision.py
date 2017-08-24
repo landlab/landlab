@@ -75,7 +75,8 @@ class SedDepEroder(Component):
                      c_hump=0.00181, Qc='power_law', m_sp=0.5, n_sp=1.,
                      K_t=1.e-4, m_t=1.5, n_t=1., b_t=1., S_crit=0.,
                      pseudoimplicit_repeats=50,
-                     return_stream_properties=False)
+                     return_stream_properties=False,
+                     forbid_deposition=False)
 
     Parameters
     ----------
@@ -105,6 +106,11 @@ class SedDepEroder(Component):
         Whether to perform a few additional calculations in order to set
         the additional optional output fields, 'channel__width',
         'channel__depth', and 'channel__discharge' (default False).
+    forbid_deposition : bool
+        If True, the component will never allow active deposition on the bed.
+        DEJH believes this suppresses the diffusion-like response of weakly
+        perturbed catchments, and may be physically unrealistic. Model runs
+        much faster if True. (default False)
     sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
                            'almost_parabolic'}
         The shape of the sediment flux function. For definitions, see
@@ -340,10 +346,11 @@ class SedDepEroder(Component):
                  Qc='power_law', m_sp=0.5, n_sp=1., K_t=1.e-4, m_t=1.5, n_t=1.,
                  # params for model numeric behavior:
                  pseudoimplicit_repeats=50, return_stream_properties=False,
-                 **kwds):
+                 forbid_deposition=False, **kwds):
         """Constructor for the class."""
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
+        self._forbid_deposition = forbid_deposition
 
         self._K_unit_time = K_sp/31557600.
         # ^...because we work with dt in seconds
@@ -778,20 +785,26 @@ class SedDepEroder(Component):
                                 sed_flux_out_bydt/node_capacity))
                         rel_sed_flux[i] = rel_sed_flux_here
                         vol_pass_rate = sed_flux_out_bydt
-                        # # As of 29/6/17 approach, this shouldn't happen
-                        # # (all sed is virtual)
-                        # # erode off the surplus sed from hillslopes (already
-                        # # budgeted):
-                        # if self._ext_sed:
-                        #     dzbydt_here += (
-                        #         self._hillslope_sediment_flux_wzeros[i] /
-                        #         cell_area)
-                        #     # no change to voldroprate or voldropped, as both
-                        #     # should already be 0 -> consider role of inner vs outer loop!
+                        if not self._forbid_deposition:
+                            # erode off the surplus sed from hillslopes
+                            # (already budgeted):
+                            dzbydt_here += (
+                                self._hillslope_sediment_flux_wzeros[i] /
+                                cell_area)
+                            # no change to voldroprate, as
+                            # should already be 0 -> consider role of inner vs
+                            # outer loop!
                     else:
                         self._is_it_TL[i] = True
                         rel_sed_flux[i] = 1.
-                        dzbydt_here = 0.
+                        if self._forbid_deposition:
+                            dzbydt_here = 0.
+                        else:
+                            vol_drop_rate = (river_volume_flux_into_node[i] -
+                                             node_capacity)
+                            # ^ note this can now go negative. This permits TL
+                            # erosion of any hillslope seds left in the channel
+                            dzbydt_here = -vol_drop_rate/cell_area
                         try:
                             isflooded = flooded_nodes[i]
                         except TypeError:  # was None
@@ -817,9 +830,15 @@ class SedDepEroder(Component):
                                 conv_factor = 1.
                                 # ^this needed to let this node to fill fully
                         if self._ext_sed:
-                            self._voldroprate[i] = (
-                                sed_flux_into_this_node_bydt - vol_pass_rate)
-                            assert self._voldroprate[i] >= 0.
+                            if self._forbid_deposition:
+                                self._voldroprate[i] = (
+                                    sed_flux_into_this_node_bydt -
+                                    vol_pass_rate)
+                                assert self._voldroprate[i] >= 0.
+                            else:
+                                self._voldroprate[i] = (
+                                    self._hillslope_sediment_flux_wzeros[i] +
+                                    vol_drop_rate)
                     dzbydt[i] -= dzbydt_here
                     # ^minus returns us to the correct sign convention
                     river_volume_flux_into_node[
@@ -860,8 +879,12 @@ class SedDepEroder(Component):
 
                 node_z[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
                 # back-calc the sed budget in the nodes, as appropriate:
-                if self._ext_sed:
+                if self._forbid_deposition:
                     self._hillslope_sediment[self.grid.node_at_cell] = (
+                        self._voldroprate[self.grid.node_at_cell] /
+                        self.grid.area_of_cell * this_tstep)
+                else:
+                    self._hillslope_sediment[self.grid.node_at_cell] += (
                         self._voldroprate[self.grid.node_at_cell] /
                         self.grid.area_of_cell * this_tstep)
 
