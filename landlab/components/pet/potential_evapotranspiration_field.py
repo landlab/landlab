@@ -388,14 +388,22 @@ class PotentialEvapotranspiration(Component):
                         wind_speed, vapor_pressure,
                         precip_daily, radiation_sw,
                         Tmax=None, Tmin=None):
-        if Tavg == None:
-            Tavg = (Tmax+Tmin)/2.
-        # Saturated Vapor Pressure
-        EsTa = (0.6108 * np.exp((17.27 * Tavg)/(237.3 + Tavg)))
+        if self._Tavg == None:
+            self._Tavg = (Tmax+Tmin)/2.
+        # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Eqn 6, (37)
+        self._es = 0.6108 * np.exp((17.27 * self._Tavg)/(237.7 + self._Tavg))
         # Actual Vapor Pressure
-        Eact = (EsTa * relative_humidity * 0.01)
+        self._ea = (self._es * relative_humidity * 0.01)
+        # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Eqn 5, (36)
+        self._delta = (4098.0 * self._es)/((237.3 + self._Tavg) ** 2.0)
+        self._ra = ((np.log((zm - zd)/z0))**2)/(kv**2 * wind_speed)
+        self._ra2 = (((np.log((zm - zd)/z0))*(np.log((zh-zd)/z0h)))/(kv**2 *
+                     wind_speed))
+        self._Kat = (2.158/(self._pho_w * (273.3 + self._Tavg)))
+        
         return None
-
 
     def _MeasuredRadPT(self, Tavg, Rnobs):
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
