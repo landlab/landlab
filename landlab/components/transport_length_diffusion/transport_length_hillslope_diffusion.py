@@ -121,26 +121,36 @@ class TransportLengthHillslopeDiffuser(Component):
         else:
             self.L = self.grid.add_zeros('node', 'transport_length')
 
-        # Flow direction
-#        self.fdir = FlowDirectorSteepest(self.elev)
-        self.flux_in = np.zeros(self.grid.number_of_nodes)
-        self.flux_out = np.zeros(self.grid.number_of_nodes)
-        self.erosion = np.zeros(self.grid.number_of_nodes)
-        self.depo = np.zeros(self.grid.number_of_nodes)
-        self.trans = np.zeros(self.grid.number_of_nodes)
+        # flux in (defined at nodes)
+        if 'flux_in' in self.grid.at_node:
+            self.flux_in = self.grid.at_node['flux_in']
+        else:
+            self.flux_in = self.grid.add_zeros('node', 'flux_in')
+
+        # flux out (defined at nodes)
+        if 'flux_out' in self.grid.at_node:
+            self.flux_out = self.grid.at_node['flux_out']
+        else:
+            self.flux_out = self.grid.add_zeros('node', 'flux_out')
+
+        # erosion (defined at nodes)
+        if 'erosion' in self.grid.at_node:
+            self.erosion = self.grid.at_node['erosion']
+        else:
+            self.erosion = self.grid.add_zeros('node', 'erosion')
+
+#        self.flux_in = np.zeros(self.grid.number_of_nodes)
+#        self.flux_out = np.zeros(self.grid.number_of_nodes)
+#        self.erosion = np.zeros(self.grid.number_of_nodes)
+#        self.depo = np.zeros(self.grid.number_of_nodes)
+#        self.trans = np.zeros(self.grid.number_of_nodes)
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
         """
 
-        # Calculate gradients
-#        self.slope[:] = self.grid.calc_grad_at_link(self.elev)
-#        self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
-
-        # Run flow directior (steepest slope)
-#        self.fdir.run_one_step()
         # Downstream steepest slope at node:
-        self.steepest = self.grid.at_node['topographic__steepest_slope'] / 100
+        self.steepest = self.grid.at_node['topographic__steepest_slope'] # / 100
         # On each node, node ID of downstream receiver node
         # (on node (i), ID of node that receives flow from node (i)):
         self.receiver = self.grid.at_node['flow__receiver_node']
@@ -158,17 +168,16 @@ class TransportLengthHillslopeDiffuser(Component):
             self.flux_in[self.receiver[i]] += self.flux_out[i]
             
             # Calculate transport length
-            self.L[i] = (self.grid.dx)/(1-(np.power((self.steepest[i]/self.slope_crit),2)))
-            
-            # Calculate deposition on node and transfer over node (IF loop not necessary?)
-            if self.flux_in[i] > 0.:
-                # Calculate deposition
-                self.depo[i] = self.flux_in[i]/self.L[i]
-                # Calculate transfer
-                self.trans[i] = self.flux_in[i]-self.depo[i]
+            if self.steepest[i] >= self.slope_crit:
+                self.L[i] = 1000000000.   # 'Infinite' length, for stability
             else:
-                self.depo[i] = 0.
-                self.trans[i] = 0.
+                self.L[i] = (self.grid.dx)/(1-(np.power(((self.steepest[i])/self.slope_crit), 2)))
+
+        cores = self.grid.core_nodes
+        # Calculate deposition on node
+        self.depo[cores] = self.flux_in[cores] / self.L[cores]
+        # Calculate transfer over node
+        self.trans[cores] = self.flux_in[cores] - self.depo[cores]
 
             # Calculate erosion on node (positive value)
         for i in self.grid.core_nodes:
@@ -181,20 +190,20 @@ class TransportLengthHillslopeDiffuser(Component):
             # Calculate outflux
         self.flux_out[:] = self.erosion + self.trans     # Flux out of node
 
-        from matplotlib.pyplot import figure
-        from landlab.plot import imshow_grid
-        figure()
-        im = imshow_grid(self.grid, self.flux_in, plot_name='Flux in')
-        figure()
-        im = imshow_grid(self.grid, self.L, plot_name='L')
-        figure()
-        im = imshow_grid(self.grid, self.depo, plot_name='Depo')
-        figure()
-        im = imshow_grid(self.grid, self.trans, plot_name='Trans')
-        figure()
-        im = imshow_grid(self.grid, self.erosion, plot_name='Erosion')
-        figure()
-        im = imshow_grid(self.grid, self.flux_out, plot_name='Flux out')
+#        from matplotlib.pyplot import figure
+#        from landlab.plot import imshow_grid
+#        figure()
+#        im = imshow_grid(self.grid, self.flux_in, plot_name='Flux in')
+#        figure()
+#        im = imshow_grid(self.grid, self.L, plot_name='L')
+#        figure()
+#        im = imshow_grid(self.grid, self.depo, plot_name='Depo')
+#        figure()
+#        im = imshow_grid(self.grid, self.trans, plot_name='Trans')
+#        figure()
+#        im = imshow_grid(self.grid, self.erosion, plot_name='Erosion')
+#        figure()
+#        im = imshow_grid(self.grid, self.flux_out, plot_name='Flux out')
 
         # Update topography
         cores = self.grid.core_nodes
@@ -205,6 +214,7 @@ class TransportLengthHillslopeDiffuser(Component):
         self.erosion[:] = 0.
         self.depo[:] = 0.
         self.trans[:] = 0.
+        self.flux_in[:] = 0.
 
 
     #self.flux_in[self.grid.boundary_nodes[:]] = 0.
