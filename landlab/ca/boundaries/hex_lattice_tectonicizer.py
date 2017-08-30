@@ -16,7 +16,8 @@ Created on Mon Nov 17 08:01:49 2014
 """
 
 from landlab import HexModelGrid
-from numpy import amax, zeros, arange, array, sqrt
+from numpy import (amax, zeros, arange, array, sqrt, where, logical_and, tan,
+                   cos, pi)
 import sys
 
 _DEFAULT_NUM_ROWS = 5
@@ -429,7 +430,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
     """
     def __init__(self, grid=None, node_state=None, propid=None, prop_data=None,
                  prop_reset_value=None, opt_block_layer=False, block_ID=9,
-                 block_layer_dip_angle=0.0, block_layer_thickness=1.0):
+                 block_layer_dip_angle=0.0, block_layer_thickness=1.0,
+                 layer_left_x=0.0, y0_top=0.0):
         """
         Create and initialize a LatticeUplifter
 
@@ -467,8 +469,12 @@ class LatticeUplifter(HexLatticeTectonicizer):
         if opt_block_layer:
             self.cum_uplift = 0.0
             self.block_ID = block_ID
-            self.block_layer_dip_angle = block_layer_dip_angle
             self.block_layer_thickness = block_layer_thickness
+            self.block_layer_dip_angle = block_layer_dip_angle
+            if block_layer_dip_angle == 90.0:
+                self.layer_left_x = layer_left_x
+            else:
+                self.y0_top = y0_top
 
     def _get_new_base_nodes(self, rock_state):
         """
@@ -481,28 +487,63 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 9, 9])
         >>> lu.uplift_interior_nodes(rock_state=7)
-        >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
-        array([ 0,  9,  0,  9,  9,
-                0,  0,  0,  0,  0,
-                0,  0,  0,  0,  0,
-                0,  0,  0,  0,  0,
-                0,  0,  0,  0,  0])
+        >>> lu.node_state[:5]
+        array([0, 9, 0, 9, 9])
+        >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=2,
+        ... block_layer_dip_angle=90.0, layer_left_x=1.0)
+        >>> lu._get_new_base_nodes(rock_state=7)
+        array([9, 7, 9])
+        >>> lu.uplift_interior_nodes(rock_state=7)
+        >>> lu.node_state[:5]
+        array([0, 9, 0, 7, 9])
+        >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=1,
+        ... block_layer_dip_angle=45.0, y0_top=-1.0)
+        >>> lu._get_new_base_nodes(rock_state=7)
+        array([9, 7, 9])
+        >>> lu.uplift_interior_nodes(rock_state=7)
+        >>> lu.node_state[:5]
+        array([0, 9, 0, 7, 9])
         """
-        print('in gnbn')
+        #print('in gnbn')
         sys.stdout.flush()
         new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
 
-        if self.block_layer_dip_angle == 0.0:  # flat
+        if self.block_layer_dip_angle == 0.0:  # horizontal
             
             if self.cum_uplift < self.block_layer_thickness:
-                print('cu ' + str(self.cum_uplift) + ' blt ' + str(self.block_layer_thickness))
+                #print('cu ' + str(self.cum_uplift) + ' blt ' + str(self.block_layer_thickness))
                 new_base_nodes[:] = self.block_ID
             else:
-                print('just rock state')
+                #print('just rock state')
                 new_base_nodes[:] = rock_state
-                
-        print(new_base_nodes)
-        sys.stdout.flush()
+
+        elif self.block_layer_dip_angle == 90.0:  # vertical
+
+#            print(self.inner_base_row_nodes)
+#            print(self.grid.x_of_node[self.inner_base_row_nodes])
+#            print(self.layer_left_x)
+            layer_right_x = self.layer_left_x + self.block_layer_thickness
+#            print(layer_right_x)
+            inside_layer = where(logical_and(
+                    self.grid.x_of_node[self.inner_base_row_nodes] >= self.layer_left_x,
+                    self.grid.x_of_node[self.inner_base_row_nodes] <= layer_right_x))[0]
+            new_base_nodes[:] = rock_state
+            new_base_nodes[inside_layer] = self.block_ID
+        
+        else:
+            
+            x = self.grid.x_of_node[self.inner_base_row_nodes]
+            y = self.grid.y_of_node[self.inner_base_row_nodes]
+            m = tan(pi * self.block_layer_dip_angle / 180.0)
+            y_top = m * x + self.y0_top
+            y_bottom = y_top - (self.block_layer_thickness 
+                                / cos(pi * self.block_layer_dip_angle / 180.0))
+            inside_layer = where(logical_and(y >= y_bottom, y <= y_top))
+            new_base_nodes[:] = rock_state
+            new_base_nodes[inside_layer] = self.block_ID
+
+#        print(new_base_nodes)
+#        sys.stdout.flush()
         
         return new_base_nodes
         
@@ -580,8 +621,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
         """
-        print('UIN here')
-        sys.stdout.flush()
+#        print('UIN here')
+#        sys.stdout.flush()
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
         for r in range(self.nr - 1, 0, -1):
@@ -591,17 +632,17 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Fill the bottom rows with "fresh material" (code = rock_state), or
         # if using a block layer, with the right pattern of states.
-        print('fill bot rows')
+#        print('fill bot rows')
         sys.stdout.flush()
         if self.opt_block_layer:
             new_base_nodes = self._get_new_base_nodes(rock_state)
             self.cum_uplift += 1.0
-            print('back from gnbn with cum uplift = ' + str(self.cum_uplift))
+#            print('back from gnbn with cum uplift = ' + str(self.cum_uplift))
             sys.stdout.flush()
         else:
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
-        print(self.node_state)
+#        print(self.node_state)
         sys.stdout.flush()
 
         # Shift the node states up by two rows: two because the grid is
@@ -618,9 +659,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.propid[self.inner_base_row_nodes] = top_row_propid
             self.prop_data[self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
 
-        print('done with uin')
-        print(self.node_state)
-        sys.stdout.flush()
+#        print('done with uin')
+#        print(self.node_state)
+#        sys.stdout.flush()
 
 
 if __name__=='__main__':
