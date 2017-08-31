@@ -168,7 +168,9 @@ class PotentialEvapotranspiration(Component):
                  elevation_of_measurement=300, adjustment_coeff=0.18,
                  lt=0., nd=365., MeanTmaxF=12., delta_d=5.,
                  rl=130, zveg=0.3, LAI=2., zm=3.3, zh=2.3,
-                 rho_a=1.22, **kwds):
+                 water_density = 1000, air_density = 1.22,
+                 specific_heat_air = 1000, von_karman_const = 0.41,
+                 **kwds):
         """
         Parameters
         ----------
@@ -220,6 +222,15 @@ class PotentialEvapotranspiration(Component):
         self._ND = nd
         self._TmaxF_mean = MeanTmaxF
         self._DeltaD = delta_d
+        self._zm = zm   # (m) wind speed anemometer height 
+        self._zh = zh   # (m) Relative Humidity probe height
+        self._LAI = LAI   # Leaf Area Index
+        self._zveg = zveg  # (m) Vegetation height
+        self._rl = rl    # (sec/m) reverse of conductance
+        self._rho_w = water_density # (Kg/m^3) Density of water
+        self._rho_a = air_density # (Kg/m^3) Density of Air
+        self._ca = specific_heat_air   # 
+        self._von_karman = von_karman_const  # Von Karman Constant
         _assert_method_is_valid(self._method)
 
         super(PotentialEvapotranspiration, self).__init__(grid, **kwds)
@@ -235,7 +246,7 @@ class PotentialEvapotranspiration(Component):
         self._cell_values = self.grid['cell']
 
     def update(self, current_time=None, const_potential_evapotranspiration=12.,
-               Tmin=0., Tmax=1., Tavg=0.5, obs_radiation=350.,
+               Tmin=None, Tmax=None, Tavg=None, obs_radiation=None,
                relative_humidity=None, wind_speed=None, vapor_pressure=None,
                precipitation=None, **kwds):
         """Update fields with current conditions.
@@ -257,7 +268,8 @@ class PotentialEvapotranspiration(Component):
         obs_radiation float, required for 'MeasuredRadiationPT' method
             Observed radiation (W/m^2)
         """
-
+        if Tavg == None:
+            Tavg = (Tmax+Tmin)/2.
         if self._method == 'Constant':
             self._PET_value = const_potential_evapotranspiration
         elif self._method == 'PriestleyTaylor':
@@ -384,26 +396,47 @@ class PotentialEvapotranspiration(Component):
         return self._ETp
 
 
-    def _PenmanMonteith(self, Tavg, relative_humidity,
-                        wind_speed, vapor_pressure,
-                        precip_daily, radiation_sw,
-                        Tmax=None, Tmin=None):
-        if self._Tavg == None:
-            self._Tavg = (Tmax+Tmin)/2.
+    def _PenmanMonteith(self, Tavg, precip_daily, radiation_sw,
+                        wind_speed, vapor_pressure, relative_humidity):
+        zm = self._zm
+        zh = self._zh
+        zd = (0.7 * self._zveg)
+        z0 = (0.123 * self.__zveg)
+        z0h = (0.1 * self._z0)
+        kv = self._von_karman
+        
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 6, (37)
-        self._es = 0.6108 * np.exp((17.27 * self._Tavg)/(237.7 + self._Tavg))
+        self._es = 0.6108 * np.exp((17.27 * Tavg)/(237.7 + Tavg))
         # Actual Vapor Pressure
         self._ea = (self._es * relative_humidity * 0.01)
         # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 5, (36)
-        self._delta = (4098.0 * self._es)/((237.3 + self._Tavg) ** 2.0)
+        self._delta = (4098.0 * self._es)/((237.3 + Tavg) ** 2.0)
         self._ra = ((np.log((zm - zd)/z0))**2)/(kv**2 * wind_speed)
         self._ra2 = (((np.log((zm - zd)/z0))*(np.log((zh-zd)/z0h)))/(kv**2 *
                      wind_speed))
-        self._Kat = (2.158/(self._pho_w * (273.3 + self._Tavg)))
-        
-        return None
+        self._Kat = (2.158/(self._rho_w * (273.3 + Tavg)))
+        # Evaporation
+        self._E = (self._Kat * (1./self._ra2) * (self._es - self._ea) *
+                   86400. * 1000.)
+        # Potential Evapotranspiration
+        self._E2 = (radiation_sw/self._pwhv)
+        self._Ts = (Tavg + 273.15 - 0.825 * np.exp(3.54 * 10.**(-3) *
+                                                         radiation_sw))
+        self._radiation_lw = (self._sigma * (self._Ts**4 - (Tavg +
+                                                            273.15)**4))
+        self._net_radiation = np.max(((1-self._a) * radiation_sw +
+                                      self._radiation_lw), 0.)
+        self._penman_numerator = ((self._delta * self._net_radiation) +
+                                  (self._rho_a * self._ca *
+                                   (self._es - self._ea)/self._ra2))
+        self._penman_denominator = (self._pwhv * (self._delta + self._y *
+                                                  (1 + (self._rl/self._LAI/2.)/
+                                                   self._ra2)))
+        self._ETp = (self._penman_numerator/self._penman_denominator)
+                                  
+        return self._ETp
 
     def _MeasuredRadPT(self, Tavg, Rnobs):
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
