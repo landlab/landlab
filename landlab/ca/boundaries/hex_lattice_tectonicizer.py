@@ -504,26 +504,19 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
         """
-        #print('in gnbn')
         sys.stdout.flush()
         new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
 
         if self.block_layer_dip_angle == 0.0:  # horizontal
             
             if self.cum_uplift < self.block_layer_thickness:
-                #print('cu ' + str(self.cum_uplift) + ' blt ' + str(self.block_layer_thickness))
                 new_base_nodes[:] = self.block_ID
             else:
-                #print('just rock state')
                 new_base_nodes[:] = rock_state
 
         elif self.block_layer_dip_angle == 90.0:  # vertical
 
-#            print(self.inner_base_row_nodes)
-#            print(self.grid.x_of_node[self.inner_base_row_nodes])
-#            print(self.layer_left_x)
             layer_right_x = self.layer_left_x + self.block_layer_thickness
-#            print(layer_right_x)
             inside_layer = where(logical_and(
                     self.grid.x_of_node[self.inner_base_row_nodes] >= self.layer_left_x,
                     self.grid.x_of_node[self.inner_base_row_nodes] <= layer_right_x))[0]
@@ -541,9 +534,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
             inside_layer = where(logical_and(y >= y_bottom, y <= y_top))
             new_base_nodes[:] = rock_state
             new_base_nodes[inside_layer] = self.block_ID
-
-#        print(new_base_nodes)
-#        sys.stdout.flush()
         
         return new_base_nodes
         
@@ -637,8 +627,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         if self.opt_block_layer:
             new_base_nodes = self._get_new_base_nodes(rock_state)
             self.cum_uplift += 1.0
+            self.y0_top += 1.0
 #            print('back from gnbn with cum uplift = ' + str(self.cum_uplift))
-            sys.stdout.flush()
+#            sys.stdout.flush()
         else:
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
