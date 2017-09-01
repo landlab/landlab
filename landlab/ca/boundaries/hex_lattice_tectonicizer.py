@@ -471,10 +471,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.block_ID = block_ID
             self.block_layer_thickness = block_layer_thickness
             self.block_layer_dip_angle = block_layer_dip_angle
-            if block_layer_dip_angle == 90.0:
-                self.layer_left_x = layer_left_x
-            else:
-                self.y0_top = y0_top
+            self.layer_left_x = layer_left_x
+            self.y0_top = y0_top
 
     def _get_new_base_nodes(self, rock_state):
         """
@@ -550,6 +548,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> from landlab import HexModelGrid
         >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
         >>> from landlab.ca.celllab_cts import Transition
+        >>> import numpy as np
 
         >>> mg = HexModelGrid(4, 3, 1.0, orientation='vertical', shape='rect')
         >>> nsd = {0 : 'yes', 1 : 'no'}
@@ -567,15 +566,36 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> ls = ohcts.link_state
         >>> nt = ohcts.next_trn_id
         >>> nu = ohcts.next_update
-        >>> eq = ohcts.event_queue
-        >>> lu.shift_link_and_transition_data_upward(ls, nt, nu, eq)
+        >>> np.round(nu[mg.active_links], 2)
+        array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  1.04,  0.58,  2.22,  3.31,
+                0.48,  1.57,  0.75,  0.84,  2.6 ,  0.07])
+        >>> pq = ohcts.priority_queue
+        >>> pq._queue[0][2]  # link for first event = 21, not shifted
+        21
+        >>> pq._queue[1][2]  # link for queue item #1 = 7, should be shifted
+        7
+        >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.07
+        0.07
+        >>> lu.shift_link_and_transition_data_upward(ls, nt, nu, pq)
+        >>> np.round(nu[mg.active_links], 2)
+        array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  0.8 ,  1.26,  0.92,  0.79,
+                0.55,  1.04,  0.58,  2.22,  3.31,  0.48])
+        >>> pq._queue[0][2]  # not shifted, so stays at 21
+        21
+        >>> pq._queue[1][2]  # shifted up by 7
+        14
         """
-        
+
         # TODO: FINISH DOCTEST OF UPWARD SHIFT OF LINK PROPERTIES,
-        # ADD UPDATE OF EVENT QUEUE,
         # WIRE IT INTO DO_UPLIFT,
         # REVISIT HANDLING OF RE-SETTING OF NODE AND LINK STATES ALONG BOTTOM
         # ROW
+        #
+        # EVENTS WITH LINKS THAT UPLIFT OFF THE GRID SHOULD BE NULLIFIED BY
+        # POPPING THEM FROM PQ AND SETTING. THOSE WITH LINKS THAT SHIFT UPWARD
+        # BUT STAY ON GRID SHOULD SIMPLY HAVE LINK ID CHANGED.
+        #
+        # THEN WE NEED TO CREATE A NEW SET OF EVENTS FOR THE NEW ROW OF NODES
 
         # Find the ID of the first link above the y = 1.5 line
         nc = self.grid.number_of_node_columns
@@ -584,7 +604,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         # Define the offset in ID between a link and its neighbor one row up
         # (or down)
         shift = nc + 2 * (nc - 1)
-        
+
         # Loop from top to bottom of grid, shifting the following link data
         # upward: state of link, ID of its next transition, and time of its
         # next transition.
@@ -592,8 +612,22 @@ class LatticeUplifter(HexLatticeTectonicizer):
             link_state[lnk] = link_state[lnk - shift]
             next_trn[lnk] = next_trn[lnk - shift]
             next_update[lnk] = next_update[lnk - shift]
-            
-        # ADD EVENT QUEUE SHIFT HERE
+
+        # Sweep through event queue, shifting links upward. Do NOT shift links
+        # with IDs greater than NL - [SHIFT + (NC - 1)], because these are so
+        # close to the top of the grid that either the events would refer to
+        # non-existent links (>= NL) or would involve shifting an event onto
+        # an upper-boundary link. Note that because the event data are stored
+        # in a tuple, we have to replace the entire tuple (can't simply change
+        # the one item, because tuples are immutable)
+        first_no_shift_id = self.grid.number_of_links - (shift + (nc - 1))
+        for i in range(len(event_queue._queue)):
+            if event_queue._queue[i][2] < first_no_shift_id:
+                event_queue._queue[i] = (event_queue._queue[i][0],
+                                         event_queue._queue[i][1],
+                                         event_queue._queue[i][2] + shift)
+
+        # HANDLE NEWLY ADDED NODES IN BOTTOM ROW (CHANGE FIRST 5 #S IN DOCTEST)
 
     def uplift_interior_nodes(self, rock_state=1):
         """
