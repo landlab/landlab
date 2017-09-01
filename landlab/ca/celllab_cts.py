@@ -1807,7 +1807,7 @@ class CellLabCTSModel(object):
             lean_run = True
 
         import sys  # for debug
-        print('CL run, lean_run = ' + str(lean_run))
+#        print('CL run, lean_run = ' + str(lean_run))
         sys.stdout.flush()
 
         if _USE_CYTHON and not lean_run:
@@ -1857,7 +1857,7 @@ class CellLabCTSModel(object):
 
         elif _RUN_NEW:
             
-            print('calling run_cts_new')
+#            print('calling run_cts_new')
             sys.stdout.flush()
             # switch off the run fn: 
             #self.run_new(run_to, plot_each_transition, plotter)
@@ -1888,7 +1888,7 @@ class CellLabCTSModel(object):
                         self,
                         plot_each_transition,
                         plotter)         
-            print('done with run_cts_new')
+#            print('done with run_cts_new')
             sys.stdout.flush()
         else:
 
