@@ -167,10 +167,8 @@ class PotentialEvapotranspiration(Component):
                  solar_const=1366.67, latitude=34.,
                  elevation_of_measurement=300, adjustment_coeff=0.18,
                  lt=0., nd=365., MeanTmaxF=12., delta_d=5.,
-                 rl=130, zveg=0.3, LAI=2., zm=3.3, zh=2.3,
-                 water_density = 1000, air_density = 1.22,
-                 specific_heat_air = 1000, von_karman_const = 0.41,
-                 **kwds):
+                 rl=130, zveg=0.3, LAI=2., zm=3.3, zh=None,
+                 air_density = 1.22, **kwds):
         """
         Parameters
         ----------
@@ -203,8 +201,16 @@ class PotentialEvapotranspiration(Component):
             Number of days in year (days).
         MeanTmaxF: float, optional
             Mean annual rate of TmaxF (mm/d).
-        delta_d: float, optional
+        delta_d: float, required only for method(s): PenmanMonteith,
+        PreistlyTaylor
             Calibrated difference between max & min daily TmaxF (mm/d).
+        zm: float, required only for method(s): PenmanMonteith
+            Wind speed anemometer height (m).
+        zh: float, required only for method(s): PenmanMonteith (with
+        correction for Relative Humidity measurement elevation)
+            Relative Humidity measurement height (m).
+        rl: float, required only for method(s): PenmanMonteith
+            Stomatal resistance of a well-illuminated leaf (s/m)
         """
 
         self._method = method
@@ -227,10 +233,10 @@ class PotentialEvapotranspiration(Component):
         self._LAI = LAI   # Leaf Area Index
         self._zveg = zveg  # (m) Vegetation height
         self._rl = rl    # (sec/m) reverse of conductance
-        self._rho_w = water_density # (Kg/m^3) Density of water
+        self._rho_w = 1000. # (Kg/m^3) Density of water
         self._rho_a = air_density # (Kg/m^3) Density of Air
-        self._ca = specific_heat_air   # 
-        self._von_karman = von_karman_const  # Von Karman Constant
+        self._ca = 1000.   # (J/Kg/C) or (Ws/Kg/C) Specific heat of air
+        self._von_karman = 0.41  # Von Karman Constant
         _assert_method_is_valid(self._method)
 
         super(PotentialEvapotranspiration, self).__init__(grid, **kwds)
@@ -247,26 +253,33 @@ class PotentialEvapotranspiration(Component):
 
     def update(self, current_time=None, const_potential_evapotranspiration=12.,
                Tmin=None, Tmax=None, Tavg=None, obs_radiation=None,
-               relative_humidity=None, wind_speed=None, vapor_pressure=None,
+               relative_humidity=None, wind_speed=None,
                precipitation=None, **kwds):
         """Update fields with current conditions.
 
         Parameters
         ----------
-        current_time: float, required only for 'Cosine' method
+        current_time: float, required only for method(s): Cosine
             Current time (Years)
-        constant_potential_evapotranspiration: float, optional for
-            'Constant' method
+        constant_potential_evapotranspiration: float, required only for
+        method(s): Constant
             Constant PET value to be spatially distributed.
-        Tmin: float, required for 'Priestley Taylor' method
+        Tmin: float, required for method(s): Priestley Taylor
             Minimum temperature of the day (deg C)
-        Tmax: float, required for 'Priestley Taylor' method
+        Tmax: float, required for method(s): Priestley Taylor
             Maximum temperature of the day (deg C)
-        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
-            methods
+        Tavg: float, required for method(s): Priestley Taylor, 
+        MeasuredRadiationPT, and PenmanMonteith
             Average temperature of the day (deg C)
-        obs_radiation float, required for 'MeasuredRadiationPT' method
+        obs_radiation: float, required for method(s): MeasuredRadiationPT, and
+        PenmanMonteith
             Observed radiation (W/m^2)
+        relative_humidity: float, required for method(s): PenmanMonteith
+            Observed relative humidity (%)
+        wind_speed: float, required for method(s): PenmanMonteith
+            Observed wind speed (m/s)
+        precipitation: float, required for method(s): PenmanMonteith
+            Observed daily precipitation (mm/day)
         """
         if Tavg == None:
             Tavg = (Tmax+Tmin)/2.
@@ -297,10 +310,9 @@ class PotentialEvapotranspiration(Component):
                      np.cos((2 * np.pi) * (self._J - self._LT - self._ND / 2) /
                             self._ND)), 0.0))
         elif self._method == 'PenmanMonteith':
-            pass
-#            self._PET_value = (
-#                    self._PenmanMonteith(,
-#                                         T_avg=)
+            self._PET_value = self._PenmanMonteith(Tavg, precipitation,
+                                                   obs_radiation, wind_speed,
+                                                   relative_humidity)
 
         # Spatially distributing PET
         self._PET = (
@@ -397,10 +409,10 @@ class PotentialEvapotranspiration(Component):
 
 
     def _PenmanMonteith(self, Tavg, precip_daily, radiation_sw,
-                        wind_speed, vapor_pressure, relative_humidity):
+                        wind_speed, relative_humidity):
         zm = self._zm
         zh = self._zh
-        zd = (0.7 * self._zveg)
+        zd = (0.7 * self._zveg)  # (m) zero-plane displacement height
         z0 = (0.123 * self.__zveg)
         z0h = (0.1 * self._z0)
         kv = self._von_karman
@@ -414,11 +426,13 @@ class PotentialEvapotranspiration(Component):
         # Jan-2005 - Eqn 5, (36)
         self._delta = (4098.0 * self._es)/((237.3 + Tavg) ** 2.0)
         self._ra = ((np.log((zm - zd)/z0))**2)/(kv**2 * wind_speed)
-        self._ra2 = (((np.log((zm - zd)/z0))*(np.log((zh-zd)/z0h)))/(kv**2 *
-                     wind_speed))
+        if self._zh != None:
+            self._ra = (((np.log((zm - zd)/z0))*(np.log((zh-zd)/z0h)))/
+                         (kv**2 * wind_speed))  # Correction for RH
+            
         self._Kat = (2.158/(self._rho_w * (273.3 + Tavg)))
         # Evaporation
-        self._E = (self._Kat * (1./self._ra2) * (self._es - self._ea) *
+        self._E = (self._Kat * (1./self._ra) * (self._es - self._ea) *
                    86400. * 1000.)
         # Potential Evapotranspiration
         self._E2 = (radiation_sw/self._pwhv)
@@ -430,10 +444,10 @@ class PotentialEvapotranspiration(Component):
                                       self._radiation_lw), 0.)
         self._penman_numerator = ((self._delta * self._net_radiation) +
                                   (self._rho_a * self._ca *
-                                   (self._es - self._ea)/self._ra2))
+                                   (self._es - self._ea)/self._ra))
         self._penman_denominator = (self._pwhv * (self._delta + self._y *
                                                   (1 + (self._rl/self._LAI/2.)/
-                                                   self._ra2)))
+                                                   self._ra)))
         self._ETp = (self._penman_numerator/self._penman_denominator)
                                   
         return self._ETp
