@@ -19,11 +19,12 @@ from landlab import HexModelGrid
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and, tan,
                    cos, pi)
 import sys
+from ..cfuncs import get_next_event_new
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
 _TAN60 = 1.732
-
+_NEVER = 1.0e50  # this arbitrarily large val is also defined in ..cfuncs.pyx
 
 class HexLatticeTectonicizer(object):
     """Handles tectonics and baselevel for CellLab-CTS models.
@@ -536,9 +537,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         return new_base_nodes
         
 
-    def shift_link_and_transition_data_upward(self, link_state, next_trn,
-                                              next_update, event_queue,
-                                              link_orientation, n_node_states):
+    def shift_link_and_transition_data_upward(self, ca, current_time):
         """Applies uplift to links and transitions.
         
         For each link that lies above the y = 1.5 cells line, assign the
@@ -564,8 +563,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> ohcts.next_trn_id[mg.active_links]
         array([1, 2, 2, 1, 0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
         >>> lu = LatticeUplifter(grid=mg)
-        >>> ls = ohcts.link_state
-        >>> nt = ohcts.next_trn_id
         >>> nu = ohcts.next_update
         >>> np.round(nu[mg.active_links], 2)
         array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  1.04,  0.58,  2.22,  3.31,
@@ -573,28 +570,29 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> pq = ohcts.priority_queue
         >>> pq._queue[0][2]  # link for first event = 21, not shifted
         21
-        >>> pq._queue[1][2]  # link for queue item #1 = 7, should be shifted
-        7
         >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.07
         0.07
-        >>> lo = ohcts.link_orientation
-        >>> nns = ohcts.num_node_states
-        >>> lu.shift_link_and_transition_data_upward(ls, nt, nu, pq, lo, nns)
-        >>> np.round(nu[mg.active_links], 2)
-        array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  0.8 ,  1.26,  0.92,  0.79,
-                0.55,  1.04,  0.58,  2.22,  3.31,  0.48])
-        >>> pq._queue[0][2]  # not shifted, so stays at 21
-        21
-        >>> pq._queue[1][2]  # shifted up by 7
+        >>> pq._queue[2][2]  # this event scheduled for link 14...
         14
+        >>> round(pq._queue[2][0], 2)  # ...transition scheduled for t = 0.48
+        0.48
+        >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
+        >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
+        array([ 0.09,  0.02,  1.79,  1.51,  2.04,  0.8 ,  1.26,  0.92,  0.79,
+                0.55,  1.04,  0.58,  2.22,  3.31,  0.48])
+        >>> pq._queue[0][2]  # new soonest event
+        2
+        >>> pq._queue[1][2]  # now invalid but still in queue (will be ignored)
+        21
+        >>> pq._queue[2][2]  # was previously 14, now shifted up...
+        21
+        >>> round(pq._queue[2][0], 2)  # ...but still scheduled for t = 0.48
+        0.48
         """
 
-        # TODO: FINISH DOCTEST OF UPWARD SHIFT OF LINK PROPERTIES,
+        # TODO: DO UPWARD SHIFT OF 
+        # PROP AND PROPSWAP
         # WIRE IT INTO DO_UPLIFT,
-        # REVISIT HANDLING OF RE-SETTING OF NODE AND LINK STATES ALONG BOTTOM
-        # ROW
-        #
-        # THEN WE NEED TO CREATE A NEW SET OF EVENTS FOR THE NEW ROW OF NODES
 
         # Find the ID of the first link above the y = 1.5 line
         nc = self.grid.number_of_node_columns
@@ -608,9 +606,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         # upward: state of link, ID of its next transition, and time of its
         # next transition.
         for lnk in range(self.grid.number_of_links - 1, first_link - 1, -1):
-            link_state[lnk] = link_state[lnk - shift]
-            next_trn[lnk] = next_trn[lnk - shift]
-            next_update[lnk] = next_update[lnk - shift]
+            ca.link_state[lnk] = ca.link_state[lnk - shift]
+            ca.next_trn_id[lnk] = ca.next_trn_id[lnk - shift]
+            ca.next_update[lnk] = ca.next_update[lnk - shift]
 
         # Sweep through event queue, shifting links upward. Do NOT shift links
         # with IDs greater than NL - [SHIFT + (NC - 1)], because these are so
@@ -620,30 +618,40 @@ class LatticeUplifter(HexLatticeTectonicizer):
         # in a tuple, we have to replace the entire tuple (can't simply change
         # the one item, because tuples are immutable)
         first_no_shift_id = self.grid.number_of_links - (shift + (nc - 1))
-        for i in range(len(event_queue._queue)):
-            if event_queue._queue[i][2] < first_no_shift_id:
-                event_queue._queue[i] = (event_queue._queue[i][0],
-                                         event_queue._queue[i][1],
-                                         event_queue._queue[i][2] + shift)
+        for i in range(len(ca.priority_queue._queue)):
+            if ca.priority_queue._queue[i][2] < first_no_shift_id:
+                ca.priority_queue._queue[i] = (ca.priority_queue._queue[i][0],
+                                               ca.priority_queue._queue[i][1],
+                                               (ca.priority_queue._queue[i][2] 
+                                               + shift))
 
-        # HANDLE NEWLY ADDED NODES IN BOTTOM ROW (CHANGE FIRST 5 #S IN DOCTEST)
-        for lk in range(first_link):
+        # Update state of links along the bottom edge.
+        at_base = where(self.grid.active_links < first_link)[0]
+        for lk in self.grid.active_links[at_base]:
+
+            # Update link state
             fns = self.node_state[self.grid.node_at_link_tail[lk]]
             tns = self.node_state[self.grid.node_at_link_head[lk]]
-            orientation = link_orientation[lk]
-            link_state[lk] = (orientation * n_node_states * n_node_states
-                              + fns * n_node_states + tns)
+            orientation = ca.link_orientation[lk]
+            new_link_state = (orientation * ca.num_node_states_sq
+                              + fns * ca.num_node_states + tns)
 
-        #TODO NEXT: FINISH THIS BY SCHEDULING AN EVENT. THIS MEANS PASSING A 
-        #BUNCH OF EXTRA DATA. OR JUST PASSING IN THE CA. OR CALLING A FN INCTS
+            # Schedule a new transition, if applicable
+            ca.link_state[lk] = new_link_state
+            if ca.n_trn[new_link_state] > 0:
+                (event_time, this_trn_id) = get_next_event_new(lk,
+                                                               new_link_state, 
+                                                               current_time,
+                                                               ca.n_trn,
+                                                               ca.trn_id,
+                                                               ca.trn_rate)
+                ca.priority_queue.push(lk, event_time)
+                ca.next_update[lk] = event_time
+                ca.next_trn_id[lk] = this_trn_id
+            else:
+                ca.next_update[lk] = _NEVER
+                ca.next_trn_id[lk] = -1
 
-#    if n_xn[new_link_state] > 0:
-#        event = get_next_event(link, new_link_state, current_time, n_xn, xn_to,
-#                               xn_rate, xn_propswap, xn_prop_update_fn)
-#        heappush(event_queue, event)
-#        next_update[link] = event.time
-#    else:
-#        next_update[link] = _NEVER
 
     def uplift_interior_nodes(self, rock_state=1):
         """

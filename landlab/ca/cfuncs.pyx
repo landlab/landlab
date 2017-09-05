@@ -381,7 +381,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
 @cython.boundscheck(True)
 @cython.wraparound(False)
-cdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state, 
+cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
                    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
                    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
