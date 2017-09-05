@@ -1,4 +1,4 @@
 from .seamless import Seamless
 
 
-__all__ = ['Seamless', ]
+__all__ = ['Seamless']
