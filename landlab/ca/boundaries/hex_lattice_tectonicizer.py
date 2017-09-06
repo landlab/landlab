@@ -380,7 +380,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # Now, remember the property IDs of the nodes along the right side
             # and possibly top that are about to shift off the grid
             propids_for_incoming_nodes = self.propid[self.outgoing_node]
-            #print 'pid for new base:',propids_for_incoming_nodes
 
         # We go column-by-column, starting from the right side
         for c in range(self.grid.number_of_node_columns - 1,
@@ -482,24 +481,36 @@ class LatticeUplifter(HexLatticeTectonicizer):
         
         Examples
         --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.hex_cts import HexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {}  # node state dict
+        >>> for i in range(10):
+        ...     nsd[i] = i
+        >>> xnlist = []
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> ca = HexCTS(mg, nsd, xnlist, nsg)
+
         >>> lu = LatticeUplifter(opt_block_layer=True)
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 9, 9])
-        >>> lu.uplift_interior_nodes(rock_state=7)
+        >>> lu.uplift_interior_nodes(ca, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 9, 9])
         >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=2,
         ... block_layer_dip_angle=90.0, layer_left_x=1.0)
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 7, 9])
-        >>> lu.uplift_interior_nodes(rock_state=7)
+        >>> lu.uplift_interior_nodes(ca, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
         >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=1,
         ... block_layer_dip_angle=45.0, y0_top=-1.0)
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 7, 9])
-        >>> lu.uplift_interior_nodes(rock_state=7)
+        >>> lu.uplift_interior_nodes(ca, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
         """
@@ -590,14 +601,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
         0.48
         """
 
-        # TODO: DO UPWARD SHIFT OF 
-        # PROP AND PROPSWAP
-        # WIRE IT INTO DO_UPLIFT,
-
         # Find the ID of the first link above the y = 1.5 line
         nc = self.grid.number_of_node_columns
         first_link = nc + 2 * (nc - 1) + (nc - 1) // 2
-        
+
         # Define the offset in ID between a link and its neighbor one row up
         # (or down)
         shift = nc + 2 * (nc - 1)
@@ -653,15 +660,26 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 ca.next_trn_id[lk] = -1
 
 
-    def uplift_interior_nodes(self, rock_state=1):
+    def uplift_interior_nodes(self, ca, rock_state=1, current_time=0.0):
         """
         Simulate 'vertical' displacement by shifting contents of node_state
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.hex_cts import HexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {}
+        >>> for i in range(26):
+        ...     nsd[i] = i
+        >>> xnlist = []
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> ca = HexCTS(mg, nsd, xnlist, nsg)
         >>> lu = LatticeUplifter()
         >>> lu.node_state[:] = arange(len(lu.node_state))
-        >>> lu.uplift_interior_nodes(rock_state=25)
+        >>> lu.uplift_interior_nodes(ca, rock_state=25)
         >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
         array([ 0, 25,  2, 25, 25,
                 5,  1,  7,  3,  4,
@@ -669,8 +687,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
         """
-#        print('UIN here')
-#        sys.stdout.flush()
+
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
         for r in range(self.nr - 1, 0, -1):
@@ -680,19 +697,13 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Fill the bottom rows with "fresh material" (code = rock_state), or
         # if using a block layer, with the right pattern of states.
-#        print('fill bot rows')
-        sys.stdout.flush()
         if self.opt_block_layer:
             new_base_nodes = self._get_new_base_nodes(rock_state)
             self.cum_uplift += 1.0
             self.y0_top += 1.0
-#            print('back from gnbn with cum uplift = ' + str(self.cum_uplift))
-#            sys.stdout.flush()
         else:
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
-#        print(self.node_state)
-        sys.stdout.flush()
 
         # Shift the node states up by two rows: two because the grid is
         # staggered, and we don't want any horizontal offset.
@@ -706,11 +717,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 self.propid[self.inner_base_row_nodes+self.nc*r] =  \
                             self.propid[self.inner_base_row_nodes+self.nc*(r-2)]
             self.propid[self.inner_base_row_nodes] = top_row_propid
-            self.prop_data[self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
+            self.prop_data[self.propid[self.inner_base_row_nodes]] = \
+                    self.prop_reset_value
 
-#        print('done with uin')
-#        print(self.node_state)
-#        sys.stdout.flush()
+        self.shift_link_and_transition_data_upward(ca, current_time)
 
 
 if __name__=='__main__':
