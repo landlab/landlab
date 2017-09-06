@@ -11,6 +11,7 @@ from numpy import zeros, bincount, arange, savetxt, sqrt, log10, mean, arctan, p
 from landlab.io.native_landlab import save_grid
 from landlab.ca.celllab_cts import Transition, CAPlotter
 from matplotlib.pyplot import axis
+import sys
 
 
 class CTSModel(object):
@@ -36,7 +37,8 @@ class CTSModel(object):
                  show_plots=False, cts_type='oriented_hex', 
                  run_duration=1.0, output_interval=1.0e99,
                  plot_every_transition=False, **kwds):
-        
+        #print('CTS initlz')
+        #print(kwds)
         # Remember the clock time, and calculate when we next want to report
         # progress.
         self.current_real_time = time.time()
@@ -80,6 +82,8 @@ class CTSModel(object):
         # Initialize graphics
         self._show_plots = show_plots
         if show_plots == True:
+            #print('CTS init plot')
+            #print(kwds)
             self.initialize_plotting(**kwds)
 
 
@@ -150,7 +154,13 @@ class CTSModel(object):
 
     def run_for(self, dt):
 
+        print('calling ca.run from cts_model')
+        sys.stdout.flush()
+
         self.ca.run(self.ca.current_time + dt, self.ca.node_state)
+
+        print('done ca.run from cts_model')
+        sys.stdout.flush()
 
 
 if __name__ == '__main__':

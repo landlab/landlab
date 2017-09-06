@@ -27,7 +27,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_INT8 = np.int8
 ctypedef np.int8_t DTYPE_INT8_t
 
-cdef char _DEBUG = 1
+cdef char _DEBUG = 0
 
 
 cdef class PriorityQueue:
@@ -425,13 +425,10 @@ cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
     cdef double next_time, this_next
     cdef Event my_event
 
-    #print('GNE C link ' + str(link) + ' state ' + str(current_state))
-
     # Find next event time for each potential transition
     if n_trn[current_state] == 1:
         this_trn_id = trn_id[current_state, 0]
         next_time = np.random.exponential(1.0 / trn_rate[this_trn_id])
-        #print(' gne 1 trn, next = ' + str(next_time) + ' id=' + str(this_trn_id))
     else:
         next_time = _NEVER
         this_trn_id = -1
@@ -440,7 +437,6 @@ cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
             if this_next < next_time:
                 next_time = this_next
                 this_trn_id = trn_id[current_state, i]
-        #print(' gne >1 trn, next = ' + str(next_time) + ' id=' + str(this_trn_id))
 
     return (next_time + current_time, this_trn_id)
 
@@ -589,11 +585,9 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         priority_queue.push(link, event_time)
         next_update[link] = event_time
         next_trn_id[link] = this_trn_id
-        print((' sched for', event_time, this_trn_id))
     else:
         next_update[link] = _NEVER
         next_trn_id[link] = -1
-        print((' NO sched'))
 
 @cython.boundscheck(True)
 @cython.wraparound(False)
@@ -990,16 +984,10 @@ cpdef double run_cts_new(double run_to, double current_time,
     (see celllab_cts.py for other parameters)
     """
     import sys
-    print('run_cts_new here')
-    print(current_time)
-    print(run_to)
-    print(len(priority_queue._queue))
-    print(node_state)
-    sys.stdout.flush()
     cdef double ev_time
     cdef int ev_idx
     cdef int ev_link
-    
+
     # Continue until we've run out of either time or events
     while current_time < run_to and priority_queue._queue:
 
