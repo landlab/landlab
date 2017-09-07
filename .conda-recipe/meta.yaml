@@ -20,6 +20,7 @@ requirements:
     - six
     - pyyaml
     - setuptools
+    - statsmodels
     - jpeg <=8 # [osx and np==111]
 
   run:
@@ -37,6 +38,7 @@ requirements:
     - pyyaml
     - setuptools
     - xarray
+    - statsmodels
     - jpeg <=8 # [osx and np==111]
 
 build:
