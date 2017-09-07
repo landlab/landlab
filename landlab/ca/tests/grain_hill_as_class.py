@@ -42,8 +42,6 @@ class GrainHill(CTSModel):
                    friction_coef, rock_state_for_uplift, opt_rock_collapse,
                    show_plots, **kwds):
         """Initialize the grain hill model."""
-#        print('GH initlz')
-#        print(kwds)
         self.settling_rate = settling_rate
         self.disturbance_rate = disturbance_rate
         self.weathering_rate = weathering_rate
@@ -70,12 +68,6 @@ class GrainHill(CTSModel):
         self.uplifter = LatticeUplifter(self.grid, 
                                         self.grid.at_node['node_state'])
                                         
-#        print '*** GRAIN HILL HAS THIS MANY TRANSITIONS: ***'
-#        print 'trn_id:', self.ca.trn_id.shape
-#        print 'trn_to:', self.ca.trn_to.shape
-#        print 'trn_rate:', self.ca.trn_rate.shape
-#        print 'nls:', self.ca.num_link_states
-
     def node_state_dictionary(self):
         """
         Create and return dict of node states.
@@ -146,12 +138,6 @@ class GrainHill(CTSModel):
                 xn_list.append( Transition((0,8,0), (4,0,0), collapse_rate,
                                            'rock collapse'))
 
-        if _DEBUG:
-            print
-            print 'setup_transition_list(): list has',len(xn_list),'transitions:'
-            for t in xn_list:
-                print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
-            
         return xn_list
 
     def initialize_node_state_grid(self):
@@ -206,8 +192,7 @@ class GrainHill(CTSModel):
         current_time = 0.0
         output_iteration = 1
         while current_time < self.run_duration:
-#            print('GH loop top')
-            sys.stdout.flush()
+
             # Figure out what time to run to this iteration
             next_pause = min(next_output, next_plot)
             next_pause = min(next_pause, next_uplift)
@@ -222,12 +207,7 @@ class GrainHill(CTSModel):
                 next_report = current_real_time + self.report_interval
     
             # Run the model forward in time until the next output step
-#            print('GH Running to...' + str(next_pause))
-            sys.stdout.flush()
             self.ca.run(next_pause, self.ca.node_state) 
-#            print('GH back from run')
-            sys.stdout.flush()
-                   #plot_each_transition=pet, plotter=self.ca_plotter)
             current_time = next_pause
 
             # Handle output to file
@@ -237,27 +217,16 @@ class GrainHill(CTSModel):
                 next_output += self.output_interval
 
             # Handle plotting on display
-#            print('GH plotting...')
-            sys.stdout.flush()
             if self._show_plots and current_time >= next_plot:
-                #node_state_grid[hmg.number_of_node_rows-1] = 8
                 self.ca_plotter.update_plot()
                 axis('off')
                 next_plot += self.plot_interval
-#            print('GH done plotting')
-            sys.stdout.flush()
 
             # Handle uplift
             if current_time >= next_uplift:
-#                print('GH handing uplift...')
-                sys.stdout.flush()
                 self.uplifter.uplift_interior_nodes(self.ca, rock_state=self.rock_state)
                 if _RUN_NEW:
-#                    print('GH calling ca ulstn')
-                    sys.stdout.flush()
                     self.ca.update_link_states_and_transitions_new(current_time)
-#                    print('GH done ca ulstn')
-                    sys.stdout.flush()
                 else:
                     self.ca.update_link_states_and_transitions(current_time)
                 next_uplift += self.uplift_interval
