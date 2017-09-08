@@ -174,7 +174,7 @@ class TransportLengthHillslopeDiffuser(Component):
             if self.steepest[i] >= self.slope_crit:
                 self.L[i] = 1000000000.   # 'Infinite' length, for stability
             else:
-                self.L[i] = (self.grid.dx)/(1-(np.power(((self.steepest[i])/self.slope_crit), 2)))
+                self.L[i] = 1/(1-(np.power(((self.steepest[i])/self.slope_crit), 2)))
 
         # Calculate deposition on node
         self.depo[cores] = self.flux_in[cores] / self.L[cores]
@@ -182,11 +182,11 @@ class TransportLengthHillslopeDiffuser(Component):
             # Calculate erosion on node (positive value)
         for i in self.grid.core_nodes:
             if self.steepest[i] > self.slope_crit:
-                self.erosion[i] = (self.steepest[i] - self.slope_crit) * np.power(dx, 3)
-                self.elev[i] += -self.erosion[i] + (self.depo[i] * dt)
+                self.erosion[i] = (self.steepest[i] - self.slope_crit) / 100 * np.power(dx, 3)
+                self.elev[i] += -self.erosion[i] + self.depo[i]
             else:
-                self.erosion[i] = self.k * self.steepest[i]
-                self.elev[i] += (-self.erosion[i] + self.depo[i]) * dt
+                self.erosion[i] = self.k * self.steepest[i] * dt
+                self.elev[i] += (-self.erosion[i] + self.depo[i])
 
         # Calculate transfer over node
         self.trans[cores] = self.flux_in[cores] - self.depo[cores]
