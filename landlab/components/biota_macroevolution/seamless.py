@@ -7,10 +7,10 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
 from pprint import pprint
-from species import Species
+from .species import Species
 
 
-class Seamless(object):
+class CladeDiversifier(object):
     """TODO: Description.
     """
     
@@ -124,12 +124,14 @@ class Seamless(object):
                     species.record_timestep(self.timestep, timestep_regions)
                 
         for species in new_species:
-            self.add_species(species)
+            self.species.append(species)
         
     # Species methods
     
-    def add_species(self, species):
+    def add_new_species(self, timestep, regions, parent_species_id=-1):
+        species = Species(timestep, regions, parent_species_id=-1)
         self.species.append(species)
+        return species
         
     def remove_species_from_region(self, timestep, species, region):
         updated_regions = deepcopy(species.phylogeny[timestep - 1]['regions'])

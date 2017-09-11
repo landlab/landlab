@@ -32,7 +32,7 @@ from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
-from .seamless import Seamless
+from .biota_macroevolution import CladeDiversifier
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
@@ -50,6 +50,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               CubicNonLinearDiffuser, DepthSlopeProductErosion,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
-              LandslideProbability, DepthDependentCubicDiffuser, Seamless]
+              LandslideProbability, DepthDependentCubicDiffuser,
+              CladeDiversifier]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
