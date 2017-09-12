@@ -1,8 +1,11 @@
 """TODO: Description.
+
+Component written by Nathan Lyons beginning August 20, 2017.
 """
 
 from copy import deepcopy
 from itertools import groupby
+from landlab import Component, FieldError
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,34 +13,80 @@ from pprint import pprint
 from .species import Species
 
 
-class CladeDiversifier(object):
+class CladeDiversifier(Component):
     """TODO: Description.
+    
+    SEAMLESS (Spatially Explicit Area Model of Landscape Evolution by SimulationS)
+    
+    The primary method of this class is :func:`run_one_step`.
+    
+    Construction:
+
+        CladeDiversifier(grid, minimum_capture_area=0,
+                         extinction_area_threshold=0)
+        
+    Parameters
+    ----------
+    grid : ModelGrid
+        A grid.
+    minimum_capture_area : float
+        The minumum area that a region capture is recognized
+    extinction_area_threshold : float
+        The species in regions below this value will become extinct
     """
     
-    def __init__(self, grid, region_field, minimum_capture_area=0,
-                 extinction_area_threshold=0):
-        """Initialize Seamless.
+    _name = 'CladeDiversifier'
+
+    _input_var_names = ('region__id')
+
+    _output_var_names = ()
+
+    _var_units = {}
+
+    _var_mapping = {'region__id': 'node'}
+
+    _var_doc = {
+        'region__id': 'the identifier of the region'
+    }
+    
+    def __init__(self, grid, minimum_capture_area=0,
+                 extinction_area_threshold=0, **kwds):
+        """Initialize the CladeDiversifier.
+    
+        Parameters
+        ----------
+        grid : ModelGrid
+            Landlab ModelGrid object
+        minimum_capture_area : float, optional (defaults to 0 m^2)
+            The minumum area that a region capture is recognized
+        extinction_area_threshold : float, optional (defaults to 0 m^2)
+            The species in regions below this value will become extinct
         """
         
         # Store grid and set parameters.
         self._grid = grid
-        self._grid_of_previous_timestep = deepcopy(grid)
-        self._region_field = region_field
         self._minimum_capture_area = minimum_capture_area
         self._extinction_area_threshold = extinction_area_threshold
         self.timestep = -1
         self.time = {}
         self.species = []
+        
+        # Create fields.
+        if 'region__id' in grid.at_node:
+            self.grab_region_snapshot()
+        else:
+            raise FieldError(
+                "A 'region__id' field is required as a component input.")
             
     @property
     def region_ids(self):
-        """Get the region ids of current previouse timestep."""
-        return self._unique(self._grid.at_node[self._region_field])
+        """Get the region ids of the current timestep."""
+        return self._unique(self._grid.at_node['region__id'])
     
     @property
-    def previous_region_ids(self):
-        """Get the region ids of the previouse timestep."""
-        return self._unique(self._grid.at_node['region_at_previous_timestep'])
+    def prior_region_ids(self):
+        """Get the region ids of the prior timestep."""
+        return self._unique(self._prior_region)
     
     @property
     def species_ids(self):
@@ -47,46 +96,52 @@ class CladeDiversifier(object):
             ids.append(species.identifier)
         return ids
     
-    def run_one_step(self, time):
-                
+    def run_one_step(self, current_time):
+        """Evalute region for captures and adjust species for the time,
+        'current_time'.
+        """
+        mg = self._grid
+        
         self.timestep += 1
-        self.time[self.timestep] = time
+        self.time[self.timestep] = current_time
         
         # Update regions.
         
         reg_update = {}
-        nodes_above_area_threshold = (self._grid.at_node['drainage_area'] >= 
+        nodes_above_area_threshold = (mg.at_node['drainage_area'] >= 
                                       self._minimum_capture_area)
 
-        for region_id in self.region_ids: 
+        for reg_id in self.region_ids: 
             
-            region_grid = self._grid.at_node[self._region_field] == region_id
+            reg_mg = mg.at_node['region__id'] == reg_id
 
-            reg_update[region_id] = {}
+            reg_update[reg_id] = {}
             
             # Mark region for extinction if area is below extinction parameter.
-            A = self._grid.at_node['drainage_area'][region_grid]
-            reg_update[region_id]['extinction'] = (max(A) < self._extinction_area_threshold)
+            A = mg.at_node['drainage_area'][reg_mg]
+            A_extinct_thresh = self._extinction_area_threshold
+            reg_update[reg_id]['extinction'] = max(A) < A_extinct_thresh
 
-            for previous_region_id in self.previous_region_ids:
-                if previous_region_id not in reg_update.keys():
-                    reg_update[previous_region_id] = {}
-                reg_update[previous_region_id].setdefault('parent_region_ids', [])
+            for prior_reg_id in self.prior_region_ids:
+                if prior_reg_id not in reg_update.keys():
+                    reg_update[prior_reg_id] = {}
+                reg_update[prior_reg_id].setdefault('parent_region_ids', [])
                 
                 # Skip loop if comparing the same region.
-                if previous_region_id == region_id:
+                if prior_reg_id == reg_id:
                     continue
                 
                 # Identify nodes intersecting regions and those above the
                 # drainage area threshold.
-                previous_grid = self._grid.at_node['region_at_previous_timestep'] == previous_region_id
-                intersecting_nodes = np.all([previous_grid, region_grid,
+                prior_reg_mg = self._prior_region == prior_reg_id
+                intersecting_nodes = np.all([prior_reg_mg, reg_mg,
                                              nodes_above_area_threshold], 0)
                 
                 regions_intersected = any(intersecting_nodes)
                 
                 if regions_intersected:                    
-                    reg_update[previous_region_id]['parent_region_ids'].append(region_id)
+                    print(33333,reg_id)
+                    reg_update[prior_reg_id]['parent_region_ids'].append(reg_id)
 
         self.grab_region_snapshot()
         
@@ -100,25 +155,29 @@ class CladeDiversifier(object):
             prior_timestep = 0
         else:
             prior_timestep = self.timestep - 1
-        
+        print(0,prior_timestep)
         for species in self.species:
             if prior_timestep in species.phylogeny.keys():
+                print(1,species.phylogeny.keys())
                 species_regions = species.phylogeny[prior_timestep]['regions']
                 timestep_regions = []
                 
                 for region in species_regions:
+                    print(2,region)
                     parent_regions = reg_update[region]['parent_region_ids']
 
-                    # Reassign region to species or add ew species based upon
+                    # Reassign region to species or add new species based upon
                     # region history.
-                    if reg_update[region_id]['extinction']:
+                    if reg_update[reg_id]['extinction']:
                         continue
                     elif len(parent_regions) == 0:
                         timestep_regions.append(region)
                     else:
                         for pr in parent_regions:
-                            new_species.append(Species(self.timestep, [pr], species.identifier))
-                            new_species.append(Species(self.timestep, [region], species.identifier))
+                            new_species.append(Species(self.timestep, [pr],
+                                                       species.identifier))
+                            new_species.append(Species(self.timestep, [region],
+                                                       species.identifier))
                     
                 if len(timestep_regions) > 0:
                     species.record_timestep(self.timestep, timestep_regions)
@@ -144,13 +203,13 @@ class CladeDiversifier(object):
         species = self.species_at_nodes(self.regions, nodes)
         return species
     
-    def species_at_nodes_at_previous_timestep(self, nodes):
-        species = self.species_at_nodes(self.regions_of_previous_timestep, nodes)
+    def species_at_nodes_at_prior_timestep(self, nodes):
+        species = self.species_at_nodes(self.prior_region_ids, nodes)
         return species
         
     def species_at_nodes(self, regions, nodes):
         species = []
-        for region in self.previous_region_ids:
+        for region in self.prior_region_ids:
             if any(region.mask[0][nodes]):
                 species.append(region.species)
         return species    
@@ -166,16 +225,47 @@ class CladeDiversifier(object):
     def species_with_id(self, identifier):
         return self._object_with_identifier(self.species, identifier)
     
+    def get_tree(self):
+        
+        tree = {}
+        
+        steps = list(reversed(list(self.time.keys())))
+
+        for step in steps:
+            time = self.time[step]            
+
+            # Get species that existed in step.
+            tree[time] = {}
+            step_species = []
+            for species in self.species:
+                if step in species.phylogeny.keys():
+                    step_species.append(species)      
+                    
+            # Group species by parent.
+            groups = groupby(step_species, lambda x: x.parent_species_id)
+            for parent_id, group in groups:             
+                
+                group_species = [species for species in group]
+                tree[time][parent_id] = group_species
+                
+        return tree
+    
+    # Print methods.
+    
     def print_phylogeny(self):
         for species in self.species:
+            print('\n')
             print(species.identifier)
             pprint(species.phylogeny)
+            
+    def print_tree(self):
+        tree = self.get_tree()
+        pprint(tree)
     
     # Region methods.
     
     def grab_region_snapshot(self):
-        region_array = self._grid.at_node[self._region_field]
-        self._grid.at_node['region_at_previous_timestep'] = deepcopy(region_array)
+        self._prior_region = deepcopy(self._grid.at_node['region__id'])
     
     # Plotting methods.
         
@@ -198,31 +288,10 @@ class CladeDiversifier(object):
         
         plt.xlabel('Timestep')
         plt.ylabel('Number of species')
-        
-    def create_tree(self):
-        
-        self.tree = {}
-        
-        steps = list(reversed(list(self.time.keys())))
-
-        for step in steps:
-            time = self.time[step]            
-
-            # Get species that existed in step.
-            self.tree[time] = {}
-            step_species = []
-            for species in self.species:
-                if step in species.phylogeny.keys():
-                    step_species.append(species)      
-                    
-            # Group species by parent.
-            groups = groupby(step_species, lambda x: x.parent_species_id)
-            for parent_id, group in groups:             
-                
-                group_species = [species for species in group]
-                self.tree[time][parent_id] = group_species
-    
+          
     def plot_tree(self, x_multiplier=0.001):
+        
+        tree = self.get_tree()
         
         # Prepare figure.
         plt.figure('Phylogeny', facecolor='white')
@@ -231,30 +300,29 @@ class CladeDiversifier(object):
         y_interval = 1
        
         species_position = {}
-        times = list(self.tree.keys())
+        times = list(tree.keys())
         
         # Construct tree beginning at last time.
         for i,time in enumerate(times):
-            step_tree = self.tree[time]
                         
             if time == max(times):
-                previous_time = time
+                prior_time = time
                 next_time = times[i + 1]
             elif time == min(times):
-                previous_time = times[i - 1]
+                prior_time = times[i - 1]
                 next_time = time
             else:
-                previous_time = times[i - 1]
+                prior_time = times[i - 1]
                 next_time = times[i + 1]
 
-            x_max = (time + (previous_time - time) * 0.5) * x_multiplier
+            x_max = (time + (prior_time - time) * 0.5) * x_multiplier
             x_mid = time * x_multiplier
             x_min = (time - (time - next_time) * 0.5) * x_multiplier
 
             y = y_interval
             y_initial = y_interval
                   
-            for parent_id, species_list in step_tree.items():
+            for parent_id, species_list in tree[time].items():
                 group_only = False
                 
                 y_min = deepcopy(y)
@@ -269,8 +337,8 @@ class CladeDiversifier(object):
                     
                     y = species_position[species.identifier]
                     
-                    existed_previous_step = (len(times) - i - 2) in species.phylogeny.keys()
-                    if existed_previous_step:
+                    existed_prior_step = (len(times) - i - 2) in species.phylogeny.keys()
+                    if existed_prior_step:
                         # Draw line when a species continues across timesteps.
                         plt.plot([x_max, x_min], [y, y], 'k')
                         y_min += y_interval * 0.5
@@ -297,7 +365,7 @@ class CladeDiversifier(object):
                     plt.plot([x_mid, x_min], [y_mid, y_mid], 'r')
         
         # Format figure.
-        plt.xlim(xmin=0)
+        plt.xlim(xmin=0, xmax=max(times) * x_multiplier)
         plt.ylim(ymin=y_interval * 0.5)
         ax.get_xaxis().tick_bottom()
         ax.axes.get_yaxis().set_visible(False)

@@ -15,19 +15,15 @@ class Species(object):
         self.record_timestep(timestep, regions)
         
         self.parent_species_id = parent_species_id
-        
+    
+    @property
+    def phylogeny_timesteps(self):
+        """Get the timesteps when the species existed."""
+        return self.phylogeny.keys()
+    
     def record_timestep(self, timestep, regions):
         self.phylogeny[timestep] = {'regions': regions}
-    
-    def increment_timestep(self, timestep):
-        if timestep < 1:
-            previous_timestep = 0
-        else:
-            previous_timestep = timestep - 1
-            
-        if previous_timestep in self.phylogeny.keys():
-            self.record_timestep(timestep,
-                                 self.phylogeny[previous_timestep]['regions'])
         
     def exists_at_timestep(self, timestep):
         return timestep in self.phylogeny.keys()
+    
