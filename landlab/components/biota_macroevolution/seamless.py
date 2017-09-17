@@ -41,7 +41,7 @@ class CladeDiversifier(Component):
 
     _output_var_names = ()
 
-    _var_units = {}
+    _var_units = {'region__id': '-'}
 
     _var_mapping = {'region__id': 'node'}
 
@@ -75,8 +75,10 @@ class CladeDiversifier(Component):
         if 'region__id' in grid.at_node:
             self.grab_region_snapshot()
         else:
-            raise FieldError(
-                "A 'region__id' field is required as a component input.")
+            self._grid.add_zeros('node', 'region__id')
+            self._grid.at_node['region__id'][:] = -1
+#            raise FieldError(
+#                "A 'region__id' field is required as a component input.")
             
     @property
     def region_ids(self):
@@ -303,7 +305,7 @@ class CladeDiversifier(Component):
         times = list(tree.keys())
         
         # Construct tree beginning at last time.
-        for i,time in enumerate(times):
+        for i, time in enumerate(times):
                         
             if time == max(times):
                 prior_time = time
@@ -319,8 +321,8 @@ class CladeDiversifier(Component):
             x_mid = time * x_multiplier
             x_min = (time - (time - next_time) * 0.5) * x_multiplier
 
-            y = y_interval
-            y_initial = y_interval
+            y = 0
+            y_initial = 0
                   
             for parent_id, species_list in tree[time].items():
                 group_only = False
