@@ -31,3 +31,4 @@ def test_get_watershed_array():
     # Given the watershed boundary conditions, the number of watershed ids
     # should be equal to the number of core nodes plus 1 for the outlet node.
     np.testing.assert_equal(len(ws_ids), grid.number_of_core_nodes + 1)
+    

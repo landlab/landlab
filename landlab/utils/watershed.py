@@ -32,12 +32,12 @@ def get_watershed_array(grid, outlet_id):
     >>> from landlab.utils.watershed import get_watershed_ids
     
     >>> rmg = RasterModelGrid((5, 5), 1)
-    >>> rmg.at_node['topographic__elevation'] = np.array([
-            -9999., -9999., -9999., -9999., -9999.,
-            -9999.,    28.,     1.,    28., -9999.,
-            -9999.,    30.,     5.,    30., -9999.,
-            -9999.,    34.,    32.,    34., -9999.,
-            -9999., -9999., -9999., -9999., -9999.])
+    >>> z = np.array([-9999., -9999., -9999., -9999., -9999.,
+    ...               -9999.,    28.,     1.,    28., -9999.,
+    ...               -9999.,    30.,     5.,    30., -9999.,
+    ...               -9999.,    34.,    32.,    34., -9999.,
+    ...               -9999., -9999., -9999., -9999., -9999.])
+    >>> rmg.at_node['topographic__elevation'] = z
     
     Only the bottom boundary is set to open.
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
@@ -48,12 +48,9 @@ def get_watershed_array(grid, outlet_id):
     >>> fr.run_one_step()
     
     >>> get_watershed_array(rmg, 2)
-    np.array([
-            False, False,  True, False, False,
-            False, False,  True, False, False,
-            False,  True,  True,  True, False,
-            False,  True,  True,  True, False,
-            False, False, False, False, False])
+    array([False, False,  True, False, False, False, False,  True, False,
+           False, False,  True,  True,  True, False, False,  True,  True,
+            True, False, False, False, False, False, False], dtype=bool)
     """
     if 'flow__receiver_node' not in grid.at_node:
         raise FieldError("This method requires a 'flow__receiver_node' "
@@ -115,17 +112,17 @@ def get_watershed_ids(grid, outlet_id):
 
     >>> rmg = RasterModelGrid((7, 7), 1)
     >>> z = np.array([
-            -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-            -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-            -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-            -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-            -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-            -9999.,    34.,    32.,    38.,    36.,    40., -9999.,
-            -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
+    ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
+    ...     -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
+    ...     -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
+    ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
+    ...     -9999.,    34.,    32.,    38.,    36.,    40., -9999.,
+    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
     
     >>> rmg.at_node['topographic__elevation'] = z
     >>> rmg.set_watershed_boundary_condition_outlet_id(2, z,
-                                                       nodata_value=-9999.)
+    ...                                                nodata_value=-9999.)
      
     Route flow.
     >>> fr = FlowRouter(rmg)
