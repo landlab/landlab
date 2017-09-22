@@ -99,7 +99,7 @@ def get_watershed_ids(grid, outlet_id):
     
     Returns
     --------
-    watershed_ids : integer ndarray
+    watershed_ids : integer list
         The ids of the nodes that flow to the node with the id, outlet_id.
         
     Examples
@@ -139,9 +139,9 @@ def get_watershed_ids(grid, outlet_id):
     
     The tributary recieves flow only from a portion of the grid nodes.
     >>> tributary_watershed_ids
-    array([12, 18, 19, 24, 25, 26, 31, 32, 33, 39, 40])
+    [12, 18, 19, 24, 25, 26, 31, 32, 33, 39, 40]
     """
     ws_array = get_watershed_array(grid, outlet_id)
     ws_ids = np.where(ws_array)[0]
     
-    return ws_ids
+    return list(ws_ids)
