@@ -63,7 +63,7 @@ def test_4x7_grid_vs_analytical_solution():
     assert_array_equal(np.round(mg.at_node['soil__depth'][8:13], 2), 
                        np.array([0.35, 0.35, 0.35, 0.35, 0.35]))
     
-def test_raise_error():
+def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
     soilTh = mg.add_zeros('node', 'soil__depth')
     z = mg.add_zeros('node', 'topographic__elevation')
@@ -75,6 +75,17 @@ def test_raise_error():
     DDdiff = DepthDependentCubicDiffuser(mg)
     expweath.calc_soil_prod_rate()
     assert_raises(RuntimeError, DDdiff.soilflux, 10, if_unstable='raise')
+
+def test_raise_kwargs_error():
+    mg = RasterModelGrid((5, 5))
+    soilTh = mg.add_zeros('node', 'soil__depth')
+    z = mg.add_zeros('node', 'topographic__elevation')
+    BRz = mg.add_zeros('node', 'bedrock__elevation')
+    z += mg.node_x.copy()**2
+    BRz = z.copy() - 1.0
+    soilTh[:] = z - BRz
+    expweath = ExponentialWeatherer(mg)
+    assert_raises(TypeError, DepthDependentCubicDiffuser, mg, diffusivity=1)
 
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))
