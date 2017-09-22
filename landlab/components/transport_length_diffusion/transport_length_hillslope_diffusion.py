@@ -53,10 +53,10 @@ class TransportLengthHillslopeDiffuser(Component):
     >>> mg = RasterModelGrid((5, 5), 1.)
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> z = np.array([0., 0., 0., 0., 0.,
-                      0., 1., 1., 1., 0.,
-                      0., 1., 1., 1., 0.,
-                      0., 1., 1., 1., 0.,
-                      0., 0., 0., 0., 0.])
+    ...               0., 1., 1., 1., 0.,
+    ...               0., 1., 1., 1., 0.,
+    ...               0., 1., 1., 1., 0.,
+    ...               0., 0., 0., 0., 0.])
     >>> _ = mg.add_field('node', 'topographic__elevation', z)
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
