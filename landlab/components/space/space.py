@@ -348,6 +348,9 @@ class Space(Component):
         elif solver == 'adaptive':
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self.time_to_flat = np.zeros(grid.number_of_nodes)
+            if self.phi >= 1.0:
+                raise ValueError('Porosity phi must be < 1.0')
+            self.porosity_factor = 1.0 / (1.0 - self.phi)
         else:
             raise ValueError("Parameter 'solver' must be one of: "
                              + "'basic', 'adaptive'")
@@ -656,7 +659,7 @@ class Space(Component):
         >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorSteepest')
         >>> fa.run_one_step()
         >>> sp = Space(rg, K_sed=1.0, K_br=0.1,\
-                       F_f=0.5, phi=0.1, H_star=1., v_s=1.0,\
+                       F_f=0.5, phi=0.0, H_star=1., v_s=1.0,\
                        m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
                        sp_crit_br=0, method='simple_stream_power',\
                        discharge_method='area_field',\
@@ -745,7 +748,7 @@ class Space(Component):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self.depo_rate - self.Es
+            dHdt = self.porosity_factor * (self.depo_rate - self.Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = - (TIME_STEP_FACTOR
                                                   * H[decreasing_H]
