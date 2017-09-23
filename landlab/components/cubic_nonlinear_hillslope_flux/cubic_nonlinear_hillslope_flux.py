@@ -40,7 +40,7 @@ class CubicNonLinearDiffuser(Component):
     >>> z[:] = leftmost_elev
     >>> z[:] += (initial_slope * np.amax(mg.x_of_node)) - (initial_slope * mg.x_of_node)
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    >>> cubicflux = CubicNonLinearDiffuser(mg, soil_transport_coefficient=0.5, slope_crit=0.1)
+    >>> cubicflux = CubicNonLinearDiffuser(mg, slope_crit=0.1)
     >>> cubicflux.run_one_step(1.)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'],
@@ -146,8 +146,7 @@ class CubicNonLinearDiffuser(Component):
                 'flux of soil in direction of link', 
     }
 
-    def __init__(self, grid, linear_diffusivity=1., slope_crit=1.,
-                 **kwds):
+    def __init__(self, grid, linear_diffusivity=1., slope_crit=1.):
         
         """Initialize CubicNonLinearDiffuser.
         """
