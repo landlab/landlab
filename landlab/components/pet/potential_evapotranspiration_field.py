@@ -2,10 +2,11 @@
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import numpy as np
+import math
 
 
 _VALID_METHODS = set(['Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
-                      'Cosine'])
+                      'Cosine', 'PenmanMonteith'])
 
 
 def _assert_method_is_valid(method):
@@ -68,6 +69,13 @@ class PotentialEvapotranspiration(Component):
         Mean annual rate of TmaxF (mm/d).
     delta_d: float, optional
         Calibrated difference between max & min daily TmaxF (mm/d).
+    zm: float, required only for method(s): PenmanMonteith
+        Wind speed anemometer height (m).
+    zh: float, required only for method(s): PenmanMonteith (with
+    correction for Relative Humidity measurement elevation)
+        Relative Humidity measurement height (m).
+    rl: float, required only for method(s): PenmanMonteith
+        Stomatal resistance of a well-illuminated leaf (s/m)
 
     Examples
     --------
@@ -201,8 +209,7 @@ class PotentialEvapotranspiration(Component):
             Number of days in year (days).
         MeanTmaxF: float, optional
             Mean annual rate of TmaxF (mm/d).
-        delta_d: float, required only for method(s): PenmanMonteith,
-        PreistlyTaylor
+        delta_d: float, required only for method(s): Cosine
             Calibrated difference between max & min daily TmaxF (mm/d).
         zm: float, required only for method(s): PenmanMonteith
             Wind speed anemometer height (m).
@@ -313,6 +320,10 @@ class PotentialEvapotranspiration(Component):
             self._PET_value = self._PenmanMonteith(Tavg, precipitation,
                                                    obs_radiation, wind_speed,
                                                    relative_humidity)
+            if math.isnan(self._PET_value):
+                self._PET_value = 0.
+            if self._PET_value < 0.:
+                self._PET_value = 0.
 
         # Spatially distributing PET
         self._PET = (
@@ -413,8 +424,8 @@ class PotentialEvapotranspiration(Component):
         zm = self._zm
         zh = self._zh
         zd = (0.7 * self._zveg)  # (m) zero-plane displacement height
-        z0 = (0.123 * self.__zveg)
-        z0h = (0.1 * self._z0)
+        z0 = (0.123 * self._zveg)
+        z0h = (0.1 * z0)
         kv = self._von_karman
         
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
@@ -440,13 +451,13 @@ class PotentialEvapotranspiration(Component):
                                                          radiation_sw))
         self._radiation_lw = (self._sigma * (self._Ts**4 - (Tavg +
                                                             273.15)**4))
-        self._net_radiation = np.max(((1-self._a) * radiation_sw +
+        self._net_radiation = max(((1-self._a) * radiation_sw +
                                       self._radiation_lw), 0.)
         self._penman_numerator = ((self._delta * self._net_radiation) +
                                   (self._rho_a * self._ca *
                                    (self._es - self._ea)/self._ra))
         self._penman_denominator = (self._pwhv * (self._delta + self._y *
-                                                  (1 + (self._rl/self._LAI/2.)/
+                                                  (1 + (self._rl/(self._LAI/2.))/
                                                    self._ra)))
         self._ETp = (self._penman_numerator/self._penman_denominator)
                                   
