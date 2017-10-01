@@ -393,7 +393,7 @@ def flow_directions_dinf(grid,
     steepest_link[drains_to_self] = UNDEFINED_INDEX
 
     steepest_receiver = receivers[slope_sort]
-    steepest_receiver[drains_to_self] = UNDEFINED_INDEX
+    steepest_receiver[drains_to_self] = node_id[drains_to_self]
 
 
     # Optionally, handle baselevel nodes: they are their own receivers
