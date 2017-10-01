@@ -1,0 +1,19 @@
+---
+    number_of_node_columns: 200
+    dx: 100.0
+    start_time: -20000.0
+    run_duration: 20000.0
+    dt: 100.0
+    output_interval: 1000.0
+    output-filename: 'seq_test'
+    topo_file: 'bathymetry.txt'
+    ksh : 100.0
+    sea_level : 0.0
+    wave_base: 60.0
+    hgt: 15.0
+    alpha : 0.0005
+    sl_sh : 0.001
+    load : 0.3
+    sl_type: 'sea_level'
+    sl_file_name : 'sample_sea_level_file.txt'
+...

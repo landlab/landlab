@@ -7,7 +7,7 @@ from .shoreline import find_shoreline
 
 class SubmarineDiffuser(LinearDiffuser):
 
-    def __init__(self, grid, shore, ksh=100., sea_level=0., wavebase=60.,
+    def __init__(self, grid, shore, ksh=100., sea_level= sl_array, wavebase=60.,
                  hgt = 15., alpha = 1/2000., sl_sh = .001, load = .3, **kwds):
         self._ksh = ksh
         self._sea_level = sea_level
@@ -39,6 +39,7 @@ class SubmarineDiffuser(LinearDiffuser):
         self._sea_level = sea_level
 
     def calc_diffusion_coef(self,shore):
+        self.sea_level = sl_array(model_step)
         water_depth = (self.sea_level -
                        self._grid.at_node['topographic__elevation'])
         wavebase = self._wavebase
@@ -63,8 +64,9 @@ class SubmarineDiffuser(LinearDiffuser):
         return k
 
     def run_one_step(self, dt):
-        z = self._grid.at_node['topographic__elevation']
+        z = self._grid.at_node['topographic__elevation'] - self.sea_level + subsidence_array
         shore = find_shoreline(self.grid.x_of_node[self.grid.core_nodes], 
                                z[self.grid.core_nodes], self.sea_level)
         self.calc_diffusion_coef(shore)
         super(SubmarineDiffuser, self).run_one_step(dt)
+        model_step = model_step + 1
