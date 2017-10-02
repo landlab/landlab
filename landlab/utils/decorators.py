@@ -41,6 +41,28 @@ class store_result_in_grid(object):
         return _wrapped
 
 
+class store_result_in_dataset(object):
+    def __init__(self, dataset=None, name=None):
+        self._dataset = dataset
+        self._attr = name
+
+    def __call__(self, func):
+        @wraps(func)
+        def _wrapped(grid):
+            name = self._attr or func.__name__
+            if self._dataset:
+                ds = getattr(grid, self._dataset)
+            else:
+                ds = grid
+
+            if name not in ds:
+                setattr(grid, self._dataset, ds.update(dict(name=func(grid))))
+
+            return getattr(grid, self._dataset)[name].values
+
+        return _wrapped
+
+
 def read_only_array(func):
     """Decorate a function so that its return array is read-only.
 
@@ -214,7 +236,7 @@ class use_field_name_or_array(object):
                 vals = grid[self._at][vals]
             else:
                 vals = np.asarray(vals).flatten()
-
+    
             return func(grid, vals, *args, **kwds)
         return _wrapped
 

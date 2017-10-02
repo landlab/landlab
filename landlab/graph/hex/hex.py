@@ -142,8 +142,8 @@ class HexGraph(VoronoiGraph):
     >>> from landlab.graph import HexGraph
 
     >>> graph = HexGraph((3, 2))
-    >>> graph.number_of_nodes
-    6
+    >>> graph.number_of_nodes == 6
+    True
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  1.,  1.,  2.,  2.])
@@ -195,7 +195,7 @@ class HexGraph(VoronoiGraph):
         elif node_layout == 'rect1':
             max_node_spacing = shape[1] + 1
 
-        super(HexGraph, self).__init__(
+        VoronoiGraph.__init__(self,
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
             max_node_spacing=max_node_spacing)
 

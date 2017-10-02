@@ -2,6 +2,8 @@ import os
 
 from .read import read_netcdf
 from .write import write_netcdf
+from .write import write_raster_netcdf
+
 from .errors import NotRasterGridError
 
 try:

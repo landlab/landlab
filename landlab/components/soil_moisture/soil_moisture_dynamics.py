@@ -16,6 +16,17 @@ class SoilMoisture(Component):
     cell using inputs of potential evapotranspiration, live leaf area index,
     and vegetation cover.
 
+    This component uses a single soil moisture layer and models soil moisture
+    loss through transpiration by plants, evaporation by bare soil, and
+    leakage. The solution of water balance is based on Laio et. al 2001. The
+    component requires fields of initial soil moisture, rainfall input (if
+    any), time to the next storm and potential transpiration.
+
+    Ref: Laio, F., Porporato, A., Ridolfi, L., & Rodriguez-Iturbe, I. (2001).
+    Plants in water-controlled ecosystems: active role in hydrologic processes
+    and response to water stress: II. Probabilistic soil moisture dynamics.
+    Advances in Water Resources, 24(7), 707-723.
+
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
     Construction::

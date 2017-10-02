@@ -1,6 +1,6 @@
 package:
   name: landlab
-  version: "1.0.0"
+  version: "1.0.2"
 
 source:
   path: ..
@@ -11,6 +11,7 @@ requirements:
     - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy x.x
+    - xarray
     - nose
     - matplotlib
     - numpydoc
@@ -19,12 +20,15 @@ requirements:
     - six
     - pyyaml
     - setuptools
+    - statsmodels
+    - jpeg <=8 # [osx and np==111]
 
   run:
     - python
     - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy x.x
+    - xarray
     - nose
     - matplotlib
     - numpydoc
@@ -33,6 +37,9 @@ requirements:
     - six
     - pyyaml
     - setuptools
+    - xarray
+    - statsmodels
+    - jpeg <=8 # [osx and np==111]
 
 build:
   string: {{ environ.get('BUILD_STR', '') }}

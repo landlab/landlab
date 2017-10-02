@@ -441,6 +441,11 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("empty is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.")
         return self[group].empty(**kwds)
 
     def ones(self, group, **kwds):
@@ -479,6 +484,12 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("ones is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.\nAlternatively, if you want ones "
+                             "of the shape stored at_grid, use np.array(1).")
         return self[group].ones(**kwds)
 
     def zeros(self, group, **kwds):
@@ -492,6 +503,8 @@ class ModelDataFields(object):
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
 
+        This method is not valid for the group *grid*.        
+        
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
@@ -515,6 +528,13 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
+        if group=='grid':
+            raise ValueError("zeros is not supported for at='grid', if you "
+                             "want to create a field at the grid, use\n"
+                             "grid.at_grid['value_name']=value\n"
+                             "instead.\nAlternatively, if you want zeros"
+                             "of the shape stored at_grid, use np.array(0).")
+                             
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
@@ -525,7 +545,9 @@ class ModelDataFields(object):
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
-
+        
+        This method is not valid for the group *grid*.
+        
         Construction::
 
             add_empty(group, name, units='-', noclobber=True)
@@ -562,7 +584,12 @@ class ModelDataFields(object):
             group, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-
+            
+        if group=='grid':
+            raise ValueError("add_empty is not supported for at_grid values "
+                             "use\ngrid.at_grid['value_name']=value\n"
+                             "instead")        
+                             
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -577,6 +604,8 @@ class ModelDataFields(object):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
+        
+        This method is not valid for the group *grid*.
 
         Construction::
 
@@ -631,6 +660,11 @@ class ModelDataFields(object):
         else:
             raise ValueError('number of arguments must be 1 or 2')
 
+        if group=='grid':
+            raise ValueError("add_ones is not supported for at_grid values"
+                             " use\ngrid.at_grid['value_name']=value\n"
+                             "instead")                
+        
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -682,7 +716,12 @@ class ModelDataFields(object):
             group, name = kwds.pop('at'), args[0]
         else:
             raise ValueError('number of arguments must be 1 or 2')
-
+        
+        if group=='grid':
+            raise ValueError("add_zeros is not supported for at_grid values "
+                             "use\ngrid.at_grid['value_name']=value\n"
+                             "instead")                
+        
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
         numpy_kwds.pop('noclobber', 0.)
@@ -695,6 +734,9 @@ class ModelDataFields(object):
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
         copy of the provided array.
+        
+        In the case of adding to the collection *grid*, the added field is a
+        numpy scalar rather than a numpy array. 
 
         Construction::
 
@@ -772,7 +814,7 @@ class ModelDataFields(object):
 
         if not group:
             raise ValueError('missing group name')
-
+        
         return self[group].add_field(name, value_array, **kwds)
 
     def set_units(self, group, name, units):

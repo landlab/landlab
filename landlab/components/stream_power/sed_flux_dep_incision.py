@@ -360,8 +360,8 @@ class SedDepEroder(Component):
         assert self.Qc in ('MPM', 'power_law')
         self.return_ch_props = return_stream_properties
         if return_stream_properties:
-            assert(self.Qc == 'MPM', "Qc must be 'MPM' to return stream " +
-                   "properties")
+            assert self.Qc == 'MPM', ("Qc must be 'MPM' to return stream " +
+                                      "properties")
         if type(runoff_rate) in (float, int):
             self.runoff_rate = float(runoff_rate)
         elif type(runoff_rate) is str:

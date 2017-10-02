@@ -6,6 +6,11 @@ order, links to flow receiver and flow receiver fields. Instead, takes in
 the discharge values on NODES calculated by the OverlandFlow class and
 erodes the landscape in response to the output discharge.
 
+As of right now, this component relies on the OverlandFlow component 
+for stability. There are no stability criteria implemented in this class. 
+To ensure model stability, use StreamPowerEroder or FastscapeEroder
+components instead. 
+
 .. codeauthor:: Jordan Adams
 
 Examples
@@ -73,9 +78,9 @@ rate.
 
 >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
 array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.99993675,  0.99991056,  0.99991056,  0.99991056,  0.99993675,
-        1.99995528,  1.99993675,  1.99993675,  1.99993675,  1.99995528,
-        2.99996838,  2.99995528,  2.99995528,  2.99995528,  2.99996838])
+        0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
+        1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
+        2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
 
 """
 
@@ -125,7 +130,7 @@ class DetachmentLtdErosion(Component):
     }
 
     def __init__(self, grid, K_sp = 0.00002, m_sp = 0.5, n_sp = 1.0,
-                 uplift_rate = 0.0, entraiment_threshold = 0.0, **kwds):
+                 uplift_rate = 0.0, entrainment_threshold = 0.0, **kwds):
         """Calculate detachment limited erosion rate on nodes.
 
         Landlab component that generalizes the detachment limited erosion
@@ -160,11 +165,12 @@ class DetachmentLtdErosion(Component):
 
         self.I = self._grid.zeros(at='node')
         self.uplift_rate = uplift_rate
-        self.entraiment_threshold = entraiment_threshold
+        self.entrainment_threshold = entrainment_threshold
 
         self.dzdt = self._grid.zeros(at='node')
 
-    def erode(self, dt, discharge_cms='surface_water__discharge',
+    def erode(self, dt, elevs='topographic__elevation', 
+              discharge_cms='surface_water__discharge',
               slope='topographic__slope'):
         """Erode into grid topography.
 
@@ -197,10 +203,10 @@ class DetachmentLtdErosion(Component):
 
         S_to_n = np.power(S, self.n)
 
-        self.I = (self.K * (Q_to_m * S_to_n - self.entraiment_threshold))
+        self.I = (self.K * Q_to_m * S_to_n) - self.entrainment_threshold
 
         self.I[self.I < 0.0] = 0.0
 
-        self.dzdt = (self.uplift_rate - self.I)
+        self.dz = (self.uplift_rate - self.I) * dt
 
-        self._grid['node']['topographic__elevation'] += self.dzdt
+        self._grid['node'][elevs] += self.dz
