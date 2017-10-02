@@ -50,6 +50,7 @@ def test_hugo_reshape():
     assert_is_instance(grid, RasterModelGrid)
 
     assert_true(field.shape, (55, 76))
+    assert_equal(grid.projection, None)
 
 
 def test_4x3_read_file_name():
