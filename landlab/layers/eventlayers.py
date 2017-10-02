@@ -11,11 +11,11 @@ def _deposit_or_erode(layers, n_layers, dz):
 
     Parameters
     ----------
-    layers : ndarray of shape `(M, N)`
+    layers : ndarray of shape `(n_layers, n_nodes)`
         Array of layer thicknesses.
     n_layers : int
         Number of active layers.
-    dz : ndarray of shape `(N, )`
+    dz : ndarray of shape `(n_nodes, )`
         Thickness of the new layer. Negative thicknesses mean
         erode the top-most layers.
 
