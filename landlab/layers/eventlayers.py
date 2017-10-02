@@ -289,7 +289,10 @@ class EventLayers(object):
     @property
     def thickness(self):
         """Total thickness of the columns.
-        
+
+        The sum of all layer thicknesses for each stack as an array
+        of shape `(number_of_stacks, )`.
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import EventLayers
@@ -312,6 +315,9 @@ class EventLayers(object):
     @property
     def z(self):
         """Thickness to top of each layer.
+
+        Thickness from the bottom of each stack to the top of each layer
+        as an array of shape `(number_of_layers, number_of_stacks)`.
         
         Examples
         --------
@@ -340,7 +346,10 @@ class EventLayers(object):
     @property
     def dz(self):
         """Thickness of each layer.
-        
+
+        The thickness of each layer at each stack as an array of shape
+        `(number_of_layers, number_of_stacks)`.
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import EventLayers
