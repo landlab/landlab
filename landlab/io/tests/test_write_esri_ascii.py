@@ -13,6 +13,7 @@ from landlab.testing.tools import cdtemp
 from landlab.io import write_esri_ascii, read_esri_ascii
 from landlab import RasterModelGrid
 
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 def test_grid_with_no_fields():
     grid = RasterModelGrid((4, 5), spacing=(2., 2.))
@@ -110,3 +111,20 @@ def test_write_then_read():
     assert_array_almost_equal(grid.node_x, new_grid.node_x)
     assert_array_almost_equal(grid.node_y, new_grid.node_y)
     assert_array_almost_equal(field, grid.at_node['air__temperature'])
+    
+    
+def test_4x3_write_projection():
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
+                                                 '4_x_3.asc'), name='my_field')
+    
+    write_esri_ascii(os.path.join(_TEST_DATA_DIR, 'copy_4_x_3.txt'), 
+                     grid,
+                     names='my_field')
+    
+    with open(os.path.join(_TEST_DATA_DIR, 'copy_4_x_3.proj'), 'r') as f:
+        projection_data_structure = f.readlines()
+        projection_string = ''.join(projection_data_structure)
+    
+    assert_equal(grid.projection.strip(), projection_string.strip())
+    os.remove(os.path.join(_TEST_DATA_DIR,'copy_4_x_3.txt'))
+    os.remove(os.path.join(_TEST_DATA_DIR,'copy_4_x_3.proj'))
