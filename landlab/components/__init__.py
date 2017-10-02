@@ -1,5 +1,6 @@
 from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
+from .submarine_diffusion import SubmarineDiffuser
 from .fire_generator import FireGenerator
 from .detachment_ltd_erosion import DetachmentLtdErosion, DepthSlopeProductErosion
 from .flexure import Flexure
@@ -33,7 +34,7 @@ from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
 
-COMPONENTS = [ChiFinder, LinearDiffuser,
+COMPONENTS = [ChiFinder, LinearDiffuser, SubmarineDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               KinwaveImplicitOverlandFlow,
