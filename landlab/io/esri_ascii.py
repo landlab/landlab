@@ -417,7 +417,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
-    #origin = (header['xllcorner'], header['yllcorner'])   
+    origin = (header['xllcorner'], header['yllcorner'])
     
     data = np.flipud(data)
 
@@ -451,7 +451,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             grid.number_of_node_rows * grid.number_of_node_columns )
 
     if grid is None:
-        grid = RasterModelGrid(shape, spacing=spacing)
+        grid = RasterModelGrid(shape, spacing=spacing, origin=origin)
     if name:
         grid.add_field('node', name, data)
 
