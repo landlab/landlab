@@ -12,7 +12,7 @@ def sea_level_type(dictionary):
     if sl_type == 'sinusoid':
         sea_level_function(dictionary)
     else:
-        sea_level_file[sl_type, dictionary]
+        sea_level_file(sl_type, dictionary)
 
 def sea_level_function(dictionary):
     """
