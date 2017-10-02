@@ -7,17 +7,17 @@ from .shoreline import find_shoreline
 
 class SubmarineDiffuser(LinearDiffuser):
 
-    def __init__(self, grid, shore, sea_level, ksh=100., wavebase=60.,
-                 hgt = 15., alpha = 1/2000., sl_sh = .001, load = .3, **kwds):
-        self._ksh = ksh
-        self._sea_level = sea_level
-        self._wavebase = wavebase
-        self._hgt = hgt
-        self._alpha = alpha
-        self._sl_sh = sl_sh
-        self._load = load
+    def __init__(self, grid, shore, sl_array, dictionary, **kwds):
+        self._ksh = dictionary['ksh']
+        self._sl_array   = sl_array
+        self._sea_level = sl_array[0]
+        self._wavebase  = dictionary['wave_base']
+        self._hgt       = dictionary['hgt']
+        self._alpha     = dictionary['alpha']
+        self._sl_sh     = dictionary['sl_sh']
+        self._load      = dictionary['load']
         kwds['linear_diffusivity'] = 'kd'
-
+        self._model_step = 0
         grid.add_zeros('kd', at='node')
 
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
@@ -39,7 +39,7 @@ class SubmarineDiffuser(LinearDiffuser):
         self._sea_level = sea_level
 
     def calc_diffusion_coef(self,shore):
-        self.sea_level = sl_array(model_step)
+        self.sea_level = self._sl_array[self._model_step]
         water_depth = (self.sea_level -
                        self._grid.at_node['topographic__elevation'])
         wavebase = self._wavebase
@@ -64,9 +64,9 @@ class SubmarineDiffuser(LinearDiffuser):
         return k
 
     def run_one_step(self, dt):
-        z = self._grid.at_node['topographic__elevation'] - self.sea_level + subsidence_array
+        z = self._grid.at_node['topographic__elevation'] - self.sea_level #+ subsidence_array
         shore = find_shoreline(self.grid.x_of_node[self.grid.core_nodes], 
                                z[self.grid.core_nodes], self.sea_level)
         self.calc_diffusion_coef(shore)
         super(SubmarineDiffuser, self).run_one_step(dt)
-        model_step = model_step + 1
+        self._model_step = self._model_step + 1

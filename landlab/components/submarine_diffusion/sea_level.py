@@ -10,9 +10,11 @@ def sea_level_type(dictionary):
     from landlab.components.submarine_diffusion.sea_level import sea_level_file
     sl_type = dictionary['sl_type']
     if sl_type == 'sinusoid':
-        sea_level_function(dictionary)
+        return sea_level_function(dictionary)
     else:
-        sea_level_file(sl_type, dictionary)
+        sl_file_name = dictionary['sl_file_name']
+        return sea_level_file(sl_file_name, dictionary)
+       
 
 def sea_level_function(dictionary):
     """
@@ -25,13 +27,13 @@ def sea_level_function(dictionary):
     Function starts at 0 or P.
     Fs is the period of the function. (10,000)
     """
-    p = dictionary[sea_level_phase] 
-    a = dictionary[sea_level_amplitude] 
-    Fs = dictionary [sea_level_period]
-    start_time = dictionary[start_time]
-    run_duration = dictionary[run_duration]
-    dt = dictioanry[dt]
-    t = arange(start_time + run_duration, dt)
+    p = dictionary['sea_level_phase'] 
+    a = dictionary['sea_level_amplitude'] 
+    Fs = dictionary ['sea_level_period']
+    start_time = dictionary['start_time']
+    run_duration = dictionary['run_duration']
+    dt = dictionary['dt']
+    t = arange(start_time, start_time + run_duration, dt)
     sl_array = a * sin((2*pi * (p +t))/ Fs)
     """
     fig = plt.figure()
