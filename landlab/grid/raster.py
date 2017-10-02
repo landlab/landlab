@@ -352,7 +352,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Row and column node spacing.
         bc : dict, optional
             Edge boundary conditions.
-
+        origin : tuple, optional
+            Provides the values (x, y) of the
+            lower left corner of the grid. Default
+            value is (0.0, 0.0)
+        
         Returns
         -------
         RasterModelGrid
@@ -368,7 +372,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         dx = kwds.pop('dx', None)
         num_rows = kwds.pop('num_rows', None)
         num_cols = kwds.pop('num_cols', None)
-
+        origin = kwds.pop('origin', None) or (0., 0.)
+        
         if num_rows is None and num_cols is None:
             num_rows, num_cols = _parse_grid_shape_from_args(args)
         elif len(args) > 0:
@@ -384,7 +389,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx)
+        self._initialize(num_rows, num_cols, dx, origin)
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
@@ -401,13 +406,14 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         
         dx = state_dict['dx']
         shape = state_dict['shape']
+        origin = state_dict['origin']
         num_rows = shape[0]
         num_cols = shape[1]
         
         self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
         
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx)
+        self._initialize(num_rows, num_cols, dx, origin)
                                                  
         super(RasterModelGrid, self).__init__()
                                                  
@@ -470,6 +476,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         state_dict['dx'] = self.dx
         state_dict['dy'] = self.dy
         state_dict['shape'] = self.shape
+        state_dict['origin'] = (self.node_x[0], self.node_y[0])
         state_dict['_axis_name'] = self._axis_name
         state_dict['_axis_units'] = self._axis_units
         state_dict['_default_group'] = self._default_group
@@ -544,12 +551,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         return cls(shape, spacing=spacing, bc=bc)
 
-    def _initialize(self, num_rows, num_cols, spacing):
+    def _initialize(self, num_rows, num_cols, spacing, origin):
         """Set up a raster grid.
 
         Sets up a *num_rows* by *num_cols* grid with cell *spacing* and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
+        
+        The lower left corner is set through *origin*, which is a
+        (lower left corner x, lower left corner y) tuple.
 
         To be consistent with unstructured grids, the raster grid is
         managed not as a 2D array but rather as a set of vectors that
@@ -678,7 +688,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  0-------1-------2-------3-------4
         #
         (self._node_x, self._node_y) = sgrid.node_coords(
-            (num_rows, num_cols), (self._dy, self._dx), (0., 0.))
+            (num_rows, num_cols), (self._dy, self._dx), origin)
 
         # Node boundary/active status:
         # Next, we set up an array of "node status" values, which indicate
