@@ -120,7 +120,7 @@ def resize_array(array, newsize, exact=False):
     return larger_array
 
 
-def _allocate_layers_for(array, number_of_layers, nstacks):
+def _allocate_layers_for(array, number_of_layers, number_of_stacks):
     """Allocate a layer matrix.
 
     Parameters
@@ -129,12 +129,12 @@ def _allocate_layers_for(array, number_of_layers, nstacks):
         Array of layer properties to track.
     number_of_layers : int
         Number of layers to allocate.
-    nstacks : int
+    number_of_stacks : int
         Number of stacks to allocate.
 
     Returns
     -------
-    ndarray of size `(number_of_layers, nstacks, values_per_stack)`
+    ndarray of size `(number_of_layers, number_of_stacks, values_per_stack)`
         Newly allocated matrix for storing layer properties.
 
     Examples
@@ -162,12 +162,12 @@ def _allocate_layers_for(array, number_of_layers, nstacks):
     """
     array = np.asarray(array)
 
-    if array.ndim > 0 and len(array) != nstacks:
+    if array.ndim > 0 and len(array) != number_of_stacks:
         values_per_stack = array.shape
     else:
         values_per_stack = array.shape[1:]
         
-    return np.empty((number_of_layers, nstacks) + values_per_stack,
+    return np.empty((number_of_layers, number_of_stacks) + values_per_stack,
                     dtype=array.dtype)
     
 
@@ -192,7 +192,7 @@ class EventLayers(object):
     
     Parameters
     ----------
-    nstacks : int
+    number_of_stacks : int
         Number of layer stacks to track.
 
     Examples
@@ -202,7 +202,7 @@ class EventLayers(object):
     Create an empty layer stack with 5 stacks.
 
     >>> layers = EventLayers(5)
-    >>> layers.nstacks
+    >>> layers.number_of_stacks
     5
     >>> layers.number_of_layers
     0
@@ -232,13 +232,13 @@ class EventLayers(object):
            [ 0. ,  0. ,  0. ,  0. ,  0. ]])
     """
 
-    def __init__(self, nstacks, allocated=0):
+    def __init__(self, number_of_stacks, allocated=0):
         self._number_of_layers = 0
-        self._nstacks = nstacks
+        self._number_of_stacks = number_of_stacks
 
         self._attrs = dict()
 
-        dims = (self.number_of_layers, self.nstacks)
+        dims = (self.number_of_layers, self.number_of_stacks)
         self._attrs['_dz'] = np.empty(dims , dtype=float)
         self._resize(allocated, exact=True)
 
@@ -248,16 +248,17 @@ class EventLayers(object):
     def __str__(self):
         lines = [
             "number_of_layers: {number_of_layers}",
-            "nstacks: {nstacks}",
+            "number_of_stacks: {number_of_stacks}",
             "tracking: {attrs}",
         ]
         return os.linesep.join(lines).format(
             number_of_layers=self.number_of_layers,
-            nstacks=self.nstacks,
+            number_of_stacks=self.number_of_stacks,
             attrs=', '.join(self.tracking) or 'null')
 
     def __repr__(self):
-        return 'EventLayers({nstacks})'.format(nstacks=self.nstacks)
+        return 'EventLayers({number_of_stacks})'.format(
+            number_of_stacks=self.number_of_stacks)
 
     @property
     def tracking(self):
@@ -276,14 +277,14 @@ class EventLayers(object):
         return [name for name in self._attrs if not name.startswith('_')]
 
     def _setup_layers(self, **kwds):
-        dims = (self.allocated, self.nstacks)
+        dims = (self.allocated, self.number_of_stacks)
         for name, array in kwds.items():
             self._attrs[name] = _allocate_layers_for(array, *dims)
 
     @property
-    def nstacks(self):
+    def number_of_stacks(self):
         """Number of stacks."""
-        return self._nstacks
+        return self._number_of_stacks
 
     @property
     def thickness(self):
