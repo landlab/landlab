@@ -120,21 +120,21 @@ def resize_array(array, newsize, exact=False):
     return larger_array
 
 
-def _allocate_layers_for(array, nlayers, nstacks):
+def _allocate_layers_for(array, number_of_layers, nstacks):
     """Allocate a layer matrix.
 
     Parameters
     ----------
     array : number or ndarray
         Array of layer properties to track.
-    nlayers : int
+    number_of_layers : int
         Number of layers to allocate.
     nstacks : int
         Number of stacks to allocate.
 
     Returns
     -------
-    ndarray of size `(nlayers, nstacks, values_per_stack)`
+    ndarray of size `(number_of_layers, nstacks, values_per_stack)`
         Newly allocated matrix for storing layer properties.
 
     Examples
@@ -167,7 +167,8 @@ def _allocate_layers_for(array, nlayers, nstacks):
     else:
         values_per_stack = array.shape[1:]
         
-    return np.empty((nlayers, nstacks) + values_per_stack , dtype=array.dtype)
+    return np.empty((number_of_layers, nstacks) + values_per_stack,
+                    dtype=array.dtype)
     
 
 class EventLayersMixIn(object):
@@ -203,13 +204,13 @@ class EventLayers(object):
     >>> layers = EventLayers(5)
     >>> layers.nstacks
     5
-    >>> layers.nlayers
+    >>> layers.number_of_layers
     0
 
     Add a layer with a uniform thickness.
 
     >>> layers.add(1.5)
-    >>> layers.nlayers
+    >>> layers.number_of_layers
     1
     >>> layers.dz
     array([[ 1.5,  1.5,  1.5,  1.5,  1.5]])
@@ -232,26 +233,26 @@ class EventLayers(object):
     """
 
     def __init__(self, nstacks, allocated=0):
-        self._nlayers = 0
+        self._number_of_layers = 0
         self._nstacks = nstacks
 
         self._attrs = dict()
 
-        dims = (self.nlayers, self.nstacks)
+        dims = (self.number_of_layers, self.nstacks)
         self._attrs['_dz'] = np.empty(dims , dtype=float)
         self._resize(allocated, exact=True)
 
     def __getitem__(self, name):
-        return self._attrs[name][:self.nlayers]
+        return self._attrs[name][:self.number_of_layers]
 
     def __str__(self):
         lines = [
-            "nlayers: {nlayers}",
+            "number_of_layers: {number_of_layers}",
             "nstacks: {nstacks}",
             "tracking: {attrs}",
         ]
         return os.linesep.join(lines).format(
-            nlayers=self.nlayers,
+            number_of_layers=self.number_of_layers,
             nstacks=self.nstacks,
             attrs=', '.join(self.tracking) or 'null')
 
@@ -358,10 +359,10 @@ class EventLayers(object):
         array([[ 15.,  14.,  15.],
                [  1.,   0.,   2.]])
         """
-        return self._attrs['_dz'][:self.nlayers]
+        return self._attrs['_dz'][:self.number_of_layers]
 
     @property
-    def nlayers(self):
+    def number_of_layers(self):
         """Total number of layers.
 
         Examples
@@ -369,15 +370,15 @@ class EventLayers(object):
         >>> from landlab.layers.eventlayers import EventLayers
 
         >>> layers = EventLayers(3)
-        >>> layers.nlayers
+        >>> layers.number_of_layers
         0
 
         >>> layers.add(15.)
         >>> layers.add([1., -1., 2.])
-        >>> layers.nlayers
+        >>> layers.number_of_layers
         2
         """
-        return self._nlayers
+        return self._number_of_layers
 
     @property
     def allocated(self):
@@ -388,14 +389,14 @@ class EventLayers(object):
         >>> from landlab.layers.eventlayers import EventLayers
 
         >>> layers = EventLayers(3)
-        >>> layers.nlayers, layers.allocated
+        >>> layers.number_of_layers, layers.allocated
         (0, 0)
 
         >>> layers.add(15.)
-        >>> layers.nlayers, layers.allocated
+        >>> layers.number_of_layers, layers.allocated
         (1, 7)
         >>> for _ in range(layers.allocated): layers.add(0.)
-        >>> layers.nlayers, layers.allocated
+        >>> layers.number_of_layers, layers.allocated
         (8, 15)
 
         If you know how many layers you will ultimately have, you
@@ -403,14 +404,14 @@ class EventLayers(object):
         layer stacks.
 
         >>> layers = EventLayers(3, allocated=15)
-        >>> layers.nlayers, layers.allocated
+        >>> layers.number_of_layers, layers.allocated
         (0, 15)
 
         >>> layers.add(15.)
-        >>> layers.nlayers, layers.allocated
+        >>> layers.number_of_layers, layers.allocated
         (1, 15)
         >>> for _ in range(layers.allocated): layers.add(0.)
-        >>> layers.nlayers, layers.allocated
+        >>> layers.number_of_layers, layers.allocated
         (16, 24)
         """
         return self._attrs['_dz'].shape[0]
@@ -430,13 +431,13 @@ class EventLayers(object):
         Create an empty layer stack with 3 stacks.
 
         >>> layers = EventLayers(3)
-        >>> layers.nlayers
+        >>> layers.number_of_layers
         0
 
         To add a layer of uniform thickness to every stack.
 
         >>> layers.add(1.5)
-        >>> layers.nlayers
+        >>> layers.number_of_layers
         1
         >>> layers.dz
         array([[ 1.5,  1.5,  1.5]])
@@ -473,12 +474,12 @@ class EventLayers(object):
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
         """
-        if self.nlayers == 0:
+        if self.number_of_layers == 0:
             self._setup_layers(**kwds)
 
         self._add_empty_layer()
 
-        _deposit_or_erode(self._attrs['_dz'], self.nlayers, dz)
+        _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
 
         for name in kwds:
             try:
@@ -489,12 +490,12 @@ class EventLayers(object):
 
     def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
-        if self.nlayers >= self.allocated:
+        if self.number_of_layers >= self.allocated:
             self._resize(self.allocated + 1)
 
-        self._nlayers += 1
+        self._number_of_layers += 1
         for name in self._attrs:
-            self._attrs[name][self.nlayers - 1] = 0.
+            self._attrs[name][self.number_of_layers - 1] = 0.
 
     def _resize(self, newsize, exact=False):
         """Allocate more memory for the layers."""
