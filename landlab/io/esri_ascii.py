@@ -319,6 +319,29 @@ def _read_asc_data(asc_file):
     return np.loadtxt(asc_file)
 
 
+def _read_projection_information(asc_file):
+    """Read .proj file if existing and return projection information.
+
+    Parameters
+    ----------
+    asc_file : file-like
+        File-like object of the data file pointing to the start of the data.
+        Assumption is that the projection information is in a file with the
+        same name as asc_file, but with the extention replaced with .proj
+
+    """
+    proj_file = os.path.splitext(asc_file)[0] + '.proj'
+    
+    if os.path.exists(proj_file):
+        
+        with open(proj_file, 'r') as f:    
+            projection_data_structure = f.readlines()
+        return projection_data_structure
+    
+    else:
+        return None
+    
+    
 def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
 
@@ -392,14 +415,26 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     from ..grid import RasterModelGrid
 
     if isinstance(asc_file, six.string_types):
+        with open(asc_file, 'r') as f:
+            header = read_asc_header(f)
+            data = _read_asc_data(f)
+        
         file_name = asc_file
-        with open(file_name, 'r') as asc_file:
-            header = read_asc_header(asc_file)
-            data = _read_asc_data(asc_file)
+        
     else:
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
-    
+        try:
+            file_name = asc_file.name
+        except AttributeError: # StringIO objects will not have this attribute
+            file_name = None
+            
+    # look for an associated projection file and read it. 
+    if file_name:
+        projection_data_structure = _read_projection_information(file_name)
+    else:
+        projection_data_structure = None
+        
     #There is no reason for halo to be negative.
     #Assume that if a negative value is given it should be 0.
     if halo <= 0:
@@ -417,7 +452,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
-    origin = (header['xllcorner'], header['yllcorner'])
+    origin = (header['xllcorner'] - halo * header['cellsize'], header['yllcorner'] - halo * header['cellsize'])
     
     data = np.flipud(data)
 
@@ -454,7 +489,10 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         grid = RasterModelGrid(shape, spacing=spacing, origin=origin)
     if name:
         grid.add_field('node', name, data)
-
+    
+    # save projection onto the grid
+    grid.projection = projection_data_structure
+    
     return (grid, data)
 
 
