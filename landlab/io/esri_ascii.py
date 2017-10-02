@@ -336,10 +336,28 @@ def _read_projection_information(asc_file):
         
         with open(proj_file, 'r') as f:    
             projection_data_structure = f.readlines()
-        return projection_data_structure
+        return ''.join(projection_data_structure)
     
     else:
         return None
+
+
+def _write_projection_information(asc_file, projection_string):
+    """Write .proj file if projection information exists on the grid.
+
+    Parameters
+    ----------
+    asc_file : file-like
+        File-like object of the data file pointing to the start of the data.
+        Assumption is that the projection information is in a file with the
+        same name as asc_file, but with the extention replaced with .proj
+    projection_string : string
+        The projection datastructure stored on the grid. 
+    """
+    proj_file = os.path.splitext(asc_file)[0] + '.proj'
+
+    with open(proj_file, 'w') as f:    
+        f.write(projection_string)
     
     
 def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
@@ -414,13 +432,16 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     """
     from ..grid import RasterModelGrid
 
+    # if the asc_file is provided as a string, open it and pass the pointer to
+    # _read_asc_header, and _read_asc_data
     if isinstance(asc_file, six.string_types):
         with open(asc_file, 'r') as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
         
         file_name = asc_file
-        
+    
+    # otherwise, pass asc_file directly.     
     else:
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
@@ -570,5 +591,10 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
         data = fields.at_node[name].reshape(header['nrows'], header['ncols'])
         np.savetxt(path, np.flipud(data), header=os.linesep.join(header_lines),
                    comments='')
-
+        
+        # if a proj file existed, duplicate it with the appropriate name. 
+        if fields.projection:
+            _write_projection_information(path, fields.projection)
+        
+        
     return paths
