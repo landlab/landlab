@@ -7,7 +7,7 @@ from .shoreline import find_shoreline
 
 class SubmarineDiffuser(LinearDiffuser):
 
-    def __init__(self, grid, shore, ksh=100., sea_level= sl_array, wavebase=60.,
+    def __init__(self, grid, shore, sea_level, ksh=100., wavebase=60.,
                  hgt = 15., alpha = 1/2000., sl_sh = .001, load = .3, **kwds):
         self._ksh = ksh
         self._sea_level = sea_level
