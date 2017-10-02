@@ -9,6 +9,7 @@ from landlab import Component
 import numpy as np
 from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
+
 class DepthDependentCubicDiffuser(Component):
 
     """
@@ -210,8 +211,7 @@ class DepthDependentCubicDiffuser(Component):
     def __init__(self,grid,
                  linear_diffusivity=1.0,
                  slope_crit=1.0,
-                 soil_transport_decay_depth=1.0,
-                 **kwds):
+                 soil_transport_decay_depth=1.0):
         """Initialize the DepthDependentCubicDiffuser."""
 
         # Store grid and parameters

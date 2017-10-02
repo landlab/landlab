@@ -30,7 +30,8 @@ from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
-from .hybrid_alluvium import HybridAlluvium
+from .erosion_deposition import ErosionDeposition
+from .space import Space
 from .landslides import LandslideProbability
 
 COMPONENTS = [ChiFinder, LinearDiffuser, SubmarineDiffuser,
@@ -48,7 +49,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser, SubmarineDiffuser,
               ExponentialWeatherer, DepthDependentDiffuser,
               CubicNonLinearDiffuser, DepthSlopeProductErosion,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
-              FlowDirectorDINF, FlowAccumulator, HybridAlluvium,
+              FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
               LandslideProbability, DepthDependentCubicDiffuser]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
