@@ -20,6 +20,8 @@ class SubmarineDiffuser(LinearDiffuser):
         self._model_step = 0
         grid.add_zeros('kd', at='node')
 
+        self._time = 0.
+
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
 
     @property
@@ -64,9 +66,21 @@ class SubmarineDiffuser(LinearDiffuser):
         return k
 
     def run_one_step(self, dt):
-        z = self._grid.at_node['topographic__elevation'] - self.sea_level #+ subsidence_array
+        z = self._grid.at_node['topographic__elevation'].copy()
         shore = find_shoreline(self.grid.x_of_node[self.grid.core_nodes], 
                                z[self.grid.core_nodes], self.sea_level)
         self.calc_diffusion_coef(shore)
         super(SubmarineDiffuser, self).run_one_step(dt)
+
+        dz = z - self.grid.at_node['topographic__elevation']
+        water_depth = self.sea_level - (z[self.grid.core_nodes] +
+                                        self.grid.layers.thickness)
+
+        self._grid.layers.add(dz[self.grid.core_nodes],
+                              age=self._time,
+                              water_depth=water_depth,
+                              t0=dz[self.grid.core_nodes],
+                             )
+
+        self._time += dt
         self._model_step = self._model_step + 1
