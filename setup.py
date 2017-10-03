@@ -68,6 +68,8 @@ ext_modules = [
               ['landlab/grid/structured_quad/cfuncs.pyx']),
     Extension('landlab.grid.structured_quad.c_faces',
               ['landlab/grid/structured_quad/c_faces.pyx']),
+    Extension('landlab.layers.ext.eventlayers',
+              ['landlab/layers/ext/eventlayers.pyx']),
 ]
 
 import numpy as np
