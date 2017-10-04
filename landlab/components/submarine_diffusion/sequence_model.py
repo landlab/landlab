@@ -76,9 +76,5 @@ class SequenceModel(RasterModel):
         )
 
 
-def main():
-    SequenceModel.main()
-
-
 if __name__ == '__main__':
     main()
