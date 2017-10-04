@@ -160,6 +160,7 @@ setup(name='landlab',
       entry_points={
           'console_scripts': [
               'landlab=landlab.cmd.landlab:main',
+              'sequence=landlab.components.submarine_diffusion.sequence_model:SequenceModel.main',
           ]
       },
       include_dirs = [np.get_include()],
