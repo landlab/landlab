@@ -1,10 +1,86 @@
 from matplotlib.pyplot import figure, show
 from numpy import arange, sin, pi
-import numpy as np
 from scipy import interpolate
-from landlab import RasterModelGrid
 import matplotlib.pyplot as plt
-import landlab
+
+import numpy as np
+from scipy.interpolate import interp1d
+from landlab import RasterModelGrid, Component
+
+
+class SeaLevelTimeSeries(Component):
+
+    _name = 'Sea Level Changer'
+
+    _time_units = 'y'
+
+    _input_var_names = ()
+
+    _output_var_names = (
+        'sea_level__elevation',
+    )
+
+    _var_units = {
+        'sea_level__elevation': 'm',
+    }
+
+    _var_mapping = {
+        'sea_level__elevation': 'grid',
+    }
+
+    _var_doc = {
+        'sea_level__elevation': 'Sea level elevation',
+    }
+
+    def __init__(self, grid, filepath, kind='linear', start=0., **kwds):
+        """Generate sea level values.
+
+        Parameters
+        ----------
+        grid: ModelGrid
+            A landlab grid.
+        filepath: str
+            Name of csv-formatted sea-level file.
+        kind: str, optional
+            Kind of interpolation as a string (one of 'linear',
+            'nearest', 'zero', 'slinear', 'quadratic', 'cubic').
+            Default is 'linear'.
+        """
+        super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
+
+        data = np.loadtxt(filepath, delimiter=',')
+        self._sea_level = interp1d(data[:, 0], data[:, 1], kind=kind,
+                                   copy=True, assume_sorted=True,
+                                   bounds_error=True)
+
+        self._time = start
+
+    @property
+    def time(self):
+        return self._time
+
+    def run_one_step(self, dt):
+        self._time += dt
+        self.grid.at_grid['sea_level__elevation'] = self._sea_level(self.time)
+
+
+class SinusoidalSeaLevel(SeaLevelTimeSeries):
+
+    def __init__(self, grid, wave_length=1., amplitude=1., phase=0.,
+                 start=0., **kwds):
+        """Generate sea level values.
+
+        Parameters
+        ----------
+        grid: ModelGrid
+            A landlab grid.
+        """
+        super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
+
+        self._sea_level = lambda time: np.sin((time - phase) / wave_length) * amplitude
+
+        self._time = start
+
 
 def sea_level_type(dictionary):
     from landlab.components.submarine_diffusion.sea_level import sea_level_file
