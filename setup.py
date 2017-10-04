@@ -148,7 +148,7 @@ setup(name='landlab',
           'Topic :: Scientific/Engineering :: Physics'
       ],
       packages=find_packages(),
-      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
+      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc', 'data/*.proj',
                          'preciptest.in']},
       test_suite='nose.collector',
       cmdclass={
