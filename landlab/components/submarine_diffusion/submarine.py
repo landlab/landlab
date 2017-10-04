@@ -7,21 +7,71 @@ from .shoreline import find_shoreline
 
 class SubmarineDiffuser(LinearDiffuser):
 
-    def __init__(self, grid, shore, sl_array, dictionary, **kwds):
-        self._ksh = dictionary['ksh']
-        self._sl_array   = sl_array
-        self._sea_level = sl_array[0]
-        self._wavebase  = dictionary['wave_base']
-        self._hgt       = dictionary['hgt']
-        self._alpha     = dictionary['alpha']
-        self._sl_sh     = dictionary['sl_sh']
-        self._load      = dictionary['load']
-        kwds['linear_diffusivity'] = 'kd'
-        self._model_step = 0
+    _name = 'Submarine Diffusion'
+
+    _time_units = 'y'
+
+    _input_var_names = (
+        'topographic__elevation',
+        'sea_level__elevation',
+    )
+
+    _output_var_names = (
+        'topographic__elevation',
+    )
+
+    _var_units = {
+        'topographic__elevation': 'm',
+        'sea_level__elevation': 'm',
+    }
+
+    _var_mapping = {
+        'topographic__elevation': 'node',
+        'sea_level__elevation': 'grid',
+    }
+
+    _var_doc = {
+        'topographic__elevation': 'land and ocean bottom elevation',
+        'sea_level__elevation': 'Position of sea level',
+    }
+
+    def __init__(self, grid, sea_level=0., ksh=100., wave_base=60.,
+                 shelf_depth=15., alpha=.0005, shelf_slope=.001, load=3.,
+                 **kwds):
+        """Diffuse the ocean bottom.
+
+        Parameters
+        ----------
+        grid: RasterModelGrid
+            A landlab grid.
+        sea_level: float, optional
+            The current sea level (m).
+        ksh: float, optional
+            Diffusion coefficient at the shoreline.
+        wave_base: float, optional
+            Wave base (m).
+        shelf_depth: float, optional
+            Water depth of the shelf/slope break (m).
+        alpha: float, optional
+            Some coefficient.
+        shelf_slope: float, optional
+            Slope of the shelf (m / m).
+        load: float, optional
+            Sediment load entering the profile.
+        """
+        self._ksh = float(ksh)
+        self._wave_base = float(wave_base)
+        self._shelf_depth = float(shelf_depth)
+        self._alpha = float(alpha)
+        self._shelf_slope = float(shelf_slope)
+        self._load = float(load)
+        self._sea_level = sea_level
+
         grid.add_zeros('kd', at='node')
 
         self._time = 0.
 
+        kwds.setdefault('linear_diffusivity', 'kd')
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
 
     @property
@@ -33,54 +83,57 @@ class SubmarineDiffuser(LinearDiffuser):
         return self._ksh
 
     @property
+    def time(self):
+        return self._time
+
+    @property
     def sea_level(self):
-        return self._sea_level
+        return self.grid.at_grid['sea_level__elevation']
 
     @sea_level.setter
     def sea_level(self, sea_level):
-        self._sea_level = sea_level
+        self.grid.at_grid['sea_level__elevation'] = sea_level
 
-    def calc_diffusion_coef(self,shore):
-        self.sea_level = self._sl_array[self._model_step]
-        water_depth = (self.sea_level -
+    def calc_diffusion_coef(self, x_of_shore):
+        sea_level = self.grid.at_grid['sea_level__elevation']
+        water_depth = (sea_level -
                        self._grid.at_node['topographic__elevation'])
-        wavebase = self._wavebase
+
         under_water = water_depth > 0.
-        deep_water = water_depth > wavebase
+        deep_water = water_depth > self._wave_base
+        land = ~ under_water
 
-        k = self._grid.at_node['kd']
-    
+        k = self.grid.at_node['kd']
 
-        x = self._grid.x_of_node
-        x_sh = shore
-        a = dx = self.grid.dx
-        b = (self._hgt*self._alpha + self._sl_sh)*dx
+        x = self.grid.x_of_node
+        b = (self._shelf_depth * self._alpha + self._shelf_slope) * self.grid.dx
         
-        k_land = self._load/.0008 #self._sl_sh
-        k[under_water] = self._load * ((x[under_water]-x_sh) +a) / (
-                                    water_depth[under_water] + b) 
-        k[deep_water] = k[deep_water] * np.exp(-1*(water_depth[deep_water]-
-                                                wavebase)/wavebase)
-        k[~ under_water] = k_land
+        k[under_water] = self._load * (
+            (x[under_water] - x_of_shore) + self.grid.dx) / (water_depth[under_water] + b) 
+
+        k[deep_water] *= np.exp(- (water_depth[deep_water] - self._wave_base) /
+                                self._wave_base)
+
+        k[land] = self._load / .0008 # self._shelf_slope
 
         return k
 
     def run_one_step(self, dt):
-        z = self._grid.at_node['topographic__elevation'].copy()
-        shore = find_shoreline(self.grid.x_of_node[self.grid.core_nodes], 
-                               z[self.grid.core_nodes], self.sea_level)
+        z_before = self.grid.at_node['topographic__elevation'].copy()
+
+        shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
+                               z_before[self.grid.node_at_cell], self.sea_level)
         self.calc_diffusion_coef(shore)
+
         super(SubmarineDiffuser, self).run_one_step(dt)
 
-        dz = z - self.grid.at_node['topographic__elevation']
-        water_depth = self.sea_level - (z[self.grid.core_nodes] +
-                                        self.grid.layers.thickness)
+        z_after = self.grid.at_node['topographic__elevation']
+        water_depth = self.grid.at_grid['sea_level__elevation'] - z_after
+        dz = (z_after - z_before)[self.grid.node_at_cell]
 
-        self._grid.layers.add(dz[self.grid.core_nodes],
-                              age=self._time,
-                              water_depth=water_depth,
-                              t0=dz[self.grid.core_nodes],
-                             )
+        self.grid.layers.add(dz,
+                             age=self._time,
+                             water_depth=water_depth[self.grid.node_at_cell],
+                             t0=dz.clip(0.))
 
         self._time += dt
-        self._model_step = self._model_step + 1
