@@ -52,7 +52,6 @@ class Species(object):
             
             # Find the outlet of the watershed that contains the species.
             prior_outlet = np.where(max_A_array)[0][0]
-            giver_node = prior_outlet
             receiver_node = receiver_at_node[prior_outlet]
 
             if prior_outlet == receiver_node:
@@ -63,9 +62,8 @@ class Species(object):
                     if np.any([grid.node_is_boundary(receiver_node),
                                receiver_node == receiver_at_node[receiver_node]]):
                         outlet_not_found = False
-                        updated_outlet = giver_node
+                        updated_outlet = receiver_node
                     else:
-                        giver_node = deepcopy(receiver_node)
                         receiver_node = receiver_at_node[receiver_node]
 
             new_range = get_watershed_array(grid, updated_outlet)
@@ -75,7 +73,7 @@ class Species(object):
             # Identify species nodes not yet updated.
             inverted_updated_nodes = np.invert(updated_nodes)
             unresolved_nodes = np.all([inverted_updated_nodes, self.nodes, stream_nodes], 0)
-            
+
             # Evolve species
             # TODO: Barriers could be over identified for species with
             # disconnected regions.
@@ -97,5 +95,5 @@ class Species(object):
         captured_nodes = np.where(captured_mask)[0]
         
         self.nodes = updated_nodes
-        print(999,len(child_species))
+
         return child_species, captured_nodes

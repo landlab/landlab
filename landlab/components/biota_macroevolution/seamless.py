@@ -5,8 +5,11 @@ Component written by Nathan Lyons beginning August 20, 2017.
 
 from copy import deepcopy
 from landlab import Component
+from landlab.plot import imshow_grid
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
+from matplotlib import colors
+from matplotlib.colors import colorConverter
 import numpy as np
 from pprint import pprint
 from .species import Species
@@ -325,6 +328,32 @@ class CladeDiversifier(Component):
         plt.ylabel('Area captured ($km^2$)')
         plt.xlim(xmin=0, xmax=max(time_in_ky))
         plt.ylim(ymin=0)
+    
+    def plot_species_range(self, species):
+        
+        range_masks = []
+        for s in species:
+            range_masks.append(s.nodes)
+        combined_range_mask = np.any(range_masks, 0)
+        
+#        range_mask = np.zeros(self.grid.number_of_nodes)
+#        range_mask[species.nodes] = 1
+              
+        # generate the colors for your colormap
+        c1 = colorConverter.to_rgba('white')
+        c2 = colorConverter.to_rgba('cyan')
+        
+        cmap = colors.LinearSegmentedColormap.from_list('streamOverlay',[c1,c2], 2)
+        cmap._init() # create the _lut array, with rgba values
+        alphas = np.linspace(0, 1, cmap.N+3)
+        cmap._lut[:,-1] = alphas
+        
+        plt.figure('Species range')
+        
+        imshow_grid(self.grid, 'topographic__elevation', cmap='gray')
+        imshow_grid(self.grid, combined_range_mask, cmap=cmap,
+                    allow_colorbar=False)
+        
     
     # Convenience methods.
         
