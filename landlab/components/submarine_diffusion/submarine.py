@@ -18,21 +18,25 @@ class SubmarineDiffuser(LinearDiffuser):
 
     _output_var_names = (
         'topographic__elevation',
+        'sediment_deposit__thickness',
     )
 
     _var_units = {
         'topographic__elevation': 'm',
         'sea_level__elevation': 'm',
+        'sediment_deposit__thickness': 'm',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'sea_level__elevation': 'grid',
+        'sediment_deposit__thickness': 'node',
     }
 
     _var_doc = {
         'topographic__elevation': 'land and ocean bottom elevation',
         'sea_level__elevation': 'Position of sea level',
+        'sediment_deposit__thickness': 'Thickness of deposition or erosion',
     }
 
     def __init__(self, grid, sea_level=0., ksh=100., wave_base=60.,
@@ -68,6 +72,7 @@ class SubmarineDiffuser(LinearDiffuser):
         self._sea_level = sea_level
 
         grid.add_zeros('kd', at='node')
+        grid.add_zeros('sediment_deposit__thickness', at='node')
 
         self._time = 0.
 
@@ -127,13 +132,8 @@ class SubmarineDiffuser(LinearDiffuser):
 
         super(SubmarineDiffuser, self).run_one_step(dt)
 
-        z_after = self.grid.at_node['topographic__elevation']
-        water_depth = self.grid.at_grid['sea_level__elevation'] - z_after
-        dz = (z_after - z_before)[self.grid.node_at_cell]
-
-        self.grid.layers.add(dz,
-                             age=self._time,
-                             water_depth=water_depth[self.grid.node_at_cell],
-                             t0=dz.clip(0.))
+        self.grid.at_node['sediment_deposit__thickness'][:] = (
+            self.grid.at_node['topographic__elevation'] - z_before
+        )
 
         self._time += dt
