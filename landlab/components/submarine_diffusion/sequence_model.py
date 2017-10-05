@@ -24,12 +24,12 @@ class SequenceModel(RasterModel):
             'step': 100.,
         },
         'submarine_diffusion': {
-            'ksh': 100.,
+            'plain_slope': 0.0008,
             'wave_base': 60.,
-            'shelf_depth': 15.,
+            'shoreface_depth': 15.,
             'alpha': .0005,
             'shelf_slope': .001,
-            'load': 3.,
+            'sediment_load': 3.,
         },
         'sea_level': {
             'amplitude': 10.,
@@ -57,13 +57,14 @@ class SequenceModel(RasterModel):
         z0 = self.grid.add_empty('bedrock_surface__elevation', at='node')
         z = self.grid.add_empty('topographic__elevation', at='node')
 
-        z0[:] = - .01 * self.grid.x_of_node + 10.
-        z[:] = z0
+        z[:] = - .01 * self.grid.x_of_node + 10.
+        z0[:] = z
 
         self.grid.layers.add(0.,
                              age=self.clock.start,
                              water_depth=-z[self.grid.core_nodes],
                              t0=0.)
+
 
         self._sea_level = SinusoidalSeaLevel(self.grid, start=clock['start'],
                                              **sea_level)
