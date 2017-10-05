@@ -26,13 +26,16 @@ class RasterModel(object):
     def clock(self):
         return self._clock
 
+    def advance_components(self, dt):
+        for component in self._components:
+            component.run_one_step(dt)
+
     def run_one_step(self, dt=None, output=None):
         """Run each component for one time step."""
         dt = dt or self.clock.step
         self.clock.advance(step=dt)
 
-        for component in self._components:
-            component.run_one_step(dt)
+        self.advance_components(dt)
 
         if output:
             write_raster_netcdf(output, self.grid, append=True)
