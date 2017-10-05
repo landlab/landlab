@@ -903,29 +903,38 @@ class FlowAccumulator(Component):
         # one set of steps is for route to one (D8, Steepest/D4)
         if self.flow_director.to_n_receivers == 'one':
 
-            # step 2. Get r
-            r = self._grid['node']['flow__receiver_node']
-
-            # step 2. Stack, D, delta construction
-            nd = flow_accum_bw._make_number_of_donors_array(r)
-            delta = flow_accum_bw._make_delta_array(nd)
-            D = flow_accum_bw._make_array_of_donors(r, delta)
-            s = flow_accum_bw.make_ordered_node_array(r)
-
-            # put theese in grid so that depression finder can use it.
-            # store the generated data in the grid
-            self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-            self._grid['link']['flow__data_structure_D'][:len(D)] = D
-            self._grid['node']['flow__upstream_node_order'][:] = s
-
             # step 3. Run depression finder if passed
-            # at present this must go at the end.
+            # Depression finder reaccumulates flow at the end of its routine. 
+            if self.depression_finder_provided is not None:
+                
+                self.depression_finder.map_depressions()
+                
+                a = self._grid['node']['drainage_area']
+                q = self._grid['node']['surface_water__discharge']
+                
+            else:   
+                # step 2. Get r
+                r = self._grid['node']['flow__receiver_node']
+    
+                # step 2. Stack, D, delta construction
+                nd = flow_accum_bw._make_number_of_donors_array(r)
+                delta = flow_accum_bw._make_delta_array(nd)
+                D = flow_accum_bw._make_array_of_donors(r, delta)
+                s = flow_accum_bw.make_ordered_node_array(r)
+    
+                # put theese in grid so that depression finder can use it.
+                # store the generated data in the grid
+                self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
+                self._grid['link']['flow__data_structure_D'][:len(D)] = D
+                self._grid['node']['flow__upstream_node_order'][:] = s
 
-            # step 4. Accumulate (to one or to N depending on direction method. )
-            a, q = flow_accum_bw.find_drainage_area_and_discharge(s,
-                                                                  r,
-                                                                  self.node_cell_area,
-                                                                  self._grid.at_node['water__unit_flux_in'])
+                # step 4. Accumulate (to one or to N depending on direction method. )
+                a, q = flow_accum_bw.find_drainage_area_and_discharge(s,
+                                                                      r,
+                                                                      self.node_cell_area,
+                                                                      self._grid.at_node['water__unit_flux_in'])
+                self._grid['node']['drainage_area'][:] = a
+                self._grid['node']['surface_water__discharge'][:] = q
 
         else:
             # step 2. Get r and p
@@ -959,13 +968,13 @@ class FlowAccumulator(Component):
                                                                          p,
                                                                          self.node_cell_area,
                                                                          self._grid.at_node['water__unit_flux_in'])
-        # store drainage area and discharge.
-        self._grid['node']['drainage_area'][:] = a
-        self._grid['node']['surface_water__discharge'][:] = q
+            # store drainage area and discharge.
+            self._grid['node']['drainage_area'][:] = a
+            self._grid['node']['surface_water__discharge'][:] = q
 
-        # at the moment, this is where the depression finder needs to live.
-        if self.depression_finder_provided is not None:
-            self.depression_finder.map_depressions()
+            # at the moment, this is where the depression finder needs to live.
+            if self.depression_finder_provided is not None:
+                self.depression_finder.map_depressions()
 
         return (a, q)
 

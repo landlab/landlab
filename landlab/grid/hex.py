@@ -690,9 +690,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         import copy
 
         try:
-            self._hexplot_configured is True
+            self._hexplot_configured
         except:
             self._configure_hexplot(data, data_label, color_map)
+        else:
+            if self._hexplot_pc.cmap != color_map:
+                self._configure_hexplot(data, data_label, color_map)            
 
         # Handle *data*: if it's a numpy array, then we consider it the
         # data to be plotted. If it's a string, we consider it the name of the

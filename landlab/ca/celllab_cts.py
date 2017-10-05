@@ -309,7 +309,7 @@ class CAPlotter(object):
         Colormap to be used in plotting
     """
 
-    def __init__(self, ca, cmap=None):
+    def __init__(self, ca, cmap=None, **kwds):
         """
         CAPlotter() constructor keeps a reference to the CA model, and
         optionally a colormap to be used with plots.
@@ -1024,13 +1024,10 @@ class CellLabCTSModel(object):
         assert (self.n_xn[current_state] > 0), \
             'must have at least one potential transition'
 
-        #print('GNE P link ' + str(link) + ' state ' + str(current_state))
-
         # Find next event time for each potential transition: new version
         if self.n_trn[current_state] == 1:
             trn_id = self.trn_id[current_state, 0]
             next_time = np.random.exponential(1.0 / self.trn_rate[trn_id])
-            #print(' gne 1 trn, next = ' + str(next_time) + ' id=' + str(trn_id))
             if _DEBUG:
                 print('rand (' + str(self.trn_rate[trn_id]) + ': ' + str(next_time))
         else:
@@ -1046,7 +1043,6 @@ class CellLabCTSModel(object):
                         print(' using it')
                     next_time = this_next
                     trn_id = self.trn_id[current_state, i]
-            #print(' gne >1 trn, next = ' + str(next_time) + ' id=' + str(trn_id))
 
         if _DEBUG:
             print('get_next_event_new():')
@@ -1081,52 +1077,17 @@ class CellLabCTSModel(object):
         >>> ins = np.arange(15) % 2
         >>> cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
         """
-#        >>> len(cts.event_queue)
-#        7
-#        >>> np.round(100 * cts.event_queue[0].time)
-#        12.0
-#        >>> cts.event_queue[0].link
-#        16
-#        >>> np.round(100 * cts.next_update[16])
-#        12.0
-#        >>> cts.event_queue[0].xn_to
-#        7
-#        >>> np.round(100 * cts.event_queue[1].time)
-#        28.0
-#        >>> cts.event_queue[1].link
-#        11
-#        >>> cts.event_queue[1].xn_to
-#        1
-#        >>> np.round(100 * cts.event_queue[6].time)
-#        27.0
-#        >>> cts.event_queue[6].link
-#        6
-#        >>> cts.event_queue[6].xn_to
-#        6
         if False and _DEBUG:
             print(('push_transitions_to_event_queue():',
                    self.num_link_states, self.n_xn))
 
         for i in self.grid.active_links:
-            # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
-                #(event, ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
-                event = self.get_next_event(i, self.link_state[i], 0.0) #, self.n_xn,
-                #                       self.xn_to, self.xn_rate,
-                #                       self.xn_propswap,
-                #                       self.xn_prop_update_fn)
-                #print('At link ' + str(i) + ' with trn_id ' + str(trn_id))
-                #print('Pushing event ' + str(event.time) + ' ' + str(event.link) + ' ' + str(event.xn_to))
-                #print('This trn_id means trn_to ' + str(self.trn_to[trn_id]))                
+                event = self.get_next_event(i, self.link_state[i], 0.0)
                 heappush(self.event_queue, event)
                 self.next_update[i] = event.time
                 
-                # for NEW approach (gradual transition...)
-                #(next_time, trn_id) = self.get_next_event_new(i,self.link_state[i], 0.0)
-                #self.priority_queue.push(i, ev_time)
-                #self.next_trn_id[i] = trn_id
-
             else:
                 self.next_update[i] = _NEVER
 
@@ -1181,27 +1142,7 @@ class CellLabCTSModel(object):
             # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
-#                if _CYTEST:
-#                    (ev_time, trn_id) = get_next_event_new(
-#                                            i,                                                 
-#                                            self.link_state[i],
-#                                            0.0,
-#                                            self.n_trn,
-#                                            self.trn_id,
-#                                            self.trn_rate)
-#                else:
                 (ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
-                #event = get_next_event(i, self.link_state[i], 0.0, self.n_xn,
-                #                       self.xn_to, self.xn_rate,
-                #                       self.xn_propswap,
-                #                       self.xn_prop_update_fn)
-                #print('At link ' + str(i) + ' with trn_id ' + str(trn_id))
-                #print('Pushing event ' + str(event.time) + ' ' + str(event.link) + ' ' + str(event.xn_to))
-                #print('This trn_id means trn_to ' + str(self.trn_to[trn_id]))                
-                #heappush(self.event_queue, event)
-                
-                # for NEW approach (gradual transition...)
-                #(next_time, trn_id) = self.get_next_event_new(i,self.link_state[i], 0.0)
                 self.priority_queue.push(i, ev_time)
                 self.next_update[i] = ev_time
                 self.next_trn_id[i] = trn_id
@@ -1372,18 +1313,9 @@ class CellLabCTSModel(object):
 
             tail_node = self.grid.node_at_link_tail[event.link]
             head_node = self.grid.node_at_link_head[event.link]
-            #DEBUG
-            if plot_each_transition:
-                print(self.node_state[tail_node])
-                print(self.node_state[head_node])
-                print(self.link_orientation[event.link])
             tail_changed, head_changed = self.update_node_states(
                 tail_node, head_node, event.xn_to)
             self.update_link_state(event.link, event.xn_to, event.time)
-            if plot_each_transition:
-                print(self.node_state[tail_node])
-                print(self.node_state[head_node])
-                print(self.link_orientation[event.link])
 
             # Next, when the state of one of the link's nodes changes, we have
             # to update the states of the OTHER links attached to it. This
@@ -1469,22 +1401,6 @@ class CellLabCTSModel(object):
                 if event.prop_update_fn is not None:
                     event.prop_update_fn(
                         self, tail_node, head_node, event.time)
-
-#            if False and _DEBUG:
-#                n = self.grid.number_of_nodes
-#                for r in range(self.grid.number_of_node_rows):
-#                    for c in range(self.grid.number_of_node_columns):
-#                        n -= 1
-#                        print('{0:.0f}'.format(self.node_state[n]), end=' ')
-#                    print()
-#                if self.propid is not None:
-#                    print()
-#                    n = self.grid.number_of_nodes
-#                    for r in range(self.grid.number_of_node_rows):
-#                        for c in range(self.grid.number_of_node_columns):
-#                            n -= 1
-#                            print('{0:2.0f}'.format(self.propid[n]), end=' ')
-#                        print()
 
         elif _DEBUG:
             print('  event time is', event.time, 'but update time is',
@@ -1596,23 +1512,6 @@ class CellLabCTSModel(object):
             else:
                 tail_changed, head_changed = self.update_node_states(
                                                 tail_node, head_node, trn_to)
-#            if _CYTEST:
-#                update_link_state_new(event_link, trn_to, event_time,
-#                                          self.bnd_lnk, 
-#                                          self.node_state,
-#                                          self.grid.node_at_link_tail,
-#                                          self.grid.node_at_link_head,
-#                                          self.link_orientation,
-#                                          self.num_node_states,
-#                                          self.num_node_states_sq,
-#                                          self.link_state,
-#                                          self.n_trn,
-#                                          self.priority_queue,
-#                                          self.next_update,
-#                                          self.next_trn_id,
-#                                          self.trn_id,
-#                                          self.trn_rate)
-#            else:
             self.update_link_state_new(event_link, trn_to, event_time)
 
             # Next, when the state of one of the link's nodes changes, we have
@@ -1647,20 +1546,6 @@ class CellLabCTSModel(object):
                             self.node_state[this_link_fromnode] * self.num_node_states +
                             self.node_state[this_link_tonode])
                         assert new_link_state == new_link_state2, 'oops'
-#                        if _CYTEST:
-#                            update_link_state_new(link, new_link_state, event_time,
-#                                          self.bnd_lnk, self.node_state,
-#                                          self.grid.node_at_link_tail,
-#                                          self.grid.node_at_link_head,
-#                                          self.link_orientation,
-#                                          self.num_node_states,
-#                                          self.num_node_states_sq,
-#                                          self.link_state, self.n_trn,
-#                                          self.priority_queue,
-#                                          self.next_update,
-#                                          self.next_trn_id,
-#                                          self.trn_id, self.trn_rate)
-#                        else:
                         self.update_link_state_new(
                                             link, new_link_state, event_time)
 
@@ -1806,6 +1691,8 @@ class CellLabCTSModel(object):
         else:
             lean_run = True
 
+        import sys  # for debug
+
         if _USE_CYTHON and not lean_run:
             self.current_time = run_cts(run_to, self.current_time,
                plot_each_transition,
@@ -1853,8 +1740,6 @@ class CellLabCTSModel(object):
 
         elif _RUN_NEW:
             
-            # switch off the run fn: 
-            #self.run_new(run_to, plot_each_transition, plotter)
             self.current_time = run_cts_new(run_to, self.current_time,
                         self.priority_queue,
                         self.next_update,                  
