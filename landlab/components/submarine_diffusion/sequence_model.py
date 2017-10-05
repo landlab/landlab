@@ -1,8 +1,8 @@
 #! /usr/bin/env python
-
 from .sea_level import SinusoidalSeaLevel, SeaLevelTimeSeries
 from .subsidence import SubsidenceTimeSeries
 from .submarine import SubmarineDiffuser
+from ..flexure.sediment_flexure import SedimentFlexure
 from .raster_model import RasterModel
 
 
@@ -39,6 +39,10 @@ class SequenceModel(RasterModel):
         'subsidence': {
             'filepath': 'subsidence.csv',
         },
+        'flexure': {
+            'method': 'airy',
+            'rho_mantle': 3300.,
+        },
     }
 
     LONG_NAME = {
@@ -47,7 +51,7 @@ class SequenceModel(RasterModel):
     }
 
     def __init__(self, grid=None, clock=None, submarine_diffusion=None,
-                 sea_level=None, subsidence=None):
+                 sea_level=None, subsidence=None, flexure=None):
         RasterModel.__init__(self, grid=grid, clock=clock)
 
         z0 = self.grid.add_empty('bedrock_surface__elevation', at='node')
@@ -68,12 +72,27 @@ class SequenceModel(RasterModel):
 
         self._submarine_diffusion = SubmarineDiffuser(self.grid,
                                                       **submarine_diffusion)
+        self._flexure = SedimentFlexure(self.grid, **flexure)
 
         self._components = (
             self._sea_level,
             self._subsidence,
             self._submarine_diffusion,
+            self._flexure,
         )
+
+    def advance_components(self, dt):
+        for component in self._components:
+            component.run_one_step(dt)
+
+        dz = self.grid.at_node['sediment_deposit__thickness']
+        water_depth = (self.grid.at_grid['sea_level__elevation'] -
+                       self.grid.at_node['topographic__elevation'])
+
+        self.grid.layers.add(dz[self.grid.node_at_cell],
+                             age=self.clock.time,
+                             water_depth=water_depth[self.grid.node_at_cell],
+                             t0=dz[self.grid.node_at_cell].clip(0.))
 
 
 if __name__ == '__main__':
