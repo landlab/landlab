@@ -15,10 +15,11 @@ sea_level:
   amplitude: 25.
   wave_length: 5000.
   phase: 0.
+  mean: -25.
 submarine_diffusion:
   alpha: 0.0005
   ksh: 100.0
-  load: 3.0
+  sediment_load: 0.3
   shelf_depth: 15.0
   shelf_slope: 0.001
   wave_base: 60.0
