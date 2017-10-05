@@ -75,6 +75,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         grid: ModelGrid
             A landlab grid.
         """
+        wave_length /= 2. * np.pi
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
         self._sea_level = lambda time: np.sin((time - phase) / wave_length) * amplitude
