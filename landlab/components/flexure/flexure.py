@@ -164,7 +164,7 @@ class Flexure(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, eet=65e3, youngs=7e10, method='airy',
-                 rho_mantle=3300., gravity=9.80665, **kwds):
+                 rho_mantle=3300., rho_water=1030., gravity=9.80665, **kwds):
         """Initialize the flexure component.
 
         Parameters
@@ -179,6 +179,8 @@ class Flexure(Component):
             Method to use to calculate deflections.
         rho_mantle : float, optional
             Density of the mantle (kg / m^3).
+        rho_water : float, optional
+            Density of the sea water (kg / m^3).
         gravity : float, optional
             Acceleration due to gravity (m / s^2).
         """
@@ -191,6 +193,7 @@ class Flexure(Component):
         self._youngs = youngs
         self._method = method
         self._rho_mantle = rho_mantle
+        self._rho_water = rho_water
         self._gravity = gravity
         self.eet = eet
 
@@ -230,6 +233,11 @@ class Flexure(Component):
         return self._youngs
 
     @property
+    def rho_water(self):
+        """Density of water (kg/m^3)."""
+        return self._rho_water
+
+    @property
     def rho_mantle(self):
         """Density of mantle (kg/m^3)."""
         return self._rho_mantle
@@ -237,7 +245,7 @@ class Flexure(Component):
     @property
     def gamma_mantle(self):
         """Specific density of mantle (N/m^3)."""
-        return self._rho_mantle * self._gravity
+        return (self._rho_mantle - self._rho_water) * self._gravity
 
     @property
     def gravity(self):
