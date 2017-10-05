@@ -67,7 +67,7 @@ class SeaLevelTimeSeries(Component):
 class SinusoidalSeaLevel(SeaLevelTimeSeries):
 
     def __init__(self, grid, wave_length=1., amplitude=1., phase=0.,
-                 start=0., **kwds):
+                 mean=0., start=0., **kwds):
         """Generate sea level values.
 
         Parameters
@@ -78,7 +78,7 @@ class SinusoidalSeaLevel(SeaLevelTimeSeries):
         wave_length /= 2. * np.pi
         super(SeaLevelTimeSeries, self).__init__(grid, **kwds)
 
-        self._sea_level = lambda time: np.sin((time - phase) / wave_length) * amplitude
+        self._sea_level = lambda time: np.sin((time - phase) / wave_length) * amplitude + mean
 
         self._time = start
 
