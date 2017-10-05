@@ -13,7 +13,7 @@ grid:
     bottom: closed
 sea_level:
   amplitude: 25.
-  wave_length: 1000.
+  wave_length: 5000.
   phase: 0.
 submarine_diffusion:
   alpha: 0.0005
