@@ -34,13 +34,13 @@ class SubmarineDiffuser(LinearDiffuser):
     }
 
     _var_doc = {
-        'topographic__elevation': 'land and ocean bottom elevation',
+        'topographic__elevation': 'land and ocean bottom elevation, positive up',
         'sea_level__elevation': 'Position of sea level',
         'sediment_deposit__thickness': 'Thickness of deposition or erosion',
     }
 
-    def __init__(self, grid, sea_level=0., ksh=100., wave_base=60.,
-                 shelf_depth=15., alpha=.0005, shelf_slope=.001, load=3.,
+    def __init__(self, grid, sea_level=0., plain_slope=0.0008, wave_base=60.,
+                 shoreface_height=15., alpha=.0005, shelf_slope=.001, sediment_load=3.,
                  **kwds):
         """Diffuse the ocean bottom.
 
@@ -63,14 +63,16 @@ class SubmarineDiffuser(LinearDiffuser):
         load: float, optional
             Sediment load entering the profile.
         """
-        self._ksh = float(ksh)
+      
+        self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
-        self._shelf_depth = float(shelf_depth)
+        self._sf = float(shoreface_height)
         self._alpha = float(alpha)
         self._shelf_slope = float(shelf_slope)
-        self._load = float(load)
+        self._load = float(sediment_load)
         self._sea_level = sea_level
-
+        self._ksh = self._load / self._plain_slope
+        
         grid.add_zeros('kd', at='node')
         grid.add_zeros('sediment_deposit__thickness', at='node')
 
@@ -119,7 +121,7 @@ class SubmarineDiffuser(LinearDiffuser):
         k[deep_water] *= np.exp(- (water_depth[deep_water] - self._wave_base) /
                                 self._wave_base)
 
-        k[land] = self._load / .0008 # self._shelf_slope
+        k[land] = self._ksh
 
         return k
 
