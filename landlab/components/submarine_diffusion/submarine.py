@@ -39,8 +39,8 @@ class SubmarineDiffuser(LinearDiffuser):
         'sediment_deposit__thickness': 'Thickness of deposition or erosion',
     }
 
-    def __init__(self, grid, sea_level=0., ksh=100., wave_base=60.,
-                 shelf_depth=15., alpha=.0005, shelf_slope=.001, load=3.,
+    def __init__(self, grid, sea_level=0., plain_slope=.0008, wave_base=60.,
+                 shoreface_height=15., alpha=.0005, shelf_slope=.001, load=3.,
                  **kwds):
         """Diffuse the ocean bottom.
 
@@ -50,11 +50,11 @@ class SubmarineDiffuser(LinearDiffuser):
             A landlab grid.
         sea_level: float, optional
             The current sea level (m).
-        ksh: float, optional
-            Diffusion coefficient at the shoreline.
+        plain_slope: float, optional
+            Slope of the delta plain (m / m).
         wave_base: float, optional
             Wave base (m).
-        shelf_depth: float, optional
+        shoreface_height: float, optional
             Water depth of the shelf/slope break (m).
         alpha: float, optional
             Some coefficient.
@@ -63,13 +63,14 @@ class SubmarineDiffuser(LinearDiffuser):
         load: float, optional
             Sediment load entering the profile.
         """
-        self._ksh = float(ksh)
+        self._plain_slope = float(plain_slope)
         self._wave_base = float(wave_base)
-        self._shelf_depth = float(shelf_depth)
+        self._shoreface_height = float(shoreface_height)
         self._alpha = float(alpha)
         self._shelf_slope = float(shelf_slope)
         self._load = float(load)
         self._sea_level = sea_level
+        self._ksh = self._load / self._plain_slope
 
         grid.add_zeros('kd', at='node')
         grid.add_zeros('sediment_deposit__thickness', at='node')
@@ -78,6 +79,7 @@ class SubmarineDiffuser(LinearDiffuser):
 
         kwds.setdefault('linear_diffusivity', 'kd')
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
+
 
     @property
     def k0(self):
@@ -111,7 +113,7 @@ class SubmarineDiffuser(LinearDiffuser):
         k = self.grid.at_node['kd']
 
         x = self.grid.x_of_node
-        b = (self._shelf_depth * self._alpha + self._shelf_slope) * self.grid.dx
+        b = (self._shoreface_height * self._alpha + self._shelf_slope) * self.grid.dx
         
         k[under_water] = self._load * (
             (x[under_water] - x_of_shore) + self.grid.dx) / (water_depth[under_water] + b) 
@@ -119,7 +121,8 @@ class SubmarineDiffuser(LinearDiffuser):
         k[deep_water] *= np.exp(- (water_depth[deep_water] - self._wave_base) /
                                 self._wave_base)
 
-        k[land] = self._load / .0008 # self._shelf_slope
+        # k[land] = self._load / .0008 # self._shelf_slope
+        k[land] = self.k_land
 
         return k
 
