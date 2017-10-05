@@ -1,0 +1,27 @@
+grid :
+    shape : [3, 100]
+    spacing': 100.
+    origin': 0.
+    bc': 
+        top': 'closed'
+        bottom': 'closed'
+clock: 
+    start : -20000.
+    stop : 0.
+    step : 100.
+submarine_diffusion : 
+    ksh : 100.
+    wave_base : 60.
+    shoreface_height : 15.
+    alpha : .0005
+    shelf_slope : .001
+    sediment_load : 3.
+sea_level :
+    amplitude : 10.
+    wave_length : 1000.
+    phase : 0.
+subsidence: 
+    filepath : 'subsidence.csv'
+flexure : 
+    method : 'airy'
+    rho_mantle : 3300.
