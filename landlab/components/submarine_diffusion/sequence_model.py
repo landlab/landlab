@@ -58,13 +58,13 @@ class SequenceModel(RasterModel):
         z = self.grid.add_empty('topographic__elevation', at='node')
 
         z[:] = - .01 * self.grid.x_of_node + 10.
+        z0[:] = z
 
         self.grid.layers.add(0.,
                              age=self.clock.start,
                              water_depth=-z[self.grid.core_nodes],
                              t0=0.)
 
-        z0[:] = z - self.grid.layers.thickness
 
         self._sea_level = SinusoidalSeaLevel(self.grid, start=clock['start'],
                                              **sea_level)
