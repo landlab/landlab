@@ -67,8 +67,6 @@ class CladeDiversifier(Component):
         self.timestep = -1
         self.at_timestep = {'time': [], 'captured_area': []}
         self.species = []
-        
-        
     
     @property
     def species_ids(self):
@@ -87,58 +85,26 @@ class CladeDiversifier(Component):
         self.timestep += 1
         
         mg = self._grid
-        A = mg.at_node['drainage_area']
-        AE = self._extinction_area_threshold
-        stream_nodes = A >= self._minimum_capture_area
-        
-        new_species = []
+        A_min = self._minimum_capture_area
+        A_e = self._extinction_area_threshold
         
         if self.timestep == 0:
             prior_species = self.species
         else:
             prior_species = self.species_at_timestep(self.timestep - 1)
         
+        new_species = []
         captured_nodes = []
         
         for species in prior_species:
-            prior_range = deepcopy(species.nodes)
-            species.update_range(mg, self._minimum_capture_area)
-            updated_range = species.nodes
-            persistent_range = np.all([prior_range, updated_range, stream_nodes], 0)
-            
-            if len(np.where(persistent_range)[0]) == 0:
-                persistent_range_max_A = 0
-            else:
-                persistent_range_max_A = max(A[persistent_range])
-    
-            new_range = np.all([prior_range, np.invert(updated_range)], 0)
-            captured_nodes.extend(np.where(new_range)[0])
-            
-            barrier_created = any(persistent_range) and any(new_range)
+            child_species,captured = species.evolve(mg, self.timestep, A_min,
+                                                    A_e)
+            if len(child_species) > 0:
+                new_species.extend(child_species)
 
-            if barrier_created:
-                # Add new species.
-                parent_id = species.identifier
-
-#                if max(A[new_range]) >= AE:
-                species = Species(self.timestep, new_range, parent_id)
-                new_species.append(species)
-            
-#                if persistent_range_max_A >= AE:
-                species = Species(self.timestep, updated_range, parent_id)
-                new_species.append(species)
-
-            else:
-                # Update existing species.
-                if persistent_range_max_A <= AE:
-                    # Extinction.
-                    print(999)
-                    species.nodes = prior_range  
-                else:
-                    # No changes so species persists.
-                    species.timesteps_existed.append(self.timestep)
-                    
-#        print(len(self.species), self.species_at_timestep(self.timestep - 1), current_time)
+            if len(captured) > 0:
+                captured_nodes.extend(captured)
+                
         self.species.extend(new_species)
         
         self.at_timestep['time'].append(current_time)
@@ -158,37 +124,32 @@ class CladeDiversifier(Component):
             if step in s.timesteps_existed:
                 species.append(s)
         return species
-    
-    def species_at_nodes_at_current_timestep(self, nodes):
-        species = self.species_at_nodes(self.regions, nodes)
-        return species
-    
-    def species_at_nodes_at_prior_timestep(self, nodes):
-        species = self.species_at_nodes(self.prior_region_ids, nodes)
-        return species
         
-    def species_at_nodes(self, regions, nodes):
-        species = []
-        for region in self.prior_region_ids:
-            if any(region.mask[0][nodes]):
-                species.append(region.species)
-        return species    
+    def species_at_node(self, node):
+        species_list = []
+        for species in self.species:
+            if species.nodes[node]:
+                species_list.append(species)
+        return species_list    
     
     def species_with_id(self, identifier):
         return self._object_with_identifier(self.species, identifier)
     
-    def get_tree(self):
+    def get_tree(self, selected_species=None):
+        
+        if selected_species == None:
+            selected_species = self.species
         
         tree = {}
         
         steps = list(reversed(self.timesteps))
-
+        
         for step in steps:
             time = self.at_timestep['time'][step]           
 
             # Get species that existed in step.
             tree[time] = {}
-            for species in self.species:
+            for species in selected_species:
                 if step in species.timesteps_existed:
                     key = species.parent_species_id
                         
@@ -206,8 +167,8 @@ class CladeDiversifier(Component):
             print(species.identifier)
             pprint(species.phylogeny)
             
-    def print_tree(self):
-        tree = self.get_tree()
+    def print_tree(self, selected_species=None):
+        tree = self.get_tree(selected_species)
         pprint(tree)
     
     # Plotting methods.
@@ -226,7 +187,9 @@ class CladeDiversifier(Component):
         time_species_existed = time_species_existed.flatten()
                 
         d = {}
-        for i in range(int(max(time_species_existed)) + 1):
+        number_of_timesteps = int(max(time_species_existed))
+        print(number_of_timesteps)
+        for i in range(number_of_timesteps):
             d[i] = len(np.where(time_species_existed == i)[0])
 
         for key, value in d.items():
@@ -235,22 +198,24 @@ class CladeDiversifier(Component):
         plt.xlabel('Timestep')
         plt.ylabel('Number of species')
           
-    def plot_tree(self, x_multiplier=0.001):
+    def plot_tree(self, x_multiplier=0.001, selected_species=None):
         
-        tree = self.get_tree()
+        tree = self.get_tree(selected_species)
         
         # Prepare figure.
-        plt.figure('Phylogeny', facecolor='white')
+        plt.figure('Phylogeny')
         ax = plt.axes(frameon=False)
         
         y_spacing = 1
        
         species_position = {}
         times = list(tree.keys())
+        print(times)
+        timesteps = np.array(self.at_timestep['time'])
 
         # Construct tree beginning at final time.
         for i, time in enumerate(times):
-
+            
             if time == max(times):
                 prior_time = time
                 next_time = times[i + 1]
@@ -261,6 +226,9 @@ class CladeDiversifier(Component):
                 prior_time = times[i - 1]
                 next_time = times[i + 1]
 
+            timestep = np.where(timesteps == time)[0][0]
+            prior_timestep = timestep-1
+            
             x_max = (time + (prior_time - time) * 0.5) * x_multiplier
             x_min = (time - (time - next_time) * 0.5) * x_multiplier
             x_mid = np.mean([x_min, x_max])
@@ -274,14 +242,14 @@ class CladeDiversifier(Component):
 
                 for species in species_list:
                     
-                    no_parent = species.parent_species_id == -1
-                    
-                    existed_prior_step = (len(times) - i - 2) in species.timesteps_existed
-
                     if species.identifier in species_position.keys():
                         y_species = species_position[species.identifier]
-
+                    else:
+                        y_species += y_spacing
+                        
                     # Draw line when a species continues across timesteps.
+                    existed_prior_step = prior_timestep in species.timesteps_existed
+                    no_parent = species.parent_species_id == -1
                     if existed_prior_step or no_parent:
                         x = x_min
                     else:
@@ -290,22 +258,18 @@ class CladeDiversifier(Component):
                     
                     plt.plot([x, x_max], [y_species, y_species], 'k')
                         
-                    y_mid = np.mean([y_min, y_species])
-
-                    if parent_id not in species_position.keys():
-                        species_position[parent_id] = y_mid
+                y_mid = np.mean([y_min, y_species]) + y_spacing * 0.5
+                species_position[parent_id] = y_mid
                 
                 # Plot trunk
                 if species_group:
                     
                     # Draw line that connects species at a timestep.
                     if time != 0:
-                        plt.plot([x_mid, x_mid], [y_min, y_species], 'r')
+                        plt.plot([x_mid, x_mid], [y_min + y_spacing, y_species], 'r')
                     
                     # Draw the base line of a species group.
                     plt.plot([x_min, x_mid], [y_mid, y_mid], 'c')
-                    
-                    species_position[parent_id] = y_mid
                                                             
                 y_min = deepcopy(y_species + y_spacing)
                         
@@ -359,6 +323,8 @@ class CladeDiversifier(Component):
         plt.plot(time_in_ky, area_in_km, 'k')
         plt.xlabel('Time (ky)')
         plt.ylabel('Area captured ($km^2$)')
+        plt.xlim(xmin=0, xmax=max(time_in_ky))
+        plt.ylim(ymin=0)
     
     # Convenience methods.
         

@@ -21,7 +21,7 @@ class Species(object):
         self.parent_species_id = parent_species_id
         self.identifier = uuid4()
     
-    def update_range(self, grid, min_stream_drainage_area):
+    def evolve(self, grid, timestep, min_stream_drainage_area, extinction_area_threshold):
         
         if 'drainage_area' not in grid.at_node.keys():
             raise FieldError('A grid "drainage_area" field is required to '
@@ -39,6 +39,10 @@ class Species(object):
         # unresolved to updated. 
         unresolved_nodes = self.nodes
         updated_nodes = np.zeros(grid.number_of_nodes, dtype=bool)
+        
+        child_species = []
+        
+        barrier_created = False
         
         while any(unresolved_nodes):
         
@@ -72,4 +76,26 @@ class Species(object):
             inverted_updated_nodes = np.invert(updated_nodes)
             unresolved_nodes = np.all([inverted_updated_nodes, self.nodes, stream_nodes], 0)
             
+            # Evolve species
+            # TODO: Barriers could be over identified for species with
+            # disconnected regions.
+            streams_elsewhere = any(A[unresolved_nodes] >= min_stream_drainage_area)
+            
+            if barrier_created or streams_elsewhere:
+                # Barrier created: create new child species, this species does
+                # not persist.
+                new_species = Species(timestep, new_range_streams,
+                                      self.identifier)
+                child_species.append(new_species)
+                barrier_created = True
+            elif max_A > extinction_area_threshold:
+                # No changes: species persists. Otherwise, species becomes
+                # extinct.
+                self.timesteps_existed.append(timestep)
+            
+        captured_mask = np.all([np.invert(self.nodes), updated_nodes], 0)
+        captured_nodes = np.where(captured_mask)[0]
+        
         self.nodes = updated_nodes
+        print(999,len(child_species))
+        return child_species, captured_nodes
