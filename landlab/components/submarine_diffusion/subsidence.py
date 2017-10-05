@@ -56,6 +56,7 @@ class SubsidenceTimeSeries(Component):
                                   at='node').reshape(self.grid.shape)
         inc[:] = subsidence(self.grid.x_of_node[self.grid.nodes_at_bottom_edge])
 
+        self._dz = inc.copy()
         self._time = 0.
 
     @property
@@ -63,6 +64,13 @@ class SubsidenceTimeSeries(Component):
         return self._time
 
     def run_one_step(self, dt):
-        self.grid.at_node['bedrock_surface__elevation'] += (
-            self.grid.at_node['bedrock_surface__increment_of_elevation'] * dt)
+        dz = self.grid.at_node['bedrock_surface__increment_of_elevation']
+        z = self.grid.at_node['bedrock_surface__elevation']
+
+        dz = dz.reshape(self.grid.shape)
+        z = z.reshape(self.grid.shape)
+
+        dz[:] = self._dz * dt
+        z[:] += dz
+
         self._time += dt
