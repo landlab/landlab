@@ -40,7 +40,8 @@ class SubmarineDiffuser(LinearDiffuser):
     }
 
     def __init__(self, grid, sea_level=0., plain_slope=.0008, wave_base=60.,
-                 shoreface_height=15., alpha=.0005, shelf_slope=.001, load=3.,
+                 shoreface_height=15., alpha=.0005, shelf_slope=.001,
+                 sediment_load=3.,
                  **kwds):
         """Diffuse the ocean bottom.
 
@@ -60,7 +61,7 @@ class SubmarineDiffuser(LinearDiffuser):
             Some coefficient.
         shelf_slope: float, optional
             Slope of the shelf (m / m).
-        load: float, optional
+        sediment_load: float, optional
             Sediment load entering the profile.
         """
         self._plain_slope = float(plain_slope)
@@ -68,7 +69,7 @@ class SubmarineDiffuser(LinearDiffuser):
         self._shoreface_height = float(shoreface_height)
         self._alpha = float(alpha)
         self._shelf_slope = float(shelf_slope)
-        self._load = float(load)
+        self._load = float(sediment_load)
         self._sea_level = sea_level
         self._ksh = self._load / self._plain_slope
 
