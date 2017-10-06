@@ -1,7 +1,6 @@
 """TODO: Description.
 """
 
-from copy import deepcopy
 from landlab import FieldError
 import numpy as np
 from uuid import uuid4
