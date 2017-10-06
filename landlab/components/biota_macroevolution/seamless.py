@@ -13,6 +13,7 @@ from matplotlib.colors import colorConverter
 import numpy as np
 from pprint import pprint
 from .species import Species
+from uuid import UUID
 
 
 class CladeDiversifier(Component):
@@ -136,7 +137,8 @@ class CladeDiversifier(Component):
         return species_list    
     
     def species_with_id(self, identifier):
-        return self._object_with_identifier(self.species, identifier)
+        _identifier = UUID(identifier)
+        return self._object_with_identifier(self.species, _identifier)
     
     def get_tree(self, selected_species=None):
         
@@ -172,7 +174,14 @@ class CladeDiversifier(Component):
             
     def print_tree(self, selected_species=None):
         tree = self.get_tree(selected_species)
-        pprint(tree)
+        for time, parent_id in tree.items():
+            print(time)
+            for parent_id, species_list in tree[time].items():
+                print('    ', parent_id)
+                for species in species_list:
+                    print('        ', species.identifier,
+                          species.timesteps_existed)
+
     
     # Plotting methods.
         
@@ -213,27 +222,27 @@ class CladeDiversifier(Component):
        
         species_position = {}
         times = list(tree.keys())
-        print(times)
+
         timesteps = np.array(self.at_timestep['time'])
 
         # Construct tree beginning at final time.
         for i, time in enumerate(times):
             
             if time == max(times):
-                prior_time = time
-                next_time = times[i + 1]
+                later_time = time
+                earlier_time = times[i + 1]
             elif time == min(times):
-                prior_time = times[i - 1]
-                next_time = time
+                later_time = times[i - 1]
+                earlier_time = time
             else:
-                prior_time = times[i - 1]
-                next_time = times[i + 1]
+                later_time = times[i - 1]
+                earlier_time = times[i + 1]
 
             timestep = np.where(timesteps == time)[0][0]
-            prior_timestep = timestep-1
+            prior_timestep = timestep - 1
             
-            x_max = (time + (prior_time - time) * 0.5) * x_multiplier
-            x_min = (time - (time - next_time) * 0.5) * x_multiplier
+            x_max = (time + (later_time - time) * 0.5) * x_multiplier
+            x_min = (time - (time - earlier_time) * 0.5) * x_multiplier
             x_mid = np.mean([x_min, x_max])
 
             y_min = deepcopy(y_spacing)
@@ -341,7 +350,7 @@ class CladeDiversifier(Component):
               
         # generate the colors for your colormap
         c1 = colorConverter.to_rgba('white')
-        c2 = colorConverter.to_rgba('cyan')
+        c2 = colorConverter.to_rgba('blue')
         
         cmap = colors.LinearSegmentedColormap.from_list('streamOverlay',[c1,c2], 2)
         cmap._init() # create the _lut array, with rgba values
