@@ -14,12 +14,19 @@ from nose.tools import assert_raises
 
 import warnings
 
-def test_raise_error():
+def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**2
     Cdiff = CubicNonLinearDiffuser(mg)
     assert_raises(RuntimeError, Cdiff.soilflux, 10, if_unstable='raise')
+
+def test_raise_kwargs_error():
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.node_x.copy()**2
+    Cdiff = CubicNonLinearDiffuser(mg)
+    assert_raises(TypeError, CubicNonLinearDiffuser, mg, bad_name='true')
 
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))

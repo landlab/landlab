@@ -211,8 +211,7 @@ class DepthDependentCubicDiffuser(Component):
     def __init__(self,grid,
                  linear_diffusivity=1.0,
                  slope_crit=1.0,
-                 soil_transport_decay_depth=1.0,
-                 **kwds):
+                 soil_transport_decay_depth=1.0):
         """Initialize the DepthDependentCubicDiffuser."""
 
         # Store grid and parameters
