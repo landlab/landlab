@@ -746,8 +746,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  *---0-->*---1-->*---2-->*---3-->*
         #
         #   create the tail-node and head-node lists
-        (self._node_at_link_tail,
-         self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+        (node_at_link_tail,
+         node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+
+        self._nodes_at_link = np.vstack((node_at_link_tail,
+                                         node_at_link_head)).T.copy()
 
         self._status_at_link = np.full(squad_links.number_of_links(self.shape),
                                        INACTIVE_LINK, dtype=int)
@@ -1515,13 +1518,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                            dtype=np.int8)
         num_links_per_row = (self.number_of_node_columns * 2) - 1
         # Sweep over all links
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for lk in range(self.number_of_links):
             # Find the orientation
             is_horiz = ((lk % num_links_per_row) <
                         (self.number_of_node_columns - 1))
             # Find the IDs of the tail and head nodes
-            t = self.node_at_link_tail[lk]
-            h = self.node_at_link_head[lk]
+            t = node_at_link_tail[lk]
+            h = node_at_link_head[lk]
 
             # If the link is horizontal, the index (row) in the links_at_node
             # array should be 0 (east) for the tail node, and 2 (west) for the
