@@ -55,9 +55,9 @@ def test_tl_hill_diff():
                        0. ,  0. , 0. , 0. ,  0.025,  0. ,  0. ,  0. ,  0.0006,
                        0. ,  0. ,  0. ,  0.0003,  0. , 0. , 0. ,  0. ,  0. ,
                        0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. , 0. ])
-    fo_out = mg.at_node['flux_out']
+    fo_out = mg.at_node['soil__flux_out']
     assert_almost_equal(fo_out, fo_test, decimal=10)
-    
+
     # updated elevation
     elev_test = np.array([ 0.    ,  0.    ,  0.    ,  0.    ,  0.    ,  0.    ,
                           0.    ,0.    ,  0.    ,  0.    ,  0.    ,  0.    ,
@@ -68,7 +68,7 @@ def test_tl_hill_diff():
     elev_out = mg.at_node['topographic__elevation']
     assert_almost_equal(elev_out, elev_test, decimal=10)
 
-    # Run another time step because deposition and transfer were null 
+    # Run another time step because deposition and transfer were null
     # the first time
     fdir.run_one_step()
     tl_diff.run_one_step(1.)
@@ -87,9 +87,9 @@ def test_tl_hill_diff():
                           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
                           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
                           0.00000000e+00,   0.00000000e+00,   0.00000000e+00])
-    fo_out = mg.at_node['flux_out']
+    fo_out = mg.at_node['soil__flux_out']
     assert_almost_equal(fo_out, fo_test, decimal=10)
-    
+
     # updated elevation
     elev_test = np.array([ 0.       ,  0.       ,  0.       ,  0.       ,
                            0.       ,  0.       ,  0.       ,  0.       ,
