@@ -221,6 +221,12 @@ class TransportLengthHillslopeDiffuser(Component):
             The imposed timestep.
         """
 
+        # Reset erosion, depo, trans and soil__flux_in to 0
+        self.erosion[:] = 0.
+        self.depo[:] = 0.
+        self.trans[:] = 0.
+        self.soil__flux_in[:] = 0.
+
         # Downstream steepest slope at node:
         self.steepest = self.grid.at_node['topographic__steepest_slope']
         # On each node, node ID of downstream receiver node
@@ -265,12 +271,6 @@ class TransportLengthHillslopeDiffuser(Component):
 
         # Calculate outflux rate
         self.soil__flux_out[:] = self.erosion + self.trans
-
-        # Reset erosion, depo, trans and soil__flux_in to 0
-        self.erosion[:] = 0.
-        self.depo[:] = 0.
-        self.trans[:] = 0.
-        self.soil__flux_in[:] = 0.
 
     def run_one_step(self, dt):
         """
