@@ -29,11 +29,15 @@ If the grid already had this field, the component would use the
 existing field. This can be accessed either through the *grid*
 attribute in the same way as other landlab fields,
 
->>> flex.grid.at_node['lithosphere__overlying_pressure_increment']
+>>> flex.grid.at_node['lithosphere__increment_of_overlying_pressure']
+array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
 or through the `load_at_node` attribute of `Flexure1D`,
 
 >>> flex.load_at_node
+array([[ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.]])
 
 Notice that `load_at_node` returns a reshaped view of the array
 whereas the field returns a flattened array. Change values in this
@@ -46,12 +50,14 @@ The output deflections can be retrieved either using landlab fields
 as,
 
 >>> flex.grid.at_node['lithosphere_surface__increment_of_elevation']
+array([ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
 
 or through the `dz_at_node` attribute,
 
 >>> flex.dz_at_node
->>> flex.grid.at_node['lithosphere_surface__increment_of_elevation']
-...     # doctest: +NORMALIZE_WHITESPACE
+array([[ 0.,  0.,  0.,  0.],
+       [ 0.,  0.,  1.,  1.],
+       [ 0.,  0.,  0.,  0.]])
 """
 
 import numpy as np
