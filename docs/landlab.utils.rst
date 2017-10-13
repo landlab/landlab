@@ -52,7 +52,7 @@ landlab.utils.structured_grid module
     :undoc-members:
     :show-inheritance:
  
- landlab.utils.source_tracking_algorithm module
+landlab.utils.source_tracking_algorithm module
 -----------------------------------------------
 
 .. automodule:: landlab.utils.source_tracking_algorithm
