@@ -240,6 +240,7 @@ Utilities and Decorators
   landlab.core.utils
   landlab.utils.decorators
   landlab.grid.decorators
+  landlab.utils.source_tracking_algorithm
 
 
 Cellular Automata (CA)

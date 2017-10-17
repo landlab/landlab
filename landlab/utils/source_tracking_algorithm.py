@@ -1,13 +1,16 @@
-
 """
-26 Jan 2016
-last_edited: 08 Jun 2017
+Source Tracking Algorithm
++++++++++++++++++++++++++
+.. autosummary::
+    :toctree: generated/
+    ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
+    ~landlab.utils.source_tracking_algorithm.track_source
+    ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions
+"""
+"""
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
-Ref 1: source_tracking_algorithm_user_manual. @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/SourceTrackingAlgorithm_RefManual_draft.docx
-
-Ref 2: 'The Landlab LandslideProbability Component User Manual' @
+Ref 1: 'The Landlab LandslideProbability Component User Manual' @
 https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
 
 MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
@@ -103,7 +106,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
     landscape. Alternatively, one can use the node ids of MD
     (grid.nodes.flatten()) as input for hsd_ids.
     
-    For more information, refer Ref 1 and Ref 2.
+    For more information, refer Ref 1.
     
     Parameters:
     ----------
