@@ -357,8 +357,8 @@ class EventLayers(object):
         Initially there are no layers so there are not thicknesses.
 
         >>> layers = EventLayers(3)
-        >>> layers.dz
-        array([], shape=(0, 3), dtype=float64)
+        >>> layers.dz.shape == (0, 3)
+        True
 
         Now add two layers, the first of uniform thickness and the
         second non-uniform and with some erosion.
@@ -399,30 +399,42 @@ class EventLayers(object):
         >>> from landlab.layers.eventlayers import EventLayers
 
         >>> layers = EventLayers(3)
-        >>> layers.number_of_layers, layers.allocated
-        (0, 0)
+        >>> layers.number_of_layers
+        0
+        >>> layers.allocated == 0
+        True
 
         >>> layers.add(15.)
-        >>> layers.number_of_layers, layers.allocated
-        (1, 7)
+        >>> layers.number_of_layers
+        1
+        >>> layers.allocated == 7
+        True
         >>> for _ in range(layers.allocated): layers.add(0.)
-        >>> layers.number_of_layers, layers.allocated
-        (8, 15)
+        >>> layers.number_of_layers
+        8
+        >>> layers.allocated == 15
+        True
 
         If you know how many layers you will ultimately have, you
         can allocated enough memory for them when you create your
         layer stacks.
 
         >>> layers = EventLayers(3, allocated=15)
-        >>> layers.number_of_layers, layers.allocated
-        (0, 15)
+        >>> layers.number_of_layers
+        0
+        >>> layers.allocated == 15
+        True
 
         >>> layers.add(15.)
-        >>> layers.number_of_layers, layers.allocated
-        (1, 15)
+        >>> layers.number_of_layers
+        1
+        >>> layers.allocated == 15
+        True
         >>> for _ in range(layers.allocated): layers.add(0.)
-        >>> layers.number_of_layers, layers.allocated
-        (16, 24)
+        >>> layers.number_of_layers
+        16
+        >>> layers.allocated == 24
+        True
         """
         return self._attrs['_dz'].shape[0]
 
