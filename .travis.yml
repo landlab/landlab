@@ -46,7 +46,7 @@ install:
 - pip install coveralls
 - conda info -a && conda list
 script:
-- conda build -q .conda-recipe --numpy=$NUMPY_VERSION
+- conda build -q .conda-recipe --old-build-string --numpy=$NUMPY_VERSION
 - conda install -q landlab --use-local
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
