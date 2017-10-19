@@ -3962,12 +3962,6 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF LINF CONN MAP
         """
-
-        # Create the arrays to hold the node-based values of the x and y
-        # components of the vector (q)
-        node_vec_x = numpy.zeros(self.number_of_nodes)
-        node_vec_y = numpy.zeros(self.number_of_nodes)
-
         # Break the link-based vector input variable, q, into x- and
         # y-components.
         # Notes:
@@ -3978,23 +3972,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         #   2) This requires memory allocation. Because this function might be
         #       called repeatedly, it would be good to find a way to
         #       pre-allocate to improve speed.
-        qx = numpy.zeros(self.number_of_links + 1)
-        qy = numpy.zeros(self.number_of_links + 1)
-        qx[:self.number_of_links] = q * \
-            self.link_unit_vec_x[:self.number_of_links]
-        qy[:self.number_of_links] = q * \
-            self.link_unit_vec_y[:self.number_of_links]
+        qx = q * self.link_unit_vec_x[:-1]
+        qy = q * self.link_unit_vec_y[:-1]
 
-        # Loop over each row in the _node_inlink_matrix and _node_outlink_matrix.
-        # This isn't a big loop! In a raster grid, these have only two rows
-        # each; in an unstructured grid, it depends on the grid geometry;
-        # for a hex grid, there are up to 6 rows.
-        n_matrix_rows = numpy.size(self._node_inlink_matrix, 0)
-        for i in range(n_matrix_rows):
-            node_vec_x += qx[self._node_inlink_matrix[i, :]]
-            node_vec_x += qx[self._node_outlink_matrix[i, :]]
-            node_vec_y += qy[self._node_inlink_matrix[i, :]]
-            node_vec_y += qy[self._node_outlink_matrix[i, :]]
+        active_links_at_node = self.link_dirs_at_node != 0
+        node_vec_x = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)
+        node_vec_y = (qy[self.links_at_node] * active_links_at_node).sum(axis=1)
         node_vec_x /= self.node_unit_vector_sum_x
         node_vec_y /= self.node_unit_vector_sum_y
 
