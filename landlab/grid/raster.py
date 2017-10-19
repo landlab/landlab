@@ -1848,54 +1848,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._link_unit_vec_x = unit_vec_at_link[:, 0]
         self._link_unit_vec_y = unit_vec_at_link[:, 1]
 
-    def _make_faces_at_cell(self, *args):
-        """faces_at_cell([cell_id])
-        Get array of faces of a cell.
-
-        Return an array of the face IDs for the faces of a cell with ID,
-        *cell_id*. The faces are listed clockwise, starting with the bottom
-        face. *cell_id* can be either a scalar or an array. If an array,
-        return the faces for each cell of the array.
-
-        Parameters
-        ----------
-        cell_id : array_like
-            Grid cell ids.
-
-        Returns
-        -------
-        (N, 4) ndarray
-            Face IDs
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> rmg.faces_at_cell[0]
-        array([4, 7, 3, 0])
-
-        >>> rmg.faces_at_cell
-        array([[ 4,  7,  3,  0],
-               [ 5,  8,  4,  1],
-               [ 6,  9,  5,  2],
-               [11, 14, 10,  7],
-               [12, 15, 11,  8],
-               [13, 16, 12,  9]])
-        """
-        if len(args) == 0:
-            cell_ids = np.arange(self.number_of_cells)
-        elif len(args) == 1:
-            cell_ids = np.broadcast_arrays(args[0])[0].ravel()
-        else:
-            raise ValueError()
-
-        node_ids = self.node_at_cell[cell_ids]
-        inlinks = self._node_inlink_matrix[:, node_ids].T
-        outlinks = self._node_outlink_matrix[:, node_ids].T
-        self._faces_at_link = np.squeeze(np.concatenate(
-            (self._face_at_link[inlinks],
-             self._face_at_link[outlinks]), axis=1))
-
     def _setup_link_at_face(self):
         """Set up links associated with faces.
 
