@@ -1831,44 +1831,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         inactive_links[self.link_dirs_at_node == 0] = False
         self._active_link_dirs_at_node[inactive_links] = 0
 
-    @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
-                version=1.0)
-    def _active_links_at_node(self, *args):
-        """_active_links_at_node([node_ids])
-        Active links of a node.
-
-        Parameters
-        ----------
-        node_ids : int or list of ints
-                   ID(s) of node(s) for which to find connected active links
-
-        Returns
-        -------
-        (M, N) ndarray
-            The ids of active links attached to grid nodes with
-            *node_ids*. If *node_ids* is not given, return links for all of
-            the nodes in the grid. M is the number of rows in the grid's
-            _node_active_inlink_matrix, which can vary depending on the type
-            and structure of the grid; in a hex grid, for example, it is 6.
-
-        Notes
-        -----
-        On it's way to being obsolete. **Deprecated**.
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        if len(args) == 0:
-            return numpy.vstack((self._node_active_inlink_matrix,
-                                 self._node_active_outlink_matrix))
-        elif len(args) == 1:
-            node_ids = numpy.broadcast_arrays(args[0])[0]
-            return numpy.vstack(
-                (self._node_active_inlink_matrix[:, node_ids],
-                 self._node_active_outlink_matrix[:, node_ids])
-            ).reshape(2 * numpy.size(self._node_active_inlink_matrix, 0), -1)
-        else:
-            raise ValueError('only zero or one arguments accepted')
-
     @property
     @make_return_array_immutable
     def angle_of_link(self):
