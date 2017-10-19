@@ -137,34 +137,34 @@ class Flexure(Component):
     _name = 'Flexure'
 
     _input_var_names = (
-        'lithosphere__overlying_pressure_increment',
+        'lithosphere__increment_of_overlying_pressure',
     )
 
     _output_var_names = (
-        'lithosphere_surface__elevation_increment',
+        'lithosphere_surface__increment_of_elevation',
     )
 
     _var_units = {
-        'lithosphere__overlying_pressure_increment': 'Pa',
-        'lithosphere_surface__elevation_increment': 'm',
+        'lithosphere__increment_of_overlying_pressure': 'Pa',
+        'lithosphere_surface__increment_of_elevation': 'm',
     }
 
     _var_mapping = {
-        'lithosphere__overlying_pressure_increment': 'node',
-        'lithosphere_surface__elevation_increment': 'node',
+        'lithosphere__increment_of_overlying_pressure': 'node',
+        'lithosphere_surface__increment_of_elevation': 'node',
     }
 
     _var_doc = {
-        'lithosphere__overlying_pressure_increment':
+        'lithosphere__increment_of_overlying_pressure':
             'Applied pressure to the lithosphere over a time step',
-        'lithosphere_surface__elevation_increment':
+        'lithosphere_surface__increment_of_elevation':
             'The change in elevation of the top of the lithosphere (the land '
             'surface) in one timestep',
     }
 
     @use_file_name_or_kwds
     def __init__(self, grid, eet=65e3, youngs=7e10, method='airy',
-                 rho_mantle=3300., gravity=9.80665, **kwds):
+                 rho_mantle=3300., rho_water=1030., gravity=9.80665, **kwds):
         """Initialize the flexure component.
 
         Parameters
@@ -179,6 +179,8 @@ class Flexure(Component):
             Method to use to calculate deflections.
         rho_mantle : float, optional
             Density of the mantle (kg / m^3).
+        rho_water : float, optional
+            Density of the sea water (kg / m^3).
         gravity : float, optional
             Acceleration due to gravity (m / s^2).
         """
@@ -191,6 +193,7 @@ class Flexure(Component):
         self._youngs = youngs
         self._method = method
         self._rho_mantle = rho_mantle
+        self._rho_water = rho_water
         self._gravity = gravity
         self.eet = eet
 
@@ -198,11 +201,13 @@ class Flexure(Component):
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:
-                self.grid.add_zeros('node', name, units=self._var_units[name])
+                self.grid.add_zeros(name, units=self._var_units[name],
+                                    at='node')
 
         for name in self._output_var_names:
             if name not in self.grid.at_node:
-                self.grid.add_zeros('node', name, units=self._var_units[name])
+                self.grid.add_zeros(name, units=self._var_units[name],
+                                    at='node')
 
         self._r = self._create_kei_func_grid(self._grid.shape,
                                              (self.grid.dy, self.grid.dx),
@@ -228,6 +233,11 @@ class Flexure(Component):
         return self._youngs
 
     @property
+    def rho_water(self):
+        """Density of water (kg/m^3)."""
+        return self._rho_water
+
+    @property
     def rho_mantle(self):
         """Density of mantle (kg/m^3)."""
         return self._rho_mantle
@@ -235,7 +245,7 @@ class Flexure(Component):
     @property
     def gamma_mantle(self):
         """Specific density of mantle (N/m^3)."""
-        return self._rho_mantle * self._gravity
+        return (self._rho_mantle - self._rho_water) * self._gravity
 
     @property
     def gravity(self):
@@ -270,8 +280,8 @@ class Flexure(Component):
         n_procs : int, optional
             Number of processors to use for calculations.
         """
-        load = self.grid.at_node['lithosphere__overlying_pressure_increment']
-        deflection = self.grid.at_node['lithosphere_surface__elevation_increment']
+        load = self.grid.at_node['lithosphere__increment_of_overlying_pressure']
+        deflection = self.grid.at_node['lithosphere_surface__increment_of_elevation']
 
         new_load = load.copy()
 
@@ -282,6 +292,9 @@ class Flexure(Component):
         else:
             self.subside_loads(new_load, deflection=deflection,
                                n_procs=n_procs)
+
+    def run_one_step(self, dt=None):
+        self.update()
 
     def subside_loads(self, loads, deflection=None, n_procs=1):
         """Subside surface due to multiple loads.

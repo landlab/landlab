@@ -68,6 +68,8 @@ ext_modules = [
               ['landlab/grid/structured_quad/cfuncs.pyx']),
     Extension('landlab.grid.structured_quad.c_faces',
               ['landlab/grid/structured_quad/c_faces.pyx']),
+    Extension('landlab.layers.ext.eventlayers',
+              ['landlab/layers/ext/eventlayers.pyx']),
 ]
 
 import numpy as np
@@ -158,6 +160,7 @@ setup(name='landlab',
       entry_points={
           'console_scripts': [
               'landlab=landlab.cmd.landlab:main',
+              'sequence=landlab.components.submarine_diffusion.sequence_model:SequenceModel.main',
           ]
       },
       include_dirs = [np.get_include()],

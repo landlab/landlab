@@ -748,6 +748,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     _set_netcdf_attributes(root, attrs)
    
     _set_netcdf_structured_dimensions(root, fields.shape)
+    _add_time_variable(root, 0.)
     _set_netcdf_raster_variables(root, fields, names=names)
 
     root.close()

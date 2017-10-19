@@ -1,0 +1,30 @@
+clock:
+  start: -20000.0
+  step: 100.0
+  stop: 5000.0
+grid:
+  origin: 0.0
+  shape:
+  - 3
+  - 100
+  spacing: 100.0
+  bc:
+    top: closed
+    bottom: closed
+sea_level:
+  amplitude: 25.
+  wave_length: 5000.
+  phase: 0.
+  mean: -25.
+submarine_diffusion:
+  alpha: 0.0005
+  sediment_load: 0.3
+  plain_slope: .0008
+  shelf_depth: 15.0
+  shelf_slope: 0.001
+  wave_base: 60.0
+subsidence:
+  filepath: subsidence.csv
+flexure:
+  method: airy
+  rho_mantle: 3300.

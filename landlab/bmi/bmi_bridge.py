@@ -99,9 +99,10 @@ class TimeStepper(object):
         """Change the time step."""
         self._step = new_val
 
-    def advance(self):
+    def advance(self, step=None):
         """Advance the time stepper by one time step."""
-        self._time += self.step
+        step = step or self.step
+        self._time += step
         if self._stop is not None and self._time > self._stop:
             raise StopIteration()
 

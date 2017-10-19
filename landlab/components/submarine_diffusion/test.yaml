@@ -1,0 +1,10 @@
+---
+    number_of_node_rows: 200
+    number_of_node_columns: 3
+    dx: 500.0
+    run_duration: 10000.0
+    dt: 10.0
+    output_interval: 1000.0
+    output_filename: "seq_test"
+...
+
