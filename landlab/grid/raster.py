@@ -1136,15 +1136,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
        LLCATS: DEPR LINF NINF
         """
+        active_links_at_node = self.links_at_node.copy()
+        active_links_at_node[self.active_link_dirs_at_node == 0] = -1
+        active_links_at_node = active_links_at_node[:, (3, 2, 1, 0)]
+
         if len(args) == 0:
-            return np.vstack((self._node_active_inlink_matrix2,
-                              self._node_active_outlink_matrix2))
+            return active_links_at_node.T
         elif len(args) == 1:
             node_ids = np.broadcast_arrays(args[0])[0]
-            return (
-                np.vstack((self._node_active_inlink_matrix2[:, node_ids],
-                           self._node_active_outlink_matrix2[:, node_ids])
-                          ).reshape(4, -1))
+            return active_links_at_node[node_ids, :].T
         else:
             raise ValueError('only zero or one arguments accepted')
 
