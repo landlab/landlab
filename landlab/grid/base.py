@@ -3778,38 +3778,21 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 1.73205081,  1.73205081,  1.73205081,  3.46410162,  1.73205081,
                 1.73205081,  1.73205081])
         """
-        # Create the arrays for unit vectors for each link. These each get an
-        # additional array element at the end with the value zero. This allows
-        # any references to "link ID -1" in the _node_inlink_matrix and
-        # _node_outlink_matrix to refer to the zero value in this extra element,
-        # so that when we're summing up link unit vectors, or multiplying by a
-        # nonexistent unit vector, we end up just treating these as zero.
-        self._link_unit_vec_x = numpy.zeros(self.number_of_links + 1)
-        self._link_unit_vec_y = numpy.zeros(self.number_of_links + 1)
+        nodes_at_link = ((self.node_at_link_tail, self.node_at_link_head), )
 
-        # Calculate the unit vectors using triangle similarity and the
-        # Pythagorean Theorem.
-        dx = self.node_x[self.node_at_link_head] - \
-            self.node_x[self.node_at_link_tail]
-        dy = self.node_y[self.node_at_link_head] - \
-            self.node_y[self.node_at_link_tail]
-        self._link_unit_vec_x[:self.number_of_links] = dx / self.length_of_link
-        self._link_unit_vec_y[:self.number_of_links] = dy / self.length_of_link
+        unit_vec_at_link = np.zeros((self.number_of_links + 1, 2), dtype=float)
+        unit_vec_at_link[:-1, 0] = np.diff(self.x_of_node[nodes_at_link],
+                                           axis=0) / self.length_of_link
+        unit_vec_at_link[:-1, 1] = np.diff(self.y_of_node[nodes_at_link],
+                                           axis=0) / self.length_of_link
+        # unit_vec_at_link[:-1] /= self.length_of_link.reshape((-1, 1))
 
-        # While we're at it, calculate the unit vector sums for each node.
-        # These will be useful in averaging link-based vectors at the nodes.
-        self._node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
-        self._node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
-        max_num_inlinks_per_node = numpy.size(self._node_inlink_matrix, 0)
-        for i in range(max_num_inlinks_per_node):
-            self._node_unit_vector_sum_x += abs(
-                self._link_unit_vec_x[self._node_inlink_matrix[i, :]])
-            self._node_unit_vector_sum_y += abs(
-                self._link_unit_vec_y[self._node_inlink_matrix[i, :]])
-            self._node_unit_vector_sum_x += abs(
-                self._link_unit_vec_x[self._node_outlink_matrix[i, :]])
-            self._node_unit_vector_sum_y += abs(
-                self._link_unit_vec_y[self._node_outlink_matrix[i, :]])
+        self._unit_vec_at_node = np.abs(unit_vec_at_link[self.links_at_node]).sum(axis=1)
+
+        self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
+        self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
+        self._link_unit_vec_x = unit_vec_at_link[:, 0]
+        self._link_unit_vec_y = unit_vec_at_link[:, 1]
 
     @property
     def unit_vector_xcomponent_at_link(self):
