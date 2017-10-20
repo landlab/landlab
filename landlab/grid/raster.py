@@ -1508,61 +1508,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._active_link_dirs_at_node[inactive_links] = 0
 
     @deprecated(use='no replacement', version=1.0)
-    def _setup_inlink_and_outlink_matrices(self):
-        """Set up matrices that hold the inlinks and outlinks for each node.
-
-        Creates data structures to record the numbers of inlinks and outlinks
-        for each node. An inlink of a node is simply a link that has the node
-        as its "to" node, and an outlink is a link that has the node as its
-        "from".
-
-        We store the inlinks in a 2-row by num_nodes-column matrix called
-        _node_inlink_matrix. It has two rows because we know that the nodes in
-        our raster grid will never have more than two inlinks an two outlinks
-        each (a given node could also have zero or one of either). The outlinks
-        are stored in a similar matrix.
-
-        The order of inlinks is [SOUTH, WEST].
-
-        The order of outlinks is [NORTH, EAST].
-
-        We also keep track of the total number of inlinks and outlinks at each
-        node in the num_inlinks and num_outlinks arrays.
-
-        The inlink and outlink matrices are useful in numerical calculations.
-        Each row of each matrix contains one inlink or outlink per node. So, if
-        you have a corresponding "flux" matrix, you can map incoming or
-        outgoing fluxes onto the appropriate nodes. More information on this is
-        in the various calculate_flux_divergence... functions.
-
-        What happens if a given node does not have two inlinks or outlinks? We
-        simply put the default value -1 in this case. This allows us to use a
-        cute little trick when computing inflows and outflows. We make our
-        "flux" array one element longer than the number of links, with the last
-        element containing the value 0. Thus, any time we add an influx from
-        link number -1, Python takes the value of the last element in the
-        array, which is zero. By doing it this way, we maintain the efficiency
-        that comes with the use of numpy. Again, more info can be found in the
-        description of the flux divergence functions.
-
-        DEJH notes that we may be using BAD_INDEX_VALUE (an arbitrary very
-        large number), not -1, now.
-        If you want to use this trick, you'll have to seach for BAD_INDEX_VALUE
-        manually now.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0)
-        """
-
-        (self._node_inlink_matrix,
-         self._node_numinlink) = sgrid.setup_inlink_matrix(self.shape)
-
-        (self._node_outlink_matrix,
-         self._node_numoutlink) = sgrid.setup_outlink_matrix(self.shape)
-
-    @deprecated(use='no replacement', version=1.0)
     def _setup_active_inlink_and_outlink_matrices(self):
         """Set up matrices that hold active inlinks and outlinks for each node.
 

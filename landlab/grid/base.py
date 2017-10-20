@@ -3454,65 +3454,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._active_faces
 
     @deprecated(use='no replacement', version=1.0)
-    def _setup_inlink_and_outlink_matrices(self):
-        """Create data structured for number of inlinks and outlinks.
-
-        Creates data structures to record the numbers of inlinks and outlinks
-        for each node. An inlink of a node is simply a link that has the
-        node as its "to" node, and an outlink is a link that has the node
-        as its "from".
-
-        We store the inlinks in an NM-row by num_nodes-column matrix called
-        _node_inlink_matrix. NM is the maximum number of neighbors for any node.
-
-        We also keep track of the total number of inlinks and outlinks at each
-        node in the num_inlinks and num_outlinks arrays.
-
-        The inlink and outlink matrices are useful in numerical calculations.
-        Each row of each matrix contains one inlink or outlink per node. So, if
-        you have a corresponding "flux" matrix, you can map incoming or
-        outgoing fluxes onto the appropriate nodes. More information on this is
-        in the various calculate_flux_divergence... functions.
-
-        What happens if a given node does not have two inlinks or outlinks? We
-        simply put the default value -1 in this case. This allows us to use a
-        cute little trick when computing inflows and outflows. We make our
-        "flux" array one element longer than the number of links, with the last
-        element containing the value 0. Thus, any time we add an influx from
-        link number -1, Python takes the value of the last element in the
-        array, which is zero. By doing it this way, we maintain the efficiency
-        that comes with the use of numpy. Again, more info can be found in the
-        description of the flux divergence functions.
-        """
-
-        # Find the maximum number of neighbors for any node
-        num_nbrs = self._calc_numbers_of_node_neighbors()
-        self.max_num_nbrs = numpy.amax(num_nbrs)
-
-        # Create active in-link and out-link matrices.
-        self._node_inlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self._node_outlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-
-        # Set up the inlink arrays
-        tonodes = self.node_at_link_head
-        self._node_numinlink = numpy.bincount(tonodes,
-                                             minlength=self.number_of_nodes)
-
-        counts = count_repeated_values(self.node_at_link_head)
-        for (count, (tonodes, link_ids)) in enumerate(counts):
-            self._node_inlink_matrix[count][tonodes] = link_ids
-
-        # Set up the outlink arrays
-        fromnodes = self.node_at_link_tail
-        self._node_numoutlink = numpy.bincount(fromnodes,
-                                              minlength=self.number_of_nodes)
-        counts = count_repeated_values(self.node_at_link_tail)
-        for (count, (fromnodes, link_ids)) in enumerate(counts):
-            self._node_outlink_matrix[count][fromnodes] = link_ids
-
-    @deprecated(use='no replacement', version=1.0)
     def _setup_active_inlink_and_outlink_matrices(self):
         """Create data structures for number of active inlinks and outlinks.
 
