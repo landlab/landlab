@@ -3498,11 +3498,11 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> hmg = ll.HexModelGrid(3, 2, 2.0)
         >>> hmg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
-                1. ,  0. ])
+                1. ])
         >>> hmg.link_unit_vec_y
         array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
                 0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
-                0.8660254,  0.       ,  0.       ])
+                0.8660254,  0.       ])
         >>> hmg.node_unit_vector_sum_x
         array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
         >>> hmg.node_unit_vector_sum_y
@@ -3516,14 +3516,34 @@ class ModelGrid(ModelDataFieldsMixIn):
                                            axis=0) / self.length_of_link
         unit_vec_at_link[:-1, 1] = np.diff(self.y_of_node[nodes_at_link],
                                            axis=0) / self.length_of_link
-        # unit_vec_at_link[:-1] /= self.length_of_link.reshape((-1, 1))
 
         self._unit_vec_at_node = np.abs(unit_vec_at_link[self.links_at_node]).sum(axis=1)
+        self._unit_vec_at_link = unit_vec_at_link[:-1, :]
 
         self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
         self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
-        self._link_unit_vec_x = unit_vec_at_link[:, 0]
-        self._link_unit_vec_y = unit_vec_at_link[:, 1]
+        self._link_unit_vec_x = unit_vec_at_link[:-1, 0]
+        self._link_unit_vec_y = unit_vec_at_link[:-1, 1]
+
+    @property
+    def unit_vector_at_link(self):
+        """Get a unit vector for each link."""
+        try:
+            self._unit_vec_at_link
+        except AttributeError:
+            self._create_link_unit_vectors()
+        finally:
+            return self._unit_vec_at_link
+
+    @property
+    def unit_vector_at_node(self):
+        """Get a unit vector for each node."""
+        try:
+            self._unit_vec_at_node
+        except AttributeError:
+            self._create_link_unit_vectors()
+        finally:
+            return self._unit_vec_at_node
 
     @property
     def unit_vector_xcomponent_at_link(self):
@@ -3533,17 +3553,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.unit_vector_xcomponent_at_link) == grid.number_of_links + 1
-        True
         >>> grid.unit_vector_xcomponent_at_link # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  0.,  0.,  0.,
-                1.,  1.,  0.,  0.,  0.,  1.,  1.,  0.])
+                1.,  1.,  0.,  0.,  0.,  1.,  1.])
 
         LLCATS: LINF MEAS
         """
-        if self._link_unit_vec_x is None:
-            self._create_link_unit_vectors()
-        return self._link_unit_vec_x
+        return self.unit_vector_at_link[:, 0]
 
     @property
     @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
@@ -3551,7 +3567,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         LLCATS: DEPR LINF MEAS
         """
-        return self.unit_vector_xcomponent_at_link
+        return self.unit_vector_at_link[:, 0]
 
     @property
     def unit_vector_ycomponent_at_link(self):
@@ -3561,17 +3577,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.unit_vector_ycomponent_at_link) == grid.number_of_links + 1
-        True
         >>> grid.unit_vector_ycomponent_at_link # doctest: +NORMALIZE_WHITESPACE
         array([ 0.,  0.,  1.,  1.,  1.,
-                0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.])
+                0.,  0.,  1.,  1.,  1.,  0.,  0.])
 
         LLCATS: LINF MEAS
         """
-        if self._link_unit_vec_y is None:
-            self._create_link_unit_vectors()
-        return self._link_unit_vec_y
+        return self.unit_vector_at_link[:, 1]
 
     @property
     @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
@@ -3579,7 +3591,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         LLCATS: DEPR LINF MEAS
         """
-        return self.unit_vector_ycomponent_at_link
+        return self.unit_vector_at_link[:, 1]
 
     @property
     def unit_vector_sum_xcomponent_at_node(self):
@@ -3596,9 +3608,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF MEAS
         """
-        if self._node_unit_vector_sum_x is None:
-            self._create_link_unit_vectors()
-        return self._node_unit_vector_sum_x
+        return self.unit_vector_at_node[:, 0]
 
     @property
     @deprecated(use='unit_vector_sum_xcomponent_at_node', version='0.5')
@@ -3606,7 +3616,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         LLCATS: DEPR NINF MEAS
         """
-        return self.unit_vector_sum_xcomponent_at_node
+        return self.unit_vector_at_node[:, 0]
 
     @property
     def unit_vector_sum_ycomponent_at_node(self):
@@ -3623,9 +3633,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF MEAS
         """
-        if self._node_unit_vector_sum_y is None:
-            self._create_link_unit_vectors()
-        return self._node_unit_vector_sum_y
+        return self.unit_vector_at_node[:, 1]
 
     @property
     @deprecated(use='unit_vector_sum_ycomponent_at_node', version='0.5')
@@ -3633,7 +3641,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         """
         LLCATS: DEPR NINF MEAS
         """
-        return self.unit_vector_sum_ycomponent_at_node
+        return self.unit_vector_at_node[:, 1]
 
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
@@ -3807,8 +3815,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         #   2) This requires memory allocation. Because this function might be
         #       called repeatedly, it would be good to find a way to
         #       pre-allocate to improve speed.
-        qx = q * self.link_unit_vec_x[:-1]
-        qy = q * self.link_unit_vec_y[:-1]
+        qx = q * self.link_unit_vec_x
+        qy = q * self.link_unit_vec_y
 
         active_links_at_node = self.link_dirs_at_node != 0
         node_vec_x = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)
