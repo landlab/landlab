@@ -1704,11 +1704,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> mg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
                 1.,  1.,  1.,  0.,  0.,  0.,  0.,
-                1.,  1.,  1.,  0.])
+                1.,  1.,  1.])
         >>> mg.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  1.,
                 0.,  0.,  0.,  1.,  1.,  1.,  1.,
-                0.,  0.,  0.,  0.])
+                0.,  0.,  0.])
 
         >>> mg.node_unit_vector_sum_x
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
@@ -1719,11 +1719,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         unit_vec_at_link[self.horizontal_links, 0] = 1.
         unit_vec_at_link[self.vertical_links, 1] = 1.
         self._unit_vec_at_node = unit_vec_at_link[self.links_at_node].sum(axis=1)
+        self._unit_vec_at_link = unit_vec_at_link[:-1, :]
 
         self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
         self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
-        self._link_unit_vec_x = unit_vec_at_link[:, 0]
-        self._link_unit_vec_y = unit_vec_at_link[:, 1]
+        self._link_unit_vec_x = unit_vec_at_link[:-1, 0]
+        self._link_unit_vec_y = unit_vec_at_link[:-1, 1]
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
