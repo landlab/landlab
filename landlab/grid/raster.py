@@ -1507,33 +1507,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         inactive_links[self.link_dirs_at_node == 0] = False
         self._active_link_dirs_at_node[inactive_links] = 0
 
-    @deprecated(use='no replacement', version=1.0)
-    def _setup_active_inlink_and_outlink_matrices(self):
-        """Set up matrices that hold active inlinks and outlinks for each node.
-
-        Creates data structures to record the numbers of active inlinks and
-        active outlinks for each node. These data structures are equivalent to
-        the "regular" inlink and outlink matrices, except that it uses the IDs
-        of active links (only).
-        """
-        node_status = self._node_status != CLOSED_BOUNDARY
-
-        (self._node_active_inlink_matrix,
-         self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix(
-             self.shape, node_status=node_status)
-
-        (self._node_active_outlink_matrix,
-         self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
-             self.shape, node_status=node_status)
-
-        (self._node_active_inlink_matrix2,
-         self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix2(
-             self.shape, node_status=node_status)
-
-        (self._node_active_outlink_matrix2,
-         self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
-             self.shape, node_status=node_status)
-
     def _reset_list_of_active_diagonal_links(self):
         """Reset the active diagonal links.
 
