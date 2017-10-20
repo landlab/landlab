@@ -342,11 +342,6 @@ class ModelGrid(ModelDataFieldsMixIn):
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
 
-    # : Nodes on the other end of links pointing into a node.
-    _node_inlink_matrix = numpy.array([], dtype=numpy.int32)
-    # : Nodes on the other end of links pointing out of a node.
-    _node_outlink_matrix = numpy.array([], dtype=numpy.int32)
-
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
@@ -3129,10 +3124,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._activelink_fromnode = self.node_at_link_tail[active_links]
         self._activelink_tonode = self.node_at_link_head[active_links]
 
-        # Set up active inlink and outlink matrices
-        self._setup_active_inlink_and_outlink_matrices()
-        #self._create_links_and_link_dirs_at_node()
-
     def _reset_lists_of_nodes_cells(self):
         """Create of reset lists of nodes and cells based on their status.
 
@@ -3534,24 +3525,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 2)
-        >>> hg._node_numactiveinlink
-        array([0, 0, 0, 3, 1, 1, 1])
-        >>> hg._node_active_inlink_matrix2
-        array([[-1, -1, -1,  2,  6,  8,  9],
-               [-1, -1, -1,  3, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1]])
-        >>> hg._node_numactiveoutlink
-        array([1, 1, 1, 3, 0, 0, 0])
-        >>> hg._node_active_outlink_matrix2
-        array([[ 2,  3,  5,  6, -1, -1, -1],
-               [-1, -1, -1,  8, -1, -1, -1],
-               [-1, -1, -1,  9, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1]])
         """
         # Create active in-link and out-link matrices.
         self._node_active_inlink_matrix = - numpy.ones(

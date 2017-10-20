@@ -585,44 +585,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                1, 0, 0, 0, 1,
                1, 0, 0, 0, 1,
                1, 1, 1, 1, 1], dtype=int8)
-        >>> rmg._node_numinlink # doctest: +NORMALIZE_WHITESPACE
-        array([0, 1, 1, 1, 1,
-               1, 2, 2, 2, 2,
-               1, 2, 2, 2, 2,
-               1, 2, 2, 2, 2])
-        >>> rmg._node_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
-        array([[-1, -1, -1, -1, -1,  4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22,
-                23, 24, 25, 26],
-               [-1,  0,  1,  2,  3, -1,  9, 10, 11, 12, -1, 18, 19, 20, 21, -1,
-                27, 28, 29, 30]])
-        >>> rmg._node_numoutlink # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2, 1,
-               2, 2, 2, 2, 1,
-               2, 2, 2, 2, 1,
-               1, 1, 1, 1, 0])
-        >>> rmg._node_outlink_matrix[0] # doctest: +NORMALIZE_WHITESPACE
-        array([ 4,  5,  6,  7,  8, 13, 14, 15, 16, 17, 22, 23, 24, 25, 26,
-               -1, -1, -1, -1, -1])
-        >>> rmg._node_numactiveinlink # doctest: +NORMALIZE_WHITESPACE
-        array([0, 0, 0, 0, 0,
-               0, 2, 2, 2, 1,
-               0, 2, 2, 2, 1,
-               0, 1, 1, 1, 0])
-        >>> rmg._node_active_inlink_matrix # doctest: +NORMALIZE_WHITESPACE
-        array([[-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,
-                 6, 7,  8, -1],
-               [-1, -1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1,
-                -1, -1, -1, -1]])
-        >>> rmg._node_numactiveoutlink # doctest: +NORMALIZE_WHITESPACE
-        array([0, 1, 1, 1, 0,
-               1, 2, 2, 2, 0,
-               1, 2, 2, 2, 0,
-               0, 0, 0, 0, 0])
-        >>> rmg._node_active_outlink_matrix # doctest: +NORMALIZE_WHITESPACE
-        array([[-1,  0,  1,  2, -1, -1,  3,  4,  5, -1, -1,  6,  7,  8, -1, -1,
-                -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1,  9, 10, 11, 12, -1, 13, 14, 15, 16, -1, -1,
-                -1, -1, -1, -1]])
         >>> rmg.node_at_cell # doctest: +NORMALIZE_WHITESPACE
         array([ 6,  7,  8,
                11, 12, 13])
@@ -754,9 +716,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
-
-        #   set up in-link and out-link matrices and numbers
-        self._setup_inlink_and_outlink_matrices()
 
         # Flag indicating whether we have created diagonal links.
         self._diagonal_links_created = False
