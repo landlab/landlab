@@ -1,9 +1,9 @@
 #! /usr/env/python
+"""Fastscape stream power erosion."""
 
-"""
-This module attempts to "component-ify" GT's Fastscape stream power erosion.
-Created DEJH, March 2014.
-"""
+# This module attempts to "component-ify" GT's Fastscape stream
+# power erosion.
+# Created DEJH, March 2014.
 from __future__ import print_function
 
 import numpy
@@ -18,7 +18,9 @@ from .cfuncs import (brent_method_erode_fixed_threshold,
 
 
 class FastscapeEroder(Component):
-    '''
+
+    r"""Fastscape stream power erosion.
+
     This class uses the Braun-Willett Fastscape approach to calculate the
     amount of erosion at each node in a grid, following a stream power
     framework. This should allow it to be stable against larger timesteps
@@ -34,15 +36,18 @@ class FastscapeEroder(Component):
     a timestep while using this component. The user is cautioned to check their
     implementation is behaving stably before fully trusting it.
 
-    Stream power erosion is implemented as::
+    Stream power erosion is implemented as:
 
-        E = K * (rainfall_intensity*A)**m * S**n - threshold_sp,
+    .. math::
 
-    if K * A**m * S**n > threshold_sp, and::
+        E = K (\textit{rainfall_intensity} \, A) ^ m  S ^ n -
+               \textit{threshold_sp}
 
-        E = 0,
+    if :math:`K A ^ m S ^ n > \textit{threshold_sp}`, and:
 
-    if K * A**m * S**n <= threshold_sp.
+    .. math:: E = 0,
+
+    if :math:`K A^m S^n <= \textit{threshold_sp}`.
 
     This module assumes you have already run
     :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
@@ -74,10 +79,10 @@ class FastscapeEroder(Component):
         The threshold stream power.
     rainfall_intensity : float; optional
         Modifying factor on drainage area to convert it to a true water
-        volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n. For a time
-        varying rainfall intensity, pass rainfall_intensity_if_used to
-        `run_one_step`. For a spatially variable rainfall, use the
-        StreamPowerEroder component.
+        volume flux in (m/time). i.e., :math:`E = K * (r_i A)^m * S^n`.
+        For a time varying rainfall intensity, pass
+        *rainfall_intensity_if_used* to `run_one_step`. For a spatially
+        variable rainfall, use the StreamPowerEroder component.
 
     Examples
     --------
@@ -85,15 +90,16 @@ class FastscapeEroder(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowRouter, FastscapeEroder
-    >>> mg = RasterModelGrid((5, 5), 10.)
+
+    >>> grid = RasterModelGrid((5, 5), spacing=10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
     ...               7.,  2.,  3.,  5.,  7.,
     ...               7.,  1., 1.9,  4.,  7.,
     ...               7.,  0.,  7.,  7.,  7.])
-    >>> z = mg.add_field('node', 'topographic__elevation', z)
-    >>> fr = FlowRouter(mg)
-    >>> sp = FastscapeEroder(mg, K_sp=1.)
+    >>> z = grid.add_field('topographic__elevation', z, at='node')
+    >>> fr = FlowRouter(grid)
+    >>> sp = FastscapeEroder(grid, K_sp=1.)
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=1.)
     >>> z  # doctest: +NORMALIZE_WHITESPACE
@@ -103,44 +109,44 @@ class FastscapeEroder(Component):
             7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
             7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
 
-    >>> mg2 = RasterModelGrid((3, 7), 1.)
-    >>> z = np.array(mg2.node_x**2.)
-    >>> z = mg2.add_field('node', 'topographic__elevation', z)
-    >>> mg2.status_at_node[mg2.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
-    >>> mg2.status_at_node[mg2.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> mg2.status_at_node[mg2.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> fr2 = FlowRouter(mg2)
-    >>> sp2 = FastscapeEroder(mg2, K_sp=0.1, m_sp=0., n_sp=2.,
-    ...                       threshold_sp=2.)
-    >>> fr2.run_one_step()
-    >>> sp2.run_one_step(dt=10.)
-    >>> z.reshape((3, 7))[1, :]  # doctest: +NORMALIZE_WHITESPACE
+    >>> grid = RasterModelGrid((3, 7), spacing=1.)
+    >>> z = np.array(grid.node_x ** 2.)
+    >>> z = grid.add_field('topographic__elevation', z, at='node')
+    >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> fr = FlowRouter(grid)
+    >>> sp = FastscapeEroder(grid, K_sp=0.1, m_sp=0., n_sp=2.,
+    ...                      threshold_sp=2.)
+    >>> fr.run_one_step()
+    >>> sp.run_one_step(dt=10.)
+    >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
     array([  0.        ,   1.        ,   4.        ,   8.52493781,
             13.29039716,  18.44367965,  36.        ])
 
-    >>> mg3 = RasterModelGrid((3, 7), 1.)
-    >>> z = np.array(mg3.node_x**2.)
-    >>> z = mg3.add_field('node', 'topographic__elevation', z)
-    >>> mg3.status_at_node[mg3.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
-    >>> mg3.status_at_node[mg3.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> fr3 = FlowRouter(mg3)
-    >>> K_field = mg3.ones('node')  # K can be a field
-    >>> sp3 = FastscapeEroder(mg3, K_sp=K_field, m_sp=1., n_sp=0.6,
-    ...                       threshold_sp=mg3.node_x,
-    ...                       rainfall_intensity=2.)
-    >>> fr3.run_one_step()
-    >>> sp3.run_one_step(1.)
-    >>> z.reshape((3, 7))[1, :]  # doctest: +NORMALIZE_WHITESPACE
+    >>> grid = RasterModelGrid((3, 7), spacing=1.)
+    >>> z = np.array(grid.node_x ** 2.)
+    >>> z = grid.add_field('topographic__elevation', z, at='node')
+    >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> fr = FlowRouter(grid)
+    >>> K_field = grid.ones(at='node') # K can be a field
+    >>> sp = FastscapeEroder(grid, K_sp=K_field, m_sp=1., n_sp=0.6,
+    ...                      threshold_sp=grid.node_x,
+    ...                      rainfall_intensity=2.)
+    >>> fr.run_one_step()
+    >>> sp.run_one_step(1.)
+    >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
     array([  0.        ,   0.0647484 ,   0.58634455,   2.67253503,
              8.49212152,  20.92606987,  36.        ])
     >>> previous_z = z.copy()
-    >>> sp3.run_one_step(1., rainfall_intensity_if_used=0.)
+    >>> sp.run_one_step(1., rainfall_intensity_if_used=0.)
     >>> np.allclose(z, previous_z)
     True
-    '''
+    """
 
     _name = 'FastscapeEroder'
 
@@ -288,7 +294,8 @@ class FastscapeEroder(Component):
 
     def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None,
               rainfall_intensity_if_used=None):
-        """
+        """Erode using stream power erosion.
+
         This method implements the stream power erosion, following the Braun-
         Willett (2013) implicit Fastscape algorithm. This should allow it to
         be stable against larger timesteps than an explicit stream power
@@ -298,8 +305,8 @@ class FastscapeEroder(Component):
         standardized wrapper :func:`run_one_step`, but is retained for
         back compatibility.
 
-        Set 'K_if_used' as a field name or nnodes-long array if you set K_sp as
-        'array' during initialization.
+        Set *K_if_used* as a field name or nnodes-long array if you set
+        *K_sp* as *"array"* during initialization.
 
         It returns the grid, in which it will have modified the value of
         *value_field*, as specified in component initialization.
@@ -392,7 +399,8 @@ class FastscapeEroder(Component):
 
     def run_one_step(self, dt, flooded_nodes=None,
                      rainfall_intensity_if_used=None, **kwds):
-        """
+        """Erode for a single time step.
+
         This method implements the stream power erosion across one time
         interval, dt, following the Braun-Willett (2013) implicit Fastscape
         algorithm.
