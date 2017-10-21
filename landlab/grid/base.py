@@ -3527,7 +3527,28 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @property
     def unit_vector_at_link(self):
-        """Get a unit vector for each link."""
+        """Get a unit vector for each link.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> grid.unit_vector_at_link # doctest: +NORMALIZE_WHITESPACE
+        array([[ 1.,  0.],
+               [ 1.,  0.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 1.,  0.],
+               [ 1.,  0.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 1.,  0.],
+               [ 1.,  0.]])
+
+        LLCATS: LINF MEAS
+        """
         try:
             self._unit_vec_at_link
         except AttributeError:
@@ -3537,7 +3558,25 @@ class ModelGrid(ModelDataFieldsMixIn):
 
     @property
     def unit_vector_at_node(self):
-        """Get a unit vector for each node."""
+        """Get a unit vector for each node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3))
+        >>> grid.unit_vector_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 1.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.],
+               [ 1.,  2.],
+               [ 2.,  2.],
+               [ 1.,  2.],
+               [ 1.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.]])
+
+        LLCATS: LINF MEAS
+        """
         try:
             self._unit_vec_at_node
         except AttributeError:
