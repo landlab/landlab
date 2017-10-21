@@ -3610,7 +3610,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self.unit_vector_at_node[:, 1]
 
     def map_link_vector_to_nodes(self, q):
-        r"""Map data defined on links to nodes.
+        """Map data defined on links to nodes.
 
         Given a variable defined on links, breaks it into x and y components
         and assigns values to nodes by averaging each node's attached links.
@@ -3682,6 +3682,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         sum at a given node.
 
         .. math::
+
             U_i = \sum_{j=1}^{L_i} q_j m_j / S_{xi}
             V_i = \sum_{j=1}^{L_i} q_j n_j / S_{yi}
 
@@ -3732,33 +3733,58 @@ class ModelGrid(ModelDataFieldsMixIn):
         q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
         :math:`(1,1)`.
 
-        >>> import numpy as np
-        >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid((3, 4), spacing=(2., 2.))
-        >>> rmg.unit_vector_at_node[:, 0]
-        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
-        >>> rmg.unit_vector_at_node[:, 1]
-        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
-        >>> q = np.ones(rmg.number_of_links)
-        >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
-        >>> nvx
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
-        >>> nvy
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), spacing=(2., 2.))
+        >>> grid.unit_vector_at_node
+        array([[ 1.,  1.],
+               [ 2.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.],
+               [ 1.,  2.],
+               [ 2.,  2.],
+               [ 2.,  2.],
+               [ 1.,  2.],
+               [ 1.,  1.],
+               [ 2.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.]])
+        >>> q = grid.ones(at='link')
+        >>> grid.map_link_vector_to_nodes(q)
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
 
         **Example 2**
 
         Vector magnitude is 5, angle is 30 degrees from horizontal,
         forming a 3-4-5 triangle.
 
+        >>> import numpy as np
         >>> q = np.array([4., 4., 4., 3., 3., 3., 3.,
         ...               4., 4., 4., 3., 3., 3., 3.,
         ...               4., 4., 4])
-        >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
-        >>> nvx
-        array([ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.])
-        >>> nvy
-        array([ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
+        >>> grid.map_link_vector_to_nodes(q)
+        array([[ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.]])
 
         ..todo::
 
@@ -3785,12 +3811,12 @@ class ModelGrid(ModelDataFieldsMixIn):
         qy = q * self.unit_vector_at_link[:, 1]
 
         active_links_at_node = self.link_dirs_at_node != 0
-        node_vec_x = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)
-        node_vec_y = (qy[self.links_at_node] * active_links_at_node).sum(axis=1)
-        node_vec_x /= self.unit_vector_at_node[:, 0]
-        node_vec_y /= self.unit_vector_at_node[:, 1]
+        unit_vec_at_node = np.empty((self.number_of_nodes, 2), dtype=float)
+        unit_vec_at_node[:, 0] = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)
+        unit_vec_at_node[:, 1] = (qy[self.links_at_node] * active_links_at_node).sum(axis=1)
 
-        return node_vec_x, node_vec_y
+        return np.divide(unit_vec_at_node, self.unit_vector_at_node,
+                         out=unit_vec_at_node)
 
     @deprecated(use='plot.imshow_grid', version=1.0)
     def display_grid(self, draw_voronoi=False):
