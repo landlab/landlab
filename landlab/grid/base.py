@@ -3593,22 +3593,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self.unit_vector_at_link[:, 0]
 
     @property
-    def unit_vector_ycomponent_at_link(self):
-        """Get array of y-component of unit vector for links.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3))
-        >>> grid.unit_vector_ycomponent_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.,  0.,  1.,  1.,  1.,
-                0.,  0.,  1.,  1.,  1.,  0.,  0.])
-
-        LLCATS: LINF MEAS
-        """
-        return self.unit_vector_at_link[:, 1]
-
-    @property
     @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
     def link_unit_vec_y(self):
         """
