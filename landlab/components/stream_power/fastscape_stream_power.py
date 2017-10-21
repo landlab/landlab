@@ -6,7 +6,9 @@
 # Created DEJH, March 2014.
 from __future__ import print_function
 
-import numpy
+from six import string_types
+
+import numpy as np
 from landlab import Component
 
 from landlab.utils.decorators import use_file_name_or_kwds
@@ -221,10 +223,10 @@ class FastscapeEroder(Component):
         self.K = K_sp  # overwritten below in special cases
         self.m = float(m_sp)
         self.n = float(n_sp)
-        if type(threshold_sp) in (float, int):
+        if isinstance(threshold_sp, (float, int)):
             self.thresholds = float(threshold_sp)
         else:
-            if type(threshold_sp) is str:
+            if isinstance(threshold_sp, string_types):
                 self.thresholds = self.grid.at_node[threshold_sp]
             else:
                 self.thresholds = threshold_sp
@@ -245,22 +247,19 @@ class FastscapeEroder(Component):
 
         # now handle the inputs that could be float, array or field name:
         # some support here for old-style inputs
-        if type(K_sp) is str:
+        if isinstance(K_sp, string_types):
             if K_sp == 'array':
                 self.K = None
             else:
                 self.K = self._grid.at_node[K_sp]
-        elif type(K_sp) in (float, int):  # a float
+        elif isinstance(K_sp, (float, int)):
             self.K = float(K_sp)
-        elif (type(K_sp) is numpy.ndarray and
-              len(K_sp) == self.grid.number_of_nodes):
-            self.K = K_sp
         else:
-            raise TypeError('Supplied type of K_sp ' +
-                            'was not recognised, or array was ' +
-                            'not nnodes long!')
+            self.K = np.asarray(K_sp, dtype=float)
+            if len(self.K) != self.grid.number_of_nodes:
+                raise TypeError('Supplied value of K_sp is not n_nodes long')
 
-        if type(rainfall_intensity) is str:
+        if isinstance(rainfall_intensity, string_types):
             raise ValueError('This component can no longer handle ' +
                              'spatially variable runoff directly. Use ' +
                              'FlowAccumulator with specified ' +
@@ -270,27 +269,26 @@ class FastscapeEroder(Component):
                 self._r_i = None
             else:
                 self._r_i = self._grid.at_node[rainfall_intensity]
-        elif type(rainfall_intensity) in (float, int):  # a float
+        elif isinstance(rainfall_intensity, (float, int)):  # a float
             self._r_i = float(rainfall_intensity)
         elif len(rainfall_intensity) == self.grid.number_of_nodes:
-            raise ValueError('This component can no longer handle ' +
-                             'spatially variable runoff directly. Use ' +
-                             'FlowAccumulator with specified ' +
-                             'water__unit_flux_in, or use StreamPowerEroder' +
+            raise ValueError('This component can no longer handle '
+                             'spatially variable runoff directly. Use '
+                             'FlowAccumulator with specified '
+                             'water__unit_flux_in, or use StreamPowerEroder'
                              'component instead of FastscapeEroder.')
-            self._r_i = numpy.array(rainfall_intensity)
+            self._r_i = np.array(rainfall_intensity)
         else:
-            raise TypeError('Supplied type of rainfall_' +
-                            'intensity was not recognised!')
+            raise TypeError('Supplied type of rainfall_intensity was '
+                            'not recognised')
 
         # We now forbid changing of the field name
         if 'value_field' in kwds.keys():
-            raise ValueError('This component can no longer support variable' +
+            raise ValueError('This component can no longer support variable'
                              'field names. Use "topographic__elevation".')
 
         # Handle option for area vs discharge
         self.discharge_name = discharge_name
-
 
     def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None,
               rainfall_intensity_if_used=None):
@@ -337,21 +335,21 @@ class FastscapeEroder(Component):
         grid
             A reference to the grid.
         """
-        upstream_order_IDs = self._grid['node']['flow__upstream_node_order']
-        z = self._grid['node']['topographic__elevation']
-        defined_flow_receivers = numpy.not_equal(self._grid['node'][
-            'flow__link_to_receiver_node'], UNDEFINED_INDEX)
+        upstream_order_IDs = self._grid.at_node['flow__upstream_node_order']
+        z = self._grid.at_node['topographic__elevation']
+        defined_flow_receivers = np.not_equal(
+            self._grid.at_node['flow__link_to_receiver_node'], UNDEFINED_INDEX)
         flow_link_lengths = self._grid._length_of_link_with_diagonals[
-            self._grid['node']['flow__link_to_receiver_node'][
+            self._grid.at_node['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
 
         # make arrays from input the right size
-        if type(self.K) is numpy.ndarray:
+        if isinstance(self.K, np.ndarray):
             K_here = self.K[defined_flow_receivers]
         else:
             K_here = self.K
         if rainfall_intensity_if_used is not None:
-            assert type(rainfall_intensity_if_used) in (float, numpy.float64,
+            assert type(rainfall_intensity_if_used) in (float, np.float64,
                                                         int)
             r_i_here = float(rainfall_intensity_if_used)
         else:
@@ -368,8 +366,8 @@ class FastscapeEroder(Component):
 
         n = float(self.n)
         
-        numpy.power(self._grid['node'][self.discharge_name], self.m,
-                    out=self.A_to_the_m)
+        np.power(self._grid['node'][self.discharge_name], self.m,
+                 out=self.A_to_the_m)
         self.alpha[defined_flow_receivers] = (
             r_i_here**self.m * K_here * dt * self.A_to_the_m[
                 defined_flow_receivers] / (flow_link_lengths**self.n))
@@ -388,7 +386,7 @@ class FastscapeEroder(Component):
         threshsdt = self.thresholds * dt
 
         # solve using Brent's Method in Cython for Speed
-        if type(self.thresholds) == float:
+        if isinstance(self.thresholds, float):
             brent_method_erode_fixed_threshold(
                 upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z)
         else:
