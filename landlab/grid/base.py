@@ -352,8 +352,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
-        self._node_unit_vector_sum_x = None
-        self._node_unit_vector_sum_y = None
         self.bc_set_code = 0
 
         # Sort links according to the x and y coordinates of their midpoints.
@@ -3501,9 +3499,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
                 0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
                 0.8660254,  0.       ])
-        >>> hmg.node_unit_vector_sum_x
+        >>> hmg.unit_vector_at_node[:, 0]
         array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
-        >>> hmg.node_unit_vector_sum_y
+        >>> hmg.unit_vector_at_node[:, 1]
         array([ 1.73205081,  1.73205081,  1.73205081,  3.46410162,  1.73205081,
                 1.73205081,  1.73205081])
         """
@@ -3517,9 +3515,6 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         self._unit_vec_at_node = np.abs(unit_vec_at_link[self.links_at_node]).sum(axis=1)
         self._unit_vec_at_link = unit_vec_at_link[:-1, :]
-
-        self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
-        self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
 
     @property
     def unit_vector_at_link(self):
@@ -3598,14 +3593,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self.unit_vector_at_node[:, 0]
 
     @property
-    @deprecated(use='unit_vector_sum_xcomponent_at_node', version='0.5')
-    def node_unit_vector_sum_x(self):
-        """
-        LLCATS: DEPR NINF MEAS
-        """
-        return self.unit_vector_at_node[:, 0]
-
-    @property
     def unit_vector_sum_ycomponent_at_node(self):
         """Get array of y-component of unit vector sums at each node.
 
@@ -3619,14 +3606,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
 
         LLCATS: NINF MEAS
-        """
-        return self.unit_vector_at_node[:, 1]
-
-    @property
-    @deprecated(use='unit_vector_sum_ycomponent_at_node', version='0.5')
-    def node_unit_vector_sum_y(self):
-        """
-        LLCATS: DEPR NINF MEAS
         """
         return self.unit_vector_at_node[:, 1]
 
@@ -3756,9 +3735,9 @@ class ModelGrid(ModelDataFieldsMixIn):
         >>> import numpy as np
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid((3, 4), spacing=(2., 2.))
-        >>> rmg.node_unit_vector_sum_x
+        >>> rmg.unit_vector_at_node[:, 0]
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
-        >>> rmg.node_unit_vector_sum_y
+        >>> rmg.unit_vector_at_node[:, 1]
         array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
         >>> q = np.ones(rmg.number_of_links)
         >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
@@ -3808,8 +3787,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         active_links_at_node = self.link_dirs_at_node != 0
         node_vec_x = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)
         node_vec_y = (qy[self.links_at_node] * active_links_at_node).sum(axis=1)
-        node_vec_x /= self.node_unit_vector_sum_x
-        node_vec_y /= self.node_unit_vector_sum_y
+        node_vec_x /= self.unit_vector_at_node[:, 0]
+        node_vec_y /= self.unit_vector_at_node[:, 1]
 
         return node_vec_x, node_vec_y
 

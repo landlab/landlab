@@ -1710,19 +1710,17 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                 0.,  0.,  0.,  1.,  1.,  1.,  1.,
                 0.,  0.,  0.])
 
-        >>> mg.node_unit_vector_sum_x
+        >>> mg.unit_vector_at_node[:, 0]
         array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
-        >>> mg.node_unit_vector_sum_y
+        >>> mg.unit_vector_at_node[:, 1]
         array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
         """
         unit_vec_at_link = np.zeros((self.number_of_links + 1, 2), dtype=float)
         unit_vec_at_link[self.horizontal_links, 0] = 1.
         unit_vec_at_link[self.vertical_links, 1] = 1.
+
         self._unit_vec_at_node = unit_vec_at_link[self.links_at_node].sum(axis=1)
         self._unit_vec_at_link = unit_vec_at_link[:-1, :]
-
-        self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
-        self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
