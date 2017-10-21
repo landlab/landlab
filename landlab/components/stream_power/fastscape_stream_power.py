@@ -85,6 +85,12 @@ class FastscapeEroder(Component):
         For a time varying rainfall intensity, pass
         *rainfall_intensity_if_used* to `run_one_step`. For a spatially
         variable rainfall, use the StreamPowerEroder component.
+    discharge_name : string; optional
+        Name of field to use for discharge proxy. Defaults to 'drainage_area',
+        which means the component will expect the driver or another component
+        to have created and populated a 'drainage_area' field. To use a
+        different field, such as 'surface_water__discharge', give its name in
+        this argument.
 
     Examples
     --------
@@ -217,6 +223,12 @@ class FastscapeEroder(Component):
         rainfall intensity : float, array, or field name; optional
             Modifying factor on drainage area to convert it to a true water
             volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n
+        discharge_name : string; optional
+            Name of field to use for discharge proxy. Defaults to 'drainage_area',
+            which means the component will expect the driver or another component
+            to have created and populated a 'drainage_area' field. To use a
+            different field, such as 'surface_water__discharge', give its name in
+            this argument.
         """
         self._grid = grid
 
