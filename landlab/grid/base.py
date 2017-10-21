@@ -354,8 +354,6 @@ class ModelGrid(ModelDataFieldsMixIn):
         self._all_node_azimuths_map = None
         self._node_unit_vector_sum_x = None
         self._node_unit_vector_sum_y = None
-        self._link_unit_vec_x = None
-        self._link_unit_vec_y = None
         self.bc_set_code = 0
 
         # Sort links according to the x and y coordinates of their midpoints.
@@ -3496,10 +3494,10 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         >>> import landlab as ll
         >>> hmg = ll.HexModelGrid(3, 2, 2.0)
-        >>> hmg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        >>> hmg.unit_vector_at_link[:, 0] # doctest: +NORMALIZE_WHITESPACE
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
                 1. ])
-        >>> hmg.link_unit_vec_y
+        >>> hmg.unit_vector_at_link[:, 1]
         array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
                 0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
                 0.8660254,  0.       ])
@@ -3522,8 +3520,6 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
         self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
-        self._link_unit_vec_x = unit_vec_at_link[:-1, 0]
-        self._link_unit_vec_y = unit_vec_at_link[:-1, 1]
 
     @property
     def unit_vector_at_link(self):
@@ -3583,22 +3579,6 @@ class ModelGrid(ModelDataFieldsMixIn):
             self._create_link_unit_vectors()
         finally:
             return self._unit_vec_at_node
-
-    @property
-    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
-    def link_unit_vec_x(self):
-        """
-        LLCATS: DEPR LINF MEAS
-        """
-        return self.unit_vector_at_link[:, 0]
-
-    @property
-    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
-    def link_unit_vec_y(self):
-        """
-        LLCATS: DEPR LINF MEAS
-        """
-        return self.unit_vector_at_link[:, 1]
 
     @property
     def unit_vector_sum_xcomponent_at_node(self):
@@ -3822,8 +3802,8 @@ class ModelGrid(ModelDataFieldsMixIn):
         #   2) This requires memory allocation. Because this function might be
         #       called repeatedly, it would be good to find a way to
         #       pre-allocate to improve speed.
-        qx = q * self.link_unit_vec_x
-        qy = q * self.link_unit_vec_y
+        qx = q * self.unit_vector_at_link[:, 0]
+        qy = q * self.unit_vector_at_link[:, 1]
 
         active_links_at_node = self.link_dirs_at_node != 0
         node_vec_x = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)

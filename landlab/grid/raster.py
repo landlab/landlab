@@ -1701,11 +1701,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4), spacing=(2.0, 2.0))
 
-        >>> mg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.unit_vector_at_link[:, 0] # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
                 1.,  1.,  1.,  0.,  0.,  0.,  0.,
                 1.,  1.,  1.])
-        >>> mg.link_unit_vec_y # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.unit_vector_at_link[:, 1] # doctest: +NORMALIZE_WHITESPACE
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  1.,
                 0.,  0.,  0.,  1.,  1.,  1.,  1.,
                 0.,  0.,  0.])
@@ -1723,8 +1723,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._node_unit_vector_sum_x = self._unit_vec_at_node[:, 0]
         self._node_unit_vector_sum_y = self._unit_vec_at_node[:, 1]
-        self._link_unit_vec_x = unit_vec_at_link[:-1, 0]
-        self._link_unit_vec_y = unit_vec_at_link[:-1, 1]
 
     def _setup_link_at_face(self):
         """Set up links associated with faces.
