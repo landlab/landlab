@@ -189,7 +189,8 @@ class FastscapeEroder(Component):
 
     @use_file_name_or_kwds
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=0.,
-                 rainfall_intensity=1., **kwds):
+                 rainfall_intensity=1., discharge_name='drainage_area',
+                 **kwds):
         """
         Initialize the Fastscape stream power component. Note: a timestep,
         dt, can no longer be supplied to this component through the input file.
@@ -255,8 +256,10 @@ class FastscapeEroder(Component):
 
         if type(rainfall_intensity) is str:
             raise ValueError('This component can no longer handle ' +
-                             'spatially variable rainfall. Use ' +
-                             'StreamPowerEroder.')
+                             'spatially variable runoff directly. Use ' +
+                             'FlowAccumulator with specified ' +
+                             'water__unit_flux_in, or use StreamPowerEroder' +
+                             'component instead of FastscapeEroder.')
             if rainfall_intensity == 'array':
                 self._r_i = None
             else:
@@ -265,8 +268,10 @@ class FastscapeEroder(Component):
             self._r_i = float(rainfall_intensity)
         elif len(rainfall_intensity) == self.grid.number_of_nodes:
             raise ValueError('This component can no longer handle ' +
-                             'spatially variable rainfall. Use ' +
-                             'StreamPowerEroder.')
+                             'spatially variable runoff directly. Use ' +
+                             'FlowAccumulator with specified ' +
+                             'water__unit_flux_in, or use StreamPowerEroder' +
+                             'component instead of FastscapeEroder.')
             self._r_i = numpy.array(rainfall_intensity)
         else:
             raise TypeError('Supplied type of rainfall_' +
@@ -276,6 +281,10 @@ class FastscapeEroder(Component):
         if 'value_field' in kwds.keys():
             raise ValueError('This component can no longer support variable' +
                              'field names. Use "topographic__elevation".')
+
+        # Handle option for area vs discharge
+        self.discharge_name = discharge_name
+
 
     def erode(self, grid_in, dt=None, K_if_used=None, flooded_nodes=None,
               rainfall_intensity_if_used=None):
@@ -351,7 +360,8 @@ class FastscapeEroder(Component):
             self.K = K_if_used
 
         n = float(self.n)
-        numpy.power(self._grid['node']['drainage_area'], self.m,
+        
+        numpy.power(self._grid['node'][self.discharge_name], self.m,
                     out=self.A_to_the_m)
         self.alpha[defined_flow_receivers] = (
             r_i_here**self.m * K_here * dt * self.A_to_the_m[
