@@ -27,6 +27,8 @@ from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import (override_array_setitem_and_reset, return_id_array,
                          return_readonly_id_array)
+from ..layers.eventlayers import EventLayersMixIn
+
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
@@ -302,7 +304,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(ModelDataFieldsMixIn):
+class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
@@ -3281,17 +3283,19 @@ class ModelGrid(ModelDataFieldsMixIn):
                           INACTIVE_LINK)
         inactive_links[self.link_dirs_at_node == 0] = False
         self._active_link_dirs_at_node[inactive_links] = 0
-
+        
         try:
             if self.diagonal_list_created:
                 self.diagonal_list_created = False
         except AttributeError:
             pass
+        
         try:
             if self.neighbor_list_created:
                 self.neighbor_list_created = False
         except AttributeError:
             pass
+        
         try:
             self._fixed_grad_links_created
         except AttributeError:
@@ -3299,11 +3303,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         else:
             self._gradient_boundary_node_links()
             self._create_fixed_gradient_boundary_node_anchor_node()
+        
         try:
-            self._patches_created
-            self._reset_patch_status()
+            if self._patches_created:
+                self._reset_patch_status()
         except AttributeError:
             pass
+        
         try:
             self.bc_set_code += 1
         except AttributeError:

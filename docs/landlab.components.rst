@@ -54,9 +54,11 @@ Lake filling and routing (handling depressions in terrain)
     landlab.components.flow_routing
     landlab.components.fracture_grid
     landlab.components.gflex
+    landlab.components.landslides
     landlab.components.nonlinear_diffusion
     landlab.components.overland_flow
     landlab.components.pet
+    landlab.components.plant_competition_ca
     landlab.components.potentiality_flowrouting
     landlab.components.radiation
     landlab.components.single_vegetation
@@ -65,7 +67,6 @@ Lake filling and routing (handling depressions in terrain)
     landlab.components.steepness_index
     landlab.components.stream_power
     landlab.components.uniform_precip
-    landlab.components.vegetation_ca
 
 Submodules
 ----------

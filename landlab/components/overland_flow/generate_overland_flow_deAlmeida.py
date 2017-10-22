@@ -690,7 +690,7 @@ class OverlandFlow(Component):
 
         discharge_vals = discharge_vals.reshape(self.grid.number_of_nodes, 4)
 
-        discharge_vals = discharge_vals.sum(axis=1.0)
+        discharge_vals = discharge_vals.sum(axis=1)
 
         return discharge_vals
 

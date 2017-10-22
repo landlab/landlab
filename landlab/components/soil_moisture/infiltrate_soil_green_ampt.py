@@ -96,8 +96,8 @@ class SoilInfiltrationGreenAmpt(Component):
              9.88530416e-03,   9.88530416e-03,   9.88530416e-03])
     >>> mg.at_node['soil_water_infiltration__depth']
     array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
-           0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
-           0.2001147 ,  0.2001147 ])
+            0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
+            0.2001147 ,  0.2001147 ])
     """
 
     _name = 'SoilInfiltrationGreenAmpt'
@@ -216,9 +216,9 @@ class SoilInfiltrationGreenAmpt(Component):
 
         # Setting water depth field, assuring that water depth is POSITIVE.
         self._water_depth = self.grid.at_node['surface_water__depth']
-        assert np.sum(self._water_depth[
-                          self.grid.core_nodes] < self._lilwater) == 0, \
-            "Water depths must all be positive!"
+        assert np.all(self._water_depth[self.grid.core_nodes] >=
+                      self._lilwater), \
+                "Water depths must all be positive!"
         
         # Setting up the array of infiltration depths. 
         self._infiltration_depth = self.grid.at_node[
@@ -243,10 +243,9 @@ class SoilInfiltrationGreenAmpt(Component):
         
         # Calculate infilitration capacity (m/s) if Ks is a float...
         try:
-            self.infilt_cap = self._Ks * ((self.wettingfront_depth + 
-                                          self._psi_f +
-                                       self._water_depth) /
-                                      self.wettingfront_depth)
+            self.infilt_cap = self._Ks * ((self.wettingfront_depth +
+                                           self._psi_f + self._water_depth) /
+                                          self.wettingfront_depth)
         # Calculate infilitration capacity (m/s) if Ks is an array...    
         except ValueError:  
             self.infilt_cap = self._Ks*((self.wettingfront_depth+
@@ -267,7 +266,8 @@ class SoilInfiltrationGreenAmpt(Component):
         
         # Set actual infiltration rate (m/s) to the calculated value (m/s)
         self.i_act = self.potential_infilt
-        self.i_act[full_infil_indx] = (self._water_depth) - self._lilwater
+        self.i_act[full_infil_indx] = (self._water_depth[full_infil_indx] -
+                                       self._lilwater)
         
         # Where water is completely infiltrated set to the minimum water value
         self._water_depth[full_infil_indx]= self._lilwater
@@ -278,9 +278,8 @@ class SoilInfiltrationGreenAmpt(Component):
                                                         (self.i_act[notfull]))
         
         # Assure water depths are all positive. Code will break if not!
-        assert np.all(self._water_depth[
-                          self.grid.core_nodes]) > 0, \
-            "Water depths must all be positive!"
+        assert np.all(self._water_depth[self.grid.core_nodes]) > 0, \
+                "Water depths must all be positive!"
             
         # Update infiltration depth field. 
         self._infiltration_depth += self.i_act 
