@@ -79,15 +79,6 @@ landlab.components.diff_2d module
     :undoc-members:
     :show-inheritance:
 
-landlab.components.sample module
---------------------------------
-
-.. automodule:: landlab.components.sample
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 
