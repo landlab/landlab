@@ -1396,7 +1396,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 4.,  4.,  4.,  4.,  4.],
                [ 6.,  6.,  6.,  6.,  6.]])
 
-       LLCATS: NINF MEAS
+        LLCATS: NINF MEAS
         """
         return self._node_y
 
@@ -1420,7 +1420,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.]])
 
-       LLCATS: NINF MEAS
+        LLCATS: NINF MEAS
         """
         return self._node_x
 
@@ -1702,7 +1702,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 2, 4, 0, 0, 0, 4, 4, 0, 0,
                2, 4, 0, 0, 0, 4, 4, 4, 4, 4])
 
-       LLCATS: BC LINF
+        LLCATS: BC LINF
         """
         return self._status_at_link
 
