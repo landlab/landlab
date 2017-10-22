@@ -4715,23 +4715,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Sets the connection method for use if remove_disconnected==True
 
         Examples
-        ---------
+        --------
         The first example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
         The second example will use a 4,4 grid with node data values
-        as illustrated:
+        as illustrated::
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.     67.   -2.
-        -9999. -9999. -9999. -9999.
-        ---------
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.     67.   -2.
+            -9999. -9999. -9999. -9999.
+
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -4889,7 +4889,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Sets the connection method.
 
         Examples
-        ---------
+        --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg1 = RasterModelGrid((4,6))
@@ -5031,16 +5031,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Value that indicates an invalid value.
 
         Examples
-        ---------
+        --------
         The example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
-        ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -5101,16 +5100,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             id of outlet location
 
         Examples
-        ---------
+        --------
         The example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
-        ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
