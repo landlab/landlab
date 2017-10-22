@@ -515,7 +515,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 7,  9, -1,  3], [ 8, 10,  6,  4], [-1, 11,  7,  5],
                [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
 
-       LLCATS: NINF CONN
+        LLCATS: NINF CONN
         """
         return self._neighbors_at_node
 
@@ -2101,7 +2101,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [False, False,  True,  True],
                [False, False,  True,  True]], dtype=bool)
 
-       LLCATS: LINF NINF CONN
+        LLCATS: LINF NINF CONN
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -2170,7 +2170,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ True, False, False, False],
                [False, False, False, False]], dtype=bool)
 
-       LLCATS: LINF NINF CONN
+        LLCATS: LINF NINF CONN
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -2235,7 +2235,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [15, 12],
                [16, 13]])
 
-       LLCATS: LINF NINF CONN
+        LLCATS: LINF NINF CONN
         """
         if type(values) is str:
             vals = self.at_link[values]
@@ -2355,7 +2355,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 8, 13, 12,  7,  2,  3],
                [ 9, 15, 14,  8,  4,  5]])
 
-       LLCATS: FINF CINF CONN
+        LLCATS: FINF CINF CONN
         """
         try:
             return self._faces_at_cell
@@ -2876,7 +2876,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                  0.,  12.,  12.,  12.,   0.,
                  0.,   0.,   0.,   0.,   0.])
 
-         LLCATS: CINF NINF CONN
+        LLCATS: CINF NINF CONN
         """
         try:
             return self._cell_area_at_node
@@ -3341,7 +3341,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                4, 4, 0, 1,
                4, 1, 1, 1], dtype=int8)
 
-       LLCATS: DEPR NINF BC
+        LLCATS: DEPR NINF BC
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
@@ -3485,7 +3485,7 @@ class ModelGrid(ModelDataFieldsMixIn):
                4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 2, 2, 2, 2, 2, 4,
                4, 4, 4, 4, 4, 4, 4, 4])
 
-       LLCATS: BC NINF
+        LLCATS: BC NINF
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
