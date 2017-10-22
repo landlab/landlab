@@ -35,14 +35,6 @@ landlab.ca.hex_lattice_tectonicizer module
     :undoc-members:
     :show-inheritance:
 
-landlab.ca.landlab_ca module
-----------------------------
-
-.. automodule:: landlab.ca.landlab_ca
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 landlab.ca.little_ca_test module
 --------------------------------
 
