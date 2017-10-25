@@ -55,7 +55,7 @@ def test_tl_hill_diff():
                        0. ,  0. , 0. , 0. ,  0.025,  0. ,  0. ,  0. ,  0.0006,
                        0. ,  0. ,  0. ,  0.0003,  0. , 0. , 0. ,  0. ,  0. ,
                        0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. , 0. ])
-    fo_out = mg.at_node['soil__flux_out']
+    fo_out = mg.at_node['sediment__flux_out']
     assert_almost_equal(fo_out, fo_test, decimal=10)
 
     # updated elevation
@@ -87,7 +87,7 @@ def test_tl_hill_diff():
                           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
                           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
                           0.00000000e+00,   0.00000000e+00,   0.00000000e+00])
-    fo_out = mg.at_node['soil__flux_out']
+    fo_out = mg.at_node['sediment__flux_out']
     assert_almost_equal(fo_out, fo_test, decimal=10)
 
     # updated elevation

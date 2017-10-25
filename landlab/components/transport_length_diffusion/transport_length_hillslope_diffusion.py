@@ -94,35 +94,35 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _output_var_names = set((
         'topographic__elevation',
-        'deposition',
-        'transfer',
-        'deposition_coeff',
-        'soil__flux_in',
-        'soil__flux_out',
-        'erosion',
+        'sediment__deposition_rate',
+        'sediment__transfer_rate',
+        'sediment__deposition_coeff',
+        'sediment__flux_in',
+        'sediment__flux_out',
+        'sediment__erosion_rate',
     ))
 
     _var_units = {
         'topographic__elevation': 'm',
         'flow__receiver_node': '-',
         'topographic__steepest_slope': 'm/m',
-        'deposition': 'm/yr',
-        'transfer': 'm/yr',
-        'deposition_coeff': '-',
-        'soil__flux_in': 'm/yr',
-        'soil__flux_out': 'm/yr',
-        'erosion': 'm/yr',
+        'sediment__deposition_rate': 'm/yr',
+        'sediment__transfer_rate': 'm/yr',
+        'sediment__deposition_coeff': '-',
+        'sediment__flux_in': 'm/yr',
+        'sediment__flux_out': 'm/yr',
+        'sediment__erosion_rate': 'm/yr',
     }
 
     _var_mapping = {
         'topographic__elevation': 'node',
         'topographic__steepest_slope': 'node',
-        'deposition': 'node',
-        'transfer': 'node',
-        'deposition_coeff': 'node',
-        'soil__flux_in': 'node',
-        'soil__flux_out': 'node',
-        'erosion': 'node',
+        'sediment__deposition_rate': 'node',
+        'sediment__transfer_rate': 'node',
+        'sediment__deposition_coeff': 'node',
+        'sediment__flux_in': 'node',
+        'sediment__flux_out': 'node',
+        'sediment__erosion_rate': 'node',
     }
 
     _var_doc = {
@@ -133,19 +133,19 @@ class TransportLengthHillslopeDiffuser(Component):
             'current node)',
         'topographic__steepest_slope':
             'Steepest gradient of the ground surface at each node',
-        'deposition':
+        'sediment__deposition_rate':
             'Deposition rate on node',
-        'transfer':
+        'sediment__transfer_rate':
             'Rate of transferred sediment across a node (incoming '
             'sediment - deposited sediment on node)',
-        'deposition_coeff':
+        'sediment__deposition_coeff':
             'Fraction of incoming sediment that is deposited on the node',
-        'soil__flux_in':
+        'sediment__flux_in':
             'Incoming sediment rate on node (=qs/dx)',
-        'soil__flux_out':
+        'sediment__flux_out':
             'Outgoing sediment rate on node = sediment eroded on'
             ' node + sediment transported across node from upstream',
-        'erosion':
+        'sediment__erosion_rate':
             'Erosion rate on node'
     }
 
@@ -173,43 +173,48 @@ class TransportLengthHillslopeDiffuser(Component):
         if 'topographic__elevation' in self.grid.at_node:
             self.elev = self.grid.at_node['topographic__elevation']
         else:
-            self.elev = self.grid.add_zeros('node', 'topographic__elevation')
+            self.elev = self.grid.add_zeros(
+                    'node', 'topographic__elevation')
 
         # Deposition
-        if 'deposition' in self.grid.at_node:
-            self.depo = self.grid.at_node['deposition']
+        if 'sediment__deposition_rate' in self.grid.at_node:
+            self.depo = self.grid.at_node['sediment__deposition_rate']
         else:
-            self.depo = self.grid.add_zeros('node', 'deposition')
+            self.depo = self.grid.add_zeros(
+                    'node', 'sediment__deposition_rate')
 
         # Transferred sediments (crossing over node)
-        if 'transfer' in self.grid.at_node:
-            self.trans = self.grid.at_node['transfer']
+        if 'sediment__transfer_rate' in self.grid.at_node:
+            self.trans = self.grid.at_node['sediment__transfer_rate']
         else:
-            self.trans = self.grid.add_zeros('node', 'transfer')
+            self.trans = self.grid.add_zeros('node', 'sediment__transfer_rate')
 
         # Transport coefficient
-        if 'deposition_coeff' in self.grid.at_node:
-            self.D_coeff = self.grid.at_node['deposition_coeff']
+        if 'sediment__deposition_coeff' in self.grid.at_node:
+            self.d_coeff = self.grid.at_node['sediment__deposition_coeff']
         else:
-            self.D_coeff = self.grid.add_zeros('node', 'deposition_coeff')
+            self.d_coeff = self.grid.add_zeros(
+                    'node', 'sediment__deposition_coeff')
 
         # Flux in
-        if 'soil__flux_in' in self.grid.at_node:
-            self.soil__flux_in = self.grid.at_node['soil__flux_in']
+        if 'sediment__flux_in' in self.grid.at_node:
+            self.flux_in = self.grid.at_node['sediment__flux_in']
         else:
-            self.soil__flux_in = self.grid.add_zeros('node', 'soil__flux_in')
+            self.flux_in = self.grid.add_zeros('node', 'sediment__flux_in')
 
         # Flux out
-        if 'soil__flux_out' in self.grid.at_node:
-            self.soil__flux_out = self.grid.at_node['soil__flux_out']
+        if 'sediment__flux_out' in self.grid.at_node:
+            self.flux_out = self.grid.at_node['sediment__flux_out']
         else:
-            self.soil__flux_out = self.grid.add_zeros('node', 'soil__flux_out')
+            self.flux_out = self.grid.add_zeros(
+                    'node', 'sediment__flux_out')
 
         # Erosion
-        if 'erosion' in self.grid.at_node:
-            self.erosion = self.grid.at_node['erosion']
+        if 'sediment__erosion_rate' in self.grid.at_node:
+            self.erosion = self.grid.at_node['sediment__erosion_rate']
         else:
-            self.erosion = self.grid.add_zeros('node', 'erosion')
+            self.erosion = self.grid.add_zeros(
+                    'node', 'sediment__erosion_rate')
 
     def tldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.
@@ -221,11 +226,11 @@ class TransportLengthHillslopeDiffuser(Component):
             The imposed timestep.
         """
 
-        # Reset erosion, depo, trans and soil__flux_in to 0
+        # Reset erosion, depo, trans and flux_in to 0
         self.erosion[:] = 0.
         self.depo[:] = 0.
         self.trans[:] = 0.
-        self.soil__flux_in[:] = 0.
+        self.flux_in[:] = 0.
 
         # Downstream steepest slope at node:
         self.steepest = self.grid.at_node['topographic__steepest_slope']
@@ -239,19 +244,19 @@ class TransportLengthHillslopeDiffuser(Component):
         # Calculate influx rate on node i  = outflux of nodes
         # whose receiver is i
         for i in self.grid.core_nodes:
-            self.soil__flux_in[self.receiver[i]] += self.soil__flux_out[i]
+            self.flux_in[self.receiver[i]] += self.flux_out[i]
 
             # Calculate transport coefficient
-            # When S ~ Scrit, D_coeff is set to "infinity", for stability and
+            # When S ~ Scrit, d_coeff is set to "infinity", for stability and
             # so that there is no deposition
             if self.steepest[i] >= self.slope_crit:
-                self.D_coeff[i] = 1000000000.
+                self.d_coeff[i] = 1000000000.
             else:
-                self.D_coeff[i] = 1 / (
+                self.d_coeff[i] = 1 / (
                         1-(np.power(((self.steepest[i])/self.slope_crit), 2)))
 
         # Calculate deposition rate on node
-        self.depo[cores] = self.soil__flux_in[cores] / self.D_coeff[cores]
+        self.depo[cores] = self.flux_in[cores] / self.d_coeff[cores]
 
         # Calculate erosion rate on node (positive value)
         # If S > Scrit, erosion is simply set for the slope to return to Scrit
@@ -267,10 +272,10 @@ class TransportLengthHillslopeDiffuser(Component):
             self.elev[i] += (-self.erosion[i] + self.depo[i]) * dt
 
         # Calculate transfer rate over node
-        self.trans[cores] = self.soil__flux_in[cores] - self.depo[cores]
+        self.trans[cores] = self.flux_in[cores] - self.depo[cores]
 
         # Calculate outflux rate
-        self.soil__flux_out[:] = self.erosion + self.trans
+        self.flux_out[:] = self.erosion + self.trans
 
     def run_one_step(self, dt):
         """
@@ -289,7 +294,7 @@ class TransportLengthHillslopeDiffuser(Component):
         # and deposition during a timestep dt
         elev_dif = self.elev - self.elev[self.receiver]
         s = elev_dif[np.where(self.grid.at_node['flow__sink_flag'] == 0)]
-        if np.any(s < -1) == True:
+        if np.any(s < -1) is True:
             raise ValueError('The component is unstable'
                              ' for such a large timestep '
                              'on this grid')
