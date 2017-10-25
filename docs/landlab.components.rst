@@ -64,6 +64,7 @@ Lake filling and routing (handling depressions in terrain)
     landlab.components.single_vegetation
     landlab.components.sink_fill
     landlab.components.soil_moisture
+    landlab.components.space
     landlab.components.steepness_index
     landlab.components.stream_power
     landlab.components.uniform_precip
