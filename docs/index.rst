@@ -105,6 +105,7 @@ Hillslope geomorphology
 
    landlab.components.diffusion
    landlab.components.nonlinear_diffusion
+   landlab.components.transport_length_diffusion
 
 Fluvial geomorphology
 ---------------------
