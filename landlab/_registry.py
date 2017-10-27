@@ -67,6 +67,8 @@ Examples
     publisher={Pergamon}
     }
 """
+from __future__ import absolute_import
+
 import os
 import textwrap
 
@@ -329,7 +331,7 @@ class ComponentRegistry(object):
         return os.linesep.join(header + [(2 * os.linesep).join(body)])
 
 
-import _info
+from . import _info
 
 
 registry = ComponentRegistry(_info)
