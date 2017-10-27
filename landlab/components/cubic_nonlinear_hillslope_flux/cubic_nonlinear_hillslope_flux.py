@@ -177,7 +177,7 @@ class CubicNonLinearDiffuser(Component):
             self.flux = self.grid.add_zeros('link', 'soil__flux')
 
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
+    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2, nterms=28):
         """Calculate soil flux for a time period 'dt'.
         
         Parameters
@@ -207,7 +207,11 @@ class CubicNonLinearDiffuser(Component):
     
     
             # Test for time stepping courant condition
-            De_max = self.K * (1.0 + (self.slope.max()/self.slope_crit)**2.0)
+            slope_term = 1.0
+            for i in range(2, 2*nterms+1, 2):
+                slope_term += (self.slope.max()/self.slope_crit)**i
+                
+            De_max = self.K * (slope_term)
              
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
     
@@ -236,9 +240,11 @@ class CubicNonLinearDiffuser(Component):
                 time_left = 0
 
             # Calculate flux
-            self.flux[:] = -(self.K * self.slope
-                             + ((self.K/(self.slope_crit**2))
-                                * np.power(self.slope, 3)))
+            slope_term = 1
+            for i in range(2, 2*nterms+1, 2):
+                slope_term += (np.power(self.slope, i)/(self.slope_crit**i))
+            
+            self.flux[:] = -((self.K * self.slope)*(slope_term))
     
             # Calculate flux divergence
             dqdx = self.grid.calc_flux_div_at_node(self.flux)
