@@ -37,14 +37,14 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
     how-flow-direction-works.htm'
     
-    Parameters:
+    Parameters
     ----------
     grid: RasterModelGrid
         A grid.
     flow_dir_arc: ndarray of int, shape (n_nodes, )
         flow directions derived from ESRII ArcGIS.
     
-    Returns:
+    Returns
     -------
     receiver_nodes: ndarray of int, shape (n_nodes, )
         downstream node at each node. Note that this array gives the
@@ -108,7 +108,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
     
     For more information, refer Ref 1.
     
-    Parameters:
+    Parameters
     ----------
     grid: RasterModelGrid
         A grid.
@@ -119,7 +119,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         downstream node at each node. Alternatively, this data can be
         provided as a nodal field 'flow__receiver_node' on the grid.
     
-    Returns:
+    Returns
     -------
     (hsd_upstr, flow_accum): (dictionary, ndarray of shape (n_nodes))
         'hsd_upstr' maps each grid node to corresponding
@@ -222,13 +222,13 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
     of track_source() or refer source_tracking_algorithm_user_manual for
     more information.
     
-    Parameters:
+    Parameters
     ----------
     hsd_upstr: dictionary
         'hsd_upstr' maps each MD grid node to corresponding
         contributing upstream HSD ids.
         
-    Returns:
+    Returns
     -------
     (unique_ids, fractions): (dictionary, dictionary)
         Tuple of data. 'unique_ids' maps each MD node with all upstream HSD

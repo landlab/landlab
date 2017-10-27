@@ -115,6 +115,7 @@ Fluvial geomorphology
 
    landlab.components.stream_power
    landlab.components.detachment_ltd_erosion
+   landlab.components.space
 
 Flow routing
 ------------
