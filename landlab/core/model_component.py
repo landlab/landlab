@@ -36,6 +36,7 @@ import textwrap
 import warnings
 import inspect
 
+from ..registry import registry
 
 _VAR_HELP_MESSAGE = """
 name: {name}
@@ -86,6 +87,10 @@ class Component(object):
     _output_var_names = set()
     _optional_var_names = set()
     _var_units = dict()
+
+    def __new__(cls, *args, **kwds):
+        registry.add(cls)
+        return object.__new__(cls, *args, **kwds)
 
     def __init__(self, grid, map_vars=None, **kwds):
         map_vars = map_vars or {}
