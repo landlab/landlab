@@ -90,7 +90,7 @@ class Component(object):
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
-        return object.__new__(cls, *args, **kwds)
+        return object.__new__(cls)
 
     def __init__(self, grid, map_vars=None, **kwds):
         map_vars = map_vars or {}
