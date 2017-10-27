@@ -36,7 +36,7 @@ import textwrap
 import warnings
 import inspect
 
-from ..registry import registry
+from .. import registry
 
 _VAR_HELP_MESSAGE = """
 name: {name}
