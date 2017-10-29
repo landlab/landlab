@@ -63,7 +63,7 @@ A couple notes about creating a new version:
    *  Check `Anaconda.org <https://anaconda.org/landlab/landlab>`_ to see
       if your release appears there.
    *  Check if `conda` can see your new release with
-     ``conda search landlab -c landlab``. See the
+      ``conda search landlab -c landlab``. See the
       `conda docs <http://conda.pydata.org/docs/using/index.html>`_
       for a description of ``conda`` and how to use it, or you can always use
       ``conda -h`` from the command line.

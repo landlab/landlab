@@ -32,6 +32,8 @@ from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
 from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
+from .transport_length_diffusion import TransportLengthHillslopeDiffuser
+
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
