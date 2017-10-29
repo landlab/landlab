@@ -514,7 +514,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
         """
-        sys.stdout.flush()
+
         new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
 
         if self.block_layer_dip_angle == 0.0:  # horizontal
@@ -570,40 +570,41 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> nsg = mg.add_zeros('node', 'node_state_grid')
         >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
         >>> ohcts.link_state[mg.active_links]
-        array([4, 8, 8, 4, 0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
+        array([0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
         >>> ohcts.next_trn_id[mg.active_links]
-        array([1, 2, 2, 1, 0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
+        array([0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
         >>> lu = LatticeUplifter(grid=mg)
         >>> nu = ohcts.next_update
         >>> np.round(nu[mg.active_links], 2)
         array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  1.04,  0.58,  2.22,  3.31,
-                0.48,  1.57,  0.75,  0.84,  2.6 ,  0.07])
+                0.48,  1.57])
         >>> pq = ohcts.priority_queue
-        >>> pq._queue[0][2]  # link for first event = 21, not shifted
-        21
-        >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.07
-        0.07
-        >>> pq._queue[2][2]  # this event scheduled for link 14...
-        14
-        >>> round(pq._queue[2][0], 2)  # ...transition scheduled for t = 0.48
+        >>> pq._queue[0][2]  # link for first event = 20, not shifted
+        20
+        >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.48
         0.48
+        >>> pq._queue[2][2]  # this event scheduled for link 15...
+        15
+        >>> round(pq._queue[2][0], 2)  # ...transition scheduled for t = 0.58
+        0.58
         >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
         >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
-        array([ 0.09,  0.02,  1.79,  1.51,  2.04,  0.8 ,  1.26,  0.92,  0.79,
-                0.55,  1.04,  0.58,  2.22,  3.31,  0.48])
+        array([ 0.75,  0.84,  2.6 ,  0.07,  0.09,  0.8 ,  0.02,  1.79,  1.51,
+                2.04,  3.85])
         >>> pq._queue[0][2]  # new soonest event
-        2
-        >>> pq._queue[1][2]  # now invalid but still in queue (will be ignored)
-        21
-        >>> pq._queue[2][2]  # was previously 14, now shifted up...
-        21
-        >>> round(pq._queue[2][0], 2)  # ...but still scheduled for t = 0.48
-        0.48
+        15
+        >>> pq._queue[9][2]  # was previously 7, now shifted up...
+        14
+        >>> round(pq._queue[9][0], 2)  # ...but still scheduled for t = 0.80
+        0.8
         """
 
         # Find the ID of the first link above the y = 1.5 line
         nc = self.grid.number_of_node_columns
-        first_link = nc + 2 * (nc - 1) + (nc - 1) // 2
+        first_link = (((nc - 1) // 2)      # skip bottom horizontals
+                      + (3 * (nc - 1))     # skip 3 sets of diagonals
+                      + nc                 # skip a full row of verticals
+                      + ((nc + 1) // 2))   # skip a an even row of verticals
 
         # Define the offset in ID between a link and its neighbor one row up
         # (or down)
@@ -632,32 +633,33 @@ class LatticeUplifter(HexLatticeTectonicizer):
                                                (ca.priority_queue._queue[i][2] 
                                                + shift))
 
-        # Update state of links along the bottom edge.
-        at_base = where(self.grid.active_links < first_link)[0]
-        for lk in self.grid.active_links[at_base]:
+        # Update state of links along the boundaries.
+        for lk in range(self.grid.number_of_links):
+            
+            if ca.bnd_lnk[lk] and self.grid.status_at_link[lk] == 0:
 
-            # Update link state
-            fns = self.node_state[self.grid.node_at_link_tail[lk]]
-            tns = self.node_state[self.grid.node_at_link_head[lk]]
-            orientation = ca.link_orientation[lk]
-            new_link_state = (orientation * ca.num_node_states_sq
-                              + fns * ca.num_node_states + tns)
-
-            # Schedule a new transition, if applicable
-            ca.link_state[lk] = new_link_state
-            if ca.n_trn[new_link_state] > 0:
-                (event_time, this_trn_id) = get_next_event_new(lk,
-                                                               new_link_state, 
-                                                               current_time,
-                                                               ca.n_trn,
-                                                               ca.trn_id,
-                                                               ca.trn_rate)
-                ca.priority_queue.push(lk, event_time)
-                ca.next_update[lk] = event_time
-                ca.next_trn_id[lk] = this_trn_id
-            else:
-                ca.next_update[lk] = _NEVER
-                ca.next_trn_id[lk] = -1
+                # Update link state
+                fns = self.node_state[self.grid.node_at_link_tail[lk]]
+                tns = self.node_state[self.grid.node_at_link_head[lk]]
+                orientation = ca.link_orientation[lk]
+                new_link_state = (orientation * ca.num_node_states_sq
+                                  + fns * ca.num_node_states + tns)
+    
+                # Schedule a new transition, if applicable
+                ca.link_state[lk] = new_link_state
+                if ca.n_trn[new_link_state] > 0:
+                    (event_time, this_trn_id) = get_next_event_new(lk,
+                                                                   new_link_state, 
+                                                                   current_time,
+                                                                   ca.n_trn,
+                                                                   ca.trn_id,
+                                                                   ca.trn_rate)
+                    ca.priority_queue.push(lk, event_time)
+                    ca.next_update[lk] = event_time
+                    ca.next_trn_id[lk] = this_trn_id
+                else:
+                    ca.next_update[lk] = _NEVER
+                    ca.next_trn_id[lk] = -1
 
 
     def uplift_interior_nodes(self, ca, rock_state=1, current_time=0.0):
