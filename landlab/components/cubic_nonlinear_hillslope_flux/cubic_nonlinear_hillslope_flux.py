@@ -205,15 +205,12 @@ class CubicNonLinearDiffuser(Component):
             self.slope[:] = self.grid.calc_grad_at_link(self.elev)
             self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
     
+    
             # Test for time stepping courant condition
-            ssc_sq = (self.slope.max()/self.slope_crit)**2
-            slope_term = 1.0 + ssc_sq
-            leading_term = slope_term
-            for i in range(nterms-1):
-                leading_term *= ssc_sq
-                if np.any(np.isinf(leading_term)):
-                    raise RuntimeError('too many terms')
-                slope_term += leading_term
+            slope_term = 1.0
+            s_over_scrit = self.slope.max()/self.slope_crit
+            for i in range(2, 2*nterms+1, 2):
+                slope_term += s_over_scrit**i
                 
             De_max = self.K * (slope_term)
              
@@ -244,14 +241,10 @@ class CubicNonLinearDiffuser(Component):
                 time_left = 0
 
             # Calculate flux
-            ssc_sq = (self.slope/self.slope_crit)**2.
-            slope_term = 1.0 + ssc_sq
-            leading_term = slope_term
-            for i in range(nterms-1):
-                leading_term *= ssc_sq
-                if np.any(np.isinf(leading_term)):
-                    raise RuntimeError('too many terms')
-                slope_term += leading_term
+            slope_term = 1
+            s_over_scrit = self.slope/self.slope_crit
+            for i in range(2, 2*nterms+1, 2):
+                slope_term += s_over_scrit**i
             
             self.flux[:] = -((self.K * self.slope)*(slope_term))
     
