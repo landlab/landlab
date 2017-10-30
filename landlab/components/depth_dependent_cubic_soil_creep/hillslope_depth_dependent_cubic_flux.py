@@ -260,7 +260,8 @@ class DepthDependentCubicDiffuser(Component):
 
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
+    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', 
+                 courant_factor=0.2, nterms=10):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -299,7 +300,13 @@ class DepthDependentCubicDiffuser(Component):
             self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
                             
             # Test for time stepping courant condition
-            De_max = self.K * (1.0 + (self.slope.max()/self.slope_crit)**2.0)
+             # Test for time stepping courant condition
+            slope_term = 1.0
+            s_over_scrit = self.slope.max()/self.slope_crit
+            for i in range(2, 2*nterms+1, 2):
+                slope_term += s_over_scrit**i
+                
+            De_max = self.K * (slope_term)
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
             
             # Test for the Courant condition and print warning if user intended
@@ -328,15 +335,22 @@ class DepthDependentCubicDiffuser(Component):
             
             # update sed flux, topography, soil, and bedrock based on the 
             # current self.sub_dt
-            self._update_flux_topography_soil_and_bedrock()
+            self._update_flux_topography_soil_and_bedrock(nterms=nterms)
             
-    def _update_flux_topography_soil_and_bedrock(self):
+    def _update_flux_topography_soil_and_bedrock(self, nterms=10):
         """Calculate soil flux and update topography. """
         #Calculate flux
-        self.flux[:] = -((self.K*self.slope
-                       + (self.K/(self.slope_crit**2)) * np.power(self.slope, 3))
-                        * (1.0 - np.exp(-self.H_link
+        
+        slope_term = 1
+        s_over_scrit = self.slope/self.slope_crit
+        for i in range(2, 2*nterms+1, 2):
+            slope_term += s_over_scrit**i
+        
+        self.flux[:] = -((self.K * self.slope) * \
+                         (slope_term) * \
+                         (1.0 - np.exp(-self.H_link
                                         / self.soil_transport_decay_depth)))
+            
 
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
