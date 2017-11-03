@@ -137,8 +137,8 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     if isinstance(values, str):
         plt.title(values)
-        
-    plt.gcf().canvas.mpl_connect('button_press_event', 
+
+    plt.gcf().canvas.mpl_connect('button_press_event',
        lambda event: query_grid_on_button_press(event, grid))
 
 
@@ -261,7 +261,7 @@ def imshow_cell_grid(grid, values, **kwds):
 def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
                         var_units=None, grid_units=(None, None),
                         symmetric_cbar=False, cmap='pink', limits=None,
-                        colorbar_label = None, 
+                        colorbar_label = None,
                         allow_colorbar=True, vmin=None, vmax=None,
                         norm=None, shrink=1., color_for_closed='black',
                         color_for_background=None, show_elements=False,
@@ -321,7 +321,7 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
         # (see http://stackoverflow.com/questions/20515554/...
         # colorize-voronoi-diagram)
         # (This technique is not implemented yet)
-        from scipy.spatial import voronoi_plot_2d
+        from  ImageInterpolate import voronoi_plot_2d
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
         cm = plt.get_cmap(cmap)
