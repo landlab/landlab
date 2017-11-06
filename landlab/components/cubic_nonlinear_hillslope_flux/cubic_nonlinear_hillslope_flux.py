@@ -26,7 +26,11 @@ class CubicNonLinearDiffuser(Component):
             Hillslope diffusivity, m**2/yr
     slope_crit: float
             Critical slope 
-        
+    nterms: int, optional. default = 2
+            number of terms in the Taylor expansion.
+            Two terms (Default) gives the behavior
+            described in Ganti et al. (2012).
+            
     Examples
     --------
     >>> import numpy as np
@@ -146,7 +150,8 @@ class CubicNonLinearDiffuser(Component):
                 'flux of soil in direction of link', 
     }
 
-    def __init__(self, grid, linear_diffusivity=1., slope_crit=1.):
+    def __init__(self, grid, linear_diffusivity=1., slope_crit=1.,
+                 nterms=2):
         
         """Initialize CubicNonLinearDiffuser.
         """
@@ -155,7 +160,7 @@ class CubicNonLinearDiffuser(Component):
         self._grid = grid
         self.K = linear_diffusivity
         self.slope_crit = slope_crit
-
+        self.nterms = nterms
         # Create fields:
         #
         # elevation
@@ -177,7 +182,7 @@ class CubicNonLinearDiffuser(Component):
             self.flux = self.grid.add_zeros('link', 'soil__flux')
 
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2, nterms=10):
+    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
         
         Parameters
@@ -241,9 +246,9 @@ class CubicNonLinearDiffuser(Component):
                 time_left = 0
 
             # Calculate flux
-            slope_term = 1
+            slope_term = 0
             s_over_scrit = self.slope/self.slope_crit
-            for i in range(2, 2*nterms+1, 2):
+            for i in range(0, 2*self.nterms+1, 2):
                 slope_term += s_over_scrit**i
             
             self.flux[:] = -((self.K * self.slope)*(slope_term))

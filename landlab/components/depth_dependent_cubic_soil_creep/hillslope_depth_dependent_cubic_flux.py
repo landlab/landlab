@@ -26,7 +26,10 @@ class DepthDependentCubicDiffuser(Component):
         Critical gradient parameter, m/m
     soil_transport_decay_depth: float
         characteristic transport soil depth, m
-
+    nterms: int, optional. default = 2
+        number of terms in the Taylor expansion.
+        Two terms (Default) gives the behavior
+        described in Ganti et al. (2012).
     Examples
     --------
     First lets make a simple example with flat topography.
@@ -211,7 +214,8 @@ class DepthDependentCubicDiffuser(Component):
     def __init__(self,grid,
                  linear_diffusivity=1.0,
                  slope_crit=1.0,
-                 soil_transport_decay_depth=1.0):
+                 soil_transport_decay_depth=1.0,
+                 nterms=2):
         """Initialize the DepthDependentCubicDiffuser."""
 
         # Store grid and parameters
@@ -219,7 +223,8 @@ class DepthDependentCubicDiffuser(Component):
         self.K = linear_diffusivity
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit
-
+        self.nterms = nterms
+        
         # create fields
         # elevation
         if 'topographic__elevation' in self.grid.at_node:
@@ -341,9 +346,9 @@ class DepthDependentCubicDiffuser(Component):
         """Calculate soil flux and update topography. """
         #Calculate flux
         
-        slope_term = 1
+        slope_term = 0
         s_over_scrit = self.slope/self.slope_crit
-        for i in range(2, 2*nterms+1, 2):
+        for i in range(0, 2*self.nterms+1, 2):
             slope_term += s_over_scrit**i
         
         self.flux[:] = -((self.K * self.slope) * \
