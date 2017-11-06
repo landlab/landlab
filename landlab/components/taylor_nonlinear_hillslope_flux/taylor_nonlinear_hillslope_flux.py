@@ -219,14 +219,18 @@ class TaylorNonLinearDiffuser(Component):
             self.slope[:] = self.grid.calc_grad_at_link(self.elev)
             self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
 
-
             # Test for time stepping courant condition
-            slope_term = 1.0
-            s_over_scrit = self.slope.max()/self.slope_crit
-            for i in range(2, 2*nterms+1, 2):
-                slope_term += s_over_scrit**i
-
-            De_max = self.K * (slope_term)
+            courant_slope_term = 0.0
+            courant_s_over_scrit = self.slope.max()/self.slope_crit
+            for i in range(0, 2*self.nterms, 2):
+                courant_slope_term += courant_s_over_scrit**i
+                if np.any(np.isinf(courant_slope_term)):
+                    message = ('Soil flux term is infinite in Courant condition '
+                               'calculation. This is likely due to '
+                               'using too many terms in the Taylor expansion.')
+                    raise RuntimeError(message)
+                
+            De_max = self.K * (courant_slope_term)
 
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
 
@@ -255,10 +259,14 @@ class TaylorNonLinearDiffuser(Component):
                 time_left = 0
 
             # Calculate flux
-            slope_term = 0
+            slope_term = 0.0
             s_over_scrit = self.slope/self.slope_crit
-            for i in range(0, 2*self.nterms+1, 2):
+            for i in range(0, 2*self.nterms, 2):
                 slope_term += s_over_scrit**i
+                if np.any(np.isinf(slope_term)):
+                    message = ('Soil flux term is infinite. This is likely due to '
+                               'using too many terms in the Taylor expansion.')
+                    raise RuntimeError(message)
 
             self.flux[:] = -((self.K * self.slope)*(slope_term))
 
