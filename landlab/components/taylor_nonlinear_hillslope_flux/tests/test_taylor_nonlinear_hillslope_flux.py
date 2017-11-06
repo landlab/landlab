@@ -25,8 +25,14 @@ def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**2
-    Cdiff = TaylorNonLinearDiffuser(mg)
     assert_raises(TypeError, TaylorNonLinearDiffuser, mg, bad_name='true')
+
+def test_infinite_taylor_error():
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.node_x.copy()**4
+    Cdiff = TaylorNonLinearDiffuser(mg, nterms=400)
+    assert_raises(RuntimeError, Cdiff.soilflux, 10)
 
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))

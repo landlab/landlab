@@ -84,9 +84,22 @@ def test_raise_kwargs_error():
     z += mg.node_x.copy()**2
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
-    expweath = ExponentialWeatherer(mg)
     assert_raises(TypeError, DepthDependentTaylorDiffuser, mg, diffusivity=1)
 
+def test_infinite_taylor_error():
+    
+    mg = RasterModelGrid((5, 5))
+    soilTh = mg.add_zeros('node', 'soil__depth')
+    z = mg.add_zeros('node', 'topographic__elevation')
+    BRz = mg.add_zeros('node', 'bedrock__elevation')
+    z += mg.node_x.copy()**4
+    BRz = z.copy() - 1.0
+    soilTh[:] = z - BRz
+    expweath = ExponentialWeatherer(mg)
+    DDdiff = DepthDependentTaylorDiffuser(mg, nterms=400)
+    expweath.calc_soil_prod_rate()
+    assert_raises(RuntimeError, DDdiff.soilflux, 10)
+    
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))
 #    soilTh = mg.add_zeros('node', 'soil__depth')
