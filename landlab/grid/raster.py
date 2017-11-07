@@ -2556,13 +2556,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if not self._diagonal_links_created:
             self._create_diag_links_at_node()
 
-        return (
-            np.concatenate((self.active_links, self._diag_active_links)),
-            np.concatenate((self._activelink_fromnode,
-                            self._diag_activelink_fromnode)),
-            np.concatenate((self._activelink_tonode,
-                            self._diag_activelink_tonode))
-        )
+        (links, ) = np.where(self.status_at_d8 == ACTIVE_LINK)
+        node_at_d8_tail = self.nodes_at_d8[links, 0]
+        node_at_d8_head = self.nodes_at_d8[links, 1]
+
+        return (links, node_at_d8_tail, node_at_d8_head)
 
     @property
     @make_return_array_immutable
