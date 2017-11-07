@@ -267,7 +267,10 @@ def _parse_grid_spacing_from_args(args):
         return None
 
 
-class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
+from .diagonals import DiagonalsMixIn
+
+
+class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
     """A 2D uniform rectilinear grid.
 
@@ -1149,32 +1152,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             raise ValueError('only zero or one arguments accepted')
 
     @property
-    def _number_of_d8_links(self):
-        """
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        LLCATS: GINF LINF
-        """
-        return self.number_of_links + self._number_of_diagonal_links
-
-    @property
-    def _number_of_d8_active_links(self):
-        """
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        LLCATS: GINF NINF BC
-        """
-        try:
-            return self._num_d8_active_links
-        except AttributeError:
-            self._num_d8_active_links = self._d8_active_links()[0].size
-            # this creates the diagonals as well, but that's appropriate if
-            # you're already asking for this property
-            return self._num_d8_active_links
-
-    @property
     @return_readonly_id_array
     def _diagonal_links_at_node(self, *args):
         """Diagonal links attached to nodes.
@@ -1207,6 +1184,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         LLCATS: NINF LINF CONN
         """
+        # return self.diagonals_at_node
         try:
             return self._diag_links_at_node
         except AttributeError:
@@ -1280,7 +1258,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         self._diag__active_link_dirs_at_node = \
             self._diag__link_dirs_at_node.copy()
-        inactive_diags = np.ones(self._number_of_d8_links+1, dtype=bool)
+        inactive_diags = np.ones(self.number_of_d8 + 1, dtype=bool)
         inactive_diags[self._diag_active_links] = False
         # note the entended array True-at-end trick is in play here
         inactive_links = inactive_diags[self._diag_links_at_node]
@@ -1677,7 +1655,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
         self._diag_inactive_links = np.setdiff1d(np.arange(
-            self.number_of_links, self._number_of_d8_links),
+            self.number_of_links, self.number_of_d8),
             self._diag_active_links)
         self._diag_inactive_links = np.setdiff1d(
             self._diag_inactive_links, self._diag_fixed_links)
@@ -1760,8 +1738,8 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     def _reset_diag_active_link_dirs(self):
         self._diag__active_link_dirs_at_node = \
-            self._diag_link_dirs_at_node.copy()
-        inactive_diags = np.ones(self._number_of_d8_links+1, dtype=bool)
+            self.diagonal_dirs_at_node.copy()
+        inactive_diags = np.ones(self.number_of_d8 + 1, dtype=bool)
         inactive_diags[self._diag_active_links] = False
         # note the entended array True-at-end trick is in play here
         inactive_links = inactive_diags[self._diag_links_at_node]
@@ -2219,33 +2197,6 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
     @property
     @make_return_array_immutable
-    def _diag_link_dirs_at_node(self):
-        """
-        Link flux directions at each diagonal node: 1=incoming flux,
-        -1=outgoing flux, 0=no node present.
-
-        Returns
-        -------
-        (NODES, 4) ndarray of int
-            Diagonal link directions relative to the nodes of a grid.
-            A zero indicates no link at this position.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> grid = RasterModelGrid((4, 3))
-        >>> grid._create_diag_links_at_node()
-        >>> grid.status_at_node[grid.nodes_at_left_edge] = CLOSED_BOUNDARY
-        >>> grid._diag_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[-1,  0,  0,  0], [-1, -1,  0,  0], [ 0, -1,  0,  0],
-               [-1,  0,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  0],
-               [-1,  0,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  0],
-               [ 0,  0,  0,  1], [ 0,  0,  1,  1], [ 0,  0,  1,  0]])
-        """
-        return self._diag__link_dirs_at_node
-
-    @property
-    @make_return_array_immutable
     def _diag_active_link_dirs_at_node(self):
         """
         Link flux directions at each diagonal node: 1=incoming flux,
@@ -2268,9 +2219,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([[ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0, -1,  0,  0],
                [ 0,  0,  0,  0], [-1,  0,  0,  1], [ 0, -1,  0,  0],
                [ 0,  0,  0,  0], [-1,  0,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0,  0,  1,  0]])
+               [ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0,  0,  1,  0]],
+              dtype=int8)
         """
-        return self._diag__active_link_dirs_at_node
+        return (self.diagonal_dirs_at_node *
+                (self.diagonal_status_at_node == ACTIVE_LINK))
+        # return self._diag__active_link_dirs_at_node
 
     @property
     @deprecated(use='dx', version='0.5')
