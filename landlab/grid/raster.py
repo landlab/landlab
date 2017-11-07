@@ -1588,11 +1588,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._diag_inactive_links = np.setdiff1d(
             self._diag_inactive_links, self._diag_fixed_links)
 
-        self._all__d8_active_links = np.concatenate((self.active_links,
-                                                     self._diag_active_links))
-        (normal_inactive, ) = np.where(self.status_at_link == INACTIVE_LINK)
-        self._all__d8_inactive_links = np.concatenate(
-            (normal_inactive, self._diag_inactive_links))
+        (self._all__d8_active_links, ) = np.where(
+            self.status_at_d8 == ACTIVE_LINK)
+        (self._all__d8_inactive_links, ) = np.where(
+            self.status_at_d8 == FIXED_LINK)
 
     def _reset_diagonal_link_statuses(self):
         """Rest the statuses of diagonal links.
