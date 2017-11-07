@@ -2429,9 +2429,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         if self._link_length is None:
             self._create_length_of_link()
-            return self._link_length[:self.number_of_links]
-        else:
-            return self._link_length[:self.number_of_links]
+        return self._link_length
 
     @property
     def _length_of_link_with_diagonals(self):
@@ -2469,10 +2467,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: LINF MEAS
         """
-        if self._link_length is None:
-            return self._create_length_of_link()
-        else:
-            return self._link_length
+        return self.length_of_d8
 
     def _create_length_of_link(self):
         """Calculate link lengths for a raster grid.
@@ -2481,8 +2476,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
-        >>> grid._create_length_of_link()[
-        ...     :grid.number_of_links] # doctest: +NORMALIZE_WHITESPACE
+        >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 3., 3., 3.,
                 2., 2., 2., 2.,
                 3., 3., 3.,
@@ -2491,11 +2485,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
         >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
-        array([ 2.        ,  2.        ,  1.        ,  1.        ,
-                1.        ,  2.        ,  2.        ,  1.        ,
-                1.        ,  1.        ,  2.        ,  2.        ,
-                2.23606798,  2.23606798,  2.23606798,  2.23606798,
-                2.23606798,  2.23606798,  2.23606798,  2.23606798])
+        array([ 2., 2.,
+                1., 1., 1.,
+                2., 2.,
+                1., 1., 1.,
+                2., 2.])
 
         Notes
         -----
@@ -2503,16 +2497,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         the horizontal links in that row to dx.
         """
         if self._link_length is None:
-            self._create_diag_links_at_node()
-            self._link_length = np.empty(
-                self.number_of_links + self.number_of_diagonals)
-            self._link_length[self.number_of_links:] = np.sqrt(
-                self._dy ** 2. + self._dx ** 2.)
-
-            vertical_links = squad_links.vertical_link_ids(self.shape)
-
-            self._link_length[:self.number_of_links] = self.dx
-            self._link_length[vertical_links] = self._dy
+            self._link_length = np.empty(self.number_of_links, dtype=float)
+            self._link_length[self.vertical_links] = self.dy
+            self._link_length[self.horizontal_links] = self.dx
 
         return self._link_length
 
