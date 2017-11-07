@@ -189,7 +189,7 @@ class PotentialityFlowRouter(Component):
         # generic 360 direction
         if self.route_on_diagonals and self._raster:
             grid._create_diag_links_at_node()  # ...in case not present yet
-            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+            self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self.grid.empty('link')
 
@@ -235,7 +235,7 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
             # grad on diags:
-            gwd = np.empty(grid._number_of_d8_links, dtype=float)
+            gwd = np.empty(grid.number_of_d8, dtype=float)
             gd = gwd[grid.number_of_links:]
             gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
             gd /= (grid._length_of_link_with_diagonals[grid.number_of_links:])
@@ -299,7 +299,7 @@ class PotentialityFlowRouter(Component):
     def discharges_at_links(self):
         """Return the discharges at links.
 
-        Note that if diagonal routing, this will return number_of_d8_links.
+        Note that if diagonal routing, this will return number_of_d8.
         Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link

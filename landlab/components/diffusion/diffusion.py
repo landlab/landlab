@@ -272,8 +272,8 @@ class LinearDiffuser(Component):
             # note all these terms are deliberately loose, as we won't always
             # be dealing with topo
         else:
-            g = np.zeros(self.grid._number_of_d8_links, dtype=float)
-            qs = np.zeros(self.grid._number_of_d8_links, dtype=float)
+            g = np.zeros(self.grid.number_of_d8, dtype=float)
+            qs = np.zeros(self.grid.number_of_d8, dtype=float)
             self.g = g
             self.qs = qs
             # now we have to choose what the face width of a diagonal is...
@@ -284,7 +284,7 @@ class LinearDiffuser(Component):
             # Note that this WON'T affect the inferred cell size - that's
             # still derived from the rectangle.
             self._d8width_face_at_link = np.empty(
-                self.grid._number_of_d8_links)
+                self.grid.number_of_d8)
             # note there will be null entries here
             # by our defs, every active link must have a face.
             # calc the length of a diag "face":
@@ -517,7 +517,7 @@ class LinearDiffuser(Component):
                 # on the fly.
                 # remap the kds onto the links, as necessary
                 if type(self._kd) is np.ndarray:
-                    d8link_kd = np.empty(self.grid._number_of_d8_links,
+                    d8link_kd = np.empty(self.grid.number_of_d8,
                                          dtype=float)
                     d8link_kd[self.grid.active_links] = kd_activelinks
                     d8link_kd[self.grid._diag_active_links] = np.amax(
