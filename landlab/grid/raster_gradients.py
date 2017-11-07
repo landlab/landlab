@@ -154,9 +154,9 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     LLCATS: LINF GRAD
     """
     if out is None:
-        out = np.empty(grid.number_of_active_links, dtype=float)
+        out = np.empty(len(grid.active_links), dtype=float)
 
-    if len(out) != grid.number_of_active_links:
+    if len(out) != len(grid.active_links):
         raise ValueError('output buffer does not match that of the grid.')
 
     # grads = gradients.calculate_diff_at_active_links(grid, node_values,
