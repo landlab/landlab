@@ -234,6 +234,10 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link[:] = upwind_K * g
             self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
+            active_diagonal_dirs_at_node = (
+                self.grid.diagonal_dirs_at_node *
+                (self.grid.diagonal_status_at_node == ACTIVE_LINK))
+
             # grad on diags:
             gwd = np.empty(grid.number_of_d8, dtype=float)
             gd = gwd[grid.number_of_links:]
@@ -242,7 +246,7 @@ class PotentialityFlowRouter(Component):
             if self.equation != 'default':
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
             diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
-                                       grid._diag_active_link_dirs_at_node)
+                                       active_diagonal_dirs_at_node)
 
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
