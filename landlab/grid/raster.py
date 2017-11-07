@@ -1184,7 +1184,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: NINF LINF CONN
         """
-        # return self.diagonals_at_node
         try:
             return self._diag_links_at_node
         except AttributeError:
@@ -1198,71 +1197,21 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
         """
-        n_diagonal_links = 2 * (self._nrows - 1) * (self._ncols - 1)
-        self._diag_link_fromnode = np.zeros(n_diagonal_links, dtype=int)
-        self._diag_link_tonode = np.zeros(n_diagonal_links, dtype=int)
-        i = 0
-        for r in range(self._nrows - 1):
-            for c in range(self._ncols - 1):
-                self._diag_link_fromnode[i] = c + r * self._ncols
-                self._diag_link_tonode[i] = (c + 1) + (r + 1) * self._ncols
-                i += 1
-                self._diag_link_fromnode[i] = (c + 1) + r * self._ncols
-                self._diag_link_tonode[i] = c + (r + 1) * self._ncols
-                i += 1
+        self._diag_link_fromnode = self.nodes_at_diagonal[:, 0]
+        self._diag_link_tonode = self.nodes_at_diagonal[:, 1]
 
         self._diagonal_links_created = True
 
         self._reset_list_of_active_diagonal_links()
 
-        self._diag_links_at_node = np.empty((self.number_of_nodes, 4),
-                                            dtype=int)
-        self._diag_links_at_node.fill(-1)
+        self._diag_links_at_node = self.diagonals_at_node
+        self._diag_links_at_node[self._diag_links_at_node >= 0] += self.number_of_links
 
-        # Number of patches is number_of_diagonal_nodes / 2
-        self._diag_links_at_node[:, 0][np.setdiff1d(np.arange(
-            self.number_of_nodes), np.union1d(
-                self.nodes_at_right_edge, self.nodes_at_top_edge))] = \
-            (np.arange(0, self.number_of_patches*2, 2) +
-             self.number_of_links)
-        self._diag_links_at_node[:, 1][np.setdiff1d(np.arange(
-            self.number_of_nodes), np.union1d(
-                self.nodes_at_left_edge, self.nodes_at_top_edge))] = \
-            (np.arange(0, self.number_of_patches*2, 2) + 1 +
-             self.number_of_links)
-        self._diag_links_at_node[:, 2][np.setdiff1d(np.arange(
-            self.number_of_nodes), np.union1d(
-                self.nodes_at_left_edge, self.nodes_at_bottom_edge))] = \
-            (np.arange(0, self.number_of_patches*2, 2) +
-             self.number_of_links)
-        self._diag_links_at_node[:, 3][np.setdiff1d(np.arange(
-            self.number_of_nodes), np.union1d(
-                self.nodes_at_right_edge, self.nodes_at_bottom_edge))] = \
-            (np.arange(0, self.number_of_patches*2, 2) + 1 +
-             self.number_of_links)
+        self._diag__link_dirs_at_node = self.diagonal_dirs_at_node
 
-        # now set up the supporting data strs:
-        self._diag__link_dirs_at_node = np.empty((self.number_of_nodes, 4),
-                                                 dtype=int)
-        self._diag__link_dirs_at_node[:, :] = [-1, -1, 1, 1]  # default inside
-        self._diag__link_dirs_at_node[self.nodes_at_bottom_edge] = [
-            -1, -1, 0, 0]
-        self._diag__link_dirs_at_node[self.nodes_at_top_edge] = [
-            0, 0, 1, 1]
-        self._diag__link_dirs_at_node[self.nodes_at_left_edge] = [
-            -1, 0, 0, 1]
-        self._diag__link_dirs_at_node[self.nodes_at_right_edge] = [
-            0, -1, 1, 0]
-        self._diag__link_dirs_at_node[self.nodes_at_corners_of_grid] = [
-            [-1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
-
-        self._diag__active_link_dirs_at_node = \
-            self._diag__link_dirs_at_node.copy()
-        inactive_diags = np.ones(self.number_of_d8 + 1, dtype=bool)
-        inactive_diags[self._diag_active_links] = False
-        # note the entended array True-at-end trick is in play here
-        inactive_links = inactive_diags[self._diag_links_at_node]
-        self._diag__active_link_dirs_at_node[inactive_links] = 0
+        self._diag__active_link_dirs_at_node = (
+            self.diagonal_dirs_at_node * (self.diagonal_status_at_node == ACTIVE_LINK)
+        )
 
         self._reset_diag_active_link_dirs()
 
@@ -1624,35 +1573,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
-        self._diag_activelink_fromnode = []
-        self._diag_activelink_tonode = []
+        (active_diagonals, ) = np.where(self.status_at_diagonal == ACTIVE_LINK)
 
-        diag_fromnode_status = self.status_at_node[self._diag_link_fromnode]
-        diag_tonode_status = self.status_at_node[self._diag_link_tonode]
+        self._diag_activelink_fromnode = self.nodes_at_diagonal[active_diagonals, 0]
+        self._diag_activelink_tonode = self.nodes_at_diagonal[active_diagonals, 1]
 
-        diag_active_links = (((diag_fromnode_status == CORE_NODE) & ~
-                              (diag_tonode_status == CLOSED_BOUNDARY)) |
-                             ((diag_tonode_status == CORE_NODE) & ~
-                              (diag_fromnode_status == CLOSED_BOUNDARY)))
+        (fixed_diagonals, ) = np.where(self.status_at_diagonal == FIXED_LINK)
 
-        (_diag_active_links, ) = np.where(diag_active_links)
-        _diag_active_links = as_id_array(_diag_active_links)
-
-        diag_fixed_links = ((((diag_fromnode_status ==
-                               FIXED_GRADIENT_BOUNDARY) &
-                              (diag_tonode_status == CORE_NODE)) |
-                             ((diag_tonode_status == FIXED_GRADIENT_BOUNDARY) &
-                              (diag_fromnode_status == CORE_NODE))))
-
-        (_diag_fixed_links, ) = np.where(diag_fixed_links)
-        _diag_fixed_links = as_id_array(_diag_fixed_links)
-
-        self._diag_activelink_fromnode = self._diag_link_fromnode[
-            _diag_active_links]
-        self._diag_activelink_tonode = self._diag_link_tonode[
-            _diag_active_links]
-        self._diag_active_links = _diag_active_links + self.number_of_links
-        self._diag_fixed_links = diag_fixed_links + self.number_of_links
+        self._diag_active_links = active_diagonals + self.number_of_links
+        self._diag_fixed_links = fixed_diagonals + self.number_of_links
 
         self._diag_inactive_links = np.setdiff1d(np.arange(
             self.number_of_links, self.number_of_d8),
@@ -1662,7 +1591,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._all__d8_active_links = np.concatenate((self.active_links,
                                                      self._diag_active_links))
-        normal_inactive = np.where(self.status_at_link == INACTIVE_LINK)[0]
+        (normal_inactive, ) = np.where(self.status_at_link == INACTIVE_LINK)
         self._all__d8_inactive_links = np.concatenate(
             (normal_inactive, self._diag_inactive_links))
 
