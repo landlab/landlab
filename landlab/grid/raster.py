@@ -1204,8 +1204,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._reset_list_of_active_diagonal_links()
 
-        self._diag_links_at_node = self.diagonals_at_node
-        self._diag_links_at_node[self._diag_links_at_node >= 0] += self.number_of_links
+        self._diag_links_at_node = self.d8_at_node[:, 4:]
 
         self._diag__link_dirs_at_node = self.diagonal_dirs_at_node
 
@@ -2096,35 +2095,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return (self._nrows - 1) * (self._ncols - 1)
 
     @property
-    def _number_of_diagonal_links(self):
-        """Number of diagonal links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Returns the number of diagonal links (only) over the grid.
-        If the diagonal links have not yet been invoked, returns an
-        AssertionError.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid._number_of_diagonal_links
-        Traceback (most recent call last):
-            ...
-        AssertionError: No diagonal links have been created in the grid yet!
-        >>> _ = grid._diagonal_links_at_node
-        >>> grid._number_of_diagonal_links
-        24
-
-        LLCATS: GINF LINF
-        """
-        assert self._diagonal_links_created, \
-            "No diagonal links have been created in the grid yet!"
-        return 2 * self.number_of_patches
-
-    @property
     @make_return_array_immutable
     def _diag_active_link_dirs_at_node(self):
         """
@@ -2536,7 +2506,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if self._link_length is None:
             self._create_diag_links_at_node()
             self._link_length = np.empty(
-                self.number_of_links + self._number_of_diagonal_links)
+                self.number_of_links + self.number_of_diagonals)
             self._link_length[self.number_of_links:] = np.sqrt(
                 self._dy ** 2. + self._dx ** 2.)
 
