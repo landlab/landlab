@@ -156,13 +156,13 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
         if x.size != y.size:
             raise ValueError('x and y arrays must have the same size')
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
-        xy_of_node = np.hstack((np.asarray(x).reshape((-1, 1)),
-                                np.asarray(y).reshape((-1, 1))))
+        xy_of_node = np.hstack((x.reshape((-1, 1)), y.reshape((-1, 1))))
         self._xy_of_node = sort_points_by_x_then_y(xy_of_node)
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
