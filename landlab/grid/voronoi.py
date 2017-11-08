@@ -66,38 +66,6 @@ def simple_poly_area(x, y):
                     x[-1] * y[0] - x[0] * y[-1])
 
 
-def calculate_link_lengths(pts, link_from, link_to):
-    """Calculates and returns length of links between nodes.
-
-    Parameters
-    ----------
-    pts : Nx2 numpy array containing (x,y) values
-    link_from : 1D numpy array containing index numbers of nodes at starting
-                point ("from") of links
-    link_to : 1D numpy array containing index numbers of nodes at ending point
-              ("to") of links
-
-    Returns
-    -------
-    out : ndarray
-        1D numpy array containing horizontal length of each link
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.grid.voronoi import calculate_link_lengths
-    >>> pts = np.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
-    >>> lfrom = np.array([0,1,2])
-    >>> lto = np.array([1,2,0])
-    >>> calculate_link_lengths(pts, lfrom, lto)
-    array([ 3.,  4.,  5.])
-    """
-    dx = pts[link_to, 0] - pts[link_from, 0]
-    dy = pts[link_to, 1] - pts[link_from, 1]
-    link_length = np.sqrt(dx * dx + dy * dy)
-    return link_length
-
-
 class VoronoiDelaunayGrid(ModelGrid):
     """
     This inherited class implements an unstructured grid in which cells are
@@ -251,11 +219,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # semicircle
         if reorient_links:
             self._reorient_links_upper_right()
-
-        # LINKS: Calculate link lengths
-        # self._link_length = calculate_link_lengths(self._xy_of_node,
-        #                                            self.node_at_link_tail,
-        #                                            self.node_at_link_head)
 
         # LINKS: inlink and outlink matrices
         # SOON TO BE DEPRECATED
@@ -728,14 +691,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
         self._nodes_at_link[flip_locs, :] = self._nodes_at_link[flip_locs, ::-1]
-        # if len(flip_locs) > 0:
-        #     # Temporarily story the fromnode for these
-        #     fromnode_temp = self.node_at_link_tail[flip_locs]
-
-        #     # The fromnodes now become the tonodes, and vice versa
-        #     self._node_at_link_tail[
-        #         flip_locs] = self.node_at_link_head[flip_locs]
-        #     self._node_at_link_head[flip_locs] = fromnode_temp
 
     def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
