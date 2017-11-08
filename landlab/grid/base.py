@@ -27,6 +27,7 @@ from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import (override_array_setitem_and_reset, return_id_array,
                          return_readonly_id_array)
+from ..utils.decorators import cache_result_in_object
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
@@ -1050,6 +1051,25 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self._core_cells
 
     @property
+    def nodes_at_link(self):
+        """Get array of the node at each link head (*to-node*).
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((3, 4), 1.)
+        >>> mg.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0, 1], [ 1,  2], [ 2,  3],
+               [ 0, 4], [ 1,  5], [ 2,  6], [ 3,  7],
+               [ 4, 5], [ 5,  6], [ 6,  7],
+               [ 4, 8], [ 5,  9], [ 6, 10], [ 7, 11],
+               [ 8, 9], [ 9, 10], [10, 11]])
+
+        LLCATS: NINF LINF CONN
+        """
+        return self._nodes_at_link
+
+    @property
     def node_at_link_head(self):
         """Get array of the node at each link head (*to-node*).
 
@@ -1062,7 +1082,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF LINF CONN
         """
-        return self._node_at_link_head
+        return self._nodes_at_link[:, 1]
 
     @property
     def node_at_link_tail(self):
@@ -1077,7 +1097,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF LINF CONN
         """
-        return self._node_at_link_tail
+        return self._nodes_at_link[:, 0]
 
     @property
     def face_at_link(self):
@@ -1374,7 +1394,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF MEAS
         """
-        return self._node_x
+        return self._xy_of_node[:, 0]
 
     @property
     @make_return_array_immutable
@@ -1396,9 +1416,36 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 4.,  4.,  4.,  4.,  4.],
                [ 6.,  6.,  6.,  6.,  6.]])
 
-       LLCATS: NINF MEAS
+        LLCATS: NINF MEAS
         """
-        return self._node_y
+        return self._xy_of_node[:, 1]
+
+    @property
+    @make_return_array_immutable
+    def xy_of_node(self):
+        """Get array of the x- and y-coordinates of nodes.
+
+        See also
+        --------
+        x_of_node, y_of_node
+            Exquivalent methods for just x and y coordinates.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), (2., 3.))
+        >>> grid.xy_of_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0., 0.], [ 3., 0.], [ 6., 0.], [ 9., 0.],
+               [ 0., 2.], [ 3., 2.], [ 6., 2.], [ 9., 2.],
+               [ 0., 4.], [ 3., 4.], [ 6., 4.], [ 9., 4.]])
+        >>> np.all(grid.xy_of_node[:, 0] == grid.x_of_node)
+        True
+        >>> np.all(grid.xy_of_node[:, 1] == grid.y_of_node)
+        True
+
+        LLCATS: NINF MEAS
+        """
+        return self._xy_of_node
 
     @property
     @make_return_array_immutable
@@ -1420,9 +1467,9 @@ class ModelGrid(ModelDataFieldsMixIn):
                [  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.]])
 
-       LLCATS: NINF MEAS
+        LLCATS: NINF MEAS
         """
-        return self._node_x
+        return self._xy_of_node[:, 0]
 
     @property
     @make_return_array_immutable
@@ -1446,7 +1493,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: NINF MEAS
         """
-        return self._node_y
+        return self._xy_of_node[:, 1]
 
     @property
     @make_return_array_immutable
@@ -1463,7 +1510,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: CINF MEAS
         """
-        return self._node_x[self.node_at_cell]
+        return self.x_of_node[self.node_at_cell]
 
     @property
     @make_return_array_immutable
@@ -1480,7 +1527,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: CINF MEAS
         """
-        return self._node_y[self.node_at_cell]
+        return self.y_of_node[self.node_at_cell]
 
     @property
     @make_return_array_immutable
@@ -2811,7 +2858,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.calculate_flux_divergence_at_core_nodes')
 
-        assert (len(active_link_flux) == self.number_of_active_links), \
+        assert (len(active_link_flux) == len(self.active_links)), \
             "incorrect length of active_link_flux array"
 
         # If needed, create net_unit_flux array
@@ -2994,7 +3041,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         LLCATS: DEPR LINF NINF CONN
         """
         active_link = BAD_INDEX_VALUE
-        for alink in range(0, self.number_of_active_links):
+        for alink in range(0, len(self.active_links)):
             link_connects_nodes = (
                 (self._activelink_fromnode[alink] == node1 and
                  self._activelink_tonode[alink] == node2) or
@@ -3031,6 +3078,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         return self.length_of_link
 
     @property
+    @cache_result_in_object()
     def length_of_link(self):
         """Get lengths of links.
 
@@ -3052,10 +3100,9 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: LINF MEAS
         """
-        if self._link_length is None:
-            return self._create_length_of_link()
-        else:
-            return self._link_length
+        return np.sqrt(
+            np.power(np.diff(self.xy_of_node[self.nodes_at_link], axis=1),
+                     2.).sum(axis=2)).flatten()
 
     @property
     def _length_of_link_with_diagonals(self):
@@ -3121,13 +3168,13 @@ class ModelGrid(ModelDataFieldsMixIn):
         if v is None:
             v = numpy.array((0., ))
 
-        fv = numpy.zeros(self.number_of_active_links)
+        fv = numpy.zeros(len(self.active_links))
         if len(v) < len(u):
-            for i in range(0, self.number_of_active_links):
+            for i in range(0, len(self.active_links)):
                 fv[i] = max(u[self._activelink_fromnode[i]],
                             u[self._activelink_tonode[i]])
         else:
-            for i in range(0, self.number_of_active_links):
+            for i in range(0, len(self.active_links)):
                 if (v[self._activelink_fromnode[i]] >
                         v[self._activelink_tonode[i]]):
                     fv[i] = u[self._activelink_fromnode[i]]
@@ -4152,10 +4199,7 @@ class ModelGrid(ModelDataFieldsMixIn):
         # If caller asked for a voronoi diagram, draw that too
         if draw_voronoi:
             from scipy.spatial import Voronoi, voronoi_plot_2d
-            pts = numpy.zeros((self.number_of_nodes, 2))
-            pts[:, 0] = self.node_x
-            pts[:, 1] = self.node_y
-            vor = Voronoi(pts)
+            vor = Voronoi(self.xy_of_node)
             voronoi_plot_2d(vor)
 
         plt.show()
@@ -4595,8 +4639,7 @@ class ModelGrid(ModelDataFieldsMixIn):
 
         LLCATS: GINF MEAS
         """
-        self._node_x += origin[0]
-        self._node_y += origin[1]
+        self._xy_of_node += origin
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')

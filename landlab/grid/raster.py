@@ -32,6 +32,7 @@ from landlab.grid.structured_quad import cells as squad_cells
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import return_id_array, return_readonly_id_array
+from ..utils.decorators import cache_result_in_object
 from . import gradients
 
 
@@ -680,8 +681,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #  |       |       |       |       |
         #  0-------1-------2-------3-------4
         #
-        (self._node_x, self._node_y) = sgrid.node_coords(
+        (x_of_node, y_of_node) = sgrid.node_coords(
             (num_rows, num_cols), (self._dy, self._dx), (0., 0.))
+
+        self._xy_of_node = np.hstack((x_of_node.reshape((-1, 1)),
+                                      y_of_node.reshape((-1, 1))))
 
         # Node boundary/active status:
         # Next, we set up an array of "node status" values, which indicate
@@ -749,8 +753,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #  *---0-->*---1-->*---2-->*---3-->*
         #
         #   create the tail-node and head-node lists
-        (self._node_at_link_tail,
-         self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+        (node_at_link_tail,
+         node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+        self._nodes_at_link = np.hstack((node_at_link_tail.reshape((-1, 1)),
+                                         node_at_link_head.reshape((-1, 1))))
 
         self._status_at_link = np.full(squad_links.number_of_links(self.shape),
                                        INACTIVE_LINK, dtype=int)
@@ -2400,6 +2406,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return rfuncs.find_nearest_node(self, coords, mode=mode)
 
     @property
+    @cache_result_in_object()
     def length_of_link(self):
         """Get lengths of links.
 
@@ -2427,9 +2434,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: LINF MEAS
         """
-        if self._link_length is None:
-            self._create_length_of_link()
-        return self._link_length
+        length_of_link = np.empty(self.number_of_links, dtype=float)
+        length_of_link[self.vertical_links] = self.dy
+        length_of_link[self.horizontal_links] = self.dx
+
+        return length_of_link
 
     @property
     def _length_of_link_with_diagonals(self):

@@ -188,20 +188,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
-        x = np.asarray(x, dtype=float).reshape((-1, ))
-        y = np.asarray(y, dtype=float).reshape((-1, ))
-
         if x.size != y.size:
             raise ValueError('x and y arrays must have the same size')
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
-        pts = np.zeros((len(x), 2))
-        pts[:, 0] = x
-        pts[:, 1] = y
-        self.pts = sort_points_by_x_then_y(pts)
-        x = self.pts[:, 0]
-        y = self.pts[:, 1]
+        xy_of_node = np.hstack((np.asarray(x).reshape((-1, 1)),
+                                np.asarray(y).reshape((-1, 1))))
+        self._xy_of_node = sort_points_by_x_then_y(xy_of_node)
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -219,10 +213,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
         #
-        self._node_x = x
-        self._node_y = y
         [self._node_status, self._core_nodes, self._boundary_nodes] = \
-            self._find_perimeter_nodes_and_BC_set(pts)
+            self._find_perimeter_nodes_and_BC_set(self._xy_of_node)
         [self._cell_at_node, self._node_at_cell] = \
             self._node_to_cell_connectivity(self._node_status,
                                             self.number_of_cells)
@@ -230,7 +222,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
-        vor = Voronoi(self.pts)
+        vor = Voronoi(self._xy_of_node)
         self.vor = vor
         self._area_of_cell = np.zeros(self.number_of_cells)
         for node in self._node_at_cell:
@@ -241,13 +233,16 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
-        (self._node_at_link_tail,
-         self._node_at_link_head,
+        (node_at_link_tail,
+         node_at_link_head,
          _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
-        self._status_at_link = np.full(len(self._node_at_link_tail),
+        self._status_at_link = np.full(len(node_at_link_tail),
                                        INACTIVE_LINK, dtype=int)
+
+        self._nodes_at_link = np.hstack((node_at_link_tail.reshape((-1, 1)),
+                                         node_at_link_head.reshape((-1, 1))))
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
@@ -258,9 +253,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             self._reorient_links_upper_right()
 
         # LINKS: Calculate link lengths
-        self._link_length = calculate_link_lengths(self.pts,
-                                                   self.node_at_link_tail,
-                                                   self.node_at_link_head)
+        # self._link_length = calculate_link_lengths(self._xy_of_node,
+        #                                            self.node_at_link_tail,
+        #                                            self.node_at_link_head)
 
         # LINKS: inlink and outlink matrices
         # SOON TO BE DEPRECATED
@@ -292,7 +287,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._number_of_patches
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._number_of_patches
 
     @property
@@ -304,7 +300,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._nodes_at_patch
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._nodes_at_patch
 
     @property
@@ -338,7 +335,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._patches_at_node
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._patches_at_node
 
     @property
@@ -363,7 +361,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._links_at_patch
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._links_at_patch
 
     @property
@@ -394,7 +393,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._patches_at_link
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._patches_at_link
 
     def _find_perimeter_nodes_and_BC_set(self, pts):
@@ -727,15 +727,15 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
-        if len(flip_locs) > 0:
+        self._nodes_at_link[flip_locs, :] = self._nodes_at_link[flip_locs, ::-1]
+        # if len(flip_locs) > 0:
+        #     # Temporarily story the fromnode for these
+        #     fromnode_temp = self.node_at_link_tail[flip_locs]
 
-            # Temporarily story the fromnode for these
-            fromnode_temp = self.node_at_link_tail[flip_locs]
-
-            # The fromnodes now become the tonodes, and vice versa
-            self._node_at_link_tail[
-                flip_locs] = self.node_at_link_head[flip_locs]
-            self._node_at_link_head[flip_locs] = fromnode_temp
+        #     # The fromnodes now become the tonodes, and vice versa
+        #     self._node_at_link_tail[
+        #         flip_locs] = self.node_at_link_head[flip_locs]
+        #     self._node_at_link_head[flip_locs] = fromnode_temp
 
     def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
