@@ -534,8 +534,7 @@ class LinearDiffuser(Component):
                 self.g[self.grid._diag_active_links] = ((
                     z[self.grid._diag_activelink_tonode] -
                     z[self.grid._diag_activelink_fromnode]) /
-                        self.grid._length_of_link_with_diagonals[
-                            self.grid._diag_active_links])
+                        self.grid.length_of_d8[self.grid._diag_active_links])
                 self.qs[:] = -d8link_kd * self.g
 
                 total_flux = self.qs * self._d8width_face_at_link  # nlinks
