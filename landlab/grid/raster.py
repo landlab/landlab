@@ -2438,44 +2438,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return length_of_link
 
-    @property
-    def _length_of_link_with_diagonals(self):
-        """Get lengths of links, with diagonal IDs following orthogonal IDs.
-
-        Return the link lengths in the grid, as a nlinks-plus-ndiagonallinks-
-        long array, if diagonals are already present. This method *does* test
-        if diagonal links are present in the grid already; if they are,
-        returns a longer array where the orthogonal links are listed first,
-        in ID order, then the diagonal links (i.e., diagonal
-        links have effective ID numbers which count up from the number of
-        orthogonal links).
-
-        If diagonals have not been created, returns the same array as
-        :func:`length_of_link`.
-
-        Returns
-        -------
-        (4, N) ndarray
-            Link lengths.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
-
-        >>> grid.length_of_link
-        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
-
-        >>> grid._length_of_link_with_diagonals # doctest: +NORMALIZE_WHITESPACE
-        array([ 4.,  4.,  3.,  3.,  3.,
-                4.,  4.,  3.,  3.,  3.,
-                4.,  4.,  5.,  5.,  5.,
-                5.,  5.,  5.,  5.,  5.])
-
-        LLCATS: LINF MEAS
-        """
-        return self.length_of_d8
-
     def _create_length_of_link(self):
         """Calculate link lengths for a raster grid.
 
