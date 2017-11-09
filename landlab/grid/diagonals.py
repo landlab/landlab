@@ -323,6 +323,23 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def diagonal_adjacent_nodes_at_node(self):
+        """Get adjacent nodes along diagonals.
+
+        Order is the landlab standard, counterclockwise starting from
+        east.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 3))
+        >>> diagonals = grid.diagonal_adjacent_nodes_at_node
+        array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
+               [ 7, -1, -1,  1], [ 8,  6,  0,  2], [-1,  7,  1, -1],
+               [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
+               [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
+
+        LLCATS: DEPR NINF CONN
+        """
         node_is_at_tail = np.choose(self.diagonal_dirs_at_node + 1,
                                     np.array((1, -1, 0), dtype=np.int8))
         out = self.nodes_at_diagonal[self.diagonals_at_node, node_is_at_tail]
