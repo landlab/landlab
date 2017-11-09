@@ -722,8 +722,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._neighbors_at_node = (
             sgrid.neighbor_node_ids(self.shape).transpose().copy())
-        self.__diagonal_neighbors_at_node = sgrid.diagonal_node_array(self.shape,
-                                                            contiguous=True)
 
         self._links_at_node = squad_links.links_at_node(self.shape)
 
@@ -1098,9 +1096,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
 
-       LLCATS: DEPR NINF CONN
+        LLCATS: DEPR NINF CONN
         """
-        return self.__diagonal_neighbors_at_node
+        return self.diagonal_adjacent_nodes_at_node
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
