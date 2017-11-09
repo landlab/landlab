@@ -516,9 +516,40 @@ class ModelGrid(ModelDataFieldsMixIn):
                [ 7,  9, -1,  3], [ 8, 10,  6,  4], [-1, 11,  7,  5],
                [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
 
-       LLCATS: NINF CONN
+        LLCATS: NINF CONN
         """
-        return self._neighbors_at_node
+        return self.adjacent_nodes_at_node
+        # return self._neighbors_at_node
+
+    @property
+    @cache_result_in_object()
+    def adjacent_nodes_at_node(self):
+        """Get adjacent nodes.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 3)
+        >>> grid.adjacent_nodes_at_node
+        array([[ 1,  4,  3, -1, -1, -1],
+               [ 2,  5,  4,  0, -1, -1],
+               [ 6,  5,  1, -1, -1, -1],
+               [ 4,  7,  0, -1, -1, -1],
+               [ 5,  8,  7,  3,  0,  1],
+               [ 6,  9,  8,  4,  1,  2],
+               [ 9,  5,  2, -1, -1, -1],
+               [ 8,  3,  4, -1, -1, -1],
+               [ 9,  7,  4,  5, -1, -1],
+               [ 8,  5,  6, -1, -1, -1]])
+
+        LLCATS: NINF CONN
+        """
+        node_is_at_tail = np.choose(self.link_dirs_at_node + 1,
+                                    np.array((1, -1, 0), dtype=np.int8))
+        out = self.nodes_at_link[self.links_at_node, node_is_at_tail]
+        out[node_is_at_tail == -1] = -1
+
+        return out
 
     @property
     @return_readonly_id_array
