@@ -609,13 +609,13 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     # identify the grid neigbors at each location
     I = np.arange(grid.number_of_nodes)
     P = grid.neighbors_at_node[I, 0]
-    Q = grid._diagonal_neighbors_at_node[I, 0]
+    Q = grid.diagonal_adjacent_nodes_at_node[I, 0]
     R = grid.neighbors_at_node[I, 1]
-    S = grid._diagonal_neighbors_at_node[I, 1]
+    S = grid.diagonal_adjacent_nodes_at_node[I, 1]
     T = grid.neighbors_at_node[I, 2]
-    U = grid._diagonal_neighbors_at_node[I, 2]
+    U = grid.diagonal_adjacent_nodes_at_node[I, 2]
     V = grid.neighbors_at_node[I, 3]
-    W = grid._diagonal_neighbors_at_node[I, 3]
+    W = grid.diagonal_adjacent_nodes_at_node[I, 3]
 
     # get x, y, z coordinates for each location
     x_I = grid.node_x[I]

@@ -300,7 +300,7 @@ class DepressionFinderAndRouter(Component):
         # grids. We need it for *all* grids!
         self._node_nbrs = self._grid.active_neighbors_at_node
         if self._D8:
-            diag_nbrs = self._grid._diagonal_neighbors_at_node.copy()
+            diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
             diag_nbrs[self.grid.status_at_node[
                 diag_nbrs] == CLOSED_BOUNDARY] = -1
@@ -488,7 +488,7 @@ class DepressionFinderAndRouter(Component):
         links = self._grid.links_at_node[the_node]
         nbrs = self._grid.neighbors_at_node[the_node]
         if self._D8:
-            diag_nbrs = self._grid._diagonal_neighbors_at_node[the_node]
+            diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node[the_node]
         else:
             diag_nbrs = None
 
@@ -1000,7 +1000,7 @@ class DepressionFinderAndRouter(Component):
         >>> nbr_links = rg.links_at_node[22]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([30, 21]), array([43, 35]))
-        >>> nbrs = rg._diagonal_neighbors_at_node[22]
+        >>> nbrs = rg.diagonal_adjacent_nodes_at_node[22]
         >>> nbr_links = rg._diagonal_links_at_node[22]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([29, 13]), array([136, 121]))
@@ -1098,7 +1098,7 @@ class DepressionFinderAndRouter(Component):
 #                    nbrs = self._find_unresolved_neighbors(
 #                            self._grid._get_diagonal_list(cn), self.receivers)
                     (nbrs, diags) = self._find_unresolved_neighbors_new(
-                            self._grid._diagonal_neighbors_at_node[cn],
+                            self._grid.diagonal_adjacent_nodes_at_node[cn],
                             self._grid._diagonal_links_at_node[cn],
                             self.receivers)
 
@@ -1233,7 +1233,7 @@ class DepressionFinderAndRouter(Component):
                     where_receiver_in_diag = np.equal(
                         self.receivers[nodes_in_lake].reshape(
                             (nodes_in_lake.size, 1)),
-                        self.grid._diagonal_neighbors_at_node[
+                        self.grid.diagonal_adjacent_nodes_at_node[
                             nodes_in_lake, :])
                     receiver_in_diag = where_receiver_in_diag.sum(
                         axis=1).astype(bool)

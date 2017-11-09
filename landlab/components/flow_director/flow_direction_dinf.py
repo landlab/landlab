@@ -147,7 +147,7 @@ def flow_directions_dinf(grid,
     # with tarboton's 1997 algorithm, orthogonal link first, then diagonal.
     # has shape, (nnodes, 8 triangles, 2 neighbors)
     n_at_node = grid.neighbors_at_node
-    dn_at_node = grid._diagonal_neighbors_at_node
+    dn_at_node = grid.diagonal_adjacent_nodes_at_node
 
     triangle_neighbors_at_node = np.stack([np.vstack((n_at_node[:,0], dn_at_node[:,0])),
                                            np.vstack((n_at_node[:,1], dn_at_node[:,0])),

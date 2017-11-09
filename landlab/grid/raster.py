@@ -1088,7 +1088,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> grid = RasterModelGrid((4, 3))
-        >>> diagonals = grid._diagonal_neighbors_at_node.copy()
+        >>> diagonals = grid.diagonal_adjacent_nodes_at_node.copy()
         >>> diagonals[diagonals == BAD_INDEX_VALUE] = -1
         >>> diagonals # doctest: +NORMALIZE_WHITESPACE
         array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
@@ -4906,7 +4906,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
             # if method is D8 (default), add the diagonal nodes.
             if adjacency_method=='D8':
-                connected_diagonal_nodes = self._diagonal_neighbors_at_node[newNodes]
+                connected_diagonal_nodes = self.diagonal_adjacent_nodes_at_node[newNodes]
                 potentialNewNodes.extend(connected_diagonal_nodes[self.status_at_node[connected_diagonal_nodes]!=CLOSED_BOUNDARY])
 
             # filter new nodes further based on if they are already present in

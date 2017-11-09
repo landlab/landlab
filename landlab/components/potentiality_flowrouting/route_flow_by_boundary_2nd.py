@@ -219,7 +219,7 @@ class PotentialityFlowRouter(Component):
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
             while mismatch > 1.e-6:
                 K_link_ends = self._K[grid.neighbors_at_node]
-                K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
+                K_diag_ends = self._K[grid.diagonal_adjacent_nodes_at_node]
                 incoming_K_sum = ((pos_incoming_link_grads*K_link_ends
                                    ).sum(axis=1) +
                                   (pos_incoming_diag_grads*K_diag_ends

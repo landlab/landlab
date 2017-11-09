@@ -138,7 +138,7 @@ def flow_directions_mfd(elev,
     >>> grid._create_diag_links_at_node()
     >>> dal, d8t, d8h = grid._d8_active_links()
     >>> neighbors_at_node = np.hstack((grid.neighbors_at_node,
-    ...                                grid._diagonal_neighbors_at_node))
+    ...                                grid.diagonal_adjacent_nodes_at_node))
     >>> links_at_node = np.hstack((grid.links_at_node,
     ...                            grid._diagonal_links_at_node))
     >>> active_link_dir_at_node = np.hstack((grid.active_link_dirs_at_node,
