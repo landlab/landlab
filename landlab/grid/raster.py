@@ -1074,32 +1074,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         return self._dy
 
-    @property
-    @make_return_array_immutable
-    def _diagonal_neighbors_at_node(self):
-        """Get diagonally neighboring nodes.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Order is LL standard, CCW from east. i.e., [NE, NW, SW, SE].
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> grid = RasterModelGrid((4, 3))
-        >>> diagonals = grid.diagonal_adjacent_nodes_at_node.copy()
-        >>> diagonals[diagonals == BAD_INDEX_VALUE] = -1
-        >>> diagonals # doctest: +NORMALIZE_WHITESPACE
-        array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
-               [ 7, -1, -1,  1], [ 8,  6,  0,  2], [-1,  7,  1, -1],
-               [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
-               [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
-
-        LLCATS: DEPR NINF CONN
-        """
-        return self.diagonal_adjacent_nodes_at_node
-
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
     def _active_links_at_node(self, *args):
