@@ -250,8 +250,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # create link x, y:
         self._create_link_face_coords()
 
-        # self._create_neighbors()
-
     @property
     def number_of_patches(self):
         """Number of patches.
@@ -773,30 +771,6 @@ class VoronoiDelaunayGrid(ModelGrid):
 # a sort of the links will be performed here once we have corners
 
         self._patches_created = True
-
-    def _create_neighbors(self):
-        """Create the _neighbors_at_node property.
-        """
-        self._neighbors_at_node = self.links_at_node.copy()
-        nodes_at_link = np.empty((self.number_of_links, 2))
-        nodes_at_link[:, 0] = self.node_at_link_tail
-        nodes_at_link[:, 1] = self.node_at_link_head
-        both_nodes = nodes_at_link[self.links_at_node]
-
-        nodes = np.arange(self.number_of_nodes, dtype=int)
-        # ^we have to do this, as for a hex it's possible that mg.nodes is
-        # returned not just in ID order.
-
-        for i in range(both_nodes.shape[1]):
-            centernottail = np.not_equal(both_nodes[:, i, 0], nodes)
-            centernothead = np.not_equal(both_nodes[:, i, 1], nodes)
-            self._neighbors_at_node[centernottail, i] = both_nodes[
-                centernottail, i, 0]
-            self._neighbors_at_node[centernothead, i] = both_nodes[
-                centernothead, i, 1]
-        # restamp the missing links:
-        self._neighbors_at_node[
-            self.links_at_node == BAD_INDEX_VALUE] = BAD_INDEX_VALUE
 
     def save(self, path, clobber=False):
         """Save a grid and fields.
