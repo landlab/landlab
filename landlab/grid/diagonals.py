@@ -391,6 +391,32 @@ class DiagonalsMixIn(object):
     @property
     @cache_result_in_object()
     def length_of_d8(self):
+        """Length of links and diagonals.
+
+        Return the lengths links and diagonals in the grid. Links are
+        listed first and then diagonals.
+
+        Returns
+        -------
+        ndarray of float
+            Link lengths.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+
+        >>> grid.length_of_link
+        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
+
+        >>> grid.length_of_d8 # doctest: +NORMALIZE_WHITESPACE
+        array([ 4.,  4.,  3.,  3.,  3.,
+                4.,  4.,  3.,  3.,  3.,
+                4.,  4.,  5.,  5.,  5.,
+                5.,  5.,  5.,  5.,  5.])
+
+        LLCATS: LINF MEAS
+        """
         return np.hstack((super(DiagonalsMixIn, self).length_of_link,
                           self.length_of_diagonal))
 
