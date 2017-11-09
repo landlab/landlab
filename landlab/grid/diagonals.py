@@ -5,7 +5,8 @@ import numpy as np
 from .base import (ACTIVE_LINK, INACTIVE_LINK, FIXED_LINK,
                    CLOSED_BOUNDARY, CORE_NODE, FIXED_GRADIENT_BOUNDARY,
                    FIXED_VALUE_BOUNDARY)
-from ..utils.decorators import cache_result_in_object
+from ..utils.decorators import (cache_result_in_object,
+                                make_return_array_immutable)
 
 
 def is_fixed_link(node_status_at_link):
@@ -320,6 +321,7 @@ class DiagonalsMixIn(object):
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def diagonal_adjacent_nodes_at_node(self):
         node_is_at_tail = np.choose(self.diagonal_dirs_at_node + 1,
                                     np.array((1, -1, 0), dtype=np.int8))
