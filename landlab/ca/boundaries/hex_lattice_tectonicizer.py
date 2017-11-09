@@ -16,9 +16,8 @@ Created on Mon Nov 17 08:01:49 2014
 """
 
 from landlab import HexModelGrid
-from numpy import (amax, zeros, arange, array, sqrt, where, logical_and, tan,
-                   cos, pi)
-import sys
+from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
+                   logical_or, tan, cos, pi)
 from ..cfuncs import get_next_event_new
 
 _DEFAULT_NUM_ROWS = 5
@@ -464,6 +463,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.inner_top_row_nodes = self.inner_base_row_nodes + \
                                        ((self.nr - 1) * self.nc)
 
+        self._setup_links_to_update_after_uplift()
+
         # Handle option for a layer of "blocks"
         self.opt_block_layer = opt_block_layer
         if opt_block_layer:
@@ -473,6 +474,40 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.block_layer_dip_angle = block_layer_dip_angle
             self.layer_left_x = layer_left_x
             self.y0_top = y0_top
+            
+    def _setup_links_to_update_after_uplift(self):
+        """Create and store array with IDs of links for which to update
+        transitions after uplift.
+        
+        These are: all active boundary links, plus the lowest non-boundary
+        links, including the next-to-lowest vertical links and those angling
+        that are below them.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(6, 6, orientation='vert', shape='rect')
+        >>> lu = LatticeUplifter(grid=hg)
+        >>> lu.links_to_update
+        array([ 8,  9, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 24, 25, 26, 30,
+               34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 72, 73, 74, 75, 76, 77, 79,
+               80])
+        >>> hg = HexModelGrid(5, 5, orientation='vert', shape='rect')
+        >>> lu = LatticeUplifter(grid=hg)
+        >>> lu.links_to_update
+        array([ 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 22, 25, 28, 31, 35, 38, 41,
+               44, 46, 48, 49, 50, 51, 52, 53])
+        """
+        g = self.grid
+        nc = g.number_of_node_columns
+        max_link_id = (3 * (nc - 1) + 2 * ((nc + 1) // 2) + nc // 2
+                       + (nc - 1) // 2)
+        lower_active = logical_and(arange(g.number_of_links) < max_link_id,
+                                   g.status_at_link == 0)
+        boundary = logical_or(g.status_at_node[g.node_at_link_tail] != 0,
+                              g.status_at_node[g.node_at_link_head] != 0)
+        active_bnd = logical_and(boundary, g.status_at_link == 0)
+        self.links_to_update = where(logical_or(lower_active, active_bnd))[0]
 
     def _get_new_base_nodes(self, rock_state):
         """
@@ -598,7 +633,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> round(pq._queue[9][0], 2)  # ...but still scheduled for t = 0.80
         0.8
         """
-
+#        print('sltdu')
         # Find the ID of the first link above the y = 1.5 line
         nc = self.grid.number_of_node_columns
         first_link = (((nc - 1) // 2)      # skip bottom horizontals
@@ -609,6 +644,16 @@ class LatticeUplifter(HexLatticeTectonicizer):
         # Define the offset in ID between a link and its neighbor one row up
         # (or down)
         shift = nc + 2 * (nc - 1)
+        
+#        print('links pre in sltdu:')
+#        for i in range(self.grid.number_of_links):
+#            tail_st = ca.node_state[ca.grid.node_at_link_tail[i]]
+#            head_st = ca.node_state[ca.grid.node_at_link_head[i]]
+#            print i, ca.link_state[i], ca.next_trn_id[i], tail_st, head_st
+#            pred_st = (ca.link_orientation[i] * ca.num_node_states_sq
+#                                  + tail_st * ca.num_node_states + head_st)
+#            if pred_st != ca.link_state[i]:
+#                print('__________________________')
 
         # Loop from top to bottom of grid, shifting the following link data
         # upward: state of link, ID of its next transition, and time of its
@@ -617,6 +662,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
             ca.link_state[lnk] = ca.link_state[lnk - shift]
             ca.next_trn_id[lnk] = ca.next_trn_id[lnk - shift]
             ca.next_update[lnk] = ca.next_update[lnk - shift]
+
+#        print('links after:')
+#        for i in range(self.grid.number_of_links):
+#            print i, ca.link_state[i], ca.next_trn_id[i], ca.next_update[i]
 
         # Sweep through event queue, shifting links upward. Do NOT shift links
         # with IDs greater than NL - [SHIFT + (NC - 1)], because these are so
@@ -633,9 +682,12 @@ class LatticeUplifter(HexLatticeTectonicizer):
                                                (ca.priority_queue._queue[i][2] 
                                                + shift))
 
+#        print('q after:')
+#        print(ca.priority_queue._queue)
+
         # Update state of links along the boundaries.
-        for lk in range(self.grid.number_of_links):
-            
+        for lk in self.links_to_update:
+#            print lk, ca.bnd_lnk[lk], self.grid.status_at_link[lk]
             if ca.bnd_lnk[lk] and self.grid.status_at_link[lk] == 0:
 
                 # Update link state
@@ -660,6 +712,20 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 else:
                     ca.next_update[lk] = _NEVER
                     ca.next_trn_id[lk] = -1
+
+#        print('links at end:')
+#        for i in range(self.grid.number_of_links):
+#            tail_st = ca.node_state[ca.grid.node_at_link_tail[i]]
+#            head_st = ca.node_state[ca.grid.node_at_link_head[i]]
+#            print i, ca.link_state[i], ca.next_trn_id[i], tail_st, head_st
+#            pred_st = (ca.link_orientation[i] * ca.num_node_states_sq
+#                                  + tail_st * ca.num_node_states + head_st)
+#            if pred_st != ca.link_state[i]:
+#                print('.............................')
+#
+#
+#        print('q at end:')
+#        print(ca.priority_queue._queue)
 
 
     def uplift_interior_nodes(self, ca, rock_state=1, current_time=0.0):
@@ -689,6 +755,21 @@ class LatticeUplifter(HexLatticeTectonicizer):
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
         """
+#        print('UIN')
+#        print('q:')
+#        print(ca.priority_queue._queue)
+#        print('nodes before:')
+#        for i in range(ca.grid.number_of_nodes):
+#            print i, self.node_state[i]
+#        print('links before:')
+#        for i in range(self.grid.number_of_links):
+#            tail_st = ca.node_state[ca.grid.node_at_link_tail[i]]
+#            head_st = ca.node_state[ca.grid.node_at_link_head[i]]
+#            print i, ca.link_state[i], ca.next_trn_id[i], tail_st, head_st
+#            pred_st = (ca.link_orientation[i] * ca.num_node_states_sq
+#                                  + tail_st * ca.num_node_states + head_st)
+#            if pred_st != ca.link_state[i]:
+#                print('^^^^^^^^^^^^^^^^^^^^^^')
 
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
@@ -706,6 +787,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         else:
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
+#        print('nodes after:')
+#        for i in range(ca.grid.number_of_nodes):
+#            print i, self.node_state[i]
 
         # Shift the node states up by two rows: two because the grid is
         # staggered, and we don't want any horizontal offset.
