@@ -1099,7 +1099,7 @@ class DepressionFinderAndRouter(Component):
 #                            self._grid._get_diagonal_list(cn), self.receivers)
                     (nbrs, diags) = self._find_unresolved_neighbors_new(
                             self._grid.diagonal_adjacent_nodes_at_node[cn],
-                            self._grid._diagonal_links_at_node[cn],
+                            self._grid.d8_at_node[cn, 4:],
                             self.receivers)
 
                     # They will now flow to cn
@@ -1240,8 +1240,8 @@ class DepressionFinderAndRouter(Component):
                     self.grid.at_node[
                         'flow__link_to_receiver_node'].flat[nodes_in_lake[
                             receiver_in_diag]] = \
-                        self.grid._diagonal_links_at_node[nodes_in_lake][
-                            where_receiver_in_diag]
+                                self.grid.d8_at_node[nodes_in_lake, 4:][
+                                    where_receiver_in_diag]
 
         self.sinks[self.pit_node_ids] = False
 

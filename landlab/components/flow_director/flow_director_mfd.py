@@ -446,8 +446,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             # concatenate the diagonal and orthogonal grid elements
             neighbors_at_node = numpy.hstack((self.grid.neighbors_at_node,
                                               self.grid.diagonal_adjacent_nodes_at_node))
-            links_at_node = numpy.hstack((self.grid.links_at_node,
-                                          self.grid._diagonal_links_at_node))
             active_link_dir_at_node = numpy.hstack((self.grid.active_link_dirs_at_node,
                                                     self.grid._diag__active_link_dirs_at_node))
             link_slope = numpy.hstack((ortho_grads,
@@ -464,7 +462,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         receiver_links, steepest_link) = \
         flow_direction_mfd.flow_directions_mfd(self.surface_values,
                                                neighbors_at_node,
-                                               links_at_node,
+                                               self.grid.d8_at_node,
                                                active_link_dir_at_node,
                                                link_slope,
                                                baselevel_nodes=baselevel_nodes,
