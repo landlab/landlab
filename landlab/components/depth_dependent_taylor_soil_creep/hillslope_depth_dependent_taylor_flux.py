@@ -237,7 +237,7 @@ class DepthDependentTaylorDiffuser(Component):
                  soil_transport_decay_depth=1.0,
                  nterms=2):
         """Initialize the DepthDependentTaylorDiffuser.
-            
+
         Parameters
         ----------
         grid: ModelGrid
@@ -264,7 +264,7 @@ class DepthDependentTaylorDiffuser(Component):
         self.nterms = nterms
 
         # create fields
-        
+
         # elevation
         if 'topographic__elevation' in self.grid.at_node:
             self.elev = self.grid.at_node['topographic__elevation']

@@ -185,7 +185,7 @@ class TaylorNonLinearDiffuser(Component):
         self.K = linear_diffusivity
         self.slope_crit = slope_crit
         self.nterms = nterms
-        
+
         # Create fields:
 
         # elevation
