@@ -1511,9 +1511,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._diag_active_links = active_diagonals + self.number_of_links
 
-        (self._all__d8_inactive_links, ) = np.where(
-            self.status_at_d8 == FIXED_LINK)
-
     def _reset_diagonal_link_statuses(self):
         """Rest the statuses of diagonal links.
 
@@ -2430,19 +2427,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         node_at_d8_head = self.nodes_at_d8[links, 1]
 
         return (links, node_at_d8_tail, node_at_d8_head)
-
-    @property
-    @make_return_array_immutable
-    def _all_d8_inactive_links(self):
-        """Return all the inactive links, both orthogonal and diagonal.
-
-        LLCATS: LINF NINF GEOM BC
-        """
-        try:
-            return self._all__d8_inactive_links
-        except AttributeError:
-            self._create_diag_links_at_node
-            return self._all__d8_inactive_links
 
     @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.5')
     def set_inactive_boundaries(self, right_is_inactive, top_is_inactive,

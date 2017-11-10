@@ -13,7 +13,7 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 from landlab import (RasterModelGrid, Component, FieldError, INACTIVE_LINK,
-                     ACTIVE_LINK, CLOSED_BOUNDARY, CORE_NODE)
+                     ACTIVE_LINK, CLOSED_BOUNDARY, CORE_NODE, FIXED_LINK)
 import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 
@@ -271,7 +271,7 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link[:grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links:] = (
                 upwind_diag_K * gd)
-            self._discharges_at_link[grid._all_d8_inactive_links] = 0.
+            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
         # there is no sensible way to save discharges at links, if we route
