@@ -1514,12 +1514,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = active_diagonals + self.number_of_links
         self._diag_fixed_links = fixed_diagonals + self.number_of_links
 
-        self._diag_inactive_links = np.setdiff1d(np.arange(
-            self.number_of_links, self.number_of_d8),
-            self._diag_active_links)
-        self._diag_inactive_links = np.setdiff1d(
-            self._diag_inactive_links, self._diag_fixed_links)
-
         (self._all__d8_active_links, ) = np.where(
             self.status_at_d8 == ACTIVE_LINK)
         (self._all__d8_inactive_links, ) = np.where(
