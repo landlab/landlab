@@ -1142,8 +1142,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._diag_links_at_node = self.d8_at_node[:, 4:]
 
-        self._diag__link_dirs_at_node = self.diagonal_dirs_at_node
-
         self._diag__active_link_dirs_at_node = (
             self.diagonal_dirs_at_node * (self.diagonal_status_at_node == ACTIVE_LINK)
         )
