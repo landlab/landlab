@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 30 11:15:21 2016
+TaylorNonLinearDiffuser Component
 
 @author: R Glade
 @author: K Barnhart
 @author: G Tucker
-
 """
 
 #Cubic hillslope flux component
@@ -16,7 +15,6 @@ from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
 
 class TaylorNonLinearDiffuser(Component):
-
     """
     Hillslope evolution using a Taylor Series expansion of the Andrews-Bucknam
     formulation of nonlinear hillslope flux derived following following Ganti et
@@ -34,10 +32,12 @@ class TaylorNonLinearDiffuser(Component):
     ----------
     grid: ModelGrid
             Landlab ModelGrid object
-    linear_diffusivity: float
+    linear_diffusivity: float, optional
             Hillslope diffusivity, m**2/yr
-    slope_crit: float
+            Default = 1.0
+    slope_crit: float, optional
             Critical slope
+            Default = 1.0
     nterms: int, optional. default = 2
             number of terms in the Taylor expansion.
             Two terms (Default) gives the behavior
@@ -167,21 +167,27 @@ class TaylorNonLinearDiffuser(Component):
         """Initialize the TaylorNonLinearDiffuser.
         Parameters
         ----------
-        grid: ModelGrid instance
-        linear_diffusivity : float (optional, default is 1.0)
-            Value for diffusivity
-        slope_crit : float (optional, default is 1.0)
-            Value for diffusivity
-        nterms : int (optional, default is 2)
-            Number of terms in Taylor Expansion
+        grid: ModelGrid
+            Landlab ModelGrid object
+        linear_diffusivity: float, optional
+            Hillslope diffusivity, m**2/yr
+            Default = 1.0
+        slope_crit: float, optional
+            Critical slope
+            Default = 1.0
+        nterms: int, optional. default = 2
+            number of terms in the Taylor expansion.
+            Two terms (Default) gives the behavior
+            described in Ganti et al. (2012).
         """
         # Store grid and parameters
         self._grid = grid
         self.K = linear_diffusivity
         self.slope_crit = slope_crit
         self.nterms = nterms
+        
         # Create fields:
-        #
+
         # elevation
         if 'topographic__elevation' in self.grid.at_node:
             self.elev = self.grid.at_node['topographic__elevation']
@@ -200,13 +206,11 @@ class TaylorNonLinearDiffuser(Component):
         else:
             self.flux = self.grid.add_zeros('link', 'soil__flux')
 
-
     def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
         ----------
-
         dt: float (time)
             The imposed timestep.
         dynamic_dt : boolean (optional, default is False)
@@ -239,9 +243,9 @@ class TaylorNonLinearDiffuser(Component):
                                'calculation. This is likely due to '
                                'using too many terms in the Taylor expansion.')
                     raise RuntimeError(message)
-                
+            # Calculate De Max
             De_max = self.K * (courant_slope_term)
-
+            # Calculate longest stable timestep
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
 
             # Test for the Courant condition and print warning if user intended
@@ -286,7 +290,6 @@ class TaylorNonLinearDiffuser(Component):
 
             # Update topography
             self.elev -= dqdx * self.sub_dt
-
 
     def run_one_step(self, dt, **kwds):
         """

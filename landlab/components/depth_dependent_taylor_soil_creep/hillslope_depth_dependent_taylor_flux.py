@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Apr  8 08:32:48 2016
+DepthDependentTaylorNonLinearDiffuser Component
 
 @author: R Glade
 @author: K Barnhart
@@ -36,12 +36,15 @@ class DepthDependentTaylorDiffuser(Component):
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    linear_diffusivity: float
+    linear_diffusivity: float, optional.
         Hillslope diffusivity, m**2/yr
-    slope_crit: float
+        Default = 1.0
+    slope_crit: float, optional
         Critical gradient parameter, m/m
-    soil_transport_decay_depth: float
+        Default = 1.0
+    soil_transport_decay_depth: float, optional
         characteristic transport soil depth, m
+        Default = 1.0
     nterms: int, optional. default = 2
         number of terms in the Taylor expansion.
         Two terms (default) gives the behavior
@@ -237,17 +240,22 @@ class DepthDependentTaylorDiffuser(Component):
             
         Parameters
         ----------
-        grid: ModelGrid instance
-        linear_diffusivity : float (optional, default is 1.0)
-            Value for diffusivity
-        slope_crit : float (optional, default is 1.0)
-            Value for diffusivity
-        soil_transport_decay_depth : float (optional, default = 0.2)
-            Value for the soil transport decay depth
-        nterms : int (optional, default is 2)
-            Number of terms in Taylor Expansion
+        grid: ModelGrid
+            Landlab ModelGrid object
+        linear_diffusivity: float, optional.
+            Hillslope diffusivity, m**2/yr
+            Default = 1.0
+        slope_crit: float, optional
+            Critical gradient parameter, m/m
+            Default = 1.0
+        soil_transport_decay_depth: float, optional
+            characteristic transport soil depth, m
+            Default = 1.0
+        nterms: int, optional. default = 2
+            number of terms in the Taylor expansion.
+            Two terms (default) gives the behavior
+            described in Ganti et al. (2012).
         """
-
         # Store grid and parameters
         self._grid = grid
         self.K = linear_diffusivity
@@ -256,6 +264,7 @@ class DepthDependentTaylorDiffuser(Component):
         self.nterms = nterms
 
         # create fields
+        
         # elevation
         if 'topographic__elevation' in self.grid.at_node:
             self.elev = self.grid.at_node['topographic__elevation']
@@ -301,7 +310,6 @@ class DepthDependentTaylorDiffuser(Component):
 
         Parameters
         ----------
-
         dt: float (time)
             The imposed timestep.
         dynamic_dt : boolean (optional, default is False)
@@ -314,7 +322,6 @@ class DepthDependentTaylorDiffuser(Component):
             Factor to identify stable time-step duration when using dynamic
             timestepping.
         """
-
         # establish time left as all of dt
         time_left = dt
 
@@ -345,8 +352,9 @@ class DepthDependentTaylorDiffuser(Component):
                                'calculation. This is likely due to '
                                'using too many terms in the Taylor expansion.')
                     raise RuntimeError(message)
-                    
+            # Calculate De Max
             De_max = self.K * (courant_slope_term)
+            # Calculate longest stable timestep
             self.dt_max = courant_factor * (self.grid.dx**2) / De_max
 
             # Test for the Courant condition and print warning if user intended
@@ -380,7 +388,6 @@ class DepthDependentTaylorDiffuser(Component):
     def _update_flux_topography_soil_and_bedrock(self):
         """Calculate soil flux and update topography. """
         #Calculate flux
-
         slope_term = 0.0
         s_over_scrit = self.slope / self.slope_crit
         for i in range(0, 2*self.nterms, 2):
@@ -394,7 +401,6 @@ class DepthDependentTaylorDiffuser(Component):
                          (slope_term) * \
                          (1.0 - np.exp(-self.H_link
                                         / self.soil_transport_decay_depth)))
-
 
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
@@ -425,5 +431,4 @@ class DepthDependentTaylorDiffuser(Component):
         dt: float (time)
             The imposed timestep.
         """
-
         self.soilflux(dt, **kwds)
