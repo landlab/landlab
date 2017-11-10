@@ -145,7 +145,7 @@ def get_watershed_nodes(grid, outlet_id):
 
     The tributary receives flow only from a portion of the grid nodes.
     >>> tributary_watershed_nodes
-    array([12, 18, 19, 24, 25, 26, 31, 32, 33, 39, 40])
+    array([12, 18, 19, 24, 25, 26, 31, 32, 33, 39, 40], dtype=int64)
     """
     ws_mask = get_watershed_mask(grid, outlet_id)
     ws_nodes = np.where(ws_mask)[0]
