@@ -22,7 +22,7 @@ class TaylorNonLinearDiffuser(Component):
     formulation of nonlinear hillslope flux derived following following Ganti et
     al., 2012. The flux is given as:
 
-        qs = KS ( 1 + (S/Sc)**2 + (S/Sc)**4 + .. + (S/Sc)**2(n-1) )
+        qs = KS ( 1 + (S/Sc)**2 + (S / Sc)**4 + .. + (S / Sc)**2(n - 1) )
 
     where K is is the diffusivity, S is the slope, Sc is the critical slope, and
     n is the number of terms.
@@ -71,7 +71,7 @@ class TaylorNonLinearDiffuser(Component):
     hillslope diffustivity, D, the maximum slope, Smax, and the critical slope
     Sc.
 
-        Demax = D ( 1 + (Smax / Sc)**2 (Smax / Sc)**4 + .. + (Smax / Sc)**2(n-1) )
+        Demax = D ( 1 + ( Smax / Sc )**2 ( Smax / Sc )**4 + .. + ( Smax / Sc )**( 2 * ( n - 1 )) )
 
     The maximum stable time step is given by
 
@@ -164,10 +164,17 @@ class TaylorNonLinearDiffuser(Component):
 
     def __init__(self, grid, linear_diffusivity=1., slope_crit=1.,
                  nterms=2):
-
-        """Initialize TaylorNonLinearDiffuser.
+        """Initialize the TaylorNonLinearDiffuser.
+        Parameters
+        ----------
+        grid: ModelGrid instance
+        linear_diffusivity : float (optional, default is 1.0)
+            Value for diffusivity
+        slope_crit : float (optional, default is 1.0)
+            Value for diffusivity
+        nterms : int (optional, default is 2)
+            Number of terms in Taylor Expansion
         """
-
         # Store grid and parameters
         self._grid = grid
         self.K = linear_diffusivity

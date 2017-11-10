@@ -21,7 +21,7 @@ class DepthDependentTaylorDiffuser(Component):
     Hillslope sediment flux uses a Taylor Series expansion of the Andrews-
     Bucknam formulation of nonlinear hillslope flux derived following following
     Ganti et al., 2012 with a depth dependent component inspired Johnstone and
-    Hilley (2014).. The flux is given as:
+    Hilley (2014). The flux is given as:
 
         qs = DS ( 1 + (S/Sc)**2 + (S/Sc)**4 + .. + (S/Sc)**2(n-1) ) * (1.0 - exp( H / Hstar )
 
@@ -107,7 +107,7 @@ class DepthDependentTaylorDiffuser(Component):
     hillslope diffustivity, D, the maximum slope, Smax, and the critical slope
     Sc.
 
-        Demax = D ( 1 + (Smax / Sc)**2 (Smax / Sc)**4 + .. + (Smax / Sc)**2(n-1) )
+        Demax = D ( 1 + ( Smax / Sc )**2 ( Smax / Sc )**4 + .. + ( Smax / Sc )**( 2 * ( n - 1 )) )
 
     The maximum stable time step is given by
 
@@ -117,7 +117,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     The DepthDependentTaylorDiffuser has a boolean flag that permits a user
     to be warned if timesteps are too large for the slopes in the model grid
-    (if_unstable = 'warn') and a boolean flag that turns on dynamic timesteppping
+    (if_unstable = 'warn') and a boolean flag that turns on dynamic timestepping
     (dynamic_dt = False).
 
     >>> DDdiff.soilflux(2., if_unstable='warn')
@@ -151,7 +151,7 @@ class DepthDependentTaylorDiffuser(Component):
     Lets try to move the soil with a large timestep. Without dynamic time
     steps, this gives a warning that we've exceeded the dynamic timestep size
     and should use a smaller timestep. We could either use the smaller timestep,
-    or specify that we want to use adynamic timestep.
+    or specify that we want to use a dynamic timestep.
 
     >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=False)
     Topographic slopes are high enough such that the Courant condition is
@@ -161,7 +161,7 @@ class DepthDependentTaylorDiffuser(Component):
     timestepping. The Courant condition recommends a timestep of
     0.004 or smaller.
 
-    Now, we'll re-build the grid and do the same exapmle with dynamic timesteps.
+    Now, we'll re-build the grid and do the same example with dynamic timesteps.
 
     >>> mg = RasterModelGrid((5, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
@@ -233,7 +233,20 @@ class DepthDependentTaylorDiffuser(Component):
                  slope_crit=1.0,
                  soil_transport_decay_depth=1.0,
                  nterms=2):
-        """Initialize the DepthDependentTaylorDiffuser."""
+        """Initialize the DepthDependentTaylorDiffuser.
+            
+        Parameters
+        ----------
+        grid: ModelGrid instance
+        linear_diffusivity : float (optional, default is 1.0)
+            Value for diffusivity
+        slope_crit : float (optional, default is 1.0)
+            Value for diffusivity
+        soil_transport_decay_depth : float (optional, default = 0.2)
+            Value for the soil transport decay depth
+        nterms : int (optional, default is 2)
+            Number of terms in Taylor Expansion
+        """
 
         # Store grid and parameters
         self._grid = grid
@@ -324,7 +337,7 @@ class DepthDependentTaylorDiffuser(Component):
             # Test for time stepping courant condition
              # Test for time stepping courant condition
             courant_slope_term = 0.0
-            courant_s_over_scrit = self.slope.max()/self.slope_crit
+            courant_s_over_scrit = self.slope.max() / self.slope_crit
             for i in range(0, 2*self.nterms, 2):
                 courant_slope_term += courant_s_over_scrit**i
                 if np.any(np.isinf(courant_slope_term)):
@@ -369,7 +382,7 @@ class DepthDependentTaylorDiffuser(Component):
         #Calculate flux
 
         slope_term = 0.0
-        s_over_scrit = self.slope/self.slope_crit
+        s_over_scrit = self.slope / self.slope_crit
         for i in range(0, 2*self.nterms, 2):
             slope_term += s_over_scrit**i
             if np.any(np.isinf(slope_term)):
