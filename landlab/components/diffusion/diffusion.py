@@ -542,7 +542,7 @@ class LinearDiffuser(Component):
                     total_flux[self.grid.links_at_node] *
                     self.grid.active_link_dirs_at_node).sum(axis=1)
                 totalflux_allnodes += (
-                    total_flux[self.grid._diag_links_at_node] *
+                    total_flux[self.grid.d8_at_node[:, 4:]] *
                     active_diagonal_dirs_at_node).sum(axis=1)
                 self.dqsds[self.grid.node_at_cell] = -totalflux_allnodes[
                     self.grid.node_at_cell] / self.grid.area_of_cell

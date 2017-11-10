@@ -1140,8 +1140,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._reset_list_of_active_diagonal_links()
 
-        self._diag_links_at_node = self.d8_at_node[:, 4:]
-
         self._diag__active_link_dirs_at_node = (
             self.diagonal_dirs_at_node * (self.diagonal_status_at_node == ACTIVE_LINK)
         )
@@ -1601,7 +1599,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         inactive_diags = np.ones(self.number_of_d8 + 1, dtype=bool)
         inactive_diags[self._diag_active_links] = False
         # note the entended array True-at-end trick is in play here
-        inactive_links = inactive_diags[self._diag_links_at_node]
+        inactive_links = inactive_diags[self.d8_at_node[:, 4:]]
         self._diag__active_link_dirs_at_node[inactive_links] = 0
 
     def _reset_link_status_list(self):

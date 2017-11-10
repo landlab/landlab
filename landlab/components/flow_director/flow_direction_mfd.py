@@ -145,7 +145,7 @@ def flow_directions_mfd(elev,
 
     We need to create a list of diagonal links since it doesn't exist.
 
-    >>> diag_links = np.sort(np.unique(grid._diag_links_at_node))
+    >>> diag_links = np.sort(np.unique(grid.d8_at_node[:, 4:]))
     >>> diag_links = diag_links[diag_links>0]
     >>> diag_grads = np.zeros(diag_links.shape)
     >>> where_active_diag = dal>=diag_links.min()
