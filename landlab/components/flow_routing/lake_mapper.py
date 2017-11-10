@@ -1001,7 +1001,7 @@ class DepressionFinderAndRouter(Component):
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([30, 21]), array([43, 35]))
         >>> nbrs = rg.diagonal_adjacent_nodes_at_node[22]
-        >>> nbr_links = rg._diagonal_links_at_node[22]
+        >>> nbr_links = rg.d8_at_node[22, 4:]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([29, 13]), array([136, 121]))
         """
