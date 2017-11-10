@@ -300,8 +300,6 @@ class LinearDiffuser(Component):
             # ^ this operation pastes in faces where there are none, but
             # we'll never use them
             self._d8width_face_at_link[self.grid.number_of_links:] = diag_face
-            self._all_d8_active_links = np.union1d(
-                self.grid.active_links, self.grid._diag_active_links)
 
         self._vertlinkcomp = np.sin(self.grid.angle_of_link)
         self._hozlinkcomp = np.cos(self.grid.angle_of_link)
@@ -374,8 +372,6 @@ class LinearDiffuser(Component):
         self.fixed_grad_offsets = (vals[self.fixed_grad_nodes] -
                                    vals[self.fixed_grad_anchors])
         if self._use_diags:
-            self._all_d8_active_links = np.union1d(
-                self.grid.active_links, self.grid._diag_active_links)
             self.g.fill(0.)
 
         if self._kd_on_links or self._use_patches:
@@ -520,7 +516,7 @@ class LinearDiffuser(Component):
                     (self.grid.diagonal_status_at_node == ACTIVE_LINK))
 
                 # remap the kds onto the links, as necessary
-                if type(self._kd) is np.ndarray:
+                if isinstance(self._kd, np.ndarray):
                     d8link_kd = np.empty(self.grid.number_of_d8,
                                          dtype=float)
                     d8link_kd[self.grid.active_links] = kd_activelinks

@@ -1514,8 +1514,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._diag_active_links = active_diagonals + self.number_of_links
         self._diag_fixed_links = fixed_diagonals + self.number_of_links
 
-        (self._all__d8_active_links, ) = np.where(
-            self.status_at_d8 == ACTIVE_LINK)
         (self._all__d8_inactive_links, ) = np.where(
             self.status_at_d8 == FIXED_LINK)
 
@@ -2436,19 +2434,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         node_at_d8_head = self.nodes_at_d8[links, 1]
 
         return (links, node_at_d8_tail, node_at_d8_head)
-
-    @property
-    @make_return_array_immutable
-    def _all_d8_active_links(self):
-        """Return all the active links, both orthogonal and diagonal.
-
-        LLCATS: LINF NINF GEOM BC
-        """
-        try:
-            return self._all__d8_active_links
-        except AttributeError:
-            self._create_diag_links_at_node
-            return self._all__d8_active_links
 
     @property
     @make_return_array_immutable
