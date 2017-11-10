@@ -1129,41 +1129,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    @property
-    @return_readonly_id_array
-    def _diagonal_links_at_node(self, *args):
-        """Diagonal links attached to nodes.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Link ids are listed in counterclockwise order starting from east
-        (i.e., [NE, NW, SW, SE]).
-        (was formerly clockwise from south; [SW,NW,NE,SE])
-        This method only returns diagonal links.
-        Call links_at_node for all links, and orthogonal_links_at_node for
-        orthogonal links.
-
-        Returns
-        -------
-        (N, 4) ndarray
-            Diagonal neighbor node IDs for the source nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4))
-        >>> mg._diagonal_links_at_node.shape == (12, 4)
-        True
-        >>> mg._diagonal_links_at_node[5]
-        array([25, 24, 17, 20])
-        >>> mg._diagonal_links_at_node[7]
-        array([-1, 28, 21, -1])
-
-        LLCATS: NINF LINF CONN
-        """
-        return self.d8_at_node[:, 4:]
-
     def _create_diag_links_at_node(self):
         """
         Create the diagonal link list.
@@ -2396,7 +2361,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         otherwise of diagonal links on the grid:
 
         >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
-        >>> _ = grid._diagonal_links_at_node
+        >>> # _ = grid._diagonal_links_at_node
         >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 3.,  3.,  4.,  4.,  4.,  3.,  3.,  4.,  4.,  4.,  3.,  3.])
 
