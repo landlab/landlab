@@ -2009,37 +2009,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return (self._nrows - 1) * (self._ncols - 1)
 
     @property
-    @make_return_array_immutable
-    def _diag_active_link_dirs_at_node(self):
-        """
-        Link flux directions at each diagonal node: 1=incoming flux,
-        -1=outgoing flux, 0=no flux. Note that inactive links receive zero.
-
-        Returns
-        -------
-        (NODES, 4) ndarray of int
-            Diagonal link directions relative to the nodes of a grid.
-            A zero indicates no link at this position OR that the link at that
-            position is inactive.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> grid = RasterModelGrid((4, 3))
-        >>> grid._create_diag_links_at_node()
-        >>> grid.status_at_node[grid.nodes_at_left_edge] = CLOSED_BOUNDARY
-        >>> grid._diag_active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0, -1,  0,  0],
-               [ 0,  0,  0,  0], [-1,  0,  0,  1], [ 0, -1,  0,  0],
-               [ 0,  0,  0,  0], [-1,  0,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [ 0,  0,  0,  0], [ 0,  0,  1,  0]],
-              dtype=int8)
-        """
-        return (self.diagonal_dirs_at_node *
-                (self.diagonal_status_at_node == ACTIVE_LINK))
-        # return self._diag__active_link_dirs_at_node
-
-    @property
     @deprecated(use='dx', version='0.5')
     def node_spacing(self):
         """Spacing betweem node rows and columns.
