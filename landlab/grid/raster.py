@@ -1162,11 +1162,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: NINF LINF CONN
         """
-        try:
-            return self._diag_links_at_node
-        except AttributeError:
-            self._create_diag_links_at_node()
-            return self._diag_links_at_node
+        return self.d8_at_node[:, 4:]
 
     def _create_diag_links_at_node(self):
         """
