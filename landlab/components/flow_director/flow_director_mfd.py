@@ -451,6 +451,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             link_slope = numpy.hstack((ortho_grads,
                                        diag_grads))
 
+            links_at_node = self.grid.d8_at_node
+
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(
             numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
@@ -462,7 +464,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         receiver_links, steepest_link) = \
         flow_direction_mfd.flow_directions_mfd(self.surface_values,
                                                neighbors_at_node,
-                                               self.grid.d8_at_node,
+                                               links_at_node,
                                                active_link_dir_at_node,
                                                link_slope,
                                                baselevel_nodes=baselevel_nodes,
