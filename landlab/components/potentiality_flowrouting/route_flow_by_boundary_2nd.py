@@ -208,7 +208,7 @@ class PotentialityFlowRouter(Component):
             # grad on diags:
             gwd = np.empty(grid.number_of_d8, dtype=float)
             gd = gwd[grid.number_of_links:]
-            gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
+            gd[:] = (z[grid._diag_link_tonode] - z[grid.nodes_at_diagonal[:, 0]])
             gd /= grid._length_of_d8[grid.number_of_links:]
             if self.equation != 'default':
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
@@ -232,9 +232,9 @@ class PotentialityFlowRouter(Component):
             # edges, if present.
             upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
             upwind_diag_K = np.where(
-                z[grid._diag_link_tonode] > z[grid._diag_link_fromnode],
+                z[grid._diag_link_tonode] > z[grid.nodes_at_diagonal[:, 0]],
                 self._K[grid._diag_link_tonode],
-                self._K[grid._diag_link_fromnode])
+                self._K[grid.nodes_at_diagonal[:, 0]])
             self._discharges_at_link[:grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links:] = (
                 upwind_diag_K * gd)

@@ -1136,7 +1136,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         MAY 16: Landlab's handling of diagonal links may soon be enhanced;
         methods like this may be soon superceded.
         """
-        self._diag_link_fromnode = self.nodes_at_diagonal[:, 0]
         self._diag_link_tonode = self.nodes_at_diagonal[:, 1]
 
         self._diagonal_links_created = True
@@ -1557,7 +1556,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         except AttributeError:
             already_fixed = np.zeros(self.number_of_links, dtype=bool)
 
-        diag_fromnode_status = self._node_status[self._diag_link_fromnode]
+        diag_fromnode_status = self._node_status[self.nodes_at_diagonal[:, 0]]
         diag_tonode_status = self._node_status[self._diag_link_tonode]
 
         if not np.all((diag_fromnode_status[already_fixed] ==
@@ -1593,8 +1592,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             diag_active_links, np.logical_not(diag_fixed_links)))
         _diag_active_links = _diag_active_links.astype(np.int, copy=False)
 
-        self._diag_activelink_fromnode = self._diag_link_fromnode[
-            _diag_active_links]
+        self._diag_activelink_fromnode = self.nodes_at_diagonal[_diag_active_links, 0]
         self._diag_activelink_tonode = self._diag_link_tonode[
             _diag_active_links]
         self._diag_active_links = _diag_active_links + self.number_of_links
@@ -3076,7 +3074,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
         diagonal_link_slopes = (
             (node_values[self._diag_link_tonode] -
-             node_values[self._diag_link_fromnode]) / diag_dist)
+             node_values[self.nodes_at_diagonal[:, 0]]) / diag_dist)
 
         return diagonal_link_slopes
 
