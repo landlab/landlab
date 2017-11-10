@@ -2,7 +2,9 @@
 """
 Created on Fri Apr  8 08:32:48 2016
 
-@author: GE Tucker
+@author: R Glade
+@author: K Barnhart
+@author: G Tucker
 """
 
 from landlab import Component

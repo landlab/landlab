@@ -2,7 +2,10 @@
 """
 Created on Fri Sep 30 11:15:21 2016
 
-@author: RCGlade
+@author: R Glade
+@author: K Barnhart
+@author: G Tucker
+
 """
 
 #Cubic hillslope flux component
