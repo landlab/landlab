@@ -1509,10 +1509,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_fromnode = self.nodes_at_diagonal[active_diagonals, 0]
         self._diag_activelink_tonode = self.nodes_at_diagonal[active_diagonals, 1]
 
-        (fixed_diagonals, ) = np.where(self.status_at_diagonal == FIXED_LINK)
-
         self._diag_active_links = active_diagonals + self.number_of_links
-        self._diag_fixed_links = fixed_diagonals + self.number_of_links
 
         (self._all__d8_inactive_links, ) = np.where(
             self.status_at_d8 == FIXED_LINK)
@@ -1581,7 +1578,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._diag_activelink_fromnode = self.nodes_at_diagonal[_diag_active_links, 0]
         self._diag_activelink_tonode = self.nodes_at_diagonal[_diag_active_links, 1]
         self._diag_active_links = _diag_active_links + self.number_of_links
-        self._diag_fixed_links = diag_fixed_links + self.number_of_links
 
         self._reset_diag_active_link_dirs()
 
