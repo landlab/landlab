@@ -131,7 +131,7 @@ class GrainHill(CTSModel):
             xn_list.append( Transition((0,8,0), (0,7,0), w, 'weathering') )
             xn_list.append( Transition((0,8,1), (0,7,1), w, 'weathering') )
             xn_list.append( Transition((0,8,2), (0,7,2), w, 'weathering') )
-            
+
             # "Vertical rock collapse" rule: a rock particle overlying air
             # will collapse, transitioning to a downward-moving grain
             if collapse_rate > 0.0:
@@ -139,16 +139,19 @@ class GrainHill(CTSModel):
                                            'rock collapse'))
 
         if _DEBUG:
-            print
-            print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+            print()
+            print('setup_transition_list(): list has ' + str(len(xn_list))
+                  + ' transitions:')
             for t in xn_list:
-                print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
-            
+                print('  From state ' + str(t.from_state) + ' to state '
+                      + str(t.to_state) + ' at rate ' + str(t.rate)
+                      + ' called ' + str(t.name))
+
         return xn_list
 
     def initialize_node_state_grid(self):
         """Set up initial node states.
-        
+
         Examples
         --------
         >>> gh = GrainHill((5, 7))
@@ -156,7 +159,7 @@ class GrainHill(CTSModel):
         array([8, 7, 7, 8, 7, 7, 7, 0, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         """
-        
+
         # For shorthand, get a reference to the node-state grid
         nsg = self.grid.at_node['node_state']
 
