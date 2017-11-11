@@ -532,21 +532,21 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu = LatticeUplifter(opt_block_layer=True)
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 9, 9])
-        >>> lu.uplift_interior_nodes(ca, rock_state=7)
+        >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 9, 9])
         >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=2,
         ... block_layer_dip_angle=90.0, layer_left_x=1.0)
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 7, 9])
-        >>> lu.uplift_interior_nodes(ca, rock_state=7)
+        >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
         >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=1,
         ... block_layer_dip_angle=45.0, y0_top=-1.0)
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 7, 9])
-        >>> lu.uplift_interior_nodes(ca, rock_state=7)
+        >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
         """
