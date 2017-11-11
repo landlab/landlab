@@ -6,8 +6,8 @@ Hillslope model with block uplift.
 _DEBUG = False
 
 import sys
-from .cts_model import CTSModel
-from .lattice_grain import (lattice_grain_node_states,
+from cts_model import CTSModel
+from lattice_grain import (lattice_grain_node_states,
                            lattice_grain_transition_list)
 import time
 from numpy import zeros, count_nonzero, where, amax, logical_and
@@ -15,8 +15,6 @@ from matplotlib.pyplot import axis
 from landlab.ca.celllab_cts import Transition
 from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
 
-# Temporary: for debug and dev
-from landlab.ca.celllab_cts import _RUN_NEW
 
 class GrainHill(CTSModel):
     """
@@ -27,20 +25,20 @@ class GrainHill(CTSModel):
                  disturbance_rate=1.0, weathering_rate=1.0, 
                  uplift_interval=1.0, plot_interval=1.0e99, friction_coef=0.3,
                  rock_state_for_uplift=7, opt_rock_collapse=False,
-                 show_plots=True, **kwds):
+                 show_plots=True, initial_state_grid=None, **kwds):
         """Call the initialize() method."""
-        self.initialize(grid_size, report_interval, run_duration,
+        self.initializer(grid_size, report_interval, run_duration,
                         output_interval, settling_rate, disturbance_rate,
                         weathering_rate, uplift_interval, plot_interval,
                         friction_coef, rock_state_for_uplift,
-                        opt_rock_collapse, show_plots,
+                        opt_rock_collapse, show_plots, initial_state_grid,
                         **kwds)
 
-    def initialize(self, grid_size, report_interval, run_duration,
+    def initializer(self, grid_size, report_interval, run_duration,
                    output_interval, settling_rate, disturbance_rate,
                    weathering_rate, uplift_interval, plot_interval,
                    friction_coef, rock_state_for_uplift, opt_rock_collapse,
-                   show_plots, **kwds):
+                   show_plots, initial_state_grid, **kwds):
         """Initialize the grain hill model."""
         self.settling_rate = settling_rate
         self.disturbance_rate = disturbance_rate
@@ -63,6 +61,7 @@ class GrainHill(CTSModel):
                                           cts_type='oriented_hex',
                                           run_duration=run_duration,
                                           output_interval=output_interval,
+                                          initial_state_grid=initial_state_grid,
                                           **kwds)
 
         self.uplifter = LatticeUplifter(self.grid, 
@@ -116,12 +115,13 @@ class GrainHill(CTSModel):
         """
 
         # Disturbance rule
-        xn_list.append( Transition((7,0,0), (0,1,0), d, 'disturbance') )
-        xn_list.append( Transition((7,0,1), (0,2,1), d, 'disturbance') )
-        xn_list.append( Transition((7,0,2), (0,3,2), d, 'disturbance') )
-        xn_list.append( Transition((0,7,0), (4,0,0), d, 'disturbance') )
-        xn_list.append( Transition((0,7,1), (5,0,1), d, 'disturbance') )
-        xn_list.append( Transition((0,7,2), (6,0,2), d, 'disturbance') )
+        if d > 0.0:
+            xn_list.append( Transition((7,0,0), (0,1,0), d, 'disturbance') )
+            xn_list.append( Transition((7,0,1), (0,2,1), d, 'disturbance') )
+            xn_list.append( Transition((7,0,2), (0,3,2), d, 'disturbance') )
+            xn_list.append( Transition((0,7,0), (4,0,0), d, 'disturbance') )
+            xn_list.append( Transition((0,7,1), (5,0,1), d, 'disturbance') )
+            xn_list.append( Transition((0,7,2), (6,0,2), d, 'disturbance') )
 
         # Weathering rule
         if w > 0.0:
@@ -138,6 +138,12 @@ class GrainHill(CTSModel):
                 xn_list.append( Transition((0,8,0), (4,0,0), collapse_rate,
                                            'rock collapse'))
 
+        if _DEBUG:
+            print
+            print 'setup_transition_list(): list has',len(xn_list),'transitions:'
+            for t in xn_list:
+                print '  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name
+            
         return xn_list
 
     def initialize_node_state_grid(self):
@@ -208,6 +214,7 @@ class GrainHill(CTSModel):
     
             # Run the model forward in time until the next output step
             self.ca.run(next_pause, self.ca.node_state) 
+                   #plot_each_transition=pet, plotter=self.ca_plotter)
             current_time = next_pause
 
             # Handle output to file
@@ -224,11 +231,8 @@ class GrainHill(CTSModel):
 
             # Handle uplift
             if current_time >= next_uplift:
-                self.uplifter.uplift_interior_nodes(self.ca, rock_state=self.rock_state)
-                if _RUN_NEW:
-                    self.ca.update_link_states_and_transitions_new(current_time)
-                else:
-                    self.ca.update_link_states_and_transitions(current_time)
+                self.uplifter.uplift_interior_nodes(self.ca, current_time,
+                                                    rock_state=self.rock_state)
                 next_uplift += self.uplift_interval
         
     def get_profile_and_soil_thickness(self, grid, data):
