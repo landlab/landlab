@@ -269,6 +269,9 @@ class use_field_name_or_array(object):
 
     def __call__(self, func):
         """Wrap the function."""
+
+        func.__doc__ = add_signature_to_doc(func)
+
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
