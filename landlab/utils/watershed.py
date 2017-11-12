@@ -143,10 +143,6 @@ def get_watershed_nodes(grid, outlet_id):
     nodes should be equal to the number of core nodes plus the outlet node.
     >>> len(mainstem_watershed_nodes) == rmg.number_of_core_nodes + 1
     True
-
-    The tributary receives flow only from a portion of the grid nodes.
-    >>> tributary_watershed_nodes
-    array([12, 18, 19, 24, 25, 26, 31, 32, 33, 39, 40])
     """
     ws_mask = get_watershed_mask(grid, outlet_id)
     ws_nodes = np.where(ws_mask)[0]
