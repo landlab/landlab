@@ -13,7 +13,6 @@ from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
-# LOCAL_BAD_INDEX_VALUE = np.iinfo(np.int32).max
 import landlab
 
 # Codes for depression status
@@ -710,12 +709,6 @@ class DepressionFinderAndRouter(Component):
         """
         n = nodes_this_depression
 
-        #print('in RDDO:')
-        #print(outlet_id)
-        #print(pit_node)
-        #print(n)
-        #print(self._lake_map[n])
-        #print(LOCAL_BAD_INDEX_VALUE)
         # three cases possible - new lake is fresh; new lake is smaller than
         # an existing lake (subsumed, and unimportant), new lake is equal to
         # or bigger than old lake (or multiple old lakes). It SHOULDN'T be
@@ -723,7 +716,6 @@ class DepressionFinderAndRouter(Component):
         # assertion that out total # of *tracked* lakes matches the accumulated
         # total of unique vals in lake_map.
         fresh_nodes = np.equal(self._lake_map[n], LOCAL_BAD_INDEX_VALUE)
-        #print(fresh_nodes)
         if np.all(fresh_nodes):  # a new lake
             self.flood_status[n] = _FLOODED
             self.depression_depth[n] = self._elev[outlet_id] - self._elev[n]
@@ -733,11 +725,6 @@ class DepressionFinderAndRouter(Component):
             pit_node_where = np.searchsorted(self.pit_node_ids,
                                              pit_node)
             self._unique_pits[pit_node_where] = True
-            #print(' new lake')
-            #print(self._elev[outlet_id])
-            #print(self._elev[n])
-            #print(self.depression_depth[n])
-            #print(self.depression_outlet_map[n])
         elif np.any(fresh_nodes):  # lake is bigger than one or more existing
             self.flood_status[n] = _FLOODED
             depth_this_lake = self._elev[outlet_id] - self._elev[n]
@@ -756,11 +743,6 @@ class DepressionFinderAndRouter(Component):
             # -1 for the LOCAL_BAD_INDEX_VALUE that must be present; another -1
             # because a single lake is just replaced by a new lake.
             self._lake_map[n] = pit_node
-            #print(' bigger lake')
-            #print(self._elev[outlet_id])
-            #print(self._elev[n])
-            #print(self.depression_depth[n])
-            #print(self.depression_outlet_map[n])
         else:  # lake is subsumed within an existing lake
             print(' eaten lake')
             assert np.all(np.equal(self.flood_status[n], _CURRENT_LAKE))
