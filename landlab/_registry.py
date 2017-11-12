@@ -277,6 +277,9 @@ class ComponentRegistry(object):
             body.append(self.format_citation(cls))
         return os.linesep.join(header + [(2 * os.linesep).join(body)])
 
+    def __repr__(self):
+        return 'ComponentRegistry({0})'.format(repr(self.registered))
+
 
 from . import _info
 
