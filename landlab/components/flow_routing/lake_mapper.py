@@ -13,6 +13,7 @@ from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
+from landlab.core.messages import error_message, warning_message
 import landlab
 
 # Codes for depression status
@@ -236,26 +237,29 @@ class DepressionFinderAndRouter(Component):
             try:
                 topo_field_name = inputs.read_string('ELEVATION_FIELD_NAME')
             except AttributeError:
-                print('Error: Because your grid does not have a node field')
-                print('called "topographic__elevation", you need to pass the')
-                print('name of a text input file or ModelParameterDictionary,')
-                print('and this file or dictionary needs to include the name')
-                print('of another field in your grid that contains your')
-                print('elevation data.')
-                raise AttributeError
+                error_message(
+                    """Because your grid does not have a node field
+                    called "topographic__elevation", you need to pass the
+                    name of a text input file or ModelParameterDictionary,
+                    and this file or dictionary needs to include the name
+                    of another field in your grid that contains your
+                    elevation data.""")
+                raise
             except MissingKeyError:
-                print('Error: Because your grid does not have a node field')
-                print('called "topographic__elevation", your input file (or')
-                print('ModelParameterDictionary) must include an entry with')
-                print('the key "ELEVATION_FIELD_NAME", which gives the name')
-                print('of a field in your grid that contains your elevation')
-                print('data.')
-                raise MissingKeyError('ELEVATION_FIELD_NAME')
+                error_message(
+                    """Because your grid does not have a node field
+                    called "topographic__elevation", your input file (or
+                    ModelParameterDictionary) must include an entry with
+                    the key "ELEVATION_FIELD_NAME", which gives the name
+                    of a field in your grid that contains your elevation
+                    data.""")
+                raise
             try:
                 self._elev = self._grid.at_node[topo_field_name]
             except AttributeError:
-                print('Your grid does not seem to have a node field called',
-                      topo_field_name)
+                warning_message(
+                    """Your grid does not seem to have a node field
+                    called {0}""".format(topo_field_name))
 
         # Create output variables.
         #
@@ -441,12 +445,14 @@ class DepressionFinderAndRouter(Component):
                 print('Neighbor Elevations: ', self._elev[self._node_nbrs[i]])
                 print('Neigbor Flood Status: ', self.flood_status[self._node_nbrs[i]])
                 print('Neigbor Status: ', self._grid.status_at_node[self._node_nbrs[i]])
-            print('If you see no data values in any of the elevation terms')
-            print('this may because you have disconnected open nodes (which')
-            print('sometimes occurs durring raster clipping.')
+            warning_message(
+                """If you see no data values in any of the elevation terms
+                this may because you have disconnected open nodes (which
+                sometimes occurs during raster clipping.
 
-            print('Consider running set_open_nodes_disconnected_from_watershed_to_closed')
-            print('which will remove isolated open nodes.')
+                Consider running
+                set_open_nodes_disconnected_from_watershed_to_closed
+                which will remove isolated open nodes.""")
 
         assert (lowest_elev < self._BIG_ELEV), \
             'failed to find lowest perim node'
