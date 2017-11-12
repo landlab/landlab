@@ -8,15 +8,14 @@ Works on both a regular or irregular grid.
 GT Nov 2013
 Modified Feb 2014
 """
-from six.moves import range
-
 import numpy as np
-import inspect
 
-from landlab import RasterModelGrid, BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab import BAD_INDEX_VALUE
 from landlab.grid.raster_steepest_descent import (
     _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
+
+from .cfuncs import adjust_flow_receivers
 
 
 UNDEFINED_INDEX = BAD_INDEX_VALUE
@@ -172,12 +171,12 @@ def flow_directions(elev, active_links, tail_node, head_node, link_slope,
     array([4])
     >>> rl[3:8]
     array([15, -1,  1,  6,  2])
-
-    OK, the following are rough notes on design: we want to work with just the
-    active links. Ways to do this:
-    *  Pass active_links in as argument
-    *  In calling code, only refer to receiver_links for active nodes
     """
+    # OK, the following are rough notes on design: we want to work with just
+    # the active links. Ways to do this:
+    # *  Pass active_links in as argument
+    # *  In calling code, only refer to receiver_links for active nodes
+
     # Setup
     num_nodes = len(elev)
     steepest_slope = np.zeros(num_nodes)
@@ -193,8 +192,6 @@ def flow_directions(elev, active_links, tail_node, head_node, link_slope,
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
     #THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
     #overridden as part of fastscape_stream_power
-
-    from .cfuncs import adjust_flow_receivers
 
     adjust_flow_receivers(tail_node, head_node, elev, link_slope,
                           active_links, receiver, receiver_link,
