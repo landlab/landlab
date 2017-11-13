@@ -241,13 +241,17 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
-        (self._node_at_link_tail,
-         self._node_at_link_head,
+        (node_at_link_tail,
+         node_at_link_head,
          _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
-        self._status_at_link = np.full(len(self._node_at_link_tail),
+        self._status_at_link = np.full(len(node_at_link_tail),
                                        INACTIVE_LINK, dtype=int)
+
+        self._nodes_at_link = np.empty((len(node_at_link_tail), 2), dtype=int)
+        self._nodes_at_link[:, 0] = node_at_link_tail
+        self._nodes_at_link[:, 1] = node_at_link_head
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
@@ -733,9 +737,8 @@ class VoronoiDelaunayGrid(ModelGrid):
             fromnode_temp = self.node_at_link_tail[flip_locs]
 
             # The fromnodes now become the tonodes, and vice versa
-            self._node_at_link_tail[
-                flip_locs] = self.node_at_link_head[flip_locs]
-            self._node_at_link_head[flip_locs] = fromnode_temp
+            self._nodes_at_link[flip_locs, 0] = self.node_at_link_head[flip_locs]
+            self._nodes_at_link[flip_locs, 1] = fromnode_temp
 
     def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
@@ -810,10 +813,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         """Create the _neighbors_at_node property.
         """
         self._neighbors_at_node = self.links_at_node.copy()
-        nodes_at_link = np.empty((self.number_of_links, 2))
-        nodes_at_link[:, 0] = self.node_at_link_tail
-        nodes_at_link[:, 1] = self.node_at_link_head
-        both_nodes = nodes_at_link[self.links_at_node]
+        both_nodes = self.nodes_at_link[self.links_at_node]
 
         nodes = np.arange(self.number_of_nodes, dtype=int)
         # ^we have to do this, as for a hex it's possible that mg.nodes is

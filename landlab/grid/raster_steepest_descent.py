@@ -2,7 +2,7 @@
 """Calculate steepest descent on a raster grid.
 
 Steepest descent functions for raster grids
-+++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/

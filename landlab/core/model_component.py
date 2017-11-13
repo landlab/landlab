@@ -57,8 +57,7 @@ class Component(object):
     """
     Defines the base component class from which Landlab components inherit.
 
-    Base component class methods
-    ++++++++++++++++++++++++++++
+    **Base component class methods**
 
     .. autosummary::
         :toctree: generated/
