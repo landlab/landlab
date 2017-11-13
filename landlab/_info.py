@@ -1,4 +1,4 @@
-__version__ = '1.2.0'
+version = '1.2.0'
 name = 'landlab'
 cite_as = [
     """@article{hobley2017creative,
