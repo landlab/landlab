@@ -123,7 +123,7 @@ def indent_and_wrap(content, indent=''):
     Examples
     --------
     >>> from __future__ import print_function
-    >>> from landlab.registry import indent_and_wrap
+    >>> from landlab.core.messages import indent_and_wrap
     >>> content = '''@book{knuth1998art,
     ...     title={The art of computer programming: sorting and searching},
     ...     author={Knuth, Donald Ervin},
