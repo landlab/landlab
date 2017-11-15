@@ -1115,7 +1115,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
 
-       LLCATS: DEPR LINF NINF
+        LLCATS: DEPR LINF NINF
         """
         if len(args) == 0:
             return np.vstack((self._node_active_inlink_matrix2,
@@ -1373,13 +1373,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                                            dtype=np.int8)
         num_links_per_row = (self.number_of_node_columns * 2) - 1
         # Sweep over all links
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for lk in range(self.number_of_links):
             # Find the orientation
             is_horiz = ((lk % num_links_per_row) <
                         (self.number_of_node_columns - 1))
             # Find the IDs of the tail and head nodes
-            t = self.node_at_link_tail[lk]
-            h = self.node_at_link_head[lk]
+            t = node_at_link_tail[lk]
+            h = node_at_link_head[lk]
 
             # If the link is horizontal, the index (row) in the links_at_node
             # array should be 0 (east) for the tail node, and 2 (west) for the
@@ -2571,7 +2573,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=int8)
 
-      LLCATS: BC SUBSET
+        LLCATS: BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
@@ -3140,7 +3142,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                [  5.,   6.,   7.,   8.,   9.],
                [  0.,   1.,   2.,   3.,   4.]])
 
-       LLCATS: GINF NINF
+        LLCATS: GINF NINF
         """
         return sgrid.reshape_array(self.shape, u,
                                    flip_vertically=flip_vertically)
@@ -3173,7 +3175,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([[ 3.,  4.,  5.],
                [ 0.,  1.,  2.]])
 
-       LLCATS: GINF CINF
+        LLCATS: GINF CINF
         """
         return sgrid.reshape_array((self.shape[0] - 2, self.shape[1] - 2),
                                    u, flip_vertically=flip_vertically)
@@ -3957,7 +3959,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([[2, 5, 4, 3, 0, 3, 4, 5],
                [3, 0, 2, 1, 4, 1, 2, 0]])
 
-       LLCATS: DEPR CINF CONN BC
+        LLCATS: DEPR CINF CONN BC
         """
         if self._looped_cell_neighbor_list is not None:
             return self._looped_cell_neighbor_list
@@ -4503,23 +4505,23 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             Sets the connection method for use if remove_disconnected==True
 
         Examples
-        ---------
+        --------
         The first example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
         The second example will use a 4,4 grid with node data values
-        as illustrated:
+        as illustrated::
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.     67.   -2.
-        -9999. -9999. -9999. -9999.
-        ---------
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.     67.   -2.
+            -9999. -9999. -9999. -9999.
+
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -4677,7 +4679,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             Sets the connection method.
 
         Examples
-        ---------
+        --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg1 = RasterModelGrid((4,6))
@@ -4819,16 +4821,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             Value that indicates an invalid value.
 
         Examples
-        ---------
+        --------
         The example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
-        ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -4889,16 +4890,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             id of outlet location
 
         Examples
-        ---------
+        --------
         The example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
-        ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)

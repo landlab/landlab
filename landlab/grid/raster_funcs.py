@@ -93,59 +93,6 @@ def neighbor_node_at_cell(grid, inds, *args):
                 3 - inds, axis=1))
 
 
-def corner_node_at_cell(grid, inds, *args):
-    """node_id_of_cell_corner(grid, corner_ids [, cell_ids])
-
-    Return an array of the node ids for diagonal neighbors of *cell_id* cells.
-    *corner_ids* is an index into the corners of a cell as measured
-    clockwise starting from the southeast.
-
-    If *cell_ids* is not given, return neighbors for all cells in the grid.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        Input grid.
-    corner_ids : array_like
-        IDs of the corner nodes.
-    cell_ids : array_like, optional
-        IDs of cell about which to get corners
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import corner_node_at_cell
-    >>> grid = RasterModelGrid(4, 5, 1.0)
-    >>> corner_node_at_cell(grid, 0, 0)
-    array([2])
-
-    Get the lower-right and the the upper-left corners for all the cells.
-
-    >>> corner_node_at_cell(grid, 0)
-    array([2, 3, 4, 7, 8, 9])
-    >>> corner_node_at_cell(grid, 2)
-    array([10, 11, 12, 15, 16, 17])
-
-    As an alternative to the above, use fancy-indexing to get both sets of
-    corners with one call.
-
-    >>> corner_node_at_cell(grid, np.array([0, 2]), [1, 4])
-    array([[ 3, 11],
-           [ 8, 16]])
-    """
-    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
-    node_ids = grid.node_at_cell[cell_ids]
-    diagonals = grid._get_diagonal_list(node_ids)
-
-    if not isinstance(inds, np.ndarray):
-        inds = np.array(inds)
-
-    return (
-        np.take(np.take(diagonals, range(len(cell_ids)), axis=0),
-                3 - inds, axis=1))
-    # return diagonals[range(len(cell_ids)), 3 - inds]
-
-
 def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     """Net flux into or out of nodes.
 

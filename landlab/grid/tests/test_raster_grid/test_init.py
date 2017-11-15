@@ -310,6 +310,16 @@ def test__active_links_at_node_with_no_args():
 
 
 @with_setup(setup_grid)
+def test_nodes_at_link():
+    """Test nodes_at_link shares data with tail and head."""
+    assert_array_equal(rmg.nodes_at_link[:, 0], rmg.node_at_link_tail)
+    assert_array_equal(rmg.nodes_at_link[:, 1], rmg.node_at_link_head)
+
+    assert_true(np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_tail))
+    assert_true(np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_head))
+
+
+@with_setup(setup_grid)
 def test_node_at_link_tail():
     assert_array_equal(
         rmg.node_at_link_tail,

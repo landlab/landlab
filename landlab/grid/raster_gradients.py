@@ -2,7 +2,7 @@
 """Calculate gradients on a raster grid.
 
 Gradient calculators for raster grids
-++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/
