@@ -234,52 +234,24 @@ class SoilInfiltrationGreenAmpt(Component):
         dt : float (s)
             The imposed timestep for the model.
         """
-        # Actual infiltration capacity for a given time step.
-        self.i_act = np.zeros(self.grid.number_of_nodes)
-        
         # wetting front is a function of total infiltration depth and 
         # moisture deficit.
-        self.wettingfront_depth = self._infiltration_depth/self._Md
+        wettingfront_depth = self._infiltration_depth / self._Md
         
-        # Calculate infilitration capacity (m/s) if Ks is a float...
-        try:
-            self.infilt_cap = self._Ks * ((self.wettingfront_depth +
-                                           self._psi_f + self._water_depth) /
-                                          self.wettingfront_depth)
-        # Calculate infilitration capacity (m/s) if Ks is an array...    
-        except ValueError:  
-            self.infilt_cap = self._Ks*((self.wettingfront_depth+
-                                            self._psi_f +
-                                             self._water_depth) /
-                                            self.wettingfront_depth)
-            
         # Potential infiltration depth (m)
-        self.potential_infilt = self.infilt_cap * dt  
-        
-        self.potential_infilt[np.where(self.potential_infilt < 0.0)] = 0.0
+        potential_infilt = dt * self._Ks * ((wettingfront_depth +
+                                             self._psi_f + self._water_depth) /
+                                            wettingfront_depth)
+        np.clip(potential_infilt, 0., None, out=potential_infilt)
 
-        # Where is water depth (per time, m/s) less than infil rate (m/s)?
-        full_infil_indx = np.where(self._water_depth <= self.potential_infilt)
-        
-        # Where is water depth (per time, m/s) more than infil rate?
-        notfull = np.where(self._water_depth > self.potential_infilt)
-        
         # Set actual infiltration rate (m/s) to the calculated value (m/s)
-        self.i_act = self.potential_infilt
-        self.i_act[full_infil_indx] = (self._water_depth[full_infil_indx] -
-                                       self._lilwater)
-        
-        # Where water is completely infiltrated set to the minimum water value
-        self._water_depth[full_infil_indx]= self._lilwater
+        available_water = self._water_depth - self._lilwater
+        actual_infiltration = np.choose(potential_infilt > available_water,
+                                        (potential_infilt, available_water))
 
-        
-        # Where water is not completely infiltrated, only subtract that 
-        self._water_depth[notfull] = (self._water_depth[notfull] - 
-                                                        (self.i_act[notfull]))
-        
         # Assure water depths are all positive. Code will break if not!
-        assert np.all(self._water_depth[self.grid.core_nodes]) > 0, \
-                "Water depths must all be positive!"
-            
+        assert np.all(self._water_depth - self._lilwater >= i_act)
+
         # Update infiltration depth field. 
-        self._infiltration_depth += self.i_act 
+        self._water_depth -= actual_infiltration
+        self._infiltration_depth += actual_infiltration
