@@ -187,11 +187,6 @@ class SoilInfiltrationGreenAmpt(Component):
         else:
             self.capillary_pressure = wetting_front_capillary_pressure_head
 
-        if np.any(self.grid.at_node['soil_water_infiltration__depth'] < 0.):
-            raise ValueError('negative initial infiltration depths')
-        if np.any(self.grid.at_node['surface_water__depth'] < self.min_water):
-            raise ValueError('negative initial water depths')
-
     @staticmethod
     def calc_soil_pressure(soil_type=None,
                            soil_pore_size_distribution_index=1.,
@@ -266,7 +261,8 @@ class SoilInfiltrationGreenAmpt(Component):
     
     @hydraulic_conductivity.setter
     def hydraulic_conductivity(self, new_value):
-        new_value = field_or_value(self.grid, new_value, at='node')
+        if isinstance(new_value, six.string_types):
+            new_value = self.grid.at_node[new_value]
         if np.any(new_value < 0.):
             raise ValueError('hydraulic conductivity must be positive')
         self._hydraulic_conductivity = new_value
