@@ -192,10 +192,6 @@ class SoilInfiltrationGreenAmpt(Component):
         if np.any(self.grid.at_node['surface_water__depth'] < self.min_water):
             raise ValueError('negative initial water depths')
 
-        # Setting water depth field, assuring that water depth is POSITIVE.
-        self._water_depth = self.grid.at_node['surface_water__depth']
-        self._infiltration_depth = self.grid.at_node['soil_water_infiltration__depth']
-
     @staticmethod
     def calc_soil_pressure(soil_type=None,
                            soil_pore_size_distribution_index=1.,
@@ -303,24 +299,23 @@ class SoilInfiltrationGreenAmpt(Component):
         dt : float (s)
             The imposed timestep for the model.
         """
-        # wetting front is a function of total infiltration depth and 
-        # moisture deficit.
-        wettingfront_depth = self._infiltration_depth / self.moisture_defecit
+        water_depth = self.grid.at_node['surface_water__depth']
+        infiltration_depth = self.grid.at_node['soil_water_infiltration__depth']
+
+        assert(np.all(infiltration_depth >= 0.))
+
+        wettingfront_depth = infiltration_depth / self.moisture_defecit
         
-        # Potential infiltration depth (m)
         potential_infilt = dt * self.hydraulic_conductivity * (
-            (wettingfront_depth + self.capillary_pressure + self._water_depth) /
+            (wettingfront_depth + self.capillary_pressure + water_depth) /
             wettingfront_depth)
         np.clip(potential_infilt, 0., None, out=potential_infilt)
 
-        # Set actual infiltration rate (m/s) to the calculated value (m/s)
-        available_water = self._water_depth - self.min_water
+        available_water = water_depth - self.min_water
+        np.clip(available_water, 0., None, out=available_water)
+
         actual_infiltration = np.choose(potential_infilt > available_water,
                                         (potential_infilt, available_water))
 
-        # Assure water depths are all positive. Code will break if not!
-        assert np.all(self._water_depth - self.min_water >= actual_infiltration)
-
-        # Update infiltration depth field. 
-        self._water_depth -= actual_infiltration
-        self._infiltration_depth += actual_infiltration
+        water_depth -= actual_infiltration
+        infiltration_depth += actual_infiltration
