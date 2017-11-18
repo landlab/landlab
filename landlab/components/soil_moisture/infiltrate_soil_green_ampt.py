@@ -7,13 +7,6 @@ from landlab import Component, CLOSED_BOUNDARY
 from ...utils.decorators import use_file_name_or_kwds
 
 
-def field_or_value(grid, field, at='node'):
-    if isinstance(field, six.string_types):
-        return getattr(grid, 'at_{0}'.format(at))[field]
-    else:
-        return field
-
-
 class SoilInfiltrationGreenAmpt(Component):
 
     """Infiltrate surface water into a soil following the Green-Ampt method.
@@ -162,9 +155,7 @@ class SoilInfiltrationGreenAmpt(Component):
                  soil_pore_size_distribution_index=None,
                  soil_bubbling_pressure=None,
                  wetting_front_capillary_pressure_head=None, **kwds):
-        """
-        Initialize the kinematic wave approximation overland flow component.
-        """
+        """Kinematic wave approximation overland flow component."""
 
         self._grid = grid
         self.min_water = surface_water_minimum_depth
@@ -173,7 +164,7 @@ class SoilInfiltrationGreenAmpt(Component):
         if not coarse_sed_flag:
             volume_fraction_coarse_fragments = 0.
 
-        self.moisture_defecit = self.calc_moisture_defecit(
+        self.moisture_deficit = self.calc_moisture_deficit(
             soil_bulk_density=soil_bulk_density,
             rock_density=rock_density,
             volume_fraction_coarse_fragments=volume_fraction_coarse_fragments,
@@ -191,6 +182,17 @@ class SoilInfiltrationGreenAmpt(Component):
     def calc_soil_pressure(soil_type=None,
                            soil_pore_size_distribution_index=1.,
                            soil_bubbling_pressure=0.):
+        """Calculate capillary pressure in a soil type.
+
+        Parameters
+        ----------
+        soil_type : str, optional
+            The name of a soil type.
+        soil_pore_size_distribution_index : float
+            Pore-size distribution index [-].
+        soil_bubbling_pressure : float
+            Bubbling pressure [m].
+        """
         if soil_type is None:
             soil_props = (soil_pore_size_distribution_index,
                           soil_bubbling_pressure)
@@ -224,9 +226,27 @@ class SoilInfiltrationGreenAmpt(Component):
         return ((2. + 3. * lam) / (1. + 3. * lam) * h_b * .5)
 
     @staticmethod
-    def calc_moisture_defecit(soil_bulk_density=1590., rock_density=2650.,
+    def calc_moisture_deficit(soil_bulk_density=1590., rock_density=2650.,
                               volume_fraction_coarse_fragments=0.,
                               soil_moisture_content=0.):
+        """Calculate the moisture deficit in a soil.
+        
+        Parameters
+        ----------
+        soil_bulk_density : float or array of float
+            Bulk density of the soil [kg / m3].
+        rock_density : float or array of float
+            Density of rock [kg / m3].
+        volume_fraction_coarse_fragments : float or array of float
+            Volume fraction of sediment made up of coarse grains [-].
+        soil_moisture_content : float or array of float
+            Fraction of soil filled with water [-].
+
+        Returns
+        -------
+        float or array of float
+            Moisture deficit.
+        """
         if np.any(soil_bulk_density <= 0.):
             raise ValueError('non-positive soil bulk density')
         if np.any(rock_density < soil_bulk_density):
@@ -246,8 +266,8 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @property
     def min_water(self):
+        """Minimum surface water depth."""
         return self._min_water
-        self._min_water = surface_water_minimum_depth
 
     @min_water.setter
     def min_water(self, new_value):
@@ -257,6 +277,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @property
     def hydraulic_conductivity(self):
+        """Hydraulic conductivity of soil."""
         return self._hydraulic_conductivity
     
     @hydraulic_conductivity.setter
@@ -268,17 +289,19 @@ class SoilInfiltrationGreenAmpt(Component):
         self._hydraulic_conductivity = new_value
 
     @property
-    def moisture_defecit(self):
-        return self._moisture_defecit
+    def moisture_deficit(self):
+        """Moisture deficit of soil."""
+        return self._moisture_deficit
 
-    @moisture_defecit.setter
-    def moisture_defecit(self, new_value):
+    @moisture_deficit.setter
+    def moisture_deficit(self, new_value):
         if np.any(new_value < 0.):
-            raise ValueError('negative moisture defecit')
-        self._moisture_defecit = new_value
+            raise ValueError('negative moisture deficit')
+        self._moisture_deficit = new_value
 
     @property
     def capillary_pressure(self):
+        """Capillary pressure of soil."""
         return self._capillary_pressure
 
     @capillary_pressure.setter
@@ -300,7 +323,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
         assert(np.all(infiltration_depth >= 0.))
 
-        wettingfront_depth = infiltration_depth / self.moisture_defecit
+        wettingfront_depth = infiltration_depth / self.moisture_deficit
         
         potential_infilt = dt * self.hydraulic_conductivity * (
             (wettingfront_depth + self.capillary_pressure + water_depth) /
