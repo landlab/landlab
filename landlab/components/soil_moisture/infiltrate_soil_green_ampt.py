@@ -167,52 +167,91 @@ class SoilInfiltrationGreenAmpt(Component):
         """
 
         self._grid = grid
-        soil_porosity = 1. - np.true_divide(soil_bulk_density, rock_density)
         self.min_water = surface_water_minimum_depth
         self.hydraulic_conductivity = hydraulic_conductivity
+
+        if not coarse_sed_flag:
+            volume_fraction_coarse_fragments = 0.
+
+        self.moisture_defecit = self.calc_moisture_defecit(
+            soil_bulk_density=soil_bulk_density,
+            rock_density=rock_density,
+            volume_fraction_coarse_fragments=volume_fraction_coarse_fragments,
+            soil_moisture_content=initial_soil_moisture_content)
+
+        if wetting_front_capillary_pressure_head is None:
+            self.capillary_pressure = self.calc_soil_pressure(
+                soil_type=soil_type,
+                soil_pore_size_distribution_index=soil_pore_size_distribution_index,
+                soil_bubbling_pressure=soil_bubbling_pressure)
+        else:
+            self.capillary_pressure = wetting_front_capillary_pressure_head
 
         if np.any(self.grid.at_node['soil_water_infiltration__depth'] < 0.):
             raise ValueError('negative initial infiltration depths')
         if np.any(self.grid.at_node['surface_water__depth'] < self.min_water):
             raise ValueError('negative initial water depths')
 
+        # Setting water depth field, assuring that water depth is POSITIVE.
+        self._water_depth = self.grid.at_node['surface_water__depth']
+        self._infiltration_depth = self.grid.at_node['soil_water_infiltration__depth']
+
+    @staticmethod
+    def calc_soil_pressure(soil_type=None,
+                           soil_pore_size_distribution_index=1.,
+                           soil_bubbling_pressure=0.):
+        if soil_type is None:
+            soil_props = (soil_pore_size_distribution_index,
+                          soil_bubbling_pressure)
+        else:
+            try:
+                soil_props = SoilInfiltrationGreenAmpt.SOIL_PROPS[soil_type]
+            except KeyError:
+                raise ValueError('{0}: unknown soil type'.format(soil_type))
+
+        return SoilInfiltrationGreenAmpt.calc_pressure_head(*soil_props)
+
+    @staticmethod
+    def calc_pressure_head(lam, h_b):
+        """Calculate pressure head.
+
+        Pressure head is set using *lambda* and *h_b*, using an
+        equation after Brooks-Corey (1964), following Rawls et al., 1992.
+
+        Parameters
+        ----------
+        lam : float, optional
+            Pore-size distribution index. Exponent that describes the
+            distribution of pore sizes in the soil, and controls
+            effective hydraulic conductivity at varying water
+            contents, following Brooks and Corey (1964) [-].
+        h_b : float (m), optional
+            Bubbling pressure. Capillary pressure of the soil,
+            controlling effective hydraulic conductivity at varying
+            water contents, following Brooks and Corey (1964) [m]
+        """
+        return ((2. + 3. * lam) / (1. + 3. * lam) * h_b * .5)
+
+    @staticmethod
+    def calc_moisture_defecit(soil_bulk_density=1590., rock_density=2650.,
+                              volume_fraction_coarse_fragments=0.,
+                              soil_moisture_content=0.):
         if np.any(soil_bulk_density <= 0.):
             raise ValueError('non-positive soil bulk density')
         if np.any(rock_density < soil_bulk_density):
             raise ValueError('soil bulk density greater than rock density')
-        if coarse_sed_flag:
-            if np.any(volume_fraction_coarse_fragments < 0.):
-                raise ValueError('negative volume fraction of coarse grains')
-            if np.any(volume_fraction_coarse_fragments > 1.):
-                raise ValueError('volume fraction of coarse grains')
-        if np.any(initial_soil_moisture_content > soil_porosity):
+        if np.any(volume_fraction_coarse_fragments < 0.):
+            raise ValueError('negative volume fraction of coarse grains')
+        if np.any(volume_fraction_coarse_fragments > 1.):
+            raise ValueError('volume fraction of coarse grains')
+
+        soil_porosity = 1. - np.true_divide(soil_bulk_density, rock_density)
+        soil_porosity *= 1. - volume_fraction_coarse_fragments
+
+        if np.any(soil_moisture_content > soil_porosity):
             raise ValueError('soil moisture greater than porosity')
 
-        if soil_type is None:
-            soil_type = (soil_pore_size_distribution_index,
-                         soil_bubbling_pressure)
-        else:
-            try:
-                soil_type = SoilInfiltrationGreenAmpt.SOIL_PROPS[soil_type]
-            except KeyError:
-                raise ValueError('{0}: unknown soil type'.format(soil_type))
-
-        # Correct porosity for coarse sediment.
-        if coarse_sed_flag:
-            soil_porosity *= 1. - volume_fraction_coarse_fragments
-        
-        self.moisture_defecit = soil_porosity - initial_soil_moisture_content
-        
-        # Pressure head is set using lambda and h_b from above, using an
-        # equation after Brooks-Corey, following Rawls et al., 1992
-        if wetting_front_capillary_pressure_head is None:
-            self._psi_f = SoilInfiltrationGreenAmpt.calc_pressure_head(*soil_type)
-        else:
-            self._psi_f = wetting_front_capillary_pressure_head
-
-        # Setting water depth field, assuring that water depth is POSITIVE.
-        self._water_depth = self.grid.at_node['surface_water__depth']
-        self._infiltration_depth = self.grid.at_node['soil_water_infiltration__depth']
+        return soil_porosity - soil_moisture_content
 
     @property
     def min_water(self):
@@ -246,25 +285,15 @@ class SoilInfiltrationGreenAmpt(Component):
             raise ValueError('negative moisture defecit')
         self._moisture_defecit = new_value
 
-    @staticmethod
-    def calc_pressure_head(lam, h_b):
-        """Calculate pressure head.
+    @property
+    def capillary_pressure(self):
+        return self._capillary_pressure
 
-        Pressure head is set using *lambda* and *h_b*, using an
-        equation after Brooks-Corey (1964), following Rawls et al., 1992.
-
-        Parameters
-        ----------
-        lam : float, optional
-            An index describing the distribution of pore sizes in the soil,
-            and controlling effective hydraulic conductivity at varying water
-            contents, following Brooks and Corey (1964) [-].
-        h_b : float (m), optional
-            The bubbling capillary pressure of the soil, controlling effective
-            hydraulic conductivity at varying water contents, following Brooks
-            and Corey (1964) [m]
-        """
-        return ((2. + 3. * lam) / (1. + 3. * lam) * h_b * .5)
+    @capillary_pressure.setter
+    def capillary_pressure(self, new_value):
+        if np.any(new_value < 0.):
+            raise ValueError('negative capillary pressure')
+        self._capillary_pressure = new_value
 
     def run_one_step(self, dt):
         """Update fields with current hydrologic conditions.
@@ -276,11 +305,11 @@ class SoilInfiltrationGreenAmpt(Component):
         """
         # wetting front is a function of total infiltration depth and 
         # moisture deficit.
-        wettingfront_depth = self._infiltration_depth / self._moisture_defecit
+        wettingfront_depth = self._infiltration_depth / self.moisture_defecit
         
         # Potential infiltration depth (m)
         potential_infilt = dt * self.hydraulic_conductivity * (
-            (wettingfront_depth + self._psi_f + self._water_depth) /
+            (wettingfront_depth + self.capillary_pressure + self._water_depth) /
             wettingfront_depth)
         np.clip(potential_infilt, 0., None, out=potential_infilt)
 
