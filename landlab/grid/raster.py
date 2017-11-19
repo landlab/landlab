@@ -63,7 +63,8 @@ def _node_has_boundary_neighbor(mg, id, method='d8'):
         except IndexError:
             return True
     if method == 'd8':
-        for neighbor in mg._get_diagonal_list(id):
+        # for neighbor in mg._get_diagonal_list(id):
+        for neighbor in mg.diagonal_adjacent_nodes_at_node[id]:
             try:
                 if mg.status_at_node[neighbor] != CORE_NODE:
                     return True
@@ -2304,14 +2305,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
-        Since LL version 1, this method is unaffected by the existance or
-        otherwise of diagonal links on the grid:
-
-        >>> grid = RasterModelGrid((3, 3), spacing=(4, 3))
-        >>> # _ = grid._diagonal_links_at_node
-        >>> grid.length_of_link # doctest: +NORMALIZE_WHITESPACE
-        array([ 3.,  3.,  4.,  4.,  4.,  3.,  3.,  4.,  4.,  4.,  3.,  3.])
-
         LLCATS: LINF MEAS
         """
         length_of_link = np.empty(self.number_of_links, dtype=float)
@@ -3255,7 +3248,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             data[ncols * i + offset:ncols *
                  (i + 1) - offset] = top_rows_to_move[i, :]
 
-    def _create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
+    def REMOVE_create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of neighbor node IDs.
 
         Creates a list of IDs of neighbor nodes for each node, as a
@@ -3342,6 +3335,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> mg._get_diagonal_list(7)
         array([13, 11,  1,  3])
 
+        >>> mg.diagonal_adjacent_nodes_at_node[(-1, 6), ]
+        array([[-1, -1, 13, -1],
+               [12, 10,  0,  2]])
+        >>> mg.diagonal_adjacent_nodes_at_node[7]
+        array([13, 11,  1,  3])
+
         .. todo:: could use inlink_matrix, outlink_matrix
 
         LLCATS: NINF CONN
@@ -3393,15 +3392,24 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             of active links.
         """
         self.diagonal_list_created = True
-        self.diagonal_cells = sgrid.diagonal_node_array(
-            self.shape, out_of_bounds=bad_index)
 
-        closed_boundaries = np.empty(4, dtype=np.int)
-        closed_boundaries.fill(bad_index)
-        self.diagonal_cells[self.closed_boundary_nodes, :] = closed_boundaries
-        self.diagonal_cells.ravel()[
-            np.in1d(self.diagonal_cells.ravel(),
-                    self.closed_boundary_nodes)] = bad_index
+        self.diagonal_cells = np.choose(
+            self.diagonal_dirs_at_node == 0,
+            (self.diagonal_adjacent_nodes_at_node, -1) )
+
+        # self.diagonal_cells = self.diagonal_adjacent_nodes_at_node.copy()
+        # self.diagonal_cells[self.diagonal_dirs_at_node == 0] = -1
+
+        # self.diagonal_cells = sgrid.diagonal_node_array(
+        #     self.shape, out_of_bounds=bad_index)
+
+        # closed_boundaries = np.empty(4, dtype=np.int)
+        # closed_boundaries.fill(bad_index)
+        # self.diagonal_cells[self.closed_boundary_nodes, :] = closed_boundaries
+        # self.diagonal_cells.ravel()[
+        #     np.in1d(self.diagonal_cells.ravel(),
+        #             self.closed_boundary_nodes)] = bad_index
+
         return self.diagonal_cells
 
     @deprecated(use='node_is_core', version='0.5')
@@ -3791,7 +3799,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # [right, top, left, bottom]
         neighbors[:, ] = self.active_neighbors_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
-        diagonals[:, ] = self._get_diagonal_list(ids)
+        diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
+        # diagonals[:, ] = self._get_diagonal_list(ids)
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]
