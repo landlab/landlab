@@ -11,105 +11,12 @@ Modified Feb 2014
 import numpy as np
 
 from landlab import BAD_INDEX_VALUE
-from landlab.grid.raster_steepest_descent import (
-    _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 from .cfuncs import adjust_flow_receivers
 
 
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-
-
-def grid_flow_directions(grid, elevations):
-
-    """Flow directions on raster grid.
-
-    Calculate flow directions for node elevations on a raster grid.
-    Each node is assigned a single direction, toward one of its neighboring
-    nodes (or itself, if none of its neighbors are lower). There is only
-    flow from one node to another if there is a negative gradient. If a
-    node's steepest gradient is >= 0., then its slope is set to zero and
-    its receiver node is listed as itself.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        a raster grid.
-    elevations: ndarray
-        Node elevations.
-
-    Returns
-    -------
-    receiver : (ncells, ) ndarray
-        For each cell, the node in the direction of steepest descent, or
-        itself if no downstream nodes.
-    steepest_slope : (ncells, ) ndarray
-        The slope value in the steepest direction of flow.
-
-    Notes
-    -----
-    This function considers only nodes that have four neighbors. Thus, only
-    calculate flow directions and slopes for nodes that have associated
-    cells.
-
-    Examples
-    --------
-    This example calculates flow routing on a (4,5) raster grid with the
-    following node elevations::
-
-        5 - 5 - 5 - 5 - 5
-        |   |   |   |   |
-        5 - 3 - 4 - 3 - 5
-        |   |   |   |   |
-        5 - 1 - 2 - 2 - 5
-        |   |   |   |   |
-        5 - 0 - 5 - 5 - 5
-
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_routing import grid_flow_directions
-    >>> mg = RasterModelGrid(4,5)
-    >>> z = np.array([5., 0., 5., 5., 5.,
-    ...               5., 1., 2., 2., 5.,
-    ...               5., 3., 4., 3., 5.,
-    ...               5., 5., 5., 5., 5.])
-    >>> recv_nodes, slope = grid_flow_directions(mg, z)
-
-    Each node with a cell has a receiving node (although that node may be
-    itself).
-
-    >>> recv_nodes
-    array([1, 6, 8, 6, 7, 8])
-
-    All positive gradients are clipped to zero.
-
-    >>> slope
-    array([-1., -1.,  0., -2., -2., -1.])
-
-    If a cell has no surrounding neighbors lower than itself, it is a sink.
-    Use :attr:`~landlab.grid.base.ModelGrid.node_at_cell` to get the
-    nodes associated with the cells.
-
-    >>> sink_cells = np.where(slope >= 0)[0]
-    >>> list(sink_cells)
-    [2]
-    >>> mg.node_at_cell[sink_cells] # Sink nodes
-    array([8])
-
-    The source/destination node pairs for the flow.
-
-    >>> list(zip(mg.node_at_cell, recv_nodes))
-    [(6, 1), (7, 6), (8, 8), (11, 6), (12, 7), (13, 8)]
-    """
-    slope, receiver = _calc_steepest_descent_across_cell_faces(
-        grid, elevations, return_node=True)
-
-    (sink_cell, ) = np.where(slope >= 0.)
-    receiver[sink_cell] = grid.node_at_cell[sink_cell]
-    slope[sink_cell] = 0.
-
-    return receiver, slope
 
 
 def flow_directions(elev, active_links, tail_node, head_node, link_slope,
