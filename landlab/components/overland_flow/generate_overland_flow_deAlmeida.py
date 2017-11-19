@@ -141,6 +141,22 @@ class OverlandFlow(Component):
 """
     _name = 'OverlandFlow'
 
+    _cite_as = """@article{adams2017landlab,
+	title={The Landlab v1. 0 OverlandFlow component: a Python
+            tool for computing shallow-water flow across watersheds},
+        author={Adams, Jordan M and Gasparini, Nicole M and
+            Hobley, Daniel EJ and Tucker, Gregory E and
+            Hutton, Eric WH and Nudurupati, Sai S and
+            Istanbulluoglu, Erkan},
+        journal={Geoscientific Model Development},
+        volume={10},
+        number={4},
+        pages={1645},
+        year={2017},
+        publisher={Copernicus GmbH}
+        }
+    """
+
     _input_var_names = (
         'surface_water__depth',
         'topographic__elevation',

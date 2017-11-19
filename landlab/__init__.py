@@ -10,11 +10,13 @@
 """
 
 from __future__ import absolute_import
-
-__version__ = '1.2.0'
-
-
 import os
+
+from ._info import version as  __version__
+from ._registry import registry
+
+__all__ = ['__version__', 'registry']
+
 if 'DISPLAY' not in os.environ:
     try:
         import matplotlib
@@ -40,7 +42,7 @@ from .testing.nosetester import LandlabTester
 test = LandlabTester().test
 bench = LandlabTester().bench
 
-__all__ = ['ModelParameterDictionary', 'MissingKeyError',
-           'ParameterValueError', 'Component', 'Palette', 'Arena',
-           'NoProvidersError', 'Implements', 'ImplementsOrRaise',
-           'Framework', 'FieldError', 'LandlabTester', 'load_params']
+__all__.extend(['ModelParameterDictionary', 'MissingKeyError',
+                'ParameterValueError', 'Component', 'Palette', 'Arena',
+                'NoProvidersError', 'Implements', 'ImplementsOrRaise',
+                'Framework', 'FieldError', 'LandlabTester', 'load_params'])
