@@ -5363,9 +5363,5 @@ add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
                               pattern='map_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_gradients.py',
                               pattern='calc_*')
-add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
-                              pattern='calc_*')
-add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
-                              pattern='_calc_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_set_status.py',
                               pattern='set_status_at_node*')
