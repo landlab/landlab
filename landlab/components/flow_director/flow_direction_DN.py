@@ -11,8 +11,6 @@ Modified Feb 2014
 import numpy as np
 
 from landlab import BAD_INDEX_VALUE
-from landlab.grid.raster_steepest_descent import (
-    _calc_steepest_descent_across_cell_faces)
 from landlab.core.utils import as_id_array
 
 from .cfuncs import adjust_flow_receivers
