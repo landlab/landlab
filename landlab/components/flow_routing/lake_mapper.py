@@ -1182,8 +1182,7 @@ class DepressionFinderAndRouter(Component):
             if self._D8:
                 outlet_neighbors = np.hstack(
                     (self._grid.active_neighbors_at_node[outlet_node],
-                     self._grid._get_diagonal_list(
-                     outlet_node, bad_index=-1)))
+                     self._grid.diagonal_adjacent_nodes_at_node[outlet_node]))
             else:
                 outlet_neighbors = self._grid.active_neighbors_at_node[
                     outlet_node].copy()

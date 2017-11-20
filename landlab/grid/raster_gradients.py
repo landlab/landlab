@@ -313,7 +313,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
-    values_at_diagonals = node_values[grid._get_diagonal_list(node_ids)]
+    values_at_diagonals = node_values[grid.diagonal_adjacent_nodes_at_node[node_ids]]
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
