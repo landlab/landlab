@@ -63,7 +63,6 @@ def _node_has_boundary_neighbor(mg, id, method='d8'):
         except IndexError:
             return True
     if method == 'd8':
-        # for neighbor in mg._get_diagonal_list(id):
         for neighbor in mg.diagonal_adjacent_nodes_at_node[id]:
             try:
                 if mg.status_at_node[neighbor] != CORE_NODE:
@@ -3312,62 +3311,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         else:
             return ans
 
-    @deprecated(use='_diagonal_neighbors_at_node', version=1.0)
-    def _get_diagonal_list(self, *args, **kwds):
-        """_get_diagonal_list([ids], bad_index=BAD_INDEX_VALUE)
-        Get list of diagonal node IDs.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Return lists of diagonals nodes for nodes with given *ids*. If *ids*
-        is not given, return the diagonals for all of the nodes in the grid.
-        For each node, the list gives diagonal ids as [topright, topleft,
-        bottomleft, bottomright]. Set all diagonals for boundary nodes to -1.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> mg._get_diagonal_list([-1, 6])
-        array([[-1, -1, 13, -1],
-               [12, 10,  0,  2]])
-        >>> mg._get_diagonal_list(7)
-        array([13, 11,  1,  3])
-
-        >>> mg.diagonal_adjacent_nodes_at_node[(-1, 6), ]
-        array([[-1, -1, 13, -1],
-               [12, 10,  0,  2]])
-        >>> mg.diagonal_adjacent_nodes_at_node[7]
-        array([13, 11,  1,  3])
-
-        .. todo:: could use inlink_matrix, outlink_matrix
-
-        LLCATS: NINF CONN
-        """
-        # Added DEJH 051513
-        bad_index = kwds.get('bad_index', BAD_INDEX_VALUE)
-
-        try:
-            self.diagonal_node_dict
-        except AttributeError:
-            self.diagonal_node_dict = {}
-            self.diagonal_node_dict[
-                bad_index] = self._create_diagonal_list(bad_index=bad_index)
-
-        try:
-            diagonal_nodes = self.diagonal_node_dict[bad_index]
-        except KeyError:
-            diagonal_nodes = self._create_diagonal_list(bad_index=bad_index)
-            self.diagonal_node_dict[bad_index] = diagonal_nodes
-
-        if len(args) == 0:
-            return diagonal_nodes
-        elif len(args) == 1:
-            return diagonal_nodes[args[0], :]
-        else:
-            raise ValueError('only zero or one arguments accepted')
-
     def _create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
         """Create list of diagonal node IDs.
 
@@ -3800,7 +3743,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         neighbors[:, ] = self.active_neighbors_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
         diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
-        # diagonals[:, ] = self._get_diagonal_list(ids)
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]
