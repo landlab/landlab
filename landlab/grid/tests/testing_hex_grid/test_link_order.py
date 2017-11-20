@@ -4,9 +4,11 @@ Created on Sat Nov 14 10:36:03 2015
 
 @author: gtucker
 """
+import numpy as np
 
 from landlab import HexModelGrid
 from numpy.testing import assert_array_equal
+from nose.tools import assert_true
 
 
 def test_hex_grid_link_order():
@@ -24,6 +26,18 @@ def test_hex_grid_link_order():
                                               6, 5])
 
 
+def test_nodes_at_link():
+    """Test nodes_at_link shares data with tail and head."""
+    grid = HexModelGrid(3, 2)
+
+    assert_array_equal(grid.nodes_at_link[:, 0], grid.node_at_link_tail)
+    assert_array_equal(grid.nodes_at_link[:, 1], grid.node_at_link_head)
+
+    assert_true(np.may_share_memory(grid.nodes_at_link,
+                                    grid.node_at_link_tail))
+    assert_true(np.may_share_memory(grid.nodes_at_link,
+                                    grid.node_at_link_head))
+
+
 if __name__=='__main__':
     test_hex_grid_link_order()
-    

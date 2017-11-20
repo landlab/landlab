@@ -517,7 +517,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [ 7,  9, -1,  3], [ 8, 10,  6,  4], [-1, 11,  7,  5],
                [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
 
-       LLCATS: NINF CONN
+        LLCATS: NINF CONN
         """
         return self._neighbors_at_node
 
@@ -1052,6 +1052,25 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         return self._core_cells
 
     @property
+    def nodes_at_link(self):
+        """Get array of the nodes at each link.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg.nodes_at_link[:5]
+        array([[0, 1],
+               [1, 2],
+               [2, 3],
+               [3, 4],
+               [0, 5]])
+
+        LLCATS: NINF LINF CONN
+        """
+        return self._nodes_at_link
+
+    @property
     def node_at_link_head(self):
         """Get array of the node at each link head (*to-node*).
 
@@ -1064,7 +1083,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: NINF LINF CONN
         """
-        return self._node_at_link_head
+        return self._nodes_at_link[:, 1]
 
     @property
     def node_at_link_tail(self):
@@ -1079,7 +1098,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: NINF LINF CONN
         """
-        return self._node_at_link_tail
+        return self._nodes_at_link[:, 0]
 
     @property
     def face_at_link(self):
@@ -1398,7 +1417,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [ 4.,  4.,  4.,  4.,  4.],
                [ 6.,  6.,  6.,  6.,  6.]])
 
-       LLCATS: NINF MEAS
+        LLCATS: NINF MEAS
         """
         return self._node_y
 
@@ -1422,7 +1441,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.]])
 
-       LLCATS: NINF MEAS
+        LLCATS: NINF MEAS
         """
         return self._node_x
 
@@ -1704,7 +1723,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 2, 4, 0, 0, 0, 4, 4, 0, 0,
                2, 4, 0, 0, 0, 4, 4, 4, 4, 4])
 
-       LLCATS: BC LINF
+        LLCATS: BC LINF
         """
         return self._status_at_link
 
@@ -1742,9 +1761,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         """
         self._number_of_links_at_node = np.zeros(self.number_of_nodes,
                                                  dtype=np.int)
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for ln in range(self.number_of_links):
-            self._number_of_links_at_node[self.node_at_link_tail[ln]] += 1
-            self._number_of_links_at_node[self.node_at_link_head[ln]] += 1
+            self._number_of_links_at_node[node_at_link_tail[ln]] += 1
+            self._number_of_links_at_node[node_at_link_head[ln]] += 1
 
     @property
     def number_of_links_at_node(self):
@@ -1808,10 +1829,12 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                                             max_num_links), dtype=np.int8)
 
         # Sweep over all links
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for lk in range(self.number_of_links):
             # Find the IDs of the tail and head nodes
-            t = self.node_at_link_tail[lk]
-            h = self.node_at_link_head[lk]
+            t = node_at_link_tail[lk]
+            h = node_at_link_head[lk]
 
             # Add this link to the list for this node, set the direction
             # (outgoing, indicated by -1), and increment the number found so
@@ -2103,7 +2126,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [False, False,  True,  True],
                [False, False,  True,  True]], dtype=bool)
 
-       LLCATS: LINF NINF CONN
+        LLCATS: LINF NINF CONN
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -2172,7 +2195,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [ True, False, False, False],
                [False, False, False, False]], dtype=bool)
 
-       LLCATS: LINF NINF CONN
+        LLCATS: LINF NINF CONN
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -2237,7 +2260,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [15, 12],
                [16, 13]])
 
-       LLCATS: LINF NINF CONN
+        LLCATS: LINF NINF CONN
         """
         if type(values) is str:
             vals = self.at_link[values]
@@ -2357,7 +2380,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [ 8, 13, 12,  7,  2,  3],
                [ 9, 15, 14,  8,  4,  5]])
 
-       LLCATS: FINF CINF CONN
+        LLCATS: FINF CINF CONN
         """
         try:
             return self._faces_at_cell
@@ -2378,11 +2401,13 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         LLCATS: FINF CINF CONN
         """
         num_faces_at_cell = np.zeros(self.number_of_cells, dtype=np.int)
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for ln in range(self.number_of_links):
-            cell = self.cell_at_node[self.node_at_link_tail[ln]]
+            cell = self.cell_at_node[node_at_link_tail[ln]]
             if cell != BAD_INDEX_VALUE:
                 num_faces_at_cell[cell] += 1
-            cell = self.cell_at_node[self.node_at_link_head[ln]]
+            cell = self.cell_at_node[node_at_link_head[ln]]
             if cell != BAD_INDEX_VALUE:
                 num_faces_at_cell[cell] += 1
         return num_faces_at_cell
@@ -2414,13 +2439,15 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self._faces_at_cell = np.zeros((self.number_of_cells,
                                         np.amax(num_faces)), dtype=int)
         num_faces[:] = 0  # Zero out and count again, to use as index
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for ln in range(self.number_of_links):
-            cell = self.cell_at_node[self.node_at_link_tail[ln]]
+            cell = self.cell_at_node[node_at_link_tail[ln]]
             if cell != BAD_INDEX_VALUE:
                 self._faces_at_cell[cell, num_faces[cell]] = \
                     self.face_at_link[ln]
                 num_faces[cell] += 1
-            cell = self.cell_at_node[self.node_at_link_head[ln]]
+            cell = self.cell_at_node[node_at_link_head[ln]]
             if cell != BAD_INDEX_VALUE:
                 self._faces_at_cell[cell, num_faces[cell]] = \
                     self.face_at_link[ln]
@@ -2878,7 +2905,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                  0.,  12.,  12.,  12.,   0.,
                  0.,   0.,   0.,   0.,   0.])
 
-         LLCATS: CINF NINF CONN
+        LLCATS: CINF NINF CONN
         """
         try:
             return self._cell_area_at_node
@@ -2932,9 +2959,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self._face_at_link = numpy.full(self.number_of_links, BAD_INDEX_VALUE,
                                         dtype=int)
         face_id = 0
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for link in range(self.number_of_links):
-            tc = self.cell_at_node[self.node_at_link_tail[link]]
-            hc = self.cell_at_node[self.node_at_link_head[link]]
+            tc = self.cell_at_node[node_at_link_tail[link]]
+            hc = self.cell_at_node[node_at_link_head[link]]
             if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
                 self._face_at_link[link] = face_id
                 face_id += 1
@@ -2954,9 +2983,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         num_faces = len(self.width_of_face)
         self._link_at_face = numpy.empty(num_faces, dtype=int)
         face_id = 0
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for link in range(self.number_of_links):
-            tc = self.cell_at_node[self.node_at_link_tail[link]]
-            hc = self.cell_at_node[self.node_at_link_head[link]]
+            tc = self.cell_at_node[node_at_link_tail[link]]
+            hc = self.cell_at_node[node_at_link_head[link]]
             if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
                 self._link_at_face[face_id] = link
                 face_id += 1
@@ -3347,7 +3378,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                4, 4, 0, 1,
                4, 1, 1, 1], dtype=int8)
 
-       LLCATS: DEPR NINF BC
+        LLCATS: DEPR NINF BC
         """
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
@@ -3491,7 +3522,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 2, 2, 2, 2, 2, 4,
                4, 4, 4, 4, 4, 4, 4, 4])
 
-       LLCATS: BC NINF
+        LLCATS: BC NINF
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
@@ -3559,9 +3590,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         neighbors for both the endpoint nodes.
         """
         num_nbrs = numpy.zeros(self.number_of_nodes, dtype=int)
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for link in range(self.number_of_links):
-            num_nbrs[self.node_at_link_tail[link]] += 1
-            num_nbrs[self.node_at_link_head[link]] += 1
+            num_nbrs[node_at_link_tail[link]] += 1
+            num_nbrs[node_at_link_head[link]] += 1
         return num_nbrs
 
     def _create_active_faces(self):
