@@ -444,10 +444,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if state_dict['neighbor_list_created']:
             self._create_neighbor_list()
         
-        # If diagonal list existed, create them
-        if state_dict['diagonal_list_created']:
-            self._create_diagonal_list()
-                
         # Set status at links and nodes
         self._node_status[:] = state_dict['status_at_node']
         self._update_links_nodes_cells_to_new_BCs()
@@ -3310,50 +3306,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             return bool(ans)
         else:
             return ans
-
-    def _create_diagonal_list(self, bad_index=BAD_INDEX_VALUE):
-        """Create list of diagonal node IDs.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Creates a list of IDs of the diagonal nodes to each node, as a 2D
-        array.  Only interior nodes are assigned diagonal neighbors; boundary
-        nodes get -1 for each neighbor. The order of the diagonal nodes is
-        [topright, topleft, bottomleft, bottomright].
-
-        .. note::
-
-            This is equivalent to the diagonals of all cells,
-            and setting the neighbors of boundary-node cells to -1. In such a
-            case, each node has one cell and each node-cell pair have the
-            same ID. However, this is the old-style grid structure as
-            boundary nodes no longer have associated cells.
-
-            DEJH: As of 6/12/14, this method now uses BAD_INDEX_VALUE, and
-            boundary nodes now have neighbors, where they are found at the ends
-            of active links.
-        """
-        self.diagonal_list_created = True
-
-        self.diagonal_cells = np.choose(
-            self.diagonal_dirs_at_node == 0,
-            (self.diagonal_adjacent_nodes_at_node, -1) )
-
-        # self.diagonal_cells = self.diagonal_adjacent_nodes_at_node.copy()
-        # self.diagonal_cells[self.diagonal_dirs_at_node == 0] = -1
-
-        # self.diagonal_cells = sgrid.diagonal_node_array(
-        #     self.shape, out_of_bounds=bad_index)
-
-        # closed_boundaries = np.empty(4, dtype=np.int)
-        # closed_boundaries.fill(bad_index)
-        # self.diagonal_cells[self.closed_boundary_nodes, :] = closed_boundaries
-        # self.diagonal_cells.ravel()[
-        #     np.in1d(self.diagonal_cells.ravel(),
-        #             self.closed_boundary_nodes)] = bad_index
-
-        return self.diagonal_cells
 
     @deprecated(use='node_is_core', version='0.5')
     def is_interior(self, *args):

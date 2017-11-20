@@ -172,12 +172,12 @@ def test_node_axis_coordinates():
 
 @with_setup(setup_grid)
 def test_diagonal_list():
-    assert_array_equal(rmg._get_diagonal_list(6), np.array([12, 10, 0, 2]))
-    assert_array_equal(rmg._get_diagonal_list(-1), np.array([X, X, 13, X]))
-    assert_array_equal(rmg._get_diagonal_list([6, -1]),
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[6], np.array([12, 10, 0, 2]))
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[-1], np.array([X, X, 13, X]))
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[[6, -1]],
                        np.array([[12, 10, 0, 2], [X, X, 13, X]]))
     assert_array_equal(
-        rmg._get_diagonal_list(),
+        rmg.diagonal_adjacent_nodes_at_node,
         np.array([[6, X, X, X], [7, 5, X, X], [8, 6, X, X],
                   [9, 7, X, X], [X, 8, X, X],
                   [11, X, X, 1], [12, 10,  0,  2], [13, 11,  1,  3],
@@ -190,7 +190,7 @@ def test_diagonal_list():
 
 @with_setup(setup_grid)
 def test_diagonal_list_boundary():
-    assert_array_equal(rmg._get_diagonal_list(0), np.array([6, X, X, X]))
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[0], np.array([6, X, X, X]))
 
 
 @with_setup(setup_grid)
@@ -459,11 +459,10 @@ def test_grid_coords_to_node_id_outside_of_grid():
 
 
 @with_setup(setup_grid)
-def test_create_diagonal_list():
-    rmg._create_diagonal_list()
-
+def test_diagonal_adjacent_nodes_at_node():
+    """Test diagonally adjacent nodes."""
     assert_array_equal(
-        rmg._get_diagonal_list(),
+        rmg.diagonal_adjacent_nodes_at_node,
         np.array([[6, X, X, X], [7, 5, X, X], [8, 6, X, X],
                   [9, 7, X, X], [X, 8, X, X],
                   [11, X, X, 1], [12, 10,  0,  2], [13, 11,  1,  3],
