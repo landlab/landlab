@@ -1136,8 +1136,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._reset_list_of_active_diagonal_links()
 
-        self._reset_diag_active_link_dirs()
-
     @property
     @make_return_array_immutable
     def horizontal_links(self):
@@ -1505,12 +1503,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self._diag_active_links = active_diagonals + self.number_of_links
 
-    def _reset_diag_active_link_dirs(self):
-        inactive_diags = np.ones(self.number_of_d8 + 1, dtype=bool)
-        inactive_diags[self._diag_active_links] = False
-        # note the entended array True-at-end trick is in play here
-        inactive_links = inactive_diags[self.d8_at_node[:, 4:]]
-
     def _reset_link_status_list(self):
         """Rest the status of links.
 
@@ -1521,7 +1513,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self)._reset_link_status_list()
         if self._diagonal_links_created:
             self._reset_list_of_active_diagonal_links()
-            self._reset_diag_active_link_dirs()
 
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
