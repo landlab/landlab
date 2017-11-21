@@ -248,11 +248,6 @@ class FastscapeEroder(Component):
         self.A_to_the_m = grid.zeros(at='node')
         self.alpha = grid.empty(at='node')
 
-        try:
-            self.grid._diagonal_links_at_node  # calc number of diagonal links
-        except AttributeError:
-            pass  # was not a raster
-
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
                              'field name. It was None.')
