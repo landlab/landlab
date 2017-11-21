@@ -517,17 +517,17 @@ class LinearDiffuser(Component):
                     d8link_kd = np.empty(self.grid.number_of_d8,
                                          dtype=float)
                     d8link_kd[self.grid.active_links] = kd_activelinks
-                    d8link_kd[self.grid._diag_active_links] = np.amax(
+                    d8link_kd[self.grid.active_diagonals] = np.amax(
                         self._kd[self.grid.nodes_at_diagonal[self.grid.active_diagonals]],
                                  axis=1).flatten()
                 else:
                     d8link_kd = self._kd
                 self.g[self.grid.active_links] = self.grid.calc_grad_at_link(
                     z)[self.grid.active_links]
-                self.g[self.grid._diag_active_links] = ((
+                self.g[self.grid.active_diagonals] = ((
                     z[self.grid._diag_activelink_tonode] -
                     z[self.grid._diag_activelink_fromnode]) /
-                        self.grid.length_of_d8[self.grid._diag_active_links])
+                        self.grid.length_of_d8[self.grid.active_diagonals])
                 self.qs[:] = -d8link_kd * self.g
 
                 total_flux = self.qs * self._d8width_face_at_link  # nlinks

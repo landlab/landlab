@@ -1496,10 +1496,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         assert(self._diagonal_links_created), 'Diagonal links not created'
 
-        (active_diagonals, ) = np.where(self.status_at_diagonal == ACTIVE_LINK)
-
-        self._diag_active_links = active_diagonals + self.number_of_links
-
     def _reset_link_status_list(self):
         """Rest the status of links.
 
