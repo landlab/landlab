@@ -511,9 +511,6 @@ class LinearDiffuser(Component):
                 # NB: this is dirty code. It uses the obsolete diagonal data
                 # structures, and necessarily has to do a bunch of mapping
                 # on the fly.
-                active_diagonal_dirs_at_node = (
-                    self.grid.diagonal_dirs_at_node *
-                    (self.grid.diagonal_status_at_node == ACTIVE_LINK))
 
                 # remap the kds onto the links, as necessary
                 if isinstance(self._kd, np.ndarray):
@@ -521,8 +518,8 @@ class LinearDiffuser(Component):
                                          dtype=float)
                     d8link_kd[self.grid.active_links] = kd_activelinks
                     d8link_kd[self.grid._diag_active_links] = np.amax(
-                        (self._kd[self.grid._diag_activelink_fromnode],
-                         self._kd[self.grid._diag_activelink_tonode]), axis=0)
+                        self._kd[self.grid.nodes_at_diagonal[self.grid.active_diagonals]],
+                                 axis=1).flatten()
                 else:
                     d8link_kd = self._kd
                 self.g[self.grid.active_links] = self.grid.calc_grad_at_link(
@@ -539,7 +536,7 @@ class LinearDiffuser(Component):
                     self.grid.active_link_dirs_at_node).sum(axis=1)
                 totalflux_allnodes += (
                     total_flux[self.grid.d8_at_node[:, 4:]] *
-                    active_diagonal_dirs_at_node).sum(axis=1)
+                    self.grid.active_diagonal_dirs_at_node).sum(axis=1)
                 self.dqsds[self.grid.node_at_cell] = -totalflux_allnodes[
                     self.grid.node_at_cell] / self.grid.area_of_cell
 

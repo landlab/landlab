@@ -370,9 +370,6 @@ class DepressionFinderAndRouter(Component):
             if not self._grid._diagonal_links_created:
                 self._grid._create_diag_links_at_node()
 
-        h_diag = self._grid._diag_activelink_tonode
-        t_diag = self._grid._diag_activelink_fromnode
-
         # These two lines assign the False flag to any node that is higher
         # than its partner on the other end of its link
         self.is_pit[h_orth[np.where(
@@ -385,9 +382,7 @@ class DepressionFinderAndRouter(Component):
         # TODO: update the diagonal link data structures
         # DEJH doesn't understand why this can't be vectorized as above...
         if self._D8:
-            for i in range(len(self._grid._diag_active_links)):
-                h = self._grid._diag_activelink_tonode[i]
-                t = self._grid._diag_activelink_fromnode[i]
+            for h, t in self.grid.nodes_at_diagonal[self.grid.active_diagonals]:
                 if self._elev[h] > self._elev[t]:
                     self.is_pit[h] = False
                 elif self._elev[t] > self._elev[h]:

@@ -1498,9 +1498,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         (active_diagonals, ) = np.where(self.status_at_diagonal == ACTIVE_LINK)
 
-        self._diag_activelink_fromnode = self.nodes_at_diagonal[active_diagonals, 0]
-        self._diag_activelink_tonode = self.nodes_at_diagonal[active_diagonals, 1]
-
         self._diag_active_links = active_diagonals + self.number_of_links
 
     def _reset_link_status_list(self):
@@ -2866,11 +2863,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         diffs[horizontal_links] /= self.dx
 
         diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
-        diagonal_link_slopes = (
-            (node_values[self._diag_activelink_tonode] -
-             node_values[self._diag_activelink_fromnode]) / diag_dist)
+        diagonal_link_slopes = np.diff(
+            node_values[self.nodes_at_diagonal[self.active_diagonals]],
+            axis=1) / diag_dist
 
-        return np.concatenate((diffs, diagonal_link_slopes))
+        return np.concatenate((diffs, diagonal_link_slopes.flatten()))
 
     def _calculate_gradients_at_d8_links(self, node_values):
         """Calculate gradients over all D8 links.
