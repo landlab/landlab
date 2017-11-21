@@ -420,10 +420,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # Recreate the state of the grid and the information it new
         # about itself
         
-        # If diagonal links existed, create them
-        if state_dict['_diagonal_links_created']:
-            self._create_diag_links_at_node()
-
         # If angle of links existed, create them
         if state_dict['_angle_of_link_created']:
             self._create_angle_of_link()
@@ -1124,15 +1120,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                           ).reshape(4, -1))
         else:
             raise ValueError('only zero or one arguments accepted')
-
-    def _create_diag_links_at_node(self):
-        """
-        Create the diagonal link list.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-        """
-        self._diagonal_links_created = True
 
     @property
     @make_return_array_immutable
@@ -2268,9 +2255,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: LINF NINF GEOM BC
         """
-        if not self._diagonal_links_created:
-            self._create_diag_links_at_node()
-
         (links, ) = np.where(self.status_at_d8 == ACTIVE_LINK)
         node_at_d8_tail = self.nodes_at_d8[links, 0]
         node_at_d8_head = self.nodes_at_d8[links, 1]
@@ -2871,7 +2855,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: LINF GRAD
         """
-        self._create_diag_links_at_node()
         diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
         diagonal_link_slopes = (
             (node_values[self.nodes_at_diagonal[:, 1]] -

@@ -188,7 +188,6 @@ class PotentialityFlowRouter(Component):
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
         if self.route_on_diagonals and self._raster:
-            grid._create_diag_links_at_node()  # ...in case not present yet
             self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self.grid.empty('link')
@@ -234,10 +233,6 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link[:] = upwind_K * g
             self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
-            active_diagonal_dirs_at_node = (
-                self.grid.diagonal_dirs_at_node *
-                (self.grid.diagonal_status_at_node == ACTIVE_LINK))
-
             # grad on diags:
             gwd = np.empty(grid.number_of_d8, dtype=float)
             gd = gwd[grid.number_of_links:]
@@ -246,7 +241,7 @@ class PotentialityFlowRouter(Component):
             if self.equation != 'default':
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
             diag_grad_at_node_w_dir = (gwd[grid.d8_at_node[:, 4:]] *
-                                       active_diagonal_dirs_at_node)
+                                       self.grid.active_diagonal_dirs_at_node)
 
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)

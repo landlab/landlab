@@ -422,9 +422,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # Option with diagonals.
         else:
 
-            # Make sure diagonal links have been created
-            self.grid._create_diag_links_at_node()
-
             # need to create a list of diagonal links since it doesn't exist.
             diag_links = numpy.sort(numpy.unique(self.grid.d8_at_node[:, 4:]))
             diag_links = diag_links[diag_links > 0]

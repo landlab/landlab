@@ -188,7 +188,6 @@ class PotentialityFlowRouter(Component):
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
         if self.route_on_diagonals and self._raster:
-            grid._create_diag_links_at_node()  # ...in case not present yet
             self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self.grid.empty('link')

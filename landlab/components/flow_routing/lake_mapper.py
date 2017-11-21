@@ -366,10 +366,6 @@ class DepressionFinderAndRouter(Component):
         h_orth = self._grid.node_at_link_head[act_links]
         t_orth = self._grid.node_at_link_tail[act_links]
 
-        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-            if not self._grid._diagonal_links_created:
-                self._grid._create_diag_links_at_node()
-
         # These two lines assign the False flag to any node that is higher
         # than its partner on the other end of its link
         self.is_pit[h_orth[np.where(
