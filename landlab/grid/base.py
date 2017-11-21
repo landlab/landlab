@@ -591,7 +591,9 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         try:
             return self._active_neighbor_nodes
         except AttributeError:
-            self._active_neighbor_nodes = self._create_neighbor_list()
+            self._active_neighbor_nodes = np.choose(
+                self.status_at_link[self.links_at_node] == ACTIVE_LINK,
+                (-1, self.adjacent_nodes_at_node))
             return self._active_neighbor_nodes
 
     @property
@@ -3360,12 +3362,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                           INACTIVE_LINK)
         inactive_links[self.link_dirs_at_node == 0] = False
         self._active_link_dirs_at_node[inactive_links] = 0
-        
-        try:
-            if self.diagonal_list_created:
-                self.diagonal_list_created = False
-        except AttributeError:
-            pass
         
         try:
             if self.neighbor_list_created:

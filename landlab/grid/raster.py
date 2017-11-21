@@ -474,7 +474,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         state_dict['_angle_of_link_created'] = self._angle_of_link_created
         state_dict['_patches_created'] = self._patches_created
         state_dict['neighbor_list_created'] = self.neighbor_list_created
-        state_dict['diagonal_list_created'] = self.diagonal_list_created
         try:
             if type(self._forced_cell_areas) == np.ndarray:
                 state_dict['forced_cell_areas_created'] = True
@@ -792,10 +791,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # _create_neighbor_list, we'll create it if necessary.
         self.neighbor_list_created = False
         self._neighbor_node_dict = {}
-
-        # List of diagonal neighbors. As with the neighbor list, we'll only
-        # create it if requested.
-        self.diagonal_list_created = False
 
         # List of looped neighbor cells (all 8 neighbors) for
         # given *cell ids* can be created if requested by the user.
