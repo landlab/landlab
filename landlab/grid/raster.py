@@ -472,7 +472,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         
         # save information about things that might have been created
         state_dict['_angle_of_link_created'] = self._angle_of_link_created
-        state_dict['_diagonal_links_created'] = self._diagonal_links_created
         state_dict['_patches_created'] = self._patches_created
         state_dict['neighbor_list_created'] = self.neighbor_list_created
         state_dict['diagonal_list_created'] = self.diagonal_list_created
@@ -757,9 +756,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #   set up in-link and out-link matrices and numbers
         self._setup_inlink_and_outlink_matrices()
 
-        # Flag indicating whether we have created diagonal links.
-        self._diagonal_links_created = False
-        
         # Flag indicating whether we have created patches
         self._patches_created = False
         
