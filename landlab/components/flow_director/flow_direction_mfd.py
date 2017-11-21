@@ -140,8 +140,7 @@ def flow_directions_mfd(elev,
     >>> neighbors_at_node = np.hstack((grid.neighbors_at_node,
     ...                                grid.diagonal_adjacent_nodes_at_node))
     >>> links_at_node = grid.d8_at_node
-    >>> active_link_dir_at_node = np.hstack((grid.active_link_dirs_at_node,
-    ...                                      grid._diag__active_link_dirs_at_node))
+    >>> active_link_dir_at_node = grid.active_d8_dirs_at_node
 
     We need to create a list of diagonal links since it doesn't exist.
 

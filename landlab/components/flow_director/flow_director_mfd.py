@@ -447,7 +447,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             neighbors_at_node = numpy.hstack((self.grid.neighbors_at_node,
                                               self.grid.diagonal_adjacent_nodes_at_node))
             active_link_dir_at_node = numpy.hstack((self.grid.active_link_dirs_at_node,
-                                                    self.grid._diag__active_link_dirs_at_node))
+                                                    self.grid.active_diagonal_dirs_at_node))
             link_slope = numpy.hstack((ortho_grads,
                                        diag_grads))
 

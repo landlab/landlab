@@ -191,7 +191,7 @@ def flow_directions_dinf(grid,
 
 #    # active link directions.
 #    ald_at_node = grid.active_link_dirs_at_node
-#    adld_at_node = grid._diag__active_link_dirs_at_node
+#    adld_at_node = grid.active_diagonal_dirs_at_node
 #
 #    triangle_active_link_dirs_at_node = np.stack([np.vstack((ald_at_node[:,0], adld_at_node[:,0])),
 #                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,0])),
