@@ -135,7 +135,7 @@ def flow_directions_mfd(elev,
     In the second example, we will pass diagonal elements to the flow direction
     algorithm.
 
-    >>> dal, d8t, d8h = grid._d8_active_links()
+    >>> dal = grid.active_d8
     >>> neighbors_at_node = np.hstack((grid.neighbors_at_node,
     ...                                grid.diagonal_adjacent_nodes_at_node))
     >>> links_at_node = grid.d8_at_node

@@ -2210,48 +2210,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return self._link_length
 
-    def _d8_active_links(self):
-        """Get active links, including diagonals.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Return a set of active links that include diagonal connections between
-        grid cells, for use with link-based water-routing schemes.
-        Diagonal links are listed sequentially after the *regular* orthogonal
-        links in the return arrays.
-
-        Returns
-        -------
-        tuple of arrays
-            Tuple of (link_ids, link_from_nodes, link_to_nodes)
-
-        Notes
-        -----
-        Calling this method also means the the individual arrays of diagonal
-        links and their from- and tonodes are held as properties of the class
-        instance (see return line below).
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3))
-        >>> (links, from_nodes, to_nodes) = grid._d8_active_links()
-        >>> links
-        array([ 3,  5,  6,  8, 12, 15, 17, 18])
-        >>> from_nodes
-        array([1, 3, 4, 4, 0, 2, 4, 4])
-        >>> to_nodes
-        array([4, 4, 5, 7, 4, 4, 6, 8])
-
-        LLCATS: LINF NINF GEOM BC
-        """
-        (links, ) = np.where(self.status_at_d8 == ACTIVE_LINK)
-        node_at_d8_tail = self.nodes_at_d8[links, 0]
-        node_at_d8_head = self.nodes_at_d8[links, 1]
-
-        return (links, node_at_d8_tail, node_at_d8_head)
-
     @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.5')
     def set_inactive_boundaries(self, right_is_inactive, top_is_inactive,
                                 left_is_inactive, bottom_is_inactive):
@@ -2798,7 +2756,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: LINF GRAD
         """
-        (active_links, _, _) = self._d8_active_links()
+        active_links = self.active_d8
         diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
         active_links = active_links[~ diagonal_links]
 
