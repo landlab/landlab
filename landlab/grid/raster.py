@@ -1134,8 +1134,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         self._diagonal_links_created = True
 
-        self._reset_list_of_active_diagonal_links()
-
     @property
     @make_return_array_immutable
     def horizontal_links(self):
@@ -1480,22 +1478,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
          self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
              self.shape, node_status=node_status)
 
-    def _reset_list_of_active_diagonal_links(self):
-        """Reset the active diagonal links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Assuming the diagonal links have already been created elsewhere, this
-        helper method checks their statuses (active/inactive) for internal
-        consistency after the BC status of some nodes has been changed.
-        Note that the IDs of the diagonal links need to be compatible with the
-        "normal" links - so we add self.number_links to these IDs.
-        Assumes _create_diag_links_at_node() has been called, either explicitly
-        or by another grid method (e.g., _d8_active_links()).
-        """
-        assert(self._diagonal_links_created), 'Diagonal links not created'
-
     def _reset_link_status_list(self):
         """Rest the status of links.
 
@@ -1504,8 +1486,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         consistency after the BC status of some nodes has been changed.
         """
         super(RasterModelGrid, self)._reset_link_status_list()
-        if self._diagonal_links_created:
-            self._reset_list_of_active_diagonal_links()
 
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
