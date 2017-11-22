@@ -699,7 +699,7 @@ def active_link_ids(shape, node_status):
     >>> status # doctest: +NORMALIZE_WHITESPACE
     array([4, 4, 4, 4,
            4, 0, 0, 4,
-           4, 4, 4, 4], dtype=int8)
+           4, 4, 4, 4], dtype=uint8)
 
     >>> active_link_ids((3, 4), status)
     array([8])
@@ -739,7 +739,7 @@ def is_fixed_link(shape, node_status):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 2,
            2, 0, 0, 0, 2,
-           2, 2, 2, 2, 2], dtype=int8)
+           2, 2, 2, 2, 2], dtype=uint8)
 
     >>> is_fixed_link(rmg.shape, rmg.status_at_node)
     array([False, False, False, False, False,  True,  True,  True, False,
@@ -791,7 +791,7 @@ def fixed_link_ids(shape, node_status):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 2,
            2, 0, 0, 0, 2,
-           2, 2, 2, 2, 2], dtype=int8)
+           2, 2, 2, 2, 2], dtype=uint8)
     >>> fixed_link_ids(rmg.shape, rmg.status_at_node)
     array([ 5,  6,  7,  9, 12, 18, 21, 23, 24, 25])
     """
@@ -860,7 +860,7 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     array([4, 4, 4, 4, 4,
            4, 0, 0, 0, 4,
            4, 0, 0, 0, 4,
-           4, 4, 4, 4, 4], dtype=int8)
+           4, 4, 4, 4, 4], dtype=uint8)
     >>> active_ids = active_link_ids((4,5), status)
 
     >>> horizontal_active_link_ids((4,5), active_ids)
@@ -946,7 +946,7 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 2,
            2, 0, 0, 0, 2,
-           2, 2, 2, 2, 2], dtype=int8)
+           2, 2, 2, 2, 2], dtype=uint8)
 
     >>> fixed_ids = fixed_link_ids((4, 5), status)
     >>> horizontal_fixed_link_ids((4, 5), fixed_ids)
@@ -1266,7 +1266,7 @@ def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 2,
            2, 0, 0, 0, 2,
-           2, 2, 2, 2, 2], dtype=int8)
+           2, 2, 2, 2, 2], dtype=uint8)
     >>> fixed_ids = fixed_link_ids((4, 5), status)
 
     >>> vertical_fixed_link_ids((4,5), fixed_ids)

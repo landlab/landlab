@@ -410,7 +410,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # boundary (=1). This means that all perimeter (convex hull) nodes are
         # initially flagged as boundary code 1. An application might wish to
         # change this so that, for example, some boundaries are inactive.
-        node_status = np.zeros(len(pts[:, 0]), dtype=np.int8)
+        node_status = np.zeros(len(pts[:, 0]), dtype=np.uint8)
         node_status[boundary_nodes] = 1
 
         # It's also useful to have a list of interior nodes
