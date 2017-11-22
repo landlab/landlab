@@ -525,6 +525,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         return out
 
     @property
+    @cache_result_in_object()
     @return_readonly_id_array
     def active_neighbors_at_node(self):
         """Get list of neighbor node IDs.
@@ -536,19 +537,31 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         Examples
         --------
-        >>> from landlab.grid.base import BAD_INDEX_VALUE as X
-        >>> from landlab import RasterModelGrid, HexModelGrid, CLOSED_BOUNDARY
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> np.array_equal(rmg.active_neighbors_at_node[[-1, 6, 2]],
-        ...     [[X, X, X, X], [ 7, 11,  5,  1], [X,  7,  X, X]])
-        True
-        >>> rmg.active_neighbors_at_node[7]
-        array([ 8, 12,  6,  2])
-        >>> rmg.active_neighbors_at_node[2]
+        >>> from landlab import RasterModelGrid, HexModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+
+        >>> grid.active_neighbors_at_node[(-1, 6, 2), ]
+        array([[-1, -1, -1, -1],
+               [ 7, 11,  5,  1],
+               [-1,  7, -1, -1]])
+
+        Setting a node to closed causes all links touching it to
+        be inactive.
+
+        >>> grid.status_at_node[6] = grid.BC_NODE_IS_CLOSED
+        >>> grid.active_neighbors_at_node[(-1, 6, 2), ]
+        array([[-1, -1, -1, -1],
+               [-1, -1, -1, -1],
+               [-1,  7, -1, -1]])
+
+        >>> grid.active_neighbors_at_node[7]
+        array([ 8, 12, -1,  2])
+        >>> grid.active_neighbors_at_node[2]
         array([-1,  7, -1, -1])
-        >>> hmg = HexModelGrid(3, 2)
-        >>> hmg.status_at_node[0] = CLOSED_BOUNDARY
-        >>> hmg.active_neighbors_at_node
+
+        >>> grid = HexModelGrid(3, 2)
+        >>> grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
+        >>> grid.active_neighbors_at_node
         array([[-1, -1, -1, -1, -1, -1],
                [-1,  3, -1, -1, -1, -1],
                [ 3, -1, -1, -1, -1, -1],
@@ -559,13 +572,9 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: NINF CONN BC
         """
-        try:
-            return self._active_neighbor_nodes
-        except AttributeError:
-            self._active_neighbor_nodes = np.choose(
-                self.status_at_link[self.links_at_node] == ACTIVE_LINK,
-                (-1, self.adjacent_nodes_at_node))
-            return self._active_neighbor_nodes
+        return np.choose(
+            self.status_at_link[self.links_at_node] == ACTIVE_LINK,
+            (-1, self.adjacent_nodes_at_node))
 
     @property
     @make_return_array_immutable
@@ -3111,7 +3120,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         attrs = ['_active_link_dirs_at_node', '_status_at_link',
                  '_active_links', '_fixed_links', '_activelink_fromnode',
                  '_activelink_tonode', '_active_faces', '_core_nodes',
-                 '_core_cells', '_fixed_links']
+                 '_core_cells', '_fixed_links', '_active_neighbors_at_node']
 
         for attr in attrs:
             try:
