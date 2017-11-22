@@ -1073,10 +1073,19 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> mg.status_at_node[8] = CLOSED_BOUNDARY
-        >>> mg.core_cells
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), 1.)
+
+        Initially all of the cells are "core".
+
+        >>> grid.core_cells
+        array([0, 1, 2,
+               3, 4, 5])
+
+        Setting a node to closed causes its cell to no longer be core.
+
+        >>> grid.status_at_node[8] = grid.BC_NODE_IS_CLOSED
+        >>> grid.core_cells
         array([0, 1, 3, 4, 5])
 
         LLCATS: CINF BC
