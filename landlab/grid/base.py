@@ -3101,88 +3101,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         A further test is performed to ensure that the final maps of node and
         link status are internally consistent.
         """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid._reset_link_status_list')
-
-        try:
-            already_fixed = self._status_at_link == FIXED_LINK
-        except AttributeError:
-            already_fixed = numpy.zeros(self.number_of_links, dtype=bool)
-
-        fromnode_status = self._node_status[self.node_at_link_tail]
-        tonode_status = self._node_status[self.node_at_link_head]
-
-        if not numpy.all((fromnode_status[already_fixed] ==
-                          FIXED_GRADIENT_BOUNDARY) |
-                         (tonode_status[already_fixed] ==
-                          FIXED_GRADIENT_BOUNDARY)):
-            assert numpy.all(np.logical_not((fromnode_status[already_fixed] ==
-                                             CLOSED_BOUNDARY) &
-                                            (tonode_status[already_fixed] ==
-                                             CLOSED_BOUNDARY)))
-            fromnode_status[already_fixed] = numpy.where(
-                (fromnode_status[already_fixed] == CLOSED_BOUNDARY) &
-                (tonode_status[already_fixed] == CORE_NODE),
-                FIXED_GRADIENT_BOUNDARY,
-                fromnode_status[already_fixed])
-            tonode_status[already_fixed] = numpy.where(
-                (tonode_status[already_fixed] == CLOSED_BOUNDARY) &
-                (fromnode_status[already_fixed] == CORE_NODE),
-                FIXED_GRADIENT_BOUNDARY,
-                tonode_status[already_fixed])
-            warnings.warn("""
-                  Remember, fixed_links are dominant over node statuses.
-                  Your grid may have had an incompatibility between
-                  fixed_links and closed nodes, which has been resolved by
-                  converting the closed nodes to fixed gradient nodes. If
-                  you were trying to deliberately close a node which had
-                  once been set to fixed gradient, you need to open the
-                  links before changing the node statuses. If you were
-                  setting a node to fixed_value, you can ignore this
-                  message.
-                  """)
-
-        active_links = (((fromnode_status == CORE_NODE) & ~
-                         (tonode_status == CLOSED_BOUNDARY)) |
-                        ((tonode_status == CORE_NODE) & ~
-                         (fromnode_status == CLOSED_BOUNDARY)))
-        # ...this still includes things that will become fixed_link
-
-        fixed_links = ((((fromnode_status == FIXED_GRADIENT_BOUNDARY) &
-                         (tonode_status == CORE_NODE)) |
-                        ((tonode_status == FIXED_GRADIENT_BOUNDARY) &
-                         (fromnode_status == CORE_NODE))) |
-                       already_fixed)
-
-        fixed_link_fixed_val = (((fromnode_status == FIXED_VALUE_BOUNDARY) |
-                                 (tonode_status == FIXED_VALUE_BOUNDARY)) &
-                                already_fixed)
-        # these are the "special cases", where the user is probably trying to
-        # adjust an individual fixed_link back to fixed value. We'll allow it:
-        fixed_links[fixed_link_fixed_val] = False
-
-        try:
-            self._status_at_link.fill(INACTIVE_LINK)
-        except AttributeError:
-            self._status_at_link = numpy.empty(self.number_of_links, dtype=int)
-            self._status_at_link.fill(INACTIVE_LINK)
-
-        self._status_at_link[active_links] = ACTIVE_LINK
-
-        self._status_at_link[fixed_links] = FIXED_LINK
-
-        active_links = self._status_at_link == ACTIVE_LINK  # now it's correct
-        (self._active_links, ) = numpy.where(active_links)
-        (self._fixed_links, ) = numpy.where(fixed_links)
-        self._active_links = as_id_array(self._active_links)
-        self._fixed_links = as_id_array(self._fixed_links)
-
-        self._activelink_fromnode = self.node_at_link_tail[active_links]
-        self._activelink_tonode = self.node_at_link_head[active_links]
+        self._activelink_fromnode = self.node_at_link_tail[self.active_links]
+        self._activelink_tonode = self.node_at_link_head[self.active_links]
 
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
-        #self._create_links_and_link_dirs_at_node()
 
     def _reset_lists_of_nodes_cells(self):
         """Create of reset lists of nodes and cells based on their status.
