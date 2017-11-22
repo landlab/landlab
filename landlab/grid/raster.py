@@ -385,7 +385,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if num_rows <= 0 or num_cols <= 0:
             raise ValueError('number of rows and columns must be positive')
 
-        self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
+        self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(num_rows, num_cols, dx)
@@ -408,15 +408,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         num_rows = shape[0]
         num_cols = shape[1]
         
-        self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
+        self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
         
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(num_rows, num_cols, dx)
                                                  
         super(RasterModelGrid, self).__init__()
-
-        self.nodes_at_d8
-        self.status_at_d8
 
         self.looped_node_properties = {}
 
@@ -444,8 +441,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             self._create_neighbor_list()
         
         # Set status at links and nodes
-        self._node_status[:] = state_dict['status_at_node']
-        self._update_links_nodes_cells_to_new_BCs()
+        self.status_at_node[:] = state_dict['status_at_node']
 
         # Add fields back to the grid
         for group in state_dict['_groups'].keys():
@@ -581,7 +577,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([1, 1, 1, 1, 1,
                1, 0, 0, 0, 1,
                1, 0, 0, 0, 1,
-               1, 1, 1, 1, 1], dtype=int8)
+               1, 1, 1, 1, 1], dtype=uint8)
         >>> rmg._node_numinlink # doctest: +NORMALIZE_WHITESPACE
         array([0, 1, 1, 1, 1,
                1, 2, 2, 2, 2,
@@ -1060,6 +1056,18 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         return self._dy
 
+    @property
+    @cache_result_in_object()
+    def _node_active_inlink_matrix2(self):
+        return np.choose(self.link_status_at_node[:, (3, 2)] == ACTIVE_LINK,
+                         (-1, self.links_at_node[:, (3, 2)])).T
+
+    @property
+    @cache_result_in_object()
+    def _node_active_outlink_matrix2(self):
+        return np.choose(self.link_status_at_node[:, (1, 0)] == ACTIVE_LINK,
+                         (-1, self.links_at_node[:, (1, 0)])).T
+
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
     def _active_links_at_node(self, *args):
@@ -1449,14 +1457,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         (self._node_active_outlink_matrix,
          self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
-             self.shape, node_status=node_status)
-
-        (self._node_active_inlink_matrix2,
-         self._node_numactiveinlink) = sgrid.setup_active_inlink_matrix2(
-             self.shape, node_status=node_status)
-
-        (self._node_active_outlink_matrix2,
-         self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix2(
              self.shape, node_status=node_status)
 
     def _reset_link_status_list(self):
@@ -2253,13 +2253,13 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=int8)
+              dtype=uint8)
         >>> rmg.set_inactive_boundaries(False, True, True, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4],
-              dtype=int8)
+              dtype=uint8)
 
         Notes
         -----
@@ -2308,7 +2308,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         else:
             self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        self._update_links_nodes_cells_to_new_BCs()
+        self.reset_status_at_node()
 
     def set_closed_boundaries_at_grid_edges(self, right_is_closed,
                                             top_is_closed,
@@ -2379,13 +2379,13 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=int8)
+              dtype=uint8)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, False, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
-              dtype=int8)
+              dtype=uint8)
 
         LLCATS: BC SUBSET
         """
@@ -2414,7 +2414,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if left_is_closed:
             self._node_status[left_edge] = CLOSED_BOUNDARY
 
-        self._update_links_nodes_cells_to_new_BCs()
+        self.reset_status_at_node()
 
     def set_fixed_value_boundaries_at_grid_edges(
             self, right_is_fixed_val, top_is_fixed_val, left_is_fixed_val,
@@ -2481,7 +2481,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([4, 4, 4, 4, 4,
                4, 0, 0, 0, 4,
                4, 0, 0, 0, 4,
-               4, 4, 4, 4, 4], dtype=int8)
+               4, 4, 4, 4, 4], dtype=uint8)
         >>> rmg.set_fixed_value_boundaries_at_grid_edges(
         ...     True, True, False, False)
         >>> rmg.number_of_active_links
@@ -2490,7 +2490,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([4, 4, 4, 4, 4,
                4, 0, 0, 0, 1,
                4, 0, 0, 0, 1,
-               1, 1, 1, 1, 1], dtype=int8)
+               1, 1, 1, 1, 1], dtype=uint8)
 
         Note that the four corners are treated as follows:
 
@@ -2529,7 +2529,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if left_is_fixed_val:
             self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
 
-        self._update_links_nodes_cells_to_new_BCs()
+        self.reset_status_at_node()
 
         # save some internal data to speed updating:
         self.fixed_value_node_properties = {}
@@ -2615,7 +2615,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=int8)
+              dtype=uint8)
         >>> rmg.add_zeros('topographic__elevation', at='node')
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
@@ -2663,7 +2663,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 these_linked_nodes,
                 right_edge - 1, left_edge + 1))
 
-        self._update_links_nodes_cells_to_new_BCs()
+        self.reset_status_at_node()
 
         if not self.looped_node_properties:
             existing_IDs = np.array([])
@@ -2768,8 +2768,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         horizontal_links = squad_links.is_horizontal_link(
             self.shape, active_links)
 
-        diffs = (node_values[self._activelink_tonode] -
-                 node_values[self._activelink_fromnode])
+        diffs = np.diff(node_values[self.nodes_at_link[self.active_links]],
+                        axis=1)
 
         diffs[vertical_links] /= self.dy
         diffs[horizontal_links] /= self.dx
@@ -2779,7 +2779,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             node_values[self.nodes_at_diagonal[self.active_diagonals]],
             axis=1) / diag_dist
 
-        return np.concatenate((diffs, diagonal_link_slopes.flatten()))
+        return np.concatenate((diffs.flatten(),
+                               diagonal_link_slopes.flatten()))
 
     def _calculate_gradients_at_d8_links(self, node_values):
         """Calculate gradients over all D8 links.
@@ -3843,6 +3844,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._looped_second_ring_cell_neighbor_list_created = True
         return second_ring
 
+    # This is deprecated as link status should only be changed by
+    # changing node status.
+    @deprecated(use='grid.status_at_node', version='1.0')
     def set_fixed_link_boundaries_at_grid_edges(
             self, right_is_fixed, top_is_fixed, left_is_fixed, bottom_is_fixed,
             link_value=None, node_value=None,
@@ -3963,11 +3967,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
-               0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=int8)
+               0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=uint8)
         >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
         array([4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 0, 0,
                0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 2,
-               4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4])
+               4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4], dtype=uint8)
         >>> rmg.fixed_link_properties['fixed_gradient_of']
         'topographic__slope'
         >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
@@ -3985,6 +3989,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # are met, we store link and node boundary IDs in arrays...
         fixed_nodes = np.array([])
         fixed_links = np.array([])
+
+        # If the _status_at_link array hasn't been created, create it.
+        try:
+            self._status_at_link
+        except AttributeError:
+            self.status_at_link
 
         # Based on the inputs, we then assign boundary status. Starting
         # from the right edge (east edge) we look to see if the boolean input
@@ -4262,7 +4272,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> out_id
         array([10])
         >>> rmg.status_at_node
-        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
         >>> rmg2 = RasterModelGrid((4,4),1.)
         >>> node_data2 = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67.,    -2.,
@@ -4270,7 +4280,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ...                      -9999., -9999., -9999., -9999.])
         >>> rmg2.set_watershed_boundary_condition(node_data2, -9999.)
         >>> rmg2.status_at_node
-        array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=int8)
+        array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
 
         LLCATS: BC
         """
@@ -4426,7 +4436,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([[4, 4, 4, 4, 4, 4],
               [4, 0, 0, 4, 0, 4],
               [4, 0, 1, 4, 4, 4],
-              [4, 4, 4, 4, 4, 4]], dtype=int8)
+              [4, 4, 4, 4, 4, 4]], dtype=uint8)
         >>> mg2.set_open_nodes_disconnected_from_watershed_to_closed(z2)
         >>> np.allclose(mg1.status_at_node, mg2.status_at_node)
         True
@@ -4436,7 +4446,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([[4, 4, 4, 4, 4, 4],
                [4, 0, 0, 4, 4, 4],
                [4, 0, 1, 4, 4, 4],
-               [4, 4, 4, 4, 4, 4]], dtype=int8)
+               [4, 4, 4, 4, 4, 4]], dtype=uint8)
         >>> z1.reshape(mg1.shape)
         array([[-9999., -9999., -9999., -9999., -9999., -9999.],
                [-9999.,    67.,    67., -9999., -9999., -9999.],
@@ -4562,7 +4572,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
         >>> rmg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> node_data = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
@@ -4570,7 +4580,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> rmg.set_watershed_boundary_condition_outlet_coords(
         ...     (2, 2), node_data, -9999.)
         >>> rmg.status_at_node
-        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
 
         LLCATS: BC
         """
@@ -4631,7 +4641,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
         >>> rmg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> node_data = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
@@ -4639,7 +4649,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> outlet = rmg.set_watershed_boundary_condition_outlet_id(
         ...     10, node_data, -9999.)
         >>> rmg.status_at_node
-        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=int8)
+        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
 
         LLCATS: BC
         """
