@@ -940,24 +940,34 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
     @property
     @return_readonly_id_array
+    @cache_result_in_object()
     def fixed_value_boundary_nodes(self):
         """Get array of fixed value boundary nodes.
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_right_edge,
-        ...              mg.nodes_at_bottom_edge):
-        ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
-        >>> mg.fixed_value_boundary_nodes
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), 1.)
+
+        Initially all the perimeter nodes are fixed value boundary.
+
+        >>> grid.fixed_value_boundary_nodes
+        array([ 0,  1,  2,  3,  4, 5,  9, 10, 14, 15, 16, 17, 18, 19])
+
+        Set left, right, and bottom edges to closed.
+
+        >>> for edge in (grid.nodes_at_left_edge, grid.nodes_at_right_edge,
+        ...              grid.nodes_at_bottom_edge):
+        ...     grid.status_at_node[edge] = grid.BC_NODE_IS_CLOSED
+
+        Now nodes on just the top edge are fixed.
+
+        >>> grid.fixed_value_boundary_nodes
         array([16, 17, 18])
 
         LLCATS: NINF BC
         """
-        (fixed_value_boundary_node_ids, ) = numpy.where(
-            self._node_status == FIXED_VALUE_BOUNDARY)
-        return fixed_value_boundary_node_ids
+        return numpy.where(self._node_status == FIXED_VALUE_BOUNDARY)[0]
 
     @property
     @return_readonly_id_array
@@ -3120,7 +3130,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         attrs = ['_active_link_dirs_at_node', '_status_at_link',
                  '_active_links', '_fixed_links', '_activelink_fromnode',
                  '_activelink_tonode', '_active_faces', '_core_nodes',
-                 '_core_cells', '_fixed_links', '_active_neighbors_at_node']
+                 '_core_cells', '_fixed_links', '_active_neighbors_at_node',
+                 '_fixed_value_boundary_nodes', ]
 
         for attr in attrs:
             try:
