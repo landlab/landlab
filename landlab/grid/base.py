@@ -1038,22 +1038,32 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         return np.where(self.status_at_link == FIXED_LINK)[0]
 
     @property
+    @cache_result_in_object()
     @return_readonly_id_array
     def node_at_core_cell(self):
         """Get array of nodes associated with core cells.
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> mg.status_at_node[8] = CLOSED_BOUNDARY
-        >>> mg.node_at_core_cell
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5), 1.)
+
+        Initially each cell's node is core.
+
+        >>> grid.node_at_core_cell
+        array([ 6,  7,  8,
+               11, 12, 13])
+
+        Setting a node to closed causes means its cell is also
+        "closed".
+
+        >>> grid.status_at_node[8] = grid.BC_NODE_IS_CLOSED
+        >>> grid.node_at_core_cell
         array([ 6,  7, 11, 12, 13])
 
         LLCATS: NINF CINF BC CONN
         """
-        (core_cell_ids, ) = numpy.where(self._node_status == CORE_NODE)
-        return core_cell_ids
+        return numpy.where(self.status_at_node == CORE_NODE)[0]
 
     @property
     @make_return_array_immutable
@@ -3131,7 +3141,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                  '_active_links', '_fixed_links', '_activelink_fromnode',
                  '_activelink_tonode', '_active_faces', '_core_nodes',
                  '_core_cells', '_fixed_links', '_active_neighbors_at_node',
-                 '_fixed_value_boundary_nodes', ]
+                 '_fixed_value_boundary_nodes', '_node_at_core_cell']
 
         for attr in attrs:
             try:
