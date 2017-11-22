@@ -377,18 +377,8 @@ class DiagonalsMixIn(object):
 
     @property
     @cache_result_in_object()
-    def diagonal_status_at_node(self):
-        return self.status_at_diagonal[self.diagonals_at_node]
-
-    @property
-    @cache_result_in_object()
     def nodes_at_diagonal(self):
         return create_nodes_at_diagonal(self.shape)
-
-    @property
-    @cache_result_in_object(cache_as='_status_at_diagonal')
-    def status_at_diagonal(self):
-        return set_status_at_link(self.status_at_node[self.nodes_at_diagonal])
 
     @property
     @cache_result_in_object()
@@ -400,12 +390,6 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     def nodes_at_d8(self):
         return np.vstack((self.nodes_at_link, self.nodes_at_diagonal))
-
-    @property
-    @cache_result_in_object()
-    def status_at_d8(self):
-        return np.hstack((super(DiagonalsMixIn, self).status_at_link,
-                          self.status_at_diagonal))
 
     @property
     @cache_result_in_object()
@@ -462,6 +446,11 @@ class DiagonalsMixIn(object):
                           self.diagonal_dirs_at_node))
 
     @property
+    # @cache_result_in_object()
+    def d8_status_at_node(self):
+        return self.status_at_d8[self.d8_at_node]
+
+    @property
     @cache_result_in_object()
     def length_of_diagonal(self):
         return np.sqrt(
@@ -500,10 +489,36 @@ class DiagonalsMixIn(object):
         return np.hstack((super(DiagonalsMixIn, self).length_of_link,
                           self.length_of_diagonal))
 
+    @property
+    @cache_result_in_object()
+    def status_at_diagonal(self):
+        return set_status_at_link(self.status_at_node[self.nodes_at_diagonal])
 
-# from .raster import RasterModelGrid
+    @property
+    # @cache_result_in_object()
+    def diagonal_status_at_node(self):
+        return self.status_at_diagonal[self.diagonals_at_node]
 
+    @property
+    def active_diagonals(self):
+        return np.where(self.status_at_diagonal == ACTIVE_LINK)[0]
 
-# class DiagonalRasterModelGrid(DiagonalsMixIn, RasterModelGrid):
+    @property
+    def active_diagonal_dirs_at_node(self):
+        return np.choose(self.diagonal_status_at_node == ACTIVE_LINK,
+                         (0, self.diagonal_dirs_at_node))
 
-#     pass
+    @property
+    @cache_result_in_object()
+    def status_at_d8(self):
+        return np.hstack((super(DiagonalsMixIn, self).status_at_link,
+                          self.status_at_diagonal))
+
+    @property
+    def active_d8(self):
+        return np.where(self.status_at_d8 == ACTIVE_LINK)[0]
+
+    @property
+    def active_d8_dirs_at_node(self):
+        return np.choose(self.d8_status_at_node == ACTIVE_LINK,
+                         (0, self.d8_dirs_at_node))
