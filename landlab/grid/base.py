@@ -3107,33 +3107,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         # Set up active inlink and outlink matrices
         self._setup_active_inlink_and_outlink_matrices()
 
-    def _reset_lists_of_nodes_cells(self):
-        """Create of reset lists of nodes and cells based on their status.
-
-        Creates or resets various lists of nodes and cells based on their
-        statuses. Call this function whenever you make changes to the
-        boundary conditions in the grid.
-        The updated attributes and arrays are:
-        * activecell_node *
-        * corecell_node *
-        * core_cells
-        * _boundary_nodes
-
-        Examples
-        --------
-        >>> import landlab
-        >>> grid = landlab.RasterModelGrid((4, 5))
-        >>> grid.status_at_node[7] = landlab.CLOSED_BOUNDARY
-        >>> grid.core_cells
-        array([0, 2, 3, 4, 5])
-        """
-        (self._core_nodes, ) = numpy.where(self._node_status == CORE_NODE)
-
-        self._core_cells = self.cell_at_node[self._core_nodes]
-
-        self._boundary_nodes = as_id_array(
-            numpy.where(self._node_status != CORE_NODE)[0])
-
     def reset_status_at_node(self):
         attrs = ['_active_link_dirs_at_node', '_status_at_link',
                  '_active_links', '_fixed_links', '_activelink_fromnode',

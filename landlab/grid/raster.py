@@ -760,7 +760,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # Flag indicating whether we have created link angles
         self._angle_of_link_created = False
 
-        #   set up the list of active links
+        # set up the list of active links
         self._reset_link_status_list()
 
         # Create 2D array containing, for each node, direction of connected
@@ -1459,14 +1459,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
          self._node_numactiveoutlink) = sgrid.setup_active_outlink_matrix(
              self.shape, node_status=node_status)
 
-    def _reset_link_status_list(self):
-        """Rest the status of links.
+    # def _reset_link_status_list(self):
+    #     """Rest the status of links.
 
-        Assuming the link_status array has already been created elsewhere, this
-        helper method checks link statuses for internal
-        consistency after the BC status of some nodes has been changed.
-        """
-        super(RasterModelGrid, self)._reset_link_status_list()
+    #     Assuming the link_status array has already been created elsewhere, this
+    #     helper method checks link statuses for internal
+    #     consistency after the BC status of some nodes has been changed.
+    #     """
+    #     super(RasterModelGrid, self)._reset_link_status_list()
 
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
@@ -4176,7 +4176,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 'boundary_link_gradients'] = assigned_link_values
 
         self._reset_link_status_list()
-        self._reset_lists_of_nodes_cells()
 
     def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
                                          return_outlet_id=False,
