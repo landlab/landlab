@@ -2,7 +2,8 @@
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 import pickle 
-from nose.tools import assert_equal, assert_dict_equal
+from nose.tools import assert_equal, assert_dict_equal, assert_tuple_equal
+from numpy.testing import assert_array_equal
 import os
 from landlab.io.native_landlab import save_grid, load_grid
 
@@ -65,21 +66,33 @@ def test_pickle():
     with open('testsavedgrid.grid', 'rb') as f:
         mg2 = pickle.load(f)
 
+    os.remove('testsavedgrid.grid')
+
+    assert_tuple_equal(mg1.shape, mg2.shape)
+    assert_tuple_equal((mg1.dy, mg1.dx), (mg2.dy, mg2.dx))
+    assert_array_equal(mg1.status_at_node, mg2.status_at_node)
+    for name in mg1.at_node:
+        assert_array_equal(mg1.at_node[name], mg2.at_node[name])
+
     # compare the two
-    try:
-        len(mg1.__dict__) == len(mg2.__dict__)
-        mg1keys = sorted(list(mg1.__dict__.keys()))
-        mg2keys = sorted(list(mg2.__dict__.keys()))
+    # try:
+    #     len(mg1.__dict__) == len(mg2.__dict__)
+    #     # mg1keys = sorted(list(mg1.__dict__.keys()))
+    #     # mg2keys = sorted(list(mg2.__dict__.keys()))
+    #     mg1keys = set(mg1.__dict__.keys())
+    #     mg2keys = set(mg2.__dict__.keys())
 
-        for i in range(len(mg1keys)):
-            assert_equal(mg1keys[i], mg2keys[i])
+    #     assert_equal(mg1keys - mg2keys, set())
+    #     assert_equal(mg2keys - mg1keys, set())
+    #     # for i in range(len(mg1keys)):
+    #     #     assert_equal(mg1keys[i], mg2keys[i])
 
-        a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
-        assert_equal(a, '')
-    except Exception:
-        raise
-    finally:
-        os.remove('testsavedgrid.grid')
+    #     a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
+    #     assert_equal(a, '')
+    # except Exception:
+    #     raise
+    # finally:
+    #     os.remove('testsavedgrid.grid')
 
 
 def test_save():
@@ -94,18 +107,26 @@ def test_save():
     
     mg2 = load_grid('testsavedgrid.grid')
     
-    # compare the two
-    try:
-        len(mg1.__dict__) == len(mg2.__dict__)
-        mg1keys = sorted(list(mg1.__dict__.keys()))
-        mg2keys = sorted(list(mg2.__dict__.keys()))
-        
-        for i in range(len(mg1keys)):
-            assert_equal(mg1keys[i], mg2keys[i])
+    os.remove('testsavedgrid.grid')
 
-        a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
-        assert_equal(a, '')
-    except Exception:
-        raise
-    finally:
-        os.remove('testsavedgrid.grid')
+    assert_tuple_equal(mg1.shape, mg2.shape)
+    assert_tuple_equal((mg1.dy, mg1.dx), (mg2.dy, mg2.dx))
+    assert_array_equal(mg1.status_at_node, mg2.status_at_node)
+    for name in mg1.at_node:
+        assert_array_equal(mg1.at_node[name], mg2.at_node[name])
+
+    # compare the two
+    # try:
+    #     len(mg1.__dict__) == len(mg2.__dict__)
+    #     mg1keys = sorted(list(mg1.__dict__.keys()))
+    #     mg2keys = sorted(list(mg2.__dict__.keys()))
+        
+    #     for i in range(len(mg1keys)):
+    #         assert_equal(mg1keys[i], mg2keys[i])
+
+    #     a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
+    #     assert_equal(a, '')
+    # except Exception:
+    #     raise
+    # finally:
+    #     os.remove('testsavedgrid.grid')
