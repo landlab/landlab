@@ -414,7 +414,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._initialize(num_rows, num_cols, dx)
                                                  
         super(RasterModelGrid, self).__init__()
-                                                 
+
+        self.nodes_at_d8
+        self.status_at_d8
+
         self.looped_node_properties = {}
 
         # Recreate the state of the grid and the information it new
@@ -469,13 +472,13 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         state_dict['_axis_name'] = self._axis_name
         state_dict['_axis_units'] = self._axis_units
         state_dict['_default_group'] = self._default_group
-        
+
         # save information about things that might have been created
         state_dict['_angle_of_link_created'] = self._angle_of_link_created
         state_dict['_patches_created'] = self._patches_created
         state_dict['neighbor_list_created'] = self.neighbor_list_created
         try:
-            if type(self._forced_cell_areas) == np.ndarray:
+            if isinstance(self._forced_cell_areas, np.ndarray):
                 state_dict['forced_cell_areas_created'] = True
             else:
                 state_dict['forced_cell_areas_created'] = False
