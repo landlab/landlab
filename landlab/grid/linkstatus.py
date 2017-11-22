@@ -17,6 +17,13 @@ FIXED_LINK = 2
 #: Indicates a link is *inactive*, and cannot carry flux
 INACTIVE_LINK = 4
 
+LINK_STATUS_FLAGS_LIST = [
+    ACTIVE_LINK,
+    FIXED_LINK,
+    INACTIVE_LINK,
+]
+LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
+
 
 def is_fixed_link(node_status_at_link):
     """Find links that are fixed.

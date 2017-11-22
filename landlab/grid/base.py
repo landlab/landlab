@@ -29,8 +29,11 @@ from .decorators import (override_array_setitem_and_reset, return_id_array,
                          return_readonly_id_array)
 from ..utils.decorators import cache_result_in_object
 from ..layers.eventlayers import EventLayersMixIn
+from .nodestatus import (CORE_NODE, FIXED_VALUE_BOUNDARY,
+                         FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
+                         CLOSED_BOUNDARY)
+from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
 from .linkstatus import set_status_at_link
-
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
@@ -53,49 +56,6 @@ _ARRAY_LENGTH_ATTRIBUTES = {
 
 # Fields whose sizes can not change.
 _SIZED_FIELDS = {'node', 'link', 'patch', 'corner', 'face', 'cell', }
-
-# Define the boundary-type codes
-
-#: Indicates a node is *core*.
-CORE_NODE = 0
-
-#: Indicates a boundary node is has a fixed values.
-FIXED_VALUE_BOUNDARY = 1
-
-#: Indicates a boundary node is has a fixed gradient.
-FIXED_GRADIENT_BOUNDARY = 2
-
-#: Indicates a boundary node is wrap-around.
-LOOPED_BOUNDARY = 3
-
-#: Indicates a boundary node is closed
-CLOSED_BOUNDARY = 4
-
-# Define the link types
-
-#: Indicates a link is *active*, and can carry flux
-ACTIVE_LINK = 0
-
-#: Indicates a link has a fixed (gradient) value, & behaves as a boundary
-FIXED_LINK = 2
-
-#: Indicates a link is *inactive*, and cannot carry flux
-INACTIVE_LINK = 4
-
-BOUNDARY_STATUS_FLAGS_LIST = [
-    FIXED_VALUE_BOUNDARY,
-    FIXED_GRADIENT_BOUNDARY,
-    LOOPED_BOUNDARY,
-    CLOSED_BOUNDARY,
-]
-BOUNDARY_STATUS_FLAGS = set(BOUNDARY_STATUS_FLAGS_LIST)
-
-LINK_STATUS_FLAGS_LIST = [
-    ACTIVE_LINK,
-    FIXED_LINK,
-    INACTIVE_LINK,
-]
-LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
 
 
 def _sort_points_into_quadrants(x, y, nodes):
