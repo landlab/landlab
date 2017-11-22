@@ -3396,50 +3396,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         except KeyError:
             pass
 
-    # TODO: Remove this.
-    def _update_links_nodes_cells_to_new_BCs(self):
-        """Update grid element connectivity, status.
-
-        This method updates all of the various lists and attributes governed
-        by node status (e.g., core nodes, active links, etc) when you change
-        node statuses. Call it if your method or driver makes changes to the
-        boundary conditions of nodes in the grid.
-        """
-        self._reset_link_status_list()
-        self._reset_lists_of_nodes_cells()
-        self._create_active_faces()
-
-        self._active_link_dirs_at_node[:] = self._link_dirs_at_node[:]
-        inactive_links = (self.status_at_link[self.links_at_node] ==
-                          INACTIVE_LINK)
-        inactive_links[self.link_dirs_at_node == 0] = False
-        self._active_link_dirs_at_node[inactive_links] = 0
-        
-        try:
-            if self.neighbor_list_created:
-                self.neighbor_list_created = False
-        except AttributeError:
-            pass
-        
-        try:
-            self._fixed_grad_links_created
-        except AttributeError:
-            pass
-        else:
-            self._gradient_boundary_node_links()
-            self._create_fixed_gradient_boundary_node_anchor_node()
-        
-        try:
-            if self._patches_created:
-                self._reset_patch_status()
-        except AttributeError:
-            pass
-        
-        try:
-            self.bc_set_code += 1
-        except AttributeError:
-            self.bc_set_code = 0
-
     @deprecated(use='set_nodata_nodes_to_closed', version='0.2')
     def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
         """Make no-data nodes inactive.
