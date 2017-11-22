@@ -295,6 +295,16 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
     axis_units : tuple, optional
         Units of coordinates
     """
+    BC_NODE_IS_CORE = CORE_NODE
+    BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
+    BC_NODE_IS_FIXED_GRADIENT = FIXED_VALUE_BOUNDARY
+    BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
+    BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
+
+    BC_LINK_IS_ACTIVE = ACTIVE_LINK
+    BC_LINK_IS_FIXED = FIXED_LINK
+    BC_LINK_IS_INACTIVE = INACTIVE_LINK
+
     # Debugging flags (if True, activates some output statements)
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False
