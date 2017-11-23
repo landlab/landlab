@@ -9,6 +9,7 @@ from .linkstatus import (is_fixed_link, is_inactive_link, is_active_link,
                          set_status_at_link)
 from ..utils.decorators import (cache_result_in_object,
                                 make_return_array_immutable)
+from .decorators import return_readonly_id_array
 
 
 def create_nodes_at_diagonal(shape, out=None):
@@ -492,11 +493,13 @@ class DiagonalsMixIn(object):
         return self.status_at_diagonal[self.diagonals_at_node]
 
     @property
-    @make_return_array_immutable
+    @cache_result_in_object()
+    @return_readonly_id_array
     def active_diagonals(self):
         return np.where(self.status_at_diagonal == ACTIVE_LINK)[0]
 
     @property
+    @cache_result_in_object()
     @make_return_array_immutable
     def active_diagonal_dirs_at_node(self):
         return np.choose(self.diagonal_status_at_node == ACTIVE_LINK,
@@ -510,11 +513,13 @@ class DiagonalsMixIn(object):
                           self.status_at_diagonal))
 
     @property
-    @make_return_array_immutable
+    @cache_result_in_object()
+    @return_readonly_id_array
     def active_d8(self):
         return np.where(self.status_at_d8 == ACTIVE_LINK)[0]
 
     @property
+    @cache_result_in_object()
     @make_return_array_immutable
     def active_d8_dirs_at_node(self):
         return np.choose(self.d8_status_at_node == ACTIVE_LINK,
