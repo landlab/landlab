@@ -247,9 +247,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # LINKS: set up link unit vectors and node unit-vector sums
         self._create_link_unit_vectors()
 
-        # create link x, y:
-        self._create_link_face_coords()
-
     @property
     def number_of_patches(self):
         """Number of patches.

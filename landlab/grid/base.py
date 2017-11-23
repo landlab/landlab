@@ -350,29 +350,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         #     ModelDataFields.new_field_location(self, loc, size=None)
         ModelDataFields.set_default_group(self, 'node')
 
-    def _create_link_face_coords(self):
-        """Create x, y coordinates for link-face intersections.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4), 1.)
-        >>> mg.x_of_link
-        array([ 0.5,  1.5,  2.5,  0. ,  1. ,  2. ,  3. ,  0.5,  1.5,  2.5,
-                0. ,  1. ,  2. ,  3. ,  0.5,  1.5,  2.5])
-        >>> mg.y_of_link
-        array([ 0. ,  0. ,  0. ,  0.5,  0.5,  0.5,  0.5,  1. ,  1. ,  1. ,
-                1.5,  1.5,  1.5,  1.5,  2. ,  2. ,  2. ])
-        >>> np.all(mg.x_of_link[mg.link_at_face] == mg.x_of_face)
-        True
-        >>> np.all(mg.y_of_link[mg.link_at_face] == mg.y_of_face)
-        True
-        """
-        self._link_x = (self.x_of_node[self.node_at_link_head] +
-                        self.x_of_node[self.node_at_link_tail])/2.
-        self._link_y = (self.y_of_node[self.node_at_link_head] +
-                        self.y_of_node[self.node_at_link_tail])/2.
-
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
 
@@ -1568,6 +1545,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         return self.y_of_node[self.node_at_cell]
 
     @property
+    @cache_result_in_object()
     @make_return_array_immutable
     def x_of_link(self):
         """Get array of the x-coordinates of link midpoints.
@@ -1584,13 +1562,10 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: LINF MEAS
         """
-        try:
-            return self._link_x
-        except AttributeError:
-            self._create_link_face_coords()
-            return self._link_x
+        return np.mean(self.x_of_node[self.nodes_at_link], axis=1)
 
     @property
+    @cache_result_in_object()
     @make_return_array_immutable
     def y_of_link(self):
         """Get array of the y-coordinates of link midpoints.
@@ -1607,13 +1582,10 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: LINF MEAS
         """
-        try:
-            return self._link_y
-        except AttributeError:
-            self._create_link_face_coords()
-            return self._link_y
+        return np.mean(self.y_of_node[self.nodes_at_link], axis=1)
 
     @property
+    @cache_result_in_object()
     @make_return_array_immutable
     def x_of_face(self):
         """Get array of the x-coordinates of face midpoints.
@@ -1629,13 +1601,10 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: FINF MEAS
         """
-        try:
-            return self._link_x[self.link_at_face]
-        except AttributeError:
-            self._create_link_face_coords()
-            return self._link_x[self.link_at_face]
+        return self.x_of_link[self.link_at_face]
 
     @property
+    @cache_result_in_object()
     @make_return_array_immutable
     def y_of_face(self):
         """Get array of the y-coordinates of face midpoints.
@@ -1650,11 +1619,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: FINF MEAS
         """
-        try:
-            return self._link_y[self.link_at_face]
-        except AttributeError:
-            self._create_link_face_coords()
-            return self._link_y[self.link_at_face]
+        return self.y_of_link[self.link_at_face]
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
