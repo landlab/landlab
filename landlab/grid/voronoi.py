@@ -266,10 +266,6 @@ class VoronoiDelaunayGrid(ModelGrid):
                                                    self.node_at_link_tail,
                                                    self.node_at_link_head)
 
-        # LINKS: inlink and outlink matrices
-        # SOON TO BE DEPRECATED
-        self._setup_inlink_and_outlink_matrices()
-
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
         self._reset_link_status_list()

@@ -127,24 +127,28 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> flux_at_node[grid.core_nodes]
     array([ 0., 0., 0., 0., 0., 0.])
     """
-    assert len(active_link_flux) == grid.number_of_active_links, (
-        "incorrect length of active_link_flux array")
+    if len(active_link_flux) != len(grid.active_links):
+        raise ValueError(
+            'input array must be of length number of active links ({0}!={1})'.format(
+                len(active_link_flux), len(grid.active_links)))
 
     # If needed, create net_unit_flux array
     if out is None:
         out = grid.empty(at='node')
     out.fill(0.)
-    net_unit_flux = out
 
-    assert len(net_unit_flux) == grid.number_of_nodes
+    if len(out) != grid.number_of_nodes:
+        raise ValueError(
+            'output array must be of length number of nodes ({0}!={1})'.format(
+                len(out), grid.number_of_nodes))
 
     # Create a flux array one item longer than the number of active links.
     # Populate it with flux times face width (so, total flux rather than
     # unit flux). Here, face_width is an array with one entry for each
     # active link, so we are multiplying the unit flux at each link by the
     # width of its corresponding face.
-    flux = np.zeros(len(active_link_flux) + 1)
-    flux[:len(active_link_flux)] = active_link_flux * grid.width_of_face
+    flux = np.zeros(grid.number_of_links)
+    flux[grid.active_links] = active_link_flux * grid.width_of_face
 
     # Next, we need to add up the incoming and outgoing fluxes.
     #
@@ -156,12 +160,17 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     #       attached to a node, so should be of order 6 or 7 and won't
     #       generally increase with the number of nodes in the grid.
     #
-    for i in range(np.size(grid._node_active_inlink_matrix, 0)):
-        net_unit_flux += flux[grid._node_active_outlink_matrix[i][:]]
-        net_unit_flux -= flux[grid._node_active_inlink_matrix[i][:]]
+    # for i in range(np.size(grid._node_active_inlink_matrix, 0)):
+    #     net_unit_flux += flux[grid._node_active_outlink_matrix[i][:]]
+    #     net_unit_flux -= flux[grid._node_active_inlink_matrix[i][:]]
+
+    out[:] = (
+        flux[grid.links_at_node] * (- grid.active_link_dirs_at_node)
+    ).sum(axis=1)
+    out[grid.node_at_cell] /= grid.area_of_cell
 
     # Now divide by cell areas ... where there are core cells.
-    node_at_active_cell = grid.node_at_cell[grid.core_cells]
-    net_unit_flux[node_at_active_cell] /= grid.area_of_cell[grid.core_cells]
+    # node_at_active_cell = grid.node_at_cell[grid.core_cells]
+    # net_unit_flux[node_at_active_cell] /= grid.area_of_cell[grid.core_cells]
 
-    return net_unit_flux
+    return out

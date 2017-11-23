@@ -344,11 +344,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
 
-    # : Nodes on the other end of links pointing into a node.
-    _node_inlink_matrix = numpy.array([], dtype=numpy.int32)
-    # : Nodes on the other end of links pointing out of a node.
-    _node_outlink_matrix = numpy.array([], dtype=numpy.int32)
-
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
@@ -359,10 +354,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
-        self._node_unit_vector_sum_x = None
-        self._node_unit_vector_sum_y = None
-        self._link_unit_vec_x = None
-        self._link_unit_vec_y = None
         self.bc_set_code = 0
 
         # Sort links according to the x and y coordinates of their midpoints.
@@ -1856,110 +1847,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         inactive_links[self.link_dirs_at_node == 0] = False
         self._active_link_dirs_at_node[inactive_links] = 0
 
-    @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
-                version=1.0)
-    def _active_links_at_node(self, *args):
-        """_active_links_at_node([node_ids])
-        Active links of a node.
-
-        Parameters
-        ----------
-        node_ids : int or list of ints
-                   ID(s) of node(s) for which to find connected active links
-
-        Returns
-        -------
-        (M, N) ndarray
-            The ids of active links attached to grid nodes with
-            *node_ids*. If *node_ids* is not given, return links for all of
-            the nodes in the grid. M is the number of rows in the grid's
-            _node_active_inlink_matrix, which can vary depending on the type
-            and structure of the grid; in a hex grid, for example, it is 6.
-
-        Notes
-        -----
-        On it's way to being obsolete. **Deprecated**.
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        if len(args) == 0:
-            return numpy.vstack((self._node_active_inlink_matrix,
-                                 self._node_active_outlink_matrix))
-        elif len(args) == 1:
-            node_ids = numpy.broadcast_arrays(args[0])[0]
-            return numpy.vstack(
-                (self._node_active_inlink_matrix[:, node_ids],
-                 self._node_active_outlink_matrix[:, node_ids])
-            ).reshape(2 * numpy.size(self._node_active_inlink_matrix, 0), -1)
-        else:
-            raise ValueError('only zero or one arguments accepted')
-
-    @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
-                version=1.0)
-    def _active_links_at_node2(self, *args):
-        """_active_links_at_node2([node_ids])
-        Get active links attached to nodes.
-
-        Parameters
-        ----------
-        node_ids : int or list of ints (optional)
-                   ID(s) of node(s) for which to find connected active links.
-                   (Default: all nodes)
-
-        Returns
-        -------
-        (M, N) ndarray
-            The link IDs of active links attached to grid nodes with
-            *node_ids*. If *node_ids* is not given, return links for all of
-            the nodes in the grid. M is the number of rows in the grid's
-            _node_active_inlink_matrix, which can vary depending on the type
-            and structure of the grid; in a hex grid, for example, it is 6.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(3, 2)
-        >>> hmg._active_links_at_node2(3)
-        array([[ 2],
-               [ 3],
-               [ 5],
-               [-1],
-               [-1],
-               [-1],
-               [ 6],
-               [ 8],
-               [ 9],
-               [-1],
-               [-1],
-               [-1]])
-        >>> hmg._active_links_at_node2()
-        array([[-1, -1, -1,  2,  6,  8,  9],
-               [-1, -1, -1,  3, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [ 2,  3,  5,  6, -1, -1, -1],
-               [-1, -1, -1,  8, -1, -1, -1],
-               [-1, -1, -1,  9, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1]])
-
-       LLCATS: DEPR NINF LINF CONN
-        """
-        if len(args) == 0:
-            return numpy.vstack((self._node_active_inlink_matrix2,
-                                 self._node_active_outlink_matrix2))
-        elif len(args) == 1:
-            node_ids = numpy.broadcast_arrays(args[0])[0]
-            return numpy.vstack(
-                (self._node_active_inlink_matrix2[:, node_ids],
-                 self._node_active_outlink_matrix2[:, node_ids])
-            ).reshape(2 * numpy.size(self._node_active_inlink_matrix2, 0), -1)
-        else:
-            raise ValueError('only zero or one arguments accepted')
-
     @property
     @make_return_array_immutable
     def angle_of_link(self):
@@ -3266,10 +3153,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self._activelink_fromnode = self.node_at_link_tail[active_links]
         self._activelink_tonode = self.node_at_link_head[active_links]
 
-        # Set up active inlink and outlink matrices
-        self._setup_active_inlink_and_outlink_matrices()
-        #self._create_links_and_link_dirs_at_node()
-
     def _reset_lists_of_nodes_cells(self):
         """Create of reset lists of nodes and cells based on their status.
 
@@ -3601,162 +3484,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self._active_faces = self.face_at_link[self.active_links]
         return self._active_faces
 
-    @deprecated(use='no replacement', version=1.0)
-    def _setup_inlink_and_outlink_matrices(self):
-        """Create data structured for number of inlinks and outlinks.
-
-        Creates data structures to record the numbers of inlinks and outlinks
-        for each node. An inlink of a node is simply a link that has the
-        node as its "to" node, and an outlink is a link that has the node
-        as its "from".
-
-        We store the inlinks in an NM-row by num_nodes-column matrix called
-        _node_inlink_matrix. NM is the maximum number of neighbors for any node.
-
-        We also keep track of the total number of inlinks and outlinks at each
-        node in the num_inlinks and num_outlinks arrays.
-
-        The inlink and outlink matrices are useful in numerical calculations.
-        Each row of each matrix contains one inlink or outlink per node. So, if
-        you have a corresponding "flux" matrix, you can map incoming or
-        outgoing fluxes onto the appropriate nodes. More information on this is
-        in the various calculate_flux_divergence... functions.
-
-        What happens if a given node does not have two inlinks or outlinks? We
-        simply put the default value -1 in this case. This allows us to use a
-        cute little trick when computing inflows and outflows. We make our
-        "flux" array one element longer than the number of links, with the last
-        element containing the value 0. Thus, any time we add an influx from
-        link number -1, Python takes the value of the last element in the
-        array, which is zero. By doing it this way, we maintain the efficiency
-        that comes with the use of numpy. Again, more info can be found in the
-        description of the flux divergence functions.
-        """
-
-        # Find the maximum number of neighbors for any node
-        num_nbrs = self._calc_numbers_of_node_neighbors()
-        self.max_num_nbrs = numpy.amax(num_nbrs)
-
-        # Create active in-link and out-link matrices.
-        self._node_inlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self._node_outlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-
-        # Set up the inlink arrays
-        tonodes = self.node_at_link_head
-        self._node_numinlink = numpy.bincount(tonodes,
-                                             minlength=self.number_of_nodes)
-
-        counts = count_repeated_values(self.node_at_link_head)
-        for (count, (tonodes, link_ids)) in enumerate(counts):
-            self._node_inlink_matrix[count][tonodes] = link_ids
-
-        # Set up the outlink arrays
-        fromnodes = self.node_at_link_tail
-        self._node_numoutlink = numpy.bincount(fromnodes,
-                                              minlength=self.number_of_nodes)
-        counts = count_repeated_values(self.node_at_link_tail)
-        for (count, (fromnodes, link_ids)) in enumerate(counts):
-            self._node_outlink_matrix[count][fromnodes] = link_ids
-
-    @deprecated(use='no replacement', version=1.0)
-    def _setup_active_inlink_and_outlink_matrices(self):
-        """Create data structures for number of active inlinks and outlinks.
-
-        Creates data structures to record the numbers of active inlinks and
-        active outlinks for each node. These data structures are equivalent to
-        the "regular" inlink and outlink matrices, except that it uses the IDs
-        of active links (only).
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 2)
-        >>> hg._node_numactiveinlink
-        array([0, 0, 0, 3, 1, 1, 1])
-        >>> hg._node_active_inlink_matrix2
-        array([[-1, -1, -1,  2,  6,  8,  9],
-               [-1, -1, -1,  3, -1, -1, -1],
-               [-1, -1, -1,  5, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1]])
-        >>> hg._node_numactiveoutlink
-        array([1, 1, 1, 3, 0, 0, 0])
-        >>> hg._node_active_outlink_matrix2
-        array([[ 2,  3,  5,  6, -1, -1, -1],
-               [-1, -1, -1,  8, -1, -1, -1],
-               [-1, -1, -1,  9, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1, -1, -1, -1]])
-        """
-        # Create active in-link and out-link matrices.
-        self._node_active_inlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self._node_active_outlink_matrix = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-
-        # Set up the inlink arrays
-        tonodes = self._activelink_tonode
-        self._node_numactiveinlink = as_id_array(numpy.bincount(
-            tonodes, minlength=self.number_of_nodes))
-
-        counts = count_repeated_values(self._activelink_tonode)
-        for (count, (tonodes, active_link_ids)) in enumerate(counts):
-            self._node_active_inlink_matrix[count][tonodes] = active_link_ids
-
-        # Set up the outlink arrays
-        fromnodes = self._activelink_fromnode
-        self._node_numactiveoutlink = as_id_array(numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes))
-        counts = count_repeated_values(self._activelink_fromnode)
-        for (count, (fromnodes, active_link_ids)) in enumerate(counts):
-            self._node_active_outlink_matrix[count][fromnodes] = active_link_ids
-
-        # THE FOLLOWING IS MEANT TO REPLACE THE ABOVE CODE, USING LINK IDS
-        # FOR ACTIVE LINKS (ONLY), INSTEAD OF "ACTIVE LINK IDS". THE POINT IS
-        # TO HAVE JUST ONE ID/NUMBERING SYSTEM FOR LINKS, RATHER THAN A
-        # SEPARATE NUMBERING SYSTEM FOR ACTIVE LINKS
-        # GT JUNE 2015
-        # TODO: CLEAN THIS UP
-
-        # Create AN ALTERNATIVE VERSION OF active in-link and out-link
-        # matrices, WHICH WILL EVENTUALLY REPLACE THE ONE ABOVE (AND BE
-        # RENAMED TO GET RID OF THE "2")
-        # TODO: MAKE THIS CHANGE ONCE CODE THAT USES IT HAS BEEN PREPPED
-        self._node_active_inlink_matrix2 = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-        self._node_active_outlink_matrix2 = - numpy.ones(
-            (self.max_num_nbrs, self.number_of_nodes), dtype=numpy.int)
-
-        # Set up the inlink arrays
-        tonodes = self.node_at_link_head[self.active_links]
-        self._node_numactiveinlink = as_id_array(numpy.bincount(
-            tonodes, minlength=self.number_of_nodes))
-
-        # OK, HERE WE HAVE TO MAKE A CHANGE, BECAUSE THE INDICES RETURNED BY
-        # count_repeated_values ARE "ACTIVE LINK INDICES", WHICH WE ARE NO
-        # LONGER USING. HAVE TO TURN THESE BACK INTO LINK IDS. I THINK WE CAN
-        # DO THIS BY CHANGING active_link_ids TO
-        # self.active_links[active_link_ids] BUT HAVEN'T MADE THIS CHANGE YET.
-        # NEED TO WORK THROUGH EXAMPLE 3,2 HMG
-        counts = count_repeated_values(
-            self.node_at_link_head[self.active_links])
-        for (count, (tonodes, active_link_ids)) in enumerate(counts):
-            self._node_active_inlink_matrix2[count][
-                tonodes] = self.active_links[active_link_ids]
-
-        # Set up the outlink arrays
-        fromnodes = self.node_at_link_tail[self.active_links]
-        self._node_numactiveoutlink = as_id_array(numpy.bincount(
-            fromnodes, minlength=self.number_of_nodes))
-        counts = count_repeated_values(self._activelink_fromnode)
-        for (count, (fromnodes, active_link_ids)) in enumerate(counts):
-            self._node_active_outlink_matrix2[count][
-                fromnodes] = self.active_links[active_link_ids]
-
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
 
@@ -3800,107 +3527,88 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         >>> import landlab as ll
         >>> hmg = ll.HexModelGrid(3, 2, 2.0)
-        >>> hmg.link_unit_vec_x # doctest: +NORMALIZE_WHITESPACE
+        >>> hmg.unit_vector_at_link[:, 0] # doctest: +NORMALIZE_WHITESPACE
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
-                1. ,  0. ])
-        >>> hmg.link_unit_vec_y
+                1. ])
+        >>> hmg.unit_vector_at_link[:, 1]
         array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
                 0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
-                0.8660254,  0.       ,  0.       ])
-        >>> hmg.node_unit_vector_sum_x
+                0.8660254,  0.       ])
+        >>> hmg.unit_vector_at_node[:, 0]
         array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
-        >>> hmg.node_unit_vector_sum_y
+        >>> hmg.unit_vector_at_node[:, 1]
         array([ 1.73205081,  1.73205081,  1.73205081,  3.46410162,  1.73205081,
                 1.73205081,  1.73205081])
         """
-        # Create the arrays for unit vectors for each link. These each get an
-        # additional array element at the end with the value zero. This allows
-        # any references to "link ID -1" in the _node_inlink_matrix and
-        # _node_outlink_matrix to refer to the zero value in this extra element,
-        # so that when we're summing up link unit vectors, or multiplying by a
-        # nonexistent unit vector, we end up just treating these as zero.
-        self._link_unit_vec_x = numpy.zeros(self.number_of_links + 1)
-        self._link_unit_vec_y = numpy.zeros(self.number_of_links + 1)
+        nodes_at_link = ((self.node_at_link_tail, self.node_at_link_head), )
 
-        # Calculate the unit vectors using triangle similarity and the
-        # Pythagorean Theorem.
-        dx = self.node_x[self.node_at_link_head] - \
-            self.node_x[self.node_at_link_tail]
-        dy = self.node_y[self.node_at_link_head] - \
-            self.node_y[self.node_at_link_tail]
-        self._link_unit_vec_x[:self.number_of_links] = dx / self.length_of_link
-        self._link_unit_vec_y[:self.number_of_links] = dy / self.length_of_link
+        unit_vec_at_link = np.zeros((self.number_of_links + 1, 2), dtype=float)
+        unit_vec_at_link[:-1, 0] = np.diff(self.x_of_node[nodes_at_link],
+                                           axis=0) / self.length_of_link
+        unit_vec_at_link[:-1, 1] = np.diff(self.y_of_node[nodes_at_link],
+                                           axis=0) / self.length_of_link
 
-        # While we're at it, calculate the unit vector sums for each node.
-        # These will be useful in averaging link-based vectors at the nodes.
-        self._node_unit_vector_sum_x = numpy.zeros(self.number_of_nodes)
-        self._node_unit_vector_sum_y = numpy.zeros(self.number_of_nodes)
-        max_num_inlinks_per_node = numpy.size(self._node_inlink_matrix, 0)
-        for i in range(max_num_inlinks_per_node):
-            self._node_unit_vector_sum_x += abs(
-                self._link_unit_vec_x[self._node_inlink_matrix[i, :]])
-            self._node_unit_vector_sum_y += abs(
-                self._link_unit_vec_y[self._node_inlink_matrix[i, :]])
-            self._node_unit_vector_sum_x += abs(
-                self._link_unit_vec_x[self._node_outlink_matrix[i, :]])
-            self._node_unit_vector_sum_y += abs(
-                self._link_unit_vec_y[self._node_outlink_matrix[i, :]])
+        self._unit_vec_at_node = np.abs(unit_vec_at_link[self.links_at_node]).sum(axis=1)
+        self._unit_vec_at_link = unit_vec_at_link[:-1, :]
 
     @property
-    def unit_vector_xcomponent_at_link(self):
-        """Get array of x-component of unit vector for links.
+    def unit_vector_at_link(self):
+        """Get a unit vector for each link.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.unit_vector_xcomponent_at_link) == grid.number_of_links + 1
-        True
-        >>> grid.unit_vector_xcomponent_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([ 1.,  1.,  0.,  0.,  0.,
-                1.,  1.,  0.,  0.,  0.,  1.,  1.,  0.])
+        >>> grid.unit_vector_at_link # doctest: +NORMALIZE_WHITESPACE
+        array([[ 1.,  0.],
+               [ 1.,  0.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 1.,  0.],
+               [ 1.,  0.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 0.,  1.],
+               [ 1.,  0.],
+               [ 1.,  0.]])
 
         LLCATS: LINF MEAS
         """
-        if self._link_unit_vec_x is None:
+        try:
+            self._unit_vec_at_link
+        except AttributeError:
             self._create_link_unit_vectors()
-        return self._link_unit_vec_x
+        finally:
+            return self._unit_vec_at_link
 
     @property
-    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
-    def link_unit_vec_x(self):
-        """
-        LLCATS: DEPR LINF MEAS
-        """
-        return self.unit_vector_xcomponent_at_link
-
-    @property
-    def unit_vector_ycomponent_at_link(self):
-        """Get array of y-component of unit vector for links.
+    def unit_vector_at_node(self):
+        """Get a unit vector for each node.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 3))
-        >>> len(grid.unit_vector_ycomponent_at_link) == grid.number_of_links + 1
-        True
-        >>> grid.unit_vector_ycomponent_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.,  0.,  1.,  1.,  1.,
-                0.,  0.,  1.,  1.,  1.,  0.,  0.,  0.])
+        >>> grid.unit_vector_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 1.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.],
+               [ 1.,  2.],
+               [ 2.,  2.],
+               [ 1.,  2.],
+               [ 1.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.]])
 
         LLCATS: LINF MEAS
         """
-        if self._link_unit_vec_y is None:
+        try:
+            self._unit_vec_at_node
+        except AttributeError:
             self._create_link_unit_vectors()
-        return self._link_unit_vec_y
-
-    @property
-    @deprecated(use='unit_vector_xcomponent_at_link', version='0.5')
-    def link_unit_vec_y(self):
-        """
-        LLCATS: DEPR LINF MEAS
-        """
-        return self.unit_vector_ycomponent_at_link
+        finally:
+            return self._unit_vec_at_node
 
     @property
     def unit_vector_sum_xcomponent_at_node(self):
@@ -3917,17 +3625,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: NINF MEAS
         """
-        if self._node_unit_vector_sum_x is None:
-            self._create_link_unit_vectors()
-        return self._node_unit_vector_sum_x
-
-    @property
-    @deprecated(use='unit_vector_sum_xcomponent_at_node', version='0.5')
-    def node_unit_vector_sum_x(self):
-        """
-        LLCATS: DEPR NINF MEAS
-        """
-        return self.unit_vector_sum_xcomponent_at_node
+        return self.unit_vector_at_node[:, 0]
 
     @property
     def unit_vector_sum_ycomponent_at_node(self):
@@ -3944,20 +3642,10 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: NINF MEAS
         """
-        if self._node_unit_vector_sum_y is None:
-            self._create_link_unit_vectors()
-        return self._node_unit_vector_sum_y
-
-    @property
-    @deprecated(use='unit_vector_sum_ycomponent_at_node', version='0.5')
-    def node_unit_vector_sum_y(self):
-        """
-        LLCATS: DEPR NINF MEAS
-        """
-        return self.unit_vector_sum_ycomponent_at_node
+        return self.unit_vector_at_node[:, 1]
 
     def map_link_vector_to_nodes(self, q):
-        r"""Map data defined on links to nodes.
+        """Map data defined on links to nodes.
 
         Given a variable defined on links, breaks it into x and y components
         and assigns values to nodes by averaging each node's attached links.
@@ -4029,6 +3717,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         sum at a given node.
 
         .. math::
+
             U_i = \sum_{j=1}^{L_i} q_j m_j / S_{xi}
             V_i = \sum_{j=1}^{L_i} q_j n_j / S_{yi}
 
@@ -4079,33 +3768,58 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
         :math:`(1,1)`.
 
-        >>> import numpy as np
-        >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid((3, 4), spacing=(2., 2.))
-        >>> rmg.node_unit_vector_sum_x
-        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
-        >>> rmg.node_unit_vector_sum_y
-        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
-        >>> q = np.ones(rmg.number_of_links)
-        >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
-        >>> nvx
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
-        >>> nvy
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4), spacing=(2., 2.))
+        >>> grid.unit_vector_at_node
+        array([[ 1.,  1.],
+               [ 2.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.],
+               [ 1.,  2.],
+               [ 2.,  2.],
+               [ 2.,  2.],
+               [ 1.,  2.],
+               [ 1.,  1.],
+               [ 2.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.]])
+        >>> q = grid.ones(at='link')
+        >>> grid.map_link_vector_to_nodes(q)
+        array([[ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.],
+               [ 1.,  1.]])
 
         **Example 2**
 
         Vector magnitude is 5, angle is 30 degrees from horizontal,
         forming a 3-4-5 triangle.
 
+        >>> import numpy as np
         >>> q = np.array([4., 4., 4., 3., 3., 3., 3.,
         ...               4., 4., 4., 3., 3., 3., 3.,
         ...               4., 4., 4])
-        >>> nvx, nvy = rmg.map_link_vector_to_nodes(q)
-        >>> nvx
-        array([ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.])
-        >>> nvy
-        array([ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
+        >>> grid.map_link_vector_to_nodes(q)
+        array([[ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.],
+               [ 4.,  3.]])
 
         ..todo::
 
@@ -4118,12 +3832,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         LLCATS: NINF LINF CONN MAP
         """
-
-        # Create the arrays to hold the node-based values of the x and y
-        # components of the vector (q)
-        node_vec_x = numpy.zeros(self.number_of_nodes)
-        node_vec_y = numpy.zeros(self.number_of_nodes)
-
         # Break the link-based vector input variable, q, into x- and
         # y-components.
         # Notes:
@@ -4134,27 +3842,16 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         #   2) This requires memory allocation. Because this function might be
         #       called repeatedly, it would be good to find a way to
         #       pre-allocate to improve speed.
-        qx = numpy.zeros(self.number_of_links + 1)
-        qy = numpy.zeros(self.number_of_links + 1)
-        qx[:self.number_of_links] = q * \
-            self.link_unit_vec_x[:self.number_of_links]
-        qy[:self.number_of_links] = q * \
-            self.link_unit_vec_y[:self.number_of_links]
+        qx = q * self.unit_vector_at_link[:, 0]
+        qy = q * self.unit_vector_at_link[:, 1]
 
-        # Loop over each row in the _node_inlink_matrix and _node_outlink_matrix.
-        # This isn't a big loop! In a raster grid, these have only two rows
-        # each; in an unstructured grid, it depends on the grid geometry;
-        # for a hex grid, there are up to 6 rows.
-        n_matrix_rows = numpy.size(self._node_inlink_matrix, 0)
-        for i in range(n_matrix_rows):
-            node_vec_x += qx[self._node_inlink_matrix[i, :]]
-            node_vec_x += qx[self._node_outlink_matrix[i, :]]
-            node_vec_y += qy[self._node_inlink_matrix[i, :]]
-            node_vec_y += qy[self._node_outlink_matrix[i, :]]
-        node_vec_x /= self.node_unit_vector_sum_x
-        node_vec_y /= self.node_unit_vector_sum_y
+        active_links_at_node = self.link_dirs_at_node != 0
+        unit_vec_at_node = np.empty((self.number_of_nodes, 2), dtype=float)
+        unit_vec_at_node[:, 0] = (qx[self.links_at_node] * active_links_at_node).sum(axis=1)
+        unit_vec_at_node[:, 1] = (qy[self.links_at_node] * active_links_at_node).sum(axis=1)
 
-        return node_vec_x, node_vec_y
+        return np.divide(unit_vec_at_node, self.unit_vector_at_node,
+                         out=unit_vec_at_node)
 
     @deprecated(use='plot.imshow_grid', version=1.0)
     def display_grid(self, draw_voronoi=False):
