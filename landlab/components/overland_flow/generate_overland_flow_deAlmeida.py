@@ -751,7 +751,7 @@ def find_active_neighbors_for_fixed_links(grid):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 1,
            2, 0, 0, 0, 1,
-           2, 1, 1, 1, 1], dtype=int8)
+           2, 1, 1, 1, 1], dtype=uint8)
 
     >>> grid.fixed_links
     array([ 5,  6,  7,  9, 18])

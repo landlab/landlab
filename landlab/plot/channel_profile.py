@@ -61,7 +61,7 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs,
         total_distance = 0.
         data_store.append(total_distance)
         for j in range(len(profile_IDs[i]) - 1):
-            total_distance += grid._length_of_link_with_diagonals[
+            total_distance += grid.length_of_d8[
                 links_to_flow_receiver[profile_IDs[i][j + 1]]]
             data_store.append(total_distance)
         distances_upstream.append(numpy.array(data_store))
