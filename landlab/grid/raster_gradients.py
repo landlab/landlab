@@ -608,13 +608,13 @@ def _calc_subtriangle_unit_normals_at_node(grid,
 
     # identify the grid neigbors at each location
     I = np.arange(grid.number_of_nodes)
-    P = grid.neighbors_at_node[I, 0]
+    P = grid.adjacent_nodes_at_node[I, 0]
     Q = grid.diagonal_adjacent_nodes_at_node[I, 0]
-    R = grid.neighbors_at_node[I, 1]
+    R = grid.adjacent_nodes_at_node[I, 1]
     S = grid.diagonal_adjacent_nodes_at_node[I, 1]
-    T = grid.neighbors_at_node[I, 2]
+    T = grid.adjacent_nodes_at_node[I, 2]
     U = grid.diagonal_adjacent_nodes_at_node[I, 2]
-    V = grid.neighbors_at_node[I, 3]
+    V = grid.adjacent_nodes_at_node[I, 3]
     W = grid.diagonal_adjacent_nodes_at_node[I, 3]
 
     # get x, y, z coordinates for each location
@@ -1727,7 +1727,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
             z[:-1] = elevs
         # proof code for bad indexing:
         diags = grid.diagonal_neighbors_at_node.copy()  # LL order
-        orthos = grid.neighbors_at_node.copy()
+        orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):
             dirs[dirs == BAD_INDEX_VALUE] = -1  # indexing to work

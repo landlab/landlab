@@ -709,9 +709,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #    self.shape).reshape((-1, ))
         self._core_cells = sgrid.core_cell_index(self.shape)
 
-        self._neighbors_at_node = (
-            sgrid.neighbor_node_ids(self.shape).transpose().copy())
-
         self._links_at_node = squad_links.links_at_node(self.shape)
 
         # Link lists:
@@ -4494,7 +4491,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
             # find all potential new nodes by filtering the nodes connected to
             # the most recent set of new nodes based on their status.
-            connected_orthogonal_nodes = self.neighbors_at_node[newNodes]
+            connected_orthogonal_nodes = self.adjacent_nodes_at_node[newNodes]
             potentialNewNodes=list(connected_orthogonal_nodes[self.status_at_node[connected_orthogonal_nodes]!=CLOSED_BOUNDARY])
 
             # if method is D8 (default), add the diagonal nodes.

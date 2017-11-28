@@ -482,7 +482,7 @@ class DepressionFinderAndRouter(Component):
 
         # Get the neighboring links (and, if applicable, the diagonals)
         links = self._grid.links_at_node[the_node]
-        nbrs = self._grid.neighbors_at_node[the_node]
+        nbrs = self._grid.adjacent_nodes_at_node[the_node]
         if self._D8:
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node[the_node]
         else:
@@ -975,7 +975,7 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[21] = -1
         >>> rcvr[29] = -1
         >>> rcvr[30] = -1
-        >>> nbrs = rg.neighbors_at_node[22]
+        >>> nbrs = rg.adjacent_nodes_at_node[22]
         >>> nbr_links = rg.links_at_node[22]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([30, 21]), array([43, 35]))
@@ -1050,7 +1050,7 @@ class DepressionFinderAndRouter(Component):
 
                 # Get active and unresolved neighbors of cn
                 (nbrs, lnks) = self._find_unresolved_neighbors_new(
-                        self.grid.neighbors_at_node[cn],
+                        self.grid.adjacent_nodes_at_node[cn],
                         self.grid.links_at_node[cn], self.receivers)
 
                 # They will now flow to cn

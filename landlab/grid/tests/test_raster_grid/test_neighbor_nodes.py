@@ -27,7 +27,7 @@ def test_all_neighbors():
         [13, 16, X,  8], [14, 17, 12,  9], [15, 18, 13, 10], [X, 19, 14, 11],
         [17,  X, X, 12], [18,  X, 16, 13], [19,  X, 17, 14], [X,  X, 18, 15],
     ])
-    assert_array_equal(rmg.neighbors_at_node, expected)
+    assert_array_equal(rmg.adjacent_nodes_at_node, expected)
 
 
 def test_active_neighbor_list_with_scalar_arg():
@@ -44,9 +44,9 @@ def test_active_neighbor_list_with_scalar_arg():
 def test_neighbor_list_with_scalar_arg():
     rmg = RasterModelGrid((5, 4))
 
-    assert_array_equal(rmg.neighbors_at_node[6], np.array([7, 10, 5, 2]))
-    assert_array_equal(rmg.neighbors_at_node[-1], np.array([X, X, 18, 15]))
-    assert_array_equal(rmg.neighbors_at_node[-2], np.array([19, X, 17, 14]))
+    assert_array_equal(rmg.adjacent_nodes_at_node[6], np.array([7, 10, 5, 2]))
+    assert_array_equal(rmg.adjacent_nodes_at_node[-1], np.array([X, X, 18, 15]))
+    assert_array_equal(rmg.adjacent_nodes_at_node[-2], np.array([19, X, 17, 14]))
 
 
 def test_active_neighbor_list_with_array_arg():
@@ -57,19 +57,19 @@ def test_active_neighbor_list_with_array_arg():
 
 def test_neighbor_list_with_array_arg():
     rmg = RasterModelGrid(5, 4)
-    assert_array_equal(rmg.neighbors_at_node[(6, -1), :],
+    assert_array_equal(rmg.adjacent_nodes_at_node[(6, -1), :],
                        np.array([[7, 10, 5, 2], [X, X, 18, 15]]))
 
 
 @raises(ValueError)
 def test_neighbor_list_is_read_only():
     rmg = RasterModelGrid(5, 4)
-    rmg.neighbors_at_node[0] = [1, 2, 3, 4]
+    rmg.adjacent_nodes_at_node[0] = [1, 2, 3, 4]
 
 
 def test_neighbors_is_contiguous():
     rmg = RasterModelGrid(5, 4)
-    assert_true(rmg.neighbors_at_node.flags['C_CONTIGUOUS'])
+    assert_true(rmg.adjacent_nodes_at_node.flags['C_CONTIGUOUS'])
 
 
 def test_active_neighbor_list_boundary():

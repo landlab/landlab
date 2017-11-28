@@ -361,7 +361,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
         """
-        self._active_neighbor_nodes = self.neighbors_at_node.copy()
+        self._active_neighbor_nodes = self.adjacent_nodes_at_node.copy()
         self._active_neighbor_nodes[
             self.active_link_dirs_at_node == 0] = BAD_INDEX_VALUE
         self.neighbor_list_created = True
@@ -459,7 +459,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         --------
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
         >>> grid = RasterModelGrid((4, 3))
-        >>> neighbors = grid.neighbors_at_node.copy()
+        >>> neighbors = grid.adjacent_nodes_at_node.copy()
         >>> neighbors[neighbors == BAD_INDEX_VALUE] = -1
         >>> neighbors # doctest: +NORMALIZE_WHITESPACE
         array([[ 1,  3, -1, -1], [ 2,  4,  0, -1], [-1,  5,  1, -1],
@@ -470,10 +470,10 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         LLCATS: NINF CONN
         """
         return self.adjacent_nodes_at_node
-        # return self._neighbors_at_node
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def adjacent_nodes_at_node(self):
         """Get adjacent nodes.
 
@@ -503,7 +503,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         return out
 
     @property
-    @deprecated(version=1.2)
     @cache_result_in_object()
     @return_readonly_id_array
     def active_neighbors_at_node(self):
@@ -876,7 +875,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self._fixed_gradient_boundary_node_links[true_fix_nodes] = (
             neighbor_links[true_connection])
         # resolve any corner nodes
-        neighbor_nodes = self.neighbors_at_node[fix_nodes]  # BAD_INDEX_VALUEs
+        neighbor_nodes = self.adjacent_nodes_at_node[fix_nodes]  # BAD_INDEX_VALUEs
         neighbor_nodes[neighbor_nodes == BAD_INDEX_VALUE] = -1
         fixed_grad_neighbor = np.logical_and((self.status_at_node[
             neighbor_nodes] == FIXED_GRADIENT_BOUNDARY), boundary_exists)

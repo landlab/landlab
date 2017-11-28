@@ -222,7 +222,7 @@ class PotentialityFlowRouter(Component):
 
         if not self.route_on_diagonals or not self._raster:
             while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
+                K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 incoming_K_sum = (pos_incoming_link_grads*K_link_ends
                                   ).sum(axis=1) + self._min_slope_thresh
                 self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
@@ -250,7 +250,7 @@ class PotentialityFlowRouter(Component):
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
             while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
+                K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 K_diag_ends = self._K[grid.diagonal_adjacent_nodes_at_node]
                 incoming_K_sum = ((pos_incoming_link_grads * K_link_ends
                                    ).sum(axis=1) +

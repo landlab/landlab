@@ -333,7 +333,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         if self._is_Voroni == False and diagonals == True:
             self.max_receivers = 8
         else:
-            self.max_receivers = self._grid.neighbors_at_node.shape[1]
+            self.max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
 
         # set the number of recievers, proportions, and receiver links with the
         # right size.
@@ -412,7 +412,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
         # Option for no diagonals (default)
         if self.diagonals == False:
-            neighbors_at_node = self.grid.neighbors_at_node
+            neighbors_at_node = self.grid.adjacent_nodes_at_node
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node
 
@@ -441,7 +441,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             ortho_grads = self.grid.calc_grad_at_link(self.surface_values)
 
             # concatenate the diagonal and orthogonal grid elements
-            neighbors_at_node = numpy.hstack((self.grid.neighbors_at_node,
+            neighbors_at_node = numpy.hstack((self.grid.adjacent_nodes_at_node,
                                               self.grid.diagonal_adjacent_nodes_at_node))
             active_link_dir_at_node = numpy.hstack((self.grid.active_link_dirs_at_node,
                                                     self.grid.active_diagonal_dirs_at_node))

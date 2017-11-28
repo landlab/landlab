@@ -91,7 +91,7 @@ def flow_directions_mfd(elev,
     For the first example, we will not pass any diagonal elements to the flow
     direction algorithm.
 
-    >>> neighbors_at_node = grid.neighbors_at_node
+    >>> neighbors_at_node = grid.adjacent_nodes_at_node
     >>> links_at_node = grid.links_at_node
     >>> active_link_dir_at_node = grid.active_link_dirs_at_node
     >>> link_slope = np.arctan(grid.calc_grad_at_link(elev))
@@ -136,7 +136,7 @@ def flow_directions_mfd(elev,
     algorithm.
 
     >>> dal = grid.active_d8
-    >>> neighbors_at_node = np.hstack((grid.neighbors_at_node,
+    >>> neighbors_at_node = np.hstack((grid.adjacent_nodes_at_node,
     ...                                grid.diagonal_adjacent_nodes_at_node))
     >>> links_at_node = grid.d8s_at_node
     >>> active_link_dir_at_node = grid.active_d8_dirs_at_node
