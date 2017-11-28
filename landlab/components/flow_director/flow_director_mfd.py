@@ -423,7 +423,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         else:
 
             # need to create a list of diagonal links since it doesn't exist.
-            diag_links = numpy.sort(numpy.unique(self.grid.d8_at_node[:, 4:]))
+            diag_links = numpy.sort(numpy.unique(self.grid.d8s_at_node[:, 4:]))
             diag_links = diag_links[diag_links > 0]
 
             # get diagonal active links (though this actually includes ALL
@@ -448,7 +448,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             link_slope = numpy.hstack((ortho_grads,
                                        diag_grads))
 
-            links_at_node = self.grid.d8_at_node
+            links_at_node = self.grid.d8s_at_node
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(

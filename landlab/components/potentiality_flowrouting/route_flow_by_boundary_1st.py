@@ -244,7 +244,7 @@ class PotentialityFlowRouter(Component):
             gd /= grid.length_of_d8[grid.number_of_links:]
             if self.equation != 'default':
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
-            diag_grad_at_node_w_dir = (gwd[grid.d8_at_node[:, 4:]] *
+            diag_grad_at_node_w_dir = (gwd[grid.d8s_at_node[:, 4:]] *
                                        active_diagonal_dirs_at_node)
 
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)

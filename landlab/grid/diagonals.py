@@ -333,7 +333,7 @@ class DiagonalsMixIn(object):
     @property
     @cache_result_in_object()
     @make_return_array_immutable
-    def d8_at_node(self):
+    def d8s_at_node(self):
         """Links and diagonals attached to nodes.
 
         Returns
@@ -347,9 +347,9 @@ class DiagonalsMixIn(object):
         >>> from landlab import RasterModelGrid
 
         >>> grid = RasterModelGrid((3, 4))
-        >>> grid.d8_at_node.shape == (grid.number_of_nodes, 8)
+        >>> grid.d8s_at_node.shape == (grid.number_of_nodes, 8)
         True
-        >>> grid.d8_at_node
+        >>> grid.d8s_at_node
         array([[ 0,  3, -1, -1, 17, -1, -1, -1],
                [ 1,  4,  0, -1, 19, 18, -1, -1],
                [ 2,  5,  1, -1, 21, 20, -1, -1],
@@ -362,11 +362,11 @@ class DiagonalsMixIn(object):
                [15, -1, 14, 11, -1, -1, 23, 26],
                [16, -1, 15, 12, -1, -1, 25, 28],
                [-1, -1, 16, 13, -1, -1, 27, -1]])
-        >>> np.all(grid.d8_at_node[:, :4] == grid.links_at_node)
+        >>> np.all(grid.d8s_at_node[:, :4] == grid.links_at_node)
         True
 
-        >>> diagonals_at_node = grid.d8_at_node[:, 4:] - grid.number_of_links
-        >>> diagonals_at_node[grid.d8_at_node[:, 4:] == -1] = -1
+        >>> diagonals_at_node = grid.d8s_at_node[:, 4:] - grid.number_of_links
+        >>> diagonals_at_node[grid.d8s_at_node[:, 4:] == -1] = -1
         >>> np.all(diagonals_at_node == grid.diagonals_at_node)
         True
 
@@ -389,7 +389,7 @@ class DiagonalsMixIn(object):
     # @cache_result_in_object()
     @make_return_array_immutable
     def d8_status_at_node(self):
-        return self.status_at_d8[self.d8_at_node]
+        return self.status_at_d8[self.d8s_at_node]
 
     @property
     @cache_result_in_object()

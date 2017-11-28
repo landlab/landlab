@@ -161,8 +161,8 @@ def flow_directions_dinf(grid,
     triangle_neighbors_at_node = triangle_neighbors_at_node.swapaxes(0,1)
 
     # next create, triangle links at node
-    l_at_node = grid.d8_at_node[:, :4]
-    dl_at_node = grid.d8_at_node[:, 4:]
+    l_at_node = grid.d8s_at_node[:, :4]
+    dl_at_node = grid.d8s_at_node[:, 4:]
     triangle_links_at_node = np.stack([np.vstack((l_at_node[:,0], dl_at_node[:,0])),
                                        np.vstack((l_at_node[:,1], dl_at_node[:,0])),
                                        np.vstack((l_at_node[:,1], dl_at_node[:,1])),
@@ -205,7 +205,7 @@ def flow_directions_dinf(grid,
 #    triangle_active_link_dirs_at_node = triangle_active_link_dirs_at_node.swapaxes(0,1)
 #
     # need to create a list of diagonal links since it doesn't exist.
-    diag_links = np.sort(np.unique(grid.d8_at_node[:, 4:]))
+    diag_links = np.sort(np.unique(grid.d8s_at_node[:, 4:]))
     diag_links = diag_links[diag_links>0]
 
     # calculate graidents across diagonals and orthogonals
