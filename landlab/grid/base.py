@@ -450,6 +450,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         self.reset_status_at_node()
 
     @property
+    @deprecated(use='adjacent_nodes_at_node', version=1.2)
     @make_return_array_immutable
     def neighbors_at_node(self):
         """Get neighboring nodes.
@@ -502,6 +503,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         return out
 
     @property
+    @deprecated(version=1.2)
     @cache_result_in_object()
     @return_readonly_id_array
     def active_neighbors_at_node(self):
