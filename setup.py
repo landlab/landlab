@@ -24,10 +24,12 @@ ext_modules = [
               ['landlab/components/flow_director/cfuncs.pyx']),
     Extension('landlab.components.stream_power.cfuncs',
               ['landlab/components/stream_power/cfuncs.pyx']),
-    Extension('landlab.components.hybrid_alluvium.cfuncs',
-              ['landlab/components/hybrid_alluvium/cfuncs.pyx']),
+    Extension('landlab.components.space.cfuncs',
+              ['landlab/components/space/cfuncs.pyx']),
     Extension('landlab.components.drainage_density.cfuncs',
               ['landlab/components/drainage_density/cfuncs.pyx']),
+    Extension('landlab.components.erosion_deposition.cfuncs',
+              ['landlab/components/erosion_deposition/cfuncs.pyx']),
     Extension('landlab.utils.ext.jaggedarray',
               ['landlab/utils/ext/jaggedarray.pyx']),
     Extension('landlab.graph.structured_quad.ext.at_node',
@@ -66,6 +68,8 @@ ext_modules = [
               ['landlab/grid/structured_quad/cfuncs.pyx']),
     Extension('landlab.grid.structured_quad.c_faces',
               ['landlab/grid/structured_quad/c_faces.pyx']),
+    Extension('landlab.layers.ext.eventlayers',
+              ['landlab/layers/ext/eventlayers.pyx']),
 ]
 
 import numpy as np

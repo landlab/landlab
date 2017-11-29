@@ -372,12 +372,12 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
     # rest or wall?)
     if g > 0.0:
         xn_list.append( Transition((0,7,0), (0,4,0), g, 'gravity 2') )
-        xn_list.append( Transition((1,7,0), (1,4,0), g, 'gravity 2') )
-        xn_list.append( Transition((2,7,0), (2,4,0), g, 'gravity 2') )
-        xn_list.append( Transition((3,7,0), (3,4,0), g, 'gravity 2') )
-        xn_list.append( Transition((4,7,0), (4,4,0), g, 'gravity 2') )
-        xn_list.append( Transition((5,7,0), (5,4,0), g, 'gravity 2') )
-        xn_list.append( Transition((6,7,0), (6,4,0), g, 'gravity 2') )
+#        xn_list.append( Transition((1,7,0), (1,4,0), g, 'gravity 2') )
+#        xn_list.append( Transition((2,7,0), (2,4,0), g, 'gravity 2') )
+#        xn_list.append( Transition((3,7,0), (3,4,0), g, 'gravity 2') )
+#        xn_list.append( Transition((4,7,0), (4,4,0), g, 'gravity 2') )
+#        xn_list.append( Transition((5,7,0), (5,4,0), g, 'gravity 2') )
+#        xn_list.append( Transition((6,7,0), (6,4,0), g, 'gravity 2') )
 
     # Gravity rule 3: up/sideways particles become down/sideways particles
     if g > 0.0:

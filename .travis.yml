@@ -6,10 +6,11 @@ env:
   - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="1.11" BUILD_DOCS=0 COVERALLS=0
   - TRAVIS_PYTHON_VERSION="3.6" NUMPY_VERSION="1.11" BUILD_DOCS=0 COVERALLS=0
   global:
-    - CONDA_PREFIX=$HOME/miniconda
-    - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
-    - secure: UxPkdFKl0xtk+H+98CNHSnYN8SJrEq5xJjLtPUPR+5UF5lLKL7godwrOdYeO0B0fXPi2Plw0vtoIID6H1AV4x+8QD/AgAizoWIh8KLim3E7rDX0v0M3WnUHctvYwt76mGCYvIGH6qR2Ziml37Ec6nz2aTuz0oex27P6dq0BKkXs=
-    - secure: OFyhYR18rMC/MlyG1J8+cRkHWlkn/BOkQP6IM+ZBILG/t33ipoyTjH2qpNJi5Rx3wMCXBn00XnPExf7mqRBAAzSULyt6t6eDbXgInYOCSOQMMZlJ66CdmsD8dKBwDVbcFuGz06amYrIc/22guFP+6GfhsCepHvocrR93A93whug=
+  - CONDA_PREFIX=$HOME/miniconda
+  - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
+  # - secure: UxPkdFKl0xtk+H+98CNHSnYN8SJrEq5xJjLtPUPR+5UF5lLKL7godwrOdYeO0B0fXPi2Plw0vtoIID6H1AV4x+8QD/AgAizoWIh8KLim3E7rDX0v0M3WnUHctvYwt76mGCYvIGH6qR2Ziml37Ec6nz2aTuz0oex27P6dq0BKkXs=
+  # - secure: OFyhYR18rMC/MlyG1J8+cRkHWlkn/BOkQP6IM+ZBILG/t33ipoyTjH2qpNJi5Rx3wMCXBn00XnPExf7mqRBAAzSULyt6t6eDbXgInYOCSOQMMZlJ66CdmsD8dKBwDVbcFuGz06amYrIc/22guFP+6GfhsCepHvocrR93A93whug=
+  - secure: wuv2O1M29pkfAjPbOK1MetIf3teDrG4VTepDOps2YFLMzcoJBlJeTqEneVcHb/q2dz5SefjxQQrbLjgZNOURiS1IT2z24srNDPbp8OAsv9nsqAGZO40eWecCRa+u+P+Wh0pZ8urz/ptTir0qFIQ/yz5hoEPx4ScktHkn23V+/fM=
 os:
 - linux
 - osx
@@ -45,7 +46,7 @@ install:
 - pip install coveralls
 - conda info -a && conda list
 script:
-- conda build -q .conda-recipe --numpy=$NUMPY_VERSION
+- conda build -q .conda-recipe --old-build-string --numpy=$NUMPY_VERSION
 - conda install -q landlab --use-local
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
@@ -55,9 +56,9 @@ script:
 virtualenv:
   system_site_packages: false
 after_success:
-  - bash .ci/travis/deploy_to_pypi.sh
-  - bash .ci/travis/deploy_to_anaconda.sh
-  - if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
+- bash .ci/travis/deploy_to_pypi.sh
+- bash .ci/travis/deploy_to_anaconda.sh
+- if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
 deploy:
   provider: pypi
   user: mcflugen

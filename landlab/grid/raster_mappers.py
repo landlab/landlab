@@ -2,7 +2,7 @@
 """Grid element mappers that are specific to raster grids.
 
 Mapping functions unique to raster grids
-+++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/
