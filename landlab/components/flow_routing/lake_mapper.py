@@ -301,7 +301,7 @@ class DepressionFinderAndRouter(Component):
         # We'll also need a handy copy of the node neighbor lists
         # TODO: presently, this grid method seems to only exist for Raster
         # grids. We need it for *all* grids!
-        self._node_nbrs = self._grid.active_neighbors_at_node
+        self._node_nbrs = self._grid.active_adjacent_nodes_at_node
         if self._D8:
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
@@ -1120,7 +1120,7 @@ class DepressionFinderAndRouter(Component):
             if len(nodes_in_lake) > 0:
 
                 if self.lake_map[self.receivers[outlet_node]] == lake_code:
-                    nbrs = self.grid.active_neighbors_at_node[outlet_node]
+                    nbrs = self.grid.active_adjacent_nodes_at_node[outlet_node]
                     not_lake = nbrs[np.where(self.lake_map[nbrs] != lake_code)[0]]
                     min_index = np.argmin(self._elev[not_lake])
                     new_receiver = not_lake[min_index]
@@ -1172,10 +1172,10 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
                 outlet_neighbors = np.hstack(
-                    (self._grid.active_neighbors_at_node[outlet_node],
+                    (self._grid.active_adjacent_nodes_at_node[outlet_node],
                      self._grid.diagonal_adjacent_nodes_at_node[outlet_node]))
             else:
-                outlet_neighbors = self._grid.active_neighbors_at_node[
+                outlet_neighbors = self._grid.active_adjacent_nodes_at_node[
                     outlet_node].copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0

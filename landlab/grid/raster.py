@@ -56,7 +56,7 @@ def _node_has_boundary_neighbor(mg, id, method='d8'):
     boolean
         ``True`` if node has a neighbor on the boundary, ``False`` otherwise.
     """
-    for neighbor in mg.active_neighbors_at_node[id]:
+    for neighbor in mg.active_adjacent_nodes_at_node[id]:
         try:
             if mg.status_at_node[neighbor] != CORE_NODE:
                 return True
@@ -783,7 +783,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._create_cell_areas_array()
 
         # List of neighbors for each cell: we will start off with no
-        # list. If a caller requests it via active_neighbors_at_node or
+        # list. If a caller requests it via active_adjacent_nodes_at_node or
         # _create_neighbor_list, we'll create it if necessary.
         self.neighbor_list_created = False
         self._neighbor_node_dict = {}
@@ -3360,7 +3360,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        n = self.active_neighbors_at_node[id]
+        n = self.active_adjacent_nodes_at_node[id]
         a = []
 
         # for each node in id make a list with the node id and the ids of
@@ -3418,7 +3418,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        n = self.active_neighbors_at_node[id]
+        n = self.active_adjacent_nodes_at_node[id]
         s = []
 
         # for each node in id make a list with the node id and the ids of
@@ -3515,7 +3515,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        neighbors[:, ] = self.active_neighbors_at_node[ids]
+        neighbors[:, ] = self.active_adjacent_nodes_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
         diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
 
@@ -3582,7 +3582,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # to calculate both
 
         # get the list of neighboring nodes for the nodes given by id
-        node_neighbors = self.active_neighbors_at_node[nodes]
+        node_neighbors = self.active_adjacent_nodes_at_node[nodes]
         aspects = []
         slopes = []
 
