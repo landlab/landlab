@@ -13,6 +13,10 @@ from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
 
+from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
+                     sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
+                     iterate_sde_downstream)
+
 
 class SedDepEroder(Component):
     """
@@ -100,7 +104,7 @@ class SedDepEroder(Component):
         Maximum number of loops to perform with the pseudoimplicit iterator,
         seeking a stable solution. Convergence is typically rapid. The
         component counts the total number of times it "maxed out" the
-        loop to seek a stable solution (error in sed flux fn <0.1%) with the
+        loop to seek a stable solution (error in sed flux fn <1%) with the
         internal variable "_pseudoimplicit_aborts".
     return_stream_properties : bool
         Whether to perform a few additional calculations in order to set
@@ -366,6 +370,22 @@ class SedDepEroder(Component):
         self.type = sed_dependency_type
         assert self.type in ('generalized_humped', 'None', 'linear_decline',
                              'almost_parabolic')
+        # now conditional inputs
+        if self.type == 'generalized_humped':
+            self.kappa = kappa_hump
+            self.nu = nu_hump
+            self.phi = phi_hump
+            self.c = c_hump
+            self.norm = None
+        else:
+            self.kappa = 0.
+            self.nu = 0.
+            self.phi = 0.
+            self.c = 0.
+            self.norm = 0.
+        # set the sed flux fn for later on:
+        self.set_sed_flux_fn_gen()
+
         self.Qc = Qc
         assert self.Qc in ('MPM', 'power_law', 'Voller_generalized')
         self.return_ch_props = return_stream_properties
@@ -412,13 +432,6 @@ class SedDepEroder(Component):
         else:
             self._ext_sed = False
 
-        # now conditional inputs
-        if self.type == 'generalized_humped':
-            self.kappa = kappa_hump
-            self.nu = nu_hump
-            self.phi = phi_hump
-            self.c = c_hump
-
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.area_of_cell))
         self.cell_areas[grid.node_at_cell] = grid.area_of_cell
@@ -431,214 +444,26 @@ class SedDepEroder(Component):
         if self.return_ch_props:
             self.initialize_optional_output_fields()
 
-    # This material is old, but retained for use in future dev cycles::
-
-    # def get_sed_flux_function(self, rel_sed_flux):
-    #     if self.type == 'generalized_humped':
-    #         "Returns K*f(qs,qc)"
-    #         sed_flux_fn = self.kappa*(rel_sed_flux**self.nu + self.c)*np.exp(
-    #             -self.phi*rel_sed_flux)
-    #     elif self.type == 'linear_decline':
-    #         sed_flux_fn = (1.-rel_sed_flux)
-    #     elif self.type == 'parabolic':
-    #         raise MissingKeyError(
-    #             'Pure parabolic (where intersect at zero flux is exactly ' +
-    #             'zero) is currently not supported, sorry. Try ' +
-    #             'almost_parabolic instead?')
-    #         sed_flux_fn = 1. - 4.*(rel_sed_flux-0.5)**2.
-    #     elif self.type == 'almost_parabolic':
-    #         sed_flux_fn = np.where(rel_sed_flux > 0.1,
-    #                                1. - 4.*(rel_sed_flux-0.5)**2.,
-    #                                2.6*rel_sed_flux+0.1)
-    #     elif self.type == 'None':
-    #         sed_flux_fn = 1.
-    #     else:
-    #         raise MissingKeyError(
-    #             'Provided sed flux sensitivity type in input file was not ' +
-    #             'recognised!')
-    #     return sed_flux_fn
-    #
-    # def get_sed_flux_function_pseudoimplicit_old(self, sed_in,
-    #                                              trans_cap_vol_out,
-    #                                              prefactor_for_volume,
-    #                                              prefactor_for_dz):
-    #     rel_sed_flux_in = sed_in/trans_cap_vol_out
-    #     rel_sed_flux = rel_sed_flux_in
-    #
-    #     if self.type == 'generalized_humped':
-    #         "Returns K*f(qs,qc)"
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return self.kappa*(rel_sed_flux_in**self.nu + self.c)*np.exp(
-    #                 -self.phi*rel_sed_flux_in)
-    #
-    #     elif self.type == 'linear_decline':
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return 1.-rel_sed_flux_in
-    #
-    #     elif self.type == 'parabolic':
-    #         raise MissingKeyError(
-    #             'Pure parabolic (where intersect at zero flux is exactly ' +
-    #             'zero) is currently not supported, sorry. Try ' +
-    #             'almost_parabolic instead?')
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return 1. - 4.*(rel_sed_flux_in-0.5)**2.
-    #
-    #     elif self.type == 'almost_parabolic':
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return np.where(rel_sed_flux_in > 0.1,
-    #                             1. - 4.*(rel_sed_flux_in-0.5)**2.,
-    #                             2.6*rel_sed_flux_in+0.1)
-    #
-    #     elif self.type == 'None':
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return 1.
-    #     else:
-    #         raise MissingKeyError(
-    #             'Provided sed flux sensitivity type in input file was not ' +
-    #             'recognised!')
-    #
-    #     for i in range(self.pseudoimplicit_repeats):
-    #         sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
-    #         sed_vol_added = prefactor_for_volume*sed_flux_fn
-    #         rel_sed_flux = rel_sed_flux_in + sed_vol_added/trans_cap_vol_out
-    #         # print rel_sed_flux
-    #         if rel_sed_flux >= 1.:
-    #             rel_sed_flux = 1.
-    #             break
-    #         if rel_sed_flux < 0.:
-    #             rel_sed_flux = 0.
-    #             break
-    #     last_sed_flux_fn = sed_flux_fn
-    #     sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
-    #     # this error could alternatively be used to break the loop
-    #     error_in_sed_flux_fn = sed_flux_fn-last_sed_flux_fn
-    #     dz = prefactor_for_dz*sed_flux_fn
-    #     sed_flux_out = rel_sed_flux*trans_cap_vol_out
-    #     return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
-
-    def get_sed_flux_function_pseudoimplicit(self, sed_in_bydt,
-                                             trans_cap_vol_out_bydt,
-                                             prefactor_for_volume_bydt,
-                                             prefactor_for_dz_bydt):
+    def set_sed_flux_fn_gen(self):
         """
-        This function uses a pseudoimplicit method to calculate the sediment
-        flux function for a node, and also returns dz/dt and the rate of
-        sediment output from the node.
-
-        Note that this method now operates in PER TIME units; this was not
-        formerly the case.
-
-        Parameters
-        ----------
-        sed_in_bydt : float
-            Total rate of incoming sediment, sum(Q_s_in)/dt
-        trans_cap_vol_out_bydt : float
-            Volumetric transport capacity as a rate (i.e., m**3/s) on outgoing
-            link
-        prefactor_for_volume_bydt : float
-            Equal to K*A**m*S**n * cell_area
-        prefactor_for_dz_bydt : float
-            Equal to K*A**m*S**n (both prefactors are passed for computational
-            efficiency)
-
-        Returns
-        -------
-        dzbydt : float
-            Rate of change of substrate elevation
-        sed_flux_out_bydt : float
-            Q_s/dt on the outgoing link
-        rel_sed_flux : float
-            f(Q_s/Q_c)
-        error_in_sed_flux_fn : float
-            Measure of how well converged rel_sed_flux is
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import SedDepEroder
-        >>> mg = RasterModelGrid((25, 25), 10.)
-        >>> sde = SedDepEroder(mg, sed_dependency_type='almost_parabolic')
-        >>> (dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn) = (
-        ...   sde.get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.))
-        >>> dzbydt
-        1.0393380000000001
-        >>> sed_flux_out_bydt
-        1776.1689999999999
-        >>> rel_sed_flux
-        0.001776169
-        >>> error_in_sed_flux_fn
-        0.0013337999999999961
+        Sets the property self.sed_flux_fn_gen that controls which sed flux
+        function to use elsewhere in the component.
         """
-        rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
-        rel_sed_flux = rel_sed_flux_in
-
         if self.type == 'generalized_humped':
-            "Returns K*f(qs,qc)"
-
-            def sed_flux_fn_gen(rel_sed_flux_in):
-                return self.kappa*(rel_sed_flux_in**self.nu + self.c)*np.exp(
-                    -self.phi*rel_sed_flux_in)
-
-        elif self.type == 'linear_decline':
-            def sed_flux_fn_gen(rel_sed_flux_in):
-                return 1.-rel_sed_flux_in
-
-        elif self.type == 'parabolic':
-            raise MissingKeyError(
-                'Pure parabolic (where intersect at zero flux is exactly ' +
-                'zero) is currently not supported, sorry. Try ' +
-                'almost_parabolic instead?')
-
-            def sed_flux_fn_gen(rel_sed_flux_in):
-                return 1. - 4.*(rel_sed_flux_in-0.5)**2.
-
-        elif self.type == 'almost_parabolic':
-
-            def sed_flux_fn_gen(rel_sed_flux_in):
-                return np.where(rel_sed_flux_in > 0.1,
-                                1. - 4.*(rel_sed_flux_in-0.5)**2.,
-                                2.6*rel_sed_flux_in+0.1)
-
+            # work out the normalization param:
+            max_val = 0.
+            for i in range(0, 1, 0.001):
+                sff = sed_flux_fn_gen_genhump(
+                    i, self.kappa, self.nu, self.c, self.phi, 1.)
+                max_val = max((sff, max_val))
+            self.norm = 1./max_val
+            self.sed_flux_fn_gen = sed_flux_fn_gen_genhump
         elif self.type == 'None':
-
-            def sed_flux_fn_gen(rel_sed_flux_in):
-                return 1.
-        else:
-            raise MissingKeyError(
-                'Provided sed flux sensitivity type in input file was not ' +
-                'recognised!')
-
-        last_sed_flux_fn = 2.  # arbitrary value out of calc range
-        for i in range(self.pseudoimplicit_repeats):
-            sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
-            sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
-            prop_added = sed_vol_added_bydt/trans_cap_vol_out_bydt
-            poss_new = prop_added + rel_sed_flux
-            if poss_new > 1.:
-                poss_new = 1.
-            rel_sed_flux = 0.5 * (rel_sed_flux_in + poss_new)
-
-            if rel_sed_flux < 0.:
-                rel_sed_flux = 0.
-            error_in_sed_flux_fn = abs(sed_flux_fn-last_sed_flux_fn)
-            if error_in_sed_flux_fn < 0.01:
-                break
-            last_sed_flux_fn = sed_flux_fn
-        if i == self.pseudoimplicit_repeats - 1:
-            self._pseudoimplicit_aborts += 1
-            # record info if we had a bad convergence...
-            self._error_at_abort.append(
-                (error_in_sed_flux_fn, rel_sed_flux_in, rel_sed_flux,
-                 sed_flux_fn, last_sed_flux_fn))
-        self._total_DL_calls += 1
-
-        dzbydt = prefactor_for_dz_bydt*sed_flux_fn
-        sed_flux_out_bydt = rel_sed_flux*trans_cap_vol_out_bydt
-        return dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn
+            self.sed_flux_fn_gen = sed_flux_fn_gen_const
+        elif self.type == 'linear_decline':
+            self.sed_flux_fn_gen = sed_flux_fn_gen_lindecl
+        elif self.type == 'almost_parabolic':
+            self.sed_flux_fn_gen = sed_flux_fn_gen_almostparabolic
 
     def erode(self, dt, flooded_depths=None, **kwds):
         """Erode and deposit on the channel bed for a duration of *dt*.
@@ -662,20 +487,25 @@ class SedDepEroder(Component):
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
+        elev_less_sed = node_z - self._hillslope_sediment
 
         dt_secs = dt * 31557600.
 
         if type(flooded_depths) is str:
             flooded_depths = self.grid.at_node[flooded_depths]
             # also need a map of initial flooded conds:
-            flooded_nodes = flooded_depths > 0.
+            flooded_nodes = (flooded_depths > 0.).view(dtype=np.int8)
+            consider_flooded = 1
         elif type(flooded_depths) is np.ndarray:
             assert flooded_depths.size == self.grid.number_of_nodes
-            flooded_nodes = flooded_depths > 0.
+            flooded_nodes = (flooded_depths > 0.).view(dtype=np.int8)
+            consider_flooded = 1
             # need an *updateable* record of the pit depths
         else:
             # if None, handle in loop
-            flooded_nodes = None
+            consider_flooded = 0
+            flooded_nodes = np.empty(0, dtype=np.int8)
+            flooded_depths = np.empty(0, dtype=float)
         steepest_link = 'flow__link_to_receiver_node'
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
@@ -724,7 +554,7 @@ class SedDepEroder(Component):
 
             max_tstep_wave = 0.7 * np.nanmin(link_length /
                                              wave_stab_cond_denominator)
-            # ^adding 0.2 scaling per CHILD approach
+            # ^adding additional scaling per CHILD, tho CHILD uses 0.2
             self.wave_denom = wave_stab_cond_denominator
             self.link_length = link_length
             self.max_tstep_wave = max_tstep_wave
@@ -752,97 +582,23 @@ class SedDepEroder(Component):
                 cell_areas = self.cell_areas
 
                 self._is_it_TL = np.zeros(
-                    self.grid.number_of_nodes, dtype=bool)
-                for i in s_in[::-1]:  # work downstream
-                    cell_area = cell_areas[i]
-                    if flooded_nodes is not None:
-                        flood_depth = flooded_depths[i]
-                    else:
-                        flood_depth = 0.
-                    sed_flux_into_this_node_bydt = (
-                        self._hillslope_sediment_flux_wzeros[i] +
-                        river_volume_flux_into_node[i])
-                    node_capacity = transport_capacities[i]
-                    # ^we work in volume flux, not volume per se here
-                    if flood_depth - self._hillslope_sediment[i] > 0.:
-                        # ...node is truly flooded
-                        node_capacity = 0.
-                    if sed_flux_into_this_node_bydt < node_capacity:
-                        # ^note incision is forbidden at capacity
-                        dz_prefactor_bydt = erosion_prefactor_withS[i]
-                        vol_prefactor_bydt = dz_prefactor_bydt*cell_area
-                        (dzbydt_here, sed_flux_out_bydt, rel_sed_flux_here,
-                         error_in_sed_flux) = \
-                            self.get_sed_flux_function_pseudoimplicit(
-                                sed_flux_into_this_node_bydt,
-                                node_capacity,
-                                vol_prefactor_bydt, dz_prefactor_bydt)
-                        # note now dz_here may never create more sed than the
-                        # out can transport...
-                        assert sed_flux_out_bydt <= node_capacity, (
-                            'failed at node '+str(s_in.size-i) +
-                            ' with rel sed flux '+str(
-                                sed_flux_out_bydt/node_capacity))
-                        rel_sed_flux[i] = rel_sed_flux_here
-                        vol_pass_rate = sed_flux_out_bydt
-                        if not self._forbid_deposition:
-                            # erode off the surplus sed from hillslopes
-                            # (already budgeted):
-                            dzbydt_here += (
-                                self._hillslope_sediment_flux_wzeros[i] /
-                                cell_area)
-                            # no change to voldroprate, as
-                            # should already be 0 -> consider role of inner vs
-                            # outer loop!
-                    else:
-                        self._is_it_TL[i] = True
-                        rel_sed_flux[i] = 1.
-                        if self._forbid_deposition:
-                            dzbydt_here = 0.
-                        else:
-                            vol_drop_rate = (river_volume_flux_into_node[i] -
-                                             node_capacity)
-                            # ^ note this can now go negative. This permits TL
-                            # erosion of any hillslope seds left in the channel
-                            dzbydt_here = -vol_drop_rate/cell_area
-                        try:
-                            isflooded = flooded_nodes[i]
-                        except TypeError:  # was None
-                            isflooded = False
-                        # flood handling adjusted as of 29/6/17 (untested) such
-                        # that sed can flux through as long as the sed depth
-                        # at the start of the loop was capable of filling the
-                        # hole in the underlying topo.
-                        # Under this scheme, there should be no such thing as a
-                        # lake hosted only in surface sediment
-                        if (flood_depth - self._hillslope_sediment[i] <= 0. and
-                                not isflooded):
-                            vol_pass_rate = node_capacity
-                            # we want flooded nodes which have already been
-                            # filled to enter the else statement
-                        else:
-                            vol_pass_rate = 0.
-                            ########################################this probably isn't needed any more vv
-                            time_to_fill = -flood_depth/dzbydt_here
-                            if time_to_fill < flood_tstep:
-                                flood_node = i
-                                flood_tstep = time_to_fill
-                                conv_factor = 1.
-                                # ^this needed to let this node to fill fully
-                        if self._ext_sed:
-                            if self._forbid_deposition:
-                                self._voldroprate[i] = (
-                                    sed_flux_into_this_node_bydt -
-                                    vol_pass_rate)
-                                assert self._voldroprate[i] >= 0.
-                            else:
-                                self._voldroprate[i] = (
-                                    self._hillslope_sediment_flux_wzeros[i] +
-                                    vol_drop_rate)
-                    dzbydt[i] -= dzbydt_here
-                    # ^minus returns us to the correct sign convention
-                    river_volume_flux_into_node[
-                        flow_receiver[i]] += vol_pass_rate
+                    self.grid.number_of_nodes, dtype=np.int8)
+
+                iterate_sde_downstream(s_in, cell_areas,
+                                       self._hillslope_sediment,
+                                       self._hillslope_sediment_flux_wzeros,
+                                       river_volume_flux_into_node,
+                                       transport_capacities,
+                                       erosion_prefactor_withS,
+                                       rel_sed_flux, self._is_it_TL,
+                                       self._voldroprate, flow_receiver,
+                                       self.pseudoimplicit_repeats,
+                                       dzbydt, self.sed_flux_fn_gen,
+                                       self.kappa, self.nu, self.c,
+                                       self.phi, self.norm,
+                                       consider_flooded,
+                                       flooded_nodes,
+                                       flooded_depths)
 
                 # now perform a CHILD-like convergence-based stability test:
                 ratediff = dzbydt[flow_receiver] - dzbydt
@@ -877,16 +633,18 @@ class SedDepEroder(Component):
                     self.t_to_converge = t_to_converge
                     this_tstep -= t_elapsed_internal - dt_secs
 
-                node_z[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
                 # back-calc the sed budget in the nodes, as appropriate:
                 if self._forbid_deposition:
                     self._hillslope_sediment[self.grid.node_at_cell] = (
                         self._voldroprate[self.grid.node_at_cell] /
                         self.grid.area_of_cell * this_tstep)
-                else:
-                    self._hillslope_sediment[self.grid.node_at_cell] += (
-                        self._voldroprate[self.grid.node_at_cell] /
-                        self.grid.area_of_cell * this_tstep)
+                # modify elevs; both sed & rock:
+                # note dzbydt applies only to the ROCK surface
+                elev_less_sed[grid.core_nodes] += (
+                    dzbydt[grid.core_nodes] * this_tstep)
+                node_z[grid.core_nodes] = (
+                    elev_less_sed[grid.core_nodes] +
+                    self._hillslope_sediment[grid.core_nodes])
 
                 if break_flag:
                     break
@@ -949,4 +707,4 @@ class SedDepEroder(Component):
     def is_it_TL(self):
         """Return a map of where erosion is purely transport-limited.
         """
-        return self._is_it_TL
+        return self._is_it_TL.view(dtype=np.bool)

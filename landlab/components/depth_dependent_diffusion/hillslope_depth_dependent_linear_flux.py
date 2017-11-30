@@ -126,7 +126,7 @@ class DepthDependentDiffuser(Component):
     }
 
     def __init__(self,grid, linear_diffusivity=1.0,
-                 soil_transport_decay_depth=1.0, **kwds):
+                 soil_transport_decay_depth=1.0):
         """Initialize the DepthDependentDiffuser."""
 
         # Store grid and parameters
@@ -226,7 +226,7 @@ class DepthDependentDiffuser(Component):
                                          + self.bedrock[self._active_nodes])
 
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """
 
         Parameters
@@ -235,4 +235,4 @@ class DepthDependentDiffuser(Component):
             The imposed timestep.
         """
 
-        self.soilflux(dt, **kwds)
+        self.soilflux(dt)

@@ -14,10 +14,10 @@ ctypedef np.double_t DTYPE_FLOAT_t
 DTYPE_INT = np.int
 ctypedef np.int_t DTYPE_INT_t
 
-
 cdef extern from "math.h":
     double fabs(double x) nogil
     double pow(double x, double y) nogil
+
     
 @cython.boundscheck(False)
 def erode_avoiding_pits(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
@@ -383,7 +383,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
     # Loop through nodes.
     for i in range(n_nodes):
 
-        # get IDs for source and reciever nodes
+        # get IDs for source and receiver nodes
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
 
@@ -665,3 +665,362 @@ def new_elev_prime(DTYPE_FLOAT_t x,
     f = (1.0 + a) - c * d * np.exp(-d * (x - b))
 
     return f
+
+
+cpdef DTYPE_FLOAT_t sed_flux_fn_gen_genhump(DTYPE_FLOAT_t rel_sed_flux_in,
+                                            DTYPE_FLOAT_t kappa,
+                                            DTYPE_FLOAT_t nu,
+                                            DTYPE_FLOAT_t c,
+                                            DTYPE_FLOAT_t phi,
+                                            DTYPE_FLOAT_t norm):
+    """
+    Returns f(qs,qc) assuming a generalized humped function per
+    Hobley et al., 2011.
+
+    Parameters
+    ----------
+    rel_sed_flux_in : float
+        The relative sediment flux; carried flux divided by capacity.
+    kappa, nu, c, phi : float
+        Parameters controlling the shape of the generalized nonlinear sediment
+        flux curve.
+    norm : float
+        Parameter to normalize the curve such that its maximum is 1.
+    
+    Returns
+    -------
+    fqs : float
+        The erosion efficiency, f(q_s).
+    """
+    return (
+        norm*kappa*(rel_sed_flux_in**nu + c)*np.exp(-phi*rel_sed_flux_in))
+
+
+cpdef DTYPE_FLOAT_t sed_flux_fn_gen_lindecl(DTYPE_FLOAT_t rel_sed_flux_in,
+                                            DTYPE_FLOAT_t kappa,
+                                            DTYPE_FLOAT_t nu,
+                                            DTYPE_FLOAT_t c,
+                                            DTYPE_FLOAT_t phi,
+                                            DTYPE_FLOAT_t norm):
+    """
+    Returns f(qs,qc) assuming a linear decline model (see e.g. Gasparini
+    et al., 2006).
+    kappa, nu, c, phi, & norm are all dummy variables here.
+    
+    Parameters
+    ----------
+    rel_sed_flux_in : float
+        The relative sediment flux; carried flux divided by capacity.
+    kappa, nu, c, phi, norm : float
+        Unused placeholder parameters.
+    
+    Returns
+    -------
+    fqs : float
+        The erosion efficiency, f(q_s).
+    """
+    return 1.-rel_sed_flux_in
+
+
+cpdef DTYPE_FLOAT_t sed_flux_fn_gen_almostparabolic(
+                                                DTYPE_FLOAT_t rel_sed_flux_in,
+                                                DTYPE_FLOAT_t kappa,
+                                                DTYPE_FLOAT_t nu,
+                                                DTYPE_FLOAT_t c,
+                                                DTYPE_FLOAT_t phi,
+                                                DTYPE_FLOAT_t norm):
+    """
+    Returns f(qs,qc) assuming the almost parabolic humped model (see
+    Gasparini et al., 2006).
+    kappa, nu, c, phi, & norm are all dummy variables here.
+
+    Parameters
+    ----------
+    rel_sed_flux_in : float
+        The relative sediment flux; carried flux divided by capacity.
+    kappa, nu, c, phi, norm : float
+        Unused placeholder parameters.
+    
+    Returns
+    -------
+    fqs : float
+        The erosion efficiency, f(q_s).
+    """
+    return np.where(rel_sed_flux_in > 0.1,
+                    1. - 4.*(rel_sed_flux_in-0.5)**2.,
+                    2.6*rel_sed_flux_in+0.1)
+
+
+cpdef DTYPE_FLOAT_t sed_flux_fn_gen_const(DTYPE_FLOAT_t rel_sed_flux_in,
+                                          DTYPE_FLOAT_t kappa,
+                                          DTYPE_FLOAT_t nu,
+                                          DTYPE_FLOAT_t c,
+                                          DTYPE_FLOAT_t phi,
+                                          DTYPE_FLOAT_t norm):
+    """
+    Returns 1, and thus no sed flux effects.
+    kappa, nu, c, phi, & norm are all dummy variables here.
+
+    Parameters
+    ----------
+    rel_sed_flux_in : float
+        The relative sediment flux; carried flux divided by capacity.
+    kappa, nu, c, phi, norm : float
+        Unused placeholder parameters.
+    
+    Returns
+    -------
+    fqs : float
+        The erosion efficiency, f(q_s).
+    """
+    return 1.
+
+
+cdef void get_sed_flux_function_pseudoimplicit(
+        DTYPE_FLOAT_t sed_in_bydt,
+        DTYPE_FLOAT_t trans_cap_vol_out_bydt,
+        DTYPE_FLOAT_t prefactor_for_volume_bydt,
+        DTYPE_FLOAT_t prefactor_for_dz_bydt,
+        sed_flux_fn_gen,
+        DTYPE_FLOAT_t kappa, DTYPE_FLOAT_t nu, DTYPE_FLOAT_t c,
+        DTYPE_FLOAT_t phi, DTYPE_FLOAT_t norm,
+        DTYPE_INT_t pseudoimplicit_repeats,
+        np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array):
+    """
+    This function uses a pseudoimplicit method to calculate the sediment
+    flux function for a node, and also returns dz/dt and the rate of
+    sediment output from the node.
+
+    Note that this method now operates in PER TIME units; this was not
+    formerly the case.
+
+    Parameters
+    ----------
+    sed_in_bydt : float
+        Total rate of incoming sediment, sum(Q_s_in)/dt
+    trans_cap_vol_out_bydt : float
+        Volumetric transport capacity as a rate (i.e., m**3/s) on outgoing
+        link
+    prefactor_for_volume_bydt : float
+        Equal to K*A**m*S**n * cell_area
+    prefactor_for_dz_bydt : float
+        Equal to K*A**m*S**n (both prefactors are passed for computational
+        efficiency)
+    sed_flux_fn_gen : function
+        Function to calculate the sed flux function. Takes inputs
+        rel_sed_flux_in, kappa, nu, c, phi, norm, where last 5 are dummy
+        unless type is generalized_humped.
+    kappa, nu, c, phi, norm : float
+        Params for the sed flux function. Values if generalized_humped,
+        zero otherwise.
+    pseudoimplicit_repeats : int
+        Maximum number of loops to perform with the pseudoimplicit
+        iterator, seeking a stable solution. Convergence is typically
+        rapid.
+        out_array : array of floats
+            Array to be filled, containing:
+            dzbydt: Rate of change of substrate elevation,
+            vol_pass_rate: Q_s/dt on the outgoing link,
+            rel_sed_flux: f(Q_s/Q_c),
+            error_in_sed_flux_fn: Measure of how well converged rel_sed_flux is
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import SedDepEroder
+    >>> mg = RasterModelGrid((25, 25), 10.)
+    >>> out_array = np.empty(4, dtype=float)
+    >>> sde = SedDepEroder(mg, sed_dependency_type='almost_parabolic')
+    >>> get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.,
+    ...                                      sde.sed_flux_fn_gen,
+    ...                                      0., 0., 0., 0., 0.,
+    ...                                      50, out_array)
+    >>> out_array[0]  # dzbydt
+    1.0393380000000001
+    >>> out_array[1]  # vol_pass_rate
+    1776.1689999999999
+    >>> out_array[2]  # rel_sed_flux
+    0.001776169
+    >>> out_array[3]  # error_in_sed_flux_fn
+    0.0013337999999999961
+    """
+    cdef unsigned int i
+    cdef double rel_sed_flux_in
+    cdef double rel_sed_flux
+    cdef double last_sed_flux_fn
+    cdef double sed_vol_added_bydt
+    cdef double prop_added
+    cdef double poss_new
+    cdef double error_in_sed_flux_fn
+    
+    rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
+    rel_sed_flux = rel_sed_flux_in
+
+    last_sed_flux_fn = 2.  # arbitrary value out of calc range
+    for i in range(pseudoimplicit_repeats):
+        sed_flux_fn = sed_flux_fn_gen(
+            rel_sed_flux, kappa, nu, c, phi, norm)
+        sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
+        prop_added = sed_vol_added_bydt/trans_cap_vol_out_bydt
+        poss_new = prop_added + rel_sed_flux
+        if poss_new > 1.:
+            poss_new = 1.
+        rel_sed_flux = 0.5 * (rel_sed_flux_in + poss_new)
+
+        if rel_sed_flux < 0.:
+            rel_sed_flux = 0.
+        error_in_sed_flux_fn = abs(sed_flux_fn-last_sed_flux_fn)
+        if error_in_sed_flux_fn < 0.01:
+            break
+        last_sed_flux_fn = sed_flux_fn
+    # note that the method will silently terminate even if we still have
+    # bad convergence. Note this is very rare.
+
+    out_array[0] = prefactor_for_dz_bydt*sed_flux_fn
+    out_array[1] = rel_sed_flux*trans_cap_vol_out_bydt
+    out_array[2] = rel_sed_flux
+    out_array[3] = error_in_sed_flux_fn
+
+
+cpdef void iterate_sde_downstream(
+                np.ndarray[DTYPE_INT_t, ndim=1] s_in,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_areas,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] hillslope_sediment,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] hillslope_sediment_flux,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_into_node,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] transport_capacities,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] erosion_prefactor_withS,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] rel_sed_flux,
+                np.ndarray[dtype=np.int8_t, ndim=1] is_it_TL,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] vol_drop_rate,
+                np.ndarray[DTYPE_INT_t, ndim=1] flow_receiver,
+                DTYPE_INT_t pseudoimplicit_repeats,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] dzbydt,
+                sed_flux_fn_gen,
+                DTYPE_FLOAT_t kappa,
+                DTYPE_FLOAT_t nu,
+                DTYPE_FLOAT_t c,
+                DTYPE_FLOAT_t phi,
+                DTYPE_FLOAT_t norm,
+                DTYPE_INT_t consider_flooded,
+                np.ndarray[dtype=np.int8_t, ndim=1] flooded_nodes,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] flooded_depths):
+    """
+    Iterates down a drainage network, redistributing sediment and solving
+    the sediment flux dependent incision equations.
+
+    Parameters
+    ----------
+    s_in : array
+        The upstream node order
+    cell_areas : array
+        The areas of all cells in the grid
+    hillslope_sediment : array
+        Depth of sediment in the channel at each node.
+    hillslope_sediment_flux : array
+        The existing volume of sediment on the channel bed at a node,
+        expressed as volume per unit time of the timestep. This turns
+        the accumulated sediment on the bed into a virtual sediment supply
+        from upstream, such that at the end of the step the same depth of
+        sediment would be present at the node if no other transport
+        occurred.
+    river_volume_flux_into_node : array
+        Total ""true" river flux coming into node from upstream.
+    transport_capacities : array
+        The bedload transport capacity at each node, expressed as a flux.
+    erosion_prefactor_withS : array
+        Equal to K * A**m * S**n at nodes
+    rel_sed_flux : array
+        The sediment flux as a function of the transport capacity.
+    is_it_TL : boolean array
+        Describes whether the sediment transported at the node is at
+        capacity or not.
+    vol_drop_rate : array
+        Flux of sediment ending up on the bed during transport.
+    flow_receiver : array
+        The downstream node ID.
+    pseudoimplicit_repeats : int
+        Maximum number of loops to perform with the pseudoimplicit
+        iterator, seeking a stable solution. Convergence is typically
+        rapid.
+    dzbydt : array
+        The rate of change of *bedrock* surface elevation.
+    sed_flux_fn_gen : function
+        Function to calculate the sed flux function. Takes inputs
+        rel_sed_flux_in, kappa, nu, c, phi, norm, where last 5 are dummy
+        unless type is generalized_humped.
+    kappa, nu, c, phi, norm : float
+        Params for the sed flux function. Values if generalized_humped,
+        zero otherwise.
+    flooded_nodes : boolean nnodes array or None
+        Logical array of flooded nodes, if any
+    flooded_depths : float nnodes array or None
+        Depth of standing water at node (0. where not flooded)
+    """
+    cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array = np.empty(4, dtype=float)
+    cdef unsigned int i
+    cdef double flood_depth
+    cdef double sed_flux_into_this_node_bydt
+    cdef double node_capacity
+    cdef double dz_prefactor_bydt
+    cdef double vol_prefactor_bydt
+    cdef double vol_pass_rate
+    cdef unsigned int isflooded
+    
+    for i in s_in[::-1]:  # work downstream
+        cell_area = cell_areas[i]
+        if consider_flooded == 1:
+            flood_depth = flooded_depths[i]
+        else:
+            flood_depth = 0.
+        sed_flux_into_this_node_bydt = (
+            hillslope_sediment_flux[i] +
+            river_volume_flux_into_node[i])
+        node_capacity = transport_capacities[i]
+        # ^we work in volume flux, not volume per se here
+        if flood_depth - hillslope_sediment[i] > 0.:
+            # ...node is truly flooded
+            node_capacity = 0.
+        if sed_flux_into_this_node_bydt < node_capacity:
+            # ^note incision is forbidden at capacity
+            dz_prefactor_bydt = erosion_prefactor_withS[i]
+            vol_prefactor_bydt = dz_prefactor_bydt*cell_area
+            get_sed_flux_function_pseudoimplicit(
+                    sed_flux_into_this_node_bydt,
+                    node_capacity,
+                    vol_prefactor_bydt, dz_prefactor_bydt,
+                    sed_flux_fn_gen,
+                    kappa, nu, c, phi, norm,
+                    pseudoimplicit_repeats, out_array)
+            dzbydt[i] = -out_array[0]
+            # ^minus returns us to the correct sign convention
+            vol_pass_rate = out_array[1]
+            rel_sed_flux[i] = out_array[2]
+            # error_in_sed_flux = out_array[3]
+        else:
+            is_it_TL[i] = 1
+            rel_sed_flux[i] = 1.
+            dzbydt[i] = 0.
+            if consider_flooded == 1:
+                isflooded = flooded_nodes[i]
+            else:
+                isflooded = 0
+            # flood handling adjusted as of 29/6/17 (untested) such
+            # that sed can flux through as long as the sed depth
+            # at the start of the loop was capable of filling the
+            # hole in the underlying topo.
+            # Under this scheme, there should be no such thing as a
+            # lake hosted only in surface sediment
+            if (flood_depth - hillslope_sediment[i] <= 0. and
+                    isflooded == 0):
+                vol_pass_rate = node_capacity
+                # we want flooded nodes which have already been
+                # filled to enter the else statement
+            else:
+                vol_pass_rate = 0.
+            vol_drop_rate[i] = (
+                sed_flux_into_this_node_bydt - vol_pass_rate)
+            assert vol_drop_rate[i] >= 0.
+        river_volume_flux_into_node[
+            flow_receiver[i]] += vol_pass_rate

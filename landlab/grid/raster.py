@@ -392,7 +392,128 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
+            
+    def __setstate__(self, state_dict):
+        """Set state for of RasterModelGrid from pickled state_dict."""
+        if state_dict['type'] != 'RasterModelGrid':
+            assert TypeError('Saved model instance not of '
+                             'RasterModelGrid type.')
+        
+        dx = state_dict['dx']
+        shape = state_dict['shape']
+        num_rows = shape[0]
+        num_cols = shape[1]
+        
+        self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
+        
+        # Set number of nodes, and initialize if caller has given dimensions
+        self._initialize(num_rows, num_cols, dx)
+                                                 
+        super(RasterModelGrid, self).__init__()
+                                                 
+        self.looped_node_properties = {}
 
+        # Recreate the state of the grid and the information it new
+        # about itself
+        
+        # If diagonal links existed, create them
+        if state_dict['_diagonal_links_created']:
+            self._create_diag_links_at_node()
+
+        # If angle of links existed, create them
+        if state_dict['_angle_of_link_created']:
+            self._create_angle_of_link()
+        
+        # If patches existed, create them
+        if state_dict['_patches_created']:
+            temp = self.nodes_at_patch
+            temp2 = self.links_at_patch
+            del temp
+            del temp2
+        
+        # If forced cell area existed.
+        if state_dict['forced_cell_areas_created']:
+            temp = self._create_cell_areas_array_force_inactive()
+            del temp
+            
+        # If neighbor list existed, create them
+        if state_dict['neighbor_list_created']:
+            self._create_neighbor_list()
+        
+        # If diagonal list existed, create them
+        if state_dict['diagonal_list_created']:
+            self._create_diagonal_list()
+                
+        # Set status at links and nodes
+        self._node_status[:] = state_dict['status_at_node']
+        self._update_links_nodes_cells_to_new_BCs()
+
+        # Add fields back to the grid
+        for group in state_dict['_groups'].keys():
+            field_set = state_dict['_groups'][group]
+            fields = field_set.keys()
+            for field in fields:
+                # add field to
+                self.add_field(group,
+                               field,
+                               field_set[field]['value_array'],
+                               units=field_set[field]['units'])
+        self.bc_set_code = state_dict['bc_set_code']
+            
+    def __getstate__(self):
+        """Get state for pickling."""
+        # initialize state_dict
+        state_dict = {}
+        
+        # save basic information about the shape and size of the grid
+        state_dict['type'] = 'RasterModelGrid'
+        state_dict['dx'] = self.dx
+        state_dict['dy'] = self.dy
+        state_dict['shape'] = self.shape
+        state_dict['_axis_name'] = self._axis_name
+        state_dict['_axis_units'] = self._axis_units
+        state_dict['_default_group'] = self._default_group
+        
+        # save information about things that might have been created
+        state_dict['_angle_of_link_created'] = self._angle_of_link_created
+        state_dict['_diagonal_links_created'] = self._diagonal_links_created
+        state_dict['_patches_created'] = self._patches_created
+        state_dict['neighbor_list_created'] = self.neighbor_list_created
+        state_dict['diagonal_list_created'] = self.diagonal_list_created
+        try:
+            if type(self._forced_cell_areas) == np.ndarray:
+                state_dict['forced_cell_areas_created'] = True
+            else:
+                state_dict['forced_cell_areas_created'] = False
+        except AttributeError:
+            state_dict['forced_cell_areas_created'] = False
+            
+        # save status information at nodes (status at link set based on status
+        # at node
+        state_dict['status_at_node'] = np.asarray(self._node_status)
+        
+        # save all fields. This is the key part, since saving ScalarDataFields, breaks
+        # pickle and/or dill
+        
+        groups = {}
+        for group in self._groups.keys():
+            field_set_dict = {}
+            fields = self._groups[group].keys()
+            for field in fields:
+                field_dict = {}
+                field_dict['value_array'] = self.field_values (group, field)
+                field_dict['units'] = self.field_units(group, field)
+                field_set_dict[field] = field_dict
+            groups[group] = field_set_dict
+        
+        state_dict['_groups'] = groups
+        
+        #save BC set code
+        state_dict['bc_set_code'] = self.bc_set_code
+        
+        #return state_dict
+        return state_dict
+    
     @classmethod
     def from_dict(cls, params):
         """Create a RasterModelGrid from a dictionary.
@@ -625,8 +746,11 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         #  *---0-->*---1-->*---2-->*---3-->*
         #
         #   create the tail-node and head-node lists
-        (self._node_at_link_tail,
-         self._node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+        (node_at_link_tail,
+         node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
+
+        self._nodes_at_link = np.vstack((node_at_link_tail,
+                                         node_at_link_head)).T.copy()
 
         self._status_at_link = np.full(squad_links.number_of_links(self.shape),
                                        INACTIVE_LINK, dtype=int)
@@ -639,6 +763,12 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
 
         # Flag indicating whether we have created diagonal links.
         self._diagonal_links_created = False
+        
+        # Flag indicating whether we have created patches
+        self._patches_created = False
+        
+        # Flag indicating whether we have created link angles
+        self._angle_of_link_created = False
 
         #   set up the list of active links
         self._reset_link_status_list()
@@ -668,6 +798,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         # List of neighbors for each cell: we will start off with no
         # list. If a caller requests it via active_neighbors_at_node or
         # _create_neighbor_list, we'll create it if necessary.
+        self.neighbor_list_created = False
         self._neighbor_node_dict = {}
 
         # List of diagonal neighbors. As with the neighbor list, we'll only
@@ -961,7 +1092,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
 
-       LLCATS: DEPR NINF CONN
+        LLCATS: DEPR NINF CONN
         """
         return self.__diagonal_neighbors_at_node
 
@@ -1006,7 +1137,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
                [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
 
-       LLCATS: DEPR LINF NINF
+        LLCATS: DEPR LINF NINF
         """
         if len(args) == 0:
             return np.vstack((self._node_active_inlink_matrix2,
@@ -1387,13 +1518,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                                            dtype=np.int8)
         num_links_per_row = (self.number_of_node_columns * 2) - 1
         # Sweep over all links
+        node_at_link_tail = self.node_at_link_tail
+        node_at_link_head = self.node_at_link_head
         for lk in range(self.number_of_links):
             # Find the orientation
             is_horiz = ((lk % num_links_per_row) <
                         (self.number_of_node_columns - 1))
             # Find the IDs of the tail and head nodes
-            t = self.node_at_link_tail[lk]
-            h = self.node_at_link_head[lk]
+            t = node_at_link_tail[lk]
+            h = node_at_link_head[lk]
 
             # If the link is horizontal, the index (row) in the links_at_node
             # array should be 0 (east) for the tail node, and 2 (west) for the
@@ -2783,7 +2916,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=int8)
 
-      LLCATS: BC SUBSET
+        LLCATS: BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
             six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
@@ -3352,7 +3485,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
                [  5.,   6.,   7.,   8.,   9.],
                [  0.,   1.,   2.,   3.,   4.]])
 
-       LLCATS: GINF NINF
+        LLCATS: GINF NINF
         """
         return sgrid.reshape_array(self.shape, u,
                                    flip_vertically=flip_vertically)
@@ -3385,7 +3518,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([[ 3.,  4.,  5.],
                [ 0.,  1.,  2.]])
 
-       LLCATS: GINF CINF
+        LLCATS: GINF CINF
         """
         return sgrid.reshape_array((self.shape[0] - 2, self.shape[1] - 2),
                                    u, flip_vertically=flip_vertically)
@@ -4169,7 +4302,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
         array([[2, 5, 4, 3, 0, 3, 4, 5],
                [3, 0, 2, 1, 4, 1, 2, 0]])
 
-       LLCATS: DEPR CINF CONN BC
+        LLCATS: DEPR CINF CONN BC
         """
         if self._looped_cell_neighbor_list is not None:
             return self._looped_cell_neighbor_list
@@ -4715,23 +4848,23 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Sets the connection method for use if remove_disconnected==True
 
         Examples
-        ---------
+        --------
         The first example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
         The second example will use a 4,4 grid with node data values
-        as illustrated:
+        as illustrated::
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.     67.   -2.
-        -9999. -9999. -9999. -9999.
-        ---------
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.     67.   -2.
+            -9999. -9999. -9999. -9999.
+
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -4889,7 +5022,7 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Sets the connection method.
 
         Examples
-        ---------
+        --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg1 = RasterModelGrid((4,6))
@@ -5031,16 +5164,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             Value that indicates an invalid value.
 
         Examples
-        ---------
+        --------
         The example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
-        ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -5101,16 +5233,15 @@ class RasterModelGrid(ModelGrid, RasterModelGridPlotter):
             id of outlet location
 
         Examples
-        ---------
+        --------
         The example will use a 4,4 grid with node data values
         as illustrated:
 
-        -9999. -9999. -9999. -9999.
-        -9999.    67.     0. -9999.
-        -9999.    67.    67. -9999.
-        -9999. -9999. -9999. -9999.
+            -9999. -9999. -9999. -9999.
+            -9999.    67.     0. -9999.
+            -9999.    67.    67. -9999.
+            -9999. -9999. -9999. -9999.
 
-        ---------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4,4),1.)
@@ -5232,9 +5363,5 @@ add_module_functions_to_class(RasterModelGrid, 'raster_mappers.py',
                               pattern='map_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_gradients.py',
                               pattern='calc_*')
-add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
-                              pattern='calc_*')
-add_module_functions_to_class(RasterModelGrid, 'raster_steepest_descent.py',
-                              pattern='_calc_*')
 add_module_functions_to_class(RasterModelGrid, 'raster_set_status.py',
                               pattern='set_status_at_node*')

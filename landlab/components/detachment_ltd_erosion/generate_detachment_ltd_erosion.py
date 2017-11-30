@@ -130,7 +130,7 @@ class DetachmentLtdErosion(Component):
     }
 
     def __init__(self, grid, K_sp = 0.00002, m_sp = 0.5, n_sp = 1.0,
-                 uplift_rate = 0.0, entraiment_threshold = 0.0, **kwds):
+                 uplift_rate = 0.0, entrainment_threshold = 0.0, **kwds):
         """Calculate detachment limited erosion rate on nodes.
 
         Landlab component that generalizes the detachment limited erosion
@@ -165,7 +165,7 @@ class DetachmentLtdErosion(Component):
 
         self.I = self._grid.zeros(at='node')
         self.uplift_rate = uplift_rate
-        self.entraiment_threshold = entraiment_threshold
+        self.entrainment_threshold = entrainment_threshold
 
         self.dzdt = self._grid.zeros(at='node')
 
@@ -203,7 +203,7 @@ class DetachmentLtdErosion(Component):
 
         S_to_n = np.power(S, self.n)
 
-        self.I = (self.K * (Q_to_m * S_to_n - self.entraiment_threshold))
+        self.I = (self.K * Q_to_m * S_to_n) - self.entrainment_threshold
 
         self.I[self.I < 0.0] = 0.0
 

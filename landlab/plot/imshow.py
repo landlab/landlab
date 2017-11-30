@@ -25,6 +25,7 @@ except ImportError:
 from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
+from landlab.plot.event_handler import query_grid_on_button_press
 from landlab.utils.decorators import deprecated
 
 
@@ -45,6 +46,9 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
+
+    Node coordinates are printed when a mouse button is pressed on a cell in
+    the plot.
 
     This function happily works with both regular and irregular grids.
 
@@ -133,6 +137,9 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     if isinstance(values, str):
         plt.title(values)
+        
+    plt.gcf().canvas.mpl_connect('button_press_event', 
+       lambda event: query_grid_on_button_press(event, grid))
 
 
 @deprecated(use='imshow_grid_at_node', version='0.5')
