@@ -95,7 +95,7 @@ class SedDepEroder(Component):
         Maximum number of loops to perform with the pseudoimplicit iterator,
         seeking a stable solution. Convergence is typically rapid. The
         component counts the total number of times it "maxed out" the
-        loop to seek a stable solution (error in sed flux fn <0.1%) with the
+        loop to seek a stable solution (error in sed flux fn <1%) with the
         internal variable "_pseudoimplicit_aborts".
     return_stream_properties : bool
         Whether to perform a few additional calculations in order to set
@@ -403,99 +403,11 @@ class SedDepEroder(Component):
         if self.return_ch_props:
             self.initialize_optional_output_fields()
 
-    # This material is old, but retained for use in future dev cycles::
-
-    # def get_sed_flux_function(self, rel_sed_flux):
-    #     if self.type == 'generalized_humped':
-    #         "Returns K*f(qs,qc)"
-    #         sed_flux_fn = self.kappa*(rel_sed_flux**self.nu + self.c)*np.exp(
-    #             -self.phi*rel_sed_flux)
-    #     elif self.type == 'linear_decline':
-    #         sed_flux_fn = (1.-rel_sed_flux)
-    #     elif self.type == 'parabolic':
-    #         raise MissingKeyError(
-    #             'Pure parabolic (where intersect at zero flux is exactly ' +
-    #             'zero) is currently not supported, sorry. Try ' +
-    #             'almost_parabolic instead?')
-    #         sed_flux_fn = 1. - 4.*(rel_sed_flux-0.5)**2.
-    #     elif self.type == 'almost_parabolic':
-    #         sed_flux_fn = np.where(rel_sed_flux > 0.1,
-    #                                1. - 4.*(rel_sed_flux-0.5)**2.,
-    #                                2.6*rel_sed_flux+0.1)
-    #     elif self.type == 'None':
-    #         sed_flux_fn = 1.
-    #     else:
-    #         raise MissingKeyError(
-    #             'Provided sed flux sensitivity type in input file was not ' +
-    #             'recognised!')
-    #     return sed_flux_fn
-    #
-    # def get_sed_flux_function_pseudoimplicit_old(self, sed_in,
-    #                                              trans_cap_vol_out,
-    #                                              prefactor_for_volume,
-    #                                              prefactor_for_dz):
-    #     rel_sed_flux_in = sed_in/trans_cap_vol_out
-    #     rel_sed_flux = rel_sed_flux_in
-    #
-    #     if self.type == 'generalized_humped':
-    #         "Returns K*f(qs,qc)"
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return self.kappa*(rel_sed_flux_in**self.nu + self.c)*np.exp(
-    #                 -self.phi*rel_sed_flux_in)
-    #
-    #     elif self.type == 'linear_decline':
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return 1.-rel_sed_flux_in
-    #
-    #     elif self.type == 'parabolic':
-    #         raise MissingKeyError(
-    #             'Pure parabolic (where intersect at zero flux is exactly ' +
-    #             'zero) is currently not supported, sorry. Try ' +
-    #             'almost_parabolic instead?')
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return 1. - 4.*(rel_sed_flux_in-0.5)**2.
-    #
-    #     elif self.type == 'almost_parabolic':
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return np.where(rel_sed_flux_in > 0.1,
-    #                             1. - 4.*(rel_sed_flux_in-0.5)**2.,
-    #                             2.6*rel_sed_flux_in+0.1)
-    #
-    #     elif self.type == 'None':
-    #
-    #         def sed_flux_fn_gen(rel_sed_flux_in):
-    #             return 1.
-    #     else:
-    #         raise MissingKeyError(
-    #             'Provided sed flux sensitivity type in input file was not ' +
-    #             'recognised!')
-    #
-    #     for i in range(self.pseudoimplicit_repeats):
-    #         sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
-    #         sed_vol_added = prefactor_for_volume*sed_flux_fn
-    #         rel_sed_flux = rel_sed_flux_in + sed_vol_added/trans_cap_vol_out
-    #         # print rel_sed_flux
-    #         if rel_sed_flux >= 1.:
-    #             rel_sed_flux = 1.
-    #             break
-    #         if rel_sed_flux < 0.:
-    #             rel_sed_flux = 0.
-    #             break
-    #     last_sed_flux_fn = sed_flux_fn
-    #     sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
-    #     # this error could alternatively be used to break the loop
-    #     error_in_sed_flux_fn = sed_flux_fn-last_sed_flux_fn
-    #     dz = prefactor_for_dz*sed_flux_fn
-    #     sed_flux_out = rel_sed_flux*trans_cap_vol_out
-    #     return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
-
     def get_sed_flux_function_pseudoimplicit(self, sed_in_bydt,
                                              trans_cap_vol_out_bydt,
                                              prefactor_for_volume_bydt,
-                                             prefactor_for_dz_bydt):
+                                             prefactor_for_dz_bydt,
+                                             type_in, pseudoimplicit_repeats):
         """
         This function uses a pseudoimplicit method to calculate the sediment
         flux function for a node, and also returns dz/dt and the rate of
@@ -516,6 +428,18 @@ class SedDepEroder(Component):
         prefactor_for_dz_bydt : float
             Equal to K*A**m*S**n (both prefactors are passed for computational
             efficiency)
+        type_in : {'generalized_humped', 'None', 'linear_decline',
+                   'almost_parabolic'}
+            The shape of the sediment flux function. For definitions, see
+            Hobley et al., 2011. 'None' gives a constant value of 1.
+            NB: 'parabolic' is currently not supported, due to numerical
+            stability issues at channel heads.
+        pseudoimplicit_repeats : int
+            Maximum number of loops to perform with the pseudoimplicit
+            iterator, seeking a stable solution. Convergence is typically
+            rapid. The method counts the total number of times it "maxed
+            out" the loop to seek a stable solution (error in sed flux fn <1%)
+            and returns this as "pseudoimplicit_aborts".
 
         Returns
         -------
@@ -535,7 +459,9 @@ class SedDepEroder(Component):
         >>> mg = RasterModelGrid((25, 25), 10.)
         >>> sde = SedDepEroder(mg, sed_dependency_type='almost_parabolic')
         >>> (dzbydt, sed_flux_out_bydt, rel_sed_flux, error_in_sed_flux_fn) = (
-        ...   sde.get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.))
+        ...   sde.get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.,
+        ...                                            'almost_parabolic',
+        ...                                            50))
         >>> dzbydt
         1.0393380000000001
         >>> sed_flux_out_bydt
@@ -548,18 +474,18 @@ class SedDepEroder(Component):
         rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
         rel_sed_flux = rel_sed_flux_in
 
-        if self.type == 'generalized_humped':
+        if type_in == 'generalized_humped':
             "Returns K*f(qs,qc)"
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return self.kappa*(rel_sed_flux_in**self.nu + self.c)*np.exp(
                     -self.phi*rel_sed_flux_in)
 
-        elif self.type == 'linear_decline':
+        elif type_in == 'linear_decline':
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return 1.-rel_sed_flux_in
 
-        elif self.type == 'parabolic':
+        elif type_in == 'parabolic':
             raise MissingKeyError(
                 'Pure parabolic (where intersect at zero flux is exactly ' +
                 'zero) is currently not supported, sorry. Try ' +
@@ -568,14 +494,14 @@ class SedDepEroder(Component):
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return 1. - 4.*(rel_sed_flux_in-0.5)**2.
 
-        elif self.type == 'almost_parabolic':
+        elif type_in == 'almost_parabolic':
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return np.where(rel_sed_flux_in > 0.1,
                                 1. - 4.*(rel_sed_flux_in-0.5)**2.,
                                 2.6*rel_sed_flux_in+0.1)
 
-        elif self.type == 'None':
+        elif type_in == 'None':
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return 1.
@@ -585,7 +511,7 @@ class SedDepEroder(Component):
                 'recognised!')
 
         last_sed_flux_fn = 2.  # arbitrary value out of calc range
-        for i in range(self.pseudoimplicit_repeats):
+        for i in range(pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
             sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
             prop_added = sed_vol_added_bydt/trans_cap_vol_out_bydt
@@ -600,13 +526,8 @@ class SedDepEroder(Component):
             if error_in_sed_flux_fn < 0.01:
                 break
             last_sed_flux_fn = sed_flux_fn
-        if i == self.pseudoimplicit_repeats - 1:
-            self._pseudoimplicit_aborts += 1
-            # record info if we had a bad convergence...
-            self._error_at_abort.append(
-                (error_in_sed_flux_fn, rel_sed_flux_in, rel_sed_flux,
-                 sed_flux_fn, last_sed_flux_fn))
-        self._total_DL_calls += 1
+        # note that the method will silently terminate even if we still have
+        # bad convergence. Note this is very rare.
 
         dzbydt = prefactor_for_dz_bydt*sed_flux_fn
         sed_flux_out_bydt = rel_sed_flux*trans_cap_vol_out_bydt
@@ -918,7 +839,8 @@ class SedDepEroder(Component):
                     self.get_sed_flux_function_pseudoimplicit(
                         sed_flux_into_this_node_bydt,
                         node_capacity,
-                        vol_prefactor_bydt, dz_prefactor_bydt)
+                        vol_prefactor_bydt, dz_prefactor_bydt,
+                        self.type, self.pseudoimplicit_repeats)
                 # note now dz_here may never create more sed than the
                 # out can transport...
                 assert sed_flux_out_bydt <= node_capacity, (
