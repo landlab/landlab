@@ -820,7 +820,7 @@ cdef void get_sed_flux_function_pseudoimplicit(
         out_array : array of floats
             Array to be filled, containing:
             dzbydt: Rate of change of substrate elevation,
-            sed_flux_out_bydt: Q_s/dt on the outgoing link,
+            vol_pass_rate: Q_s/dt on the outgoing link,
             rel_sed_flux: f(Q_s/Q_c),
             error_in_sed_flux_fn: Measure of how well converged rel_sed_flux is
 
@@ -838,7 +838,7 @@ cdef void get_sed_flux_function_pseudoimplicit(
     ...                                      50, out_array)
     >>> out_array[0]  # dzbydt
     1.0393380000000001
-    >>> out_array[1]  # sed_flux_out_bydt
+    >>> out_array[1]  # vol_pass_rate
     1776.1689999999999
     >>> out_array[2]  # rel_sed_flux
     0.001776169
@@ -958,7 +958,15 @@ cpdef void iterate_sde_downstream(
     flooded_depths : float nnodes array or None
         Depth of standing water at node (0. where not flooded)
     """
-    out_array = np.empty(4, dtype=float)
+    cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array = np.empty(4, dtype=float)
+    cdef unsigned int i
+    cdef double flood_depth
+    cdef double sed_flux_into_this_node_bydt
+    cdef double node_capacity
+    cdef double dz_prefactor_bydt
+    cdef double vol_prefactor_bydt
+    cdef double vol_pass_rate
+    cdef unsigned int isflooded
     
     for i in s_in[::-1]:  # work downstream
         cell_area = cell_areas[i]
@@ -985,26 +993,19 @@ cpdef void iterate_sde_downstream(
                     sed_flux_fn_gen,
                     kappa, nu, c, phi, norm,
                     pseudoimplicit_repeats, out_array)
-            dzbydt_here = out_array[0]
-            sed_flux_out_bydt = out_array[1]
-            rel_sed_flux_here = out_array[2]
-            error_in_sed_flux = out_array[3]
-            # note now dz_here may never create more sed than the
-            # out can transport...
-            assert sed_flux_out_bydt <= node_capacity, (
-                'failed at node '+str(s_in.size-i) +
-                ' with rel sed flux '+str(
-                    sed_flux_out_bydt/node_capacity))
-            rel_sed_flux[i] = rel_sed_flux_here
-            vol_pass_rate = sed_flux_out_bydt
+            dzbydt[i] = -out_array[0]
+            # ^minus returns us to the correct sign convention
+            vol_pass_rate = out_array[1]
+            rel_sed_flux[i] = out_array[2]
+            # error_in_sed_flux = out_array[3]
         else:
             is_it_TL[i] = 1
             rel_sed_flux[i] = 1.
-            dzbydt_here = 0.
+            dzbydt[i] = 0.
             if consider_flooded == 1:
-                isflooded = flooded_nodes.view(dtype=bool)[i]
+                isflooded = flooded_nodes[i]
             else:
-                isflooded = False
+                isflooded = 0
             # flood handling adjusted as of 29/6/17 (untested) such
             # that sed can flux through as long as the sed depth
             # at the start of the loop was capable of filling the
@@ -1012,7 +1013,7 @@ cpdef void iterate_sde_downstream(
             # Under this scheme, there should be no such thing as a
             # lake hosted only in surface sediment
             if (flood_depth - hillslope_sediment[i] <= 0. and
-                    not isflooded):
+                    isflooded == 0):
                 vol_pass_rate = node_capacity
                 # we want flooded nodes which have already been
                 # filled to enter the else statement
@@ -1021,7 +1022,5 @@ cpdef void iterate_sde_downstream(
             vol_drop_rate[i] = (
                 sed_flux_into_this_node_bydt - vol_pass_rate)
             assert vol_drop_rate[i] >= 0.
-        dzbydt[i] -= dzbydt_here
-        # ^minus returns us to the correct sign convention
         river_volume_flux_into_node[
             flow_receiver[i]] += vol_pass_rate
