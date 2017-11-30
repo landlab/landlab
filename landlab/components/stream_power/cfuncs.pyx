@@ -383,7 +383,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
     # Loop through nodes.
     for i in range(n_nodes):
 
-        # get IDs for source and reciever nodes
+        # get IDs for source and receiver nodes
         src_id = src_nodes[i]
         dst_id = dst_nodes[src_id]
 
@@ -665,3 +665,5 @@ def new_elev_prime(DTYPE_FLOAT_t x,
     f = (1.0 + a) - c * d * np.exp(-d * (x - b))
 
     return f
+
+

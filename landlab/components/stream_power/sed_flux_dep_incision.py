@@ -726,84 +726,16 @@ class SedDepEroder(Component):
 
                 self._is_it_TL = np.zeros(
                     self.grid.number_of_nodes, dtype=bool)
-                for i in s_in[::-1]:  # work downstream
-                    cell_area = cell_areas[i]
-                    if flooded_nodes is not None:
-                        flood_depth = flooded_depths[i]
-                    else:
-                        flood_depth = 0.
-                    sed_flux_into_this_node_bydt = (
-                        self._hillslope_sediment_flux_wzeros[i] +
-                        river_volume_flux_into_node[i])
-                    node_capacity = transport_capacities[i]
-                    # ^we work in volume flux, not volume per se here
-                    if flood_depth - self._hillslope_sediment[i] > 0.:
-                        # ...node is truly flooded
-                        node_capacity = 0.
-                    if sed_flux_into_this_node_bydt < node_capacity:
-                        # ^note incision is forbidden at capacity
-                        dz_prefactor_bydt = erosion_prefactor_withS[i]
-                        vol_prefactor_bydt = dz_prefactor_bydt*cell_area
-                        (dzbydt_here, sed_flux_out_bydt, rel_sed_flux_here,
-                         error_in_sed_flux) = \
-                            self.get_sed_flux_function_pseudoimplicit(
-                                sed_flux_into_this_node_bydt,
-                                node_capacity,
-                                vol_prefactor_bydt, dz_prefactor_bydt)
-                        # note now dz_here may never create more sed than the
-                        # out can transport...
-                        assert sed_flux_out_bydt <= node_capacity, (
-                            'failed at node '+str(s_in.size-i) +
-                            ' with rel sed flux '+str(
-                                sed_flux_out_bydt/node_capacity))
-                        rel_sed_flux[i] = rel_sed_flux_here
-                        vol_pass_rate = sed_flux_out_bydt
-                        # # As of 29/6/17 approach, this shouldn't happen
-                        # # (all sed is virtual)
-                        # # erode off the surplus sed from hillslopes (already
-                        # # budgeted):
-                        # if self._ext_sed:
-                        #     dzbydt_here += (
-                        #         self._hillslope_sediment_flux_wzeros[i] /
-                        #         cell_area)
-                        #     # no change to voldroprate or voldropped, as both
-                        #     # should already be 0 -> consider role of inner vs outer loop!
-                    else:
-                        self._is_it_TL[i] = True
-                        rel_sed_flux[i] = 1.
-                        dzbydt_here = 0.
-                        try:
-                            isflooded = flooded_nodes[i]
-                        except TypeError:  # was None
-                            isflooded = False
-                        # flood handling adjusted as of 29/6/17 (untested) such
-                        # that sed can flux through as long as the sed depth
-                        # at the start of the loop was capable of filling the
-                        # hole in the underlying topo.
-                        # Under this scheme, there should be no such thing as a
-                        # lake hosted only in surface sediment
-                        if (flood_depth - self._hillslope_sediment[i] <= 0. and
-                                not isflooded):
-                            vol_pass_rate = node_capacity
-                            # we want flooded nodes which have already been
-                            # filled to enter the else statement
-                        else:
-                            vol_pass_rate = 0.
-                            ########################################this probably isn't needed any more vv
-                            time_to_fill = -flood_depth/dzbydt_here
-                            if time_to_fill < flood_tstep:
-                                flood_node = i
-                                flood_tstep = time_to_fill
-                                conv_factor = 1.
-                                # ^this needed to let this node to fill fully
-                        if self._ext_sed:
-                            self._voldroprate[i] = (
-                                sed_flux_into_this_node_bydt - vol_pass_rate)
-                            assert self._voldroprate[i] >= 0.
-                    dzbydt[i] -= dzbydt_here
-                    # ^minus returns us to the correct sign convention
-                    river_volume_flux_into_node[
-                        flow_receiver[i]] += vol_pass_rate
+
+                self.iterate_downstream(s_in, cell_areas,
+                                        self._hillslope_sediment,
+                                        self._hillslope_sediment_flux_wzeros,
+                                        river_volume_flux_into_node,
+                                        transport_capacities,
+                                        erosion_prefactor_withS,
+                                        rel_sed_flux, self._is_it_TL,
+                                        self._voldroprate, flow_receiver,
+                                        dzbydt)
 
                 # now perform a CHILD-like convergence-based stability test:
                 ratediff = dzbydt[flow_receiver] - dzbydt
@@ -845,8 +777,11 @@ class SedDepEroder(Component):
                         self.grid.area_of_cell * this_tstep)
                 # modify elevs; both sed & rock:
                 # note dzbydt applies only to the ROCK surface
-                elev_less_sed[grid.core_nodes] += dzbydt[grid.core_nodes]*this_tstep
-                node_z[grid.core_nodes] = elev_less_sed[grid.core_nodes] + self._hillslope_sediment[grid.core_nodes]
+                elev_less_sed[grid.core_nodes] += (
+                    dzbydt[grid.core_nodes] * this_tstep)
+                node_z[grid.core_nodes] = (
+                    elev_less_sed[grid.core_nodes] +
+                    self._hillslope_sediment[grid.core_nodes])
 
                 if break_flag:
                     break
@@ -910,3 +845,113 @@ class SedDepEroder(Component):
         """Return a map of where erosion is purely transport-limited.
         """
         return self._is_it_TL
+
+    def iterate_downstream(self, s_in, cell_areas,
+                           hillslope_sediment,
+                           hillslope_sediment_flux,
+                           river_volume_flux_into_node,
+                           transport_capacities,
+                           erosion_prefactor_withS,
+                           rel_sed_flux,
+                           is_it_TL,
+                           vol_drop_rate,
+                           flow_receiver,
+                           dzbydt,
+                           flooded_nodes=None,
+                           flooded_depths=None):
+        """
+        s_in : array
+            The upstream node order
+        cell_areas : array
+            The areas of all cells in the grid
+        hillslope_sediment : array
+            Depth of sediment in the channel at each node.
+        hillslope_sediment_flux : array
+            The existing volume of sediment on the channel bed at a node,
+            expressed as volume per unit time of the timestep. This turns
+            the accumulated sediment on the bed into a virtual sediment supply
+            from upstream, such that at the end of the step the same depth of
+            sediment would be present at the node if no other transport
+            occurred.
+        river_volume_flux_into_node : array
+            Total ""true" river flux coming into node from upstream.
+        transport_capacities : array
+            The bedload transport capacity at each node, expressed as a flux.
+        erosion_prefactor_withS : array
+            Equal to K * A**m * S**n at nodes
+        rel_sed_flux : array
+            The sediment flux as a function of the transport capacity.
+        is_it_TL : boolean array
+            Describes whether the sediment transported at the node is at
+            capacity or not.
+        vol_drop_rate : array
+            Flux of sediment ending up on the bed during transport.
+        flow_receiver : array
+            The downstream node ID.
+        dzbydt : array
+            The rate of change of *bedrock* surface elevation.
+        flooded_nodes : boolean nnodes array or None
+            Logical array of flooded nodes, if any
+        flooded_depths : float nnodes array or None
+            Depth of standing water at node (0. where not flooded)
+        """
+        for i in s_in[::-1]:  # work downstream
+            cell_area = cell_areas[i]
+            if flooded_nodes is not None:
+                flood_depth = flooded_depths[i]
+            else:
+                flood_depth = 0.
+            sed_flux_into_this_node_bydt = (
+                hillslope_sediment_flux[i] +
+                river_volume_flux_into_node[i])
+            node_capacity = transport_capacities[i]
+            # ^we work in volume flux, not volume per se here
+            if flood_depth - hillslope_sediment[i] > 0.:
+                # ...node is truly flooded
+                node_capacity = 0.
+            if sed_flux_into_this_node_bydt < node_capacity:
+                # ^note incision is forbidden at capacity
+                dz_prefactor_bydt = erosion_prefactor_withS[i]
+                vol_prefactor_bydt = dz_prefactor_bydt*cell_area
+                (dzbydt_here, sed_flux_out_bydt, rel_sed_flux_here,
+                 error_in_sed_flux) = \
+                    self.get_sed_flux_function_pseudoimplicit(
+                        sed_flux_into_this_node_bydt,
+                        node_capacity,
+                        vol_prefactor_bydt, dz_prefactor_bydt)
+                # note now dz_here may never create more sed than the
+                # out can transport...
+                assert sed_flux_out_bydt <= node_capacity, (
+                    'failed at node '+str(s_in.size-i) +
+                    ' with rel sed flux '+str(
+                        sed_flux_out_bydt/node_capacity))
+                rel_sed_flux[i] = rel_sed_flux_here
+                vol_pass_rate = sed_flux_out_bydt
+            else:
+                is_it_TL[i] = True
+                rel_sed_flux[i] = 1.
+                dzbydt_here = 0.
+                try:
+                    isflooded = flooded_nodes[i]
+                except TypeError:  # was None
+                    isflooded = False
+                # flood handling adjusted as of 29/6/17 (untested) such
+                # that sed can flux through as long as the sed depth
+                # at the start of the loop was capable of filling the
+                # hole in the underlying topo.
+                # Under this scheme, there should be no such thing as a
+                # lake hosted only in surface sediment
+                if (flood_depth - hillslope_sediment[i] <= 0. and
+                        not isflooded):
+                    vol_pass_rate = node_capacity
+                    # we want flooded nodes which have already been
+                    # filled to enter the else statement
+                else:
+                    vol_pass_rate = 0.
+                vol_drop_rate[i] = (
+                    sed_flux_into_this_node_bydt - vol_pass_rate)
+                assert vol_drop_rate[i] >= 0.
+            dzbydt[i] -= dzbydt_here
+            # ^minus returns us to the correct sign convention
+            river_volume_flux_into_node[
+                flow_receiver[i]] += vol_pass_rate
