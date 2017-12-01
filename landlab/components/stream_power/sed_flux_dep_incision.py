@@ -51,11 +51,11 @@ class SedDepEroder(Component):
 
         Qc = K_t * A ** b_t * max[(S ** n_t - S_crit ** n_t) ** m_t, 0.]
 
-    The component uses the field fluvial_sediment__depth as the record of the
+    The component uses the field channel_sediment__depth as the record of the
     sediment on the bed at any given time. This may be set and/or freely
     modified by the user, but will be created by the component if not found.
     Tools-driven bedrock erosion is permitted only when this layer thickness
-    is reduced to zero. The sediment recorded in fluvial_sediment__depth is
+    is reduced to zero. The sediment recorded in channel_sediment__depth is
     considered loose, and freely transportable by clearwater flow.
     Note that the topography tracked by 'topographic__elevation' is the true
     surface topography, not the bedrock topography (...as is consistent with
@@ -350,11 +350,10 @@ class SedDepEroder(Component):
                  Qc='power_law', m_sp=0.5, n_sp=1., K_t=1.e-4, m_t=1.5, n_t=1.,
                  # params for model numeric behavior:
                  pseudoimplicit_repeats=50, return_stream_properties=False,
-                 forbid_deposition=False, **kwds):
+                 **kwds):
         """Constructor for the class."""
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
-        self._forbid_deposition = forbid_deposition
 
         self._K_unit_time = K_sp/31557600.
         # ^...because we work with dt in seconds
@@ -634,10 +633,9 @@ class SedDepEroder(Component):
                     this_tstep -= t_elapsed_internal - dt_secs
 
                 # back-calc the sed budget in the nodes, as appropriate:
-                if self._forbid_deposition:
-                    self._hillslope_sediment[self.grid.node_at_cell] = (
-                        self._voldroprate[self.grid.node_at_cell] /
-                        self.grid.area_of_cell * this_tstep)
+                self._hillslope_sediment[self.grid.node_at_cell] = (
+                    self._voldroprate[self.grid.node_at_cell] /
+                    self.grid.area_of_cell * this_tstep)
                 # modify elevs; both sed & rock:
                 # note dzbydt applies only to the ROCK surface
                 elev_less_sed[grid.core_nodes] += (
