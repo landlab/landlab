@@ -204,6 +204,52 @@ class SedDepEroder(Component):
     ...     np.logical_not(sde.is_it_TL)[mg.core_nodes]]
     >>> np.all((initz - z)[incising_nodes] > 0.0007)
     True
+
+    Pleasingly, the solution for a constant f(Qs) is very close to the stream
+    power solution:
+
+    >>> from landlab.components import FastscapeEroder
+    >>> mg = RasterModelGrid((10, 3), 200.)
+    >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
+    ...              mg.nodes_at_right_edge):
+    ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
+
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+
+    >>> fr = FlowRouter(mg)
+    >>> sde = SedDepEroder(mg, K_sp=1.e-4,
+    ...                    sed_dependency_type='None',
+    ...                    Qc='power_law', K_t=1.e-4)
+
+    >>> z[:] = mg.node_y/10000.
+
+    >>> dt = 100.
+    >>> up = 0.01
+
+    >>> for i in range(50):
+    ...     z[mg.core_nodes] += up * dt
+    ...     fr.run_one_step()
+    ...     sde.run_one_step(dt)
+
+    >>> z_sde = z.copy()
+
+    >>> fsc = FastscapeEroder(mg, K_sp=1.e-4)
+
+    >>> z[:] = mg.node_y/10000.
+
+    >>> for i in range(50):
+    ...     z[mg.core_nodes] += up * dt
+    ...     fr.run_one_step()
+    ...     fsc.run_one_step(dt)
+
+    The difference is less that 3 per cent at maximum:
+
+    >>> ((z.reshape((10, 3))[1:-1, 1] -
+    ...   z_sde.reshape((10, 3))[1:-1, 1])/(
+    ...       z.reshape((10, 3))[1:-1, 1])).max() < 0.03
+    True
+
+    A visual comparison of these solutions will confirm this closeness.
     """
 
     _name = 'SedDepEroder'

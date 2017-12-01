@@ -15,6 +15,7 @@ from numpy.testing import assert_array_almost_equal, assert_equal
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab.components.flow_routing import FlowRouter
 from landlab.components.stream_power import SedDepEroder
+from landlab.components import FastscapeEroder
 from landlab import ModelParameterDictionary
 
 
@@ -44,7 +45,6 @@ def test_sed_dep_new_almostpara():
     up = 0.05
 
     for i in range(1):
-        print(i)
         fr.route_flow()
         sde.run_one_step(dt)
 
@@ -102,7 +102,6 @@ def test_sed_dep_new_genhumped():
     up = 0.05
 
     for i in range(1):
-        print(i)
         fr.route_flow()
         sde.run_one_step(dt)
 
@@ -147,7 +146,6 @@ def test_sed_dep_new_lindecl():
     up = 0.05
 
     for i in range(1):
-        print(i)
         fr.route_flow()
         sde.run_one_step(dt)
 
@@ -192,7 +190,6 @@ def test_sed_dep_new_const():
     up = 0.05
 
     for i in range(1):
-        print(i)
         fr.route_flow()
         sde.run_one_step(dt)
 
