@@ -170,6 +170,9 @@ class PrecipitationDistribution(Component):
 
         # If a time series is created later, this blank list will be used.
         self.storm_time_series = []
+        
+        # Seed the random-number generator
+        self.seed_generator(random_seed)
 
         # Seed the random-number generator
         self.seed_generator(random_seed)

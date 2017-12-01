@@ -55,7 +55,7 @@ class DepressionFinderAndRouter(Component):
 
     Construction::
 
-        DepressionFinderAndRouter(grid, grid, routing='D8')
+        DepressionFinderAndRouter(grid, routing='D8')
 
     Parameters
     ----------
@@ -640,7 +640,7 @@ class DepressionFinderAndRouter(Component):
         not_current_lake = np.not_equal(self.flood_status[nbrs], _CURRENT_LAKE)
         not_flooded = np.not_equal(self.flood_status[nbrs], _FLOODED)
         
-        # The following logic block handles the case when a neighbor is 
+        # The following logic block handles the case when a neighbor is
         # flooded but its outlet is LOWER than the_node, so the_node could
         # be an outlet that flows into a lower lake.
         #

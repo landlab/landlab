@@ -10,7 +10,6 @@ import numpy as np
 from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
 
 class DepthDependentDiffuser(Component):
-
     """
     This component implements a depth and slope dependent linear diffusion rule
     in the style of Johnstone and Hilley (2014).
