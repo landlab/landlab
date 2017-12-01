@@ -187,7 +187,7 @@ class SedDepEroder(Component):
     >>> fr = FlowRouter(mg)
     >>> sde = SedDepEroder(mg, K_sp=1.e-4,
     ...                    sed_dependency_type='almost_parabolic',
-    ...                    Qc='power_law', K_t=1.e-4, external_sediment=True)
+    ...                    Qc='power_law', K_t=1.e-4)
 
     >>> z[:] = mg.node_y/10000.
 
@@ -419,17 +419,12 @@ class SedDepEroder(Component):
 
         self._hillslope_sediment_flux_wzeros = self.grid.zeros('node',
                                                                dtype=float)
-        external_sediment = True  # now hardwired
-        if external_sediment is True:
-            self._ext_sed = True
-            try:
-                self._hillslope_sediment = self.grid.at_node[
-                    'channel_sediment__depth']  # a field was present
-            except FieldError:
-                self._hillslope_sediment = self.grid.add_zeros(
-                    'node', 'channel_sediment__depth')
-        else:
-            self._ext_sed = False
+        try:
+            self._hillslope_sediment = self.grid.at_node[
+                'channel_sediment__depth']  # a field was present
+        except FieldError:
+            self._hillslope_sediment = self.grid.add_zeros(
+                'node', 'channel_sediment__depth')
 
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.area_of_cell))
