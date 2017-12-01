@@ -110,11 +110,6 @@ class SedDepEroder(Component):
         Whether to perform a few additional calculations in order to set
         the additional optional output fields, 'channel__width',
         'channel__depth', and 'channel__discharge' (default False).
-    forbid_deposition : bool
-        If True, the component will never allow active deposition on the bed.
-        DEJH believes this suppresses the diffusion-like response of weakly
-        perturbed catchments, and may be physically unrealistic. Model runs
-        much faster if True. (default False)
     sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
                            'almost_parabolic'}
         The shape of the sediment flux function. For definitions, see
