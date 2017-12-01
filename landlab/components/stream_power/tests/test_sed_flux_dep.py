@@ -18,9 +18,10 @@ from landlab.components.stream_power import SedDepEroder
 from landlab import ModelParameterDictionary
 
 
-def test_sed_dep_new():
+def test_sed_dep_new_almostpara():
     """
-    This tests only the power_law version of the SDE.
+    This tests only the power_law version of the SDE, using the
+    almost_parabolic form of f(Qs).
     """
     mg = RasterModelGrid((10, 5), 200.)
     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
@@ -31,7 +32,7 @@ def test_sed_dep_new():
 
     fr = FlowRouter(mg)
     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
-                       Qc='power_law', K_t=1.e-4, external_sediment=True)
+                       Qc='power_law', K_t=1.e-4)
 
     z[:] = mg.node_y/10000.
     z.reshape((10, 5))[:, 2] *= 2.
@@ -74,6 +75,141 @@ def test_sed_dep_new():
     assert_equal(len(sde._error_at_abort), 0)  # good convergence at all nodes
 
 
+def test_sed_dep_new_genhumped():
+    """
+    This tests only the power_law version of the SDE, using the
+    generalized_humped form of f(Qs).
+    """
+    mg = RasterModelGrid((10, 5), 200.)
+    for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
+                 mg.nodes_at_right_edge):
+        mg.status_at_node[edge] = CLOSED_BOUNDARY
+
+    z = mg.add_zeros('node', 'topographic__elevation')
+
+    fr = FlowRouter(mg)
+    sde = SedDepEroder(mg, K_sp=1.e-4,
+                       sed_dependency_type='generalized_humped',
+                       Qc='power_law', K_t=1.e-4)
+
+    z[:] = mg.node_y/10000.
+    z.reshape((10, 5))[:, 2] *= 2.
+    z.reshape((10, 5))[:, 3] *= 2.1
+
+    initz = z.copy()
+
+    dt = 100.
+    up = 0.05
+
+    for i in range(1):
+        print(i)
+        fr.route_flow()
+        sde.run_one_step(dt)
+
+    ans = np.array([0.,  0.,  0.,  0.,  0.,
+                    0.02,  0.01940896,  0.03969863,  0.04112046,  0.02,
+                    0.04,  0.03948890,  0.07968035,  0.08318039,  0.04,
+                    0.06,  0.05951858,  0.11954794,  0.12524486,  0.06,
+                    0.08,  0.07960747,  0.15939726,  0.16731501,  0.08,
+                    0.10,  0.09969946,  0.19924657,  0.20939250,  0.10,
+                    0.12,  0.11979225,  0.23909589,  0.25147973,  0.12,
+                    0.14,  0.13987971,  0.27894520,  0.29357949,  0.14,
+                    0.16,  0.16023431,  0.31879451,  0.33568356,  0.16,
+                    0.18,  0.18,  0.36,  0.378,  0.18])
+
+    assert_array_almost_equal(z, ans)
+
+
+def test_sed_dep_new_lindecl():
+    """
+    This tests only the power_law version of the SDE, using the
+    linear_decline form of f(Qs).
+    """
+    mg = RasterModelGrid((10, 5), 200.)
+    for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
+                 mg.nodes_at_right_edge):
+        mg.status_at_node[edge] = CLOSED_BOUNDARY
+
+    z = mg.add_zeros('node', 'topographic__elevation')
+
+    fr = FlowRouter(mg)
+    sde = SedDepEroder(mg, K_sp=1.e-4,
+                       sed_dependency_type='linear_decline',
+                       Qc='power_law', K_t=1.e-4)
+
+    z[:] = mg.node_y/10000.
+    z.reshape((10, 5))[:, 2] *= 2.
+    z.reshape((10, 5))[:, 3] *= 2.1
+
+    initz = z.copy()
+
+    dt = 100.
+    up = 0.05
+
+    for i in range(1):
+        print(i)
+        fr.route_flow()
+        sde.run_one_step(dt)
+
+    ans = np.array([0.,  0.,  0.,  0.,  0.,
+                    0.02,  0.01955879,  0.03980000,  0.04128996,  0.02,
+                    0.04,  0.03961955,  0.07978787,  0.08333878,  0.04,
+                    0.06,  0.05964633,  0.11970000,  0.12539158,  0.06,
+                    0.08,  0.07971138,  0.15960000,  0.16745207,  0.08,
+                    0.10,  0.09978034,  0.19950000,  0.20951474,  0.10,
+                    0.12,  0.11985392,  0.23940000,  0.25158663,  0.12,
+                    0.14,  0.13993079,  0.27930000,  0.29367338,  0.14,
+                    0.16,  0.16023431,  0.31920000,  0.33579000,  0.16,
+                    0.18,  0.18,  0.36,  0.378,  0.18])
+
+    assert_array_almost_equal(z, ans)
+
+
+def test_sed_dep_new_const():
+    """
+    This tests only the power_law version of the SDE, using the
+    constant (None) form of f(Qs).
+    """
+    mg = RasterModelGrid((10, 5), 200.)
+    for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
+                 mg.nodes_at_right_edge):
+        mg.status_at_node[edge] = CLOSED_BOUNDARY
+
+    z = mg.add_zeros('node', 'topographic__elevation')
+
+    fr = FlowRouter(mg)
+    sde = SedDepEroder(mg, K_sp=1.e-4,
+                       sed_dependency_type='None',
+                       Qc='power_law', K_t=1.e-4)
+
+    z[:] = mg.node_y/10000.
+    z.reshape((10, 5))[:, 2] *= 2.
+    z.reshape((10, 5))[:, 3] *= 2.1
+
+    initz = z.copy()
+
+    dt = 100.
+    up = 0.05
+
+    for i in range(1):
+        print(i)
+        fr.route_flow()
+        sde.run_one_step(dt)
+
+    ans = np.array([0.,  0.,  0.,  0.,  0.,
+                    0.02,  0.01922540,  0.03960000,  0.04081206,  0.02,
+                    0.04,  0.03927889,  0.07957574,  0.08288878,  0.04,
+                    0.06,  0.05930718,  0.11940000,  0.12497121,  0.06,
+                    0.08,  0.07936754,  0.15920000,  0.16706085,  0.08,
+                    0.10,  0.09943431,  0.19900000,  0.20916000,  0.10,
+                    0.12,  0.11951010,  0.23880000,  0.25127254,  0.12,
+                    0.14,  0.13960000,  0.27860000,  0.29340603,  0.14,
+                    0.16,  0.16023431,  0.31840000,  0.33558000,  0.16,
+                    0.18,  0.18,  0.36,  0.378,  0.18])
+
+    assert_array_almost_equal(z, ans)
+
+
 def test_sed_dep_w_hillslopes():
     """
     This tests only the power_law version of the SDE, with a hillslope input.
@@ -89,7 +225,7 @@ def test_sed_dep_w_hillslopes():
 
     fr = FlowRouter(mg)
     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
-                       Qc='power_law', K_t=1.e-4, external_sediment=True)
+                       Qc='power_law', K_t=1.e-4)
 
     z[:] = mg.node_y/10000.
     z.reshape((10, 5))[:, 2] *= 2.
