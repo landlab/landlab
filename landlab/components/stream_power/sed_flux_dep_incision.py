@@ -47,7 +47,7 @@ class SedDepEroder(Component):
         E  = K_sp * f(Qs, Qc) * A ** m_sp * S ** n_sp;
         Qc = K_t * A ** m_t * S ** n_t
 
-    If ``Qc == 'Voller_generalized'``::
+    If ``Qc == 'Voller_generalized'`` (not yet implemented)::
 
         Qc = K_t * A ** b_t * max[(S ** n_t - S_crit ** n_t) ** m_t, 0.]
 
@@ -116,6 +116,7 @@ class SedDepEroder(Component):
         Qc = K_t * A_w**b_t * max[(S**n_t - S_crit**n_t)**m_t, 0]. Note
         Voller_generalized is equivalent to MPM if m_t == 3/2, n_t = 2/3,
         K_t = 8.*np.sqrt(C_f)*k_w/(specific_g - 1).
+        At present, only `power_law` is supported.
 
     If ``sed_dependency_type == 'generalized_humped'``...
 
@@ -409,7 +410,7 @@ class SedDepEroder(Component):
         if self.type == 'generalized_humped':
             # work out the normalization param:
             max_val = 0.
-            for i in range(0, 1, 0.001):
+            for i in np.arange(0., 1., 0.001):
                 sff = sed_flux_fn_gen_genhump(
                     i, self.kappa, self.nu, self.c, self.phi, 1.)
                 max_val = max((sff, max_val))
@@ -648,6 +649,27 @@ class SedDepEroder(Component):
             fields).
         """
         self.erode(dt=dt, flooded_depths=flooded_depths, **kwds)
+
+    def show_sed_flux_function(self):
+        """
+        This is a helper function to visualize the sediment flux function
+        chosen during component instantiation. Plots to current figure
+        f(Qs/Qc) vs Qs/Qc. Call show() to print to screen after calling this
+        method.
+        """
+        from matplotlib.pyplot import plot, xlim, ylim, xlabel, ylabel
+        xvals = np.arange(0, 1.01, 0.01)
+        yvals = []
+        for xval in xvals:
+            yval = self.sed_flux_fn_gen(
+                xval, self.kappa, self.nu, self.c, self.phi, self.norm)
+            yvals.append(yval)
+        yvals = np.array(yvals)
+        plot(xvals, yvals)
+        xlim((0, 1))
+        ylim((0, 1))
+        xlabel('Relative sediment flux (Qs/Qc)')
+        ylabel('Relative erosional efficiency')
 
     @property
     def is_it_TL(self):
