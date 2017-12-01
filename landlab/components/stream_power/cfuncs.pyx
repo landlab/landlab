@@ -583,7 +583,7 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     cdef unsigned int dst_id
     cdef unsigned int i
 
-    cdef double epilon
+    cdef double epsilon
 
 
 
