@@ -78,9 +78,7 @@ class SedDepEroder(Component):
                      kappa_hump=13.683, nu_hump=1.13, phi_hump=4.24,
                      c_hump=0.00181, Qc='power_law', m_sp=0.5, n_sp=1.,
                      K_t=1.e-4, m_t=1.5, n_t=1., b_t=1., S_crit=0.,
-                     pseudoimplicit_repeats=50,
-                     return_stream_properties=False,
-                     forbid_deposition=False)
+                     pseudoimplicit_repeats=50)
 
     Parameters
     ----------
@@ -106,10 +104,6 @@ class SedDepEroder(Component):
         component counts the total number of times it "maxed out" the
         loop to seek a stable solution (error in sed flux fn <1%) with the
         internal variable "_pseudoimplicit_aborts".
-    return_stream_properties : bool
-        Whether to perform a few additional calculations in order to set
-        the additional optional output fields, 'channel__width',
-        'channel__depth', and 'channel__discharge' (default False).
     sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
                            'almost_parabolic'}
         The shape of the sediment flux function. For definitions, see
@@ -232,13 +226,6 @@ class SedDepEroder(Component):
         'channel_sediment__volumetric_flux',
         'channel_sediment__relative_flux',
         'channel__discharge',
-        'channel__width',  # optional
-        'channel__depth',  # optional
-    )
-
-    _optional_var_names = (
-        'channel__width',
-        'channel__depth'
     )
 
     _var_units = {'topographic__elevation': 'm',
@@ -254,8 +241,6 @@ class SedDepEroder(Component):
                   'channel_sediment__volumetric_flux': 'm**3/s',
                   'channel_sediment__relative_flux': '-',
                   'channel__discharge': 'm**3/s',
-                  'channel__width': 'm',
-                  'channel__depth': 'm'
                   }
 
     _var_mapping = {'topographic__elevation': 'node',
@@ -271,8 +256,6 @@ class SedDepEroder(Component):
                     'channel_sediment__volumetric_flux': 'node',
                     'channel_sediment__relative_flux': 'node',
                     'channel__discharge': 'node',
-                    'channel__width': 'node',
-                    'channel__depth': 'node'
                     }
 
     _var_type = {'topographic__elevation': float,
@@ -288,8 +271,6 @@ class SedDepEroder(Component):
                  'channel_sediment__volumetric_flux': float,
                  'channel_sediment__relative_flux': float,
                  'channel__discharge': float,
-                 'channel__width': float,
-                 'channel__depth': float
                  }
 
     _var_doc = {
@@ -329,12 +310,6 @@ class SedDepEroder(Component):
         'channel__discharge':
             ('Volumetric water flux of the a single channel carrying all ' +
              'runoff through the node'),
-        'channel__width':
-            ('Width of the a single channel carrying all runoff through the ' +
-             'node'),
-        'channel__depth':
-            ('Depth of the a single channel carrying all runoff through the ' +
-             'node')
     }
 
     def __init__(self, grid, K_sp=1.e-6, g=9.81,
@@ -344,8 +319,7 @@ class SedDepEroder(Component):
                  nu_hump=1.13, phi_hump=4.24, c_hump=0.00181,
                  Qc='power_law', m_sp=0.5, n_sp=1., K_t=1.e-4, m_t=1.5, n_t=1.,
                  # params for model numeric behavior:
-                 pseudoimplicit_repeats=50, return_stream_properties=False,
-                 **kwds):
+                 pseudoimplicit_repeats=50, **kwds):
         """Constructor for the class."""
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
@@ -382,10 +356,6 @@ class SedDepEroder(Component):
 
         self.Qc = Qc
         assert self.Qc in ('MPM', 'power_law', 'Voller_generalized')
-        self.return_ch_props = return_stream_properties
-        if return_stream_properties:
-            assert self.Qc == 'MPM', ("Qc must be 'MPM' to return stream " +
-                                      "properties")
         if type(runoff_rate) in (float, int):
             self.runoff_rate = float(runoff_rate)
         elif type(runoff_rate) is str:
@@ -430,8 +400,6 @@ class SedDepEroder(Component):
 
         # set up the necessary fields:
         self.initialize_output_fields()
-        if self.return_ch_props:
-            self.initialize_optional_output_fields()
 
     def set_sed_flux_fn_gen(self):
         """
@@ -649,16 +617,6 @@ class SedDepEroder(Component):
                 downward_slopes = node_S.clip(0.)
         else:
             raise TypeError  # should never trigger
-
-        if self.return_ch_props:
-            # add the channel property field entries,
-            # 'channel__width', 'channel__depth', and 'channel__discharge'
-            W = self.k_w*node_Q**self._b
-            H = shear_stress/self.rho_g/node_S  # ...sneaky!
-            grid.at_node['channel__width'][:] = W
-            grid.at_node['channel__depth'][:] = H
-            grid.at_node['channel__discharge'][:] = node_Q
-            grid.at_node['channel__bed_shear_stress'][:] = shear_stress
 
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
