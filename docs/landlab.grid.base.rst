@@ -84,6 +84,7 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.node_x
     ~landlab.grid.base.ModelGrid.node_y
     ~landlab.grid.base.ModelGrid.nodes
+    ~landlab.grid.base.ModelGrid.nodes_at_link
     ~landlab.grid.base.ModelGrid.number_of_core_nodes
     ~landlab.grid.base.ModelGrid.number_of_links_at_node
     ~landlab.grid.base.ModelGrid.number_of_nodes
@@ -120,6 +121,7 @@ Information about links
     ~landlab.grid.base.ModelGrid.links_at_node
     ~landlab.grid.base.ModelGrid.node_at_link_head
     ~landlab.grid.base.ModelGrid.node_at_link_tail
+    ~landlab.grid.base.ModelGrid.nodes_at_link
     ~landlab.grid.base.ModelGrid.number_of_active_links
     ~landlab.grid.base.ModelGrid.number_of_fixed_links
     ~landlab.grid.base.ModelGrid.number_of_links
