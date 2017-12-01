@@ -14,6 +14,14 @@ StreamPower: Compute fluvial erosion using stream power theory (also uses "fasts
     :undoc-members:
     :show-inheritance:
 
+StreamPowerSmoothThresholdEroder: Compute fluvial erosion using stream power theory, but where using a threshold does not produce a computational singularity
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+.. automodule:: landlab.components.stream_power.stream_power_smooth_threshold
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 SedDepEroder: Compute fluvial erosion using using "tools and cover" theory
 --------------------------------------------------------------------------
 
