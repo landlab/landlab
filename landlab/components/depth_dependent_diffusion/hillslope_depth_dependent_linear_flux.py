@@ -7,7 +7,7 @@ Created on Fri Apr  8 08:32:48 2016
 
 from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK, CORE_NODE
+from landlab import INACTIVE_LINK
 
 class DepthDependentDiffuser(Component):
 
@@ -127,7 +127,6 @@ class DepthDependentDiffuser(Component):
         'bedrock__elevation':
                 'elevation of the bedrock surface',
     }
-
     def __init__(self,grid, linear_diffusivity=1.0,
                  soil_transport_decay_depth=1.0):
         """Initialize the DepthDependentDiffuser."""
@@ -175,9 +174,6 @@ class DepthDependentDiffuser(Component):
         else:
             self.bedrock = self.grid.add_zeros('node', 'bedrock__elevation')
 
-        self._active_nodes = self.grid.status_at_node == CORE_NODE
-
-
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
 
@@ -220,13 +216,12 @@ class DepthDependentDiffuser(Component):
         self.depth[self.depth < 0.0] = 0.0
 
         #Calculate bedrock elevation
-        self.bedrock[self._active_nodes] -= (
-            self.soil_prod_rate[self._active_nodes] * dt)
+        self.bedrock[self.grid.core_nodess] -= (
+            self.soil_prod_rate[self.grid.core_nodes] * dt)
 
         #Update topography
-        self.elev[self._active_nodes] = (self.depth[self._active_nodes]
-                                         + self.bedrock[self._active_nodes])
-
+        self.elev[self.grid.core_nodes] = (self.depth[self.grid.core_nodes]
+                                         + self.bedrock[self.grid.core_nodes])
 
     def run_one_step(self, dt):
         """

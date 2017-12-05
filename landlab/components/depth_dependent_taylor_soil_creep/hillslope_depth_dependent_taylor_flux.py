@@ -9,8 +9,7 @@ DepthDependentTaylorNonLinearDiffuser Component
 
 from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK, CORE_NODE
-
+from landlab import INACTIVE_LINK
 class DepthDependentTaylorDiffuser(Component):
 
     """
@@ -31,7 +30,7 @@ class DepthDependentTaylorDiffuser(Component):
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).
     
-    This component will ignore soil thickness in non core nodes.
+    This component will ignore soil thickness located at non-core nodes.
 
     Parameters
     ----------
@@ -231,7 +230,6 @@ class DepthDependentTaylorDiffuser(Component):
         'bedrock__elevation':
                 'elevation of the bedrock surface',
     }
-
     def __init__(self,grid,
                  linear_diffusivity=1.0,
                  slope_crit=1.0,
@@ -263,9 +261,8 @@ class DepthDependentTaylorDiffuser(Component):
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit
         self.nterms = nterms
-
+        
         # create fields
-
         # elevation
         if 'topographic__elevation' in self.grid.at_node:
             self.elev = self.grid.at_node['topographic__elevation']
@@ -302,8 +299,6 @@ class DepthDependentTaylorDiffuser(Component):
             self.bedrock = self.grid.at_node['bedrock__elevation']
         else:
             self.bedrock = self.grid.add_zeros('node', 'bedrock__elevation')
-
-        self._active_nodes = self.grid.status_at_node == CORE_NODE
 
     def soilflux(self, dt, dynamic_dt=False, if_unstable='pass',
                  courant_factor=0.2):
@@ -410,18 +405,18 @@ class DepthDependentTaylorDiffuser(Component):
         dhdt = self.soil_prod_rate - dqdx
 
         #Calculate soil depth at nodes
-        self.depth[self._active_nodes] += dhdt[self._active_nodes] * self.sub_dt
+        self.depth[self.grid.core_nodes] += dhdt[self.grid.core_nodes] * self.sub_dt
 
         #prevent negative soil thickness
         self.depth[self.depth < 0.0] = 0.0
 
         #Calculate bedrock elevation
-        self.bedrock[self._active_nodes] -= (
-            self.soil_prod_rate[self._active_nodes] * self.sub_dt)
+        self.bedrock[self.grid.core_nodes] -= (
+            self.soil_prod_rate[self.grid.core_nodes] * self.sub_dt)
 
         #Update topography
-        self.elev[self._active_nodes] = (self.depth[self._active_nodes]
-                                         + self.bedrock[self._active_nodes])
+        self.elev[self.grid.core_nodes] = (self.depth[self.grid.core_nodes]
+                                         + self.bedrock[self.grid.core_nodes])
 
     def run_one_step(self, dt, **kwds):
         """
