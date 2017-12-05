@@ -15,7 +15,7 @@ class DepthDependentDiffuser(Component):
     This component implements a depth and slope dependent linear diffusion rule
     in the style of Johnstone and Hilley (2014).
 
-    This component will ignore soil thickness in non core nodes.
+    This component will ignore soil thickness located at non-core nodes.
 
     Parameters
     ----------
@@ -210,13 +210,13 @@ class DepthDependentDiffuser(Component):
         dhdt = self.soil_prod_rate - dqdx
 
         #Calculate soil depth at nodes
-        self.depth[self._active_nodes] += dhdt[self._active_nodes] * dt
+        self.depth[self.grid.core_nodes] += dhdt[self.grid.core_nodes] * dt
 
         #prevent negative soil thickness
         self.depth[self.depth < 0.0] = 0.0
 
         #Calculate bedrock elevation
-        self.bedrock[self.grid.core_nodess] -= (
+        self.bedrock[self.grid.core_nodes] -= (
             self.soil_prod_rate[self.grid.core_nodes] * dt)
 
         #Update topography
