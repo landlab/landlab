@@ -9,8 +9,7 @@ DepthDependentTaylorNonLinearDiffuser Component
 
 from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
-
+from landlab import INACTIVE_LINK, CORE_NODE
 
 class DepthDependentTaylorDiffuser(Component):
 
@@ -31,6 +30,8 @@ class DepthDependentTaylorDiffuser(Component):
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).
+    
+    This component will ignore soil thickness in non core nodes.
 
     Parameters
     ----------
@@ -302,7 +303,7 @@ class DepthDependentTaylorDiffuser(Component):
         else:
             self.bedrock = self.grid.add_zeros('node', 'bedrock__elevation')
 
-        self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
+        self._active_nodes = self.grid.status_at_node == CORE_NODE
 
     def soilflux(self, dt, dynamic_dt=False, if_unstable='pass',
                  courant_factor=0.2):
@@ -404,7 +405,6 @@ class DepthDependentTaylorDiffuser(Component):
 
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
-        dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
 
         #Calculate change in soil depth
         dhdt = self.soil_prod_rate - dqdx

@@ -7,13 +7,15 @@ Created on Fri Apr  8 08:32:48 2016
 
 from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
+from landlab import INACTIVE_LINK, CORE_NODE
 
 class DepthDependentDiffuser(Component):
 
     """
     This component implements a depth and slope dependent linear diffusion rule
     in the style of Johnstone and Hilley (2014).
+
+    This component will ignore soil thickness in non core nodes.
 
     Parameters
     ----------
@@ -173,7 +175,7 @@ class DepthDependentDiffuser(Component):
         else:
             self.bedrock = self.grid.add_zeros('node', 'bedrock__elevation')
 
-        self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
+        self._active_nodes = self.grid.status_at_node == CORE_NODE
 
 
     def soilflux(self, dt):
@@ -207,7 +209,6 @@ class DepthDependentDiffuser(Component):
 
         #Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
-        dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
 
         #Calculate change in soil depth
         dhdt = self.soil_prod_rate - dqdx
