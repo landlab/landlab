@@ -41,18 +41,18 @@ class DepthDependentDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> np.allclose(mg.at_node['soil_production__rate'], 1.)
+    >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
     >>> DDdiff.soilflux(2.)
-    >>> np.allclose(mg.at_node['topographic__elevation'], 0.)
+    >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
-    >>> np.allclose(mg.at_node['bedrock__elevation'], -2.)
+    >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
     True
-    >>> np.allclose(mg.at_node['soil__depth'], 2.)
+    >>> np.allclose(mg.at_node['soil__depth'][mg.core_nodes], 2.)
     True
 
     Now with a slope:
-    >>> mg = RasterModelGrid((5, 5))
+    >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
@@ -62,18 +62,17 @@ class DepthDependentDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> mynodes = mg.nodes[2, :]
     >>> np.allclose(
-    ...     mg.at_node['soil_production__rate'][mynodes],
-    ...     np.array([ 1., 0.60653066, 0.36787944, 0.22313016, 0.13533528]))
+    ...     mg.at_node['soil_production__rate'][mg.core_nodes],
+    ...     np.array([ 0.60653066,  0.36787944,  0.22313016]))
     True
     >>> DDdiff.soilflux(2.)
     >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'][mynodes],
-    ...     np.array([0., 1.47730244, 2.28949856, 3.17558975, 4.]))
+    ...     mg.at_node['topographic__elevation'][mg.core_nodes],
+    ...     np.array([ 1.47730244,  2.28949856,  3.17558975]))
     True
-    >>> np.allclose(mg.at_node['bedrock__elevation'][mynodes],
-    ...     np.array([-2., -0.71306132, 0.26424112, 1.05373968, 1.72932943]))
+    >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes],
+    ...     np.array([-0.71306132,  0.26424112,  1.05373968]))
     True
     >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
     True

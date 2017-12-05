@@ -65,19 +65,19 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> np.allclose(mg.at_node['soil_production__rate'], 1.)
+    >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
     >>> DDdiff.soilflux(2.)
-    >>> np.allclose(mg.at_node['topographic__elevation'], 0.)
+    >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
-    >>> np.allclose(mg.at_node['bedrock__elevation'], -2.)
+    >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
     True
-    >>> np.allclose(mg.at_node['soil__depth'], 2.)
+    >>> np.allclose(mg.at_node['soil__depth'][mg.core_nodes], 2.)
     True
 
     Now a more complicated example with a slope.
 
-    >>> mg = RasterModelGrid((5, 5))
+    >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
@@ -87,18 +87,17 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> mynodes = mg.nodes[2, :]
     >>> np.allclose(
-    ...     mg.at_node['soil_production__rate'][mynodes],
-    ...     np.array([ 1., 0.60653066, 0.36787944, 0.22313016, 0.13533528]))
+    ...     mg.at_node['soil_production__rate'][mg.core_nodes],
+    ...     np.array([ 0.60653066, 0.36787944, 0.22313016]))
     True
     >>> DDdiff.soilflux(0.1)
     >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'][mynodes],
-    ...     np.array([0., 1.04773024, 2.02894986, 3.01755898, 4.]))
+    ...     mg.at_node['topographic__elevation'][mg.core_nodes],
+    ...     np.array([ 1.04773024, 2.02894986, 3.01755898]))
     True
-    >>> np.allclose(mg.at_node['bedrock__elevation'][mynodes],
-    ...     np.array([-0.1, 0.43934693, 0.96321206, 1.47768698, 1.98646647]))
+    >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes],
+    ...     np.array([ 0.43934693, 0.96321206, 1.47768698]))
     True
     >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
     True
@@ -136,7 +135,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     Next, lets do an example with dynamic timestepping.
 
-    >>> mg = RasterModelGrid((5, 5))
+    >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
@@ -149,7 +148,6 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> mynodes = mg.nodes[2, :]
 
     Lets try to move the soil with a large timestep. Without dynamic time
     steps, this gives a warning that we've exceeded the dynamic timestep size
@@ -166,7 +164,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     Now, we'll re-build the grid and do the same example with dynamic timesteps.
 
-    >>> mg = RasterModelGrid((5, 5))
+    >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
@@ -176,7 +174,6 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> mynodes = mg.nodes[2, :]
     >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=True)
     >>> np.any(np.isnan(z))
     False
