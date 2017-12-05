@@ -902,10 +902,7 @@ cpdef void iterate_sde_downstream(
                 DTYPE_FLOAT_t nu,
                 DTYPE_FLOAT_t c,
                 DTYPE_FLOAT_t phi,
-                DTYPE_FLOAT_t norm,
-                DTYPE_INT_t consider_flooded,
-                np.ndarray[dtype=np.int8_t, ndim=1] flooded_nodes,
-                np.ndarray[DTYPE_FLOAT_t, ndim=1] flooded_depths):
+                DTYPE_FLOAT_t norm):
     """
     Iterates down a drainage network, redistributing sediment and solving
     the sediment flux dependent incision equations.
@@ -953,35 +950,25 @@ cpdef void iterate_sde_downstream(
     kappa, nu, c, phi, norm : float
         Params for the sed flux function. Values if generalized_humped,
         zero otherwise.
-    flooded_nodes : boolean nnodes array or None
-        Logical array of flooded nodes, if any
-    flooded_depths : float nnodes array or None
-        Depth of standing water at node (0. where not flooded)
     """
     cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array = np.empty(4, dtype=float)
     cdef unsigned int i
-    cdef double flood_depth
+    cdef double flood_depth_flux
     cdef double sed_flux_into_this_node_bydt
     cdef double node_capacity
     cdef double dz_prefactor_bydt
     cdef double vol_prefactor_bydt
     cdef double vol_pass_rate
-    cdef unsigned int isflooded
+    cdef double depth_sed_in
     
     for i in s_in[::-1]:  # work downstream
         cell_area = cell_areas[i]
-        if consider_flooded == 1:
-            flood_depth = flooded_depths[i]
-        else:
-            flood_depth = 0.
         sed_flux_into_this_node_bydt = (
             hillslope_sediment_flux[i] +
             river_volume_flux_into_node[i])
         node_capacity = transport_capacities[i]
         # ^we work in volume flux, not volume per se here
-        if flood_depth - hillslope_sediment[i] > 0.:
-            # ...node is truly flooded
-            node_capacity = 0.
+
         if sed_flux_into_this_node_bydt < node_capacity:
             # ^note incision is forbidden at capacity
             dz_prefactor_bydt = erosion_prefactor_withS[i]
@@ -1002,25 +989,8 @@ cpdef void iterate_sde_downstream(
             is_it_TL[i] = 1
             rel_sed_flux[i] = 1.
             dzbydt[i] = 0.
-            if consider_flooded == 1:
-                isflooded = flooded_nodes[i]
-            else:
-                isflooded = 0
-            # flood handling adjusted as of 29/6/17 (untested) such
-            # that sed can flux through as long as the sed depth
-            # at the start of the loop was capable of filling the
-            # hole in the underlying topo.
-            # Under this scheme, there should be no such thing as a
-            # lake hosted only in surface sediment
-            if (flood_depth - hillslope_sediment[i] <= 0. and
-                    isflooded == 0):
-                vol_pass_rate = node_capacity
-                # we want flooded nodes which have already been
-                # filled to enter the else statement
-            else:
-                vol_pass_rate = 0.
-            vol_drop_rate[i] = (
-                sed_flux_into_this_node_bydt - vol_pass_rate)
-            assert vol_drop_rate[i] >= 0.
-        river_volume_flux_into_node[
-            flow_receiver[i]] += vol_pass_rate
+            vol_pass_rate = node_capacity
+            vol_drop_rate[i] = sed_flux_into_this_node_bydt - vol_pass_rate
+        
+        assert vol_drop_rate[i] >= 0.
+        river_volume_flux_into_node[flow_receiver[i]] += vol_pass_rate

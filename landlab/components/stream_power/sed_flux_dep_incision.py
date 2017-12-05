@@ -17,6 +17,10 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
                      iterate_sde_downstream)
 
+# NB: The inline documentation of this component freely (& incorrectly!)
+# interchanges "flux" and "discharge". Almost always, "discharge" is intended
+# in place of "flux", including in variable names.
+
 
 class SedDepEroder(Component):
     """
@@ -25,9 +29,9 @@ class SedDepEroder(Component):
 
         E = f(Qs, Qc) * ([a stream power-like term] - [an optional threshold]),
 
-    where E is the bed erosion rate, Qs is the volumetric sediment flux
-    into a node, and Qc is the volumetric sediment transport capacity at
-    that node.
+    where E is the bed erosion rate, Qs is the volumetric sediment discharge
+    into a node, and Qc is the volumetric sediment transport capacity (as a
+    discharge) at that node.
 
     This component is under active research and development; proceed with its
     use at your own risk.
@@ -40,7 +44,9 @@ class SedDepEroder(Component):
     ***Note that this new implementation only permits a power_law formulation
     for Qc***
     For Qc, 'power_law' broadly follows the assumptions in Gasparini et
-    al. 2006, 2007.
+    al. 2006, 2007. Note however that these equations in this instance
+    calculate DISCHARGE, not the more common FLUX, since resolving fluxes on
+    grid diagonals is extremely challenging.
 
     If ``Qc == 'power_law'``::
 
@@ -65,7 +71,7 @@ class SedDepEroder(Component):
     The component is able to handle flooded nodes, if created by a lake
     filler. It assumes the flow paths found in the fields already reflect
     any lake routing operations, and then requires the optional argument
-    *flooded_depths* be passed to the run method. A flooded depression
+    *flooded_nodes* be passed to the run method. A flooded depression
     acts as a perfect sediment trap, and will be filled sequentially
     from the inflow points towards the outflow points.
 
@@ -270,7 +276,7 @@ class SedDepEroder(Component):
         'channel_sediment__depth',
         'channel__bed_shear_stress',
         'channel_sediment__volumetric_transport_capacity',
-        'channel_sediment__volumetric_flux',
+        'channel_sediment__volumetric_discharge',
         'channel_sediment__relative_flux',
         'channel__discharge',
     )
@@ -285,7 +291,7 @@ class SedDepEroder(Component):
                   'channel_sediment__depth': 'm',
                   'channel__bed_shear_stress': 'Pa',
                   'channel_sediment__volumetric_transport_capacity': 'm**3/s',
-                  'channel_sediment__volumetric_flux': 'm**3/s',
+                  'channel_sediment__volumetric_discharge': 'm**3/s',
                   'channel_sediment__relative_flux': '-',
                   'channel__discharge': 'm**3/s',
                   }
@@ -300,7 +306,7 @@ class SedDepEroder(Component):
                     'channel_sediment__depth': 'node',
                     'channel__bed_shear_stress': 'node',
                     'channel_sediment__volumetric_transport_capacity': 'node',
-                    'channel_sediment__volumetric_flux': 'node',
+                    'channel_sediment__volumetric_discharge': 'node',
                     'channel_sediment__relative_flux': 'node',
                     'channel__discharge': 'node',
                     }
@@ -315,7 +321,7 @@ class SedDepEroder(Component):
                  'channel_sediment__depth': float,
                  'channel__bed_shear_stress': float,
                  'channel_sediment__volumetric_transport_capacity': float,
-                 'channel_sediment__volumetric_flux': float,
+                 'channel_sediment__volumetric_discharge': float,
                  'channel_sediment__relative_flux': float,
                  'channel__discharge': float,
                  }
@@ -348,12 +354,12 @@ class SedDepEroder(Component):
             ('Volumetric transport capacity of a channel carrying all runoff' +
              ' through the node, assuming the Meyer-Peter Muller transport ' +
              'equation'),
-        'channel_sediment__volumetric_flux':
-            ('Total volumetric fluvial sediment flux brought into the node ' +
-             'from upstream'),
+        'channel_sediment__volumetric_discharge':
+            ('Total volumetric fluvial sediment discharge brought into the ' +
+             'node from upstream'),
         'channel_sediment__relative_flux':
-            ('The fluvial_sediment_flux_into_node divided by the fluvial_' +
-             'sediment_transport_capacity'),
+            ('The channel_sediment__volumetric_discharge divided by the ' +
+             'channel_sediment__volumetric_transport_capacity'),
         'channel__discharge':
             ('Volumetric water flux of the a single channel carrying all ' +
              'runoff through the node'),
@@ -469,7 +475,7 @@ class SedDepEroder(Component):
         elif self.type == 'almost_parabolic':
             self.sed_flux_fn_gen = sed_flux_fn_gen_almostparabolic
 
-    def erode(self, dt, flooded_depths=None, **kwds):
+    def erode(self, dt, flooded_nodes=None, **kwds):
         """Erode and deposit on the channel bed for a duration of *dt*.
 
         Erosion occurs according to the sediment dependent rules specified
@@ -479,11 +485,12 @@ class SedDepEroder(Component):
         ----------
         dt : float (years, only!)
             Timestep for which to run the component.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
-            component will dynamically update this array as it fills nodes
-            with sediment (...but does NOT update any other related lake
-            fields).
+        flooded_nodes : ndarray, field name, or None
+            If an array, either the IDs of nodes that are flooded and should
+            have no erosion, or an nnodes boolean array of flooded nodes.
+            If a field name, a boolean field at nodes of flooded nodes. If not
+            provided but flow has still been routed across depressions, erosion
+            and deposition may still occur beneath the apparent water level.
         """
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
@@ -495,21 +502,17 @@ class SedDepEroder(Component):
 
         dt_secs = dt * 31557600.
 
-        if type(flooded_depths) is str:
-            flooded_depths = self.grid.at_node[flooded_depths]
-            # also need a map of initial flooded conds:
-            flooded_nodes = (flooded_depths > 0.).view(dtype=np.int8)
-            consider_flooded = 1
-        elif type(flooded_depths) is np.ndarray:
-            assert flooded_depths.size == self.grid.number_of_nodes
-            flooded_nodes = (flooded_depths > 0.).view(dtype=np.int8)
-            consider_flooded = 1
+        if type(flooded_nodes) is str:
+            flooded_nodes = self.grid.at_node[flooded_nodes]
+            is_flooded = flooded_nodes
+        elif type(flooded_nodes) is np.ndarray:
+            assert (flooded_nodes.size == self.grid.number_of_nodes or
+                    flooded_nodes.dtype == np.integer)
+            is_flooded = flooded_nodes
             # need an *updateable* record of the pit depths
         else:
             # if None, handle in loop
-            consider_flooded = 0
-            flooded_nodes = np.empty(0, dtype=np.int8)
-            flooded_depths = np.empty(0, dtype=float)
+            is_flooded = np.array([], dtype=bool)
         steepest_link = 'flow__link_to_receiver_node'
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
@@ -574,7 +577,9 @@ class SedDepEroder(Component):
                 conv_factor = 0.8
                 flood_tstep = dt_secs
                 slopes_tothen = downward_slopes**self._n
+                slopes_tothen[is_flooded] = 0.
                 slopes_tothent = downward_slopes**self._nt
+                slopes_tothent[is_flooded] = 0.
                 transport_capacities = (transport_capacity_prefactor_withA *
                                         slopes_tothent)
                 erosion_prefactor_withS = (
@@ -599,10 +604,7 @@ class SedDepEroder(Component):
                                        self.pseudoimplicit_repeats,
                                        dzbydt, self.sed_flux_fn_gen,
                                        self.kappa, self.nu, self.c,
-                                       self.phi, self.norm,
-                                       consider_flooded,
-                                       flooded_nodes,
-                                       flooded_depths)
+                                       self.phi, self.norm)
 
                 # now perform a CHILD-like convergence-based stability test:
                 ratediff = dzbydt[flow_receiver] - dzbydt
@@ -667,7 +669,7 @@ class SedDepEroder(Component):
 
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
-        grid.at_node['channel_sediment__volumetric_flux'][
+        grid.at_node['channel_sediment__volumetric_discharge'][
             :] = river_volume_flux_into_node
         # ^note this excludes the hillslope fluxes now, i.e., it's the
         # incoming sed flux to the node. Including the local flux in would
@@ -677,7 +679,7 @@ class SedDepEroder(Component):
 
         return grid, grid.at_node['topographic__elevation']
 
-    def run_one_step(self, dt, flooded_depths=None, **kwds):
+    def run_one_step(self, dt, flooded_nodes=None, **kwds):
         """Run the component across one timestep increment, dt.
 
         Erosion occurs according to the sediment dependent rules specified
@@ -688,13 +690,14 @@ class SedDepEroder(Component):
         ----------
         dt : float (years, only!)
             Timestep for which to run the component.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
-            component will dynamically update this array as it fills nodes
-            with sediment (...but does NOT update any other related lake
-            fields).
+        flooded_nodes : ndarray, field name, or None
+            If an array, either the IDs of nodes that are flooded and should
+            have no erosion, or an nnodes boolean array of flooded nodes.
+            If a field name, a boolean field at nodes of flooded nodes. If not
+            provided but flow has still been routed across depressions, erosion
+            and deposition may still occur beneath the apparent water level.
         """
-        self.erode(dt=dt, flooded_depths=flooded_depths, **kwds)
+        self.erode(dt=dt, flooded_nodes=flooded_nodes, **kwds)
 
     def show_sed_flux_function(self):
         """
