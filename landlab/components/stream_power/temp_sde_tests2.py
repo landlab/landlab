@@ -32,16 +32,41 @@ dt = 100.
 myflood = mg.zeros('node', dtype=bool)
 myflood[mg.node_y < 500.] = True
 
+th.fill(0.)
+
 initz = z.copy()
 
-for i in range(300):
+# for i in range(300):
+#     fr.run_one_step()
+#     pit.map_depressions()
+#     sde.run_one_step(dt, flooded_nodes=myflood)
+#     if i%10 == 0:
+#         figure(1)
+#         plot(z.reshape((10, 3))[:-1, 1])
+#         figure(2)
+#         plot(th.reshape((10, 3))[:-1, 1])
+#         figure(3)
+#         plot(pit.depression_depth.reshape((10, 3))[:-1, 1])
+
+from landlab.components import DepressionFinderAndRouter
+mg.at_node.clear()
+z = mg.add_zeros('node', 'topographic__elevation')
+th = mg.add_zeros('node', 'channel_sediment__depth')
+z[:] = mg.node_y/10000.
+fr = FlowRouter(mg)
+sde = SedDepEroder(mg, K_sp=1.e-5,
+                   sed_dependency_type='generalized_humped',
+                   Qc='power_law', K_t=1.e-5)
+myflood = mg.zeros('node', dtype=bool)
+myflood[mg.node_y < 500.] = True  # 1st 3 nodes are flooded
+print z.reshape((10, 3))[:-1, 1]
+for i in range(1):
     fr.run_one_step()
-    pit.map_depressions()
-    sde.run_one_step(dt, flooded_nodes=myflood)
+    sde.run_one_step(100., flooded_nodes=myflood)
     if i%10 == 0:
         figure(1)
         plot(z.reshape((10, 3))[:-1, 1])
         figure(2)
         plot(th.reshape((10, 3))[:-1, 1])
-        figure(3)
-        plot(pit.depression_depth.reshape((10, 3))[:-1, 1])
+print z.reshape((10, 3))[:-1, 1]
+z[7] > mg.node_y[7]/10000.  # sed ends up here

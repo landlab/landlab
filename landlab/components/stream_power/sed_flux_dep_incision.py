@@ -211,6 +211,28 @@ class SedDepEroder(Component):
     >>> np.all((initz - z)[incising_nodes] > 0.0007)
     True
 
+    The component will dump all sediment in transit if it encounters flooded
+    nodes:
+
+    >>> from landlab.components import DepressionFinderAndRouter
+    >>> mg.at_node.clear()
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> th = mg.add_zeros('node', 'channel_sediment__depth')
+    >>> z[:] = mg.node_y/10000.
+    >>> fr = FlowRouter(mg)
+    >>> sde = SedDepEroder(mg, K_sp=1.e-5,
+    ...                    sed_dependency_type='generalized_humped',
+    ...                    Qc='power_law', K_t=1.e-5)
+    >>> myflood = mg.zeros('node', dtype=bool)
+    >>> myflood[mg.node_y < 500.] = True  # 1st 3 nodes are flooded
+    >>> for i in range(1):
+    ...     fr.run_one_step()
+    ...     sde.run_one_step(100., flooded_nodes=myflood)
+    >>> z[7] > mg.node_y[7]/10000.  # sed ends up here
+    True
+    >>> np.isclose(z[4], mg.node_y[4]/10000.)  # ...but not here
+    True
+
     Pleasingly, the solution for a constant f(Qs) is very close to the stream
     power solution:
 
