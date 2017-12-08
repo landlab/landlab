@@ -73,7 +73,7 @@ class KinwaveOverlandFlowModel(Component):
 
     _var_units = {
         'topographic__elevation': 'm',
-        'topographic__slope': 'm/m',
+        'topographic__gradient': 'm/m',
         'surface_water__depth': 'm',
         'water__velocity': 'm/s',
         'water__specific_discharge': 'm2/s',

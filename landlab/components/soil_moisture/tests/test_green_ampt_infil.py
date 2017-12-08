@@ -87,3 +87,10 @@ def test_calc_moisture_deficit():
         soil_bulk_density=1700., rock_density=2650.,
         volume_fraction_coarse_fragments=0.,
         soil_moisture_content=0.2), 0.15849056603, decimal=6)
+
+@with_setup(setup_grid)
+def test_run_one_step():
+    pass
+
+def test_negative_infiltration():
+    pass
