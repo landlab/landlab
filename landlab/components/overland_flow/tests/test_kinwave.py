@@ -20,7 +20,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 def setup_grid():
     from landlab import RasterModelGrid
-    grid = RasterModelGrid((10, 10), spacing=25)
+    grid = RasterModelGrid((10, 10), spacing=0.5)
     grid.add_zeros('node', 'topographic__elevation', dtype=float)
     grid.add_zeros('node', 'topographic__gradient')
 
@@ -62,27 +62,30 @@ def test_grid_shape():
     assert_equal(KinWaveOF.grid.number_of_node_rows, _SHAPE[0])
     assert_equal(KinWaveOF.grid.number_of_node_columns, _SHAPE[1])
 
+def test_run_one_step():
+    from landlab import RasterModelGrid
+    import numpy as np
+    from landlab.components.overland_flow import KinwaveOverlandFlowModel
 
-# @with_setup(setup_grid)
-# def test_calc_soil_pressure():
-#     np.testing.assert_almost_equal(KinWaveOF.calc_soil_pressure('KinWaveOFlt loam'),
-#                             0.1647870740305523, decimal=6)
-# @with_setup(setup_grid)
-# def test_calc_soil_head():
-#     soil_props = SoilInfiltrationGreenAmpt.SOIL_PROPS['loam']
-#     np.testing.assert_almost_equal(KinWaveOF.calc_pressure_head(soil_props[0],
-#             soil_props[1]), 0.087498292, decimal=6)
-#
-# @with_setup(setup_grid)
-# def test_calc_moisture_deficit():
-#     np.testing.assert_almost_equal(KinWaveOF.calc_moisture_deficit(
-#         soil_bulk_denKinWaveOFty=1700., rock_denKinWaveOFty=2650.,
-#         volume_fraction_coarse_fragments=0.,
-#         soil_moisture_content=0.2), 0.15849056603, decimal=6)
-#
-# @with_setup(setup_grid)
-# def test_run_one_step():
-#     pass
-#
-# def test_negative_infiltration():
-#     pass
+    grid = RasterModelGrid((10, 10), spacing=0.5)
+    grid.add_zeros('node', 'topographic__elevation', dtype=float)
+    grid.add_zeros('node', 'topographic__gradient')
+
+    topo_arr = np.ones(100).reshape(10, 10)
+    i=0
+    while i <= 9:
+        topo_arr[:, i]  = 5 + (0.002*i)
+        i+=1
+    topo_arr = topo_arr.flatten()
+    grid['node']['topographic__elevation'] = topo_arr
+    KinWaveOF = KinwaveOverlandFlowModel(grid, precip_rate=100.,
+        precip_duration=1.0, roughness=0.02)
+
+    KinWaveOF.run_one_step(60)
+
+    # I'll admit this is very non-robust. Solution roughly based on plot #9
+    # from Heng et. al, (2009): "Modeling overland flow and soil eroion on
+    # non uniform hillslopes: A finite volume scheme." They do not provide the
+    # numerical solution but the plots match...
+    max_h_mm = max(grid['node']['surface_water__depth']) * 1000.
+    np.testing.assert_almost_equal(max_h_mm, 1.66666666667)
