@@ -114,7 +114,7 @@ class KinwaveOverlandFlowModel(Component):
             Duration of precipitation, hours
         infilt_rate : float, optional (defaults to 0)
             Maximum rate of infiltration, mm/hr
-        roughnes : float, defaults to 0.01
+        roughness : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
         """
 
@@ -162,6 +162,8 @@ class KinwaveOverlandFlowModel(Component):
 
     def run_one_step(self, dt, current_time=0.0, **kwds):
         """Calculate water flow for a time period `dt`.
+
+        Default units for dt are *seconds*.
         """
         # Calculate water depth at links. This implements an "upwind" scheme
         # in which water depth at the links is the depth at the higher of the
