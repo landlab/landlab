@@ -21,9 +21,11 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def setup_grid():
     from landlab import RasterModelGrid
     grid = RasterModelGrid((10, 10), spacing=25)
-    grid.add_zeros('node', 'soil_water_infiltration__depth', dtype=float)
-    grid.add_zeros('node', 'surface_water__depth')
-    hydraulic_conductivity = (2.5 ** 10-5)
+    grid.add_ones('node', 'soil_water_infiltration__depth', dtype=float)
+    grid.add_ones('node', 'surface_water__depth')
+    hydraulic_conductivity = (2.5 *  (10**-5))
+    grid['node']['surface_water__depth'] *= 0.5
+    grid['node']['soil_water_infiltration__depth'] *= (10**-5)
     SI = SoilInfiltrationGreenAmpt(grid,
         hydraulic_conductivity=hydraulic_conductivity,
          soil_bulk_density=1700., rock_density=2650.,
@@ -88,9 +90,25 @@ def test_calc_moisture_deficit():
         volume_fraction_coarse_fragments=0.,
         soil_moisture_content=0.2), 0.15849056603, decimal=6)
 
-@with_setup(setup_grid)
 def test_run_one_step():
-    pass
+    from landlab import RasterModelGrid
+    grid = RasterModelGrid((10, 10), spacing=25)
+    grid.add_ones('node', 'soil_water_infiltration__depth', dtype=float)
+    grid.add_ones('node', 'surface_water__depth')
+    hydraulic_conductivity = (2.5 *  (10**-6))
+    grid['node']['surface_water__depth'] *= 5.0
+    grid['node']['soil_water_infiltration__depth'] *= (10**-5)
+    SI = SoilInfiltrationGreenAmpt(grid,
+        hydraulic_conductivity=hydraulic_conductivity,
+         soil_bulk_density=1700., rock_density=2650.,
+         initial_soil_moisture_content=0.2, soil_type='silt loam',
+         volume_fraction_coarse_fragments=0.6,
+         coarse_sed_flag=False,
+         surface_water_minimum_depth=1.e-7,
+         soil_pore_size_distribution_index=None,
+         soil_bubbling_pressure=None,
+         wetting_front_capillary_pressure_head=None)
 
-def test_negative_infiltration():
-    pass
+    SI.run_one_step(dt=5)
+    np.testing.assert_almost_equal(grid['node']['surface_water__depth'][0],
+                3.97677483519, decimal=6)
