@@ -518,7 +518,7 @@ class SoilMoisture(Component):
                        self._soil_Iv[cell]*self._vegcover[cell])
             # Interception capacity
             Int_cap = min(self._vegcover[cell]*self._interception_cap[cell],
-                          P)
+                          P*self._vegcover[cell])
             # Effective precipitation depth
             Peff = max((P + max(runon, 0.) - Int_cap), 0.)
             mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
