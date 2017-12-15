@@ -21,6 +21,12 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
 # in place of "flux", including in variable names.
 
+# NB: Stability problems persist when m_sp>0.5 & m_t>1.5. Presumably this is
+# a problem with the derivation of the stability.
+# NB: ALSO, there are odd outcomes when m_sp != m_t-1. Analysis shows that the
+# steady state form should converge on the TL st st form, but it does not -
+# abnormally flat profiles seem to result.
+
 
 class SedDepEroder(Component):
     """
@@ -581,8 +587,13 @@ class SedDepEroder(Component):
                 # role of the value of the sed flux fn in modifying the calc;
                 # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
 
-            max_tstep_wave = 0.7 * np.nanmin(link_length /
+            max_tstep_wave = 0.2 * np.nanmin(link_length /
                                              wave_stab_cond_denominator)
+            if np.isclose(self._n, 0.):
+                # janky special condition to enable code to still run for the
+                # limiting case of n_sp == 0 -> this throws the stability cond
+                # entirely onto the diffusive aspect, so be very careful!!
+                max_tstep_wave = 100000000000.
             # ^adding additional scaling per CHILD, tho CHILD uses 0.2
             self.wave_denom = wave_stab_cond_denominator
             self.link_length = link_length
@@ -596,7 +607,7 @@ class SedDepEroder(Component):
             self._loopcounter = 0
             while 1:
                 flood_node = None  # int if timestep is limited by flooding
-                conv_factor = 0.8
+                conv_factor = 0.3
                 flood_tstep = dt_secs
                 slopes_tothen = downward_slopes**self._n
                 slopes_tothen[is_flooded] = 0.
