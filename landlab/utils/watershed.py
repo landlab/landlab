@@ -59,7 +59,7 @@ def get_watershed_mask(grid, outlet_id):
            False, False, False, False], dtype=bool)
     """
     if 'flow__receiver_node' not in grid.at_node:
-        raise FieldError("This method requires a 'flow__receiver_node' "
+        raise FieldError("This function requires a 'flow__receiver_node' "
                          "field at the nodes of the input grid.")
 
     grid_nodes = grid.nodes.flatten()
@@ -78,11 +78,11 @@ def get_watershed_mask(grid, outlet_id):
                                         receiver_at_node[receiver_node] ==
                                         outlet_id])
             node_is_outlet = node == outlet_id
-    
+
             if node_flows_to_outlet or node_is_outlet:
                 watershed_mask[node] = True
                 outlet_not_found = False
-       
+
             else:
                 receiver_node = receiver_at_node[receiver_node]
        
@@ -108,7 +108,7 @@ def get_watershed_nodes(grid, outlet_id):
     --------
     watershed_nodes : integer ndarray
         The ids of the nodes that flow to the node with the id, outlet_id.
-        
+
     Examples
     --------
 
@@ -126,7 +126,7 @@ def get_watershed_nodes(grid, outlet_id):
     ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
     ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
     ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
-    
+
     >>> rmg.at_node['topographic__elevation'] = z
     >>> rmg.set_watershed_boundary_condition_outlet_id(2, z,
     ...                                                nodata_value=-9999.)
@@ -148,3 +148,74 @@ def get_watershed_nodes(grid, outlet_id):
     ws_nodes = np.where(ws_mask)[0]
 
     return ws_nodes
+
+
+def get_watershed_outlet(grid, source_node):
+    """
+    Get the downstream-most node (the outlet) of the source node.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A landlab RasterModelGrid.
+    source_node : integer
+        The id of the node in which to identify its outlet.
+
+    Returns
+    --------
+    outlet_node : integer
+        The id of the node that is the downstream-most node (the outlet) of the
+        source node.
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowRouter
+    >>> from landlab.utils import get_watershed_outlet
+
+    >>> rmg = RasterModelGrid((7, 7), 1)
+    >>> z = np.array([
+    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
+    ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
+    ...     -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
+    ...     -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
+    ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
+    ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
+    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+
+    >>> rmg.at_node['topographic__elevation'] = z
+    >>> imposed_outlet = 2
+    >>> rmg.set_watershed_boundary_condition_outlet_id(imposed_outlet, z,
+    ...                                                nodata_value=-9999.)
+
+    Route flow.
+    >>> fr = FlowRouter(rmg)
+    >>> fr.run_one_step()
+
+    Get the grid watershed outlet.
+    >>> determined_outlet = get_watershed_outlet(rmg, 40)
+    >>> determined_outlet == imposed_outlet
+    True
+    """
+    if 'flow__receiver_node' not in grid.at_node:
+        raise FieldError("This function requires a 'flow__receiver_node' "
+                         "field at the nodes of the input grid.")
+
+    receiver_at_node = grid.at_node['flow__receiver_node']
+    receiver_node = receiver_at_node[source_node]
+    outlet_not_found = True
+
+    while outlet_not_found:
+        node_is_outlet = receiver_node == source_node
+        node_is_boundary = grid.node_is_boundary(receiver_node)
+        node_is_pit = receiver_node == receiver_at_node[receiver_node]
+
+        if node_is_outlet or node_is_boundary or node_is_pit:
+            outlet_not_found = False
+            outlet_node = receiver_node
+        else:
+            receiver_node = receiver_at_node[receiver_node]
+
+    return outlet_node
