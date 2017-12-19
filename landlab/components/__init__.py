@@ -27,12 +27,17 @@ from .gflex import gFlex
 from .drainage_density import DrainageDensity
 from .weathering import ExponentialWeatherer
 from .depth_dependent_diffusion import DepthDependentDiffuser
-from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
-from .depth_dependent_cubic_soil_creep import DepthDependentCubicDiffuser
+from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
+from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
+<<<<<<< HEAD
 from .biota_macroevolution import CladeDiversifier
+=======
+from .transport_length_diffusion import TransportLengthHillslopeDiffuser
+
+>>>>>>> origin/master
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
@@ -47,10 +52,14 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
               ExponentialWeatherer, DepthDependentDiffuser,
-              CubicNonLinearDiffuser, DepthSlopeProductErosion,
+              TaylorNonLinearDiffuser, DepthSlopeProductErosion,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
+<<<<<<< HEAD
               LandslideProbability, DepthDependentCubicDiffuser,
               CladeDiversifier]
+=======
+              LandslideProbability, DepthDependentTaylorDiffuser]
+>>>>>>> origin/master
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

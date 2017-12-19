@@ -1,12 +1,6 @@
 #!/usr/env/python
 """
 Hillslope model with block uplift.
-
-TODO NOTES:
-- clean up the code to make it "externally runnable"
-- get a realistic set of parms to play with
-- start a matrix of runs exploring different u, d, and L
-- while that's going, do some profiling to find speed bottlenecks
 """
 
 _DEBUG = False
@@ -14,7 +8,7 @@ _DEBUG = False
 import sys
 from .cts_model import CTSModel
 from .lattice_grain import (lattice_grain_node_states,
-                            lattice_grain_transition_list)
+                           lattice_grain_transition_list)
 import time
 from numpy import zeros, count_nonzero, where, amax, logical_and
 from matplotlib.pyplot import axis
@@ -24,7 +18,6 @@ from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
 # Temporary: for debug and dev
 from landlab.ca.celllab_cts import _RUN_NEW
 
-
 class GrainHill(CTSModel):
     """
     Model hillslope evolution with block uplift.
@@ -33,17 +26,21 @@ class GrainHill(CTSModel):
                  output_interval=1.0e99, settling_rate=2.2e8,
                  disturbance_rate=1.0, weathering_rate=1.0, 
                  uplift_interval=1.0, plot_interval=1.0e99, friction_coef=0.3,
+                 rock_state_for_uplift=7, opt_rock_collapse=False,
                  show_plots=True, **kwds):
         """Call the initialize() method."""
         self.initialize(grid_size, report_interval, run_duration,
                         output_interval, settling_rate, disturbance_rate,
                         weathering_rate, uplift_interval, plot_interval,
-                        friction_coef, show_plots, **kwds)
-        
+                        friction_coef, rock_state_for_uplift,
+                        opt_rock_collapse, show_plots,
+                        **kwds)
+
     def initialize(self, grid_size, report_interval, run_duration,
                    output_interval, settling_rate, disturbance_rate,
                    weathering_rate, uplift_interval, plot_interval,
-                   friction_coef, show_plots, **kwds):
+                   friction_coef, rock_state_for_uplift, opt_rock_collapse,
+                   show_plots, **kwds):
         """Initialize the grain hill model."""
         self.settling_rate = settling_rate
         self.disturbance_rate = disturbance_rate
@@ -51,6 +48,11 @@ class GrainHill(CTSModel):
         self.uplift_interval = uplift_interval
         self.plot_interval = plot_interval
         self.friction_coef = friction_coef
+        self.rock_state = rock_state_for_uplift  # 7 (resting sed) or 8 (rock)
+        if opt_rock_collapse:
+            self.collapse_rate = self.settling_rate
+        else:
+            self.collapse_rate = 0.0
 
         # Call base class init
         super(GrainHill, self).initialize(grid_size=grid_size, 
@@ -60,11 +62,12 @@ class GrainHill(CTSModel):
                                           show_plots=show_plots,
                                           cts_type='oriented_hex',
                                           run_duration=run_duration,
-                                          output_interval=output_interval)
+                                          output_interval=output_interval,
+                                          **kwds)
 
         self.uplifter = LatticeUplifter(self.grid, 
                                         self.grid.at_node['node_state'])
-
+                                        
     def node_state_dictionary(self):
         """
         Create and return dict of node states.
@@ -82,10 +85,12 @@ class GrainHill(CTSModel):
                                                 f=self.friction_coef,
                                                 motion=self.settling_rate)
         xn_list = self.add_weathering_and_disturbance_transitions(xn_list,
-                    self.disturbance_rate, self.weathering_rate)
+                    self.disturbance_rate, self.weathering_rate,
+                    collapse_rate=self.collapse_rate)
         return xn_list
         
-    def add_weathering_and_disturbance_transitions(self, xn_list, d=0.0, w=0.0):
+    def add_weathering_and_disturbance_transitions(self, xn_list, d=0.0, w=0.0,
+                                                   collapse_rate=0.0):
         """
         Add transition rules representing weathering and/or grain disturbance
         to the list, and return the list.
@@ -104,13 +109,12 @@ class GrainHill(CTSModel):
             Rate of transition (1/time) from fluid / rock pair to
             fluid / resting-grain pair, representing weathering.
         
-        
         Returns
         -------
         xn_list : list of Transition objects
             Modified transition list.
         """
-        
+
         # Disturbance rule
         xn_list.append( Transition((7,0,0), (0,1,0), d, 'disturbance') )
         xn_list.append( Transition((7,0,1), (0,2,1), d, 'disturbance') )
@@ -118,15 +122,21 @@ class GrainHill(CTSModel):
         xn_list.append( Transition((0,7,0), (4,0,0), d, 'disturbance') )
         xn_list.append( Transition((0,7,1), (5,0,1), d, 'disturbance') )
         xn_list.append( Transition((0,7,2), (6,0,2), d, 'disturbance') )
-    
-        if _DEBUG:
-            print()
-            print('setup_transition_list(): list has' + str(len(xn_list))
-                  + str('transitions:'))
-            for t in xn_list:
-                print('  From state ' + str(t.from_state) + ' to state '
-                      + str(t.to_state) + ' at rate ' + str(t.rate)
-                      + ' called ' + str(t.name))
+
+        # Weathering rule
+        if w > 0.0:
+            xn_list.append( Transition((8,0,0), (7,0,0), w, 'weathering') )
+            xn_list.append( Transition((8,0,1), (7,0,1), w, 'weathering') )
+            xn_list.append( Transition((8,0,2), (7,0,2), w, 'weathering') )
+            xn_list.append( Transition((0,8,0), (0,7,0), w, 'weathering') )
+            xn_list.append( Transition((0,8,1), (0,7,1), w, 'weathering') )
+            xn_list.append( Transition((0,8,2), (0,7,2), w, 'weathering') )
+            
+            # "Vertical rock collapse" rule: a rock particle overlying air
+            # will collapse, transitioning to a downward-moving grain
+            if collapse_rate > 0.0:
+                xn_list.append( Transition((0,8,0), (4,0,0), collapse_rate,
+                                           'rock collapse'))
 
         return xn_list
 
@@ -182,7 +192,7 @@ class GrainHill(CTSModel):
         current_time = 0.0
         output_iteration = 1
         while current_time < self.run_duration:
-            
+
             # Figure out what time to run to this iteration
             next_pause = min(next_output, next_plot)
             next_pause = min(next_pause, next_uplift)
@@ -192,12 +202,14 @@ class GrainHill(CTSModel):
             # know that the sim is running ok
             current_real_time = time.time()
             if current_real_time >= next_report:
+                print('Current sim time' + str(current_time) + '(' + \
+                      str(100 * current_time / self.run_duration) + '%)')
                 next_report = current_real_time + self.report_interval
     
             # Run the model forward in time until the next output step
             self.ca.run(next_pause, self.ca.node_state) 
             current_time = next_pause
-            
+
             # Handle output to file
             if current_time >= next_output:
                 self.write_output(self.grid, 'grain_hill_model', output_iteration)
@@ -206,14 +218,13 @@ class GrainHill(CTSModel):
 
             # Handle plotting on display
             if self._show_plots and current_time >= next_plot:
-                #node_state_grid[hmg.number_of_node_rows-1] = 8
                 self.ca_plotter.update_plot()
                 axis('off')
                 next_plot += self.plot_interval
 
             # Handle uplift
             if current_time >= next_uplift:
-                self.uplifter.uplift_interior_nodes(rock_state=7)
+                self.uplifter.uplift_interior_nodes(self.ca, rock_state=self.rock_state)
                 if _RUN_NEW:
                     self.ca.update_link_states_and_transitions_new(current_time)
                 else:
