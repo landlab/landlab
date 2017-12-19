@@ -7,25 +7,38 @@ Created on Fri Mar  3 10:39:32 2017
 """
 
 from landlab import RasterModelGrid
-from landlab.components import (CubicNonLinearDiffuser)
+from landlab.components import (TaylorNonLinearDiffuser)
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose.tools import assert_raises
 
 import warnings
 
-def test_raise_error():
+def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**2
-    Cdiff = CubicNonLinearDiffuser(mg)
+    Cdiff = TaylorNonLinearDiffuser(mg)
     assert_raises(RuntimeError, Cdiff.soilflux, 10, if_unstable='raise')
+
+def test_raise_kwargs_error():
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.node_x.copy()**2
+    assert_raises(TypeError, TaylorNonLinearDiffuser, mg, bad_name='true')
+
+def test_infinite_taylor_error():
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.node_x.copy()**4
+    Cdiff = TaylorNonLinearDiffuser(mg, nterms=400)
+    assert_raises(RuntimeError, Cdiff.soilflux, 10)
 
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))
 #    z = mg.add_zeros('node', 'topographic__elevation')
 #    z += mg.node_x.copy()**2
-#    Cdiff = CubicNonLinearDiffuser(mg)
+#    Cdiff = TaylorNonLinearDiffuser(mg)
 #    
 #    with warnings.catch_warnings(record=True) as w:
 #        # Cause all warnings to always be triggered.

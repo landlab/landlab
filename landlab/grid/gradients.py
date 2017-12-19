@@ -2,7 +2,7 @@
 """Calculate gradients of quantities over links.
 
 Gradient calculation functions
-+++++++++++++++++++++++
+++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/

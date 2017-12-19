@@ -7,7 +7,7 @@ Created on Fri Mar  3 10:39:32 2017
 """
 
 from landlab import RasterModelGrid
-from landlab.components import (DepthDependentCubicDiffuser,
+from landlab.components import (DepthDependentTaylorDiffuser,
                                 ExponentialWeatherer)
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -30,7 +30,7 @@ def test_4x7_grid_vs_analytical_solution():
     # Instantiate components, and set their parameters. Note that traditional
     # diffusivity, D, is D = SCE x H*, where SCE is soil-creep efficiency.
     # Here we want D = 0.01 m2/yr and H* = 0,.5 m, so cwe set SCE = 0.02.
-    diffuser = DepthDependentCubicDiffuser(mg, linear_diffusivity=0.01,
+    diffuser = DepthDependentTaylorDiffuser(mg, linear_diffusivity=0.01,
                                            slope_crit=0.8,
                                            soil_transport_decay_depth=0.5)
     weatherer = ExponentialWeatherer(mg, max_soil_production_rate=0.0002,
@@ -63,7 +63,7 @@ def test_4x7_grid_vs_analytical_solution():
     assert_array_equal(np.round(mg.at_node['soil__depth'][8:13], 2), 
                        np.array([0.35, 0.35, 0.35, 0.35, 0.35]))
     
-def test_raise_error():
+def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
     soilTh = mg.add_zeros('node', 'soil__depth')
     z = mg.add_zeros('node', 'topographic__elevation')
@@ -72,10 +72,34 @@ def test_raise_error():
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
     expweath = ExponentialWeatherer(mg)
-    DDdiff = DepthDependentCubicDiffuser(mg)
+    DDdiff = DepthDependentTaylorDiffuser(mg)
     expweath.calc_soil_prod_rate()
     assert_raises(RuntimeError, DDdiff.soilflux, 10, if_unstable='raise')
 
+def test_raise_kwargs_error():
+    mg = RasterModelGrid((5, 5))
+    soilTh = mg.add_zeros('node', 'soil__depth')
+    z = mg.add_zeros('node', 'topographic__elevation')
+    BRz = mg.add_zeros('node', 'bedrock__elevation')
+    z += mg.node_x.copy()**2
+    BRz = z.copy() - 1.0
+    soilTh[:] = z - BRz
+    assert_raises(TypeError, DepthDependentTaylorDiffuser, mg, diffusivity=1)
+
+def test_infinite_taylor_error():
+    
+    mg = RasterModelGrid((5, 5))
+    soilTh = mg.add_zeros('node', 'soil__depth')
+    z = mg.add_zeros('node', 'topographic__elevation')
+    BRz = mg.add_zeros('node', 'bedrock__elevation')
+    z += mg.node_x.copy()**4
+    BRz = z.copy() - 1.0
+    soilTh[:] = z - BRz
+    expweath = ExponentialWeatherer(mg)
+    DDdiff = DepthDependentTaylorDiffuser(mg, nterms=400)
+    expweath.calc_soil_prod_rate()
+    assert_raises(RuntimeError, DDdiff.soilflux, 10)
+    
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))
 #    soilTh = mg.add_zeros('node', 'soil__depth')
@@ -85,7 +109,7 @@ def test_raise_error():
 #    BRz = z.copy() - 1.0
 #    soilTh[:] = z - BRz
 #    expweath = ExponentialWeatherer(mg)
-#    DDdiff = DepthDependentCubicDiffuser(mg)
+#    DDdiff = DepthDependentTaylorDiffuser(mg)
 #    expweath.calc_soil_prod_rate()
 #    
 #    with warnings.catch_warnings(record=True) as w:

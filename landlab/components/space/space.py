@@ -2,17 +2,148 @@ import numpy as np
 from landlab import Component
 from .cfuncs import calculate_qs_in
 
-ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
-TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
-DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
+ROOT2 = np.sqrt(2.0) # syntactic sugar for precalculated square root of 2
+TIME_STEP_FACTOR = 0.5 # factor used in simple subdivision solver
+DEFAULT_MINIMUM_TIME_STEP = 0.001 # default minimum time step duration
 
 
 class Space(Component):
-    """
-    Stream Power with Alluvium Conservation and Entrainment (SPACE)
+    """Stream Power with Alluvium Conservation and Entrainment (SPACE)
     
     Algorithm developed by G. Tucker, summer 2016.
+
     Component written by C. Shobe, begun 11/28/2016.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        Landlab ModelGrid object
+    K_sed : float
+        Erodibility constant for sediment (units vary).
+    K_br : float
+        Erodibility constant for bedrock (units vary).
+    F_f : float
+        Fraction of permanently suspendable fines in bedrock [-].
+    phi : float
+        Sediment porosity [-].
+    H_star : float
+        Sediment thickness required for full entrainment [L].
+    v_s : float
+        Effective settling velocity for chosen grain size metric [L/T].
+    m_sp : float
+        Drainage area exponent (units vary)
+    n_sp : float
+        Slope exponent (units vary)
+    sp_crit_sed : float
+        Critical stream power to erode sediment [E/(TL^2)]
+    sp_crit_br : float
+        Critical stream power to erode rock [E/(TL^2)]
+    method : string
+        Either "simple_stream_power", "threshold_stream_power", or
+        "stochastic_hydrology". Method for calculating sediment
+        and bedrock entrainment/erosion.         
+    discharge_method : string
+        Either "area_field" or "discharge_field". If using stochastic
+        hydrology, determines whether component is supplied with
+        drainage area or discharge.
+    area_field : string or array
+        Used if discharge_method = 'area_field'. Either field name or
+        array of length(number_of_nodes) containing drainage areas [L^2].
+    discharge_field : string or array
+        Used if discharge_method = 'discharge_field'.Either field name or
+        array of length(number_of_nodes) containing drainage areas [L^2/T].
+    solver : string
+        Solver to use. Options at present include:
+            (1) 'basic' (default): explicit forward-time extrapolation.
+                Simple but will become unstable if time step is too large.
+            (2) 'adaptive': subdivides global time step as needed to
+                prevent slopes from reversing and alluvium from going
+                negative.
+
+    Examples
+    ---------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_routing import FlowRouter
+    >>> from landlab.components import DepressionFinderAndRouter
+    >>> from landlab.components import Space
+    >>> from landlab.components import FastscapeEroder
+    >>> np.random.seed(seed = 5000)
+    
+    Define grid and initial topography:
+
+    *  5x5 grid with baselevel in the lower left corner
+    *  All other boundary nodes closed
+    *  Initial topography is plane tilted up to the upper right with
+       noise
+    
+    >>> mg = RasterModelGrid((5, 5), spacing=10.0)
+    >>> _ = mg.add_zeros('topographic__elevation', at='node')
+    >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. +
+    ...     mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.)
+    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+    ...                                        left_is_closed=True,
+    ...                                        right_is_closed=True,
+    ...                                        top_is_closed=True)
+    >>> mg.set_watershed_boundary_condition_outlet_id(
+    ...     0, mg.at_node['topographic__elevation'], -9999.)
+    >>> fsc_dt = 100. 
+    >>> space_dt = 100.
+    
+    Instantiate Fastscape eroder, flow router, and depression finder        
+    
+    >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
+    >>> fr = FlowRouter(mg)
+    >>> df = DepressionFinderAndRouter(mg)
+    
+    Burn in an initial drainage network using the Fastscape eroder:
+    
+    >>> for x in range(100): 
+    ...     fr.run_one_step()
+    ...     df.map_depressions()
+    ...     flooded = np.where(df.flood_status == 3)[0]
+    ...     fsc.run_one_step(dt=fsc_dt, flooded_nodes=flooded)
+    ...     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
+    
+    Add some soil to the drainage network:        
+    
+    >>> _ = mg.add_zeros('soil__depth', at='node', dtype=float)
+    >>> mg.at_node['soil__depth'] += 0.5
+    >>> mg.at_node['topographic__elevation'] += mg.at_node['soil__depth']
+    
+    Instantiate the Space component:        
+    
+    >>> ha = Space(mg, K_sed=0.00001, K_br=0.00000000001,
+    ...            F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
+    ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
+    ...            sp_crit_br=0, method='simple_stream_power',
+    ...            discharge_method=None, area_field=None,
+    ...            discharge_field=None)
+                            
+    Now run the Space component for 2000 short timesteps:
+                            
+    >>> for x in range(2000): #Space component loop
+    ...     fr.run_one_step()
+    ...     df.map_depressions()
+    ...     flooded = np.where(df.flood_status == 3)[0]
+    ...     ha.run_one_step(dt=space_dt, flooded_nodes=flooded)
+    ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * space_dt
+
+    Now we test to see if soil depth and topography are right:
+
+    >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.50000906,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
+            0.5       ,  0.49537393,  0.49305759,  0.49193247,  0.5       ,
+            0.5       ,  0.49304854,  0.49304459,  0.4913106 ,  0.5       ,
+            0.5       ,  0.49177241,  0.4913074 ,  0.48573171,  0.5       ,
+            0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
+
+    >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.42290479,  1.53606698,  2.5727653 ,  3.51126678,  4.56077707,
+            1.58157495,  0.42399277,  0.428743  ,  0.43834115,  5.50969486,
+            2.54008677,  0.4287476 ,  0.42875161,  0.43888606,  6.52641123,
+            3.55874171,  0.43848567,  0.43888881,  0.45116241,  7.55334077,
+            4.55922478,  5.5409473 ,  6.57035008,  7.5038935 ,  8.51034357])
     """
 
     _name= 'Space'
@@ -75,137 +206,6 @@ class Space(Component):
                  **kwds):
         """Initialize the Space model.
         
-        Parameters
-        ----------
-        grid : ModelGrid
-            Landlab ModelGrid object
-        K_sed : float
-            Erodibility constant for sediment (units vary).
-        K_br : float
-            Erodibility constant for bedrock (units vary).
-        F_f : float
-            Fraction of permanently suspendable fines in bedrock [-].
-        phi : float
-            Sediment porosity [-].
-        H_star : float
-            Sediment thickness required for full entrainment [L].
-        v_s : float
-            Effective settling velocity for chosen grain size metric [L/T].
-        m_sp : float
-            Drainage area exponent (units vary)
-        n_sp : float
-            Slope exponent (units vary)
-        sp_crit_sed : float
-            Critical stream power to erode sediment [E/(TL^2)]
-        sp_crit_br : float
-            Critical stream power to erode rock [E/(TL^2)]
-        method : string
-            Either "simple_stream_power", "threshold_stream_power", or
-            "stochastic_hydrology". Method for calculating sediment
-            and bedrock entrainment/erosion.         
-        discharge_method : string
-            Either "area_field" or "discharge_field". If using stochastic
-            hydrology, determines whether component is supplied with
-            drainage area or discharge.
-        area_field : string or array
-            Used if discharge_method = 'area_field'. Either field name or
-            array of length(number_of_nodes) containing drainage areas [L^2].
-        discharge_field : string or array
-            Used if discharge_method = 'discharge_field'.Either field name or
-            array of length(number_of_nodes) containing drainage areas [L^2/T].
-        solver : string
-            Solver to use. Options at present include:
-                (1) 'basic' (default): explicit forward-time extrapolation.
-                    Simple but will become unstable if time step is too large.
-                (2) 'adaptive': subdivides global time step as needed to
-                    prevent slopes from reversing and alluvium from going
-                    negative.
-
-        Examples
-        ---------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components.flow_routing import FlowRouter
-        >>> from landlab.components import DepressionFinderAndRouter
-        >>> from landlab.components import Space
-        >>> from landlab.components import FastscapeEroder
-        >>> np.random.seed(seed = 5000)
-        
-        Define grid and initial topography:
-            -5x5 grid with baselevel in the lower left corner
-            -all other boundary nodes closed
-            -Initial topography is plane tilted up to the upper right + noise
-        
-        >>> nr = 5
-        >>> nc = 5
-        >>> dx = 10
-        >>> mg = RasterModelGrid((nr, nc), 10.0)
-        >>> _ = mg.add_zeros('node', 'topographic__elevation')
-        >>> mg['node']['topographic__elevation'] += mg.node_y/10 + \
-                mg.node_x/10 + np.random.rand(len(mg.node_y)) / 10
-        >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,\
-                                                       left_is_closed=True,\
-                                                       right_is_closed=True,\
-                                                       top_is_closed=True)
-        >>> mg.set_watershed_boundary_condition_outlet_id(0,\
-                mg['node']['topographic__elevation'], -9999.)
-        >>> fsc_dt = 100. 
-        >>> space_dt = 100.
-        
-        Instantiate Fastscape eroder, flow router, and depression finder        
-        
-        >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
-        >>> fr = FlowRouter(mg) #instantiate
-        >>> df = DepressionFinderAndRouter(mg)
-        
-        Burn in an initial drainage network using the Fastscape eroder:
-        
-        >>> for x in range(100): 
-        ...     fr.run_one_step()
-        ...     df.map_depressions()
-        ...     flooded = np.where(df.flood_status==3)[0]
-        ...     fsc.run_one_step(dt = fsc_dt, flooded_nodes=flooded)
-        ...     mg.at_node['topographic__elevation'][0] -= 0.001 #uplift
-        
-        Add some soil to the drainage network:        
-        
-        >>> _ = mg.add_zeros('soil__depth', at='node', dtype=float)
-        >>> mg.at_node['soil__depth'] += 0.5
-        >>> mg.at_node['topographic__elevation'] += mg.at_node['soil__depth']
-        
-        Instantiate the Space component:        
-        
-        >>> ha = Space(mg, K_sed=0.00001, K_br=0.00000000001,\
-                                F_f=0.5, phi=0.1, H_star=1., v_s=0.001,\
-                                m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
-                                sp_crit_br=0, method='simple_stream_power',\
-                                discharge_method=None, area_field=None,\
-                                discharge_field=None)
-                                
-        Now run the Space component for 2000 short timesteps:                            
-                                
-        >>> for x in range(2000): #Space component loop
-        ...     fr.run_one_step()
-        ...     df.map_depressions()
-        ...     flooded = np.where(df.flood_status==3)[0]
-        ...     ha.run_one_step(dt = space_dt, flooded_nodes=flooded)
-        ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * space_dt
-
-        Now we test to see if soil depth and topography are right:
-
-        >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.50000906,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
-                0.5       ,  0.49537393,  0.49305759,  0.49193247,  0.5       ,
-                0.5       ,  0.49304854,  0.49304459,  0.4913106 ,  0.5       ,
-                0.5       ,  0.49177241,  0.4913074 ,  0.48573171,  0.5       ,
-                0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
-
-        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.42290479,  1.53606698,  2.5727653 ,  3.51126678,  4.56077707,
-                1.58157495,  0.42399277,  0.428743  ,  0.43834115,  5.50969486,
-                2.54008677,  0.4287476 ,  0.42875161,  0.43888606,  6.52641123,
-                3.55874171,  0.43848567,  0.43888881,  0.45116241,  7.55334077,
-                4.55922478,  5.5409473 ,  6.57035008,  7.5038935 ,  8.51034357])
         """
 # THESE ARE THE OLD TESTS, BEFORE THE CHANGE THAT NOW HAS ELEVATION CHANGES 
 # ONLY APPLIED TO CORE NODES:
@@ -348,6 +348,9 @@ class Space(Component):
         elif solver == 'adaptive':
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self.time_to_flat = np.zeros(grid.number_of_nodes)
+            if self.phi >= 1.0:
+                raise ValueError('Porosity phi must be < 1.0')
+            self.porosity_factor = 1.0 / (1.0 - self.phi)
         else:
             raise ValueError("Parameter 'solver' must be one of: "
                              + "'basic', 'adaptive'")
@@ -495,7 +498,7 @@ class Space(Component):
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
-           a time period 'dt'.
+        a time period 'dt'.
         
         Parameters
         ----------
@@ -646,23 +649,26 @@ class Space(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> import numpy as np
+
         >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros('topographic__elevation', at='node')
         >>> z[:] = 0.1 * rg.x_of_node
-        >>> H = rg.add_zeros('node', 'soil__depth')
+        >>> H = rg.add_zeros('soil__depth', at='node')
         >>> H += 0.1
-        >>> br = rg.add_zeros('node', 'bedrock__elevation')
+        >>> br = rg.add_zeros('bedrock__elevation', at='node')
         >>> br[:] = z - H
+
         >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorSteepest')
         >>> fa.run_one_step()
-        >>> sp = Space(rg, K_sed=1.0, K_br=0.1,\
-                       F_f=0.5, phi=0.1, H_star=1., v_s=1.0,\
-                       m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
-                       sp_crit_br=0, method='simple_stream_power',\
-                       discharge_method='area_field',\
-                       area_field='drainage_area',\
-                       discharge_field=None, solver='adaptive')
+        >>> sp = Space(rg, K_sed=1.0, K_br=0.1,
+        ...            F_f=0.5, phi=0.0, H_star=1., v_s=1.0,
+        ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
+        ...            sp_crit_br=0, method='simple_stream_power',
+        ...            discharge_method='area_field',
+        ...            area_field='drainage_area',
+        ...            discharge_field=None, solver='adaptive')
         >>> sp.run_one_step(dt=10.0)
+
         >>> np.round(sp.Es[5:7], 4)
         array([ 0.0029,  0.0074])
         >>> np.round(sp.Er[5:7], 4)
@@ -745,7 +751,7 @@ class Space(Component):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self.depo_rate - self.Es
+            dHdt = self.porosity_factor * (self.depo_rate - self.Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = - (TIME_STEP_FACTOR
                                                   * H[decreasing_H]
