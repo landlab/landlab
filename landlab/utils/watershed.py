@@ -150,7 +150,7 @@ def get_watershed_nodes(grid, outlet_id):
     return ws_nodes
 
 
-def get_watershed_outlet(grid, source_node):
+def get_watershed_outlet(grid, source_node_id):
     """
     Get the downstream-most node (the outlet) of the source node.
 
@@ -158,7 +158,7 @@ def get_watershed_outlet(grid, source_node):
     ----------
     grid : RasterModelGrid
         A landlab RasterModelGrid.
-    source_node : integer
+    source_node_id : integer
         The id of the node in which to identify its outlet.
 
     Returns
@@ -204,11 +204,11 @@ def get_watershed_outlet(grid, source_node):
                          "field at the nodes of the input grid.")
 
     receiver_at_node = grid.at_node['flow__receiver_node']
-    receiver_node = receiver_at_node[source_node]
+    receiver_node = receiver_at_node[source_node_id]
     outlet_not_found = True
 
     while outlet_not_found:
-        node_is_outlet = receiver_node == source_node
+        node_is_outlet = receiver_node == source_node_id
         node_is_boundary = grid.node_is_boundary(receiver_node)
         node_is_pit = receiver_node == receiver_at_node[receiver_node]
 
