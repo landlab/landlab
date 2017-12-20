@@ -11,7 +11,7 @@ TaylorNonLinearDiffuser Component
 
 from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK, CLOSED_BOUNDARY
+from landlab import INACTIVE_LINK
 
 
 class TaylorNonLinearDiffuser(Component):
@@ -286,7 +286,6 @@ class TaylorNonLinearDiffuser(Component):
 
             # Calculate flux divergence
             dqdx = self.grid.calc_flux_div_at_node(self.flux)
-            #dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
 
             # Update topography
             self.elev[self.grid.core_nodes] -= (dqdx[self.grid.core_nodes]
