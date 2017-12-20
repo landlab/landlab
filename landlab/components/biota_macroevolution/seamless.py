@@ -12,22 +12,20 @@ from matplotlib import colors
 from matplotlib.colors import colorConverter
 import numpy as np
 from pprint import pprint
-from .species import Species
 from uuid import UUID
 
 
-class CladeDiversifier(Component):
+class BiotaEvolver(Component):
     """TODO: Description.
-    
+
     SEAMLESS (Spatially Explicit Area Model of Landscape Evolution by SimulationS)
-    
+
     The primary method of this class is :func:`run_one_step`.
-    
+
     Construction:
 
-        CladeDiversifier(grid, minimum_capture_area=0,
-                         extinction_area_threshold=0)
-        
+        BiotaEvolver(grid, minimum_capture_area=0, extinction_area_threshold=0)
+
     Parameters
     ----------
     grid : ModelGrid
@@ -37,8 +35,8 @@ class CladeDiversifier(Component):
     extinction_area_threshold : float
         The species in regions below this value will become extinct
     """
-    
-    _name = 'CladeDiversifier'
+
+    _name = 'BiotaEvolver'
 
     _input_var_names = ()
 
@@ -49,24 +47,20 @@ class CladeDiversifier(Component):
     _var_mapping = {}
 
     _var_doc = {}
-    
-    def __init__(self, grid, minimum_capture_area=0,
-                 extinction_area_threshold=0, **kwds):
-        """Initialize the CladeDiversifier.
+
+    def __init__(self, grid, extinction_area_threshold=0, **kwds):
+        """Initialize the BiotaEvolver.
     
         Parameters
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        minimum_capture_area : float, optional (defaults to 0 m^2)
-            The minumum area that a region capture is recognized
         extinction_area_threshold : float, optional (defaults to 0 m^2)
             The species in regions below this value will become extinct
         """
         
         # Store grid and set parameters.
         self._grid = grid
-        self._minimum_capture_area = minimum_capture_area
         self._extinction_area_threshold = extinction_area_threshold
         self.timestep = -1
         self.at_timestep = {'time': [], 'captured_area': []}
@@ -84,14 +78,13 @@ class CladeDiversifier(Component):
     def timesteps(self):
         number_of_timesteps = len(self.at_timestep['time'])
         return range(number_of_timesteps)
-    
+
     def run_one_step(self, current_time):
         self.timestep += 1
         
         mg = self._grid
-        A_min = self._minimum_capture_area
         A_e = self._extinction_area_threshold
-        
+
         if self.timestep == 0:
             prior_species = self.species
         else:
@@ -101,8 +94,8 @@ class CladeDiversifier(Component):
         captured_nodes = []
         
         for species in prior_species:
-            child_species,captured = species.evolve(mg, self.timestep, A_min,
-                                                    A_e)
+            child_species,captured = species.update_range(mg, self.timestep,
+                                                          A_e)
             if len(child_species) > 0:
                 new_species.extend(child_species)
 
@@ -117,10 +110,8 @@ class CladeDiversifier(Component):
     
     # Species methods
     
-    def add_new_species(self, timestep, nodes, parent_species_id=-1):
-        species = Species(timestep, nodes, parent_species_id)
+    def add_new_species(self, species):
         self.species.append(species)
-        return species
     
     def species_at_timestep(self, step):
         species = []
@@ -132,7 +123,7 @@ class CladeDiversifier(Component):
     def species_at_node(self, node):
         species_list = []
         for species in self.species:
-            if species.nodes[node]:
+            if species.range_mask[node]:
                 species_list.append(species)
         return species_list    
     
@@ -342,11 +333,11 @@ class CladeDiversifier(Component):
         
         range_masks = []
         for s in species:
-            range_masks.append(s.nodes)
+            range_masks.append(s.range_mask)
         combined_range_mask = np.any(range_masks, 0)
         
 #        range_mask = np.zeros(self.grid.number_of_nodes)
-#        range_mask[species.nodes] = 1
+#        range_mask[species.range_mask] = 1
               
         # generate the colors for your colormap
         c1 = colorConverter.to_rgba('white')

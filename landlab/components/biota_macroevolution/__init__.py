@@ -1,4 +1,7 @@
-from .seamless import CladeDiversifier
+from .seamless import BiotaEvolver
 
 
-__all__ = ['CladeDiversifier']
+__all__ = ['BiotaEvolver']
+
+from .species import Species
+from .stream_species import StreamSpecies
