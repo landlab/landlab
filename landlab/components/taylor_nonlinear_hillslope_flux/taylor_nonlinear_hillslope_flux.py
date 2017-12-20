@@ -286,10 +286,11 @@ class TaylorNonLinearDiffuser(Component):
 
             # Calculate flux divergence
             dqdx = self.grid.calc_flux_div_at_node(self.flux)
-            dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
+            #dqdx[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
 
             # Update topography
-            self.elev -= dqdx * self.sub_dt
+            self.elev[self.grid.core_nodes] -= (dqdx[self.grid.core_nodes]
+                                                * self.sub_dt)
 
     def run_one_step(self, dt, **kwds):
         """
