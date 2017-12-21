@@ -24,7 +24,6 @@ class StreamSpecies(Species):
             raise FieldError('A grid "stream" field is required to '
                              'update a stream species range.')
         
-         # Find streams.
         A = grid.at_node['drainage_area']
         stream_nodes = grid.at_node['stream']
         
@@ -36,6 +35,8 @@ class StreamSpecies(Species):
         child_species = []
         
         barrier_created = False
+        
+        captured_area = 0
         
         while any(unresolved_nodes):
         
@@ -51,9 +52,14 @@ class StreamSpecies(Species):
             new_range_streams = np.all([new_range, stream_nodes], 0)
             updated_nodes = np.any([updated_nodes, new_range_streams], 0)
             
+            updated_max_A = max(A[new_range_streams])
+            
+            captured_area += updated_max_A - max_A
+            
             # Identify species nodes not yet updated.
             inverted_updated_nodes = np.invert(updated_nodes)
-            unresolved_nodes = np.all([inverted_updated_nodes, self.range_mask, stream_nodes], 0)
+            unresolved_nodes = np.all([inverted_updated_nodes, self.range_mask,
+                                       stream_nodes], 0)
 
             # Evolve species
             # TODO: Barriers could be over identified for species with
@@ -77,4 +83,4 @@ class StreamSpecies(Species):
         
         self.range_mask = updated_nodes
 
-        return child_species, captured_nodes
+        return child_species, captured_area

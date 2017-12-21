@@ -82,30 +82,27 @@ class BiotaEvolver(Component):
     def run_one_step(self, current_time):
         self.timestep += 1
         
-        mg = self._grid
-        A_e = self._extinction_area_threshold
-
         if self.timestep == 0:
             prior_species = self.species
         else:
             prior_species = self.species_at_timestep(self.timestep - 1)
         
         new_species = []
-        captured_nodes = []
+        captured_area = 0
         
         for species in prior_species:
-            child_species,captured = species.update_range(mg, self.timestep,
-                                                          A_e)
+            child_species, cap_area = species.update_range(self._grid,
+                                                           self.timestep,
+                                                           self._extinction_area_threshold)
+            
             if len(child_species) > 0:
                 new_species.extend(child_species)
 
-            if len(captured) > 0:
-                captured_nodes.extend(captured)
+            captured_area += cap_area
                 
         self.species.extend(new_species)
         
         self.at_timestep['time'].append(current_time)
-        captured_area = len(np.unique(captured_nodes)) * mg.dx * mg.dy
         self.at_timestep['captured_area'].append(captured_area)
     
     # Species methods
