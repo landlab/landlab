@@ -52,25 +52,25 @@ class FieldProfiler:
         y_samples = np.linspace(y0, y1, n_samples)
 
         # Set sample parameters.
-        self.nodes = []
+        self.coordinates = []
         self.distance = []
         self.field_value = []
 
         for xi, yi in zip(x_samples, y_samples):
             node = self._grid.find_nearest_node((xi, yi))
 
-            if node not in self.nodes and not grid.node_is_boundary(node):
+            if not grid.node_is_boundary(node):
 
-                if len(self.nodes) == 0:
+                if len(self.coordinates) == 0:
                     di = 0
                 else:
-                    prior_node = self.nodes[-1]
-                    xp = grid.x_of_node[prior_node]
-                    yp = grid.y_of_node[prior_node]
+                    prior_coordinates = self.coordinates[-1]
+                    xp = prior_coordinates[0]
+                    yp = prior_coordinates[1]
                     di = np.hypot(xi - xp, yi - yp) + self.distance[-1]
      
                 zi = self._grid.at_node[self._field][node]
-                self.nodes.append(node)
+                self.coordinates.append((xi, yi))
                 self.distance.append(di)
                 self.field_value.append(zi)
 
@@ -109,7 +109,7 @@ class FieldProfiler:
 
         mg = self._grid
 
-        self.fig = plt.subplots(nrows=2, ncols=1)
+        plt.figure()
 
         # Plot field values as grid.
         plt.subplot(2, 1, 1)
@@ -125,11 +125,11 @@ class FieldProfiler:
         imshow_grid(self._grid, self._field, limits=(z_min, z_max), **kwds)
 
         # Plot profile trace on grid.
-        x1 = mg.x_of_node[self.nodes[0]]
-        y1 = mg.y_of_node[self.nodes[0]]
-        x2 = mg.x_of_node[self.nodes[-1]]
-        y2 = mg.y_of_node[self.nodes[-1]]
-        plt.plot((x1, x2), (y1, y2), 'co-')
+        x0 = self.coordinates[0][0]
+        y0 = self.coordinates[0][1]
+        xn = self.coordinates[-1][0]
+        yn = self.coordinates[-1][1]
+        plt.plot((x0, xn), (y0, yn), 'co-')
 
         # Plot profile.
         plt.subplot(2 ,1, 2)
