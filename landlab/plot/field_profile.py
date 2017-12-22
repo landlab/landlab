@@ -18,9 +18,8 @@ class FieldProfiler:
         """
         Create profiles of model grid field values.
 
-        The profile extends from start to end. The grid field is sampled at the
-        resolution of the grid. Profile endpoints and samples are snapped to
-        node centers.
+        The profile extends from start to end. The field is sampled at the
+        resolution of the grid.
 
         Parameters
         ----------
@@ -29,14 +28,14 @@ class FieldProfiler:
         field : string
             The field in which to draw a profile.
         start : tuple or integer
-            The start of the profile.
+            The start of the profile as coordinates (x, y) or node.
         end : tuple or integer
-            The end of the profile
+            The end of the profile as coordinates (x, y) or node.
         """
 
         if field not in grid.at_node.keys():
             raise FieldError('A grid field, {} is required to '
-                             'update a stream species range.'.format(field))
+                             'create a profile.'.format(field))
 
         self._grid = grid
         self._field = field
