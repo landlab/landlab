@@ -34,7 +34,7 @@ def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_
     #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
     starting_nodes = boundary_nodes[numpy.argsort(
         drainage_area[boundary_nodes])[-number_of_channels:]]
-
+    print(11111,starting_nodes)
     profile_IDs = []
     for i in starting_nodes:
         j = i
