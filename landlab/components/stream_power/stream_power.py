@@ -568,7 +568,7 @@ class StreamPowerEroder(Component):
             threshdt = self.sp_crit * dt
 
         # solve using Brent's Method in Cython for Speed
-        if type(threshdt) == float:
+        if isinstance(threshdt, float):
             brent_method_erode_fixed_threshold(
                 upstream_order_IDs, flow_receivers, threshdt, self.alpha,
                 self._n, z)
