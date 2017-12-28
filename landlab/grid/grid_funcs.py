@@ -127,7 +127,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     >>> flux_at_node[grid.core_nodes]
     array([ 0., 0., 0., 0., 0., 0.])
     """
-    assert len(active_link_flux) == grid.number_of_active_links, (
+    assert len(active_link_flux) == len(grid.active_links), (
         "incorrect length of active_link_flux array")
 
     # If needed, create net_unit_flux array

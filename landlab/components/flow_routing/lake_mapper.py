@@ -301,9 +301,9 @@ class DepressionFinderAndRouter(Component):
         # We'll also need a handy copy of the node neighbor lists
         # TODO: presently, this grid method seems to only exist for Raster
         # grids. We need it for *all* grids!
-        self._node_nbrs = self._grid.active_neighbors_at_node
+        self._node_nbrs = self._grid.active_adjacent_nodes_at_node
         if self._D8:
-            diag_nbrs = self._grid._diagonal_neighbors_at_node.copy()
+            diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
             diag_nbrs[self.grid.status_at_node[
                 diag_nbrs] == CLOSED_BOUNDARY] = -1
@@ -366,13 +366,6 @@ class DepressionFinderAndRouter(Component):
         h_orth = self._grid.node_at_link_head[act_links]
         t_orth = self._grid.node_at_link_tail[act_links]
 
-        if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-            if not self._grid._diagonal_links_created:
-                self._grid._create_diag_links_at_node()
-
-        h_diag = self._grid._diag_activelink_tonode
-        t_diag = self._grid._diag_activelink_fromnode
-
         # These two lines assign the False flag to any node that is higher
         # than its partner on the other end of its link
         self.is_pit[h_orth[np.where(
@@ -385,9 +378,7 @@ class DepressionFinderAndRouter(Component):
         # TODO: update the diagonal link data structures
         # DEJH doesn't understand why this can't be vectorized as above...
         if self._D8:
-            for i in range(len(self._grid._diag_active_links)):
-                h = self._grid._diag_activelink_tonode[i]
-                t = self._grid._diag_activelink_fromnode[i]
+            for h, t in self.grid.nodes_at_diagonal[self.grid.active_diagonals]:
                 if self._elev[h] > self._elev[t]:
                     self.is_pit[h] = False
                 elif self._elev[t] > self._elev[h]:
@@ -491,9 +482,9 @@ class DepressionFinderAndRouter(Component):
 
         # Get the neighboring links (and, if applicable, the diagonals)
         links = self._grid.links_at_node[the_node]
-        nbrs = self._grid.neighbors_at_node[the_node]
+        nbrs = self._grid.adjacent_nodes_at_node[the_node]
         if self._D8:
-            diag_nbrs = self._grid._diagonal_neighbors_at_node[the_node]
+            diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node[the_node]
         else:
             diag_nbrs = None
 
@@ -984,12 +975,12 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[21] = -1
         >>> rcvr[29] = -1
         >>> rcvr[30] = -1
-        >>> nbrs = rg.neighbors_at_node[22]
+        >>> nbrs = rg.adjacent_nodes_at_node[22]
         >>> nbr_links = rg.links_at_node[22]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([30, 21]), array([43, 35]))
-        >>> nbrs = rg._diagonal_neighbors_at_node[22]
-        >>> nbr_links = rg._diagonal_links_at_node[22]
+        >>> nbrs = rg.diagonal_adjacent_nodes_at_node[22]
+        >>> nbr_links = rg.d8s_at_node[22, 4:]
         >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
         (array([29, 13]), array([136, 121]))
         """
@@ -1059,7 +1050,7 @@ class DepressionFinderAndRouter(Component):
 
                 # Get active and unresolved neighbors of cn
                 (nbrs, lnks) = self._find_unresolved_neighbors_new(
-                        self.grid.neighbors_at_node[cn],
+                        self.grid.adjacent_nodes_at_node[cn],
                         self.grid.links_at_node[cn], self.receivers)
 
                 # They will now flow to cn
@@ -1086,8 +1077,8 @@ class DepressionFinderAndRouter(Component):
 #                    nbrs = self._find_unresolved_neighbors(
 #                            self._grid._get_diagonal_list(cn), self.receivers)
                     (nbrs, diags) = self._find_unresolved_neighbors_new(
-                            self._grid._diagonal_neighbors_at_node[cn],
-                            self._grid._diagonal_links_at_node[cn],
+                            self._grid.diagonal_adjacent_nodes_at_node[cn],
+                            self._grid.d8s_at_node[cn, 4:],
                             self.receivers)
 
                     # They will now flow to cn
@@ -1129,7 +1120,7 @@ class DepressionFinderAndRouter(Component):
             if len(nodes_in_lake) > 0:
 
                 if self.lake_map[self.receivers[outlet_node]] == lake_code:
-                    nbrs = self.grid.active_neighbors_at_node[outlet_node]
+                    nbrs = self.grid.active_adjacent_nodes_at_node[outlet_node]
                     not_lake = nbrs[np.where(self.lake_map[nbrs] != lake_code)[0]]
                     min_index = np.argmin(self._elev[not_lake])
                     new_receiver = not_lake[min_index]
@@ -1181,11 +1172,10 @@ class DepressionFinderAndRouter(Component):
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
             if self._D8:
                 outlet_neighbors = np.hstack(
-                    (self._grid.active_neighbors_at_node[outlet_node],
-                     self._grid._get_diagonal_list(
-                     outlet_node, bad_index=-1)))
+                    (self._grid.active_adjacent_nodes_at_node[outlet_node],
+                     self._grid.diagonal_adjacent_nodes_at_node[outlet_node]))
             else:
-                outlet_neighbors = self._grid.active_neighbors_at_node[
+                outlet_neighbors = self._grid.active_adjacent_nodes_at_node[
                     outlet_node].copy()
             inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0

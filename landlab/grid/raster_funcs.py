@@ -82,7 +82,7 @@ def neighbor_node_at_cell(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.active_neighbors_at_node[node_ids]
+    neighbors = grid.active_adjacent_nodes_at_node[node_ids]
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -181,7 +181,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
            -1.,  0.,  1., -4.,  1.,
             0., -1.,  0.,  1.,  0.])
     """
-    assert len(active_link_flux) == grid.number_of_active_links, \
+    assert len(active_link_flux) == len(grid.active_links), \
         "incorrect length of active_link_flux array"
 
     # If needed, create net_unit_flux array
