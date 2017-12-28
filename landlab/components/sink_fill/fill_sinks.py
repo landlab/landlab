@@ -407,10 +407,10 @@ class SinkFiller(Component):
         """
         if self._D8 is True:
             all_poss = np.union1d(
-                self.grid.active_neighbors_at_node[lake_nodes],
-                self.grid._get_diagonal_list(lake_nodes))
+                self.grid.active_adjacent_nodes_at_node[lake_nodes],
+                self.grid.diagonal_adjacent_nodes_at_node[lake_nodes])
         else:
-            all_poss = np.unique(self.grid.active_neighbors_at_node[
+            all_poss = np.unique(self.grid.active_adjacent_nodes_at_node[
                 lake_nodes])
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
@@ -422,10 +422,11 @@ class SinkFiller(Component):
         """
         lee = lake_ext_edge
         if self._D8 is True:
-            all_poss_int = np.union1d(self._grid.active_neighbors_at_node[lee],
-                                      self._grid._get_diagonal_list(lee))
+            all_poss_int = np.union1d(
+                self._grid.active_adjacent_nodes_at_node[lee],
+                self._grid.diagonal_adjacent_nodes_at_node[lee])
         else:
-            all_poss_int = np.unique(self._grid.active_neighbors_at_node[lee])
+            all_poss_int = np.unique(self._grid.active_adjacent_nodes_at_node[lee])
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
@@ -462,10 +463,10 @@ class SinkFiller(Component):
         ext_edge = self._get_lake_ext_margin(lake_nodes)
         if self._D8:
             edge_neighbors = np.hstack(
-                (self.grid.active_neighbors_at_node[ext_edge],
-                 self.grid._get_diagonal_list(ext_edge)))
+                (self.grid.active_adjacent_nodes_at_node[ext_edge],
+                 self.grid.diagonal_adjacent_nodes_at_node[ext_edge]))
         else:
-            edge_neighbors = self.grid.active_neighbors_at_node[
+            edge_neighbors = self.grid.active_adjacent_nodes_at_node[
                 ext_edge].copy()
         edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
         # ^value irrelevant

@@ -333,7 +333,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         if self._is_Voroni == False and diagonals == True:
             self.max_receivers = 8
         else:
-            self.max_receivers = self._grid.neighbors_at_node.shape[1]
+            self.max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
 
         # set the number of recievers, proportions, and receiver links with the
         # right size.
@@ -412,7 +412,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
         # Option for no diagonals (default)
         if self.diagonals == False:
-            neighbors_at_node = self.grid.neighbors_at_node
+            neighbors_at_node = self.grid.adjacent_nodes_at_node
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node
 
@@ -422,16 +422,13 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # Option with diagonals.
         else:
 
-            # Make sure diagonal links have been created
-            self.grid._create_diag_links_at_node()
-
             # need to create a list of diagonal links since it doesn't exist.
-            diag_links = numpy.sort(numpy.unique(self.grid._diag_links_at_node))
+            diag_links = numpy.sort(numpy.unique(self.grid.d8s_at_node[:, 4:]))
             diag_links = diag_links[diag_links > 0]
 
             # get diagonal active links (though this actually includes ALL
             # active links)
-            dal, d8h, d8t = self.grid._d8_active_links()
+            dal = self.grid.active_d8
 
             # calculate graidents across diagonals
             diag_grads = numpy.zeros(diag_links.shape)
@@ -444,14 +441,14 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             ortho_grads = self.grid.calc_grad_at_link(self.surface_values)
 
             # concatenate the diagonal and orthogonal grid elements
-            neighbors_at_node = numpy.hstack((self.grid.neighbors_at_node,
-                                              self.grid._diagonal_neighbors_at_node))
-            links_at_node = numpy.hstack((self.grid.links_at_node,
-                                          self.grid._diagonal_links_at_node))
+            neighbors_at_node = numpy.hstack((self.grid.adjacent_nodes_at_node,
+                                              self.grid.diagonal_adjacent_nodes_at_node))
             active_link_dir_at_node = numpy.hstack((self.grid.active_link_dirs_at_node,
-                                                    self.grid._diag__active_link_dirs_at_node))
+                                                    self.grid.active_diagonal_dirs_at_node))
             link_slope = numpy.hstack((ortho_grads,
                                        diag_grads))
+
+            links_at_node = self.grid.d8s_at_node
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(

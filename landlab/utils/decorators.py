@@ -23,6 +23,21 @@ import six
 from ..core.model_parameter_loader import load_params
 
 
+class cache_result_in_object(object):
+    def __init__(self, cache_as=None):
+        self._attr = cache_as
+
+    def __call__(self, func):
+        @wraps(func)
+        def _wrapped(obj):
+            name = self._attr or '_' + func.__name__
+            if not hasattr(self, name):
+                setattr(obj, name, func(obj))
+            return getattr(obj, name)
+
+        return _wrapped
+
+
 class store_result_in_grid(object):
     def __init__(self, name=None):
         self._attr = name

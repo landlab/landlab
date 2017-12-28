@@ -99,6 +99,60 @@ import re
 import six
 
 
+def indent_and_wrap(content, indent=''):
+    """Indent and wrap some text
+
+    Lines are first dedented to remove common leading whitespace,
+    then indented according to the value of *indent*, and then
+    wrapped at 70 characters (indenting if necessary with subsequent
+    indent being twice *indent*).
+
+    Note that when looking for common whitespace, the first line is
+    ignored.
+
+    Parameters
+    ----------
+    content : str
+        The content to wrap.
+
+    Returns
+    -------
+    str
+        The content properly wrapped and indented.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.core.messages import indent_and_wrap
+    >>> content = '''@book{knuth1998art,
+    ...     title={The art of computer programming: sorting and searching},
+    ...     author={Knuth, Donald Ervin},
+    ...     volume={3},
+    ...     year={1998},
+    ...     publisher={Pearson Education}
+    ...     }'''
+    >>> print(indent_and_wrap(content))
+    @book{knuth1998art,
+    title={The art of computer programming: sorting and searching},
+    author={Knuth, Donald Ervin},
+    volume={3},
+    year={1998},
+    publisher={Pearson Education}
+    }
+    """
+    wrapper = textwrap.TextWrapper(initial_indent=indent,
+                                   subsequent_indent=2 * indent)
+    lines = content.split(os.linesep)
+    first_line, the_rest = [lines[0].strip()], lines[1:]
+    if the_rest:
+        the_rest = textwrap.dedent(os.linesep.join(the_rest)).split(os.linesep)
+    if first_line[0]:
+        lines = first_line + the_rest
+    else:
+        lines = the_rest
+    return os.linesep.join([os.linesep.join(wrapper.wrap(line)) for line in lines])
+
+
 def split_paragraphs(msg, linesep=os.linesep):
     """Split text into paragraphs.
 

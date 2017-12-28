@@ -36,6 +36,7 @@ import textwrap
 import warnings
 import inspect
 
+from .. import registry
 
 _VAR_HELP_MESSAGE = """
 name: {name}
@@ -56,8 +57,7 @@ class Component(object):
     """
     Defines the base component class from which Landlab components inherit.
 
-    Base component class methods
-    ++++++++++++++++++++++++++++
+    **Base component class methods**
 
     .. autosummary::
         :toctree: generated/
@@ -86,6 +86,10 @@ class Component(object):
     _output_var_names = set()
     _optional_var_names = set()
     _var_units = dict()
+
+    def __new__(cls, *args, **kwds):
+        registry.add(cls)
+        return object.__new__(cls)
 
     def __init__(self, grid, map_vars=None, **kwds):
         map_vars = map_vars or {}
