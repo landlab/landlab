@@ -233,50 +233,6 @@ def test_active_links():
 
 
 @with_setup(setup_grid)
-def test_active_link_num_inlink():
-    assert_array_equal(rmg._node_numactiveinlink,
-                       np.array([0, 0, 0, 0, 0,
-                                 0, 2, 2, 2, 1,
-                                 0, 2, 2, 2, 1,
-                                 0, 1, 1, 1, 0]))
-
-
-@with_setup(setup_grid)
-def test_active_link_num_outlink():
-    assert_array_equal(rmg._node_numactiveoutlink, np.array([0, 1, 1, 1, 0,
-                                                            1, 2, 2, 2, 0,
-                                                            1, 2, 2, 2, 0,
-                                                            0, 0, 0, 0, 0]))
-
-
-@with_setup(setup_grid)
-def test_active_inlink_matrix():
-    assert_array_equal(rmg._node_active_inlink_matrix,
-                       np.array([[-1, -1, -1, -1, -1,
-                                  -1,  0,  1,  2, -1,
-                                  -1,  3,  4,  5, -1,
-                                  -1,  6, 7,  8, -1],
-                                 [-1, -1, -1, -1, -1,
-                                  -1,  9, 10, 11, 12,
-                                  -1, 13, 14, 15, 16,
-                                  -1, -1, -1, -1, -1]]))
-
-
-@with_setup(setup_grid)
-def test_active_outlink_matrix():
-    assert_array_equal(
-        rmg._node_active_outlink_matrix,
-        np.array([[-1,  0,  1,  2, -1,
-                   -1,  3,  4,  5, -1,
-                   -1,  6,  7,  8, -1,
-                   -1, -1, -1, -1, -1],
-                  [-1, -1, -1, -1, -1,
-                   9, 10, 11, 12, -1,
-                   13, 14, 15, 16, -1,
-                   -1, -1, -1, -1, -1]]))
-
-
-@with_setup(setup_grid)
 def test__active_links_at_node_scalar_interior():
     assert_array_equal(rmg._active_links_at_node([6]),
                        np.array([[5, 9, 14, 10]]).T)
@@ -343,49 +299,6 @@ def test_node_at_link_head():
                   11, 12, 13, 14,
                   15, 16, 17, 18, 19,
                   16, 17, 18, 19]))
-
-
-@with_setup(setup_grid)
-def test_link_num_inlink():
-    assert_array_equal(rmg._node_numinlink,
-                       np.array([0, 1, 1, 1, 1,
-                                 1, 2, 2, 2, 2,
-                                 1, 2, 2, 2, 2,
-                                 1, 2, 2, 2, 2]))
-
-
-@with_setup(setup_grid)
-def test_link_num_outlink():
-    assert_array_equal(rmg._node_numoutlink, np.array([2, 2, 2, 2, 1,
-                                                      2, 2, 2, 2, 1,
-                                                      2, 2, 2, 2, 1,
-                                                      1, 1, 1, 1, 0]))
-
-
-@with_setup(setup_grid)
-def test__node_inlink_matrix():
-    assert_array_equal(rmg._node_inlink_matrix,
-                       np.array([[-1, -1, -1, -1, -1,
-                                   4,  5,  6,  7,  8,
-                                  13, 14, 15, 16, 17,
-                                  22, 23, 24, 25, 26],
-                                 [-1,  0,  1,  2,  3,
-                                  -1,  9, 10, 11, 12,
-                                  -1, 18, 19, 20, 21,
-                                  -1, 27, 28, 29, 30]]))
-
-
-@with_setup(setup_grid)
-def test__node_outlink_matrix():
-    assert_array_equal(rmg._node_outlink_matrix,
-                       np.array([[ 4,  5,  6,  7,  8,
-                                  13, 14, 15, 16, 17,
-                                  22, 23, 24, 25, 26,
-                                  -1, -1, -1, -1, -1],
-                                 [ 0,  1,  2,  3, -1,
-                                   9, 10, 11, 12, -1,
-                                  18, 19, 20, 21, -1,
-                                  27, 28, 29, 30, -1]]))
 
 
 @with_setup(setup_grid)

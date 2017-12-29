@@ -8,7 +8,7 @@ environment:
     PYPI_PASS:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
     ANACONDA_TOKEN:
-      secure: fK53X8HNpJY7ZeW8q7FYjpNdqi/rgfn94s+vtWGObHHjQMMNiidbNS/lk939vdA6
+      secure: +l38MCyFk16Wb40xBFaa8U/F5pvBAnIUlsYMXPjLCnnPbsPbpkSWwbk6084u/GCV
     BUILD_STR: "dev"
 
   matrix:

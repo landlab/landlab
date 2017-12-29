@@ -233,10 +233,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         if reorient_links:
             self._reorient_links_upper_right()
 
-        # LINKS: inlink and outlink matrices
-        # SOON TO BE DEPRECATED
-        self._setup_inlink_and_outlink_matrices()
-
         # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
         # nodes of active links.
         self._reset_link_status_list()
