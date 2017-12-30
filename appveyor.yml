@@ -58,13 +58,13 @@ install:
   - cmd: conda install -q conda-build=3.0
   - cmd: conda install -q anaconda-client
   - cmd: pip install twine
-  - cmd: conda build -q .conda-recipe
-  - cmd: conda install -q landlab --use-local
   - cmd: conda list
 
 build: false
 
 test_script:
+  - cmd: conda build -q .conda-recipe --no-test
+  - cmd: conda install -q landlab --use-local
   - cmd: python scripts/test-installed-landlab.py
 
 after_test:
