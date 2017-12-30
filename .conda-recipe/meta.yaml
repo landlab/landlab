@@ -1,6 +1,9 @@
+{% set name = "landlab" %}
+{% set data = load_setup_py_data() %}
+
 package:
-  name: landlab
-  version: "1.2.0"
+  name: {{ name }}
+  version: {{ data.get('version') }}
 
 source:
   path: ..
@@ -9,24 +12,24 @@ requirements:
   build:
     - {{ compiler("c") }}
     - python
-    - libgcc # [linux and py27 and np == '19']
-    - scipy
+    # - libgcc # [linux and py27 and np == '19']
+    # - scipy
     - numpy 1.11.*
-    - xarray
-    - nose
-    - matplotlib
-    - numpydoc
-    - netcdf4
+    # - xarray
+    # - nose
+    # - matplotlib
+    # - numpydoc
+    # - netcdf4
     - cython
-    - six
-    - pyyaml
+    # - six
+    # - pyyaml
     - setuptools
-    - statsmodels
-    - jpeg <=8 # [osx and np==111]
+    # - statsmodels
+    # - jpeg <=8 # [osx and np==111]
 
   run:
     - python
-    - libgcc # [linux and py27 and np == '19']
+    # - libgcc # [linux and py27 and np == '19']
     - scipy
     - numpy >=1.11
     - xarray
@@ -40,7 +43,7 @@ requirements:
     - setuptools
     - xarray
     - statsmodels
-    - jpeg <=8 # [osx and np==111]
+    # - jpeg <=8 # [osx and np==111]
 
 test:
   imports:
