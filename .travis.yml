@@ -40,6 +40,7 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda install python=$TRAVIS_PYTHON_VERSION
 - conda install -q conda-build=3.0 anaconda-client coverage sphinx
+- conda install -q numpy=1.11
 - pip install coveralls
 - conda info -a && conda list
 script:
