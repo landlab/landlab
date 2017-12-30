@@ -10,7 +10,7 @@ requirements:
     - python
     - libgcc # [linux and py27 and np == '19']
     - scipy
-    - numpy x.x
+    - numpy 1.11.*
     - xarray
     - nose
     - matplotlib
@@ -27,7 +27,7 @@ requirements:
     - python
     - libgcc # [linux and py27 and np == '19']
     - scipy
-    - numpy x.x
+    - numpy >=1.11
     - xarray
     - nose
     - matplotlib
