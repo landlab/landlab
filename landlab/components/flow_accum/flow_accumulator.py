@@ -878,7 +878,7 @@ class FlowAccumulator(Component):
                            'RasterModelGrid, but have either not explicitly set '
                            'a method for routing for the DepressionFinderAndRouter '
                            "component. The default for this component is 'D8' "
-                           'which is in conflixt with FlowDirectorSteepest. \n'
+                           'which is in conflict with FlowDirectorSteepest. \n'
                            "To fix this, provide the kwarg routing='D4', when "
                            'you instantiate FlowAccumulator.')
 
@@ -923,7 +923,7 @@ class FlowAccumulator(Component):
                     message = ('You have specified FlowDirectorSteepest on a '
                                'RasterModelGrid, and have provided an instantiated '
                                'DepressionFinderAndRouter that is using D8 '
-                               'connectivity. This is in conflixt with '
+                               'connectivity. This is in conflict with '
                                'FlowDirectorSteepest. \n'
                                "To fix this, provide the argument routing='D4', "
                                "when you instantiate DepressionFinderAndRouter.")
