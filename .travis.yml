@@ -1,10 +1,8 @@
 env:
   matrix:
-  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.10" BUILD_DOCS=0 COVERALLS=0
-  - TRAVIS_PYTHON_VERSION="2.7" NUMPY_VERSION="1.11" BUILD_DOCS=1 COVERALLS=1
-  - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="1.10" BUILD_DOCS=0 COVERALLS=0
-  - TRAVIS_PYTHON_VERSION="3.5" NUMPY_VERSION="1.11" BUILD_DOCS=0 COVERALLS=0
-  - TRAVIS_PYTHON_VERSION="3.6" NUMPY_VERSION="1.11" BUILD_DOCS=0 COVERALLS=0
+  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=1 COVERALLS=1
+  - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 COVERALLS=0
+  - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 COVERALLS=0
   global:
   - CONDA_PREFIX=$HOME/miniconda
   - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
@@ -45,7 +43,7 @@ install:
 - pip install coveralls
 - conda info -a && conda list
 script:
-- conda build -q .conda-recipe --old-build-string --numpy=$NUMPY_VERSION
+- conda build -q .conda-recipe --old-build-string
 - conda install -q landlab --use-local
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
