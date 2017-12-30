@@ -44,12 +44,12 @@ install:
 - conda info -a && conda list
 script:
 - conda build -q .conda-recipe --old-build-string
-- conda install -q landlab --use-local
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
+    conda install -q landlab --use-local
     (cd docs && make html 2> /dev/null)
   fi
-- bash .ci/travis/run_travis_test.sh
+  # - bash .ci/travis/run_travis_test.sh
 virtualenv:
   system_site_packages: false
 after_success:
