@@ -8,8 +8,8 @@ Created on Wed Sep 13 10:26:17 2017
 
 from landlab import FieldError
 from landlab.plot.imshow import imshow_grid
-import matplotlib.pyplot as plt  
-import numpy as np 
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class FieldProfiler:
@@ -43,7 +43,7 @@ class FieldProfiler:
         # Handle inputs that can be integers or tuples for the profile
         # endpoints.
         start_node, x0, y0 = self._get_node_x_y(start)
-        end_node, x1, y1  = self._get_node_x_y(end)
+        end_node, x1, y1 = self._get_node_x_y(end)
 
         # Get sample coordinates.
         n_samples = np.ceil(np.hypot(x1 - x0, y1 - y0) / grid.dx) + 1
@@ -67,13 +67,13 @@ class FieldProfiler:
                     xp = prior_coordinates[0]
                     yp = prior_coordinates[1]
                     di = np.hypot(xi - xp, yi - yp) + self.distance[-1]
-     
+
                 zi = self._grid.at_node[self._field][node]
                 self.coordinates.append((xi, yi))
                 self.distance.append(di)
                 self.field_value.append(zi)
 
-    def _get_node_x_y(self, point): 
+    def _get_node_x_y(self, point):
         if isinstance(point, (float, int)):
             node = int(point)
             x = self._grid.x_of_node[point]
@@ -119,7 +119,7 @@ class FieldProfiler:
         # Set colorbar label to the profile y axis label unless specified in
         # kwds.
         if 'colorbar_label' not in kwds:
-            kwds['colorbar_label'] = field_y_axis_label     
+            kwds['colorbar_label'] = field_y_axis_label
 
         imshow_grid(self._grid, self._field, limits=(z_min, z_max), **kwds)
 
