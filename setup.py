@@ -6,10 +6,13 @@
 from setuptools import setup, find_packages, Extension
 from setuptools.command.install import install
 from setuptools.command.develop import develop
-
 from distutils.extension import Extension
+import pkg_resources
 
 import versioneer
+
+
+numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
 
 
 ext_modules = [
@@ -72,8 +75,6 @@ ext_modules = [
     Extension('landlab.layers.ext.eventlayers',
               ['landlab/layers/ext/eventlayers.pyx']),
 ]
-
-import numpy as np
 
 
 def register(**kwds):
@@ -161,6 +162,6 @@ setup(name='landlab',
               'landlab=landlab.cmd.landlab:main',
           ]
       },
-      include_dirs = [np.get_include()],
+      include_dirs = [numpy_incl, ],
       ext_modules = ext_modules,
      )
