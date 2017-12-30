@@ -874,11 +874,14 @@ class FlowAccumulator(Component):
                 isinstance(self._grid, RasterModelGrid) and
                 (self.flow_director._name in('FlowDirectorSteepest'))):
 
-                message = ('You have specified FlowDirectorSteepest on a '
-                           'RasterModelGrid, but have either not explicitly set '
-                           'a method for routing for the DepressionFinderAndRouter '
-                           "component. The default for this component is 'D8' "
-                           'which is in conflict with FlowDirectorSteepest. \n'
+                message = ('You have specified \n'
+                           'flow_director=FlowDirectorSteepest and\n'
+                           'depression_finder=DepressionFinderAndRouter\n'
+                           'in the instantiation of FlowAccumulator on a '
+                           'RasterModelGrid. The default behavior of '
+                           'DepressionFinderAndRouter is to use D8 connectivity '
+                           'which is in conflict with D4 connectivity used by '
+                           'FlowDirectorSteepest. \n'
                            "To fix this, provide the kwarg routing='D4', when "
                            'you instantiate FlowAccumulator.')
 
@@ -920,13 +923,16 @@ class FlowAccumulator(Component):
                 if (self.depression_finder._D8 and
                     (self.flow_director._name in ('FlowDirectorSteepest'))):
 
-                    message = ('You have specified FlowDirectorSteepest on a '
-                               'RasterModelGrid, and have provided an instantiated '
-                               'DepressionFinderAndRouter that is using D8 '
-                               'connectivity. This is in conflict with '
+                    message = ('You have specified \n'
+                               'flow_director=FlowDirectorSteepest and\n'
+                               'depression_finder=DepressionFinderAndRouter\n'
+                               'in the instantiation of FlowAccumulator on a '
+                               'RasterModelGrid. The behavior of the instantiated '
+                               'DepressionFinderAndRouter is to use D8 connectivity '
+                               'which is in conflict with D4 connectivity used by '
                                'FlowDirectorSteepest. \n'
-                               "To fix this, provide the argument routing='D4', "
-                               "when you instantiate DepressionFinderAndRouter.")
+                               "To fix this, provide the kwarg routing='D4', when "
+                               'you instantiate DepressionFinderAndRouter.')
 
                     raise ValueError(warning_message(message))
 
