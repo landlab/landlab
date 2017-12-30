@@ -7,7 +7,7 @@ source:
 
 requirements:
   build:
-    - {{ compiler(‘c’) }}
+    - {{ compiler("c") }}
     - python
     - libgcc # [linux and py27 and np == '19']
     - scipy
