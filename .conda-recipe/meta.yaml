@@ -42,6 +42,12 @@ requirements:
     - statsmodels
     - jpeg <=8 # [osx and np==111]
 
+test:
+  imports:
+    - landlab
+  commands:
+    - python -c 'import landlab; landlab.test()'
+
 build:
   number: 0
   string: {{ environ.get('BUILD_STR', '') }}
