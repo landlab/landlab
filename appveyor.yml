@@ -6,7 +6,7 @@ environment:
     ANACONDA_TOKEN:
       secure: +l38MCyFk16Wb40xBFaa8U/F5pvBAnIUlsYMXPjLCnnPbsPbpkSWwbk6084u/GCV
     BUILD_STR: "dev"
-    WIN_SDK_ROOT: "C:\Program Files\Microsoft SDKs\Windows"
+    WIN_SDK_ROOT: C:\\Program Files\\Microsoft SDKs\\Windows
     WINDOWS_SDK_VERSION: "v7.0"
 
 
