@@ -8,7 +8,8 @@ from __future__ import print_function
 
 import numpy as np
 from landlab import (ModelParameterDictionary, Component, FieldError,
-                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY, CORE_NODE)
+                     FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY, CORE_NODE,
+                     RasterModelGrid)
 from landlab.core.utils import as_id_array
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.components.flow_accum import flow_accum_bw
@@ -167,7 +168,7 @@ class DepressionFinderAndRouter(Component):
             'otherwise BAD_INDEX_VALUE'
     }
 
-    def __init__(self, grid, routing='D8', **kwds):
+    def __init__(self, grid, routing='D8'):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -182,23 +183,25 @@ class DepressionFinderAndRouter(Component):
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
         """
+        super(DepressionFinderAndRouter, self).__init__(grid)
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
+
         if routing is not 'D8':
             assert routing is 'D4'
         self._routing = routing
-        if ((type(self._grid) is landlab.grid.raster.RasterModelGrid) and
-                (routing is 'D8')):
+
+        if isinstance(grid, RasterModelGrid) and (routing is 'D8'):
             self._D8 = True
             self.num_nbrs = 8
             self._diag_link_length = np.sqrt(grid._dx**2 + grid._dy**2)
         else:
             self._D8 = False  # useful shorthand for thia test we do a lot
-            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+            if isinstance(grid, RasterModelGrid):
                 self.num_nbrs = 4
             else:
                 self.num_nbrs = self.grid.links_at_node.shape[1]
-                
+
         if ('flow__receiver_nodes' in self._grid.at_node.keys()):
                 raise ValueError('A route-to-multiple flow director has been '
                                  'run on this grid. The depression finder is '
@@ -222,7 +225,7 @@ class DepressionFinderAndRouter(Component):
         # Create a ModelParameterDictionary for the inputs
         if input_stream is None:
             inputs = None
-        elif type(input_stream) == ModelParameterDictionary:
+        elif isinstance(input_stream, ModelParameterDictionary):
             inputs = input_stream
         else:
             inputs = ModelParameterDictionary(input_stream)
@@ -630,21 +633,21 @@ class DepressionFinderAndRouter(Component):
         not_too_high = self._elev[nbrs] < self._elev[the_node]
         not_current_lake = np.not_equal(self.flood_status[nbrs], _CURRENT_LAKE)
         not_flooded = np.not_equal(self.flood_status[nbrs], _FLOODED)
-        
-        # The following logic block handles the case when a neighbor is 
+
+        # The following logic block handles the case when a neighbor is
         # flooded but its outlet is LOWER than the_node, so the_node could
         # be an outlet that flows into a lower lake.
         #
         # We proceed only if there is at least one flooded node
         if np.any(np.logical_not(not_flooded)):
-            
+
             # Examine each neighbor
             for i in range(len(nbrs)):
-                
+
                 # If the neighbor is flooded...
                 if not not_flooded[i]:
-                    
-                    # Check to see whether its own outlet is lower than 
+
+                    # Check to see whether its own outlet is lower than
                     # the_node. If so, then it does not "count" as being
                     # flooded, because its water level is lower than our
                     # current potential lake outlet.
@@ -924,7 +927,7 @@ class DepressionFinderAndRouter(Component):
 
         if reroute_flow and ('flow__receiver_node' in
                              self._grid.at_node.keys()):
-            
+
             self.receivers = self._grid.at_node['flow__receiver_node']
             self.sinks = self._grid.at_node['flow__sink_flag']
             self.grads = self._grid.at_node['topographic__steepest_slope']
@@ -1104,7 +1107,6 @@ class DepressionFinderAndRouter(Component):
             counter += 1
             assert (counter < self._grid.number_of_nodes), 'inf loop in lake'
 
-
     def _route_flow(self):
         """Route flow across lake flats.
 
@@ -1197,7 +1199,6 @@ class DepressionFinderAndRouter(Component):
             self.receivers[outlet_node] = lowest_node
         else:
             self.receivers[outlet_node] = outlet_node
-
 
     def display_depression_map(self):
         """Print a simple character-based map of depressions/lakes."""
