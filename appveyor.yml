@@ -30,12 +30,12 @@ environment:
 
     - TARGET_ARCH: x86
       CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda35
+      CONDA_INSTALL_LOCN: C:\\Miniconda36
       CONDA_PY: 36
 
     - TARGET_ARCH: x64
       CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda35-x64
+      CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
       CONDA_PY: 36
 
 platform:
@@ -65,8 +65,8 @@ build: false
 
 test_script:
   - cmd: conda build -q .conda-recipe --no-test
-  - cmd: conda install -q landlab --use-local
-  - cmd: python scripts/test-installed-landlab.py
+  # - cmd: conda install -q landlab --use-local
+  # - cmd: python scripts/test-installed-landlab.py
 
 after_test:
   - cmd: python setup.py bdist_wheel
