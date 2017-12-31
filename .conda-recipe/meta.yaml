@@ -11,41 +11,24 @@ source:
 requirements:
   build:
     - {{ compiler("c") }}
-    - vc 9 [win and py27]
-    - python
-    # - libgcc # [linux and py27 and np == '19']
-    # - scipy
-    - numpy 1.11.*
-    # - xarray
-    # - nose
-    # - matplotlib
-    # - numpydoc
-    # - netcdf4
-    - cython
-    # - six
-    # - pyyaml
     - setuptools
-    # - statsmodels
-    # - jpeg <=8 # [osx and np==111]
+    - python
+    - cython
+    - numpy 1.11.*
 
   run:
-    - vc 9 [win and py27]
     - python
-    # - libgcc # [linux and py27 and np == '19']
-    - scipy
+    - cython
     - numpy >=1.11
+    - scipy
     - xarray
     - nose
     - matplotlib
     - numpydoc
     - netcdf4
-    - cython
     - six
     - pyyaml
-    - setuptools
-    - xarray
     - statsmodels
-    # - jpeg <=8 # [osx and np==111]
 
 test:
   imports:
