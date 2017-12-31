@@ -11,6 +11,7 @@ source:
 requirements:
   build:
     - {{ compiler("c") }}
+    - vc 9 [win and py27]
     - python
     # - libgcc # [linux and py27 and np == '19']
     # - scipy
@@ -28,6 +29,7 @@ requirements:
     # - jpeg <=8 # [osx and np==111]
 
   run:
+    - vc 9 [win and py27]
     - python
     # - libgcc # [linux and py27 and np == '19']
     - scipy
