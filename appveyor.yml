@@ -13,10 +13,10 @@ environment:
     #   CONDA_PY: 27
     #   CONDA_INSTALL_LOCN: C:\\Miniconda
 
-    # - TARGET_ARCH: x64
-    #   CONDA_NPY: 111
-    #   CONDA_PY: 27
-    #   CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+    - TARGET_ARCH: x64
+      CONDA_NPY: 111
+      CONDA_PY: 27
+      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
 
     # - TARGET_ARCH: x86
     #   CONDA_NPY: 111
@@ -28,15 +28,15 @@ environment:
     #   CONDA_INSTALL_LOCN: C:\\Miniconda35-x64
     #   CONDA_PY: 35
 
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda36
-      CONDA_PY: 36
+    # - TARGET_ARCH: x86
+    #   CONDA_NPY: 111
+    #   CONDA_INSTALL_LOCN: C:\\Miniconda36
+    #   CONDA_PY: 36
 
-    - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
-      CONDA_PY: 36
+    # - TARGET_ARCH: x64
+    #   CONDA_NPY: 111
+    #   CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
+    #   CONDA_PY: 36
 
 platform:
   - x64
