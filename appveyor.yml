@@ -43,8 +43,8 @@ environment:
 platform:
   - x64
 
-# os: Previous Visual Studio 2015
-os: Visual Studio 2013
+os: Previous Visual Studio 2015
+# os: Visual Studio 2013
 
 init:
   - "ECHO %CONDA_INSTALL_LOCN% %CONDA_PY% %HOME% %PLATFORM%"
