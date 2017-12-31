@@ -6,6 +6,9 @@ environment:
     ANACONDA_TOKEN:
       secure: +l38MCyFk16Wb40xBFaa8U/F5pvBAnIUlsYMXPjLCnnPbsPbpkSWwbk6084u/GCV
     BUILD_STR: "dev"
+    WIN_SDK_ROOT: "C:\Program Files\Microsoft SDKs\Windows"
+    WINDOWS_SDK_VERSION: "v7.0"
+
 
   matrix:
     # - TARGET_ARCH: x86
@@ -65,6 +68,8 @@ install:
 build: false
 
 test_script:
+  - cmd: call %WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe -q -version:%WINDOWS_SDK_VERSION%
+  - cmd: call %WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd" /x64 /release
   - cmd: conda build -q .conda-recipe --no-test
   # - cmd: conda install -q landlab --use-local
   # - cmd: python scripts/test-installed-landlab.py
