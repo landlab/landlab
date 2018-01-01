@@ -108,3 +108,11 @@ def test_patches_at_node():
                   [ 2, -1, -1,  0], [ 3,  2,  0,  1], [-1,  3,  1, -1],
                   [-1, -1, -1,  2], [-1, -1,  2,  3], [-1, -1,  3, -1]],
                  dtype=int))
+
+
+def test_links_at_patch():
+    grid = RasterModelGrid((3, 4))
+    assert_array_equal(
+        grid.links_at_patch,
+        np.array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
+                  [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]]))
