@@ -47,3 +47,10 @@ def test_nodes_at_edge():
 def test_grid_shape():
     grid = RasterModelGrid((3, 4))
     assert_tuple_equal(grid.shape, (3, 4))
+
+
+def test_nodes_at_patch():
+    grid = RasterModelGrid((3, 3))
+    assert_array_equal(grid.nodes_at_patch,
+                       np.array([[4, 3, 0, 1], [5, 4, 1, 2],
+                                 [7, 6, 3, 4], [8, 7, 4, 5]], dtype=int))
