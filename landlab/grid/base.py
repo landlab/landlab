@@ -321,7 +321,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
     at_cell = {}  # : Values defined at cells
 
     def __init__(self, **kwds):
-        print 'In ModelGrid'
         super(ModelGrid, self).__init__()
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
@@ -1459,7 +1458,7 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
         LLCATS: NINF MEAS
         """
-        return self._xy_of_node[:, 0]
+        return self.x_of_node
 
     @property
     @make_return_array_immutable
@@ -1483,82 +1482,7 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
         LLCATS: NINF MEAS
         """
-        return self._xy_of_node[:, 1]
-
-    @property
-    @make_return_array_immutable
-    def xy_of_node(self):
-        """Get array of the x- and y-coordinates of nodes.
-
-        See also
-        --------
-        x_of_node, y_of_node
-            Exquivalent methods for just x and y coordinates.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), (2., 3.))
-        >>> grid.xy_of_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0., 0.], [ 3., 0.], [ 6., 0.], [ 9., 0.],
-               [ 0., 2.], [ 3., 2.], [ 6., 2.], [ 9., 2.],
-               [ 0., 4.], [ 3., 4.], [ 6., 4.], [ 9., 4.]])
-        >>> np.all(grid.xy_of_node[:, 0] == grid.x_of_node)
-        True
-        >>> np.all(grid.xy_of_node[:, 1] == grid.y_of_node)
-        True
-
-        LLCATS: NINF MEAS
-        """
-        return self._xy_of_node
-
-    @property
-    @make_return_array_immutable
-    def x_of_node(self):
-        """Get array of the x-coordinates of nodes.
-
-        See also
-        --------
-        node_x
-            Exquivalent method.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
-        >>> mg.x_of_node.reshape((4, 5))
-        array([[  0.,   3.,   6.,   9.,  12.],
-               [  0.,   3.,   6.,   9.,  12.],
-               [  0.,   3.,   6.,   9.,  12.],
-               [  0.,   3.,   6.,   9.,  12.]])
-
-        LLCATS: NINF MEAS
-        """
-        return self._xy_of_node[:, 0]
-
-    @property
-    @make_return_array_immutable
-    def y_of_node(self):
-        """Get array of the y-coordinates of nodes.
-
-        See also
-        --------
-        node_y
-            Exquivalent method.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
-        >>> mg.y_of_node.reshape((4, 5))
-        array([[ 0.,  0.,  0.,  0.,  0.],
-               [ 2.,  2.,  2.,  2.,  2.],
-               [ 4.,  4.,  4.,  4.,  4.],
-               [ 6.,  6.,  6.,  6.,  6.]])
-
-        LLCATS: NINF MEAS
-        """
-        return self._xy_of_node[:, 1]
+        return self.y_of_node
 
     @property
     @make_return_array_immutable
