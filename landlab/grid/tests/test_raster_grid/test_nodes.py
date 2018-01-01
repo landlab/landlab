@@ -54,3 +54,5 @@ def test_nodes_at_patch():
     assert_array_equal(grid.nodes_at_patch,
                        np.array([[4, 3, 0, 1], [5, 4, 1, 2],
                                  [7, 6, 3, 4], [8, 7, 4, 5]], dtype=int))
+    with assert_raises(ValueError):
+        grid.nodes_at_patch[0, 0] = 42
