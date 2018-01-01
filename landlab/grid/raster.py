@@ -34,6 +34,8 @@ from ..core.utils import add_module_functions_to_class
 from .decorators import return_id_array, return_readonly_id_array
 from ..utils.decorators import cache_result_in_object
 from . import gradients
+from ..graph import DualUniformRectilinearGraph
+from ..field.graph_field import GraphFields
 
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
@@ -271,7 +273,9 @@ def _parse_grid_spacing_from_args(args):
 from .diagonals import DiagonalsMixIn
 
 
-class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
+# class RasterModelGrid(DualUniformRectilinearGraph, GraphFields, ModelGrid,
+class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
+                      RasterModelGridPlotter):
 
     """A 2D uniform rectilinear grid.
 
@@ -372,6 +376,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         dx = kwds.pop('dx', None)
         num_rows = kwds.pop('num_rows', None)
         num_cols = kwds.pop('num_cols', None)
+        origin = kwds.pop('origin', 0.)
 
         if num_rows is None and num_cols is None:
             num_rows, num_cols = _parse_grid_shape_from_args(args)
@@ -385,15 +390,27 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if num_rows <= 0 or num_cols <= 0:
             raise ValueError('number of rows and columns must be positive')
 
-        self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
+        shape = (num_rows, num_cols)
+        spacing = np.broadcast_to(dx, (2, ))
+        origin = np.broadcast_to(origin, (2, ))
+        DualUniformRectilinearGraph.__init__(self, shape, spacing=spacing,
+                                             origin=origin)
+        ModelGrid.__init__(self, **kwds)
+
+        # Flag indicating whether we have created diagonal links.
+        # self._diagonal_links_created = False
+
+        self._node_status = np.empty(self.number_of_nodes, dtype=np.uint8)
+        # self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx)
+        # self._initialize(num_rows, num_cols, dx)
 
+        self._DEBUG_TRACK_METHODS = False
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
 
-        super(RasterModelGrid, self).__init__(**kwds)
+        # super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
             
@@ -791,7 +808,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return super(RasterModelGrid, self).nodes
 
     @property
-    def nodes_at_right_edge(self):
+    def ____nodes_at_right_edge(self):
         """Get nodes along the right edge of a grid.
 
         Examples
@@ -810,7 +827,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return self.nodes[:, -1]
 
     @property
-    def nodes_at_top_edge(self):
+    def ____nodes_at_top_edge(self):
         """Get nodes along the top edge of a grid.
 
         Examples
@@ -829,7 +846,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return self.nodes[-1, :]
 
     @property
-    def nodes_at_left_edge(self):
+    def ____nodes_at_left_edge(self):
         """Get nodes along the left edge of a grid.
 
         Examples
@@ -848,7 +865,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return self.nodes[:, 0]
 
     @property
-    def nodes_at_bottom_edge(self):
+    def ____nodes_at_bottom_edge(self):
         """Get nodes along the bottom edge of a grid.
 
         Examples
@@ -866,7 +883,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         return self.nodes[0, :]
 
-    def nodes_at_edge(self, edge):
+    def ____nodes_at_edge(self, edge):
         """Get edge nodes by edge name.
 
         Parameters
@@ -924,7 +941,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return self._forced_cell_areas
 
     @property
-    def shape(self):
+    def ____shape(self):
         """Get the shape of the grid.
 
         Returns
@@ -1107,7 +1124,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
     @property
     @return_readonly_id_array
-    def patches_at_node(self):
+    def ____patches_at_node(self):
         """Get array of patches attached to nodes.
 
         Returns a (N, 4) array of the patches associated with each node in the
@@ -1167,7 +1184,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
     @property
     @return_readonly_id_array
-    def nodes_at_patch(self):
+    def ____nodes_at_patch(self):
         """Get array of nodes of a patch.
 
         Returns the four nodes at the corners of each patch in a regular grid.
@@ -1196,7 +1213,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
     @property
     @return_readonly_id_array
-    def links_at_patch(self):
+    def ____links_at_patch(self):
         """Get array of links defining each patch.
 
         Examples
@@ -1222,7 +1239,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
     @property
     @return_readonly_id_array
-    def patches_at_link(self):
+    def ____patches_at_link(self):
         """Get array of patches adjoined to each link.
 
         Missing paches are indexed as -1.
@@ -1579,7 +1596,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return sgrid.interior_node_count(self.shape)
 
     @property
-    def number_of_node_columns(self):
+    def ____number_of_node_columns(self):
         """Number of node columns.
 
         Returns the number of columns, including boundaries.
@@ -1596,7 +1613,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return self._ncols
 
     @property
-    def number_of_node_rows(self):
+    def ____number_of_node_rows(self):
         """Number of node rows.
 
         Returns the number of rows, including boundaries.
@@ -1647,7 +1664,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return self._nrows - 2
 
     @property
-    def number_of_patches(self):
+    def ____number_of_patches(self):
         """Number of patches.
 
         Returns the number of patches over the grid.

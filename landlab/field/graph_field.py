@@ -288,6 +288,7 @@ class GraphFields(object):
     """
 
     def __init__(self, *args, **kwds):
+        print 'In GraphFields:', self._default_group
         try:
             dims = args[0]
         except IndexError:

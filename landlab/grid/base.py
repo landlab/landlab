@@ -265,8 +265,12 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 
     return ax, ay
 
+from ..field.graph_field import GraphFields
 
-class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
+
+# class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
+class ModelGrid(GraphFields, EventLayersMixIn):
+
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
@@ -317,6 +321,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
     at_cell = {}  # : Values defined at cells
 
     def __init__(self, **kwds):
+        print 'In ModelGrid'
         super(ModelGrid, self).__init__()
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
@@ -333,13 +338,17 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         # created, and 2) so have node_x and node_y.
         # self._sort_links_by_midpoint()
 
-        for loc in _SIZED_FIELDS:
-            size = self.number_of_elements(loc)
-            ModelDataFields.new_field_location(self, loc, size=size)
-        ModelDataFields.new_field_location(self, 'grid', size=1)
+        # for loc in _SIZED_FIELDS:
+        #     size = self.number_of_elements(loc)
+        #     # GraphFields.new_field_location(self, loc, size=size)
+        #     ModelDataFields.new_field_location(self, loc, size=size)
+        # # GraphFields.new_field_location(self, 'grid', size=1)
+        # ModelDataFields.new_field_location(self, 'grid', size=1)
+
         # for loc in _UNSIZED_FIELDS:
         #     ModelDataFields.new_field_location(self, loc, size=None)
-        ModelDataFields.set_default_group(self, 'node')
+        # ModelDataFields.set_default_group(self, 'node')
+        super(ModelGrid, self).__init__()
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
@@ -1887,38 +1896,38 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                [-1,  1,  1,  1,  0,  0],
                [ 1,  1,  1,  0,  0,  0]], dtype=int8)
         """
-        # Find maximum number of links per node
-        nlpn = self.number_of_links_at_node
-        # ^this fn should become member and property
-        max_num_links = np.amax(nlpn)
-        nlpn[:] = 0  # we'll zero it out, then rebuild it
+        # # Find maximum number of links per node
+        # nlpn = self.number_of_links_at_node
+        # # ^this fn should become member and property
+        # max_num_links = np.amax(nlpn)
+        # nlpn[:] = 0  # we'll zero it out, then rebuild it
 
-        # Create arrays for link-at-node information
-        self._links_at_node = - np.ones((self.number_of_nodes, max_num_links),
-                                        dtype=int)
-        self._link_dirs_at_node = np.zeros((self.number_of_nodes,
-                                            max_num_links), dtype=np.int8)
+        # # Create arrays for link-at-node information
+        # self._links_at_node = - np.ones((self.number_of_nodes, max_num_links),
+        #                                 dtype=int)
+        # self._link_dirs_at_node = np.zeros((self.number_of_nodes,
+        #                                     max_num_links), dtype=np.int8)
 
-        # Sweep over all links
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for lk in range(self.number_of_links):
-            # Find the IDs of the tail and head nodes
-            t = node_at_link_tail[lk]
-            h = node_at_link_head[lk]
+        # # Sweep over all links
+        # node_at_link_tail = self.node_at_link_tail
+        # node_at_link_head = self.node_at_link_head
+        # for lk in range(self.number_of_links):
+        #     # Find the IDs of the tail and head nodes
+        #     t = node_at_link_tail[lk]
+        #     h = node_at_link_head[lk]
 
-            # Add this link to the list for this node, set the direction
-            # (outgoing, indicated by -1), and increment the number found so
-            # far
-            self._links_at_node[t][nlpn[t]] = lk
-            self._links_at_node[h][nlpn[h]] = lk
-            self._link_dirs_at_node[t][nlpn[t]] = -1
-            self._link_dirs_at_node[h][nlpn[h]] = 1
-            nlpn[t] += 1
-            nlpn[h] += 1
+        #     # Add this link to the list for this node, set the direction
+        #     # (outgoing, indicated by -1), and increment the number found so
+        #     # far
+        #     self._links_at_node[t][nlpn[t]] = lk
+        #     self._links_at_node[h][nlpn[h]] = lk
+        #     self._link_dirs_at_node[t][nlpn[t]] = -1
+        #     self._link_dirs_at_node[h][nlpn[h]] = 1
+        #     nlpn[t] += 1
+        #     nlpn[h] += 1
 
-        # Sort the links at each node by angle, counter-clockwise from +x
-        self._sort_links_at_node_by_angle()
+        # # Sort the links at each node by angle, counter-clockwise from +x
+        # self._sort_links_at_node_by_angle()
 
         # setup the active link equivalent
         self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
