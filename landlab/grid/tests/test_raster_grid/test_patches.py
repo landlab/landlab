@@ -1,5 +1,7 @@
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import (assert_array_equal, assert_array_almost_equal,
+                           assert_raises)
+from nose.tools import assert_equal
 from landlab import BAD_INDEX_VALUE as XX
 try:
     from nose.tools import assert_is
@@ -100,6 +102,11 @@ class TestSlopesAtPatches():
                                   np.zeros(20, dtype=float))
 
 
+def test_number_of_patches():
+    grid = RasterModelGrid((4, 5))
+    assert_equal(grid.number_of_patches, 12)
+
+
 def test_patches_at_node():
     grid = RasterModelGrid((3, 3))
     assert_array_equal(
@@ -115,4 +122,20 @@ def test_links_at_patch():
     assert_array_equal(
         grid.links_at_patch,
         np.array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
-                  [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]]))
+                  [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]],
+                dtype=np.int))
+
+    with assert_raises(ValueError):
+        grid.links_at_patch[0] = -1
+
+
+def test_patches_at_link():
+    grid = RasterModelGrid((3, 4))
+    assert_array_equal(
+        grid.patches_at_link,
+        np.array([[ 0, -1], [ 1, -1], [ 2, -1], [ 0, -1], [ 0,  1], [ 1,  2],
+                  [ 2, -1], [ 0,  3], [ 1,  4], [ 2,  5], [ 3, -1], [ 3,  4],
+                  [ 4,  5], [ 5, -1], [ 3, -1], [ 4, -1], [ 5, -1]]))
+
+    with assert_raises(ValueError):
+        grid.patches_at_link[0] = -1
