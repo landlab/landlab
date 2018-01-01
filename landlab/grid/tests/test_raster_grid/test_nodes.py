@@ -59,12 +59,26 @@ def test_node_columns():
     assert_equal(grid.number_of_node_columns, 5)
 
 
+def test_x_of_node():
+    grid = RasterModelGrid((3, 4), (2., 3.))
+    assert_array_equal(
+        grid.x_of_node,
+        np.array([ 0.,  3.,  6.,  9.,  0.,  3.,  6.,  9.,  0.,  3.,  6.,  9.]))
+
+
+def test_y_of_node():
+    grid = RasterModelGrid((3, 4), (2., 3.))
+    assert_array_equal(
+        grid.y_of_node,
+        np.array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.]))
+
+
 def test_xy_of_node():
     grid = RasterModelGrid((3, 4), (2., 3.))
     assert_array_equal(grid.xy_of_node,
-                       array([[ 0., 0.], [ 3., 0.], [ 6., 0.], [ 9., 0.],
-                              [ 0., 2.], [ 3., 2.], [ 6., 2.], [ 9., 2.],
-                              [ 0., 4.], [ 3., 4.], [ 6., 4.], [ 9., 4.]]))
+                       np.array([[ 0., 0.], [ 3., 0.], [ 6., 0.], [ 9., 0.],
+                                 [ 0., 2.], [ 3., 2.], [ 6., 2.], [ 9., 2.],
+                                 [ 0., 4.], [ 3., 4.], [ 6., 4.], [ 9., 4.]]))
     assert_array_equal(grid.xy_of_node[:, 0], grid.x_of_node)
     assert_array_equal(grid.xy_of_node[:, 1], grid.y_of_node)
 
