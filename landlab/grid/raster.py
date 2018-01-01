@@ -996,16 +996,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
                 self.shape)
             return self._vertical_links
 
-    def _create_patches_at_link(self):
-        from .cfuncs import create_patches_at_element
-        self._patches_created = True
-        self._patches_at_link = np.empty((self.number_of_links, 2),
-                                         dtype=int)
-        self._patches_at_link.fill(-1)
-        create_patches_at_element(self.links_at_patch, self.number_of_links,
-                                  self._patches_at_link)
-# a sort of the links will be performed here once we have corners
-
     def _create_link_dirs_at_node(self):
         """Make array with link directions at each node
 
