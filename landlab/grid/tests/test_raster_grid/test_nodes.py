@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_raises
-from nose.tools import assert_tuple_equal, assert_is
+from nose.tools import assert_equal, assert_tuple_equal
 
 from landlab import RasterModelGrid
 
@@ -47,6 +47,16 @@ def test_nodes_at_edge():
 def test_grid_shape():
     grid = RasterModelGrid((3, 4))
     assert_tuple_equal(grid.shape, (3, 4))
+
+
+def test_node_rows():
+    grid = RasterModelGrid((4, 5))
+    assert_equal(grid.number_of_node_rows, 4)
+
+
+def test_node_columns():
+    grid = RasterModelGrid((4, 5))
+    assert_equal(grid.number_of_node_columns, 5)
 
 
 def test_nodes_at_patch():
