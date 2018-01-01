@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_raises
-from nose.tools import assert_true, assert_equal, assert_not_equal
+from nose.tools import assert_tuple_equal, assert_is
 
 from landlab import RasterModelGrid
 
@@ -42,3 +42,8 @@ def test_nodes_at_edge():
                            getattr(grid, 'nodes_at_{0}_edge'.format(edge)))
     with assert_raises(ValueError):
         grid.nodes_at_edge('not-an-edge')
+
+
+def test_grid_shape():
+    grid = RasterModelGrid((3, 4))
+    assert_tuple_equal(grid.shape, (3, 4))
