@@ -65,12 +65,18 @@ def test_x_of_node():
         grid.x_of_node,
         np.array([ 0.,  3.,  6.,  9.,  0.,  3.,  6.,  9.,  0.,  3.,  6.,  9.]))
 
+    with assert_raises(ValueError):
+        grid.x_of_node[0, 0] = 1.
+
 
 def test_y_of_node():
     grid = RasterModelGrid((3, 4), (2., 3.))
     assert_array_equal(
         grid.y_of_node,
         np.array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.]))
+
+    with assert_raises(ValueError):
+        grid.y_of_node[0, 0] = 1.
 
 
 def test_xy_of_node():
@@ -81,6 +87,9 @@ def test_xy_of_node():
                                  [ 0., 4.], [ 3., 4.], [ 6., 4.], [ 9., 4.]]))
     assert_array_equal(grid.xy_of_node[:, 0], grid.x_of_node)
     assert_array_equal(grid.xy_of_node[:, 1], grid.y_of_node)
+
+    with assert_raises(ValueError):
+        grid.xy_of_node[0, 0] = 1.
 
 
 def test_nodes_at_patch():
