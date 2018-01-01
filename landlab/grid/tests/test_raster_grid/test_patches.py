@@ -133,9 +133,10 @@ def test_patches_at_link():
     grid = RasterModelGrid((3, 4))
     assert_array_equal(
         grid.patches_at_link,
-        np.array([[ 0, -1], [ 1, -1], [ 2, -1], [ 0, -1], [ 0,  1], [ 1,  2],
-                  [ 2, -1], [ 0,  3], [ 1,  4], [ 2,  5], [ 3, -1], [ 3,  4],
-                  [ 4,  5], [ 5, -1], [ 3, -1], [ 4, -1], [ 5, -1]]))
+        np.array([[-1,  0], [-1,  1], [-1,  2], [ 0, -1], [ 1,  0], [ 2,  1],
+                  [-1,  2], [ 0,  3], [ 1,  4], [ 2,  5], [ 3, -1], [ 4,  3],
+                  [ 5,  4], [-1,  5], [ 3, -1], [ 4, -1], [ 5, -1]],
+                 dtype=int))
 
     with assert_raises(ValueError):
         grid.patches_at_link[0] = -1
