@@ -98,3 +98,13 @@ class TestSlopesAtPatches():
                                   np.full(20, -np.pi/4., dtype=float))
         assert_array_almost_equal(slopes_out[1][0],
                                   np.zeros(20, dtype=float))
+
+
+def test_patches_at_node():
+    grid = RasterModelGrid((3, 3))
+    assert_array_equal(
+        grid.patches_at_node,
+        np.array([[ 0, -1, -1, -1], [ 1,  0, -1, -1], [-1,  1, -1, -1],
+                  [ 2, -1, -1,  0], [ 3,  2,  0,  1], [-1,  3,  1, -1],
+                  [-1, -1, -1,  2], [-1, -1,  2,  3], [-1, -1,  3, -1]],
+                 dtype=int))
