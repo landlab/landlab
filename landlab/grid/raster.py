@@ -618,7 +618,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         self._ncols = num_cols
 
         self._dy, self._dx = float(spacing[0]), float(spacing[1])
-        self.cellarea = self._dy * self._dx
+        self.cellarea = self.dy * self.dx
 
         self._node_at_cell = sgrid.node_at_cell(self.shape)
         self._cell_at_node = squad_cells.cell_id_at_nodes(
@@ -650,7 +650,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         #  0-------1-------2-------3-------4
         #
         (x_of_node, y_of_node) = sgrid.node_coords(
-            (num_rows, num_cols), (self._dy, self._dx), (0., 0.))
+            (num_rows, num_cols), (self.dy, self.dx), (0., 0.))
 
         self._xy_of_node = np.hstack((x_of_node.reshape((-1, 1)),
                                       y_of_node.reshape((-1, 1))))
@@ -854,54 +854,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         LLCATS: GINF CINF
         """
         return (self.number_of_cell_rows, self.number_of_cell_columns)
-
-    @property
-    def dx(self):
-        """Get node spacing in the column direction.
-
-        Returns
-        -------
-        float
-            Spacing of node columns.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.dx
-        1.0
-        >>> grid = RasterModelGrid((4, 5), 2.0)
-        >>> grid.dx
-        2.0
-
-        LLCATS: GINF MEAS
-        """
-        return self._dx
-
-    @property
-    def dy(self):
-        """Get node spacing in the row direction.
-
-        Note in a RasterModelGrid, dy==dx.
-
-        Returns
-        -------
-        float
-            Spacing of node rows.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.dy
-        1.0
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 4))
-        >>> grid.dy
-        2.0
-
-        LLCATS: GINF MEAS
-        """
-        return self._dy
 
     @property
     @cache_result_in_object()
@@ -1223,8 +1175,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14 to reflect fact
         # boundary nodes don't have defined
         return (
-            (self.number_of_node_rows - 1) * self._dy,
-            (self.number_of_node_columns - 1) * self._dx)
+            (self.number_of_node_rows - 1) * self.dy,
+            (self.number_of_node_columns - 1) * self.dx)
 
     @property
     def grid_xdimension(self):
@@ -1255,7 +1207,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         LLCATS: GINF MEAS
         """
-        return ((self.number_of_node_columns - 1) * self._dx)
+        return ((self.number_of_node_columns - 1) * self.dx)
 
     @property
     def grid_ydimension(self):
@@ -1287,7 +1239,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         LLCATS: GINF MEAS
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14, as above.
-        return ((self.number_of_node_rows - 1) * self._dy)
+        return ((self.number_of_node_rows - 1) * self.dy)
 
     @property
     def number_of_interior_nodes(self):
@@ -1358,9 +1310,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         LLCATS: DEPR GINF NINF MEAS
         """
-        if self._dx != self._dy:
+        if self.dx != self.dy:
             raise RuntimeError('dx and dy are not the same')
-        return self._dx
+        return self.dx
 
     @property
     @deprecated(use='nodes_at_corners_of_grid', version=1.0)
@@ -1524,8 +1476,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         xcoord, ycoord = np.broadcast_arrays(xcoord, ycoord)
 
         # Method added 4/29/13 by DEJH, modified 9/24/13.
-        id_ = (ycoord // self._dy * self.number_of_node_columns +
-               xcoord // self._dx)
+        id_ = (ycoord // self.dy * self.number_of_node_columns +
+               xcoord // self.dx)
         try:
             id_ = int(id_)
         except:
@@ -2996,9 +2948,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         bottom_right = vals[diagonals[:, 3]]
 
         dz_dx = ((top_right + 2 * right + bottom_right) -
-                 (top_left + 2 * left + bottom_left)) / (8. * self._dx)
+                 (top_left + 2 * left + bottom_left)) / (8. * self.dx)
         dz_dy = ((bottom_left + 2 * bottom + bottom_right) -
-                 (top_left + 2 * top + top_right)) / (8. * self._dy)
+                 (top_left + 2 * top + top_right)) / (8. * self.dy)
 
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)
