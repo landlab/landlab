@@ -7,6 +7,10 @@ from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
 
 class DualStructuredQuadGraphExtras(object):
     @property
+    def shape(self):
+        return self._shape
+
+    @property
     def corners_at_right_edge(self):
         return self.dual.nodes_at_right_edge
 
@@ -128,9 +132,28 @@ class DualUniformRectilinearGraph(DualRectilinearGraph):
         origin = np.broadcast_to(origin, 2)
 
         node_y_and_x = (np.arange(shape[0]) * spacing[0] + origin[0],
-                       np.arange(shape[1]) * spacing[1] + origin[1])
+                        np.arange(shape[1]) * spacing[1] + origin[1])
 
         super(DualUniformRectilinearGraph, self).__init__(node_y_and_x)
+
+        self._spacing = tuple(spacing)
+        self._origin = tuple(origin)
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def dx(self):
+        return self._spacing[1]
+
+    @property
+    def dy(self):
+        return self._spacing[0]
 
 
 def get_node_at_cell(shape):

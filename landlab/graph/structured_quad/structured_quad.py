@@ -320,6 +320,28 @@ class UniformRectilinearGraph(StructuredQuadGraph):
     """
 
     def __init__(self, shape, spacing=1., origin=0.):
+        spacing = np.broadcast_to(spacing, 2)
+        origin = np.broadcast_to(origin, 2)
+
         node_y_and_x = setup_node_coords(shape, spacing, origin)
 
         super(UniformRectilinearGraph, self).__init__(node_y_and_x)
+
+        self._spacing = tuple(spacing)
+        self._origin = tuple(origin)
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def dx(self):
+        return self._spacing[1]
+
+    @property
+    def dy(self):
+        return self._spacing[0]
