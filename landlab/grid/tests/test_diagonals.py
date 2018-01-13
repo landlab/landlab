@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 import numpy as np
 
-from nose.tools import assert_is, assert_is_instance
+from nose.tools import assert_is, assert_is_instance, assert_tuple_equal
 from numpy.testing import assert_array_equal
 
+from landlab import RasterModelGrid
 from landlab.grid.diagonals import create_nodes_at_diagonal
 
 
@@ -35,3 +36,37 @@ def test_nodes_at_diagonal_out_keyword():
 
     assert_is(buffer, diagonals)
     assert_array_equal(diagonals, [[0, 3], [1, 2], [2, 5], [3, 4]])
+
+
+def test_values_are_cached():
+    """Test that attributes of diagonals are cached."""
+    names = (
+        'diagonals_at_node',
+        'diagonal_dirs_at_node',
+        'diagonal_adjacent_nodes_at_node',
+        'd8_adjacent_nodes_at_node',
+        'nodes_at_diagonal',
+        'nodes_at_d8',
+        'd8s_at_node',
+        'd8_dirs_at_node',
+        # 'd8_status_at_node',
+        'length_of_diagonal',
+        'length_of_d8',
+        'status_at_diagonal',
+        'diagonal_status_at_node',
+        'active_diagonals',
+        'active_diagonal_dirs_at_node',
+        'status_at_d8',
+        'active_d8',
+        'active_d8_dirs_at_node',
+    )
+
+    for name in names:
+        def _check_value_is_cached(attr):
+            grid = RasterModelGrid((4, 3))
+            x = getattr(grid, attr)
+            assert_is(x, getattr(grid, attr))
+        _check_value_is_cached.description = 'Test {name} is cached'.format(
+            name=name)
+        yield _check_value_is_cached, name
+
