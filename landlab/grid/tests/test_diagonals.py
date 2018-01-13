@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 import numpy as np
 
-from nose.tools import assert_is, assert_is_instance, assert_tuple_equal
+from nose.tools import (assert_is, assert_is_instance, assert_tuple_equal,
+                        assert_raises, assert_false)
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
@@ -69,4 +70,39 @@ def test_values_are_cached():
         _check_value_is_cached.description = 'Test {name} is cached'.format(
             name=name)
         yield _check_value_is_cached, name
+
+
+def test_values_are_readonly():
+    """Test that diagonals attributes are readonly."""
+    names = (
+        'diagonals_at_node',
+        'diagonal_dirs_at_node',
+        'diagonal_adjacent_nodes_at_node',
+        'd8_adjacent_nodes_at_node',
+        'nodes_at_diagonal',
+        'nodes_at_d8',
+        'd8s_at_node',
+        'd8_dirs_at_node',
+        # 'd8_status_at_node',
+        'length_of_diagonal',
+        'length_of_d8',
+        'status_at_diagonal',
+        'diagonal_status_at_node',
+        'active_diagonals',
+        'active_diagonal_dirs_at_node',
+        'status_at_d8',
+        'active_d8',
+        'active_d8_dirs_at_node',
+    )
+
+    for name in names:
+        def _check_value_is_readonly(attr):
+            grid = RasterModelGrid((4, 3))
+            x = getattr(grid, attr)
+            with assert_raises(ValueError):
+                x[0] = 999
+            assert_false(x.flags['WRITEABLE'])
+        _check_value_is_readonly.description = 'Test {name} is readonly'.format(
+            name=name)
+        yield _check_value_is_readonly, name
 
