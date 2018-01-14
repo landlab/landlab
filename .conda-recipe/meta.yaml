@@ -31,13 +31,9 @@ requirements:
     - statsmodels
 
 test:
-  imports:
-     - landlab
   requires:
     - landlab
     - numpy <1.14
-  commands:
-    - python -c 'import landlab; landlab.test()'
 
 build:
   number: 0
