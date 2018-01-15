@@ -19,7 +19,7 @@ requirements:
   run:
     - python
     - cython
-    - numpy >=1.11
+    - numpy >=1.11,<1.14
     - scipy
     - xarray
     - nose
