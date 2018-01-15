@@ -3154,7 +3154,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                  '_activelink_tonode', '_active_faces', '_core_nodes',
                  '_core_cells', '_fixed_links',
                  '_active_adjacent_nodes_at_node',
-                 '_fixed_value_boundary_nodes', '_node_at_core_cell']
+                 '_fixed_value_boundary_nodes', '_node_at_core_cell',
+                 '_link_status_at_node', ]
 
         for attr in attrs:
             try:
