@@ -3810,7 +3810,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
                       self.node_y[self.node_at_link_head[i]]], 'k-')
 
         # Draw active links
-        for link in self._active_links:
+        for link in self.active_links:
             plt.plot([self.node_x[self.node_at_link_tail[link]],
                       self.node_x[self.node_at_link_head[link]]],
                      [self.node_y[self.node_at_link_tail[link]],
