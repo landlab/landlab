@@ -3419,10 +3419,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
             num_nbrs[node_at_link_head[link]] += 1
         return num_nbrs
 
-    def _create_active_faces(self):
-        self._active_faces = self.face_at_link[self.active_links]
-        return self._active_faces
-
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
 
