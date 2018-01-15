@@ -1920,13 +1920,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
         # Sort the links at each node by angle, counter-clockwise from +x
         self._sort_links_at_node_by_angle()
 
-        # setup the active link equivalent
-        self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
-        inactive_links = (self.status_at_link[self.links_at_node] ==
-                          INACTIVE_LINK)
-        inactive_links[self.link_dirs_at_node == 0] = False
-        self._active_link_dirs_at_node[inactive_links] = 0
-
     @property
     @make_return_array_immutable
     def angle_of_link(self):
