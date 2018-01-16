@@ -176,7 +176,7 @@ def flow_directions_dinf(grid,
 
     # next create link directions and active link directions at node
     # link directions
-    ld_at_node = grid._link_dirs_at_node
+    ld_at_node = grid.link_dirs_at_node
     dld_at_node = grid.diagonal_dirs_at_node
     triangle_link_dirs_at_node = np.stack([np.vstack((ld_at_node[:,0], dld_at_node[:,0])),
                                            np.vstack((ld_at_node[:,1], dld_at_node[:,0])),

@@ -19,7 +19,7 @@ requirements:
   run:
     - python
     - cython
-    - numpy >=1.11
+    - numpy >=1.11,<1.14
     - scipy
     - xarray
     - nose
@@ -31,10 +31,9 @@ requirements:
     - statsmodels
 
 test:
-  imports:
+  requires:
     - landlab
-  commands:
-    - python -c 'import landlab; landlab.test()'
+    - numpy <1.14
 
 build:
   number: 0

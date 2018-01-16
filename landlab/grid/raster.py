@@ -663,13 +663,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # |       |       |       |
         # |-------|-------|-------|
         #
-        # While we're at it, we will also build the node_activecell list. This
-        # list records, for each node, the ID of its associated active cell,
-        # or None if it has no associated active cell (i.e., it is a boundary)
-        # #self._node_at_cell = sgrid.node_at_cell(self.shape)
-        # #self._cell_at_node = squad_cells.cell_id_at_nodes(
-        #    self.shape).reshape((-1, ))
-        self._core_cells = sgrid.core_cell_index(self.shape)
 
         self._links_at_node = squad_links.links_at_node(self.shape)
 
@@ -703,9 +696,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
          node_at_link_head) = sgrid.node_index_at_link_ends(self.shape)
         self._nodes_at_link = np.hstack((node_at_link_tail.reshape((-1, 1)),
                                          node_at_link_head.reshape((-1, 1))))
-
-        self._status_at_link = np.full(squad_links.number_of_links(self.shape),
-                                       INACTIVE_LINK, dtype=int)
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
@@ -1011,18 +1001,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: GINF MEAS
         """
         return self._dy
-
-    @property
-    @cache_result_in_object()
-    def _node_active_inlink_matrix2(self):
-        return np.choose(self.link_status_at_node[:, (3, 2)] == ACTIVE_LINK,
-                         (-1, self.links_at_node[:, (3, 2)])).T
-
-    @property
-    @cache_result_in_object()
-    def _node_active_outlink_matrix2(self):
-        return np.choose(self.link_status_at_node[:, (1, 0)] == ACTIVE_LINK,
-                         (-1, self.links_at_node[:, (1, 0)])).T
 
     @deprecated(use='vals[links_at_node]*active_link_dirs_at_node',
                 version=1.0)
@@ -1335,11 +1313,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             self._link_dirs_at_node[h][head_index] = 1
 
         # setup the active link equivalent
-        self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
-        inactive_links = (self.status_at_link[self.links_at_node] ==
-                          INACTIVE_LINK)
-        inactive_links[self.link_dirs_at_node == 0] = False
-        self._active_link_dirs_at_node[inactive_links] = 0
+        # self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
+        # inactive_links = (self.status_at_link[self.links_at_node] ==
+        #                   INACTIVE_LINK)
+        # inactive_links[self.link_dirs_at_node == 0] = False
+        # self._active_link_dirs_at_node[inactive_links] = 0
 
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
@@ -3632,7 +3610,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
     # This is deprecated as link status should only be changed by
     # changing node status.
-    @deprecated(use='grid.status_at_node', version='1.0')
     def set_fixed_link_boundaries_at_grid_edges(
             self, right_is_fixed, top_is_fixed, left_is_fixed, bottom_is_fixed,
             link_value=None, node_value=None,
@@ -3765,22 +3742,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC SUBSET
         """
-        # THIS HAS TO SET THE RING AROUND IT AS FIXED-VALUE (NODE_STATUS = 2)
-        # IF NOT ALREADY SET.
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid.set_fixed_link_boundaries_at_grid_edges')
-
         # Fixed link boundaries are found between core nodes (node_status==0)
         # and fixed gradient nodes (node_status==2). To assure these conditions
         # are met, we store link and node boundary IDs in arrays...
-        fixed_nodes = np.array([])
-        fixed_links = np.array([])
-
-        # If the _status_at_link array hasn't been created, create it.
-        try:
-            self._status_at_link
-        except AttributeError:
-            self.status_at_link
+        fixed_nodes = np.array([], dtype=int)
 
         # Based on the inputs, we then assign boundary status. Starting
         # from the right edge (east edge) we look to see if the boolean input
@@ -3788,107 +3753,26 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # and set them to the boundary condition of FIXED_GRADIENT_BOUNDARY
         # for nodes and FIXED_LINK for links.
         if right_is_fixed:
-
-            # Find the IDs...
-            right_edge = squad_links.right_edge_horizontal_ids(self.shape)
-            right_nodes = self.nodes_at_right_edge
-
-            # Set the new boundary statuses
-            self._status_at_link[right_edge] = FIXED_LINK
-            self._node_status[right_nodes] = FIXED_GRADIENT_BOUNDARY
-
-            # Add the IDs to the array...
-            fixed_nodes = np.append(fixed_nodes, right_nodes)
-            fixed_links = np.append(fixed_links, right_edge)
+            fixed_nodes = np.append(fixed_nodes, self.nodes_at_right_edge)
 
         if top_is_fixed:
-
-            # Find the IDs...
-            top_edge = squad_links.top_edge_vertical_ids(self.shape)
-            top_nodes = self.nodes_at_top_edge
-
-            # Set the new boundary statuses
-            self._status_at_link[top_edge] = FIXED_LINK
-            self._node_status[top_nodes] = FIXED_GRADIENT_BOUNDARY
-
-            # Add the IDs to the array...
-            fixed_nodes = np.append(fixed_nodes, top_nodes)
-            fixed_links = np.append(fixed_links, top_edge)
+            fixed_nodes = np.append(fixed_nodes, self.nodes_at_top_edge)
 
         if left_is_fixed:
-
-            # Find the IDs...
-            left_edge = squad_links.left_edge_horizontal_ids(self.shape)
-            left_nodes = self.nodes_at_left_edge
-
-            # Set the new boundary statuses
-            self._status_at_link[left_edge] = FIXED_LINK
-            self._node_status[left_nodes] = FIXED_GRADIENT_BOUNDARY
-
-            # Add the IDs to the array...
-            fixed_nodes = np.append(fixed_nodes, left_nodes)
-            fixed_links = np.append(fixed_links, left_edge)
+            fixed_nodes = np.append(fixed_nodes, self.nodes_at_left_edge)
 
         if bottom_is_fixed:
+            fixed_nodes = np.append(fixed_nodes, self.nodes_at_bottom_edge)
 
-            # Finding the link and node IDs along the bottom edge of the raster
-            # grid.
-            bottom_edge = squad_links.bottom_edge_vertical_ids(self.shape)
-            bottom_nodes = self.nodes_at_bottom_edge
-
-            # Set the node and link boundary statuses to
-            # FIXED_GRADIENT_BOUNDARY and FIXED_LINK respectively.
-            self._node_status[bottom_nodes] = FIXED_GRADIENT_BOUNDARY
-            self._status_at_link[bottom_edge] = FIXED_LINK
-
-            # Append the node and link ids to the array created earlier to
-            # track boundary statuses
-            fixed_nodes = np.append(fixed_nodes, bottom_nodes)
-            fixed_links = np.append(fixed_links, bottom_edge)
-
-        # Get the fromnode and tonode statuses for each link.
-        # This allows us to make sure that all link boundaries follow
-        # the convention that FIXED_LINKs only occur between core and
-        # fixed gradient nodes
-        fromnode_status = self._node_status[self.node_at_link_tail]
-        tonode_status = self._node_status[self.node_at_link_head]
-
-        # Make sure the IDs are the correct type (Int, not Float)
-        fixed_links = fixed_links.astype(int)
-
-        # Make sure that all fixed links have a core neighbor AND a
-        # fixed_gradient node neighbor
-        if not np.all(((fromnode_status[fixed_links] == CORE_NODE) & ~
-                       (tonode_status[fixed_links] ==
-                        FIXED_GRADIENT_BOUNDARY)) |
-                      ((tonode_status[fixed_links] == CORE_NODE) & ~
-                       (fromnode_status[fixed_links] ==
-                        FIXED_GRADIENT_BOUNDARY))):
-            # If there are links that DON'T follow the correct convention, it
-            # is likely there is a FIXED_LINK between two
-            # FIXED_GRADIENT_BOUNDARY_nodes
-
-            # Finding inactive links between two FIXED_GRADIENT_BOUNDARY nodes
-            inactive_links = np.where(
-                (fromnode_status == FIXED_GRADIENT_BOUNDARY) &
-                (tonode_status == FIXED_GRADIENT_BOUNDARY))
-
-            # ... and setting their status to INACTIVE_LINK
-            self._status_at_link[inactive_links] = INACTIVE_LINK
-
-            # Anywhere there are still FIXED_LINK statuses are our boundary
-            # links
-            fixed_links = np.where(self._status_at_link == FIXED_LINK)
-            self._status_at_link[fixed_links] = FIXED_LINK
-
-        # Readjust the fixed_nodes array to make sure entries are ints, aren't
-        # duplicated and sorted from lowest value to highest.
-        fixed_nodes = fixed_nodes.astype(int)
         fixed_nodes = np.unique(fixed_nodes)
         fixed_nodes = np.sort(fixed_nodes)
 
+        self.status_at_node[fixed_nodes] = self.BC_NODE_IS_FIXED_GRADIENT
+
         # Now we are testing to see what values will be assigned to these
         # boundaries
+
+        fixed_links = self.fixed_links
 
         # For links, the default is topographic slope ('topographic__slope')
         # First, see if there is a scalar value...
@@ -3897,8 +3781,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             # if not, we assign the link values from the field of
             # 'topographic_slope'. If it does not exists, an error will be
             # kicked out.
-            assigned_link_values = self['link'][
-                fixed_link_value_of][fixed_links]
+            assigned_link_values = self.at_link[fixed_link_value_of][fixed_links]
 
         else:
 
@@ -3911,8 +3794,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             # If no scalar is found, the field values for
             # 'topographic__elevation' are used. If this field does not
             # exist, an error will be returned.
-            assigned_node_values = self['node'][
-                fixed_node_value_of][fixed_nodes]
+            assigned_node_values = self.at_node[fixed_node_value_of][fixed_nodes]
         else:
 
             # If there is a scalar, it is instead set here.
@@ -3960,8 +3842,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             # Assigned gradient values at the links set in the dictionary
             self.fixed_link_properties[
                 'boundary_link_gradients'] = assigned_link_values
-
-        self._reset_link_status_list()
 
     def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
                                          return_outlet_id=False,

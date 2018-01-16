@@ -193,11 +193,9 @@ class VoronoiDelaunayGrid(ModelGrid):
         #       special cases)
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
-        #
-        [self._node_status, self._core_nodes, self._boundary_nodes] = \
-            self._find_perimeter_nodes_and_BC_set(self._xy_of_node)
+        self._find_perimeter_nodes_and_BC_set(self._xy_of_node)
         [self._cell_at_node, self._node_at_cell] = \
-            self._node_to_cell_connectivity(self._node_status,
+            self._node_to_cell_connectivity(self.status_at_node,
                                             self.number_of_cells)
         active_cell_at_node = self.cell_at_node[self.core_nodes]
 
@@ -219,8 +217,6 @@ class VoronoiDelaunayGrid(ModelGrid):
          _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
-        self._status_at_link = np.full(len(node_at_link_tail),
-                                       INACTIVE_LINK, dtype=int)
 
         self._nodes_at_link = np.hstack((node_at_link_tail.reshape((-1, 1)),
                                          node_at_link_head.reshape((-1, 1))))
@@ -232,10 +228,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         # semicircle
         if reorient_links:
             self._reorient_links_upper_right()
-
-        # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
-        # nodes of active links.
-        self._reset_link_status_list()
 
         # NODES & LINKS: IDs and directions of links at each node
         self._create_links_and_link_dirs_at_node()
@@ -411,9 +403,10 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # save the arrays and update the properties
         self._node_status = node_status
-        self._core_cells = np.arange(len(core_nodes), dtype=np.int)
         self._node_at_cell = core_nodes
         self._boundary_nodes = boundary_nodes
+
+        self.status_at_node = node_status
 
         # Return the results
         return node_status, core_nodes, boundary_nodes
