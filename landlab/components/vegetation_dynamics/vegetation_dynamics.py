@@ -436,8 +436,8 @@ class Vegetation(Component):
                                 Tb/24.), 1)
                     Bdead = max((self._Bdead_ini[cell]+(self._Blive_ini[cell] -
                                 (max(self._Blive_ini[cell]*np.exp((-2) *
-                                 ksg*Tb/24.), 0.000001)))*np.exp((-1)*kdd *
-                                 min(PET[cell]/self._Tdmax, 1.) * Tb/24.), 0.))
+                                 ksg*Tb/24.), 0.000001))))*np.exp((-1)*kdd *
+                                 min(PET[cell]/self._Tdmax, 1.) * Tb/24.), 0.)
 
             elif self._vegtype[cell] == 3:
                 Blive = 0.

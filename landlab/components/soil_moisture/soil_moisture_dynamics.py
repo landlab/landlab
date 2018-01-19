@@ -24,19 +24,19 @@ class SoilMoisture(Component):
 
         SoilMoisture(grid, runon=0., f_bare=0.7, soil_ew=0.1,
            intercept_cap_grass= 1., zr_grass=0.3, I_B_grass=20.,
-           I_V_grass=24., pc_grass=0.43, fc_grass=0.56, sc_grass=0.33,
-           wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
+           I_V_grass=24., K_s_grass=42., pc_grass=0.43, fc_grass=0.56,
+           sc_grass=0.33, wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
            LAI_max_grass=2., LAIR_max_grass=2.88,
            intercept_cap_shrub=1.5, zr_shrub=0.5, I_B_shrub=20.,
-           I_V_shrub=40., pc_shrub=0.43, fc_shrub=0.56, sc_shrub=0.24,
-           wp_shrub=0.13, hgw_shrub=0.1, beta_shrub=13.8,
+           I_V_shrub=40., K_s_shrub=42., pc_shrub=0.43, fc_shrub=0.56,
+           sc_shrub=0.24, wp_shrub=0.13, hgw_shrub=0.1, beta_shrub=13.8,
            LAI_max_shrub=2., LAIR_max_shrub=2.,
            intercept_cap_tree=2., zr_tree=1.3, I_B_tree=20.,
-           I_V_tree=40., pc_tree=0.43, fc_tree=0.56, sc_tree=0.22,
-           wp_tree=0.15, hgw_tree=0.1, beta_tree=13.8,
+           I_V_tree=40., K_s_tree=42., pc_tree=0.43, fc_tree=0.56,
+           sc_tree=0.22, wp_tree=0.15, hgw_tree=0.1, beta_tree=13.8,
            LAI_max_tree=4., LAIR_max_tree=4.,
            intercept_cap_bare=1., zr_bare=0.15, I_B_bare=20.,
-           I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
+           I_V_bare=20., K_s_bare=42., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
            wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
            LAI_max_bare=0.01, LAIR_max_bare=0.01)
 
@@ -59,6 +59,8 @@ class SoilMoisture(Component):
         Infiltration capacity of bare soil (mm/h).
     I_V: float, optional
         Infiltration capacity of vegetated soil (mm/h).
+    K_s: float, optional
+        Hydraulic conductivity of soil (mm/h).
     pc: float, optional
         Soil porosity (None).
     fc: float, optional
@@ -215,20 +217,20 @@ class SoilMoisture(Component):
     def __init__(self, grid, ordered_cells=None, runon_switch=1,
                  f_bare=0.7, soil_ew=0.1,
                  intercept_cap_grass=1., zr_grass=0.3, I_B_grass=20.,
-                 I_V_grass=24., pc_grass=0.43, fc_grass=0.56, sc_grass=0.33,
-                 wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
+                 I_V_grass=24., K_s_grass=42., pc_grass=0.43, fc_grass=0.56,
+                 sc_grass=0.33, wp_grass=0.13, hgw_grass=0.1, beta_grass=13.8,
                  LAI_max_grass=2., LAIR_max_grass=2.88,
                  intercept_cap_shrub=1.5, zr_shrub=0.5, I_B_shrub=20.,
-                 I_V_shrub=40., pc_shrub=0.43, fc_shrub=0.56, sc_shrub=0.24,
-                 wp_shrub=0.13, hgw_shrub=0.1, beta_shrub=13.8,
+                 I_V_shrub=40., K_s_shrub=42., pc_shrub=0.43, fc_shrub=0.56,
+                 sc_shrub=0.24, wp_shrub=0.13, hgw_shrub=0.1, beta_shrub=13.8,
                  LAI_max_shrub=2., LAIR_max_shrub=2.,
                  intercept_cap_tree=2., zr_tree=1.3, I_B_tree=20.,
-                 I_V_tree=40., pc_tree=0.43, fc_tree=0.56, sc_tree=0.22,
-                 wp_tree=0.15, hgw_tree=0.1, beta_tree=13.8,
+                 I_V_tree=40., K_s_tree=42., pc_tree=0.43, fc_tree=0.56,
+                 sc_tree=0.22, wp_tree=0.15, hgw_tree=0.1, beta_tree=13.8,
                  LAI_max_tree=4., LAIR_max_tree=4.,
                  intercept_cap_bare=1., zr_bare=0.15, I_B_bare=20.,
-                 I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
-                 wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
+                 I_V_bare=20., K_s_bare=42., pc_bare=0.43, fc_bare=0.56,
+                 sc_bare=0.33, wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
                  LAI_max_bare=0.01, LAIR_max_bare=0.01, **kwds):
         """
         Parameters
@@ -253,6 +255,8 @@ class SoilMoisture(Component):
             Infiltration capacity of bare soil (mm/h).
         I_V: float, optional
             Infiltration capacity of vegetated soil (mm/h).
+        K_s: float, optional
+            Hydraulic conductivity of soil (mm/h).
         pc: float, optional
             Soil porosity (None).
         fc: float, optional
@@ -281,25 +285,29 @@ class SoilMoisture(Component):
                         f_bare=f_bare, soil_ew=soil_ew,
                         intercept_cap_grass=intercept_cap_grass,
                         zr_grass=zr_grass, I_B_grass=I_B_grass,
-                        I_V_grass=I_V_grass, pc_grass=pc_grass,
-                        fc_grass=fc_grass, sc_grass=sc_grass,
-                        wp_grass=wp_grass, hgw_grass=hgw_grass,
-                        beta_grass=beta_grass, LAI_max_grass=LAI_max_grass,
+                        I_V_grass=I_V_grass, K_s_grass=K_s_grass,
+                        pc_grass=pc_grass, fc_grass=fc_grass,
+                        sc_grass=sc_grass, wp_grass=wp_grass,
+                        hgw_grass=hgw_grass, beta_grass=beta_grass,
+                        LAI_max_grass=LAI_max_grass,
                         LAIR_max_grass=LAIR_max_grass,
                         intercept_cap_shrub=intercept_cap_shrub,
                         zr_shrub=zr_shrub, I_B_shrub=I_B_shrub,
-                        I_V_shrub=I_V_shrub, pc_shrub=pc_shrub,
-                        fc_shrub=fc_shrub, sc_shrub=sc_shrub,
-                        wp_shrub=wp_shrub, hgw_shrub=hgw_shrub,
-                        beta_shrub=beta_shrub, LAI_max_shrub=LAI_max_shrub,
+                        I_V_shrub=I_V_shrub, K_s_shrub=K_s_shrub,
+                        pc_shrub=pc_shrub, fc_shrub=fc_shrub,
+                        sc_shrub=sc_shrub, wp_shrub=wp_shrub,
+                        hgw_shrub=hgw_shrub, beta_shrub=beta_shrub,
+                        LAI_max_shrub=LAI_max_shrub,
                         LAIR_max_shrub=LAIR_max_shrub,
                         intercept_cap_tree=intercept_cap_tree, zr_tree=zr_tree,
-                        I_B_tree=I_B_tree, I_V_tree=I_V_tree, pc_tree=pc_tree,
+                        I_B_tree=I_B_tree, I_V_tree=I_V_tree,
+                        K_s_tree=K_s_tree, pc_tree=pc_tree,
                         fc_tree=fc_tree, sc_tree=sc_tree, wp_tree=wp_tree,
                         hgw_tree=hgw_tree, beta_tree=beta_tree,
                         LAI_max_tree=LAI_max_tree, LAIR_max_tree=LAIR_max_tree,
                         intercept_cap_bare=intercept_cap_bare, zr_bare=zr_bare,
-                        I_B_bare=I_B_bare, I_V_bare=I_V_bare, pc_bare=pc_bare,
+                        I_B_bare=I_B_bare, I_V_bare=I_V_bare,
+                        K_s_bare=K_s_bare, pc_bare=pc_bare,
                         fc_bare=fc_bare, sc_bare=sc_bare, wp_bare=wp_bare,
                         hgw_bare=hgw_bare, beta_bare=beta_bare,
                         LAI_max_bare=LAI_max_bare,
@@ -319,19 +327,23 @@ class SoilMoisture(Component):
 
     def initialize(self, ordered_cells=None, runon_switch=1, f_bare=0.7,
                    soil_ew=0.1, intercept_cap_grass=1., zr_grass=0.3,
-                   I_B_grass=20., I_V_grass=24., pc_grass=0.43, fc_grass=0.56,
+                   I_B_grass=20., I_V_grass=24., K_s_grass=42.,
+                   pc_grass=0.43, fc_grass=0.56,
                    sc_grass=0.33, wp_grass=0.13, hgw_grass=0.1,
                    beta_grass=13.8, LAI_max_grass=2., LAIR_max_grass=2.88,
                    intercept_cap_shrub=1.5, zr_shrub=0.5, I_B_shrub=20.,
-                   I_V_shrub=40., pc_shrub=0.43, fc_shrub=0.56, sc_shrub=0.24,
+                   I_V_shrub=40., K_s_shrub=42., pc_shrub=0.43,
+                   fc_shrub=0.56, sc_shrub=0.24,
                    wp_shrub=0.13, hgw_shrub=0.1, beta_shrub=13.8,
                    LAI_max_shrub=2., LAIR_max_shrub=2.,
                    intercept_cap_tree=2., zr_tree=1.3, I_B_tree=20.,
-                   I_V_tree=40., pc_tree=0.43, fc_tree=0.56, sc_tree=0.22,
+                   I_V_tree=40., K_s_tree=42., pc_tree=0.43,
+                   fc_tree=0.56, sc_tree=0.22,
                    wp_tree=0.15, hgw_tree=0.1, beta_tree=13.8,
                    LAI_max_tree=4., LAIR_max_tree=4.,
                    intercept_cap_bare=1., zr_bare=0.15, I_B_bare=20.,
-                   I_V_bare=20., pc_bare=0.43, fc_bare=0.56, sc_bare=0.33,
+                   I_V_bare=20., K_s_bare=42., pc_bare=0.43,
+                   fc_bare=0.56, sc_bare=0.33,
                    wp_bare=0.13, hgw_bare=0.1, beta_bare=13.8,
                    LAI_max_bare=0.01, LAIR_max_bare=0.01, **kwds):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
@@ -359,6 +371,8 @@ class SoilMoisture(Component):
             Infiltration capacity of bare soil (mm/h).
         I_V: float, optional
             Infiltration capacity of vegetated soil (mm/h).
+        K_s: float, optional
+            Hydraulic conductivity of soil (mm/h).
         pc: float, optional
             Soil porosity (None).
         fc: float, optional
@@ -397,7 +411,11 @@ class SoilMoisture(Component):
         self._soil_Iv = np.choose(self._vegtype, [
              I_V_grass, I_V_shrub, I_V_tree, I_V_bare, I_V_shrub, I_V_tree])
 
+        self._soil_Ks = np.choose(self._vegtype, [
+             K_s_grass, K_s_shrub, K_s_tree, K_s_bare, K_s_shrub, K_s_tree])
+
         self._soil_Ew = soil_ew
+
         self._soil_pc = np.choose(self._vegtype, [
              pc_grass, pc_shrub, pc_tree, pc_bare, pc_shrub, pc_tree])
 
@@ -508,6 +526,7 @@ class SoilMoisture(Component):
             wp = self._soil_wp[cell]
             hgw = self._soil_hgw[cell]
             beta = self._soil_beta[cell]
+            Ks = self._soil_Ks[cell]
             if self._vegtype[cell] == 0:   # 0 - GRASS
                 sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
             else:
@@ -521,7 +540,7 @@ class SoilMoisture(Component):
                           P*self._vegcover[cell])
             # Effective precipitation depth
             Peff = max((P + max(runon, 0.) - Int_cap), 0.)
-            mu = (Inf_cap/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
+            mu = (Ks/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
             Ep = max((self._PET[cell]*self._fr[cell] +
                      fbare*self._PET[cell]*(1.-self._fr[cell])) -
                      Int_cap, 0.0001)  # mm/d
