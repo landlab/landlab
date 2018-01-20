@@ -1,7 +1,7 @@
 import numpy as np
 
 from ..voronoi.voronoi import VoronoiGraph
-from ...utils.decorators import store_result_in_grid
+from ...utils.decorators import store_result_in_grid, cache_result_in_object
 
 
 def number_of_nodes(shape, node_layout='rect'):
@@ -132,7 +132,90 @@ def setup_xy_of_node(shape, spacing=1., origin=(0., 0.),
     return (x_of_node, y_of_node)
 
 
-class HexGraph(VoronoiGraph):
+class HexGraphExtras(object):
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def orientation(self):
+        return self._orientation
+
+    @property
+    def node_layout(self):
+        return self._node_layout
+
+    @property
+    @cache_result_in_object()
+    def nodes_at_right_edge(self):
+        """Get nodes along the right edge.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import DualHexGraph
+        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> graph.nodes_at_right_edge
+        array([ 3,  7, 11])
+        """
+        return np.arange(self.shape[1] - 1, self.shape[0] * self.shape[1],
+                         self.shape[1], dtype=int)
+
+    @property
+    @cache_result_in_object()
+    def nodes_at_top_edge(self):
+        """Get nodes along the top edge.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import DualHexGraph
+        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> graph.nodes_at_top_edge
+        array([ 8,  9, 10, 11])
+        """
+        return np.arange(self.number_of_nodes - self.shape[1],
+                         self.number_of_nodes, dtype=int)
+
+    @property
+    @cache_result_in_object()
+    def nodes_at_left_edge(self):
+        """Get nodes along the left edge.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import DualHexGraph
+        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> graph.nodes_at_left_edge
+        array([0, 4, 8])
+        """
+        return np.arange(0, self.shape[0] * self.shape[1], self.shape[1],
+                         dtype=int)
+
+    @property
+    @cache_result_in_object()
+    def nodes_at_bottom_edge(self):
+        """Get nodes along the bottom edge.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import DualHexGraph
+        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> graph.nodes_at_bottom_edge
+        array([0, 1, 2, 3])
+        """
+        return np.arange(self.shape[1], dtype=int)
+
+    @property
+    @cache_result_in_object()
+    def perimeter_nodes(self):
+        return setup_perimeter_nodes(self.shape, self.orientation,
+                                     self.node_layout)
+
+
+class HexGraph(VoronoiGraph, HexGraphExtras):
 
     """Graph of a structured grid of triangles.
 
@@ -210,9 +293,3 @@ class HexGraph(VoronoiGraph):
     @property
     def node_layout(self):
         return self._node_layout
-
-    @property
-    # @store_result_in_grid()
-    def perimeter_nodes(self):
-        return setup_perimeter_nodes(self.shape, self.orientation,
-                                     self.node_layout)

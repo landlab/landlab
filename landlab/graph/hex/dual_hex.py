@@ -1,17 +1,18 @@
 import numpy as np
 
 from ..voronoi import DualVoronoiGraph
-from .hex import setup_xy_of_node
+from .hex import setup_xy_of_node, setup_perimeter_nodes, HexGraphExtras
+from ...utils.decorators import cache_result_in_object
 
 
-class DualHexGraph(DualVoronoiGraph):
+class DualHexGraph(DualVoronoiGraph, HexGraphExtras):
 
     """Graph of a structured grid of triangles.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.graph import HexGraph
+    >>> from landlab.graph import DualHexGraph
 
     >>> graph = DualHexGraph((3, 2), node_layout='hex')
     >>> graph.number_of_nodes
@@ -45,6 +46,18 @@ class DualHexGraph(DualVoronoiGraph):
             spacing = float(spacing)
         except TypeError:
             raise TypeError('spacing must be a float')
+
+        self._shape = tuple(shape)
+
+        if node_layout not in ('rect', 'hex', 'rect1'):
+            raise ValueError('node_layout not understood')
+        else:
+            self._node_layout = node_layout
+
+        if orientation not in ('horizontal', 'vertical'):
+            raise ValueError('orientation not understood')
+        else:
+            self._orientation = orientation
 
         x_of_node, y_of_node = setup_xy_of_node(shape, spacing=spacing,
                                                 origin=origin,
