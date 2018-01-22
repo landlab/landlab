@@ -5,7 +5,7 @@ from .hex import setup_xy_of_node, setup_perimeter_nodes, HexGraphExtras
 from ...utils.decorators import cache_result_in_object
 
 
-class DualHexGraph(DualVoronoiGraph, HexGraphExtras):
+class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
 
     """Graph of a structured grid of triangles.
 
