@@ -1,7 +1,8 @@
 import numpy as np
 
 from ..voronoi.voronoi import VoronoiGraph
-from ...utils.decorators import store_result_in_grid, cache_result_in_object
+from ...utils.decorators import (cache_result_in_object,
+                                 make_return_array_immutable)
 
 
 def number_of_nodes(shape, node_layout='rect'):
@@ -147,6 +148,7 @@ class HexGraphExtras(object):
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def nodes_at_right_edge(self):
         """Get nodes along the right edge.
 
@@ -163,6 +165,7 @@ class HexGraphExtras(object):
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def nodes_at_top_edge(self):
         """Get nodes along the top edge.
 
@@ -179,6 +182,7 @@ class HexGraphExtras(object):
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def nodes_at_left_edge(self):
         """Get nodes along the left edge.
 
@@ -195,6 +199,7 @@ class HexGraphExtras(object):
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def nodes_at_bottom_edge(self):
         """Get nodes along the bottom edge.
 
@@ -210,12 +215,13 @@ class HexGraphExtras(object):
 
     @property
     @cache_result_in_object()
+    @make_return_array_immutable
     def perimeter_nodes(self):
         return setup_perimeter_nodes(self.shape, self.orientation,
                                      self.node_layout)
 
 
-class HexGraph(VoronoiGraph, HexGraphExtras):
+class HexGraph(HexGraphExtras, VoronoiGraph):
 
     """Graph of a structured grid of triangles.
 
