@@ -11,11 +11,12 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 import six
 
-from landlab.grid.voronoi import VoronoiDelaunayGrid
 from .decorators import return_readonly_id_array
+from .base import ModelGrid
+from ..graph import DualHexGraph
 
 
-class HexModelGrid(VoronoiDelaunayGrid):
+class HexModelGrid(DualHexGraph, ModelGrid):
     """A grid of hexagonal cells.
 
     This inherited class implements a regular 2D grid with hexagonal cells and
@@ -54,8 +55,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
     """
 
     def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0,
-                 orientation='horizontal', shape='hex', reorient_links=True,
-                 **kwds):
+                 origin=(0., 0.), orientation='horizontal', shape='hex',
+                 reorient_links=True, **kwds):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
@@ -89,11 +90,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> hmg.number_of_nodes
         7
         """
-        # Set number of nodes, and initialize if caller has given dimensions
-        if base_num_rows * base_num_cols > 0:
-            self._initialize(base_num_rows, base_num_cols, dx, orientation,
-                             shape, reorient_links)
-        super(HexModelGrid, self).__init__(**kwds)
+        node_layout = shape
+        shape = (base_num_rows, base_num_cols)
+        spacing = dx
+
+        DualHexGraph.__init__(self, shape, spacing=spacing, origin=origin,
+                              orientation=orientation, node_layout=node_layout)
+        ModelGrid.__init__(self, **kwds)
 
     @classmethod
     def from_dict(cls, params):
@@ -489,7 +492,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: GINF NINF
         """
-        return self._ncols
+        return self.shape[1]
 
     @property
     def number_of_node_rows(self):
@@ -512,87 +515,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: GINF NINF
         """
-        return self._nrows
-
-    @property
-    def nodes_at_left_edge(self):
-        """Get nodes along the left edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_left_edge
-        array([0, 4, 8])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[:, 0]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
-
-    @property
-    def nodes_at_right_edge(self):
-        """Get nodes along the right edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_right_edge
-        array([ 3,  7, 11])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[:, -1]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
-
-    @property
-    def nodes_at_top_edge(self):
-        """Get nodes along the top edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_top_edge
-        array([ 8,  9, 10, 11])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[-1, :]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
-
-    @property
-    def nodes_at_bottom_edge(self):
-        """Get nodes along the bottom edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_bottom_edge
-        array([0, 1, 2, 3])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[0, :]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
+        return self._shape[0]
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
