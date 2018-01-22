@@ -54,7 +54,7 @@ Examples
     publisher={Copernicus GmbH}
     }
 <BLANKLINE>
-## Isostatic flexure
+## Flexure
     @article{hutton2008sedflux,
     title={Sedflux 2.0: An advanced process-response model that
         generates three-dimensional stratigraphy},
@@ -82,10 +82,11 @@ class ComponentRegistry(object):
 
     def __init__(self, objs=None):
         self._registered = []
-        try:
-            [self.add(obj) for obj in objs]
-        except TypeError:
-            self.add(objs)
+        if objs is not None:
+            try:
+                [self.add(obj) for obj in objs]
+            except TypeError:
+                self.add(objs)
 
     def add(self, cls):
         """Add a class to the registry.
@@ -109,8 +110,10 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
+        >>> registry.registered
+        ()
         >>> class FooBar(object):
         ...    pass
         >>> registry.add(FooBar)
@@ -138,7 +141,7 @@ class ComponentRegistry(object):
         Examples
         --------
         >>> from __future__ import print_function
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
         ...     pass
@@ -215,7 +218,7 @@ class ComponentRegistry(object):
         Examples
         --------
         >>> from __future__ import print_function
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
 
         >>> class HolyGrailFinder(object):
