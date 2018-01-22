@@ -28,10 +28,10 @@ class cache_result_in_object(object):
         self._attr = cache_as
 
     def __call__(self, func):
+        name = self._attr or '_' + func.__name__
         @wraps(func)
         def _wrapped(obj):
-            name = self._attr or '_' + func.__name__
-            if not hasattr(self, name):
+            if not hasattr(obj, name):
                 setattr(obj, name, func(obj))
             return getattr(obj, name)
 

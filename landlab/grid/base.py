@@ -300,7 +300,7 @@ class ModelGrid(GraphFields, EventLayersMixIn):
     """
     BC_NODE_IS_CORE = CORE_NODE
     BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
-    BC_NODE_IS_FIXED_GRADIENT = FIXED_VALUE_BOUNDARY
+    BC_NODE_IS_FIXED_GRADIENT = FIXED_GRADIENT_BOUNDARY
     BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
     BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
 
@@ -1854,13 +1854,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         # # Sort the links at each node by angle, counter-clockwise from +x
         # self._sort_links_at_node_by_angle()
 
-        # setup the active link equivalent
-        self._active_link_dirs_at_node = self._link_dirs_at_node.copy()
-        inactive_links = (self.status_at_link[self.links_at_node] ==
-                          INACTIVE_LINK)
-        inactive_links[self.link_dirs_at_node == 0] = False
-        self._active_link_dirs_at_node[inactive_links] = 0
-
     @property
     @make_return_array_immutable
     def angle_of_link(self):
@@ -3088,7 +3081,8 @@ class ModelGrid(GraphFields, EventLayersMixIn):
                  '_activelink_tonode', '_active_faces', '_core_nodes',
                  '_core_cells', '_fixed_links',
                  '_active_adjacent_nodes_at_node',
-                 '_fixed_value_boundary_nodes', '_node_at_core_cell']
+                 '_fixed_value_boundary_nodes', '_node_at_core_cell',
+                 '_link_status_at_node', ]
 
         for attr in attrs:
             try:
@@ -3352,10 +3346,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
             num_nbrs[node_at_link_tail[link]] += 1
             num_nbrs[node_at_link_head[link]] += 1
         return num_nbrs
-
-    def _create_active_faces(self):
-        self._active_faces = self.face_at_link[self.active_links]
-        return self._active_faces
 
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
@@ -3748,7 +3738,7 @@ class ModelGrid(GraphFields, EventLayersMixIn):
                       self.node_y[self.node_at_link_head[i]]], 'k-')
 
         # Draw active links
-        for link in self._active_links:
+        for link in self.active_links:
             plt.plot([self.node_x[self.node_at_link_tail[link]],
                       self.node_x[self.node_at_link_head[link]]],
                      [self.node_y[self.node_at_link_tail[link]],
