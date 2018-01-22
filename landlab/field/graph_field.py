@@ -9,6 +9,15 @@ from .grouped import GroupError
 
 FIELD_LOCATIONS = ('node', 'link', 'patch', 'corner', 'face', 'cell', )
 
+NUMBER_OF_ELEMENTS = {
+    'node': 'number_of_nodes',
+    'link': 'number_of_links',
+    'patch': 'number_of_patches',
+    'corner': 'number_of_corners',
+    'face': 'number_of_faces',
+    'cell': 'number_of_cells',
+}
+
 
 def reshape_for_storage(array, field_size=None):
     """Reshape an array to be stored as a field.
@@ -221,9 +230,6 @@ class FieldDataset(dict):
     def __str__(self):
         return str(self._ds)
 
-    # def __repr__(self):
-    #     return repr(self._ds)
-
     def __len__(self):
         return self._size
 
@@ -288,7 +294,6 @@ class GraphFields(object):
     """
 
     def __init__(self, *args, **kwds):
-        print 'In GraphFields:', self._default_group
         try:
             dims = args[0]
         except IndexError:
@@ -650,10 +655,7 @@ class GraphFields(object):
                              "grid.at_grid['value_name']=value\n"
                              "instead.\nAlternatively, if you want ones"
                              "of the shape stored at_grid, use np.array(1).")
-        try:
-            size = len(getattr(self, 'at_' + group))
-        except AttributeError:
-            size = getattr(self, 'number_of_' + group)
+        size = getattr(self, NUMBER_OF_ELEMENTS[group])
 
         return np.empty(size, **kwds)
 
@@ -842,6 +844,9 @@ class GraphFields(object):
         if value_array.ndim > 1:
             dims += (name + '_per_' + at, )
             value_array = value_array.reshape((value_array.shape[0], -1))
+
+        if value_array.shape[0] != getattr(self, NUMBER_OF_ELEMENTS[at]):
+            raise ValueError('total size of the new array must be the same as the field')
 
         ds[name] = value_array
         return ds[name]
