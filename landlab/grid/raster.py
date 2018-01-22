@@ -397,20 +397,16 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
                                              origin=origin)
         ModelGrid.__init__(self, **kwds)
 
-        # Flag indicating whether we have created diagonal links.
-        # self._diagonal_links_created = False
-
-        self._node_status = np.empty(self.number_of_nodes, dtype=np.uint8)
-        # self._node_status = np.empty(num_rows * num_cols, dtype=np.int8)
-
-        # Set number of nodes, and initialize if caller has given dimensions
-        # self._initialize(num_rows, num_cols, dx)
+        self._node_status = np.full(self.number_of_nodes,
+                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
+        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
         self._DEBUG_TRACK_METHODS = False
-        self.set_closed_boundaries_at_grid_edges(
-            *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
-
-        # super(RasterModelGrid, self).__init__(**kwds)
+        bc_at_edges = kwds.pop('bc', {'right': 'open', 'top': 'open',
+                                      'left': 'open', 'bottom': 'open'})
+        if 'closed' in bc_at_edges.values():
+            self.set_closed_boundaries_at_grid_edges(
+                *grid_edge_is_closed_from_dict(bc_at_edges))
 
         self.looped_node_properties = {}
             
@@ -1731,30 +1727,17 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         LLCATS: BC SUBSET
         """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('ModelGrid.set_closed_boundaries_at_grid_edges')
-
-        bottom_edge = range(0, self.number_of_node_columns)
-        right_edge = range(2 * self.number_of_node_columns - 1,
-                           self.number_of_nodes - 1,
-                           self.number_of_node_columns)
-        top_edge = range((self.number_of_node_rows - 1) *
-                         self.number_of_node_columns, self.number_of_nodes)
-        left_edge = range(self.number_of_node_columns,
-                          self.number_of_nodes - self.number_of_node_columns,
-                          self.number_of_node_columns)
-
         if bottom_is_closed:
-            self._node_status[bottom_edge] = CLOSED_BOUNDARY
+            self._node_status[self.nodes_at_bottom_edge] = self.BC_NODE_IS_CLOSED
 
         if right_is_closed:
-            self._node_status[right_edge] = CLOSED_BOUNDARY
+            self._node_status[self.nodes_at_right_edge] = self.BC_NODE_IS_CLOSED
 
         if top_is_closed:
-            self._node_status[top_edge] = CLOSED_BOUNDARY
+            self._node_status[self.nodes_at_top_edge] = self.BC_NODE_IS_CLOSED
 
         if left_is_closed:
-            self._node_status[left_edge] = CLOSED_BOUNDARY
+            self._node_status[self.nodes_at_left_edge] = self.BC_NODE_IS_CLOSED
 
         self.reset_status_at_node()
 
