@@ -14,11 +14,12 @@ ELEMENTS = ['node', 'cell', 'link', 'face']
 TYPES = ['float', 'int', 'bool']
 
 
-def generate_zeros_tests():
+# def generate_zeros_tests():
+def test_zeros():
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert_array_equal(rmg.zeros(centering=element),
                                    np.zeros(number_of_elements, dtype=np.float))
@@ -27,11 +28,11 @@ def generate_zeros_tests():
             yield _test
 
 
-def generate_add_zeros_tests():
+def test_add_zeros():
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 rtn_values = rmg.add_zeros(element, 'name')
                 assert_is(rtn_values, rmg.field_values(element, 'name'))
@@ -42,11 +43,11 @@ def generate_add_zeros_tests():
             yield _test
 
 
-def generate_ones_tests():
+def test_ones():
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert_array_equal(rmg.ones(centering=element),
                                    np.ones(number_of_elements, dtype=np.float))
@@ -55,11 +56,11 @@ def generate_ones_tests():
             yield _test
 
 
-def generate_add_ones_tests():
+def test_add_ones():
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 rtn_values = rmg.add_ones(element, 'name')
                 assert_is(rtn_values, rmg.field_values(element, 'name'))
@@ -70,7 +71,7 @@ def generate_add_ones_tests():
             yield _test
 
 
-def generate_empty_tests():
+def test_empty():
     elements = ['node', 'cell', 'link', 'face']
     # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
 
@@ -79,7 +80,7 @@ def generate_empty_tests():
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert_equal(rmg.empty(centering=element).size,
                              number_of_elements)
@@ -88,7 +89,7 @@ def generate_empty_tests():
             yield _test
 
 
-def generate_add_empty_tests():
+def test_add_empty():
     elements = ['node', 'cell', 'link', 'face']
     # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
 
@@ -97,7 +98,7 @@ def generate_add_empty_tests():
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 rtn_values = rmg.add_empty(element, 'name')
                 assert_is(rtn_values, rmg.field_values(element, 'name'))
