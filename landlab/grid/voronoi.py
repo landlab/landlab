@@ -16,6 +16,7 @@ from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
                                 argsort_points_by_x_then_y,
                                 anticlockwise_argsort_points)
 from .decorators import return_readonly_id_array
+from ..graph import DualVoronoiGraph
 
 from scipy.spatial import Voronoi
 
@@ -66,7 +67,8 @@ def simple_poly_area(x, y):
                     x[-1] * y[0] - x[0] * y[-1])
 
 
-class VoronoiDelaunayGrid(ModelGrid):
+class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
+
     """
     This inherited class implements an unstructured grid in which cells are
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
