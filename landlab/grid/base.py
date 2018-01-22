@@ -268,7 +268,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 from ..field.graph_field import GraphFields
 
 
-# class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 class ModelGrid(GraphFields, EventLayersMixIn):
 
     """Base class for 2D structured or unstructured grids for numerical models.
@@ -313,15 +312,17 @@ class ModelGrid(GraphFields, EventLayersMixIn):
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False
 
-    at_node = {}  # : Values defined at nodes
-    at_link = {}  # : Values defined at links
-    at_patch = {}  # : Values defined at patches
-    at_corner = {}  # : Values defined at corners
-    at_face = {}  # : Values defined at faces
-    at_cell = {}  # : Values defined at cells
-
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
+
+        self.new_field_location('node', self.number_of_nodes)
+        self.new_field_location('link', self.number_of_links)
+        self.new_field_location('patch', self.number_of_patches)
+        self.new_field_location('corner', self.number_of_corners)
+        self.new_field_location('face', self.number_of_faces)
+        self.new_field_location('cell', self.number_of_cells)
+
+        self.at_grid = {}  # : Values defined at the grid
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
         self.axis_units = kwds.get(
