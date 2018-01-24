@@ -82,7 +82,7 @@ def neighbor_node_at_cell(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.active_neighbors_at_node[node_ids]
+    neighbors = grid.active_adjacent_nodes_at_node[node_ids]
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
@@ -181,33 +181,46 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
            -1.,  0.,  1., -4.,  1.,
             0., -1.,  0.,  1.,  0.])
     """
-    assert len(active_link_flux) == grid.number_of_active_links, \
-        "incorrect length of active_link_flux array"
+    if len(active_link_flux) != len(grid.active_links):
+        raise ValueError(
+            'input array must be of length number of active links ({0}!={1})'.format(
+                len(active_link_flux), len(grid.active_links)))
 
     # If needed, create net_unit_flux array
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(at='node')
     out.fill(0.)
-    net_unit_flux = out
 
-    assert len(net_unit_flux) == grid.number_of_nodes
+    if len(out) != grid.number_of_nodes:
+        raise ValueError(
+            'output array must be of length number of nodes ({0}!={1})'.format(
+                len(out), grid.number_of_nodes))
 
     is_vert_link = squad_links.is_vertical_link(grid.shape, grid.active_links)
     vert_links = grid.active_links[is_vert_link]
     horiz_links = grid.active_links[~ is_vert_link]
 
-    flux = np.zeros(grid.number_of_links + 1)
+    flux = np.zeros(grid.number_of_links)
 
     flux[vert_links] = active_link_flux[is_vert_link] * grid.dy
     flux[horiz_links] = active_link_flux[~ is_vert_link] * grid.dx
 
-    net_unit_flux[:] = (
-        (flux[grid._node_active_outlink_matrix2[0][:]] +
-         flux[grid._node_active_outlink_matrix2[1][:]]) -
-        (flux[grid._node_active_inlink_matrix2[0][:]] +
-         flux[grid._node_active_inlink_matrix2[1][:]])) / grid.cellarea
+    # TODO: net fluxes should only be defined at nodes that have cells.
+    # That is, not at perimeter nodes. The commented-out code does this.
+    # out[grid.node_at_cell] = (
+    #     flux[grid.links_at_node[grid.node_at_cell]] *
+    #     grid.active_link_dirs_at_node[grid.node_at_cell] /
+    #     grid.area_of_cell.reshape((-1, 1))
+    # ).sum(axis=1)
 
-    return net_unit_flux
+    # TODO: the following calculates fluxes at perimeter nodes and
+    # so should really be removed in favor of the code above.
+    out[:] = (
+        flux[grid.links_at_node] *
+        (- grid.active_link_dirs_at_node) / grid.cellarea
+    ).sum(axis=1)
+
+    return out
 
 
 def calculate_slope_aspect_bfp(xs, ys, zs):

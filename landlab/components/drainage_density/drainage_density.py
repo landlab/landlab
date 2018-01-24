@@ -288,7 +288,7 @@ class DrainageDensity(Component):
         from .cfuncs import _calc_dists_to_channel
         _calc_dists_to_channel(self.channel_network,
                                self.flow_receivers,
-                               self.grid._length_of_link_with_diagonals,
+                               self.grid.length_of_d8,
                                self.stack_links,
                                self.distance_to_channel,
                                self.grid.number_of_nodes)
