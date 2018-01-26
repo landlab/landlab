@@ -48,9 +48,9 @@ class ClastSet(object):
         # get sediment influx, erosion and deposition
         self.erosion_method = erosion_method
         if self.erosion_method == 'TLDiff':
-            self._erosion_rate = self._grid.at_node['erosion__rate']
-            self._deposition_rate = self._grid.at_node['deposition']
-            self._sediment__flux_in = self._grid.at_node['soil__flux_in']
+            self._erosion_rate = self._grid.at_node['sediment__erosion_rate']
+            self._deposition_rate = self._grid.at_node['sediment__deposition_rate']
+            self._sediment__flux_in = self._grid.at_node['sediment__flux_in']
         elif self.erosion_method == 'Space':
             from landlab.components import Space
             for obj in gc.get_objects():
@@ -78,13 +78,18 @@ class ClastSet(object):
         self._clast__x = np.array((self._grid.node_x[self._clast__node]))
         self._clast__y = np.array((self._grid.node_y[self._clast__node]))
 
+        self._dt = np.zeros(1)
+        self._erosion__depth = np.zeros(grid.number_of_nodes)
+        self._deposition__thickness = np.zeros(grid.number_of_nodes)
+        self._deposition__flux = np.zeros(grid.number_of_nodes)
 
     def clast_solver(self, dt=1., uplift=None):
 
+# Repeated from above??
         if self.erosion_method == 'TLDiff':
-            self._erosion_rate = self._grid.at_node['erosion']
-            self._deposition_rate = self._grid.at_node['deposition']
-            self._sediment__flux_in = self._grid.at_node['soil__flux_in']
+            self._erosion_rate = self._grid.at_node['sediment__erosion_rate']
+            self._deposition_rate = self._grid.at_node['sediment__deposition_rate']
+            self._sediment__flux_in = self._grid.at_node['sediment__flux_in']
         elif self.erosion_method == 'Space':
             from landlab.components import Space
             for obj in gc.get_objects():
@@ -93,8 +98,12 @@ class ClastSet(object):
                     self._deposition_rate = obj.depo_rate
                     self._sediment__flux_in = obj.qs_in
 
-        # Store time step, uplift
+        # Store various values that will be used
         self._dt = dt
+        self._erosion__depth = self._erosion_rate * self._dt
+        self._deposition__thickness = self._deposition_rate * self._dt
+        self._deposition__flux = self._deposition_rate * self._grid.dx
+
 
         if uplift is not None:
             if type(uplift) is str:
@@ -107,26 +116,23 @@ class ClastSet(object):
             else:
                 raise TypeError('Supplied type of uplift is not recognized')
 
-        # Store various values that will be used
-        self._erosion__depth = self._erosion_rate * self._dt
-        self._deposition__thickness = self._deposition_rate * self._dt
-        self._deposition__flux = self._deposition_rate * self._grid.dx
 
         for i in range(self._set__size):   # Treat clasts one after the other
             # Test if clast in grid core (=not phantom)
             if ClastSet.phantom(self, i) == False:
+                print('not phantom')
                 # Clast is in grid core
                 # Test if clast is detached:
                 if ClastSet.clast_detach_proba(self, i) == True:
+                    print('detached')
                     # Clast is detached -> Test if moves (leaves node):
                     if ClastSet.clast_move_proba(self, i) == True:
+                        print('move')
                         # Clast leaves node:
                         # Clast is moved to next node downstream:
                         # Update travelled distance:
-                        self.__clast__distance[i] += self._distances[
-                                self._clast__node[i], self._grid.at_node[
-                                        'flow__receiver_node'][
-                                                self._clast__node[i]]]
+                        self._clast__distance[i] += (
+                                self._distances[self._clast__node[i], self._grid.at_node['flow__receiver_node'][self._clast__node[i]]])
                         # Move clast to next downstream:
                         self._clast__node[i] = (
                                 self._receiver[self._clast__node[i]])
@@ -137,25 +143,38 @@ class ClastSet(object):
                         # deposited:
                         # While clast is not deposited, keeps changing node:
                         while ClastSet.clast_depo_proba(self, i) == False:
+                            print('not depositing')
                             # Clast is moved to next node downstream
                             self._clast__node[i] = (
                                     self._receiver[self._clast__node[i]])
                             # Update travelled distance:
-                            self._clast__distance[i] += self._grid.dx
-                            # if diagonal is allowed: dx or dx*np.sqrt(2)
-
-                        # Finally, clast  is deposited:
-                        # Update clast elevation:
-                        self._clast__elev[i] = self._elev[
-                                self._clast__node[i]] - (
-                                self._deposition__thickness[
-                                        self._clast__node[i]] * (
-                                        np.random.rand(1)))
-
+                            self._clast__distance[i] += (
+                                    self._distances[self._clast__node[i], self._grid.at_node['flow__receiver_node'][self._clast__node[i]]])
+                    
+                    # next section instead of following 2 parag, to update clast elev at the end of this timestep as somewhere in the deposited layer?
                     else:
-                        # Clast does not leave node -> update elevation
-                        self._clast__elev[i] = self._elev[self._clast__node[i]]
-                        pass  # ? move at next time step ?
+                        pass
+
+                    # Update clast elevation: clast is reworked in the 
+                    # newly deposited layer
+                    self._clast__elev[i] = self._elev[self._clast__node[i]] - (
+                            self._deposition__thickness[self._clast__node[i]] * (np.random.rand(1)))
+
+#TO DELETE#######################################################################
+#                        # Finally, clast  is deposited:
+#                        # Update clast elevation:
+#                        self._clast__elev[i] = self._elev[
+#                                self._clast__node[i]] - (
+#                                self._deposition__thickness[
+#                                        self._clast__node[i]] * (
+#                                        np.random.rand(1)))
+#
+#                    else:
+#                        # Clast does not leave node -> update elevation
+#                        self._clast__elev[i] = self._elev[self._clast__node[i]]
+#                        pass
+################################################################################
+
                 else:
                     # Clast is not detached -> go to next clast
                     pass
@@ -196,9 +215,12 @@ class ClastSet(object):
         # clast is detached if its elevation (its base) is above topography
         clast__elev = self._clast__elev[i]
         topo__elev = self._elev[self._clast__node[i]]
+        # erosion = _erosion__depth[self._clast__node[i]]
 
         _det = np.zeros(1, dtype=bool)
 
+        # if erosion >= topo__elev - clast__elev:
+        # Previously: 
         if clast__elev >= topo__elev:
             _det = True
 
@@ -209,10 +231,8 @@ class ClastSet(object):
         # a random number
         erosion = self._erosion__depth[self._clast__node[i]]
         radius = self._clast__radius[i]
-        elev = self._clast__elev[i]
-        potential_distance = self._distances[
-                self._clast__node[i],self._grid.at_node[
-                        'flow__receiver_node'][self._clast__node[i]]]
+        clast__depth = self._elev[self._clast__node[i]] - self._clast__elev[i]
+        potential_distance = self._distances[self._clast__node[i],self._grid.at_node['flow__receiver_node'][self._clast__node[i]]]
 
         R = np.random.rand(1)
 
@@ -221,11 +241,10 @@ class ClastSet(object):
 
                 # if clast will potentially move in row or column
                 proba_move = 1.25 * ((erosion) / (
-                        2 * radius)) * (1-(elev / erosion))
+                        2 * radius)) * (1-(clast__depth / erosion))
             else:   # clast will potentially move in diagonal
                 proba_move = (1 / np.sqrt(2)) * 1.25 * ((erosion) / (
-                        2 * radius)) * (1-(elev / erosion))
-        # TO DO: add gamma factor if diagonal mvt is allowed
+                        2 * radius)) * (1-(clast__depth / erosion))
 
             # proba_move can be >1 -> set to 1
             if proba_move > 1:
@@ -252,11 +271,11 @@ class ClastSet(object):
         R = np.random.rand(1)
 
         # To avoid divide by 0 if no flux in, proba is set to 1
-        # In real case, this shouldn't be used, only at first time step
-        if fluxin > 0.:
-            proba_depo = depo / fluxin
-        else:
+        if fluxin == 0.:
             proba_depo = 1.
+        else:
+            proba_depo = depo / fluxin
+# TO ADD: deposition proba should be dependent on clast size!
 
         _depo = np.zeros(1, dtype=bool)
 
