@@ -321,8 +321,8 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         self.new_field_location('corner', self.number_of_corners)
         self.new_field_location('face', self.number_of_faces)
         self.new_field_location('cell', self.number_of_cells)
-
-        self.at_grid = {}  # : Values defined at the grid
+        self.new_field_location('grid', None)
+        self.default_group = 'node'
 
         self.axis_name = kwds.get('axis_name', _default_axis_names(self.ndim))
         self.axis_units = kwds.get(
@@ -332,23 +332,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
         self.bc_set_code = 0
-
-        # Sort links according to the x and y coordinates of their midpoints.
-        # Assumes 1) node_at_link_tail and node_at_link_head have been
-        # created, and 2) so have node_x and node_y.
-        # self._sort_links_by_midpoint()
-
-        # for loc in _SIZED_FIELDS:
-        #     size = self.number_of_elements(loc)
-        #     # GraphFields.new_field_location(self, loc, size=size)
-        #     ModelDataFields.new_field_location(self, loc, size=size)
-        # # GraphFields.new_field_location(self, 'grid', size=1)
-        # ModelDataFields.new_field_location(self, 'grid', size=1)
-
-        # for loc in _UNSIZED_FIELDS:
-        #     ModelDataFields.new_field_location(self, loc, size=None)
-        # ModelDataFields.set_default_group(self, 'node')
-        super(ModelGrid, self).__init__()
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
