@@ -12,6 +12,12 @@
 from __future__ import absolute_import
 import os
 
+import numpy as np
+try:
+    np.set_printoptions(legacy='1.13')
+except TypeError:
+    pass
+
 # from ._info import version as  __version__
 from ._registry import registry
 
