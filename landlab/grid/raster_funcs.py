@@ -208,7 +208,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     # TODO: net fluxes should only be defined at nodes that have cells.
     # That is, not at perimeter nodes. The commented-out code does this.
     # out[grid.node_at_cell] = (
-    #     flux[grid.links_at_node[grid.node_at_cell]] *
+    #     - flux[grid.links_at_node[grid.node_at_cell]] *
     #     grid.active_link_dirs_at_node[grid.node_at_cell] /
     #     grid.area_of_cell.reshape((-1, 1))
     # ).sum(axis=1)
@@ -217,7 +217,7 @@ def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
     # so should really be removed in favor of the code above.
     out[:] = (
         flux[grid.links_at_node] *
-        (- grid.active_link_dirs_at_node) / grid.cellarea
+        (- grid.active_link_dirs_at_node) / grid.area_of_cell
     ).sum(axis=1)
 
     return out
