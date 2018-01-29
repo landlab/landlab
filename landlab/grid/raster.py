@@ -391,8 +391,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
             raise ValueError('number of rows and columns must be positive')
 
         shape = (num_rows, num_cols)
-        spacing = np.broadcast_to(dx, (2, ))
-        origin = np.broadcast_to(origin, (2, ))
+        spacing = np.asfarray(np.broadcast_to(dx, (2, )))
+        origin = np.asfarray(np.broadcast_to(origin, (2, )))
+
         DualUniformRectilinearGraph.__init__(self, shape, spacing=spacing,
                                              origin=origin)
         ModelGrid.__init__(self, **kwds)
