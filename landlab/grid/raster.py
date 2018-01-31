@@ -2579,32 +2579,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return diagonal_link_slopes
 
-    @deprecated(use='calc_flux_div_at_node', version=1.0)
-    def calculate_flux_divergence(self, q, id):
-        """Flux divergence.
-
-        Candidate for depreciation, DEJH 5/14
-
-        .. todo:: UPDATE THIS TO USE NEW DATA STRUCTURES!
-
-        This is like calculate_flux_divergences (plural!), but only does
-        it for cell "id".
-
-        LLCATS: DEPR NINF GRAD
-        """
-
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('RasterModelGrid.calculate_flux_divergence here with '
-                       'cell ' + id)
-            six.print_('q: ' + q[self.faces[id, 0:4]])
-
-        fd = (
-            (q[self.faces[id, 0]] - q[self.faces[id, 2]]) / self.dx +
-            (q[self.faces[id, 1]] - q[self.faces[id, 3]]) / self.dy
-        )
-
-        return fd
-
     @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.1')
     def update_noflux_boundaries(self, u, bc=None):
         """Deprecated.
