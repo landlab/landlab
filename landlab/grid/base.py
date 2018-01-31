@@ -2819,29 +2819,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
 
         return net_unit_flux
 
-    @deprecated(use='calc_flux_div_at_node', version=1.0)
-    def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
-        """Flux divergence at nodes.
-
-        Same as calculate_flux_divergence_at_active_cells, but works with and
-        returns a list of net unit fluxes that corresponds to all nodes, rather
-        than just active cells.
-
-        Note that we don't compute net unit fluxes at
-        boundary nodes (which don't have active cells associated with them, and
-        often don't have cells of any kind, because they are on the perimeter),
-        but simply return zeros for these entries. The advantage is that the
-        caller can work with node-based arrays instead of active-cell-based
-        arrays.
-
-        This method is untested with looped boundary conditions.
-
-        LLCATS: DEPR NINF GRAD
-        """
-        return gfuncs.calculate_flux_divergence_at_nodes(self,
-                                                         active_link_flux,
-                                                         out=out)
-
     @property
     @make_return_array_immutable
     def cell_area_at_node(self):
