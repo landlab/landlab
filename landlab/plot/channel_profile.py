@@ -12,7 +12,7 @@ that channel.
 You can specify how many different channels it handles
 using the number_of_channels parameter in the channel_nodes function (default
 is 1).
-
+                                                                      
 Two options exist for controlling which channels are plotted. Set 
 main_channel_only = True (default) to plot only the largest drainage leading to 
 model grid outlet node. main_channel_only = False will plot all channels with 
@@ -20,6 +20,8 @@ drainage below the threshold (default = 2 * grid cell area).
 
 """
 # DEJH, March 2014.
+# KRB update Dec-Feb 2017
+
 from six.moves import range
 
 import numpy
@@ -243,7 +245,8 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
                                      number_of_channels=1,
                                      main_channel_only = True, 
                                      starting_nodes=None,
-                                     threshold=None):
+                                     threshold=None,
+                                     create_plot=True):
     """analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
                                      drainage_area='drainage_area',
                                      flow_receiver='flow__receiver_node',
@@ -288,6 +291,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
     dists_upstr = get_distances_upstream(
         grid, internal_list[1].size, profile_IDs, internal_list[3])
     
-    plot_profiles(dists_upstr, profile_IDs, internal_list[0])
+    if create_plot:
+        plot_profiles(dists_upstr, profile_IDs, internal_list[0])
 
     return (profile_IDs, dists_upstr)
