@@ -2646,34 +2646,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         """
         return self.width_of_face
 
-    def _create_face_at_link(self):
-        """Set up face_at_link array.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid, BAD_INDEX_VALUE
-        >>> hg = HexModelGrid(3, 3)
-
-        >>> face_at_link = hg.face_at_link.copy()
-        >>> face_at_link[face_at_link == BAD_INDEX_VALUE] = -1
-        >>> face_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1,  7,  8,  9, 10,
-               -1, -1, -1])
-        """
-        self._face_at_link = numpy.full(self.number_of_links, BAD_INDEX_VALUE,
-                                        dtype=int)
-        face_id = 0
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for link in range(self.number_of_links):
-            tc = self.cell_at_node[node_at_link_tail[link]]
-            hc = self.cell_at_node[node_at_link_head[link]]
-            if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
-                self._face_at_link[link] = face_id
-                face_id += 1
-
-        return self._face_at_link
-
     def _create_link_at_face(self):
         """Set up link_at_face array.
 
