@@ -896,32 +896,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         else:
             raise ValueError('only zero or one arguments accepted')
 
-    @property
-    @make_return_array_immutable
-    def horizontal_links(self):
-        """
-        LLCATS: LINF
-        """
-        try:
-            return self._horizontal_links
-        except AttributeError:
-            self._horizontal_links = squad_links.horizontal_link_ids(
-                self.shape)
-            return self._horizontal_links
-
-    @property
-    @make_return_array_immutable
-    def vertical_links(self):
-        """
-        LLCATS: LINF
-        """
-        try:
-            return self._vertical_links
-        except AttributeError:
-            self._vertical_links = squad_links.vertical_link_ids(
-                self.shape)
-            return self._vertical_links
-
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
 
