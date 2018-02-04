@@ -27,7 +27,6 @@ from . import raster_funcs as rfuncs
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from landlab.grid.structured_quad import links as squad_links
-from landlab.grid.structured_quad import faces as squad_faces
 from landlab.grid.structured_quad import cells as squad_cells
 from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
@@ -2432,30 +2431,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         LLCATS: NINF SUBSET MEAS
         """
         return np.ravel_multi_index((row, col), self.shape, **kwds)
-
-    def _create_face_width(self):
-        """Set up array of face widths.
-
-        Produces an array of length nfaces containing the face width.
-
-        Returns
-        -------
-        ndarray of float
-            Width of faces (listed as horizontal, then vertical).
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3))
-        >>> grid.width_of_face
-        array([ 1.,  1.,  1.,  1.])
-        """
-        n_horizontal_faces = (self.shape[0] - 2) * (self.shape[1] - 1)
-
-        self._face_width = np.empty(squad_faces.number_of_faces(self.shape))
-        self._face_width[:n_horizontal_faces] = self.dx
-        self._face_width[n_horizontal_faces:] = self.dy
-        return self._face_width
 
     def _unit_test(self):
         """Stub for adding unit tests to RasterModelGrid."""
