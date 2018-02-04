@@ -1216,14 +1216,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         return self.dx
 
     @property
-    @deprecated(use='nodes_at_corners_of_grid', version=1.0)
-    def corner_nodes(self):
-        """
-        LLCATS: DEPR GINF NINF SUBSET
-        """
-        return self.nodes_at_corners_of_grid
-
-    @property
     def nodes_at_corners_of_grid(self):
         """Get array of the nodes in grid corners.
 

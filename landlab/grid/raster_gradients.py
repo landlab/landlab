@@ -704,7 +704,9 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     bad = np.nan*np.ones((3,))
     
     # first, corners:
-    corners = grid.corner_nodes
+    corners = (0, grid.shape[1] - 1, grid.shape[1] * (grid.shape[0] - 1),
+               grid.shape[1] * grid.shape[0] - 1)
+
     # lower left corner only has NNE and ENE
     nhat_NNW[corners[0],:] = bad
     nhat_WNW[corners[0],:] = bad
