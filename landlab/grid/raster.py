@@ -1163,28 +1163,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         return self.dx
 
     @property
-    def nodes_at_corners_of_grid(self):
-        """Get array of the nodes in grid corners.
-
-        Return the IDs to the corner nodes of the grid, sorted by ID.
-
-        Returns
-        -------
-        (4, ) ndarray
-            Array of corner node IDs.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.nodes_at_corners_of_grid
-        array([ 0,  4, 15, 19])
-
-        LLCATS: GINF NINF SUBSET
-        """
-        return sgrid.corners((self._nrows, self._ncols))
-
-    @property
     @deprecated(use='cells_at_corners_of_grid', version=1.0)
     def corner_cells(self):
         """
