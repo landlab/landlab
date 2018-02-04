@@ -91,7 +91,7 @@ def flow_directions_mfd(elev,
     For the first example, we will not pass any diagonal elements to the flow
     direction algorithm.
 
-    >>> neighbors_at_node = grid.neighbors_at_node
+    >>> neighbors_at_node = grid.adjacent_nodes_at_node
     >>> links_at_node = grid.links_at_node
     >>> active_link_dir_at_node = grid.active_link_dirs_at_node
     >>> link_slope = np.arctan(grid.calc_grad_at_link(elev))
@@ -135,18 +135,15 @@ def flow_directions_mfd(elev,
     In the second example, we will pass diagonal elements to the flow direction
     algorithm.
 
-    >>> grid._create_diag_links_at_node()
-    >>> dal, d8t, d8h = grid._d8_active_links()
-    >>> neighbors_at_node = np.hstack((grid.neighbors_at_node,
-    ...                                grid._diagonal_neighbors_at_node))
-    >>> links_at_node = np.hstack((grid.links_at_node,
-    ...                            grid._diagonal_links_at_node))
-    >>> active_link_dir_at_node = np.hstack((grid.active_link_dirs_at_node,
-    ...                                      grid._diag__active_link_dirs_at_node))
+    >>> dal = grid.active_d8
+    >>> neighbors_at_node = np.hstack((grid.adjacent_nodes_at_node,
+    ...                                grid.diagonal_adjacent_nodes_at_node))
+    >>> links_at_node = grid.d8s_at_node
+    >>> active_link_dir_at_node = grid.active_d8_dirs_at_node
 
     We need to create a list of diagonal links since it doesn't exist.
 
-    >>> diag_links = np.sort(np.unique(grid._diag_links_at_node))
+    >>> diag_links = np.sort(np.unique(grid.d8s_at_node[:, 4:]))
     >>> diag_links = diag_links[diag_links>0]
     >>> diag_grads = np.zeros(diag_links.shape)
     >>> where_active_diag = dal>=diag_links.min()

@@ -248,11 +248,6 @@ class FastscapeEroder(Component):
         self.A_to_the_m = grid.zeros(at='node')
         self.alpha = grid.empty(at='node')
 
-        try:
-            self.grid._diagonal_links_at_node  # calc number of diagonal links
-        except AttributeError:
-            pass  # was not a raster
-
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
                              'field name. It was None.')
@@ -351,7 +346,7 @@ class FastscapeEroder(Component):
         z = self._grid.at_node['topographic__elevation']
         defined_flow_receivers = np.not_equal(
             self._grid.at_node['flow__link_to_receiver_node'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid._length_of_link_with_diagonals[
+        flow_link_lengths = self._grid.length_of_d8[
             self._grid.at_node['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
 

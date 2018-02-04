@@ -12,8 +12,8 @@ Created on Fri Feb 20 09:32:27 2015
 #Could suppress by mirroring the diagonals
 
 import numpy as np
-from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK, \
-    CLOSED_BOUNDARY, CORE_NODE
+from landlab import (RasterModelGrid, Component, FieldError, INACTIVE_LINK,
+                     CLOSED_BOUNDARY, CORE_NODE, FIXED_LINK)
 import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 
@@ -156,7 +156,7 @@ class PotentialityFlowRouter(Component):
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
         if self.route_on_diagonals and self._raster:
-            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+            self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self.grid.empty('link')
 
@@ -190,7 +190,7 @@ class PotentialityFlowRouter(Component):
 
         if not self.route_on_diagonals or not self._raster:
             while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
+                K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 incoming_K_sum = (pos_incoming_link_grads*K_link_ends
                                   ).sum(axis=1) + self._min_slope_thresh
                 self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
@@ -201,21 +201,25 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link[:] = upwind_K * g
             self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
+            active_diagonal_dirs_at_node = (
+                self.grid.diagonal_dirs_at_node *
+                (self.grid.diagonal_status_at_node == ACTIVE_LINK))
+
             # grad on diags:
-            gwd = np.empty(grid._number_of_d8_links, dtype=float)
+            gwd = np.empty(grid.number_of_d8, dtype=float)
             gd = gwd[grid.number_of_links:]
-            gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
-            gd /= (grid._length_of_link_with_diagonals[grid.number_of_links:])
+            gd[:] = (z[grid.nodes_at_diagonal[:, 1]] - z[grid.nodes_at_diagonal[:, 0]])
+            gd /= grid._length_of_d8[grid.number_of_links:]
             if self.equation != 'default':
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
-            diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
-                                       grid._diag_active_link_dirs_at_node)
+            diag_grad_at_node_w_dir = (gwd[grid.d8s_at_node[:, 4:]] *
+                                       active_diagonal_dirs_at_node)
 
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
             while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
-                K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
+                K_link_ends = self._K[grid.adjacent_nodes_at_node]
+                K_diag_ends = self._K[grid.diagonal_adjacent_nodes_at_node]
                 incoming_K_sum = ((pos_incoming_link_grads*K_link_ends
                                    ).sum(axis=1) +
                                   (pos_incoming_diag_grads*K_diag_ends
@@ -228,13 +232,13 @@ class PotentialityFlowRouter(Component):
             # edges, if present.
             upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
             upwind_diag_K = np.where(
-                z[grid._diag_link_tonode] > z[grid._diag_link_fromnode],
-                self._K[grid._diag_link_tonode],
-                self._K[grid._diag_link_fromnode])
+                z[grid.nodes_at_diagonal[:, 1]] > z[grid.nodes_at_diagonal[:, 0]],
+                self._K[grid.nodes_at_diagonal[:, 1]],
+                self._K[grid.nodes_at_diagonal[:, 0]])
             self._discharges_at_link[:grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links:] = (
                 upwind_diag_K * gd)
-            self._discharges_at_link[grid._all_d8_inactive_links] = 0.
+            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
         # there is no sensible way to save discharges at links, if we route
@@ -266,7 +270,7 @@ class PotentialityFlowRouter(Component):
     def discharges_at_links(self):
         """Return the discharges at links.
 
-        Note that if diagonal routing, this will return number_of_d8_links.
+        Note that if diagonal routing, this will return number_of_d8.
         Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link

@@ -343,7 +343,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # we have a raster grid, there will be four neighbors and four
                 # proportions, some of which may be zero and some between 0 and
                 # 1.
-                self.disch_in[self.grid.neighbors_at_node[n]] += (outflow
+                self.disch_in[self.grid.adjacent_nodes_at_node[n]] += (outflow
                     * self.flow_accum.flow_director.proportions[n])
 
                 # TODO: the above is enough to implement the solution for flow

@@ -136,6 +136,17 @@ class Flexure(Component):
 
     _name = 'Flexure'
 
+    _cite_as = """@article{hutton2008sedflux,
+        title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
+        author={Hutton, Eric WH and Syvitski, James PM},
+        journal={Computers \& Geosciences},
+        volume={34},
+        number={10},
+        pages={1319--1337},
+        year={2008},
+        publisher={Pergamon}
+        }"""
+
     _input_var_names = (
         'lithosphere__overlying_pressure_increment',
     )
