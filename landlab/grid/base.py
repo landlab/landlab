@@ -1152,24 +1152,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         return self._nodes_at_link[:, 0]
 
     @property
-    def link_at_face(self):
-        """Get array of links associated with faces.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> mg.link_at_face[0:3]
-        array([5, 6, 7])
-
-        LLCATS: LINF FINF CONN
-        """
-        try:
-            return self._link_at_face
-        except AttributeError:
-            return self._create_link_at_face()
-
-    @property
     def number_of_nodes(self):
         """Total number of nodes.
 
@@ -1693,28 +1675,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         LLCATS: BC LINF
         """
         return set_status_at_link(self.status_at_node[self.nodes_at_link])
-
-    @property
-    @return_readonly_id_array
-    def link_at_face(self):
-        """Get links associated with faces.
-
-        Returns an array of the link IDs for the links that intersect
-        faces.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4))
-        >>> mg.link_at_face
-        array([ 4,  5,  7,  8,  9, 11, 12])
-
-        LLCATS: LINF FINF MEAS
-        """
-        try:
-            return self._link_at_face
-        except AttributeError:
-            return self._create_link_at_face()
 
     def _create_number_of_links_at_node(self):
         """Find and record how many links are attached to each node.
@@ -2645,30 +2605,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         LLCATS: DEPR FINF MEAS
         """
         return self.width_of_face
-
-    def _create_link_at_face(self):
-        """Set up link_at_face array.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3)
-        >>> hg.link_at_face
-        array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
-        """
-        num_faces = len(self.width_of_face)
-        self._link_at_face = numpy.empty(num_faces, dtype=int)
-        face_id = 0
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for link in range(self.number_of_links):
-            tc = self.cell_at_node[node_at_link_tail[link]]
-            hc = self.cell_at_node[node_at_link_head[link]]
-            if tc != BAD_INDEX_VALUE or hc != BAD_INDEX_VALUE:
-                self._link_at_face[face_id] = link
-                face_id += 1
-
-        return self._link_at_face
 
     def _create_cell_areas_array_force_inactive(self):
         """Set up an array of cell areas that is n_nodes long.
