@@ -989,30 +989,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         self._unit_vec_at_node = unit_vec_at_link[self.links_at_node].sum(axis=1)
         self._unit_vec_at_link = unit_vec_at_link[:-1, :]
 
-    def _setup_link_at_face(self):
-        """Set up links associated with faces.
-
-        Returns an array of the link IDs for the links which intersect the
-        faces specificed by *face_id*. *face_id* can be either a scalar or an
-        array.
-
-        Parameters
-        ----------
-        face_id : int
-            Face of a cell.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> mg.link_at_face[0]
-        5
-        >>> mg.link_at_face[(0, 4, 13), ]
-        array([ 5, 10, 21])
-        """
-        self._link_at_face = squad_faces.link_at_face(self.shape)
-        return self._link_at_face
-
     def _create_face_at_link(self):
         """Set up array of faces associated with links.
 
