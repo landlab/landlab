@@ -33,7 +33,7 @@ def setup_grid():
     """
     from landlab import RasterModelGrid
     globals().update({
-        'rmg': RasterModelGrid(4, 5, 1.)
+        'rmg': RasterModelGrid((4, 5), 1.)
     })
 
 
