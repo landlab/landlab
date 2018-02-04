@@ -1122,7 +1122,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         LLCATS: GINF NINF
         """
-        return self._ncols - 2
+        return self.shape[1] - 2
 
     @property
     def number_of_cell_rows(self):
@@ -1139,7 +1139,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         LLCATS: GINF CINF
         """
-        return self._nrows - 2
+        return self.shape[0] - 2
 
     @property
     @deprecated(use='dx', version='0.5')
