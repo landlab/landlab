@@ -741,8 +741,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         # active links. We start off creating a list of all None values. Only
         # those links that cross a face will have this None value replaced with
         # a face ID.
-        self._face_at_link = sgrid.face_at_link(self.shape,
-                                                actives=self.active_links)
+        # self._face_at_link = sgrid.face_at_link(self.shape,
+        #                                         actives=self.active_links)
         self._create_cell_areas_array()
 
         # List of neighbors for each cell: we will start off with no
@@ -988,35 +988,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         self._unit_vec_at_node = unit_vec_at_link[self.links_at_node].sum(axis=1)
         self._unit_vec_at_link = unit_vec_at_link[:-1, :]
-
-    def _create_face_at_link(self):
-        """Set up array of faces associated with links.
-
-        Return an array of the face IDs for the faces that intersect the links
-        specified by *link_id*. *link_id* can be either a scalar or array. If
-        *link_id* is not given, return the faces of all links.
-
-        If a link does not have an associated face (e.g., some inactive links),
-        that entry in the returned array is set to `BAD_INDEX_VALUE`.
-
-        Parameters
-        ----------
-        link_id : array-like, optional
-            Grid links.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> rmg.face_at_link[5]
-        0
-        >>> faces = rmg.face_at_link[(0, 1, 15, 19, 12, 26), ]
-        >>> faces[faces == BAD_INDEX_VALUE] = -1
-        >>> faces
-        array([-1, -1,  8, 11,  6, -1])
-        """
-        self._face_at_link = squad_faces.face_at_link(self.shape)
-        return self._face_at_link
 
     @property
     def extent(self):
