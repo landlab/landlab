@@ -1152,27 +1152,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         return self._nodes_at_link[:, 0]
 
     @property
-    def face_at_link(self):
-        """Get array of faces associated with links.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> mg.face_at_link[5:7]
-        array([0, 1])
-        >>> np.all(mg.face_at_link[:5]==BAD_INDEX_VALUE)
-        True
-
-        LLCATS: FINF LINF CONN
-        """
-        try:
-            return self._face_at_link
-        except AttributeError:
-            return self._create_face_at_link()
-
-    @property
     def link_at_face(self):
         """Get array of links associated with faces.
 
@@ -2666,28 +2645,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         LLCATS: DEPR FINF MEAS
         """
         return self.width_of_face
-
-    @property
-    @make_return_array_immutable
-    def width_of_face(self):
-        """Width of grid faces.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, HexModelGrid
-        >>> mg = RasterModelGrid((3, 4), (1., 2.))
-        >>> mg.width_of_face
-        array([ 2.,  2.,  2.,  1.,  1.,  1.,  1.])
-        >>> mg = HexModelGrid(3, 3)
-        >>> np.allclose(mg.width_of_face, 0.57735027)
-        True
-
-        LLCATS: FINF MEAS
-        """
-        try:
-            return self._face_width
-        except AttributeError:
-            return self._create_face_width()
 
     def _create_face_at_link(self):
         """Set up face_at_link array.
