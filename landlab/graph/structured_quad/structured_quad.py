@@ -166,10 +166,14 @@ class StructuredQuadGraphExtras(object):
         return getattr(self, 'nodes_at_{edge}_edge'.format(edge=edge))
 
     @property
+    @store_result_in_grid()
+    @read_only_array
     def horizontal_links(self):
         return setup_horizontal_links(self.shape)
 
     @property
+    @store_result_in_grid()
+    @read_only_array
     def vertical_links(self):
         return setup_vertical_links(self.shape)
 
