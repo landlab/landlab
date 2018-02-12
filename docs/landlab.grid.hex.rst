@@ -91,6 +91,7 @@ Information about nodes
     ~landlab.grid.hex.HexModelGrid.nodes
     ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_link
     ~landlab.grid.hex.HexModelGrid.nodes_at_patch
     ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
@@ -134,6 +135,7 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.links_at_patch
     ~landlab.grid.hex.HexModelGrid.node_at_link_head
     ~landlab.grid.hex.HexModelGrid.node_at_link_tail
+    ~landlab.grid.hex.HexModelGrid.nodes_at_link
     ~landlab.grid.hex.HexModelGrid.number_of_active_links
     ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
     ~landlab.grid.hex.HexModelGrid.number_of_links

@@ -114,6 +114,7 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
     ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
     ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
     ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
@@ -162,6 +163,7 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.links_at_patch
     ~landlab.grid.raster.RasterModelGrid.node_at_link_head
     ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
     ~landlab.grid.raster.RasterModelGrid.number_of_active_links
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
     ~landlab.grid.raster.RasterModelGrid.number_of_links

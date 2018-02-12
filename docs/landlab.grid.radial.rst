@@ -89,6 +89,7 @@ Information about nodes
     ~landlab.grid.radial.RadialModelGrid.node_x
     ~landlab.grid.radial.RadialModelGrid.node_y
     ~landlab.grid.radial.RadialModelGrid.nodes
+    ~landlab.grid.radial.RadialModelGrid.nodes_at_link
     ~landlab.grid.radial.RadialModelGrid.nodes_at_patch
     ~landlab.grid.radial.RadialModelGrid.number_of_core_nodes
     ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
@@ -130,6 +131,7 @@ Information about links
     ~landlab.grid.radial.RadialModelGrid.links_at_patch
     ~landlab.grid.radial.RadialModelGrid.node_at_link_head
     ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
+    ~landlab.grid.radial.RadialModelGrid.nodes_at_link
     ~landlab.grid.radial.RadialModelGrid.number_of_active_links
     ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
     ~landlab.grid.radial.RadialModelGrid.number_of_links

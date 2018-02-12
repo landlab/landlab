@@ -85,6 +85,7 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
@@ -124,6 +125,7 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
