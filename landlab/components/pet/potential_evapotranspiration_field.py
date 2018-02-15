@@ -288,8 +288,10 @@ class PotentialEvapotranspiration(Component):
         precipitation: float, required for method(s): PenmanMonteith
             Observed daily precipitation (mm/day)
         """
-        if Tavg == None:
-            Tavg = (Tmax+Tmin)/2.
+        if self._method in ['PriestleyTaylor', 'MeasuredRadiationPT',
+                            'PenmanMonteith']:
+            if Tavg == None:
+                Tavg = (Tmax+Tmin)/2.
         if self._method == 'Constant':
             self._PET_value = const_potential_evapotranspiration
         elif self._method == 'PriestleyTaylor':
