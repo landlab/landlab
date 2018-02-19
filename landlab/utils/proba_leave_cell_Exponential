@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 12 10:08:08 2018
+
+@author: Margaux
+"""
+import numpy as np
+from matplotlib.pyplot import figure, plot, legend, xlabel, ylabel
+
+
+dx= 100
+dt = 100
+kappa = 0.01
+radius = 0.005
+S = 0.1
+
+
+time = np.arange(0,50000,dt)
+
+lambda_mean = time * (kappa * S) / (2 * radius)
+
+proba_leave_cell = np.zeros(time.size)
+proba_leave_cell[0] = 0
+for i in range(1,500):
+    proba_leave_cell[i] = np.exp((dx / 2) / lambda_mean[i])
+
+plot(time,lambda_mean, 'k', label='S=0.1')
+
+
+xlabel('time (y)')
+ylabel('Mean travel disatnce (m)')
+legend(loc='upper right')
+
+figure()
+plot(time,proba_leave_cell)

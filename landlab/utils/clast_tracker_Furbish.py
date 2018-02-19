@@ -83,7 +83,7 @@ class ClastSet(object):
         self._deposition__thickness = np.zeros(grid.number_of_nodes)
         self._deposition__flux = np.zeros(grid.number_of_nodes)
 
-    def clast_solver(self, dt=1., uplift=None):
+    def clast_solver_furbish(self, dt=1., critical_slope=1.2, uplift=None):
 
 # Repeated from above??
         if self.erosion_method == 'TLDiff':
@@ -99,6 +99,7 @@ class ClastSet(object):
                     self._sediment__flux_in = obj.qs_in
 
         # Store various values that will be used
+        self._Sc = critical_slope
         self._dt = dt
         self._erosion__depth = self._erosion_rate * self._dt
         self._deposition__thickness = self._deposition_rate * self._dt
@@ -248,6 +249,20 @@ class ClastSet(object):
 
         R = np.random.rand(1)
 
+        
+        # Furbish & Roering 2013: Disentrainment rate = proba that a particle
+        # will come to rest within [r, r+dr] given that it moved to a distance
+        # at least as far as r, starting from x'
+        
+        lambda_0 = 1.
+        Sc = self._Sc
+        S = self._elev[self._clast__node[i]] - self._elev[self._grid.at_node['flow__receiver_node'][self._clast__node[i]]]
+        
+        proba_rest = (1 / lambda_0) * (((2 * Sc) / (Sc + S))-1)
+        
+        
+        
+        
         if erosion > 0:
             if potential_distance in (self._grid.dx, self._grid.dy):
 
