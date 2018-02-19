@@ -11,7 +11,7 @@ from landlab import Component
 import numpy as np
 
 
-class TransportLengthHillslopeDiffuser(Component):
+class TransportLengthHillslopeDiffuser2(Component):
 
     """
     Hillslope diffusion component in the style of Carretier et al. (2016,
@@ -250,33 +250,34 @@ class TransportLengthHillslopeDiffuser(Component):
             # Calculate transport coefficient
             # When S ~ Scrit, d_coeff is set to "infinity", for stability and
             # so that there is no deposition
-            if self.steepest[i] >= self.slope_crit:
-                self.d_coeff[i] = 1000000000.
-            else:
-                self.d_coeff[i] = 1 / (
-                        1-(np.power(((self.steepest[i])/self.slope_crit), 2)))
-
+#            if self.steepest[i] >= self.slope_crit:
+#                self.d_coeff[i] = 1000000000.
+#            else:
+#                self.d_coeff[i] = 1 / (
+#                        1-(np.power(((self.steepest[i])/self.slope_crit), 2)))
+            self.d_coeff[i] = 1
+            
         # Calculate deposition rate on node
         self.depo[cores] = self.flux_in[cores] / self.d_coeff[cores]
 
         # Calculate erosion rate on node (positive value)
         # If S > Scrit, erosion is simply set for the slope to return to Scrit
         # Otherwise, erosion is slope times erodibility coefficent
-        for i in self.grid.core_nodes:
-            if self.steepest[i] > self.slope_crit:
-                self.erosion[i] = dx * (
-                            self.steepest[i] - self.slope_crit) / (100 * dt)
-            else:
-                self.erosion[i] = self.k * self.steepest[i]
+#        for i in self.grid.core_nodes:
+#            if self.steepest[i] > self.slope_crit:
+#                self.erosion[i] = dx * (
+#                            self.steepest[i] - self.slope_crit) / (100 * dt)
+#            else:
+        self.erosion[cores] = self.k * self.steepest[cores]
 
-            # Update elevation
-            self.elev[i] += (-self.erosion[i] + self.depo[i]) * dt
+        # Update elevation
+        self.elev[cores] += (-self.erosion[cores] + self.depo[cores]) * dt
 
         # Calculate transfer rate over node
-        self.trans[cores] = self.flux_in[cores]- self.depo[cores]
+        self.trans[cores] = self.flux_in[cores] - self.depo[cores]
 
         # Calculate outflux rate
-        self.flux_out[:] = self.erosion + self.trans
+        self.flux_out[cores] = self.erosion[cores] + self.trans[cores]
 
     def run_one_step(self, dt):
         """
