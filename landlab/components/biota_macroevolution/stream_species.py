@@ -15,6 +15,18 @@ class StreamSpecies(Species):
         
         super().__init__(timestep, range_mask, parent_species_id)
     
+    def disperse(self, grid, destination_patches):        
+        stream_nodes = grid.at_node['stream']
+        
+        for patch in destination_patches:
+            
+        
+        nodes = np.all([self.range_mask, stream_nodes], 0)
+        
+        self.habitat_patches = patches
+        
+        
+    
     def update_range(self, grid, timestep, extinction_area_threshold):
         
         if 'drainage_area' not in grid.at_node.keys():

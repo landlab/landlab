@@ -3,8 +3,10 @@
 Component written by Nathan Lyons beginning August 20, 2017.
 """
 
+from collections import namedtuple
 from copy import deepcopy
 from landlab import Component
+from landlab.components.biota_macroevolution import habitat_patch as hp
 from landlab.plot import imshow_grid
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
@@ -18,7 +20,8 @@ from uuid import UUID
 class BiotaEvolver(Component):
     """TODO: Description.
 
-    SEAMLESS (Spatially Explicit Area Model of Landscape Evolution by SimulationS)
+    This component is adapted from SEAMLESS (Spatially Explicit Area Model of
+    Landscape Evolution by SimulationS).
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -63,7 +66,8 @@ class BiotaEvolver(Component):
         self._grid = grid
         self._extinction_area_threshold = extinction_area_threshold
         self.timestep = -1
-        self.at_timestep = {'time': [], 'captured_area': []}
+        self.at_timestep = {'time': [], 'captured_area': [],
+                            'habitat_patches': []}
         self.species = []
     
     @property
@@ -152,6 +156,53 @@ class BiotaEvolver(Component):
                 
         return tree
     
+    # Habitat patch methods.        
+    
+    def set_initial_habitat_patches(self, time, patches):
+        self.at_timestep[0]['habitat_patches'].append(patches)  
+    
+    def _update(self, time, new_patches):
+        prior_mg = self._prior_grid
+        prior_patches = self.at_timestep['habitat_patches'][self.timestep - 1]
+        
+        patch_types = []
+        patch_vectors = []
+        for pt in patch_types:
+            type_prior = list(filter(lambda elm: isinstance(elm, pt),
+                                     prior_patches))
+            type_new = list(filter(lambda elm: isinstance(elm, pt),
+                                   new_patches))
+            patch_vectors.append(pt._get_stream_patch_vectors(type_prior,
+                                                              type_new,
+                                                              prior_mg, time))
+
+        self._update_species(self, time, patch_vectors)
+        
+    def _update_species(self, time, patch_vectors):
+        
+        mg = self._grid
+        
+        # Update only the species extant in the prior time.
+        if self.timestep == 0:
+            prior_species = self.species
+        else:
+            prior_species = self.species_at_timestep(self.timestep - 1)
+        
+        new_species = []
+                
+        for species in prior_species:
+            
+            # Disperse species.
+            destinations = []
+            for p in species.habitat_patches:
+                i = np.where(p == patch_vectors['origin'])
+                destinations.extend(patch_vectors['destinations'][i])
+                
+            species.disperse(mg, destinations)
+        
+            new_species.append(species.speciate())
+            
+    
     # Print methods.
     
     def print_phylogeny(self):
@@ -170,7 +221,6 @@ class BiotaEvolver(Component):
                     print('        ', species.identifier,
                           species.timesteps_existed)
 
-    
     # Plotting methods.
         
     def plot_number_of_species(self):

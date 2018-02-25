@@ -24,3 +24,13 @@ class Species(object):
         captured_nodes = []
         
         return child_species, captured_nodes
+
+    def disperse(self, grid, stream_min_area, destination_patches):
+        stream_nodes = grid.at_node['stream']
+        
+        for patch in destination_patches:
+            
+        
+        nodes = np.all([self.range_mask, stream_nodes], 0)
+        
+        self.range_mask = nodes
