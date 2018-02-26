@@ -18,7 +18,7 @@ class StreamSpecies(Species):
     def disperse(self, grid, destination_patches):        
         stream_nodes = grid.at_node['stream']
         
-        for patch in destination_patches:
+#        for patch in destination_patches:
             
         
         nodes = np.all([self.range_mask, stream_nodes], 0)

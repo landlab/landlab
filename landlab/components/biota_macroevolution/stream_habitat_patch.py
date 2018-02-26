@@ -10,45 +10,49 @@ class StreamPatch(HabitatPatch):
 
     @staticmethod
     def get_patches_with_drainage_area_threshold(grid, area_threshold, time):
-            
+
         grid.at_node['watershed'] = get_watershed_masks_with_area_threshold(grid,
                     area_threshold)
         outlets = np.unique(grid.at_node['watershed'])
         outlets = np.delete(outlets, np.where(outlets == -1))
-                
+
         patches = []
-        
+
         for outlet in outlets:
             watershed_mask = grid.at_node['watershed'] == outlet
             patches.append(StreamPatch(time, watershed_mask))
-            
+
         return patches
 
     @staticmethod
     def _get_patch_vectors(prior_patches, current_patches, prior_grid, time):
-        
+
         vectors = {'origin': [], 'destinations': [], 'node_was_captured': []}
-    
+
         ps = np.vstack(prior_patches)
         cs = np.vstack(current_patches)
-        
+
         for cp in current_patches:
             vectors['origin'].append(cp)
-    
+
             priors_in_cp = np.all([cp == ps, ps], 0)
             indices = np.argwhere(priors_in_cp)[:,0]
-            priors_overlapping_cp = current_patches[indices]
-    
+
+            if not indices:
+                priors_overlapping_cp = []
+            else:
+                priors_overlapping_cp = current_patches[indices]
+
             if len(priors_overlapping_cp) == 1:
                 pp = priors_overlapping_cp[0]
                 currents_in_prior = np.all([pp == cs, cs], 0)
                 indices = np.argwhere(currents_in_prior)[:,0]
                 overlapping_currents = current_patches[indices]
-    
+
                 if len(overlapping_currents) == 1:
                     # cp is actually pp.
                     cp = pp
-    
+
             elif len(priors_overlapping_cp) > 1:
                 mean_z = []
                 prior_z = prior_grid.at_node['topographic__elevation']
@@ -57,11 +61,11 @@ class StreamPatch(HabitatPatch):
                     op_nodes = op.at_time[time]
                     stream_nodes = np.all([prior_stream_nodes, op_nodes], 0)
                     mean_z.append(np.mean(prior_z[stream_nodes]))
-                    
+
                 cp = priors_overlapping_cp[np.argmin(mean_z)]
-            
+
             vectors['destinations'].append(priors_overlapping_cp)
-            
+
             vectors['node_was_captured'].append(priors_in_cp[indices])
-        
+
         return vectors
