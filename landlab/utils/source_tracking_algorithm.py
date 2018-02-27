@@ -1,13 +1,16 @@
-
 """
-26 Jan 2016
-last_edited: 08 Jun 2017
+Source Tracking Algorithm
++++++++++++++++++++++++++
+.. autosummary::
+    :toctree: generated/
+    ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
+    ~landlab.utils.source_tracking_algorithm.track_source
+    ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions
+"""
+"""
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
-Ref 1: source_tracking_algorithm_user_manual. @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/SourceTrackingAlgorithm_RefManual_draft.docx
-
-Ref 2: 'The Landlab LandslideProbability Component User Manual' @
+Ref 1: 'The Landlab LandslideProbability Component User Manual' @
 https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
 
 MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
@@ -34,14 +37,14 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
     how-flow-direction-works.htm'
     
-    Parameters:
+    Parameters
     ----------
     grid: RasterModelGrid
         A grid.
     flow_dir_arc: ndarray of int, shape (n_nodes, )
         flow directions derived from ESRII ArcGIS.
     
-    Returns:
+    Returns
     -------
     receiver_nodes: ndarray of int, shape (n_nodes, )
         downstream node at each node. Note that this array gives the
@@ -103,9 +106,9 @@ def track_source(grid, hsd_ids, flow_directions=None):
     landscape. Alternatively, one can use the node ids of MD
     (grid.nodes.flatten()) as input for hsd_ids.
     
-    For more information, refer Ref 1 and Ref 2.
+    For more information, refer Ref 1.
     
-    Parameters:
+    Parameters
     ----------
     grid: RasterModelGrid
         A grid.
@@ -116,7 +119,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         downstream node at each node. Alternatively, this data can be
         provided as a nodal field 'flow__receiver_node' on the grid.
     
-    Returns:
+    Returns
     -------
     (hsd_upstr, flow_accum): (dictionary, ndarray of shape (n_nodes))
         'hsd_upstr' maps each grid node to corresponding
@@ -219,13 +222,13 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
     of track_source() or refer source_tracking_algorithm_user_manual for
     more information.
     
-    Parameters:
+    Parameters
     ----------
     hsd_upstr: dictionary
         'hsd_upstr' maps each MD grid node to corresponding
         contributing upstream HSD ids.
         
-    Returns:
+    Returns
     -------
     (unique_ids, fractions): (dictionary, dictionary)
         Tuple of data. 'unique_ids' maps each MD node with all upstream HSD

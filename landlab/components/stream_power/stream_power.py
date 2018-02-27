@@ -435,9 +435,14 @@ class StreamPowerEroder(Component):
 
         defined_flow_receivers = np.not_equal(self._grid['node'][
             link_mapping], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid._length_of_link_with_diagonals[
-            self._grid['node'][link_mapping][
-                defined_flow_receivers]]
+
+        try:
+            length_of_link = self._grid.length_of_d8
+        except AttributeError:
+            length_of_link = self._grid.length_of_link
+
+        flow_link_lengths = length_of_link[
+            self._grid.at_node[link_mapping][defined_flow_receivers]]
         flow_receivers = self.grid['node'][flow_receiver]
 
         if W_if_used is not None:
@@ -568,7 +573,7 @@ class StreamPowerEroder(Component):
             threshdt = self.sp_crit * dt
 
         # solve using Brent's Method in Cython for Speed
-        if type(threshdt) == float:
+        if isinstance(threshdt, float):
             brent_method_erode_fixed_threshold(
                 upstream_order_IDs, flow_receivers, threshdt, self.alpha,
                 self._n, z)

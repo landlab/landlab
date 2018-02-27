@@ -141,6 +141,22 @@ class OverlandFlow(Component):
 """
     _name = 'OverlandFlow'
 
+    _cite_as = """@article{adams2017landlab,
+	title={The Landlab v1. 0 OverlandFlow component: a Python
+            tool for computing shallow-water flow across watersheds},
+        author={Adams, Jordan M and Gasparini, Nicole M and
+            Hobley, Daniel EJ and Tucker, Gregory E and
+            Hutton, Eric WH and Nudurupati, Sai S and
+            Istanbulluoglu, Erkan},
+        journal={Geoscientific Model Development},
+        volume={10},
+        number={4},
+        pages={1645},
+        year={2017},
+        publisher={Copernicus GmbH}
+        }
+    """
+
     _input_var_names = (
         'surface_water__depth',
         'topographic__elevation',
@@ -690,7 +706,7 @@ class OverlandFlow(Component):
 
         discharge_vals = discharge_vals.reshape(self.grid.number_of_nodes, 4)
 
-        discharge_vals = discharge_vals.sum(axis=1.0)
+        discharge_vals = discharge_vals.sum(axis=1)
 
         return discharge_vals
 
@@ -735,7 +751,7 @@ def find_active_neighbors_for_fixed_links(grid):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 1,
            2, 0, 0, 0, 1,
-           2, 1, 1, 1, 1], dtype=int8)
+           2, 1, 1, 1, 1], dtype=uint8)
 
     >>> grid.fixed_links
     array([ 5,  6,  7,  9, 18])
