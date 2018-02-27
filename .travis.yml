@@ -1,6 +1,6 @@
 env:
   matrix:
-  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=0 COVERALLS=1
+  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=1 COVERALLS=1
   - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 COVERALLS=0
   - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 COVERALLS=0
   global:
@@ -48,7 +48,7 @@ script:
 - conda build -q .conda-recipe --old-build-string
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
-    conda install -q landlab --use-local
+    conda install -q landlab --use-local -c $(dirname $(conda build --output ./.conda-recipe/ --old-build-string))
     (cd docs && make html 2> /dev/null)
   fi
   # - bash .ci/travis/run_travis_test.sh
