@@ -272,8 +272,8 @@ class LinearDiffuser(Component):
             # note all these terms are deliberately loose, as we won't always
             # be dealing with topo
         else:
-            g = np.zeros(self.grid._number_of_d8_links, dtype=float)
-            qs = np.zeros(self.grid._number_of_d8_links, dtype=float)
+            g = np.zeros(self.grid.number_of_d8, dtype=float)
+            qs = np.zeros(self.grid.number_of_d8, dtype=float)
             self.g = g
             self.qs = qs
             # now we have to choose what the face width of a diagonal is...
@@ -284,7 +284,7 @@ class LinearDiffuser(Component):
             # Note that this WON'T affect the inferred cell size - that's
             # still derived from the rectangle.
             self._d8width_face_at_link = np.empty(
-                self.grid._number_of_d8_links)
+                self.grid.number_of_d8)
             # note there will be null entries here
             # by our defs, every active link must have a face.
             # calc the length of a diag "face":
@@ -300,8 +300,6 @@ class LinearDiffuser(Component):
             # ^ this operation pastes in faces where there are none, but
             # we'll never use them
             self._d8width_face_at_link[self.grid.number_of_links:] = diag_face
-            self._all_d8_active_links = np.union1d(
-                self.grid.active_links, self.grid._diag_active_links)
 
         self._vertlinkcomp = np.sin(self.grid.angle_of_link)
         self._hozlinkcomp = np.cos(self.grid.angle_of_link)
@@ -374,8 +372,6 @@ class LinearDiffuser(Component):
         self.fixed_grad_offsets = (vals[self.fixed_grad_nodes] -
                                    vals[self.fixed_grad_anchors])
         if self._use_diags:
-            self._all_d8_active_links = np.union1d(
-                self.grid.active_links, self.grid._diag_active_links)
             self.g.fill(0.)
 
         if self._kd_on_links or self._use_patches:
@@ -515,23 +511,23 @@ class LinearDiffuser(Component):
                 # NB: this is dirty code. It uses the obsolete diagonal data
                 # structures, and necessarily has to do a bunch of mapping
                 # on the fly.
+
                 # remap the kds onto the links, as necessary
-                if type(self._kd) is np.ndarray:
-                    d8link_kd = np.empty(self.grid._number_of_d8_links,
+                if isinstance(self._kd, np.ndarray):
+                    d8link_kd = np.empty(self.grid.number_of_d8,
                                          dtype=float)
                     d8link_kd[self.grid.active_links] = kd_activelinks
-                    d8link_kd[self.grid._diag_active_links] = np.amax(
-                        (self._kd[self.grid._diag_activelink_fromnode],
-                         self._kd[self.grid._diag_activelink_tonode]), axis=0)
+                    d8link_kd[self.grid.active_diagonals] = np.amax(
+                        self._kd[self.grid.nodes_at_diagonal[self.grid.active_diagonals]],
+                                 axis=1).flatten()
                 else:
                     d8link_kd = self._kd
                 self.g[self.grid.active_links] = self.grid.calc_grad_at_link(
                     z)[self.grid.active_links]
-                self.g[self.grid._diag_active_links] = ((
+                self.g[self.grid.active_diagonals] = ((
                     z[self.grid._diag_activelink_tonode] -
                     z[self.grid._diag_activelink_fromnode]) /
-                        self.grid._length_of_link_with_diagonals[
-                            self.grid._diag_active_links])
+                        self.grid.length_of_d8[self.grid.active_diagonals])
                 self.qs[:] = -d8link_kd * self.g
 
                 total_flux = self.qs * self._d8width_face_at_link  # nlinks
@@ -539,8 +535,8 @@ class LinearDiffuser(Component):
                     total_flux[self.grid.links_at_node] *
                     self.grid.active_link_dirs_at_node).sum(axis=1)
                 totalflux_allnodes += (
-                    total_flux[self.grid._diag_links_at_node] *
-                    self.grid._diag_active_link_dirs_at_node).sum(axis=1)
+                    total_flux[self.grid.d8s_at_node[:, 4:]] *
+                    self.grid.active_diagonal_dirs_at_node).sum(axis=1)
                 self.dqsds[self.grid.node_at_cell] = -totalflux_allnodes[
                     self.grid.node_at_cell] / self.grid.area_of_cell
 

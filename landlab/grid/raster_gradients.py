@@ -154,9 +154,9 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     LLCATS: LINF GRAD
     """
     if out is None:
-        out = np.empty(grid.number_of_active_links, dtype=float)
+        out = np.empty(len(grid.active_links), dtype=float)
 
-    if len(out) != grid.number_of_active_links:
+    if len(out) != len(grid.active_links):
         raise ValueError('output buffer does not match that of the grid.')
 
     # grads = gradients.calculate_diff_at_active_links(grid, node_values,
@@ -239,7 +239,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
-    neighbors = grid.active_neighbors_at_node[node_ids]
+    neighbors = grid.active_adjacent_nodes_at_node[node_ids]
     if BAD_INDEX_VALUE != -1:
         neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
@@ -313,7 +313,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
-    values_at_diagonals = node_values[grid._get_diagonal_list(node_ids)]
+    values_at_diagonals = node_values[grid.diagonal_adjacent_nodes_at_node[node_ids]]
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
@@ -425,7 +425,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     padded_node_values[:-1] = node_values
     node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
-    neighbors = grid.active_neighbors_at_node[node_ids]
+    neighbors = grid.active_adjacent_nodes_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
         values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
@@ -608,14 +608,14 @@ def _calc_subtriangle_unit_normals_at_node(grid,
 
     # identify the grid neigbors at each location
     I = np.arange(grid.number_of_nodes)
-    P = grid.neighbors_at_node[I, 0]
-    Q = grid._diagonal_neighbors_at_node[I, 0]
-    R = grid.neighbors_at_node[I, 1]
-    S = grid._diagonal_neighbors_at_node[I, 1]
-    T = grid.neighbors_at_node[I, 2]
-    U = grid._diagonal_neighbors_at_node[I, 2]
-    V = grid.neighbors_at_node[I, 3]
-    W = grid._diagonal_neighbors_at_node[I, 3]
+    P = grid.adjacent_nodes_at_node[I, 0]
+    Q = grid.diagonal_adjacent_nodes_at_node[I, 0]
+    R = grid.adjacent_nodes_at_node[I, 1]
+    S = grid.diagonal_adjacent_nodes_at_node[I, 1]
+    T = grid.adjacent_nodes_at_node[I, 2]
+    U = grid.diagonal_adjacent_nodes_at_node[I, 2]
+    V = grid.adjacent_nodes_at_node[I, 3]
+    W = grid.diagonal_adjacent_nodes_at_node[I, 3]
 
     # get x, y, z coordinates for each location
     x_I = grid.node_x[I]
@@ -1727,7 +1727,7 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
             z[:-1] = elevs
         # proof code for bad indexing:
         diags = grid.diagonal_neighbors_at_node.copy()  # LL order
-        orthos = grid.neighbors_at_node.copy()
+        orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):
             dirs[dirs == BAD_INDEX_VALUE] = -1  # indexing to work

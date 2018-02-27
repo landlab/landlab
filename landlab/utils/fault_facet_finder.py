@@ -252,7 +252,7 @@ class find_facets(object):
             mean_slope = self.slopes[nodes_in_patch]
             while 1:
                 possible_neighbors = np.union1d(
-                    self.grid.active_neighbors_at_node[
+                    self.grid.active_adjacent_nodes_at_node[
                         nodes_in_patch].flat, self.possible_core_nodes)
                 neighbor_slopes = self.slopes[possible_neighbors]
                 low_tol_condition = np.greater(
