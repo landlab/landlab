@@ -3,76 +3,117 @@
 
 Plotting functions to extract and plot channel long profiles.
 
-Call all three functions in sequence from the main code.
+Two options for use are available. For an integrated single-line call, use
+analyze_channel_network_and_plot(). This function wraps the other three 
+functions and allows a single-line call to plot long profiles. First it uses 
+channel_nodes to get the nodes belonging to the channels. Then it uses 
+get_distances_upstream to get distances upstream. Finally it uses 
+plot_profiles to make a plot.
 
-The functions will return the long profile nodes, return distances upstream of
-those nodes, and plot the long profiles, respectively. The former two are, by
-necessity, ragged lists of arrays - the number of channels, then the nodes in
-that channel.
 
-You can specify how many different channels it handles
-using the number_of_channels parameter in the channel_nodes function (default
-is 1).
+You can specify how many differents stream networks it handles using the 
+number_of_channels parameter in the channel_nodes function (default is 1). The 
+specific node ids for the beginning of the chanel can be passed with the 
+keyword argument starting_nodes. If it is not specified, then the stream 
+networks(s) will be chosed based on largest terminal drainage area.  
 
-Two options exist for controlling which channels are plotted. Set
-main_channel_only = True (default) to plot only the largest drainage leading to
-model grid outlet node. main_channel_only = False will plot all channels with
-drainage below the threshold (default = 2 * grid cell area).
+                                                
+Two options exist for controlling which channels within a given stream network 
+are plotted. Set main_channel_only = True (default) to plot only the largest 
+drainage leading that network's outlet node. main_channel_only = False will 
+plot all channels within each network with drainage below the threshold value
+(default = 2 * grid cell area).
+
+The functions will return the profile datastructure profile_structure and the
+distance upstream datastructure distances_upstream. rofile structure is a list 
+of length number_of_channels. Each element of profile_structure is itself a 
+list of length number of stream  segments that drain to each of the starting 
+nodes. Each stream segment list contains the node ids of a stream segment from
+downstream to upstream. distances_upstream provides the equivalent structure
+but provides the distance upstream rather than the node id. 
 
 Examples
 ---------
->>> import numpy as np
+
+Start by importing necessary modules
+
 >>> from landlab import RasterModelGrid
->>> from landlab.components.flow_routing import FlowRouter
->>> from landlab.components import DepressionFinderAndRouter
->>> from landlab.components import Space
->>> from landlab.components import FastscapeEroder
->>> np.random.seed(seed = 5000)
+>>> from landlab.components import FlowAccumulator, FastscapeEroder, LinearDiffuser, DepressionFinderAndRouter
+>>> from landlab.plot import analyze_channel_network_and_plot
 
-Define grid and initial topography:
+Construct a grid and evolve some topography
 
-*  5x5 grid with baselevel in the lower left corner
-*  All other boundary nodes closed
-*  Initial topography is plane tilted up to the upper right with
-   noise
+>>> mg = RasterModelGrid(40, 60)
+>>> z = mg.add_zeros('topographic__elevation', at='node')
+>>> z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+>>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
+>>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
+>>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
+>>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+>>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
 
->>> mg = RasterModelGrid((5, 5), spacing=10.0)
->>> _ = mg.add_zeros('topographic__elevation', at='node')
->>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. +
-...     mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.)
->>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-...                                        left_is_closed=True,
-...                                        right_is_closed=True,
-...                                        top_is_closed=True)
->>> mg.set_watershed_boundary_condition_outlet_id(
-...     0, mg.at_node['topographic__elevation'], -9999.)
->>> fsc_dt = 100.
->>> space_dt = 100.
+Now run a simple landscape evolution model to develop a channel network. 
 
-Instantiate Fastscape eroder, flow router, and depression finder
+>>> dt = 100
+>>> for i in range(200):
+>>>     fa.run_one_step()
+>>>     flooded = np.where(fa.depression_finder.flood_status==3)[0]
+>>> 
+>>>     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
+>>>     ld.run_one_step(dt=dt)
+>>>     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
 
->>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
->>> fr = FlowRouter(mg)
->>> df = DepressionFinderAndRouter(mg)
+Now call analyze_channel_network_and_plot in order to plot the network. Note
+in general, we'd leave create_plot in its default value of create_plot=True,
+but we can't plot in the docstring
 
-Burn in an initial drainage network using the Fastscape eroder:
+>>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg,
+...                                                                          create_plot=False)
 
->>> for x in range(100):
-...     fr.run_one_step()
-...     df.map_depressions()
-...     flooded = np.where(df.flood_status == 3)[0]
-...     fsc.run_one_step(dt=fsc_dt, flooded_nodes=flooded)
-...     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
+This creates the profile structure and distances upstream structure. Since we
+used the default values this will make only one profile, the biggest channel 
+in the biggest stream network in the catchemnt. 
 
-analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
-                                    drainage_area='drainage_area',
-                                    flow_receiver='flow__receiver_node',
-                                    links_to_flow_receiver='flow__link_to_receiver_node',
-                                    number_of_channels=1,
-                                    main_channel_only = True,
-                                    starting_nodes=None,
-                                    threshold=None,
-                                    create_plot=True)
+We can change the default values to get additional channels or to plot all
+of the channels in a network. 
+
+For the next example, lets use a hexagonal grid. 
+
+>>> from landlab import HexModelGrid
+>>> mg = HexModelGrid(40, 20)
+>>> z = mg.add_zeros('topographic__elevation', at='node')
+>>> z += 200 + mg.y_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+>>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
+>>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+>>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
+
+Now run a simple landscape evolution model to develop a channel network. 
+
+>>> dt = 100
+>>> for i in range(200):
+>>>     fa.run_one_step()
+>>>     flooded = np.where(fa.depression_finder.flood_status==3)[0]
+>>>     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
+>>>     ld.run_one_step(dt=dt)
+>>>     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
+>>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg, 
+                                                                             threshold = 100, 
+                                                                             main_channel_only=False, 
+                                                                             number_of_channels=3)
+
+This will create four channel networks. The datastructures profile_structure 
+and distances_upstream will both be length 4
+
+>>> len(profile_structure) == len(distances_upstream) == 4
+True
+
+We can also specify exactly which node is the outlet for the channel. 
+
+>>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg, 
+                                                                             threshold = 100,
+                                                                             starting_nodes = [1],
+                                                                             number_of_channels=1)
+
 """
 
 
@@ -212,7 +253,8 @@ def channel_nodes(grid, starting_nodes, drainage_area, flow_receiver, number_of_
     number_of_channels : int, optional
         Total number of channels to plot. Default value is 1. If value is
         greater than 1 and starting_nodes is not specified, then the
-        number_of_channels largest channels based on drainage area will be used.
+        number_of_channels largest channels based on terminal drainage area 
+        will be used.
     threshold : float, optional
         Value to use for the minimum drainage area associated with a plotted
         channel segment. Default values is 2.0 x minimum grid cell area.
@@ -408,7 +450,8 @@ def analyze_channel_network_and_plot(grid,
     number_of_channels : int, optional
         Total number of channels to plot. Default value is 1. If value is
         greater than 1 and starting_nodes is not specified, then the
-        number_of_channels largest channels based on drainage area will be used.
+        number_of_channels largest channels based on terminal drainage area 
+        will be used.
     main_channel_only : Boolean, optional
         Flag to determine if only the main channel should be plotted, or if all
         stream segments with drainage area less than threshold should be
@@ -428,9 +471,15 @@ def analyze_channel_network_and_plot(grid,
     Returns
     ----------
     tuple, containing:
-        - profile_IDs datastructure
-        - the list of arrays dists_upstr, the distances from the final, lowest
-            node in the network.
+        profile_structure, the channel segment datastructure. 
+            profile structure is a list of length number_of_channels. Each 
+            element of profile_structure is itself a list of length number of 
+            stream segments that drain to each of the starting nodes. Each 
+            stream segment list contains the node ids of a stream segment from 
+            downstream to upstream. 
+        distances_upstream, the channel segment datastructure. 
+            A datastructure that parallels profile_structure but holds 
+            distances upstream instead of node IDs. 
         Both lists are number_of_channels long.
     """
     # get values for the four at-node arrays needed
@@ -453,13 +502,13 @@ def analyze_channel_network_and_plot(grid,
                                       main_channel_only)
 
     # use the profile IDs to get the distances upstream
-    dists_upstr = get_distances_upstream(grid,
-                                         profile_structure,
-                                         links_to_flow_receiver_values)
+    distances_upstream = get_distances_upstream(grid,
+                                                profile_structure,
+                                                links_to_flow_receiver_values)
 
     # if requested, create plot
     if create_plot:
-        plot_profiles(dists_upstr, profile_structure, field_values)
+        plot_profiles(distances_upstream, profile_structure, field_values)
 
     # return the profile IDS and the disances upstream.
-    return (profile_structure, dists_upstr)
+    return (profile_structure, distances_upstream)
