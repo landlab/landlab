@@ -303,7 +303,6 @@ def plot_channels_in_map_view(grid, profile_IDs, field='topographic__elevation',
     field, name or nnode long array to plot with imshow_grid
     profile_IDs: profile_IDs datastructure
     **kwargs: additional parameters to pass to imshow_grid
-
     """
 
     imshow_grid(grid, field, **kwargs)
@@ -326,6 +325,10 @@ def analyze_channel_network_and_plot(grid,
     vs the quantity stored at the model grid field give by the keyword argument
     `field`.
 
+    This function wraps the other three present here, and allows a single-line
+    call to plot long profiles. First it uses channel_nodes to get the nodes
+    belonging to the channels. Then it uses get_distances_upstream to get
+    distances upstream. Finally it uses plot_profiles to make a plot.
 
     Parameters
     ----------
@@ -339,28 +342,36 @@ def analyze_channel_network_and_plot(grid,
         FlowAccumulator or FlowRouter.
     flow_receiver : string or length nnode array, optional
         Field name or array of the flow_links to reciever node of the model
-        grid. Default value is 'flow__receiver_node'
-    links_to_flow_receiver='flow__link_to_receiver_node',
-    number_of_channels=1,
-    main_channel_only = True,
-    starting_nodes=None,
-    threshold=None,
-    create_plot=True
-
-    This function wraps the other three present here, and allows a single-line
-    call to plot long profiles.
-
-    As typical elsewhere, the inputs can be field names or arrays.
-
-    Note the key new parameter starting_nodes. This (optionally) can be a
-    Python list of node IDs marking the start of each profile. If it is not
-    provided, the profiles with the largest terminal drainage area will be used
-    instead.
+        grid. Default value is 'flow__receiver_node' which will be created by
+        Landlab's FlowAccumulator or FlowRouter.
+    links_to_flow_receiver : string or length nnode array, optional
+        Field name or array of the flow_links to reciever node of the model
+        grid. Default value is 'flow__link_to_receiver_node' which will be
+        created by Landlab's FlowAccumulator or FlowRouter.
+    number_of_channels : int, optional
+        Total number of channels to plot. Default value is 1. If value is
+        greater than 1 and starting_nodes is not specified, then the
+        number_of_channels largest channels based on drainage area will be used.
+    main_channel_only : Boolean, optional
+        Flag to determine if only the main channel should be plotted, or if all
+        stream segments with drainage area less than threshold should be
+        plotted. Default value is True.
+    starting_nodes : length number_of_channels itterable, optional
+        Length number_of_channels itterable containing the node IDs of nodes
+        to start the channel profiles from. If not provided, the default is the
+        number_of_channels node IDs on the model grid boundary with the largest
+        terminal drainage area
+    threshold : float, optional
+        Value to use for the minimum drainage area associated with a plotted
+        channel segment. Default values is 2.0 x minimum grid cell area.
+    create_plot : boolean, optional
+        Flag to indicate if a distance-upstream vs plotted quantity plot should
+        be created. Default is True.
 
     Returns
     ----------
     tuple, containing:
-        - the list of arrays profile_IDs.
+        - profile_IDs datastructure
         - the list of arrays dists_upstr, the distances from the final, lowest
             node in the network.
         Both lists are number_of_channels long.
