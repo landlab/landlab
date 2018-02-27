@@ -97,7 +97,7 @@ def _return_surface(grid, surface):
     """
     return surface
 
-def get_channel_segment(i, flow_receiver, drainage_area, threshold, main_channel_only):
+def _get_channel_segment(i, flow_receiver, drainage_area, threshold, main_channel_only):
     """ Get channel segment and return additional nodes to process.
 
     If main_channel_only == False, the channel segment will be the largest
@@ -217,7 +217,7 @@ def channel_nodes(grid, starting_nodes, drainage_area, flow_receiver, number_of_
     if main_channel_only:
         profile_IDs = []
         for i in starting_nodes:
-            (channel_segment, nodes_to_process) = get_channel_segment(i, flow_receiver, drainage_area, threshold, main_channel_only)
+            (channel_segment, nodes_to_process) = _get_channel_segment(i, flow_receiver, drainage_area, threshold, main_channel_only)
             profile_IDs.append(numpy.array(channel_segment))
 
     else:
@@ -226,7 +226,7 @@ def channel_nodes(grid, starting_nodes, drainage_area, flow_receiver, number_of_
             queue = [i]
             while len(queue) > 0:
                 node_to_process = queue.pop(0)
-                (channel_segment, nodes_to_process) = get_channel_segment(node_to_process, flow_receiver, drainage_area, threshold, main_channel_only)
+                (channel_segment, nodes_to_process) = _get_channel_segment(node_to_process, flow_receiver, drainage_area, threshold, main_channel_only)
 
                 profile_IDs.append(numpy.array(channel_segment))
                 queue.extend(nodes_to_process)
