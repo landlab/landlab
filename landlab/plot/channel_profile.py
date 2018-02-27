@@ -35,85 +35,103 @@ but provides the distance upstream rather than the node id.
 Examples
 ---------
 
-Start by importing necessary modules
+    Start by importing necessary modules
+    
+    >>> import numpy as np
+    >>> np.random.seed(42)
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulator, FastscapeEroder, LinearDiffuser, DepressionFinderAndRouter
+    >>> from landlab.plot import analyze_channel_network_and_plot
+    
+    Construct a grid and evolve some topography
+    
+    >>> mg = RasterModelGrid(40, 60)
+    >>> z = mg.add_zeros('topographic__elevation', at='node')
+    >>> z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
+    >>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
+    >>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
+    >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+    >>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
+    
+    Now run a simple landscape evolution model to develop a channel network. 
+    
+    >>> dt = 100
+    >>> for i in range(200):
+    ...     fa.run_one_step()
+    ...     flooded = np.where(fa.depression_finder.flood_status==3)[0]
+    ...     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
+    ...     ld.run_one_step(dt=dt)
+    ...     mg.at_node['topographic__elevation'][0] -= 0.001 
+    
+    Now call analyze_channel_network_and_plot in order to plot the network. Note
+    in general, we'd leave create_plot in its default value of create_plot=True,
+    but we can't plot in the docstring
+    
+    >>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg,
+    ...                                                                          create_plot=False)
+    
+    This creates the profile structure and distances upstream structure. Since we
+    used the default values this will make only one profile, the biggest channel 
+    in the biggest stream network in the catchemnt. 
+    
+    profile_structure will be a length 1 array and will contain one array that
+    is the length in number of nodes of the single longest channel
+    
+    >>> len(profile_structure) == 1
+    True
+    
+    >>> len(profile_structure[0][0])
+    93
+    
+    We can change the default values to get additional channels or to plot all
+    of the channels in a network. 
+    
+    For the next example, lets use a hexagonal grid. 
+    
+    >>> from landlab import HexModelGrid
+    >>> mg = HexModelGrid(40, 20)
+    >>> z = mg.add_zeros('topographic__elevation', at='node')
+    >>> z += 200 + mg.y_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+    >>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
+    >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+    >>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
+    
+    Now run a simple landscape evolution model to develop a channel network. 
+    
+    >>> dt = 100
+    >>> for i in range(200):
+    ...     fa.run_one_step()
+    ...     flooded = np.where(fa.depression_finder.flood_status==3)[0]
+    ...     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
+    ...     ld.run_one_step(dt=dt)
+    ...     mg.at_node['topographic__elevation'][0] -= 0.001 
+    
+    This time we will use some non-default values. Providing the threshold in
+    units of area indicates where the channel network will end. 
+    main_channel_only = False indicates that all parts of the stream network 
+    >>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg, 
+    ...                                                                          threshold = 100, 
+    ...                                                                          main_channel_only=False, 
+    ...                                                                          number_of_channels=3)
+    
+    This will create four channel networks. The datastructures profile_structure 
+    and distances_upstream will both be length 3
+    
+    >>> len(profile_structure) == len(distances_upstream) == 3
+    True
+    
+    We can also specify exactly which node is the outlet for the channel. 
+    
+    >>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg, 
+    ...                                                                          threshold = 100,
+    ...                                                                          starting_nodes = [0],
+    ...                                                                          number_of_channels=1)
+    
+    It is important that the length of starting nodes is the same as the value 
+    of number_of_channels. If this is not the case, then an error will occur.
 
->>> from landlab import RasterModelGrid
->>> from landlab.components import FlowAccumulator, FastscapeEroder, LinearDiffuser, DepressionFinderAndRouter
->>> from landlab.plot import analyze_channel_network_and_plot
-
-Construct a grid and evolve some topography
-
->>> mg = RasterModelGrid(40, 60)
->>> z = mg.add_zeros('topographic__elevation', at='node')
->>> z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
->>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
->>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
->>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
->>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
->>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
-
-Now run a simple landscape evolution model to develop a channel network. 
-
->>> dt = 100
->>> for i in range(200):
->>>     fa.run_one_step()
->>>     flooded = np.where(fa.depression_finder.flood_status==3)[0]
->>> 
->>>     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
->>>     ld.run_one_step(dt=dt)
->>>     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
-
-Now call analyze_channel_network_and_plot in order to plot the network. Note
-in general, we'd leave create_plot in its default value of create_plot=True,
-but we can't plot in the docstring
-
->>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg,
-...                                                                          create_plot=False)
-
-This creates the profile structure and distances upstream structure. Since we
-used the default values this will make only one profile, the biggest channel 
-in the biggest stream network in the catchemnt. 
-
-We can change the default values to get additional channels or to plot all
-of the channels in a network. 
-
-For the next example, lets use a hexagonal grid. 
-
->>> from landlab import HexModelGrid
->>> mg = HexModelGrid(40, 20)
->>> z = mg.add_zeros('topographic__elevation', at='node')
->>> z += 200 + mg.y_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
->>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
->>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
->>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
-
-Now run a simple landscape evolution model to develop a channel network. 
-
->>> dt = 100
->>> for i in range(200):
->>>     fa.run_one_step()
->>>     flooded = np.where(fa.depression_finder.flood_status==3)[0]
->>>     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
->>>     ld.run_one_step(dt=dt)
->>>     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
->>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg, 
-                                                                             threshold = 100, 
-                                                                             main_channel_only=False, 
-                                                                             number_of_channels=3)
-
-This will create four channel networks. The datastructures profile_structure 
-and distances_upstream will both be length 4
-
->>> len(profile_structure) == len(distances_upstream) == 4
-True
-
-We can also specify exactly which node is the outlet for the channel. 
-
->>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg, 
-                                                                             threshold = 100,
-                                                                             starting_nodes = [1],
-                                                                             number_of_channels=1)
-
+        
 """
 
 
@@ -285,9 +303,11 @@ def channel_nodes(grid, starting_nodes, drainage_area, flow_receiver, number_of_
 
     if main_channel_only:
         profile_structure = []
+        channel_network = []
         for i in starting_nodes:
             (channel_segment, nodes_to_process) = _get_channel_segment(i, flow_receiver, drainage_area, threshold, main_channel_only)
-            profile_structure.append(numpy.array(channel_segment))
+            channel_network.append(numpy.array(channel_segment))
+            profile_structure.append(channel_network)
 
     else:
         profile_structure = []
@@ -323,6 +343,9 @@ def get_distances_upstream(grid,
         distance upstream.
     """
     end_distances = {}
+    
+    # set the starting values for the beginnings of each netwrok. 
+    
     for network in profile_structure:
         starting_node = network[0][0]
         end_distances[starting_node] = 0
