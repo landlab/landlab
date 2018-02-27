@@ -189,8 +189,8 @@ def channel_nodes(grid, starting_nodes, drainage_area, flow_receiver, number_of_
 
     Parameters
     ----------
-    grid, model grid instance.
-    starting_nodes, node ids of starting nodes
+    grid : Landlab Model Grid instance, required
+    starting_nodes : node ids of starting nodes
     drainage_area: nnode array, drainage area at node
     flow_receiver: nnode array, node id of flow recievers at node
     number_of_channels: int, optional, default = 1. Number of starting nodes to use
@@ -221,20 +221,23 @@ def channel_nodes(grid, starting_nodes, drainage_area, flow_receiver, number_of_
             profile_IDs.append(numpy.array(channel_segment))
 
     else:
-        profile_IDs = []
+        profile_structure = []
         for i in starting_nodes:
+            channel_network = []
             queue = [i]
             while len(queue) > 0:
                 node_to_process = queue.pop(0)
                 (channel_segment, nodes_to_process) = _get_channel_segment(node_to_process, flow_receiver, drainage_area, threshold, main_channel_only)
-
-                profile_IDs.append(numpy.array(channel_segment))
+                channel_network.append(numpy.array(channel_segment))
                 queue.extend(nodes_to_process)
+            profile_structure.append(channel_network)
 
-    return profile_IDs
+    return profile_structure
 
-def get_distances_upstream(grid, len_node_arrays, profile_IDs,
-                           links_to_flow_receiver):
+def get_distances_upstream(grid,
+                          len_node_arrays,
+                          profile_structure,
+                          links_to_flow_receiver):
     """
     Get distances upstream for the profile_IDs datastructure.
 
@@ -242,7 +245,7 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs,
     ----------
     grid, model grid instance.
     len_node_arrays, int, length of node arrays
-    profile_IDs: profile_IDs datastructure
+    profile_structure: profile_structure datastructure
     links_to_flow_receiver: nnode array, link id of the flow link to reciever
         node.
 
@@ -251,49 +254,63 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs,
     distances_upstream, datastruture that mirrors profile IDs but provides the
         distance upstream.
     """
+    end_distances = {}
+    for network in profile_structure:
+        starting_node = network[0][0]
+        end_distances[starting_node] = 0
+
     distances_upstream = []
-    end_distances = {profile_IDs[0][0]: 0}
+    # for each network
+    for network in profile_structure:
 
-    # for each profile
-    for i in range(len(profile_IDs)):
+        network_values = []
+        # for each segment in the network. 
+        for segment in network:
+            starting_node = segment[0]
 
-        profile = profile_IDs[i]
-        starting_node = profile[0]
-        total_distance = end_distances[starting_node]
+            total_distance = end_distances[starting_node]
 
+            profile_values = []
+            profile_values.append(total_distance)
 
-        data_store = []
-        data_store.append(total_distance)
-
-        # itterate up the profile
-        for j in range(len(profile) - 1):
-            total_distance += grid._length_of_link_with_diagonals[
-                links_to_flow_receiver[profile[j + 1]]]
-            data_store.append(total_distance)
-
-
-        distances_upstream.append(numpy.array(data_store))
-        end_distances[profile[-1]] = total_distance
-
+            # itterate up the profile
+            for j in range(len(segment) - 1):
+                total_distance += grid._length_of_link_with_diagonals[
+                    links_to_flow_receiver[segment[j + 1]]]
+                profile_values.append(total_distance)
+            network_values.append(numpy.array(profile_values))
+            end_distances[segment[-1]] = total_distance
+            
+        distances_upstream.append(network_values)
     return distances_upstream
 
 
-def plot_profiles(distances_upstream, profile_IDs, quanity):
+def plot_profiles(distances_upstream, profile_structure, quanity):
     """
     Plot distance-upstream vs arbitrary quantiy
 
     Parameters
     ----------
     distances_upstream, distances upstream datastructure
-    profile_IDs: profile_IDs datastructure
+    profile_structure: profile_IDs datastructure
     quanity: nnode array, of at-node-quantity to plot against distance upstream.
 
     """
-    for i in range(len(profile_IDs)):
-        the_nodes = profile_IDs[i]
-        plt.plot(distances_upstream[i], quanity[the_nodes])
+    # for each stream network
+    for i in range(len(profile_structure)):
+        network_nodes = profile_structure[i]
+        network_distance = distances_upstream[i]
+        
+        # for each stream segment in the network
+        for j in range(len(network_nodes)):
+            
+            # identify the nodes and distances upstream for this channel segment
+            the_nodes = network_nodes[j]
+            the_distances = network_distance[j]
+            plt.plot(the_distances, quanity[the_nodes])
 
-def plot_channels_in_map_view(grid, profile_IDs, field='topographic__elevation',  **kwargs):
+
+def plot_channels_in_map_view(grid, profile_structure, field='topographic__elevation',  **kwargs):
     """
     Plot channel locations in map view on a frame.
 
@@ -304,10 +321,20 @@ def plot_channels_in_map_view(grid, profile_IDs, field='topographic__elevation',
     profile_IDs: profile_IDs datastructure
     **kwargs: additional parameters to pass to imshow_grid
     """
-
+    # make imshow_grid background
     imshow_grid(grid, field, **kwargs)
-    for profile in profile_IDs:
-        plt.plot(grid.x_of_node[profile], grid.y_of_node[profile])
+    
+    # for each stream network
+    for i in range(len(profile_structure)):
+        network_nodes = profile_structure[i]
+        
+        # for each stream segment in the network
+        for j in range(len(network_nodes)):
+            
+            # identify the nodes and distances upstream for this channel segment
+            the_nodes = network_nodes[j]
+            plt.plot(grid.x_of_node[the_nodes], grid.y_of_node[the_nodes])
+
 
 def analyze_channel_network_and_plot(grid,
                                      field='topographic__elevation',
@@ -319,7 +346,6 @@ def analyze_channel_network_and_plot(grid,
                                      starting_nodes=None,
                                      threshold=None,
                                      create_plot=True):
-
     """
     Main function to analyse the channel network and make an distance upstream
     vs the quantity stored at the model grid field give by the keyword argument
@@ -332,7 +358,7 @@ def analyze_channel_network_and_plot(grid,
 
     Parameters
     ----------
-    grid : Raster Model Grid, required
+    grid : Landlab Model Grid instance, required
     field : string or length nnode array, optional
         Field name or array of the quantity to plot against distance upstream.
         Default value is 'topographic__elevation'.
@@ -387,23 +413,23 @@ def analyze_channel_network_and_plot(grid,
         assert len(starting_nodes) == number_of_channels, "Length of starting_nodes must equal the number_of_channels!"
 
     # get the profile IDs datastructure
-    profile_IDs = channel_nodes(grid,
-                                starting_nodes,
-                                drainage_area_values,
-                                flow_receiver_values,
-                                number_of_channels,
-                                threshold,
-                                main_channel_only)
+    profile_structure = channel_nodes(grid,
+                                      starting_nodes,
+                                      drainage_area_values,
+                                      flow_receiver_values,
+                                      number_of_channels,
+                                      threshold,
+                                      main_channel_only)
 
     # use the profile IDs to get the distances upstream
     dists_upstr = get_distances_upstream(grid,
                                          drainage_area_values.size,
-                                         profile_IDs,
+                                         profile_structure,
                                          links_to_flow_receiver_values)
 
     # if requested, create plot
     if create_plot:
-        plot_profiles(dists_upstr, profile_IDs, field_values)
+        plot_profiles(dists_upstr, profile_structure, field_values)
 
     # return the profile IDS and the disances upstream.
-    return (profile_IDs, dists_upstr)
+    return (profile_structure, dists_upstr)
