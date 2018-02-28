@@ -181,10 +181,18 @@ def _read_netcdf_structured_data(root):
     """
     fields = dict()
     for (name, var) in root.variables.items():
+        
+        
+        # identify if a grid mapping variable exist and do not pass it as a field
+        
         if name not in _COORDINATE_NAMES:
+            print(name)
             fields[name] = var[:].copy()
             fields[name].shape = (fields[name].size, )
-    return fields
+         
+        grid_mapping=None
+            
+    return fields, grid_mapping
 
 
 def _get_raster_spacing(coords):
@@ -283,7 +291,7 @@ def read_netcdf(nc_file, just_grid=False):
         node_coords = _read_netcdf_structured_grid(root)
     except ValueError:
         if ((len(root.variables['x'].dimensions) == 1) and
-            (len(root.variables['y'].dimensions) ==1)):
+            (len(root.variables['y'].dimensions) == 1)):
 
             node_coords = _read_netcdf_raster_structured_grid(root)
         else:
@@ -292,25 +300,24 @@ def read_netcdf(nc_file, just_grid=False):
 
     assert len(node_coords) == 2
 
-    try:
-        grid_mapping = _get_grid_mapping(root)
-    except ValueError:
-        grid_mapping = None
 
     spacing = _get_raster_spacing(node_coords)
 
     shape = node_coords[0].shape
+    
+    print(spacing)
+    print(shape)
 
     grid = RasterModelGrid(shape, spacing=spacing)
 
-    # save grid mapping
-    grid.grid_mapping = grid_mapping
 
     if not just_grid:
-        fields = _read_netcdf_structured_data(root)
+        fields, grid_mapping = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
             grid.add_field('node', name, values)
-
+            
+    # save grid mapping
+    grid.grid_mapping = grid_mapping
     root.close()
 
     return grid
