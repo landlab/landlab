@@ -153,12 +153,12 @@ def _read_netcdf_raster_structured_grid(root):
     shape = _read_netcdf_grid_shape(root)
     coordinates = _read_netcdf_coordinate_values(root)
     units = _read_netcdf_coordinate_units(root)
-    
+
     if len(coordinates) != 2:
         assert ValueError('Rasters must have only two spatial coordinate dimensions')
     else:
         coordinates = np.meshgrid(coordinates[0], coordinates[1], indexing='ij')
-        
+
     for coordinate in coordinates:
         coordinate.shape = shape
 
@@ -213,6 +213,10 @@ def _get_raster_spacing(coords):
 
     return spacing[0]
 
+def _get_grid_mapping(root, grid_mapping):
+    """"Add grid mapping to a netcdf dataset."""
+    grid_mapping = None
+    return grid_mapping
 
 def read_netcdf(nc_file, just_grid=False):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
@@ -278,21 +282,29 @@ def read_netcdf(nc_file, just_grid=False):
     try:
         node_coords = _read_netcdf_structured_grid(root)
     except ValueError:
-        if ((len(root.variables['x'].dimensions) == 1) and 
+        if ((len(root.variables['x'].dimensions) == 1) and
             (len(root.variables['y'].dimensions) ==1)):
-            
+
             node_coords = _read_netcdf_raster_structured_grid(root)
         else:
             assert ValueError('x and y dimensions must both either be 2D '
                               '(nj, ni) or 1D (ni,) and (nj).')
-            
+
     assert len(node_coords) == 2
+
+    try:
+        grid_mapping = _get_grid_mapping(root)
+    except ValueError:
+        grid_mapping = None
 
     spacing = _get_raster_spacing(node_coords)
 
     shape = node_coords[0].shape
 
     grid = RasterModelGrid(shape, spacing=spacing)
+
+    # save grid mapping
+    grid.grid_mapping = grid_mapping
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)

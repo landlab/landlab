@@ -344,8 +344,8 @@ def _add_spatial_variables(root, grid, **kwds):
             var.long_name = long_name[name]
         except KeyError:
             var.long_name = grid.axis_name[axis]
-            
-            
+
+
 def _add_raster_spatial_variables(root, grid, **kwds):
     """Add spatial variables to a NetCDF file for rasters.
 
@@ -364,7 +364,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
     long_name = kwds.get('long_name', {})
 
     netcdf_vars = root.variables
-    
+
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
@@ -382,7 +382,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
         else:
             raise NotImplementedError('')
         coords.shape = var.shape
-        
+
         var[:] = coords
 
         var.units = grid.axis_units[axis]
@@ -531,6 +531,9 @@ def _guess_at_location(fields, names):
             at = None
     return at
 
+def _set_grid_mapping(root, grid_mapping):
+    """"Add grid mapping to a netcdf dataset."""
+    grid_mapping = None
 
 def write_netcdf(path, fields, attrs=None, append=False,
                  format='NETCDF3_64BIT', names=None, at=None):
@@ -640,14 +643,14 @@ def write_netcdf(path, fields, attrs=None, append=False,
 
 def write_raster_netcdf(path, fields, attrs=None, append=False,
                         format='NETCDF4', names=None, at=None):
-    
+
     """Write Raster Model Grid landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
-    
+
     This method is for Raster Grids only and takes advantage of regular x and
-    y spacing to save memory. 
-    
+    y spacing to save memory.
+
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
 
@@ -657,7 +660,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         Path to output file.
     fields : field-like
         Landlab field object that holds a grid and associated values. This must
-        be a Raster type. 
+        be a Raster type.
     append : boolean, optional
         Append data to an existing file, otherwise clobber the file.
     format : {'NETCDF4'}
@@ -668,7 +671,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         Names of the fields to include in the netcdf file. If not provided,
         write all fields.
     at : {'node'}, optional
-        The location where values are defined. Presently only implemented for 
+        The location where values are defined. Presently only implemented for
         type 'node'.
 
     Examples
@@ -715,7 +718,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     else:
         raise NotImplementedError("This method only supports grids of type Raster, "
                                   "for other grid types use write_netcdf")
-    
+
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')
     if at not in (None, 'cell', 'node'):
@@ -725,7 +728,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         names = (names, )
 
     at = 'node'
-    
+
     names = names or fields[at].keys()
 
     if not set(fields[at].keys()).issuperset(names):
@@ -746,8 +749,11 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         root = nc4.Dataset(path, mode, format=format)
 
     _set_netcdf_attributes(root, attrs)
-   
+
     _set_netcdf_structured_dimensions(root, fields.shape)
     _set_netcdf_raster_variables(root, fields, names=names)
+
+    if fields.grid_mapping:
+        _set_grid_mapping(root, fields.grid_mapping)
 
     root.close()
