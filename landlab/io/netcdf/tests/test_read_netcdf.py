@@ -24,3 +24,11 @@ def test_read_netcdf4():
 
     grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf4.nc'))
     assert_equal(grid.shape, (4, 3))
+
+
+def test_netcdf_with_grid_mapping():
+    """Test read netcdf with grid mapping."""
+    
+    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex.nc'))
+    
+    assert_equal(hasattr(grid, 'grid_mapping'), True)

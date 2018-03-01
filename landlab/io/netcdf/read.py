@@ -181,32 +181,33 @@ def _read_netcdf_structured_data(root):
     """
     fields = dict()
     grid_mapping_exists = False
-
+    grid_mapping_dict = None
     for (name, var) in root.variables.items():
-        
         # identify if a grid mapping variable exist and do not pass it as a field
         if name not in _COORDINATE_NAMES:
             if hasattr(var, 'grid_mapping'):
                 grid_mapping = getattr(var, 'grid_mapping')
+                if type(grid_mapping) is bytes:
+                    grid_mapping = grid_mapping.decode("utf-8") 
                 grid_mapping_exists = True
-            else:
-                grid_mapping = None
-
-                
+          
+    dont_use = list(_COORDINATE_NAMES)
+    if grid_mapping_exists:
+        dont_use.append(grid_mapping)
+    for (name, var) in root.variables.items():            
+        if name not in dont_use:
             fields[name] = var[:].copy()
-            fields[name].shape = (fields[name].size, )
-         
+            fields[name].shape = (fields[name].size, )    
         
-        if grid_mapping_exists:
-            delete=fields.pop(grid_mapping, None)
-            grid_mapping_variable = root.variables[grid_mapping]
-            
-            grid_mapping_dict = {'name': grid_mapping}
+    if grid_mapping_exists:
+        grid_mapping_variable = root.variables[grid_mapping]            
+        grid_mapping_dict = {'name': grid_mapping}
+        try:
             for att in grid_mapping_variable.ncattrs():
                 grid_mapping_dict[att] = getattr(grid_mapping_variable, att)
-        else:
-            grid_mapping_dict = None
-            
+        except AttributeError: # if scipy is doing the reading
+            for att in var._attributes:
+                grid_mapping_dict[att] = getattr(grid_mapping_variable, att)
     return fields, grid_mapping_dict
 
 
