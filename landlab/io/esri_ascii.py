@@ -18,6 +18,8 @@ import six
 
 import numpy as np
 
+from landlab.core.messages import warning_message
+
 _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
     'yllcenter', 'cellsize', 'nodata_value',
@@ -512,7 +514,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         grid.add_field('node', name, data)
     
     # save projection onto the grid
-    grid.projection = projection_data_structure
+    grid.esri_ascii_projection = projection_data_structure
     
     return (grid, data)
 
@@ -593,8 +595,17 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
                    comments='')
         
         # if a proj file existed, duplicate it with the appropriate name. 
-        if fields.projection:
-            _write_projection_information(path, fields.projection)
+        if hasattr(fields, 'esri_ascii_projection'):
+            _write_projection_information(path, fields.esri_ascii_projection)
+        
+        if hasattr(fields, 'grid_mapping'):
+            message = ('This RasterModelGrid has a projection and was read in as '
+                       'an NetCDF and is being written out as a Esri ASCII. The '
+                       'projection information is being discarded as Landlab '
+                       'presently does not have the capability to translate the'
+                       'projection information between these two formats.')
+        
+            print(warning_message(message))
         
         
     return paths

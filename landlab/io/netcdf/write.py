@@ -28,6 +28,7 @@ from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
                                           _NP_TO_NC_TYPE)
 
+from landlab.core.messages import warning_message
 
 def _set_netcdf_attributes(root, attrs):
     """Set attributes of a netcdf file.
@@ -428,7 +429,7 @@ def _add_variables_at_points(root, fields, names=None):
         var.units = node_fields.units[var_name] or '?'
         var.long_name = var_name
         
-        if fields.grid_mapping:
+        if hasattr(fields, 'grid_mapping'):
             setattr(var, 'grid_mapping', fields.grid_mapping['name'])
           
                 
@@ -768,7 +769,13 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     if hasattr(fields, 'grid_mapping'):
         _set_netcdf_grid_mapping_variable(root, fields)
 
-    if hasattr(fields, 'projection'):
-        warning()
+    if hasattr(fields, 'esri_ascii_projection'):
+        message = ('This RasterModelGrid has a projection and was read in as '
+                   'an Esri ASCII and is being written out as a NetCDF. The '
+                   'projection information is being discarded as Landlab '
+                   'presently does not have the capability to translate the'
+                   'projection information between these two formats.')
+        
+        print(warning_message(message))
         
     root.close()

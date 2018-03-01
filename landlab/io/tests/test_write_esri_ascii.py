@@ -125,6 +125,6 @@ def test_4x3_write_projection():
         projection_data_structure = f.readlines()
         projection_string = ''.join(projection_data_structure)
     
-    assert_equal(grid.projection.strip(), projection_string.strip())
+    assert_equal(grid.esri_ascii_projection.strip(), projection_string.strip())
     os.remove(os.path.join(_TEST_DATA_DIR,'copy_4_x_3.txt'))
     os.remove(os.path.join(_TEST_DATA_DIR,'copy_4_x_3.proj'))

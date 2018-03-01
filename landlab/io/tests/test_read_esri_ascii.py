@@ -66,7 +66,7 @@ def test_4x3_read_file_name():
                                  3.,  4.,  5.,
                                  0.,  1.,  2.]))
     
-    assert_equal(grid.projection.strip(), '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
+    assert_equal(grid.esri_ascii_projection.strip(), '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
 
 
 def test_4x3_read_file_like():

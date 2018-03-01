@@ -180,27 +180,33 @@ def _read_netcdf_structured_data(root):
         variable names as read from the NetCDF file.
     """
     fields = dict()
+    grid_mapping_exists = False
+
     for (name, var) in root.variables.items():
         
         # identify if a grid mapping variable exist and do not pass it as a field
         if name not in _COORDINATE_NAMES:
-            if 'grid_mapping' in var.ncattrs():
+            if hasattr(var, 'grid_mapping'):
                 grid_mapping = getattr(var, 'grid_mapping')
+                grid_mapping_exists = True
             else:
                 grid_mapping = None
+
                 
             fields[name] = var[:].copy()
             fields[name].shape = (fields[name].size, )
          
         
-        if grid_mapping:
+        if grid_mapping_exists:
             delete=fields.pop(grid_mapping, None)
             grid_mapping_variable = root.variables[grid_mapping]
             
             grid_mapping_dict = {'name': grid_mapping}
             for att in grid_mapping_variable.ncattrs():
                 grid_mapping_dict[att] = getattr(grid_mapping_variable, att)
-        
+        else:
+            grid_mapping_dict = None
+            
     return fields, grid_mapping_dict
 
 
@@ -313,12 +319,14 @@ def read_netcdf(nc_file, just_grid=False):
 
 
     if not just_grid:
-        fields, grid_mapping = _read_netcdf_structured_data(root)
+        fields, grid_mapping_dict = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
             grid.add_field('node', name, values)
             
     # save grid mapping
-    grid.grid_mapping = grid_mapping
+    if grid_mapping_dict is not None:
+        grid.grid_mapping = grid_mapping_dict
+        
     root.close()
 
     return grid
