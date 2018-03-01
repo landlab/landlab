@@ -427,8 +427,11 @@ def _add_variables_at_points(root, fields, names=None):
 
         var.units = node_fields.units[var_name] or '?'
         var.long_name = var_name
-
-
+        
+        if fields.grid_mapping:
+            setattr(var, 'grid_mapping', fields.grid_mapping['name'])
+          
+                
 def _add_variables_at_cells(root, fields, names=None):
     if isinstance(names, six.string_types):
         names = [names]
@@ -504,6 +507,16 @@ def _add_time_variable(root, time, **kwds):
         time_var[n_times] = n_times
 
 
+def _set_netcdf_grid_mapping_variable(root, fields):
+    """Create grid mapping variable, if necessary."""
+    grid_mapping = fields.grid_mapping
+    name = grid_mapping.pop('name')
+    print(name)
+    var = root.createVariable(name, 'S1', dimensions=())
+    for attr in grid_mapping.keys():
+        setattr(var, attr, grid_mapping[attr])
+    
+
 _VALID_NETCDF_FORMATS = set([
     'NETCDF3_CLASSIC',
     'NETCDF3_64BIT',
@@ -530,10 +543,6 @@ def _guess_at_location(fields, names):
         else:
             at = None
     return at
-
-def _set_grid_mapping(root, grid_mapping):
-    """"Add grid mapping to a netcdf dataset."""
-    grid_mapping = None
 
 def write_netcdf(path, fields, attrs=None, append=False,
                  format='NETCDF3_64BIT', names=None, at=None):
@@ -637,6 +646,9 @@ def write_netcdf(path, fields, attrs=None, append=False,
     else:
         _set_netcdf_cell_structured_dimensions(root, fields.shape)
         _set_netcdf_cell_variables(root, fields, names=names)
+
+    if hasattr(fields, 'grid_mapping'):
+        _set_netcdf_grid_mapping_variable(root, fields)
 
     root.close()
 
@@ -753,7 +765,10 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     _set_netcdf_structured_dimensions(root, fields.shape)
     _set_netcdf_raster_variables(root, fields, names=names)
 
-    if fields.grid_mapping:
-        _set_grid_mapping(root, fields.grid_mapping)
+    if hasattr(fields, 'grid_mapping'):
+        _set_netcdf_grid_mapping_variable(root, fields)
 
+    if hasattr(fields, 'projection'):
+        warning()
+        
     root.close()
