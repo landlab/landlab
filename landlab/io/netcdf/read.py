@@ -182,17 +182,24 @@ def _read_netcdf_structured_data(root):
     fields = dict()
     for (name, var) in root.variables.items():
         
-        
         # identify if a grid mapping variable exist and do not pass it as a field
-        
         if name not in _COORDINATE_NAMES:
             print(name)
+            if 'grid_mapping' in var.ncattrs():
+                grid_mapping = getattr(var, 'grid_mapping')
+            else:
+                grid_mapping = None
+                
             fields[name] = var[:].copy()
             fields[name].shape = (fields[name].size, )
          
-        grid_mapping=None
-            
-    return fields, grid_mapping
+        
+        if grid_mapping:
+            delete=fields.pop(grid_mapping, None)
+            grid_mapping_variable = root.variables[grid_mapping]
+        
+        
+    return fields, {grid_mapping: grid_mapping_variable}
 
 
 def _get_raster_spacing(coords):
@@ -220,11 +227,6 @@ def _get_raster_spacing(coords):
         raise NotRasterGridError()
 
     return spacing[0]
-
-def _get_grid_mapping(root, grid_mapping):
-    """"Add grid mapping to a netcdf dataset."""
-    grid_mapping = None
-    return grid_mapping
 
 def read_netcdf(nc_file, just_grid=False):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
