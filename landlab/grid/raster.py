@@ -642,7 +642,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #  |       |       |       |       |
         #  0-------1-------2-------3-------4
         #
-        (self._node_x, self._node_y) = sgrid.node_coords(
+        (x_of_node, y_of_node) = sgrid.node_coords(
             (num_rows, num_cols), (self._dy, self._dx), origin)
 
         self._xy_of_node = np.hstack((x_of_node.reshape((-1, 1)),
