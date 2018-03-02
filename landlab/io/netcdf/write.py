@@ -512,7 +512,6 @@ def _set_netcdf_grid_mapping_variable(root, fields):
     """Create grid mapping variable, if necessary."""
     grid_mapping = fields.grid_mapping
     name = grid_mapping.pop('name')
-    print(name)
     var = root.createVariable(name, 'S1', dimensions=())
     for attr in grid_mapping.keys():
         setattr(var, attr, grid_mapping[attr])
