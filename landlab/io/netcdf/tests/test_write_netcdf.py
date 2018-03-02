@@ -319,13 +319,22 @@ def test_write_netcdf_with_grid_mapping_3():
     
     grid_read = read_netcdf(out_file)
     
-#    mapping_original = grid.grid_mapping
-#    mapping = grid_read.grid_mapping
-#    
-#    for gmk in mapping_original.keys():
-#        assert_equal(gmk in mapping, True)
-#        assert_equal(mapping_original[gmk], mapping[gmk])
-#    
+    mapping_original = grid.grid_mapping
+    mapping = grid_read.grid_mapping
+    
+    for gmk in mapping_original.keys():
+        assert_equal(gmk in mapping, True)
+        
+        orig_val = mapping_original[gmk]
+        if type(orig_val) is bytes:
+            orig_val = orig_val.decode("utf-8")
+        
+        val = mapping[gmk]
+        if type(val) is bytes:
+            val = val.decode("utf-8")
+        
+        assert_equal(val, orig_val)
+    
     os.remove(out_file)
     
     
@@ -339,12 +348,21 @@ def test_write_netcdf_with_grid_mapping_4():
     
     grid_read = read_netcdf(out_file)
     
-#    mapping_original = grid.grid_mapping
-#    mapping = grid_read.grid_mapping
-#    
-#    for gmk in mapping_original.keys():
-#        assert_equal(gmk in mapping, True)
-#        assert_equal(mapping_original[gmk], mapping[gmk])
+    mapping_original = grid.grid_mapping
+    mapping = grid_read.grid_mapping
+    
+    for gmk in mapping_original.keys():
+        assert_equal(gmk in mapping, True)
+        
+        orig_val = mapping_original[gmk]
+        if type(orig_val) is bytes:
+            orig_val = orig_val.decode("utf-8")
+        
+        val = mapping[gmk]
+        if type(val) is bytes:
+            val = val.decode("utf-8")
+        
+        assert_equal(val, orig_val)
     
     os.remove(out_file)
 
