@@ -33,8 +33,7 @@ def test_read_netcdf4():
 
 
 def test_netcdf_with_grid_mapping_3():
-    """Test read netcdf with grid mapping."""
-    
+    """Test read netcdf with grid mapping.""" 
     grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex.nc'))
     assert_equal(hasattr(grid, 'grid_mapping'), True)
     mapping = grid.grid_mapping
@@ -44,8 +43,7 @@ def test_netcdf_with_grid_mapping_3():
     
     
 def test_netcdf_with_grid_mapping_4():
-    """Test read netcdf with grid mapping."""
-    
+    """Test read netcdf with grid mapping.""" 
     grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex_NETCDF4.nc'))
     assert_equal(hasattr(grid, 'grid_mapping'), True)
     mapping = grid.grid_mapping
