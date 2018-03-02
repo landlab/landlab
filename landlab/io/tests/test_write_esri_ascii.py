@@ -13,6 +13,7 @@ from landlab.testing.tools import cdtemp
 from landlab.io import write_esri_ascii, read_esri_ascii
 from landlab import RasterModelGrid
 
+
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 def test_grid_with_no_fields():

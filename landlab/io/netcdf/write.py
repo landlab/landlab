@@ -21,6 +21,13 @@ try:
     import netCDF4 as nc4
 except ImportError:
     warnings.warn('Unable to import netCDF4.', ImportWarning)
+    
+try:
+    import pycrs
+    _HAS_PYCRS = True
+except ImportError:
+    warnings.warn('Unable to import pycrs.', ImportWarning)
+    _HAS_PYCRS = False
 
 from scipy.io import netcdf as nc
 
@@ -769,12 +776,15 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         _set_netcdf_grid_mapping_variable(root, fields)
 
     if hasattr(fields, 'esri_ascii_projection'):
-        message = ('This RasterModelGrid has a projection and was read in as '
-                   'an Esri ASCII and is being written out as a NetCDF. The '
-                   'projection information is being discarded as Landlab '
-                   'presently does not have the capability to translate the'
-                   'projection information between these two formats.')
-        
+        if _HAS_PYCRS:
+            
+        else:
+            message = ('This RasterModelGrid has a projection and was read in '
+                       'as an Esri ASCII and is being written out as a NetCDF. '
+                       'In order to translate you shoud install the pure python '
+                       'pycrs library with pip. Without it Landlab does not '
+                       'have the capability to translate the '
+                       'projection information between these two formats.')
         print(warning_message(message))
         
     root.close()

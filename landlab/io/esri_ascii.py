@@ -20,6 +20,25 @@ import numpy as np
 
 from landlab.core.messages import warning_message
 
+
+import warnings
+
+    
+try:
+    import pycrs
+    _HAS_PYCRS = True
+except ImportError:
+    warnings.warn('Unable to import pycrs.', ImportWarning)
+    _HAS_PYCRS = False
+    
+try:
+    import pycrs
+    _HAS_PYCRS = True
+except ImportError:
+    warnings.warn('Unable to import pycrs.', ImportWarning)
+    _HAS_PYCRS = False
+
+
 _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
     'yllcenter', 'cellsize', 'nodata_value',
@@ -599,13 +618,17 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
             _write_projection_information(path, fields.esri_ascii_projection)
         
         if hasattr(fields, 'grid_mapping'):
-            message = ('This RasterModelGrid has a projection and was read in as '
-                       'an NetCDF and is being written out as a Esri ASCII. The '
-                       'projection information is being discarded as Landlab '
-                       'presently does not have the capability to translate the'
-                       'projection information between these two formats.')
-        
+            if _HAS_PYCRS:
+                grid_mapping_proj = pycrs.parser.from_unknown_wkt(fields.grid_mapping['spatial_ref'])
+                _write_projection_information(path, grid_mapping_proj.to_proj4())
+                
+            else:
+                message = ('This RasterModelGrid has a projection and was read in '
+                           'as a NetCDF and is being written out as an Esri ASCII. '
+                           'In order to translate you shoud install the pure python '
+                           'pycrs library with pip. Without it Landlab does not '
+                           'have the capability to translate the '
+                           'projection information between these two formats.')
             print(warning_message(message))
-        
         
     return paths
