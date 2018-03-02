@@ -1,13 +1,18 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
 
+import os
 import numpy as np
 from nose.tools import assert_equal, assert_true, assert_raises
 from nose import SkipTest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import write_netcdf, NotRasterGridError, WITH_NETCDF4
+from landlab.io.netcdf import (read_netcdf, 
+                               write_netcdf, 
+                               NotRasterGridError, 
+                               WITH_NETCDF4)
+
 from landlab.io.netcdf.read import _get_raster_spacing
 from landlab.testing.tools import cdtemp
 
@@ -15,6 +20,8 @@ try:
     import netCDF4 as nc
 except ImportError:
     pass
+
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def test_netcdf_write_int64_field_netcdf4():
@@ -301,3 +308,43 @@ def test_netcdf_write_at_cells():
                      set(['x_bnds', 'y_bnds', 'topographic__elevation',
                           'uplift_rate']))
         root.close()
+
+def test_write_netcdf_with_grid_mapping_3():
+    """Test write with grid_mapping variable NETCDF3."""
+    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex.nc'))
+    assert_equal(hasattr(grid, 'grid_mapping'), True)
+    
+    out_file = os.path.join(_TEST_DATA_DIR, 'temporary.nc')
+    write_netcdf(out_file, grid, format='NETCDF3_64BIT')
+    
+    grid_read = read_netcdf(out_file)
+    
+#    mapping_original = grid.grid_mapping
+#    mapping = grid_read.grid_mapping
+#    
+#    for gmk in mapping_original.keys():
+#        assert_equal(gmk in mapping, True)
+#        assert_equal(mapping_original[gmk], mapping[gmk])
+#    
+    os.remove(out_file)
+    
+    
+def test_write_netcdf_with_grid_mapping_4():
+    """Test write with grid_mapping variable NETCDF4."""
+    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex.nc'))
+    assert_equal(hasattr(grid, 'grid_mapping'), True)
+    
+    out_file = os.path.join(_TEST_DATA_DIR, 'temporary.nc')
+    write_netcdf(out_file, grid, format='NETCDF4')
+    
+    grid_read = read_netcdf(out_file)
+    
+#    mapping_original = grid.grid_mapping
+#    mapping = grid_read.grid_mapping
+#    
+#    for gmk in mapping_original.keys():
+#        assert_equal(gmk in mapping, True)
+#        assert_equal(mapping_original[gmk], mapping[gmk])
+    
+    os.remove(out_file)
+
