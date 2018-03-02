@@ -413,7 +413,7 @@ def _add_variables_at_points(root, fields, names=None):
             var = netcdf_vars[var_name]
         except KeyError:
             var = root.createVariable(
-                var_name, _NP_TO_NC_TYPE[str(node_fields[var_name].dtype)],
+                var_name, _NP_TO_NC_TYPE[str(node_fields[var_name][0].dtype)],
                 ['nt'] + spatial_variable_shape)
 
         if node_fields[var_name].size > 1:
