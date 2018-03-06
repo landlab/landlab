@@ -16,9 +16,9 @@ Created on Mon Nov 17 08:01:49 2014
 """
 
 from landlab import HexModelGrid
+from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, tan, cos, pi)
-from numpy import count_nonzero
 from ..cfuncs import get_next_event_new
 
 _DEFAULT_NUM_ROWS = 5
@@ -508,7 +508,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
         boundary = logical_or(g.status_at_node[g.node_at_link_tail] != 0,
                               g.status_at_node[g.node_at_link_head] != 0)
         active_bnd = logical_and(boundary, g.status_at_link == 0)
-        self.links_to_update = where(logical_or(lower_active, active_bnd))[0]
+        self.links_to_update = as_id_array(where(logical_or(lower_active, 
+                                                            active_bnd))[0])
 
     def _get_new_base_nodes(self, rock_state):
         """
