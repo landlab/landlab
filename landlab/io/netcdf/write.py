@@ -515,9 +515,8 @@ def _add_time_variable(root, time, **kwds):
         time_var[n_times] = n_times
 
 
-def _set_netcdf_grid_mapping_variable(root, fields):
+def _set_netcdf_grid_mapping_variable(root, grid_mapping):
     """Create grid mapping variable, if necessary."""
-    grid_mapping = fields.grid_mapping
     name = grid_mapping.pop('name')
     var = root.createVariable(name, 'S1', dimensions=())
     for attr in grid_mapping.keys():
@@ -773,11 +772,26 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     _set_netcdf_raster_variables(root, fields, names=names)
 
     if hasattr(fields, 'grid_mapping'):
-        _set_netcdf_grid_mapping_variable(root, fields)
+        _set_netcdf_grid_mapping_variable(root,  fields.grid_mapping)
 
     if hasattr(fields, 'esri_ascii_projection'):
         if _HAS_PYCRS:
+            message = ('This RasterModelGrid has a projection and was read in '
+                       'as an Esri ASCII and is being written out as a NetCDF. '
+                       'You have the pure python pycrs library which will now '
+                       'be used to translate the projection.\nNote that '
+                       'currently only the crs_wkt attribute will be written '
+                       'to the grid_mapping variable. We are working on fully '
+                       'supporting this conversion, but it is in active '
+                       'development.')
             
+            print(warning_message(message))
+            
+            projection = pycrs.parser.from_proj4(fields.esri_ascii_projection)
+            crs_wkt = projection.to_ogc_wkt()
+            
+            _set_netcdf_grid_mapping_variable(root,  fields.grid_mapping)
+
         else:
             message = ('This RasterModelGrid has a projection and was read in '
                        'as an Esri ASCII and is being written out as a NetCDF. '
@@ -785,6 +799,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
                        'pycrs library with pip. Without it Landlab does not '
                        'have the capability to translate the '
                        'projection information between these two formats.')
+            
         print(warning_message(message))
         
     root.close()
