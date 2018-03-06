@@ -246,16 +246,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3, shape='rect', dx=2.0)
         >>> hg.status_at_node
-        array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
         >>> hg = HexModelGrid(3, 3, shape='rect', orientation='vert')
         >>> hg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
         >>> hg = HexModelGrid(4, 4, shape='rect', orientation='vert')
         >>> hg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> hg = HexModelGrid(3, 4, shape='rect')
         >>> hg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         """
         if orientation[0].lower() == 'v':  # vert; top & bottom staggered
             bot_row = numpy.where(self.y_of_node <= 0.5 * dx)[0]
