@@ -274,7 +274,7 @@ def test_run_oriented_raster():
 
 def test_grain_hill_model():
     """Run a lattice-grain-based hillslope evolution model."""
-    from .grain_hill_as_class import GrainHill
+    from .grain_hill import GrainHill
 
     params = {
         'number_of_node_rows' : 10,
