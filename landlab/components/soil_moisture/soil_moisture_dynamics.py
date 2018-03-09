@@ -138,6 +138,7 @@ class SoilMoisture(Component):
         'vegetation__cover_fraction',
         'vegetation__live_leaf_area_index',
         'surface__potential_evapotranspiration_rate',
+        'surface__potential_evapotranspiration_rate__grass',
         'soil_moisture__initial_saturation_fraction',
         'vegetation__plant_functional_type',
         'rainfall__daily_depth',
@@ -156,6 +157,7 @@ class SoilMoisture(Component):
         'vegetation__cover_fraction': 'None',
         'vegetation__live_leaf_area_index': 'None',
         'surface__potential_evapotranspiration_rate': 'mm',
+        'surface__potential_evapotranspiration_rate__grass': 'mm',
         'vegetation__plant_functional_type': 'None',
         'vegetation__water_stress': 'None',
         'soil_moisture__saturation_fraction': 'None',
@@ -171,6 +173,7 @@ class SoilMoisture(Component):
         'vegetation__cover_fraction': 'cell',
         'vegetation__live_leaf_area_index': 'cell',
         'surface__potential_evapotranspiration_rate': 'cell',
+        'surface__potential_evapotranspiration_rate__grass': 'cell',
         'vegetation__plant_functional_type': 'cell',
         'vegetation__water_stress': 'cell',
         'soil_moisture__saturation_fraction': 'cell',
@@ -189,6 +192,9 @@ class SoilMoisture(Component):
             'one-sided green leaf area per unit ground surface area',
         'surface__potential_evapotranspiration_rate':
             'potential sum of evaporation and plant transpiration',
+        'surface__potential_evapotranspiration_rate__grass':
+            'potential sum of evaporation and grass transpiration, \
+             for partitioning bare soil evapotranspiration rate',
         'vegetation__plant_functional_type':
             'classification of plants (int), grass=0, shrub=1, tree=2, \
              bare=3, shrub_seedling=4, tree_seedling=5',
@@ -460,6 +466,8 @@ class SoilMoisture(Component):
         P_ = self._cell_values['rainfall__daily_depth']
         self._PET = (
             self._cell_values['surface__potential_evapotranspiration_rate'])
+        self._pet_g = (
+            self._cell_values['surface__potential_evapotranspiration_rate__grass'])
         self._SO = (
             self._cell_values['soil_moisture__initial_saturation_fraction'])
         self._vegcover = self._cell_values['vegetation__cover_fraction']
@@ -541,9 +549,13 @@ class SoilMoisture(Component):
             # Effective precipitation depth
             Peff = max((P + max(runon, 0.) - Int_cap), 0.)
             mu = (Ks/1000.0)/(pc*ZR*(np.exp(beta*(1.-fc))-1.))
-            Ep = max((self._PET[cell]*self._fr[cell] +
-                     fbare*self._PET[cell]*(1.-self._fr[cell])) -
-                     Int_cap, 0.0001)  # mm/d
+
+            if self._vegtype[cell] == 3:
+                Ep = max((fbare*self._pet_g[cell]), 0.0001)
+            else:
+                Ep = max((self._PET[cell]*self._fr[cell] +
+                         fbare*self._pet_g[cell]*(1.-self._fr[cell])) -
+                         Int_cap, 0.0001)  # mm/d
             self._ETmax[cell] = Ep
             nu = ((Ep / 24.) / 1000.) / (pc*ZR)   # Loss function parameter
             # Loss function parameter
