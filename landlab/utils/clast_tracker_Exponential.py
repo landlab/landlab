@@ -67,6 +67,12 @@ class ClastSet(object):
             pass
         else:
             self._clast__distance = np.zeros(self._set__size)
+            
+        if hasattr(self, '_clast__hop_length'):
+            pass
+        else:
+            self._clast__hop_length = list(np.zeros(self._set__size))
+
 
         for i in range(self._set__size):
             # If initial clast elevation is above topographic elev, 
@@ -83,7 +89,7 @@ class ClastSet(object):
         self._deposition__thickness = np.zeros(grid.number_of_nodes)
         self._deposition__flux = np.zeros(grid.number_of_nodes)
 
-    def clast_solver_Exponential(self, dt=1., time=0., kappa=0.0001, uplift=None):
+    def clast_solver_Exponential(self, dt=1., Sc=0.6, kappa=0.0001, uplift=None):
 
 # Repeated from above??
         if self.erosion_method == 'TLDiff':
@@ -102,11 +108,12 @@ class ClastSet(object):
 #        self._Sc = critical_slope
         self._kappa = kappa
         self._dt = dt
-        self._time = time
+#        self._time = time
         self._erosion__depth = self._erosion_rate * self._dt
         self._deposition__thickness = self._deposition_rate * self._dt
+        self._Sc = Sc
 # TO DELETE???        self._deposition__flux = self._deposition_rate # * self._grid.dx
-
+        hop_length_i = 0
 
         if uplift is not None:
             if type(uplift) is str:
@@ -129,6 +136,8 @@ class ClastSet(object):
                 if ClastSet.clast_detach_proba(self, i) == True:
                     #print('detached')
                     # Clast is detached -> Test if moves (leaves node):
+                    hop_length_i = 0
+
                     while ClastSet.clast_move_proba(self, i) == True:
                         # print('move')
                         # Clast leaves node:
@@ -136,8 +145,12 @@ class ClastSet(object):
                         node_i = self._clast__node[i]
                         receiver_i = self._grid.at_node['flow__receiver_node'][self._clast__node[i]]
                         
+                        
                         # Update travelled distance:
                         self._clast__distance[i] += np.sqrt(np.power(
+                                self._distances[node_i, receiver_i],2)+(np.power(
+                                        self._grid.at_node['topographic__elevation'][node_i]-self._grid.at_node['topographic__elevation'][receiver_i],2)))
+                        hop_length_i += np.sqrt(np.power(
                                 self._distances[node_i, receiver_i],2)+(np.power(
                                         self._grid.at_node['topographic__elevation'][node_i]-self._grid.at_node['topographic__elevation'][receiver_i],2)))
                         # Move clast to next downstream:
@@ -172,7 +185,7 @@ class ClastSet(object):
                     self._clast__elev[i] = self._elev[self._clast__node[i]] - (
                             self._deposition__thickness[self._clast__node[i]] * (
                                 np.random.rand(1)))
-
+                    self._clast__hop_length.append(hop_length_i)
 #TO DELETE#######################################################################
 #                        # Finally, clast  is deposited:
 #                        # Update clast elevation:
@@ -245,7 +258,7 @@ class ClastSet(object):
     def clast_move_proba(self, i):
         # Clast moves if its probability to move is higher than
         # a random number
-        erosion = self._erosion__depth[self._clast__node[i]]
+        #erosion = self._erosion__depth[self._clast__node[i]]
         radius = self._clast__radius[i]
         #clast__depth = self._elev[self._clast__node[i]] - self._clast__elev[i]
         #potential_distance = self._distances[self._clast__node[i],self._grid.at_node['flow__receiver_node'][self._clast__node[i]]]
@@ -258,25 +271,23 @@ class ClastSet(object):
         # = exp ((-dx/2)/lambda_mean) = exp (-dx/(2*lambda_mean))
         
         
-        # Sc = self._Sc
+        Sc = self._Sc
         S = (self._elev[self._clast__node[i]] - self._elev[self._grid.at_node['flow__receiver_node'][self._clast__node[i]]])/self._grid.dx
+        num = 3.2857142857142856
         # lambda_mean = (self._kappa * self._grid.dx * S) / (2 * radius)
-        # lambda_mean = self._grid.dx / 0.01
-        lambda_mean = self._grid.at_node['sediment__deposition_coeff'][self._clast__node[i]]
-        
-#        if lambda_mean == 0:
-#            proba_leave_cell = 0
-#        else:
-        proba_leave_cell = (1 / np.power(lambda_mean, 2)) * (
-                np.exp((-self._grid.dx / 2) / lambda_mean))
+        # lambda_mean = self._grid.dx
+        # lambda_mean = self._grid.at_node['sediment__deposition_coeff'][self._clast__node[i]]
+        # lambda_0 = 23
+        lambda_0 = (self._dt * self._kappa * self._grid.dx) / (2*radius)
+        # lambda_0 = float(self._dt * ((self._kappa * self._grid.dx * S) / (2 * radius)) * ((Sc + S) / (Sc - S)))#23
+        lambda_mean = lambda_0 * np.power((((2 * Sc)/(Sc - S))-1),-1)
         
         
-        if erosion > 0:
-            # proba_move can be >1 (if clast was at surface) -> set to 1 
-            if proba_leave_cell > 1:
-                proba_leave_cell = 1
-        else: # erosion = 0, clast cannot move
-            proba_leave_cell = 0
+        if S >= Sc:
+            proba_leave_cell = 1
+        else:
+            proba_leave_cell = np.exp((-self._grid.dx) / lambda_mean)
+            # proba_leave_cell = (1 / lambda_0) * (((2 * Sc) / (Sc - S))-1)
 
         _move = np.zeros(1, dtype=bool)
 
