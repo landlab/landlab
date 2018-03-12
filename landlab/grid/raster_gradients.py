@@ -29,10 +29,6 @@ from collections import deque
 def calc_grad_at_link(grid, node_values, out=None):
     """Calculate gradients in node_values at links.
 
-    Construction::
-
-        calc_grad_at_link(grid, node_values, out=None)
-
     Parameters
     ----------
     grid : RasterModelGrid
@@ -170,7 +166,9 @@ def calc_grad_at_active_link(grid, node_values, out=None):
 
 @use_field_name_or_array('node')
 def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
-    """Get gradients across the faces of a cell.
+    """calc_grad_across_cell_faces(grid, node_values, [cell_ids], out=None)
+
+    Get gradients across the faces of a cell.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the cells of a grid. The returned gradients are
@@ -178,11 +176,6 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
 
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value -1.
-
-    Construction::
-
-        calc_grad_across_cell_faces(grid, node_values, [cell_ids],
-                                             out=None)
 
     Parameters
     ----------
@@ -257,16 +250,13 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
 
 @use_field_name_or_array('node')
 def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
-    """Get gradients to diagonally opposite nodes.
+    """calc_grad_across_cell_corners(grid, node_values, [cell_ids], out=None)
+
+    Get gradients to diagonally opposite nodes.
 
     Calculate gradient of the value field provided by *node_values* to
     the values at diagonally opposite nodes. The returned gradients are
     ordered as upper-right, upper-left, lower-left and lower-right.
-
-    Construction::
-
-        calc_grad_across_cell_corners(grid, node_values, [cell_ids],
-                                               out=None)
 
     Parameters
     ----------
@@ -324,7 +314,9 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
 
 @use_field_name_or_array('node')
 def calc_grad_along_node_links(grid, node_values, *args, **kwds):
-    """Get gradients along links touching a node.
+    """calc_grad_along_node_links(grid, node_values, [cell_ids], out=None)
+    
+    Get gradients along links touching a node.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the nodes of a grid. The returned gradients are
@@ -335,11 +327,6 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
 
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value -1.
-
-    Construction::
-
-        calc_grad_along_node_links(grid, node_values, [cell_ids],
-                                            out=None)
 
     Parameters
     ----------

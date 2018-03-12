@@ -20,8 +20,7 @@ import numpy
 
 class FlowDirectorMFD(_FlowDirectorToMany):
 
-    """
-    Single-path (steepest direction) flow direction without diagonals.
+    """Single-path (steepest direction) flow direction without diagonals.
 
     This components finds the steepest single-path steepest descent flow
     directions. It is equivalent to D4 method in the special case of a raster
@@ -48,21 +47,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        FlowDirectorMFD(grid, surface='topographic__elevation')
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node, optional
-        The surface to direct flow across, default is field at node:
-        topographic__self.surface_valuesation.
-    partition_method: string, optional
-        Method for partitioning flow. Options include 'slope' (default) and
-        'square_root_of_slope'.
 
     Examples
     --------
@@ -308,7 +292,18 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     _name = 'FlowDirectorMFD'
 
     def __init__(self, grid, surface='topographic__elevation', **kwargs):
-        """Initialize FlowDirectorMFD."""
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node, optional
+            The surface to direct flow across, default is field at node:
+            topographic__self.surface_valuesation.
+        partition_method: string, optional
+            Method for partitioning flow. Options include 'slope' (default) and
+            'square_root_of_slope'.
+        """
         # unpack kwargs:
         try:
             partition_method = kwargs.pop('partition_method')

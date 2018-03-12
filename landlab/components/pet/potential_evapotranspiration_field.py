@@ -26,49 +26,6 @@ class PotentialEvapotranspiration(Component):
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
-    Construction::
-
-        PotentialEvapotranspiration(grid, method='Cosine',
-            Priestley_taylor_const=1.26, albedo=0.6,
-            latent_heat_of_vaporization=28.34, psychometric_const=0.066,
-            stefan_boltzmann_const=0.0000000567, solar_const=1366.67,
-            latitude=34., elevation_of_measurement=300, adjustment_coeff=0.18,
-            lt=0., nd=365., MeanTmaxF=12., delta_d=5., **kwds)
-
-    Parameters
-    ----------
-    grid: RasterModelGrid
-        A grid.
-    method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
-             'Cosine'}, optional
-        Priestley Taylor method will spit out radiation outputs too.
-    priestley_taylor_constant: float, optional
-        Alpha used in Priestley Taylor method.
-    albedo: float, optional
-        Albedo.
-    latent_heat_of_vaporization: float, optional
-        Latent heat of vaporization for water Pwhv (Wd/(m*mm^2)).
-    psychometric_const: float, optional
-        Psychometric constant (kPa (deg C)^-1).
-    stefan_boltzmann_const: float, optional
-        Stefan Boltzmann's constant (W/(m^2K^-4)).
-    solar_const: float, optional
-        Solar constant (W/m^2).
-    latitude: float, optional
-        Latitude (radians).
-    elevation_of_measurement: float, optional
-        Elevation at which measurement was taken (m).
-    adjustment_coeff: float, optional
-        adjustment coeff to predict Rs from air temperature (deg C)^-0.5.
-    lt: float, optional
-        lag between peak TmaxF and solar forcing (days).
-    nd: float, optional
-        Number of days in year (days).
-    MeanTmaxF: float, optional
-        Mean annual rate of TmaxF (mm/d).
-    delta_d: float, optional
-        Calibrated difference between max & min daily TmaxF (mm/d).
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -172,8 +129,7 @@ class PotentialEvapotranspiration(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
-                 'Cosine'}, optional
+        method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT', 'Cosine'}, optional
             Priestley Taylor method will spit out radiation outputs too.
         priestley_taylor_constant: float, optional
             Alpha used in Priestley Taylor method.

@@ -17,8 +17,8 @@ from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class PerronNLDiffuse(Component):
-    '''
-    This component implements nonlinear diffusion, following Perron (2011).
+
+    """Nonlinear diffusion, following Perron (2011).
 
     This module uses Taylor Perron's implicit (2011) method to solve the
     nonlinear hillslope diffusion equation across a rectangular, regular grid
@@ -34,24 +34,6 @@ class PerronNLDiffuse(Component):
     future release; use at your own risk.
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        PerronNLDiffuse(grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
-                        rock_density=2700., sed_density=2700.)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A Landlab raster grid
-    nonlinear_diffusivity : float, array or field name
-        The nonlinear diffusivity
-    S_crit : float (radians)
-        The critical hillslope angle
-    rock_density : float (kg*m**-3)
-        The density of intact rock
-    sed_density : float (kg*m**-3)
-        The density of the mobile (sediment) layer
 
     Examples
     --------
@@ -75,7 +57,7 @@ class PerronNLDiffuse(Component):
     ...       0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
     >>> np.allclose(z, z_target)
     True
-    '''
+    """
 
     _name = 'PerronNLDiffuse'
 
@@ -94,6 +76,20 @@ class PerronNLDiffuse(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
                  rock_density=2700., sed_density=2700., **kwds):
+        """
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A Landlab raster grid
+        nonlinear_diffusivity : float, array or field name
+            The nonlinear diffusivity
+        S_crit : float (radians)
+            The critical hillslope angle
+        rock_density : float (kg*m**-3)
+            The density of intact rock
+        sed_density : float (kg*m**-3)
+            The density of the mobile (sediment) layer
+        """
         # disable internal_uplift option:
         internal_uplift = None
         self._grid = grid
