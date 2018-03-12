@@ -97,7 +97,7 @@ Landlab has the ability to add Layers to the grid.
   .. toctree::
      :maxdepth: 4
 
-  landlab.layers
+     landlab.layers
 
 Components
 ==========
