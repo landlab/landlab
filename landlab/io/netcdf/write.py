@@ -654,7 +654,7 @@ def write_netcdf(path, fields, attrs=None, append=False,
         _set_netcdf_cell_variables(root, fields, names=names)
 
     if hasattr(fields, 'grid_mapping'):
-        _set_netcdf_grid_mapping_variable(root, fields)
+        _set_netcdf_grid_mapping_variable(root, fields.grid_mapping)
 
     root.close()
 
@@ -789,8 +789,10 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
             
             projection = pycrs.parser.from_proj4(fields.esri_ascii_projection)
             crs_wkt = projection.to_ogc_wkt()
+            grid_mapping = {'name':'name',
+                            'crs_wkt': crs_wkt}
             
-            _set_netcdf_grid_mapping_variable(root,  fields.grid_mapping)
+            _set_netcdf_grid_mapping_variable(root, grid_mapping)
 
         else:
             message = ('This RasterModelGrid has a projection and was read in '
