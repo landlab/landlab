@@ -229,7 +229,7 @@ class Space(Component):
         except KeyError:
             self.soil__depth = grid.add_zeros(
                 'soil__depth', at='node', dtype=float)
-        self.link_lengths = grid._length_of_link_with_diagonals
+        self.link_lengths = grid.length_of_d8
         try:
             self.bedrock__elevation = grid.at_node['bedrock__elevation']
         except KeyError:

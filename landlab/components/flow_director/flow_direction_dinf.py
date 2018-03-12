@@ -146,8 +146,8 @@ def flow_directions_dinf(grid,
     # create list of triangle neighbors at node. Use orientation associated
     # with tarboton's 1997 algorithm, orthogonal link first, then diagonal.
     # has shape, (nnodes, 8 triangles, 2 neighbors)
-    n_at_node = grid.neighbors_at_node
-    dn_at_node = grid._diagonal_neighbors_at_node
+    n_at_node = grid.adjacent_nodes_at_node
+    dn_at_node = grid.diagonal_adjacent_nodes_at_node
 
     triangle_neighbors_at_node = np.stack([np.vstack((n_at_node[:,0], dn_at_node[:,0])),
                                            np.vstack((n_at_node[:,1], dn_at_node[:,0])),
@@ -161,8 +161,8 @@ def flow_directions_dinf(grid,
     triangle_neighbors_at_node = triangle_neighbors_at_node.swapaxes(0,1)
 
     # next create, triangle links at node
-    l_at_node = grid.links_at_node
-    dl_at_node = grid._diagonal_links_at_node
+    l_at_node = grid.d8s_at_node[:, :4]
+    dl_at_node = grid.d8s_at_node[:, 4:]
     triangle_links_at_node = np.stack([np.vstack((l_at_node[:,0], dl_at_node[:,0])),
                                        np.vstack((l_at_node[:,1], dl_at_node[:,0])),
                                        np.vstack((l_at_node[:,1], dl_at_node[:,1])),
@@ -176,8 +176,8 @@ def flow_directions_dinf(grid,
 
     # next create link directions and active link directions at node
     # link directions
-    ld_at_node = grid._link_dirs_at_node
-    dld_at_node = grid._diag__link_dirs_at_node
+    ld_at_node = grid.link_dirs_at_node
+    dld_at_node = grid.diagonal_dirs_at_node
     triangle_link_dirs_at_node = np.stack([np.vstack((ld_at_node[:,0], dld_at_node[:,0])),
                                            np.vstack((ld_at_node[:,1], dld_at_node[:,0])),
                                            np.vstack((ld_at_node[:,1], dld_at_node[:,1])),
@@ -191,7 +191,7 @@ def flow_directions_dinf(grid,
 
 #    # active link directions.
 #    ald_at_node = grid.active_link_dirs_at_node
-#    adld_at_node = grid._diag__active_link_dirs_at_node
+#    adld_at_node = grid.active_diagonal_dirs_at_node
 #
 #    triangle_active_link_dirs_at_node = np.stack([np.vstack((ald_at_node[:,0], adld_at_node[:,0])),
 #                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,0])),
@@ -205,7 +205,7 @@ def flow_directions_dinf(grid,
 #    triangle_active_link_dirs_at_node = triangle_active_link_dirs_at_node.swapaxes(0,1)
 #
     # need to create a list of diagonal links since it doesn't exist.
-    diag_links = np.sort(np.unique(grid._diag_links_at_node))
+    diag_links = np.sort(np.unique(grid.d8s_at_node[:, 4:]))
     diag_links = diag_links[diag_links>0]
 
     # calculate graidents across diagonals and orthogonals
