@@ -23,7 +23,7 @@ class DepthDependentDiffuser(Component):
         Landlab ModelGrid object
     linear_diffusivity: float
         Hillslope diffusivity, m**2/yr
-        Equivalent to the soil creep efficiency 
+        Equivalent to the soil creep efficiency
         times the soil transport decay depth.
     soil_transport_decay_depth: float
         characteristic transport soil depth, m
@@ -52,6 +52,7 @@ class DepthDependentDiffuser(Component):
     True
 
     Now with a slope:
+
     >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
