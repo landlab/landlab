@@ -32,11 +32,11 @@ class NormalFault(Component):
     """NormalFault implements relative rock motion due to a normal fault.
 
     The fault can have an arbitrary trace given by two points (x1, y1) and
-    (x2, y2) in the `fault_trace_dict` input parameter.
+    (x2, y2) in the `fault_trace` input parameter.
 
-    This NormalFault component permits a fault activity onset and end time such
-    that the uplift-time pattern implemented is a piecewise function with up to
-    three segments.
+    This NormalFault component permits an arbitrary pattern of fault motion. 
+    The throw rate is provided through the ``fault_throw_rate_through_time`` 
+    parameter.
     """
 
     _name = 'NormalFault'
@@ -73,25 +73,15 @@ class NormalFault(Component):
         faulted_surface : str or ndarray of shape `(n_nodes, )`
             Surface that is modified by the NormalFault component. Can be a
             field name or array. Default value is `topographic__elevation`.
-        active_uplift_start_time : float
-            Model time at which rock uplift on the fault begins.
-        active_uplift_end_time : float, optional
-            Model time at which rock uplift on the fault ends. If not specified
-            the component will look for a parameter called ``run_duration``. If
-            neither are provided, there will be no active uplift end time.
-        pre_active_uplift_throw_rate : float, optional
-            Fault throw rate before onset of active fault movement. Default is
-            zero.
-        active_uplift_throw_rate : float
-            Fault throw rate during active fault movement.
-        post_active_uplift_throw_rate : float, optional
-            Fault throw rate after onset of active fault movement. Default is
-            zero.
+        fault_throw_rate_through_time : dict
+            Dictionary that specifies the time varying throw rate on the fault.
+            Expected format is:           
+            ``fault_throw_rate_through_time = {time: array, rate: array}
         fault_dip_angle : float
             Dip angle of the fault in degrees.
-        fault_trace_dict : dictionary
+        fault_trace : dictionary
             Dictionary that specifies the coordinates of two locations on the
-            fault trace. Format is
+            fault trace. Expected format is
             ``fault_trace_dict = {x1: float, y1: float, x2: float, y2: float}``
             where the vector from ``(x1, y1)`` to ``(x2, y2)`` defines the
             strike of the fault trace. The orientation of the fault dip relative
@@ -112,40 +102,32 @@ class NormalFault(Component):
 
 
         """
+        # call the class Normal Fault inherits from
         super(NormalFault, self).__init__(grid)
-
+        
+        # save a reference to the grid
         self._grid = grid
 
+        # get the surface to be faulted
         surface = params.get('faulted_surface', 'topographic__elevation')
         self.z = _return_surface(grid, surface)
 
-        self.throw = params['active_uplift_throw_rate']
+        # get the fault throw parameter values from the parameter dictionary
+        self.throw_time = np.array(params['fault_through_rate_through_time']['time'])
+        self.throw_rate = np.array(params['fault_through_rate_through_time']['rate'])
         self.fault_dip = np.deg2rad(params['fault_dip_angle'])
+        self.uplift = self.throw_rate * np.sin(self.fault_dip)
 
-        self.active_uplift_rate = self.throw * np.sin(self.fault_dip)
-
-        self.start = params['active_uplift_start_time']
-
-        try:
-            self.stop = params.get('active_uplift_end_time', params['run_duration'])
-            self.stop_time_exists = True
-        except KeyError:
-            self.stop = None
-            self.stop_time_exists = False
-        
-        if self.stop_time_exists:
-            if self.stop <= self.start:
-                raise ValueError('NormalFault active_uplift_end_time is before '
-                                 'active_uplift_start_time.')
-
-        self.pre_onset_uplift_rate = params.get('pre_active_uplift_throw_rate', 0.0)* np.sin(self.fault_dip)
-        self.post_stabilization_uplift_rate = params.get('post_active_uplift_throw_rate', 0.0) * np.sin(self.fault_dip)
-
+        # Identify in current boundaries will be included
         self.include_boundaries = params.get('include_boundaries', False)
-
+        
+        # Instantiate record of current time. 
         self.current_time = 0.0
 
-        self.fault_trace_dict = params['fault_trace_dict']
+        # get the fault trace dictionary and use to to calculate where the 
+        # faulted nodes are located. 
+        
+        self.fault_trace_dict = params['fault_trace']
         dx = self.fault_trace_dict['x2'] - self.fault_trace_dict['x1']
         dy = self.fault_trace_dict['y2'] - self.fault_trace_dict['y1']
         self.fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
@@ -183,7 +165,7 @@ class NormalFault(Component):
         self.faulted_nodes[faulted_node_ids] = True
 
     def run_one_step(self, dt):
-        """Run_one_step method for NormalFaultHandler.
+        """Run_one_step method for NormalFault.
 
         Parameters
         ----------
@@ -191,27 +173,23 @@ class NormalFault(Component):
             Time increment used to advance the NormalFault component.
 
         """
+        # save z before uplift
         z_before_uplift = self.z.copy()
 
-        # If before start time, uplift and the pre-onset uplift rate
-        if self.current_time < self.start:
-            self.z[self.faulted_nodes] += self.pre_onset_uplift_rate * dt
-
-        # if between start and stop, uplift at the active uplift rate
-        elif self.current_time >= self.start:
-            if self.stop_time_exists:
-                
-                if self.current_time < self.stop:
-                    self.z[self.faulted_nodes] += self.active_uplift_rate * dt
-
-                # if after the stop time, use the post_stabilization rate.
-                else:
-                    self.z[self.faulted_nodes] += self.post_stabilization_uplift_rate * dt
-            else:
-                self.z[self.faulted_nodes] += self.active_uplift_rate * dt
-                
+        # calculate the current uplift rate
+        current_uplift_rate = np.interp(self.current_time, self.throw_time, self.throw_rate)
+        
+        # uplift the faulted_nodes
+        self.z[self.faulted_nodes] += current_uplift_rate * dt
+           
+        # if faulted nodes includes boundaries we must do some extra work because
+        # landlab components will typically not erode these boundaries. This means
+        # they will be uplifted but not eroded. 
+        
         if self.include_boundaries:
-            # set faulted boundaries to average of open node faulted neighbors
+            
+            #  here our goal is to set faulted boundaries to average of open 
+            # node faulted neighbors
 
             # create boolean of the faulted boundary nodes
             faulted_boundaries = self.faulted_nodes.copy()

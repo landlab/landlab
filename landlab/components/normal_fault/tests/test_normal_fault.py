@@ -6,10 +6,9 @@ grid = RasterModelGrid((6, 6), spacing=10)
 z = grid.add_zeros('node', 'topographic__elevation')
 
 param_dict = {'faulted_surface': 'topographic__elevation',
-              'active_uplift_throw_rate' : 0.5,
               'fault_dip_angle': 90.0,
-              'active_uplift_start_time': 10, 
-              'active_uplift_end_time': 20,
+              'fault_throw_rate_through_time': {'time': [0, 10], 
+                                                'rate': [0, 0.05]},
               'fault_trace_dict': {'y1': 0,
                                    'x1': 0, 
                                    'y2': 30, 
@@ -36,16 +35,16 @@ print(z.reshape(grid.shape))
 
 from landlab import RasterModelGrid
 from landlab.components import NormalFault, FastscapeEroder, FlowAccumulator
-grid = RasterModelGrid((30, 30), spacing=10)
+grid = RasterModelGrid((40, 40), spacing=10)
 
 from landlab.plot import imshow_grid
 
 z = grid.add_zeros('node', 'topographic__elevation')
 
 param_dict = {'faulted_surface': 'topographic__elevation',
-              'active_uplift_throw_rate' : 0.001,
               'fault_dip_angle': 90.0,
-              'active_uplift_start_time': 10, 
+              'fault_throw_rate_through_time': {'time': [0, 10], 
+                                                'rate': [0, 0.05]},
               'fault_trace_dict': {'y1': 0,
                                    'x1': 0, 
                                    'y2': 30, 
