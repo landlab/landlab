@@ -108,37 +108,9 @@ class OverlandFlow(Component):
     "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
 
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab grid.
-    h_init : float, optional
-        Thicknes of initial thin layer of water to prevent divide by zero
-        errors (m).
-    alpha : float, optional
-        Time step coeffcient, described in Bates et al., 2010 and
-        de Almeida et al., 2012.
-    mannings_n : float, optional
-        Manning's roughness coefficient.
-    g : float, optional
-        Acceleration due to gravity (m/s^2).
-    theta : float, optional
-        Weighting factor from de Almeida et al., 2012.
-    rainfall_intensity : float, optional
-        Rainfall intensity.
-
-
-
     The primary method of this class is :func:`run_one_step`.
+    """
 
-
-    Construction::
-
-        OverlandFlow(grid, default_fixed_links=False, h_init=0.00001,
-                 alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
-                 rainfall_intensity=0.0, steep_slopes=False, **kwds)
-
-"""
     _name = 'OverlandFlow'
 
     _cite_as = """@article{adams2017landlab,
@@ -193,7 +165,7 @@ class OverlandFlow(Component):
     def __init__(self, grid, default_fixed_links=False, h_init=0.00001,
                  alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
                  rainfall_intensity=0.0, steep_slopes=False, **kwds):
-        """Create a overland flow component.
+        """Create an overland flow component.
 
         Parameters
         ----------
