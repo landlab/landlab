@@ -33,7 +33,7 @@ from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
-
+from .normal_fault import NormalFault
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
@@ -51,6 +51,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               TaylorNonLinearDiffuser, DepthSlopeProductErosion,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
-              LandslideProbability, DepthDependentTaylorDiffuser]
+              LandslideProbability, DepthDependentTaylorDiffuser,
+              NormalFault]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
