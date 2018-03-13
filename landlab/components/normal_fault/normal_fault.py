@@ -113,8 +113,8 @@ class NormalFault(Component):
         self.z = _return_surface(grid, surface)
 
         # get the fault throw parameter values from the parameter dictionary
-        self.throw_time = np.array(params['fault_through_rate_through_time']['time'])
-        self.throw_rate = np.array(params['fault_through_rate_through_time']['rate'])
+        self.throw_time = np.array(params['fault_throw_rate_through_time']['time'])
+        self.throw_rate = np.array(params['fault_throw_rate_through_time']['rate'])
         self.fault_dip = np.deg2rad(params['fault_dip_angle'])
         self.uplift = self.throw_rate * np.sin(self.fault_dip)
 
