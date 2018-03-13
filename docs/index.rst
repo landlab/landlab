@@ -91,7 +91,8 @@ inherits from `VoronoiDelauneyGrid` and adds the following:
    landlab.grid.radial
 
 Layers
-==========
+======
+
 Landlab has the ability to add Layers to the grid.
 
   .. toctree::
@@ -185,7 +186,7 @@ Precipitation
   landlab.components.uniform_precip
 
 Weathering
-----------------
+----------
 
 .. toctree::
   :maxdepth: 4
