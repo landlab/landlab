@@ -4,74 +4,6 @@
 Landlab component that implements rock uplift by a normal fault. This component
 does not make any attempt to advect topography laterally.
 
-
-uplift_start_time
-uplift_end_time
-
-pre_onset_throw_rate
-active_throw_rate
-post_stabilization_throw_rate
-
-fault_dip_angle
-
-fault_trace_dict = {x1:
-                    y1:
-                    x2:
-                    y2:}
-include_boundaries
-
-
-
- Examples
- --------
-
- Create a grid on which we will run the normal fault.
-
- >>> from landlab import RasterModelGrid
- >>> from landlab.components.flexure import Flexure
- >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
-
- Check the fields that are used as input to the flexure component.
-
- >>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
- ('lithosphere__overlying_pressure_increment',)
-
- Check the units for the fields.
-
- >>> Flexure.var_units('lithosphere__overlying_pressure_increment')
- 'Pa'
-
- If you are not sure about one of the input or output variables, you can
- get help for specific variables.
-
- >>> Flexure.var_help('lithosphere__overlying_pressure_increment')
- name: lithosphere__overlying_pressure_increment
- description:
-   Applied pressure to the lithosphere over a time step
- units: Pa
- at: node
- intent: in
-
- >>> flex = Flexure(grid)
-
- In creating the component, a field (initialized with zeros) was added to the
- grid. Reset the interior nodes for the loading.
-
- >>> dh = grid.at_node['lithosphere__overlying_pressure_increment']
- >>> dh = dh.reshape(grid.shape)
- >>> dh[1:-1, 1:-1] = flex.gamma_mantle
-
- >>> flex.update()
-
- >>> flex.output_var_names
- ('lithosphere_surface__elevation_increment',)
- >>> flex.grid.at_node['lithosphere_surface__elevation_increment']
- ...     # doctest: +NORMALIZE_WHITESPACE
- array([ 0., 0., 0., 0.,
-         0., 1., 1., 0.,
-         0., 1., 1., 0.,
-         0., 1., 1., 0.,
-         0., 0., 0., 0.])
  """
 
 import numpy as np
@@ -92,7 +24,17 @@ def _return_surface(grid, surface):
     return surface
 
 class NormalFault(Component):
-    """NormalFault implements relative rock motion due to a normal fault."""
+    """NormalFault implements relative rock motion due to a normal fault.
+    
+    The fault can have an arbitrary trace given by two points (x1, y1) and 
+    (x2, y2) in the `fault_trace_dict` input parameter. 
+    
+    This NormalFault component permits a fault activity onset and end time such
+    that the uplift-time pattern implemented is a piecewise function with up to
+    three segments. 
+    
+    """
+
 
 
     _name = 'NormalFault'
@@ -100,34 +42,105 @@ class NormalFault(Component):
     #_cite_as = """ """
 
     _input_var_names = (
-        'lithosphere__overlying_pressure_increment',
+        'topographic__elevation',
     )
 
     _output_var_names = (
-        'lithosphere_surface__elevation_increment',
+        'topographic__elevation',
     )
 
     _var_units = {
-        'lithosphere__overlying_pressure_increment': 'Pa',
-        'lithosphere_surface__elevation_increment': 'm',
+        'topographic__elevation': 'm',
     }
 
     _var_mapping = {
-        'lithosphere__overlying_pressure_increment': 'node',
-        'lithosphere_surface__elevation_increment': 'node',
+        'topographic__elevation': 'node',
     }
 
     _var_doc = {
-        'lithosphere__overlying_pressure_increment':
-            'Applied pressure to the lithosphere over a time step',
-        'lithosphere_surface__elevation_increment':
-            'The change in elevation of the top of the lithosphere (the land '
-            'surface) in one timestep',
+        'topographic__elevation': 'elevation of the ground surface'
     }
 
     def __init__(self, grid, params):
-        """Instantiate the NormalFaultHandler."""
-
+        """
+        Instantiation of a NormalFault. 
+        
+        Parameters
+        --------  
+        grid : ModelGrid
+        faulted_surface : str or ndarray of shape `(n_nodes, )`
+            Surface that 
+            Default value is `topographic__elevation`
+        uplift_start_time : float
+            Text
+        uplift_end_time : float
+        pre_onset_throw_rate : float
+        active_throw_rate : float
+        post_stabilization_throw_rate : float
+        fault_dip_angle : float
+            Dip angle of the fault in 
+            
+        fault_trace_dict : dictionary
+            = {x1:
+                            y1:
+                            x2:
+                            y2:}
+        include_boundaries : boolean
+            Default value is False
+        
+        
+        
+         Examples
+         --------
+        
+         Create a grid on which we will run the normal fault.
+        
+         >>> from landlab import RasterModelGrid
+         >>> from landlab.components.flexure import Flexure
+         >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+        
+         Check the fields that are used as input to the flexure component.
+        
+         >>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
+         ('lithosphere__overlying_pressure_increment',)
+        
+         Check the units for the fields.
+        
+         >>> Flexure.var_units('lithosphere__overlying_pressure_increment')
+         'Pa'
+        
+         If you are not sure about one of the input or output variables, you can
+         get help for specific variables.
+        
+         >>> Flexure.var_help('lithosphere__overlying_pressure_increment')
+         name: lithosphere__overlying_pressure_increment
+         description:
+           Applied pressure to the lithosphere over a time step
+         units: Pa
+         at: node
+         intent: in
+        
+         >>> flex = Flexure(grid)
+        
+         In creating the component, a field (initialized with zeros) was added to the
+         grid. Reset the interior nodes for the loading.
+        
+         >>> dh = grid.at_node['lithosphere__overlying_pressure_increment']
+         >>> dh = dh.reshape(grid.shape)
+         >>> dh[1:-1, 1:-1] = flex.gamma_mantle
+        
+         >>> flex.update()
+        
+         >>> flex.output_var_names
+         ('lithosphere_surface__elevation_increment',)
+         >>> flex.grid.at_node['lithosphere_surface__elevation_increment']
+         ...     # doctest: +NORMALIZE_WHITESPACE
+         array([ 0., 0., 0., 0.,
+                 0., 1., 1., 0.,
+                 0., 1., 1., 0.,
+                 0., 1., 1., 0.,
+                 0., 0., 0., 0.])
+        """
         super(NormalFault, self).__init__(grid)
 
         self._grid = grid
