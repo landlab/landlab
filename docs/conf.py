@@ -99,7 +99,7 @@ pygments_style = 'sphinx'
 #keep_warnings = False
 
 # selects what content will be inserted into the main body of an autoclass directive: 'class'(default), 'both', or 'init'
-# autoclass_content = 'both'
+autoclass_content = 'both'
 
 
 # -- Options for HTML output ---------------------------------------------------
