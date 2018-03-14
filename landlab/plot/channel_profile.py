@@ -40,7 +40,7 @@ Examples
     >>> import numpy as np
     >>> np.random.seed(42)
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowAccumulator, FastscapeEroder, LinearDiffuser, DepressionFinderAndRouter
+    >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> from landlab.plot import analyze_channel_network_and_plot
 
     Construct a grid and evolve some topography
@@ -50,20 +50,15 @@ Examples
     >>> z += 200 + mg.x_of_node + mg.y_of_node
     >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
     >>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
-    >>> fa = FlowAccumulator(mg,
-    ...                      depression_finder=DepressionFinderAndRouter,
-    ...                      routing='D4')
+    >>> fa = FlowAccumulator(mg, flow_director='D8')
     >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
-    >>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
 
     Now run a simple landscape evolution model to develop a channel network.
 
     >>> dt = 100
     >>> for i in range(200):
     ...     fa.run_one_step()
-    ...     flooded = np.where(fa.depression_finder.flood_status==3)[0]
-    ...     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
-    ...     ld.run_one_step(dt=dt)
+    ...     sp.run_one_step(dt=dt)
     ...     mg.at_node['topographic__elevation'][0] -= 0.001
 
     Now call analyze_channel_network_and_plot in order to plot the network. Note
@@ -84,7 +79,7 @@ Examples
     True
 
     >>> len(profile_structure[0][0])
-    93
+    58
 
     We can change the default values to get additional channels or to plot all
     of the channels in a network.
@@ -92,9 +87,10 @@ Examples
     For the next example, lets use a hexagonal grid.
 
     >>> from landlab import HexModelGrid
+    >>> from landlab.components import DepressionFinderAndRouter, LinearDiffuser
     >>> mg = HexModelGrid(40, 20)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
-    >>> z += 200 + mg.y_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+    >>> z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
     >>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
     >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
     >>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
