@@ -61,37 +61,6 @@ class FastscapeEroder(Component):
 
     The primary method of this class is :func:`run_one_step`.
 
-    Construction::
-
-        FastscapeEroder(grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=0.,
-                        rainfall_intensity=1.)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    K_sp : float, array, or field name
-        K in the stream power equation (units vary with other parameters).
-    m_sp : float, optional
-        m in the stream power equation (power on drainage area).
-    n_sp : float, optional, ~ 0.5<n_sp<4.
-        n in the stream power equation (power on slope).
-        Performance will be VERY degraded if n < 1.
-    threshold_sp : float, array, or field name
-        The threshold stream power.
-    rainfall_intensity : float; optional
-        Modifying factor on drainage area to convert it to a true water
-        volume flux in (m/time). i.e., :math:`E = K * (r_i A)^m * S^n`.
-        For a time varying rainfall intensity, pass
-        *rainfall_intensity_if_used* to `run_one_step`. For a spatially
-        variable rainfall, use the StreamPowerEroder component.
-    discharge_name : string; optional
-        Name of field to use for discharge proxy. Defaults to 'drainage_area',
-        which means the component will expect the driver or another component
-        to have created and populated a 'drainage_area' field. To use a
-        different field, such as 'surface_water__discharge', give its name in
-        this argument.
-
     Examples
     --------
     >>> import numpy as np
@@ -248,11 +217,6 @@ class FastscapeEroder(Component):
         self.A_to_the_m = grid.zeros(at='node')
         self.alpha = grid.empty(at='node')
 
-        try:
-            self.grid._diagonal_links_at_node  # calc number of diagonal links
-        except AttributeError:
-            pass  # was not a raster
-
         if self.K is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
                              'field name. It was None.')
@@ -351,7 +315,7 @@ class FastscapeEroder(Component):
         z = self._grid.at_node['topographic__elevation']
         defined_flow_receivers = np.not_equal(
             self._grid.at_node['flow__link_to_receiver_node'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid._length_of_link_with_diagonals[
+        flow_link_lengths = self._grid.length_of_d8[
             self._grid.at_node['flow__link_to_receiver_node'][
                 defined_flow_receivers]]
 
