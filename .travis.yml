@@ -58,8 +58,10 @@ virtualenv:
 after_success:
 - |
   if [[ "$TRAVIS_TAG" == v* ]]; then
+    LANDLAB_PACKAGE=$(conda build --output ./conda-recipe --old-build-string)
+    anaconda -t $ANACONDA_TOKEN upload --force --user landlab --channel main $LANDLAB_PACKAGE
     bash .ci/travis/deploy_to_pypi.sh
-    bash .ci/travis/deploy_to_anaconda.sh
+    # bash .ci/travis/deploy_to_anaconda.sh
   fi
 - if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
 # deploy:
