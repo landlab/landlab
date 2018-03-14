@@ -28,10 +28,6 @@ def calc_grad_at_link(grid, node_values, out=None):
     Calculates the gradient in `node_values` at each link in the grid,
     returning an array of length `number_of_links`.
 
-    Construction::
-
-        calc_grad_at_link(grid, node_values, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -109,10 +105,6 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     Calculates the gradient in *quantity* node values at each active link in
     the grid.
 
-    Construction::
-
-        calc_grad_at_active_link(grid, node_values, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -144,10 +136,6 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     Calculate and return gradient in *node_values* at each face in the grid.
     Gradients are calculated from the nodes at either end of the link that
     crosses each face.
-
-    Construction::
-
-        calculate_gradients_at_faces(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -197,10 +185,6 @@ def calc_diff_at_link(grid, node_values, out=None):
 
     Calculates the difference in quantity *node_values* at each link in the
     grid.
-
-    Construction::
-
-        calc_diff_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -267,10 +251,6 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
 
     Calculates the difference in quantity *node_values* at each active link
     in the grid.
-
-    Construction::
-
-        calculate_diff_at_active_links(grid, node_values, out=None)
 
     Parameters
     ----------

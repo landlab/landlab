@@ -40,21 +40,11 @@ class DischargeDiffuser(Component):
 
     The primary method of this class is :func:`run_one_step`.
 
-    Construction::
-
-        DischargeDiffuser(grid, ...)
-
     Notes
     -----
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-
 
     Examples
     --------
@@ -119,7 +109,11 @@ class DischargeDiffuser(Component):
     # if your flow isn't connecting up, this probably needs to be reduced
 
     def __init__(self, grid, slope, flat_thresh=1.e-4, **kwds):
-        """Initialize flow router.
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
             assert grid.number_of_node_rows >= 3
