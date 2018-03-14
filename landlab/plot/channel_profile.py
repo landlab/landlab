@@ -47,7 +47,7 @@ Examples
 
     >>> mg = RasterModelGrid(40, 60)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
-    >>> z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+    >>> z += 200 + mg.x_of_node + mg.y_of_node
     >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
     >>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
     >>> fa = FlowAccumulator(mg,
@@ -60,11 +60,11 @@ Examples
 
     >>> dt = 100
     >>> for i in range(200):
-    ...     mg.at_node['topographic__elevation'][0] -= 0.001
     ...     fa.run_one_step()
     ...     flooded = np.where(fa.depression_finder.flood_status==3)[0]
     ...     sp.run_one_step(dt=dt,  flooded_nodes=flooded)
     ...     ld.run_one_step(dt=dt)
+    ...     mg.at_node['topographic__elevation'][0] -= 0.001
 
     Now call analyze_channel_network_and_plot in order to plot the network. Note
     in general, we'd leave create_plot in its default value of create_plot=True,
