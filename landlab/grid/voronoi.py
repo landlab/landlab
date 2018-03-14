@@ -66,38 +66,6 @@ def simple_poly_area(x, y):
                     x[-1] * y[0] - x[0] * y[-1])
 
 
-def calculate_link_lengths(pts, link_from, link_to):
-    """Calculates and returns length of links between nodes.
-
-    Parameters
-    ----------
-    pts : Nx2 numpy array containing (x,y) values
-    link_from : 1D numpy array containing index numbers of nodes at starting
-                point ("from") of links
-    link_to : 1D numpy array containing index numbers of nodes at ending point
-              ("to") of links
-
-    Returns
-    -------
-    out : ndarray
-        1D numpy array containing horizontal length of each link
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.grid.voronoi import calculate_link_lengths
-    >>> pts = np.array([[0.,0.],[3.,0.],[3.,4.]]) # 3:4:5 triangle
-    >>> lfrom = np.array([0,1,2])
-    >>> lto = np.array([1,2,0])
-    >>> calculate_link_lengths(pts, lfrom, lto)
-    array([ 3.,  4.,  5.])
-    """
-    dx = pts[link_to, 0] - pts[link_from, 0]
-    dy = pts[link_to, 1] - pts[link_from, 1]
-    link_length = np.sqrt(dx * dx + dy * dy)
-    return link_length
-
-
 class VoronoiDelaunayGrid(ModelGrid):
     """
     This inherited class implements an unstructured grid in which cells are
@@ -148,6 +116,19 @@ class VoronoiDelaunayGrid(ModelGrid):
             1.,  1.,  1.,
             2.,  2.,  2.,
             3.,  3.,  3.])
+    >>> vmg.adjacent_nodes_at_node
+    array([[ 1,  3, -1, -1, -1, -1],
+           [ 2,  4,  3,  0, -1, -1],
+           [ 5,  4,  1, -1, -1, -1],
+           [ 4,  6,  0,  1, -1, -1],
+           [ 5,  7,  6,  3,  1,  2],
+           [ 8,  7,  4,  2, -1, -1],
+           [ 7,  9,  3,  4, -1, -1],
+           [ 8, 10,  9,  6,  4,  5],
+           [11, 10,  7,  5, -1, -1],
+           [10,  6,  7, -1, -1, -1],
+           [11,  9,  7,  8, -1, -1],
+           [10,  8, -1, -1, -1, -1]])
     """
 
     def __init__(self, x=None, y=None, reorient_links=True, **kwds):
@@ -188,20 +169,14 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
-        x = np.asarray(x, dtype=float).reshape((-1, ))
-        y = np.asarray(y, dtype=float).reshape((-1, ))
-
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
         if x.size != y.size:
             raise ValueError('x and y arrays must have the same size')
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
-        pts = np.zeros((len(x), 2))
-        pts[:, 0] = x
-        pts[:, 1] = y
-        self.pts = sort_points_by_x_then_y(pts)
-        x = self.pts[:, 0]
-        y = self.pts[:, 1]
+        xy_of_node = np.hstack((x.reshape((-1, 1)), y.reshape((-1, 1))))
+        self._xy_of_node = sort_points_by_x_then_y(xy_of_node)
 
         # NODES AND CELLS: Set up information pertaining to nodes and cells:
         #   - number of nodes
@@ -218,19 +193,15 @@ class VoronoiDelaunayGrid(ModelGrid):
         #       special cases)
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
-        #
-        self._node_x = x
-        self._node_y = y
-        [self._node_status, self._core_nodes, self._boundary_nodes] = \
-            self._find_perimeter_nodes_and_BC_set(pts)
+        self._find_perimeter_nodes_and_BC_set(self._xy_of_node)
         [self._cell_at_node, self._node_at_cell] = \
-            self._node_to_cell_connectivity(self._node_status,
+            self._node_to_cell_connectivity(self.status_at_node,
                                             self.number_of_cells)
         active_cell_at_node = self.cell_at_node[self.core_nodes]
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
-        vor = Voronoi(self.pts)
+        vor = Voronoi(self._xy_of_node)
         self.vor = vor
         self._area_of_cell = np.zeros(self.number_of_cells)
         for node in self._node_at_cell:
@@ -241,13 +212,14 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
-        (self._node_at_link_tail,
-         self._node_at_link_head,
+        (node_at_link_tail,
+         node_at_link_head,
          _,
          self._face_width) = \
             self._create_links_and_faces_from_voronoi_diagram(vor)
-        self._status_at_link = np.full(len(self._node_at_link_tail),
-                                       INACTIVE_LINK, dtype=int)
+
+        self._nodes_at_link = np.hstack((node_at_link_tail.reshape((-1, 1)),
+                                         node_at_link_head.reshape((-1, 1))))
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
@@ -257,29 +229,11 @@ class VoronoiDelaunayGrid(ModelGrid):
         if reorient_links:
             self._reorient_links_upper_right()
 
-        # LINKS: Calculate link lengths
-        self._link_length = calculate_link_lengths(self.pts,
-                                                   self.node_at_link_tail,
-                                                   self.node_at_link_head)
-
-        # LINKS: inlink and outlink matrices
-        # SOON TO BE DEPRECATED
-        self._setup_inlink_and_outlink_matrices()
-
-        # ACTIVE LINKS: Create list of active links, as well as "from" and "to"
-        # nodes of active links.
-        self._reset_link_status_list()
-
         # NODES & LINKS: IDs and directions of links at each node
         self._create_links_and_link_dirs_at_node()
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._create_link_unit_vectors()
-
-        # create link x, y:
-        self._create_link_face_coords()
-
-        self._create_neighbors()
 
     @property
     def number_of_patches(self):
@@ -292,7 +246,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._number_of_patches
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._number_of_patches
 
     @property
@@ -304,7 +259,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._nodes_at_patch
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._nodes_at_patch
 
     @property
@@ -338,7 +294,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._patches_at_node
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._patches_at_node
 
     @property
@@ -363,7 +320,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._links_at_patch
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._links_at_patch
 
     @property
@@ -394,7 +352,8 @@ class VoronoiDelaunayGrid(ModelGrid):
         try:
             return self._patches_at_link
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self.pts, self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node,
+                                                       self.vor)
             return self._patches_at_link
 
     def _find_perimeter_nodes_and_BC_set(self, pts):
@@ -436,7 +395,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         # boundary (=1). This means that all perimeter (convex hull) nodes are
         # initially flagged as boundary code 1. An application might wish to
         # change this so that, for example, some boundaries are inactive.
-        node_status = np.zeros(len(pts[:, 0]), dtype=np.int8)
+        node_status = np.zeros(len(pts[:, 0]), dtype=np.uint8)
         node_status[boundary_nodes] = 1
 
         # It's also useful to have a list of interior nodes
@@ -444,9 +403,10 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # save the arrays and update the properties
         self._node_status = node_status
-        self._core_cells = np.arange(len(core_nodes), dtype=np.int)
         self._node_at_cell = core_nodes
         self._boundary_nodes = boundary_nodes
+
+        self.status_at_node = node_status
 
         # Return the results
         return node_status, core_nodes, boundary_nodes
@@ -727,15 +687,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
-        if len(flip_locs) > 0:
-
-            # Temporarily story the fromnode for these
-            fromnode_temp = self.node_at_link_tail[flip_locs]
-
-            # The fromnodes now become the tonodes, and vice versa
-            self._node_at_link_tail[
-                flip_locs] = self.node_at_link_head[flip_locs]
-            self._node_at_link_head[flip_locs] = fromnode_temp
+        self._nodes_at_link[flip_locs, :] = self._nodes_at_link[flip_locs, ::-1]
 
     def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
@@ -805,30 +757,6 @@ class VoronoiDelaunayGrid(ModelGrid):
 # a sort of the links will be performed here once we have corners
 
         self._patches_created = True
-
-    def _create_neighbors(self):
-        """Create the _neighbors_at_node property.
-        """
-        self._neighbors_at_node = self.links_at_node.copy()
-        nodes_at_link = np.empty((self.number_of_links, 2))
-        nodes_at_link[:, 0] = self.node_at_link_tail
-        nodes_at_link[:, 1] = self.node_at_link_head
-        both_nodes = nodes_at_link[self.links_at_node]
-
-        nodes = np.arange(self.number_of_nodes, dtype=int)
-        # ^we have to do this, as for a hex it's possible that mg.nodes is
-        # returned not just in ID order.
-
-        for i in range(both_nodes.shape[1]):
-            centernottail = np.not_equal(both_nodes[:, i, 0], nodes)
-            centernothead = np.not_equal(both_nodes[:, i, 1], nodes)
-            self._neighbors_at_node[centernottail, i] = both_nodes[
-                centernottail, i, 0]
-            self._neighbors_at_node[centernothead, i] = both_nodes[
-                centernothead, i, 1]
-        # restamp the missing links:
-        self._neighbors_at_node[
-            self.links_at_node == BAD_INDEX_VALUE] = BAD_INDEX_VALUE
 
     def save(self, path, clobber=False):
         """Save a grid and fields.

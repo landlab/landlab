@@ -1,0 +1,7 @@
+TransportLengthHillslopeDiffuser: Model hillslope diffusion using a transport-length equation
+---------------------------------------------------------------------------------------------
+
+.. automodule:: landlab.components.transport_length_diffusion
+    :members:
+    :undoc-members:
+    :show-inheritance:
