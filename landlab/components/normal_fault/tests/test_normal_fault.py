@@ -102,6 +102,6 @@ def test_non_raster():
                      False, False, False, False, False, False, False, False, False,
                      False, False, False], dtype=bool)
     
-    assert_array_equal(nf.faulted_nodes.reshape(grid.shape), out)
+    assert_array_equal(nf.faulted_nodes, out)
             
         
