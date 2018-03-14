@@ -98,9 +98,93 @@ class NormalFault(Component):
 
          >>> from landlab import RasterModelGrid
          >>> from landlab.components import NormalFault
-         >>> grid = RasterModelGrid((5, 4))
-
-
+         >>> grid = RasterModelGrid((6, 6), spacing=10)
+        
+        Add an elevation field.
+        
+        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        
+        
+        Set the parameter values for the NormalFault component.
+        
+        >>> param_dict = {'faulted_surface': 'topographic__elevation',
+        ...               'fault_dip_angle': 90.0,
+        ...               'fault_throw_rate_through_time': {'time': [0, 9, 10], 
+        ...                                                 'rate': [0, 0, 0.05]},
+        ...               'fault_trace': {'y1': 0,
+        ...                                    'x1': 0, 
+        ...                                    'y2': 30, 
+        ...                                    'x2': 60},
+        ...              'include_boundaries': False}
+         
+        Instantiate a NormalFault component.
+        
+        >>> nf = NormalFault(grid, params=param_dict)        
+        >>> nf.faulted_nodes.reshape(grid.shape)
+        array([[False, False, False, False, False, False],
+           [False,  True, False, False, False, False],
+           [False,  True,  True,  True, False, False],
+           [False,  True,  True,  True,  True, False],
+           [False,  True,  True,  True,  True, False],
+           [False, False, False, False, False, False]], dtype=bool)
+        
+        As we can see, only a subset of the nodes have been identified as 
+        *faulted nodes*. Because we have set include_boundaries' to False none
+        of the boundary nodes are faulted nodes. 
+        
+        Next we will run the NormalFault for 30 1-year timesteps.
+        
+        >>> dt = 1.0
+        >>> for i in range(30):
+        ...     nf.run_one_step(dt)
+        >>> z.reshape(grid.shape)
+        array([[ 0.,  0.,  0.,  0.,  0.,  0.],
+               [ 0.,  1.,  0.,  0.,  0.,  0.],
+               [ 0.,  1.,  1.,  1.,  0.,  0.],
+               [ 0.,  1.,  1.,  1.,  1.,  0.],
+               [ 0.,  1.,  1.,  1.,  1.,  0.],
+               [ 0.,  0.,  0.,  0.,  0.,  0.]])
+            
+        This results in uplift of the faulted nodes, as we would expect. 
+        
+        Next, we make a very simple landscape model. We need a few components
+        and we will set include_boundaries to True. 
+        
+        >>> from landlab.components import FastscapeEroder, FlowAccumulator
+        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> param_dict = {'faulted_surface': 'topographic__elevation',
+        ...               'fault_dip_angle': 90.0,
+        ...               'fault_throw_rate_through_time': {'time': [0, 900, 1000], 
+        ...                                                 'rate': [0, 0, 0.05]},
+        ...               'fault_trace': {'y1': 0,
+        ...                                    'x1': 0, 
+        ...                                    'y2': 30, 
+        ...                                    'x2': 60},
+        ...              'include_boundaries': True}
+        
+        >>> nf = NormalFault(grid, params=param_dict)
+        >>> fr = FlowAccumulator(grid)
+        >>> fs = FastscapeEroder(grid, K_sp=0.01)
+        
+        Run this model for 300 100-year timesteps. 
+        
+        >>> dt = 100.0
+        >>> for i in range(300):
+        ...     nf.run_one_step(dt)
+        ...     fr.run_one_step()
+        ...     fs.run_one_step(dt)
+        >>> z.reshape(grid.shape).round(decimals=2)
+        array([[  0.  ,   0.  ,   0.  ,   0.  ,   0.  ,   0.  ],
+               [  5.  ,   5.  ,   0.  ,   0.  ,   0.  ,   0.  ],
+               [  7.39,   7.38,   2.38,   2.89,   0.  ,   0.  ],
+               [  9.36,  11.43,   5.51,   6.42,   3.54,   3.54],
+               [ 15.06,  15.75,  10.6 ,  11.42,   8.54,   8.54],
+               [ 15.06,  15.06,  10.7 ,  11.42,   8.54,   8.54]])
+    
+        The faulted nodes have been uplifted and eroded! Note that here the 
+        boundary nodes are also uplifted. 
+        
         """
         # call the class Normal Fault inherits from
         super(NormalFault, self).__init__(grid)
@@ -126,13 +210,12 @@ class NormalFault(Component):
 
         # get the fault trace dictionary and use to to calculate where the 
         # faulted nodes are located. 
-        
         self.fault_trace_dict = params['fault_trace']
         dx = self.fault_trace_dict['x2'] - self.fault_trace_dict['x1']
         dy = self.fault_trace_dict['y2'] - self.fault_trace_dict['y1']
         self.fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
         self.fault_anti_azimuth = self.fault_azimuth + np.pi
-
+        # deal with the edge case in which dx == 0
         if dx == 0:
             self.dy_over_dx = 0.0
             self.fault_trace_y_intercept = 0.0
@@ -141,18 +224,18 @@ class NormalFault(Component):
             self.dy_over_dx = dy/dx
             self.fault_trace_y_intercept = self.fault_trace_dict['y1'] - (self.dy_over_dx * self.fault_trace_dict['x1'])
             self.fault_trace_x_intercept = 0.0
-
-        # select those nodes that are on the correct side of the node
+        
+        # set the considered nodes based on whether the boundaries will be 
+        # included in the faulted terrain. 
         if self.include_boundaries:
             potential_nodes = np.arange(self._grid.size('node'))
         else:
             potential_nodes = self._grid.core_nodes
-
+            
+        # select those nodes that are on the correct side of the fault
         dx_pn = (self._grid.x_of_node[potential_nodes] - self.fault_trace_x_intercept)
         dy_pn = (self._grid.y_of_node[potential_nodes] - self.fault_trace_y_intercept)
-
         potential_angles = np.mod(np.arctan2(dy_pn, dx_pn), TWO_PI)
-
         if self.fault_anti_azimuth <= TWO_PI:
             faulted_node_ids = potential_nodes[((potential_angles>self.fault_azimuth) &
                                                   (potential_angles <= (self.fault_anti_azimuth)))]
@@ -160,7 +243,7 @@ class NormalFault(Component):
             faulted_node_ids = potential_nodes[((potential_angles>self.fault_azimuth) |
                                                   (potential_angles <= np.mod(self.fault_anti_azimuth, TWO_PI)))]
 
-        # faulted_nodes
+        # save a n-node array of boolean identifing faulted nodes. 
         self.faulted_nodes = np.zeros(self._grid.size('node'), dtype=bool)
         self.faulted_nodes[faulted_node_ids] = True
 
