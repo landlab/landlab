@@ -207,6 +207,10 @@ class NormalFault(Component):
         # get the surface to be faulted
         self.z = _return_surface(grid, faulted_surface)
 
+        if fault_dip_angle > 90.0:
+            raise ValueError('NormaFault fault_dip_angle must be less than 90 '
+                             'degrees.')
+
         # get the fault throw parameter values from the parameter dictionary
         self.throw_time = np.array(fault_throw_rate_through_time['time'])
         self.throw_rate = np.array(fault_throw_rate_through_time['rate'])

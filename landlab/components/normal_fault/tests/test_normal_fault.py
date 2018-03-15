@@ -103,3 +103,12 @@ def test_non_raster():
                      False, False, False], dtype=bool)
 
     assert_array_equal(nf.faulted_nodes, out)
+
+def test_dip_geq_90():
+    """Test dip angles of >90 degrees."""
+
+    grid = RasterModelGrid((6, 6), spacing=10)
+
+    _ = grid.add_zeros('node', 'topographic__elevation')
+
+    assert_raises(ValueError, NormalFault(grid, fault_dip_angle=90.001)
