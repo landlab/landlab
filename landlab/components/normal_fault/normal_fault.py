@@ -34,8 +34,8 @@ class NormalFault(Component):
     The fault can have an arbitrary trace given by two points (x1, y1) and
     (x2, y2) in the `fault_trace` input parameter.
 
-    This NormalFault component permits an arbitrary pattern of fault motion. 
-    The throw rate is provided through the ``fault_throw_rate_through_time`` 
+    This NormalFault component permits an arbitrary pattern of fault motion.
+    The throw rate is provided through the ``fault_throw_rate_through_time``
     parameter.
     """
 
@@ -63,7 +63,17 @@ class NormalFault(Component):
         'topographic__elevation': 'elevation of the ground surface'
     }
 
-    def __init__(self, grid, params):
+    def __init__(self,
+                 grid,
+                 faulted_surface = 'topographic__elevation',
+                 fault_throw_rate_through_time = {'time': [0, 10],
+                                                  'rate': [0.001, 0.001]},
+                 fault_dip_angle = 90.0,
+                 fault_trace = {'x1': 0,
+                                'y1': 0,
+                                'x2': 1,
+                                'y2': 1},
+                include_boundaries = False):
         """
         Instantiation of a NormalFault.
 
@@ -73,19 +83,21 @@ class NormalFault(Component):
         faulted_surface : str or ndarray of shape `(n_nodes, )`
             Surface that is modified by the NormalFault component. Can be a
             field name or array. Default value is `topographic__elevation`.
-        fault_throw_rate_through_time : dict
+        fault_throw_rate_through_time : dict, optional
             Dictionary that specifies the time varying throw rate on the fault.
-            Expected format is:           
+            Expected format is:
             ``fault_throw_rate_through_time = {time: array, rate: array}
-        fault_dip_angle : float
-            Dip angle of the fault in degrees.
-        fault_trace : dictionary
+            Default value is a constant rate of 0.001 (units not specified).
+        fault_dip_angle : float, optional
+            Dip angle of the fault in degrees.  Default value is 90 degrees.
+        fault_trace : dictionary, optional
             Dictionary that specifies the coordinates of two locations on the
             fault trace. Expected format is
             ``fault_trace_dict = {x1: float, y1: float, x2: float, y2: float}``
             where the vector from ``(x1, y1)`` to ``(x2, y2)`` defines the
             strike of the fault trace. The orientation of the fault dip relative
             to the strike follows the right hand rule.
+            Default is for the fault to strike NE.
         include_boundaries : boolean, optional
             Flag to indicate if model grid boundaries should be uplifted. If
             set to ``True`` uplifted model grid boundaries will be set to the
@@ -99,27 +111,27 @@ class NormalFault(Component):
          >>> from landlab import RasterModelGrid
          >>> from landlab.components import NormalFault
          >>> grid = RasterModelGrid((6, 6), spacing=10)
-        
+
          Add an elevation field.
-        
+
          >>> z = grid.add_zeros('node', 'topographic__elevation')
-        
-        
+
+
          Set the parameter values for the NormalFault component.
-         
+
          >>> param_dict = {'faulted_surface': 'topographic__elevation',
          ...               'fault_dip_angle': 90.0,
-         ...               'fault_throw_rate_through_time': {'time': [0, 9, 10], 
+         ...               'fault_throw_rate_through_time': {'time': [0, 9, 10],
          ...                                                 'rate': [0, 0, 0.05]},
          ...               'fault_trace': {'y1': 0,
-         ...                                    'x1': 0, 
-         ...                                    'y2': 30, 
+         ...                                    'x1': 0,
+         ...                                    'y2': 30,
          ...                                    'x2': 60},
          ...              'include_boundaries': False}
-          
+
          Instantiate a NormalFault component.
-         
-         >>> nf = NormalFault(grid, params=param_dict)        
+
+         >>> nf = NormalFault(grid, **param_dict)
          >>> nf.faulted_nodes.reshape(grid.shape)
          array([[False, False, False, False, False, False],
             [False,  True, False, False, False, False],
@@ -127,13 +139,13 @@ class NormalFault(Component):
             [False,  True,  True,  True,  True, False],
             [False,  True,  True,  True,  True, False],
             [False, False, False, False, False, False]], dtype=bool)
-         
-         As we can see, only a subset of the nodes have been identified as 
+
+         As we can see, only a subset of the nodes have been identified as
          *faulted nodes*. Because we have set include_boundaries' to False none
-         of the boundary nodes are faulted nodes. 
-         
+         of the boundary nodes are faulted nodes.
+
          Next we will run the NormalFault for 30 1-year timesteps.
-         
+
          >>> dt = 1.0
          >>> for i in range(30):
          ...     nf.run_one_step(dt)
@@ -144,31 +156,31 @@ class NormalFault(Component):
                 [ 0.,  1.,  1.,  1.,  1.,  0.],
                 [ 0.,  1.,  1.,  1.,  1.,  0.],
                 [ 0.,  0.,  0.,  0.,  0.,  0.]])
-             
-         This results in uplift of the faulted nodes, as we would expect. 
-         
+
+         This results in uplift of the faulted nodes, as we would expect.
+
          Next, we make a very simple landscape model. We need a few components
-         and we will set include_boundaries to True. 
-         
+         and we will set include_boundaries to True.
+
          >>> from landlab.components import FastscapeEroder, FlowAccumulator
          >>> grid = RasterModelGrid((6, 6), spacing=10)
          >>> z = grid.add_zeros('node', 'topographic__elevation')
          >>> param_dict = {'faulted_surface': 'topographic__elevation',
          ...               'fault_dip_angle': 90.0,
-         ...               'fault_throw_rate_through_time': {'time': [0, 900, 1000], 
+         ...               'fault_throw_rate_through_time': {'time': [0, 900, 1000],
          ...                                                 'rate': [0, 0, 0.05]},
          ...               'fault_trace': {'y1': 0,
-         ...                                    'x1': 0, 
-         ...                                    'y2': 30, 
+         ...                                    'x1': 0,
+         ...                                    'y2': 30,
          ...                                    'x2': 60},
          ...              'include_boundaries': True}
-         
-         >>> nf = NormalFault(grid, params=param_dict)
+
+         >>> nf = NormalFault(grid, **param_dict)
          >>> fr = FlowAccumulator(grid)
          >>> fs = FastscapeEroder(grid, K_sp=0.01)
-         
-         Run this model for 300 100-year timesteps. 
-         
+
+         Run this model for 300 100-year timesteps.
+
          >>> dt = 100.0
          >>> for i in range(300):
          ...     nf.run_one_step(dt)
@@ -181,36 +193,35 @@ class NormalFault(Component):
                 [  9.36,  11.43,   5.51,   6.42,   3.54,   3.54],
                 [ 15.06,  15.75,  10.6 ,  11.42,   8.54,   8.54],
                 [ 15.06,  15.06,  10.7 ,  11.42,   8.54,   8.54]])
-     
-         The faulted nodes have been uplifted and eroded! Note that here the 
-         boundary nodes are also uplifted. 
-         
+
+         The faulted nodes have been uplifted and eroded! Note that here the
+         boundary nodes are also uplifted.
+
         """
         # call the class Normal Fault inherits from
         super(NormalFault, self).__init__(grid)
-        
+
         # save a reference to the grid
         self._grid = grid
 
         # get the surface to be faulted
-        surface = params.get('faulted_surface', 'topographic__elevation')
-        self.z = _return_surface(grid, surface)
+        self.z = _return_surface(grid, faulted_surface)
 
         # get the fault throw parameter values from the parameter dictionary
-        self.throw_time = np.array(params['fault_throw_rate_through_time']['time'])
-        self.throw_rate = np.array(params['fault_throw_rate_through_time']['rate'])
-        self.fault_dip = np.deg2rad(params['fault_dip_angle'])
+        self.throw_time = np.array(fault_throw_rate_through_time['time'])
+        self.throw_rate = np.array(fault_throw_rate_through_time['rate'])
+        self.fault_dip = np.deg2rad(fault_dip_angle)
         self.uplift = self.throw_rate * np.sin(self.fault_dip)
 
         # Identify in current boundaries will be included
-        self.include_boundaries = params.get('include_boundaries', False)
-        
-        # Instantiate record of current time. 
+        self.include_boundaries = include_boundaries
+
+        # Instantiate record of current time.
         self.current_time = 0.0
 
-        # get the fault trace dictionary and use to to calculate where the 
-        # faulted nodes are located. 
-        self.fault_trace_dict = params['fault_trace']
+        # get the fault trace dictionary and use to to calculate where the
+        # faulted nodes are located.
+        self.fault_trace_dict = fault_trace
         dx = self.fault_trace_dict['x2'] - self.fault_trace_dict['x1']
         dy = self.fault_trace_dict['y2'] - self.fault_trace_dict['y1']
         self.fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
@@ -224,14 +235,14 @@ class NormalFault(Component):
             self.dy_over_dx = dy/dx
             self.fault_trace_y_intercept = self.fault_trace_dict['y1'] - (self.dy_over_dx * self.fault_trace_dict['x1'])
             self.fault_trace_x_intercept = 0.0
-        
-        # set the considered nodes based on whether the boundaries will be 
-        # included in the faulted terrain. 
+
+        # set the considered nodes based on whether the boundaries will be
+        # included in the faulted terrain.
         if self.include_boundaries:
             potential_nodes = np.arange(self._grid.size('node'))
         else:
             potential_nodes = self._grid.core_nodes
-            
+
         # select those nodes that are on the correct side of the fault
         dx_pn = (self._grid.x_of_node[potential_nodes] - self.fault_trace_x_intercept)
         dy_pn = (self._grid.y_of_node[potential_nodes] - self.fault_trace_y_intercept)
@@ -243,7 +254,7 @@ class NormalFault(Component):
             faulted_node_ids = potential_nodes[((potential_angles>self.fault_azimuth) |
                                                   (potential_angles <= np.mod(self.fault_anti_azimuth, TWO_PI)))]
 
-        # save a n-node array of boolean identifing faulted nodes. 
+        # save a n-node array of boolean identifing faulted nodes.
         self.faulted_nodes = np.zeros(self._grid.size('node'), dtype=bool)
         self.faulted_nodes[faulted_node_ids] = True
 
@@ -261,17 +272,17 @@ class NormalFault(Component):
 
         # calculate the current uplift rate
         current_uplift_rate = np.interp(self.current_time, self.throw_time, self.throw_rate)
-        
+
         # uplift the faulted_nodes
         self.z[self.faulted_nodes] += current_uplift_rate * dt
-           
+
         # if faulted nodes includes boundaries we must do some extra work because
         # landlab components will typically not erode these boundaries. This means
-        # they will be uplifted but not eroded. 
-        
+        # they will be uplifted but not eroded.
+
         if self.include_boundaries:
-            
-            #  here our goal is to set faulted boundaries to average of open 
+
+            #  here our goal is to set faulted boundaries to average of open
             # node faulted neighbors
 
             # create boolean of the faulted boundary nodes
