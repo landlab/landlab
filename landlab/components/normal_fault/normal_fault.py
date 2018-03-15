@@ -93,7 +93,7 @@ class NormalFault(Component):
         fault_trace : dictionary, optional
             Dictionary that specifies the coordinates of two locations on the
             fault trace. Expected format is
-            ``fault_trace_dict = {x1: float, y1: float, x2: float, y2: float}``
+            ``fault_trace = {x1: float, y1: float, x2: float, y2: float}``
             where the vector from ``(x1, y1)`` to ``(x2, y2)`` defines the
             strike of the fault trace. The orientation of the fault dip relative
             to the strike follows the right hand rule.
@@ -221,19 +221,19 @@ class NormalFault(Component):
 
         # get the fault trace dictionary and use to to calculate where the
         # faulted nodes are located.
-        self.fault_trace_dict = fault_trace
-        dx = self.fault_trace_dict['x2'] - self.fault_trace_dict['x1']
-        dy = self.fault_trace_dict['y2'] - self.fault_trace_dict['y1']
+        self.fault_trace = fault_trace
+        dx = self.fault_trace['x2'] - self.fault_trace['x1']
+        dy = self.fault_trace['y2'] - self.fault_trace['y1']
         self.fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
         self.fault_anti_azimuth = self.fault_azimuth + np.pi
         # deal with the edge case in which dx == 0
         if dx == 0:
             self.dy_over_dx = 0.0
             self.fault_trace_y_intercept = 0.0
-            self.fault_trace_x_intercept = self.fault_trace_dict['x2']
+            self.fault_trace_x_intercept = self.fault_trace['x2']
         else:
             self.dy_over_dx = dy/dx
-            self.fault_trace_y_intercept = self.fault_trace_dict['y1'] - (self.dy_over_dx * self.fault_trace_dict['x1'])
+            self.fault_trace_y_intercept = self.fault_trace['y1'] - (self.dy_over_dx * self.fault_trace['x1'])
             self.fault_trace_x_intercept = 0.0
 
         # set the considered nodes based on whether the boundaries will be
