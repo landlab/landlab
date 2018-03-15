@@ -16,7 +16,7 @@ def test_no_upstream_array():
     """Test that correct error is raised when no flow__upstream_node_order."""
     # instantiate a model grid, do not run flow accumulation on it
     mg = RasterModelGrid(30, 70)
-    z = mg.add_zeros('topographic__elevation', at='node')
+
     fd = FlowDirectorSteepest(mg)
     fd.run_one_step()
     # test that the stream length utility will fail because of a ValueError
