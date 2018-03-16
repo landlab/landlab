@@ -8,6 +8,7 @@ from six import string_types
 from pandas import DataFrame
 
 from landlab.field import GroupError
+from landlab import BAD_INDEX_VALUE
 
 _LOCATIONS = {'node': 'number_of_nodes',
               'patch': 'number_of_patches',
@@ -19,10 +20,16 @@ _LOCATIONS = {'node': 'number_of_nodes',
 
 class ItemCollection(DataFrame):
     """
-
-    Examples
-    --------
+    Datastructure to hold generic items that live on grid elements. 
     
+    This is a base class to contain the majority of core ItemCollection 
+    functionality. It inherits from the Pandas Dataframe. 
+    
+    It requires that all data live on a grid element (e.g. node, link), with
+    an element id that is less than the number of those elements. For example
+    if you have a grid with only 100 links, no item can live at link 100 or 
+    link -3. 
+
     """
     _metadata = ['number_of_items', 'permitted_locations', '_grid']
     
@@ -32,6 +39,26 @@ class ItemCollection(DataFrame):
 
     def __init__(self, grid, data=None, grid_element=None, element_id=None):
         """
+        Parameters
+        ----------
+        grid : ModelGrid
+        data : dictionary
+            A group of number-of-items long arrays. All arrays must be the same
+            length. The dictionary keys will become the column names of the 
+            ItemCollection
+        grid_element : str or number-of-items long array
+            The type of grid element each element lives on. The element type must 
+            be consistent with the type of grid provided (e.g. only nodes and links
+            are valid if grid is of type NetworkModelGrid). If provided as a string
+            it is assumed that all items live on the same type of grid element. 
+        
+            Valid locations are: node, link, cell, patch, corner, face
+        element_id : number-of-items long array
+            The grid element id where each item resides. 
+        
+        Examples
+        --------
+        
         """
         # save a reference to the grid
         self._grid = grid
@@ -102,7 +129,7 @@ class ItemCollection(DataFrame):
         self.check_element_id_values()
 
     def check_element_id_values(self):
-        """ """
+        """Check that element_id values are valid."""
         for loc in self.permitted_locations:
             
             max_size = self._grid[loc].size
@@ -110,10 +137,19 @@ class ItemCollection(DataFrame):
             selected_elements = self.loc[self['grid_element'] == loc, 'element_id']
             
             if selected_elements.size > 0:
-                if max(selected_elements) > max_size:
-                    raise ValueError('An item residing at ' + loc + ' has an '
-                                     'element_id larger than the size of this '
-                                     'part of the grid.')
+                if max(selected_elements) >= max_size:
+                    raise ValueError(('An item residing at ' + loc + ' has an '
+                                      'element_id larger than the size of this '
+                                      'part of the grid.'))
+                less_than_zero = selected_elements < 0
+                if any(less_than_zero):
+                    bad_inds = selected_elements[less_than_zero] == BAD_INDEX_VALUE
+                    if sum(bad_inds) != sum(less_than_zero):
+                        raise ValueError(('An item residing at ' + loc + ' has '
+                                          'an element id below zero that is '
+                                          'not BAD_INDEX_VALUE. This is not '
+                                          'permitted.'))
+                        
                     
     def add_variables(self, variable, values):
         """ """
