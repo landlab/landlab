@@ -70,26 +70,6 @@ class Flexure(Component):
     Landlab component that implements a 1 and 2D lithospheric flexure
     model.
 
-    Construction::
-
-        Flexure(grid, eet=65e3, youngs=7e10, method='airy', rho_mantle=3300.,
-                gravity=9.80665)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A grid.
-    eet : float, optional
-        Effective elastic thickness (m).
-    youngs : float, optional
-        Young's modulus.
-    method : {'airy', 'flexure'}, optional
-        Method to use to calculate deflections.
-    rho_mantle : float, optional
-        Density of the mantle (kg / m^3).
-    gravity : float, optional
-        Acceleration due to gravity (m / s^2).
-
     Examples
     --------
     >>> from landlab import RasterModelGrid

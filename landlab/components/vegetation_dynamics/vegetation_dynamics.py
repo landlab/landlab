@@ -24,51 +24,6 @@ class Vegetation(Component):
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
-    Construction::
-        Vegetation(grid, Blive_init=102., Bdead_init=450.,
-            ETthreshold_up=3.8, ETthreshold_down=6.8, Tdmax=10., w=0.55,
-            WUE_grass=0.01, LAI_max_grass=2., cb_grass=0.0047, cd_grass=0.009,
-            ksg_grass=0.012, kdd_grass=0.013, kws_grass=0.02,
-            WUE_shrub=0.0025, LAI_max_shrub=2., cb_shrub=0.004, cd_shrub=0.01,
-            ksg_shrub=0.002, kdd_shrub=0.013, kws_shrub=0.02,
-            WUE_tree=0.0045, LAI_max_tree=4., cb_tree=0.004, cd_tree=0.01,
-            ksg_tree=0.002, kdd_tree=0.013, kws_tree=0.01,
-            WUE_bare=0.01, LAI_max_bare=0.01, cb_bare=0.0047, cd_bare=0.009,
-            ksg_bare=0.012, kdd_bare=0.013, kws_bare=0.02)
-
-    Parameters
-    ----------
-    grid: RasterModelGrid
-        A grid.
-    Blive_init: float, optional
-        Initial value for vegetation__live_biomass. Converted to field.
-    Bdead_init: float, optional
-        Initial value for vegetation__dead_biomass. Coverted to field.
-    ETthreshold_up: float, optional
-        Potential Evapotranspiration (PET) threshold for
-        growing season (mm/d).
-    ETthreshold_down: float, optional
-        PET threshold for dormant season (mm/d).
-    Tdmax: float, optional
-        Constant for dead biomass loss adjustment (mm/d).
-    w: float, optional
-        Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2).
-    WUE: float, optional
-        Water Use Efficiency - ratio of water used in plant water
-        lost by the plant through transpiration (KgCO2Kg-1H2O).
-    LAI_max: float, optional
-        Maximum leaf area index (m2/m2).
-    cb: float, optional
-        Specific leaf area for green/live biomass (m2 leaf g-1 DM).
-    cd: float, optional
-        Specific leaf area for dead biomass (m2 leaf g-1 DM).
-    ksg: float, optional
-        Senescence coefficient of green/live biomass (d-1).
-    kdd: float, optional
-        Decay coefficient of aboveground dead biomass (d-1).
-    kws: float, optional
-        Maximum drought induced foliage loss rate (d-1).
-
     Examples
     --------
     >>> from landlab import RasterModelGrid

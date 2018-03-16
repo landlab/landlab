@@ -47,21 +47,6 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     The primary method of this class is :func:`run_one_step`.
 
-    Construction::
-
-        FlowDirectorDINF(grid, surface='topographic__elevation')
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node, optional
-        The surface to direct flow across, default is field at node:
-        topographic__self.surface_valuesation.
-    partition_method: string, optional
-        Method for partitioning flow. Options include 'slope' (default) and
-        'square_root_of_slope'.
-
     Examples
     --------
 
@@ -221,7 +206,16 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     def __init__(self, grid, surface='topographic__elevation'):
         """
-        Initialize FlowDirectorDINF
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node, optional
+            The surface to direct flow across, default is field at node:
+            topographic__self.surface_valuesation.
+        partition_method: string, optional
+            Method for partitioning flow. Options include 'slope' (default) and
+            'square_root_of_slope'.
         """
 
         self.method = 'DINF'
