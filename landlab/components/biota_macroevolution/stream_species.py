@@ -30,6 +30,12 @@ class StreamSpecies(Species):
 
         self.min_area_for_extinction = min_area_for_extinction
 
+    def evolve(self, grid, vectors):
+        new_species = []
+
+
+        return new_species
+
     def disperse(self, grid, destination_patches):
         self.habitat_patches = destination_patches
 

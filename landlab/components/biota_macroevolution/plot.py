@@ -76,21 +76,22 @@ def plot_species_range(species, grid):
     imshow_grid(grid, combined_range_mask, cmap=cmap,
                     allow_colorbar=False)
 
-def plot_number_of_species(self):
+def plot_number_of_species(at_timestep):
 
-    time_in_ky = np.multiply(self.at_timestep['time'], 1e-3)
+    time_in_ky = np.multiply(time, 1e-3)
 
     plt.figure('Number of species')
 
     time_species_existed = np.array([])
-    for species in self.species:
+    for s in species:
         time_species_existed = np.append(time_species_existed,
-                                         species.timesteps_existed)
+                                         s.timesteps_existed)
 
     time_species_existed = time_species_existed.flatten()
 
     d = {}
     number_of_timesteps = int(max(time_species_existed))
+    
     print(number_of_timesteps)
     for i in range(number_of_timesteps):
         d[i] = len(np.where(time_species_existed == i)[0])
@@ -101,22 +102,19 @@ def plot_number_of_species(self):
     plt.xlabel('Timestep')
     plt.ylabel('Number of species')
 
-def plot_tree(self, x_multiplier=0.001, selected_species=None):
-
-    tree = self.get_tree(selected_species)
+def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
 
     # Prepare figure.
-    plt.figure('Phylogeny')
-    ax = plt.axes(frameon=False)
+    if axes == None:
+        fig = plt.figure('Phylogenetic tree')
+        axes = fig.add_axes(plt.axes())
 
     y_spacing = 1
    
     species_position = {}
     times = list(tree.keys())
 
-    timesteps = np.array(self.at_timestep['time'])
-
-    # Construct tree beginning at final time.
+    # Plot the tree beginning at final time.
     for i, time in enumerate(times):
 
         if time == max(times):
@@ -129,7 +127,7 @@ def plot_tree(self, x_multiplier=0.001, selected_species=None):
             later_time = times[i - 1]
             earlier_time = times[i + 1]
 
-        timestep = np.where(timesteps == time)[0][0]
+        timestep = len(times) - 1 - i
         prior_timestep = timestep - 1
 
         x_max = (time + (later_time - time) * 0.5) * x_multiplier
@@ -159,7 +157,7 @@ def plot_tree(self, x_multiplier=0.001, selected_species=None):
                     x = x_mid
                     species_group = True
 
-                plt.plot([x, x_max], [y_species, y_species], 'k')
+                axes.plot([x, x_max], [y_species, y_species], 'k')
 
             y_mid = np.mean([y_min, y_species]) + y_spacing * 0.5
             species_position[parent_id] = y_mid
@@ -169,21 +167,23 @@ def plot_tree(self, x_multiplier=0.001, selected_species=None):
 
                 # Draw line that connects species at a timestep.
                 if time != 0:
-                    plt.plot([x_mid, x_mid],
+                    axes.plot([x_mid, x_mid],
                              [y_min + y_spacing, y_species], 'r')
 
                 # Draw the base line of a species group.
-                plt.plot([x_min, x_mid], [y_mid, y_mid], 'c')
+                axes.plot([x_min, x_mid], [y_mid, y_mid], 'c')
 
             y_min = deepcopy(y_species + y_spacing)
 
-    # Format figure.
-    plt.xlim(xmin=0, xmax=max(times) * x_multiplier)
-    plt.ylim(ymin=y_spacing * 0.5)
-    ax.get_xaxis().tick_bottom()
-    ax.axes.get_yaxis().set_visible(False)
-    xmin, xmax = ax.get_xaxis().get_view_interval()
-    ymin, ymax = ax.get_yaxis().get_view_interval()
-    ax.add_artist(Line2D((xmin, xmax), (ymin, ymin), color='black',
-                         linewidth=1.5))
-    plt.xlabel('Time (ky)')
+    # Format plot.
+
+    axes.set_xlabel('Time (ky)')
+
+    axes.set_xlim([0, max(times) * x_multiplier])
+    axes.set_ylim(bottom=y_spacing * 0.5)
+
+    # Show only the x-axis.
+    axes.get_yaxis().set_visible(False)
+    axes.spines['top'].set_visible(False)
+    axes.spines['right'].set_visible(False)
+    axes.spines['left'].set_visible(False)

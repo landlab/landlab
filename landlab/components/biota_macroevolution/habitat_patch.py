@@ -2,6 +2,7 @@
 """
 
 from copy import deepcopy
+from landlab.components.biota_macroevolution import HabitatPatchVector
 import numpy as np
 from random import random
 from uuid import uuid4
@@ -77,8 +78,7 @@ class HabitatPatch(object):
                     Indicates the relationship of the spatial intersection
                     between the prior and current timestep.
         """
-        vectors = {'origin': [], 'destinations': [], 'node_was_captured': [],
-                   'cardinality':[]}
+        vectors = []
 
         # Create lists of masks for prior (p) and new (n) habitat patches.
         p_nodes = (p.mask_at_most_recent_time for p in prior_patches)
@@ -124,25 +124,21 @@ class HabitatPatch(object):
             new_overlap_not_found = np.delete(new_overlap_not_found,
                                               new_overlap_not_found == delete)
 
-            print(p_overlaps_n_count, n_overlaps_p_count)
+            v = HabitatPatchVector(p_overlaps_n_count, n_overlaps_p_count)
 
             # Build vector depending upon habitat patch stepwise cardinality.
-            if n_overlaps_p_count == 0:
-                cardinality = 'one-to-none'
+            if v.cardinality == HabitatPatchVector.ONE_TO_NONE:
                 destinations = []
 
-            elif p_overlaps_n_count == 1 and n_overlaps_p_count == 1:
+            elif v.cardinality == HabitatPatchVector.ONE_TO_ONE:
                 # The prior patch is set as the new patch
                 # because only the one new and the one prior overlap.
-                cardinality = 'one-to-one'
                 p.at_time[time] = n.at_time[time]
                 destinations = [p]
 
                 replacements[n] = p
 
-            elif p_overlaps_n_count == 1 and n_overlaps_p_count > 1:
-                cardinality = 'one-to-many'
-
+            elif v.cardinality == HabitatPatchVector.ONE_TO_MANY:
                 # Set the destinations to the new patches that overlap p.
                 # Although, replace the dominant n with p.
                 dominant_n = p._get_largest_intersection(n_overlaps_p)
@@ -152,9 +148,7 @@ class HabitatPatch(object):
 
                 replacements[dominant_n] = p
 
-            elif p_overlaps_n_count > 1 and n_overlaps_p_count == 1:
-                cardinality = 'many-to-one'
-
+            elif v.cardinality == HabitatPatchVector.MANY_TO_ONE:
                 # Set the destination to the prior patch that intersects n the
                 # most.
                 dominant_p = n._get_largest_intersection(p_overlaps_n)
@@ -163,9 +157,7 @@ class HabitatPatch(object):
 
                 replacements[n] = dominant_p
 
-            elif p_overlaps_n_count > 1 and n_overlaps_p_count > 1:
-                cardinality = 'many-to-many'
-
+            elif v.cardinality == HabitatPatchVector.MANY_TO_MANY:
                 # Get the new patch that intersects p the most.
                 dominant_n = p._get_largest_intersection(n_overlaps_p)
                 dominant_n_nodes = dominant_n.at_time[time]
@@ -186,24 +178,21 @@ class HabitatPatch(object):
 
                 replacements[dominant_n] = dominant_p
 
-            vectors['origin'].append(p)
-            vectors['destinations'].append(destinations)
-            vectors['cardinality'].append(cardinality)
+            v.origin = p
+            v.destinations = destinations
+            vectors.append(v)
 
         # Handle new habitat patches that did not overlap prior patches.
-        print('qq',[i.identifier for i in new_overlap_not_found])
         for n in new_overlap_not_found:
-            vectors['origin'].append(None)
-            vectors['destinations'].append([n])
-            vectors['cardinality'].append('none-to-one')
+            v = HabitatPatchVector(0, 1)
+            v.destinations = [n]
 
         # Update patches that were replaced using the dominant patches above.
         for patch in replacements.keys():
-            print(patch.identifier, replacements[patch].identifier)
-            for x in range(len(vectors['destinations'])):
-                for y in range(len(vectors['destinations'][x])):
-                    if vectors['destinations'][x][y] == patch:
-                        vectors['destinations'][x][y] = replacements[patch]
+            for v in vectors:
+                for i,d in enumerate(v.destinations):
+                    if d == patch:
+                        v.destinations[i] = replacements[patch]
 
         if 'vector_filepath' in kwargs:
             cls._write_vector_file(vectors, time, kwargs['vector_filepath'])
@@ -225,18 +214,15 @@ class HabitatPatch(object):
 
         f.write('{}\n'.format(time))
 
-        origins = []
-        for patch in vectors['origin']:
-            if patch is None:
-                origins.append('')
+        for v in vectors:
+            if v.origin == None:
+                o = ''
             else:
-                origins.append(patch.identifier)
+                o = v.origin.identifier
 
-        for i, o in enumerate(origins):
-            c = vectors['cardinality'][i]
-            d = [str(d.identifier) for d in vectors['destinations'][i]]
-            d = ','.join(map(str, d))
-            f.write('{},{},{}\n'.format(c, o, d))
+            d = [str(d.identifier) for d in v.destinations]
+            d = ','.join(d)
+            f.write('{},{},{}\n'.format(v.cardinality, o, d))
 
         f.close()
 

@@ -3,6 +3,7 @@ from .seamless import BiotaEvolver
 
 __all__ = ['BiotaEvolver']
 
+from .habitat_patch_vector import HabitatPatchVector
 from .habitat_patch import HabitatPatch
 from .plot import *
 from .species import Species
