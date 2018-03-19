@@ -130,38 +130,68 @@ class ItemCollection(DataFrame):
 
     def check_element_id_values(self):
         """Check that element_id values are valid."""
-        for loc in self.permitted_locations:
+        for at in self.permitted_locations:
             
-            max_size = self._grid[loc].size
+            max_size = self._grid[at].size
             
-            selected_elements = self.loc[self['grid_element'] == loc, 'element_id']
+            selected_elements = self.loc[self['grid_element'] == at, 'element_id']
             
             if selected_elements.size > 0:
                 if max(selected_elements) >= max_size:
-                    raise ValueError(('An item residing at ' + loc + ' has an '
+                    raise ValueError(('An item residing at ' + at + ' has an '
                                       'element_id larger than the size of this '
                                       'part of the grid.'))
                 less_than_zero = selected_elements < 0
                 if any(less_than_zero):
                     bad_inds = selected_elements[less_than_zero] == BAD_INDEX_VALUE
                     if sum(bad_inds) != sum(less_than_zero):
-                        raise ValueError(('An item residing at ' + loc + ' has '
+                        raise ValueError(('An item residing at ' + at + ' has '
                                           'an element id below zero that is '
                                           'not BAD_INDEX_VALUE. This is not '
                                           'permitted.'))
                         
                     
-    def add_variables(self, variable, values):
-        """ """
+    def add_variable(self, variable, values):
+        """Add a new variable to the ItemCollection."""
         pass
     
     def add_items(self, data):
-        """ """
+        """Add new items to the ItemCollection"""
         pass
     
     def sum(self, var, at='node'):
-        """ """
-        pass
+        """Sum of variable at grid elements.
+        
+        Parameters
+        ----------
+        var : str
+            Column name of variable to sum
+        at : str, optional
+            Name of grid element at which to sum. Default is "node". 
+        
+        Returns
+        -------
+        out : ndarray
+            Array of size (num_grid_elements,) where num_grid_elements is the
+            number of elements at the location specified with the `at` 
+            keyword argument.
+        """
+        # select those items located on the correct type of element, 
+        # group by element_id and sum.
+        vals = self.loc[self['grid_element'] == at].groupby('element_id').sum()
+        
+        # create a nan array that we will fill with the results of the sum
+        # this should be the size of the number of elements, even if there are
+        # no items living at some grid elements.
+        out = np.nan * np.ones(self._grid[at].size)
+        
+        # put the values of the specified variable in to the correct location
+        # of the out array. 
+        out[vals['element_id']] = vals[var]
+        
+        # return the out array
+        return out
+        
 
     def mean(self, var, at='node'):
         """ """
