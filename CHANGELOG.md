@@ -1,5 +1,5 @@
 # Change Log
-All notable changes to PyMT will be documented in this file.
+All notable changes to landlab will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 This file was auto-generated using `scripts/make_changelog.py`.
 
 
-## [HEAD] 2018-03-16
+## [HEAD] 2018-03-19
 
 ### Changed
 * landlab/barnhark/updates_to_channel_profile [#637]
