@@ -4,7 +4,6 @@
 from landlab.components.biota_macroevolution import (BiotaEvolverObject,
                                                      HabitatPatchVector)
 import numpy as np
-from random import random
 from uuid import uuid4
 
 
@@ -18,7 +17,7 @@ class Species(BiotaEvolverObject):
     """
 
     def __init__(self, initial_time, initial_habitat_patches,
-                 parent_species_id=-1):
+                 parent_species_id=-1, parent_species=-1):
         """Initialize a species.
 
         Parameters
@@ -36,6 +35,7 @@ class Species(BiotaEvolverObject):
 
         # Set parameters.
         self.parent_species_id = parent_species_id
+        self.parent_species = parent_species
         self.identifier = uuid4()
 
         # Set initial patch(es).
@@ -77,13 +77,13 @@ class Species(BiotaEvolverObject):
 
                 for d in v.destinations:
                     extant_species.append(Species(time, d, parent_species_id=
-                                                 self.identifier))
+                                                 self.identifier, parent_species=self))
 
         extant_species = np.array(list(set(extant_species)))
 
         # Evaluate extinction.
 
-        extinction_chance = 0.10
+        extinction_chance = 0.05
 
         survival_probability = np.random.choice(np.linspace(0, 1, 100),
                                                 len(extant_species))

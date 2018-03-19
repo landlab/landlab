@@ -75,30 +75,24 @@ def plot_species_range(species, grid):
     imshow_grid(grid, combined_range_mask, cmap=cmap,
                     allow_colorbar=False)
 
-def plot_number_of_species(at_timestep):
+def plot_number_of_species(record, axes=None):
 
-    time_in_ky = np.multiply(time, 1e-3)
+    # Prepare figure.
+    if axes == None:
+        fig = plt.figure('Number of species')
+        axes = fig.add_axes(plt.axes())
 
-    plt.figure('Number of species')
+    times = list(record.keys())
+    count = []
+    for t in times:
+        count.append(len(record[t]['species']))
 
-    time_species_existed = np.array([])
-    for s in species:
-        time_species_existed = np.append(time_species_existed,
-                                         s.timesteps_existed)
+    times_in_ky = np.multiply(times, 1e-3)
 
-    time_species_existed = time_species_existed.flatten()
+    axes.plot(times_in_ky, count, 'k')
 
-    d = {}
-    number_of_timesteps = int(max(time_species_existed))
-
-    for i in range(number_of_timesteps):
-        d[i] = len(np.where(time_species_existed == i)[0])
-
-    for key, value in d.items():
-        plt.plot(key, value, 'k.')
-
-    plt.xlabel('Timestep')
-    plt.ylabel('Number of species')
+    axes.set_xlabel('Time (ky)')
+    axes.set_ylabel('Number of species')
 
 def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
 
@@ -115,6 +109,8 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
     species_position = {}
     times = list(tree.keys())
 
+    lines = []
+
     # Plot the tree beginning at final time.
     clades = {}
     for t in times:
@@ -128,7 +124,7 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
     root_species = clades[-1]
     clades.pop(-1, None)
     pprint(root_species)
-    pid = np.array([s.identifier for s in root_species])
+#    pid = np.array([s.identifier for s in root_species])
 
     for i, clade in enumerate(clades.keys()):
         for time in times:
@@ -151,7 +147,7 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
             for species in clades[clade]:
                 existed_this_time = time in species.record.keys()
                 existed_prior_time = earlier_time in species.record.keys()
-                root_parents.append(np.where(species.parent_species_id == pid)[0])
+                root_parents.append(clade)
 
                 if existed_this_time:
                     if species.identifier in species_position.keys():
@@ -159,7 +155,7 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
                     else:
                         y_next += y_species_spacing
 
-                    axes.plot([x_mid, x_max], [y_next, y_next], 'c')
+                    lines.extend(axes.plot([x_mid, x_max], [y_next, y_next], 'c'))
 
                     if existed_prior_time:
                         species_position[species.identifier] = y_next
@@ -167,9 +163,9 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
                         species_position[clade] = y_next
 
             for p in root_parents:
-                existed_this_time = time in p.record.keys()
+                existed_this_time = time in clade.record.keys()
 
-                axes.plot([x_mid, x_max], [y_next, y_next], 'c')
+                lines.extend(axes.plot([x_mid, x_max], [y_next, y_next], 'c'))
 
         y_next += y_clade_spacing
 
@@ -214,21 +210,21 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
 #                if species.identifier in species_position.keys():
 #                    # Clade trunk or branch.
 #                    y_next = species_position[species.identifier]
-#                    axes.plot([x, x_max], [y_next, y_next], 'c')
+#                    lines.extend(axes.plot([x, x_max], [y_next, y_next], 'k'))
 #                elif no_parent:
 #                    # Leaf node of clade with no branches.
 #                    y_next = y_max + y_clade_spacing
-#                    axes.plot([x, x_max], [y_next, y_next], 'y')
+#                    lines.extend(axes.plot([x, x_max], [y_next, y_next], 'k'))
 #                else:
 #                    if len(y_clade_species) > 0:
 #                        # First leaf node of branched clade.
 #                        y_next += y_clade_spacing * 0.5
 #                    else:
 #                        y_next += 1
-#                    axes.plot([x, x_max], [y_next, y_next], 'm')
+#                    lines.extend(axes.plot([x, x_max], [y_next, y_next], 'k'))
 #
-#                if time == 0:
-#                    print(species.identifier, y_next)
+##                if time == 0:
+##                    print(species.identifier, y_next)
 #
 #                y_clade_species.append(y_next)
 #
@@ -246,25 +242,27 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
 #            if clade_branch:
 #                # Draw the line that connects the clade species.
 #                if time != 0:
-#                    axes.plot([x_mid] * 2,
+#                    l = axes.plot([x_mid] * 2,
 #                              [min(y_clade_species), max(y_clade_species)],
-#                              'r')
+#                              'k')
+#                    lines.extend(l)
 #
 #                # Draw the line that connects the above line with the trunk.
 #                y_mid = np.mean(y_clade_species)
-#                axes.plot([x_min, x_mid], [y_mid, y_mid], 'g')
+#                lines.extend(axes.plot([x_min, x_mid], [y_mid, y_mid], 'k'))
 #
 #            y_next = max(y_clade_species)
+
+    return lines
 
     # Format plot.
 
     axes.set_xlabel('Time (ky)')
+    axes.set_ylabel('Species')
 
     axes.set_xlim([0, max(times) * x_multiplier])
     axes.set_ylim(bottom=0)
 
     # Show only the x-axis.
-    axes.get_yaxis().set_visible(False)
     axes.spines['top'].set_visible(False)
     axes.spines['right'].set_visible(False)
-    axes.spines['left'].set_visible(False)

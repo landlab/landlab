@@ -182,9 +182,9 @@ class BiotaEvolver(Component, BiotaEvolverObject):
         for t in time_reversed:
             tree[t] = {}
             for s in self.record[t]['species']:
-                pid = s.parent_species_id
-                tree[t].setdefault(pid, [])
-                tree[t][pid].append(s)
+                p = s.parent_species
+                tree[t].setdefault(p, [])
+                tree[t][p].append(s)
 
         return tree
 
@@ -193,10 +193,14 @@ class BiotaEvolver(Component, BiotaEvolverObject):
 
         readable_tree = {}
         for time in tree.keys():
-            for pid in tree[time].keys():
-                species_ids = [str(s.identifier) for s in tree[time][pid]]
+            for p in tree[time].keys():
+                if p == -1:
+                    pid = p
+                else:
+                    pid = str(p.identifier)
+                species_ids = [str(s.identifier) for s in tree[time][p]]
                 readable_tree.setdefault(time, {})
-                readable_tree[time][str(pid)] = species_ids
+                readable_tree[time][pid] = species_ids
 
         pprint(readable_tree)
 
