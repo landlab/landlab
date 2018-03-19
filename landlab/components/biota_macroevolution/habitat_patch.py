@@ -1,22 +1,24 @@
-"""BiotaEvolver HabitatPatch object.
+"""HabitatPatch BiotaEvolver object.
 """
 
 from copy import deepcopy
-from landlab.components.biota_macroevolution import HabitatPatchVector
+from landlab.components.biota_macroevolution import (BiotaEvolverObject,
+                                                     HabitatPatchVector)
 import numpy as np
 from random import random
 from uuid import uuid4
 from watershed import get_watershed_masks_with_area_threshold
 
 
-class HabitatPatch(object):
+class HabitatPatch(BiotaEvolverObject):
+    """The nodes and attributes of the entities that species populate.
+
+    A universally unique identifier (UUID) is assigned to the habitat patch at
+    initialization. 
+    """
 
     def __init__(self, time, mask):
-        """The nodes and attributes of areas in which species populate.
-
-        This component is adapted from SEAMLESS (Spatially Explicit Area Model
-        of Landscape Evolution by SimulationS).
-
+        """
         Parameters
         ----------
         time : float
@@ -25,6 +27,7 @@ class HabitatPatch(object):
             The initial grid nodes of the habitat patch. True elements of this
             array correspond to the nodes of the habitat patch at `time`.
         """
+        BiotaEvolverObject.__init__(self)
         self.at_time = {time: mask}
         self.identifier = uuid4()
         self.species = []
@@ -66,17 +69,10 @@ class HabitatPatch(object):
             The current simulation time.
 
         Returns
-        ----------
-        vectors : dictionary
-            Contains habitat patch vector data that includes these dictionary
-            items:
-                origin : HabitatPatch list
-                    Each element is the origin patch of a vector.
-                destination : list of HabitatPatch list
-                    Each list is the destination habitats of a vector
-                cardinality : string
-                    Indicates the relationship of the spatial intersection
-                    between the prior and current timestep.
+        -------
+        vectors : BiotaEvolver HabitatPatchVector list
+            A list of BiotaEvolver HabitatPatchVector objects with attributes
+            that link habitat patches over time.
         """
         vectors = []
 
@@ -120,7 +116,7 @@ class HabitatPatch(object):
             # The new patches that overlapped this p can be deleted. They
             # cannot have none-to-one cardinality because they intersect at
             # least this p.
-            delete = new_overlap_not_found == n_overlaps_p
+            delete = np.where(new_overlap_not_found == n_overlaps_p)
             new_overlap_not_found = np.delete(new_overlap_not_found,
                                               new_overlap_not_found == delete)
 
@@ -246,9 +242,12 @@ class HabitatPatch(object):
 
         patches = []
 
+        stream_mask = grid.at_node['drainage_area'] >= 1e6
+
         for outlet in outlets:
             watershed_mask = grid.at_node['watershed'] == outlet
-            patches.append(HabitatPatch(time, watershed_mask))
+            patch_mask = np.all([watershed_mask, stream_mask], 0)
+            patches.append(HabitatPatch(time, patch_mask))
 
         return patches
 

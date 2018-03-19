@@ -3,6 +3,8 @@
 
 
 class HabitatPatchVector(object):
+    """Link habitat patches over time.
+    """
 
     # Define cardinality cases.
     NONE_TO_ONE = 'none-to-one'
@@ -15,7 +17,15 @@ class HabitatPatchVector(object):
     MANY_TO_MANY = 'many-to-many'
 
     def __init__(self, prior_patch_count, new_patch_count):
-
+        """Initilize a HabitatPatchVector.
+        
+        Parameters
+        ----------
+        prior_patch_count : int or float
+        
+        new_patch_count : int or float
+        
+        """
         self.origin = None
         self.destination = []
 
