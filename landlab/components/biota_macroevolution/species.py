@@ -4,7 +4,6 @@
 from landlab.components.biota_macroevolution import (BiotaEvolverObject,
                                                      HabitatPatchVector)
 import numpy as np
-from uuid import uuid4
 
 
 class Species(BiotaEvolverObject):
@@ -17,7 +16,7 @@ class Species(BiotaEvolverObject):
     """
 
     def __init__(self, initial_time, initial_habitat_patches,
-                 parent_species_id=-1, parent_species=-1):
+                 parent_species=-1):
         """Initialize a species.
 
         Parameters
@@ -27,16 +26,13 @@ class Species(BiotaEvolverObject):
         initial_habitat_patches : HabitatPatch list
             A list of BiotaEvolver HabitatPatch objects of the species at the
             initial time.
-        parent_species_id : UUID
-            The identifier of the parent species. An id of -1 indicates no
-            parent species.
+        parent_species : BiotaEvolver Species
+            The parent species object. An id of -1 indicates no parent species.
         """
         BiotaEvolverObject.__init__(self)
 
         # Set parameters.
-        self.parent_species_id = parent_species_id
         self.parent_species = parent_species
-        self.identifier = uuid4()
 
         # Set initial patch(es).
         if isinstance(initial_habitat_patches, list):
@@ -76,24 +72,18 @@ class Species(BiotaEvolverObject):
                                    HabitatPatchVector.MANY_TO_MANY]:
 
                 for d in v.destinations:
-                    extant_species.append(Species(time, d, parent_species_id=
-                                                 self.identifier, parent_species=self))
+                    child_species = Species(time, d, parent_species=self)
+                    extant_species.append(child_species)
 
         extant_species = np.array(list(set(extant_species)))
 
         # Evaluate extinction.
 
-        extinction_chance = 0.05
+#        extinction_chance = 0.0
+#
+#        survival_probability = np.random.choice(np.linspace(0, 1, 100),
+#                                                len(extant_species))
+#        survival_results = survival_probability > extinction_chance
+#        surviving_species = list(extant_species[survival_results])
 
-        survival_probability = np.random.choice(np.linspace(0, 1, 100),
-                                                len(extant_species))
-        survival_results = survival_probability > extinction_chance
-        surviving_species = list(extant_species[survival_results])
-
-        return surviving_species
-
-    def disperse(self, destination_patches, grid):
-        self.habitat_patches = destination_patches
-
-    def speciate(self):
-        pass
+        return list(extant_species)

@@ -1,6 +1,6 @@
 # BiotaEvolver plot functions.
 
-from copy import deepcopy
+from collections import OrderedDict
 from landlab.plot import imshow_grid
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
@@ -22,33 +22,6 @@ def plot_area_versus_species(region_data):
     plt.xlabel('Stream area ($m^2$)')
     plt.ylabel('Number of species')
 
-def plot_delta_area(region_data):
-
-    # Get variables.
-    timesteps = list(region_data.keys())[:-1]
-    delta_area = []
-    number_of_species = []
-    for t in timesteps:
-        delta_area.append(region_data[t + 1]['stream_area'] -
-                          region_data[t]['stream_area'])
-        number_of_species.append(region_data[t+1]['number_of_species'])
-
-    plt.figure('Number of species')
-    plt.plot(delta_area, number_of_species, 'k.')
-    plt.xlabel('Delta stream area ($m^2$)')
-    plt.ylabel('Number of species')
-
-def plot_captured_area(at_timestep):
-
-    time_in_ky = np.multiply(at_timestep['time'], 1e-3)
-    area_in_km = np.multiply(at_timestep['captured_area'], 1e-6)
-
-    plt.figure('Captured area')
-    plt.plot(time_in_ky, area_in_km, 'k')
-    plt.xlabel('Time (ky)')
-    plt.ylabel('Area captured ($km^2$)')
-    plt.xlim(xmin=0, xmax=max(time_in_ky))
-    plt.ylim(ymin=0)
 
 def plot_species_range(species, grid):
 
@@ -104,15 +77,17 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
     y_clade_spacing = 5
     y_species_spacing = 0.5
     y_next = 0
-    y_max = 0
 
+    y_max = 0
     species_position = {}
+
+    # Reverse time.
     times = list(tree.keys())
+    times = times[::-1]
 
     lines = []
 
-    # Plot the tree beginning at final time.
-    clades = {}
+    clades = OrderedDict()
     for t in times:
         for c in tree[t].keys():
             s = tree[t][c]
@@ -120,54 +95,89 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
             clades[c] = list(set(clades[c]) | set(s))
     from pprint import pprint
 
-
     root_species = clades[-1]
     clades.pop(-1, None)
-    pprint(root_species)
-#    pid = np.array([s.identifier for s in root_species])
+    clades[-1] = root_species
 
-    for i, clade in enumerate(clades.keys()):
-        for time in times:
+    pprint(clades)
+
+    # Plot the tree beginning at final time.
+
+    for i, parent_species in enumerate(clades.keys()):
+        no_parent = parent_species == -1
+        print(999,no_parent)
+
+        y_clade_species = []
+
+        for ti, time in enumerate(times):
             # Get the duration represented by this time.
-            if time == max(times):
-                later_time = time
-                earlier_time = times[i + 1]
-            elif time == min(times):
-                later_time = times[i - 1]
-                earlier_time = time
+            if time == min(times):
+                earlier_time = times[ti]
             else:
-                later_time = times[i - 1]
-                earlier_time = times[i + 1]
+                earlier_time = times[ti + 1]
+
+
 
             # Extend the x values by half of time.
-            x_max = (time + (later_time - time) * 0.5) * x_multiplier
-            x_min = (time - (time - earlier_time) * 0.5) * x_multiplier
-            x_mid = np.mean([x_min, x_max])
-            root_parents = []
-            for species in clades[clade]:
+            x_max = time * x_multiplier
+            x_min = earlier_time * x_multiplier
+
+            for species in list(set(clades[parent_species])):
                 existed_this_time = time in species.record.keys()
                 existed_prior_time = earlier_time in species.record.keys()
-                root_parents.append(clade)
 
                 if existed_this_time:
-                    if species.identifier in species_position.keys():
-                        y_next = species_position[species.identifier]
+                    if species in species_position.keys():
+                        y_next = species_position[species]
                     else:
-                        y_next += y_species_spacing
+                        y_next = y_max + y_species_spacing
 
-                    lines.extend(axes.plot([x_mid, x_max], [y_next, y_next], 'c'))
-
-                    if existed_prior_time:
-                        species_position[species.identifier] = y_next
+                    if i == 0:
+    #                    print(time,existed_this_time,existed_prior_time,x_min, x_max, y_next)
+                        if parent_species == -1:
+                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'm'))
+                        else:
+                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'c'))
                     else:
-                        species_position[clade] = y_next
+                        if parent_species == -1:
+                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'g'))
+                        else:
+                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'r'))
 
-            for p in root_parents:
-                existed_this_time = time in clade.record.keys()
+                    species_position[species] = y_next
 
-                lines.extend(axes.plot([x_mid, x_max], [y_next, y_next], 'c'))
+                    if time == min(species.record.keys()):
+                        y_clade_species.append(y_next)
 
-        y_next += y_clade_spacing
+                    if y_next > y_max:
+                        y_max = y_next
+
+                if not existed_prior_time and existed_this_time:
+                    lines.extend(axes.plot([x_min, x_min], [min(y_clade_species), max(y_clade_species)], 'y'))
+
+
+        print(time,np.mean(y_clade_species),y_clade_species,parent_species)
+
+        species_position[parent_species] = np.mean(y_clade_species)
+
+#            if not no_parent:
+#                parent_existed_this_time = time in parent_species.record.keys()
+#                parent_existed_prior_time = earlier_time in parent_species.record.keys()
+#
+#                if parent_existed_this_time:
+#
+#                    y_next = np.mean(y_clade_species)
+#
+#                    if parent_species in species_position.keys():
+#                        for y in y_clade_species:
+#                            lines.extend(axes.plot([x_min, x_max], [y_next, y], 'r'))
+##                    else:
+#                    lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'y'))
+#
+#                if parent_existed_prior_time:
+#                    species_position[parent_species] = np.mean(y_clade_species)
+
+
 
 #    for i, time in enumerate(times):
 #        # Get the duration represented by this time.
@@ -253,16 +263,17 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
 #
 #            y_next = max(y_clade_species)
 
-    return lines
-
     # Format plot.
 
     axes.set_xlabel('Time (ky)')
     axes.set_ylabel('Species')
+#    axes.set_yticks([])
+#    axes.set_yticklabels([])
 
-    axes.set_xlim([0, max(times) * x_multiplier])
+#    axes.set_xlim([0, max(times) * x_multiplier])
     axes.set_ylim(bottom=0)
 
-    # Show only the x-axis.
     axes.spines['top'].set_visible(False)
     axes.spines['right'].set_visible(False)
+
+    return lines

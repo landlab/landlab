@@ -9,6 +9,7 @@ class BiotaEvolverObject(object):
     def __init__(self):
         """Initialize a BiotaEvolverObject.
         """
+        self._identifier = None
         self.record = {}
 
     def get_record_key_list(self, key):
@@ -35,3 +36,11 @@ class BiotaEvolverObject(object):
     @property
     def number_of_records(self):
         return len(self.time__list)
+
+    @property
+    def clade(self):
+        return self._identifier[0]
+
+    @property
+    def identifier(self):
+        return self._identifier

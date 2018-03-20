@@ -7,6 +7,7 @@ from landlab import Component
 from landlab.components.biota_macroevolution import BiotaEvolverObject
 import numpy as np
 from pprint import pprint
+from string import ascii_uppercase
 from uuid import UUID
 
 
@@ -45,6 +46,8 @@ class BiotaEvolver(Component, BiotaEvolverObject):
         """
         Component.__init__(self, grid, map_vars=None, **kwds)
         BiotaEvolverObject.__init__(self)
+
+        self._clades = {}
 
     @property
     def species_ids(self):
@@ -115,22 +118,28 @@ class BiotaEvolver(Component, BiotaEvolverObject):
 
     def _get_advancing_species(self, time, patch_vectors):
         # Update only the extant species.
-        species = self.record[self.time__last]['species']
+        extant_species = self.record[self.time__last]['species']
 
         # Run macroevolution processes for each extant species.
         origins = list(filter(None, [v.origin for v in patch_vectors]))
 
         advancing_species = []
 
-        for s in species:
+        for es in extant_species:
             # Get vectors that include the origin of this species.
-            species_patches = s.record[s.time__last]['habitat_patches']
+            species_patches = es.record[es.time__last]['habitat_patches']
             indices = np.where(np.isin(origins, species_patches))[0]
 
             if len(indices) > 0:
                 pv = [patch_vectors[i] for i in indices]
-                surviving_species = s.run_macroevolution_processes(time, pv)
-                advancing_species.extend(surviving_species)
+                child_species = es.run_macroevolution_processes(time, pv)
+
+                # Set child species id.
+                for cs in child_species:
+                    sid = self._get_unused_species_id(es.clade)
+                    cs._identifier = sid
+
+                advancing_species.extend(child_species)
 
         return advancing_species
 
@@ -146,6 +155,10 @@ class BiotaEvolver(Component, BiotaEvolverObject):
         time : float
             The time in the simulation.
         """
+        cid = self._get_unused_clade_id()
+        sid = self._get_unused_species_id(cid)
+        species._identifier = sid
+
         self.record.setdefault(time, {})
 
         self.record[time].setdefault('species', [])
@@ -177,9 +190,9 @@ class BiotaEvolver(Component, BiotaEvolverObject):
         """Get phylogenetic tree.
         """
         tree = {}
-        time_reversed = self.time__list[::-1]
+#        time_reversed = self.time__list[::-1]
 
-        for t in time_reversed:
+        for t in self.time__list:
             tree[t] = {}
             for s in self.record[t]['species']:
                 p = s.parent_species
@@ -211,3 +224,20 @@ class BiotaEvolver(Component, BiotaEvolverObject):
             if item.identifier == identifier:
                 return item
                 break
+
+    def _get_unused_clade_id(self):
+        alphabet = list(ascii_uppercase)
+        clade_id = np.setdiff1d(alphabet, self._clades)
+
+        duplicator = alphabet
+        while len(clade_id) == 0:
+           duplicator = np.core.defchararray.add(alphabet, duplicator)
+           clade_id = np.setdiff1d(duplicator, self._clades)
+
+        self._clades[clade_id[0]] = 0
+
+        return clade_id[0]
+
+    def _get_unused_species_id(self, clade_id):
+        self._clades[clade_id] += 1
+        return (clade_id, self._clades[clade_id])
