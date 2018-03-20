@@ -17,6 +17,15 @@ class ExponentialWeatherer(Component):
     This component implements exponential weathering of bedrock on hillslopes.
     Uses exponential soil production function in the style of Ahnert (1976).
 
+    Consider that :math:`w_0` is the maximum soil production decay depth and
+    that :math:`w^*` is the characteristic soil production decay depth. The
+    soil production rate :math:`\dot{w}` is given as a function of the soil
+    depth :math:`d`,
+
+    .. math::
+
+        \dot{w} = w_0 \exp{\frac{d}{w_*}} \;.
+
     Parameters
     ----------
     grid: ModelGrid
