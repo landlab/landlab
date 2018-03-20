@@ -39,7 +39,6 @@ def test_dx_equals_zero():
 
 def test_anti_aximuth_greq_2pi():
     """Test anti azimuth over 2*pi."""
-
     grid = RasterModelGrid((6, 6), spacing=10)
 
     _ = grid.add_zeros('node', 'topographic__elevation')
@@ -71,7 +70,6 @@ def test_anti_aximuth_greq_2pi():
 
 def test_non_raster():
     """Test a hex model grid."""
-
     grid = HexModelGrid(7, 3, dx=10)
 
     _ = grid.add_zeros('node', 'topographic__elevation')
@@ -106,9 +104,53 @@ def test_non_raster():
 
 def test_dip_geq_90():
     """Test dip angles of >90 degrees."""
-
     grid = RasterModelGrid((6, 6), spacing=10)
 
     _ = grid.add_zeros('node', 'topographic__elevation')
 
     assert_raises(ValueError, NormalFault, grid, fault_dip_angle=90.001)
+    
+    
+def test_uplifting_multiple_fields():
+    """Test uplifting multiple fields with NormalFault."""
+    grid = RasterModelGrid((6, 6), spacing=10)
+
+    _ = grid.add_zeros('node', 'topographic__elevation')
+    
+    zbr = grid.add_zeros('node', 'bedrock__elevation')
+    
+    zbr -= 1.
+    
+    param_dict = {'faulted_surface': ['topographic__elevation', 
+                                      'bedrock__elevation'],
+                  'fault_dip_angle': 90.0,
+                  'fault_throw_rate_through_time': {'time': [0, 9, 10],
+                                                    'rate': [1, 1, 1]},
+                  'fault_trace': {'y1': 30.0,
+                                  'x1': 30.0,
+                                  'y2': 20.0,
+                                  'x2': 0.0},
+                  'include_boundaries': True}
+    
+    nf = NormalFault(grid, **param_dict)
+    
+    
+    nf.run_one_step(dt=10)
+    
+    elev = np.array([  0.,   0.,   0.,   0.,   0.,   0.,   
+                       0.,  10.,  10.,  10.,  10.,   0.,
+                       0.,  10.,  10.,  10.,  10.,   0.,   
+                       0.,   0.,   0.,   0.,  10.,   0.,   
+                       0.,   0.,   0.,   0.,   0.,   0.,   
+                       0.,   0.,   0.,   0.,   0.,   0.])
+    
+    bedrock = np.array([-1., -1., -1., -1., -1., -1.,
+                        -1.,  9.,  9.,  9.,  9., -1., 
+                        -1.,  9.,  9.,  9.,  9., -1., 
+                        -1., -1., -1., -1.,  9., -1., 
+                        -1., -1., -1., -1., -1., -1., 
+                        -1., -1., -1., -1., -1., -1.])
+    
+    assert_array_equal(grid.at_node['topographic__elevation'], elev)
+    assert_array_equal(grid.at_node['bedrock__elevation'], bedrock)
+        
