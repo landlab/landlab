@@ -525,7 +525,7 @@ class CellLabCTSModel(object):
 
         # Put the various transitions on the event queue
         if _CYTEST:
-            push_transitions_to_event_queue_new(self.grid.number_of_active_links,
+            push_transitions_to_event_queue_new(len(self.grid.active_links),
                                                 self.grid.active_links,
                                                 self.n_trn, self.link_state,
                                                 self.trn_id, self.trn_rate,

@@ -14,7 +14,7 @@ class HabitatPatch(BiotaEvolverObject):
     """The nodes and attributes of the entities that species populate.
 
     A universally unique identifier (UUID) is assigned to the habitat patch at
-    initialization. 
+    initialization.
     """
 
     def __init__(self, time, mask):
@@ -29,7 +29,7 @@ class HabitatPatch(BiotaEvolverObject):
         """
         BiotaEvolverObject.__init__(self)
         self.at_time = {time: mask}
-        self.identifier = uuid4()
+        self._identifier = uuid4()
         self.species = []
         self.plot_color = (random(), random(), random(), 1)
 

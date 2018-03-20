@@ -40,24 +40,6 @@ class FlowRouter(FlowAccumulator):
     cells, so cannot accumulate any discharge.
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        FlowRouter(grid, method='D8', runoff_rate=None)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    method : {'D8', 'D4'}, optional
-        Routing method ('D8' is the default). This keyword has no effect for a
-        Voronoi-based grid.
-    runoff_rate : float, optional (m/time)
-        If provided, sets the (spatially constant) runoff rate. If a spatially
-        variable runoff rate is desired, use the input field
-        'water__unit_flux_in'. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field.
-        If neither are set, defaults to spatially constant unit input.
     """
 
     _name = 'DNFlowRouter'
@@ -121,8 +103,22 @@ class FlowRouter(FlowAccumulator):
 
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
-        """Initialize FlowDirector."""
+        """Initialize FlowDirector.
         
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        method : {'D8', 'D4'}, optional
+            Routing method ('D8' is the default). This keyword has no effect for a
+            Voronoi-based grid.
+        runoff_rate : float, optional (m/time)
+            If provided, sets the (spatially constant) runoff rate. If a spatially
+            variable runoff rate is desired, use the input field
+            'water__unit_flux_in'. If both the field and argument are present at
+            the time of initialization, runoff_rate will *overwrite* the field.
+            If neither are set, defaults to spatially constant unit input.
+        """
         self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         self._grid = grid
         if 'method' in kwds:

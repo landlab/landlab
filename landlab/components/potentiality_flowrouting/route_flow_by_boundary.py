@@ -12,8 +12,8 @@ Created on Fri Feb 20 09:32:27 2015
 # Could suppress by mirroring the diagonals
 
 import numpy as np
-from landlab import RasterModelGrid, Component, FieldError, INACTIVE_LINK, \
-    CLOSED_BOUNDARY, CORE_NODE
+from landlab import (RasterModelGrid, Component, FieldError, INACTIVE_LINK,
+                     ACTIVE_LINK, CLOSED_BOUNDARY, CORE_NODE, FIXED_LINK)
 import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 
@@ -48,34 +48,11 @@ class PotentialityFlowRouter(Component):
 
     The primary method of this class is :func:`run_one_step`.
 
-    Construction::
-
-        PotentialityFlowRouter(grid, method='D8', flow_equation='default',
-                     Chezys_C=30., Mannings_n=0.03)
-
     Notes
     -----
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    method : {'D8', 'D4'}, optional
-        Routing method ('D8' is the default). This keyword has no effect for a
-        Voronoi-based grid.
-    flow_equation : {'default', 'Manning', 'Chezy'}, optional
-        If Manning or Chezy, flow is routed according to the Manning or Chezy
-        equation; discharge is allocated to multiple downslope nodes
-        proportional to the square root of discharge; and a water__depth field
-        is returned. If default, flow is allocated to multiple nodes linearly
-        with slope; and the water__depth field is not calculated.
-    Chezys_C : float (optional)
-        Required if flow_equation == 'Chezy'.
-    Mannings_n : float (optional)
-        Required if flow_equation == 'Manning'.
 
     Examples
     --------
@@ -88,13 +65,16 @@ class PotentialityFlowRouter(Component):
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
     >>> Q_at_core_nodes = np.array(
-    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
-    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
-    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
+    ...     [ 13.57233404,  13.93522481,  11.52216193,  11.29307277,
+    ...        8.80884751,   8.86380667,   6.47446459,   6.82161521])
     >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
     ...             Q_at_core_nodes)
     True
     """
+#    >>> Q_at_core_nodes = np.array(
+#    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
+#    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
+#    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
     _name = 'PotentialityFlowRouter'
 
     _input_var_names = ('topographic__elevation',
@@ -141,7 +121,24 @@ class PotentialityFlowRouter(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
                  Chezys_C=30., Mannings_n=0.03, **kwds):
-        """Initialize flow router.
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        method : {'D8', 'D4'}, optional
+            Routing method ('D8' is the default). This keyword has no effect for a
+            Voronoi-based grid.
+        flow_equation : {'default', 'Manning', 'Chezy'}, optional
+            If Manning or Chezy, flow is routed according to the Manning or Chezy
+            equation; discharge is allocated to multiple downslope nodes
+            proportional to the square root of discharge; and a water__depth field
+            is returned. If default, flow is allocated to multiple nodes linearly
+            with slope; and the water__depth field is not calculated.
+        Chezys_C : float (optional)
+            Required if flow_equation == 'Chezy'.
+        Mannings_n : float (optional)
+            Required if flow_equation == 'Manning'.
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
             assert grid.number_of_node_rows >= 3
@@ -188,8 +185,7 @@ class PotentialityFlowRouter(Component):
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
         if self.route_on_diagonals and self._raster:
-            grid._create_diag_links_at_node()  # ...in case not present yet
-            self._discharges_at_link = np.empty(grid._number_of_d8_links)
+            self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self.grid.empty('link')
 
@@ -223,7 +219,7 @@ class PotentialityFlowRouter(Component):
 
         if not self.route_on_diagonals or not self._raster:
             while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
+                K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 incoming_K_sum = (pos_incoming_link_grads*K_link_ends
                                   ).sum(axis=1) + self._min_slope_thresh
                 self._K[:] = (incoming_K_sum + qwater_in)/outgoing_sum
@@ -235,20 +231,20 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
         else:
             # grad on diags:
-            gwd = np.empty(grid._number_of_d8_links, dtype=float)
+            gwd = np.empty(grid.number_of_d8, dtype=float)
             gd = gwd[grid.number_of_links:]
-            gd[:] = (z[grid._diag_link_tonode] - z[grid._diag_link_fromnode])
-            gd /= (grid._length_of_link_with_diagonals[grid.number_of_links:])
+            gd[:] = (z[grid.nodes_at_diagonal[:, 1]] - z[grid.nodes_at_diagonal[:, 0]])
+            gd /= grid.length_of_d8[grid.number_of_links:]
             if self.equation != 'default':
                 gd[:] = np.sign(gd)*np.sqrt(np.fabs(gd))
-            diag_grad_at_node_w_dir = (gwd[grid._diagonal_links_at_node] *
-                                       grid._diag_active_link_dirs_at_node)
+            diag_grad_at_node_w_dir = (gwd[grid.d8s_at_node[:, 4:]] *
+                                       self.grid.active_diagonal_dirs_at_node)
 
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
             pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
             while mismatch > 1.e-6:
-                K_link_ends = self._K[grid.neighbors_at_node]
-                K_diag_ends = self._K[grid._diagonal_neighbors_at_node]
+                K_link_ends = self._K[grid.adjacent_nodes_at_node]
+                K_diag_ends = self._K[grid.diagonal_adjacent_nodes_at_node]
                 incoming_K_sum = ((pos_incoming_link_grads * K_link_ends
                                    ).sum(axis=1) +
                                   (pos_incoming_diag_grads * K_diag_ends
@@ -261,13 +257,13 @@ class PotentialityFlowRouter(Component):
             # edges, if present.
             upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
             upwind_diag_K = np.where(
-                z[grid._diag_link_tonode] > z[grid._diag_link_fromnode],
-                self._K[grid._diag_link_tonode],
-                self._K[grid._diag_link_fromnode])
+                z[grid.nodes_at_diagonal[:, 1]] > z[grid.nodes_at_diagonal[:, 0]],
+                self._K[grid.nodes_at_diagonal[:, 1]],
+                self._K[grid.nodes_at_diagonal[:, 0]])
             self._discharges_at_link[:grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links:] = (
                 upwind_diag_K * gd)
-            self._discharges_at_link[grid._all_d8_inactive_links] = 0.
+            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
         # there is no sensible way to save discharges at links, if we route
@@ -299,7 +295,7 @@ class PotentialityFlowRouter(Component):
     def discharges_at_links(self):
         """Return the discharges at links.
 
-        Note that if diagonal routing, this will return number_of_d8_links.
+        Note that if diagonal routing, this will return number_of_d8.
         Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link

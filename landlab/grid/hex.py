@@ -222,9 +222,53 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # the nodes into a grid.
         super(HexModelGrid, self)._initialize(
             pts[:, 0], pts[:, 1], reorient_links)
+        
+        # Handle special case of boundary nodes in rectangular grid shape.
+        # One pair of edges will have the nodes staggered. By default, only the
+        # outer nodes will be assigned boundary status; we need the inner edge
+        # nodes on these "ragged" edges also to be flagged as boundary nodes.
+        if shape[0].lower() == 'r':
+            self._set_boundary_stat_at_rect_grid_ragged_edges(orientation, dx)
 
         # Remember grid spacing
         self._dx = dx
+
+    def _set_boundary_stat_at_rect_grid_ragged_edges(self, orientation, dx):
+        """Assign boundary status to all edge nodes along the 'ragged' edges.
+
+        Handle special case of boundary nodes in rectangular grid shape.
+        One pair of edges will have the nodes staggered. By default, only the
+        outer nodes will be assigned boundary status; we need the inner edge
+        nodes on these "ragged" edges also to be flagged as boundary nodes.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3, shape='rect', dx=2.0)
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
+        >>> hg = HexModelGrid(3, 3, shape='rect', orientation='vert')
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
+        >>> hg = HexModelGrid(4, 4, shape='rect', orientation='vert')
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> hg = HexModelGrid(3, 4, shape='rect')
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        """
+        if orientation[0].lower() == 'v':  # vert; top & bottom staggered
+            bot_row = numpy.where(self.y_of_node <= 0.5 * dx)[0]
+            self.status_at_node[bot_row] = self.status_at_node[0]
+            top_row = numpy.where(self.y_of_node
+                                  >= (self._nrows - 1) * dx)[0]
+            self.status_at_node[top_row] = self.status_at_node[0]
+        else:  # horizontal orientation; left & right staggered
+            left_row = numpy.where(self.x_of_node <= 0.5 * dx)[0]
+            self.status_at_node[left_row] = self.status_at_node[0]
+            right_row = numpy.where(self.x_of_node
+                                    >= (self._ncols - 1) * dx)[0]
+            self.status_at_node[right_row] = self.status_at_node[0]
 
     def _create_cell_areas_array(self):
         r"""Create an array of surface areas of hexagonal cells.

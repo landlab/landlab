@@ -11,7 +11,7 @@ from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
 from .overland_flow import OverlandFlowBates, OverlandFlow
-from .overland_flow import KinwaveImplicitOverlandFlow
+from .overland_flow import KinwaveImplicitOverlandFlow, KinwaveOverlandFlowModel
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .pet import PotentialEvapotranspiration
 from .radiation import Radiation
@@ -34,14 +34,14 @@ from .space import Space
 from .landslides import LandslideProbability
 from .biota_macroevolution import BiotaEvolver
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
-
+from .normal_fault import NormalFault
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
               PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
               KinwaveImplicitOverlandFlow,
               PotentialEvapotranspiration, PotentialityFlowRouter,
-              Radiation, SinkFiller, 
+              Radiation, SinkFiller,
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
               FastscapeEroder, SedDepEroder,
               PrecipitationDistribution,
@@ -53,6 +53,6 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
               LandslideProbability, DepthDependentTaylorDiffuser,
-              BiotaEvolver]
+              NormalFault, BiotaEvolver]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

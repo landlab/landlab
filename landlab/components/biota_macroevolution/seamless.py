@@ -210,8 +210,8 @@ class BiotaEvolver(Component, BiotaEvolverObject):
                 if p == -1:
                     pid = p
                 else:
-                    pid = str(p.identifier)
-                species_ids = [str(s.identifier) for s in tree[time][p]]
+                    pid = p.identifier
+                species_ids = [s.identifier for s in tree[time][p]]
                 readable_tree.setdefault(time, {})
                 readable_tree[time][pid] = species_ids
 
@@ -226,13 +226,15 @@ class BiotaEvolver(Component, BiotaEvolverObject):
                 break
 
     def _get_unused_clade_id(self):
+        used_ids = list(self._clades.keys())
+
         alphabet = list(ascii_uppercase)
-        clade_id = np.setdiff1d(alphabet, self._clades)
+        clade_id = np.setdiff1d(alphabet, used_ids)
 
         duplicator = alphabet
         while len(clade_id) == 0:
            duplicator = np.core.defchararray.add(alphabet, duplicator)
-           clade_id = np.setdiff1d(duplicator, self._clades)
+           clade_id = np.setdiff1d(duplicator, used_ids)
 
         self._clades[clade_id[0]] = 0
 

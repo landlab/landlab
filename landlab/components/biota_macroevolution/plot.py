@@ -87,28 +87,25 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
 
     lines = []
 
-    clades = OrderedDict()
+    clades = {}
     for t in times:
-        for c in tree[t].keys():
-            s = tree[t][c]
-            clades.setdefault(c, [])
-            clades[c] = list(set(clades[c]) | set(s))
-    from pprint import pprint
-
-    root_species = clades[-1]
-    clades.pop(-1, None)
-    clades[-1] = root_species
-
-    pprint(clades)
+        for p in tree[t].keys():
+            if p == -1:
+                cid = -1
+                species = tree[t][-1]
+                for s in species:
+                    cid = s.identifier[0]
+                    clades.setdefault(cid, set())
+                    clades[cid].add(s)
+            else:
+                cid = p.identifier[0]
+                clades.setdefault(cid, set())
+                for s in tree[t][p]:
+                    clades[cid].add(s)
 
     # Plot the tree beginning at final time.
 
-    for i, parent_species in enumerate(clades.keys()):
-        no_parent = parent_species == -1
-        print(999,no_parent)
-
-        y_clade_species = []
-
+    for i, cid in enumerate(clades.keys()):
         for ti, time in enumerate(times):
             # Get the duration represented by this time.
             if time == min(times):
@@ -116,33 +113,29 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
             else:
                 earlier_time = times[ti + 1]
 
-
+            y_clade_species = []
 
             # Extend the x values by half of time.
             x_max = time * x_multiplier
             x_min = earlier_time * x_multiplier
 
-            for species in list(set(clades[parent_species])):
+            for species in list(clades[cid]):
                 existed_this_time = time in species.record.keys()
                 existed_prior_time = earlier_time in species.record.keys()
+                no_parent = species.parent_species == -1
 
                 if existed_this_time:
                     if species in species_position.keys():
+                        # Previously plotted.
                         y_next = species_position[species]
                     else:
+                        # First time plotting.
                         y_next = y_max + y_species_spacing
 
-                    if i == 0:
-    #                    print(time,existed_this_time,existed_prior_time,x_min, x_max, y_next)
-                        if parent_species == -1:
-                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'm'))
-                        else:
-                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'c'))
+                    if no_parent:
+                        lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'm'))
                     else:
-                        if parent_species == -1:
-                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'g'))
-                        else:
-                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'r'))
+                        lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'c'))
 
                     species_position[species] = y_next
 
@@ -152,32 +145,15 @@ def plot_tree(tree, x_multiplier=0.001, selected_species=None, axes=None):
                     if y_next > y_max:
                         y_max = y_next
 
+                    if not existed_prior_time:
+                        species_position[species.parent_species] = np.mean(y_clade_species)
+
+            for species in list(clades[cid]):
+                existed_this_time = time in species.record.keys()
+                existed_prior_time = earlier_time in species.record.keys()
                 if not existed_prior_time and existed_this_time:
-                    lines.extend(axes.plot([x_min, x_min], [min(y_clade_species), max(y_clade_species)], 'y'))
-
-
-        print(time,np.mean(y_clade_species),y_clade_species,parent_species)
-
-        species_position[parent_species] = np.mean(y_clade_species)
-
-#            if not no_parent:
-#                parent_existed_this_time = time in parent_species.record.keys()
-#                parent_existed_prior_time = earlier_time in parent_species.record.keys()
-#
-#                if parent_existed_this_time:
-#
-#                    y_next = np.mean(y_clade_species)
-#
-#                    if parent_species in species_position.keys():
-#                        for y in y_clade_species:
-#                            lines.extend(axes.plot([x_min, x_max], [y_next, y], 'r'))
-##                    else:
-#                    lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'y'))
-#
-#                if parent_existed_prior_time:
-#                    species_position[parent_species] = np.mean(y_clade_species)
-
-
+    #                    lines.extend(axes.plot([x_min, x_min], [min(y_clade_species), max(y_clade_species)], 'y'))
+                    lines.extend(axes.plot([x_min, x_max], [np.mean(y_clade_species), max(y_clade_species)], 'y'))
 
 #    for i, time in enumerate(times):
 #        # Get the duration represented by this time.

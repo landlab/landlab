@@ -16,11 +16,27 @@ import os
 import warnings
 from functools import wraps
 import textwrap
+import inspect
 
 import numpy as np
 import six
 
 from ..core.model_parameter_loader import load_params
+
+
+class cache_result_in_object(object):
+    def __init__(self, cache_as=None):
+        self._attr = cache_as
+
+    def __call__(self, func):
+        name = self._attr or '_' + func.__name__
+        @wraps(func)
+        def _wrapped(obj):
+            if not hasattr(obj, name):
+                setattr(obj, name, func(obj))
+            return getattr(obj, name)
+
+        return _wrapped
 
 
 class store_result_in_grid(object):
@@ -85,6 +101,43 @@ def read_only_array(func):
     return _wrapped
 
 
+def add_signature_to_doc(func):
+    """Add a function signature to the first line of a docstring.
+
+    Add the signature of a function to the first line of its docstring.
+    This is useful for functions that are decorated in such a way
+    that its signature changes.
+
+    Parameters
+    ----------
+    func : function
+        Function to add signature to.
+
+    Returns
+    -------
+    str
+        The new docstring with the function signature on the first line.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.utils.decorators import add_signature_to_doc
+
+    >>> def foo(arg1, kwd=None):
+    ...     '''Do something.'''
+    ...     pass
+    >>> print(add_signature_to_doc(foo))
+    foo(arg1, kwd=None)
+    <BLANKLINE>
+    Do something.
+    """
+    argspec = inspect.getargspec(func)
+    return """{name}{argspec}
+
+{body}""".format(name=func.__name__, argspec=inspect.formatargspec(*argspec),
+           body=inspect.getdoc(func))
+
+
 def use_file_name_or_kwds(func):
 
     """Decorate a method so that it takes a file name or keywords.
@@ -130,6 +183,8 @@ def use_file_name_or_kwds(func):
     >>> foo.kw
     1000000.0
     """
+
+    func.__doc__ = add_signature_to_doc(func)
 
     @wraps(func)
     def _wrapped(self, *args, **kwds):
@@ -229,6 +284,9 @@ class use_field_name_or_array(object):
 
     def __call__(self, func):
         """Wrap the function."""
+
+        func.__doc__ = add_signature_to_doc(func)
+
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
