@@ -32,9 +32,9 @@ class ExponentialWeatherer(Component):
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    soil_production_decay_depth : float
+    soil_production__maximum_rate : float
 	   Characteristic weathering depth
-     max_soil_production_rate : float
+     soil_production__decay_depth : float
 	   Maximum weathering rate for bare bedrock
 
     Examples
@@ -80,13 +80,16 @@ class ExponentialWeatherer(Component):
 
     }
 
-    def __init__(self, grid, max_soil_production_rate=1.0,
-                 soil_production_decay_depth=1.0, **kwds):
+    def __init__(self,
+                 grid,
+                 soil_production__maximum_rate=1.0,
+                 soil_production__decay_depth=1.0,
+                 **kwds):
 
         #Store grid and parameters
         self._grid = grid
-        self.wstar = soil_production_decay_depth
-        self.w0 = max_soil_production_rate
+        self.wstar = soil_production__decay_depth
+        self.w0 = soil_production__maximum_rate
 
         # Create fields:
         # soil depth
