@@ -12,21 +12,19 @@ import numpy as np
 
 
 class ExponentialWeatherer(Component):
-    
+
     """
-    This component implements exponential weathering of bedrock on hillslopes. 
+    This component implements exponential weathering of bedrock on hillslopes.
     Uses exponential soil production function in the style of Ahnert (1976).
-        
+
     Parameters
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    wstar: float
-	characteristic weathering depth
-    wnot: float
-	maximum weathering rate for bare bedrock 
-        
- 
+    soil_production_decay_depth : float
+	   Characteristic weathering depth
+     max_soil_production_rate : float
+	   Maximum weathering rate for bare bedrock
 
     Examples
     --------
@@ -47,22 +45,22 @@ class ExponentialWeatherer(Component):
     _input_var_names = (
         'soil__depth',
     )
-    
+
     _output_var_names = (
         'soil_production__rate',
     )
-        
+
     _var_units = {
         'soil__depth' : 'm',
         'soil_production__rate' : 'm/yr',
     }
-    
+
     _var_mapping = {
         'soil__depth' : 'node',
         'soil_production__rate' : 'node',
-        
+
     }
-        
+
     _var_doc = {
         'soil__depth':
                 'depth of soil/weather bedrock',
@@ -73,13 +71,13 @@ class ExponentialWeatherer(Component):
 
     def __init__(self, grid, max_soil_production_rate=1.0,
                  soil_production_decay_depth=1.0, **kwds):
-        
+
         #Store grid and parameters
         self._grid = grid
         self.wstar = soil_production_decay_depth
         self.w0 = max_soil_production_rate
 
-        # Create fields:  
+        # Create fields:
         # soil depth
         if 'soil__depth' in grid.at_node:
             self.depth = grid.at_node['soil__depth']
@@ -96,11 +94,11 @@ class ExponentialWeatherer(Component):
         # Why not just use core nodes?
         self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
 
-    
+
     def calc_soil_prod_rate(self, **kwds):
         """Calculate soil production rate.
         """
-        
+
         # apply exponential function
         self.soil_prod_rate[self._active_nodes] = (
                 self.w0
@@ -108,7 +106,7 @@ class ExponentialWeatherer(Component):
 
         #weather
         #self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
-        
+
     def run_one_step(self, dt=None, **kwds):
         """
 
@@ -118,4 +116,3 @@ class ExponentialWeatherer(Component):
             Used only for compatibility with standard run_one_step.
         """
         self.calc_soil_prod_rate(**kwds)
-
