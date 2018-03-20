@@ -87,7 +87,7 @@ class NormalFault(Component):
         fault_throw_rate_through_time : dict, optional
             Dictionary that specifies the time varying throw rate on the fault.
             Expected format is:
-            ``fault_throw_rate_through_time = {'time': array, 'rate': array}
+            ``fault_throw_rate_through_time = {'time': array, 'rate': array}``
             Default value is a constant rate of 0.001 (units not specified).
         fault_dip_angle : float, optional
             Dip angle of the fault in degrees.  Default value is 90 degrees.
@@ -214,7 +214,7 @@ class NormalFault(Component):
                 self.surfaces[surf] = (_return_surface(grid, surf))
         else:
             self.surfaces[faulted_surface] = (_return_surface(grid, faulted_surface))
-        
+
         if fault_dip_angle > 90.0:
             raise ValueError('NormaFault fault_dip_angle must be less than 90 '
                              'degrees.')
