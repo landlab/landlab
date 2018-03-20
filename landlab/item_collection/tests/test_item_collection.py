@@ -17,14 +17,14 @@ except ImportError:
                                        assert_dict_equal)
 
 import landlab
-from landlab import RasterModelGrid, HexModelGrid, NetworkModelGrid, FieldError
+from landlab import RasterModelGrid, HexModelGrid, FieldError # NetworkModelGrid,
 
 from landlab import CLOSED_BOUNDARY
 from landlab import BAD_INDEX_VALUE as XX
 
-def test_NetworkModelGrid():
-    """ """
-    pass
+# def test_NetworkModelGrid():
+#     """ """
+#     pass
 
 
 def test_RasterModelGrid():
@@ -55,4 +55,3 @@ def test_bad_grid_element_name():
 def test_grid_element_size():
     """ """
     pass
-
