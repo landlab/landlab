@@ -94,7 +94,7 @@ class ClastSet(object):
         self._deposition__thickness = np.zeros(grid.number_of_nodes)
         self._deposition__flux = np.zeros(grid.number_of_nodes)
 
-    def clast_solver_Exponential(self, dt=1., Si=1.2, kappa=0.0001, uplift=None):
+    def clast_solver_Exponential(self, dt=1., Si=1.2, kappa=0.0001, lambda_0=1, uplift=None):
 
 # Repeated from above??
         if self.erosion_method == 'TLDiff':
@@ -118,6 +118,7 @@ class ClastSet(object):
         self._Si = Si #  slope above which particle motion continues indefinetly (not equal to critical slope of diffusion, see Furbish and Haff, 2010)
 # TO DELETE???        self._deposition__flux = self._deposition_rate # * self._grid.dx
         hop_length_i = 0
+        self._lambda_0 = lambda_0
 
         if uplift is not None:
             if type(uplift) is str:
@@ -285,8 +286,8 @@ class ClastSet(object):
         # lambda_0 = 23
         # lambda_0 = (self._dt * self._kappa * self._grid.dx) / (2*radius)
         # lambda_0 = float(self._dt * ((self._kappa * self._grid.dx * S) / (2 * radius)) * ((Si + S) / (Sc - S)))#23
-        lambda_0 = 50
-        lambda_mean = lambda_0 * (Si + S) / (Si - S) # equivalent to * np.power((((2 * Si)/(Si - S))-1),-1) with Sc always positive and S signed (<0 when dz decreases with increasing x)
+        # lambda_0 = 50
+        lambda_mean = self._lambda_0 * (Si + S) / (Si - S) # equivalent to * np.power((((2 * Si)/(Si - S))-1),-1) with Sc always positive and S signed (<0 when dz decreases with increasing x)
         
         
         if S >= Si:
