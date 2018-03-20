@@ -26,6 +26,8 @@ class ExponentialWeatherer(Component):
 
         \dot{w} = w_0 \exp{\frac{d}{w_*}} \;.
 
+    The `ExponentialWeatherer` only calculates soil production at core nodes.
+
     Parameters
     ----------
     grid: ModelGrid
@@ -100,18 +102,14 @@ class ExponentialWeatherer(Component):
             self.soil_prod_rate = grid.add_zeros('node',
                                                  'soil_production__rate')
 
-        # Why not just use core nodes?
-        self._active_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
-
-
     def calc_soil_prod_rate(self, **kwds):
         """Calculate soil production rate.
         """
 
         # apply exponential function
-        self.soil_prod_rate[self._active_nodes] = (
+        self.soil_prod_rate[self._grid.core_nodes] = (
                 self.w0
-                * np.exp(-self.depth[self._active_nodes] / self.wstar))
+                * np.exp(-self.depth[self._grid.core_nodes] / self.wstar))
 
         #weather
         #self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
