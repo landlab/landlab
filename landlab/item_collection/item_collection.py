@@ -392,7 +392,7 @@ class ItemCollection(object):
                                   (self.DataFrame['element_id'] == element_id)]
         return vals
         
-    def calc_aggregate_value(self, func, var, at='node', fill_value=_FILL_VALUE):
+    def calc_aggregate_value(self, func, var, at='node', fill_value=_FILL_VALUE, args=(), **kwargs):
         """Apply a function to a variable aggregated at grid elements.
 
         Parameters
@@ -406,6 +406,11 @@ class ItemCollection(object):
         fill_value : str, float, int, optional
             Value to use for grid element locations where no items are located.
             Default is np.nan. 
+        args : tuple, optional
+            Additional positional arguments to pass to function in after the
+            array/series
+        **kwargs : key value pairs, optional
+            Additional keyword arguments to pass to func.
             
         Returns
         -------
@@ -420,9 +425,9 @@ class ItemCollection(object):
         >>> from landlab.item_collection import ItemCollection
         >>> from landlab import RasterModelGrid  
         >>> grid = RasterModelGrid(3,3)
-        >>> element_id = [0, 0, 1, 1, 2, 3, 5]
-        >>> volumes = [1, 2, 3, 4, 5, 6, 7]
-        >>> ages = [10, 11, 12, 13, 14, 15, 16]  
+        >>> element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5]
+        >>> volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
+        >>> ages = [10, 11, 12, 13, 14, 15, 16, 8, 10]  
         >>> grid_element = 'node'
         >>> data = {'ages': ages,
         ...         'volumes':volumes}
@@ -430,16 +435,30 @@ class ItemCollection(object):
         ...                     data = data, 
         ...                     grid_element ='node', 
         ...                     element_id = element_id)
+        
+        We can calculate aggregate values by passing the function we want to
+        use to `calc_aggregate_value`.
+        
         >>> s = ic.calc_aggregate_value(np.sum, 'ages')
         >>> print(s)
-        [ 21.  25.  14.  15.  nan  16.  nan  nan  nan]
+        [ 46.  14.  15.  16.   8.  10.  nan  nan  nan]
         >>> len(s) == grid.number_of_nodes
         True
+        
+        You can even pass functions that require additional positional 
+        arguments or keyword arguments. For example, in order to get the 25th
+        percentile, we we do the following. 
+        
+        >>> s = ic.calc_aggregate_value(np.percentile, 'ages', q=25)
+        >>> print(s)
+        [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
+
+        
         """
         # select those items located on the correct type of element,
         # group by element_id and sum.
         grouped = self.DataFrame.loc[self.DataFrame['grid_element'] == at].groupby('element_id')
-        vals = grouped.aggregate(func)
+        vals = grouped.agg(func, *args, **kwargs)
         
         # create a nan array that we will fill with the results of the sum
         # this should be the size of the number of elements, even if there are
