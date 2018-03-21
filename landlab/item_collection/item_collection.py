@@ -59,25 +59,29 @@ class ItemCollection(object):
         >>> grid = RasterModelGrid(3,3)
         >>> element_id = [0, 0, 1, 1, 2, 3, 5]
         >>> volume = [1, 2, 3, 4, 5, 6, 7]
-        >>> age = [10, 11, 12, 13, 14, 15, 16]  
+        >>> age = [10, 11, 12, 13, 14, 15, 16] 
+        >>> rock = ['sand', 'sand', 'silt', 'sand', 'silt', 'clay', 'clay'] 
         >>> data = {'age': age,
-        ...         'volume': volume}
+        ...         'volume': volume,
+        ...         'rock': rock}
         >>> ic = ItemCollection(grid, 
         ...                     data = data, 
         ...                     grid_element ='node', 
         ...                     element_id = element_id)
         
-        The ItemCollectionData is stored in a pandas DataFrame
+        The ItemCollectionData is stored in a Pandas DataFrame. Pandas
+        Dataframes can store all different types of variables (e.g. float, int,
+        string).
         
         >>> print(ic.DataFrame)
-          grid_element  element_id  age  volume
-        0         node           0   10       1
-        1         node           0   11       2
-        2         node           1   12       3
-        3         node           1   13       4
-        4         node           2   14       5
-        5         node           3   15       6
-        6         node           5   16       7
+          grid_element  element_id  age  rock  volume
+        0         node           0   10  sand       1
+        1         node           0   11  sand       2
+        2         node           1   12  silt       3
+        3         node           1   13  sand       4
+        4         node           2   14  silt       5
+        5         node           3   15  clay       6
+        6         node           5   16  clay       7
         
         The column on the left is the item id (or Pandas Index), grid_element
         and element_id area always the first two variables in the dataframe, 
