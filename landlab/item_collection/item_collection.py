@@ -278,6 +278,10 @@ class ItemCollection(object):
                     raise ValueError(('An item residing at ' + at + ' has '
                                       'an element id below zero. This is not '
                                       'permitted.'))
+        dtype = self.DataFrame['element_id'].dtype
+        if dtype != int:
+            raise ValueError(('You have passed a non integer element id. to '
+                             'ItemCollection, this is not permitted.'))
                         
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check that grid_element and element_id are the right size."""
