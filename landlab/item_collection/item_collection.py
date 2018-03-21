@@ -8,7 +8,6 @@ from six import string_types
 from pandas import DataFrame
 
 from landlab.field import GroupError
-from landlab import BAD_INDEX_VALUE
 
 _LOCATIONS = {'node': 'number_of_nodes',
               'patch': 'number_of_patches',
@@ -276,12 +275,9 @@ class ItemCollection(object):
                                       'part of the grid.'))
                 less_than_zero = selected_elements < 0
                 if any(less_than_zero):
-                    bad_inds = selected_elements[less_than_zero] == BAD_INDEX_VALUE
-                    if sum(bad_inds) != sum(less_than_zero):
-                        raise ValueError(('An item residing at ' + at + ' has '
-                                          'an element id below zero that is '
-                                          'not BAD_INDEX_VALUE. This is not '
-                                          'permitted.'))
+                    raise ValueError(('An item residing at ' + at + ' has '
+                                      'an element id below zero. This is not '
+                                      'permitted.'))
                         
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check that grid_element and element_id are the right size."""
@@ -470,4 +466,3 @@ class ItemCollection(object):
         out[vals.index] = vals[var]
 
         return out
-    
