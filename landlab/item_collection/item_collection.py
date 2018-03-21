@@ -17,6 +17,7 @@ _LOCATIONS = {'node': 'number_of_nodes',
               'face': 'number_of_faces',
               'cell': 'number_of_cells'}
 
+_FILL_VALUE = np.nan
 
 class ItemCollection(object):
     """
@@ -262,7 +263,7 @@ class ItemCollection(object):
                                   (self.DataFrame['element_id'] == element_id)]
         return vals
         
-    def calc_aggregate_value(self, func, var, at='node'):
+    def calc_aggregate_value(self, func, var, at='node', fill_value=_FILL_VALUE):
         """Apply a function to a variable aggregated at grid elements.
 
         Parameters
@@ -273,7 +274,10 @@ class ItemCollection(object):
             Column name of variable to sum
         at : str, optional
             Name of grid element at which to sum. Default is "node".
-
+        fill_value : str, float, int, optional
+            Value to use for grid element locations where no items are located.
+            Default is np.nan. 
+            
         Returns
         -------
         out : ndarray
