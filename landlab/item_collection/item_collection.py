@@ -143,7 +143,7 @@ class ItemCollection(object):
         6    16
         Name: age, dtype: int64
         >>> type(val)
-        pandas.core.series.Series
+        <class 'pandas.core.series.Series'>
         
         Note here that a Pandas object has been returned instead of a numpy 
         array. It has information about the variable and the item id. To get 
