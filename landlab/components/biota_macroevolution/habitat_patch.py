@@ -4,10 +4,10 @@
 from copy import deepcopy
 from landlab.components.biota_macroevolution import (BiotaEvolverObject,
                                                      HabitatPatchVector)
+from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 import numpy as np
 from random import random
 from uuid import uuid4
-from watershed import get_watershed_masks_with_area_threshold
 
 
 class HabitatPatch(BiotaEvolverObject):
