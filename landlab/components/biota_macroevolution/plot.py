@@ -168,9 +168,9 @@ def plot_tree(tree, axes=None, x_multiplier=0.001, x_axis_title='Time (ky)'):
                 sorted_species = np.array(unsort_species)[[sorted_indices]]
 
                 for species in sorted_species:
-                    existed_this_time = time in species.record.keys()
-                    existed_prior_time = earlier_time in species.record.keys()
-                    existed_later_time = later_time in species.record.keys()
+                    existed_this_time = time in species.record.times
+                    existed_prior_time = earlier_time in species.record.times
+                    existed_later_time = later_time in species.record.times
                     no_parent = species.parent_species == -1
 
                     if existed_this_time:
@@ -188,7 +188,7 @@ def plot_tree(tree, axes=None, x_multiplier=0.001, x_axis_title='Time (ky)'):
 
                         species_position[species] = y_next
 
-                        if time == min(species.record.keys()):
+                        if time == min(species.record.times):
                             y_clade_species.append(y_next)
                             y_time_clade_species.append(y_next)
 

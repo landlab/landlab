@@ -87,3 +87,7 @@ class Species(BiotaEvolverObject):
 #        surviving_species = list(extant_species[survival_results])
 
         return list(extant_species)
+
+    @property
+    def clade(self):
+        return self._identifier[0]

@@ -17,24 +17,22 @@ class HabitatPatch(BiotaEvolverObject):
     initialization.
     """
 
-    def __init__(self, time, mask):
+    def __init__(self, mask):
         """
         Parameters
         ----------
-        time : float
-            The initial time of the habitat patch.
         mask : boolean ndarray
-            The initial grid nodes of the habitat patch. True elements of this
-            array correspond to the nodes of the habitat patch at `time`.
+            The initial mask of the habitat patch. True elements of this
+            array correspond to the nodes of the habitat patch.
         """
         BiotaEvolverObject.__init__(self)
-        self.at_time = {time: mask}
+        self.mask = mask
         self._identifier = uuid4()
         self.species = []
         self.plot_color = (random(), random(), random(), 1)
 
     @classmethod
-    def _get_habitat_patch_vectors(cls, prior_patches, new_patches, time,
+    def _get_habitat_patch_vectors(cls, prior_patches, new_patches, time, grid,
                                    **kwargs):
         """Identify habitat patch connectivity across two timesteps.
 
@@ -67,21 +65,23 @@ class HabitatPatch(BiotaEvolverObject):
             The habitat patches of the current timestep.
         time : float
             The current simulation time.
+        grid : ModelGrid
+            A Landlab ModelGrid.
 
         Returns
         -------
         vectors : BiotaEvolver HabitatPatchVector list
             A list of BiotaEvolver HabitatPatchVector objects with attributes
             that link habitat patches over time.
+        be_record_supplement : dictionary
+            The items of this dictionary will become items in the BiotaEvolver
+            record for this time.
         """
         vectors = []
 
-        # Create lists of masks for prior (p) and new (n) habitat patches.
-        p_nodes = (p.mask_at_most_recent_time for p in prior_patches)
-        n_nodes = (n.mask_at_most_recent_time for n in new_patches)
-
-        ps = np.vstack(p_nodes)
-        ns = np.vstack(n_nodes)
+        # Stack the masks for prior (p) and new (n) habitat patches.
+        ps = np.vstack((p.mask for p in prior_patches))
+        ns = np.vstack((n.mask for n in new_patches))
 
         # Keep track of new patches replaced by prior patches. Patch in the
         # dictionary key will be replaced by their values after the prior
@@ -92,10 +92,15 @@ class HabitatPatch(BiotaEvolverObject):
         # the prior patches.
         new_overlap_not_found = deepcopy(new_patches)
 
+        # The cumulation of captured grid area for habitat patched is retained
+        # in order to add it to be_record_supplement after all patches are
+        # processed.
+        cum_area_captured = 0
+        cell_area = grid.dx * grid.dy
+
         for p in prior_patches:
             # Get the new patches that overlap the prior patch.
-            p_nodes = p.mask_at_most_recent_time
-            p_in_ns = np.all([p_nodes == ns, ns], 0)
+            p_in_ns = np.all([p.mask == ns, ns], 0)
             n_indices = np.argwhere(p_in_ns)
             n_indices = np.unique(n_indices[:, 0])
             n_overlaps_p = [new_patches[i] for i in n_indices]
@@ -104,7 +109,7 @@ class HabitatPatch(BiotaEvolverObject):
             # Get the prior patch that is overlapped by the new patches.
             if n_overlaps_p_count > 0:
                 n = new_patches[n_indices[0]]
-                n_nodes = n.mask_at_most_recent_time
+                n_nodes = n.mask
                 n_in_ps = np.all([n_nodes == ps, ps], 0)
                 p_indices = np.argwhere(n_in_ps)
                 p_indices = np.unique(p_indices[:, 0])
@@ -129,7 +134,7 @@ class HabitatPatch(BiotaEvolverObject):
             elif v.cardinality == HabitatPatchVector.ONE_TO_ONE:
                 # The prior patch is set as the new patch
                 # because only the one new and the one prior overlap.
-                p.at_time[time] = n.at_time[time]
+                p.mask = n.mask
                 destinations = [p]
 
                 replacements[n] = p
@@ -138,7 +143,7 @@ class HabitatPatch(BiotaEvolverObject):
                 # Set the destinations to the new patches that overlap p.
                 # Although, replace the dominant n with p.
                 dominant_n = p._get_largest_intersection(n_overlaps_p)
-                p.at_time[time] = dominant_n.at_time[time]
+                p.mask = dominant_n.mask
                 n_overlaps_p[n_overlaps_p.index(dominant_n)] = p
                 destinations = n_overlaps_p
 
@@ -148,7 +153,7 @@ class HabitatPatch(BiotaEvolverObject):
                 # Set the destination to the prior patch that intersects n the
                 # most.
                 dominant_p = n._get_largest_intersection(p_overlaps_n)
-                dominant_p.at_time[time] = n.at_time[time]
+                dominant_p.mask = n.mask
                 destinations = [dominant_p]
 
                 replacements[n] = dominant_p
@@ -156,7 +161,7 @@ class HabitatPatch(BiotaEvolverObject):
             elif v.cardinality == HabitatPatchVector.MANY_TO_MANY:
                 # Get the new patch that intersects p the most.
                 dominant_n = p._get_largest_intersection(n_overlaps_p)
-                dominant_n_nodes = dominant_n.at_time[time]
+                dominant_n_nodes = dominant_n.mask
                 dominant_n_in_ps = np.all([dominant_n_nodes == ps, ps], 0)
 
                 # Get the prior patch that intersects the dominant n the most.
@@ -168,11 +173,19 @@ class HabitatPatch(BiotaEvolverObject):
                 # Set the destination to the n that overlaps p. Although, the
                 # p that greatest intersects the dominant n replaces the
                 # dominant n in the destination list.
-                dominant_p.at_time[time] = dominant_n.at_time[time]
+                dominant_p.mask = dominant_n.mask
                 n_overlaps_p[n_overlaps_p.index(dominant_n)] = dominant_p
                 destinations = n_overlaps_p
 
                 replacements[dominant_n] = dominant_p
+
+            # Update the cumulative captured area.
+            if v.cardinality in [HabitatPatchVector.ONE_TO_MANY,
+                                 HabitatPatchVector.MANY_TO_MANY]:
+                for n_i in n_overlaps_p:
+                    captured_nodes = np.all([p.mask, n_i.mask], 0)
+                    number_of_captured_nodes = len(np.where(captured_nodes))
+                    cum_area_captured += number_of_captured_nodes * cell_area
 
             v.origin = p
             v.destinations = destinations
@@ -193,7 +206,9 @@ class HabitatPatch(BiotaEvolverObject):
         if 'vector_filepath' in kwargs:
             cls._write_vector_file(vectors, time, kwargs['vector_filepath'])
 
-        return vectors
+        be_record_supplement = {'sum_of_area_captured': cum_area_captured}
+
+        return vectors, be_record_supplement
 
     @classmethod
     def _write_vector_file(cls, vectors, time, filepath):
@@ -223,17 +238,16 @@ class HabitatPatch(BiotaEvolverObject):
         f.close()
 
     def _get_largest_intersection(self, patches):
-        nodes = self.mask_at_most_recent_time
+        nodes = self.mask
         n_patch_overlap_nodes = []
         for p in patches:
-            p_nodes = p.mask_at_most_recent_time
-            n = len(np.where(np.all([p_nodes, nodes], 0))[0])
+            n = len(np.where(np.all([p.mask, nodes], 0))[0])
             n_patch_overlap_nodes.append(n)
 
         return patches[np.argmax(n_patch_overlap_nodes)]
 
     @staticmethod
-    def get_patches_with_area_threshold(grid, area_threshold, time):
+    def get_patches_with_area_threshold(grid, area_threshold):
 
         grid.at_node['watershed'] = get_watershed_masks_with_area_threshold(
                 grid, area_threshold)
@@ -247,11 +261,6 @@ class HabitatPatch(BiotaEvolverObject):
         for outlet in outlets:
             watershed_mask = grid.at_node['watershed'] == outlet
             patch_mask = np.all([watershed_mask, stream_mask], 0)
-            patches.append(HabitatPatch(time, patch_mask))
+            patches.append(HabitatPatch(patch_mask))
 
         return patches
-
-    @property
-    def mask_at_most_recent_time(self):
-        time = max(self.at_time.keys())
-        return self.at_time[time]
