@@ -55,3 +55,7 @@ def test_bad_grid_element_name():
 def test_grid_element_size():
     """ """
     pass
+
+def test_different_functions():
+    """ """
+    pass
