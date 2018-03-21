@@ -353,6 +353,13 @@ class ItemCollection(object):
                 raise ValueError(('A new column value is being passed to ',
                                   'ItemCollection using add_items. You must '
                                   'use add_variable.'))
+        for colname in old_columns:
+            if colname not in new_columns:
+                raise ValueError(('New items are being added to an '
+                                  'that do not include already existing '
+                                  'variables. You must pass all existing '
+                                  'variables.'))
+        
         # append new data frame, ingoring its current index (which just adds)
         # additional indicies. 
         self.DataFrame = self.DataFrame.append(new_data, ignore_index=True)
