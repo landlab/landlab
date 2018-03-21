@@ -58,10 +58,10 @@ class ItemCollection(object):
         >>> from landlab import RasterModelGrid  
         >>> grid = RasterModelGrid(3,3)
         >>> element_id = [0, 0, 1, 1, 2, 3, 5]
-        >>> particle_volumes = [1, 2, 3, 4, 5, 6, 7]
-        >>> particle_ages = [10, 11, 12, 13, 14, 15, 16]  
-        >>> data = {'particle_ages': particle_ages,
-        ...         'particle_volumes': particle_volumes}
+        >>> particle_volume = [1, 2, 3, 4, 5, 6, 7]
+        >>> particle_age = [10, 11, 12, 13, 14, 15, 16]  
+        >>> data = {'particle_age': particle_age,
+        ...         'particle_volume': particle_volume}
         >>> ic = ItemCollection(grid, 
         ...                     data = data, 
         ...                     grid_element ='node', 
@@ -76,6 +76,39 @@ class ItemCollection(object):
         ...                     data = data, 
         ...                     grid_element = grid_element, 
         ...                     element_id = element_id)
+        
+        To add another variable, do the following:
+        
+        >>> particle_density = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+        >>> ic.add_variable('particle_density', particle_density)
+        
+        To add another item, or set of items, do the following:
+        
+        >>> new_element_id = [5, 8, 8]
+        >>> new_particle_volume = [1, 5, 9]
+        >>> new_particle_age = [13, 14, 15]  
+        >>> new_particle_density = [0.4, 0.5, 0.7]
+        >>> data = {'particle_age': new_particle_age,
+        ...         'particle_volume': new_particle_volume,
+        ...         'particle_density': new_particle_density}
+        >>> ic.add_items(data = data, 
+        ...              grid_element = 'node', 
+        ...              element_id = new_element_id)
+        
+        To get the value of an item, do the following:
+        
+        >>> val = ic.get_value(item_id = 0, variable = 'particle_age') 
+        >>> print(val)
+        10
+            
+        To change the value of an item, do the following:
+        
+        >>> ic.set_value(item_id = 0, variable = 'particle_age', value = 20.)
+        
+        To get all items that are at a particular grid element, do the 
+        following:
+            
+        >>> items = ic.get_items_on_grid_element(at='node', element_id=1)
         
         """
         # save a reference to the grid
@@ -96,7 +129,6 @@ class ItemCollection(object):
         
         grid_element = self._check_grid_element_and_id(grid_element, element_id)
         
-
         # add grid element and element ID to data frame
         data['grid_element'] = grid_element
         data['element_id'] = element_id
@@ -189,7 +221,7 @@ class ItemCollection(object):
             raise ValueError(('Variable name passed to add_variable must be of '
                               'type string.'))
             
-    def add_items(self, data, grid_element, element_id):
+    def add_items(self, data=None, grid_element=None, element_id=None):
         """Add new items to the ItemCollection"""
         
         self._check_sizes(data)
@@ -202,16 +234,41 @@ class ItemCollection(object):
 
         new_data = DataFrame(data)
         
-        self.DataFrame = self.DataFrame.append(new_data)
+        old_columns = self.DataFrame.columns.values
+        new_columns = new_data.columns.values
+        
+        for colname in new_columns:
+            if colname not in old_columns:
+                raise ValueError(('A new column value is being passed to ',
+                                  'ItemCollection using add_items. You must '
+                                  'use add_variable.'))
+        
+        self.DataFrame = self.DataFrame.append(new_data, ignore_index=True)
         
         # check that element IDs do not exceed number of elements on this grid
         self._check_element_id_values()
 
-    def calc_aggregate_sum(self, var, at='node'):
-        """Sum of variable at grid elements.
+    def get_value(self, item_id=None, variable=None):
+        """Get the value of an item."""
+        return self.DataFrame.loc[item_id, variable]
+        
+    def set_value(self, item_id=None, variable=None, value=None):
+        """Set the value of an item."""
+        self.DataFrame.loc[item_id, variable] = value
+        
+    def get_items_on_grid_element(self, at=None, element_id = 0):
+        """Get all items on a grid element with a particular element_id."""
+        vals = self.DataFrame.loc[(self.DataFrame['grid_element'] == at) & 
+                                  (self.DataFrame['element_id'] == element_id)]
+        return vals
+        
+    def calc_aggregate_value(self, func, var, at='node'):
+        """Apply a function to a variable aggregated at grid elements.
 
         Parameters
         ----------
+        func : function
+            Function to apply to aggregated 
         var : str
             Column name of variable to sum
         at : str, optional
@@ -240,16 +297,16 @@ class ItemCollection(object):
         ...                     data = data, 
         ...                     grid_element ='node', 
         ...                     element_id = element_id)
-        >>> s = ic.calc_aggregate_sum('particle_ages')
+        >>> s = ic.calc_aggregate_value(np.sum, 'particle_ages')
         >>> print(s)
         [ 21.  25.  14.  15.  nan  16.  nan  nan  nan]
         >>> len(s) == grid.number_of_nodes
         True
-        
         """
         # select those items located on the correct type of element,
         # group by element_id and sum.
-        vals = self.DataFrame.loc[self.DataFrame['grid_element'] == at].groupby('element_id').sum()
+        grouped = self.DataFrame.loc[self.DataFrame['grid_element'] == at].groupby('element_id')
+        vals = grouped.aggregate(func)
         
         # create a nan array that we will fill with the results of the sum
         # this should be the size of the number of elements, even if there are
