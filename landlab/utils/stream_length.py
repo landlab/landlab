@@ -58,14 +58,14 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
         flow_link_lengths = grid.length_of_link[grid.at_node['flow__link_to_receiver_node']]
 
     # create an array that representes the outlet lengths.
-    stream__length = np.ones(grid.nodes.size)
+    stream__length = np.zeros(grid.nodes.size)
 
     # iterate through the flow__upstream_node_order, this will already have
     # identified the locations of the outlet nodes and have
     for node in flow__upstream_node_order:
 
         # if not an outlet
-        if flow__receiver_node[node] is not node:
+        if flow__receiver_node[node] != node:
 
             # get the stream length of the downstream node
             downstream_stream_length = stream__length[flow__receiver_node[node]]
