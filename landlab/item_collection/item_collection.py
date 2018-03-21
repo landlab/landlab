@@ -59,57 +59,155 @@ class ItemCollection(object):
         >>> from landlab import RasterModelGrid  
         >>> grid = RasterModelGrid(3,3)
         >>> element_id = [0, 0, 1, 1, 2, 3, 5]
-        >>> particle_volume = [1, 2, 3, 4, 5, 6, 7]
-        >>> particle_age = [10, 11, 12, 13, 14, 15, 16]  
-        >>> data = {'particle_age': particle_age,
-        ...         'particle_volume': particle_volume}
+        >>> volume = [1, 2, 3, 4, 5, 6, 7]
+        >>> age = [10, 11, 12, 13, 14, 15, 16]  
+        >>> data = {'age': age,
+        ...         'volume': volume}
         >>> ic = ItemCollection(grid, 
         ...                     data = data, 
         ...                     grid_element ='node', 
         ...                     element_id = element_id)
         
+        The ItemCollectionData is stored in a pandas DataFrame
+        
+        >>> print(ic.DataFrame)
+          grid_element  element_id  age  volume
+        0         node           0   10       1
+        1         node           0   11       2
+        2         node           1   12       3
+        3         node           1   13       4
+        4         node           2   14       5
+        5         node           3   15       6
+        6         node           5   16       7
+        
+        The column on the left is the item id (or Pandas Index), grid_element
+        and element_id area always the first two variables in the dataframe, 
+        and the remaining variables are provided in the order given by 
+        `np.sort`. 
         
         Grid element can be any of the valid grid elements for the grid type
         provided.
         
+        >>> data = {'age': age,
+        ...         'volume': volume}
         >>> grid_element = ['node', 'link', 'node', 'link', 'node', 'link', 'node']
         >>> ic = ItemCollection(grid, 
         ...                     data = data, 
         ...                     grid_element = grid_element, 
         ...                     element_id = element_id)
         
-        To add another variable, do the following:
+        To add another variable, use the `add_variable` function. 
         
-        >>> particle_density = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-        >>> ic.add_variable('particle_density', particle_density)
+        >>> density = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+        >>> ic.add_variable('density', density)
         
-        To add another item, or set of items, do the following:
+        To add one or more additional items, or set of items, use the 
+        `add_items` function. 
         
         >>> new_element_id = [5, 8, 8]
-        >>> new_particle_volume = [1, 5, 9]
-        >>> new_particle_age = [13, 14, 15]  
-        >>> new_particle_density = [0.4, 0.5, 0.7]
-        >>> data = {'particle_age': new_particle_age,
-        ...         'particle_volume': new_particle_volume,
-        ...         'particle_density': new_particle_density}
+        >>> new_volume = [1, 5, 9]
+        >>> new_age = [13, 14, 15]  
+        >>> new_density = [0.4, 0.5, 0.7]
+        >>> data = {'age': new_age,
+        ...         'volume': new_volume,
+        ...         'density': new_density}
         >>> ic.add_items(data = data, 
         ...              grid_element = 'node', 
         ...              element_id = new_element_id)
+        >>> print(ic.DataFrame)
+          grid_element  element_id  age  density  volume
+        0         node           0   10      0.1       1
+        1         link           0   11      0.2       2
+        2         node           1   12      0.3       3
+        3         link           1   13      0.4       4
+        4         node           2   14      0.5       5
+        5         link           3   15      0.6       6
+        6         node           5   16      0.7       7
+        7         node           5   13      0.4       1
+        8         node           8   14      0.5       5
+        9         node           8   15      0.7       9
+
+        To get the value of an item, use the `get_value` function. If you 
+        request one item, a single value is returned. 
         
-        To get the value of an item, do the following:
-        
-        >>> val = ic.get_value(item_id = 0, variable = 'particle_age') 
+        >>> val = ic.get_value(item_id = 0, variable = 'age') 
         >>> print(val)
         10
+        
+        You can also request multiple items. You can get multiple items for the
+        same variable.
+        
+        >>> val = ic.get_value(item_id=[0,6], variable='age')
+        >>> print(val)
+        0    10
+        6    16
+        Name: age, dtype: int64
+        >>> type(val)
+        pandas.core.series.Series
+        
+        Note here that a Pandas object has been returned instead of a numpy 
+        array. It has information about the variable and the item id. To get 
+        the values only, do the following:
             
-        To change the value of an item, do the following:
+        >>> val.values
+        array([10, 16])
         
-        >>> ic.set_value(item_id = 0, variable = 'particle_age', value = 20.)
+        You can also get multiple variables for the same item.
         
-        To get all items that are at a particular grid element, do the 
-        following:
+        >>> val = ic.get_value(item_id = 0, variable = ['age', 'volume'])
+        >>> print(val)
+        age       10
+        volume     1
+        Name: 0, dtype: object
+        
+        Finally, a combination of is also possible. For example if we wanted 
+        the age and volume of of items 3 and 5, we would use:
+            
+        >>> val = ic.get_value(item_id = [3, 5], variable = ['age', 'volume'])
+        >>> print(val)
+           age  volume
+        3   13       4
+        5   15       6 
+    
+        Note here that you are getting both the age and volume of both items
+        3 and 5. They will be returned in the order specified with the keyword
+        arguments to`get_value`. 
+        
+        To change the value of an item, use the `set_value` function.
+        
+        >>> ic.set_value(item_id = 0, variable = 'age', value = 20.)
+        >>> print(ic.DataFrame)
+          grid_element  element_id   age  density  volume
+        0         node           0  20.0      0.1       1
+        1         link           0  11.0      0.2       2
+        2         node           1  12.0      0.3       3
+        3         link           1  13.0      0.4       4
+        4         node           2  14.0      0.5       5
+        5         link           3  15.0      0.6       6
+        6         node           5  16.0      0.7       7
+        7         node           5  13.0      0.4       1
+        8         node           8  14.0      0.5       5
+        9         node           8  15.0      0.7       9
+        
+        To get all items that are at a particular grid element, use the 
+        `get_items_on_grid_element` function. 
             
         >>> items = ic.get_items_on_grid_element(at='node', element_id=1)
+        >>> print(items)
+          grid_element  element_id   age  density  volume
+        2         node           1  12.0      0.3       3
+        
+        You can calculate aggregated summary statistics using the 
+        `calc_aggregate_value` function. 
+        
+        >>> s = ic.calc_aggregate_value(np.sum, 'age', at='node')
+        >>> print(s)
+        [ 20.  12.  14.  nan  nan  29.  nan  nan  29.]
+        
+        Here the function passed can be any function that returns a single 
+        value. If aggregated at node, the result will be a numpy array with
+        size `grid.number_of_nodes`. Nodes that have no items at them will have
+        a detault fill value of `np.nan`
         
         """
         # save a reference to the grid
@@ -130,6 +228,9 @@ class ItemCollection(object):
         
         grid_element = self._check_grid_element_and_id(grid_element, element_id)
         
+        # data column names = 
+        self.variable_names = list(np.sort(list(data.keys())))
+        
         # add grid element and element ID to data frame
         data['grid_element'] = grid_element
         data['element_id'] = element_id
@@ -137,6 +238,10 @@ class ItemCollection(object):
         # initialized the PD dataframe now that we've done checks
         self.DataFrame = DataFrame(data)
 
+        # order DataFrame
+        self._column_order = ['grid_element', 'element_id'] + self.variable_names
+        self.DataFrame = self.DataFrame[self._column_order]
+        
         # check that element IDs do not exceed number of elements on this grid
         self._check_element_id_values()
     
@@ -221,6 +326,11 @@ class ItemCollection(object):
         else:
             raise ValueError(('Variable name passed to add_variable must be of '
                               'type string.'))
+        
+        # reassign variable names and re-order dataframe
+        self.variable_names = list(np.sort(list(self.DataFrame)[2:]))
+        self._column_order = ['grid_element', 'element_id'] + self.variable_names
+        self.DataFrame = self.DataFrame[self._column_order]
             
     def add_items(self, data=None, grid_element=None, element_id=None):
         """Add new items to the ItemCollection"""
@@ -243,15 +353,34 @@ class ItemCollection(object):
                 raise ValueError(('A new column value is being passed to ',
                                   'ItemCollection using add_items. You must '
                                   'use add_variable.'))
-        
+        # append new data frame, ingoring its current index (which just adds)
+        # additional indicies. 
         self.DataFrame = self.DataFrame.append(new_data, ignore_index=True)
+        
+        # enforce column order
+        self.DataFrame = self.DataFrame[self._column_order]
         
         # check that element IDs do not exceed number of elements on this grid
         self._check_element_id_values()
 
     def get_value(self, item_id=None, variable=None):
         """Get the value of an item."""
-        return self.DataFrame.loc[item_id, variable]
+        # if either are provided as str/int, convert to list
+        if isinstance(item_id, int):
+            item_id = list([item_id])
+        if isinstance(variable, string_types):
+            variable = list([variable])
+        # calculate the number returned
+        number_returned = len(item_id) * len(variable)
+        # return based on number returned. 
+        if number_returned == 1:
+            return self.DataFrame.loc[item_id[0], variable[0]]
+        elif len(item_id) == 1:
+            return self.DataFrame.loc[item_id[0], variable]
+        elif len(variable) == 1:
+            return self.DataFrame.loc[item_id, variable[0]]
+        else:        
+            return self.DataFrame.loc[item_id, variable]
         
     def set_value(self, item_id=None, variable=None, value=None):
         """Set the value of an item."""
@@ -292,16 +421,16 @@ class ItemCollection(object):
         >>> from landlab import RasterModelGrid  
         >>> grid = RasterModelGrid(3,3)
         >>> element_id = [0, 0, 1, 1, 2, 3, 5]
-        >>> particle_volumes = [1, 2, 3, 4, 5, 6, 7]
-        >>> particle_ages = [10, 11, 12, 13, 14, 15, 16]  
+        >>> volumes = [1, 2, 3, 4, 5, 6, 7]
+        >>> ages = [10, 11, 12, 13, 14, 15, 16]  
         >>> grid_element = 'node'
-        >>> data = {'particle_ages': particle_ages,
-        ...         'particle_volumes':particle_volumes}
+        >>> data = {'ages': ages,
+        ...         'volumes':volumes}
         >>> ic = ItemCollection(grid, 
         ...                     data = data, 
         ...                     grid_element ='node', 
         ...                     element_id = element_id)
-        >>> s = ic.calc_aggregate_value(np.sum, 'particle_ages')
+        >>> s = ic.calc_aggregate_value(np.sum, 'ages')
         >>> print(s)
         [ 21.  25.  14.  15.  nan  16.  nan  nan  nan]
         >>> len(s) == grid.number_of_nodes
@@ -315,7 +444,7 @@ class ItemCollection(object):
         # create a nan array that we will fill with the results of the sum
         # this should be the size of the number of elements, even if there are
         # no items living at some grid elements.
-        out = np.nan * np.ones(self._grid[at].size)
+        out = fill_value * np.ones(self._grid[at].size)
         
         # put the values of the specified variable in to the correct location
         # of the out array.
