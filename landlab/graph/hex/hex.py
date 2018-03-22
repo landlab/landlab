@@ -139,6 +139,10 @@ class HexGraphExtras(object):
         return self._shape
 
     @property
+    def spacing(self):
+        return self._spacing
+
+    @property
     def orientation(self):
         return self._orientation
 
@@ -261,6 +265,7 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
             raise TypeError('spacing must be a float')
 
         self._shape = tuple(shape)
+        self._spacing = spacing
 
         if node_layout not in ('rect', 'hex', 'rect1'):
             raise ValueError('node_layout not understood')
@@ -287,15 +292,3 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
         VoronoiGraph.__init__(self,
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
             max_node_spacing=max_node_spacing)
-
-    @property
-    def shape(self):
-        return self._shape
-
-    @property
-    def orientation(self):
-        return self._orientation
-
-    @property
-    def node_layout(self):
-        return self._node_layout
