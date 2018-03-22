@@ -48,6 +48,7 @@ class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
             raise TypeError('spacing must be a float')
 
         self._shape = tuple(shape)
+        self._spacing = spacing
 
         if node_layout not in ('rect', 'hex', 'rect1'):
             raise ValueError('node_layout not understood')
