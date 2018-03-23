@@ -35,28 +35,16 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
     Stores as ModelGrid fields:
 
-        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*
-        -  Node array of steepest downhill slopes:
-           *'topographic__steepest_slope'*
-        -  Node array containing ID of link that leads from each node to its
-           receiver, or BAD_INDEX_VALUE if no link:
-           *'flow__link_to_receiver_node'*
-        -  Boolean node array of all local lows: *'flow__sink_flag'*
+    -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+       there is no receiver: *'flow__receiver_node'*
+    -  Node array of steepest downhill slopes:
+       *'topographic__steepest_slope'*
+    -  Node array containing ID of link that leads from each node to its
+       receiver, or BAD_INDEX_VALUE if no link:
+       *'flow__link_to_receiver_node'*
+    -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        FlowDirectorD8(grid, surface='topographic__elevation')
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid of type RasterModelGrid.
-    surface : field name at node or array of length node, optional
-        The surface to direct flow across, default is field at node:
-        topographic__elevation,.
 
     Examples
     --------
@@ -112,7 +100,15 @@ class FlowDirectorD8(_FlowDirectorToOne):
     _name = 'FlowDirectorD8'
 
     def __init__(self, grid, surface='topographic__elevation'):
-        """Initialize FlowDirectorD8."""
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid of type RasterModelGrid.
+        surface : field name at node or array of length node, optional
+            The surface to direct flow across, default is field at node:
+            topographic__elevation,.
+        """
         self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
