@@ -73,7 +73,8 @@ class NormalFault(Component):
                                 'y1': 0,
                                 'x2': 1,
                                 'y2': 1},
-                include_boundaries = False):
+                include_boundaries = False,
+                **kwargs):
         """
         Instantiation of a NormalFault.
 
