@@ -30,7 +30,7 @@ Examples
 --------
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
->>> from landlab.components import DetachmentLtdErosion
+>>> from landlab.components import DepthSlopeProductErosion
 
 Create a grid on which to calculate detachment ltd sediment transport.
 
@@ -227,9 +227,11 @@ class DepthSlopeProductErosion(Component):
         
         self.E[less_than_tc] = 0.0
         
-        self.E[greater_than_tc] = (self.k_e * ((self.tau[greater_than_tc])
-                                ** self.a) - (self.tau_crit ** self.a))
-
+        self.E[greater_than_tc] = (self.k_e * 
+                                 ((self.tau[greater_than_tc] ** self.a) - 
+                                 (self.tau_crit ** self.a)))
+        
+        
         self.E[self.E < 0.0] = 0.0
 
         self.dz = (self.uplift_rate - self.E) * dt

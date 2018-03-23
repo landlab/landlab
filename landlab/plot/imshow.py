@@ -25,11 +25,23 @@ except ImportError:
 from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
+from landlab.plot.event_handler import query_grid_on_button_press
 from landlab.utils.decorators import deprecated
 
 
 def imshow_grid_at_node(grid, values, **kwds):
-    """Prepare a map view of data over all nodes in the grid.
+    """imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
+                           var_units=None, grid_units=None,
+                           symmetric_cbar=False, cmap='pink',
+                           limits=(values.min(), values.max()),
+                           vmin=values.min(), vmax=values.max(),
+                           allow_colorbar=True,
+                           norm=[linear], shrink=1.,
+                           color_for_closed='black',
+                           color_for_background=None,
+                           show_elements=False, output=None)
+
+    Prepare a map view of data over all nodes in the grid.
 
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
@@ -46,20 +58,10 @@ def imshow_grid_at_node(grid, values, **kwds):
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
 
+    Node coordinates are printed when a mouse button is pressed on a cell in
+    the plot.
+
     This function happily works with both regular and irregular grids.
-
-    Construction ::
-
-        imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
-                            var_units=None, grid_units=None,
-                            symmetric_cbar=False, cmap='pink',
-                            limits=(values.min(), values.max()),
-                            vmin=values.min(), vmax=values.max(),
-                            allow_colorbar=True,
-                            norm=[linear], shrink=1.,
-                            color_for_closed='black',
-                            color_for_background=None,
-                            show_elements=False, output=None)
 
     Parameters
     ----------
@@ -134,6 +136,9 @@ def imshow_grid_at_node(grid, values, **kwds):
     if isinstance(values, str):
         plt.title(values)
 
+    plt.gcf().canvas.mpl_connect('button_press_event',
+       lambda event: query_grid_on_button_press(event, grid))
+
 
 @deprecated(use='imshow_grid_at_node', version='0.5')
 def imshow_node_grid(grid, values, **kwds):
@@ -141,23 +146,21 @@ def imshow_node_grid(grid, values, **kwds):
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
-    """Map view of grid data over all grid cells.
+    """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
+                           var_units=None, grid_units=None,
+                           symmetric_cbar=False, cmap='pink',
+                           limits=(values.min(), values.max()),
+                           vmin=values.min(), vmax=values.max(),
+                           allow_colorbar=True, colorbar_label=None,
+                           norm=[linear], shrink=1.,
+                           color_for_closed='black',
+                           color_for_background=None,
+                           show_elements=False, output=None)
+
+    Map view of grid data over all grid cells.
 
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
-
-    Construction ::
-
-        imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
-                            var_units=None, grid_units=None,
-                            symmetric_cbar=False, cmap='pink',
-                            limits=(values.min(), values.max()),
-                            vmin=values.min(), vmax=values.max(),
-                            allow_colorbar=True, colorbar_label=None,
-                            norm=[linear], shrink=1.,
-                            color_for_closed='black',
-                            color_for_background=None,
-                            show_elements=False, output=None)
 
     Parameters
     ----------
@@ -254,7 +257,7 @@ def imshow_cell_grid(grid, values, **kwds):
 def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
                         var_units=None, grid_units=(None, None),
                         symmetric_cbar=False, cmap='pink', limits=None,
-                        colorbar_label = None, 
+                        colorbar_label = None,
                         allow_colorbar=True, vmin=None, vmax=None,
                         norm=None, shrink=1., color_for_closed='black',
                         color_for_background=None, show_elements=False,
@@ -346,6 +349,7 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
         if show_elements:
             myimage = voronoi_plot_2d(grid.vor, show_vertices=False,
                                       show_points=False)
+
         # show_points to be supported in scipy0.18, but harmless for now
         mycolors = (i for i in colorVal)
         for order in grid.vor.point_region:
@@ -410,7 +414,18 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
 
 
 def imshow_grid(grid, values, **kwds):
-    """Prepare a map view of data over all nodes or cells in the grid.
+    """imshow_grid(grid, values, plot_name=None, var_name=None,
+                   var_units=None, grid_units=None,
+                   symmetric_cbar=False, cmap='pink',
+                   limits=(values.min(), values.max()),
+                   vmin=values.min(), vmax=values.max(),
+                   allow_colorbar=True, colorbar_label=None,
+                   norm=[linear], shrink=1.,
+                   color_for_closed='black',
+                   color_for_background=None,
+                   show_elements=False)
+
+    Prepare a map view of data over all nodes or cells in the grid.
 
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
@@ -421,7 +436,7 @@ def imshow_grid(grid, values, **kwds):
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
-    Landlab CLOSED_BOUNDARYs. Used together with the color_at_closed=None
+    Landlab CLOSED_BOUNDARYs. Used together with the color_for_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
@@ -430,19 +445,6 @@ def imshow_grid(grid, values, **kwds):
     :func:`imshow_grid`, as desired.
 
     This function happily works with both regular and irregular grids.
-
-    Construction ::
-
-        imshow_grid(grid, values, plot_name=None, var_name=None,
-                    var_units=None, grid_units=None,
-                    symmetric_cbar=False, cmap='pink',
-                    limits=(values.min(), values.max()),
-                    vmin=values.min(), vmax=values.max(),
-                    allow_colorbar=True, colorbar_label=None,
-                    norm=[linear], shrink=1.,
-                    color_for_closed='black',
-                    color_for_background=None,
-                    show_elements=False)
 
     Parameters
     ----------
