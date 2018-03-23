@@ -337,10 +337,6 @@ def strip_grid_from_method_docstring(funcs):
     dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
         A dummy function to demonstrate automated docstring changes.
     <BLANKLINE>
-        Construction::
-    <BLANKLINE>
-            dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
-    <BLANKLINE>
         Parameters
         ----------
         grid : ModelGrid
