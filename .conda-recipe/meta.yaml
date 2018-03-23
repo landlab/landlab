@@ -1,45 +1,41 @@
+{% set name = "landlab" %}
+{% set data = load_setup_py_data() %}
+
 package:
-  name: landlab
-  version: "1.0.2"
+  name: {{ name }}
+  version: {{ data.get('version') }}
 
 source:
   path: ..
 
 requirements:
   build:
-    - python
-    - libgcc # [linux and py27 and np == '19']
-    - scipy
-    - numpy x.x
-    - xarray
-    - nose
-    - matplotlib
-    - numpydoc
-    - netcdf4
-    - cython
-    - six
-    - pyyaml
+    - {{ compiler("c") }}
     - setuptools
-    - statsmodels
-    - jpeg <=8 # [osx and np==111]
+    - python
+    - cython
+    - numpy 1.11.*
 
   run:
     - python
-    - libgcc # [linux and py27 and np == '19']
+    - cython
+    - numpy >=1.11,<1.14
     - scipy
-    - numpy x.x
     - xarray
     - nose
     - matplotlib
     - numpydoc
     - netcdf4
-    - cython
     - six
     - pyyaml
-    - setuptools
-    - xarray
     - statsmodels
-    - jpeg <=8 # [osx and np==111]
+
+test:
+  requires:
+    - landlab
+    - numpy <1.14
 
 build:
+  number: 0
   string: {{ environ.get('BUILD_STR', '') }}
+  script: python setup.py install --single-version-externally-managed --record record.txt

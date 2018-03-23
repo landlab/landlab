@@ -108,38 +108,26 @@ class OverlandFlow(Component):
     "overland_flow_input.txt' and is contained in the
     landlab.components.overland_flow folder.
 
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab grid.
-    h_init : float, optional
-        Thicknes of initial thin layer of water to prevent divide by zero
-        errors (m).
-    alpha : float, optional
-        Time step coeffcient, described in Bates et al., 2010 and
-        de Almeida et al., 2012.
-    mannings_n : float, optional
-        Manning's roughness coefficient.
-    g : float, optional
-        Acceleration due to gravity (m/s^2).
-    theta : float, optional
-        Weighting factor from de Almeida et al., 2012.
-    rainfall_intensity : float, optional
-        Rainfall intensity.
-
-
-
     The primary method of this class is :func:`run_one_step`.
+    """
 
-
-    Construction::
-
-        OverlandFlow(grid, default_fixed_links=False, h_init=0.00001,
-                 alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
-                 rainfall_intensity=0.0, steep_slopes=False, **kwds)
-
-"""
     _name = 'OverlandFlow'
+
+    _cite_as = """@article{adams2017landlab,
+	title={The Landlab v1. 0 OverlandFlow component: a Python
+            tool for computing shallow-water flow across watersheds},
+        author={Adams, Jordan M and Gasparini, Nicole M and
+            Hobley, Daniel EJ and Tucker, Gregory E and
+            Hutton, Eric WH and Nudurupati, Sai S and
+            Istanbulluoglu, Erkan},
+        journal={Geoscientific Model Development},
+        volume={10},
+        number={4},
+        pages={1645},
+        year={2017},
+        publisher={Copernicus GmbH}
+        }
+    """
 
     _input_var_names = (
         'surface_water__depth',
@@ -177,7 +165,7 @@ class OverlandFlow(Component):
     def __init__(self, grid, default_fixed_links=False, h_init=0.00001,
                  alpha=0.7, mannings_n=0.03, g=9.81, theta=0.8,
                  rainfall_intensity=0.0, steep_slopes=False, **kwds):
-        """Create a overland flow component.
+        """Create an overland flow component.
 
         Parameters
         ----------
@@ -690,7 +678,7 @@ class OverlandFlow(Component):
 
         discharge_vals = discharge_vals.reshape(self.grid.number_of_nodes, 4)
 
-        discharge_vals = discharge_vals.sum(axis=1.0)
+        discharge_vals = discharge_vals.sum(axis=1)
 
         return discharge_vals
 
@@ -735,7 +723,7 @@ def find_active_neighbors_for_fixed_links(grid):
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 1,
            2, 0, 0, 0, 1,
-           2, 1, 1, 1, 1], dtype=int8)
+           2, 1, 1, 1, 1], dtype=uint8)
 
     >>> grid.fixed_links
     array([ 5,  6,  7,  9, 18])

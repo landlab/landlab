@@ -17,6 +17,7 @@ import warnings
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
+from landlab.core.messages import warning_message
 
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.components.flow_accum import flow_accum_to_n
@@ -132,8 +133,10 @@ class FlowAccumulator(Component):
          uninstantiated DepressionFinder class, or an instance of a
          DepressionFinder class.
          This sets the method for depression finding.
-    **kwargs : any additional parameters to pass to a FlowDirector instance
-        (e.g., partion_method for FlowDirectorMFD)
+    **kwargs : any additional parameters to pass to a FlowDirector or
+         DepressionFinderAndRouter instance (e.g., partion_method for
+         FlowDirectorMFD). This will have no effect if an instantiated component
+         is passed using the flow_director or depression_finder keywords.
 
     Examples
     --------
@@ -473,7 +476,7 @@ class FlowAccumulator(Component):
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                        flow_director=FlowDirectorSteepest,
+    ...                        flow_director='FlowDirectorD8',
     ...                        depression_finder=DepressionFinderAndRouter)
     >>> fa.run_one_step()
 
@@ -482,19 +485,19 @@ class FlowAccumulator(Component):
 
     >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
-           [ 7,  7, 16, 17, 18, 11, 13],
+           [ 7,  7, 16, 17, 18, 18, 13],
            [14, 14,  8, 16, 17, 18, 20],
            [21, 21, 16, 16, 24, 25, 27],
            [28, 28, 23, 24, 24, 32, 34],
-           [35, 35, 30, 31, 32, 39, 41],
+           [35, 35, 30, 31, 32, 32, 41],
            [42, 43, 44, 45, 46, 47, 48]])
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 5.25,  5.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
+           [ 5.25,  5.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.75,  2.25,  0.5 ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
+           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
 
     The depression finder is stored as part of the flow accumulator, so its
@@ -522,6 +525,18 @@ class FlowAccumulator(Component):
     array([8])
     >>> fa.depression_finder.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
+
+    Finally, note that the DepressionFinderAndRouter takes a keyword argument
+    *routing* ('D8', default; 'D4') that sets how connectivity is set between
+    nodes. Similar to our ability to pass keyword arguments to the FlowDirector
+    through FlowAccumulator, we can pass this keyword argument to the
+    DepressionFinderAndRouter component.
+
+    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
+    ...                      flow_director=FlowDirectorSteepest,
+    ...                      depression_finder=DepressionFinderAndRouter,
+    ...                      routing='D4')
+
     """
 
     _name = 'FlowAccumulator'
@@ -707,9 +722,9 @@ class FlowAccumulator(Component):
         # a field at node, a single float or int, or an array of size number of
         # nodes.
         if runoff_rate is not None:
-            if type(runoff_rate) is str:
+            if isinstance(runoff_rate, str):
                 runoff_rate = grid.at_node[runoff_rate]
-            elif type(runoff_rate) in (float, int):
+            elif isinstance(runoff_rate, (float, int)):
                 pass
             else:
                 assert runoff_rate.size == grid.number_of_nodes
@@ -723,7 +738,7 @@ class FlowAccumulator(Component):
                 # should be set to one everywhere.
                 grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
-                if type(runoff_rate) in (float, int):
+                if isinstance(runoff_rate, (float, int)):
                     grid.add_empty('node', 'water__unit_flux_in', dtype=float)
                     grid.at_node['water__unit_flux_in'].fill(runoff_rate)
                 else:
@@ -734,7 +749,7 @@ class FlowAccumulator(Component):
                        "'water__unit_flux_in' and a provided float or " +
                        "array for the runoff_rate argument. THE FIELD IS " +
                        "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                if type(runoff_rate) in (float, int):
+                if isinstance(runoff_rate, (float, int)):
                     grid.at_node['water__unit_flux_in'].fill(runoff_rate)
                 else:
                     grid.at_node['water__unit_flux_in'] = runoff_rate
@@ -766,16 +781,11 @@ class FlowAccumulator(Component):
         except:
             component_name = None
 
-        if (flow_director == 'MFD') or (flow_director == 'FlowDirectorMFD') or \
-           (component_name == 'FlowDirectorMFD'):
-
-            potential_kwargs = ['partition_method', 'diagonals']
-            kw = {}
-            for p_k in potential_kwargs:
-                if p_k in self.kwargs.keys():
-                    kw[p_k] = self.kwargs.pop(p_k)
-        else:
-            kw = {}
+        potential_kwargs = ['partition_method', 'diagonals']
+        kw = {}
+        for p_k in potential_kwargs:
+            if p_k in self.kwargs.keys():
+                kw[p_k] = self.kwargs.pop(p_k)
 
         # flow director is provided as a string.
         if isinstance(flow_director, six.string_types):
@@ -810,6 +820,12 @@ class FlowAccumulator(Component):
                                  'valid method or component name. The following'
                                  'components are valid imputs:\n'\
                                  + str(PERMITTED_DIRECTORS))
+
+            if len(kw) > 0:
+                raise ValueError('flow_director provided as an instantiated ',
+                                 'component and keyword arguments provided. ',
+                                 'These kwargs would be ignored.')
+
         # flow director is provided as an uninstantiated flow director
         else:
             if flow_director._name in PERMITTED_DIRECTORS:
@@ -824,13 +840,21 @@ class FlowAccumulator(Component):
         # save method as attribute
         self.method = self.flow_director.method
 
-    def _add_depression_finder(self,depression_finder):
+    def _add_depression_finder(self, depression_finder):
         """Test and add the depression finder component."""
         PERMITTED_DEPRESSION_FINDERS = ['DepressionFinderAndRouter']
 
         # now do a similar thing for the depression finder.
         self.depression_finder_provided = depression_finder
         if self.depression_finder_provided is not None:
+
+            # collect potential kwargs to pass to depression_finder
+            # instantiation
+            potential_kwargs = ['routing']
+            kw = {}
+            for p_k in potential_kwargs:
+                if p_k in self.kwargs.keys():
+                    kw[p_k] = self.kwargs.pop(p_k)
 
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
             if self.flow_director._name in ('FlowDirectorMFD',
@@ -839,6 +863,24 @@ class FlowAccumulator(Component):
                                  'to one FlowDirectors such as '
                                  'FlowDirectorSteepest and  FlowDirectorD8. '
                                  'Provide a different FlowDirector.')
+
+            # if D4 is being used here and should be.
+            if ((('routing' not in kw) or (kw['routing'] != 'D4')) and
+                isinstance(self._grid, RasterModelGrid) and
+                (self.flow_director._name in('FlowDirectorSteepest'))):
+
+                message = ('You have specified \n'
+                           'flow_director=FlowDirectorSteepest and\n'
+                           'depression_finder=DepressionFinderAndRouter\n'
+                           'in the instantiation of FlowAccumulator on a '
+                           'RasterModelGrid. The default behavior of '
+                           'DepressionFinderAndRouter is to use D8 connectivity '
+                           'which is in conflict with D4 connectivity used by '
+                           'FlowDirectorSteepest. \n'
+                           "To fix this, provide the kwarg routing='D4', when "
+                           'you instantiate FlowAccumulator.')
+
+                raise ValueError(warning_message(message))
 
             # depression finder is provided as a string.
             if isinstance(self.depression_finder_provided, six.string_types):
@@ -855,7 +897,7 @@ class FlowAccumulator(Component):
                                      'components are valid imputs:\n' \
                                      + str(PERMITTED_DEPRESSION_FINDERS))
 
-                self.depression_finder = DepressionFinder(self._grid)
+                self.depression_finder = DepressionFinder(self._grid, **kw)
             # flow director is provided as an instantiated depression finder
             elif isinstance(self.depression_finder_provided, Component):
 
@@ -866,12 +908,35 @@ class FlowAccumulator(Component):
                                      'is not a valid component. The following '
                                      'components are valid imputs:\n' \
                                      + str(PERMITTED_DEPRESSION_FINDERS))
+
+                if len(kw) > 0:
+                    raise ValueError('flow_director provided as an instantiated ',
+                                     'component and keyword arguments provided. ',
+                                     'These kwargs would be ignored.')
+
+                # if D4 is being used here and should be.
+                if (self.depression_finder._D8 and
+                    (self.flow_director._name in ('FlowDirectorSteepest'))):
+
+                    message = ('You have specified \n'
+                               'flow_director=FlowDirectorSteepest and\n'
+                               'depression_finder=DepressionFinderAndRouter\n'
+                               'in the instantiation of FlowAccumulator on a '
+                               'RasterModelGrid. The behavior of the instantiated '
+                               'DepressionFinderAndRouter is to use D8 connectivity '
+                               'which is in conflict with D4 connectivity used by '
+                               'FlowDirectorSteepest. \n'
+                               "To fix this, provide the kwarg routing='D4', when "
+                               'you instantiate DepressionFinderAndRouter.')
+
+                    raise ValueError(warning_message(message))
+
             # depression_fiuner is provided as an uninstantiated depression finder
             else:
 
                 if self.depression_finder_provided._name in PERMITTED_DEPRESSION_FINDERS:
                     DepressionFinder = self.depression_finder_provided
-                    self.depression_finder = DepressionFinder(self._grid)
+                    self.depression_finder = DepressionFinder(self._grid, **kw)
                 else:
                     raise ValueError('Component provided in depression_finder '
                                      'is not a valid component. The following '
@@ -879,7 +944,6 @@ class FlowAccumulator(Component):
                                      + str(PERMITTED_DEPRESSION_FINDERS))
         else:
             self.depression_finder = None
-
 
     def accumulate_flow(self, update_flow_director=True):
         """
@@ -904,24 +968,24 @@ class FlowAccumulator(Component):
         if self.flow_director.to_n_receivers == 'one':
 
             # step 3. Run depression finder if passed
-            # Depression finder reaccumulates flow at the end of its routine. 
+            # Depression finder reaccumulates flow at the end of its routine.
             if self.depression_finder_provided is not None:
-                
+
                 self.depression_finder.map_depressions()
-                
+
                 a = self._grid['node']['drainage_area']
                 q = self._grid['node']['surface_water__discharge']
-                
-            else:   
+
+            else:
                 # step 2. Get r
                 r = self._grid['node']['flow__receiver_node']
-    
+
                 # step 2. Stack, D, delta construction
                 nd = flow_accum_bw._make_number_of_donors_array(r)
                 delta = flow_accum_bw._make_delta_array(nd)
                 D = flow_accum_bw._make_array_of_donors(r, delta)
                 s = flow_accum_bw.make_ordered_node_array(r)
-    
+
                 # put theese in grid so that depression finder can use it.
                 # store the generated data in the grid
                 self._grid['node']['flow__data_structure_delta'][:] = delta[1:]

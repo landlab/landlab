@@ -6,10 +6,14 @@
 from setuptools import setup, find_packages, Extension
 from setuptools.command.install import install
 from setuptools.command.develop import develop
-
 from distutils.extension import Extension
+import pkg_resources
 
-import sys
+import versioneer
+
+
+numpy_incl = pkg_resources.resource_filename('numpy', 'core/include')
+
 
 ext_modules = [
     Extension('landlab.ca.cfuncs',
@@ -68,11 +72,9 @@ ext_modules = [
               ['landlab/grid/structured_quad/cfuncs.pyx']),
     Extension('landlab.grid.structured_quad.c_faces',
               ['landlab/grid/structured_quad/c_faces.pyx']),
+    Extension('landlab.layers.ext.eventlayers',
+              ['landlab/layers/ext/eventlayers.pyx']),
 ]
-
-import numpy as np
-
-from landlab import __version__
 
 
 def register(**kwds):
@@ -119,7 +121,7 @@ import os
 
 
 setup(name='landlab',
-      version=__version__,
+      version=versioneer.get_version(),
       author='Eric Hutton',
       author_email='eric.hutton@colorado.edu',
       url='https://github.com/landlab',
@@ -151,15 +153,15 @@ setup(name='landlab',
       package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
                          'preciptest.in']},
       test_suite='nose.collector',
-      cmdclass={
+      cmdclass=versioneer.get_cmdclass({
           'install': install_and_register,
           'develop': develop_and_register,
-      },
+      }),
       entry_points={
           'console_scripts': [
               'landlab=landlab.cmd.landlab:main',
           ]
       },
-      include_dirs = [np.get_include()],
+      include_dirs = [numpy_incl, ],
       ext_modules = ext_modules,
      )

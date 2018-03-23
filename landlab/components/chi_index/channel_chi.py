@@ -21,29 +21,6 @@ class ChiFinder(Component):
     This component calculates chi indices, sensu Perron & Royden, 2013,
     for a Landlab landscape.
 
-    Construction::
-
-        ChiFinder(grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                  reference_area=1., use_true_dx=False)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab RasterModelGrid.
-    reference_concavity : float
-        The reference concavity to use in the calculation.
-    min_drainage_area : float (m**2)
-        The drainage area down to which to calculate chi.
-    reference_area : float or None (m**2)
-        If None, will default to the mean core cell area on the grid.
-        Else, provide a value to use. Essentially becomes a prefactor on the
-        value of chi.
-    use_true_dx : bool (default False)
-        If True, integration to give chi is performed using each value of node
-        spacing along the channel (which can lead to a quantization effect,
-        and is not preferred by Taylor & Royden). If False, the mean value of
-        node spacing along the all channels is assumed everywhere.
-
     Examples
     --------
     >>> import numpy as np
@@ -155,7 +132,23 @@ class ChiFinder(Component):
     def __init__(self, grid, reference_concavity=0.5, min_drainage_area=1.e6,
                  reference_area=1., use_true_dx=False, **kwds):
         """
-        Constructor for the component.
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A landlab RasterModelGrid.
+        reference_concavity : float
+            The reference concavity to use in the calculation.
+        min_drainage_area : float (m**2)
+            The drainage area down to which to calculate chi.
+        reference_area : float or None (m**2)
+            If None, will default to the mean core cell area on the grid.
+            Else, provide a value to use. Essentially becomes a prefactor on the
+            value of chi.
+        use_true_dx : bool (default False)
+            If True, integration to give chi is performed using each value of node
+            spacing along the channel (which can lead to a quantization effect,
+            and is not preferred by Taylor & Royden). If False, the mean value of
+            node spacing along the all channels is assumed everywhere.
         """
         self._grid = grid
         self._reftheta = reference_concavity
@@ -354,7 +347,7 @@ class ChiFinder(Component):
         """
         receivers = self.grid.at_node['flow__receiver_node']
         links = self.grid.at_node['flow__link_to_receiver_node']
-        link_lengths = self.grid._length_of_link_with_diagonals
+        link_lengths = self.grid.length_of_d8
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
         half_integrand = 0.5 * chi_integrand_at_nodes
@@ -404,8 +397,7 @@ class ChiFinder(Component):
         """
         ch_links = self.grid.at_node['flow__link_to_receiver_node'][ch_nodes]
         ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
-        valid_link_lengths = self.grid._length_of_link_with_diagonals[
-            ch_links_valid]
+        valid_link_lengths = self.grid.length_of_d8[ch_links_valid]
         return valid_link_lengths.mean()
 
     @property

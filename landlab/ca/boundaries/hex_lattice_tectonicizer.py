@@ -16,12 +16,15 @@ Created on Mon Nov 17 08:01:49 2014
 """
 
 from landlab import HexModelGrid
-from numpy import amax, zeros, arange, array, sqrt
+from landlab.core.utils import as_id_array
+from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
+                   logical_or, tan, cos, pi)
+from ..cfuncs import get_next_event_new
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
 _TAN60 = 1.732
-
+_NEVER = 1.0e50  # this arbitrarily large val is also defined in ..cfuncs.pyx
 
 class HexLatticeTectonicizer(object):
     """Handles tectonics and baselevel for CellLab-CTS models.
@@ -377,7 +380,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # Now, remember the property IDs of the nodes along the right side
             # and possibly top that are about to shift off the grid
             propids_for_incoming_nodes = self.propid[self.outgoing_node]
-            #print 'pid for new base:',propids_for_incoming_nodes
 
         # We go column-by-column, starting from the right side
         for c in range(self.grid.number_of_node_columns - 1,
@@ -426,7 +428,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
     """Handles vertical uplift of interior (not edges) for a hexagonal lattice
     with vertical node orientation and rectangular node arrangement.
     """
-    def __init__(self, grid=None, node_state=None, propid=None, prop_data=None, prop_reset_value=None):
+    def __init__(self, grid=None, node_state=None, propid=None, prop_data=None,
+                 prop_reset_value=None, opt_block_layer=False, block_ID=9,
+                 block_layer_dip_angle=0.0, block_layer_thickness=1.0,
+                 layer_left_x=0.0, y0_top=0.0):
         """
         Create and initialize a LatticeUplifter
 
@@ -459,16 +464,258 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.inner_top_row_nodes = self.inner_base_row_nodes + \
                                        ((self.nr - 1) * self.nc)
 
+        self._setup_links_to_update_after_uplift()
 
-    def uplift_interior_nodes(self, rock_state=1):
+        # Handle option for a layer of "blocks"
+        self.opt_block_layer = opt_block_layer
+        if opt_block_layer:
+            self.cum_uplift = 0.0
+            self.block_ID = block_ID
+            self.block_layer_thickness = block_layer_thickness
+            self.block_layer_dip_angle = block_layer_dip_angle
+            self.layer_left_x = layer_left_x
+            self.y0_top = y0_top
+            
+    def _setup_links_to_update_after_uplift(self):
+        """Create and store array with IDs of links for which to update
+        transitions after uplift.
+        
+        These are: all active boundary links, plus the lowest non-boundary
+        links, including the next-to-lowest vertical links and those angling
+        that are below them.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(6, 6, orientation='vert', shape='rect')
+        >>> lu = LatticeUplifter(grid=hg)
+        >>> lu.links_to_update
+        array([ 8,  9, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 24, 25, 26, 30,
+               34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 72, 73, 74, 75, 76, 77, 79,
+               80])
+        >>> hg = HexModelGrid(5, 5, orientation='vert', shape='rect')
+        >>> lu = LatticeUplifter(grid=hg)
+        >>> lu.links_to_update
+        array([ 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 22, 25, 28, 31, 35, 38, 41,
+               44, 46, 48, 49, 50, 51, 52, 53])
+        """
+        g = self.grid
+        nc = g.number_of_node_columns
+        max_link_id = (3 * (nc - 1) + 2 * ((nc + 1) // 2) + nc // 2
+                       + (nc - 1) // 2)
+        lower_active = logical_and(arange(g.number_of_links) < max_link_id,
+                                   g.status_at_link == 0)
+        boundary = logical_or(g.status_at_node[g.node_at_link_tail] != 0,
+                              g.status_at_node[g.node_at_link_head] != 0)
+        active_bnd = logical_and(boundary, g.status_at_link == 0)
+        self.links_to_update = as_id_array(where(logical_or(lower_active, 
+                                                            active_bnd))[0])
+
+    def _get_new_base_nodes(self, rock_state):
+        """
+        Return an array (or scalar) of states for the newly uplifted bottom
+        inner row.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.hex_cts import HexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {}  # node state dict
+        >>> for i in range(10):
+        ...     nsd[i] = i
+        >>> xnlist = []
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> ca = HexCTS(mg, nsd, xnlist, nsg)
+
+        >>> lu = LatticeUplifter(opt_block_layer=True)
+        >>> lu._get_new_base_nodes(rock_state=7)
+        array([9, 9, 9])
+        >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
+        >>> lu.node_state[:5]
+        array([0, 9, 0, 9, 9])
+        >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=2,
+        ... block_layer_dip_angle=90.0, layer_left_x=1.0)
+        >>> lu._get_new_base_nodes(rock_state=7)
+        array([9, 7, 9])
+        >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
+        >>> lu.node_state[:5]
+        array([0, 9, 0, 7, 9])
+        >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=1,
+        ... block_layer_dip_angle=45.0, y0_top=-1.0)
+        >>> lu._get_new_base_nodes(rock_state=7)
+        array([9, 7, 9])
+        >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
+        >>> lu.node_state[:5]
+        array([0, 9, 0, 7, 9])
+        """
+
+        new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
+
+        if self.block_layer_dip_angle == 0.0:  # horizontal
+            
+            if self.cum_uplift < self.block_layer_thickness:
+                new_base_nodes[:] = self.block_ID
+            else:
+                new_base_nodes[:] = rock_state
+
+        elif self.block_layer_dip_angle == 90.0:  # vertical
+
+            layer_right_x = self.layer_left_x + self.block_layer_thickness
+            inside_layer = where(logical_and(
+                    self.grid.x_of_node[self.inner_base_row_nodes] >= self.layer_left_x,
+                    self.grid.x_of_node[self.inner_base_row_nodes] <= layer_right_x))[0]
+            new_base_nodes[:] = rock_state
+            new_base_nodes[inside_layer] = self.block_ID
+        
+        else:
+            
+            x = self.grid.x_of_node[self.inner_base_row_nodes]
+            y = self.grid.y_of_node[self.inner_base_row_nodes]
+            m = tan(pi * self.block_layer_dip_angle / 180.0)
+            y_top = m * x + self.y0_top
+            y_bottom = y_top - (self.block_layer_thickness 
+                                / cos(pi * self.block_layer_dip_angle / 180.0))
+            inside_layer = where(logical_and(y >= y_bottom, y <= y_top))
+            new_base_nodes[:] = rock_state
+            new_base_nodes[inside_layer] = self.block_ID
+        
+        return new_base_nodes
+        
+
+    def shift_link_and_transition_data_upward(self, ca, current_time):
+        """Applies uplift to links and transitions.
+        
+        For each link that lies above the y = 1.5 cells line, assign the
+        properties of the link one row down.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> import numpy as np
+
+        >>> mg = HexModelGrid(4, 3, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {0 : 'yes', 1 : 'no'}
+        >>> xnlist = []
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((0,0,1), (1,1,1), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
+        >>> ohcts.link_state[mg.active_links]
+        array([0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
+        >>> ohcts.next_trn_id[mg.active_links]
+        array([0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
+        >>> lu = LatticeUplifter(grid=mg)
+        >>> nu = ohcts.next_update
+        >>> np.round(nu[mg.active_links], 2)
+        array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  1.04,  0.58,  2.22,  3.31,
+                0.48,  1.57])
+        >>> pq = ohcts.priority_queue
+        >>> pq._queue[0][2]  # link for first event = 20, not shifted
+        20
+        >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.48
+        0.48
+        >>> pq._queue[2][2]  # this event scheduled for link 15...
+        15
+        >>> round(pq._queue[2][0], 2)  # ...transition scheduled for t = 0.58
+        0.58
+        >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
+        >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
+        array([ 0.75,  0.84,  2.6 ,  0.07,  0.09,  0.8 ,  0.02,  1.79,  1.51,
+                2.04,  3.85])
+        >>> pq._queue[0][2]  # new soonest event
+        15
+        >>> pq._queue[9][2]  # was previously 7, now shifted up...
+        14
+        >>> round(pq._queue[9][0], 2)  # ...but still scheduled for t = 0.80
+        0.8
+        """
+
+        # Find the ID of the first link above the y = 1.5 line
+        nc = self.grid.number_of_node_columns
+        first_link = (((nc - 1) // 2)      # skip bottom horizontals
+                      + (3 * (nc - 1))     # skip 3 sets of diagonals
+                      + nc                 # skip a full row of verticals
+                      + ((nc + 1) // 2))   # skip a an even row of verticals
+
+        # Define the offset in ID between a link and its neighbor one row up
+        # (or down)
+        shift = nc + 2 * (nc - 1)
+        
+        # Loop from top to bottom of grid, shifting the following link data
+        # upward: state of link, ID of its next transition, and time of its
+        # next transition.
+        for lnk in range(self.grid.number_of_links - 1, first_link - 1, -1):
+            ca.link_state[lnk] = ca.link_state[lnk - shift]
+            ca.next_trn_id[lnk] = ca.next_trn_id[lnk - shift]
+            ca.next_update[lnk] = ca.next_update[lnk - shift]
+
+        # Sweep through event queue, shifting links upward. Do NOT shift links
+        # with IDs greater than NL - [SHIFT + (NC - 1)], because these are so
+        # close to the top of the grid that either the events would refer to
+        # non-existent links (>= NL) or would involve shifting an event onto
+        # an upper-boundary link. Note that because the event data are stored
+        # in a tuple, we have to replace the entire tuple (can't simply change
+        # the one item, because tuples are immutable)
+        first_no_shift_id = self.grid.number_of_links - (shift + (nc - 1))
+        for i in range(len(ca.priority_queue._queue)):
+            if ca.priority_queue._queue[i][2] < first_no_shift_id:
+                ca.priority_queue._queue[i] = (ca.priority_queue._queue[i][0],
+                                               ca.priority_queue._queue[i][1],
+                                               (ca.priority_queue._queue[i][2] 
+                                               + shift))
+
+        # Update state of links along the boundaries.
+        for lk in self.links_to_update:
+
+            # Update link state
+            fns = self.node_state[self.grid.node_at_link_tail[lk]]
+            tns = self.node_state[self.grid.node_at_link_head[lk]]
+            orientation = ca.link_orientation[lk]
+            new_link_state = (orientation * ca.num_node_states_sq
+                              + fns * ca.num_node_states + tns)
+
+            # Schedule a new transition, if applicable
+            ca.link_state[lk] = new_link_state
+            if ca.n_trn[new_link_state] > 0:
+                (event_time, this_trn_id) = get_next_event_new(lk,
+                                                               new_link_state, 
+                                                               current_time,
+                                                               ca.n_trn,
+                                                               ca.trn_id,
+                                                               ca.trn_rate)
+                ca.priority_queue.push(lk, event_time)
+                ca.next_update[lk] = event_time
+                ca.next_trn_id[lk] = this_trn_id
+            else:
+                ca.next_update[lk] = _NEVER
+                ca.next_trn_id[lk] = -1
+
+    def uplift_interior_nodes(self, ca, current_time, rock_state=1):
         """
         Simulate 'vertical' displacement by shifting contents of node_state
 
         Examples
         --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.hex_cts import HexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {}
+        >>> for i in range(26):
+        ...     nsd[i] = i
+        >>> xnlist = []
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> ca = HexCTS(mg, nsd, xnlist, nsg)
         >>> lu = LatticeUplifter()
         >>> lu.node_state[:] = arange(len(lu.node_state))
-        >>> lu.uplift_interior_nodes(rock_state=25)
+        >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)
         >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
         array([ 0, 25,  2, 25, 25,
                 5,  1,  7,  3,  4,
@@ -484,11 +731,15 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.node_state[self.inner_base_row_nodes+self.nc*r] = \
                     self.node_state[self.inner_base_row_nodes+self.nc*(r-1)]
 
-        # Fill the bottom rows with "fresh material" (code = rock_state)
-        self.node_state[self.inner_base_row_nodes] = rock_state
-
-        # Shift the node states up by two rows: two because the grid is
-        # staggered, and we don't want any horizontal offset.
+        # Fill the bottom rows with "fresh material" (code = rock_state), or
+        # if using a block layer, with the right pattern of states.
+        if self.opt_block_layer:
+            new_base_nodes = self._get_new_base_nodes(rock_state)
+            self.cum_uplift += 1.0
+            self.y0_top += 1.0
+        else:
+            new_base_nodes = rock_state
+        self.node_state[self.inner_base_row_nodes] = new_base_nodes
 
         # STILL TO DO: MAKE SURE THIS HANDLES WRAP PROPERLY (I DON'T THINK
         # IT DOES NOW)
@@ -499,7 +750,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 self.propid[self.inner_base_row_nodes+self.nc*r] =  \
                             self.propid[self.inner_base_row_nodes+self.nc*(r-2)]
             self.propid[self.inner_base_row_nodes] = top_row_propid
-            self.prop_data[self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
+            self.prop_data[self.propid[self.inner_base_row_nodes]] = \
+                    self.prop_reset_value
+
+        self.shift_link_and_transition_data_upward(ca, current_time)
 
 
 if __name__=='__main__':

@@ -151,9 +151,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         defined_flow_receivers[flow_receivers == node_id] = False
         if flooded_nodes is not None:
             defined_flow_receivers[flooded_nodes] = False
-        flow_link_lengths = self._grid._length_of_link_with_diagonals[
-            self._grid['node']['flow__link_to_receiver_node'][
-                defined_flow_receivers]]
+        flow_link_lengths = self._grid.length_of_d8[
+            self._grid.at_node['flow__link_to_receiver_node'][defined_flow_receivers]]
 
         # (Later on, add functionality for a runoff rate, or discharge, or
         # variable K)
