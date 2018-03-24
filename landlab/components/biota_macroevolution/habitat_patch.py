@@ -95,6 +95,7 @@ class HabitatPatch(BiotaEvolverObject):
         # The cumulation of captured grid area for habitat patched is retained
         # in order to add it to be_record_supplement after all patches are
         # processed.
+        number_of_captures = 0
         cum_area_captured = 0
         cell_area = grid.dx * grid.dy
 
@@ -179,9 +180,11 @@ class HabitatPatch(BiotaEvolverObject):
 
                 replacements[dominant_n] = dominant_p
 
-            # Update the cumulative captured area.
+            # Update the capture statistics.
             if v.cardinality in [HabitatPatchVector.ONE_TO_MANY,
                                  HabitatPatchVector.MANY_TO_MANY]:
+                number_of_captures += len(n_overlaps_p)
+
                 for n_i in n_overlaps_p:
                     captured_nodes = np.all([p.mask, n_i.mask], 0)
                     number_of_captured_nodes = len(np.where(captured_nodes))
@@ -206,7 +209,8 @@ class HabitatPatch(BiotaEvolverObject):
         if 'vector_filepath' in kwargs:
             cls._write_vector_file(vectors, time, kwargs['vector_filepath'])
 
-        be_record_supplement = {'sum_of_area_captured': cum_area_captured}
+        be_record_supplement = {'number_of_captures': number_of_captures,
+                                'sum_of_area_captured': cum_area_captured}
 
         return vectors, be_record_supplement
 
