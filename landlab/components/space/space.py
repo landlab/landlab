@@ -636,7 +636,7 @@ class Space(Component):
         r = self._grid.at_node['flow__receiver_node']
         slp = self._grid.at_node['topographic__steepest_slope']
         diag_flow_dirs, = np.where(flowlink >= self._grid.number_of_links)
-        slp[:] = (z - z[r]) / self._grid._dx
+        slp[:] = (z - z[r]) / self._grid.dx
         slp[diag_flow_dirs] /= ROOT2
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],

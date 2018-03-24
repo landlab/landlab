@@ -194,7 +194,7 @@ class DepressionFinderAndRouter(Component):
         if isinstance(grid, RasterModelGrid) and (routing is 'D8'):
             self._D8 = True
             self.num_nbrs = 8
-            self._diag_link_length = np.sqrt(grid._dx**2 + grid._dy**2)
+            self._diag_link_length = np.sqrt(grid.dx ** 2 + grid.dy ** 2)
         else:
             self._D8 = False  # useful shorthand for thia test we do a lot
             if isinstance(grid, RasterModelGrid):
