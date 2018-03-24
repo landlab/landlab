@@ -67,7 +67,7 @@ install:
 build: false
 
 test_script:
-  - "%WITH_COMPILER% conda build -q .conda-recipe --no-test"
+  - "%WITH_COMPILER% conda build -q .conda-recipe --no-test --old-build-string"
   # - cmd: conda install -q landlab --use-local
   # - cmd: python scripts/test-installed-landlab.py
 
