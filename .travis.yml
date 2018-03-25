@@ -7,6 +7,7 @@ env:
   - CONDA_PREFIX=$HOME/miniconda
   - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
   - secure: wuv2O1M29pkfAjPbOK1MetIf3teDrG4VTepDOps2YFLMzcoJBlJeTqEneVcHb/q2dz5SefjxQQrbLjgZNOURiS1IT2z24srNDPbp8OAsv9nsqAGZO40eWecCRa+u+P+Wh0pZ8urz/ptTir0qFIQ/yz5hoEPx4ScktHkn23V+/fM=
+  - secure: v5tsP1Ji+Nrf+u6yEzDzSnADkFn8mAiMaHRyHG+4kFSaU1q5TthBoc6pdCHLG+fafkN5EGZD8B/sJlg1GgvKpsvs8MA+lxpKtLfABPf/bv3NntfvtoMEjJUqYxooYha8JDP9ODJh54zwbxPmtMRfevkOUYELQ9aFd8bWjsuOG9c=
 os:
 - linux
 - osx
@@ -57,20 +58,22 @@ virtualenv:
 after_success:
 - |
   if [[ "$TRAVIS_TAG" == v* ]]; then
+    LANDLAB_PACKAGE=$(conda build --output ./.conda-recipe --old-build-string)
+    anaconda -t $ANACONDA_TOKEN upload --force --user landlab --channel main $LANDLAB_PACKAGE
     bash .ci/travis/deploy_to_pypi.sh
-    bash .ci/travis/deploy_to_anaconda.sh
+    # bash .ci/travis/deploy_to_anaconda.sh
   fi
 - if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
-deploy:
-  provider: pypi
-  user: mcflugen
-  password:
-    secure: V15DceMv4DUmjgxToaxrP3KaQxsLbfrTkB1s6D8YNQZvYJiVvNlBpC1nF8yWbOt3IWJQSGjaQEnObd2ZhHe2Kq/H+QsEFyBKlYF7SNp35FyS5zLuf2qhnNhmzhqkspwBpiGe88c1PQPFzfqdIUQXp7ZAv6L8YRvNy2sbzvgxh6I=
-  on:
-    tags: true
-    branch: release
-    repo: landlab/landlab
-  distributions: sdist bdist_wheel
+# deploy:
+#   provider: pypi
+#   user: mcflugen
+#   password:
+#     secure: V15DceMv4DUmjgxToaxrP3KaQxsLbfrTkB1s6D8YNQZvYJiVvNlBpC1nF8yWbOt3IWJQSGjaQEnObd2ZhHe2Kq/H+QsEFyBKlYF7SNp35FyS5zLuf2qhnNhmzhqkspwBpiGe88c1PQPFzfqdIUQXp7ZAv6L8YRvNy2sbzvgxh6I=
+#   on:
+#     tags: true
+#     branch: release
+#     repo: landlab/landlab
+#   distributions: sdist bdist_wheel
 notifications:
   slack:
     secure: gRKbqjPgp0ZcFtecHOwjLAFbzzBr2zyFrxk7OAS/cea/9U8bLQNA0jZs3ZHtAgR53gdnFlx/GI10d/KD9XMKU55gQkO4FSvfYMK7Xzs2tfnEa5flTqQKRfjB1oJ2fmb81yshUe+xKsXBoedP7SPYv2mutMOY8srKwUcuE0yGmAw=

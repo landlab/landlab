@@ -5,7 +5,6 @@ environment:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
     ANACONDA_TOKEN:
       secure: +l38MCyFk16Wb40xBFaa8U/F5pvBAnIUlsYMXPjLCnnPbsPbpkSWwbk6084u/GCV
-    BUILD_STR: "dev"
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
@@ -67,7 +66,7 @@ install:
 build: false
 
 test_script:
-  - "%WITH_COMPILER% conda build -q .conda-recipe --no-test"
+  - "%WITH_COMPILER% conda build -q .conda-recipe --no-test --old-build-string"
   # - cmd: conda install -q landlab --use-local
   # - cmd: python scripts/test-installed-landlab.py
 
