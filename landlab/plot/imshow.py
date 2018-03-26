@@ -131,15 +131,13 @@ def imshow_grid_at_node(grid, values, **kwds):
     except AttributeError:
         shape = (-1, )
 
-    im = _imshow_grid_values(grid, values_at_node.reshape(shape), **kwds)
+    _imshow_grid_values(grid, values_at_node.reshape(shape), **kwds)
 
     if isinstance(values, str):
         plt.title(values)
 
     plt.gcf().canvas.mpl_connect('button_press_event',
        lambda event: query_grid_on_button_press(event, grid))
-    
-    return im
 
 
 @deprecated(use='imshow_grid_at_node', version='0.5')
@@ -413,8 +411,6 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
             plt.clf()
         elif output:
             plt.show()
-    
-    return myimage
 
 
 def imshow_grid(grid, values, **kwds):
@@ -516,7 +512,7 @@ def imshow_grid(grid, values, **kwds):
         values = grid.field_values(values_at, values)
 
     if values_at == 'node':
-        im = imshow_grid_at_node(grid, values, **kwds)
+        imshow_grid_at_node(grid, values, **kwds)
     elif values_at == 'cell':
         imshow_grid_at_cell(grid, values, **kwds)
     else:
@@ -525,5 +521,3 @@ def imshow_grid(grid, values, **kwds):
     # retained for backwards compatibility:
     if show:
         plt.show()
-
-    return im

@@ -222,6 +222,26 @@ class BiotaEvolver(Component, BiotaEvolverObject):
 
         pprint(readable_tree)
 
+    def calculate_extinctions_per_million_species_per_year(self):
+        """Stats for extinction per million species per year (E/MSY).
+        """
+        species_years = 0
+        all_species = []
+        r = self.record
+        for t in r.times:
+            species_at_time = r[t]['species']
+            all_species.extend(species_at_time)
+            for s in species_at_time:
+                species_times = list(s.record.keys())
+                species_years += max(species_times) - min(species_times)
+
+        number_of_species = len(set(all_species))
+        number_of_species_at_final_time = len(r[r.time__last]['species'])
+        number_of_extinctions = number_of_species - number_of_species_at_final_time
+        e_per_msy = number_of_extinctions / species_years * 1e6
+
+        return e_per_msy
+
     # Convenience methods.
 
     def _object_with_identifier(self, item_list, identifier):
