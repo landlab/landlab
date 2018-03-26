@@ -1,5 +1,6 @@
 import numpy as np
 from landlab import Component
+from landlab import RasterModelGrid
 from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0) # syntactic sugar for precalculated square root of 2
@@ -238,12 +239,18 @@ class Space(Component):
         self.stack = grid.at_node['flow__upstream_node_order']
         self.topographic__elevation = grid.at_node['topographic__elevation']
         self.slope = grid.at_node['topographic__steepest_slope']
+        self.link_to_reciever = grid.at_node['flow__link_to_receiver_node']
         try:
             self.soil__depth = grid.at_node['soil__depth']
         except KeyError:
             self.soil__depth = grid.add_zeros(
                 'soil__depth', at='node', dtype=float)
-        self.link_lengths = grid.length_of_d8
+            
+        if isinstance(grid, RasterModelGrid):
+            self.link_lengths = grid.length_of_d8
+        else:
+            self.link_lengths = grid.length_of_link
+            
         try:
             self.bedrock__elevation = grid.at_node['bedrock__elevation']
         except KeyError:
@@ -537,7 +544,7 @@ class Space(Component):
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
                         self.flow_receivers,
-                        self.grid.node_spacing,
+                        self.link_lengths[self.link_to_reciever],
                         self.q,
                         self.qs,
                         self.qs_in,
@@ -735,7 +742,7 @@ class Space(Component):
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
-                            self.grid.node_spacing,
+                            self.link_lengths[self.link_to_reciever],
                             self.q,
                             self.qs,
                             self.qs_in,
