@@ -625,10 +625,8 @@ class Space(Component):
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
 
-        Assumes uniform raster grid. Used to update slope values between
-        sub-time-steps, when we do not re-run flow routing.
-
-        (TODO: generalize to other grid types)
+        Used to update slope values between sub-time-steps, when we do not 
+        re-run flow routing.
 
         Examples
         --------
@@ -652,14 +650,11 @@ class Space(Component):
         >>> rg.at_node['topographic__steepest_slope'][5:7]
         array([ 0.14142136,  0.14142136])
         """
-        flowlink = self._grid.at_node['flow__link_to_receiver_node']
         z = self._grid.at_node['topographic__elevation']
         r = self._grid.at_node['flow__receiver_node']
         slp = self._grid.at_node['topographic__steepest_slope']
-        diag_flow_dirs, = np.where(flowlink >= self._grid.number_of_links)
-        slp[:] = (z - z[r]) / self._grid._dx
-        slp[diag_flow_dirs] /= ROOT2
-
+        slp[:] = (z - z[r]) / self.link_lengths[self.link_to_reciever]
+        
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):
         """Run step with CHILD-like solver that adjusts time steps to prevent
