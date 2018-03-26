@@ -94,7 +94,7 @@ class ClastSet(object):
         self._deposition__thickness = np.zeros(grid.number_of_nodes)
         self._deposition__flux = np.zeros(grid.number_of_nodes)
 
-    def clast_solver_Exponential(self, dt=1., Si=1.2, kappa=0.0001, lambda_0=1, uplift=None):
+    def clast_solver_Exponential(self, dt=1., Si=1.2, kappa=0.0001, tau_0=1, uplift=None): # lambda_0=1, 
 
 # Repeated from above??
         if self.erosion_method == 'TLDiff':
@@ -118,8 +118,12 @@ class ClastSet(object):
         self._Si = Si #  slope above which particle motion continues indefinetly (not equal to critical slope of diffusion, see Furbish and Haff, 2010)
 # TO DELETE???        self._deposition__flux = self._deposition_rate # * self._grid.dx
         hop_length_i = 0
-        self._lambda_0 = lambda_0
+#        self._lambda_0 = lambda_0
 
+        self._lambda_0=np.zeros(self._set__size)
+        self._lambda_0[:] = (self._dt * self._kappa * self._grid.dx) / (self._Si * 2 * np.array(self._clast__radius))
+        #self._lambda_0[:] += lambda_0
+        
         if uplift is not None:
             if type(uplift) is str:
                 self._uplift = self._grid.at_node[uplift]
@@ -209,6 +213,7 @@ class ClastSet(object):
 
                 else:
                     # Clast is not detached -> go to next clast
+                    self._clast__hop_length.append(0)
                     pass
 
             if hasattr(self, '_uplift') is True:
@@ -265,7 +270,7 @@ class ClastSet(object):
         # Clast moves if its probability to move is higher than
         # a random number
         #erosion = self._erosion__depth[self._clast__node[i]]
-        radius = self._clast__radius[i]
+        #radius = self._clast__radius[i]
         #clast__depth = self._elev[self._clast__node[i]] - self._clast__elev[i]
         #potential_distance = self._distances[self._clast__node[i],self._grid.at_node['flow__receiver_node'][self._clast__node[i]]]
 
@@ -279,21 +284,20 @@ class ClastSet(object):
         
         Si = self._Si
         S = (self._elev[self._clast__node[i]] - self._elev[self._grid.at_node['flow__receiver_node'][self._clast__node[i]]])/self._grid.dx
-        num = 3.2857142857142856
         # lambda_mean = (self._kappa * self._grid.dx * S) / (2 * radius)
         # lambda_mean = self._grid.dx
         # lambda_mean = self._grid.at_node['sediment__deposition_coeff'][self._clast__node[i]]
         # lambda_0 = 23
-        # lambda_0 = (self._dt * self._kappa * self._grid.dx) / (2*radius)
+        #self._lambda_0 = (self._dt * self._kappa * self._grid.dx) / (2*radius)
         # lambda_0 = float(self._dt * ((self._kappa * self._grid.dx * S) / (2 * radius)) * ((Si + S) / (Sc - S)))#23
         # lambda_0 = 50
-        lambda_mean = self._lambda_0 * (Si + S) / (Si - S) # equivalent to * np.power((((2 * Si)/(Si - S))-1),-1) with Sc always positive and S signed (<0 when dz decreases with increasing x)
+        lambda_mean = self._lambda_0[i] * (Si + S) / (Si - S) # equivalent to * np.power((((2 * Si)/(Si - S))-1),-1) with Sc always positive and S signed (<0 when dz decreases with increasing x)
         
         
         if S >= Si:
             proba_leave_cell = 1
         else:
-            proba_leave_cell = np.exp(((-self._grid.dx / 2) / np.cos(np.arctan(S)) / lambda_mean))
+            proba_leave_cell = np.exp(((-self._grid.dx/2) / np.cos(np.arctan(S)) / lambda_mean))
             # proba_leave_cell = (1 / lambda_0) * (((2 * Si) / (Si - S))-1)
 
         _move = np.zeros(1, dtype=bool)
