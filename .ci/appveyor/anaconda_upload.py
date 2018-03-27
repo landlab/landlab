@@ -33,7 +33,7 @@ else:
 print('Uploading to {channel} channel'.format(channel=channel))
 
 try:
-    cmd = ' '.join(['conda', 'build', '--output', '.conda-recipe'])
+    cmd = ' '.join(['conda', 'build', '--output', '.conda-recipe', '--old-build-string'])
     resp = subprocess.check_output(cmd, shell=True)
 except subprocess.CalledProcessError:
     traceback.print_exc()
