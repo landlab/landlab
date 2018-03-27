@@ -192,6 +192,18 @@ class BiotaEvolver(Component, BiotaEvolverObject):
         _identifier = UUID(identifier)
         return self._object_with_identifier(self.species, _identifier)
 
+    def get_number_of_species_array(self):
+        # Only works for final time because habitat mask.
+        time = self.record.time__last
+        species = self.record[time]['species']
+        ns = np.zeros(self._grid.number_of_nodes)
+
+        for s in species:
+            for p in s.record[time]['habitat_patches']:
+                ns[np.where(p.mask)] += 1
+
+        return ns
+
     def get_tree(self):
         """Get phylogenetic tree.
         """
