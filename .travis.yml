@@ -55,10 +55,10 @@ script:
   if [[ "$COVERALLS" == "1" ]]; then
   pip install coveralls
   conda install -q landlab --use-local -c $(dirname $(conda build --output ./.conda-recipe/ --old-build-string))
-  python scripts/test-installed-landlab.py
+  bash .ci/travis/run_travis_test.sh
   coveralls
   fi
-  # - bash .ci/travis/run_travis_test.sh
+
 virtualenv:
   system_site_packages: false
 after_success:
