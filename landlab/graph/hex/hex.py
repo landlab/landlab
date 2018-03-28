@@ -224,6 +224,12 @@ class HexGraphExtras(object):
         return setup_perimeter_nodes(self.shape, self.orientation,
                                      self.node_layout)
 
+    @property
+    @cache_result_in_object()
+    @make_return_array_immutable
+    def length_of_link(self):
+        return np.full(self.number_of_links, self.spacing, dtype=float)
+
 
 class HexGraph(HexGraphExtras, VoronoiGraph):
 
