@@ -11,11 +11,12 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 from six.moves import range
 
-from .voronoi import VoronoiDelaunayGrid
+from .base import ModelGrid
+from ..graph import DualRadialGraph
 from landlab.utils.decorators import deprecated
 
 
-class RadialModelGrid(VoronoiDelaunayGrid):
+class RadialModelGrid(DualRadialGraph, ModelGrid):
 
     """Grid of concentric circles.
 
@@ -61,6 +62,10 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     >>> omg = RadialModelGrid(2)
     >>> omg.number_of_nodes
     20
+
+    >>> omg.radius_at_node
+    array([ 2.,  2.,  2.,  2.,  1.,  2.,  1.,  1.,  2.,  2.,  0.,  2.,  1.,
+            1.,  2.,  1.,  2.,  2.,  2.,  2.])
     """
 
     def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0,
@@ -110,11 +115,21 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        self._origin_x = origin_x
-        self._origin_y = origin_y
-        if num_shells > 0:
-            self._initialize(num_shells, dr, origin_x, origin_y)
-        super(RadialModelGrid, self).__init__(**kwds)
+        # self._origin_x = origin_x
+        # self._origin_y = origin_y
+        # if num_shells > 0:
+        #     self._initialize(num_shells, dr, origin_x, origin_y)
+        # super(RadialModelGrid, self).__init__(**kwds)
+        shape = (num_shells + 1, 6)
+        spacing = dr
+        origin = origin_y, origin_x
+
+        DualRadialGraph.__init__(self, shape, spacing=spacing, origin=origin)
+        ModelGrid.__init__(self, **kwds)
+
+        self._node_status = numpy.full(self.number_of_nodes,
+                                       self.BC_NODE_IS_CORE, dtype=numpy.uint8)
+        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
     @classmethod
     def from_dict(cls, params):
@@ -167,83 +182,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
                     0] = r[i] * numpy.cos(theta)
                 pts[startpt:(startpt + int(n_pts_in_shell[i])),
                     1] = ycoord
-            startpt += int(n_pts_in_shell[i])
+            etartpt += int(n_pts_in_shell[i])
         pts[:, 0] += origin_x
         pts[:, 1] += origin_y
 
         return pts, npts
-
-    @property
-    def number_of_shells(self):
-        """Number of node shells in grid.
-
-        Returns
-        -------
-        int
-            The number of node shells in the radial grid (not counting the
-            center node).
-
-        LLCATS: GINF
-        """
-        return self._n_shells
-
-    @property
-    @deprecated(use='spacing_of_shells', version=1.0)
-    def shell_spacing(self):
-        """Fixed distance between shells.
-
-        LLCATS: DEPR GINF MEAS
-        """
-        return self._dr
-
-    @property
-    def spacing_of_shells(self):
-        """Fixed distance between shells.
-
-        LLCATS: GINF MEAS
-        """
-        return self._dr
-
-    @property
-    def number_of_nodes_in_shell(self):
-        """Number of nodes in each shell.
-
-        Returns
-        -------
-        int
-            Number of nodes in each shell, excluding the center node.
-
-        LLCATS: GINF NINF
-        """
-        try:
-            return self._nnodes_inshell
-        except AttributeError:
-            n_pts_in_shell = numpy.round(2. * numpy.pi * (
-                numpy.arange(self.number_of_shells, dtype=float) + 1.))
-            self._nnodes_inshell = n_pts_in_shell.astype(int)
-            return self._nnodes_inshell
-
-    @property
-    def radius_at_node(self):
-        """Distance for center node to each node.
-
-        Returns
-        -------
-        ndarray of float
-            The distance from the center node of each node.
-
-        >>> mg = RadialModelGrid(num_shells=2)
-        >>> mg.radius_at_node
-        array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  0.,  1.,  1.,  2.,  2.,
-                1.,  1.,  2.,  2.,  2.,  2.,  2.])
-
-        LLCATS: NINF MEAS
-        """
-        try:
-            return self._node_radii
-        except AttributeError:
-            self._node_radii = numpy.sqrt(numpy.square(self.node_x -
-                                                       self._origin_x) +
-                                          numpy.square(self.node_y -
-                                                       self._origin_y))
-            return self._node_radii
