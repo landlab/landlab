@@ -7,8 +7,8 @@ Created on Sat Nov 14 10:36:03 2015
 import numpy as np
 
 from landlab import HexModelGrid
-from numpy.testing import assert_array_equal
-from nose.tools import assert_true
+from numpy.testing import assert_array_equal, assert_array_almost_equal
+from nose.tools import assert_true, assert_equal
 
 
 def test_hex_grid_link_order():
@@ -44,3 +44,15 @@ def test_face_at_link():
     assert_array_equal(grid.face_at_link,
                        [-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1, 7,  8,
                          9, 10, -1, -1, -1])
+
+
+def test_width_of_face():
+    grid = HexModelGrid(3, 3)
+    assert_array_almost_equal(grid.width_of_face, np.tan(np.pi / 6.))
+    assert_equal(len(grid.width_of_face), grid.number_of_faces)
+
+
+def test_link_at_face():
+    grid = HexModelGrid(3, 3)
+    assert_array_equal(grid.link_at_face,
+                       [ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
