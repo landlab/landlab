@@ -114,12 +114,6 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         >>> omg.number_of_nodes
         20
         """
-        # Set number of nodes, and initialize if caller has given dimensions
-        # self._origin_x = origin_x
-        # self._origin_y = origin_y
-        # if num_shells > 0:
-        #     self._initialize(num_shells, dr, origin_x, origin_y)
-        # super(RadialModelGrid, self).__init__(**kwds)
         shape = (num_shells + 1, 6)
         spacing = dr
         origin = origin_y, origin_x
@@ -142,48 +136,3 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
 
         return cls(num_shells=num_shells, dr=dr, origin_x=origin[0],
                    origin_y=origin[1])
-
-    def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
-        [pts, npts] = self._create_radial_points(num_shells, dr)
-        self._n_shells = int(num_shells)
-        self._dr = dr
-        super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
-
-    def _create_radial_points(self, num_shells, dr, origin_x=0.0,
-                              origin_y=0.0):
-        """Create a set of points on concentric circles.
-
-        Creates and returns a set of (x,y) points placed in a series of
-        concentric circles around the origin.
-        """
-        shells = numpy.arange(0, num_shells) + 1
-        twopi = 2 * numpy.pi
-        # number of points in each shell
-        n_pts_in_shell = numpy.round(twopi * shells)
-        dtheta = twopi / n_pts_in_shell
-        npts = int(sum(n_pts_in_shell) + 1)
-        pts = numpy.zeros((npts, 2))
-        r = shells * dr
-        startpt = 1
-        for i in numpy.arange(0, num_shells):
-            theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
-                     dtheta[i] / (i + 1))
-            ycoord = r[i] * numpy.sin(theta)
-            if numpy.isclose(ycoord[-1], 0.):
-                # this modification necessary to force the first ring to
-                # follow our new CCW from E numbering convention (DEJH, Nov15)
-                ycoord[-1] = 0.
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    0] = numpy.roll(r[i] * numpy.cos(theta), 1)
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    1] = numpy.roll(ycoord, 1)
-            else:
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    0] = r[i] * numpy.cos(theta)
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    1] = ycoord
-            etartpt += int(n_pts_in_shell[i])
-        pts[:, 0] += origin_x
-        pts[:, 1] += origin_y
-
-        return pts, npts
