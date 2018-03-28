@@ -37,7 +37,8 @@ array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
 >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
 array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
        [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
-       [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]])
+       [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]],
+      dtype=int8)
 
 >>> patches = ((5, 3, 0, 2), (6, 4, 1, 3), (10, 8, 5, 7), (11, 9, 6, 8))
 >>> graph = Graph((node_y, node_x), links=links, patches=patches)
@@ -594,7 +595,8 @@ class Graph(object):
         >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
                [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
-               [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]])
+               [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]],
+              dtype=int8)
         """
         try:
             return self._link_dirs_at_node

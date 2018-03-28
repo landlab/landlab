@@ -33,7 +33,7 @@ def setup_perimeter_nodes(shape):
 
 def setup_link_dirs_at_node(shape):
     n_nodes = shape[0] * shape[1]
-    link_dirs_at_node = np.empty((n_nodes , 4), dtype=int)
+    link_dirs_at_node = np.empty((n_nodes , 4), dtype=np.int8)
     fill_link_dirs_at_node(shape, link_dirs_at_node)
     return link_dirs_at_node
 
@@ -142,6 +142,10 @@ class StructuredQuadGraphExtras(object):
     @property
     def number_of_node_columns(self):
         return self._shape[1]
+
+    @property
+    def nodes(self):
+        return super(StructuredQuadGraphExtras, self).nodes.reshape(self.shape)
 
     @property
     def nodes_at_right_edge(self):
@@ -307,7 +311,7 @@ class UniformRectilinearGraph(StructuredQuadGraph):
     array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-           [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+           [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]], dtype=int8)
     >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
     array([[ 0,  1], [ 1,  2], [ 0,  3], [ 1,  4], [ 2,  5],
            [ 3,  4], [ 4,  5], [ 3,  6], [ 4,  7], [ 5,  8],
