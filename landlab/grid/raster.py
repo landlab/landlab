@@ -410,6 +410,14 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         self.looped_node_properties = {}
             
+        # List of looped neighbor cells (all 8 neighbors) for
+        # given *cell ids* can be created if requested by the user.
+        self._looped_cell_neighbor_list = None
+
+        # List of second ring looped neighbor cells (all 16 neighbors) for
+        # given *cell ids* can be created if requested by the user.
+        self._looped_second_ring_cell_neighbor_list_created = False
+
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict['type'] != 'RasterModelGrid':
@@ -1600,13 +1608,13 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
             self._node_status[self.nodes_at_bottom_edge] = self.BC_NODE_IS_CLOSED
 
         if right_is_closed:
-            self._node_status[self.nodes_at_right_edge] = self.BC_NODE_IS_CLOSED
+            self._node_status[self.nodes_at_right_edge[1:-1]] = self.BC_NODE_IS_CLOSED
 
         if top_is_closed:
             self._node_status[self.nodes_at_top_edge] = self.BC_NODE_IS_CLOSED
 
         if left_is_closed:
-            self._node_status[self.nodes_at_left_edge] = self.BC_NODE_IS_CLOSED
+            self._node_status[self.nodes_at_left_edge[1:-1]] = self.BC_NODE_IS_CLOSED
 
         self.reset_status_at_node()
 
