@@ -98,6 +98,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                               orientation=orientation, node_layout=node_layout)
         ModelGrid.__init__(self, **kwds)
 
+        self._node_status = numpy.full(self.number_of_nodes,
+                                       self.BC_NODE_IS_CORE, dtype=numpy.uint8)
+        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
+
     @classmethod
     def from_dict(cls, params):
         """
@@ -551,7 +555,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             color_map = matplotlib.cm.jet
 
         # geometry
-        apothem = self._dx / 2.0
+        apothem = self.spacing / 2.0
         # distance from node to each hexagon cell vertex
         radius = 2.0 * apothem / sqrt(3.0)
 
@@ -631,8 +635,8 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         self._hexplot_pc.set_array(array(data))
         copy_of_pc = copy.copy(self._hexplot_pc)
         ax.add_collection(copy_of_pc)
-        plt.xlim([amin(self.node_x) - self._dx, amax(self.node_x) + self._dx])
-        plt.ylim([amin(self.node_y) - self._dx, amax(self.node_y) + self._dx])
+        plt.xlim([amin(self.node_x) - self.spacing, amax(self.node_x) + self.spacing])
+        plt.ylim([amin(self.node_y) - self.spacing, amax(self.node_y) + self.spacing])
 
         return ax
 
