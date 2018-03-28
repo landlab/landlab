@@ -8,12 +8,10 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 
-import numpy
-from six.moves import range
+import numpy as np
 
 from .base import ModelGrid
 from ..graph import DualRadialGraph
-from landlab.utils.decorators import deprecated
 
 
 class RadialModelGrid(DualRadialGraph, ModelGrid):
@@ -121,8 +119,8 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         DualRadialGraph.__init__(self, shape, spacing=spacing, origin=origin)
         ModelGrid.__init__(self, **kwds)
 
-        self._node_status = numpy.full(self.number_of_nodes,
-                                       self.BC_NODE_IS_CORE, dtype=numpy.uint8)
+        self._node_status = np.full(self.number_of_nodes,
+                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
     @classmethod
