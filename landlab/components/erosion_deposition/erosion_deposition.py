@@ -447,7 +447,7 @@ class ErosionDeposition(Component):
         r = self._grid.at_node['flow__receiver_node']
         slp = self._grid.at_node['topographic__steepest_slope']
         diag_flow_dirs, = np.where(flowlink >= self._grid.number_of_links)
-        slp[:] = (z - z[r]) / self._grid._dx
+        slp[:] = (z - z[r]) / self._grid.dx
         slp[diag_flow_dirs] /= ROOT2
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
