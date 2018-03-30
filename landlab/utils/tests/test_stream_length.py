@@ -89,3 +89,28 @@ def test_stream_length_irregular_grid_d4():
     fr.run_one_step()
     # calculating flow length map
     stream__length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
+
+    # TODO
+    # create a "flow_length_expected" as in above and assert equal
+
+    #assert_array_equal(flow_length_expected, flow_length)
+
+
+def test_stream_length_raster_MFD():
+    """Test of stream length utility with a raster grid and MFD."""
+    pass
+    # TODO
+    # create a test as you've done above for these two cases
+    # ending with a statement in which you assert the answer is an answer you
+    # know to be correct.
+    #assert_array_equal(flow_length_expected, flow_length)
+
+
+def test_stream_length_hex_MFD():
+    """Test of stream length utility with a raster grid and D infinity."""
+    pass
+    # TODO
+    # create a test as you've done above for these two cases
+    # ending with a statement in which you assert the answer is an answer you
+    # know to be correct.
+    #assert_array_equal(flow_length_expected, flow_length)
