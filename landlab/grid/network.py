@@ -1,20 +1,23 @@
 #! /usr/bin/env python
+"""
+
+"""
+import numpy as np
 
 from ..graph import Graph
 from ..field import GraphFields
 
 
 class NetworkModelGrid(Graph, GraphFields):
-
     """A ModelGrid of just nodes and links.
-    
+
     Parameters
     ----------
     yx_of_node : tuple of ndarray
         Node y and x coordinates.
     links : array of tuple of int
         Nodes at link tail and head.
-    
+
     Examples
     --------
     >>> from landlab.grid.network import NetworkModelGrid
@@ -32,9 +35,12 @@ class NetworkModelGrid(Graph, GraphFields):
            [1, 3]])
     """
 
-    def __init__(self, yx_of_node, links):
+    def __init__(self, yx_of_node, links, **kwds):
         Graph.__init__(self, yx_of_node, links=links)
         GraphFields.__init__(self,
                              {'node': self.number_of_nodes,
-                              'link': self.number_of_links},
+                              'link': self.number_of_links,
+                              'grid': 1},
                              default_group='node')
+
+        self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
