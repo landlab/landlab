@@ -75,20 +75,6 @@ def test_stream_length_regular_grid_d4():
     assert_equal (flow_length_expected.all(),flow_length.all(),mg)
 
 
-def test_stream_length_irregular_grid_d8():
-    """Test to demonstrate that stream_length utility works as expected with irregular grids"""
-    # instantiate a model grid
-    dx=(2./(3.**0.5))**0.5
-    hmg = HexModelGrid(5,3, dx)
-    # instantiate and add the elevation field
-    _ = hmg.add_field('topographic__elevation', hmg.node_x + np.round(hmg.node_y), at = 'node')
-    # calculating flow directions with FlowAccumulator component: D8 algorithm
-    fr = FlowAccumulator(hmg, flow_director = 'D8')
-    fr.route_flow()
-    # calculating flow length map
-    stream__length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
-
-
 def test_stream_length_irregular_grid_d4():
     """Test to demonstrate that stream_length utility works as expected with irregular grids"""
     # instantiate a model grid
