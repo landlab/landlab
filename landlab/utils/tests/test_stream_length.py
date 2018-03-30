@@ -1,10 +1,12 @@
-from landlab import RasterModelGrid, FieldError, HexModelGrid, CLOSED_BOUNDARY
-from landlab.components import FlowAccumulator, FastscapeEroder, FlowDirectorSteepest, FlowRouter
 import numpy as np
 import math
+from nose.tools import assert_equal, assert_true, assert_false, assert_raises
+from numpy.testing import assert_array_equal
+
+from landlab import RasterModelGrid, FieldError, HexModelGrid, CLOSED_BOUNDARY
+from landlab.components import FlowAccumulator, FastscapeEroder, FlowDirectorSteepest
 from landlab.utils.stream_length import calculate_stream_length
 
-from nose.tools import assert_equal, assert_true, assert_false, assert_raises
 
 def test_no_flow_recievers():
     """Test that correct error is raised when no flow recievers are on the grid."""
