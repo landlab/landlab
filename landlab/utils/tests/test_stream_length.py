@@ -13,16 +13,17 @@ def test_no_flow_recievers():
     # test that the stream length utility will fail because of a ValueError
     assert_raises(FieldError, calculate_stream_length, mg)
 
+
 def test_no_upstream_array():
     """Test that correct error is raised when no flow__upstream_node_order."""
     # instantiate a model grid, do not run flow accumulation on it
     mg = RasterModelGrid(30, 70)
-
     z = mg.add_ones('node','topographic__elevation')
     fd = FlowDirectorSteepest(mg)
     fd.run_one_step()
     # test that the stream length utility will fail because of a ValueError
     assert_raises(FieldError, calculate_stream_length, mg)
+
 
 def stream_length_regular_grid_d8():
     """Test to demonstrate that stream_length utility works as expected with regular grids"""
@@ -47,7 +48,8 @@ def stream_length_regular_grid_d8():
     flow_length = np.reshape(stream__length-stream__length[6],mg.shape)
     # test that the stream length utility works as expected
     assert_equal (flow_length_expected.all(),flow_length.all(),mg)
-    
+
+
 def stream_length_regular_grid_d4():
     """Test to demonstrate that stream_length utility works as expected with regular grids"""
     # instantiate a model grid
@@ -71,7 +73,8 @@ def stream_length_regular_grid_d4():
     flow_length = np.reshape(stream__length-stream__length[6],mg.shape)
     # test that the stream length utility works as expected
     assert_equal (flow_length_expected.all(),flow_length.all(),mg)
-    
+
+
 def stream_length_irregular_grid_d8():
     """Test to demonstrate that stream_length utility works as expected with irregular grids"""
     # instantiate a model grid
@@ -84,6 +87,7 @@ def stream_length_irregular_grid_d8():
     fr.route_flow()
     # calculating flow length map
     stream__length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
+
 
 def stream_length_irregular_grid_d4():
     """Test to demonstrate that stream_length utility works as expected with irregular grids"""
