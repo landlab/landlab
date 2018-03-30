@@ -67,6 +67,7 @@ class ClastCollection(ItemCollection):
 
 
     def _neighborhood(self, clast):
+        self._clast__node = self._grid.find_nearest_node((self._clast__x, self._clast__y)) # needs this to update after clast has moved
         _node = self._clast__node[clast]
         _grid = self._grid
         ### Calculation of slopes: W to E and S to N
@@ -104,13 +105,7 @@ class ClastCollection(ItemCollection):
                 target_node = -1
     #            # OPTION2 (to develop):
     #            # clast moves to random direction, according to lambda_0:
-    #            # OPTION3 (to develop):
-    #            # centered slope is null, check if local slope is not null:
-    #            if self._grid.at_node['topographic__steepest_slope'][_node] > 0.:
-    #                ss_dip = self._grid.at_node['topographic__steepest_slope'][_node]
-    #                _receiver = self._grid.at_node['flow__receiver_node'][_node]
-    #                ss_link = self._grid.at_node['flow__link_to_receiver_node'][_node]
-                # all goes back to the problem of determining the crossed face...
+
             else: # SN slope is not 0, ss direction is S or N
                 if sn_slope < 0: # ss direction is South
                     ss_dip = np.abs(sn_slope)
@@ -269,20 +264,23 @@ class ClastCollection(ItemCollection):
     
     def _change_cell_proba(self, clast):
         lambda_mean = self.at[clast, 'lambda_mean']
-        rand_length = np.random.exponential(scale=lambda_mean, 1)
-        x = self.at[clast, 'dist_to_exit']
-        if rand_length < x: # clast stays in cell
+        dist_to_exit = self.at[clast, 'dist_to_exit']
+
+        # Draw a random sample in the probability distribution of travel distances:
+        self.rand_length = np.random.exponential(scale=lambda_mean, 1)
+
+        if self.rand_length < dist_to_exit: # clast stays in cell
             _change_cell = False
-        elif u >= x: # clast leaves cell
+        else: # self.rand_length >= dist_to_exit: clast leaves cell
             _change_cell = True
 
         return _change_cell
 
-    def _move(self, clast):
-        # clast stays in cell, move of distance x along slope
+    def _move_in_cell(self, clast):
+        # clast stays in cell, move of distance rand_length along slope
         ss_azimuth = self.at[clast, 'slope__steepest_azimuth']
         ss_dip = self.at[clast, 'slope__steepest_dip']
-        x_horizontal = x * np.cos(ss_dip)
+        x_horizontal = self.rand_length * np.cos(ss_dip)
         if ss_azimuth <= np.radians(90):
             [change_x, change_y] = [x_horizontal * np.cos(ss_azimuth), x_horizontal * np.sin(ss_azimuth)]
         elif ss_azimuth <= np.radians(180):
@@ -292,22 +290,26 @@ class ClastCollection(ItemCollection):
         else: # ss_azimuth <= np.radians(360)
             [change_x, change_y] = [x_horizontal * np.cos(np.radians(360)-ss_azimuth), -x_horizontal * np.sin(np.radians(360)-ss_azimuth)]
         # Update clast coordinates:
-        self.at[clast, 'clast__x']+=change_x
-        self.at[clast, 'clast__y']+=change_y
-
-        self.at[clast, 'hop_length'] += x
-
-    def _move_in_cell(self, clast):
-# clast leaves cell, move of distance dist_to_exit along slope
-            self.at[clast, 'clast__x']+=change_x
-            self.at[clast, 'clast__y']+=change_y
-            self.at[clast, 'hop_length'] += self.at[clast, 'dist_to_exit']
-            self.at[clast, 'clast__node'] = self.at[clast, 'target_node']
-        # Save values to dataframe:
+        self.at[clast, 'clast__x'] += change_x
+        self.at[clast, 'clast__y'] += change_y
+        self.at[clast, 'change_x'] = change_x
         self.at[clast, 'change_y'] = change_y
 
-            
-            
+
+        self.at[clast, 'hop_length'] += self.rand_length
+
+    def _move_out_of_cell(self, clast):
+        # clast leaves cell, move of distance dist_to_exit along slope
+        self.at[clast, 'clast__x'] += change_x
+        self.at[clast, 'clast__y'] += change_y
+        self.at[clast, 'hop_length'] += self.at[clast, 'dist_to_exit']
+        self.at[clast, 'clast__node'] = self.at[clast, 'target_node']
+        # Save values to dataframe:
+
+########JUST FOR TESTING PURPOSE##############################################
+        if self.at[clast, 'clast__node'] != self.at[clast, 'target_node']:
+            print('Error: moved to wrong node')
+##############################################################################
             
             
     def clast_solver_Exponential(self, dt=1., Si=1.2, kappa=0.0001, tau_0=1, uplift=None): # lambda_0=1, 
@@ -342,10 +344,13 @@ class ClastCollection(ItemCollection):
                         ClastCollection._move_to(self, i)
                         
                         self.at[clast, 'hop_length'] =0
+                        self.rand_length = 0.
                         while ClastCollection._change_cell_proba(self, i) == True:
-                            ClastCollection._move(self,i)
+                            ClastCollection._move_out_of_cell(self,i)
                             ClastCollection._neighborhood(self, i)
                             ClastCollection._move_to(self, i)
+                        else:
+                            ClastCollection._move_in_cell(self,i)
                             
                             
     for i in range(self._set_size):
