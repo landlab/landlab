@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 """Functions to calculate stream distance."""
-
-from landlab.grid import RasterModelGrid
-from landlab import FieldError
 import numpy as np
+
+from landlab import BAD_INDEX_VALUE, RasterModelGrid, FieldError
 
 
 def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
@@ -18,16 +17,19 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
     ----------
     grid : ModelGrid
     add_to_grid : boolean, optional
-        Flag to indicate if the stream length field should be added to the 
+        Flag to indicate if the stream length field should be added to the
         grid. Default is False. The field name used is ``stream__length``.
     noclobber : boolean, optional
-        Flag to indicate if adding the field to the grid should clobber an 
-        existing field with the same name. Default is True. 
-        
+        Flag to indicate if adding the field to the grid should clobber an
+        existing field with the same name. Default is True.
+
     Examples
-    ________
-    
-    
+    --------
+    >>> # PUT EXAMPLES HERE
+    >>> # these examples will go into the documentation and make it easy for
+    >>> # users to understand how to use this utility.
+    >>> # they will also get tested.
+
     """
     # check that flow__reciever nodes exists
     if 'flow__receiver_node' not in grid.at_node:
