@@ -42,17 +42,29 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
     # get an array of grid nodes
     grid_nodes = grid.nodes.flatten()
 
-    # get the reciever nodes
-    flow__receiver_node = grid.at_node['flow__receiver_node']
+    # get the reciever nodes, depending on if this is to-one, or to-multiple,
+    # we'll need to get a different at-node field.
+    if 'flow__receiver_nodes' in grid.at_node:
+        to_one = False
+        flow__receiver_node = grid.at_node['flow__receiver_nodes']
+    else:
+        to_one = True
+        flow__receiver_node = grid.at_node['flow__receiver_node']
 
     # get the upstream node order
     flow__upstream_node_order = grid.at_node['flow__upstream_node_order']
 
     # get downstream flow link lengths, result depends on type of grid.
     if isinstance(grid, RasterModelGrid):
-        flow_link_lengths = grid.length_of_d8[grid.at_node['flow__link_to_receiver_node']]
+        if to_one:
+            flow_link_lengths = grid.length_of_d8[grid.at_node['flow__link_to_receiver_node']]
+        else:
+            flow_link_lengths = grid.length_of_d8[grid.at_node['flow__links_to_receiver_nodes']]
     else:
-        flow_link_lengths = grid.length_of_link[grid.at_node['flow__link_to_receiver_node']]
+        if to_one:
+            flow_link_lengths = grid.length_of_link[grid.at_node['flow__link_to_receiver_node']]
+        else:
+            flow_link_lengths = grid.length_of_link[grid.at_node['flow__links_to_receiver_nodes']]
 
     # create an array that representes the outlet lengths.
     stream__length = np.zeros(grid.nodes.size)
@@ -66,11 +78,9 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
 
         # assess if this is a to one (D8/D4) or to multiple (Dinf, MFD)
         # flow directing method.
-        if isinstance(reciever, (int, np.int64)):
-            to_one = True
+        if to_one:
             potential_outlet = reciever
         else:
-            to_one = False
             # if this is an outlet, the first element of the recievers will be
             # the nodes ID.
             potential_outlet = reciever[0]
@@ -109,7 +119,7 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
                 potential_stream_increment_lengths = flow_link_lengths[node][useable_recievers]
 
                 # get the lowest downstream stream length.
-                downstream_stream_length = np.min(downstream_stream_lengths)
+                downstream_stream_length = np.min(potential_downstream_stream_lengths)
 
                 # determine which of the stream increments flowed to this
                 # downstream neighbor.
