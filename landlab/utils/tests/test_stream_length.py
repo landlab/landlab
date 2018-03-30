@@ -38,9 +38,9 @@ def test_stream_length_regular_grid_d8():
     flow_length_expected = np.array ([[0,0,0,0],[0,1,0,0],[0,math.sqrt(2),1,0],[0,1+math.sqrt(2),2,0],[0,0,0,0]],dtype='float64')
     #setting boundary conditions
     mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
-    # calculating flow directions with FlowRouter component
-    fr = FlowRouter(mg, method = 'D8')
-    fr.route_flow()
+    # calculating flow directions with FlowAccumulator component
+    fr = FlowAccumulator(mg, flow_director = 'D8')
+    fr.run_one_step()
     # calculating flow length map
     stream__length = calculate_stream_length(mg, add_to_grid=True, noclobber=False)
     # modifying the stream_length_map because boundary and outlet nodes should not
@@ -63,9 +63,9 @@ def test_stream_length_regular_grid_d4():
     flow_length_expected = np.array ([[0,0,0,0],[0,1,0,0],[0,2,1,0],[0,3,2,0],[0,0,0,0]],dtype='float64')
     #setting boundary conditions
     mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
-    # calculating flow directions with FlowRouter component
-    fr = FlowRouter(mg, method = 'D4')
-    fr.route_flow()
+    # calculating flow directions with FlowAccumulator component
+    fr = FlowAccumulator(mg, flow_director = 'D4')
+    fr.run_one_step()
     # calculating flow length map
     stream__length = calculate_stream_length(mg, add_to_grid=True, noclobber=False)
     # modifying the stream_length_map because boundary and outlet nodes should not
@@ -82,8 +82,8 @@ def test_stream_length_irregular_grid_d8():
     hmg = HexModelGrid(5,3, dx)
     # instantiate and add the elevation field
     _ = hmg.add_field('topographic__elevation', hmg.node_x + np.round(hmg.node_y), at = 'node')
-    # calculating flow directions with FlowRouter component: D8 algorithm
-    fr = FlowRouter(hmg, method = 'D8')
+    # calculating flow directions with FlowAccumulator component: D8 algorithm
+    fr = FlowAccumulator(hmg, flow_director = 'D8')
     fr.route_flow()
     # calculating flow length map
     stream__length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
@@ -96,8 +96,8 @@ def test_stream_length_irregular_grid_d4():
     hmg = HexModelGrid(5,3, dx)
     # instantiate and add the elevation field
     _ = hmg.add_field('topographic__elevation', hmg.node_x + np.round(hmg.node_y), at = 'node')
-    # calculating flow directions with FlowRouter component: D4 algorithm
-    fr = FlowRouter(hmg, method = 'D4')
-    fr.route_flow()
+    # calculating flow directions with FlowAccumulator component: D4 algorithm
+    fr = FlowAccumulator(hmg, flow_director = 'D4')
+    fr.run_one_step()
     # calculating flow length map
     stream__length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
