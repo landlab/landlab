@@ -49,7 +49,7 @@ def test_stream_length_regular_grid_d8():
     # have stream_length value different from 0
     flow_length = np.reshape(stream__length-stream__length[6],mg.shape)
     # test that the stream length utility works as expected
-    assert_equal (flow_length_expected.all(),flow_length.all(),mg)
+    assert_array_equal(flow_length_expected, flow_length)
 
 
 def test_stream_length_regular_grid_d4():
@@ -74,7 +74,7 @@ def test_stream_length_regular_grid_d4():
     # have stream_length value different from 0
     flow_length = np.reshape(stream__length-stream__length[6],mg.shape)
     # test that the stream length utility works as expected
-    assert_equal (flow_length_expected.all(),flow_length.all(),mg)
+    assert_array_equal(flow_length_expected, flow_length)
 
 
 def test_stream_length_irregular_grid_d4():
