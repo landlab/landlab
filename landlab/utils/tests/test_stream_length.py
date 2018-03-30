@@ -25,7 +25,7 @@ def test_no_upstream_array():
     assert_raises(FieldError, calculate_stream_length, mg)
 
 
-def stream_length_regular_grid_d8():
+def test_stream_length_regular_grid_d8():
     """Test to demonstrate that stream_length utility works as expected with regular grids"""
     # instantiate a model grid
     mg = RasterModelGrid((5, 4), spacing=(1, 1))
@@ -50,7 +50,7 @@ def stream_length_regular_grid_d8():
     assert_equal (flow_length_expected.all(),flow_length.all(),mg)
 
 
-def stream_length_regular_grid_d4():
+def test_stream_length_regular_grid_d4():
     """Test to demonstrate that stream_length utility works as expected with regular grids"""
     # instantiate a model grid
     mg = RasterModelGrid((5, 4), spacing=(1, 1))
@@ -75,7 +75,7 @@ def stream_length_regular_grid_d4():
     assert_equal (flow_length_expected.all(),flow_length.all(),mg)
 
 
-def stream_length_irregular_grid_d8():
+def test_stream_length_irregular_grid_d8():
     """Test to demonstrate that stream_length utility works as expected with irregular grids"""
     # instantiate a model grid
     dx=(2./(3.**0.5))**0.5
@@ -89,7 +89,7 @@ def stream_length_irregular_grid_d8():
     stream__length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
 
 
-def stream_length_irregular_grid_d4():
+def test_stream_length_irregular_grid_d4():
     """Test to demonstrate that stream_length utility works as expected with irregular grids"""
     # instantiate a model grid
     dx=(2./(3.**0.5))**0.5
