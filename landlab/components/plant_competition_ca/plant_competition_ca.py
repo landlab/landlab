@@ -34,56 +34,6 @@ class VegCA(Component):
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
-    Construction::
-
-        VegCA(grid, Pemaxg=0.35, ING=2., ThetaGrass=0.62, PmbGrass=0.05,
-            Pemaxsh=0.2, ThetaShrub=0.8, PmbShrub=0.01, tpmaxShrub=600,
-            Pemaxtr=0.25, ThetaTree=0.72, PmbTree=0.01, tpmaxTree=350,
-            ThetaShrubSeedling=0.64, PmbShrubSeedling=0.03,
-            tpmaxShrubSeedling=18, ThetaTreeSeedling=0.64,
-            PmbTreeSeedling=0.03, tpmaxTreeSeedling=18)
-
-    Parameters
-    ----------
-    grid: RasterModelGrid
-        A grid.
-    Pemaxg: float, optional
-        Maximal establishment probability of grass.
-    ING: float, optional
-        Parameter to define allelopathic effect of creosote on grass.
-    ThetaGrass: float, optional
-        Drought resistance threshold of grass.
-    PmbGrass: float, optional
-        Background mortality probability of grass.
-    Pemaxsh: float, optional
-        Maximal establishment probability of shrub.
-    ThetaShrub: float, optional
-        Drought resistance threshold of shrub.
-    PmbShrub: float, optional
-        Background mortality probability of shrub.
-    tpmaxShrub: float, optional
-        Maximum age of shrub (years).
-    Pemaxtr: float, optional
-        Maximal establishment probability of tree.
-    Thetatree: float, optional
-        Drought resistance threshold of tree.
-    PmbTree: float, optional
-        Background mortality probability of tree.
-    tpmaxTree: float, optional
-        Maximum age of tree (years).
-    ThetaShrubSeedling: float, optional
-        Drought resistance threshold of shrub seedling.
-    PmbShrubSeedling: float, optional
-        Background mortality probability of shrub seedling.
-    tpmaxShrubSeedling: float, optional
-        Maximum age of shrub seedling (years).
-    ThetaTreeSeedling: float, optional
-        Drought resistance threshold of tree seedling.
-    PmbTreeSeedling: float, optional
-        Background mortality probability of tree seedling.
-    tpmaxTreeSeedling: float, optional
-        Maximum age of tree seedling (years).
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
