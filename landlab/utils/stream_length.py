@@ -66,7 +66,7 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
 
         # assess if this is a to one (D8/D4) or to multiple (Dinf, MFD)
         # flow directing method.
-        if len(reciever) == 1:
+        if isinstance(reciever, (int, np.int64)):
             to_one = True
             potential_outlet = reciever
         else:
