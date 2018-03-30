@@ -15,7 +15,7 @@ from __future__ import print_function
 import warnings
 
 from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import RasterModelGrid, VoronoiDelaunayGrid, NetworkModelGrid  # for type tests
 from landlab.utils.decorators import use_field_name_or_array
 from landlab.core.messages import warning_message
 
@@ -67,7 +67,7 @@ class FlowAccumulator(Component):
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  Link array of the D data structure: *flow__data_structure_D*
+        -  At Grid: D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields.
     DirectToOne methods(Steepest/D4 and D8) and DirectToMany(NAMES HERE) use
@@ -572,7 +572,7 @@ class FlowAccumulator(Component):
                     'flow__upstream_node_order': 'node',
                     'flow__nodes_not_in_stack': 'grid',
                     'flow__data_structure_delta': 'node',
-                    'flow__data_structure_D': 'link',
+                    'flow__data_structure_D': 'grid',
                     }
     _var_doc = {
         'topographic__elevation': 'Land surface topographic elevation',
@@ -594,8 +594,8 @@ class FlowAccumulator(Component):
             'structure "delta" used for construction of the downstream-to-'
             'upstream node array',
         'flow__data_structure_D':
-            'Link array containing the data structure D used for construction'
-            'of the downstream-to-upstream node array',
+            'Array containing the data structure D used for construction'
+            'of the downstream-to-upstream node array. Stored at Grid.',
         'flow__nodes_not_in_stack':
             'Boolean value indicating if there are any nodes that have not yet'
             'been added to the stack stored in flow__upstream_node_order.'
@@ -622,7 +622,7 @@ class FlowAccumulator(Component):
         # Grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-
+        self._is_Network = isinstance(self._grid, NetworkModelGrid)
         self.kwargs = kwargs
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -632,8 +632,16 @@ class FlowAccumulator(Component):
         self.surface = surface
         self.surface_values = _return_surface(grid, surface)
 
-        node_cell_area = self._grid.cell_area_at_node.copy()
-        node_cell_area[self._grid.closed_boundary_nodes] = 0.
+        if self._is_Network:
+            try:
+                node_cell_area = self._grid.at_node['cell_area_at_node']
+            except FieldError:
+                raise FieldError('In order for the FlowAccumulator to work, the '
+                                 'grid must have an at-node field called '
+                                 'cell_area_at_node.')
+        else:
+            node_cell_area = self._grid.cell_area_at_node.copy()
+            node_cell_area[self._grid.closed_boundary_nodes] = 0.
 
         self.node_cell_area = node_cell_area
 
@@ -681,23 +689,16 @@ class FlowAccumulator(Component):
             self.delta_structure = grid.at_node['flow__data_structure_delta']
 
         try:
+            D = BAD_INDEX_VALUE * grid.ones(at='link', dtype=int)
+            D_structure = np.array([D], dtype=object)
+            self.D_structure = grid.add_field('flow__data_structure_D',
+                                              D_structure,
+                                              at='grid',
+                                              dtype=object,
+                                              noclobber=False)
 
-            if self.flow_director.to_n_receivers == 'many' and self._is_raster:
-                # needs to be BAD_INDEX_VALUE
-                self.D_structure = grid.add_field('flow__data_structure_D',
-                                                  BAD_INDEX_VALUE*np.ones((self._grid.number_of_links, 2),
-                                                  dtype=int),
-                                                  at='link',
-                                                  dtype=int,
-                                                  noclobber=False)
-            else:
-
-                # needs to be BAD_INDEX_VALUE
-                self.D_structure = grid.add_field('flow__data_structure_D',
-                                                  BAD_INDEX_VALUE*grid.ones(at='link'),
-                                                  at='link', dtype=int)
         except FieldError:
-            self.D_structure = grid.at_link['flow__data_structure_D']
+            self.D_structure = grid.at_grid['flow__data_structure_D']
 
         self.nodes_not_in_stack = True
 
@@ -989,8 +990,8 @@ class FlowAccumulator(Component):
                 # put theese in grid so that depression finder can use it.
                 # store the generated data in the grid
                 self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-                self._grid['link']['flow__data_structure_D'][:len(D)] = D
                 self._grid['node']['flow__upstream_node_order'][:] = s
+                self._grid['grid']['flow__data_structure_D'][0] = np.array([D], dtype=object)
 
                 # step 4. Accumulate (to one or to N depending on direction method. )
                 a, q = flow_accum_bw.find_drainage_area_and_discharge(s,
@@ -1014,13 +1015,7 @@ class FlowAccumulator(Component):
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-
-            if self._is_raster:
-                tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links*2))
-                tempD[:len(D)] = D
-                self._grid['link']['flow__data_structure_D'][:] = tempD.reshape((self._grid.number_of_links, 2))
-            else:
-                self._grid['link']['flow__data_structure_D'][:len(D)] = D
+            self._grid['grid']['flow__data_structure_D'][0] = np.array([D], dtype=object)
             self._grid['node']['flow__upstream_node_order'][:] = s
 
             # step 3. Run depression finder if passed
