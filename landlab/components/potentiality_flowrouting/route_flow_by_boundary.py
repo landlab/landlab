@@ -48,34 +48,11 @@ class PotentialityFlowRouter(Component):
 
     The primary method of this class is :func:`run_one_step`.
 
-    Construction::
-
-        PotentialityFlowRouter(grid, method='D8', flow_equation='default',
-                     Chezys_C=30., Mannings_n=0.03)
-
     Notes
     -----
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    method : {'D8', 'D4'}, optional
-        Routing method ('D8' is the default). This keyword has no effect for a
-        Voronoi-based grid.
-    flow_equation : {'default', 'Manning', 'Chezy'}, optional
-        If Manning or Chezy, flow is routed according to the Manning or Chezy
-        equation; discharge is allocated to multiple downslope nodes
-        proportional to the square root of discharge; and a water__depth field
-        is returned. If default, flow is allocated to multiple nodes linearly
-        with slope; and the water__depth field is not calculated.
-    Chezys_C : float (optional)
-        Required if flow_equation == 'Chezy'.
-    Mannings_n : float (optional)
-        Required if flow_equation == 'Manning'.
 
     Examples
     --------
@@ -88,13 +65,16 @@ class PotentialityFlowRouter(Component):
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
     >>> Q_at_core_nodes = np.array(
-    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
-    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
-    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
+    ...     [ 13.57233404,  13.93522481,  11.52216193,  11.29307277,
+    ...        8.80884751,   8.86380667,   6.47446459,   6.82161521])
     >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
     ...             Q_at_core_nodes)
     True
     """
+#    >>> Q_at_core_nodes = np.array(
+#    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
+#    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
+#    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
     _name = 'PotentialityFlowRouter'
 
     _input_var_names = ('topographic__elevation',
@@ -141,7 +121,24 @@ class PotentialityFlowRouter(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
                  Chezys_C=30., Mannings_n=0.03, **kwds):
-        """Initialize flow router.
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        method : {'D8', 'D4'}, optional
+            Routing method ('D8' is the default). This keyword has no effect for a
+            Voronoi-based grid.
+        flow_equation : {'default', 'Manning', 'Chezy'}, optional
+            If Manning or Chezy, flow is routed according to the Manning or Chezy
+            equation; discharge is allocated to multiple downslope nodes
+            proportional to the square root of discharge; and a water__depth field
+            is returned. If default, flow is allocated to multiple nodes linearly
+            with slope; and the water__depth field is not calculated.
+        Chezys_C : float (optional)
+            Required if flow_equation == 'Chezy'.
+        Mannings_n : float (optional)
+            Required if flow_equation == 'Manning'.
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
             assert grid.number_of_node_rows >= 3

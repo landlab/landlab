@@ -1,6 +1,6 @@
 env:
   matrix:
-  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=1 COVERALLS=1
+  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=0 COVERALLS=1
   - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 COVERALLS=0
   - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 COVERALLS=0
   global:
@@ -38,7 +38,8 @@ install:
 - export PATH="$CONDA_PREFIX/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda install python=$TRAVIS_PYTHON_VERSION
+- conda create -n _testing python=$TRAVIS_PYTHON_VERSION
+- source activate _testing
 - conda install -q conda-build=3.0 anaconda-client coverage sphinx
 - conda install -q numpy=1.11
 - pip install coveralls
@@ -46,9 +47,9 @@ install:
 script:
 - conda build -q .conda-recipe --old-build-string
 - |
-  if [[ "$BUILD_DOCS" == "1" ]]; then
-    conda install -q landlab --use-local
-    (cd docs && make html 2> /dev/null)
+  if [[ "$BUILD_DOCS" == "1" && "$TRAVIS_OS_NAME" == "linux" ]]; then
+    conda install -q landlab --use-local -c $(dirname $(conda build --output ./.conda-recipe/ --old-build-string))
+    (cd docs && make html)
   fi
   # - bash .ci/travis/run_travis_test.sh
 virtualenv:

@@ -1,0 +1,528 @@
+/Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:134: DeprecationWarning: inspect.getargspec() is deprecated, use inspect.signature() or inspect.getfullargspec()
+  argspec = inspect.getargspec(func)
+/anaconda3/lib/python3.6/importlib/_bootstrap.py:205: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
+  return f(*args, **kwds)
+/Users/barnhark/projects/landlab/landlab/landlab/grid/tests/testing_hex_grid/testing_flux_divergence_hex_grid.py:132: DeprecationWarning: invalid escape sequence \ 
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/bmi/bmi_bridge.py:1: DeprecationWarning: generator 'TimeStepper.__iter__' raised StopIteration
+  """
+............................../Users/barnhark/projects/landlab/landlab/landlab/components/chi_index/channel_chi.py:204: RuntimeWarning: divide by zero encountered in true_divide
+  chi_integrand = (A0/valid_upstr_areas)**reftheta
+............./Users/barnhark/projects/landlab/landlab/landlab/components/depth_dependent_taylor_soil_creep/hillslope_depth_dependent_taylor_flux.py:342: RuntimeWarning: overflow encountered in double_scalars
+  courant_slope_term += courant_s_over_scrit**i
+......../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function node_spacing.
+  name=func.__name__), category=DeprecationWarning)
+.................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calc_grad_of_active_link.
+  name=func.__name__), category=DeprecationWarning)
+/Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calc_grad_at_active_link.
+  name=func.__name__), category=DeprecationWarning)
+................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:200: DeprecationWarning: Passing a file to a component's __init__ method is deprecated. Instead, pass parameters as keywords.
+  category=DeprecationWarning)
+...../Users/barnhark/projects/landlab/landlab/landlab/components/flow_routing/route_flow_dn.py:155: DeprecationWarning: 'method' should be set at initialization now. Please update your code.
+  "Please update your code.", DeprecationWarning)
+..................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function neighbors_at_node.
+  name=func.__name__), category=DeprecationWarning)
+................./Users/barnhark/projects/landlab/landlab/landlab/components/overland_flow/generate_overland_flow_Bates.py:205: RuntimeWarning: invalid value encountered in true_divide
+  abs(self.q[self.active_links]) / hflow ** self.ten_thirds))
+....../Users/barnhark/projects/landlab/landlab/landlab/components/overland_flow/generate_overland_flow_deAlmeida.py:480: RuntimeWarning: invalid value encountered in true_divide
+  self.h_links[vert] ** _SEVEN_OVER_THREE))
+...................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calculate_slope_aspect_at_nodes_burrough.
+  name=func.__name__), category=DeprecationWarning)
+......................................................../Users/barnhark/projects/landlab/landlab/landlab/components/stream_power/sed_flux_dep_incision.py:364: UserWarning: Found no incision threshold to use.
+  warnings.warn("Found no incision threshold to use.")
+............/Users/barnhark/projects/landlab/landlab/landlab/components/taylor_nonlinear_hillslope_flux/taylor_nonlinear_hillslope_flux.py:240: RuntimeWarning: overflow encountered in double_scalars
+  courant_slope_term += courant_s_over_scrit**i
+....................................../Users/barnhark/projects/landlab/landlab/landlab/core/utils.py:117: DeprecationWarning: Assigning the 'data' attribute is an inherently unsafe operation and will be removed in the future.
+  x.data = extended.data
+....F................................................................................................../Users/barnhark/projects/landlab/landlab/landlab/graph/graph.py:171: FutureWarning: iteration over an xarray.Dataset will change in xarray v0.11 to only include data variables, not coordinates. Iterate over the Dataset.variables property instead to preserve existing behavior in a forwards compatible manner.
+  for var in self.ds:
+/Users/barnhark/projects/landlab/landlab/landlab/graph/graph.py:177: FutureWarning: iteration over an xarray.Dataset will change in xarray v0.11 to only include data variables, not coordinates. Iterate over the Dataset.variables property instead to preserve existing behavior in a forwards compatible manner.
+  for var in self.ds:
+......................................./Users/barnhark/projects/landlab/landlab/landlab/graph/object/at_node.py:140: UserWarning: input must be ndarray of int for in-place sort
+  warnings.warn('input must be ndarray of int for in-place sort')
+............................................................................................................/Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function active_link_connecting_node_pair.
+  name=func.__name__), category=DeprecationWarning)
+.................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function max_of_link_end_node_values.
+  name=func.__name__), category=DeprecationWarning)
+................................./Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function set_nodata_nodes_to_inactive.
+  name=func.__name__), category=DeprecationWarning)
+....................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function set_inactive_boundaries.
+  name=func.__name__), category=DeprecationWarning)
+................................./Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calculate_diff_at_links.
+  name=func.__name__), category=DeprecationWarning)
+./Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calculate_gradients_at_faces.
+  name=func.__name__), category=DeprecationWarning)
+................../Users/barnhark/projects/landlab/landlab/landlab/grid/mappers.py:934: RuntimeWarning: invalid value encountered in true_divide
+  np.divide(total_vals, link_count, out=out)
+............../Users/barnhark/projects/landlab/landlab/landlab/grid/mappers.py:862: RuntimeWarning: invalid value encountered in true_divide
+  np.divide(total_vals, link_count, out=out)
+.........................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function face_connecting_cell_pair.
+  name=func.__name__), category=DeprecationWarning)
+....................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function has_boundary_neighbor.
+  name=func.__name__), category=DeprecationWarning)
+........../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calc_slope_aspect_of_nodes_horn.
+  name=func.__name__), category=DeprecationWarning)
+......./Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function corner_nodes.
+  name=func.__name__), category=DeprecationWarning)
+....../Users/barnhark/projects/landlab/landlab/landlab/grid/raster_gradients.py:427: MaskedArrayFutureWarning: setting an item on a masked array which has a shared mask will not copy the mask and also change the original mask array in the future.
+Check the NumPy 1.11 release notes for more information.
+  out[:, (0, 2)] /= grid.dx
+........................................................................................................................................................................................................................../Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function calculate_diff_at_active_links.
+  name=func.__name__), category=DeprecationWarning)
+........................................................................................................................................./Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:398: DeprecationWarning: Call to deprecated function set_closed_nodes.
+  name=func.__name__), category=DeprecationWarning)
+........................................................................................................................................................................................................E.......................................................................E.....................................................................................
+======================================================================
+ERROR: Failure: SyntaxError (invalid syntax (stream_length.py, line 80))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/anaconda3/lib/python3.6/site-packages/nose/failure.py", line 39, in runTest
+    raise self.exc_val.with_traceback(self.tb)
+  File "/anaconda3/lib/python3.6/site-packages/nose/loader.py", line 417, in loadTestsFromName
+    addr.filename, addr.module)
+  File "/anaconda3/lib/python3.6/site-packages/nose/importer.py", line 47, in importFromPath
+    return self.importFromDir(dir_path, fqname)
+  File "/anaconda3/lib/python3.6/site-packages/nose/importer.py", line 94, in importFromDir
+    mod = load_module(part_fqname, fh, filename, desc)
+  File "/anaconda3/lib/python3.6/imp.py", line 234, in load_module
+    return load_source(name, filename, file)
+  File "/anaconda3/lib/python3.6/imp.py", line 172, in load_source
+    module = _load(spec)
+  File "<frozen importlib._bootstrap>", line 675, in _load
+  File "<frozen importlib._bootstrap>", line 655, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 674, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 781, in get_code
+  File "<frozen importlib._bootstrap_external>", line 741, in source_to_code
+  File "<frozen importlib._bootstrap>", line 205, in _call_with_frames_removed
+  File "/Users/barnhark/projects/landlab/landlab/landlab/utils/stream_length.py", line 80
+    not_outlet = False:
+                      ^
+SyntaxError: invalid syntax
+
+======================================================================
+ERROR: Failure: SyntaxError (invalid syntax (stream_length.py, line 80))
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/anaconda3/lib/python3.6/site-packages/nose/failure.py", line 39, in runTest
+    raise self.exc_val.with_traceback(self.tb)
+  File "/anaconda3/lib/python3.6/site-packages/nose/loader.py", line 417, in loadTestsFromName
+    addr.filename, addr.module)
+  File "/anaconda3/lib/python3.6/site-packages/nose/importer.py", line 47, in importFromPath
+    return self.importFromDir(dir_path, fqname)
+  File "/anaconda3/lib/python3.6/site-packages/nose/importer.py", line 94, in importFromDir
+    mod = load_module(part_fqname, fh, filename, desc)
+  File "/anaconda3/lib/python3.6/imp.py", line 234, in load_module
+    return load_source(name, filename, file)
+  File "/anaconda3/lib/python3.6/imp.py", line 172, in load_source
+    module = _load(spec)
+  File "<frozen importlib._bootstrap>", line 675, in _load
+  File "<frozen importlib._bootstrap>", line 655, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 678, in exec_module
+  File "<frozen importlib._bootstrap>", line 205, in _call_with_frames_removed
+  File "/Users/barnhark/projects/landlab/landlab/landlab/utils/tests/test_stream_length.py", line 5, in <module>
+    from landlab.utils.stream_length import calculate_stream_length
+  File "/Users/barnhark/projects/landlab/landlab/landlab/utils/stream_length.py", line 80
+    not_outlet = False:
+                      ^
+SyntaxError: invalid syntax
+
+======================================================================
+FAIL: Doctest: landlab.core.utils.strip_grid_from_method_docstring
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/anaconda3/lib/python3.6/doctest.py", line 2199, in runTest
+    raise self.failureException(self.format_failure(new.getvalue()))
+AssertionError: Failed doctest test for landlab.core.utils.strip_grid_from_method_docstring
+  File "/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py", line 317, in strip_grid_from_method_docstring
+
+----------------------------------------------------------------------
+File "/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py", line 334, in landlab.core.utils.strip_grid_from_method_docstring
+Failed example:
+    help(dummy_func)
+Expected:
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+    <BLANKLINE>
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab modelgrid.
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+Got:
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab modelgrid.
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+        LLCATS: DEPR MAP
+    <BLANKLINE>
+----------------------------------------------------------------------
+File "/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py", line 356, in landlab.core.utils.strip_grid_from_method_docstring
+Failed example:
+    help(dummy_func)
+Expected:
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Construction::
+    <BLANKLINE>
+            grid.dummy_func_to_demonstrate_docstring_modification(some_arg)
+    <BLANKLINE>
+        Parameters
+        ----------
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+Got:
+    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    <BLANKLINE>
+    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
+        A dummy function to demonstrate automated docstring changes.
+    <BLANKLINE>
+        Parameters
+        ----------
+        some_arg : whatever
+            A dummy argument.
+    <BLANKLINE>
+        Examples
+        --------
+        ...
+    <BLANKLINE>
+        LLCATS: DEPR MAP
+    <BLANKLINE>
+
+>>  raise self.failureException(self.format_failure(<_io.StringIO object at 0x1c178b18b8>.getvalue()))
+    
+
+/Users/barnhark/projects/landlab/landlab/landlab/_registry.py:69: DeprecationWarning: invalid escape sequence \&
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/ca/celllab_cts.py:123: DeprecationWarning: invalid escape sequence \l
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/components/flexure/flexure.py:128: DeprecationWarning: invalid escape sequence \&
+  }"""
+/Users/barnhark/projects/landlab/landlab/landlab/components/overland_flow/generate_overland_flow_implicit_kinwave.py:64: DeprecationWarning: invalid escape sequence \D
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/components/overland_flow/generate_overland_flow_implicit_kinwave.py:148: DeprecationWarning: invalid escape sequence \D
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/components/stream_power/stream_power_smooth_threshold.py:17: DeprecationWarning: invalid escape sequence \o
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/components/weathering/exponential_weathering.py:52: DeprecationWarning: invalid escape sequence \d
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/core/messages.py:194: DeprecationWarning: invalid escape sequence \s
+  pattern = linesep + '\s*' + linesep
+/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py:381: DeprecationWarning: invalid escape sequence \(
+  match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
+/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py:388: DeprecationWarning: invalid escape sequence \)
+  end_chars = re.search('    .*?\)', lines_were).group()[4:]
+/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py:389: DeprecationWarning: invalid escape sequence \)
+  lines_are_now = re.sub('    .*?\)', '         '+end_chars,
+/Users/barnhark/projects/landlab/landlab/landlab/core/utils.py:395: DeprecationWarning: invalid escape sequence \(
+  func.__doc__ = re.sub(func.__name__+'\(grid, ',
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:3633: DeprecationWarning: invalid escape sequence \s
+  """
+/Users/barnhark/projects/landlab/landlab/landlab/grid/voronoi.py:665: DeprecationWarning: invalid escape sequence \g
+  """
+Name                                                                                            Stmts   Miss  Cover
+-------------------------------------------------------------------------------------------------------------------
+landlab/__init__.py                                                                                29     29     0%
+landlab/_info.py                                                                                    2      2     0%
+landlab/_registry.py                                                                               55     53     4%
+landlab/_version.py                                                                               277    277     0%
+landlab/bmi/__init__.py                                                                             1      0   100%
+landlab/bmi/bmi_bridge.py                                                                         123     34    72%
+landlab/bmi/components.py                                                                          12      2    83%
+landlab/bmi/standard_names.py                                                                       2      0   100%
+landlab/ca/__init__.py                                                                              0      0   100%
+landlab/ca/boundaries/__init__.py                                                                   0      0   100%
+landlab/ca/boundaries/hex_lattice_tectonicizer.py                                                 176     10    94%
+landlab/ca/celllab_cts.py                                                                         547    313    43%
+landlab/ca/hex_cts.py                                                                              12      3    75%
+landlab/ca/oriented_hex_cts.py                                                                     25      4    84%
+landlab/ca/oriented_raster_cts.py                                                                  28      9    68%
+landlab/ca/raster_cts.py                                                                           12      3    75%
+landlab/cmd/__init__.py                                                                             0      0   100%
+landlab/cmd/landlab.py                                                                            134    114    15%
+landlab/components/__init__.py                                                                     38      0   100%
+landlab/components/chi_index/__init__.py                                                            2      0   100%
+landlab/components/chi_index/channel_chi.py                                                       133     29    78%
+landlab/components/depth_dependent_diffusion/__init__.py                                            2      0   100%
+landlab/components/depth_dependent_diffusion/hillslope_depth_dependent_linear_flux.py              47      7    85%
+landlab/components/depth_dependent_taylor_soil_creep/__init__.py                                    2      0   100%
+landlab/components/depth_dependent_taylor_soil_creep/hillslope_depth_dependent_taylor_flux.py      80      5    94%
+landlab/components/detachment_ltd_erosion/__init__.py                                               3      0   100%
+landlab/components/detachment_ltd_erosion/generate_detachment_ltd_erosion.py                       35      3    91%
+landlab/components/detachment_ltd_erosion/generate_erosion_by_depth_slope.py                       41      5    88%
+landlab/components/diff_2d.py                                                                     118     81    31%
+landlab/components/diffusion/__init__.py                                                            2      0   100%
+landlab/components/diffusion/diffusion.py                                                         228     36    84%
+landlab/components/drainage_density/__init__.py                                                     2      0   100%
+landlab/components/drainage_density/drainage_density.py                                            59     11    81%
+landlab/components/erosion_deposition/__init__.py                                                   2      0   100%
+landlab/components/erosion_deposition/erosion_deposition.py                                       203     52    74%
+landlab/components/fire_generator/__init__.py                                                       2      0   100%
+landlab/components/fire_generator/generate_fire.py                                                 23      3    87%
+landlab/components/flexure/__init__.py                                                              4      0   100%
+landlab/components/flexure/flexure.py                                                              70      2    97%
+landlab/components/flexure/funcs.py                                                                77     32    58%
+landlab/components/flow_accum/__init__.py                                                           3      0   100%
+landlab/components/flow_accum/flow_accum_bw.py                                                     64      4    94%
+landlab/components/flow_accum/flow_accum_to_n.py                                                  107      4    96%
+landlab/components/flow_accum/flow_accumulator.py                                                 203     21    90%
+landlab/components/flow_director/__init__.py                                                        7      0   100%
+landlab/components/flow_director/flow_direction_DN.py                                              20      0   100%
+landlab/components/flow_director/flow_direction_dinf.py                                           131      3    98%
+landlab/components/flow_director/flow_direction_mfd.py                                             55      3    95%
+landlab/components/flow_director/flow_director.py                                                  27      2    93%
+landlab/components/flow_director/flow_director_d8.py                                               39      3    92%
+landlab/components/flow_director/flow_director_dinf.py                                             47      5    89%
+landlab/components/flow_director/flow_director_mfd.py                                              79      5    94%
+landlab/components/flow_director/flow_director_steepest.py                                         36      3    92%
+landlab/components/flow_director/flow_director_to_many.py                                          39      5    87%
+landlab/components/flow_director/flow_director_to_one.py                                           41      6    85%
+landlab/components/flow_routing/__init__.py                                                         5      0   100%
+landlab/components/flow_routing/lake_mapper.py                                                    413     41    90%
+landlab/components/flow_routing/route_flow_dn.py                                                   61     10    84%
+landlab/components/fracture_grid/__init__.py                                                        2      0   100%
+landlab/components/fracture_grid/fracture_grid.py                                                  50      7    86%
+landlab/components/gflex/__init__.py                                                                2      0   100%
+landlab/components/gflex/flexure.py                                                                93     72    23%
+landlab/components/landslides/__init__.py                                                           2      0   100%
+landlab/components/landslides/landslide_probability.py                                            147     19    87%
+landlab/components/nonlinear_diffusion/Perron_nl_diffuse.py                                       714    298    58%
+landlab/components/nonlinear_diffusion/__init__.py                                                  2      0   100%
+landlab/components/normal_fault/__init__.py                                                         1      0   100%
+landlab/components/normal_fault/normal_fault.py                                                    85      0   100%
+landlab/components/overland_flow/__init__.py                                                        5      0   100%
+landlab/components/overland_flow/generate_overland_flow_Bates.py                                   45      3    93%
+landlab/components/overland_flow/generate_overland_flow_deAlmeida.py                              180     14    92%
+landlab/components/overland_flow/generate_overland_flow_implicit_kinwave.py                        66      4    94%
+landlab/components/overland_flow/generate_overland_flow_kinwave.py                                 48      4    92%
+landlab/components/pet/__init__.py                                                                  2      0   100%
+landlab/components/pet/potential_evapotranspiration_field.py                                       88     29    67%
+landlab/components/plant_competition_ca/__init__.py                                                 2      0   100%
+landlab/components/plant_competition_ca/plant_competition_ca.py                                   141      1    99%
+landlab/components/potentiality_flowrouting/__init__.py                                             2      0   100%
+landlab/components/potentiality_flowrouting/route_flow_by_boundary.py                             106      1    99%
+landlab/components/potentiality_flowrouting/route_flow_by_boundary_1st.py                         107     26    76%
+landlab/components/potentiality_flowrouting/route_flow_by_boundary_2nd.py                         113     95    16%
+landlab/components/radiation/__init__.py                                                            2      0   100%
+landlab/components/radiation/radiation.py                                                          70      2    97%
+landlab/components/sink_fill/__init__.py                                                            2      0   100%
+landlab/components/sink_fill/fill_sinks.py                                                        208     84    60%
+landlab/components/soil_moisture/__init__.py                                                        3      0   100%
+landlab/components/soil_moisture/infiltrate_soil_green_ampt.py                                     87      9    90%
+landlab/components/soil_moisture/soil_moisture_dynamics.py                                        143     19    87%
+landlab/components/space/__init__.py                                                                2      0   100%
+landlab/components/space/space.py                                                                 263     61    77%
+landlab/components/steepness_index/__init__.py                                                      2      0   100%
+landlab/components/steepness_index/channel_steepness.py                                           133      0   100%
+landlab/components/stream_power/__init__.py                                                         5      0   100%
+landlab/components/stream_power/fastscape_stream_power.py                                          91     11    88%
+landlab/components/stream_power/sed_flux_dep_incision.py                                          360     44    88%
+landlab/components/stream_power/stream_power.py                                                   189     35    81%
+landlab/components/stream_power/stream_power_smooth_threshold.py                                   48      8    83%
+landlab/components/taylor_nonlinear_hillslope_flux/__init__.py                                      2      0   100%
+landlab/components/taylor_nonlinear_hillslope_flux/taylor_nonlinear_hillslope_flux.py              62      5    92%
+landlab/components/transport_length_diffusion/__init__.py                                           2      0   100%
+landlab/components/transport_length_diffusion/transport_length_hillslope_diffusion.py              64      8    88%
+landlab/components/uniform_precip/__init__.py                                                       2      0   100%
+landlab/components/uniform_precip/generate_uniform_precip.py                                      131     17    87%
+landlab/components/vegetation_dynamics/__init__.py                                                  2      0   100%
+landlab/components/vegetation_dynamics/vegetation_dynamics.py                                      98      6    94%
+landlab/components/weathering/__init__.py                                                           2      0   100%
+landlab/components/weathering/exponential_weathering.py                                            24      2    92%
+landlab/core/__init__.py                                                                            2      2     0%
+landlab/core/messages.py                                                                           49     15    69%
+landlab/core/model_component.py                                                                    98     65    34%
+landlab/core/model_parameter_dictionary.py                                                        166     69    58%
+landlab/core/model_parameter_loader.py                                                             26      8    69%
+landlab/core/utils.py                                                                             152     85    44%
+landlab/field/__init__.py                                                                           5      5     0%
+landlab/field/field_mixin.py                                                                       40     12    70%
+landlab/field/graph_field.py                                                                      197     46    77%
+landlab/field/grouped.py                                                                          112     35    69%
+landlab/field/scalar_data_fields.py                                                                65     26    60%
+landlab/framework/__init__.py                                                                       0      0   100%
+landlab/framework/collections.py                                                                  131     61    53%
+landlab/framework/component.py                                                                     40     40     0%
+landlab/framework/decorators.py                                                                    54     33    39%
+landlab/framework/framework.py                                                                     32     32     0%
+landlab/framework/interfaces.py                                                                    94     94     0%
+landlab/graph/__init__.py                                                                           7      0   100%
+landlab/graph/dual.py                                                                             129     11    91%
+landlab/graph/ext/__init__.py                                                                       0      0   100%
+landlab/graph/graph.py                                                                            185     34    82%
+landlab/graph/hex/__init__.py                                                                       3      0   100%
+landlab/graph/hex/dual_hex.py                                                                      14      1    93%
+landlab/graph/hex/ext/__init__.py                                                                   0      0   100%
+landlab/graph/hex/hex.py                                                                           71      4    94%
+landlab/graph/matrix/__init__.py                                                                    0      0   100%
+landlab/graph/matrix/at_node.py                                                                    12      0   100%
+landlab/graph/matrix/at_patch.py                                                                   13      4    69%
+landlab/graph/matrix/ext/__init__.py                                                                0      0   100%
+landlab/graph/object/__init__.py                                                                    0      0   100%
+landlab/graph/object/at_node.py                                                                    41      4    90%
+landlab/graph/object/at_patch.py                                                                    6      0   100%
+landlab/graph/object/ext/__init__.py                                                                0      0   100%
+landlab/graph/quantity/__init__.py                                                                  0      0   100%
+landlab/graph/quantity/ext/__init__.py                                                              0      0   100%
+landlab/graph/quantity/of_link.py                                                                  19      0   100%
+landlab/graph/quantity/of_patch.py                                                                 13      0   100%
+landlab/graph/radial/__init__.py                                                                    3      0   100%
+landlab/graph/radial/dual_radial.py                                                                10      2    80%
+landlab/graph/radial/radial.py                                                                     31      2    94%
+landlab/graph/sort/__init__.py                                                                      2      0   100%
+landlab/graph/sort/ext/__init__.py                                                                  0      0   100%
+landlab/graph/sort/sort.py                                                                        181     11    94%
+landlab/graph/structured_quad/__init__.py                                                           3      0   100%
+landlab/graph/structured_quad/dual_structured_quad.py                                              65      6    91%
+landlab/graph/structured_quad/ext/__init__.py                                                       0      0   100%
+landlab/graph/structured_quad/structured_quad.py                                                  126      3    98%
+landlab/graph/ugrid.py                                                                             81     38    53%
+landlab/graph/voronoi/__init__.py                                                                   3      0   100%
+landlab/graph/voronoi/dual_voronoi.py                                                              28      0   100%
+landlab/graph/voronoi/ext/__init__.py                                                               0      0   100%
+landlab/graph/voronoi/voronoi.py                                                                   43      0   100%
+landlab/graph/voronoi/voronoi_helpers.py                                                          125      0   100%
+landlab/grid/__init__.py                                                                            8      8     0%
+landlab/grid/base.py                                                                              844    314    63%
+landlab/grid/create.py                                                                             23     15    35%
+landlab/grid/decorators.py                                                                         44     23    48%
+landlab/grid/diagonals.py                                                                         141     81    43%
+landlab/grid/divergence.py                                                                         86      5    94%
+landlab/grid/gradients.py                                                                         137     44    68%
+landlab/grid/grid_funcs.py                                                                          7      7     0%
+landlab/grid/hex.py                                                                               209     83    60%
+landlab/grid/linkstatus.py                                                                         38     11    71%
+landlab/grid/mappers.py                                                                           242      7    97%
+landlab/grid/nodestatus.py                                                                          7      7     0%
+landlab/grid/radial.py                                                                             64     28    56%
+landlab/grid/raster.py                                                                            882    271    69%
+landlab/grid/raster_aspect.py                                                                     118     62    47%
+landlab/grid/raster_funcs.py                                                                       50     18    64%
+landlab/grid/raster_gradients.py                                                                  473     32    93%
+landlab/grid/raster_mappers.py                                                                    160     15    91%
+landlab/grid/raster_set_status.py                                                                   9      0   100%
+landlab/grid/structured_quad/__init__.py                                                            0      0   100%
+landlab/grid/structured_quad/cells.py                                                              35     20    43%
+landlab/grid/structured_quad/faces.py                                                              19      2    89%
+landlab/grid/structured_quad/links.py                                                             290     59    80%
+landlab/grid/structured_quad/nodes.py                                                              47     19    60%
+landlab/grid/structured_quad/rectilinear.py                                                        32      6    81%
+landlab/grid/structured_quad/structured.py                                                         54      5    91%
+landlab/grid/unstructured/__init__.py                                                               0      0   100%
+landlab/grid/unstructured/base.py                                                                 141     14    90%
+landlab/grid/unstructured/cells.py                                                                 34     10    71%
+landlab/grid/unstructured/links.py                                                                113     40    65%
+landlab/grid/unstructured/nodes.py                                                                 26      4    85%
+landlab/grid/unstructured/status.py                                                                30     28     7%
+landlab/grid/voronoi.py                                                                           194     41    79%
+landlab/io/__init__.py                                                                              3      3     0%
+landlab/io/esri_ascii.py                                                                          158     39    75%
+landlab/io/gebco/__init__.py                                                                        0      0   100%
+landlab/io/gebco/read.py                                                                           40     28    30%
+landlab/io/native_landlab.py                                                                       23      2    91%
+landlab/io/netcdf/__init__.py                                                                      15     15     0%
+landlab/io/netcdf/_constants.py                                                                     8      8     0%
+landlab/io/netcdf/errors.py                                                                         5      5     0%
+landlab/io/netcdf/read.py                                                                          95     33    65%
+landlab/io/netcdf/write.py                                                                        261     65    75%
+landlab/io/vtk/__init__.py                                                                          0      0   100%
+landlab/io/vtk/encoders.py                                                                         42     23    45%
+landlab/io/vtk/vti.py                                                                              11      5    55%
+landlab/io/vtk/vtktypes.py                                                                         54      9    83%
+landlab/io/vtk/vtkxml.py                                                                          141     90    36%
+landlab/io/vtk/writer.py                                                                           99     71    28%
+landlab/layers/__init__.py                                                                          2      2     0%
+landlab/layers/eventlayers.py                                                                      89     34    62%
+landlab/layers/ext/__init__.py                                                                      0      0   100%
+landlab/plot/__init__.py                                                                            2      2     0%
+landlab/plot/channel_profile.py                                                                   114     23    80%
+landlab/plot/colors.py                                                                             15     10    33%
+landlab/plot/drainage_plot.py                                                                      52     46    12%
+landlab/plot/event_handler.py                                                                      13      5    62%
+landlab/plot/graph.py                                                                              46     40    13%
+landlab/plot/imshow.py                                                                            169     85    50%
+landlab/plot/video_out.py                                                                          87     73    16%
+landlab/utils/__init__.py                                                                           3      3     0%
+landlab/utils/count_repeats.py                                                                     12      2    83%
+landlab/utils/decorators.py                                                                       107     38    64%
+landlab/utils/depth_dependent_roughness.py                                                         11      2    82%
+landlab/utils/ext/__init__.py                                                                       0      0   100%
+landlab/utils/fault_facet_finder.py                                                               256    236     8%
+landlab/utils/jaggedarray.py                                                                       58     20    66%
+landlab/utils/jaggedarray_ma.py                                                                    56      4    93%
+landlab/utils/source_tracking_algorithm.py                                                         73     24    67%
+landlab/utils/structured_grid.py                                                                  595    199    67%
+landlab/utils/watershed.py                                                                         63      4    94%
+-------------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                           17797   5393    70%
+----------------------------------------------------------------------
+Ran 1534 tests in 35.654s
+
+FAILED (errors=2, failures=1)
+landlab version v1.2.0+600.g9c77fdf1.dirty
+landlab is installed in /Users/barnhark/projects/landlab/landlab/landlab
+Python version 3.6.2 |Anaconda custom (x86_64)| (default, Sep 21 2017, 18:29:43) [GCC 4.2.1 Compatible Clang 4.0.1 (tags/RELEASE_401/final)]
+nose version 1.3.7
+Running unit tests and doctests for landlab
+NumPy version 1.13.3
+NumPy relaxed strides checking option: True
+NumPy is installed in /anaconda3/lib/python3.6/site-packages/numpy
+Python version 3.6.2 |Anaconda custom (x86_64)| (default, Sep 21 2017, 18:29:43) [GCC 4.2.1 Compatible Clang 4.0.1 (tags/RELEASE_401/final)]
+nose version 1.3.7
+Missing member or type mismatch for __init__
+Missing member or type mismatch for __init__
+Current sim time0.0(0.0%)
+Current sim time0.0(0.0%)
+FlowAccumulator found both the field 'water__unit_flux_in' and a provided float or array for the runoff_rate argument. THE FIELD IS BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!
+FlowAccumulator found both the field 'water__unit_flux_in' and a provided float or array for the runoff_rate argument. THE FIELD IS BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!
+FlowAccumulator found both the field 'water__unit_flux_in' and a provided float or array for the runoff_rate argument. THE FIELD IS BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!
+ERROR
+=====
+
+Unstable time step!WARNING
+=======
+
+Lorem ipsumERROR
+=====
+
+Lorem ipsumWARNING
+=======ERROR
+=====
+Grid query results:
+
+{'grid location': {'x_coord': 2,
+                   'y_coord': 2},
+ 'node': {'ID': 12,
+          'column': 2,
+          'row': 2}}
