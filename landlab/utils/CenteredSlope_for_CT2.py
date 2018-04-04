@@ -9,6 +9,7 @@ Created on Tue Mar 27 10:14:52 2018
 import numpy as np
 import gc
 from landlab.item_collection import ItemCollection
+from math import pi
 
 
 class ClastCollection(ItemCollection):
@@ -70,7 +71,7 @@ class ClastCollection(ItemCollection):
         self._clast__node = self._grid.find_nearest_node((self._clast__x, self._clast__y)) # needs this to update after clast has moved
         _node = self._clast__node[clast]
         _grid = self._grid
-        ### Calculation of slopes: W to E and S to N
+        ### Calculation of slopes: W to E and S to N, units=m/m
         we_slope=(_grid.at_node['topographic__elevation'][west_node]-
                   _grid.at_node['topographic__elevation'][east_node])/(2*rmg.dx)
         
@@ -105,32 +106,36 @@ class ClastCollection(ItemCollection):
                 target_node = -1
     #            # OPTION2 (to develop):
     #            # clast moves to random direction, according to lambda_0:
+    #            ss_azimuth = np.random.uniform(0.0, 2*pi, 1)   # pick a direction at random
+    #            self.rand_length = np.random.exponential(scale=self.at[clast, 'lambda_0'], 1)
+    #            dist_to_exit = 
+
 
             else: # SN slope is not 0, ss direction is S or N
                 if sn_slope < 0: # ss direction is South
-                    ss_dip = np.abs(sn_slope)
+                    ss_dip = np.arctan(np.abs(sn_slope))   # dip in radians
                     ss_azimuth = np.radians(270) # South
                     dist_to_exit = self._clast_y - (self.node_y[_node]-(dy/2))
                     target_node = _row_col_adjacent_nodes_at_node[3]
                 else: # ss direction is North
-                    ss_dip = np.abs(sn_slope)
+                    ss_dip = np.arctan(np.abs(sn_slope))
                     ss_azimuth = np.radians(90) # North
                     dist_to_exit = (self.node_y[_node]+(dy/2)) - self._clast_y
                     target_node = _row_col_adjacent_nodes_at_node[1]
         else: # we_slope is not 0
             if sn_slope == 0:
                 if we_slope < 0: # ss direction is West
-                    ss_dip = np.abs(we_slope)
+                    ss_dip = np.arctan(np.abs(we_slope))
                     ss_azimuth = np.radians(180) # West
                     dist_to_exit = self._clast_x - (self.node_x[_node]-(dx/2))
                     target_node = _row_col_adjacent_nodes_at_node[2]
                 else: # ss direction is East
-                    ss_dip = np.abs(we_slope)
+                    ss_dip = np.arctan(np.abs(we_slope))
                     ss_azimuth = 0 # East
                     dist_to_exit = (self.node_y[_node]+(dx/2)) - self._clast_x
                     target_node = _row_col_adjacent_nodes_at_node[0]
             else: # sn_slope is not 0
-                ss_dip = np.sqrt(np.power(sn_slope, 2) + np.power(we_slope, 2))
+                ss_dip = np.sqrt(np.power(np.arctan(sn_slope), 2) + np.power(np.arctan(we_slope), 2))
                 if sn_slope > 0 and we_slope > 0: # Quarter = NE
                     ss_azimuth = np.arctan(np.abs(sn_slope / we_slope))
                     corner = 0
@@ -339,12 +344,13 @@ class ClastCollection(ItemCollection):
                     # Test if clast is detached:
                     if ClastCollection.clast_detach_proba(self, i) == True:
                         #print('detached')
-                        # Clast is detached -> Test if moves (leaves node):
+                        # Clast is detached -> update neighborhood info:
                         ClastCollection._neighborhood(self, i)
                         ClastCollection._move_to(self, i)
                         
                         self.at[clast, 'hop_length'] =0
                         self.rand_length = 0.
+                        #Test if moves (leaves node):
                         while ClastCollection._change_cell_proba(self, i) == True:
                             ClastCollection._move_out_of_cell(self,i)
                             ClastCollection._neighborhood(self, i)
