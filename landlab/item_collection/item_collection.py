@@ -361,15 +361,17 @@ class ItemCollection(object):
 
         for colname in new_columns:
             if colname not in old_columns:
-                raise ValueError(('A new column value is being passed to ',
-                                  'ItemCollection using add_item. You must '
-                                  'use add_variable.'))
+                raise ValueError(('A data associated with a new column name is '
+                                  'being passed to ItemCollection using the '
+                                  'method add_item. You must first add this '
+                                  'variable using the method add_variable.'))
         for colname in old_columns:
             if colname not in new_columns:
                 raise ValueError(('New items are being added to an '
-                                  'that do not include already existing '
-                                  'variables. You must pass all existing '
-                                  'variables.'))
+                                  'ItemCollection that do not include already '
+                                  'existing variables. When adding items to '
+                                  'ItemCollection you must pass values for all '
+                                  'existing variables.'))
 
         # append new data frame, ingoring its current index (which just adds)
         # additional indicies.
