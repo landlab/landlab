@@ -312,7 +312,7 @@ def test_adding_bad_size_variable():
 
 def test_adding_non_string_variable_name():
     """Test passing a variable name that is not a string."""
-    new_var = [1, 2, 3, 4, 5, 6]
+    new_var = [10, 11, 12, 13, 14, 15, 16]
 
     # for each grid type
     for grid in [rgrid, hgrid]: # [rgrid, hgrid, ngrid]
@@ -347,7 +347,7 @@ def test_adding_non_string_variable_name():
 
 def test_adding_old_variable_name():
     """Test adding an old variable name."""
-    new_var = [1, 2, 3, 4, 5, 6]
+    new_var = [10, 11, 12, 13, 14, 15, 16]
 
     # for each grid type
     for grid in [rgrid, hgrid]: # [rgrid, hgrid, ngrid]
