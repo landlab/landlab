@@ -30,6 +30,15 @@ class ItemCollection(object):
     if you have a grid with only 100 links, no item can live at link 100 or
     link -3.
 
+    Methods
+    -------
+    add_variable
+    add_item
+    get_value
+    set_value
+    get_items_on_grid_element
+    calc_aggregate_value
+
     """
 
     def __init__(self, grid, data=None, grid_element=None, element_id=None):
