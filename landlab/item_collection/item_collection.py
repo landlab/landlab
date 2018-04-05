@@ -323,14 +323,21 @@ class ItemCollection(object):
         """Add a new variable to the ItemCollection."""
         if isinstance(variable, string_types):
             if np.array(values).size == self.DataFrame.shape[0]:
-                self.DataFrame[variable] = values
+                pass
             else:
                 raise ValueError(('Values passed to add_variable must have '
                                   'the same size as the current ItemCollection.'))
+
+            if variable in self.DataFrame.columns.values:
+                raise ValueError(('Variable name ' + variable + ' passed to add_variable '
+                                  'already exists. This is not permitted.'))
         else:
             raise ValueError(('Variable name passed to add_variable must be of '
                               'type string.'))
-        
+            
+        # assign variable to values
+        self.DataFrame[variable] = values
+
         # reassign variable names and re-order dataframe
         self.variable_names = list(np.sort(list(self.DataFrame)[2:]))
         self._column_order = ['grid_element', 'element_id'] + self.variable_names
