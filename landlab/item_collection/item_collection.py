@@ -63,13 +63,12 @@ class ItemCollection(object):
         data : dictionary
             A group of number-of-items long arrays. All arrays must be the same
             length. The dictionary keys will become the column names of the
-            ItemCollection
+            ItemCollection.
         grid_element : str or number-of-items long array
             The type of grid element each element lives on. The element type must
             be consistent with the type of grid provided (e.g. only nodes and links
             are valid if grid is of type NetworkModelGrid). If provided as a string
             it is assumed that all items live on the same type of grid element.
-
             Valid locations are: node, link, cell, patch, corner, face
         element_id : number-of-items long array
             The grid element id where each item resides.
@@ -343,7 +342,16 @@ class ItemCollection(object):
         return grid_element
 
     def add_variable(self, variable, values):
-        """Add a new variable to the ItemCollection."""
+        """Add a new variable to the ItemCollection.
+
+        Parameters
+        ----------
+        variable : str
+            The name of the new variable.
+        values : array-like
+            The values for the new variable. The number of values must match the
+            number of items.
+        """
         if isinstance(variable, string_types):
             if np.array(values).size == self.DataFrame.shape[0]:
                 pass
@@ -367,7 +375,25 @@ class ItemCollection(object):
         self.DataFrame = self.DataFrame[self._column_order]
 
     def add_item(self, data=None, grid_element=None, element_id=None):
-        """Add new items to the ItemCollection"""
+        """Add new items to the ItemCollection
+
+        Parameters
+        ----------
+        data : dictionary
+            A group of number-of-items long arrays. All arrays must be the same
+            length. The dictionary keys will become the column names of the
+            ItemCollection. No new variables are permitted (use 'add_variable')
+            and all existing variables must be included.
+        grid_element : str or number-of-items long array
+            The type of grid element each element lives on. The element type must
+            be consistent with the type of grid provided (e.g. only nodes and links
+            are valid if grid is of type NetworkModelGrid). If provided as a string
+            it is assumed that all items live on the same type of grid element.
+            Valid locations are: node, link, cell, patch, corner, face
+        element_id : number-of-items long array
+            The grid element id where each item resides.
+
+        """
 
         self._check_sizes(data)
 
@@ -407,7 +433,19 @@ class ItemCollection(object):
         self._check_element_id_values()
 
     def get_value(self, item_id=None, variable=None):
-        """Get the value of an item."""
+        """Get the value of an item.
+
+        Parameters
+        ----------
+        item_id : int or iterable
+            The id or ids of the items to query.
+        variable : str or iterable of string_types
+            The name or names of the variables to query.
+
+        Returns
+        -------
+        Dataframe
+        """
         # if either are provided as str/int, convert to list
         if isinstance(item_id, int):
             item_id = list([item_id])
@@ -426,11 +464,35 @@ class ItemCollection(object):
             return self.DataFrame.loc[item_id, variable]
 
     def set_value(self, item_id=None, variable=None, value=None):
-        """Set the value of an item."""
+        """Set the value of an item.
+
+        Parameters
+        ----------
+        item_id : int
+            The id of the item.
+        variable : str
+            The variable name.
+        value :
+            The value to set for ``variable`` and ``item_id``.
+
+        """
         self.DataFrame.loc[item_id, variable] = value
 
     def get_items_on_grid_element(self, at=None, element_id = 0):
-        """Get all items on a grid element with a particular element_id."""
+        """Get all items on a grid element with a particular element_id.
+
+        Parameters
+        ----------
+        at : str
+            Name of grid element type.
+        element_id : int
+            Element id.
+
+        Returns
+        -------
+        Dataframe
+        """
+
         vals = self.DataFrame.loc[(self.DataFrame['grid_element'] == at) &
                                   (self.DataFrame['element_id'] == element_id)]
         return vals
