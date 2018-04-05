@@ -25,9 +25,23 @@ class ItemCollection(object):
     This is a base class to contain the majority of core ItemCollection
     functionality. It inherits from the Pandas Dataframe.
 
-    It requires that all data live on a grid element (e.g. node, link), with
-    an element id that is less than the number of those elements. For example
-    if you have a grid with only 100 links, no item can live at link 100 or
+    It is useful to define a few terms used in this documentation.
+
+    1. A **grid_element** is a geometric part of the model grid. Links, nodes,
+    cells, and patches are all examples of grid elements. A specific instance of
+    a model grid will have a fixed number of each of these grid elements.
+
+    2. An **item** is a generic thing that, at minimum, has a location on the
+    grid defined by a grid element name, and a grid element id.
+
+    3. A **variable** is an attribute of an **item** that is not related to its
+    location on the grid.
+
+    4. Each **item** has a **value** for each **variable**.
+
+    ItemCollection requires that all data live on a grid element, with an
+    element id that is less than the number of those elements. For example if
+    you have a grid with only 100 links, no item can live at link 100 or
     link -3.
 
     Methods
