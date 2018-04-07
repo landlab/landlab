@@ -25,11 +25,80 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
 
     Examples
     --------
-    >>> # PUT EXAMPLES HERE
-    >>> # these examples will go into the documentation and make it easy for
-    >>> # users to understand how to use this utility.
-    >>> # they will also get tested.
-
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulator
+    >>> from landlab.utils.stream_length import calculate_stream_length
+    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> elev = np.array([0.,  0.,  0., 0.,
+        ...              0., 21., 10., 0.,
+        ...              0., 31., 20., 0.,
+        ...              0., 32., 30., 0.,
+        ...              0.,  0.,  0., 0.])
+    >>> mg.add_field('node','topographic__elevation', z)
+    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
+    >>> fr = FlowAccumulator(mg, flow_director = 'D8')
+    >>> fr.run_one_step()
+    >>> flow_length = calculate_stream_length(mg, add_to_grid=True, noclobber=False)
+    >>> #Set to zero the flow length values of boundary nodes and watershed's outlet
+    >>> flow_length[mg.boundary_nodes] = 0
+    >>> outlet_id = 6
+    >>> flow_length[outlet_id] = 0
+    >>> mg.at_node['flow_length']
+    >>> array([  0,  0,  0,  0,
+                 0,  1,  0,  0,
+                 0,  1.414,  1, 0,
+                 0, 2.414, 2, 0,
+                 0, 0, 0, 0])
+        
+        Now, let's change to D4 the flow_director method, that does not 
+        consider diagonal links bewtween nodes.
+        
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulator
+    >>> from landlab.utils.stream_length import calculate_stream_length
+    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> elev = np.array([0.,  0.,  0., 0.,
+        ...              0., 21., 10., 0.,
+        ...              0., 31., 20., 0.,
+        ...              0., 32., 30., 0.,
+        ...              0.,  0.,  0., 0.])
+    >>> mg.add_field('node','topographic__elevation', z)
+    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
+    >>> fr = FlowAccumulator(mg, flow_director = 'D4')
+    >>> fr.run_one_step()
+    >>> flow_length = calculate_stream_length(mg, add_to_grid=True, noclobber=False)
+    >>> #Set to zero the flow length values of boundary nodes and watershed's outlet
+    >>> flow_length[mg.boundary_nodes] = 0
+    >>> outlet_id = 6
+    >>> flow_length[outlet_id] = 0
+    >>> mg.at_node['flow_length']
+    >>> array([  0,  0,  0,  0,
+                 0,  1,  0,  0,
+                 0,  2,  1, 0,
+                 0, 3, 2, 0,
+                 0, 0, 0, 0])
+                 
+        The stream_length utility can also work on irregular grids. For the example we 
+        will use a Hexagonal Model Grid, a special type of Voroni Grid that has 
+        regularly spaced hexagonal cells. We will also set the dx spacing such 
+        that each cell has an area of one.  
+        
+    >>> from landlab import HexModelGrid, CLOSED_BOUNDARY
+    >>> from landlab.components import FlowAccumulator
+    >>> from landlab.utils.stream_length import calculate_stream_length
+    >>> dx=(2./(3.**0.5))**0.5
+    >>> mg = HexModelGrid(5,3, dx)
+    >>> mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
+    >>> hmg.status_at_node[0] = CLOSED_BOUNDARY
+    >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
+    >>> fr.run_one_step()
+    >>> flow_length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
+    >>> #Even in this case, boundary and outlet nodes should have a flow length equal to zero
+    >>> flow_length[hmg.boundary_nodes] = 0
+    >>> outlet_id = 4
+    >>> flow_length[outlet_id] = 0
+    
+        
     """
     # check that flow__reciever nodes exists
     if 'flow__receiver_node' not in grid.at_node:
