@@ -19,6 +19,7 @@ from landlab import HexModelGrid
 from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, tan, cos, pi)
+import numpy as np
 from ..cfuncs import get_next_event_new
 
 _DEFAULT_NUM_ROWS = 5
@@ -340,6 +341,35 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # Finally, convert the outgoing node list to an array stored in
             # this object
             self.outgoing_node = array(outgoing_node_list, dtype=int)
+
+    def setup_link_offsets(self):
+        """Set up array with link IDs for shifting link data up and right.
+        
+        Notes
+        -----
+        
+        Examples
+        --------
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab import HexModelGrid
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
+        >>> ns = np.arange(25, dtype=int)
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
+        >>> lnf.setup_link_offsets()
+        >>> lnf.link_offset_id
+        array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        """
+        self.link_offset_id = zeros(self.grid.number_of_links, dtype=np.int)
+        nc = self.grid.number_of_node_columns
+        default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
+        first_link_for_shift = (default_offset + 2 * (nc - 1) + (nc - 1) 
+                                + (nc - 1) // 2)
+        #do we need to do +1 or -1 for either odd or even # cols?
+        #for ln in range()
 
     def do_offset(self, rock_state=1):
         """Apply 60-degree normal-fault offset.
