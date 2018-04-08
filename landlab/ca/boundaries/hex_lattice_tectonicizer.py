@@ -771,17 +771,23 @@ class LatticeUplifter(HexLatticeTectonicizer):
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
 
-        # STILL TO DO: MAKE SURE THIS HANDLES WRAP PROPERLY (I DON'T THINK
-        # IT DOES NOW)
-        # If propid (property ID or index) is defined, shift that too.
+        # If propid (property ID) is defined, shift that too.
+        # TODO: add a test for this
+        print('before uplift:')
+        print(self.propid)
+        temp = self.propid.copy()
         if self.propid is not None:
             top_row_propid = self.propid[self.inner_top_row_nodes]
-            for r in range(self.nr-1, 1, -1):
+            for r in range(self.nr-1, 0, -1):
                 self.propid[self.inner_base_row_nodes+self.nc*r] =  \
-                            self.propid[self.inner_base_row_nodes+self.nc*(r-2)]
+                            self.propid[self.inner_base_row_nodes+self.nc*(r-1)]
             self.propid[self.inner_base_row_nodes] = top_row_propid
             self.prop_data[self.propid[self.inner_base_row_nodes]] = \
                     self.prop_reset_value
+            for i in range(len(self.propid)):
+                print((i, temp[i], self.propid[i]))
+            print('')
+            print('')
 
         self.shift_link_and_transition_data_upward(ca, current_time)
 
