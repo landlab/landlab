@@ -244,7 +244,8 @@ class SoilMoisture(Component):
         grid: RasterModelGrid
             A grid.
         runon_switch: int, optional
-            To indicate whether runon needs to considered (mm).
+            To indicate whether runon needs to considered (mm);
+            0 - No runon, 1 - runon.
         ordered_cells: numpy.array, required if runon_switch = 1
             ordered_cells has the grid cells sorted in an order of descending
             channel length in a delineated watershed
@@ -274,7 +275,7 @@ class SoilMoisture(Component):
         hgw: float, optional
             Soil saturation degree at hygroscopic point (None).
         beta: float, optional
-            Deep percolation constant = 2*b+3 where b is
+            Deep percolation constant = 2*b+4 where b is
             water retention (None).
         LAI_max: float, optional
             Maximum leaf area index (m^2/m^2).
@@ -360,7 +361,8 @@ class SoilMoisture(Component):
         grid: RasterModelGrid
             A grid.
         runon_switch: int, optional
-            To indicate whether runon needs to considered (mm).
+            To indicate whether runon needs to considered (mm);
+            0 - No runon, 1 - runon.
         ordered_cells: numpy.array, required if runon_switch = 1
             ordered_cells has the grid cells sorted in an order of descending
             channel length in a delineated watershed
@@ -390,7 +392,7 @@ class SoilMoisture(Component):
         hgw: float, optional
             Soil saturation degree at hygroscopic point (None).
         beta: float, optional
-            Deep percolation constant = 2*b+3 where b is
+            Deep percolation constant = 2*b+4 where b is
             water retention (None).
         parameter (None)
         LAI_max: float, optional
