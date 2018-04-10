@@ -730,9 +730,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
         """
         Shift property IDs upward by one row
         """
-        print('before uplift:')
-        print(self.propid)
-        temp = self.propid.copy()
         top_row_propid = self.propid[self.inner_top_row_nodes]
         for r in range(self.nr-1, 0, -1):
             self.propid[self.inner_base_row_nodes+self.nc*r] =  \
@@ -740,10 +737,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
         self.propid[self.inner_base_row_nodes] = top_row_propid
         self.prop_data[self.propid[self.inner_base_row_nodes]] = \
                     self.prop_reset_value
-        for i in range(len(self.propid)):
-            print((i, temp[i], self.propid[i]))
-        print('')
-        print('')
 
     def uplift_interior_nodes(self, ca, current_time, rock_state=1):
         """
@@ -762,7 +755,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging', True))
         >>> nsg = mg.add_zeros('node', 'node_state_grid')
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
-        >>> lu = LatticeUplifter(propid=ca.propid)
+        >>> pd = mg.add_zeros('node', 'propdata')
+        >>> lu = LatticeUplifter(propid=ca.propid, prop_data=pd)
         >>> lu.node_state[:] = arange(len(lu.node_state))
         >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)
         >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
@@ -771,8 +765,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
                10,  6, 12,  8,  9,
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
-        >>> ca._use_propswap_or_callback
-        True
         >>> lu.propid # doctest: +NORMALIZE_WHITESPACE
         array([ 0, 21,  2, 23, 24, 
                 5,  1,  7,  3,  4,
@@ -799,7 +791,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
 
         # If propid (property ID) is defined, shift that too.
-        # TODO: check the test condition: shouldn't the middle one get uplifted too?
         if self.propid is not None:
             self.uplift_property_ids()
 
