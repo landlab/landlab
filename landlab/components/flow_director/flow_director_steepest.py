@@ -19,38 +19,25 @@ import numpy
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
 
-    """
-    Single-path (steepest direction) flow direction without diagonals.
+    """Single-path (steepest direction) flow direction without diagonals.
 
     This components finds the steepest single-path steepest descent flow
     directions. It is equivalent to D4 method in the special case of a raster
     grid in that it does not consider diagonal links between nodes. For that
     capability, use FlowDirectorD8.
 
-     Stores as ModelGrid fields:
+    Stores as ModelGrid fields:
 
-        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*
-        -  Node array of steepest downhill slopes:
-           *'topographic__steepest_slope'*
-        -  Node array containing ID of link that leads from each node to its
-           receiver, or BAD_INDEX_VALUE if no link:
-           *'flow__link_to_receiver_node'*
-        -  Boolean node array of all local lows: *'flow__sink_flag'*
+    -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+       there is no receiver: *'flow__receiver_node'*
+    -  Node array of steepest downhill slopes:
+       *'topographic__steepest_slope'*
+    -  Node array containing ID of link that leads from each node to its
+       receiver, or BAD_INDEX_VALUE if no link:
+       *'flow__link_to_receiver_node'*
+    -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        FlowDirectorSteepest(grid, surface='topographic__elevation')
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node, optional
-        The surface to direct flow across, default is field at node:
-        topographic__elevation,.
 
     Examples
     --------
@@ -157,7 +144,15 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     _name = 'FlowDirectorSteepest'
 
     def __init__(self, grid, surface='topographic__elevation'):
-        """Iitialize FlowDirectorSteepest."""
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node, optional
+            The surface to direct flow across, default is field at node:
+            topographic__elevation,.
+        """
         self.method = 'D4'
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)

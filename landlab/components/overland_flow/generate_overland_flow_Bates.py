@@ -1,9 +1,9 @@
 """ generate_overland_flow.py
 
- This component simulates overland flow using
- the 2-D numerical model of shallow-water flow
- over topography using the Bates et al. (2010)
- algorithm for storage-cell inundation modeling.
+This component simulates overland flow using
+the 2-D numerical model of shallow-water flow
+over topography using the Bates et al. (2010)
+algorithm for storage-cell inundation modeling.
 
 Written by Jordan Adams, based on code written by Greg Tucker.
 

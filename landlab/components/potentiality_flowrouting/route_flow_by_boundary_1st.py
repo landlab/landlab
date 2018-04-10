@@ -48,34 +48,11 @@ class PotentialityFlowRouter(Component):
 
     The primary method of this class is :func:`run_one_step`.
 
-    Construction::
-
-        PotentialityFlowRouter(grid, method='D8', flow_equation='default',
-                     Chezys_C=30., Mannings_n=0.03)
-
     Notes
     -----
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    method : {'D8', 'D4'}, optional
-        Routing method ('D8' is the default). This keyword has no effect for a
-        Voronoi-based grid.
-    flow_equation : {'default', 'Manning', 'Chezy'}, optional
-        If Manning or Chezy, flow is routed according to the Manning or Chezy
-        equation; discharge is allocated to multiple downslope nodes
-        proportional to the square root of discharge; and a water__depth field
-        is returned. If default, flow is allocated to multiple nodes linearly
-        with slope; and the water__depth field is not calculated.
-    Chezys_C : float (optional)
-        Required if flow_equation == 'Chezy'.
-    Mannings_n : float (optional)
-        Required if flow_equation == 'Manning'.
 
     Examples
     --------
@@ -144,7 +121,24 @@ class PotentialityFlowRouter(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', flow_equation='default',
                  Chezys_C=30., Mannings_n=0.03, **kwds):
-        """Initialize flow router.
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        method : {'D8', 'D4'}, optional
+            Routing method ('D8' is the default). This keyword has no effect for a
+            Voronoi-based grid.
+        flow_equation : {'default', 'Manning', 'Chezy'}, optional
+            If Manning or Chezy, flow is routed according to the Manning or Chezy
+            equation; discharge is allocated to multiple downslope nodes
+            proportional to the square root of discharge; and a water__depth field
+            is returned. If default, flow is allocated to multiple nodes linearly
+            with slope; and the water__depth field is not calculated.
+        Chezys_C : float (optional)
+            Required if flow_equation == 'Chezy'.
+        Mannings_n : float (optional)
+            Required if flow_equation == 'Manning'.
         """
         if RasterModelGrid in inspect.getmro(grid.__class__):
             assert grid.number_of_node_rows >= 3
