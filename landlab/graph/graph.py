@@ -678,3 +678,20 @@ class Graph(object):
     @read_only_array
     def area_of_patch(self):
         return get_area_of_patch(self)
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def adjacent_nodes_at_node(self):
+        """Get adjacent nodes.
+
+        Examples
+        --------
+        >>> # put test here TODO
+        """
+        node_is_at_tail = np.choose(self.link_dirs_at_node + 1,
+                                    np.array((1, -1, 0), dtype=np.int8))
+        out = self.nodes_at_link[self.links_at_node, node_is_at_tail]
+        out[node_is_at_tail == -1] = -1
+
+        return out
