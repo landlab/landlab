@@ -7,7 +7,7 @@ component does not make any attempt to advect topography laterally.
  """
 
 import numpy as np
-from landlab import Component
+from landlab import Component, FieldError
 from landlab.utils.decorators import use_field_name_or_array
 
 
@@ -212,7 +212,11 @@ class NormalFault(Component):
             # if faulted surface is a list, then itterate through multiple
             # surfaces and save
             for surf in faulted_surface:
-                self.surfaces[surf] = (_return_surface(grid, surf))
+                try:
+                    self.surfaces[surf] = (_return_surface(grid, surf))
+                except FieldError:
+                    temp = self.grid.add_empty('node', surf)
+                    self.surfaces[surf] = (_return_surface(grid, surf))
         else:
             self.surfaces[faulted_surface] = (_return_surface(grid, faulted_surface))
 
