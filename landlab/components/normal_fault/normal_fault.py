@@ -85,8 +85,9 @@ class NormalFault(Component):
             Surface that is modified by the NormalFault component. Must be a
             field name or a list of field names if the fault should uplift more
             than one field. Default value is `topographic__elevation`.
-            If the faulted surface does not yet exist, an emtpy at_node field 
-            is created. 
+            If the faulted surface does not yet exist, it will be ingored. The
+            ``run_one_step`` method will check to see an ignored field has been
+            added and if it has been, it will modify it. 
         fault_throw_rate_through_time : dict, optional
             Dictionary that specifies the time varying throw rate on the fault.
             Expected format is:
@@ -210,6 +211,7 @@ class NormalFault(Component):
 
         # get the surface to be faulted
         self.surfaces = {}
+        self._not_yet_instantiated = []
         if isinstance(faulted_surface, list):
             # if faulted surface is a list, then itterate through multiple
             # surfaces and save
@@ -217,8 +219,7 @@ class NormalFault(Component):
                 try:
                     self.surfaces[surf] = (_return_surface(grid, surf))
                 except FieldError:
-                    temp = self.grid.add_empty('node', surf)
-                    self.surfaces[surf] = (_return_surface(grid, surf))
+                    self._not_yet_instantiated.append(surf)
         else:
             self.surfaces[faulted_surface] = (_return_surface(grid, faulted_surface))
 
@@ -286,6 +287,15 @@ class NormalFault(Component):
             Time increment used to advance the NormalFault component.
 
         """
+        if len(self._not_yet_instantiated)>0:
+            still_not_instantiated = []
+            for surf in self._not_yet_instantiated:
+                if surf in self._grid.at_node:
+                    self.surfaces[surf] = (_return_surface(self._grid, surf))
+                else:
+                    still_not_instantiated.append(surf)
+            self._not_yet_instantiated = still_not_instantiated
+            
         # save z before uplift only if using include boundaries.
         if self.include_boundaries:
             surfs_before_uplift = {}
