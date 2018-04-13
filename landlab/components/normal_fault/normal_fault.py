@@ -85,6 +85,8 @@ class NormalFault(Component):
             Surface that is modified by the NormalFault component. Must be a
             field name or a list of field names if the fault should uplift more
             than one field. Default value is `topographic__elevation`.
+            If the faulted surface does not yet exist, an emtpy at_node field 
+            is created. 
         fault_throw_rate_through_time : dict, optional
             Dictionary that specifies the time varying throw rate on the fault.
             Expected format is:
