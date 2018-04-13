@@ -7,6 +7,16 @@ import numpy as np
 from ..graph import Graph
 from ..field import GraphFields
 
+from ..utils.decorators import cache_result_in_object
+from .decorators import return_readonly_id_array
+from landlab.utils.decorators import make_return_array_immutable
+
+from .nodestatus import (CORE_NODE, FIXED_VALUE_BOUNDARY,
+                         FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
+                         CLOSED_BOUNDARY)
+from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
+from .linkstatus import set_status_at_link
+from ..core.utils import add_module_functions_to_class
 
 class NetworkModelGrid(Graph, GraphFields):
     """A ModelGrid of just nodes and links.
@@ -44,3 +54,52 @@ class NetworkModelGrid(Graph, GraphFields):
                              default_group='node')
 
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
+        self.bc_set_code = 0
+
+
+    @property
+    #@override_array_setitem_and_reset('reset_status_at_node') # this is in BASE, not sure if we need it.
+    def status_at_node(self):
+        """Get array of the boundary status for each node.
+
+        Examples
+        --------
+        >>> TODO
+        """
+        return self._node_status
+
+    @status_at_node.setter
+    def status_at_node(self, new_status):
+        """Set the array of node boundary statuses."""
+        self._node_status[:] = new_status[:]
+        self.reset_status_at_node()
+
+    @property
+    @make_return_array_immutable
+    @cache_result_in_object()
+    def status_at_link(self):
+        """Get array of the status of all links.
+
+        Examples
+        --------
+        Examples
+        --------
+        >>> # TODO
+        """
+        return set_status_at_link(self.status_at_node[self.nodes_at_link])
+
+    @property
+    @return_readonly_id_array
+    @cache_result_in_object()
+    def active_links(self):
+        """Get array of active links.
+
+        Examples
+        --------
+        >>> # TODO
+        """
+        return np.where(self.status_at_link == ACTIVE_LINK)[0]
+
+add_module_functions_to_class(NetworkModelGrid, 'mappers.py', pattern='map_*')
+add_module_functions_to_class(NetworkModelGrid, 'gradients.py', pattern='calc_*')
+add_module_functions_to_class(NetworkModelGrid, 'divergence.py', pattern='calc_*')
