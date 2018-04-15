@@ -122,8 +122,13 @@ class FlowRouter(FlowAccumulator):
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
         """Initialize FlowDirector."""
-        
-        self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
+
+        try:
+            grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         self._grid = grid
         if 'method' in kwds:
             warnings.warn("'method' should be set at initialization now. " +

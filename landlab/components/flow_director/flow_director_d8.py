@@ -115,7 +115,12 @@ class FlowDirectorD8(_FlowDirectorToOne):
         """Initialize FlowDirectorD8."""
         self.method = 'D8'
         super(FlowDirectorD8, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        try:
+            self._grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         if self._is_Voroni:
             raise NotImplementedError('FlowDirectorD8 not implemented for'
                                       'irregular grids, use'

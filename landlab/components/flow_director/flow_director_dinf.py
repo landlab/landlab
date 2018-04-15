@@ -226,7 +226,12 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
         self.method = 'DINF'
         super(FlowDirectorDINF, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        try:
+            self._grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         if self._is_Voroni:
             raise NotImplementedError('FlowDirectorDINF is not implemented'
                                       ' for irregular grids.')

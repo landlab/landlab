@@ -115,8 +115,9 @@ def flow_directions_dinf(grid,
            [ 0.40966553,  0.59033447],
            [ 0.40966553,  0.59033447]])
     """
-    # grid type testing
-    if isinstance(grid, VoronoiDelaunayGrid):
+    try:
+        grid.d8s_at_node
+    except AttributeError:
         raise NotImplementedError('Dinfinity is currently implemented for'
                                   ' Raster grids only')
     # get elevs

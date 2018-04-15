@@ -57,7 +57,7 @@ def test_grid_type_testing():
     hmg = HexModelGrid(9,5, dx)
     z = hmg.add_field('topographic__elevation', hmg.node_x + np.round(hmg.node_y), at = 'node')
 
-     # D8 is ONLY RASTER
+    # D8 is ONLY RASTER
     assert_raises(NotImplementedError, FlowDirectorD8, hmg)
 
     # DINF IS ONLY RASTER RASTER
