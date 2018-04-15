@@ -618,38 +618,6 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
     @property
     @make_return_array_immutable
-    def link_dirs_at_node(self):
-        """Link directions at each node: 1=incoming, -1=outgoing, 0=none.
-
-        Returns
-        -------
-        (NODES, LINKS) ndarray of int
-            Link directions relative to the nodes of a grid. The shape of the
-            matrix will be number of nodes rows by max number of links per
-            node. A zero indicates no link at this position.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 3))
-        >>> grid.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
-               [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-               [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-               [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]],
-               dtype=int8)
-        >>> grid.link_dirs_at_node[4]
-        array([-1, -1,  1,  1], dtype=int8)
-        >>> grid.link_dirs_at_node[(4, 7), :]
-        array([[-1, -1,  1,  1],
-               [-1, -1,  1,  1]], dtype=int8)
-
-        LLCATS: NINF LINF CONN
-        """
-        return self._link_dirs_at_node
-
-    @property
-    @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
         """
@@ -1778,27 +1746,7 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
     @property
     @make_return_array_immutable
-    def angle_of_link(self):
-        """Find and return the angle of a link about the node at the link tail.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.angle_of_link / np.pi * 3.  # 60 degree segments
-        array([ 0.,  2.,  1.,  2.,  1.,  0.,  0.,  1.,  2.,  1.,  2.,  0.])
-
-        LLCATS: LINF MEAS
-        """
-        try:
-            if not self._angle_of_link_created:
-                self._create_angle_of_link()
-        except AttributeError:
-            self._create_angle_of_link()
-        return self._angle_of_link_bothends[-1]
-
-    @property
-    @make_return_array_immutable
+    @cache_result_in_object()
     def angle_of_link_about_head(self):
         """Find and return the angle of a link about the node at the link head.
 
@@ -1816,12 +1764,8 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
         LLCATS: LINF MEAS
         """
-        try:
-            if not self._angle_of_link_created:
-                self._create_angle_of_link()
-        except AttributeError:
-            self._create_angle_of_link()
-        return self._angle_of_link_bothends[1]
+        return np.arctan2(- np.sin(self.angle_of_link),
+                          - np.cos(self.angle_of_link))
 
     def _create_angle_of_link(self):
         """
@@ -3895,7 +3839,21 @@ class ModelGrid(GraphFields, EventLayersMixIn):
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
+        >>> rmg.xy_of_node
+        array([[ 0.,  0.],
+               [ 1.,  0.],
+               [ 2.,  0.],
+               [ 0.,  1.],
+               [ 1.,  1.],
+               [ 2.,  1.],
+               [ 0.,  2.],
+               [ 1.,  2.],
+               [ 2.,  2.],
+               [ 0.,  3.],
+               [ 1.,  3.],
+               [ 2.,  3.]])
         >>> rmg.move_origin((5,1.5))
+        >>> rmg.xy_of_node
         >>> rmg.node_x
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
         >>> rmg.node_y
@@ -3904,7 +3862,12 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
         LLCATS: GINF MEAS
         """
-        self._xy_of_node += origin
+        for dim, attr in emumerate(('y_of_node', 'x_of_node')):
+            x = getattr(self, attr)
+            x.flags.writeable = True
+            x += origin[dim]
+            x.flags.writeable = False
+        del self.__dict__['_xy_of_node']
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
