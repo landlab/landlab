@@ -40,6 +40,12 @@ class DualHexGraph(DualVoronoiGraph):
             Length of links.
         origin : tuple of float, optional
             Coordinates of lower-left corner of the grid.
+        orientation: {'horizontal', 'vertical'}
+            Specify if triangles should be laid out in rows or columns.
+        node_layout: {'rect', 'hex', 'rect1'}
+            Specify the overall layout of the nodes. Use *rect* for
+            the layout to approximate a rectangle and *hex* for
+            a hexagon.
         """
         try:
             spacing = float(spacing)
