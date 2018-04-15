@@ -4,7 +4,7 @@ from nose.tools import (assert_true, assert_false, assert_equal,
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
-from landlab.graph import StructuredQuadGraph
+from landlab.graph import StructuredQuadGraph, UniformRectilinearGraph
 
 
 def test_create():
@@ -115,3 +115,17 @@ def test_link_dirs_at_node():
                        [[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
                         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
                         [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+
+
+def test_link_dirs_at_node_raster():
+    graph = UniformRectilinearGraph((4, 3))
+    assert_array_equal(
+        graph.link_dirs_at_node,
+        [[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
+         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+         [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+    assert_true(graph.link_dirs_at_node.dtype == np.int8)
+
+
+

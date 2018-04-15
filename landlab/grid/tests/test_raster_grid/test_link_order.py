@@ -4,9 +4,11 @@ Created on Sat Nov 14 10:48:23 2015
 
 @author: gtucker
 """
+import numpy as np
 
 from landlab import RasterModelGrid
 from numpy.testing import assert_array_equal
+from nose.tools import assert_true
 
 
 def test_link_order():
@@ -46,3 +48,14 @@ def test_vertical_links():
                        [ 4,  5,  6,  7,  8,
                         13, 14, 15, 16, 17,
                         22, 23, 24, 25, 26,])
+
+
+def test_link_dirs_at_node():
+    grid = RasterModelGrid((4, 3))
+    assert_array_equal(
+        grid.link_dirs_at_node,
+        [[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
+         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
+         [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+    assert_true(grid.link_dirs_at_node.dtype == np.int8)
