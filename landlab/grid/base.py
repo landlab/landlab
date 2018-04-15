@@ -3862,7 +3862,7 @@ class ModelGrid(GraphFields, EventLayersMixIn):
 
         LLCATS: GINF MEAS
         """
-        for dim, attr in emumerate(('y_of_node', 'x_of_node')):
+        for dim, attr in enumerate(('y_of_node', 'x_of_node')):
             x = getattr(self, attr)
             x.flags.writeable = True
             x += origin[dim]
