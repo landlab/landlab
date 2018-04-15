@@ -163,9 +163,13 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         >>> vmg.number_of_nodes
         25
         """
-        if (x is not None) and (y is not None):
-            self._initialize(x, y, reorient_links)
-        super(VoronoiDelaunayGrid, self).__init__(**kwds)
+        DualVoronoiGraph.__init__(self, (y, x))
+        ModelGrid.__init__(self, **kwds)
+
+        self._node_status = np.full(self.number_of_nodes,
+                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
+        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
+
 
     def _initialize(self, x, y, reorient_links=True):
         """
@@ -236,127 +240,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._create_link_unit_vectors()
-
-    @property
-    def number_of_patches(self):
-        """Number of patches.
-
-        Returns the number of patches over the grid.
-
-        LLCATS: PINF
-        """
-        try:
-            return self._number_of_patches
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
-            return self._number_of_patches
-
-    @property
-    def nodes_at_patch(self):
-        """Get the four nodes at the corners of each patch in a regular grid.
-
-        LLCATS: PINF NINF CONN
-        """
-        try:
-            return self._nodes_at_patch
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
-            return self._nodes_at_patch
-
-    @property
-    @return_readonly_id_array
-    def patches_at_node(self):
-        """
-        Return a (nnodes, max_voronoi_polygon_sides) array of patches at nodes.
-
-        The patches are returned in LL standard order (ccw from E), with any
-        nonexistent patches recorded after the ids of existing faces.
-        Nonexistent patches are ID'ed as -1.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 3)
-        >>> mg.patches_at_node # doctest: +SKIP
-        array([[ 0,  2, -1, -1, -1, -1],
-               [ 1,  3,  0, -1, -1, -1],
-               [ 4,  1, -1, -1, -1, -1],
-               [ 5,  2, -1, -1, -1, -1],
-               [ 6,  8,  5,  2,  0,  3],
-               [ 7,  9,  6,  3,  1,  4],
-               [ 7,  4, -1, -1, -1, -1],
-               [ 5,  8, -1, -1, -1, -1],
-               [ 8,  6,  9, -1, -1, -1],
-               [ 9,  7, -1, -1, -1, -1]])
-
-        LLCATS: NINF PINF CONN
-        """
-        try:
-            return self._patches_at_node
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
-            return self._patches_at_node
-
-    @property
-    @return_readonly_id_array
-    def links_at_patch(self):
-        """Returns the links forming each patch.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.links_at_patch
-        array([[ 3,  2,  0],
-               [ 5,  1,  2],
-               [ 6,  3,  4],
-               [ 8,  7,  5],
-               [10,  9,  6],
-               [11,  8,  9]])
-
-        LLCATS: LINF PINF CONN
-        """
-        try:
-            return self._links_at_patch
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
-            return self._links_at_patch
-
-    @property
-    @return_readonly_id_array
-    def patches_at_link(self):
-        """Returns the patches adjoined to each link.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.patches_at_link
-        array([[ 0, -1],
-               [ 1, -1],
-               [ 0,  1],
-               [ 0,  2],
-               [ 2, -1],
-               [ 1,  3],
-               [ 2,  4],
-               [ 3, -1],
-               [ 3,  5],
-               [ 4,  5],
-               [ 4, -1],
-               [ 5, -1]])
-
-        LLCATS: PINF LINF CONN
-        """
-        try:
-            return self._patches_at_link
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
-            return self._patches_at_link
 
     def _find_perimeter_nodes_and_BC_set(self, pts):
         """
