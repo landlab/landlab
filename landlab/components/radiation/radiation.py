@@ -24,31 +24,6 @@ class Radiation(Component):
 
     .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu
 
-    Construction::
-
-        Radiation(grid, method='Grid', cloudiness=0.2, latitude=34.,
-                  albedo=0.2, solar_constant=1366.67,
-                  clearsky_turbidity=2., opt_airmass=0.)
-
-    Parameters
-    ----------
-    grid: RasterModelGrid
-        A grid.
-    method: {'Grid'}, optional
-        Currently, only default is available.
-    cloudiness: float, optional
-        Cloudiness.
-    latitude: float, optional
-        Latitude (radians).
-    albedo: float, optional
-        Albedo.
-    solar_constant: float, optional
-        Solar Constant (W/m^2).
-    clearsky_turbidity: float, optional
-        Clear sky turbidity.
-    opt_airmass: float, optional
-        Optical air mass.
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -139,14 +114,14 @@ class Radiation(Component):
         """
         Parameters
         ----------
-        grid : RasterModelGrid
+        grid: RasterModelGrid
             A grid.
-        method : {'Grid'}, optional
+        method: {'Grid'}, optional
             Currently, only default is available.
         cloudiness: float, optional
             Cloudiness.
         latitude: float, optional
-            Latitude (Radians).
+            Latitude (radians).
         albedo: float, optional
             Albedo.
         solar_constant: float, optional

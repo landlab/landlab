@@ -13,8 +13,7 @@ import numpy as np
 
 
 class KinwaveOverlandFlowModel(Component):
-    """
-    Calculate water flow over topography.
+    """Calculate water flow over topography.
 
     Landlab component that implements a two-dimensional
     kinematic wave model. This is an extremely simple, unsophisticated
@@ -25,26 +24,6 @@ class KinwaveOverlandFlowModel(Component):
     method), precipitation rate is constant for a given duration (then zero),
     and all parameters are uniform in space. Also, the terrain is assumed
     to be stable over time. Caveat emptor!
-
-    Construction:
-
-        KinwaveOverlandFlowModel(grid, precip_rate=1.0,
-                                 precip_duration=1.0,
-                                 infilt_rate=0.0,
-                                 roughness=0.01, **kwds)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab grid object.
-    precip_rate : float, optional (defaults to 1 mm/hr)
-        Precipitation rate, mm/hr
-    precip_duration : float, optional (defaults to 1 hour)
-        Duration of precipitation, hours
-    infilt_rate : float, optional (defaults to 0)
-        Maximum rate of infiltration, mm/hr
-    roughnes : float, defaults to 0.01
-        Manning roughness coefficient, s/m^1/3
 
     Examples
     --------

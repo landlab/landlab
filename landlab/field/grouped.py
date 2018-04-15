@@ -538,7 +538,8 @@ class ModelDataFields(object):
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
-        """
+        """add_empty(group, name, units='-', noclobber=True)
+
         Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
@@ -548,10 +549,6 @@ class ModelDataFields(object):
         
         This method is not valid for the group *grid*.
         
-        Construction::
-
-            add_empty(group, name, units='-', noclobber=True)
-
         Parameters
         ----------
         group : str
@@ -597,7 +594,8 @@ class ModelDataFields(object):
                               **kwds)
 
     def add_ones(self, *args, **kwds):
-        """
+        """add_ones(group, name, units='-', noclobber=True)
+
         Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
@@ -606,10 +604,6 @@ class ModelDataFields(object):
         as that for the equivalent numpy function.
         
         This method is not valid for the group *grid*.
-
-        Construction::
-
-            add_ones(group, name, units='-', noclobber=True)
 
         Parameters
         ----------
@@ -672,17 +666,14 @@ class ModelDataFields(object):
                               **kwds)
 
     def add_zeros(self, *args, **kwds):
-        """
+        """add_zeros(group, name, units='-', noclobber=True)
+
         Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
-
-        Construction::
-
-            add_zeros(group, name, units='-', noclobber=True)
 
         Parameters
         ----------
@@ -729,7 +720,9 @@ class ModelDataFields(object):
                               **kwds)
 
     def add_field(self, *args, **kwds):
-        """Add an array of values to the field.
+        """add_field(group, name, value_array, units='-', copy=False, noclobber=True)
+
+        Add an array of values to the field.
 
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
@@ -737,11 +730,6 @@ class ModelDataFields(object):
         
         In the case of adding to the collection *grid*, the added field is a
         numpy scalar rather than a numpy array. 
-
-        Construction::
-
-            add_field(group, name, value_array, units='-', copy=False,
-                      noclobber=True)
 
         Parameters
         ----------

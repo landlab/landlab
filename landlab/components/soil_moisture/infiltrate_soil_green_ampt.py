@@ -19,61 +19,6 @@ class SoilInfiltrationGreenAmpt(Component):
     Rengers et al., 2016, Model Predictions of Water Runoff in Steep
     Catchments after Wildfire, WRR.
 
-    Construction::
-
-        SoilInfiltrationGreenAmpt(grid, hydraulic_conductivity=0.005,
-                                  soil_bulk_density=1590, rock_density=2650,
-                                  initial_soil_moisture_content=0.15,
-                                  soil_type='sandy loam',
-                                  volume_fraction_coarse_fragments=0.2,
-                                  coarse_sed_flag=False,
-                                  surface_water_minimum_depth=1.e-8,
-                                  soil_pore_size_distribution_index=None,
-                                  soil_bubbling_pressure=None,
-                                  wetting_front_capillary_pressure_head=None)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A grid.
-    hydraulic_conductivity : float, array, or field name (m/s)
-        The soil effective hydraulic conductivity.
-    soil_bulk_density : float (kg/m**3)
-        The dry bulk density of the soil.
-    rock_density : float (kg/m**3)
-        The density of the soil constituent material (i.e., lacking porosity).
-    initial_soil_moisture_content : float (m**3/m**3, 0. to 1.)
-        The fraction of the initial pore space filled with water.
-    soil_type : {'sand', loamy sand', 'sandy loam', 'loam', 'silt loam',
-                 'sandy clay loam', 'clay loam', 'silty clay loam',
-                 'sandy clay', 'silty clay', 'clay'}, or None
-        A soil type to automatically set soil_pore_size_distribution_index
-        and soil_bubbling_pressure, using mean values from Rawls et al.,
-        1992.
-    volume_fraction_coarse_fragments : float (m**3/m**3, 0. to 1.)
-        The fraction of the soil made up of rocky fragments with very
-        little porosity, with diameter > 2 mm.
-    coarse_sed_flag : boolean, optional
-        If this flag is set to true, the fraction of coarse material in the
-        soil column with be used as a correction for phi, the porosity factor.
-    surface_water_minimum_depth : float (m), optional
-        A minimum water depth to stabilize the solutions for surface flood
-        modelling. Leave as the default in most normal use cases.
-    soil_pore_size_distribution_index : float, optional
-        An index describing the distribution of pore sizes in the soil,
-        and controlling effective hydraulic conductivity at varying water
-        contents, following Brooks and Corey (1964). Can be set by
-        soil_type. Typically denoted "lambda".
-    soil_bubbling_pressure : float (m), optional
-        The bubbling capillary pressure of the soil, controlling effective
-        hydraulic conductivity at varying water contents, following Brooks
-        and Corey (1964). Can be set by soil_type. Typically denoted "h_b".
-    wetting_front_capillary_pressure_head : float (m), optional
-        The effective head at the wetting front in the soil driven by
-        capillary pressure in the soil pores. If not set, will be
-        calculated by the component from the pore size distribution and
-        bubbling pressure, following Brooks and Corey.
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -155,7 +100,50 @@ class SoilInfiltrationGreenAmpt(Component):
                  soil_pore_size_distribution_index=None,
                  soil_bubbling_pressure=None,
                  wetting_front_capillary_pressure_head=None, **kwds):
-        """Kinematic wave approximation overland flow component."""
+        """Kinematic wave approximation overland flow component.
+
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A grid.
+        hydraulic_conductivity : float, array, or field name (m/s)
+            The soil effective hydraulic conductivity.
+        soil_bulk_density : float (kg/m**3)
+            The dry bulk density of the soil.
+        rock_density : float (kg/m**3)
+            The density of the soil constituent material (i.e., lacking porosity).
+        initial_soil_moisture_content : float (m**3/m**3, 0. to 1.)
+            The fraction of the initial pore space filled with water.
+        soil_type : {'sand', loamy sand', 'sandy loam', 'loam', 'silt loam',
+                     'sandy clay loam', 'clay loam', 'silty clay loam',
+                     'sandy clay', 'silty clay', 'clay'}, or None
+            A soil type to automatically set soil_pore_size_distribution_index
+            and soil_bubbling_pressure, using mean values from Rawls et al.,
+            1992.
+        volume_fraction_coarse_fragments : float (m**3/m**3, 0. to 1.)
+            The fraction of the soil made up of rocky fragments with very
+            little porosity, with diameter > 2 mm.
+        coarse_sed_flag : boolean, optional
+            If this flag is set to true, the fraction of coarse material in the
+            soil column with be used as a correction for phi, the porosity factor.
+        surface_water_minimum_depth : float (m), optional
+            A minimum water depth to stabilize the solutions for surface flood
+            modelling. Leave as the default in most normal use cases.
+        soil_pore_size_distribution_index : float, optional
+            An index describing the distribution of pore sizes in the soil,
+            and controlling effective hydraulic conductivity at varying water
+            contents, following Brooks and Corey (1964). Can be set by
+            soil_type. Typically denoted "lambda".
+        soil_bubbling_pressure : float (m), optional
+            The bubbling capillary pressure of the soil, controlling effective
+            hydraulic conductivity at varying water contents, following Brooks
+            and Corey (1964). Can be set by soil_type. Typically denoted "h_b".
+        wetting_front_capillary_pressure_head : float (m), optional
+            The effective head at the wetting front in the soil driven by
+            capillary pressure in the soil pores. If not set, will be
+            calculated by the component from the pore size distribution and
+            bubbling pressure, following Brooks and Corey.
+        """
 
         self._grid = grid
         self.min_water = surface_water_minimum_depth
