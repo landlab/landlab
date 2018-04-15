@@ -54,19 +54,6 @@ class DepressionFinderAndRouter(Component):
     The prinary method of this class is
     *map_depressions(pits='flow__sink_flag', reroute_flow=True)*.
 
-    Construction::
-
-        DepressionFinderAndRouter(grid, grid, routing='D8')
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab RasterModelGrid.
-    routing : {'D8', 'D4'} (optional)
-        If grid is a raster type, controls whether lake connectivity can
-        occur on diagonals ('D8', default), or only orthogonally ('D4').
-        Has no effect if grid is not a raster.
-
     Examples
     --------
     Route flow across a depression in a sloped surface.
