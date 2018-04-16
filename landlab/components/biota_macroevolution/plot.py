@@ -47,7 +47,7 @@ def plot_species_range(species, grid):
     imshow_grid(grid, combined_range_mask, cmap=cmap,
                     allow_colorbar=False)
 
-def plot_number_of_species(record, axes=None):
+def plot_number_of_species(record, species_data_frame, axes=None):
 
     # Prepare figure.
     if axes == None:
@@ -56,8 +56,12 @@ def plot_number_of_species(record, axes=None):
 
     times = list(record.keys())
     count = []
+
+    sdf = species_data_frame.species
+
     for t in times:
-        count.append(len(record[t]['species']))
+        species_t = sdf.object[record.time == record.time__last].tolist()
+        count.append(len(species_data_frame.species_at_time(t)))
 
     times_in_ky = np.multiply(times, 1e-3)
 

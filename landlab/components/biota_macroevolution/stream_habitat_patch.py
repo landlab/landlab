@@ -1,17 +1,15 @@
 """BiotaEvolver StreamHabitatPatch object.
 """
 
-from landlab.components.biota_macroevolution.habitat_patch import HabitatPatch
+from landlab.components.biota_macroevolution import Zone
 import numpy as np
 from watershed import get_watershed_masks_with_area_threshold
 
 
-class StreamHabitatPatch(HabitatPatch):
+class StreamHabitatPatch(Zone):
 
     def __init__(self, time, mask):
-
         super().__init__(time, mask)
-        
 
     @staticmethod
     def get_patches_with_area_threshold(grid, area_threshold, time):
@@ -25,7 +23,7 @@ class StreamHabitatPatch(HabitatPatch):
 
         for outlet in outlets:
             watershed_mask = grid.at_node['watershed'] == outlet
-            patches.append(HabitatPatch(time, watershed_mask))
+            patches.append(Zone(time, watershed_mask))
 
         return patches
 

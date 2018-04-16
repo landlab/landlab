@@ -1,9 +1,9 @@
 """Species BiotaEvolver object.
 """
 
-from landlab.components.biota_macroevolution import (BiotaEvolverObject,
-                                                     HabitatPatchVector)
+from landlab.components.biota_macroevolution import BiotaEvolverObject, Zone
 import numpy as np
+import pandas as pd
 
 
 class Species(BiotaEvolverObject):
@@ -15,7 +15,9 @@ class Species(BiotaEvolverObject):
     initialization. The id is passed to child species.
     """
 
-    def __init__(self, initial_time, initial_habitat_patches,
+    subtype = 'base'
+
+    def __init__(self, initial_time, initial_zones,
                  parent_species=-1):
         """Initialize a species.
 
@@ -23,70 +25,68 @@ class Species(BiotaEvolverObject):
         ----------
         initial_time : float
             Initial time of the species.
-        initial_habitat_patches : HabitatPatch list
-            A list of BiotaEvolver HabitatPatch objects of the species at the
-            initial time.
+        initial_zones : Zone list
+            A list of BiotaEvolver Zone objects of the species at the initial
+            time.
         parent_species : BiotaEvolver Species
             The parent species object. An id of -1 indicates no parent species.
         """
         BiotaEvolverObject.__init__(self)
 
+        self.record = pd.DataFrame(columns=['zones'])
+
         # Set parameters.
         self.parent_species = parent_species
 
-        # Set initial patch(es).
-        if isinstance(initial_habitat_patches, list):
-            p = initial_habitat_patches
+        # Set initial zone(s).
+        if isinstance(initial_zones, list):
+            z = initial_zones
         else:
-            p = [initial_habitat_patches]
-        self.record[initial_time] = {'habitat_patches': p}
+            z = [initial_zones]
+        self.record.loc[initial_time, 'zones'] = z
 
-    def run_macroevolution_processes(self, time, habitat_patch_vectors):
+    def __str__(self):
+        return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
+
+    def run_macroevolution_processes(self, time, zone_paths):
         """ Run disperal, speciation, and extinction processes.
+
+        Extinction is not explicitly implemented in this method. The base class
+        of species leaves extinction to the disappearance of the range of a
+        species.
 
         Parameters
         ----------
         time : float
 
-        habitat_patch_vectors : BiotaEvolver HabitatPatch list
+        zone_paths : Pandas DataFrame
 
         Returns
         -------
         surviving_species : BiotaEvolver Species list
             The species that exist after the macroevolution processes run. This
             may include self and/or child species of self, or None if no
-            species survive.
+            species will persist in `time`.
         """
-        extant_species = []
+        surviving_species = []
 
         # Disperse and speciate.
 
-        for v in habitat_patch_vectors:
-            if v.cardinality in [HabitatPatchVector.ONE_TO_ONE,
-                                 HabitatPatchVector.MANY_TO_ONE]:
+        for v in zone_paths.itertuples():
+            if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
 
-                self.record[time] = {'habitat_patches': v.destinations}
-                extant_species.append(self)
+                self.record.loc[time, 'zones'] = v.destinations
+                surviving_species.append(self)
 
-            elif v.cardinality in [HabitatPatchVector.ONE_TO_MANY,
-                                   HabitatPatchVector.MANY_TO_MANY]:
+            elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:
 
                 for d in v.destinations:
                     child_species = Species(time, d, parent_species=self)
-                    extant_species.append(child_species)
+                    surviving_species.append(child_species)
 
-        extant_species = np.array(list(set(extant_species)))
+        surviving_species = np.array(list(set(surviving_species)))
 
-        # Evaluate extinction.
-
-#        extinction_chance = 0.0
-#
-#        survival_probability = np.random.choice(np.linspace(0, 1, 100),
-#                                                len(extant_species))
-#        survival_results = survival_probability > extinction_chance
-#        surviving_species = list(extant_species[survival_results])
-
-        return list(extant_species)
+        return list(surviving_species)
 
     @property
     def clade(self):

@@ -1,44 +1,31 @@
 """BiotaEvolver base objects.
 """
 
-class Record(dict):
-    """ Dictionary-like data structure to store attributes over time.
+import pandas as pd
 
-    Time is the key and 'attributes' are the values. The attributes are in turn
+class Record(pd.DataFrame):
+    """ Data frame-like object to store attributes over time.
+
+    Time is the index and 'attributes' are the values. The attributes are in turn
     dictionaries where the key is the of the attribute and values are the
     values of that key.
     """
 
-    def at_time(self, time):
-        record_at_time = {}
-        for t, data in self.items():
-            if t <= time:
-                record_at_time[t] = data
-
-        return record_at_time
-
-    def values_of_attribute(self, attribute):
-        values = []
-        for t in self.times:
-            if attribute in self[t].keys():
-                values.append(self[t][attribute])
-        return values
-
-    @property
-    def count(self):
-        return len(self.keys())
+    def __init__(self, *args, **kw):
+        super(Record, self).__init__(*args, **kw)
+        self.index.name = 'time'
 
     @property
     def times(self):
-        return sorted(self.keys())
+        return sorted(self.time.tolist())
 
     @property
-    def time__first(self):
-        return self.times[0]
+    def time__earliest(self):
+        return self.time.min()
 
     @property
-    def time__last(self):
-        return self.times[-1]
+    def time__latest(self):
+        return self.time.max()
 
     @property
     def time__prior(self):
@@ -46,10 +33,6 @@ class Record(dict):
             return None
         else:
             return self.times[-2]
-
-    @property
-    def number_of_species(self):
-        return len(self.values_of_attribute('species'))
 
 
 class BiotaEvolverObject(object):
