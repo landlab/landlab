@@ -19,6 +19,7 @@ from landlab import HexModelGrid
 from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, tan, cos, pi)
+import numpy as np
 from ..cfuncs import get_next_event_new
 
 _DEFAULT_NUM_ROWS = 5
@@ -340,6 +341,35 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # Finally, convert the outgoing node list to an array stored in
             # this object
             self.outgoing_node = array(outgoing_node_list, dtype=int)
+
+    def setup_link_offsets(self):
+        """Set up array with link IDs for shifting link data up and right.
+        
+        Notes
+        -----
+        
+        Examples
+        --------
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab import HexModelGrid
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
+        >>> ns = np.arange(25, dtype=int)
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
+        >>> lnf.setup_link_offsets()
+        >>> lnf.link_offset_id
+        array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        """
+        self.link_offset_id = zeros(self.grid.number_of_links, dtype=np.int)
+        nc = self.grid.number_of_node_columns
+        default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
+        first_link_for_shift = (default_offset + 2 * (nc - 1) + (nc - 1) 
+                                + (nc - 1) // 2)
+        #do we need to do +1 or -1 for either odd or even # cols?
+        #for ln in range()
 
     def do_offset(self, rock_state=1):
         """Apply 60-degree normal-fault offset.
@@ -696,6 +726,18 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 ca.next_update[lk] = _NEVER
                 ca.next_trn_id[lk] = -1
 
+    def uplift_property_ids(self):
+        """
+        Shift property IDs upward by one row
+        """
+        top_row_propid = self.propid[self.inner_top_row_nodes]
+        for r in range(self.nr-1, 0, -1):
+            self.propid[self.inner_base_row_nodes+self.nc*r] =  \
+                    self.propid[self.inner_base_row_nodes+self.nc*(r-1)]
+        self.propid[self.inner_base_row_nodes] = top_row_propid
+        self.prop_data[self.propid[self.inner_base_row_nodes]] = \
+                    self.prop_reset_value
+
     def uplift_interior_nodes(self, ca, current_time, rock_state=1):
         """
         Simulate 'vertical' displacement by shifting contents of node_state
@@ -710,14 +752,21 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> for i in range(26):
         ...     nsd[i] = i
         >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging', True))
         >>> nsg = mg.add_zeros('node', 'node_state_grid')
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
-        >>> lu = LatticeUplifter()
+        >>> pd = mg.add_zeros('node', 'propdata')
+        >>> lu = LatticeUplifter(propid=ca.propid, prop_data=pd)
         >>> lu.node_state[:] = arange(len(lu.node_state))
         >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)
         >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
         array([ 0, 25,  2, 25, 25,
+                5,  1,  7,  3,  4,
+               10,  6, 12,  8,  9,
+               15, 11, 17, 13, 14,
+               20, 16, 22, 18, 19])
+        >>> lu.propid # doctest: +NORMALIZE_WHITESPACE
+        array([ 0, 21,  2, 23, 24, 
                 5,  1,  7,  3,  4,
                10,  6, 12,  8,  9,
                15, 11, 17, 13, 14,
@@ -741,17 +790,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
             new_base_nodes = rock_state
         self.node_state[self.inner_base_row_nodes] = new_base_nodes
 
-        # STILL TO DO: MAKE SURE THIS HANDLES WRAP PROPERLY (I DON'T THINK
-        # IT DOES NOW)
-        # If propid (property ID or index) is defined, shift that too.
+        # If propid (property ID) is defined, shift that too.
         if self.propid is not None:
-            top_row_propid = self.propid[self.inner_top_row_nodes]
-            for r in range(self.nr-1, 1, -1):
-                self.propid[self.inner_base_row_nodes+self.nc*r] =  \
-                            self.propid[self.inner_base_row_nodes+self.nc*(r-2)]
-            self.propid[self.inner_base_row_nodes] = top_row_propid
-            self.prop_data[self.propid[self.inner_base_row_nodes]] = \
-                    self.prop_reset_value
+            self.uplift_property_ids()
 
         self.shift_link_and_transition_data_upward(ca, current_time)
 
