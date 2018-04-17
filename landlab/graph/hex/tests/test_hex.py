@@ -76,3 +76,18 @@ def test_perimeter_nodes_rect():
 def test_perimeter_nodes_hex():
     graph = HexGraph((4, 2), node_layout='hex')
     assert_array_equal(graph.perimeter_nodes, [1, 4, 8, 11, 10, 9, 5, 2, 0])
+
+
+def test_adjacent_nodes_at_node():
+    graph = HexGraph((3, 3), node_layout='hex')
+    assert_array_equal(graph.adjacent_nodes_at_node,
+                       [[ 1,  4,  3, -1, -1, -1],
+                        [ 2,  5,  4,  0, -1, -1],
+                        [ 6,  5,  1, -1, -1, -1],
+                        [ 4,  7,  0, -1, -1, -1],
+                        [ 5,  8,  7,  3,  0,  1],
+                        [ 6,  9,  8,  4,  1,  2],
+                        [ 9,  5,  2, -1, -1, -1],
+                        [ 8,  3,  4, -1, -1, -1],
+                        [ 9,  7,  4,  5, -1, -1],
+                        [ 8,  5,  6, -1, -1, -1]])
