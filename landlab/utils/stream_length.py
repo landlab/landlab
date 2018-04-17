@@ -20,7 +20,7 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
         Flag to indicate if the stream length field should be added to the
         grid. Default is False. The field name used is ``stream__length``.
     noclobber : boolean, optional
-        Flag to indicate if adding the field to the grid should clobber an
+        Flag to indicate if adding the field to the grid should not clobber an
         existing field with the same name. Default is True.
 
     Examples
