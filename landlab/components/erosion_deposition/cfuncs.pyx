@@ -14,7 +14,7 @@ ctypedef np.int_t DTYPE_INT_t
 
 def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                     np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
-                    DTYPE_FLOAT_t node_spacing,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] node_spacing,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
@@ -43,8 +43,8 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
         #
         if q[node_id] > 0:
             qs[node_id] = ((qs_in[node_id]
-                            + F_c * Es[node_id] * node_spacing ** 2)
-                           / (1.0 + (v_s * node_spacing**2 / (q[node_id]))))
+                            + F_c * Es[node_id] * node_spacing[node_id] ** 2)
+                           / (1.0 + (v_s * node_spacing[node_id]**2 / (q[node_id]))))
 
             # finally, add this nodes qs to recieiving nodes qs_in.
             # if qs[node_id] == 0, then there is no need for this line to be
