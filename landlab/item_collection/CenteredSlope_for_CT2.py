@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 27 10:14:52 2018
 
-@author: margaux
-"""
 
 import numpy as np
 import gc
@@ -115,16 +111,18 @@ class ClastCollection(ItemCollection):
             _neighbor_nodes = np.concatenate((_row_col_adjacent_nodes_at_node, _diagonal_adjacent_nodes_at_node), axis=0)
 
             ### Case where one of the neighbor is boundary:
-            if any(i in _row_col_adjacent_nodes_at_node for i in _grid.boundary_nodes):
+            if any(i in _row_col_adjacent_nodes_at_node for i in _grid.boundary_nodes) == True:
+                print('close to boundary')
                 if self._grid.at_node['flow__receiver_node'][_node] != _node:
                     # if FlowDirector designates a receiver node other than
                     # the node itself, clast is moving toward receiver node:
                     self.df.at[clast, 'target_node'] = self._grid.at_node['flow__receiver_node'][_node]
-                    self.df.at[clast, 'target_node_flag'] = np.where(_neighbor_nodes == self._grid.at_node['flow__receiver_node'][_node])
+                    self.df.at[clast, 'target_node_flag'] = np.where(_neighbor_nodes == self._grid.at_node['flow__receiver_node'][_node])[0]
                     self.df.at[clast, 'slope__WE'] = np.NaN
                     self.df.at[clast, 'slope__SN'] = np.NaN
                 else: # flow receiver = node itself
                     self.df.at[clast, 'target_node'] = _node
+                    self.df.at[clast, 'target_node_flag'] = -1
                     self.df.at[clast, 'slope__WE'] = 0.
                     self.df.at[clast, 'slope__SN'] = 0.
 
@@ -143,6 +141,7 @@ class ClastCollection(ItemCollection):
     def _move_to(self, clast):
         _grid = self._grid
         distances = _grid.all_node_distances_map
+        self.df = self.DataFrame
         _node = self.df.at[clast, 'clast__node']
         _node_x = self._grid.node_x[_node]
         _node_y = self._grid.node_y[_node]
@@ -157,39 +156,56 @@ class ClastCollection(ItemCollection):
         _diagonal_adjacent_nodes_at_node = self._grid.diagonal_adjacent_nodes_at_node[_node]
 
         if ClastCollection.phantom(self, clast) == True:
-            self.df.at[clast, 'target_node'] = self.df.at[clast, 'clast__node']
-            self.df.at[clast, 'slope__steepest_azimuth'] = np.NaN
-            self.df.at[clast, 'slope__steepest_dip'] = 0.
-            self.df.at[clast, 'distance__to_exit'] = np.NaN
-            self.df.at[clast, 'change_x'] = 0.
-            self.df.at[clast, 'change_y'] = 0.
+            target_node = self.df.at[clast, 'clast__node']
+            ss_azimuth = np.NaN
+            ss_dip = 0.
+            dist_to_exit = np.NaN
+            [change_x, change_y] = [0., 0.]
 
-        elif self.df.at[clast, 'slope__WE'] == np.NaN and self.df.at[clast, 'slope__SN'] == np.NaN:
+
+        elif (np.isnan(self.df.at[clast, 'slope__WE']) == True and np.isnan(self.df.at[clast, 'slope__SN']) == True):
+            print('clast is next to boundary: calculating slope to receiver')
             # Clast is next to grid boundaries:
-            self.df.at[clast, 'target_node'] = self._grid.at_node['flow__receiver_node'][clast]
+            self.df.at[clast, 'target_node'] = self._grid.at_node['flow__receiver_node'][_node]
             target_node = self.df.at[clast, 'target_node']
+            print('receiver is : %s' %target_node)
             target_node_flag = self.df.at[clast, 'target_node_flag']
+#
+#            we_slope = self.df.at[clast, 'slope__WE']
+#            sn_slope = self.df.at[clast, 'slope__SN']
 
-            we_slope = self.df.at[clast, 'slope__WE']
-            sn_slope = self.df.at[clast, 'slope__SN']
+#            # norm of steepest slope vector projected on horizontal plane:
+#            ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
 
-            # norm of steepest slope vector projected on horizontal plane:
-            ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+#            # norm of steepest slope vector projected on horizontal plane:
+#            ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+#            # norms of vectors SN and WE:
+#            sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
+#            we_norm = abs(we_slope) / np.cos(np.arctan(abs(we_slope)))
+#            # norm of steepest slope vector = norm of resultant of SN and WE:
+#            ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
+#            # dip of steepest slope:
+#            ss_dip = np.arccos(ss_horiz_norm / ss_norm)
 
-            # norms of vectors SN and WE:
-            sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
-            we_norm = abs(we_slope) / np.cos(np.arctan(abs(we_slope)))
 
-            # norm of steepest slope vector = norm of resultant of SN and WE:
-            ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
 
-            # dip of steepest slope:
-            ss_dip = np.arccos(ss_horiz_norm / ss_norm)
 
 
             if target_node_flag == 0: # East
-                self.df.at[clast, 'slope__WE'] = (_node_z - self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']]) / _grid.dx
-                self.df.at[clast, 'slope__SN'] = 0.
+                we_slope = (_node_z - self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']]) / _grid.dx
+                sn_slope = 0.
+                ss_azimuth = 0. # east
+
+                # norm of steepest slope vector projected on horizontal plane:
+                ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+                # norms of vectors SN and WE:
+                sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
+                we_norm = abs(we_slope) / np.cos(np.arctan(abs(we_slope)))
+                # norm of steepest slope vector = norm of resultant of SN and WE:
+                ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
+                # dip of steepest slope:
+                ss_dip = np.arccos(ss_horiz_norm / ss_norm)
+
                 dist_to_exit = (1 / np.cos(ss_dip)) * ((_node_x + (self._grid.dx/2)) - _clast_x)
                 [change_x, change_y] = [0.0, dist_to_exit]
 ################## FOR TESTING PURPOSE ONLY ##################
@@ -199,23 +215,59 @@ class ClastCollection(ItemCollection):
                     pass
 ###############################################################
             elif target_node_flag == 1: # North
-                self.df.at[clast, 'slope__WE'] = 0.
-                self.df.at[clast, 'slope__SN'] = (_node_z - self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']]) / _grid.dy
+                we_slope = 0.
+                sn_slope = (_node_z - self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']]) / _grid.dy
+                ss_azimuth = np.radians(90) # north
+
+                # norm of steepest slope vector projected on horizontal plane:
+                ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+                # norms of vectors SN and WE:
+                sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
+                we_norm = abs(we_slope) / np.cos(np.arctan(abs(we_slope)))
+                # norm of steepest slope vector = norm of resultant of SN and WE:
+                ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
+                # dip of steepest slope:
+                ss_dip = np.arccos(ss_horiz_norm / ss_norm)
+
                 dist_to_exit = (1 / np.cos(ss_dip)) * ((_node_y + (self._grid.dy/2)) - _clast_y)
                 [change_x, change_y] = [0.0, dist_to_exit]
             elif target_node_flag == 2: # West
-                self.df.at[clast, 'slope__WE'] = (self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']] - _node_z) / _grid.dx
-                self.df.at[clast, 'slope__SN'] = 0.
+                we_slope = (self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']] - _node_z) / _grid.dx
+                sn_slope = 0.
+                ss_azimuth = np.radians(180) # west
+
+                # norm of steepest slope vector projected on horizontal plane:
+                ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+                # norms of vectors SN and WE:
+                sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
+                we_norm = abs(we_slope) / np.cos(np.arctan(abs(we_slope)))
+                # norm of steepest slope vector = norm of resultant of SN and WE:
+                ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
+                # dip of steepest slope:
+                ss_dip = np.arccos(ss_horiz_norm / ss_norm)
+
                 dist_to_exit = (1 / np.cos(ss_dip)) * (_clast_x - (_node_x - (self._grid.dx/2)))
                 [change_x, change_y] = [0.0, -dist_to_exit]
             elif target_node_flag == 3: # South
-                self.df.at[clast, 'slope__WE'] = 0.
-                self.df.at[clast, 'slope__SN'] = (self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']] - _node_z) / _grid.dy
+                we_slope = 0.
+                sn_slope = (self._grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']] - _node_z) / _grid.dy
+                ss_azimuth = np.radians(270) # south
+
+                # norm of steepest slope vector projected on horizontal plane:
+                ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+                # norms of vectors SN and WE:
+                sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
+                we_norm = abs(we_slope) / np.cos(np.arctan(abs(we_slope)))
+                # norm of steepest slope vector = norm of resultant of SN and WE:
+                ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
+                # dip of steepest slope:
+                ss_dip = np.arccos(ss_horiz_norm / ss_norm)
+
                 dist_to_exit = (1 / np.cos(ss_dip)) * (_clast_y - (_node_y + (self._grid.dy/2)))
                 [change_x, change_y] = [0.0, -dist_to_exit]
             else: # Diagonals
-                self.df.at[clast, 'slope__WE'] = np.NaN
-                self.df.at[clast, 'slope__SN'] = np.NaN
+                we_slope = np.NaN
+                sn_slope = np.NaN
                 _target_node_x = _grid.node_x[self.df.at[clast, 'target_node']]
                 _target_node_y = _grid.node_y[self.df.at[clast, 'target_node']]
                 _target_node_z = _grid.at_node['topographic__elevation'][self.df.at[clast, 'target_node']]
@@ -243,10 +295,20 @@ class ClastCollection(ItemCollection):
                     ss_azimuth = np.radians(270) + np.arctan((self.x_of_corners_at_node[_node, corner] - _clast_x) / (_clast_y - self.y_of_corners_at_node[_node, corner]))
                     [change_x, change_y] = [(self.x_of_corners_at_node[_node, corner] - _clast_x), -(_clast_y - self.y_of_corners_at_node[_node, corner])]
 
+            print('we=%s' %we_slope)
+            print('sn=%s' %sn_slope)
+            print('SS_HORIZ_NORM=%s' %ss_horiz_norm)
+            print('SteepSlope_norm=%s' %ss_norm)
+            print('ss_dip=%s' %ss_dip)
+            print('SN_norm=%s' %sn_norm)
+            print('WE_norm=%s' %we_norm)
+
+
+            self.df.at[clast, 'slope__WE'] = we_slope
+            self.df.at[clast, 'slope__SN'] = sn_slope
             self.df.at[clast, 'slope__steepest_azimuth'] = ss_azimuth
             self.df.at[clast, 'slope__steepest_dip'] = ss_dip
             self.df.at[clast, 'distance__to_exit'] = dist_to_exit
-
 
 
 
@@ -263,6 +325,7 @@ class ClastCollection(ItemCollection):
 
             if we_slope == 0:
                 if sn_slope == 0:
+                    print('slope is null')
                     # centered slope is null, clast does not move:
                     ss_dip = 0
                     ss_azimuth = None
@@ -314,11 +377,12 @@ class ClastCollection(ItemCollection):
                         target_node = _row_col_adjacent_nodes_at_node[2]
                         [change_x, change_y] = [-dist_to_exit, 0.0]
                     else: # ss direction is East
+                        print('East')
                         ss_dip = np.arctan(np.abs(we_slope))
                         ss_azimuth = 0 # East
                         dist_to_exit = (1 / np.cos(ss_dip)) * ((_node_x + (self._grid.dx/2)) - _clast_x)
                         target_node = _row_col_adjacent_nodes_at_node[0]
-                        [change_x, change_y] = [0.0, dist_to_exit]
+                        [change_x, change_y] = [dist_to_exit, 0.0]
 
                 else: # sn_slope is not 0
                     if sn_slope > 0 and we_slope > 0: # Quarter = NE
@@ -330,17 +394,15 @@ class ClastCollection(ItemCollection):
                         if ss_azimuth < clast_to_corner_azimuth: # Eigth = NE-row
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x)) / (np.cos(ss_azimuth)))
                             target_node = _row_col_adjacent_nodes_at_node[0]
-                            # Coordinates of vector clast-to-border:
-                            [change_x, change_y] = [dist_to_exit / np.cos(ss_azimuth), dist_to_exit / np.sin(ss_azimuth)]
+                            [change_x, change_y] = [dist_to_exit * abs(we_slope) / ss_horiz_norm, dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                         elif ss_azimuth > clast_to_corner_azimuth: # Eigth = NE-col
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y)) / (np.cos(np.radians(90) - ss_azimuth)))
                             target_node = _row_col_adjacent_nodes_at_node[1]
-                            [change_x, change_y] = [-dist_to_exit / np.sin(np.radians(90) - ss_azimuth), dist_to_exit / np.cos(np.radians(90) - ss_azimuth)]
+                            [change_x, change_y] = [dist_to_exit * abs(we_slope) / ss_horiz_norm, dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                         elif ss_azimuth == clast_to_corner_azimuth: # exit direction is diagonal
                             dist_to_exit = np.sqrt(np.power(np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x), 2) + np.power(np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y), 2))
                             target_node = _diagonal_adjacent_nodes_at_node[0]
-                            # Coordinates of vector clast-to-border:
-                            [change_x, change_y] = [self.x_of_corners_at_node[_node, corner] - _clast_x, self.y_of_corners_at_node[_node, corner] - _clast_y]
+                            [change_x, change_y] = [dist_to_exit * abs(we_slope) / ss_horiz_norm, dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                     elif sn_slope > 0 and we_slope < 0: # Quarter = NW
                         ss_azimuth = np.radians(90) + np.arctan(np.abs(sn_slope / we_slope))
                         corner = 1
@@ -349,15 +411,15 @@ class ClastCollection(ItemCollection):
                                        np.abs(_clast_x - self.x_of_corners_at_node[_node, corner]))
                         if ss_azimuth < clast_to_corner_azimuth: # Eigth = NW-col
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y)) / (np.cos(ss_azimuth - np.radians(90))))
-                            [change_x, change_y] = [-dist_to_exit / np.sin(ss_azimuth - np.radians(90)), dist_to_exit / np.cos(ss_azimuth - np.radians(90))]
+                            [change_x, change_y] = [-dist_to_exit * abs(we_slope) / ss_horiz_norm, dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _row_col_adjacent_nodes_at_node[1]
                         elif ss_azimuth > clast_to_corner_azimuth: # Eigth = NW-row
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x)) / (np.cos(np.radians(180) - ss_azimuth)))
-                            [change_x, change_y] = [-dist_to_exit / np.cos(np.radians(180) - ss_azimuth), dist_to_exit / np.sin(np.radians(180) - ss_azimuth)]
+                            [change_x, change_y] = [-dist_to_exit * abs(we_slope) / ss_horiz_norm, dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _row_col_adjacent_nodes_at_node[2]
                         elif ss_azimuth == clast_to_corner_azimuth: # exit direction is diagonal
                             dist_to_exit = np.sqrt(np.power(np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x), 2) + np.power(np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y), 2))
-                            [change_x, change_y] = [-_clast_x - (self.x_of_corners_at_node[_node, corner]), self.y_of_corners_at_node[_node, corner] - _clast_y]
+                            [change_x, change_y] = [-dist_to_exit * abs(we_slope) / ss_horiz_norm, dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _diagonal_adjacent_nodes_at_node[1]
 
                     elif sn_slope < 0 and we_slope < 0: # Quarter = SW
@@ -368,18 +430,18 @@ class ClastCollection(ItemCollection):
                                        np.abs(_clast_x - self.x_of_corners_at_node[_node, corner]))
                         if ss_azimuth < clast_to_corner_azimuth: # Eigth = SW-row
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x)) / (np.cos(ss_azimuth - np.radians(180))))
-                            [change_x, change_y] = [-dist_to_exit / np.cos(ss_azimuth - np.radians(180)), -dist_to_exit / np.sin(ss_azimuth - np.radians(180))]
+                            [change_x, change_y] = [-dist_to_exit * abs(we_slope) / ss_horiz_norm, -dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _row_col_adjacent_nodes_at_node[2]
                         elif ss_azimuth > clast_to_corner_azimuth: # Eigth = SW-col
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y)) / (np.cos(np.radians(270) - ss_azimuth)))
-                            [change_x, change_y] = [-dist_to_exit / np.sin(np.radians(270) - ss_azimuth), -dist_to_exit / np.cos(np.radians(270) - ss_azimuth)]
+                            [change_x, change_y] = [-dist_to_exit * abs(we_slope) / ss_horiz_norm, -dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _row_col_adjacent_nodes_at_node[3]
                         elif ss_azimuth == clast_to_corner_azimuth: # exit direction is diagonal
                             dist_to_exit = np.sqrt(np.power(np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x), 2) + np.power(np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y), 2))
-                            [change_x, change_y] = [-(_clast_x - self.x_of_corners_at_node[_node, corner]), -(_clast_y - self.y_of_corners_at_node[_node, corner])]
+                            [change_x, change_y] = [-dist_to_exit * abs(we_slope) / ss_horiz_norm, -dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _diagonal_adjacent_nodes_at_node[2]
 
-                    elif sn_slope < 0 and we_slope < 0: # Quarter = SE
+                    elif sn_slope < 0 and we_slope > 0: # Quarter = SE
                         ss_azimuth = np.radians(270) + np.arctan(np.abs(sn_slope / we_slope))
                         corner = 3
                         clast_to_corner_azimuth = np.radians(360) - np.arctan(
@@ -387,73 +449,52 @@ class ClastCollection(ItemCollection):
                                        np.abs(_clast_x - self.x_of_corners_at_node[_node, corner]))
                         if ss_azimuth < clast_to_corner_azimuth: # Eigth = SE-col
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y)) / (np.cos(ss_azimuth - np.radians(270))))
-                            [change_x, change_y] = [dist_to_exit / np.sin(ss_azimuth - np.radians(270)), -dist_to_exit / np.cos(ss_azimuth - np.radians(270))]
+                            [change_x, change_y] = [dist_to_exit * abs(we_slope) / ss_horiz_norm, -dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _row_col_adjacent_nodes_at_node[3]
                         elif ss_azimuth > clast_to_corner_azimuth: # Eigth = SE-row
                             dist_to_exit = (1 / np.cos(ss_dip)) * ((np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x) / (np.cos(np.radians(360) - ss_azimuth))))
-                            [change_x, change_y] = [dist_to_exit / np.cos(np.radians(360) - ss_azimuth), -dist_to_exit / np.sin(np.radians(360) - ss_azimuth)]
+                            [change_x, change_y] = [dist_to_exit * abs(we_slope) / ss_horiz_norm, -dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _row_col_adjacent_nodes_at_node[0]
                         elif ss_azimuth == clast_to_corner_azimuth: # exit direction is diagonal
                             dist_to_exit = np.sqrt(np.power(np.abs(self.x_of_corners_at_node[_node, corner] - _clast_x), 2) + np.power(np.abs(self.y_of_corners_at_node[_node, corner] - _clast_y), 2))
-                            [change_x, change_y] = [(self.x_of_corners_at_node[_node, corner] - _clast_x), -(_clast_y - self.y_of_corners_at_node[_node, corner])]
+                            [change_x, change_y] = [dist_to_exit * abs(we_slope) / ss_horiz_norm, -dist_to_exit * abs(sn_slope) / ss_horiz_norm]
                             target_node = _diagonal_adjacent_nodes_at_node[3]
 
-            # Calculate lambda_mean:
-            #self.df.at[clast, 'lambda_0'] = (self._dt * self._kappa * self._grid.dx) / (self._Si * 2 * self.df.at[clast,'clast__radius'])
-
-            if ClastCollection._cell_type(clast) == True:   # Cell is hillslope
-                if ss_dip >= self._Si:
-                    lambda_mean = np.power(10, 10)
-                else:
-                    lambda_0 = 1 # = self.df.at[clast,'lambda_0']
-                    lambda_mean = lambda_0 * (self._Si + ss_dip) / (self._Si - ss_dip)
-            else:   # Cell is river
-                if ss_dip >= self._Si:
-                    lambda_mean = np.power(10, 10)
-                else:
-                    lambda_0 = 100 # = 100 * self.df.at[clast,'lambda_0']
-                    lambda_mean = lambda_0 * (self._Si + ss_dip) / (self._Si - ss_dip)
+        # Save values to dataframe:
+        self.df.at[clast, 'slope__steepest_azimuth'] = ss_azimuth
+        self.df.at[clast, 'slope__steepest_dip'] = ss_dip
+        self.df.at[clast, 'distance__to_exit'] = dist_to_exit
+        self.df.at[clast, 'target_node'] = target_node
 
 
+        # Calculate lambda_mean:
+        self.df.at[clast, 'lambda_0'] = (self._dt * self._kappa * max(self._grid.dx, self._grid.dy)) / (self._Si * 20 * self.df.at[clast,'clast__radius'])  #
+        #print(self.df.at[clast, 'lambda_0'])
 
-            # Save values to dataframe:
-            self.df.at[clast, 'slope__steepest_azimuth'] = ss_azimuth
-            self.df.at[clast, 'slope__steepest_dip'] = ss_dip
-            self.df.at[clast, 'distance__to_exit'] = dist_to_exit
-            self.df.at[clast, 'target_node'] = target_node
-            self.df.at[clast, 'change_x'] = change_x
-            self.df.at[clast, 'change_y'] = change_y
-            self.df.at[clast, 'lambda_mean'] = lambda_mean
-            self.df.at[clast, 'lambda_0'] = lambda_0
+        if ClastCollection._cell_type(self, clast) == True:   # Cell is hillslope
+            if self.df.at[clast, 'slope__steepest_dip'] >= self._Si:
+                lambda_mean = np.power(10, 10)
+            else:
+                lambda_0  = self.df.at[clast,'lambda_0']  # 1
+                lambda_mean = lambda_0 * (self._Si + np.tan(self.df.at[clast, 'slope__steepest_dip'])) / (self._Si - np.tan(self.df.at[clast, 'slope__steepest_dip']))
+        else:   # Cell is river
+            if self.df.at[clast, 'slope__steepest_dip'] >= self._Si:
+                lambda_mean = np.power(10, 10)
+            else:
+                lambda_0 = 100 * self.df.at[clast,'lambda_0'] # 100
+                lambda_mean = lambda_0 * (self._Si + np.tan(self.df.at[clast, 'slope__steepest_dip'])) / (self._Si - np.tan(self.df.at[clast, 'slope__steepest_dip']))
 
 
+        self.df.at[clast, 'lambda_mean'] = lambda_mean
+        self.df.at[clast, 'lambda_0'] = lambda_0
 
 
+        print('change_x = %s' %change_x)
+        print('change_y = %s' %change_y)
 
 
-    #def _test_leave_cell(self, clast):
-    #    _node = self._clast__node[clast]
-    #    _z_node = self._grid.at_node['topographic__elevation'][_node]
-    #    S=ss_dip[clast]
-    #    Si = self._Si
-    #    _azimuth=azimuth
-    #    lambda_mean = self._lambda_0[clast] * (Si + S) / (Si - S)
-    #    R = np.random.rand(1)
-    #
-    #    if S >= Si:
-    #        proba_leave_cell = 1
-    #    else:
-    #        proba_leave_cell = np.exp(((dist_to_exit) / np.cos(np.arctan(S)) / lambda_mean))
-    #
-    #    _move = np.zeros(1, dtype=bool)
-    #
-    #    if proba_leave_cell >= R:
-    #        # Clast leaves node:
-    #        _move = True
-    #    else:
-    #        _move = False
-    #
-    #    return _move
+        self.df.at[clast, 'change_x'] = change_x + np.random.normal(loc=0.0, scale=(1 / (10 * self.df.at[clast, 'lambda_0'])), size=1)   # adds a randomness for lateral spreading
+        self.df.at[clast, 'change_y'] = change_y + np.random.normal(loc=0.0, scale=(1 / (10 * self.df.at[clast, 'lambda_0'])), size=1)   # adds a randomness for lateral spreading
 
 
 
@@ -504,7 +545,7 @@ class ClastCollection(ItemCollection):
         # clast leaves cell, move of distance dist_to_exit along slope
         self.df.at[clast, 'clast__x'] += self.df.at[clast, 'change_x']
         self.df.at[clast, 'clast__y'] += self.df.at[clast, 'change_y']
-        self.df.at[clast, 'hop_length'] += self.df.at[clast, 'distance__to_exit']
+        self.df.at[clast, 'hop_length'] += (np.sqrt(np.power(self.df.at[clast, 'change_x'], 2)+ np.power(self.df.at[clast, 'change_y'],2))) / np.cos(self.df.at[clast, 'slope__steepest_dip']) # self.df.at[clast, 'distance__to_exit']
         self.df.at[clast, 'clast__node'] = self.df.at[clast, 'target_node']
 
 
@@ -547,9 +588,12 @@ class ClastCollection(ItemCollection):
     def _cell_type(self, clast):
         _node = self.df.at[clast, 'clast__node']
         _grid = self._grid
-        threshold = 1
+        threshold = np.power(10,10)
 
-        area_over_slope = _grid.at_node['drainage_area'][_node] / _grid.at_node['topographic__steepest_slope'][_node]
+        if np.isnan(self.df.at[clast, 'slope__steepest_azimuth']) == True:
+            area_over_slope = 1   # clast next to boundary
+        else:
+            area_over_slope = _grid.at_node['drainage_area'][_node] / _grid.at_node['topographic__steepest_slope'][_node]
 
         if area_over_slope < threshold:
             _cell_is_hillslope = True
@@ -586,10 +630,10 @@ class ClastCollection(ItemCollection):
         self._Si = Si #  slope above which particle motion continues indefinetly (not equal to critical slope of diffusion, see Furbish and Haff, 2010)
 #            self._lambda_0 = lambda_0
 
-        self._lambda_0=np.zeros(self._nb_of_clast)
-        for i in range(self._nb_of_clast-1):
-            self._lambda_0[i] = (self._dt * self._kappa * self._grid.dx) / (self._Si * 2 * np.array(self.get_value(item_id=i,variable='clast__radius')))
-#            self._lambda_0[:] += lambda_0
+#        self._lambda_0=np.zeros(self._nb_of_clast)
+#        for i in range(self._nb_of_clast-1):
+#            self._lambda_0[i] = (self._dt * self._kappa * max(self._grid.dx, self._grid.dy)) / (self._Si * self.df.at[i, 'clast__radius'])
+##            self._lambda_0[:] += lambda_0
 
         # Uplift:
         if uplift is not None:
@@ -630,17 +674,22 @@ class ClastCollection(ItemCollection):
                         while ClastCollection._change_cell_proba(self, clast) == True:
                             if ClastCollection.phantom(self, clast) == False:
                                 print(self.df)
-                                print('change cell')
+                                print('must change cell')
                                 ClastCollection._move_out_of_cell(self,clast)
+                                print('moved out')
+                                print('clastx= %s' %self.DataFrame.at[clast, 'clast__x'])
+                                print('clasty= %s' %self.DataFrame.at[clast, 'clast__y'])
                                 figure(1)
-                                plot(self.DataFrame.at[clast, 'clast__x'], self.DataFrame.at[clast, 'clast__y'], 'o', color='gray')
+                                plot(self.DataFrame.at[clast, 'clast__x'], self.DataFrame.at[clast, 'clast__y'], 'o', color='gray', markersize=1)
                                 ########JUST FOR TESTING PURPOSE##################################
                                 if self.df.at[clast, 'clast__node'] != self.df.at[clast, 'target_node']:
                                     print('Error: moved to wrong node')
                                 ##################################################################
                                 self.df.at[clast, 'target_node_flag'] = -1
                                 ClastCollection._neighborhood(self, clast)
+                                print('done new neighborhood')
                                 ClastCollection._move_to(self, clast)
+                                print('done new move_to, test change_cell_proba')
                             else:
                                 print('clast has gone out of grid')
                                 break
@@ -651,8 +700,10 @@ class ClastCollection(ItemCollection):
                                 if self.df.at[clast,'distance__to_exit'] == -1:# case where slope is null
                                     pass
                                 else:
+                                    print(self.df)
+                                    print('must move in cell')
                                     ClastCollection._move_in_cell(self,clast)
-                                    print('move in cell')
+                                    print('moved in cell')
                             else:
                                 break
                     else: # if centered slope is null
