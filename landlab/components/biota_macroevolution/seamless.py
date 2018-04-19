@@ -162,12 +162,12 @@ class BiotaEvolver(Component, BiotaEvolverObject):
             indices = np.where(np.isin(origins, species_zones))[0]
 
             if len(indices) > 0:
-                zone_paths = zone_paths.loc[indices]
+                es_paths = zone_paths.loc[indices]
 
                 # surviving_from_es includes child species and the parent
                 # species (es) if it persists.
                 surviving_from_es = es.run_macroevolution_processes(next_time,
-                                                                    zone_paths)
+                                                                    es_paths)
                 surviving_species.extend(surviving_from_es)
 
             # Set id for new species.

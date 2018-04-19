@@ -1,6 +1,5 @@
 from .biota_evolver_object import BiotaEvolverObject
 from .seamless import BiotaEvolver
-from .habitat_patch_vector import HabitatPatchVector
 from .zone import Zone
 from .plot import *
 from .species import Species
