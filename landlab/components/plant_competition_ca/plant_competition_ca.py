@@ -262,7 +262,7 @@ class VegCA(Component):
 
         self._cell_values = self.grid['cell']
 
-    def update(self, time_elapsed=1, Edit_VegCov=True):
+    def update(self, time_elapsed=1, edit_vegcov=False):
         """
         Update fields with current loading conditions.
 
@@ -270,8 +270,8 @@ class VegCA(Component):
         ----------
         time_elapsed: int, optional
             Time elapsed - time step (years).
-        Edit_VegCov: switch (0 or 1), optional
-            If Edit_VegCov=1, an optional field 'vegetation__boolean_vegetated'
+        edit_vegcov: bool, optional
+            If edit_vegcov=True, an optional field 'vegetation__boolean_vegetated'
             will be output, (i.e.) if a cell is vegetated the corresponding
             cell of the field will be 1, otherwise it will be 0.
         """
@@ -367,7 +367,7 @@ class VegCA(Component):
         self._tp[plant_cells[Mortality]] = 0
         self._cell_values['plant__age'] = self._tp
 
-        if Edit_VegCov:
+        if edit_vegcov:
             self.grid['cell']['vegetation__boolean_vegetated'] =             \
                         np.zeros(self.grid.number_of_cells, dtype=int)
             self.grid['cell']['vegetation__boolean_vegetated'][
