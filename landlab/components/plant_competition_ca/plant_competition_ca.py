@@ -217,10 +217,40 @@ class VegCA(Component):
         assert_method_is_valid(self._method)
 
         super(VegCA, self).__init__(grid)
-
+        """
+        Note: If the field 'vegetation__plant_functional_type' is not
+        input, a random field will be generated.
+        """
         if 'vegetation__plant_functional_type' not in self.grid.at_cell:
             grid['cell']['vegetation__plant_functional_type'] = (
                     np.random.randint(0, 6, grid.number_of_cells))
+        """
+        Note: If the field 'plant__age' is not input,
+        a random field will be generated. Also note that the
+        field 'vegetation__plant_functional_type' will be altered
+        if the age of the shrubs and trees randomnly generated are
+        below the maximum age of their respective seedlings.
+        i.e. if the field 'vegetation__plant_functional_type'
+        originally has a shrub at a location 'x' and the field
+        'plant__age' is not provided, 'plant__age' will be generated.
+        If the value of this field at location 'x' is less than
+        shrub_seedling's maximum age, the field 
+        'vegetation__plant_functional_type' will be altered to
+        show SHRUBSEEDLING instead of SHRUB.
+        """
+        if 'plant__age' not in self.grid.at_cell:
+            VegType = grid['cell']['vegetation__plant_functional_type']
+            tp = np.zeros(grid.number_of_cells, dtype=int)
+            tp[VegType == TREE] = np.random.randint(
+                0, self._tpmax_tr, np.where(VegType == TREE)[0].shape)
+            tp[VegType == SHRUB] = np.random.randint(
+                0, self._tpmax_sh, np.where(VegType == SHRUB)[0].shape)
+            locs_trees = np.where(VegType == TREE)[0]
+            locs_shrubs = np.where(VegType == SHRUB)[0]
+            VegType[locs_trees[tp[locs_trees] < self._tpmax_tr_s]] = TREESEEDLING
+            VegType[locs_shrubs[tp[
+                locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
+            grid.at_cell['plant__age'] = tp
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -231,19 +261,6 @@ class VegCA(Component):
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
-
-        VegType = grid['cell']['vegetation__plant_functional_type']
-        tp = np.zeros(grid.number_of_cells, dtype=int)
-        tp[VegType == TREE] = np.random.randint(
-            0, self._tpmax_tr, np.where(VegType == TREE)[0].shape)
-        tp[VegType == SHRUB] = np.random.randint(
-            0, self._tpmax_sh, np.where(VegType == SHRUB)[0].shape)
-        locs_trees = np.where(VegType == TREE)[0]
-        locs_shrubs = np.where(VegType == SHRUB)[0]
-        VegType[locs_trees[tp[locs_trees] < self._tpmax_tr_s]] = TREESEEDLING
-        VegType[locs_shrubs[tp[
-            locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
-        grid['cell']['plant__age'] = tp
 
     def update(self, time_elapsed=1, Edit_VegCov=True):
         """
@@ -263,36 +280,47 @@ class VegCA(Component):
             'vegetation__cumulative_water_stress']
         self._live_index = self._cell_values['plant__live_index']
         self._tp = self._cell_values['plant__age'] + time_elapsed
+#        self._tp_check_1 = np.copy(self._tp)
 
         # Check if shrub and tree seedlings have matured
         shrub_seedlings = np.where(self._VegType == SHRUBSEEDLING)[0]
         tree_seedlings = np.where(self._VegType == TREESEEDLING)[0]
+        self._shrub_seedlings = np.copy(shrub_seedlings)
+        self._tree_seedlings = np.copy(tree_seedlings)
         matured_shrubs = np.where(self._tp[shrub_seedlings] >
                                   self._tpmax_sh_s)[0]
+        self._matured_shrubs = np.copy(matured_shrubs)
         matured_trees = np.where(self._tp[tree_seedlings] >
                                  self._tpmax_tr_s)[0]
+        self._matured_trees = np.copy(matured_trees)
         self._VegType[shrub_seedlings[matured_shrubs]] = SHRUB
         self._VegType[tree_seedlings[matured_trees]] = TREE
         self._tp[shrub_seedlings[matured_shrubs]] = 0
         self._tp[tree_seedlings[matured_trees]] = 0
+#        self._tp_check_2 = np.copy(self._tp)
+
+        # Identifying bare_cells and vegetated_cells before executing establishment
+        # and mortality.
+        bare_cells = np.where(self._VegType == BARE)[0]
+        plant_cells = np.where(self._VegType != BARE)[0]        
 
         # Establishment
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS
-        bare_cells = np.where(self._VegType == BARE)[0]
         n_bare = len(bare_cells)
         first_ring = self.grid.looped_neighbors_at_cell[bare_cells]
         second_ring =                                                   \
             self.grid.second_ring_looped_neighbors_at_cell[bare_cells]
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
-        Sh_WS_fr = WS_PFT(veg_type_fr, SHRUB, self._live_index[first_ring])
-        Tr_WS_fr = WS_PFT(veg_type_fr, TREE, self._live_index[first_ring])
-        Tr_WS_sr = WS_PFT(veg_type_sr, TREE, self._live_index[second_ring])
+        sh_phi_fr = phi_pft(veg_type_fr, SHRUB, self._live_index[first_ring])
+        tr_phi_fr = phi_pft(veg_type_fr, TREE, self._live_index[first_ring])
+        tr_phi_sr = phi_pft(veg_type_sr, TREE, self._live_index[second_ring])
 
         n = count(veg_type_fr, SHRUB)
-        Phi_sh = Sh_WS_fr/8.
-        Phi_tr = (Tr_WS_fr + Tr_WS_sr/2.)/8.
-        Phi_g = np.mean(self._live_index[np.where(self._VegType == GRASS)])
+        n[n==0] = 1./self._INg    # to avoid divide by zero errors for Peg calculation
+        Phi_sh = sh_phi_fr/8.
+        Phi_tr = (tr_phi_fr + tr_phi_sr/2.)/8.
+        Phi_g = np.mean(self._live_index[np.where(self._VegType == GRASS)])   # Need to check how to deal with empty veg plot
         Pemaxg = self._Pemaxg * np.ones(n_bare)
         Pemaxsh = self._Pemaxsh * np.ones(n_bare)
         Pemaxtr = self._Pemaxtr * np.ones(n_bare)
@@ -310,33 +338,33 @@ class VegCA(Component):
                              np.greater_equal(Pest, R_Est) == True)[0])
         self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish]
         self._tp[bare_cells[Establish]] = 0
+#        self._tp_check_3 = np.copy(self._tp)
 
         # Mortality
-        plant_cells = np.where(self._VegType != BARE)[0]
         n_plant = len(plant_cells)
         Theta = np.choose(self._VegType[plant_cells], [
                           self._th_g, self._th_sh, self._th_tr,
-                          0, self._th_sh_s, self._th_tr_s])
+                          0, self._th_sh_s, self._th_tr_s])        
         PMd = self._CumWS[plant_cells] - Theta
         PMd[PMd < 0.] = 0.
+        # Multiplied 2 below to not kill seedlings
         tpmax = np.choose(self._VegType[plant_cells], [
                           200000, self._tpmax_sh, self._tpmax_tr,
-                          0, self._tpmax_sh_s, self._tpmax_tr_s])
+                          0, 2 * self._tpmax_sh_s, 2 * self._tpmax_tr_s])        
         PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
-        tp_greater = np.where(tp_plant > 0.5*tpmax)[0]
+        tp_greater = np.where(tp_plant > 0.5*tpmax)[0]        
         PMa[tp_greater] = ((tp_plant[tp_greater] - 0.5 * tpmax[tp_greater]) /
-                           (0.5 * tpmax[tp_greater])) - 1
+                           (0.5 * tpmax[tp_greater]))        
         PMb = np.choose(self._VegType[plant_cells], [
                         self._Pmb_g, self._Pmb_sh, self._Pmb_tr, 0,
-                        self._Pmb_sh_s, self._Pmb_tr_s])
+                        self._Pmb_sh_s, self._Pmb_tr_s])        
         PM = PMd + PMa + PMb
-        PM[PM > 1.] = 1.
-        R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill
+        PM[PM > 1.] = 1.        
+        R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill        
         Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
         self._VegType[plant_cells[Mortality]] = BARE
         self._tp[plant_cells[Mortality]] = 0
-
         self._cell_values['plant__age'] = self._tp
 
         if Edit_VegCov:
@@ -346,6 +374,20 @@ class VegCA(Component):
                         self._VegType != BARE] = 1
 
         # For debugging purposes
+#        self._n = n
+#        self._phi_g = Phi_g
+#        self._Peg = Peg
+#        self._Pesh = Pesh
+#        self._Petr = Petr
+#        self._selected_pft_e = Select_PFT_E
+#        self._theta = Theta  # shape = plant_cells
+#        self._PMd = PMd
+#        self._tpmax = tpmax
+#        self._tp_greater = tp_greater
+#        self._PMa = PMa
+#        self._PMb = PMb
+#        self._PM = PM
+#        self._R_Mor = R_Mor
         self._bare_cells = bare_cells
         self._Established = bare_cells[Establish]
         self._plant_cells = plant_cells
@@ -353,7 +395,7 @@ class VegCA(Component):
 
 
 def count(Arr, value):
-    Res = np.zeros(Arr.shape[0], dtype=int)
+    Res = np.zeros(Arr.shape[0])
     x, y = Arr.shape
     for i in range(0, x):
         for j in range(0, y):
@@ -362,11 +404,11 @@ def count(Arr, value):
     return Res
 
 
-def WS_PFT(VegType, PlantType, WS):
-    Phi = np.zeros(WS.shape[0])
-    x, y = WS.shape
+def phi_pft(VegType, PlantType, phi_value):
+    Phi = np.zeros(phi_value.shape[0])
+    x, y = phi_value.shape
     for i in range(0, x):
         for j in range(0, y):
             if VegType[i][j] == PlantType:
-                Phi[i] += WS[i][j]
+                Phi[i] += phi_value[i][j]
     return Phi
