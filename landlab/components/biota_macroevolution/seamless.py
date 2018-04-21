@@ -259,13 +259,13 @@ class BiotaEvolver(Component, BiotaEvolverObject):
 
     def get_number_of_species_array(self):
         # Only works for final time because habitat mask.
-        time = self.time__latest
+        time = self.record.time__latest
         species = self.species_at_time(time)
         ns = np.zeros(self._grid.number_of_nodes)
 
         for s in species:
-            for p in s.record[time]['zones']:
-                ns[np.where(p.mask)] += 1
+            for z in s.record.loc[time, 'zones']:
+                ns[np.where(z.mask)] += 1
 
         return ns
 
