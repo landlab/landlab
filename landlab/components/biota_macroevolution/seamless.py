@@ -309,11 +309,11 @@ class BiotaEvolver(Component, BiotaEvolverObject):
             species_at_time = self.species_at_time(t)
             all_species.extend(species_at_time)
             for s in species_at_time:
-                species_times = list(s.record.keys())
+                species_times = list(s.record.index.tolist())
                 species_years += max(species_times) - min(species_times)
 
         number_of_species = len(set(all_species))
-        number_of_species_at_final_time = len(self.species_at_time(self.time__latest))
+        number_of_species_at_final_time = len(self.species_at_time(self.record.time__latest))
         number_of_extinctions = (number_of_species -
                                  number_of_species_at_final_time)
         e_per_msy = number_of_extinctions / species_years * 1e6
@@ -351,4 +351,7 @@ class BiotaEvolver(Component, BiotaEvolverObject):
         return self.species.object[self.species.latest_time == time].tolist()
 
     def zones_at_time(self, time):
-        return self.zones.object[self.zones.latest_time == time].tolist()
+        con1 = time >= self.zones.time_appeared
+        con2 = time <= self.zones.latest_time
+        is_at_time = np.all([con1, con2], axis=0)
+        return self.zones.object[is_at_time].tolist()
