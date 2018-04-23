@@ -315,12 +315,21 @@ def test_stream_length_raster_D_infinity():
     
     # instantiate an elevation array
     
-    z = np.array([[0, 0, 0, 0], [0, 21, 10, 0], [0, 31, 20, 0], [0, 32, 30, 0],
-                  [0, 0, 0, 0]], dtype='float64')
+    z = mg.x_of_node + 2.0 * mg.y_of_node
         
     # add the elevation field to the grid
     
     mg.add_field('node', 'topographic__elevation', z)
+    
+    # instantiate the expected flow_length array
+    
+    flow_length_expected = np.array([[0, 0, 0, 0], [0, 0, 0, 0], 
+                                     [0, 1, 1, math.sqrt(2)], 
+                                     [0, 2, 2, 1+math.sqrt(2)], 
+                                     [0, 3, 3, 2+math.sqrt(2)]], dtype='float64')
+    flow_length_expected = np.reshape(flow_length_expected, 
+                                      mg.number_of_node_rows * 
+                                      mg.number_of_node_columns)
     
     #setting boundary conditions
     
@@ -338,3 +347,7 @@ def test_stream_length_raster_D_infinity():
     
     flow_length = calculate_stream_length(mg, add_to_grid=True, 
                                           noclobber=False)
+    
+    # test that the stream length utility works as expected
+    
+    assert_array_equal(flow_length_expected, flow_length)
