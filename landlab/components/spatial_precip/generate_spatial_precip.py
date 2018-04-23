@@ -833,10 +833,30 @@ print(total_t/24./365.)
 # z += 1000.
 # rain = PrecipitationDistribution(mg, number_of_years=3)
 # count = 0
-# total_storms = 0.
-# for storms_in_year in rain.yield_years():
+# total_t = 0.
+# for dt, interval_t in rain.yield_storms():
 #     count += 1
-#     total_storms += storms_in_year
-#     print(storms_in_year)
-#     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
-#     show()
+#     total_t += dt + interval_t
+#     print rain._median_rf_total
+#     if count % 100 == 0:
+#         imshow_grid_at_node(mg, 'rainfall__flux')
+#         show()
+# print("Effective total years:")
+# print(total_t/24./365.)
+# print('*****')
+mg = RasterModelGrid((100, 100), 500.)
+mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# imshow_grid_at_node(mg, mg.status_at_node)
+# show()
+z = mg.add_zeros('node', 'topographic__elevation')
+z += 1000.
+rain = PrecipitationDistribution(mg, number_of_years=5,
+            path_to_input_files='/Users/danhobley/git_landlab/landlab/components/spatial_precip')
+count = 0
+total_storms = 0.
+for storms_in_year in rain.yield_years():
+    count += 1
+    total_storms += storms_in_year
+    print(storms_in_year)
+    imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
+    show()
