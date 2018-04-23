@@ -22,6 +22,11 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
     noclobber : boolean, optional
         Flag to indicate if adding the field to the grid should not clobber an
         existing field with the same name. Default is True.
+    
+    Returns
+        -------
+        stream__length : float ndarray
+    The distance that has to be covered from an imaginary flow, located in each node of the grid, to reach the watershed's outlet.
 
     Examples
     --------
