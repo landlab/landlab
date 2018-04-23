@@ -70,26 +70,6 @@ class Flexure(Component):
     Landlab component that implements a 1 and 2D lithospheric flexure
     model.
 
-    Construction::
-
-        Flexure(grid, eet=65e3, youngs=7e10, method='airy', rho_mantle=3300.,
-                gravity=9.80665)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A grid.
-    eet : float, optional
-        Effective elastic thickness (m).
-    youngs : float, optional
-        Young's modulus.
-    method : {'airy', 'flexure'}, optional
-        Method to use to calculate deflections.
-    rho_mantle : float, optional
-        Density of the mantle (kg / m^3).
-    gravity : float, optional
-        Acceleration due to gravity (m / s^2).
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -135,6 +115,17 @@ class Flexure(Component):
     """
 
     _name = 'Flexure'
+
+    _cite_as = """@article{hutton2008sedflux,
+        title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
+        author={Hutton, Eric WH and Syvitski, James PM},
+        journal={Computers \& Geosciences},
+        volume={34},
+        number={10},
+        pages={1319--1337},
+        year={2008},
+        publisher={Pergamon}
+        }"""
 
     _input_var_names = (
         'lithosphere__overlying_pressure_increment',

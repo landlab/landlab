@@ -13,10 +13,6 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     outflux (or influx, if negative) divided by cell area, at each node (zero
     or "out" value for nodes without cells).
 
-    Construction::
-
-        calc_flux_div_at_node(grid, unit_flux_at_links, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -87,10 +83,6 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     Given a flux per unit width across each cell face in the grid, calculate 
     the net outflux (or influx, if negative) divided by cell area, at each 
     cell.
-
-    Construction::
-
-        calc_flux_div_at_cell(grid, unit_flux_at_links_across_faces, out=None)
 
     Parameters
     ----------
@@ -166,10 +158,6 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     outflux (or influx, if negative) at each node. Fluxes are treated as zero
     for links that have no faces, and net fluxes are treated as zero for nodes
     that have no cell.
-
-    Construction::
-
-        calc_net_flux_at_node(grid, unit_flux_at_links, out=None)
 
     Parameters
     ----------
@@ -248,10 +236,6 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     Given a flux per unit width across each face in the grid, calculate the net
     outflux (or influx, if negative) at each cell.
 
-    Construction::
-
-        _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -324,10 +308,6 @@ def _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     Given a flux per unit width across each face in the grid, calculate the net
     outflux (or influx, if negative) divided by cell area, at each cell.
 
-    Construction::
-
-        _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -376,10 +356,6 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     outflux (or influx, if negative) at each cell. Same as
     `_calc_net_face_flux_at_cell` except that flux values on inactive faces
     are ignored.
-
-    Construction::
-
-        _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None)
 
     Parameters
     ----------
@@ -452,11 +428,6 @@ def _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     as `_calc_face_flux_divergence_at_cell` except that flux values at inactive
     faces are ignored.
 
-    Construction::
-
-        _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces,
-                                                 out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -503,10 +474,6 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     for links that have no faces, and net fluxes are treated as zero for nodes
     that have no cell. Same as `_calc_net_link_flux_at_node` except that it
     ignores any flux values on inactive links.
-
-    Construction::
-
-        _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None)
 
     Parameters
     ----------
@@ -584,11 +551,6 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links,
     outflux (or influx, if negative) divided by cell area, at each node (zero
     or "out" value for nodes without cells).
 
-    Construction::
-
-        _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links, 
-                                                 out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -641,10 +603,6 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     Given a flux per unit width across each face in the grid, calculate the net
     outflux (or influx, if negative) at each node (nodes without cells are
     zero, or unchanged from `out` parameter if provided)
-
-    Construction::
-
-        _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None)
 
     Parameters
     ----------
@@ -717,10 +675,6 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     zero, or unchanged from `out` parameter if provided). Same as
     `_calc_net_face_flux_at_node` except that it ignores inactive faces.
 
-    Construction::
-
-        _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -788,11 +742,6 @@ def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None
     Given a flux per unit width across each face in the grid, calculate the net
     outflux (or influx, if negative) divided by cell area, at each node that
     lies within a cell.
-
-    Construction::
-
-        _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces,
-                                                 out=None)
 
     Parameters
     ----------

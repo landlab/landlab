@@ -2,7 +2,7 @@
 """Calculate gradients of quantities over links.
 
 Gradient calculation functions
-+++++++++++++++++++++++
+++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/
@@ -27,10 +27,6 @@ def calc_grad_at_link(grid, node_values, out=None):
 
     Calculates the gradient in `node_values` at each link in the grid,
     returning an array of length `number_of_links`.
-
-    Construction::
-
-        calc_grad_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -109,10 +105,6 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     Calculates the gradient in *quantity* node values at each active link in
     the grid.
 
-    Construction::
-
-        calc_grad_at_active_link(grid, node_values, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -130,10 +122,10 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = np.empty(grid.number_of_active_links, dtype=float)
-    return np.divide(node_values[grid._activelink_tonode] -
-                     node_values[grid._activelink_fromnode],
-                     grid.length_of_link[grid.active_links], out=out)
+        out = np.empty(len(grid.active_links), dtype=float)
+    return np.divide(
+        np.diff(node_values[grid.nodes_at_link[grid.active_links]], axis=1).flatten(),
+        grid.length_of_link[grid.active_links], out=out)
 
 
 @deprecated(use='calc_grad_at_link', version='1.0beta')
@@ -144,10 +136,6 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     Calculate and return gradient in *node_values* at each face in the grid.
     Gradients are calculated from the nodes at either end of the link that
     crosses each face.
-
-    Construction::
-
-        calculate_gradients_at_faces(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -197,10 +185,6 @@ def calc_diff_at_link(grid, node_values, out=None):
 
     Calculates the difference in quantity *node_values* at each link in the
     grid.
-
-    Construction::
-
-        calc_diff_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -268,10 +252,6 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     Calculates the difference in quantity *node_values* at each active link
     in the grid.
 
-    Construction::
-
-        calculate_diff_at_active_links(grid, node_values, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -289,10 +269,10 @@ def calculate_diff_at_active_links(grid, node_values, out=None):
     LLCATS: DEPR LINF GRAD
     """
     if out is None:
-        out = np.empty(grid.number_of_active_links, dtype=float)
+        out = np.empty(len(grid.active_links), dtype=float)
     node_values = np.asarray(node_values)
-    return np.subtract(node_values[grid._activelink_tonode],
-                       node_values[grid._activelink_fromnode], out=out)
+    node_values = node_values[grid.nodes_at_link[grid.active_links]]
+    return np.subtract(node_values[:, 1], node_values[:, 0], out=out)
 
 
 def calc_unit_normal_at_patch(grid, elevs='topographic__elevation'):

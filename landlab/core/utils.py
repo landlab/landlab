@@ -20,9 +20,12 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
+from __future__ import print_function
+
+import os
+import re
 
 import numpy as np
-
 
 
 SIZEOF_INT = np.dtype(np.int).itemsize
@@ -333,10 +336,6 @@ def strip_grid_from_method_docstring(funcs):
     <BLANKLINE>
     dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
         A dummy function to demonstrate automated docstring changes.
-    <BLANKLINE>
-        Construction::
-    <BLANKLINE>
-            dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
     <BLANKLINE>
         Parameters
         ----------
