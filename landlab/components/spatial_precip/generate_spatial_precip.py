@@ -61,7 +61,7 @@ class PrecipitationDistribution(Component):
     def __init__(self, grid, mode='simulation', number_of_simulations=1,
                  number_of_years=1, buffer_width=5000,
                  orographic_scenario='Singer', save_outputs=False,
-                 path_to_input_files='/Users/daniel/development/landlab/landlab/components/spatial_precip'):
+                 path_to_input_files=None):
         """
         It's on the user to ensure the grid is big enough to permit the buffer.
         save_outputs : if not None, str path to save
@@ -112,7 +112,12 @@ class PrecipitationDistribution(Component):
         assert orographic_scenario in {None, 'Singer'}
         self._orographic_scenario = orographic_scenario
 
-        self._path = path_to_input_files
+        if path_to_input_files is None:
+            self._path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                      'model_input')
+        else:
+            assert type(path_to_input_files) is str
+            self._path = path_to_input_files
 
         # build LL fields:
         self.initialize_output_fields()
@@ -850,8 +855,7 @@ mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=5,
-            path_to_input_files='/Users/danhobley/git_landlab/landlab/components/spatial_precip')
+rain = PrecipitationDistribution(mg, number_of_years=5)
 count = 0
 total_storms = 0.
 for storms_in_year in rain.yield_years():
