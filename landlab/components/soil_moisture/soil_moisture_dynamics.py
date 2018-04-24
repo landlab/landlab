@@ -220,7 +220,7 @@ class SoilMoisture(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, ordered_cells=None, runon_switch=1,
+    def __init__(self, grid, ordered_cells=None, runon_switch=0,
                  f_bare=0.7, soil_ew=0.1,
                  intercept_cap_grass=1., zr_grass=0.3, I_B_grass=20.,
                  I_V_grass=24., K_s_grass=42., pc_grass=0.43, fc_grass=0.56,
@@ -332,7 +332,7 @@ class SoilMoisture(Component):
 
         self._cell_values = self.grid['cell']
 
-    def initialize(self, ordered_cells=None, runon_switch=1, f_bare=0.7,
+    def initialize(self, ordered_cells=None, runon_switch=0, f_bare=0.7,
                    soil_ew=0.1, intercept_cap_grass=1., zr_grass=0.3,
                    I_B_grass=20., I_V_grass=24., K_s_grass=42.,
                    pc_grass=0.43, fc_grass=0.56,
