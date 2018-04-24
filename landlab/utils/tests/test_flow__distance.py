@@ -6,7 +6,7 @@ from nose.tools import assert_raises
 from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid, FieldError, HexModelGrid
 from landlab.components import FlowAccumulator, FlowDirectorSteepest
-from landlab.utils.stream_length import calculate_stream_length
+from landlab.utils.flow__distance import calculate_flow__distance
 
 def test_no_flow_recievers():
     """Test that correct error is raised when no flow recievers are 
@@ -16,9 +16,9 @@ def test_no_flow_recievers():
     
     mg = RasterModelGrid(30, 70)
     
-    # test that the stream length utility will fail because of a ValueError
+    # test that the flow distance utility will fail because of a ValueError
     
-    assert_raises(FieldError, calculate_stream_length, mg)
+    assert_raises(FieldError, calculate_flow__distance, mg)
 
 
 def test_no_upstream_array():
@@ -37,13 +37,13 @@ def test_no_upstream_array():
     fd = FlowDirectorSteepest(mg)   
     fd.run_one_step()
     
-    # test that the stream length utility will fail because of a ValueError
+    # test that the flow distance utility will fail because of a ValueError
     
-    assert_raises(FieldError, calculate_stream_length, mg)
+    assert_raises(FieldError, calculate_flow__distance, mg)
 
 
-def test_stream_length_regular_grid_d8():
-    """Test to demonstrate that stream_length utility works as expected with 
+def test_flow__distance_regular_grid_d8():
+    """Test to demonstrate that flow__distance utility works as expected with 
     regular grids"""
     
     # instantiate a model grid
@@ -59,16 +59,16 @@ def test_stream_length_regular_grid_d8():
     
     mg.add_field('node', 'topographic__elevation', z)
     
-    # instantiate the expected flow_length array
+    # instantiate the expected flow__distance array
     # considering flow directions calculated with D8 algorithm
     
-    flow_length_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], 
-                                     [0, math.sqrt(2), 1, 0], 
-                                     [0, 1+math.sqrt(2), 2, 0], [0, 0, 0, 0]], 
-                                    dtype='float64')    
-    flow_length_expected = np.reshape(flow_length_expected,
-                                      mg.number_of_node_rows * 
-                                      mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], 
+                                       [0, math.sqrt(2), 1, 0], 
+                                       [0, 1+math.sqrt(2), 2, 0], [0, 0, 0, 0]], 
+                                       dtype='float64')    
+    flow__distance_expected = np.reshape(flow__distance_expected,
+                                        mg.number_of_node_rows * 
+                                        mg.number_of_node_columns)
 
     #setting boundary conditions
     
@@ -82,31 +82,31 @@ def test_stream_length_regular_grid_d8():
     fr = FlowAccumulator(mg, flow_director='D8')
     fr.run_one_step()
     
-    # calculating flow length map
+    # calculating flow distance map
     
-    flow_length = calculate_stream_length(mg, add_to_grid=True,
-                                          noclobber=False)
-    flow_length = np.reshape(flow_length, mg.number_of_node_rows * 
-                             mg.number_of_node_columns)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True,
+                                             noclobber=False)
+    flow__distance = np.reshape(flow__distance, mg.number_of_node_rows * 
+                               mg.number_of_node_columns)
     
-    # modifying the flow_length_map because boundary and outlet nodes should 
-    # not have stream_length value different from 0
+    # modifying the flow distance map because boundary and outlet nodes should 
+    # not have flow__distance value different from 0
     
-    flow_length[mg.boundary_nodes] = 0
+    flow__distance[mg.boundary_nodes] = 0
     outlet_id = 6
-    flow_length[outlet_id] = 0
+    flow__distance[outlet_id] = 0
     
-    #Add the flow length to the grid
+    #Add the flow distance to the grid
     
-    mg.add_field('node', 'flow_length', flow_length)
+    mg.add_field('node', 'flow__distance', flow__distance)
     
-    # test that the stream length utility works as expected
+    # test that the flow distance utility works as expected
     
-    assert_array_equal(flow_length_expected, flow_length)
+    assert_array_equal(flow__distance_expected, flow__distance)
 
 
-def test_stream_length_regular_grid_d4():
-    """Test to demonstrate that stream_length utility works as expected with
+def test_flow__distance_regular_grid_d4():
+    """Test to demonstrate that flow__distance utility works as expected with
     regular grids"""
     
     # instantiate a model grid
@@ -122,15 +122,15 @@ def test_stream_length_regular_grid_d4():
     
     mg.add_field('node', 'topographic__elevation', z)
     
-    # instantiate the expected flow_length array
+    # instantiate the expected flow__distance array
     # considering flow directions calculated with D4 algorithm
     
-    flow_length_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 2, 1, 0], 
-                                     [0, 3, 2, 0], [0, 0, 0, 0]], 
-                                    dtype='float64')
-    flow_length_expected = np.reshape(flow_length_expected, 
-                                      mg.number_of_node_rows * 
-                                      mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 2, 1, 0], 
+                                        [0, 3, 2, 0], [0, 0, 0, 0]], 
+                                        dtype='float64')
+    flow__distance_expected = np.reshape(flow__distance_expected, 
+                                         mg.number_of_node_rows * 
+                                         mg.number_of_node_columns)
     
     #setting boundary conditions
     
@@ -144,31 +144,31 @@ def test_stream_length_regular_grid_d4():
     fr = FlowAccumulator(mg, flow_director='D4')
     fr.run_one_step()
     
-    # calculating flow length map
+    # calculating flow distance map
     
-    flow_length = calculate_stream_length(mg, add_to_grid=True, 
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, 
                                           noclobber=False)
-    flow_length = np.reshape(flow_length,mg.number_of_node_rows * 
-                             mg.number_of_node_columns)
+    flow__distance = np.reshape(flow__distance,mg.number_of_node_rows * 
+                                mg.number_of_node_columns)
     
-    # modifying the stream_length_map because boundary and outlet nodes 
-    # should not have stream_length value different from 0
+    # modifying the flow distance map because boundary and outlet nodes 
+    # should not have flow__distance value different from 0
     
-    flow_length[mg.boundary_nodes] = 0
+    flow__distance[mg.boundary_nodes] = 0
     outlet_id = 6
-    flow_length[outlet_id] = 0
+    flow__distance[outlet_id] = 0
     
-    #Add the flow length to the grid
+    #Add the flow distance to the grid
     
-    mg.add_field('node', 'flow_length', flow_length)
+    mg.add_field('node', 'flow__distance', flow__distance)
     
-    # test that the stream length utility works as expected
+    # test that the flow__distance utility works as expected
     
-    assert_array_equal(flow_length_expected, flow_length)
+    assert_array_equal(flow__distance_expected, flow__distance)
 
 
-def test_stream_length_irregular_grid_d4():
-    """Test to demonstrate that stream_length utility works as expected with 
+def test_flow__distance_irregular_grid_d4():
+    """Test to demonstrate that flow__distance utility works as expected with 
     irregular grids"""
     
     # instantiate a model grid
@@ -181,10 +181,10 @@ def test_stream_length_irregular_grid_d4():
     hmg.add_field('topographic__elevation', hmg.node_x + np.round(hmg.node_y),
                   at='node')
     
-    # instantiate the expected flow_length array
+    # instantiate the expected flow__distance array
     
-    flow_length_expected = np.array([0, 0, 0, 0, 0, dx, 0, 0, dx, dx, 2*dx, 0,
-                                     0, 2*dx, 2*dx, 0, 0, 0, 0])
+    flow__distance_expected = np.array([0, 0, 0, 0, 0, dx, 0, 0, dx, dx, 2*dx, 0,
+                                        0, 2*dx, 2*dx, 0, 0, 0, 0])
         
     #setting boundary conditions   
     
@@ -195,22 +195,22 @@ def test_stream_length_irregular_grid_d4():
     fr = FlowAccumulator(hmg, flow_director = 'D4')
     fr.run_one_step()
     
-    # calculating flow length map
+    # calculating flow distance map
     
-    flow_length = calculate_stream_length(hmg, add_to_grid=True, 
-                                          noclobber=False)
+    flow__distance = calculate_flow__distance(hmg, add_to_grid=True, 
+                                              noclobber=False)
     
-   #Add the flow length to the grid
+   #Add the flow distance to the grid
     
-    hmg.add_field('node', 'flow_length', flow_length)
+    hmg.add_field('node', 'flow__distance', flow__distance)
     
-    # test that the stream length utility works as expected
+    # test that the flow__distance utility works as expected
     
-    assert_array_equal(flow_length_expected, flow_length)
+    assert_array_equal(flow__distance_expected, flow__distance)
 
 
-def test_stream_length_raster_MFD_diagonals_true():
-    """Test of stream length utility with a raster grid and MFD."""
+def test_flow__distance_raster_MFD_diagonals_true():
+    """Test of flow__distance utility with a raster grid and MFD."""
     
     # instantiate a model grid
     
@@ -225,16 +225,16 @@ def test_stream_length_raster_MFD_diagonals_true():
     
     mg.add_field('node', 'topographic__elevation', z)
     
-    # instantiate the expected flow_length array
+    # instantiate the expected flow__distance array
     # considering flow directions calculated with MFD algorithm
     
-    flow_length_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], 
-                                     [0, math.sqrt(2), 1, 0], 
-                                     [0, 1+math.sqrt(2), 2, 0], [0, 0, 0, 0]], 
-                                    dtype='float64')
-    flow_length_expected = np.reshape(flow_length_expected, 
-                                      mg.number_of_node_rows * 
-                                      mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], 
+                                        [0, math.sqrt(2), 1, 0], 
+                                        [0, 1+math.sqrt(2), 2, 0], [0, 0, 0, 0]], 
+                                        dtype='float64')
+    flow__distance_expected = np.reshape(flow__distance_expected, 
+                                        mg.number_of_node_rows * 
+                                        mg.number_of_node_columns)
     
     #setting boundary conditions
     
@@ -249,17 +249,17 @@ def test_stream_length_raster_MFD_diagonals_true():
                          diagonals=True)
     fa.run_one_step()
     
-    # calculating flow length map
+    # calculating flow distance map
     
-    flow_length = calculate_stream_length(mg, add_to_grid=True, 
-                                          noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, 
+                                              noclobber=False)
     
-    # test that the stream length utility works as expected
+    # test that the flow__distance utility works as expected
     
-    assert_array_equal(flow_length_expected, flow_length)
+    assert_array_equal(flow__distance_expected, flow__distance)
 
-def test_stream_length_raster_MFD_diagonals_false():
-    """Test of stream length utility with a raster grid and MFD."""
+def test_flow__distance_raster_MFD_diagonals_false():
+    """Test of flow__distance utility with a raster grid and MFD."""
     
     # instantiate a model grid
     
@@ -274,15 +274,15 @@ def test_stream_length_raster_MFD_diagonals_false():
     
     mg.add_field('node', 'topographic__elevation', z)
     
-    # instantiate the expected flow_length array
+    # instantiate the expected flow__distance array
     # considering flow directions calculated with MFD algorithm
     
-    flow_length_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 2, 1, 0],
-                                     [0, 3, 2, 0], [0, 0, 0, 0]], 
-                                    dtype='float64')
-    flow_length_expected = np.reshape(flow_length_expected, 
-                                      mg.number_of_node_rows * 
-                                      mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 2, 1, 0],
+                                        [0, 3, 2, 0], [0, 0, 0, 0]], 
+                                        dtype='float64')
+    flow__distance_expected = np.reshape(flow__distance_expected, 
+                                        mg.number_of_node_rows * 
+                                        mg.number_of_node_columns)
     
     #setting boundary conditions
     
@@ -297,17 +297,17 @@ def test_stream_length_raster_MFD_diagonals_false():
                          diagonals=False)
     fa.run_one_step()
     
-    # calculating flow length map
+    # calculating flow distance map
     
-    flow_length = calculate_stream_length(mg, add_to_grid=True, 
-                                          noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, 
+                                              noclobber=False)
     
-    # test that the stream length utility works as expected
+    # test that the flow__distance utility works as expected
     
-    assert_array_equal(flow_length_expected, flow_length)
+    assert_array_equal(flow__distance_expected, flow__distance)
     
-def test_stream_length_raster_D_infinity():
-    """Test of stream length utility with a raster grid and D infinity."""
+def test_flow__distance_raster_D_infinity():
+    """Test of flow__distance utility with a raster grid and D infinity."""
     
     # instantiate a model grid
     
@@ -323,13 +323,13 @@ def test_stream_length_raster_D_infinity():
     
     # instantiate the expected flow_length array
     
-    flow_length_expected = np.array([[0, 0, 0, 0], [0, 0, 0, 0], 
-                                     [0, 1, 1, math.sqrt(2)], 
-                                     [0, 2, 2, 1+math.sqrt(2)], 
-                                     [0, 3, 3, 2+math.sqrt(2)]], dtype='float64')
-    flow_length_expected = np.reshape(flow_length_expected, 
-                                      mg.number_of_node_rows * 
-                                      mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 0, 0, 0], 
+                                        [0, 1, 1, math.sqrt(2)], 
+                                        [0, 2, 2, 1+math.sqrt(2)], 
+                                        [0, 3, 3, 2+math.sqrt(2)]], dtype='float64')
+    flow__distance_expected = np.reshape(flow__distance_expected, 
+                                        mg.number_of_node_rows * 
+                                        mg.number_of_node_columns)
     
     #setting boundary conditions
     
@@ -343,11 +343,11 @@ def test_stream_length_raster_D_infinity():
     fa = FlowAccumulator(mg, 'topographic__elevation', flow_director='DINF')
     fa.run_one_step()
     
-    # calculating flow length map
+    # calculating flow distance map
     
-    flow_length = calculate_stream_length(mg, add_to_grid=True, 
-                                          noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, 
+                                              noclobber=False)
     
-    # test that the stream length utility works as expected
+    # test that the flow__distance utility works as expected
     
-    assert_array_equal(flow_length_expected, flow_length)
+    assert_array_equal(flow__distance_expected, flow__distance)
