@@ -808,17 +808,11 @@ class CellLabCTSModel(object):
         """
 
         # Find out the states of the two nodes, and the orientation
-        ###tail_node_state = self.node_state[self.grid._activelink_fromnode[link_id]]
-        ###head_node_state = self.node_state[self.grid._activelink_tonode[link_id]]
-        ###orientation = self.active_link_orientation[link_id]
         tail_node_state = self.node_state[self.grid.node_at_link_tail[link_id]]
         head_node_state = self.node_state[self.grid.node_at_link_head[link_id]]
         orientation = self.link_orientation[link_id]
 
         # Return the corresponding state code.
-        #assert self.link_state_dict[(tail_node_state,head_node_state,orientation)]==orientation*self.num_node_states_sq+tail_node_state*self.num_node_states+head_node_state, 'ooops'
-        # return
-        # self.link_state_dict[(tail_node_state,head_node_state,orientation)]
         return (orientation * self.num_node_states_sq +
                 tail_node_state * self.num_node_states + head_node_state)
 
@@ -1690,8 +1684,6 @@ class CellLabCTSModel(object):
             lean_run = False
         else:
             lean_run = True
-
-        import sys  # for debug
 
         if _USE_CYTHON and not lean_run:
             self.current_time = run_cts(run_to, self.current_time,
