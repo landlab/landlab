@@ -1,15 +1,15 @@
 #! /usr/bin/env python
-"""Functions to calculate stream distance."""
+"""Functions to calculate flow distance."""
 import numpy as np
 
 from landlab import BAD_INDEX_VALUE, RasterModelGrid, FieldError
 
 
-def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
+def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     """
-    Calculate the along stream length from node to outlet.
+    Calculate the along flow distance from node to outlet.
 
-    This utility calculates the along stream distance based on the results of
+    This utility calculates the along flow distance based on the results of
     running flow accumulation on the grid. It will use the connectivity
     used by the FlowAccumulator (e.g. D4, D8, Dinf).
 
@@ -18,21 +18,21 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
     grid : ModelGrid
     add_to_grid : boolean, optional
         Flag to indicate if the stream length field should be added to the
-        grid. Default is False. The field name used is ``stream__length``.
+        grid. Default is False. The field name used is ``flow__distance``.
     noclobber : boolean, optional
         Flag to indicate if adding the field to the grid should not clobber an
         existing field with the same name. Default is True.
     
     Returns
         -------
-        stream__length : float ndarray
+        flow__distance : float ndarray
     The distance that has to be covered from an imaginary flow, located in each node of the grid, to reach the watershed's outlet.
 
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> from landlab.utils.stream_length import calculate_stream_length
+    >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
         ...              0., 21., 10., 0.,
@@ -43,12 +43,12 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
     >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
     >>> fr = FlowAccumulator(mg, flow_director = 'D8')
     >>> fr.run_one_step()
-    >>> flow_length = calculate_stream_length(mg, add_to_grid=True, noclobber=False)
-    >>> #Set to zero the flow length values of boundary nodes and watershed's outlet
-    >>> flow_length[mg.boundary_nodes] = 0
+    >>> flow_distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    >>> #Set to zero the flow distance values of boundary nodes and watershed's outlet
+    >>> flow_distance[mg.boundary_nodes] = 0
     >>> outlet_id = 6
-    >>> flow_length[outlet_id] = 0
-    >>> mg.at_node['flow_length']
+    >>> flow_distance[outlet_id] = 0
+    >>> mg.at_node['flow_distance']
     >>> array([  0,  0,  0,  0,
                  0,  1,  0,  0,
                  0,  1.414,  1, 0,
@@ -60,7 +60,7 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
         
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> from landlab.utils.stream_length import calculate_stream_length
+    >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
         ...              0., 21., 10., 0.,
@@ -71,41 +71,41 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
     >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
     >>> fr = FlowAccumulator(mg, flow_director = 'D4')
     >>> fr.run_one_step()
-    >>> flow_length = calculate_stream_length(mg, add_to_grid=True, noclobber=False)
-    >>> #Set to zero the flow length values of boundary nodes and watershed's outlet
-    >>> flow_length[mg.boundary_nodes] = 0
+    >>> flow_distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    >>> #Set to zero the flow distance values of boundary nodes and watershed's outlet
+    >>> flow_distance[mg.boundary_nodes] = 0
     >>> outlet_id = 6
-    >>> flow_length[outlet_id] = 0
-    >>> mg.at_node['flow_length']
+    >>> flow_distance[outlet_id] = 0
+    >>> mg.at_node['flow_distance']
     >>> array([  0,  0,  0,  0,
                  0,  1,  0,  0,
                  0,  2,  1, 0,
                  0, 3, 2, 0,
                  0, 0, 0, 0])
                  
-        The stream_length utility can also work on irregular grids. For the example we 
+        The flow__distance utility can also work on irregular grids. For the example we 
         will use a Hexagonal Model Grid, a special type of Voroni Grid that has 
         regularly spaced hexagonal cells. We will also set the dx spacing such 
         that each cell has an area of one.  
         
     >>> from landlab import HexModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import FlowAccumulator
-    >>> from landlab.utils.stream_length import calculate_stream_length
+    >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> dx=(2./(3.**0.5))**0.5
     >>> mg = HexModelGrid(5,3, dx)
     >>> mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
     >>> hmg.status_at_node[0] = CLOSED_BOUNDARY
     >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
     >>> fr.run_one_step()
-    >>> flow_length = calculate_stream_length(hmg, add_to_grid=True, noclobber=False)
-    >>> #Even in this case, boundary and outlet nodes should have a flow length equal to zero
-    >>> flow_length[hmg.boundary_nodes] = 0
+    >>> flow_distance = calculate_flow__distance(hmg, add_to_grid=True, noclobber=False)
+    >>> #Even in this case, boundary and outlet nodes should have a flow distance equal to zero
+    >>> flow_distance[hmg.boundary_nodes] = 0
     >>> outlet_id = 4
-    >>> flow_length[outlet_id] = 0
+    >>> flow_distance[outlet_id] = 0
     
         
     """
-    # check that flow__reciever nodes exists
+    # check that flow__receiver nodes exists
     if 'flow__receiver_node' not in grid.at_node:
         raise FieldError("A 'flow__receiver_node' field is required at the "
                          "nodes of the input grid.")
@@ -141,7 +141,7 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
             flow_link_lengths = grid.length_of_link[grid.at_node['flow__links_to_receiver_nodes']]
 
     # create an array that representes the outlet lengths.
-    stream__length = np.zeros(grid.nodes.size)
+    flow__distance = np.zeros(grid.nodes.size)
 
     # iterate through the flow__upstream_node_order, this will already have
     # identified the locations of the outlet nodes and have
@@ -171,7 +171,7 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
             # deal with the two cases of route to one and route to multiple.
             if to_one:
                 # get the stream length of the downstream node
-                downstream_stream_length = stream__length[reciever]
+                downstream_stream_length = flow__distance[reciever]
 
                 # get the stream segment length from this node to its downstream
                 # neigbor
@@ -185,8 +185,8 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
                 # shortest distance to the outlet.
                 # in the event of a tie, we will choose the shorter link length.
 
-                # get the stream lengths of the downstream nodes
-                potential_downstream_stream_lengths = stream__length[flow__receiver_node[node]][useable_recievers]
+                # get the flow distances of the downstream nodes
+                potential_downstream_stream_lengths = flow__distance[flow__receiver_node[node]][useable_recievers]
 
                 # get the stream segment lengths from this node to its downstream
                 # neighbor
@@ -203,10 +203,10 @@ def calculate_stream_length(grid, add_to_grid=False, noclobber=True):
                 stream_increment_length = np.min(potential_stream_increment_lengths[which_link])
 
             # set the total stream length of this node
-            stream__length[node] = downstream_stream_length + stream_increment_length
+            flow__distance[node] = downstream_stream_length + stream_increment_length
 
     # store on the grid
     if add_to_grid:
-        grid.add_field('node', 'stream__length', stream__length, noclobber=noclobber)
+        grid.add_field('node', 'flow__distance', flow__distance, noclobber=noclobber)
 
-    return stream__length
+    return flow__distance
