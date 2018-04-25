@@ -1,3 +1,5 @@
+
+
 # -*- coding: utf-8 -*-
 """
 hex_lattice_tectonicizer.py.
@@ -206,6 +208,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf.outgoing_node
         array([22, 31, 33, 34, 35, 38, 39, 40, 43, 44])
         """
+
         # Do the base class init
         super(LatticeNormalFault, self).__init__(grid, node_state, propid,
                                                  prop_data, prop_reset_value)
@@ -220,6 +223,10 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         #   Figure out which nodes are and are not within the footwall
         in_footwall = (self.grid.node_y < _TAN60 * (self.grid.node_x -
                        fault_x_intercept))
+        
+        # Set up array of link offsets: when slip occurs, what link's data get
+        # copied into the present link?
+        self.setup_link_offsets(in_footwall)
 
         # Helpful to have an array of node IDs for the bottom full row. Because
         # the nodes in the bottom row are staggered in a vertical, rectangular
@@ -342,12 +349,31 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # this object
             self.outgoing_node = array(outgoing_node_list, dtype=int)
 
-    def setup_link_offsets(self):
-        """Set up array with link IDs for shifting link data up and right.
+    def _link_in_footwall(self, link, node_in_footwall):
+        """Return True of both nodes are in footwall, False otherwise."""
+        return (node_in_footwall[self.grid.node_at_link_tail[link]]
+                and node_in_footwall[self.grid.node_at_link_head[link]])
         
+    def _get_link_orientation(self, link):
+        """Return link orientation code for given link."""
+        assert self.grid.orientation[0] == 'v', 'assumes vertical orientation'
+        head = self.grid.node_at_link_head[link]
+        tail = self.grid.node_at_link_tail[link]
+        dx = self.grid.x_of_node[head] - self.grid.x_of_node[tail]
+        dy = self.grid.y_of_node[head] - self.grid.y_of_node[tail]
+        if dy > dx:
+            return 0  # vertical
+        elif dy > 0:
+            return 1  # right and up
+        else:
+            return 2  # right and down
+
+    def setup_link_offsets(self, node_in_footwall):
+        """Set up array with link IDs for shifting link data up and right.
+
         Notes
         -----
-        
+
         Examples
         --------
         >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
@@ -355,21 +381,33 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
-        >>> lnf.setup_link_offsets()
         >>> lnf.link_offset_id
-        array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+               17, 18, 19, 20, 21, 22,  2,  3,  4, 26,  7, 28, 29, 10, 11, 32, 13,
+               14, 35, 36, 16, 17, 39, 20, 41, 42, 23, 24, 45, 46, 27, 48, 49, 50,
+               30, 52, 33, 54, 55, 56, 37, 58])
         """
-        self.link_offset_id = zeros(self.grid.number_of_links, dtype=np.int)
+        self.link_offset_id = arange(self.grid.number_of_links, dtype=np.int)
         nc = self.grid.number_of_node_columns
+        num_links = self.grid.number_of_links
         default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
-        first_link_for_shift = (default_offset + 2 * (nc - 1) + (nc - 1) 
-                                + (nc - 1) // 2)
-        #do we need to do +1 or -1 for either odd or even # cols?
-        #for ln in range()
+        first_link_for_shift = default_offset + ((nc - 1) // 2) + (nc % 1)
+
+        for ln in range(num_links - 1, first_link_for_shift, -1):
+            if self._link_in_footwall(ln, node_in_footwall):
+                tail_node = self.grid.node_at_link_tail[ln]
+                (_, c) = self.grid.node_row_and_column(tail_node)
+                link_orientation = self._get_link_orientation(ln)
+                offset = default_offset
+                if nc % 2 == 1:  # odd number of columns
+                    if (link_orientation + (c % 2)) == 2:
+                        offset += 1
+                else:  # even number of columns
+                    if (c % 2) == 0 and link_orientation == 0:
+                        offset -= 1
+                self.link_offset_id[ln] = ln - offset
 
     def do_offset(self, rock_state=1):
         """Apply 60-degree normal-fault offset.
@@ -643,8 +681,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu = LatticeUplifter(grid=mg)
         >>> nu = ohcts.next_update
         >>> np.round(nu[mg.active_links], 2)
-        array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  1.04,  0.58,  2.22,  3.31,
-                0.48,  1.57])
+        array([0.8 , 1.26, 0.92, 0.79, 0.55, 1.04, 0.58, 2.22, 3.31, 0.48, 1.57])
         >>> pq = ohcts.priority_queue
         >>> pq._queue[0][2]  # link for first event = 20, not shifted
         20
@@ -656,8 +693,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         0.58
         >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
         >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
-        array([ 0.75,  0.84,  2.6 ,  0.07,  0.09,  0.8 ,  0.02,  1.79,  1.51,
-                2.04,  3.85])
+        array([0.75, 0.84, 2.6 , 0.07, 0.09, 0.8 , 0.02, 1.79, 1.51, 2.04, 3.85])
         >>> pq._queue[0][2]  # new soonest event
         15
         >>> pq._queue[9][2]  # was previously 7, now shifted up...
