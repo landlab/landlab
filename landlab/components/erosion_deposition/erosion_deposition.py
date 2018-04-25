@@ -12,7 +12,7 @@ class ErosionDeposition(Component):
     Erosion-Deposition model in the style of Davy and Lague (2009)
     
     Component written by C. Shobe, begun July 2016.
-    """
+l    """
 
     _name= 'ErosionDeposition'
     
@@ -141,12 +141,12 @@ class ErosionDeposition(Component):
 
         Check initial topography        
 
-        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.02290479,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-            1.08157495,  2.09812694,  3.00637448,  4.07999597,  5.00969486,
-            2.04008677,  3.06621577,  4.09655859,  5.04809001,  6.02641123,
-            3.05874171,  4.00585786,  5.0595697 ,  6.04425233,  7.05334077,
-            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
+        >>> np.round(mg.at_node['topographic__elevation'], 6) # doctest: +NORMALIZE_WHITESPACE
+        array([0.022905,  1.036067,  2.072765,  3.011267,  4.060777,
+            1.081575,  2.098127,  3.006374,  4.079996,  5.009695,
+            2.040087,  3.066216,  4.096559,  5.04809 ,  6.026411,
+            3.058742,  4.005858,  5.05957 ,  6.044252,  7.053341,
+            4.059225,  5.040947,  6.07035 ,  7.003893,  8.010344])        
 
         Instantiate Fastscape eroder, flow router, and depression finder        
 
@@ -182,18 +182,14 @@ class ErosionDeposition(Component):
         
         Now we test to see if topography is right:
         
-        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([-0.47709521,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-                1.08157495, -0.07997982, -0.06459322, -0.05380581,  5.00969486,
-                2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
-                3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
-                4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])
+        >>> np.round(mg.at_node['topographic__elevation'], 6) # doctest: +NORMALIZE_WHITESPACE
+        array([-0.477095,  1.036067,  2.072765,  3.011267,  4.060777,
+                1.081575, -0.079979, -0.064593, -0.053806,  5.009695,
+                2.040087, -0.06458 , -0.064572, -0.052662,  6.026411,
+                3.058742, -0.053507, -0.052656, -0.034988,  7.053341,
+                4.059225,  5.040947,  6.07035 ,  7.003893,  8.010344])
         """
-#        array([-0.47709402,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-#            1.08157495, -0.0799798 , -0.06459322, -0.05380581,  5.00969486,
-#            2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
-#            3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
-#            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])        
+
         # assign class variables to grid fields; create necessary fields
         self.flow_receivers = grid.at_node['flow__receiver_node']
         self.stack = grid.at_node['flow__upstream_node_order']
@@ -437,7 +433,7 @@ class ErosionDeposition(Component):
         >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
         >>> fa.run_one_step()
         >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 1.41421356,  1.41421356])
+        array([1.41421356, 1.41421356])
         >>> sp = ErosionDeposition(rg, K=0.00001, phi=0.1, v_s=0.001,\
                                    m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
                                    sp_crit_br=0, method='simple_stream_power',\
@@ -446,7 +442,7 @@ class ErosionDeposition(Component):
         >>> z *= 0.1
         >>> sp._update_flow_link_slopes()
         >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 0.14142136,  0.14142136])
+        array([0.14142136, 0.14142136])
         """
         z = self._grid.at_node['topographic__elevation']
         r = self._grid.at_node['flow__receiver_node']
