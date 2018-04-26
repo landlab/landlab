@@ -24,7 +24,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
                                           np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
                                           np.ndarray[DTYPE_FLOAT_t, ndim=1] threshsxdt,
                                           np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                                          DTYPE_FLOAT_t n,
+                                          np.ndarray[DTYPE_FLOAT_t, ndim=1] n,
                                           np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
     """Erode node elevations using Brent's method for stability.
 
@@ -48,7 +48,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
         Incision thresholds at nodes multiplied by the timestep.
     alpha : array_like
         Erosion factor.
-    n : float
+    n : array_like
         Exponent.
     z : array_like
         Node elevations.
@@ -91,10 +91,10 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
             # calculate the difference between z_old and z_downstream
             z_diff_old = z_old - z_downstream
 
-            # using z_diff_old, calculate the alpha paramter of Braun and
+            # using z_diff_old, calculate the alpha parameter of Braun and
             # Willet by calculating alpha times z
 
-            alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
+            alpha_param = alpha[src_id] * pow(z_diff_old, n[src_id]-1.0)
 
             # Calculate the beta parameter that accounts for the possible
             # presence of a threshold.
@@ -104,7 +104,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
             # x = 1 to the erode_fn. If this returns a value of less than
             # zero, this means that the the maximum possible slope value  does
             # not produce stream power needed to exceed the erosion threshold
-            check_function = erode_fn(1, alpha_param, beta_param, n)
+            check_function = erode_fn(1, alpha_param, beta_param, n[src_id])
 
             # if the threshold was not exceeded do not change the elevation,
             # otherwise calculate the erosion rate
@@ -117,7 +117,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
 
                 # if n is 1, finding x has an analytical solution. Otherwise,
                 # use the the numerical solution given by root finding
-                if n != 1.0:
+                if n[src_id] != 1.0:
 
                     # The threshold values passed here are the defaults if one
                     # were to import brentq from scipy.optimize
@@ -125,7 +125,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
                                        0.0, 1.0,
                                        1e-12,4.4408920985006262e-16,
                                        100,
-                                       (alpha_param, beta_param, n),
+                                       (alpha_param, beta_param, n[src_id]),
                                        False,
                                        True)
 
@@ -151,7 +151,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
                                        np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
                                        DTYPE_FLOAT_t threshsxdt,
                                        np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                                       DTYPE_FLOAT_t n,
+                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] n,
                                        np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
     """Erode node elevations.
 
@@ -175,7 +175,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
         Incision thresholds at nodes multiplied by the timestep.
     alpha : array_like
         Erosion factor.
-    n : float
+    n : array_like
         Exponent.
     z : array_like
         Node elevations.
@@ -218,10 +218,10 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
             # calculate the difference between z_old and z_downstream
             z_diff_old = z_old - z_downstream
 
-            # using z_diff_old, calculate the alpha paramter of Braun and
+            # using z_diff_old, calculate the alpha parameter of Braun and
             # Willet by calculating alpha times z
 
-            alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
+            alpha_param = alpha[src_id] * pow(z_diff_old, n[src_id]-1.0)
 
             # Calculate the beta parameter that accounts for the possible
             # presence of a threshold.
@@ -230,7 +230,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
             # x = 1 to the erode_fn. If this returns a value of less than
             # zero, this means that the the maximum possible slope value  does
             # not produce stream power needed to exceed the erosion threshold
-            check_function = erode_fn(1, alpha_param, beta_param, n)
+            check_function = erode_fn(1, alpha_param, beta_param, n[src_id])
 
             # if the threshold was not exceeded do not change the elevation,
             # otherwise calculate the erosion rate
@@ -243,7 +243,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
 
                 # if n is 1, finding x has an analytical solution. Otherwise,
                 # use the the numerical solution given by root finding
-                if n != 1.0:
+                if n[src_id] != 1.0:
 
                     # The threshold values passed here are the defaults if one
                     # were to import brentq from scipy.optimize
@@ -251,7 +251,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
                                        0.0, 1.0,
                                        1e-12,4.4408920985006262e-16,
                                        100,
-                                       (alpha_param, beta_param, n),
+                                       (alpha_param, beta_param, n[src_id]),
                                        False,
                                        True)
 

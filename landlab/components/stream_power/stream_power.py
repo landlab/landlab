@@ -568,14 +568,16 @@ class StreamPowerEroder(Component):
             threshdt = self.sp_crit * dt
 
         # solve using Brent's Method in Cython for Speed
+        n = self._n * np.ones(self._grid.number_of_nodes)
         if isinstance(threshdt, float):
+
             brent_method_erode_fixed_threshold(
                 upstream_order_IDs, flow_receivers, threshdt, self.alpha,
-                self._n, z)
+                n, z)
         else:
             brent_method_erode_variable_threshold(
                 upstream_order_IDs, flow_receivers, threshdt, self.alpha,
-                self._n, z)
+                n, z)
 
         return grid, z, self.stream_power_erosion
 

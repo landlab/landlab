@@ -14,11 +14,23 @@ from landlab import Component
 from landlab.utils.decorators import use_file_name_or_kwds
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
+from landlab.utils.decorators import use_field_name_or_array
 
 from landlab import RasterModelGrid
 
 from .cfuncs import (brent_method_erode_fixed_threshold,
                      brent_method_erode_variable_threshold)
+
+
+@use_field_name_or_array('node')
+def _return_surface(grid, field):
+    """
+    Private function to return a field or array.
+
+    This function exists to take advantange of the 'use_field_name_or_array
+    decorator which permits providing the surface as a field name or array.
+    """
+    return field
 
 
 class FastscapeEroder(Component):
@@ -203,9 +215,17 @@ class FastscapeEroder(Component):
         """
         self._grid = grid
 
-        self.K = K_sp  # overwritten below in special cases
-        self.m = float(m_sp)
-        self.n = float(n_sp)
+        try:
+            self.n = float(n_sp)
+        except TypeError:
+            self.n = _return_surface(grid, n_sp)
+
+        try:
+            self.m = float(n_sp)
+        except TypeError:
+            self.m = _return_surface(grid, m_sp)
+
+
         if isinstance(threshold_sp, (float, int)):
             self.thresholds = float(threshold_sp)
         else:
@@ -219,13 +239,12 @@ class FastscapeEroder(Component):
         self.A_to_the_m = grid.zeros(at='node')
         self.alpha = grid.empty(at='node')
 
-        if self.K is None:
+        if K_sp is None:
             raise ValueError('K_sp must be set as a float, node array, or ' +
                              'field name. It was None.')
-
         # now handle the inputs that could be float, array or field name:
         # some support here for old-style inputs
-        if isinstance(K_sp, string_types):
+        elif isinstance(K_sp, string_types):
             if K_sp == 'array':
                 self.K = None
             else:
@@ -326,11 +345,13 @@ class FastscapeEroder(Component):
             flow_link_lengths = self._grid.length_of_link[
                 self._grid.at_node['flow__link_to_receiver_node'][
                     defined_flow_receivers]]
+
         # make arrays from input the right size
         if isinstance(self.K, np.ndarray):
             K_here = self.K[defined_flow_receivers]
         else:
             K_here = self.K
+
         if rainfall_intensity_if_used is not None:
             assert type(rainfall_intensity_if_used) in (float, np.float64,
                                                         int)
@@ -340,6 +361,7 @@ class FastscapeEroder(Component):
 
         if dt is None:
             dt = self.dt
+
         assert dt is not None, ('Fastscape component could not find a dt to ' +
                                 'use. Pass dt to the run_one_step() method.')
 
@@ -347,13 +369,12 @@ class FastscapeEroder(Component):
             assert K_if_used is not None
             self.K = K_if_used
 
-        n = float(self.n)
-
         np.power(self._grid['node'][self.discharge_name], self.m,
                  out=self.A_to_the_m)
+
         self.alpha[defined_flow_receivers] = (
-            r_i_here**self.m * K_here * dt * self.A_to_the_m[
-                defined_flow_receivers] / (flow_link_lengths**self.n))
+            np.power(r_i_here, self.m) * K_here * dt * self.A_to_the_m[
+                defined_flow_receivers] / np.power(flow_link_lengths, self.n))
 
         flow_receivers = self._grid['node']['flow__receiver_node']
         alpha = self.alpha
@@ -367,6 +388,11 @@ class FastscapeEroder(Component):
             alpha[reversed_flow] = 0.
 
         threshsdt = self.thresholds * dt
+
+        if isinstance(self.n, float):
+            n = self.n * np.ones(self.grid.number_of_nodes)
+        else:
+            n = self.n
 
         # solve using Brent's Method in Cython for Speed
         if isinstance(self.thresholds, float):
