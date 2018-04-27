@@ -67,7 +67,7 @@ class PrecipitationDistribution(Component):
             'Depth of water delivered in total in each model year',
     }
 
-    def __init__(self, grid, number_of_simulations=1,
+    def __init__(self, grid,
                  number_of_years=1, buffer_width=5000,
                  orographic_scenario='Singer', save_outputs=False,
                  path_to_input_files=None):
@@ -95,7 +95,6 @@ class PrecipitationDistribution(Component):
         self._gauge_dist_km = np.zeros(gaugecount, dtype='float')
         self._temp_dataslots1 = np.zeros(gaugecount, dtype='float')
         self._temp_dataslots2 = np.zeros(gaugecount, dtype='float')
-        self._numsims = number_of_simulations
         self._numyrs = number_of_years
         self._buffer_width = buffer_width
         if save_outputs is not None:
@@ -627,16 +626,6 @@ class PrecipitationDistribution(Component):
         # NOTE: In this version this produces output on a grid, rather than at
         # real gauge locations.
 
-# NOTE this block is for validation & shouldn't live here
-        # # This is the storm depth data for use in model evaluation.
-        # Storm_depth_data = np.loadtxt(os.path.join(thisdir,
-        #                                            'Storm_depth_data.csv'))
-        # # This is the intensity data for use in model evaluation.
-        # Intensity_data = np.loadtxt(os.path.join(thisdir,
-        #                                          'Intensity_data.csv'))
-        # # This is the duration data for use in model evaluation.
-        # Duration_data = np.loadtxt(os.path.join(thisdir,
-        #                                         'Duration_data.csv'))
         if FUZZMETHOD == 'MS':
             # a vector of fuzzy tolerance values for intensity selection
             # width is +/-5, discretised every 1
