@@ -102,7 +102,7 @@ class PrecipitationDistribution(Component):
             assert type(save_outputs) in (bool, str)
         self._savedir = save_outputs
 
-        self._max_numstorms = 2000
+        self._max_numstorms = 5000
         # This is for initializing matrices. Trailing zeros are deleted from
         # the matrix at the end of the code.
 
@@ -141,18 +141,18 @@ class PrecipitationDistribution(Component):
 
     def yield_storms(self, style='whole_year',
                      total_rf_trend=0., storminess_trend=0.,
-                     total_rf_gaussian={
+                     monsoon_total_rf_gaussian={
                          'sigma': 64., 'mu': 207.},
-                     storm_duration_GEV={
+                     monsoon_storm_duration_GEV={
                          'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
                          'trunc_interval': (1., 1040.)},
-                     storm_area_GEV={
+                     monsoon_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
-                     storm_interarrival_GEV={
+                     monsoon_storm_interarrival_GEV={
                          'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
                          'trunc_interval': (0., 120.)},
-                     storm_radial_weakening_gaussian={
+                     monsoon_storm_radial_weakening_gaussian={
                          'sigma': 0.08, 'mu': 0.25,
                          'trunc_interval': (0.15, 0.67)},
                      winter_total_rf_gaussian={
@@ -196,19 +196,21 @@ class PrecipitationDistribution(Component):
             recommend +/- 0.01 for a realistic climate change driven drift at
             Walnut Gulch.
 
-        total_rf_gaussian is a normal distribution controlling the total
+       monsoon_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
-        storm_duration_GEV is a generalised extreme value distribution
+        monsoon_storm_duration_GEV is a generalised extreme value distribution
             controlling the duration of each storm.
-        storm_area_GEV is a generalised extreme value distribution controlling
-            the plan view area of each storm. S&M use 'shape': 0., which
-            collapses the distribution to a plain extreme value distribution.
-        storm_interarrival_GEV is a generalised extreme value distribution
-            controlling the interarrival time between each storm.
-        storm_radial_weakening_gaussian is a normal distribution controlling
-            the rate of intensity decline with distance from storm center. For
-            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+        monsoon_storm_area_GEV is a generalised extreme value distribution
+            controlling the plan view area of each storm. S&M use 'shape': 0.,
+            which collapses the distribution to a plain extreme value
+            distribution.
+        monsoon_storm_interarrival_GEV is a generalised extreme value
+            distribution controlling the interarrival time between each storm.
+        monsoon_storm_radial_weakening_gaussian is a normal distribution
+            controlling the rate of intensity decline with distance from storm
+            center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
+            et al., 2005.
 
         winter_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
@@ -241,11 +243,12 @@ class PrecipitationDistribution(Component):
             yield_storms=True, yield_years=False, yield_seasons=False,
             style=style,
             total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
-            total_rf_gaussian=total_rf_gaussian,
-            storm_duration_GEV=storm_duration_GEV,
-            storm_area_GEV=storm_area_GEV,
-            storm_interarrival_GEV=storm_interarrival_GEV,
-            storm_radial_weakening_gaussian=storm_radial_weakening_gaussian,
+            monsoon_total_rf_gaussian=monsoon_total_rf_gaussian,
+            monsoon_storm_duration_GEV=monsoon_storm_duration_GEV,
+            monsoon_storm_area_GEV=monsoon_storm_area_GEV,
+            monsoon_storm_interarrival_GEV=monsoon_storm_interarrival_GEV,
+            monsoon_storm_radial_weakening_gaussian=
+                                       monsoon_storm_radial_weakening_gaussian,
             winter_total_rf_gaussian=winter_total_rf_gaussian,
             winter_storm_duration_fisk=winter_storm_duration_fisk,
             winter_storm_area_GEV=winter_storm_area_GEV,
@@ -255,18 +258,18 @@ class PrecipitationDistribution(Component):
 
     def yield_years(self, style='whole_year',
                     total_rf_trend=0., storminess_trend=0.,
-                    total_rf_gaussian={
+                    monsoon_total_rf_gaussian={
                         'sigma': 64., 'mu': 207.},
-                    storm_duration_GEV={
+                    monsoon_storm_duration_GEV={
                         'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
                         'trunc_interval': (1., 1040.)},
-                    storm_area_GEV={
+                    monsoon_storm_area_GEV={
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
-                    storm_interarrival_GEV={
+                    monsoon_storm_interarrival_GEV={
                         'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
                         'trunc_interval': (0., 120.)},
-                    storm_radial_weakening_gaussian={
+                    monsoon_storm_radial_weakening_gaussian={
                         'sigma': 0.08, 'mu': 0.25,
                         'trunc_interval': (0.15, 0.67)},
                     winter_total_rf_gaussian={
@@ -310,19 +313,21 @@ class PrecipitationDistribution(Component):
             recommend +/- 0.01 for a realistic climate change driven drift at
             Walnut Gulch.
 
-        total_rf_gaussian is a normal distribution controlling the total
-            rainfall expected in each year. S&M use 'mu' in {143., 271.} for
-            step changes up/down in rainfall totals.
-        storm_duration_GEV is a generalised extreme value distribution
+        monsoon_total_rf_gaussian is a normal distribution controlling the
+            total rainfall expected in each year. S&M use 'mu' in {143., 271.}
+            for step changes up/down in rainfall totals. In mm.
+        monsoon_storm_duration_GEV is a generalised extreme value distribution
             controlling the duration of each storm.
-        storm_area_GEV is a generalised extreme value distribution controlling
-            the plan view area of each storm. S&M use 'shape': 0., which
-            collapses the distribution to a plain extreme value distribution.
-        storm_interarrival_GEV is a generalised extreme value distribution
-            controlling the interarrival time between each storm.
-        storm_radial_weakening_gaussian is a normal distribution controlling
-            the rate of intensity decline with distance from storm center. For
-            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+        monsoon_storm_area_GEV is a generalised extreme value distribution
+            controlling the plan view area of each storm. S&M use 'shape': 0.,
+            which collapses the distribution to a plain extreme value
+            distribution.
+        monsoon_storm_interarrival_GEV is a generalised extreme value
+            distribution controlling the interarrival time between each storm.
+        monsoon_storm_radial_weakening_gaussian is a normal distribution
+            controlling the rate of intensity decline with distance from storm
+            center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
+            et al., 2005.
 
         winter_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
@@ -354,11 +359,12 @@ class PrecipitationDistribution(Component):
             yield_storms=False, yield_years=True, yield_seasons=False,
             style=style,
             total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
-            total_rf_gaussian=total_rf_gaussian,
-            storm_duration_GEV=storm_duration_GEV,
-            storm_area_GEV=storm_area_GEV,
-            storm_interarrival_GEV=storm_interarrival_GEV,
-            storm_radial_weakening_gaussian=storm_radial_weakening_gaussian,
+            monsoon_total_rf_gaussian=monsoon_total_rf_gaussian,
+            monsoon_storm_duration_GEV=monsoon_storm_duration_GEV,
+            monsoon_storm_area_GEV=monsoon_storm_area_GEV,
+            monsoon_storm_interarrival_GEV=monsoon_storm_interarrival_GEV,
+            monsoon_storm_radial_weakening_gaussian=
+                                       monsoon_storm_radial_weakening_gaussian,
             winter_total_rf_gaussian=winter_total_rf_gaussian,
             winter_storm_duration_fisk=winter_storm_duration_fisk,
             winter_storm_area_GEV=winter_storm_area_GEV,
@@ -368,18 +374,18 @@ class PrecipitationDistribution(Component):
 
     def yield_seasons(self, style='whole_year',
                       total_rf_trend=0., storminess_trend=0.,
-                      total_rf_gaussian={
+                      monsoon_total_rf_gaussian={
                           'sigma': 64., 'mu': 207.},
-                      storm_duration_GEV={
+                      monsoon_storm_duration_GEV={
                           'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
                           'trunc_interval': (1., 1040.)},
-                      storm_area_GEV={
+                      monsoon_storm_area_GEV={
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
-                      storm_interarrival_GEV={
+                      monsoon_storm_interarrival_GEV={
                           'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
                           'trunc_interval': (0., 120.)},
-                      storm_radial_weakening_gaussian={
+                      monsoon_storm_radial_weakening_gaussian={
                           'sigma': 0.08, 'mu': 0.25,
                           'trunc_interval': (0.15, 0.67)},
                       winter_total_rf_gaussian={
@@ -424,19 +430,21 @@ class PrecipitationDistribution(Component):
             recommend +/- 0.01 for a realistic climate change driven drift at
             Walnut Gulch.
 
-        total_rf_gaussian is a normal distribution controlling the total
-            rainfall expected in each year. S&M use 'mu' in {143., 271.} for
-            step changes up/down in rainfall totals.
-        storm_duration_GEV is a generalised extreme value distribution
+        monsoon_total_rf_gaussian is a normal distribution controlling the
+            total rainfall expected in each year. S&M use 'mu' in {143., 271.}
+            for step changes up/down in rainfall totals. In mm.
+        monsoon_storm_duration_GEV is a generalised extreme value distribution
             controlling the duration of each storm.
-        storm_area_GEV is a generalised extreme value distribution controlling
-            the plan view area of each storm. S&M use 'shape': 0., which
-            collapses the distribution to a plain extreme value distribution.
-        storm_interarrival_GEV is a generalised extreme value distribution
-            controlling the interarrival time between each storm.
-        storm_radial_weakening_gaussian is a normal distribution controlling
-            the rate of intensity decline with distance from storm center. For
-            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+        monsoon_storm_area_GEV is a generalised extreme value distribution
+            controlling the plan view area of each storm. S&M use 'shape': 0.,
+            which collapses the distribution to a plain extreme value
+            distribution.
+        monsoon_storm_interarrival_GEV is a generalised extreme value
+            distribution controlling the interarrival time between each storm.
+        monsoon_storm_radial_weakening_gaussian is a normal distribution
+            controlling the rate of intensity decline with distance from storm
+            center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
+            et al., 2005.
 
         winter_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
@@ -471,11 +479,12 @@ class PrecipitationDistribution(Component):
             yield_storms=False, yield_years=False, yield_seasons=True,
             style=style,
             total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
-            total_rf_gaussian=total_rf_gaussian,
-            storm_duration_GEV=storm_duration_GEV,
-            storm_area_GEV=storm_area_GEV,
-            storm_interarrival_GEV=storm_interarrival_GEV,
-            storm_radial_weakening_gaussian=storm_radial_weakening_gaussian,
+            monsoon_total_rf_gaussian=monsoon_total_rf_gaussian,
+            monsoon_storm_duration_GEV=monsoon_storm_duration_GEV,
+            monsoon_storm_area_GEV=monsoon_storm_area_GEV,
+            monsoon_storm_interarrival_GEV=monsoon_storm_interarrival_GEV,
+            monsoon_storm_radial_weakening_gaussian=
+                                       monsoon_storm_radial_weakening_gaussian,
             winter_total_rf_gaussian=winter_total_rf_gaussian,
             winter_storm_duration_fisk=winter_storm_duration_fisk,
             winter_storm_area_GEV=winter_storm_area_GEV,
@@ -486,19 +495,19 @@ class PrecipitationDistribution(Component):
     def _run_the_process(self, yield_storms=True, yield_years=False,
                          yield_seasons=False, style='whole_year',
                          total_rf_trend=0., storminess_trend=0.,
-                         total_rf_gaussian={
+                         monsoon_total_rf_gaussian={
                              'sigma': 64., 'mu': 207.},
-                         storm_duration_GEV={
+                         monsoon_storm_duration_GEV={
                              'shape': -0.570252, 'sigma': 35.7389,
                              'mu': 34.1409, 'trunc_interval': (1., 1040.)},
-                         storm_area_GEV={
+                         monsoon_storm_area_GEV={
                              'shape': 0., 'sigma': 2.83876e+07,
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
-                         storm_interarrival_GEV={
+                         monsoon_storm_interarrival_GEV={
                              'shape': -0.807971, 'sigma': 9.49574,
                              'mu': 10.6108, 'trunc_interval': (0., 120.)},
-                         storm_radial_weakening_gaussian={
+                         monsoon_storm_radial_weakening_gaussian={
                              'sigma': 0.08, 'mu': 0.25,
                              'trunc_interval': (0.15, 0.67)},
                          winter_total_rf_gaussian={
@@ -541,19 +550,21 @@ class PrecipitationDistribution(Component):
         All default distributions reflect values for Walnut Gulch, see Singer &
         Michaelides, submitted:
 
-        total_rf_gaussian is a normal distribution controlling the total
-            rainfall expected in each year. S&M use 'mu' in {143., 271.} for
-            step changes up/down in rainfall totals.
-        storm_duration_GEV is a generalised extreme value distribution
+        monsoon_total_rf_gaussian is a normal distribution controlling the
+            total rainfall expected in each year. S&M use 'mu' in {143., 271.}
+            for step changes up/down in rainfall totals. In mm.
+        monsoon_storm_duration_GEV is a generalised extreme value distribution
             controlling the duration of each storm.
-        storm_area_GEV is a generalised extreme value distribution controlling
-            the plan view area of each storm. S&M use 'shape': 0., which
-            collapses the distribution to a plain extreme value distribution.
-        storm_interarrival_GEV is a generalised extreme value distribution
-            controlling the interarrival time between each storm.
-        storm_radial_weakening_gaussian is a normal distribution controlling
-            the rate of intensity decline with distance from storm center. For
-            more detail see Rodriguez-Iturbe et al., 1986; Morin et al., 2005.
+        monsoon_storm_area_GEV is a generalised extreme value distribution
+            controlling the plan view area of each storm. S&M use 'shape': 0.,
+            which collapses the distribution to a plain extreme value
+            distribution.
+        monsoon_storm_interarrival_GEV is a generalised extreme value
+            distribution controlling the interarrival time between each storm.
+        monsoon_storm_radial_weakening_gaussian is a normal distribution
+            controlling the rate of intensity decline with distance from storm
+            center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
+            et al., 2005.
         winter_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
@@ -708,11 +719,12 @@ class PrecipitationDistribution(Component):
                 Storm_running_sum_seas = np.zeros((2, num_opennodes))
                 # ^ 1st col is running total, 2nd is data to add to it
                 if seas == 0 and not style == 'winter':
-                    print('SUMMER')
-                    # This is the pdf fitted to all available station precip data (normal
-                    # dist). It will be sampled below.
-                    Ptot_pdf_norm = total_rf_gaussian
-                    # This step change case can now be handled direct from input flags
+                    print('MONSOON')
+                    # This is the pdf fitted to all available station precip
+                    # data (normal dist). It will be sampled below.
+                    Ptot_pdf_norm = monsoon_total_rf_gaussian
+                    # This step change case can now be handled direct from
+                    # input flags
                     # if self._ptot_scenario == 'ptot+':
                     #     Ptot_pdf_norm = {'sigma': 64., 'mu': 271.}
                     # elif self._ptot_scenario == 'ptot-':
@@ -721,22 +733,23 @@ class PrecipitationDistribution(Component):
                     #     Ptot_pdf_norm = {'sigma': 64., 'mu': 207.}
                     # the trending cases need to be handled in the loop
 
-                    # This is the pdf fitted to all available station duration data
-                    # (GEV dist). It will be sampled below.
+                    # This is the pdf fitted to all available station duration
+                    # data (GEV dist). It will be sampled below.
                     # #### matlab's GEV is (shape_param, scale(sigma), pos(mu))
-                    # note that in Scipy, we must add a minus to the shape param for a GEV
-                    # to match Matlab's implementation
-                    Duration_pdf = storm_duration_GEV
-                    # This is the pdf fitted to all available station area data (EV dist).
-                    # It will be sampled below.
+                    # note that in Scipy, we must add a minus to the shape
+                    # param for a GEV to match Matlab's implementation
+                    Duration_pdf = monsoon_storm_duration_GEV
+                    # This is the pdf fitted to all available station area
+                    # data (EV dist). It will be sampled below.
                     # #### matlab's EV is (mu, sigma)
-                    Area_pdf_EV = storm_area_GEV
-                    # This is the pdf fitted to all available station area data (GEV dist).
-                    # It will be sampled below.
-                    Int_arr_pdf_GEV = storm_interarrival_GEV
-                    # This is the pdf of storm gradient recession coefficiencts from Morin
-                    # et al, 2005 (normal dist). It will be sampled below.
-                    Recess_pdf_norm = storm_radial_weakening_gaussian
+                    Area_pdf_EV = monsoon_storm_area_GEV
+                    # This is the pdf fitted to all available station area
+                    # data (GEV dist). It will be sampled below.
+                    Int_arr_pdf_GEV = monsoon_storm_interarrival_GEV
+                    # This is the pdf of storm gradient recession coefficients
+                    # from Morin et al, 2005 (normal dist). It will be sampled
+                    # below.
+                    Recess_pdf_norm = monsoon_storm_radial_weakening_gaussian
                 else:
                     print('WINTER')
                     Ptot_pdf_norm = winter_total_rf_gaussian
@@ -749,18 +762,10 @@ class PrecipitationDistribution(Component):
                     mu = Ptot_pdf_norm.pop('mu')
                     mu += mu * total_rf_trend
                     Ptot_pdf_norm['mu'] = mu
-                # sample from normal distribution and saves global value of Ptot
-                # (that must be equalled or exceeded) for each year
-                season_rf_limit = np.random.normal(
-                    loc=Ptot_pdf_norm['mu'], scale=Ptot_pdf_norm['sigma'])
-                try:
-                    season_rf_limit = np.clip(
-                        season_rf_limit, Ptot_pdf_norm['trunc_interval'][0],
-                        Ptot_pdf_norm['trunc_interval'][1])
-                except KeyError:
-                    # ...just in case
-                    if season_rf_limit < 0.:
-                        season_rf_limit = 0.
+                # sample from normal distribution and saves global value of
+                # Ptot (that must be equalled or exceeded) for each year
+                season_rf_limit = self.calc_annual_rainfall(
+                    style=style, monsoon_total_rf_gaussian=Ptot_pdf_norm)[seas]
                 self._Ptot_ann_global[syear] += season_rf_limit
                 if seas == 0 and not style == 'winter':
                     self._Ptot_monsoon_global[syear] = season_rf_limit
@@ -771,9 +776,9 @@ class PrecipitationDistribution(Component):
                 seas_storm_count = 0
 
                 for storm in range(self._max_numstorms):
-                    int_arr_val = genextreme.rvs(c=Int_arr_pdf_GEV['shape'],
-                                                 loc=Int_arr_pdf_GEV['mu'],
-                                                 scale=Int_arr_pdf_GEV['sigma'])
+                    int_arr_val = genextreme.rvs(
+                        c=Int_arr_pdf_GEV['shape'], loc=Int_arr_pdf_GEV['mu'],
+                        scale=Int_arr_pdf_GEV['sigma'])
                     try:
                         int_arr_val = np.clip(
                             int_arr_val, Int_arr_pdf_GEV['trunc_interval'][0],
@@ -782,11 +787,11 @@ class PrecipitationDistribution(Component):
                         # ...just in case
                         if int_arr_val < 0.:
                             int_arr_val = 0.
-                    # ^Samples from distribution of interarrival times (hr). This
-                    # can be used to develop STORM output for use in rainfall-
-                    # runoff models or any water balance application.
-                    # sample uniformly from storm center matrix from grid with 10 m
-                    # spacings covering basin:
+                    # ^Samples from distribution of interarrival times (hr).
+                    # This can be used to develop STORM output for use in
+                    # rainfall-runoff models or any water balance application.
+                    # sample uniformly from storm center matrix from grid w
+                    # 10 m spacings covering basin:
 
                     area_val = genextreme.rvs(c=Area_pdf_EV['shape'],
                                               loc=Area_pdf_EV['mu'],
@@ -800,15 +805,15 @@ class PrecipitationDistribution(Component):
                         if area_val < 0.:
                             area_val = 0.
                     # ^Samples from distribution of storm areas
-                    r = np.sqrt(area_val/np.pi)  # value here should be selected
+                    r = np.sqrt(area_val/np.pi)  # value here shd be selected
                     # based on area above in meters to match the UTM values
                     while 1:
                         cx, cy = self._locate_storm(r)
                         # Determine which gauges are hit by Euclidean geometry:
                         gdist = (Xin-cx)**2 + (Yin-cy)**2
-                        mask_name = (gdist <= r**2)  # this is defacto Mike's aa
-                        # this short circuits the storm loop in the case that the
-                        # storm does not affect any 'gauging' location
+                        mask_name = (gdist <= r**2)  # this is defacto MS's aa
+                        # this short circuits the storm loop in the case that
+                        # the storm does not affect any 'gauging' location
                         if np.any(np.equal(mask_name, True)):
                             break
                     year_storm_count += 1
@@ -816,23 +821,23 @@ class PrecipitationDistribution(Component):
                     master_storm_count += 1
                     gauges_hit = np.where(mask_name)[0]
                     num_gauges_hit = gauges_hit.size
-                    # this routine below allows for orography in precip by first
-                    # determining the closest gauge and then determining its
-                    # orographic grouping
+                    # this routine below allows for orography in precip by
+                    # first determining the closest gauge and then determining
+                    # its orographic grouping
                     cc = np.argmin(gdist)
                     closest_gauge = np.round(Zz[cc])  # this will be compared
                     # against orographic gauge groupings to determine the
                     # appropriate set of intensity-duration curves
                     ######
 
-                    # This routine below determines to which orographic group the
-                    # closest gauge to the storm center belongs to, and censors the
-                    # number of curves accordingly
-                    # missing top curve in GR1, top and bottom curves for GR2, and
-                    # bottom curve for GR3
-                    # new version of orography compares local 'gauge' elevation to
-                    # elevation bands called OroGrp, defined above
-#### NOTE again, DEJH thinks this could be simplified a lot
+                    # This routine below determines to which orographic group
+                    # the closest gauge to the storm center belongs to, and
+                    # censors the number of curves accordingly
+                    # missing top curve in GR1, top and bottom curves for GR2,
+                    # and bottom curve for GR3
+                    # new version of orography compares local 'gauge' elevation
+                    # to elevation bands called OroGrp, defined above
+                    # NOTE again, DEJH thinks this could be generalised a lot
                     if self._orographic_scenario == 'Singer':
                         if closest_gauge in OroGrp1:
                             baa = 'a'
@@ -852,7 +857,7 @@ class PrecipitationDistribution(Component):
                     else:
                         duration_val = fisk.rvs(
                             c=Duration_pdf['c'], scale=Duration_pdf['scale'])
-                    # round to nearest minute for consistency with measured data:
+                    # round to nearest minute for consistency w measured data:
                     duration_val = round(duration_val)
                     # hacky fix to prevent occasional < 0 values:
                     # (I think because Matlab is able to set limits manually)
@@ -870,8 +875,8 @@ class PrecipitationDistribution(Component):
                     # 0.0819, 0.0909, 0.0909, 0.0909, 0.0909, 0.0909, 0.1001,
                     # 0.1090, 0.1182]
                     # original curve# probs are modified as below
-                    # add weights to reflect reasonable probabilities that favor
-                    # lower curves:
+                    # add weights to reflect reasonable probabilities that
+                    # favor lower curves:
                     if baa == 'a':
                         wgts = [0.0318, 0.0759, 0.0851, 0.0941, 0.0941, 0.0941,
                                 0.0941, 0.0941, 0.1033, 0.1121, 0.1213]
@@ -892,25 +897,25 @@ class PrecipitationDistribution(Component):
                                      kappa[int_dur_curve_val] *
                                      np.exp(-0.008*duration_val) +
                                      C[int_dur_curve_val])
-                    # ...these curves are based on empirical data from Walnut Gulch
-    # NOTE DEJH wants to know exactly how these are defined
+                    # ...these curves are based on empirical data from WG
 
                     if FUZZMETHOD == 'MS':
                         fuzz_int_val = np.random.choice(fuzz)
                     elif FUZZMETHOD == 'DEJH':
                         # this dist should look identical, w/o discretisation
-                        fuzz_int_val = FUZZWIDTH * 2. * (np.random.rand() - 0.5)
+                        fuzz_int_val = FUZZWIDTH*2.*(np.random.rand()-0.5)
                     else:
                         raise NameError
                     intensity_val += fuzz_int_val
-                    # ^this allows for specified fuzzy tolerance around selected
-                    # intensity (but it can go -ve)
-                    # formerly, here MS used a rounding and threshold to prevent
-                    # storms with a value < 1. We're going to remove the rounding
-                    # and threshold at zero instead. (below)
+                    # ^this allows for specified fuzzy tolerance around
+                    # selected intensity (but it can go -ve)
+                    # formerly, here MS used a rounding and threshold to
+                    # prevent storms with a value < 1. We're going to remove
+                    # the rounding and threshold at zero instead. (below)
 
-                    # This scales the storm center intensity upward, so the values
-                    # at each gauge are realistic once the gradient is applied.
+                    # This scales the storm center intensity upward, so the
+                    # values at each gauge are realistic once the gradient is
+                    # applied.
                     intensity_val += intensity_val * storm_trend
                     # storminess trend is applied and its effect rises each
                     # year of simulation
@@ -925,24 +930,27 @@ class PrecipitationDistribution(Component):
 
                     # area to determine which gauges are hit:
                     recess_val = np.random.normal(
-                        loc=Recess_pdf_norm['mu'], scale=Recess_pdf_norm['sigma'])
+                        loc=Recess_pdf_norm['mu'],
+                        scale=Recess_pdf_norm['sigma'])
                     try:
                         recess_val = np.clip(
                             recess_val, Recess_pdf_norm['trunc_interval'][0],
                             Recess_pdf_norm['trunc_interval'][1])
                     except KeyError:
                         pass  # this one is OK <0., I think
-                    # this pdf of recession coefficients determines how intensity
-                    # declines with distance from storm center (see below)
+                    # this pdf of recession coefficients determines how
+                    # intensity declines with distance from storm center (see
+                    # below)
                     # determine cartesian distances to all hit gauges and
-                    # associated intensity values at each gauge hit by the storm
+                    # associated intensity values at each gauge hit by the
+                    # storm
                     # This is a data storage solution to avoid issues that can
                     # arise with slicing grid areas with heavy tailed sizes
                     xcoords = Xin
                     ycoords = Yin
                     self._entries = np.sum(mask_name)
                     entries = self._entries
-                    # NOTE _gauge_dist_km only contains the nodes under the storm!
+                    # NOTE _gauge_dist_km only contains nodes under the storm!
                     # The remaining entries are garbage
                     self._gauge_dist_km[:entries] = xcoords[mask_name]
                     self._gauge_dist_km[:entries] -= cx
@@ -959,8 +967,9 @@ class PrecipitationDistribution(Component):
                     np.sqrt(self._gauge_dist_km[:entries],
                             out=self._gauge_dist_km[:entries])
                     self._gauge_dist_km[:entries] /= 1000.
-                    # _rain_int_gauge has already been zeroed earlier in loop, so
-                    self._temp_dataslots2[:entries] = self._gauge_dist_km[:entries]
+                    # _rain_int_gauge has been zeroed earlier in loop, so
+                    self._temp_dataslots2[:entries] = self._gauge_dist_km[
+                        :entries]
                     # this copy would not be necessary if we didn't want to
                     # preserve self._gauge_dist_km
                     np.square(self._temp_dataslots2[:entries],
@@ -970,15 +979,15 @@ class PrecipitationDistribution(Component):
                            out=self._temp_dataslots2[:entries])
                     self._temp_dataslots2[:entries] *= intensity_val
                     mask_incl_closed = IDs_open[mask_name]
-                    self._rain_int_gauge[mask_incl_closed] = self._temp_dataslots2[
-                        :entries]
+                    self._rain_int_gauge[
+                        mask_incl_closed] = self._temp_dataslots2[:entries]
                     # calc of _rain_int_gauge follows Rodriguez-Iturbe et al.,
                     # 1986; Morin et al., 2005 but sampled from a distribution
                     # only need to add the bit that got rained on, so:
                     self._temp_dataslots2[:entries] *= duration_val / 60.
                     seas_cum_Ptot_gauge[mask_name] += self._temp_dataslots2[
                         :entries]
-                    # collect storm total data for all gauges into rows by storm
+                    # collect storm totals for all gauges into rows by storm
                     Storm_total_local_seas[storm, :] = (
                         self._rain_int_gauge[opennodes] * duration_val / 60.)
                     Storm_total_local_year[(storm+storms_yr_so_far), :] = \
@@ -986,13 +995,15 @@ class PrecipitationDistribution(Component):
 
                     self._Storm_total_local_seas = Storm_total_local_seas
                     self._Storm_total_local_year = Storm_total_local_year
-                    Storm_running_sum_seas[1, :] = Storm_total_local_seas[storm, :]
+                    Storm_running_sum_seas[
+                        1, :] = Storm_total_local_seas[storm, :]
                     self._Storm_running_sum_seas = Storm_running_sum_seas
                     np.nansum(Storm_running_sum_seas, axis=0,
                               out=Storm_running_sum_seas[0, :])
                     if np.any(Storm_total_local_seas < 0.):
                         raise ValueError(syear, storm)
-                    self._median_seas_rf_total = np.nanmedian(Storm_running_sum_seas[0, :])
+                    self._median_seas_rf_total = np.nanmedian(
+                        Storm_running_sum_seas[0, :])
 
                     if self._savedir is not False:
                         if type(self._savedir) is str:
@@ -1023,10 +1034,11 @@ class PrecipitationDistribution(Component):
                     # now blank the field for the interstorm period
                     self._rain_int_gauge.fill(0.)
                     if self._median_seas_rf_total > season_rf_limit:
-                        # we're not going to create Ptotal_local for now... just
+                        # Don't create Ptotal_local per MS... just
                         break
                     if storm + 1 == self._max_numstorms:
-                        raise ValueError('_max_numstorms set too low for this run')
+                        raise ValueError(
+                            '_max_numstorms set too low for this run')
                 storms_yr_so_far = seas_storm_count
                 Storm_running_sum_year += Storm_running_sum_seas[0, :]
                 self._total_rainfall_last_season = Storm_running_sum_seas[0, :]
@@ -1047,6 +1059,84 @@ class PrecipitationDistribution(Component):
             # crop it down for convenience:
             [maxrow, maxcol] = np.argwhere(self._Storm_matrix).max(axis=0)
             self._Storm_matrix = self._Storm_matrix[:(maxrow+1), :(maxcol+1)]
+
+    def calc_annual_rainfall(self, style='whole_year',
+                             monsoon_total_rf_gaussian={
+                                'sigma': 64., 'mu': 207.},
+                             winter_total_rf_gaussian={
+                                 'sigma': 52., 'mu': 1.65}):
+        """
+        Return a tuple of rainfall totals (mm) for the year, with entries
+        subdividing the yearly total into seasons as appropriate.
+
+        Parameters
+        ----------
+        style : ('whole_year', 'monsoonal', 'winter')
+            Whether to simulate 2 seasons, or a single season.
+        monsoon_total_rf_gaussian : dict of sigma and mu for the summer
+            distribution (if used). Defaults to Walnut Gulch.
+        winter_total_rf_gaussian : dict of sigma and mu for the summer
+            distribution (if used). Defaults to Walnut Gulch.
+
+        Returns
+        -------
+        tuple : (first_season_total, [second_season_total])
+            If style=='monsoonal' or 'winter', a len(1) tuple of the total rf.
+            If style=='whole_year', a len(2) tuple of (monsoon, winter) totals.
+
+        Examples
+        --------
+        >>> mg = RasterModelGrid((10, 10), 500.)
+        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> rain = PrecipitationDistribution(mg)
+        >>> mytotals = []
+        >>> for yr in range(5):
+        ...     mytotals.append(rain.calc_annual_rainfall(style='whole_year'))
+        >>> [len(x) == 2 for x in mytotals]
+        [True, True, True, True, True]
+        >>> mytotals = []
+        >>> for yr in range(3):
+        ...     mytotals.append(rain.calc_annual_rainfall(style='monsoonal'))
+        >>> [len(x) == 1 for x in mytotals]
+        [True, True, True]
+        """
+        assert style in ('whole_year', 'monsoonal', 'winter')
+        if style in ('whole_year', 'monsoonal'):
+            # sample from normal distribution and saves global value of Ptot
+            # (that must be equalled or exceeded) for each year
+            summer_rf_limit = np.random.normal(
+                loc=monsoon_total_rf_gaussian['mu'],
+                scale=monsoon_total_rf_gaussian['sigma'])
+            try:
+                summer_rf_limit = np.clip(
+                    summer_rf_limit,
+                    monsoon_total_rf_gaussian['trunc_interval'][0],
+                    monsoon_total_rf_gaussian['trunc_interval'][1])
+            except KeyError:
+                # ...just in case
+                if summer_rf_limit < 0.:
+                    summer_rf_limit = 0.
+        if style in ('whole_year', 'winter'):
+            # sample from normal distribution and saves global value of Ptot
+            # (that must be equalled or exceeded) for each year
+            winter_rf_limit = np.random.normal(
+                loc=winter_total_rf_gaussian['mu'],
+                scale=winter_total_rf_gaussian['sigma'])
+            try:
+                winter_rf_limit = np.clip(
+                    winter_rf_limit,
+                    winter_total_rf_gaussian['trunc_interval'][0],
+                    winter_total_rf_gaussian['trunc_interval'][1])
+            except KeyError:
+                # ...just in case
+                if winter_rf_limit < 0.:
+                    winter_rf_limit = 0.
+        if style == 'monsoonal':
+            return (summer_rf_limit, )
+        elif style == 'winter':
+            return (winter_rf_limit, )
+        else:
+            return (summer_rf_limit, winter_rf_limit)
 
     def _locate_storm(self, storm_radius):
         """
@@ -1082,9 +1172,7 @@ z += 1000.
 rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
 count = 0
 total_t = 0.
-for dt, interval_t in rain.yield_storms(storm_radial_weakening_gaussian={
-                                            'sigma': 0.08, 'mu': 0.25,
-                                            'trunc_interval': (0.15, 0.67)}):
+for dt, interval_t in rain.yield_storms():
     count += 1
     total_t += dt + interval_t
     print rain._median_seas_rf_total
@@ -1131,8 +1219,13 @@ for storms_in_year in rain.yield_years():
     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
     show()
 
+_ = mg.at_node.pop('rainfall__total_depth_per_year')
+_ = mg.at_node.pop('rainfall__flux')
 rain = PrecipitationDistribution(mg, number_of_years=2)
 for storms_in_season in rain.yield_seasons():
     print(storms_in_season)
     imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
     show()
+
+for yr in range(30):
+    print(rain.calc_annual_rainfall(style='whole_year'))
