@@ -67,12 +67,9 @@ class PrecipitationDistribution(Component):
             'Depth of water delivered in total in each model year',
     }
 
-    def __init__(self, grid,
-                 number_of_years=1, buffer_width=5000,
-                 orographic_scenario='Singer', save_outputs=False,
-                 path_to_input_files=None):
+    def __init__(self, grid, number_of_years=1, orographic_scenario='Singer',
+                 save_outputs=False, path_to_input_files=None):
         """
-        It's on the user to ensure the grid is big enough to permit the buffer.
         save_outputs : if not None, str path to save
         orographic_scenario : {None, 'Singer'}
 
@@ -96,7 +93,6 @@ class PrecipitationDistribution(Component):
         self._temp_dataslots1 = np.zeros(gaugecount, dtype='float')
         self._temp_dataslots2 = np.zeros(gaugecount, dtype='float')
         self._numyrs = number_of_years
-        self._buffer_width = buffer_width
         if save_outputs is not None:
             assert type(save_outputs) in (bool, str)
         self._savedir = save_outputs
@@ -632,36 +628,7 @@ class PrecipitationDistribution(Component):
             fuzz = np.loadtxt(os.path.join(thisdir, 'fuzz.csv'))
             fuzz = fuzz.astype(float)
 
-        # now build a buffered target area of nodes:
-        target_area_nodes = self.grid.zeros('node', dtype=bool)
-        # which are within buffer_width of the perimeter? Try to do this
-        # in a memory efficient fashion.
-        # True catchment edges must have link statuses that are CLOSED:
-        closed_links = self.grid.status_at_link == CLOSED_BOUNDARY
-        # one of their end nodes must be not CLOSED:
-        edge_link_head_open = self.grid.status_at_node[
-            self.grid.node_at_link_head][closed_links] != CLOSED_BOUNDARY
-        head_open_node_IDs = self.grid.node_at_link_head[closed_links][
-            edge_link_head_open]
-        tail_open_node_IDs = self.grid.node_at_link_tail[closed_links][
-            np.logical_not(edge_link_head_open)]
-        # Together, this is a list of the IDs of all the nodes on the catchment
-        # perimeter. So:
-        for node_list in (head_open_node_IDs, tail_open_node_IDs):
-            for edgenode in node_list:
-                edgenode_x = self.grid.x_of_node[edgenode]
-                edgenode_y = self.grid.y_of_node[edgenode]
-                dists_to_edgenode = self.grid.calc_distances_of_nodes_to_point(
-                    (edgenode_x, edgenode_y))
-                target_area_nodes[
-                    dists_to_edgenode <= self._buffer_width] = True
-        # finish off by stamping the core nodes over the top:
-        target_area_nodes[opennodes] = True
-
-        Xxin = self.grid.x_of_node[target_area_nodes]
-        Yyin = self.grid.y_of_node[target_area_nodes]
-
-# NOTE this is overly specific
+        # NOTE this is overly specific
         if self._orographic_scenario == 'Singer':
             # These are elevation ranges for the 3 orographic groups
             OroGrp1 = np.arange(int(np.round(Zz.min())), 1350)
@@ -1198,7 +1165,7 @@ mg = RasterModelGrid((100, 100), 500.)
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=3)
+rain = PrecipitationDistribution(mg, number_of_years=2)
 count = 0
 total_storms = 0.
 for storms_in_year in rain.yield_years():
@@ -1210,7 +1177,7 @@ for storms_in_year in rain.yield_years():
 
 _ = mg.at_node.pop('rainfall__total_depth_per_year')
 _ = mg.at_node.pop('rainfall__flux')
-rain = PrecipitationDistribution(mg, number_of_years=2)
+rain = PrecipitationDistribution(mg, number_of_years=1)
 for storms_in_season in rain.yield_seasons():
     print(storms_in_season)
     imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
