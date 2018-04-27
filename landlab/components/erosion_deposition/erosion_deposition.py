@@ -62,7 +62,8 @@ l    """
     def __init__(self, grid, K=None, phi=None, v_s=None, 
                  m_sp=None, n_sp=None, sp_crit=None, F_f=0.0,
                  method=None, discharge_method=None, 
-                 area_field=None, discharge_field=None, solver='basic',
+                 area_field=None, discharge_field=None, 
+                 background_depo_rate=0.0, solver='basic',
                  dt_min=DEFAULT_MINIMUM_TIME_STEP,
                  **kwds):
         """Initialize the ErosionDeposition model.
@@ -100,6 +101,12 @@ l    """
         discharge_field : string or array
             Used if discharge_method = 'discharge_field'.Either field name or
             array of length(number_of_nodes) containing drainage areas [L^2/T].
+        background_depo_rate : float or array (L/T)
+            Volume flux per area of sediment pouring into each grid node from 
+            outside the model domain. If zero, has no effect. To impose a
+            depositional input at a grid node adjacent to the boundary (for
+            example, to represent an inflowing stream), set the corresponding 
+            entry in the array to a value >0, and all others to zero.
         solver : string
             Solver to use. Options at present include:
                 (1) 'basic' (default): explicit forward-time extrapolation.
@@ -117,12 +124,12 @@ l    """
         >>> from landlab.components import ErosionDeposition
         >>> from landlab.components import FastscapeEroder
         >>> np.random.seed(seed = 5000)
-        
+
         Define grid and initial topography:
             -5x5 grid with baselevel in the lower left corner
             -all other boundary nodes closed
             -Initial topography is plane tilted up to the upper right + noise
-        
+
         >>> nr = 5
         >>> nc = 5
         >>> dx = 10
@@ -201,7 +208,7 @@ l    """
             self.link_lengths = grid.length_of_d8
         else:
             self.link_lengths = grid.length_of_link
-        
+
         try:
             self.qs = grid.at_node['sediment__flux']
         except KeyError:
@@ -212,6 +219,15 @@ l    """
         except KeyError:
             self.q = grid.add_zeros(
                 'surface_water__discharge', at='node', dtype=float)
+
+        if not isinstance(background_depo_rate, (float, np.ndarray)):
+            raise TypeError('background_depo_rate must be float, or numpy '
+                            + 'array of length number_of_nodes')
+        if (isinstance(background_depo_rate, np.ndarray)
+            and len(background_depo_rate) != grid.number_of_nodes):
+            raise TypeError('If background_depo_rate is an array, its length '
+                            + 'must be equal to the number of nodes')
+        self.background_depo_rate = background_depo_rate
 
         self._grid = grid #store grid
 
@@ -299,6 +315,9 @@ l    """
         and uses either q=A^m or q=Q^m depending on discharge method. If
         discharge method is None, default is q=A^m.
         """
+        #TODO: it should be possible to simply assign a discharge array in
+        #init, according to input options, and then just use it here rather
+        #than having a chain of if...elif
         #self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
         if self.method == 'simple_stream_power' and self.discharge_method == None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
@@ -330,7 +349,7 @@ l    """
         self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
         self.erosion_term = self.K * self.Q_to_the_m * self.S_to_the_n
         
-        self.qs_in[:] = 0.0 
+        self.qs_in[:] = 0.0
             
     def threshold_stream_power(self):
         """Use stream power with entrainment/erosion thresholds.
@@ -374,7 +393,7 @@ l    """
         
         self.erosion_term = omega - self.sp_crit * \
             (1 - np.exp(-omega / self.sp_crit))
-        self.qs_in[:] = 0.0 
+        self.qs_in[:] = 0.0
 
     def stochastic_hydrology(self):
         """Allows custom area and discharge fields, no default behavior.
@@ -415,7 +434,7 @@ l    """
         self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
         self.erosion_term = self.K * self.Q_to_the_m * self.S_to_the_n
         
-        self.qs_in[:] = 0.0 
+        self.qs_in[:] = 0.0
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
@@ -463,8 +482,7 @@ l    """
 
         self.calc_ero_rate()
         self.erosion_term[flooded_nodes] = 0.0
-        self.qs_in[:] = 0.0
-            
+
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
@@ -477,8 +495,8 @@ l    """
                         self.v_s,
                         self.frac_coarse)
 
-        self.depo_rate[:] = 0.0
-        self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
+        self.depo_rate[:] = self.background_depo_rate
+        self.depo_rate[self.q > 0] += (self.qs[self.q > 0] * \
                                          (self.v_s / self.q[self.q > 0]))
 
         #topo elev is old elev + deposition - erosion
@@ -537,9 +555,9 @@ l    """
                             self.frac_coarse)
 
             # Use Qs to calculate deposition rate at each node.
-            self.depo_rate[:] = 0.0
-            self.depo_rate[self.q > 0] = (self.qs[self.q > 0]
-                                          * (self.v_s / self.q[self.q > 0]))
+            self.depo_rate[:] = self.background_depo_rate
+            self.depo_rate[self.q > 0] += (self.qs[self.q > 0]
+                                           * (self.v_s / self.q[self.q > 0]))
 
             # Rate of change of elevation at core nodes:
             dzdt[cores] = self.depo_rate[cores] - self.erosion_term[cores]

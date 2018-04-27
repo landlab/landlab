@@ -51,3 +51,43 @@ def test_can_run_with_hex():
     s28 = sa_factor * (a28 ** -0.5)
     assert_equal(np.round(s[18], 3), np.round(s18, 3))
     assert_equal(np.round(s[28], 3), np.round(s28, 3))
+
+def test_external_sed_influx():
+    """Test that the component works correctly with background_depo_rate."""
+
+    # Set up a small grid with open boundaries and flat initial topography.
+    mg = HexModelGrid(5, 5)
+    z = mg.add_zeros('node', 'topographic__elevation')
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(mg, flow_director='FlowDirectorSteepest')
+
+    # Parameter values for test 1
+    K = 0.001
+    vs = 0.0001
+    
+    # Create a field for background_sed_influx
+    external_qs = mg.add_zeros('node', 'external_sediment__influx')
+    
+    # Set influx in center node
+    external_qs[12] = 1.0
+
+    # Create the ErosionDeposition component...
+    ed = ErosionDeposition(mg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
+                           method='simple_stream_power',
+                           discharge_method='drainage_area',
+                           area_field='drainage_area',
+                           background_depo_rate=external_qs,
+                           solver='basic')
+
+    # Run for one time step
+    fa.run_one_step()
+    ed.run_one_step(1.0)
+
+    # Test the result
+    predicted_z = np.zeros(mg.number_of_nodes)
+    predicted_z[12] = 1.0
+    assert_equal(z, predicted_z)
+
+if __name__ == '__main__':
+    test_external_sed_influx()
