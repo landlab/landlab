@@ -643,11 +643,6 @@ class FlowAccumulator(Component):
         self._add_director(flow_director)
         self._add_depression_finder(depression_finder)
 
-        # check that all KWARGS are used.
-        if len(self.kwargs)>0:
-            raise ValueError('unused kwargs passed to FlowAccumulator: ',
-                             self.kwargs)
-
         # This component will track of the following variables.
         # Attempt to create each, if they already exist, assign the existing
         # version to the local copy.

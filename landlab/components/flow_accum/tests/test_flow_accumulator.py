@@ -280,11 +280,11 @@ def test_accumulated_area_closes():
         core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
         assert_equal(drained_area, core_area)
 
-def test_passing_unnecessary_kwarg():
-    """Test that passing a bad kwarg raises a ValueError."""
-    mg = RasterModelGrid((10,10), spacing=(1, 1))
-    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-    assert_raises(ValueError, FlowAccumulator, mg, bad_kwarg='woo')
+# def test_passing_unnecessary_kwarg():
+#     """Test that passing a bad kwarg raises a ValueError."""
+#     mg = RasterModelGrid((10,10), spacing=(1, 1))
+#     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+#     assert_raises(ValueError, FlowAccumulator, mg, bad_kwarg='woo')
 
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
