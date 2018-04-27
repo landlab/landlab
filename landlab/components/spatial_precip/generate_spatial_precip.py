@@ -70,8 +70,54 @@ class PrecipitationDistribution(Component):
     def __init__(self, grid, number_of_years=1, orographic_scenario='Singer',
                  save_outputs=False, path_to_input_files=None):
         """
-        save_outputs : if not None, str path to save
+        A component to generate a sequence of spatially resolved storms over a
+        grid, following a lightly modified version of the stochastic methods of
+        Singer & Michaelides, Env Res Lett 12, 104011, 2017.
+
+        The method is heavily stochastic, and at the present time is intimately
+        calibrated against the conditions at Walnut Gulch, described in that
+        paper. In particular, assumptions around intensity-duration calibration
+        and orographic rainfall are "burned in" for now, and are not accessible
+        to the user. The various probability distributions supplied to the
+        various run methods default to WG values, but are easily modified.
+
+        Key methods are:
+        yield_storms
+            Generate a timeseries of storm:interstorm duration pairs, alongside
+            a field that describes the spatial distribution of rain during that
+            storm.
+        yield_years
+            Generate a timeseries of ints giving number of storms per year,
+            alongside a field that describes the spatial distribution of total
+            rainfall across that year.
+        yield_seasons
+            Generate a timeseries of ints giving number of storms per season,
+            alongside a field that describes the spatial distribution of total
+            rainfall across that season.
+        total_rainfall_last_season
+            Report total rainfall depth during the last season (e.g., during
+            generation of a time series).
+        calc_annual_rainfall
+            Produce a timeseries of tuples giving total rainfall each season,
+            without resolving the storms spatially (i.e., fast!).
+
+
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab model grid of any type.
+        number_of_years : int
+            The number of years over which to generate storms.
         orographic_scenario : {None, 'Singer'}
+            Whether to use no orographic rule, or to adopt S&M's 2017
+            calibration for Walnut Gulch.
+        save_outputs : None, bool, or string
+            ...is to be removed.
+        path_to_input_files : str
+            No need any more?
+
+        To be removed once save is gone & replaced with properties:
 
         The Storm_matrix is:
         0  : master storm count
@@ -166,7 +212,7 @@ class PrecipitationDistribution(Component):
                          'trunc_interval': (0.15, 0.67)}):
         """
         Yield a timeseries giving the number if storms occurring each year in
-        a rainfall simulation. As
+        a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2018 & Singer et al, submitted.
@@ -1114,39 +1160,18 @@ class PrecipitationDistribution(Component):
 
 from landlab.plot import imshow_grid_at_node
 from matplotlib.pyplot import show
-mg = RasterModelGrid((100, 100), 500.)
-closed_nodes = np.zeros((100, 100), dtype=bool)
-closed_nodes[:, :30] = True
-closed_nodes[:, 70:] = True
-closed_nodes[70:, :] = True
-
-mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-# imshow_grid_at_node(mg, mg.status_at_node)
-# show()
-z = mg.add_zeros('node', 'topographic__elevation')
-z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
-count = 0
-total_t = 0.
-for dt, interval_t in rain.yield_storms():
-    count += 1
-    total_t += dt + interval_t
-    print rain._median_seas_rf_total
-    if count % 100 == 0:
-        imshow_grid_at_node(mg, 'rainfall__flux', cmap='Blues')
-        show()
-print("Effective total years:")
-print(total_t/24./365.)
-#
-# print('*****')
-#
 # mg = RasterModelGrid((100, 100), 500.)
+# closed_nodes = np.zeros((100, 100), dtype=bool)
+# closed_nodes[:, :30] = True
+# closed_nodes[:, 70:] = True
+# closed_nodes[70:, :] = True
+#
 # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # # imshow_grid_at_node(mg, mg.status_at_node)
 # # show()
 # z = mg.add_zeros('node', 'topographic__elevation')
 # z += 1000.
-# rain = PrecipitationDistribution(mg, number_of_years=3)
+# rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
 # count = 0
 # total_t = 0.
 # for dt, interval_t in rain.yield_storms():
@@ -1154,34 +1179,51 @@ print(total_t/24./365.)
 #     total_t += dt + interval_t
 #     print rain._median_seas_rf_total
 #     if count % 100 == 0:
-#         imshow_grid_at_node(mg, 'rainfall__flux')
+#         imshow_grid_at_node(mg, 'rainfall__flux', cmap='Blues')
 #         show()
 # print("Effective total years:")
 # print(total_t/24./365.)
-# print('*****')
-mg = RasterModelGrid((100, 100), 500.)
-# mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-# imshow_grid_at_node(mg, mg.status_at_node)
-# show()
-z = mg.add_zeros('node', 'topographic__elevation')
-z += 1000.
-rain = PrecipitationDistribution(mg, number_of_years=2)
+#
+#
+# mg = RasterModelGrid((100, 100), 500.)
+# # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
+# # imshow_grid_at_node(mg, mg.status_at_node)
+# # show()
+# z = mg.add_zeros('node', 'topographic__elevation')
+# z += 1000.
+# rain = PrecipitationDistribution(mg, number_of_years=2)
+# count = 0
+# total_storms = 0.
+# for storms_in_year in rain.yield_years():
+#     count += 1
+#     total_storms += storms_in_year
+#     print(storms_in_year)
+#     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
+#     show()
+#
+# _ = mg.at_node.pop('rainfall__total_depth_per_year')
+# _ = mg.at_node.pop('rainfall__flux')
+# rain = PrecipitationDistribution(mg, number_of_years=1)
+# for storms_in_season in rain.yield_seasons():
+#     print(storms_in_season)
+#     imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
+#     show()
+#
+# for yr in range(30):
+#     print(rain.calc_annual_rainfall(style='whole_year'))
+
+from landlab import VoronoiDelaunayGrid
+
+x = np.random.rand(10000)*50000.
+y = np.random.rand(10000)*50000.
+vdg = VoronoiDelaunayGrid(x, y)
+vdg.add_zeros('node', 'topographic__elevation')
+rain = PrecipitationDistribution(vdg, number_of_years=1)
 count = 0
 total_storms = 0.
 for storms_in_year in rain.yield_years():
     count += 1
     total_storms += storms_in_year
     print(storms_in_year)
-    imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
+    imshow_grid_at_node(vdg, 'rainfall__total_depth_per_year', cmap='jet')
     show()
-
-_ = mg.at_node.pop('rainfall__total_depth_per_year')
-_ = mg.at_node.pop('rainfall__flux')
-rain = PrecipitationDistribution(mg, number_of_years=1)
-for storms_in_season in rain.yield_seasons():
-    print(storms_in_season)
-    imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
-    show()
-
-for yr in range(30):
-    print(rain.calc_annual_rainfall(style='whole_year'))
