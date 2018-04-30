@@ -59,6 +59,45 @@ def _deposit_or_erode(layers, n_layers, dz):
         dz = np.asfarray(dz)
 
     deposit_or_erode(layers, n_layers, dz)
+    
+    
+def _get_surface_index(layers, n_layers, surface_index):
+    """Get index within each stack of the topographic surface.
+
+    Parameters
+    ----------
+    layers : ndarray of shape `(n_layers, n_nodes)`
+        Array of layer thicknesses.
+    n_layers : int
+        Number of active layers.
+    surface_index : ndarray of shape `(n_nodes, )`
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.layers.eventlayers import (_deposit_or_erode,
+    ...                                         _get_surface_index)
+
+    >>> layers = np.full((5, 3), 1.)
+    >>> dz = np.array([-1., -2., -3.])
+    >>> _deposit_or_erode(layers, 5, dz)
+    >>> layers
+    array([[ 1.,  1.,  1.],
+           [ 1.,  1.,  0.],
+           [ 1.,  0.,  0.],
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.]])
+
+    >>> surface_index = np.empty(3, dtype=int)
+    >>> _get_surface_index(layers, 5, surface_index)
+    >>> surface_index
+    array([2, 1, 0])
+    """
+    from .ext.eventlayers import get_surface_index
+
+    layers = layers.reshape((layers.shape[0], -1))
+    
+    get_surface_index(layers, n_layers, surface_index)
 
 
 def resize_array(array, newsize, exact=False):
@@ -230,12 +269,18 @@ class EventLayers(object):
     array([[ 1.5,  1.5,  1. ,  1.5,  0.5],
            [ 0. ,  1. ,  0. ,  4. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ]])
+    
+    Get the index value of the layer within each stack 
+    at the topographic surface. 
+    
+    >>> layers.surface_index
+    array([0, 1, 0, 1, 0])
     """
 
     def __init__(self, number_of_stacks, allocated=0):
         self._number_of_layers = 0
         self._number_of_stacks = number_of_stacks
-
+        self._surface_index = np.empty(number_of_stacks, dtype=int)
         self._attrs = dict()
 
         dims = (self.number_of_layers, self.number_of_stacks)
@@ -495,6 +540,24 @@ class EventLayers(object):
         >>> layers['age']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
+            
+        Attributes for each layer will exist even if the the layer is
+        associated with erosion. 
+        
+        >>> layers.add([-2, -1, 1], age=8.)
+        >>> layers.dz
+        array([[ 1.,  1.,  1.],
+               [ 0.,  1.,  2.],
+               [ 0.,  0.,  1.]])
+        >>> layers['age']
+        array([[ 3.,  3.,  3.],
+               [ 6.,  6.,  6.],
+               [ 8.,  8.,  8.]])
+            
+        To get the values at the surface of the layer stack:
+        
+        >>> layers.surface_values('age')
+        array([ 3.,  6.,  8.])
         """
         if self.number_of_layers == 0:
             self._setup_layers(**kwds)
@@ -509,7 +572,17 @@ class EventLayers(object):
             except KeyError:
                 print('{0} is not being tracked. Ignoring'.format(name),
                       file=sys.stderr)
-
+    
+    @property
+    def surface_index(self):
+        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
+        return self._surface_index
+    
+    def surface_values(self, name):
+        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
+                
+        return self._attrs[name][np.arange(self._number_of_stacks), self._surface_index]
+        
     def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
         if self.number_of_layers >= self.allocated:
