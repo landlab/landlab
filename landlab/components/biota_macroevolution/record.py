@@ -1,7 +1,8 @@
-import pandas as pd
+from numpy import array
+from pandas import DataFrame
 
 
-class Record(pd.DataFrame):
+class Record(DataFrame):
     """Pandas DataFrame to store attributes over time.
 
     Timestep is the index and 'attributes' are the values. The attributes are
@@ -12,6 +13,10 @@ class Record(pd.DataFrame):
     def __init__(self, *args, **kw):
         super(Record, self).__init__(*args, **kw)
         self.index.name = 'step'
+
+    def get_time_prior_to_time(self, time):
+        times = array(self.times)
+        return times[times < time].max()
 
     @property
     def times(self):

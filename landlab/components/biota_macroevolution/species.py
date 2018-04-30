@@ -65,10 +65,19 @@ class Species(object):
 
         Returns
         -------
-        surviving_species : BiotaEvolver Species list
-            The species that exist after the macroevolution processes run. This
-            may include self and/or child species of self, or None if no
-            species will persist in `time`.
+        output : dictionary
+            Required keys:
+                'species_persists' : boolean
+                    `True` indicates that this species persists in `time`.
+                    `False` indicates that this species is extinct by `time`.
+                'child_species' : BiotaEvolver Species list
+                    The child species produced by the current species after the
+                    macroevolution processes run. An empty array indicates no
+                    child species.
+            Optional keys:
+                'biota_evolver_add_on' : dictionary
+                    The items of this dictionary will become items in the
+                    BiotaEvolver record for this time.
         """
         output = {}
         child_species = []
@@ -90,8 +99,8 @@ class Species(object):
                 output['species_persists'] = False
 
                 for d in v.destinations:
-                    child_species = Species(time, d, parent_species=self)
-                    child_species.append(child_species)
+                    child_species_d = Species(time, d, parent_species=self)
+                    child_species.append(child_species_d)
 
         # Output a unique array of child species.
         output['child_species'] = np.array(list(set(child_species)))

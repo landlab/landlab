@@ -71,37 +71,34 @@ def plot_number_of_species(record, species_data_frame, axes=None):
     axes.set_ylabel('Number of species')
 
 
-def plot_tree(species, axes=None, x_multiplier=0.001, x_axis_title='Time (ky)'):
-    """ Plot a phylogenetic tree.
+def plot_tree(species, times, axes=None, x_multiplier=0.001,
+              x_axis_title='Time (ky)'):
+    """Plot a phylogenetic tree.
 
     """
-    clades = list(set(species.index.get_level_values('clade').tolist()))
+    clades = species.index.get_level_values('clade').unique().tolist()
     clades.sort(reverse=True)
 
-    times = list(set(species.time_appeared.tolist() + species.latest_time.tolist()))
     times.sort(reverse=True)
 
     if axes == None:
         fig = plt.figure('Phylogenetic tree')
         axes = fig.add_axes(plt.axes())
 
-    y_clade_spacing = 0.5
     y_species_spacing = 0.5
     y_max = 0
 
     lines = []
 
-    # Plot the tree beginning at final time.
-    for c in clades:
-        clade_species = species.index.get_level_values('clade') == c
-        clade_species = species.loc[clade_species]
+    for clade in clades:
+        clade_mask = species.index.get_level_values('clade') == clade
+        clade_species = species.loc[clade_mask]
 
-        species_position = {}
-
-        y_clade_species = []
+        # Store y-axis position of species to connect branches over time.
+        y_species = {}
 
         for i, time in enumerate(times):
-            # Get the duration represented by this time.
+            # Get the temporal bounds represented by this time.
             if time == max(times):
                 later_time = time
                 earlier_time = times[i + 1]
@@ -112,36 +109,49 @@ def plot_tree(species, axes=None, x_multiplier=0.001, x_axis_title='Time (ky)'):
                 later_time = times[i - 1]
                 earlier_time = times[i + 1]
 
+            t_extinct = clade_species.time_extinct.tolist()
+            last_time = np.array(t_extinct)
+            last_time[np.argwhere(np.isnan(t_extinct))] = max(times)
+
             species_time = np.all([clade_species.time_appeared <= earlier_time,
-                                   clade_species.latest_time >= later_time], 0)
-            species_time = clade_species.object[species_time]
+                                   last_time >= later_time], 0)
+            species_time = clade_species[species_time]
 
-            pid = []
-
-            for s in species_time:
-                if s.parent_species == -1:
-                    pid.append(-1)
+            # Sort clade species by parent species then by species number.
+            species_time['parent_id'] = np.zeros(len(species_time))
+            species_time['species_number'] = np.zeros(len(species_time))
+            for i, row in species_time.iterrows():
+                ps = row.object.parent_species
+                species_num = row.object.identifier[1]
+                species_time.set_value(i, 'species_number', species_num)
+                if ps == -1:
+                    species_time.set_value(i, 'parent_id', -1)
                 else:
-                    pid.append(s.identifier[1])
+                    species_time.set_value(i, 'parent_id', ps.identifier[1])
 
-            sorted_indices = np.argsort(pid)
-            sorted_species = np.array(species_time)[[sorted_indices]]
+            species_time.sort_values(['parent_id', 'species_number'],
+                                     ascending=False, inplace=True)
 
             # Extend the x values by half of time.
             x_max = (time + (later_time - time) * 0.5) * x_multiplier
             x_min = (time - (time - earlier_time) * 0.5) * x_multiplier
             x_max = later_time * x_multiplier
             x_min = earlier_time * x_multiplier
-            x_mid = np.mean([x_min, x_max])
-            print(time,s.identifier,x_min,x_max)
-            y_time_clade_species = []
 
-            for s in sorted_species:
+            y_time = []
+
+            clade_branch = False
+
+            for i, row in species_time.iterrows():
+
+                # Get species object, s of current row.
+                s = row.object
+
                 no_parent = s.parent_species == -1
 
-                if s in species_position.keys():
+                if s in y_species.keys():
                     # Previously plotted.
-                    y_next = species_position[s]
+                    y_next = y_species[s]
                 else:
                     # First time plotting.
                     y_next = y_max + y_species_spacing
@@ -151,222 +161,43 @@ def plot_tree(species, axes=None, x_multiplier=0.001, x_axis_title='Time (ky)'):
                 else:
                     lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'c'))
 
-                species_position[s] = y_next
+                y_species[s] = y_next
 
-                s_record_times = list(set(s.record.index))
+                existed_prior_time = row.time_appeared < earlier_time
 
-                existed_prior_time = earlier_time in s_record_times
-                y_clade_species.append(y_next)
-                y_time_clade_species.append(y_next)
+                y_time.append(y_next)
 
                 if y_next > y_max:
                     y_max = y_next
 
                 if not existed_prior_time:
-                    species_position[species.parent_species] = np.mean(y_time_clade_species)
+                    y_species[s.parent_species] = np.mean(y_time)
+                    clade_branch = True
 
-                if len(y_time_clade_species) > 0:
-                    lines.extend(axes.plot([x_min, x_min],
-                                           [min(y_time_clade_species),
-                                            max(y_time_clade_species)], 'y'))
+                # Plot species number.
+                if time == max(times):
+                    sid = s.identifier[1]
+                    plt.text(x_max, y_next, sid, fontsize='small', va='center',
+                             bbox=dict(boxstyle='square,pad=0.1', fc='w',
+                                       ec='none'))
+
+            # Plot vertical line that connects sibling species.
+            if clade_branch:
+                lines.extend(axes.plot([x_min, x_min], [min(y_time),
+                                       max(y_time)], 'y'))
+
+        # Plot clade id.
+        if time == 0:
+            plt.text(x_min, y_next, clade, fontsize='small', ha='right',
+                     va='center', bbox=dict(boxstyle='square,pad=0.1', fc='w',
+                                            ec='none'))
 
     # Format plot axes.
 
     axes.set_xlabel(x_axis_title)
-    axes.set_ylabel('Species')
 
     axes.set_yticks([])
 
     axes.spines['top'].set_visible(False)
+    axes.spines['left'].set_visible(False)
     axes.spines['right'].set_visible(False)
-
-#    lines = []
-#    species_position = {}
-#
-#    for cid in clades:
-#        y_max += y_clade_spacing
-#
-#        for i, time in enumerate(times):
-#            # Get the duration represented by this time.
-#            if time == max(times):
-#                later_time = time
-#                earlier_time = times[i + 1]
-#            elif time == min(times):
-#                later_time = times[i - 1]
-#                earlier_time = time
-#            else:
-#                later_time = times[i - 1]
-#                earlier_time = times[i + 1]
-#
-#            # Extend the x values by half of time.
-#            x_max = (time + (later_time - time) * 0.5) * x_multiplier
-#            x_min = (time - (time - earlier_time) * 0.5) * x_multiplier
-#            x_mid = np.mean([x_min, x_max])
-#
-##            pid = []
-##            unsort_species = list(clades[cid])
-##            for p in unsort_species:
-##                if p.parent_species == -1:
-##                    pid.append(-1)
-##                else:
-##                    pid.append(p.identifier[1])
-##            print(pid)
-##            sorted_indices = np.argsort(pid)
-##            print(np.array(unsort_species),[[sorted_indices]])
-##            sorted_species = np.array(unsort_species)[[sorted_indices]]
-#
-#            y_clade_species = []
-#
-#            for time_clade in tree[time]:
-#                if time_clade == -1:
-#                    tid = -1
-#                else:
-#                    tid = time_clade.identifier[0]
-#                print(1,tid,cid)
-#                if tid is not cid:
-#                    print(2)
-#                    continue
-#                print(3)
-#                y_time_clade_species = []
-#
-#                pid = []
-#                unsort_species = tree[time][time_clade]
-#                for p in unsort_species:
-#                    if p.parent_species == -1:
-#                        pid.append(-1)
-#                    else:
-#                        pid.append(p.identifier[1])
-#                print(pid)
-#                sorted_indices = np.argsort(pid)
-#                print(np.array(unsort_species),[[sorted_indices]])
-#                sorted_species = np.array(unsort_species)[[sorted_indices]]
-#
-#                for species in sorted_species:
-#                    existed_this_time = time in species.record.times
-#                    existed_prior_time = earlier_time in species.record.times
-#                    existed_later_time = later_time in species.record.times
-#                    no_parent = species.parent_species == -1
-#
-#                    if existed_this_time:
-#                        if species in species_position.keys():
-#                            # Previously plotted.
-#                            y_next = species_position[species]
-#                        else:
-#                            # First time plotting.
-#                            y_next = y_max + y_species_spacing
-#
-#                        if no_parent:
-#                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'm'))
-#                        else:
-#                            lines.extend(axes.plot([x_min, x_max], [y_next, y_next], 'c'))
-#
-#                        species_position[species] = y_next
-#
-#                        if time == min(species.record.times):
-#                            y_clade_species.append(y_next)
-#                            y_time_clade_species.append(y_next)
-#
-#                        if y_next > y_max:
-#                            y_max = y_next
-#
-#    #                    if not existed_later_time or time == max(times):
-#                        sid = '{}.{}'.format(species.identifier[0],
-#                               species.identifier[1])
-#                        plt.text(x_max + (x_max * 0.01), y_next, sid,
-#                                 verticalalignment='center', fontsize='small')
-#
-#                if not existed_prior_time:
-#                    species_position[species.parent_species] = np.mean(y_time_clade_species)
-#
-#                if len(y_time_clade_species) > 0:
-#                    lines.extend(axes.plot([x_min, x_min],
-#                                           [min(y_time_clade_species),
-#                                            max(y_time_clade_species)], 'y'))
-#
-##    for i, time in enumerate(times):
-##        # Get the duration represented by this time.
-##        if time == max(times):
-##            later_time = time
-##            earlier_time = times[i + 1]
-##        elif time == min(times):
-##            later_time = times[i - 1]
-##            earlier_time = time
-##        else:
-##            later_time = times[i - 1]
-##            earlier_time = times[i + 1]
-##
-##        # Extend the x values by half of time.
-##        x_max = (time + (later_time - time) * 0.5) * x_multiplier
-##        x_min = (time - (time - earlier_time) * 0.5) * x_multiplier
-##        x_mid = np.mean([x_min, x_max])
-##
-##
-##        # Plot branches for each clade, where the clade includes the species
-##        # that share a common parent species at the prior time.
-##        for parent_id, species_list in tree[time].items():
-##            clade_branch = False
-##
-##            y_clade_species = []
-##
-##            for species in species_list:
-##                # Determine if species continues across timesteps (a continuing
-##                # tree branch).
-##
-##                existed_prior_time = earlier_time in species.record.keys()
-##                no_parent = parent_id == -1
-##
-##                if existed_prior_time or no_parent:
-##                    x = x_min
-##                else:
-##                    clade_branch = True
-##                    x = x_mid
-##
-##                if species.identifier in species_position.keys():
-##                    # Clade trunk or branch.
-##                    y_next = species_position[species.identifier]
-##                    lines.extend(axes.plot([x, x_max], [y_next, y_next], 'k'))
-##                elif no_parent:
-##                    # Leaf node of clade with no branches.
-##                    y_next = y_max + y_clade_spacing
-##                    lines.extend(axes.plot([x, x_max], [y_next, y_next], 'k'))
-##                else:
-##                    if len(y_clade_species) > 0:
-##                        # First leaf node of branched clade.
-##                        y_next += y_clade_spacing * 0.5
-##                    else:
-##                        y_next += 1
-##                    lines.extend(axes.plot([x, x_max], [y_next, y_next], 'k'))
-##
-###                if time == 0:
-###                    print(species.identifier, y_next)
-##
-##                y_clade_species.append(y_next)
-##
-##                # Plot branches.
-##
-##                # Retain y position for other times of species.
-##                if no_parent or not clade_branch:
-##                    species_position[species.identifier] = y_next
-##                else:
-##                    species_position[parent_id] = np.mean(y_clade_species)
-##
-##                if y_next > y_max:
-##                    y_max = y_next
-##
-##            if clade_branch:
-##                # Draw the line that connects the clade species.
-##                if time != 0:
-##                    l = axes.plot([x_mid] * 2,
-##                              [min(y_clade_species), max(y_clade_species)],
-##                              'k')
-##                    lines.extend(l)
-##
-##                # Draw the line that connects the above line with the trunk.
-##                y_mid = np.mean(y_clade_species)
-##                lines.extend(axes.plot([x_min, x_mid], [y_mid, y_mid], 'k'))
-##
-##            y_next = max(y_clade_species)
-#
-
-#
-#    return lines
