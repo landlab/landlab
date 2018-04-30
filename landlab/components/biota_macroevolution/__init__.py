@@ -1,4 +1,4 @@
-from .biota_evolver_object import BiotaEvolverObject
+from .record import Record
 from .seamless import BiotaEvolver
 from .zone import Zone
 from .plot import *

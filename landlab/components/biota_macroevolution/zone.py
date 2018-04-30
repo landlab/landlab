@@ -2,14 +2,14 @@
 """
 
 from copy import deepcopy
-from landlab.components.biota_macroevolution import BiotaEvolverObject
+from landlab.components.biota_macroevolution import Record
 from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 import numpy as np
 import pandas as pd
 from random import random
 
 
-class Zone(BiotaEvolverObject):
+class Zone(object):
     """The nodes and attributes of the entities that species populate.
 
     A portion of the model domain. It is the model entity that recognizes the
@@ -36,7 +36,7 @@ class Zone(BiotaEvolverObject):
             The initial mask of the zone. True elements of this array
             correspond to the nodes of the zone.
         """
-        BiotaEvolverObject.__init__(self)
+        self.record = Record()
         self.mask = mask
         self.species = []
         self.plot_color = (random(), random(), random(), 1)
@@ -223,10 +223,12 @@ class Zone(BiotaEvolverObject):
                     if d == zone:
                         paths.loc[index, 'destinations'].append(replacements[zone])
 
-        be_record_supplement = {'number_of_captures': number_of_captures,
-                                'sum_of_area_captured': cum_area_captured}
+        add_on = {'number_of_captures': number_of_captures,
+                  'sum_of_area_captured': cum_area_captured}
 
-        return paths, be_record_supplement
+        output = {'paths': paths, 'biota_evolver_record_add_on': add_on}
+
+        return output
 
     @classmethod
     def _determine_path_type(cls, prior_zone_count, new_zone_count):
