@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Create a block of rock with different properties. 
+Create a RockBlock object with different properties. 
 
 """
 
@@ -10,36 +10,55 @@ from landlab.layers import EventLayers
 
 
 class RockBlock(object):
-    """Create a RockBlock.
+    """Create a RockBlock object.
     
-    A RockBlock
+    A RockBlock is a three dimentional representation of material operated on 
+    by landlab components. Material can be removed through erosion or added to
+    through deposition. 
+    
+    It is constructed by specifying a series of thicknesses and a series of 
+    rock type IDs. Thicknesses and IDs are both specified in order of  closest 
+    to the surface to furthest from the surface. Thicknesses can either be a 
+    single value (cooresponding to a layer of uniform thickness) or a number-of
+    -nodes length array (cooresponding to a non-uniform layer).
+    
+    Additionally, an attribute dictionary specifies the attributes of each 
+    rock type. This dictionary is expected to have the form of:
+     
+    .. code-block:: python
 
-    Rock type attribute dictionary is expected to have the form of:
+        attrs = {'K_sp': {1: 0.001,
+                          2: 0.0001},
+                 'D': {1: 0.01, 
+                       2: 0.001}}
+    
+    Where ``'K_sp'`` and ``'D'`` are attributes to track, and ``1`` and ``2`` 
+    are rock type IDs. The rock type IDs can be any type that is valid as a 
+    python dictionary key. 
+    
+    Methods
+    -------
+    add_rock_type
+    add_rock_attribute
+    update_rock_attribute
+    add_layer
+    get_surface_values
+    run_one_step
         
-            attrs = {'K_sp': {1: 0.001,
-                              2: 0.0001},
-                     'D': {1: 0.01, 
-                           2: 0.001}}
-    
-    Where 'K_sp' and 'D' are attributes to track, and ``1`` and ``2`` are rock 
-    type IDs.
-    
-    
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.layers import RockBlock
     >>> mg = RasterModelGrid(3, 3)
-    >>> depths = []
-    >>> ids = []
+    >>> thickness = [1, 2, 4, 1]
+    >>> ids = [1, 2, 1, 2]
     >>> attrs = {'K_sp': {1: 0.001,
-    ...                    2: 0.0001},
+    ...                   2: 0.0001},
     ...          'D': {1: 0.01, 
     ...                2: 0.001}}
-    >>> rb = RockBlock(mg, depths, ids, attrs)
-    
-    
-    
+    >>> rb = RockBlock(mg, thickness, ids, attrs)
+    >>> rb.get_surface_values('K_sp')
+    array(0.001, 0.001)
     """
 
     _name = 'RockBlock'
@@ -181,14 +200,18 @@ class RockBlock(object):
         --------
         
         """
-        # this should by cythonized. in EventLayers (e.g. get index of surface layer)
-        out = np.empty(self._layers.number_of_stacks)
-        for s in range(self._layers.number_of_stacks):
-            stack_vals = self._layers[at][:, s]
-            stack_thicknesses = self._layers.dz[:, s]
-            real_vals = stack_vals[stack_thicknesses>0]
-            out[s] = real_vals[-1]
-        return out
+        return self._layers.surface_values(at)
+    
+    def add_rock_attribute(self, attrs):
+        """
+        Add new attribute to RockBlock
+        
+        Parameters
+        ----------
+        attrs : dict
+            Rock attribute dictionary for the new attribute(s).
+        
+        """
     
     def add_rock_type(self, attrs):
         """
@@ -197,7 +220,7 @@ class RockBlock(object):
         Parameters
         ----------
         attrs : dict
-            Rock attribute dictionary
+            Rock attribute dictionary for the new rock type(s).
             
         Examples
         --------
@@ -217,7 +240,6 @@ class RockBlock(object):
                        'that no other rock type has. This is not permitted.')
                 raise ValueError(msg)
         
-        # If passing, add:
         new_ids = []
         for at in attrs:
             att_dict = attrs[at]
@@ -232,6 +254,30 @@ class RockBlock(object):
                     new_ids.append(rid)
                     self._attrs[at][rid] = att_dict[rid]
         self._ids.extend(list(set(new_ids)))
+    
+    def update_rock_attribute(self, at, rock_id, value):
+        """
+        Update rock type attribute.
+        
+        Paramters
+        ---------
+        
+        
+        Examples
+        
+        """
+        if at not in self.attributes:
+            msg = ('RockBlock cannot update the value of ' + str(at) + 'as '
+                   'this attribute does not exist.')
+            raise ValueError(msg)
+        
+        if rock_id not in self._attrs[at]:
+            msg = ('RockBlock cannot update the value of rock type '
+                   '' + str(rock_id) + 'for attribute ' + str(at) + ' as this '
+                   'rock type is not yet defined.')
+            raise ValueError(msg)
+        
+        self._attrs[at][rock_id] = value
         
     def run_one_step(self, dz_advection=0, layer_id=None):
         """
