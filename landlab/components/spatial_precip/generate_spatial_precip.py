@@ -67,8 +67,7 @@ class PrecipitationDistribution(Component):
             'Depth of water delivered in total in each model year',
     }
 
-    def __init__(self, grid, number_of_years=1, orographic_scenario='Singer',
-                 save_outputs=False, path_to_input_files=None):
+    def __init__(self, grid, number_of_years=1, orographic_scenario='Singer'):
         """
         A component to generate a sequence of spatially resolved storms over a
         grid, following a lightly modified version of the stochastic methods of
@@ -80,6 +79,19 @@ class PrecipitationDistribution(Component):
         and orographic rainfall are "burned in" for now, and are not accessible
         to the user. The various probability distributions supplied to the
         various run methods default to WG values, but are easily modified.
+
+        The component has two ways of simulating a "year". This choice is
+        controlled by the 'limit' parameter of the yield methods. If limit==
+        'total_rainfall', the component will continue to run until the total
+        rainfall for the season and/or year exceeds a stochastically generated
+        value. This method is directly comparable to the Singer & Michaelides
+        method, but will almost always result in years which are not one
+        calendar year long, unless the input distributions are very carefully
+        recalibrated for each use case. If limit=='total_time', the component
+        will terminate a season and/or year once the elapsed time exceeds one
+        year. In this case, the total rainfall will not correspond to the
+        stochastically generated total. You can access the actual total for the
+        last season using XXXXXX
 
         Key methods are:
         yield_storms
@@ -112,26 +124,7 @@ class PrecipitationDistribution(Component):
         orographic_scenario : {None, 'Singer'}
             Whether to use no orographic rule, or to adopt S&M's 2017
             calibration for Walnut Gulch.
-        save_outputs : None, bool, or string
-            ...is to be removed.
-        path_to_input_files : str
-            No need any more?
 
-        To be removed once save is gone & replaced with properties:
-
-        The Storm_matrix is:
-        0  : master storm count
-        1  : storm area (m**2)
-        2  : storm duration (rounded to nearest min, in min)
-        3  : which curve is selected to draw area/duration from? (0-10)
-        4  : peak storm intensity (mm/hr)
-        5  : number of gauges/nodes hit
-        6  : recession value (how rapidly does intensity wane from centre?)
-        7  : accumulated rf during storm (mm)
-        8  : storm centre x coordinate (grid unit)
-        9  : storm centre y coordinate (grid unit)
-        10 : year in the simulation
-        11 : the season. 0 is monsoon, 1 is winter
         """
         self._grid = grid
         gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
@@ -139,30 +132,13 @@ class PrecipitationDistribution(Component):
         self._temp_dataslots1 = np.zeros(gaugecount, dtype='float')
         self._temp_dataslots2 = np.zeros(gaugecount, dtype='float')
         self._numyrs = number_of_years
-        if save_outputs is not None:
-            assert type(save_outputs) in (bool, str)
-        self._savedir = save_outputs
 
         self._max_numstorms = 5000
         # This is for initializing matrices. Trailing zeros are deleted from
-        # the matrix at the end of the code.
-
-        if self._savedir is not False:
-            if type(self._savedir) is str:
-                dimension = self._max_numstorms
-            else:
-                dimension = self._max_numstorms*number_of_years
-            self._Storm_matrix = np.zeros((dimension, 12))
+        # matrixes at the end of the code.
 
         assert orographic_scenario in {None, 'Singer'}
         self._orographic_scenario = orographic_scenario
-
-        if path_to_input_files is None:
-            self._path = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), 'model_input')
-        else:
-            assert type(path_to_input_files) is str
-            self._path = path_to_input_files
 
         # build LL fields:
         self.initialize_output_fields()
@@ -179,9 +155,12 @@ class PrecipitationDistribution(Component):
         self._maxy = self.grid.node_y[open_nodes].max()
         self._widthx = self._maxx - self._minx
         self._widthy = self._maxy - self._miny
+        self._running_total_rainfall_this_year = self.grid.zeros('node')
+        self._running_total_rainfall_this_season = self.grid.zeros('node')
 
-    def yield_storms(self, style='whole_year',
+    def yield_storms(self, limit='total_time', style='whole_year',
                      total_rf_trend=0., storminess_trend=0.,
+                     monsoon_fraction_of_year=0.33,
                      monsoon_total_rf_gaussian={
                          'sigma': 64., 'mu': 207.},
                      monsoon_storm_duration_GEV={
@@ -219,6 +198,11 @@ class PrecipitationDistribution(Component):
 
         Parameters
         ----------
+        limit : ('total_time', 'total_rainfall')
+            Controls whether a season is defined based on its total rainfall
+            (and can be any length), or by its duration (and can have any
+            amount of rainfall). If 'total_time', monsoon_fraction_of_year
+            sets the fraction of a year occupied by the monsoon.
         style : ('whole_year', 'monsoonal', 'winter')
             Controls whether the component seeks to simulate a western US-
             style "monsoonal" climate, a western US-style winter climate,
@@ -236,6 +220,9 @@ class PrecipitationDistribution(Component):
             storms get more intense through time, if negative, less so. S&M
             recommend +/- 0.01 for a realistic climate change driven drift at
             Walnut Gulch.
+        monsoon_fraction_of_year : float
+            If limit == 'total_time', sets the fraction of one year occupied
+            by the monsoon season. If not, ignored.
 
        monsoon_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
@@ -285,7 +272,8 @@ class PrecipitationDistribution(Component):
         """
         return self._run_the_process(
             yield_storms=True, yield_years=False, yield_seasons=False,
-            style=style,
+            limit=limit, style=style,
+            monsoon_fraction_of_year=monsoon_fraction_of_year,
             total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
             monsoon_total_rf_gaussian=monsoon_total_rf_gaussian,
             monsoon_storm_duration_GEV=monsoon_storm_duration_GEV,
@@ -300,8 +288,9 @@ class PrecipitationDistribution(Component):
             winter_storm_radial_weakening_gaussian=
                                         winter_storm_radial_weakening_gaussian)
 
-    def yield_years(self, style='whole_year',
+    def yield_years(self, limit='total_time', style='whole_year',
                     total_rf_trend=0., storminess_trend=0.,
+                    monsoon_fraction_of_year=0.33,
                     monsoon_total_rf_gaussian={
                         'sigma': 64., 'mu': 207.},
                     monsoon_storm_duration_GEV={
@@ -339,6 +328,11 @@ class PrecipitationDistribution(Component):
 
         Parameters
         ----------
+        limit : ('total_time', 'total_rainfall')
+            Controls whether a season is defined based on its total rainfall
+            (and can be any length), or by its duration (and can have any
+            amount of rainfall). If 'total_time', monsoon_fraction_of_year
+            sets the fraction of a year occupied by the monsoon.
         style : ('whole_year', 'monsoonal', 'winter')
             Controls whether the component seeks to simulate a western US-
             style "monsoonal" climate, a western US-style winter climate,
@@ -356,6 +350,9 @@ class PrecipitationDistribution(Component):
             storms get more intense through time, if negative, less so. S&M
             recommend +/- 0.01 for a realistic climate change driven drift at
             Walnut Gulch.
+        monsoon_fraction_of_year : float
+            If limit == 'total_time', sets the fraction of one year occupied
+            by the monsoon season. If not, ignored.
 
         monsoon_total_rf_gaussian is a normal distribution controlling the
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
@@ -403,8 +400,9 @@ class PrecipitationDistribution(Component):
         """
         return self._run_the_process(
             yield_storms=False, yield_years=True, yield_seasons=False,
-            style=style,
+            limit=limit, style=style,
             total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
+            monsoon_fraction_of_year=monsoon_fraction_of_year,
             monsoon_total_rf_gaussian=monsoon_total_rf_gaussian,
             monsoon_storm_duration_GEV=monsoon_storm_duration_GEV,
             monsoon_storm_area_GEV=monsoon_storm_area_GEV,
@@ -418,8 +416,9 @@ class PrecipitationDistribution(Component):
             winter_storm_radial_weakening_gaussian=
                                         winter_storm_radial_weakening_gaussian)
 
-    def yield_seasons(self, style='whole_year',
+    def yield_seasons(self, limit='total_time', style='whole_year',
                       total_rf_trend=0., storminess_trend=0.,
+                      monsoon_fraction_of_year=0.33,
                       monsoon_total_rf_gaussian={
                           'sigma': 64., 'mu': 207.},
                       monsoon_storm_duration_GEV={
@@ -458,6 +457,11 @@ class PrecipitationDistribution(Component):
 
         Parameters
         ----------
+        limit : ('total_time', 'total_rainfall')
+            Controls whether a season is defined based on its total rainfall
+            (and can be any length), or by its duration (and can have any
+            amount of rainfall). If 'total_time', monsoon_fraction_of_year
+            sets the fraction of a year occupied by the monsoon.
         style : ('whole_year', 'monsoonal', 'winter')
             Controls whether the component seeks to simulate a western US-
             style "monsoonal" climate, a western US-style winter climate,
@@ -475,6 +479,9 @@ class PrecipitationDistribution(Component):
             storms get more intense through time, if negative, less so. S&M
             recommend +/- 0.01 for a realistic climate change driven drift at
             Walnut Gulch.
+        monsoon_fraction_of_year : float
+            If limit == 'total_time', sets the fraction of one year occupied
+            by the monsoon season. If not, ignored.
 
         monsoon_total_rf_gaussian is a normal distribution controlling the
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
@@ -516,7 +523,7 @@ class PrecipitationDistribution(Component):
         number_of_storms_per_season : float
             Float that gives the number of storms simulated in the season that
             elapsed since the last yield. The rainfall__total_depth_per_year
-            field gives the total accumulated rainfall depth during the year
+            field gives the total accumulated rainfall depth during the *year*
             preceding the yield, *so far*. rainfall__flux gives the rainfall
             intensity of the last storm in that year.
         NB: Use the component property total_rainfall_last_season to access
@@ -525,8 +532,9 @@ class PrecipitationDistribution(Component):
         """
         return self._run_the_process(
             yield_storms=False, yield_years=False, yield_seasons=True,
-            style=style,
+            limit=limit, style=style,
             total_rf_trend=total_rf_trend, storminess_trend=storminess_trend,
+            monsoon_fraction_of_year=monsoon_fraction_of_year,
             monsoon_total_rf_gaussian=monsoon_total_rf_gaussian,
             monsoon_storm_duration_GEV=monsoon_storm_duration_GEV,
             monsoon_storm_area_GEV=monsoon_storm_area_GEV,
@@ -541,7 +549,8 @@ class PrecipitationDistribution(Component):
                                         winter_storm_radial_weakening_gaussian)
 
     def _run_the_process(self, yield_storms=True, yield_years=False,
-                         yield_seasons=False, style='whole_year',
+                         yield_seasons=False, limit='total_time',
+                         style='whole_year', monsoon_fraction_of_year=0.33,
                          total_rf_trend=0., storminess_trend=0.,
                          monsoon_total_rf_gaussian={
                              'sigma': 64., 'mu': 207.},
@@ -577,9 +586,8 @@ class PrecipitationDistribution(Component):
         This is the underlying process that runs the component, but it should
         be run by a user through the yield_storms and yield_years methods.
 
-        Use the hardwired FUZZMETHOD switch {'MS', 'DEJH'} to control whether
-        the fuzz is applied in a discretised fashion from input file (MS), or
-        as a continuous random variable (DEJH).
+        Fuzz to the chosen values is now selected from a continuous
+        distribution, not from integer values.
 
         total_rf_trend controls if a drift is applied to the total rainfall
         distribution through time. If 0., no trend. If positive, rainfall
@@ -592,8 +600,6 @@ class PrecipitationDistribution(Component):
         positive, storms get more intense through time, if negative, less so.
         S&M recommend +/- 0.01 for a realistic climate change driven drift at
         Walnut Gulch.
-
-        NOTE still an issue with how we do intensity stepchange.
 
         All default distributions reflect values for Walnut Gulch, see Singer &
         Michaelides, submitted:
@@ -648,16 +654,16 @@ class PrecipitationDistribution(Component):
         if yield_seasons:
             assert yield_storms is False
             assert yield_years is False
-        # what's the dir of this component?
-        # this is a nasty hacky way for now
-        thisdir = self._path
-        # Initialize variables for annual rainfall total (mm/h)
-        # storm center location (RG1-RG85), etc.
 
         # add variable for number of simulations of simyears
         simyears = self._numyrs  # number of years to simulate
         numcurves = 11  # number of intensity-duration curves (see below for
         # curve equations)
+        hrsinyr = 24.*365.
+        hrsinmonsoon = monsoon_fraction_of_year * hrsinyr
+        hrsinwinter = (1. - monsoon_fraction_of_year) * hrsinyr
+
+        assert limit in ('total_rainfall', 'total_time')
 
         assert style in ('whole_year', 'monsoonal', 'winter')
         if style == 'whole_year':
@@ -665,7 +671,8 @@ class PrecipitationDistribution(Component):
         else:
             reps = 1
 
-        opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
+        self._opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
+        opennodes = self._opennodes
         num_opennodes = np.sum(opennodes)
         IDs_open = np.where(opennodes)[0]  # need this later
         X1 = self.grid.node_x
@@ -678,10 +685,8 @@ class PrecipitationDistribution(Component):
         # real gauge locations.
 
         if FUZZMETHOD == 'MS':
-            # a vector of fuzzy tolerance values for intensity selection
-            # width is +/-5, discretised every 1
-            fuzz = np.loadtxt(os.path.join(thisdir, 'fuzz.csv'))
-            fuzz = fuzz.astype(float)
+            raise NameError(
+                'The Singer method for fuzz is no longer supported')
 
         # NOTE this is overly specific
         if self._orographic_scenario == 'Singer':
@@ -715,21 +720,23 @@ class PrecipitationDistribution(Component):
         storm_trend = 0
 
         for syear in range(simyears):
-            if type(self._savedir) is str:
-                self._Storm_matrix.fill(0.)
-            calendar_time = 0  # tracks simulation time per year in hours
+            year_time = 0.  # tracks simulation time per year in hours
             storm_trend += storminess_trend
             Ptotal = 0.
             year_storm_count = 0
+            breaker = False
             Storm_total_local_year = np.zeros(
                 (self._max_numstorms, num_opennodes))
-            Storm_running_sum_year = np.zeros(num_opennodes)
+            self._storm_running_sum_of_seasons = np.zeros(num_opennodes)
+            self._storm_running_sum_1st_seas = np.zeros(num_opennodes)
 
             storms_yr_so_far = 0
             for seas in range(reps):
+                seas_time = 0.  # tracks elapsed season time in hours
                 Storm_running_sum_seas = np.zeros((2, num_opennodes))
                 # ^ 1st col is running total, 2nd is data to add to it
                 if seas == 0 and not style == 'winter':
+                    current_season = 'M'
                     print('MONSOON')
                     # This is the pdf fitted to all available station precip
                     # data (normal dist). It will be sampled below.
@@ -761,13 +768,16 @@ class PrecipitationDistribution(Component):
                     # from Morin et al, 2005 (normal dist). It will be sampled
                     # below.
                     Recess_pdf_norm = monsoon_storm_radial_weakening_gaussian
+                    seas_total = hrsinmonsoon
                 else:
+                    current_season = 'W'
                     print('WINTER')
                     Ptot_pdf_norm = winter_total_rf_gaussian
                     Duration_pdf = winter_storm_duration_fisk
                     Area_pdf_EV = winter_storm_area_GEV
                     Int_arr_pdf_GEV = winter_storm_interarrival_GEV
                     Recess_pdf_norm = winter_storm_radial_weakening_gaussian
+                    seas_total = hrsinwinter
 
                 if not np.isclose(total_rf_trend, 0.):
                     mu = Ptot_pdf_norm.pop('mu')
@@ -785,12 +795,7 @@ class PrecipitationDistribution(Component):
                 seas_cum_Ptot_gauge = np.zeros(numgauges)
                 self._entries = 0
                 seas_storm_count = 0
-######
-                self._storm_dur = []
-                self._storm_intensity = []
-                self._storm_depth = []
-                self._recession = []
-                self._storm_area = []
+
                 for storm in range(self._max_numstorms):
                     int_arr_val = genextreme.rvs(
                         c=Int_arr_pdf_GEV['shape'], loc=Int_arr_pdf_GEV['mu'],
@@ -803,6 +808,7 @@ class PrecipitationDistribution(Component):
                         # ...just in case
                         if int_arr_val < 0.:
                             int_arr_val = 0.
+                    self._int_arr_val = int_arr_val
                     # ^Samples from distribution of interarrival times (hr).
                     # This can be used to develop STORM output for use in
                     # rainfall-runoff models or any water balance application.
@@ -820,13 +826,13 @@ class PrecipitationDistribution(Component):
                         # ...just in case
                         if area_val < 0.:
                             area_val = 0.
+                    self._area_val = area_val
                     # ^Samples from distribution of storm areas
-###
-                    self._storm_area.append(area_val)
+
                     r = np.sqrt(area_val/np.pi)  # value here shd be selected
                     rsq = r**2
                     # based on area above in meters to match the UTM values
-###
+
                     # This way of handling storm locations is really quite
                     # different to MS's. He uses a fixed buffer width, and
                     # throws away any storm that doesn't intersect. We
@@ -845,7 +851,7 @@ class PrecipitationDistribution(Component):
                         # the storm does not affect any 'gauging' location
                         if np.any(np.equal(mask_name, True)):
                             break
-                            
+
                     year_storm_count += 1
                     seas_storm_count += 1
                     master_storm_count += 1
@@ -897,9 +903,12 @@ class PrecipitationDistribution(Component):
                         # ...just in case
                         if duration_val < 0.:
                             duration_val = 0.
-                    # we're not going to store the calendar time (DEJH change)
-###
-                    self._storm_dur.append(duration_val)
+                    durationhrs = duration_val / 60.
+                    self._durationhrs = durationhrs
+                    year_time += durationhrs
+                    seas_time += durationhrs
+                    # we will always do the next storm, even if it exceeds the
+                    # specified "total" time
 
                     # original curve# probs for 30%-20%-10%: [0.0636, 0.0727,
                     # 0.0819, 0.0909, 0.0909, 0.0909, 0.0909, 0.0909, 0.1001,
@@ -957,8 +966,7 @@ class PrecipitationDistribution(Component):
                         self._phantom_storm_count += 1
                     # note storms of zero intensity are now permitted (though
                     # should hopefully remain pretty rare.)
-###
-                    self._storm_intensity.append(intensity_val)
+                    self._intensity_val = intensity_val
 
                     # area to determine which gauges are hit:
                     recess_val = np.random.normal(
@@ -970,8 +978,7 @@ class PrecipitationDistribution(Component):
                             Recess_pdf_norm['trunc_interval'][1])
                     except KeyError:
                         pass  # this one is OK <0., I think
-###
-                    self._recession.append(recess_val)
+                    self._recess_val = recess_val
                     # this pdf of recession coefficients determines how
                     # intensity declines with distance from storm center (see
                     # below)
@@ -985,33 +992,15 @@ class PrecipitationDistribution(Component):
                     # NOTE _gauge_dist_km only contains nodes under the storm!
                     # The remaining entries are garbage
                     # Xin -> only the open nodes, note
-                    # self._gauge_dist_km[:entries] = Xin[mask_name]
-                    # self._gauge_dist_km[:entries] -= cx
-                    # np.square(self._gauge_dist_km[:entries],
-                    #           out=self._gauge_dist_km[:entries])
-                    # self._temp_dataslots1[:entries] = Yin[mask_name]
-                    # self._temp_dataslots1[:entries] -= cy
-                    # np.square(self._temp_dataslots1[:entries],
-                    #           out=self._temp_dataslots1[:entries])
-                    # self._gauge_dist_km[:entries] += self._temp_dataslots1[
-                    #     :entries]
-                    # np.sqrt(self._gauge_dist_km[:entries],
-                    #         out=self._gauge_dist_km[:entries])
                     self._gauge_dist_km[:entries] = np.sqrt(
                         gdist[mask_name]) / 1000.
-                    # _rain_int_gauge has been zeroed earlier in loop, so
-                    # self._temp_dataslots2[:entries] = self._gauge_dist_km[
-                    #     :entries]
-                    # # this copy would not be necessary if we didn't want to
-                    # # preserve self._gauge_dist_km
-                    # np.square(self._temp_dataslots2[:entries],
-                    #           out=self._temp_dataslots2[:entries])
                     self._temp_dataslots2[:entries] = gdist[mask_name] / 1.e6
                     self._temp_dataslots2[:entries] *= -2. * recess_val**2
                     np.exp(self._temp_dataslots2[:entries],
                            out=self._temp_dataslots2[:entries])
                     self._temp_dataslots2[:entries] *= intensity_val
                     mask_incl_closed = IDs_open[mask_name]
+                    self._nodes_hit = mask_incl_closed
                     # ^note this is by ID, not bool
                     self._rain_int_gauge[
                         mask_incl_closed] = self._temp_dataslots2[:entries]
@@ -1026,75 +1015,53 @@ class PrecipitationDistribution(Component):
                         self._rain_int_gauge[opennodes] * duration_val / 60.)
                     Storm_total_local_year[(storm+storms_yr_so_far), :] = \
                         Storm_total_local_seas[storm, :]
-###
-                    self._storm_depth.append(Storm_total_local_seas[storm, :].max())
+                    self._max_storm_depth = Storm_total_local_seas[
+                        storm, :].max()
 
                     self._Storm_total_local_seas = Storm_total_local_seas
                     self._Storm_total_local_year = Storm_total_local_year
                     Storm_running_sum_seas[
                         1, :] = Storm_total_local_seas[storm, :]
-                    self._Storm_running_sum_seas = Storm_running_sum_seas
                     np.nansum(Storm_running_sum_seas, axis=0,
                               out=Storm_running_sum_seas[0, :])
                     if np.any(Storm_total_local_seas < 0.):
                         raise ValueError(syear, storm)
                     self._median_seas_rf_total = np.nanmedian(
                         Storm_running_sum_seas[0, :])
+                    self._Storm_running_sum_seas = Storm_running_sum_seas[0, :]
 
-                    if self._savedir is not False:
-                        if type(self._savedir) is str:
-                            rowID = year_storm_count - 1
-                        else:
-                            rowID = master_storm_count - 1
-                        # save some properties:
-                        Storm_matrix = self._Storm_matrix
-                        Storm_matrix[rowID, 0] = master_storm_count
-                        Storm_matrix[rowID, 1] = area_val
-                        Storm_matrix[rowID, 2] = duration_val
-                        Storm_matrix[rowID, 3] = int_dur_curve_val
-                        Storm_matrix[rowID, 4] = intensity_val
-                        Storm_matrix[rowID, 5] = num_gauges_hit
-                        Storm_matrix[rowID, 6] = recess_val
-                        Storm_matrix[rowID, 7] = (intensity_val *
-                                                  duration_val / 60.)
-                        Storm_matrix[rowID, 8] = cx
-                        Storm_matrix[rowID, 9] = cy
-                        Storm_matrix[rowID, 10] = syear
-                        if seas == 0 and not style == 'winter':
-                            Storm_matrix[rowID, 11] = 0
-                        else:
-                            Storm_matrix[rowID, 11] = 1
-
+                    if limit == 'total_time':
+                        if seas_time + int_arr_val > seas_total:
+                            int_arr_val = (seas_total - seas_time).clip(0.)
+                            breaker = True
+                    else:
+                        if self._median_seas_rf_total > season_rf_limit:
+                            breaker = True
                     if yield_storms is True:
-                        yield (duration_val/24., int_arr_val)
+                        yield (durationhrs, int_arr_val)
                     # now blank the field for the interstorm period
                     self._rain_int_gauge.fill(0.)
-                    if self._median_seas_rf_total > season_rf_limit:
+                    seas_time += int_arr_val
+                    year_time += int_arr_val
+                    if breaker:
                         # Don't create Ptotal_local per MS... just
+                        breaker = False
                         break
                     if storm + 1 == self._max_numstorms:
                         raise ValueError(
                             '_max_numstorms set too low for this run')
                 storms_yr_so_far = seas_storm_count
-                Storm_running_sum_year += Storm_running_sum_seas[0, :]
+                self._storm_running_sum_of_seasons += Storm_running_sum_seas[
+                    0, :]
                 self._total_rainfall_last_season = Storm_running_sum_seas[0, :]
                 if yield_seasons is True:
                     yield seas_storm_count
+                self._storm_running_sum_1st_seas += Storm_running_sum_seas[
+                    0, :]
 
-            if type(self._savedir) is str:
-                # crop it down to save:
-                [maxrow, maxcol] = np.argwhere(self._Storm_matrix).max(axis=0)
-                np.savetxt(os.path.join(
-                    self._savedir, 'Storm_matrix_y' + str(syear) + '.csv'),
-                    self._Storm_matrix[:(maxrow+1), :(maxcol+1)])
-            self._total_rf_year[opennodes] = Storm_running_sum_year
+            self._total_rf_year[opennodes] = self._storm_running_sum_of_seasons
             if yield_years is True and yield_seasons is False:
                 yield year_storm_count
-
-        if self._savedir is True:
-            # crop it down for convenience:
-            [maxrow, maxcol] = np.argwhere(self._Storm_matrix).max(axis=0)
-            self._Storm_matrix = self._Storm_matrix[:(maxrow+1), :(maxcol+1)]
 
     def calc_annual_rainfall(self, style='whole_year',
                              monsoon_total_rf_gaussian={
@@ -1184,16 +1151,87 @@ class PrecipitationDistribution(Component):
         stormposy = np.random.rand()*(self._widthy + 2.*storm_radius)
         stormx = self._minx - storm_radius + stormposx
         stormy = self._miny - storm_radius + stormposy
-        # nodeIDs = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
-        # stormloc = np.random.choice(nodeIDs)
-        # stormx = self.grid.node_x[stormloc]
-        # stormy = self.grid.node_y[stormloc]
         return stormx, stormy
 
     @property
+    def storm_depth_last_storm(self):
+        """Get the maximum storm depth during the last storm."""
+        return self._max_storm_depth
+
+    @property
+    def storm_recession_value_last_storm(self):
+        """Get the recession parameter (radial die-off) for the last storm."""
+        return self._recess_val
+
+    @property
+    def storm_duration_last_storm(self):
+        """Get the duration (in hrs) of the last storm."""
+        return self._durationhrs
+
+    @property
+    def storm_area_last_storm(self):
+        """Get the area (in m**2) of the last storm."""
+        return self._area_val
+
+    @property
+    def storm_intensity_last_storm(self):
+        """Get the intensity (mm/hr) of the last storm."""
+
+    @property
     def total_rainfall_last_season(self):
-        """Get the total recorded rainfall over the last simulated season."""
+        """
+        Get the total recorded rainfall over the last (completed) simulated
+        season (mm).
+        """
         return self._total_rainfall_last_season
+
+    @property
+    def median_total_rainfall_this_season(self):
+        """
+        Get the accumulated median total rainfall over the open nodes of the
+        grid so far this season (mm).
+        """
+        return self._median_seas_rf_total
+
+    @property
+    def median_total_rainfall_this_year(self):
+        """
+        Get the accumulated median total rainfall over the open nodes of the
+        grid so far this year (mm).
+        """
+        return np.nanmedian(self._storm_running_sum_1st_seas +
+                            self._Storm_running_sum_seas)
+
+    @property
+    def total_rainfall_this_season(self):
+        """
+        Get the accumulated, spatially resolved total rainfall over the
+        grid for the season so far (mm).
+        """
+        self._running_total_rainfall_this_season[
+            self._opennodes] = self._Storm_running_sum_seas
+        return self._running_total_rainfall_this_season
+
+    @property
+    def total_rainfall_this_year(self):
+        """
+        Get the accumulated, spatially resolved total rainfall over the
+        grid for the year so far (mm).
+        """
+        self._running_total_rainfall_this_year[
+            self._opennodes] = (self._storm_running_sum_1st_seas +
+                                self._Storm_running_sum_seas)
+        return self._running_total_rainfall_this_year
+
+    @property
+    def number_of_nodes_under_storm(self):
+        """Get the number of nodes under the last storm."""
+        return self._entries
+
+    @property
+    def nodes_under_storm(self):
+        """Get the IDs of the nodes under the last storm."""
+        return self._nodes_hit
 
 
 from landlab.plot import imshow_grid_at_node
@@ -1210,21 +1248,20 @@ mg = RasterModelGrid((40, 40), 250.)
 # show()
 z = mg.add_zeros('node', 'topographic__elevation')
 z += 1400.
-rain = PrecipitationDistribution(mg, number_of_years=10, save_outputs=False)
+rain = PrecipitationDistribution(mg, number_of_years=10)
 count = 0
 total_t = 0.
 for dt, interval_t in rain.yield_storms(style='whole_year'):
     count += 1
     total_t += dt + interval_t
-    print rain._median_seas_rf_total
-    if count % 200 == 0:
-        imshow_grid_at_node(mg, 'rainfall__flux', cmap='Blues')
+    print(rain.median_total_rainfall_this_year)
+    if count % 400 == 0:
+        imshow_grid_at_node(mg, rain.total_rainfall_this_year, cmap='Blues')
         show()
 print("Effective total years:")
 print(total_t/24./365.)
 print("Storms simulated:")
 print(count)
-
 
 # mg = RasterModelGrid((100, 100), 500.)
 # # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
@@ -1255,16 +1292,20 @@ print(count)
 
 # from landlab import VoronoiDelaunayGrid
 # 
-# x = np.random.rand(10000)*50000.
-# y = np.random.rand(10000)*50000.
+# x = np.random.rand(2000)*50000.
+# y = np.random.rand(2000)*50000.
 # vdg = VoronoiDelaunayGrid(x, y)
 # vdg.add_zeros('node', 'topographic__elevation')
-# rain = PrecipitationDistribution(vdg, number_of_years=1)
+# rain = PrecipitationDistribution(vdg, number_of_years=2)
 # count = 0
 # total_storms = 0.
-# for storms_in_year in rain.yield_years():
+# for storms_in_year in rain.yield_years(limit='total_rainfall'):
 #     count += 1
 #     total_storms += storms_in_year
 #     print(storms_in_year)
 #     imshow_grid_at_node(vdg, 'rainfall__total_depth_per_year', cmap='jet')
+#     print('Stochastically-set expected rainfall last season')
+#     print()
+#     print('Actual rainfall last season')
+#     print()
 #     show()
