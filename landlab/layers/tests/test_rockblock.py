@@ -7,8 +7,8 @@ Created on Mon Apr 30 09:17:36 2018
 """
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_raises, assert_almost_equal, assert_equal
+#from numpy.testing import assert_array_equal, assert_array_almost_equal
+from nose.tools import assert_raises#, assert_almost_equal, assert_equal
 
 from landlab import RasterModelGrid
 from landlab.layers import RockBlock

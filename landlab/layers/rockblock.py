@@ -24,7 +24,7 @@ class RockBlock(object):
     geometries.
 
     It is constructed by specifying a series of thicknesses and a series of
-    rock type IDs. Thicknesses and IDs are both specified in order of  closest
+    rock type IDs. Thicknesses and IDs are both specified in order of closest
     to the surface to furthest from the surface. Thicknesses can either be a
     single value (cooresponding to a layer of uniform thickness) or a number-of
     -nodes length array (cooresponding to a non-uniform layer).
@@ -144,7 +144,8 @@ class RockBlock(object):
                 self._grid.add_empty('node', at)
 
         # add a field for the rock type id
-        self._grid.add_empty('node', 'rock_type__id')
+        if 'rock_type__id' not in self._grid.at_node:
+            self._grid.add_empty('node', 'rock_type__id')
 
         # verify that all IDs have attributes.
         self._check_property_dictionary()
