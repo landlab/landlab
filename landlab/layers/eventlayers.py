@@ -581,7 +581,8 @@ class EventLayers(object):
     def surface_values(self, name):
         _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
                 
-        return self._attrs[name][np.arange(self._number_of_stacks), self._surface_index]
+        return self._attrs[name][self._surface_index,
+                                 np.arange(self._number_of_stacks)]
         
     def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
