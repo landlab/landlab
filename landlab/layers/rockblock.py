@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Create a RockBlock object with different material properties."""
+"""Create a RockBlock object with different properties."""
 
 import numpy as np
 from landlab.layers import EventLayers
@@ -14,8 +14,8 @@ class RockBlock(object):
     through deposition. Rock types can have multiple attributes (e.g. age, 
     erodability or other parameter values, etc). 
     
-    If the tracked attributes are model grid fields, they will be updated to 
-    the surface values of the RockBlock. If the attributes are not grid fields
+    If the tracked properties are model grid fields, they will be updated to 
+    the surface values of the RockBlock. If the properties are not grid fields
     then at-node grid fields will be created with their names. 
     
     RockBlock was designed to be used on its own and to be inherited from and
@@ -29,7 +29,7 @@ class RockBlock(object):
     single value (cooresponding to a layer of uniform thickness) or a number-of
     -nodes length array (cooresponding to a non-uniform layer).
     
-    Additionally, an attribute dictionary specifies the attributes of each 
+    Additionally, an attribute dictionary specifies the properties of each 
     rock type. This dictionary is expected to have the form of:
      
     .. code-block:: python
@@ -39,11 +39,18 @@ class RockBlock(object):
                  'D': {1: 0.01, 
                        2: 0.001}}
     
-    Where ``'K_sp'`` and ``'D'`` are attributes to track, and ``1`` and ``2`` 
+    Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2`` 
     are rock type IDs. The rock type IDs can be any type that is valid as a 
     python dictionary key. 
-    
-    
+
+    Attributes
+    ----------
+    z_top
+    z_bottom
+    thickness
+    dz
+    tracked_properties
+    properties
     
     Methods
     -------
@@ -74,8 +81,8 @@ class RockBlock(object):
             **thicknesses**. A single layer may have multiple rock types if 
             specified by the user. 
         attrs : dict
-            Rock type dictionary. See class docstring for example of required
-            format. 
+            Rock type property dictionary. See class docstring for example of 
+            required format. 
         
         Examples
         --------
@@ -120,7 +127,7 @@ class RockBlock(object):
         self._ids = np.asarray(ids)
         self._attrs = attrs
         self._number_of_init_layers = self._init_thicknesses.shape[0]
-        self._attributes = list(attrs.keys())
+        self._properties = list(attrs.keys())
         
         # assert that thicknesses and ids are correct and consistent shapes
         if self._init_thicknesses.shape != self._ids.shape:
@@ -132,7 +139,7 @@ class RockBlock(object):
                                   'inconsistent with the ModelGrid.'))
             
         # assert that attrs are pointing to fields (or create them)
-        for at in self._attributes:
+        for at in self._properties:
             if at not in grid.at_node:
                 self._grid.add_empty('node', at) 
                 
@@ -140,7 +147,7 @@ class RockBlock(object):
         self._grid.add_empty('node', 'rock_type__id')
 
         # verify that all IDs have attributes. 
-        self._check_attribute_dictionary()
+        self._check_property_dictionary()
         
         # create a EventLayers instance
         self._layers = EventLayers(grid.number_of_nodes, 
@@ -163,8 +170,8 @@ class RockBlock(object):
         return self._layers.surface_values(name)
     
     @property
-    def attributes(self):
-        """Attributes tracked by RockBlock.
+    def tracked_properties(self):
+        """Properties tracked by RockBlock.
 
         Examples
         --------
@@ -177,11 +184,31 @@ class RockBlock(object):
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
         >>> rb = RockBlock(mg, thicknesses, ids, attrs)
-        >>> rb.attributes
+        >>> rb.tracked_properties
         ['K_sp']
         """
-        self._attributes.sort()
-        return self._attributes
+        self._properties.sort()
+        return self._properties
+    
+    @property
+    def properties(self):
+        """Properties dictionary used by RockBlock.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.layers import RockBlock
+        >>> mg = RasterModelGrid(3, 3)
+        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> thicknesses = [1, 2, 4, 1]
+        >>> ids = [1, 2, 1, 2]
+        >>> attrs = {'K_sp': {1: 0.001,
+        ...                   2: 0.0001}}
+        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb.properties
+        {'K_sp': {1: 0.001, 2: 0.0001}}
+        """
+        return self._attrs
     
     @property
     def thickness(self):
@@ -283,26 +310,26 @@ class RockBlock(object):
         thick = np.broadcast_to(self._layers.thickness, self._layers.z.shape)
         return thick - self._layers.z
     
-    def _check_attribute_dictionary(self):
-        """Check compatibility of RockBlock and attribute dictionary."""
+    def _check_property_dictionary(self):
+        """Check compatibility of RockBlock and property dictionary."""
         ids = []
-        for at in self._attributes:
+        for at in self._properties:
             ids.extend(self._attrs[at].keys())
         self.ids = frozenset(np.unique(ids))
         
-        for at in self._attributes:
+        for at in self._properties:
             for i in self.ids:
                 if i not in self._attrs[at]:
                     msg = ('A rock type with ID value ' + str(i) + 'was '
                            'specified in RockBlock. No value '
-                           'for this ID was provided in attribute ' + at + '.')
+                           'for this ID was provided in property ' + at + '.')
                     raise ValueError(msg)
                         
     def _update_surface_values(self):
         """Update RockBlock surface values"""
         # Update surface values for each attribute.
         self._grid['node']['rock_type__id'][:] = self['rock_type__id']
-        for at in self._attributes:            
+        for at in self._properties:            
             self._grid['node'][at][:] = self[at]
         
     def add_layer(self, thickness, rock_id=None):
@@ -326,7 +353,7 @@ class RockBlock(object):
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         
-        We can instantiate RockBlock with rock type attributes we know we will
+        We can instantiate RockBlock with rock type properties we know we will
         use in the future. 
         
         >>> attrs = {'K_sp': {1: 0.001,
@@ -378,35 +405,36 @@ class RockBlock(object):
             
             if np.any(thickness>0): 
                  msg = ('RockBlock add_layer was given a rock type id that does '
-                        'not yet exist. Use add_rock_type. ' + str(missing_ids))
+                        'not yet exist and will need to deposit. Use a valid '
+                        'rock type or add_rock_type. ' + str(missing_ids))
                  raise ValueError(msg)
         
         # collect attirbutes
         if rock_id is not None:
-            new_layer_attributes = {'rock_type__id': rock_id}
-            for at in self._attributes:
+            new_layer_properties = {'rock_type__id': rock_id}
+            for at in self._properties:
                 try:
                     layer_value = list(map(self._attrs[at].get, rock_id))
                 except TypeError: # if not iterable
                     layer_value = self._attrs[at].get(rock_id)
                     
-                new_layer_attributes[at] = layer_value
+                new_layer_properties[at] = layer_value
     
             # add layer
-            self._layers.add(thickness, **new_layer_attributes)
+            self._layers.add(thickness, **new_layer_properties)
         else:
             self._layers.add(thickness)
             
         # update surface values
         self._update_surface_values()
     
-    def add_attribute(self, attrs):
-        """Add new attribute to RockBlock
+    def add_property(self, attrs):
+        """Add new property to RockBlock
         
         Parameters
         ----------
         attrs : dict
-            Rock attribute dictionary for the new attribute(s).
+            Rock attribute dictionary for the new property(s).
             
         Examples
         --------
@@ -419,30 +447,30 @@ class RockBlock(object):
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
         >>> rb = RockBlock(mg, thicknesses, ids, attrs)
-        >>> rb.add_attribute({'D': {1: 0.03,
-        ...                              2: 0.004}})
-        >>> rb.attributes
+        >>> rb.add_property({'D': {1: 0.03,
+        ...                        2: 0.004}})
+        >>> rb.tracked_properties
         ['D', 'K_sp']
         >>> mg.at_node['D']
-        
+        array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
         """
         for at in attrs:
-            if at in self._attributes:
-                msg = ('add_rock_attribute is trying to add an existing '
+            if at in self._properties:
+                msg = ('add_property is trying to add an existing '
                        'attribute, this is not permitted. ' + str(at))
                 raise ValueError(msg)
             
             new_rids = attrs[at].keys()
             for rid in new_rids:
                 if rid not in self.ids:
-                    msg = ('add_rock_attribute has an attribute(' + str(at) + ')'
+                    msg = ('add_property has an attribute(' + str(at) + ')'
                            ' for rock type ' + str(rid) + ' that no other. Rock '
                            ' type has. This is not permitted.')
                     raise ValueError(msg)
                     
             for rid in self.ids:
                 if rid not in new_rids:
-                    msg = ('add_rock_attribute needs a value for id ' + str(rid) + ''
+                    msg = ('add_property needs a value for id ' + str(rid) + ''
                            ' and attribute ' + str(at) + '.')
                     raise ValueError(msg)
         
@@ -450,8 +478,11 @@ class RockBlock(object):
             if at not in self._grid.at_node:
                 self._grid.add_empty('node', at) 
             self._attrs[at] = attrs[at]
-            self._attributes.append(at)
+            self._properties.append(at)
             
+            # update layers to add a tracked value. 
+            self._layers[at] = self._get_new_values(at)
+        
         # update surface values
         self._update_surface_values()
         
@@ -478,16 +509,19 @@ class RockBlock(object):
         ...                            6: 0.004}})
         >>> rb.ids
         frozenset({1, 2, 4, 6})
+        >>> rb.properties
+        {'K_sp': {1: 0.001, 2: 0.0001, 4: 0.03, 6: 0.004}}
+        
         """
         # Check that the new rock type has all existing attributes
-        for at in self._attributes:
+        for at in self._properties:
             if at not in attrs:
                 msg = 'The new rock type is missing attribute ' + str(at) + '.'
                 raise ValueError(msg)
         # And no new attributes
         for at in attrs:
-            if at not in self._attributes:
-                msg = ('The new rock type has an attribute (' + str(at) + ') '
+            if at not in self._properties:
+                msg = ('The new rock type has an attribute (e' + str(at) + ') '
                        'that no other rock type has. This is not permitted.')
                 raise ValueError(msg)
         
@@ -509,7 +543,7 @@ class RockBlock(object):
         # update surface values
         self._update_surface_values()
         
-    def update_rock_attribute(self, at, rock_id, value):
+    def update_rock_properties(self, at, rock_id, value):
         """Update rock type attribute.
         
         Paramters
@@ -537,57 +571,90 @@ class RockBlock(object):
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
     
-        >>> rb.update_rock_attribute({'K_sp': {1: 0.03})
+        >>> rb.update_rock_properties('K_sp', 1, 0.03)
         
         >>> mg.at_node['K_sp']
-        array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
-            0.001])
+        array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
     
         """
-        if at not in self._attributes:
+        if at not in self._properties:
             msg = ('RockBlock cannot update the value of ' + str(at) + 'as '
                    'this attribute does not exist.')
             raise ValueError(msg)
         
-        if self.ids.issuperset(rock_id):
+        if self.ids.issuperset([rock_id]) == False:
             msg = ('RockBlock cannot update the value of rock type '
-                   '' + str(set(rock_id)) + 'for attribute ' + str(at) + ' as '
+                   '' + str(rock_id) + 'for attribute ' + str(at) + ' as '
                    'this rock type is not yet defined.')
             raise ValueError(msg)
         
+        # set the value in the attribute dictionary
         self._attrs[at][rock_id] = value
         
+        # set the value in the layers object
+        self._layers[at] = self._get_new_values(at)
+
         # update surface values
         self._update_surface_values()
         
-    def run_one_step(self, dz_advection=0, layer_id=None):
+    def _get_new_values(self, at):
+        """Get new values for attribute."""
+        out = []
+        rk_type = self._layers['rock_type__id']
+        for i in range(rk_type.shape[0]):
+            out.append(list(map(self._attrs[at].get, rk_type[i, :])))
+        return np.array(out)
+    
+    def run_one_step(self, dz_advection=0, rock_id=None):
         """Update RockBlock.
+        
+        The ``run_one_step`` method calculates elevation change of the 
+        RockBlock surface (taking into account any advection due to external
+        processes) and then either deposits or erodes based on elevation
+        change. 
         
         Parameters
         ----------
         dz_advenction : float or `(n_nodes, ) shape array, optional
             Change in rock elevation due to advection by some external process.
-        layer_id : value or `(n_nodes, ) shape array, optional
+        rock_id : value or `(n_nodes, ) shape array, optional
             Rock type id for new material if deposited. 
             
         Examples
         --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.layers import RockBlock
+        >>> mg = RasterModelGrid(3, 3)
+        >>> z = mg.add_ones('node', 'topographic__elevation')        
+        >>> thicknesses = [1, 2, 4, 1]
+        >>> ids = [1, 2, 1, 2]
+        >>> attrs = {'K_sp': {1: 0.001,
+        ...                   2: 0.0001}}
+        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb.thickness
+        array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
         
+        If we erode the surface, and then update RockBlock, the thickness will
+        change.
+        
+        >>> z -= 0.5
+        >>> rb.run_one_step(dz_advection=0)
+        >>> rb.thickness
+        array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
+
+        If you deposit, a valid rock_id must be provided
+        
+        >>> z += 1.5
+        >>> rb.run_one_step(dz_advection=0, rock_id = 1)
+        >>> rb.thickness
+        array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
         """
         # calculate amount of erosion
         elevation_change = (self._grid['node']['topographic__elevation'] - 
                             (self.last_elevation + dz_advection))
         
-        
-        if layer_id not in self._ids:
-            if np.any(elevation_change>0):
-                msg = 'You are depositing without a valid rock type'
-                raise ValueError(msg)
-            
-        self.add_layer(elevation_change, layer_id=layer_id)
-        
-        # check that rock exists at the surface everywhere. 
-        self._check_thickness()
+        # add layer            
+        self.add_layer(elevation_change, rock_id=rock_id)
         
         # update the last elevation. 
         self.last_elevation = self._grid['node']['topographic__elevation'][:].copy()

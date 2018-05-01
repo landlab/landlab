@@ -118,7 +118,7 @@ def test_adding_existing_attribute():
     
     new_attr = {'K_sp': {1: 0.001, 2: 0.0001}}
     
-    assert_raises(ValueError, rb.add_attribute, new_attr) 
+    assert_raises(ValueError, rb.add_property, new_attr) 
         
     
 def test_adding_new_attribute_missing_rock_id():
@@ -132,7 +132,7 @@ def test_adding_new_attribute_missing_rock_id():
     
     new_attr = {'D': {2: 0.0001}}
     
-    assert_raises(ValueError, rb.add_attribute, new_attr) 
+    assert_raises(ValueError, rb.add_property, new_attr) 
     
     
 def test_adding_new_attribute_extra_rock_id():
@@ -146,7 +146,7 @@ def test_adding_new_attribute_extra_rock_id():
     
     new_attr = {'D': {1: 0.001, 2: 0.0001, 3: 5.3}}
     
-    assert_raises(ValueError, rb.add_attribute, new_attr) 
+    assert_raises(ValueError, rb.add_property, new_attr) 
         
     
 def test_adding_new_id_extra_attribute():
@@ -170,8 +170,53 @@ def test_adding_new_id_missing_attribute():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = RockBlock(mg, thicknesses, ids, attrs)
-    
-    new_attr = {'D':  {4: 0.001, 5: 0.0001}}
-    
+    rb = RockBlock(mg, thicknesses, ids, attrs)  
+    new_attr = {'D':  {4: 0.001, 5: 0.0001}} 
     assert_raises(ValueError, rb.add_rock_type, new_attr) 
+    
+    
+def test_updating_attribute_that_doesnt_exist():
+    """Test updating an attribute that doesn't exist."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1, 5]
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    rb = RockBlock(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, rb.update_rock_properties, 'spam', 1, 4)
+
+
+def test_updating_rock_type_that_doesnt_exist():
+    """Test adding an new rock type with an extra attribute."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1, 5]
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    rb = RockBlock(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, rb.update_rock_properties, 'K_sp', 3, 4)
+    
+    
+def test_run_one_step_deposit_no_id_raises_error():
+    """Test that giving the run one step method a deposit with no id raises an error."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1, 5]
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    rb = RockBlock(mg, thicknesses, ids, attrs)
+    z += 1
+    assert_raises(ValueError, rb.run_one_step)
+    
+    
+def test_run_one_step_erodes_all_raises_error():
+    """Test that eroding all material with the run one step method raises an error."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1, 5]
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    rb = RockBlock(mg, thicknesses, ids, attrs)
+    z -= 30
+    assert_raises(ValueError, rb.run_one_step)
+    
