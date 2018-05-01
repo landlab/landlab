@@ -241,13 +241,14 @@ class PrecipitationDistribution(Component):
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
         monsoon_storm_duration_GEV is a generalised extreme value distribution
-            controlling the duration of each storm.
+            controlling the duration of each storm. In MIN.
         monsoon_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -258,13 +259,14 @@ class PrecipitationDistribution(Component):
             step changes up/down in rainfall totals.
         winter_storm_duration_fisk is a Fisk (i.e., log-logistic) distribution
             controlling the duration of each storm. Note this differs from the
-            summer scaling.
+            summer scaling. In MIN.
         winter_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -274,8 +276,9 @@ class PrecipitationDistribution(Component):
         ------
         (storm_t, interval_t) : (float, float)
             Tuple pair of duration of a single storm, then the interstorm
-            interval that follows it. The rainfall__flux field describes the
-            rainfall rate during the interval storm_t as the tuple is yielded.
+            interval that follows it. In hrs. The rainfall__flux field
+            describes the rainfall rate during the interval storm_t as the
+            tuple is yielded. In HRS.
             Note that the rainfall__total_depth_per_year field gives the total
             accumulated rainfall depth during the *last completed* model year,
             not the year to the point of yield.
@@ -358,13 +361,14 @@ class PrecipitationDistribution(Component):
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
             for step changes up/down in rainfall totals. In mm.
         monsoon_storm_duration_GEV is a generalised extreme value distribution
-            controlling the duration of each storm.
+            controlling the duration of each storm. In MIN.
         monsoon_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -375,13 +379,14 @@ class PrecipitationDistribution(Component):
             step changes up/down in rainfall totals.
         winter_storm_duration_fisk is a Fisk (i.e., log-logistic) distribution
             controlling the duration of each storm. Note this differs from the
-            summer scaling.
+            summer scaling. In MIN.
         winter_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -475,13 +480,14 @@ class PrecipitationDistribution(Component):
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
             for step changes up/down in rainfall totals. In mm.
         monsoon_storm_duration_GEV is a generalised extreme value distribution
-            controlling the duration of each storm.
+            controlling the duration of each storm. In MIN.
         monsoon_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -492,13 +498,14 @@ class PrecipitationDistribution(Component):
             step changes up/down in rainfall totals.
         winter_storm_duration_fisk is a Fisk (i.e., log-logistic) distribution
             controlling the duration of each storm. Note this differs from the
-            summer scaling.
+            summer scaling. In MIN.
         winter_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -595,13 +602,14 @@ class PrecipitationDistribution(Component):
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
             for step changes up/down in rainfall totals. In mm.
         monsoon_storm_duration_GEV is a generalised extreme value distribution
-            controlling the duration of each storm.
+            controlling the duration of each storm. In MIN.
         monsoon_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -611,13 +619,14 @@ class PrecipitationDistribution(Component):
             step changes up/down in rainfall totals.
         winter_storm_duration_fisk is a Fisk (i.e., log-logistic) distribution
             controlling the duration of each storm. Note this differs from the
-            summer scaling.
+            summer scaling. In MIN.
         winter_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
+            In HRS.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -776,7 +785,12 @@ class PrecipitationDistribution(Component):
                 seas_cum_Ptot_gauge = np.zeros(numgauges)
                 self._entries = 0
                 seas_storm_count = 0
-
+######
+                self._storm_dur = []
+                self._storm_intensity = []
+                self._storm_depth = []
+                self._recession = []
+                self._storm_area = []
                 for storm in range(self._max_numstorms):
                     int_arr_val = genextreme.rvs(
                         c=Int_arr_pdf_GEV['shape'], loc=Int_arr_pdf_GEV['mu'],
@@ -807,17 +821,31 @@ class PrecipitationDistribution(Component):
                         if area_val < 0.:
                             area_val = 0.
                     # ^Samples from distribution of storm areas
+###
+                    self._storm_area.append(area_val)
                     r = np.sqrt(area_val/np.pi)  # value here shd be selected
+                    rsq = r**2
                     # based on area above in meters to match the UTM values
+###
+                    # This way of handling storm locations is really quite
+                    # different to MS's. He uses a fixed buffer width, and
+                    # throws away any storm that doesn't intersect. We
+                    # instead retain all storms, and *make sure* the storm
+                    # intersects using a dynamic buffer. MS's method will
+                    # preferentially sample larger storms, though unclear
+                    # what that would mean in practice.
+                    # MS also snaps his storms onto the grid. This seems
+                    # unnecessary, and we don't do it here.
                     while 1:
                         cx, cy = self._locate_storm(r)
                         # Determine which gauges are hit by Euclidean geometry:
                         gdist = (Xin-cx)**2 + (Yin-cy)**2
-                        mask_name = (gdist <= r**2)  # this is defacto MS's aa
+                        mask_name = (gdist <= rsq)  # this is defacto MS's aa
                         # this short circuits the storm loop in the case that
                         # the storm does not affect any 'gauging' location
                         if np.any(np.equal(mask_name, True)):
                             break
+                            
                     year_storm_count += 1
                     seas_storm_count += 1
                     master_storm_count += 1
@@ -859,8 +887,6 @@ class PrecipitationDistribution(Component):
                     else:
                         duration_val = fisk.rvs(
                             c=Duration_pdf['c'], scale=Duration_pdf['scale'])
-                    # round to nearest minute for consistency w measured data:
-                    duration_val = round(duration_val)
                     # hacky fix to prevent occasional < 0 values:
                     # (I think because Matlab is able to set limits manually)
                     try:
@@ -872,6 +898,8 @@ class PrecipitationDistribution(Component):
                         if duration_val < 0.:
                             duration_val = 0.
                     # we're not going to store the calendar time (DEJH change)
+###
+                    self._storm_dur.append(duration_val)
 
                     # original curve# probs for 30%-20%-10%: [0.0636, 0.0727,
                     # 0.0819, 0.0909, 0.0909, 0.0909, 0.0909, 0.0909, 0.1001,
@@ -929,6 +957,8 @@ class PrecipitationDistribution(Component):
                         self._phantom_storm_count += 1
                     # note storms of zero intensity are now permitted (though
                     # should hopefully remain pretty rare.)
+###
+                    self._storm_intensity.append(intensity_val)
 
                     # area to determine which gauges are hit:
                     recess_val = np.random.normal(
@@ -940,6 +970,8 @@ class PrecipitationDistribution(Component):
                             Recess_pdf_norm['trunc_interval'][1])
                     except KeyError:
                         pass  # this one is OK <0., I think
+###
+                    self._recession.append(recess_val)
                     # this pdf of recession coefficients determines how
                     # intensity declines with distance from storm center (see
                     # below)
@@ -948,39 +980,39 @@ class PrecipitationDistribution(Component):
                     # storm
                     # This is a data storage solution to avoid issues that can
                     # arise with slicing grid areas with heavy tailed sizes
-                    xcoords = Xin
-                    ycoords = Yin
-                    self._entries = np.sum(mask_name)
+                    self._entries = np.sum(mask_name)  # only open nodes
                     entries = self._entries
                     # NOTE _gauge_dist_km only contains nodes under the storm!
                     # The remaining entries are garbage
-                    self._gauge_dist_km[:entries] = xcoords[mask_name]
-                    self._gauge_dist_km[:entries] -= cx
-                    np.square(self._gauge_dist_km[:entries],
-                              out=self._gauge_dist_km[:entries])
-                    self._temp_dataslots1[:entries] = ycoords[mask_name]
-                    self._temp_dataslots1[:entries] -= cy
-                    np.square(self._temp_dataslots1[:entries],
-                              out=self._temp_dataslots1[:entries])
-                    self._gauge_dist_km[:entries] += self._temp_dataslots1[
-                        :entries]
-                    if np.any(self._gauge_dist_km[:entries] < 0.):
-                        raise ValueError()
-                    np.sqrt(self._gauge_dist_km[:entries],
-                            out=self._gauge_dist_km[:entries])
-                    self._gauge_dist_km[:entries] /= 1000.
+                    # Xin -> only the open nodes, note
+                    # self._gauge_dist_km[:entries] = Xin[mask_name]
+                    # self._gauge_dist_km[:entries] -= cx
+                    # np.square(self._gauge_dist_km[:entries],
+                    #           out=self._gauge_dist_km[:entries])
+                    # self._temp_dataslots1[:entries] = Yin[mask_name]
+                    # self._temp_dataslots1[:entries] -= cy
+                    # np.square(self._temp_dataslots1[:entries],
+                    #           out=self._temp_dataslots1[:entries])
+                    # self._gauge_dist_km[:entries] += self._temp_dataslots1[
+                    #     :entries]
+                    # np.sqrt(self._gauge_dist_km[:entries],
+                    #         out=self._gauge_dist_km[:entries])
+                    self._gauge_dist_km[:entries] = np.sqrt(
+                        gdist[mask_name]) / 1000.
                     # _rain_int_gauge has been zeroed earlier in loop, so
-                    self._temp_dataslots2[:entries] = self._gauge_dist_km[
-                        :entries]
-                    # this copy would not be necessary if we didn't want to
-                    # preserve self._gauge_dist_km
-                    np.square(self._temp_dataslots2[:entries],
-                              out=self._temp_dataslots2[:entries])
+                    # self._temp_dataslots2[:entries] = self._gauge_dist_km[
+                    #     :entries]
+                    # # this copy would not be necessary if we didn't want to
+                    # # preserve self._gauge_dist_km
+                    # np.square(self._temp_dataslots2[:entries],
+                    #           out=self._temp_dataslots2[:entries])
+                    self._temp_dataslots2[:entries] = gdist[mask_name] / 1.e6
                     self._temp_dataslots2[:entries] *= -2. * recess_val**2
                     np.exp(self._temp_dataslots2[:entries],
                            out=self._temp_dataslots2[:entries])
                     self._temp_dataslots2[:entries] *= intensity_val
                     mask_incl_closed = IDs_open[mask_name]
+                    # ^note this is by ID, not bool
                     self._rain_int_gauge[
                         mask_incl_closed] = self._temp_dataslots2[:entries]
                     # calc of _rain_int_gauge follows Rodriguez-Iturbe et al.,
@@ -994,6 +1026,8 @@ class PrecipitationDistribution(Component):
                         self._rain_int_gauge[opennodes] * duration_val / 60.)
                     Storm_total_local_year[(storm+storms_yr_so_far), :] = \
                         Storm_total_local_seas[storm, :]
+###
+                    self._storm_depth.append(Storm_total_local_seas[storm, :].max())
 
                     self._Storm_total_local_seas = Storm_total_local_seas
                     self._Storm_total_local_year = Storm_total_local_year
@@ -1032,7 +1066,7 @@ class PrecipitationDistribution(Component):
                             Storm_matrix[rowID, 11] = 1
 
                     if yield_storms is True:
-                        yield (duration_val, int_arr_val)
+                        yield (duration_val/24., int_arr_val)
                     # now blank the field for the interstorm period
                     self._rain_int_gauge.fill(0.)
                     if self._median_seas_rf_total > season_rf_limit:
@@ -1150,6 +1184,10 @@ class PrecipitationDistribution(Component):
         stormposy = np.random.rand()*(self._widthy + 2.*storm_radius)
         stormx = self._minx - storm_radius + stormposx
         stormy = self._miny - storm_radius + stormposy
+        # nodeIDs = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
+        # stormloc = np.random.choice(nodeIDs)
+        # stormx = self.grid.node_x[stormloc]
+        # stormy = self.grid.node_y[stormloc]
         return stormx, stormy
 
     @property
@@ -1160,31 +1198,34 @@ class PrecipitationDistribution(Component):
 
 from landlab.plot import imshow_grid_at_node
 from matplotlib.pyplot import show
-# mg = RasterModelGrid((100, 100), 500.)
+
+mg = RasterModelGrid((40, 40), 250.)
 # closed_nodes = np.zeros((100, 100), dtype=bool)
 # closed_nodes[:, :30] = True
 # closed_nodes[:, 70:] = True
 # closed_nodes[70:, :] = True
-#
+# 
 # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-# # imshow_grid_at_node(mg, mg.status_at_node)
-# # show()
-# z = mg.add_zeros('node', 'topographic__elevation')
-# z += 1000.
-# rain = PrecipitationDistribution(mg, number_of_years=2, save_outputs=True)
-# count = 0
-# total_t = 0.
-# for dt, interval_t in rain.yield_storms():
-#     count += 1
-#     total_t += dt + interval_t
-#     print rain._median_seas_rf_total
-#     if count % 100 == 0:
-#         imshow_grid_at_node(mg, 'rainfall__flux', cmap='Blues')
-#         show()
-# print("Effective total years:")
-# print(total_t/24./365.)
-#
-#
+# imshow_grid_at_node(mg, mg.status_at_node)
+# show()
+z = mg.add_zeros('node', 'topographic__elevation')
+z += 1400.
+rain = PrecipitationDistribution(mg, number_of_years=10, save_outputs=False)
+count = 0
+total_t = 0.
+for dt, interval_t in rain.yield_storms(style='whole_year'):
+    count += 1
+    total_t += dt + interval_t
+    print rain._median_seas_rf_total
+    if count % 200 == 0:
+        imshow_grid_at_node(mg, 'rainfall__flux', cmap='Blues')
+        show()
+print("Effective total years:")
+print(total_t/24./365.)
+print("Storms simulated:")
+print(count)
+
+
 # mg = RasterModelGrid((100, 100), 500.)
 # # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
 # # imshow_grid_at_node(mg, mg.status_at_node)
@@ -1212,18 +1253,18 @@ from matplotlib.pyplot import show
 # for yr in range(30):
 #     print(rain.calc_annual_rainfall(style='whole_year'))
 
-from landlab import VoronoiDelaunayGrid
-
-x = np.random.rand(10000)*50000.
-y = np.random.rand(10000)*50000.
-vdg = VoronoiDelaunayGrid(x, y)
-vdg.add_zeros('node', 'topographic__elevation')
-rain = PrecipitationDistribution(vdg, number_of_years=1)
-count = 0
-total_storms = 0.
-for storms_in_year in rain.yield_years():
-    count += 1
-    total_storms += storms_in_year
-    print(storms_in_year)
-    imshow_grid_at_node(vdg, 'rainfall__total_depth_per_year', cmap='jet')
-    show()
+# from landlab import VoronoiDelaunayGrid
+# 
+# x = np.random.rand(10000)*50000.
+# y = np.random.rand(10000)*50000.
+# vdg = VoronoiDelaunayGrid(x, y)
+# vdg.add_zeros('node', 'topographic__elevation')
+# rain = PrecipitationDistribution(vdg, number_of_years=1)
+# count = 0
+# total_storms = 0.
+# for storms_in_year in rain.yield_years():
+#     count += 1
+#     total_storms += storms_in_year
+#     print(storms_in_year)
+#     imshow_grid_at_node(vdg, 'rainfall__total_depth_per_year', cmap='jet')
+#     show()
