@@ -93,12 +93,32 @@ inherits from `VoronoiDelauneyGrid` and adds the following:
 Layers
 ======
 
-Landlab has the ability to add Layers to the grid.
+Landlab has the ability to add layers associated with an event to the grid.
 
   .. toctree::
      :maxdepth: 4
 
-     landlab.layers
+     landlab.layers.eventlayers
+
+Two objects based on the EventLayers object exist to make it easier to deal
+with spatially variable lithology and associated properties. The RockBlock's
+contain information about spatially variable lithology and connect with the
+Landlab model grid so that when rock is eroded or advected upward by rock uplift
+the values of rock propeties at the topographic surface are updated.
+
+First is the RockBlock which is a generic object for variable lithology.
+
+  .. toctree::
+     :maxdepth: 4
+
+     landlab.layers.rockblock
+
+Second is the LayeredRockBlock which makes it easy to make generic layered rock.
+
+   .. toctree::
+      :maxdepth: 4
+
+      landlab.layers.layeredrockblock
 
 Components
 ==========
