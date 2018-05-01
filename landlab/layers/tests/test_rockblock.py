@@ -21,9 +21,9 @@ def test_no_topographic__elevation():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
 
-
 def test_thickness_ids_wrong_shape():
     """Test wrong size thickness and id shapes."""
+    # first with thicknesses and IDs both as ndim = 1 arrays
     mg = RasterModelGrid(3, 3)
     z = mg.add_zeros('node', 'topographic__elevation')
     thicknesses = [1, 2, 4, 1, 5]
@@ -31,6 +31,7 @@ def test_thickness_ids_wrong_shape():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
 
+    # next as both as ndim = 2 arrays
     ones = np.ones(mg.number_of_nodes)
     mg = RasterModelGrid(3, 3)
     z = mg.add_zeros('node', 'topographic__elevation')
@@ -39,7 +40,41 @@ def test_thickness_ids_wrong_shape():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
 
+    # now with thickness as ndim 2 and id as ndim 1
+    ones = np.ones(mg.number_of_nodes)
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
+    ids = [1, 2, 1, 2]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
+    
+def test_thickness_ndim3():
+    """Test too many ndim for thickness."""
+    # next as both as ndim = 3 arrays
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    mg = RasterModelGrid(3, 3)
+    ones = np.ones((mg.number_of_nodes, 2))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
+    ids = [1, 2, 1, 2]
+    assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
+    
+    
+def test_id_ndim3():
+    """Test too many ndim for ids."""
+    # next as both as ndim = 3 arrays
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    mg = RasterModelGrid(3, 3)
+    ones = np.ones(mg.number_of_nodes)
 
+    extra_ones = np.ones((mg.number_of_nodes, 2))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
+    ids = [1*extra_ones, 2*extra_ones, 1*extra_ones, 2*extra_ones]
+    assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
+    
+    
 def test_thickness_nodes_wrong_shape():
     """Test wrong size thickness and id shapes."""
     mg = RasterModelGrid(3, 3)

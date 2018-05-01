@@ -16,7 +16,9 @@ class RockBlock(object):
 
     If the tracked properties are model grid fields, they will be updated to
     the surface values of the RockBlock. If the properties are not grid fields
-    then at-node grid fields will be created with their names.
+    then at-node grid fields will be created with their names. RockBlock and 
+    its derived versions will make a at-node grid field called `rock_type__id`
+    to store the rock type id. 
 
     RockBlock was designed to be used on its own and to be inherited from and
     improved. Currently one other RockBlock variant exists: LayeredRockBlock
@@ -72,10 +74,9 @@ class RockBlock(object):
         ----------
         grid : Landlab ModelGrid
         thicknesses : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
-            Values of layer thicknesses from surface to depth. Must have the
-            same shape as **ids**. Layers do not have to have constant
-            thickness. Layer thickness can be zero, though the entirety of
-            RockBlock must have non-zero thickness.
+            Values of layer thicknesses from surface to depth. Layers do not 
+            have to have constant thickness. Layer thickness can be zero, 
+            though the entirety of RockBlock must have non-zero thickness.
         ids : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
             Values of rock type IDs cooresponding to each layer specified in
             **thicknesses**. A single layer may have multiple rock types if
@@ -124,20 +125,56 @@ class RockBlock(object):
 
         # save inital information about thicknesses, layers, attributes, and ids.
         self._init_thicknesses = np.asarray(thicknesses)
-        self._ids = np.asarray(ids)
         self._attrs = attrs
         self._number_of_init_layers = self._init_thicknesses.shape[0]
         self._properties = list(attrs.keys())
-
+        
         # assert that thicknesses and ids are correct and consistent shapes
-        if self._init_thicknesses.shape != self._ids.shape:
-            raise ValueError(('Thicknesses and IDs provided to RockBlock are ',
-                              'inconsistent with each other.'))
-        if len(self._init_thicknesses.shape) == 2:
+        
+        # if thickness is a 2d array.
+        if self._init_thicknesses.ndim == 2:
+            
+            # assert that the 2nd dimension is the same as the number of nodes.
             if self._init_thicknesses.shape[1] != self._grid.number_of_nodes:
-                raise ValueError(('Thicknesses provided to RockBlock are ',
-                                  'inconsistent with the ModelGrid.'))
-
+                msg = ('Thicknesses provided to RockBlock are ',
+                       'inconsistent with the ModelGrid.')
+                raise ValueError(msg)
+                
+            # if IDs is a 2d array assert that it is the same size as thicknesses
+            if np.asarray(ids).ndim == 2:
+                if self._init_thicknesses.shape != np.asarray(ids).shape:
+                    msg = ('Thicknesses and IDs provided to RockBlock are ',
+                           'inconsistent with each other.')
+                    raise ValueError(msg)
+                # if tests pass set value of IDs. 
+                self._ids = np.asarray(ids)
+                                            
+            # if IDS is a 1d array 
+            elif np.asarray(ids).ndim == 1:
+                if np.asarray(ids).size != self._number_of_init_layers:
+                    msg = ('Number of IDs provided to RockBlock is ',
+                           'inconsistent with number of layers provided in '
+                           'thicknesses.')
+                    raise ValueError(msg)
+                # if tests pass, broadcast ids to correct shape. 
+                self._ids = np.broadcast_to(ids, self._init_thicknesses.shape)
+            
+            else:
+                msg = ('IDs must be of shape `(n_layers, )` or `(n_layers, '
+                       'n_nodes)`. Passed array has more than 2 dimensions.')
+                raise ValueError(msg)
+                
+        elif self._init_thicknesses.ndim == 1:
+            if self._init_thicknesses.shape != np.asarray(ids).shape:
+                msg = ('Thicknesses and IDs provided to RockBlock are ',
+                           'inconsistent with each other.')
+                raise ValueError(msg)   
+            self._ids = np.asarray(ids)
+        else:
+            msg = ('Thicknesses must be of shape `(n_layers, )` or `(n_layers, '
+                   'n_nodes)`. Passed array has more than 2 dimensions.')
+            raise ValueError(msg)
+                
         # assert that attrs are pointing to fields (or create them)
         for at in self._properties:
             if at not in grid.at_node:
