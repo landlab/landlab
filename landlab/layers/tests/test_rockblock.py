@@ -107,47 +107,6 @@ def test_deposit_with_bad_rock_id():
     new_ids = [0, 1, 3, 4, 0, 1, 0, 1, 5]
     assert_raises(ValueError, rb.add_layer, ones, rock_id=new_ids) 
     
-def test_adding_existing_attribute():
-    """Test adding an existing attribute."""
-    mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
-    thicknesses = [1, 2, 4, 1, 5]
-    ids = [1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = RockBlock(mg, thicknesses, ids, attrs)
-    
-    new_attr = {'K_sp': {1: 0.001, 2: 0.0001}}
-    
-    assert_raises(ValueError, rb.add_attribute, new_attr) 
-        
-    
-def test_adding_new_attribute_missing_rock_id():
-    """Test adding an new attribute missing an existing rock id."""
-    mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
-    thicknesses = [1, 2, 4, 1, 5]
-    ids = [1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = RockBlock(mg, thicknesses, ids, attrs)
-    
-    new_attr = {'D': {2: 0.0001}}
-    
-    assert_raises(ValueError, rb.add_attribute, new_attr) 
-    
-    
-def test_adding_new_attribute_extra_rock_id():
-    """Test adding an new attribute with an extra rock id."""
-    mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
-    thicknesses = [1, 2, 4, 1, 5]
-    ids = [1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = RockBlock(mg, thicknesses, ids, attrs)
-    
-    new_attr = {'D': {1: 0.001, 2: 0.0001, 3: 5.3}}
-    
-    assert_raises(ValueError, rb.add_attribute, new_attr) 
-        
     
 def test_adding_new_id_extra_attribute():
     """Test adding an new rock type with an extra attribute."""

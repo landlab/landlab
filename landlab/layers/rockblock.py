@@ -399,61 +399,6 @@ class RockBlock(object):
             
         # update surface values
         self._update_surface_values()
-    
-    def add_attribute(self, attrs):
-        """Add new attribute to RockBlock
-        
-        Parameters
-        ----------
-        attrs : dict
-            Rock attribute dictionary for the new attribute(s).
-            
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
-        >>> mg = RasterModelGrid(3, 3)
-        >>> z = mg.add_zeros('node', 'topographic__elevation')        
-        >>> thicknesses = [1, 2, 4, 1]
-        >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
-        >>> rb.add_attribute({'D': {1: 0.03,
-        ...                              2: 0.004}})
-        >>> rb.attributes
-        ['D', 'K_sp']
-        >>> mg.at_node['D']
-        
-        """
-        for at in attrs:
-            if at in self._attributes:
-                msg = ('add_rock_attribute is trying to add an existing '
-                       'attribute, this is not permitted. ' + str(at))
-                raise ValueError(msg)
-            
-            new_rids = attrs[at].keys()
-            for rid in new_rids:
-                if rid not in self.ids:
-                    msg = ('add_rock_attribute has an attribute(' + str(at) + ')'
-                           ' for rock type ' + str(rid) + ' that no other. Rock '
-                           ' type has. This is not permitted.')
-                    raise ValueError(msg)
-                    
-            for rid in self.ids:
-                if rid not in new_rids:
-                    msg = ('add_rock_attribute needs a value for id ' + str(rid) + ''
-                           ' and attribute ' + str(at) + '.')
-                    raise ValueError(msg)
-        
-        for at in attrs:        
-            if at not in self._grid.at_node:
-                self._grid.add_empty('node', at) 
-            self._attrs[at] = attrs[at]
-            self._attributes.append(at)
-            
-        # update surface values
-        self._update_surface_values()
         
     def add_rock_type(self, attrs):
         """Add rock type to RockBlock.
@@ -505,57 +450,6 @@ class RockBlock(object):
                     new_ids.append(rid)
                     self._attrs[at][rid] = att_dict[rid]
         self.ids = self.ids.union(new_ids)
-        
-        # update surface values
-        self._update_surface_values()
-        
-    def update_rock_attribute(self, at, rock_id, value):
-        """Update rock type attribute.
-        
-        Paramters
-        ---------
-        at : str
-            Attribute name
-        rock_id : value
-            Rock type ID
-        value : value
-            New value for rock type attribute
-        
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
-        >>> mg = RasterModelGrid(3, 3)
-        >>> z = mg.add_zeros('node', 'topographic__elevation')        
-        >>> thicknesses = [1, 2, 4, 1]
-        >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
-        
-        >>> mg.at_node['K_sp']
-        array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
-            0.001])
-    
-        >>> rb.update_rock_attribute({'K_sp': {1: 0.03})
-        
-        >>> mg.at_node['K_sp']
-        array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
-            0.001])
-    
-        """
-        if at not in self._attributes:
-            msg = ('RockBlock cannot update the value of ' + str(at) + 'as '
-                   'this attribute does not exist.')
-            raise ValueError(msg)
-        
-        if self.ids.issuperset(rock_id):
-            msg = ('RockBlock cannot update the value of rock type '
-                   '' + str(set(rock_id)) + 'for attribute ' + str(at) + ' as '
-                   'this rock type is not yet defined.')
-            raise ValueError(msg)
-        
-        self._attrs[at][rock_id] = value
         
         # update surface values
         self._update_surface_values()
