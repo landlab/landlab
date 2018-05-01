@@ -53,7 +53,8 @@ def _deposit_or_erode(layers, n_layers, dz):
     layers = layers.reshape((layers.shape[0], -1))
     try:
         dz = dz.reshape((layers.shape[1], ))
-    except AttributeError:
+        
+    except (AttributeError, ValueError):
         dz = np.broadcast_to(dz, (layers.shape[1], ))
     finally:
         dz = np.asfarray(dz)
