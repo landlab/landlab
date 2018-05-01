@@ -1,5 +1,6 @@
 # BiotaEvolver plot functions.
 
+from copy import deepcopy
 from landlab.plot import imshow_grid
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
@@ -76,14 +77,36 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
     """Plot a phylogenetic tree.
 
     """
+    # Add species identifier columns to a copy of the species DataFrame.
+
+    species = deepcopy(species)
+    species['parent_id'] = [np.nan] * len(species)
+    species['species_number'] = [np.nan] * len(species)
+
+    for i, row in species.iterrows():
+        ps = row.object.parent_species
+        species_num = row.object.identifier[1]
+        species.loc[i, 'species_number'] = species_num
+        if ps == -1:
+            species.loc[i, 'parent_id'] = -1
+        else:
+            species.loc[i, 'parent_id'] = ps.identifier[1]
+
+    # Sort inputs in reverse order for plotting.
+
     clades = species.index.get_level_values('clade').unique().tolist()
     clades.sort(reverse=True)
 
     times.sort(reverse=True)
 
+    # Create matplotlib axes if axes were not inputted.
+
     if axes == None:
+        plt.close('Phylogenetic tree')
         fig = plt.figure('Phylogenetic tree')
         axes = fig.add_axes(plt.axes())
+
+    # Construct the tree by clade then by time.
 
     y_species_spacing = 0.5
     y_max = 0
@@ -92,7 +115,7 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
 
     for clade in clades:
         clade_mask = species.index.get_level_values('clade') == clade
-        clade_species = species.loc[clade_mask]
+        species_clade = species.loc[clade_mask]
 
         # Store y-axis position of species to connect branches over time.
         y_species = {}
@@ -109,28 +132,17 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
                 later_time = times[i - 1]
                 earlier_time = times[i + 1]
 
-            t_extinct = clade_species.time_extinct.tolist()
+            t_extinct = species_clade.time_disappeared.tolist()
             last_time = np.array(t_extinct)
             last_time[np.argwhere(np.isnan(t_extinct))] = max(times)
 
-            species_time = np.all([clade_species.time_appeared <= earlier_time,
-                                   last_time >= later_time], 0)
-            species_time = clade_species[species_time]
-
-            # Sort clade species by parent species then by species number.
-            species_time['parent_id'] = np.zeros(len(species_time))
-            species_time['species_number'] = np.zeros(len(species_time))
-            for i, row in species_time.iterrows():
-                ps = row.object.parent_species
-                species_num = row.object.identifier[1]
-                species_time.set_value(i, 'species_number', species_num)
-                if ps == -1:
-                    species_time.set_value(i, 'parent_id', -1)
-                else:
-                    species_time.set_value(i, 'parent_id', ps.identifier[1])
-
-            species_time.sort_values(['parent_id', 'species_number'],
-                                     ascending=False, inplace=True)
+            # Get the species at time sorted by species identifier.
+            time_mask = np.all([species_clade.time_appeared <= earlier_time,
+                                last_time >= later_time], 0)
+            species_time = species_clade.loc[time_mask]
+            species_time = species_time.sort_values(['parent_id',
+                                                     'species_number'],
+                                                     ascending=False)
 
             # Extend the x values by half of time.
             x_max = (time + (later_time - time) * 0.5) * x_multiplier
@@ -201,3 +213,5 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
     axes.spines['top'].set_visible(False)
     axes.spines['left'].set_visible(False)
     axes.spines['right'].set_visible(False)
+
+#    return lines

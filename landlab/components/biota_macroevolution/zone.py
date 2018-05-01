@@ -137,11 +137,10 @@ class Zone(object):
             # cannot have none-to-one path type because they intersect at
             # least this p.
             delete = np.where(new_overlap_not_found == n_overlaps_p)
-            new_overlap_not_found = np.delete(new_overlap_not_found,
-                                              new_overlap_not_found == delete)
+            new_overlap_not_found = np.delete(new_overlap_not_found, delete)
 
             path_type = cls._determine_path_type(p_overlaps_n_count,
-                                                       n_overlaps_p_count)
+                                                 n_overlaps_p_count)
 
             # Determine path attributes depending upon the path type.
 
@@ -267,7 +266,6 @@ class Zone(object):
 
     @staticmethod
     def get_zones_with_area_threshold(grid, area_threshold):
-
         grid.at_node['watershed'] = get_watershed_masks_with_area_threshold(
                 grid, area_threshold)
         outlets = np.unique(grid.at_node['watershed'])
