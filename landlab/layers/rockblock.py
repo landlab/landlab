@@ -109,9 +109,45 @@ class RockBlock(object):
             0.001])
 
         The surface values are also properties of the RockBlock.
+        
         >>> rb['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
+    
+        We can access information about the RockBlock like the total thickness
+        or layer thicknesses. 
+        
+        >>> rb.thickness
+        array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
+        >>> rb.dz
+        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
+               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
+               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+    
+        This might look confusing -- that the layers are in reverse order, but 
+        it is OK. The last layers in the RockBlock are those that are closest
+        to the surface. 
+    
+        The layers don't all have to have the same thickness as in the prior
+        example. If the layers have non-uniform thickness, then they must be 
+        specified in an array of shape `(n_layer, n_nodes)`. In this case, the
+        layer IDs must be specified in either an array of `(n_layer)` or 
+        `(n_layer, n_nodes)`.
+        
+        Here we make a layer that gets thicker as a function of the x value of 
+        the model grid. 
+        
+        >>> layer_pattern = (0.5 * mg.x_of_node) + 1.0
+        >>> thicknesses = [1*layer_pattern, 2*layer_pattern, 4*layer_pattern]
+        >>> ids = [1, 2, 1]
+        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb.thickness
+        array([  7. ,  10.5,  14. ,   7. ,  10.5,  14. ,   7. ,  10.5,  14. ])
+        >>> rb.dz
+        array([[ 4. ,  6. ,  8. ,  4. ,  6. ,  8. ,  4. ,  6. ,  8. ],
+               [ 2. ,  3. ,  4. ,  2. ,  3. ,  4. ,  2. ,  3. ,  4. ],
+               [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])       
         """
         # save reference to the grid and the last time steps's elevation.
         self._grid = grid
@@ -157,7 +193,8 @@ class RockBlock(object):
                            'thicknesses.')
                     raise ValueError(msg)
                 # if tests pass, broadcast ids to correct shape. 
-                self._ids = np.broadcast_to(ids, self._init_thicknesses.shape)
+                self._ids = np.broadcast_to(np.atleast_2d(np.asarray(ids)).T, 
+                                            self._init_thicknesses.shape)
             
             else:
                 msg = ('IDs must be of shape `(n_layers, )` or `(n_layers, '
