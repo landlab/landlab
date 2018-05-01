@@ -291,6 +291,11 @@ class EventLayers(object):
     def __getitem__(self, name):
         return self._attrs[name][:self.number_of_layers]
 
+    def __setitem__(self, name, values):
+        dims = (self.allocated, self.number_of_stacks)
+        self._attrs[name] = _allocate_layers_for(values.flatten()[0], *dims)
+        self._attrs[name][:self.number_of_layers] = values
+                            
     def __str__(self):
         lines = [
             "number_of_layers: {number_of_layers}",
