@@ -72,16 +72,26 @@ def test_director_adding_methods_are_equivalent_Steepest():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key],
-                           mg1.at_node[key])
+    for loc in ['node', 'link', 'grid']:
+        for key in mg0[loc].keys():
+            if loc == 'grid':
+                assert_array_equal(mg0[loc][key][0],
+                                   mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key],
-                           mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0],
+                                   mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key],
-                           mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0],
+                                   mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key],
+                                   mg1[loc][key])
 
+                assert_array_equal(mg1[loc][key],
+                                   mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key],
+                                   mg3[loc][key])
 
 def test_director_adding_methods_are_equivalent_D8():
     """Check that different methods to specifying the director are the same."""
@@ -107,15 +117,25 @@ def test_director_adding_methods_are_equivalent_D8():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key],
-                           mg1.at_node[key])
+    for loc in ['node', 'link', 'grid']:
+        for key in mg0[loc].keys():
+            if loc == 'grid':
+                assert_array_equal(mg0[loc][key][0],
+                                   mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key],
-                           mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0],
+                                   mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key],
-                           mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0],
+                                   mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key],
+                                   mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key],
+                                   mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key],
 
 
 def test_director_adding_methods_are_equivalent_Dinf():
@@ -142,15 +162,25 @@ def test_director_adding_methods_are_equivalent_Dinf():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key],
-                           mg1.at_node[key])
+    for loc in ['node', 'link', 'grid']:
+        for key in mg0[loc].keys():
+            if loc == 'grid':
+                assert_array_equal(mg0[loc][key][0],
+                                   mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key],
-                           mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0],
+                                   mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key],
-                           mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0],
+                                   mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key],
+                                   mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key],
+                                   mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key],
 
 
 def test_director_adding_methods_are_equivalent_MFD():
@@ -177,15 +207,25 @@ def test_director_adding_methods_are_equivalent_MFD():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key],
-                           mg1.at_node[key])
+    for loc in ['node', 'link', 'grid']:
+        for key in mg0[loc].keys():
+            if loc == 'grid':
+                assert_array_equal(mg0[loc][key][0],
+                                   mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key],
-                           mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0],
+                                   mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key],
-                           mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0],
+                                   mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key],
+                                   mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key],
+                                   mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key],
 
 
 def test_passing_a_bad_component():
@@ -241,7 +281,7 @@ def test_fields():
                                                    'topographic__elevation',
                                                    'topographic__steepest_slope',
                                                    'water__unit_flux_in'])
-    assert_equal(sorted(list(mg.at_link.keys())), ['flow__data_structure_D'])
+    assert_equal(sorted(list(mg.at_grid.keys())), ['flow__data_structure_D'])
 
     mg2 = RasterModelGrid((10,10), spacing=(1, 1))
     _ = mg2.add_field('topographic__elevation', mg2.node_x + mg2.node_y, at = 'node')
@@ -261,7 +301,7 @@ def test_fields():
                                                     'topographic__steepest_slope',
                                                     'water__unit_flux_in'])
 
-    assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D'])
+    assert_equal(sorted(list(mg2.at_grid.keys())), ['flow__data_structure_D'])
 
 
 def test_accumulated_area_closes():
