@@ -357,9 +357,8 @@ class use_field_name_array_or_value(object):
 
     The array of values can be a value (float, int, etc.).
 
-    >>> _ = grid.add_field('cell', 'elevation', [0, 1, 2, 3, 4, 5])
-    >>> my_func(grid, 4)
-    array([  4.,   4.,   4.,   4.,   4.,  4.])
+    >>> my_func(grid, 4.0)
+    array([ 8.,  8.,  8.,  8.,  8.,  8.])
     """
 
     def __init__(self, at_element):
@@ -384,7 +383,7 @@ class use_field_name_array_or_value(object):
             if isinstance(vals, six.string_types):
                 vals = grid[self._at][vals]
             else:
-                expected_size = grid.size(self.at)
+                expected_size = grid.size(self._at)
                 vals = np.asarray(vals).flatten()
                 if vals.size == 1:
                     vals = np.broadcast_to(vals, (expected_size,))
