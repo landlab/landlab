@@ -707,18 +707,6 @@ class FlowAccumulator(Component):
 
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
-        # testing input for runoff rate, can be None, a string associated with
-        # a field at node, a single float or int, or an array of size number of
-        # nodes.
-        if runoff_rate is not None:
-            if isinstance(runoff_rate, str):
-                runoff_rate = grid.at_node[runoff_rate]
-            elif isinstance(runoff_rate, (float, int)):
-                pass
-            else:
-                assert runoff_rate.size == grid.number_of_nodes
-
-        # test for water__unit_flux_in
         try:
             grid.at_node['water__unit_flux_in']
         except FieldError:
@@ -727,10 +715,7 @@ class FlowAccumulator(Component):
                 # should be set to one everywhere.
                 grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
-                if isinstance(runoff_rate, (float, int)):
-                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
+                runoff_rate = _return_array_at_node(grid, runoff_rate)
                     grid.at_node['water__unit_flux_in'] = runoff_rate
         else:
             if runoff_rate is not None:
@@ -738,10 +723,8 @@ class FlowAccumulator(Component):
                        "'water__unit_flux_in' and a provided float or " +
                        "array for the runoff_rate argument. THE FIELD IS " +
                        "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                if isinstance(runoff_rate, (float, int)):
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
+                runoff_rate = _return_array_at_node(grid, runoff_rate)
+                grid.at_node['water__unit_flux_in'] = runoff_rate
 
         # perform a test (for politeness!) that the old name for the water_in
         # field is not present:
