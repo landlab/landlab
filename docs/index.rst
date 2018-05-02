@@ -100,6 +100,18 @@ Landlab has the ability to add Layers to the grid.
 
      landlab.layers
 
+Example of Making a Component
+=============================
+
+We have an example component that shows all the parts of a component and is
+part of an example pull request in which we show all of the files that you
+should create when you submit a component to the Landlab repository.
+
+.. toctree::
+   :maxdepth: 4
+
+   landlab.components.component_maker
+
 Components
 ==========
 
