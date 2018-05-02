@@ -221,7 +221,7 @@ class FastscapeEroder(Component):
             self.n = _return_surface(grid, n_sp)
 
         try:
-            self.m = float(n_sp)
+            self.m = float(m_sp)
         except TypeError:
             self.m = _return_surface(grid, m_sp)
 
