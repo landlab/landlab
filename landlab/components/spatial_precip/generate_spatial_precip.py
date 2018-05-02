@@ -179,7 +179,7 @@ class PrecipitationDistribution(Component):
 
     def yield_storms(self, limit='total_time', style='whole_year',
                      total_rf_trend=0., storminess_trend=0.,
-                     monsoon_fraction_of_year=0.33,
+                     monsoon_fraction_of_year=0.42,
                      monsoon_total_rf_gaussian={
                          'sigma': 64., 'mu': 207.},
                      monsoon_storm_duration_GEV={
@@ -243,7 +243,8 @@ class PrecipitationDistribution(Component):
             Walnut Gulch.
         monsoon_fraction_of_year : float
             If limit == 'total_time', sets the fraction of one year occupied
-            by the monsoon season. If not, ignored.
+            by the monsoon season. If not, ignored. Singer's monsoon runs from
+            May to September, inclusive, and the default reflects this.
 
        monsoon_total_rf_gaussian is a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
@@ -312,7 +313,7 @@ class PrecipitationDistribution(Component):
 
     def yield_years(self, limit='total_time', style='whole_year',
                     total_rf_trend=0., storminess_trend=0.,
-                    monsoon_fraction_of_year=0.33,
+                    monsoon_fraction_of_year=0.42,
                     monsoon_total_rf_gaussian={
                         'sigma': 64., 'mu': 207.},
                     monsoon_storm_duration_GEV={
@@ -376,7 +377,8 @@ class PrecipitationDistribution(Component):
             Walnut Gulch.
         monsoon_fraction_of_year : float
             If limit == 'total_time', sets the fraction of one year occupied
-            by the monsoon season. If not, ignored.
+            by the monsoon season. If not, ignored. Singer's monsoon runs from
+            May to September, inclusive, and the default reflects this.
 
         monsoon_total_rf_gaussian is a normal distribution controlling the
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
@@ -442,7 +444,7 @@ class PrecipitationDistribution(Component):
 
     def yield_seasons(self, limit='total_time', style='whole_year',
                       total_rf_trend=0., storminess_trend=0.,
-                      monsoon_fraction_of_year=0.33,
+                      monsoon_fraction_of_year=0.42,
                       monsoon_total_rf_gaussian={
                           'sigma': 64., 'mu': 207.},
                       monsoon_storm_duration_GEV={
@@ -507,7 +509,8 @@ class PrecipitationDistribution(Component):
             Walnut Gulch.
         monsoon_fraction_of_year : float
             If limit == 'total_time', sets the fraction of one year occupied
-            by the monsoon season. If not, ignored.
+            by the monsoon season. If not, ignored. Singer's monsoon runs from
+            May to September, inclusive, and the default reflects this.
 
         monsoon_total_rf_gaussian is a normal distribution controlling the
             total rainfall expected in each year. S&M use 'mu' in {143., 271.}
@@ -576,7 +579,7 @@ class PrecipitationDistribution(Component):
 
     def _run_the_process(self, yield_storms=True, yield_years=False,
                          yield_seasons=False, limit='total_time',
-                         style='whole_year', monsoon_fraction_of_year=0.33,
+                         style='whole_year', monsoon_fraction_of_year=0.42,
                          total_rf_trend=0., storminess_trend=0.,
                          monsoon_total_rf_gaussian={
                              'sigma': 64., 'mu': 207.},
