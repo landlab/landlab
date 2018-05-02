@@ -63,7 +63,8 @@ class ClastCollection(ItemCollection):
                       'total_travelled_dist' : np.zeros(self._nb_of_clast)}
 
         # Build ItemCollection containing clast data:
-        ItemCollection.__init__(self,               # necessary?
+        #ItemCollection.__init__(self,               # necessary?
+        super(ClastCollection, self).__init__(
                                 self._grid,
                                 data=clast_data,
                                 grid_element='node',
