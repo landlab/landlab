@@ -16,7 +16,7 @@ import warnings
 
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
-from landlab.utils.decorators import use_field_name_or_array
+from landlab.utils.return_array import _return_array_at_node
 from landlab.core.messages import warning_message
 
 from landlab.components.flow_accum import flow_accum_bw
@@ -25,17 +25,6 @@ from landlab.components.flow_accum import flow_accum_to_n
 from landlab import BAD_INDEX_VALUE
 import six
 import numpy as np
-
-
-@use_field_name_or_array('node')
-def _return_surface(grid, surface):
-    """
-    Private function to return the surface to direct flow over.
-
-    This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array.
-    """
-    return surface
 
 
 class FlowAccumulator(Component):
@@ -630,7 +619,7 @@ class FlowAccumulator(Component):
 
         # save elevations and node_cell_area to class properites.
         self.surface = surface
-        self.surface_values = _return_surface(grid, surface)
+        self.surface_values = _return_array_at_node(grid, surface)
 
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.

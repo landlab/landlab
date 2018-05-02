@@ -11,19 +11,8 @@ the boundary condition testing.
 from __future__ import print_function
 from landlab import Component
 from landlab import RasterModelGrid  # for type tests
-from landlab.utils.decorators import use_field_name_or_array
+from landlab.utils.return_array import _return_array_at_node
 import six
-
-
-@use_field_name_or_array('node')
-def _return_surface(grid, surface):
-    """
-    Private function to return the surface to direct flow over.
-
-    This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array.
-    """
-    return surface
 
 
 class _FlowDirector(Component):
@@ -78,7 +67,7 @@ class _FlowDirector(Component):
 
         # save elevations as class properites.
         self.surface = surface
-        self.surface_values = _return_surface(grid, surface)
+        self.surface_values = _return_array_at_node(grid, surface)
 
     def _changed_surface(self):
         """Check if the surface values have changed.
@@ -87,7 +76,7 @@ class _FlowDirector(Component):
         if they have changed since the component was instantiated.
         """
         if isinstance(self.surface, six.string_types):
-            self.surface_values = _return_surface(self._grid, self.surface)
+            self.surface_values = _return_array_at_node(self._grid, self.surface)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
