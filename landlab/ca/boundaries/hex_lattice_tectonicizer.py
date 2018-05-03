@@ -388,6 +388,15 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                17, 18, 19, 20, 21, 22,  2,  3,  4, 26,  7, 28, 29, 10, 11, 32, 13,
                14, 35, 36, 16, 17, 39, 20, 41, 42, 23, 24, 45, 46, 27, 48, 49, 50,
                30, 52, 33, 54, 55, 56, 37, 58])
+        >>> pid = np.arange(36, dtype=int)
+        >>> pdata = np.arange(36)
+        >>> ns = np.arange(36, dtype=int)
+        >>> grid = HexModelGrid(6, 6, 1.0, orientation='vertical', shape='rect')
+        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+        >>> lnf.link_offset_id[78:87]
+        array([53, 79, 80, 57, 82, 83, 84, 85, 61])
+        >>> lnf.link_offset_id[62:74]
+        array([37, 63, 64, 41, 66, 67, 68, 69, 45, 71, 72, 48])
         """
         self.link_offset_id = arange(self.grid.number_of_links, dtype=np.int)
         nc = self.grid.number_of_node_columns
@@ -405,7 +414,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                     if (link_orientation + (c % 2)) == 2:
                         offset += 1
                 else:  # even number of columns
-                    if (c % 2) == 0 and link_orientation == 0:
+                    if (c % 2) == 1 and link_orientation == 0:
                         offset -= 1
                 self.link_offset_id[ln] = ln - offset
 
