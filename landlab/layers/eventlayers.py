@@ -281,7 +281,7 @@ class EventLayers(object):
     def __init__(self, number_of_stacks, allocated=0):
         self._number_of_layers = 0
         self._number_of_stacks = number_of_stacks
-        self._surface_index = np.empty(number_of_stacks, dtype=int)
+        self._surface_index = np.zeros(number_of_stacks, dtype=int)
         self._attrs = dict()
 
         dims = (self.number_of_layers, self.number_of_stacks)
