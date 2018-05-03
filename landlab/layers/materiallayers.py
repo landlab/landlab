@@ -123,6 +123,18 @@ class MaterialLayers(EventLayers):
         >>> layers.dz
         array([[ 1.5,  1.5,  1. ],
                [ 0. ,  1. ,  0. ]])
+        >>> layers.number_of_layers
+        2
+
+        Removing enough material such that an entire layer's
+        thickness is no longer present, results in that layer
+        no longer being tracked.
+
+        >>> layers.add([ 0., -1., 0. ])
+        >>> layers.dz
+        array([[ 1.5,  1.5,  1. ]])
+        >>> layers.number_of_layers
+        1
 
         Use keywords to track properties of each layer. For instance,
         here we create a new stack and add a layer with a particular
@@ -161,16 +173,27 @@ class MaterialLayers(EventLayers):
         if self.number_of_layers == 0:
             self._setup_layers(**kwds)
 
-        # add an empty layer only if erosion is going to occur.
+        # if deposition will occur, then add an empty layer and track attributes
         if np.any(np.asarray(dz)>0.0):
             self._add_empty_layer()
             _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
+
+            for name in kwds:
+                try:
+                    self[name][-1] = kwds[name]
+                except KeyError:
+                    print('{0} is not being tracked. Ignoring'.format(name),
+                          file=sys.stderr)
+
+        # if no deposition will occur, then do not create new layer, erode,
+        # and do not track properties.
         else:
             _deposit_or_erode(self._attrs['_dz'], self.number_of_layers+1, dz)
+            _get_surface_index(self._attrs['_dz'], self.number_of_layers+1, self._surface_index)
+            if np.all((self._surface_index + 1) < self.number_of_layers):
+                self._number_of_layers = np.max(self._surface_index) + 1
 
-        for name in kwds:
-            try:
-                self[name][-1] = kwds[name]
-            except KeyError:
-                print('{0} is not being tracked. Ignoring'.format(name),
-                      file=sys.stderr)
+        # in a later version, at this point, we will check attributes and
+        # determine if it is possible to condense layers with the same
+        # attributes into one layer for memory storage reasons. This is not
+        # going to be done in this version.
