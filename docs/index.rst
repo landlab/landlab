@@ -184,6 +184,7 @@ Precipitation
   :maxdepth: 4
 
   landlab.components.uniform_precip
+  landlab.components.spatial_precip
 
 Weathering
 ----------
