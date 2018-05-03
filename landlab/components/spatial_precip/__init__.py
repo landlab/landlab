@@ -1,3 +1,3 @@
-from .spatial_precip import PrecipitationDistribution
+from .spatial_precip import SpatialPrecipitationDistribution
 
-__all__ = ['PrecipitationDistribution', ]
+__all__ = ['SpatialPrecipitationDistribution', ]

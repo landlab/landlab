@@ -8,9 +8,9 @@ from scipy.stats import genextreme, fisk
 from landlab import RasterModelGrid, CLOSED_BOUNDARY, Component
 
 
-class PrecipitationDistribution(Component):
+class SpatialPrecipitationDistribution(Component):
 
-    _name = 'PrecipitationDistribution'
+    _name = 'SpatialPrecipitationDistribution'
 
     _input_var_names = (
         'topographic__elevation',
@@ -675,7 +675,7 @@ class PrecipitationDistribution(Component):
         # zero intensity (and thus didn't really exist)
         self._opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
         self._total_rainfall_last_season = self.grid.zeros('node')
-        
+
         # safety check for init conds:
         if yield_storms:
             assert yield_years is False
@@ -1123,7 +1123,7 @@ class PrecipitationDistribution(Component):
         --------
         >>> mg = RasterModelGrid((10, 10), 500.)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
-        >>> rain = PrecipitationDistribution(mg)
+        >>> rain = SpatialPrecipitationDistribution(mg)
         >>> mytotals = []
         >>> for yr in range(5):
         ...     mytotals.append(rain.calc_annual_rainfall(style='whole_year'))
@@ -1329,7 +1329,7 @@ if __name__ == "__main__":
 
     z = mg.add_zeros('node', 'topographic__elevation')
     z += 1400.
-    rain = PrecipitationDistribution(mg, number_of_years=2)
+    rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
     count = 0
     total_t = 0.
     for dt, interval_t in rain.yield_storms(style='whole_year',
@@ -1366,7 +1366,7 @@ if __name__ == "__main__":
     # # show()
     # z = mg.add_zeros('node', 'topographic__elevation')
     # z += 1000.
-    # rain = PrecipitationDistribution(mg, number_of_years=2)
+    # rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
     # count = 0
     # total_storms = 0.
     # for storms_in_year in rain.yield_years():
@@ -1375,25 +1375,25 @@ if __name__ == "__main__":
     #     print(storms_in_year)
     #     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
     #     show()
-    # 
+    #
     # _ = mg.at_node.pop('rainfall__total_depth_per_year')
     # _ = mg.at_node.pop('rainfall__flux')
-    # rain = PrecipitationDistribution(mg, number_of_years=1)
+    # rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
     # for storms_in_season in rain.yield_seasons():
     #     print(storms_in_season)
     #     imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
     #     show()
-    # 
+    #
     # for yr in range(30):
     #     print(rain.calc_annual_rainfall(style='whole_year'))
-    # 
+    #
     # from landlab import VoronoiDelaunayGrid
-    # 
+    #
     # x = np.random.rand(2000)*50000.
     # y = np.random.rand(2000)*50000.
     # vdg = VoronoiDelaunayGrid(x, y)
     # vdg.add_zeros('node', 'topographic__elevation')
-    # rain = PrecipitationDistribution(vdg, number_of_years=2)
+    # rain = SpatialPrecipitationDistribution(vdg, number_of_years=2)
     # count = 0
     # total_storms = 0.
     # for storms_in_year in rain.yield_years(limit='total_rainfall'):
