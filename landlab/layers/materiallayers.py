@@ -39,7 +39,7 @@ class MaterialLayers(EventLayers):
 
     Examples
     --------
-    >>> from landlab.layers.eventlayers import MaterialLayers
+    >>> from landlab.layers.materiallayers import MaterialLayers
 
     Create an empty layer stack with 5 stacks.
 
