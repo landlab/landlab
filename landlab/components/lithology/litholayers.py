@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Create a LayeredRockBlock object with different properties."""
+Create a LithoLayers object with different properties."""
 """
 Create a block of rock with different properties.
 
 @author: barnhark
 """
 import numpy as np
-from landlab.components.rockblock.rockblock import RockBlock
+from landlab.components.lithology.lithology import Lithology
 
 
-class LayeredRockBlock(RockBlock):
-    """Create LayeredRockBlock object
+class LithoLayers(Lithology):
+    """Create LithoLayers object
 
-    A LayeredRockBlock is a three dimentional representation of material operated on
+    A LithoLayers is a three dimentional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
     erodability or other parameter values, etc).
 
     If the tracked properties are model grid fields, they will be updated to
-    the surface values of the RockBlock. If the properties are not grid fields
+    the surface values of the Lithology. If the properties are not grid fields
     then at-node grid fields will be created with their names.
 
     It is constructed by specifying a series of depths below the surface, an
@@ -42,7 +42,7 @@ class LayeredRockBlock(RockBlock):
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
 
-    The following attributes and methods are the same as in the RockBlock.
+    The following attributes and methods are the same as in the Lithology.
 
     Attributes
     ----------
@@ -62,14 +62,14 @@ class LayeredRockBlock(RockBlock):
     run_one_step
 
     """
-    _name = 'LayeredRockBlock'
+    _name = 'LithoLayers'
 
     _cite_as = """ """
 
 
 
     def __init__(self, grid, z0s, ids, attrs, x0=0, y0=0,  function=lambda x, y: 0*x + 0*y):
-        """Create a new instance of a LayeredRockBlock.
+        """Create a new instance of a LithoLayers.
 
         Parameters
         ----------
@@ -93,18 +93,18 @@ class LayeredRockBlock(RockBlock):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import LayeredRockBlock
+        >>> from landlab.components import LithoLayers
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
 
-        Create a LayeredRockBlock with flatlying layers that altrnate between
+        Create a LithoLayers with flatlying layers that altrnate between
         layers of type 1 and type 2 rock.
 
         >>> z0s = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
         >>> ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = LayeredRockBlock(mg, z0s, ids, attrs)
+        >>> rb = LithoLayers(mg, z0s, ids, attrs)
         >>> rb.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -119,7 +119,7 @@ class LayeredRockBlock(RockBlock):
         Now create a set of layers that dip. Our anchor point will be the
         default value of (x0, y0) = (0, 0)
 
-        >>> rb = LayeredRockBlock(mg, z0s, ids, attrs, function=lambda x, y: x+y)
+        >>> rb = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x+y)
         >>> rb.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -170,4 +170,4 @@ class LayeredRockBlock(RockBlock):
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
-        super(LayeredRockBlock, self).__init__(grid, layer_thicknesses, layer_ids, attrs)
+        super(LithoLayers, self).__init__(grid, layer_thicknesses, layer_ids, attrs)

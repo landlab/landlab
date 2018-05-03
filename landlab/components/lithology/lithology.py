@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Create a RockBlock object with different properties."""
+"""Create a Lithology object with different properties."""
 
 import numpy as np
 from landlab.layers import EventLayers
 
 
-class RockBlock(object):
-    """Create a RockBlock object.
+class Lithology(object):
+    """Create a Lithology object.
 
-    A RockBlock is a three dimentional representation of material operated on
+    A Lithology is a three dimentional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
     erodability or other parameter values, etc).
 
     If the tracked properties are model grid fields, they will be updated to
-    the surface values of the RockBlock. If the properties are not grid fields
-    then at-node grid fields will be created with their names. RockBlock and
+    the surface values of the Lithology. If the properties are not grid fields
+    then at-node grid fields will be created with their names. Lithology and
     its derived versions will make a at-node grid field called `rock_type__id`
     to store the rock type id.
 
-    RockBlock was designed to be used on its own and to be inherited from and
-    improved. Currently one other RockBlock variant exists: LayeredRockBlock
+    Lithology was designed to be used on its own and to be inherited from and
+    improved. Currently one other Lithology variant exists: LithoLayers
     which makes it easy to specify parallel layers of rock with generic layer
     geometries.
 
@@ -63,12 +63,12 @@ class RockBlock(object):
     run_one_step
     """
 
-    _name = 'RockBlock'
+    _name = 'Lithology'
 
     _cite_as = """ """
 
     def __init__(self, grid, thicknesses, ids, attrs):
-        """Create a new instance of a RockBlock.
+        """Create a new instance of Lithology.
 
         Parameters
         ----------
@@ -76,7 +76,7 @@ class RockBlock(object):
         thicknesses : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
             Values of layer thicknesses from surface to depth. Layers do not
             have to have constant thickness. Layer thickness can be zero,
-            though the entirety of RockBlock must have non-zero thickness.
+            though the entirety of Lithology must have non-zero thickness.
         ids : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
             Values of rock type IDs cooresponding to each layer specified in
             **thicknesses**. A single layer may have multiple rock types if
@@ -88,33 +88,33 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
 
-        Create a RockBlock with uniform thicknesses that alternates between
+        Create a Lithology with uniform thicknesses that alternates between
         layers of type 1 and type 2 rock.
 
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
 
-        After creating a RockBlock, the model grid will have an at-node grid
+        After creating a Lithology, the model grid will have an at-node grid
         field set to the surface values of 'K_sp'.
 
         >>> mg.at_node['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
 
-        The surface values are also properties of the RockBlock.
+        The surface values are also properties of the Lithology.
 
         >>> rb['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
 
-        We can access information about the RockBlock like the total thickness
+        We can access information about the Lithology like the total thickness
         or layer thicknesses.
 
         >>> rb.thickness
@@ -126,7 +126,7 @@ class RockBlock(object):
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
 
         This might look confusing -- that the layers are in reverse order, but
-        it is OK. The last layers in the RockBlock are those that are closest
+        it is OK. The last layers in the Lithology are those that are closest
         to the surface.
 
         The layers don't all have to have the same thickness as in the prior
@@ -141,7 +141,7 @@ class RockBlock(object):
         >>> layer_pattern = (0.5 * mg.x_of_node) + 1.0
         >>> thicknesses = [1*layer_pattern, 2*layer_pattern, 4*layer_pattern]
         >>> ids = [1, 2, 1]
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.thickness
         array([  7. ,  10.5,  14. ,   7. ,  10.5,  14. ,   7. ,  10.5,  14. ])
         >>> rb.dz
@@ -155,7 +155,7 @@ class RockBlock(object):
         try:
             self.last_elevation = self._grid['node']['topographic__elevation'][:].copy()
         except KeyError:
-            msg = ('RockBlock requires that topographic__elevation already '
+            msg = ('Lithology requires that topographic__elevation already '
                    'exists as an at-node field.')
             raise ValueError(msg)
 
@@ -172,14 +172,14 @@ class RockBlock(object):
 
             # assert that the 2nd dimension is the same as the number of nodes.
             if self._init_thicknesses.shape[1] != self._grid.number_of_nodes:
-                msg = ('Thicknesses provided to RockBlock are ',
+                msg = ('Thicknesses provided to Lithology are ',
                        'inconsistent with the ModelGrid.')
                 raise ValueError(msg)
 
             # if IDs is a 2d array assert that it is the same size as thicknesses
             if np.asarray(ids).ndim == 2:
                 if self._init_thicknesses.shape != np.asarray(ids).shape:
-                    msg = ('Thicknesses and IDs provided to RockBlock are ',
+                    msg = ('Thicknesses and IDs provided to Lithology are ',
                            'inconsistent with each other.')
                     raise ValueError(msg)
                 # if tests pass set value of IDs.
@@ -188,7 +188,7 @@ class RockBlock(object):
             # if IDS is a 1d array
             elif np.asarray(ids).ndim == 1:
                 if np.asarray(ids).size != self._number_of_init_layers:
-                    msg = ('Number of IDs provided to RockBlock is ',
+                    msg = ('Number of IDs provided to Lithology is ',
                            'inconsistent with number of layers provided in '
                            'thicknesses.')
                     raise ValueError(msg)
@@ -203,7 +203,7 @@ class RockBlock(object):
 
         elif self._init_thicknesses.ndim == 1:
             if self._init_thicknesses.shape != np.asarray(ids).shape:
-                msg = ('Thicknesses and IDs provided to RockBlock are ',
+                msg = ('Thicknesses and IDs provided to Lithology are ',
                            'inconsistent with each other.')
                 raise ValueError(msg)
             self._ids = np.asarray(ids)
@@ -228,7 +228,7 @@ class RockBlock(object):
         self._layers = EventLayers(grid.number_of_nodes,
                                    self._number_of_init_layers)
 
-        # From bottom to top, add layers to the RockBlock with attributes.
+        # From bottom to top, add layers to the Lithology with attributes.
         for i in range(self._number_of_init_layers-1, -1, -1):
             try:
                 self.add_layer(self._init_thicknesses[i, :], self._ids[i, :])
@@ -237,7 +237,7 @@ class RockBlock(object):
 
         # check that rock exists at the surface everywhere.
         if np.any(self._layers.thickness <= 0):
-            msg = ('RockBlock was instantiated with a thickness of '
+            msg = ('Lithology was instantiated with a thickness of '
                    'zero at at least one node.')
             raise ValueError(msg)
 
@@ -246,19 +246,19 @@ class RockBlock(object):
 
     @property
     def tracked_properties(self):
-        """Properties tracked by RockBlock.
+        """Properties tracked by Lithology.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.tracked_properties
         ['K_sp']
         """
@@ -267,19 +267,19 @@ class RockBlock(object):
 
     @property
     def properties(self):
-        """Properties dictionary used by RockBlock.
+        """Properties dictionary used by Lithology.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.properties
         {'K_sp': {1: 0.001, 2: 0.0001}}
         """
@@ -287,19 +287,19 @@ class RockBlock(object):
 
     @property
     def thickness(self):
-        """Total thickness of the RockBlock at each node.
+        """Total thickness of the Lithology at each node.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
         """
@@ -307,22 +307,22 @@ class RockBlock(object):
 
     @property
     def dz(self):
-        """Thickness of each layer in the RockBlock at each node.
+        """Thickness of each layer in the Lithology at each node.
 
-        The thickness of each layer in the RockBlock as an array of shape
+        The thickness of each layer in the Lithology as an array of shape
         `(number_of_layers, number_of_nodes)`.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
@@ -333,7 +333,7 @@ class RockBlock(object):
 
     @property
     def z_bottom(self):
-        """Thickness from the surface to the bottom of each layer in RockBlock.
+        """Thickness from the surface to the bottom of each layer in Lithology.
 
         Thickness from the topographic surface to the bottom of each layer as
         an array of shape `(number_of_layers, number_of_nodes)`.
@@ -341,14 +341,14 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.z_bottom
         array([[ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.],
                [ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
@@ -360,7 +360,7 @@ class RockBlock(object):
 
     @property
     def z_top(self):
-        """Thickness from the surface to the top of each layer in RockBlock.
+        """Thickness from the surface to the top of each layer in Lithology.
 
         Thickness from the topographic surface to the top of each layer as
         an array of shape `(number_of_layers, number_of_nodes)`.
@@ -368,14 +368,14 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.z_top
         array([[ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
                [ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
@@ -386,7 +386,7 @@ class RockBlock(object):
         return thick - self._layers.z
 
     def _check_property_dictionary(self):
-        """Check compatibility of RockBlock and property dictionary."""
+        """Check compatibility of Lithology and property dictionary."""
         ids = []
         for at in self._properties:
             ids.extend(self._attrs[at].keys())
@@ -396,25 +396,25 @@ class RockBlock(object):
             for i in self.ids:
                 if i not in self._attrs[at]:
                     msg = ('A rock type with ID value ' + str(i) + 'was '
-                           'specified in RockBlock. No value '
+                           'specified in Lithology. No value '
                            'for this ID was provided in property ' + at + '.')
                     raise ValueError(msg)
 
     def _update_surface_values(self):
-        """Update RockBlock surface values"""
+        """Update Lithology surface values"""
         # Update surface values for each attribute.
         self._grid['node']['rock_type__id'][:] = self['rock_type__id']
         for at in self._properties:
             self._grid['node'][at][:] = self[at]
 
     def add_layer(self, thickness, rock_id=None):
-        """Add a new layer to RockBlock.
+        """Add a new layer to Lithology.
 
         Parameters
         ----------
         thickness : float or `(n_nodes,)` array
-            Positive values deposit material on to RockBlock while negative
-            values erode RockBlock.
+            Positive values deposit material on to Lithology while negative
+            values erode Lithology.
         rock_id : single value or `n_nodes` long itterable, optional if only erosion occurs
             Rock type ID for new deposits. Can be single value or an number-
             of-nodes array.
@@ -422,19 +422,19 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
 
-        We can instantiate RockBlock with rock type properties we know we will
+        We can instantiate Lithology with rock type properties we know we will
         use in the future.
 
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001,
         ...                   3: 0.01}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
 
         Add a layer of thickness 3 and rock type 3.
 
@@ -460,9 +460,9 @@ class RockBlock(object):
         """
         thickness = np.array(thickness)
 
-        # verify that rockblock will still have thickness after change
+        # verify that Lithology will still have thickness after change
         if np.any((self._layers.thickness + thickness) <= 0):
-            msg = ('add_layer will result in RockBlock having a thickness of '
+            msg = ('add_layer will result in Lithology having a thickness of '
                    'zero at at least one node.')
             raise ValueError(msg)
 
@@ -479,7 +479,7 @@ class RockBlock(object):
             missing_ids = set(new_ids).difference(self.ids)
 
             if np.any(thickness>0):
-                 msg = ('RockBlock add_layer was given a rock type id that does '
+                 msg = ('Lithology add_layer was given a rock type id that does '
                         'not yet exist and will need to deposit. Use a valid '
                         'rock type or add_rock_type. ' + str(missing_ids))
                  raise ValueError(msg)
@@ -504,7 +504,7 @@ class RockBlock(object):
         self._update_surface_values()
 
     def add_property(self, attrs):
-        """Add new property to RockBlock
+        """Add new property to Lithology
 
         Parameters
         ----------
@@ -514,14 +514,14 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.add_property({'D': {1: 0.03,
         ...                        2: 0.004}})
         >>> rb.tracked_properties
@@ -562,7 +562,7 @@ class RockBlock(object):
         self._update_surface_values()
 
     def add_rock_type(self, attrs):
-        """Add rock type to RockBlock.
+        """Add rock type to Lithology.
 
         Parameters
         ----------
@@ -572,14 +572,14 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.add_rock_type({'K_sp': {4: 0.03,
         ...                            6: 0.004}})
         >>> rb.ids
@@ -633,14 +633,14 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
 
         >>> mg.at_node['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
@@ -653,12 +653,12 @@ class RockBlock(object):
 
         """
         if at not in self._properties:
-            msg = ('RockBlock cannot update the value of ' + str(at) + 'as '
+            msg = ('Lithology cannot update the value of ' + str(at) + 'as '
                    'this attribute does not exist.')
             raise ValueError(msg)
 
         if self.ids.issuperset([rock_id]) == False:
-            msg = ('RockBlock cannot update the value of rock type '
+            msg = ('Lithology cannot update the value of rock type '
                    '' + str(rock_id) + 'for attribute ' + str(at) + ' as '
                    'this rock type is not yet defined.')
             raise ValueError(msg)
@@ -681,10 +681,10 @@ class RockBlock(object):
         return np.array(out)
 
     def run_one_step(self, dz_advection=0, rock_id=None):
-        """Update RockBlock.
+        """Update Lithology.
 
         The ``run_one_step`` method calculates elevation change of the
-        RockBlock surface (taking into account any advection due to external
+        Lithology surface (taking into account any advection due to external
         processes) and then either deposits or erodes based on elevation
         change.
 
@@ -698,18 +698,18 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RockBlock
+        >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_ones('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = RockBlock(mg, thicknesses, ids, attrs)
+        >>> rb = Lithology(mg, thicknesses, ids, attrs)
         >>> rb.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
 
-        If we erode the surface, and then update RockBlock, the thickness will
+        If we erode the surface, and then update Lithology, the thickness will
         change.
 
         >>> z -= 0.5
