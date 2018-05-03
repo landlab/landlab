@@ -3,7 +3,7 @@
 """Create a Lithology object with different properties."""
 
 import numpy as np
-from landlab.layers import EventLayers
+from landlab.layers import EventLayers, MaterialLayers
 
 
 class Lithology(object):
@@ -67,7 +67,7 @@ class Lithology(object):
 
     _cite_as = """ """
 
-    def __init__(self, grid, thicknesses, ids, attrs):
+    def __init__(self, grid, thicknesses, ids, attrs, layer_type = "EventLayers"):
         """Create a new instance of Lithology.
 
         Parameters
@@ -84,6 +84,13 @@ class Lithology(object):
         attrs : dict
             Rock type property dictionary. See class docstring for example of
             required format.
+        layer_type : str, optional
+            Type of Landlab layers object used to store the layers. If
+            MaterialLayers (default) is specified, then erosion removes material
+            and does not create a layer of thickness zero. If EventLayers is
+            used, then erosion removes material and creates layers of thickness
+            zero. Thus, EventLayers may be appropriate if the user is interested
+            in chronostratigraphy.
 
         Examples
         --------
@@ -225,8 +232,15 @@ class Lithology(object):
         self._check_property_dictionary()
 
         # create a EventLayers instance
-        self._layers = EventLayers(grid.number_of_nodes,
-                                   self._number_of_init_layers)
+        if layer_type == 'EventLayers':
+            self._layers = EventLayers(grid.number_of_nodes,
+                                       self._number_of_init_layers)
+        elif layer_type == 'MaterialLayers':
+            self._layers = MaterialLayers(grid.number_of_nodes,
+                                          self._number_of_init_layers)
+        else:
+            raise ValueError(('Lithology passed an invalid option for '
+                              'layer type.'))
 
         # From bottom to top, add layers to the Lithology with attributes.
         for i in range(self._number_of_init_layers-1, -1, -1):
