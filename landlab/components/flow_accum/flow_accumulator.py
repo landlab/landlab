@@ -716,7 +716,7 @@ class FlowAccumulator(Component):
                 grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
                 runoff_rate = _return_array_at_node(grid, runoff_rate)
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
+                grid.at_node['water__unit_flux_in'] = runoff_rate
         else:
             if runoff_rate is not None:
                 print ("FlowAccumulator found both the field " +
@@ -728,11 +728,7 @@ class FlowAccumulator(Component):
 
         # perform a test (for politeness!) that the old name for the water_in
         # field is not present:
-        try:
-            grid.at_node['water__discharge_in']
-        except FieldError:
-            pass
-        else:
+        if 'water__discharge_in' in grid.at_node:
             warnings.warn("This component formerly took 'water__discharge" +
                           "_in' as an input field. However, this field is " +
                           "now named 'water__unit_flux_in'. You are still " +
