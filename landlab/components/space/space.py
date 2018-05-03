@@ -1,3 +1,5 @@
+from six import string_types
+
 import numpy as np
 from landlab import Component
 from landlab import RasterModelGrid
@@ -290,9 +292,9 @@ class Space(Component):
         self.dt_min = dt_min
 
         #K's and critical values can be floats, grid fields, or arrays
-        if type(K_sed) is str:
+        if isinstance(K_sed, string_types):
             self.K_sed = self._grid.at_node[K_sed]
-        elif type(K_sed) in (float, int):  # a float
+        elif isinstance(K_sed, (float, int)):  # a float
             self.K_sed = float(K_sed)
         elif len(K_sed) == self.grid.number_of_nodes:
             self.K_sed = np.array(K_sed)
@@ -301,9 +303,9 @@ class Space(Component):
                             'was not recognised, or array was ' +
                             'not nnodes long!')
 
-        if type(K_br) is str:
+        if isinstance(K_br, string_types):
             self.K_br = self._grid.at_node[K_br]
-        elif type(K_br) in (float, int):  # a float
+        elif isinstance(K_br, (float, int)):  # a float
             self.K_br = float(K_br)
         elif len(K_br) == self.grid.number_of_nodes:
             self.K_br = np.array(K_br)
@@ -313,9 +315,9 @@ class Space(Component):
                             'not nnodes long!')
 
         if sp_crit_sed is not None:
-            if type(sp_crit_sed) is str:
+            if isinstance(sp_crit_sed, string_types):
                 self.sp_crit_sed = self._grid.at_node[sp_crit_sed]
-            elif type(sp_crit_sed) in (float, int):  # a float
+            elif isinstance(sp_crit_sed, (float, int)):  # a float
                 self.sp_crit_sed = float(sp_crit_sed)
             elif len(sp_crit_sed) == self.grid.number_of_nodes:
                 self.sp_crit_sed = np.array(sp_crit_sed)
@@ -325,11 +327,10 @@ class Space(Component):
                                 'not nnodes long!')
 
         if sp_crit_br is not None:
-            if type(sp_crit_br) is str:
+            if isinstance(sp_crit_br, string_types):
                 self.sp_crit_br = self._grid.at_node[sp_crit_br]
-            elif type(sp_crit_br) in (float, int):  # a float
+            elif isinstance(sp_crit_br, (float, int)):  # a float
                 self.sp_crit_br = float(sp_crit_br)
-            elif len(sp_crit_br) == self.grid.number_of_nodes:
                 self.sp_crit_br = np.array(sp_crit_br)
             else:
                 raise TypeError('Supplied type of sp_crit_br ' +
@@ -389,7 +390,7 @@ class Space(Component):
         else:
             if self.discharge_method == 'area_field':
                 if self.area_field is not None:
-                    if type(self.area_field) is str:
+                    if isinstance(self.area_field, string_types):
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
                         self.drainage_area = np.array(self.area_field)
@@ -400,7 +401,7 @@ class Space(Component):
                 self.Q_to_the_m[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
-                    if type(self.discharge_field) is str:
+                    if isinstance(self.discharge_field, string_types):
                         self.q[:] = self._grid.at_node[self.discharge_field]
                         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -436,7 +437,7 @@ class Space(Component):
         elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
-                    if type(self.area_field) is str:
+                    if isinstance(self.area_field, string_types):
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
                         self.drainage_area = np.array(self.area_field)
@@ -447,7 +448,7 @@ class Space(Component):
                 self.Q_to_the_m[:] = np.power(self.drainage_area, self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
-                    if type(self.discharge_field) is str:
+                    if isinstance(self.discharge_field, string_types):
                         self.q[:] = self._grid.at_node[self.discharge_field]
                         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
@@ -485,7 +486,7 @@ class Space(Component):
         elif self.discharge_method is not None:
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
-                    if type(self.area_field) is str:
+                    if isinstance(self.area_field, string_types):
                         self.drainage_area = self._grid.at_node[self.area_field]
                     elif len(self.area_field) == self.grid.number_of_nodes:
                         self.drainage_area = np.array(self.area_field)
@@ -496,7 +497,7 @@ class Space(Component):
                 self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
             elif self.discharge_method == 'discharge_field':
                 if self.discharge_field is not None:
-                    if type(self.discharge_field) is str:
+                    if isinstance(self.discharge_field, string_types):
                         self.q[:] = self._grid.at_node[self.discharge_field]
                         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
                     elif len(self.discharge_field) == self.grid.number_of_nodes:
