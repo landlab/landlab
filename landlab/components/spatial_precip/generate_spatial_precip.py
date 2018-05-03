@@ -9,6 +9,109 @@ from landlab import RasterModelGrid, CLOSED_BOUNDARY, Component
 
 
 class SpatialPrecipitationDistribution(Component):
+    """Generate spatially resolved precipitation events.
+
+    A component to generate a sequence of spatially resolved storms over a
+    grid, following a lightly modified version (see below) of the
+    stochastic methods of Singer & Michaelides, Env Res Lett 12, 104011,
+    2017, & Singer et al., Geosci. Model Dev., submitted.
+
+    The method is heavily stochastic, and at the present time is intimately
+    calibrated against the conditions at Walnut Gulch, described in those
+    papers. In particular, assumptions around intensity-duration
+    calibration and orographic rainfall are "burned in" for now, and are
+    not accessible to the user. The various probability distributions
+    supplied to the various run methods default to WG values, but are
+    easily modified.  This calibration reflects a US desert southwest
+    "monsoonal" climate, and the component distinguishes (optionally)
+    between two seasons, "monsoonal" and "winter". The intensity-duration
+    relationship is shared between the seasons, and so may prove useful in
+    a variety of storm-dominated contexts.
+
+    The component has two ways of simulating a "year". This choice is
+    controlled by the 'limit' parameter of the yield methods. If limit==
+    'total_rainfall', the component will continue to run until the total
+    rainfall for the season and/or year exceeds a stochastically generated
+    value. This method is directly comparable to the Singer & Michaelides
+    method, but will almost always result in years which are not one
+    calendar year long, unless the input distributions are very carefully
+    recalibrated for each use case. If limit=='total_time', the component
+    will terminate a season and/or year once the elapsed time exceeds one
+    year. In this case, the total rainfall will not correspond to the
+    stochastically generated total. You can access the actual total for the
+    last season using the property `(median_)total_rainfall_last_season`.
+
+    Key methods are:
+    yield_storms
+        Generate a timeseries of storm:interstorm duration pairs, alongside
+        a field that describes the spatial distribution of rain during that
+        storm.
+    yield_years
+        Generate a timeseries of ints giving number of storms per year,
+        alongside a field that describes the spatial distribution of total
+        rainfall across that year.
+    yield_seasons
+        Generate a timeseries of ints giving number of storms per season,
+        alongside a field that describes the spatial distribution of total
+        rainfall across that season.
+    calc_annual_rainfall
+        Produce a timeseries of tuples giving total rainfall each season,
+        without resolving the storms spatially (i.e., fast!).
+
+    A large number of properties are available to access storm properties
+    during generation:
+    - current_year
+    - current_season
+    - storm_depth_last_storm
+    - storm_recession_value_last_storm
+    - storm_duration_last_storm
+    - storm_area_last_storm
+    - storm_intensity_last_storm
+    - total_rainfall_this_season
+    - total_rainfall_this_year
+    - total_rainfall_last_season
+    - total_rainfall_last_year
+    - median_total_rainfall_this_season
+    - median_total_rainfall_this_year
+    - median_total_rainfall_last_season
+    - median_total_rainfall_last_year
+    - number_of_nodes_under_storm
+    - nodes_under_storm
+
+    Note that becuase these are medians not means,
+    median_total_rainfall_last_season + median_total_rainfall_this_season
+    != median_total_rainfall_this_year.
+
+    Significant differences between this component and the Singer code are:
+    - The component does not model evapotranspiration. Use a separate
+        Landlab component for this.
+    - The component runs only over a LL grid; there is no such thing as a
+        validation or simulation run.
+    - It produces "fuzz" around intensity values using a continuous
+        distribution; Singer does this with integer steps.
+    - Step changes mid-run cannot be explicitly modelled. Instead, run the
+        component for a fixed duration, make the change to the
+        distribution input parameter, then run it again.
+    - Storms can be centred at any point, not just over nodes.
+    - Edge buffering is now dynamic; i.e., big storms have a bigger edge
+        buffer than smaller storms. Storms can be centred off the grid
+        edges.
+    - Storms are never discarded - once a storm is drawn, it must hit the
+        catchment, and positions are repeatedly selected until this can
+        happen. Singer's method would discard such a storm and draw a new
+        one.
+    - Durations are not rescaled to ensure both total duration and total
+        precip are both satisfied at the same time, as in Singer's method.
+        Instead, the component either matches a year's duration, *or*
+        exactly a year's worth of rain. This choice is dictated by the
+        `limit` parameter in the yield methods.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> mg = RasterModelGrid((10, 10), 1000.)
+    # >>> rain = SpatialPrecipitationDistribution(mg, )
+    """
 
     _name = 'SpatialPrecipitationDistribution'
 
@@ -42,97 +145,7 @@ class SpatialPrecipitationDistribution(Component):
     }
 
     def __init__(self, grid, number_of_years=1, orographic_scenario=None):
-        """
-        A component to generate a sequence of spatially resolved storms over a
-        grid, following a lightly modified version (see below) of the
-        stochastic methods of Singer & Michaelides, Env Res Lett 12, 104011,
-        2017, & Singer et al., Geosci. Model Dev., submitted.
-
-        The method is heavily stochastic, and at the present time is intimately
-        calibrated against the conditions at Walnut Gulch, described in those
-        papers. In particular, assumptions around intensity-duration
-        calibration and orographic rainfall are "burned in" for now, and are
-        not accessible to the user. The various probability distributions
-        supplied to the various run methods default to WG values, but are
-        easily modified.
-
-        The component has two ways of simulating a "year". This choice is
-        controlled by the 'limit' parameter of the yield methods. If limit==
-        'total_rainfall', the component will continue to run until the total
-        rainfall for the season and/or year exceeds a stochastically generated
-        value. This method is directly comparable to the Singer & Michaelides
-        method, but will almost always result in years which are not one
-        calendar year long, unless the input distributions are very carefully
-        recalibrated for each use case. If limit=='total_time', the component
-        will terminate a season and/or year once the elapsed time exceeds one
-        year. In this case, the total rainfall will not correspond to the
-        stochastically generated total. You can access the actual total for the
-        last season using the property `(median_)total_rainfall_last_season`.
-
-        Key methods are:
-        yield_storms
-            Generate a timeseries of storm:interstorm duration pairs, alongside
-            a field that describes the spatial distribution of rain during that
-            storm.
-        yield_years
-            Generate a timeseries of ints giving number of storms per year,
-            alongside a field that describes the spatial distribution of total
-            rainfall across that year.
-        yield_seasons
-            Generate a timeseries of ints giving number of storms per season,
-            alongside a field that describes the spatial distribution of total
-            rainfall across that season.
-        calc_annual_rainfall
-            Produce a timeseries of tuples giving total rainfall each season,
-            without resolving the storms spatially (i.e., fast!).
-
-        A large number of properties are available to access storm properties
-        during generation:
-        - current_year
-        - current_season
-        - storm_depth_last_storm
-        - storm_recession_value_last_storm
-        - storm_duration_last_storm
-        - storm_area_last_storm
-        - storm_intensity_last_storm
-        - total_rainfall_this_season
-        - total_rainfall_this_year
-        - total_rainfall_last_season
-        - total_rainfall_last_year
-        - median_total_rainfall_this_season
-        - median_total_rainfall_this_year
-        - median_total_rainfall_last_season
-        - median_total_rainfall_last_year
-        - number_of_nodes_under_storm
-        - nodes_under_storm
-
-        Note that becuase these are medians not means,
-        median_total_rainfall_last_season + median_total_rainfall_this_season
-        != median_total_rainfall_this_year.
-
-        Significant differences between this component and the Singer code are:
-        - The component does not model evapotranspiration. Use a separate
-            Landlab component for this.
-        - The component runs only over a LL grid; there is no such thing as a
-            validation or simulation run.
-        - It produces "fuzz" around intensity values using a continuous
-            distribution; Singer does this with integer steps.
-        - Step changes mid-run cannot be explicitly modelled. Instead, run the
-            component for a fixed duration, make the change to the
-            distribution input parameter, then run it again.
-        - Storms can be centred at any point, not just over nodes.
-        - Edge buffering is now dynamic; i.e., big storms have a bigger edge
-            buffer than smaller storms. Storms can be centred off the grid
-            edges.
-        - Storms are never discarded - once a storm is drawn, it must hit the
-            catchment, and positions are repeatedly selected until this can
-            happen. Singer's method would discard such a storm and draw a new
-            one.
-        - Durations are not rescaled to ensure both total duration and total
-            precip are both satisfied at the same time, as in Singer's method.
-            Instead, the component either matches a year's duration, *or*
-            exactly a year's worth of rain. This choice is dictated by the
-            `limit` parameter in the yield methods.
+        """Create the SpatialPrecipitationDistribution generator component.
 
         Parameters
         ----------
@@ -710,7 +723,10 @@ class SpatialPrecipitationDistribution(Component):
         Y1 = self.grid.node_y
         Xin = X1[opennodes]
         Yin = Y1[opennodes]
-        Zz = self.grid.at_node['topographic__elevation'][opennodes]
+        try:
+            Zz = self.grid.at_node['topographic__elevation'][opennodes]
+        except KeyError:
+            assert self._orographic_scenario is None
         numgauges = Xin.size  # number of rain gauges in the basin.
         # NOTE: In this version this produces output on a grid, rather than at
         # real gauge locations.
@@ -890,14 +906,6 @@ class SpatialPrecipitationDistribution(Component):
                     master_storm_count += 1
                     gauges_hit = np.where(mask_name)[0]
                     num_gauges_hit = gauges_hit.size
-                    # this routine below allows for orography in precip by
-                    # first determining the closest gauge and then determining
-                    # its orographic grouping
-                    cc = np.argmin(gdist)
-                    closest_gauge = np.round(Zz[cc])  # this will be compared
-                    # against orographic gauge groupings to determine the
-                    # appropriate set of intensity-duration curves
-                    ######
 
                     # This routine below determines to which orographic group
                     # the closest gauge to the storm center belongs to, and
@@ -908,6 +916,14 @@ class SpatialPrecipitationDistribution(Component):
                     # to elevation bands called OroGrp, defined above
                     # NOTE again, DEJH thinks this could be generalised a lot
                     if self._orographic_scenario == 'Singer':
+                        # this routine below allows for orography in precip by
+                        # first determining the closest gauge and then
+                        # determining its orographic grouping
+                        cc = np.argmin(gdist)
+                        closest_gauge = np.round(Zz[cc])  # this will be
+                        # compared against orographic gauge groupings to
+                        # determine the appropriate set of intensity-duration
+                        # curves
                         if closest_gauge in OroGrp1:
                             baa = 'a'
                         elif closest_gauge in OroGrp2:
