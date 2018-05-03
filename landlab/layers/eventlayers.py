@@ -53,15 +53,15 @@ def _deposit_or_erode(layers, n_layers, dz):
     layers = layers.reshape((layers.shape[0], -1))
     try:
         dz = dz.reshape((layers.shape[1], ))
-        
+
     except (AttributeError, ValueError):
         dz = np.broadcast_to(dz, (layers.shape[1], ))
     finally:
         dz = np.asfarray(dz)
 
     deposit_or_erode(layers, n_layers, dz)
-    
-    
+
+
 def _get_surface_index(layers, n_layers, surface_index):
     """Get index within each stack of the topographic surface.
 
@@ -97,7 +97,7 @@ def _get_surface_index(layers, n_layers, surface_index):
     from .ext.eventlayers import get_surface_index
 
     layers = layers.reshape((layers.shape[0], -1))
-    
+
     get_surface_index(layers, n_layers, surface_index)
 
 
@@ -206,10 +206,10 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
         values_per_stack = array.shape
     else:
         values_per_stack = array.shape[1:]
-        
+
     return np.empty((number_of_layers, number_of_stacks) + values_per_stack,
                     dtype=array.dtype)
-    
+
 
 class EventLayersMixIn(object):
 
@@ -229,7 +229,7 @@ class EventLayersMixIn(object):
 class EventLayers(object):
 
     """Track layers where each event is its own layer.
-    
+
     Parameters
     ----------
     number_of_stacks : int
@@ -270,10 +270,10 @@ class EventLayers(object):
     array([[ 1.5,  1.5,  1. ,  1.5,  0.5],
            [ 0. ,  1. ,  0. ,  4. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ]])
-    
-    Get the index value of the layer within each stack 
-    at the topographic surface. 
-    
+
+    Get the index value of the layer within each stack
+    at the topographic surface.
+
     >>> layers.surface_index
     array([0, 1, 0, 1, 0])
     """
@@ -295,7 +295,7 @@ class EventLayers(object):
         dims = (self.allocated, self.number_of_stacks)
         self._attrs[name] = _allocate_layers_for(values.flatten()[0], *dims)
         self._attrs[name][:self.number_of_layers] = values
-                            
+
     def __str__(self):
         lines = [
             "number_of_layers: {number_of_layers}",
@@ -314,7 +314,7 @@ class EventLayers(object):
     @property
     def tracking(self):
         """Layer properties being tracked.
-        
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import EventLayers
@@ -369,7 +369,7 @@ class EventLayers(object):
 
         Thickness from the bottom of each stack to the top of each layer
         as an array of shape `(number_of_layers, number_of_stacks)`.
-        
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import EventLayers
@@ -546,10 +546,10 @@ class EventLayers(object):
         >>> layers['age']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
-            
+
         Attributes for each layer will exist even if the the layer is
-        associated with erosion. 
-        
+        associated with erosion.
+
         >>> layers.add([-2, -1, 1], age=8.)
         >>> layers.dz
         array([[ 1.,  1.,  1.],
@@ -559,9 +559,9 @@ class EventLayers(object):
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.],
                [ 8.,  8.,  8.]])
-            
+
         To get the values at the surface of the layer stack:
-        
+
         >>> layers.surface_values('age')
         array([ 3.,  6.,  8.])
         """
@@ -578,18 +578,18 @@ class EventLayers(object):
             except KeyError:
                 print('{0} is not being tracked. Ignoring'.format(name),
                       file=sys.stderr)
-    
+
     @property
     def surface_index(self):
         _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
         return self._surface_index
-    
+
     def surface_values(self, name):
         _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
-                
+
         return self._attrs[name][self._surface_index,
                                  np.arange(self._number_of_stacks)]
-        
+
     def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
         if self.number_of_layers >= self.allocated:
