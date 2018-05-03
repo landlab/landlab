@@ -14,11 +14,11 @@ from landlab.layers.eventlayers import (EventLayers,
 
 class MaterialLayersMixIn(object):
 
-    """MixIn that adds a layers attribute to a ModelGrid."""
+    """MixIn that adds a MaterialLayers attribute to a ModelGrid."""
 
     @property
     def layers(self):
-        """Layers for each cell."""
+        """MaterialLayers for each cell."""
         try:
             self._layers
         except AttributeError:
@@ -29,7 +29,15 @@ class MaterialLayersMixIn(object):
 
 class MaterialLayers(EventLayers):
 
-    """Track layers where each layer has some material in it.
+    """Track MaterialLayers where each layer has some material in it.
+
+    MaterialLayers are meant to represent a layered object in which each layer
+    has some material in it. If erosion occurs, no new layer is created. These
+    layers stand in contrast to the EventLayers for which each event is
+    represented by a layer.
+
+    MaterialLayers is likely a more memory efficent data structure than
+    EventLayers as it does not record erosion as an array of zeros.
 
     Parameters
     ----------

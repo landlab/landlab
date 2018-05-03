@@ -213,11 +213,11 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
 
 class EventLayersMixIn(object):
 
-    """MixIn that adds a layers attribute to a ModelGrid."""
+    """MixIn that adds a EventLayers attribute to a ModelGrid."""
 
     @property
     def layers(self):
-        """Layers for each cell."""
+        """EventLayers for each cell."""
         try:
             self._layers
         except AttributeError:
@@ -228,7 +228,16 @@ class EventLayersMixIn(object):
 
 class EventLayers(object):
 
-    """Track layers where each event is its own layer.
+    """Track EventLayers where each event is its own layer.
+
+    EventLayers are meant to represent a layered object in which each layer
+    represents a event. Thus they are likely the most appropriate tool to use
+    if the user is interested in chronostratigraphy. If erosion occurs, a new
+    layer with zero thickness is created. Thus, EventLayers may not be the most
+    memory efficent layers datastructure.
+
+    EventLayers exists in contrast to the MaterialLayers object which does not
+    make a new layer if only erosion occurs.
 
     Parameters
     ----------
