@@ -21,6 +21,7 @@ from .sink_fill import SinkFiller
 from .steepness_index import SteepnessFinder
 from .stream_power import StreamPowerEroder, FastscapeEroder, StreamPowerSmoothThresholdEroder, SedDepEroder
 from .uniform_precip import PrecipitationDistribution
+from .spatial_precip import PrecipitationDistribution as SpatialPrecip
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .plant_competition_ca import VegCA
 from .gflex import gFlex
@@ -43,7 +44,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               Radiation, SinkFiller,
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
               FastscapeEroder, SedDepEroder,
-              PrecipitationDistribution,
+              PrecipitationDistribution, SpatialPrecip,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,
               SoilMoisture, Vegetation, VegCA, DrainageDensity,
