@@ -1,16 +1,17 @@
 from six import string_types
 
 import numpy as np
-from landlab import Component
+from landlab.components.erosion_deposition.generalized_erosion_deposition import (_GeneralizedErosionDeposition,
+                                                            DEFAULT_MINIMUM_TIME_STEP)
 from landlab import RasterModelGrid
+from landlab.utils.return_array import _return_array_at_node
 from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0) # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5 # factor used in simple subdivision solver
-DEFAULT_MINIMUM_TIME_STEP = 0.001 # default minimum time step duration
 
 
-class Space(Component):
+class Space(_GeneralizedErosionDeposition):
     """Stream Power with Alluvium Conservation and Entrainment (SPACE)
 
     See the publication:
@@ -224,35 +225,19 @@ class Space(Component):
         """Initialize the Space model.
 
         """
-# THESE ARE THE OLD TESTS, BEFORE THE CHANGE THAT NOW HAS ELEVATION CHANGES
-# ONLY APPLIED TO CORE NODES:
-#        array([ 0.50005858,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
-#            0.5       ,  0.31524982,  0.43663631,  0.48100988,  0.5       ,
-#            0.5       ,  0.43662792,  0.43661476,  0.48039544,  0.5       ,
-#            0.5       ,  0.48085233,  0.48039228,  0.47769742,  0.5       ,
-#            0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
-#        array([ 0.02316337,  1.53606698,  2.5727653 ,  3.51126678,  4.56077707,
-#            1.58157495,  0.24386828,  0.37232163,  0.42741854,  5.50969486,
-#            2.54008677,  0.37232688,  0.37232168,  0.42797088,  6.52641123,
-#            3.55874171,  0.42756557,  0.42797367,  0.44312812,  7.55334077,
-#            4.55922478,  5.5409473 ,  6.57035008,  7.5038935 ,  8.51034357])
-        #assign class variables to grid fields; create necessary fields
-        self.flow_receivers = grid.at_node['flow__receiver_node']
-        self.stack = grid.at_node['flow__upstream_node_order']
-        self.topographic__elevation = grid.at_node['topographic__elevation']
-        self.slope = grid.at_node['topographic__steepest_slope']
-        self.link_to_reciever = grid.at_node['flow__link_to_receiver_node']
+        super(Space, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
+                                    phi=phi, F_f=F_f, v_s=v_s,
+                                    dt_min=dt_min)
+
+        self._grid = grid #store grid
+
+        # space specific inits
         try:
             self.soil__depth = grid.at_node['soil__depth']
         except KeyError:
             self.soil__depth = grid.add_zeros(
                 'soil__depth', at='node', dtype=float)
-            
-        if isinstance(grid, RasterModelGrid):
-            self.link_lengths = grid.length_of_d8
-        else:
-            self.link_lengths = grid.length_of_link
-            
+
         try:
             self.bedrock__elevation = grid.at_node['bedrock__elevation']
         except KeyError:
@@ -260,82 +245,17 @@ class Space(Component):
                 'bedrock__elevation', at='node', dtype=float)
             self.bedrock__elevation[:] = self.topographic__elevation -\
                 self.soil__depth
-        try:
-            self.qs = grid.at_node['sediment__flux']
-        except KeyError:
-            self.qs = grid.add_zeros(
-                'sediment__flux', at='node', dtype=float)
-        try:
-            self.q = grid.at_node['surface_water__discharge']
-        except KeyError:
-            self.q = grid.add_zeros(
-                'surface_water__discharge', at='node', dtype=float)
 
-        self._grid = grid #store grid
-
-        # Create arrays for sediment influx at each node, discharge to the
-        # power "m", deposition rate, and erosion rates of alluvium and rock
-        self.qs_in = np.zeros(grid.number_of_nodes)
-        self.Q_to_the_m = np.zeros(grid.number_of_nodes)
-        self.S_to_the_n = np.zeros(grid.number_of_nodes)
-        self.depo_rate = np.zeros(grid.number_of_nodes)
         self.Es = np.zeros(grid.number_of_nodes)
         self.Er = np.zeros(grid.number_of_nodes)
 
-        # store other parameters
-        self.m_sp = float(m_sp)
-        self.n_sp = float(n_sp)
-        self.F_f = float(F_f)
-        self.phi = float(phi)
-        self.H_star = float(H_star)
-        self.v_s = float(v_s)
-        self.dt_min = dt_min
-
         #K's and critical values can be floats, grid fields, or arrays
-        if isinstance(K_sed, string_types):
-            self.K_sed = self._grid.at_node[K_sed]
-        elif isinstance(K_sed, (float, int)):  # a float
-            self.K_sed = float(K_sed)
-        elif len(K_sed) == self.grid.number_of_nodes:
-            self.K_sed = np.array(K_sed)
-        else:
-            raise TypeError('Supplied type of K_sed ' +
-                            'was not recognised, or array was ' +
-                            'not nnodes long!')
+        self.K_sed = _return_array_at_node(grid, K_sed)
+        self.K_br = _return_array_at_node(grid, K_br)
 
-        if isinstance(K_br, string_types):
-            self.K_br = self._grid.at_node[K_br]
-        elif isinstance(K_br, (float, int)):  # a float
-            self.K_br = float(K_br)
-        elif len(K_br) == self.grid.number_of_nodes:
-            self.K_br = np.array(K_br)
-        else:
-            raise TypeError('Supplied type of K_br ' +
-                            'was not recognised, or array was ' +
-                            'not nnodes long!')
+        self.sp_crit_sed = _return_array_at_node(grid, sp_crit_sed)
+        self.sp_crit_br = _return_array_at_node(grid, sp_crit_br)
 
-        if sp_crit_sed is not None:
-            if isinstance(sp_crit_sed, string_types):
-                self.sp_crit_sed = self._grid.at_node[sp_crit_sed]
-            elif isinstance(sp_crit_sed, (float, int)):  # a float
-                self.sp_crit_sed = float(sp_crit_sed)
-            elif len(sp_crit_sed) == self.grid.number_of_nodes:
-                self.sp_crit_sed = np.array(sp_crit_sed)
-            else:
-                raise TypeError('Supplied type of sp_crit_sed ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')
-
-        if sp_crit_br is not None:
-            if isinstance(sp_crit_br, string_types):
-                self.sp_crit_br = self._grid.at_node[sp_crit_br]
-            elif isinstance(sp_crit_br, (float, int)):  # a float
-                self.sp_crit_br = float(sp_crit_br)
-                self.sp_crit_br = np.array(sp_crit_br)
-            else:
-                raise TypeError('Supplied type of sp_crit_br ' +
-                                'was not recognised, or array was ' +
-                                'not nnodes long!')
 
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
@@ -626,7 +546,7 @@ class Space(Component):
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
 
-        Used to update slope values between sub-time-steps, when we do not 
+        Used to update slope values between sub-time-steps, when we do not
         re-run flow routing.
 
         Examples
@@ -655,7 +575,7 @@ class Space(Component):
         r = self._grid.at_node['flow__receiver_node']
         slp = self._grid.at_node['topographic__steepest_slope']
         slp[:] = (z - z[r]) / self.link_lengths[self.link_to_reciever]
-        
+
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):
         """Run step with CHILD-like solver that adjusts time steps to prevent
