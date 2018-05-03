@@ -1,7 +1,7 @@
-RockBlock: Create a 3D representation of variable lithology
+Lithology: Create a 3D representation of variable lithology
 -----------------------------------------------------------
 
-.. automodule:: landlab.layers.rockblock
+.. automodule:: landlab.components.lithology
     :members:
     :undoc-members:
     :show-inheritance:
