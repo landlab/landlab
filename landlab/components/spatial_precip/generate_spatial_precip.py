@@ -114,6 +114,7 @@ class SpatialPrecipitationDistribution(Component):
 
     Examples
     --------
+
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, VoronoiDelaunayGrid
     >>> mg = RasterModelGrid((10, 10), 1000.)
@@ -177,7 +178,7 @@ class SpatialPrecipitationDistribution(Component):
     ...         vdg.at_node['rainfall__total_depth_per_year'],
     ...         rain.total_rainfall_last_year)))
     >>> sum(storms_each_year)
-    674
+    418
 
     yield_seasons yields rainfall statistics for individual seasons. Access
     these using the various provided component properties. Note that we can
@@ -210,9 +211,11 @@ class SpatialPrecipitationDistribution(Component):
     [True, True, True, True]
     >>> np.isclose(median_rf_last_year[0], 0.)
     True
-    for season in (0, 2):  # this property must be the same in both seasons
-    ...     assert np.isclose(median_rf_last_year[season],
-    ...                       median_rf_last_year[season + 1])
+    >>> for season in (0, 2):  # this property must be the same in both seasons
+    ...     np.isclose(median_rf_last_year[season],
+    ...                median_rf_last_year[season + 1])
+    True
+    True
 
     Note that because we work here with medians, the seasonal medians don't sum
     to the year median, but the means do:
