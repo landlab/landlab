@@ -28,6 +28,11 @@ class SpatialPrecipitationDistribution(Component):
     relationship is shared between the seasons, and so may prove useful in
     a variety of storm-dominated contexts.
 
+    The default is to disable the orographic rainfall functionality of the
+    component. However, if orographic_scenario == 'Singer', the component
+    requires a 'topographic__elevation' field to already exist on the grid
+    at the time of instantiation.
+
     The component has two ways of simulating a "year". This choice is
     controlled by the 'limit' parameter of the yield methods. If limit==
     'total_rainfall', the component will continue to run until the total
@@ -77,6 +82,7 @@ class SpatialPrecipitationDistribution(Component):
     - median_total_rainfall_last_year
     - number_of_nodes_under_storm
     - nodes_under_storm
+    - target_median_total_rainfall_this_season
 
     Note that becuase these are medians not means,
     median_total_rainfall_last_season + median_total_rainfall_this_season
@@ -108,9 +114,111 @@ class SpatialPrecipitationDistribution(Component):
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid, VoronoiDelaunayGrid
     >>> mg = RasterModelGrid((10, 10), 1000.)
-    # >>> rain = SpatialPrecipitationDistribution(mg, )
+    >>> rain = SpatialPrecipitationDistribution(mg)
+
+    Calling yield_storms will produce storm-interstorm duration (hr) pairs
+    until the model runtime has elapsed.
+
+    >>> np.random.seed(1)
+    >>> total_t_each_step = [
+    ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms()]
+    >>> len(total_t_each_step)
+    220
+    >>> np.isclose(sum(total_t_each_step)/24., 365.)
+    True
+
+    The actual rainfall intensities during that interval are accessible in the
+    'rainfall__flux' field (mm/hr). The storm centre does not have to be over
+    the grid, but in this case, it was for the last simulated storm:
+
+    >>> mg.at_node['rainfall__flux'].argmax()
+    75
+
+    We can also run the component for only one season (i.e., only using one
+    of the pdf sets describing the storm properties):
+
+    >>> for field in ('rainfall__flux', 'rainfall__total_depth_per_year'):
+    ...     _ = mg.at_node.pop(field)  # clear out the existing fields
+    >>> rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
+    >>> np.random.seed(5)
+    >>> total_t_each_step = [
+    ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms(
+    ...         style='monsoonal', monsoon_fraction_of_year=0.35)]
+    >>> round(sum(total_t_each_step)/24./365./2., 2)
+    0.35
+
+    Note this behaviour can be stopped by upping monsoon_fraction_of_year:
+
+    >>> np.random.seed(5)
+    >>> total_t_each_step = [
+    ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms(
+    ...         style='monsoonal', monsoon_fraction_of_year=1.)]
+    >>> np.isclose(round(sum(total_t_each_step)/24./365./2., 2), 1.)
+    True
+
+    yield_years yields the number of storms in the last whole year.
+    Use 'rainfall__total_depth_per_year' to access the rainfall map for the
+    last fully elapsed year, or equivalently, the total_rainfall_last_year
+    property. Note the component seamlessly handles non-raster grid types:
+
+    >>> vdg = VoronoiDelaunayGrid(np.random.rand(100)*1000.,
+    ...                           np.random.rand(100)*1000.)
+    >>> np.random.seed(3)
+    >>> rain = SpatialPrecipitationDistribution(vdg, number_of_years=3)
+    >>> storms_each_year = []
+    >>> for total_storms in rain.yield_years(style='monsoonal',
+    ...                                      total_rf_trend=0.05,
+    ...                                      storminess_trend=-0.02):
+    ...     storms_each_year.append(total_storms)
+    ...     assert(np.all(np.equal(
+    ...         vdg.at_node['rainfall__total_depth_per_year'],
+    ...         rain.total_rainfall_last_year)))
+    >>> sum(storms_each_year)
+    674
+
+    yield_seasons yields rainfall statistics for individual seasons. Access
+    these using the various provided component properties. Note that we can
+    get the component to yield a total rainfall that is calibrated to the
+    supplied total_rf_gaussians if we set limit to 'total__rainfall' rather
+    than 'total_time' (at the cost of exactly matching the season length):
+
+    >>> for field in ('rainfall__flux', 'rainfall__total_depth_per_year'):
+    ...     _ = mg.at_node.pop(field)  # clear out the existing fields
+    >>> rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
+    >>> np.random.seed(5)
+    >>> season_list = []
+    >>> theoretical_median_rf_season = []
+    >>> median_rf_season = []
+    >>> median_rf_last_year = []
+    >>> mean_rf_season = []
+    >>> mean_rf_last_year = []
+    >>> for storm_number in rain.yield_seasons(limit='total_rainfall'):
+    ...     season_list.append(rain.current_season)
+    ...     theoretical_median_rf_season.append(
+    ...         rain.target_median_total_rainfall_this_season)
+    ...     median_rf_season.append(rain.median_total_rainfall_this_season)
+    ...     median_rf_last_year.append(rain.median_total_rainfall_last_year)
+    >>> season_list == ['M', 'W', 'M', 'W']
+    True
+    >>> [meas > sim for (meas, sim) in zip(
+    ...     median_rf_season, theoretical_median_rf_season)]  # must exceed
+    [True, True, True, True]
+    >>> np.isclose(median_rf_last_year[0], 0.)
+    True
+    for season in (0, 2):  # this property must be the same in both seasons
+    ...     assert np.isclose(median_rf_last_year[season],
+    ...                       median_rf_last_year[season + 1])
+
+    Note that because we work here with medians, the seasonal medians don't sum
+    to the year median, but the means do:
+
+    >>> np.isclose(median_rf_last_year[2],
+    ...            median_rf_season[0] + median_rf_season[1])
+    False
+
     """
 
     _name = 'SpatialPrecipitationDistribution'
@@ -833,6 +941,7 @@ class SpatialPrecipitationDistribution(Component):
                 # Ptot (that must be equalled or exceeded) for each year
                 season_rf_limit = self.calc_annual_rainfall(
                     style=style, monsoon_total_rf_gaussian=Ptot_pdf_norm)[seas]
+                self._season_rf_limit = season_rf_limit
                 self._Ptot_ann_global[syear] += season_rf_limit
                 if seas == 0 and not style == 'winter':
                     self._Ptot_monsoon_global[syear] = season_rf_limit
@@ -1192,8 +1301,8 @@ class SpatialPrecipitationDistribution(Component):
     def _locate_storm(self, storm_radius):
         """
         Because of the way the stats fall out, any simulated storm from the
-        distribution must intersect the catchment somewhere. Trying to write
-        this in a grid-agnostic fashion...
+        distribution must intersect the catchment somewhere. Note written in a
+        grid-agnostic fashion.
         """
         stormposx = np.random.rand()*(self._widthx + 2.*storm_radius)
         stormposy = np.random.rand()*(self._widthy + 2.*storm_radius)
@@ -1325,6 +1434,17 @@ class SpatialPrecipitationDistribution(Component):
         Get the coordinates of the center of the last storm as (x, y).
         """
         return (self._x, self._y)
+
+    @property
+    def target_median_total_rainfall_this_season(self):
+        """
+        Get the stochastically generated "target" average total rainfall
+        amount over the catchment for the current season. If limit ==
+        'total_rainfall', this will be very close to
+        median_total_rainfall_last_season. If 'total_time', it will diverge
+        from this value.
+        """
+        return self._season_rf_limit
 
 
 if __name__ == "__main__":
