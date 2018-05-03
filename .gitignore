@@ -105,3 +105,7 @@ docs/auto_grid_info__subsets.rst
 docs/auto_grid_info__surf.rst
 
 docs/auto_grid_info__whole.rst
+
+landlab/components/spatial_precip/Durations_summer.csv
+
+landlab/components/spatial_precip/Durations_winter.csv
