@@ -11,7 +11,7 @@ import numpy as np
 from nose.tools import assert_raises#, assert_almost_equal, assert_equal
 
 from landlab import RasterModelGrid
-from landlab.layers import RockBlock
+from landlab.components import RockBlock
 
 def test_no_topographic__elevation():
     """Test init with no topo__elevation."""
@@ -48,7 +48,7 @@ def test_thickness_ids_wrong_shape():
     ids = [1, 2, 1, 2]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
-    
+
 def test_thickness_ndim3():
     """Test too many ndim for thickness."""
     # next as both as ndim = 3 arrays
@@ -59,8 +59,8 @@ def test_thickness_ndim3():
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1, 2, 1, 2]
     assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
-    
-    
+
+
 def test_id_ndim3():
     """Test too many ndim for ids."""
     # next as both as ndim = 3 arrays
@@ -73,8 +73,8 @@ def test_id_ndim3():
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1*extra_ones, 2*extra_ones, 1*extra_ones, 2*extra_ones]
     assert_raises(ValueError, RockBlock, mg, thicknesses, ids, attrs)
-    
-    
+
+
 def test_thickness_nodes_wrong_shape():
     """Test wrong size thickness and id shapes."""
     mg = RasterModelGrid(3, 3)

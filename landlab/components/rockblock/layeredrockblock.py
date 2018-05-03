@@ -3,12 +3,12 @@
 """
 Create a LayeredRockBlock object with different properties."""
 """
-Create a block of rock with different properties. 
+Create a block of rock with different properties.
 
 @author: barnhark
 """
 import numpy as np
-from landlab.layers import RockBlock
+from landlab.components.rockblock.rockblock import RockBlock
 
 
 class LayeredRockBlock(RockBlock):
@@ -22,11 +22,11 @@ class LayeredRockBlock(RockBlock):
     If the tracked properties are model grid fields, they will be updated to
     the surface values of the RockBlock. If the properties are not grid fields
     then at-node grid fields will be created with their names.
-    
+
     It is constructed by specifying a series of depths below the surface, an
-    anchor point, a series of rock type ids, and the functional form of a 
+    anchor point, a series of rock type ids, and the functional form of a
     surface. Depths and IDs are both specified in order of closest
-    to the surface to furthest from the surface. 
+    to the surface to furthest from the surface.
 
     Additionally, an attribute dictionary specifies the properties of each
     rock type. This dictionary is expected to have the form of:
@@ -42,7 +42,7 @@ class LayeredRockBlock(RockBlock):
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
 
-    The following attributes and methods are the same as in the RockBlock. 
+    The following attributes and methods are the same as in the RockBlock.
 
     Attributes
     ----------
@@ -60,13 +60,13 @@ class LayeredRockBlock(RockBlock):
     update_rock_attribute
     add_layer
     run_one_step
-    
+
     """
     _name = 'LayeredRockBlock'
 
     _cite_as = """ """
 
-    
+
 
     def __init__(self, grid, z0s, ids, attrs, x0=0, y0=0,  function=lambda x, y: 0*x + 0*y):
         """Create a new instance of a LayeredRockBlock.
@@ -76,29 +76,29 @@ class LayeredRockBlock(RockBlock):
         grid : Landlab ModelGrid
         z0s : ndarray of shape `(n_layers, )`
             Values of layer depth from surface at horizontal location (x0, y0).
-        ids : ndarray of shape `(n_layers, )` 
+        ids : ndarray of shape `(n_layers, )`
             Values of rock type IDs cooresponding to each layer specified in
-            **z0s**. 
+            **z0s**.
         attrs : dict
             Rock type property dictionary. See class docstring for example of
             required format.
         x0 : float, optional
             x value of anchor point for all layers.
-        y0 : float, optional 
+        y0 : float, optional
             y value of anchor point for all layers.
         function : function, optional
-            Functional form of layers as a function of two variables, x and y. 
-            Default value is lambda x, y: 0*x + 0*y for flatlying layers. 
+            Functional form of layers as a function of two variables, x and y.
+            Default value is lambda x, y: 0*x + 0*y for flatlying layers.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import LayeredRockBlock
+        >>> from landlab.components import LayeredRockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
 
         Create a LayeredRockBlock with flatlying layers that altrnate between
-        layers of type 1 and type 2 rock. 
+        layers of type 1 and type 2 rock.
 
         >>> z0s = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
         >>> ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
@@ -115,11 +115,11 @@ class LayeredRockBlock(RockBlock):
                [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
                [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
                [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
-    
-        Now create a set of layers that dip. Our anchor point will be the 
+
+        Now create a set of layers that dip. Our anchor point will be the
         default value of (x0, y0) = (0, 0)
-        
-        >>> rb = LayeredRockBlock(mg, z0s, ids, attrs, function=lambda x, y: x+y) 
+
+        >>> rb = LayeredRockBlock(mg, z0s, ids, attrs, function=lambda x, y: x+y)
         >>> rb.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -130,45 +130,44 @@ class LayeredRockBlock(RockBlock):
                [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  1.,  1.],
                [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.],
                [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
-        
+
         We can get the surface values, and as we'd expect, they alternate as
-        the dipping layers are exposed at the surface. 
-        
+        the dipping layers are exposed at the surface.
+
         >>> rb['K_sp']
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
             0.001 ,  0.0001])
         """
         self._grid = grid
-        
+
         if np.asarray(z0s).size != np.asarray(ids).size:
             msg = 'size of zs and ids must be the same'
             raise ValueError(msg)
-            
+
         if np.any(np.diff(z0s) < 0):
             msg = 'bad order'
             raise ValueError(msg)
-            
+
         z_surf = function(self._grid.x_of_node - y0, self._grid.y_of_node - y0)
-        
+
         layer_thicknesses = []
         layer_ids = []
-        
+
         num_layers = np.asarray(z0s).size
-        
+
         last_layer_elev = np.zeros(self._grid.number_of_nodes)
-        
+
         # create layers (here listed from the top to the bottom.)
         for i in range(num_layers):
-            
+
             layer_depth = z_surf + z0s[i]
             layer_depth[layer_depth<0] = 0
-            
+
             layer_thickness = layer_depth.copy() - last_layer_elev.copy()
-            
+
             last_layer_elev = layer_depth.copy()
-            
+
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
         super(LayeredRockBlock, self).__init__(grid, layer_thicknesses, layer_ids, attrs)
-       

@@ -16,9 +16,9 @@ class RockBlock(object):
 
     If the tracked properties are model grid fields, they will be updated to
     the surface values of the RockBlock. If the properties are not grid fields
-    then at-node grid fields will be created with their names. RockBlock and 
+    then at-node grid fields will be created with their names. RockBlock and
     its derived versions will make a at-node grid field called `rock_type__id`
-    to store the rock type id. 
+    to store the rock type id.
 
     RockBlock was designed to be used on its own and to be inherited from and
     improved. Currently one other RockBlock variant exists: LayeredRockBlock
@@ -74,8 +74,8 @@ class RockBlock(object):
         ----------
         grid : Landlab ModelGrid
         thicknesses : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
-            Values of layer thicknesses from surface to depth. Layers do not 
-            have to have constant thickness. Layer thickness can be zero, 
+            Values of layer thicknesses from surface to depth. Layers do not
+            have to have constant thickness. Layer thickness can be zero,
             though the entirety of RockBlock must have non-zero thickness.
         ids : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
             Values of rock type IDs cooresponding to each layer specified in
@@ -88,7 +88,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
 
@@ -109,14 +109,14 @@ class RockBlock(object):
             0.001])
 
         The surface values are also properties of the RockBlock.
-        
+
         >>> rb['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
-    
+
         We can access information about the RockBlock like the total thickness
-        or layer thicknesses. 
-        
+        or layer thicknesses.
+
         >>> rb.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
         >>> rb.dz
@@ -124,20 +124,20 @@ class RockBlock(object):
                [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
                [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
-    
-        This might look confusing -- that the layers are in reverse order, but 
+
+        This might look confusing -- that the layers are in reverse order, but
         it is OK. The last layers in the RockBlock are those that are closest
-        to the surface. 
-    
+        to the surface.
+
         The layers don't all have to have the same thickness as in the prior
-        example. If the layers have non-uniform thickness, then they must be 
+        example. If the layers have non-uniform thickness, then they must be
         specified in an array of shape `(n_layer, n_nodes)`. In this case, the
-        layer IDs must be specified in either an array of `(n_layer)` or 
+        layer IDs must be specified in either an array of `(n_layer)` or
         `(n_layer, n_nodes)`.
-        
-        Here we make a layer that gets thicker as a function of the x value of 
-        the model grid. 
-        
+
+        Here we make a layer that gets thicker as a function of the x value of
+        the model grid.
+
         >>> layer_pattern = (0.5 * mg.x_of_node) + 1.0
         >>> thicknesses = [1*layer_pattern, 2*layer_pattern, 4*layer_pattern]
         >>> ids = [1, 2, 1]
@@ -147,7 +147,7 @@ class RockBlock(object):
         >>> rb.dz
         array([[ 4. ,  6. ,  8. ,  4. ,  6. ,  8. ,  4. ,  6. ,  8. ],
                [ 2. ,  3. ,  4. ,  2. ,  3. ,  4. ,  2. ,  3. ,  4. ],
-               [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])       
+               [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])
         """
         # save reference to the grid and the last time steps's elevation.
         self._grid = grid
@@ -164,54 +164,54 @@ class RockBlock(object):
         self._attrs = attrs
         self._number_of_init_layers = self._init_thicknesses.shape[0]
         self._properties = list(attrs.keys())
-        
+
         # assert that thicknesses and ids are correct and consistent shapes
-        
+
         # if thickness is a 2d array.
         if self._init_thicknesses.ndim == 2:
-            
+
             # assert that the 2nd dimension is the same as the number of nodes.
             if self._init_thicknesses.shape[1] != self._grid.number_of_nodes:
                 msg = ('Thicknesses provided to RockBlock are ',
                        'inconsistent with the ModelGrid.')
                 raise ValueError(msg)
-                
+
             # if IDs is a 2d array assert that it is the same size as thicknesses
             if np.asarray(ids).ndim == 2:
                 if self._init_thicknesses.shape != np.asarray(ids).shape:
                     msg = ('Thicknesses and IDs provided to RockBlock are ',
                            'inconsistent with each other.')
                     raise ValueError(msg)
-                # if tests pass set value of IDs. 
+                # if tests pass set value of IDs.
                 self._ids = np.asarray(ids)
-                                            
-            # if IDS is a 1d array 
+
+            # if IDS is a 1d array
             elif np.asarray(ids).ndim == 1:
                 if np.asarray(ids).size != self._number_of_init_layers:
                     msg = ('Number of IDs provided to RockBlock is ',
                            'inconsistent with number of layers provided in '
                            'thicknesses.')
                     raise ValueError(msg)
-                # if tests pass, broadcast ids to correct shape. 
-                self._ids = np.broadcast_to(np.atleast_2d(np.asarray(ids)).T, 
+                # if tests pass, broadcast ids to correct shape.
+                self._ids = np.broadcast_to(np.atleast_2d(np.asarray(ids)).T,
                                             self._init_thicknesses.shape)
-            
+
             else:
                 msg = ('IDs must be of shape `(n_layers, )` or `(n_layers, '
                        'n_nodes)`. Passed array has more than 2 dimensions.')
                 raise ValueError(msg)
-                
+
         elif self._init_thicknesses.ndim == 1:
             if self._init_thicknesses.shape != np.asarray(ids).shape:
                 msg = ('Thicknesses and IDs provided to RockBlock are ',
                            'inconsistent with each other.')
-                raise ValueError(msg)   
+                raise ValueError(msg)
             self._ids = np.asarray(ids)
         else:
             msg = ('Thicknesses must be of shape `(n_layers, )` or `(n_layers, '
                    'n_nodes)`. Passed array has more than 2 dimensions.')
             raise ValueError(msg)
-                
+
         # assert that attrs are pointing to fields (or create them)
         for at in self._properties:
             if at not in grid.at_node:
@@ -251,7 +251,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -272,7 +272,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -292,7 +292,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -315,7 +315,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -341,7 +341,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -368,7 +368,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -422,7 +422,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -514,7 +514,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -572,7 +572,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -633,7 +633,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
@@ -698,7 +698,7 @@ class RockBlock(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab.layers import RockBlock
+        >>> from landlab.components import RockBlock
         >>> mg = RasterModelGrid(3, 3)
         >>> z = mg.add_ones('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
