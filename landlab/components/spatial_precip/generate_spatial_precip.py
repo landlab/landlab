@@ -201,6 +201,8 @@ class SpatialPrecipitationDistribution(Component):
     ...         rain.target_median_total_rainfall_this_season)
     ...     median_rf_season.append(rain.median_total_rainfall_this_season)
     ...     median_rf_last_year.append(rain.median_total_rainfall_last_year)
+    ...     mean_rf_season.append(rain.total_rainfall_this_season.mean())
+    ...     mean_rf_last_year.append(rain.total_rainfall_last_year.mean())
     >>> season_list == ['M', 'W', 'M', 'W']
     True
     >>> [meas > sim for (meas, sim) in zip(
@@ -218,7 +220,9 @@ class SpatialPrecipitationDistribution(Component):
     >>> np.isclose(median_rf_last_year[2],
     ...            median_rf_season[0] + median_rf_season[1])
     False
-
+    >>> np.isclose(mean_rf_last_year[2],
+    ...            mean_rf_season[0] + mean_rf_season[1])
+    True
     """
 
     _name = 'SpatialPrecipitationDistribution'
