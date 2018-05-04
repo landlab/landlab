@@ -153,7 +153,7 @@ class LithoLayers(Lithology):
             msg = 'bad order'
             raise ValueError(msg)
 
-        z_surf = function(self._grid.x_of_node - y0, self._grid.y_of_node - y0)
+        z_surf = function(self._grid.x_of_node - x0, self._grid.y_of_node - y0)
 
         layer_thicknesses = []
         layer_ids = []
