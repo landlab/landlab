@@ -54,7 +54,7 @@ def _deposit_or_erode(layers, n_layers, dz):
 
     >>> dz = np.array([1., 2., 3.])
     >>> _deposit_or_erode(allocated_layers_array, 1, dz)
-    >>> layers
+    >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
            [-1., -1., -1.],
            [-1., -1., -1.],
@@ -69,7 +69,7 @@ def _deposit_or_erode(layers, n_layers, dz):
 
     >>> dz = np.array([1., 1., 1.])
     >>> _deposit_or_erode(allocated_layers_array, 2, dz)
-    >>> layers
+    >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
            [ 1.,  1.,  1.],
            [-1., -1., -1.],
@@ -79,7 +79,7 @@ def _deposit_or_erode(layers, n_layers, dz):
     3 and give a spatially variable field of erosion and deposition.
 
     >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
-    >>> layers
+    >>> allocated_layers_array
     array([[ 1.,  2.,  2.],
            [ 1.,  0.,  0.],
            [ 1.,  0.,  0.],
