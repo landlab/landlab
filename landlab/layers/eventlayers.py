@@ -272,7 +272,12 @@ class EventLayers(object):
            [ 1. ,  2. ,  0.5,  5. ,  0. ]])
 
     Adding a layer with negative thickness will remove
-    existing layers for the top of the stack.
+    existing layers for the top of the stack. Note that
+    this will create a new layer with thickness zero
+    that represents this 'event'. If instead your
+    application would prefer that no new row is added to
+    the layers datastructure, you may want to consider
+    the MaterialLayers object.
 
     >>> layers.add(-1)
     >>> layers.dz
