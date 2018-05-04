@@ -136,7 +136,8 @@ class MaterialLayers(EventLayers):
 
         Removing enough material such that an entire layer's
         thickness is no longer present, results in that layer
-        no longer being tracked.
+        no longer being tracked. This is the primary difference
+        between MaterialLayers and EventLayers.
 
         >>> layers.add([ 0., -1., 0. ])
         >>> layers.dz
