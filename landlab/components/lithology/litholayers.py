@@ -68,7 +68,9 @@ class LithoLayers(Lithology):
 
 
 
-    def __init__(self, grid, z0s, ids, attrs, x0=0, y0=0,  function=lambda x, y: 0*x + 0*y):
+    def __init__(self, grid, z0s, ids, attrs, x0=0, y0=0,
+                 function=lambda x, y: 0*x + 0*y,
+                 layer_type='EventLayers'):
         """Create a new instance of a LithoLayers.
 
         Parameters
@@ -89,6 +91,13 @@ class LithoLayers(Lithology):
         function : function, optional
             Functional form of layers as a function of two variables, x and y.
             Default value is lambda x, y: 0*x + 0*y for flatlying layers.
+        layer_type : str, optional
+            Type of Landlab layers object used to store the layers. If
+            MaterialLayers (default) is specified, then erosion removes material
+            and does not create a layer of thickness zero. If EventLayers is
+            used, then erosion removes material and creates layers of thickness
+            zero. Thus, EventLayers may be appropriate if the user is interested
+            in chronostratigraphy.
 
         Examples
         --------
@@ -170,4 +179,4 @@ class LithoLayers(Lithology):
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
-        super(LithoLayers, self).__init__(grid, layer_thicknesses, layer_ids, attrs)
+        super(LithoLayers, self).__init__(grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type)

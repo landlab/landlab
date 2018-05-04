@@ -13,6 +13,16 @@ from nose.tools import assert_raises#, assert_almost_equal, assert_equal
 from landlab import RasterModelGrid
 from landlab.components import Lithology
 
+def test_bad_layer_method():
+    """Test passing a bad name for the layer method."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1]
+    ids = [1, 2, 1, 2]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs,
+                  layer_type='spam')
+
 def test_no_topographic__elevation():
     """Test init with no topo__elevation."""
     mg = RasterModelGrid(3, 3)
