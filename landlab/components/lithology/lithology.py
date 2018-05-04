@@ -57,7 +57,7 @@ class Lithology(object):
     Methods
     -------
     add_rock_type
-    add_rock_attribute
+    add_rock_property
     update_rock_properties
     add_layer
     run_one_step
