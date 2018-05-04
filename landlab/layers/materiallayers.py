@@ -156,36 +156,58 @@ class MaterialLayers(EventLayers):
 
         Use keywords to track properties of each layer. For instance,
         here we create a new stack and add a layer with a particular
-        *age*. You can access the layer properties as if the object
-        were a dictionary.
+        *type* and a particular *size*. You can access the layer properties as
+        if the object were a dictionary.
 
         >>> layers = MaterialLayers(3)
-        >>> layers.add(1., age=3.)
+        >>> layers.add(1., type=3., size='sand')
         >>> layers.dz
         array([[ 1.,  1.,  1.]])
-        >>> layers['age']
+        >>> layers['type']
         array([[ 3.,  3.,  3.]])
-        >>> layers.add(2., age=6.)
-        >>> layers['age']
+
+        As you can see, there is no rule that says you can't use a string as
+        the value of an attribute.
+
+        Adding a layer with the same attributes as the entire surface of the
+        MaterialLayers will result in the layers being combined.
+
+        >>> layers.add(1., type=3., size='sand')
+        >>> layers.add([2, -1, 0], type=3., size='sand')
+        >>> layers.dz
+        array([[ 4.,  1.,  2.]])
+
+        Adding material with different attributes results in the creation of
+        a new layer.
+
+        >>> layers.add(2., type=6., size='sand')
+        >>> layers.dz
+        array([[ 4.,  1.,  2.],
+               [ 2.,  2.,  2.]])
+        >>> layers['type']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
+        >>> layers['size']
+        array([['sand', 'sand', 'sand'],
+               ['sand', 'sand', 'sand']],
+          dtype='<U4')
 
-        Attributes for each layer will exist even if the the layer is
+        Attributes for each layer will exist even if part the the layer is
         associated with erosion.
 
-        >>> layers.add([-2, -1, 1], age=8.)
+        >>> layers.add([-2, -1, 1], type=8., size='gravel')
         >>> layers.dz
-        array([[ 1.,  1.,  1.],
+        array([[ 4.,  1.,  2.],
                [ 0.,  1.,  2.],
                [ 0.,  0.,  1.]])
-        >>> layers['age']
+        >>> layers['type']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.],
                [ 8.,  8.,  8.]])
 
         To get the values at the surface of the layer stack:
 
-        >>> layers.get_surface_values('age')
+        >>> layers.get_surface_values('type')
         array([ 3.,  6.,  8.])
 
         Removing enough material such that an entire layer's
@@ -195,13 +217,58 @@ class MaterialLayers(EventLayers):
 
         >>> layers.add([ 0., 0., -1. ])
         >>> layers.dz
-        array([[ 1.,  1.,  1.],
+        array([[ 4.,  1.,  2.],
                [ 0.,  1.,  2.]])
-        >>> layers['age']
+        >>> layers['type']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
+        >>> layers['size']
+        array([['sand', 'sand', 'sand'],
+               ['sand', 'sand', 'sand']],
+               dtype='<U4')
         >>> layers.number_of_layers
         2
+
+        If attributes (like age and size in this example) are tracked, a layer
+        will be combined with the surface layer only if all attributes are the
+        same across the entire layer. Right now, the surface values vary.
+
+        >>> layers.get_surface_values('type')
+        array([ 3.,  6.,  6.])
+        >>> layers.get_surface_values('size')
+        array(['sand', 'sand', 'sand'],
+              dtype='<U4')
+
+        Since the surface has different types, adding material will create a
+        new layer.
+
+        >>> layers.add(3., type=6., size='sand')
+        >>> layers.dz
+        array([[ 4.,  1.,  2.],
+               [ 0.,  1.,  2.],
+               [ 3.,  3.,  3.]])
+        >>> layers['type']
+        array([[ 3.,  3.,  3.],
+               [ 6.,  6.,  6.],
+               [ 6.,  6.,  6.]])
+        >>> layers.number_of_layers
+        3
+
+        But now, the entire surface has the qualities of type = 6. and size =
+        'sand', so layers will be combined. This even works if the thickness of
+        the new layer includes both erosion and deposition.
+
+        >>> layers.add([ -3.5, 0., 2. ], type=6., size='sand')
+        >>> layers.dz
+        array([[ 3.5,  1. ,  2. ],
+               [ 0. ,  1. ,  2. ],
+               [ 0. ,  3. ,  5. ]])
+        >>> layers['type']
+        array([[ 3.,  3.,  3.],
+               [ 6.,  6.,  6.],
+               [ 6.,  6.,  6.]])
+        >>> layers.number_of_layers
+        3
         """
         if self.number_of_layers == 0:
             self._setup_layers(**kwds)
