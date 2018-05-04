@@ -185,7 +185,7 @@ class MaterialLayers(EventLayers):
 
         To get the values at the surface of the layer stack:
 
-        >>> layers.surface_values('age')
+        >>> layers.get_surface_values('age')
         array([ 3.,  6.,  8.])
 
         Removing enough material such that an entire layer's
