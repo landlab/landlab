@@ -98,9 +98,9 @@ class SpatialPrecipitationDistribution(Component):
     - Step changes mid-run cannot be explicitly modelled. Instead, run the
         component for a fixed duration, make the change to the
         distribution input parameter, then run it again.
-    - Storms can be centred at any point, not just over nodes.
+    - Storms can be centred at any grid element, not just over nodes.
     - Edge buffering is now dynamic; i.e., big storms have a bigger edge
-        buffer than smaller storms. Storms can be centred off the grid
+        buffer than smaller storms. Storms can be centered off the grid
         edges.
     - Storms are never discarded - once a storm is drawn, it must hit the
         catchment, and positions are repeatedly selected until this can
@@ -341,7 +341,7 @@ class SpatialPrecipitationDistribution(Component):
         a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
-        Walnut Gulch, see Singer & Michaelides, 2018 & Singer et al, submitted.
+        Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
 
         Parameters
         ----------
@@ -475,7 +475,7 @@ class SpatialPrecipitationDistribution(Component):
         a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
-        Walnut Gulch, see Singer & Michaelides, 2018 & Singer et al, submitted.
+        Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
 
         Parameters
         ----------
@@ -607,7 +607,7 @@ class SpatialPrecipitationDistribution(Component):
         style=='whole_year'.
 
         All default distributions specified as parameters reflect values for
-        Walnut Gulch, see Singer & Michaelides, 2018 & Singer et al, submitted.
+        Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
 
         Parameters
         ----------
@@ -819,7 +819,7 @@ class SpatialPrecipitationDistribution(Component):
         simyears = self._numyrs  # number of years to simulate
         numcurves = 11  # number of intensity-duration curves (see below for
         # curve equations)
-        hrsinyr = 24.*365.
+        hrsinyr = 24. * 365.
         hrsinmonsoon = monsoon_fraction_of_year * hrsinyr
         hrsinwinter = (1. - monsoon_fraction_of_year) * hrsinyr
 
