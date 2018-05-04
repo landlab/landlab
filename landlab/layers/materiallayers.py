@@ -7,50 +7,8 @@ import numpy as np
 
 from landlab.layers.eventlayers import (EventLayers,
                                         _deposit_or_erode,
-                                        _get_surface_index,
-                                        resize_array,
-                                        _allocate_layers_for)
+                                        _get_surface_index)
 
-
-def _add_to_surface(layers, surface_index, dz):
-    """Add a material to the surface layer of a stack.
-
-    Parameters
-    ----------
-    layers : ndarray of shape `(n_layers, n_nodes)`
-        Array of layer thicknesses.
-    surface_index : ndarray of shape `(n_nodes, )`
-        Index value of the surface layer
-    dz : ndarray of shape `(n_nodes, )`
-        Thickness of the new layer. Negative thicknesses mean
-        erode the top-most layers.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.layers.materiallayers import _add_to_surface
-
-    >>> layers = np.full((4, 3), 1.)
-    >>> dz = np.array([1., 2., 3.])
-    >>> surface_index = np.array([0, 1, 2])
-    >>> _add_to_surface(layers, surface_index, dz)
-    >>> layers
-    array([[ 2.,  1.,  1.],
-           [ 1.,  3.,  1.],
-           [ 1.,  1.,  4.],
-           [ 1.,  1.,  1.]])
-    """
-    from .ext.materiallayers import add_to_surface
-
-    layers = layers.reshape((layers.shape[0], -1))
-    try:
-        dz = dz.reshape((layers.shape[1], ))
-    except (AttributeError, ValueError):
-        dz = np.broadcast_to(dz, (layers.shape[1], ))
-    finally:
-        dz = np.asfarray(dz)
-
-    add_to_surface(layers, surface_index, dz)
 
 class MaterialLayersMixIn(object):
 
@@ -84,6 +42,21 @@ class MaterialLayers(EventLayers):
     number_of_stacks : int
         Number of layer stacks to track.
 
+    Attributes
+    ----------
+    allocated
+    dz
+    thickness
+    number_of_layers
+    number_of_stacks
+    surface_index
+    z
+
+    Methods
+    -------
+    add
+    get_surface_values
+
     Examples
     --------
     >>> from landlab.layers.materiallayers import MaterialLayers
@@ -104,16 +77,19 @@ class MaterialLayers(EventLayers):
     >>> layers.dz
     array([[ 1.5,  1.5,  1.5,  1.5,  1.5]])
 
-    Add a second layer with uneven thickness.
+    MaterialLayers will combine layers if they have the same attributes.
+    Adding a second layer with uneven thickness. Will increment the
+    first layers thickness. This stands in contrast with EventLayers
+    which will track each addition as a separate entry in the layers
+    datastructure.
 
     >>> layers.add([1., 2., 3., 5., 0.])
     >>> layers.dz
     array([[ 2.5,  3.5,  4.5,  6.5,  1.5]])
 
     Adding a layer with negative thickness will remove
-    existing layers for the top of the stack. Unlike
-    EventLayers, it will not add a layer of zeros that
-    represent an event with no deposition.
+    material from the layers. Unlike EventLayers, it will not add a
+    layer of zeros that represent an event with no deposition.
 
     >>> layers.add(-1)
     >>> layers.dz
@@ -124,6 +100,9 @@ class MaterialLayers(EventLayers):
 
     >>> layers.surface_index
     array([0, 0, 0, 0, 0])
+
+    See the example in the ``add`` method to learn how MaterialLayers
+    behaves if material properties are also tracked.
     """
 
     def __init__(self, number_of_stacks, allocated=0):
@@ -264,12 +243,15 @@ class MaterialLayers(EventLayers):
                     # if size is one, we don't need to worry about the
                     # pos and negative parts.
                     #print('adding')
-                    _add_to_surface(self._attrs['_dz'], self._surface_index, dz)
+
+                    self._attrs['_dz'][self._surface_index,
+                                       np.arange(self._number_of_stacks)] += np.asarray(dz)
                 else:
                     #print('more complicated')
                     positive_part = np.asarray(dz).copy()
                     positive_part[positive_part<0] = 0.0
-                    _add_to_surface(self._attrs['_dz'], self._surface_index, positive_part)
+                    self._attrs['_dz'][self._surface_index,
+                                       np.arange(self._number_of_stacks)] += np.asarray(positive_part)
 
                     negative_part = np.asarray(dz).copy()
                     negative_part[negative_part>0] = 0.0

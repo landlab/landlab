@@ -237,7 +237,24 @@ class EventLayers(object):
     memory efficent layers datastructure.
 
     EventLayers exists in contrast to the MaterialLayers object which does not
-    make a new layer if only erosion occurs.
+    make a new layer if only erosion occurs and if the attributes of the new
+    layer are equivalent to the attributes of the material at the surface of the
+    layer stack.
+
+    Attributes
+    ----------
+    allocated
+    dz
+    thickness
+    number_of_layers
+    number_of_stacks
+    surface_index
+    z
+
+    Methods
+    -------
+    add
+    get_surface_values
 
     Parameters
     ----------
