@@ -113,8 +113,8 @@ class LithoLayers(Lithology):
         >>> ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = LithoLayers(mg, z0s, ids, attrs)
-        >>> rb.dz
+        >>> lith = LithoLayers(mg, z0s, ids, attrs)
+        >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -128,8 +128,8 @@ class LithoLayers(Lithology):
         Now create a set of layers that dip. Our anchor point will be the
         default value of (x0, y0) = (0, 0)
 
-        >>> rb = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x+y)
-        >>> rb.dz
+        >>> lith = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x+y)
+        >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -143,7 +143,7 @@ class LithoLayers(Lithology):
         We can get the surface values, and as we'd expect, they alternate as
         the dipping layers are exposed at the surface.
 
-        >>> rb['K_sp']
+        >>> lith['K_sp']
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
             0.001 ,  0.0001])
         """

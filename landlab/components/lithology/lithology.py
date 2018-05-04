@@ -58,7 +58,7 @@ class Lithology(object):
     -------
     add_rock_type
     add_rock_attribute
-    update_rock_attribute
+    update_rock_properties
     add_layer
     run_one_step
     """
@@ -106,7 +106,7 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         After creating a Lithology, the model grid will have an at-node grid
         field set to the surface values of 'K_sp'.
@@ -117,16 +117,16 @@ class Lithology(object):
 
         The surface values are also properties of the Lithology.
 
-        >>> rb['K_sp']
+        >>> lith['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
 
         We can access information about the Lithology like the total thickness
         or layer thicknesses.
 
-        >>> rb.thickness
+        >>> lith.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
-        >>> rb.dz
+        >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
                [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
@@ -148,10 +148,10 @@ class Lithology(object):
         >>> layer_pattern = (0.5 * mg.x_of_node) + 1.0
         >>> thicknesses = [1*layer_pattern, 2*layer_pattern, 4*layer_pattern]
         >>> ids = [1, 2, 1]
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.thickness
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.thickness
         array([  7. ,  10.5,  14. ,   7. ,  10.5,  14. ,   7. ,  10.5,  14. ])
-        >>> rb.dz
+        >>> lith.dz
         array([[ 4. ,  6. ,  8. ,  4. ,  6. ,  8. ,  4. ,  6. ,  8. ],
                [ 2. ,  3. ,  4. ,  2. ,  3. ,  4. ,  2. ,  3. ,  4. ],
                [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])
@@ -272,8 +272,8 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.tracked_properties
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.tracked_properties
         ['K_sp']
         """
         self._properties.sort()
@@ -293,8 +293,8 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.properties
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001}}
         """
         return self._attrs
@@ -313,8 +313,8 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.thickness
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
         """
         return self._layers.thickness
@@ -336,8 +336,8 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.dz
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
                [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
@@ -362,8 +362,8 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.z_bottom
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.z_bottom
         array([[ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.],
                [ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
                [ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
@@ -389,8 +389,8 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.z_top
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.z_top
         array([[ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
                [ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -448,11 +448,11 @@ class Lithology(object):
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001,
         ...                   3: 0.01}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         Add a layer of thickness 3 and rock type 3.
 
-        >>> rb.add_layer(3, rock_id=3)
+        >>> lith.add_layer(3, rock_id=3)
 
         The value of K_sp at node is now updated to the value of rock type 3
 
@@ -464,7 +464,7 @@ class Lithology(object):
         needs to be passed.
 
         >>> erosion_amount = [-2., -2., -2., -4., -4., -4., -6., -6., -6.]
-        >>> rb.add_layer(erosion_amount)
+        >>> lith.add_layer(erosion_amount)
         >>> mg.at_node['K_sp']
         array([ 0.01  ,  0.01  ,  0.01  ,  0.0001,  0.0001,  0.0001,  0.001 ,
         0.001 ,  0.001 ])
@@ -498,7 +498,7 @@ class Lithology(object):
                         'rock type or add_rock_type. ' + str(missing_ids))
                  raise ValueError(msg)
 
-        # collect attirbutes
+        # collect attilithutes
         if rock_id is not None:
             new_layer_properties = {'rock_type__id': rock_id}
             for at in self._properties:
@@ -535,10 +535,10 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.add_property({'D': {1: 0.03,
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.add_property({'D': {1: 0.03,
         ...                        2: 0.004}})
-        >>> rb.tracked_properties
+        >>> lith.tracked_properties
         ['D', 'K_sp']
         >>> mg.at_node['D']
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
@@ -593,12 +593,12 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.add_rock_type({'K_sp': {4: 0.03,
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.add_rock_type({'K_sp': {4: 0.03,
         ...                            6: 0.004}})
-        >>> rb.ids
+        >>> lith.ids
         frozenset({1, 2, 4, 6})
-        >>> rb.properties
+        >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001, 4: 0.03, 6: 0.004}}
 
         """
@@ -654,13 +654,13 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         >>> mg.at_node['K_sp']
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
             0.001])
 
-        >>> rb.update_rock_properties('K_sp', 1, 0.03)
+        >>> lith.update_rock_properties('K_sp', 1, 0.03)
 
         >>> mg.at_node['K_sp']
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
@@ -719,24 +719,29 @@ class Lithology(object):
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
-        >>> rb = Lithology(mg, thicknesses, ids, attrs)
-        >>> rb.thickness
+        >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
 
         If we erode the surface, and then update Lithology, the thickness will
         change.
 
         >>> z -= 0.5
-        >>> rb.run_one_step(dz_advection=0)
-        >>> rb.thickness
+        >>> lith.run_one_step(dz_advection=0)
+        >>> lith.thickness
         array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
 
         If you deposit, a valid rock_id must be provided
 
         >>> z += 1.5
-        >>> rb.run_one_step(dz_advection=0, rock_id = 1)
-        >>> rb.thickness
+        >>> lith.run_one_step(dz_advection=0, rock_id = 1)
+        >>> lith.thickness
         array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
+
+        The default of Lithology is to use MaterialLayers from the landlab
+        layers submodule. This means that when we erode, we will remove a layer
+        from the layers datastructure if it has no material anywhere.
+
         """
         # calculate amount of erosion
         elevation_change = (self._grid['node']['topographic__elevation'] -

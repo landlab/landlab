@@ -123,8 +123,8 @@ def test_erode_to_zero_thickness():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, rb.add_layer, -100)
+    lith = Lithology(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, lith.add_layer, -100)
 
 
 def test_deposit_with_no_rock_id():
@@ -134,8 +134,8 @@ def test_deposit_with_no_rock_id():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, rb.add_layer, 100)
+    lith = Lithology(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, lith.add_layer, 100)
 
 
 def test_deposit_with_bad_rock_id():
@@ -145,12 +145,12 @@ def test_deposit_with_bad_rock_id():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, rb.add_layer, 100, rock_id=3)
+    lith = Lithology(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, lith.add_layer, 100, rock_id=3)
 
     ones = np.ones(mg.number_of_nodes)
     new_ids = [0, 1, 3, 4, 0, 1, 0, 1, 5]
-    assert_raises(ValueError, rb.add_layer, ones, rock_id=new_ids)
+    assert_raises(ValueError, lith.add_layer, ones, rock_id=new_ids)
 
 def test_adding_existing_attribute():
     """Test adding an existing attribute."""
@@ -159,11 +159,11 @@ def test_adding_existing_attribute():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
 
     new_attr = {'K_sp': {1: 0.001, 2: 0.0001}}
 
-    assert_raises(ValueError, rb.add_property, new_attr)
+    assert_raises(ValueError, lith.add_property, new_attr)
 
 
 def test_adding_new_attribute_missing_rock_id():
@@ -173,11 +173,11 @@ def test_adding_new_attribute_missing_rock_id():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
 
     new_attr = {'D': {2: 0.0001}}
 
-    assert_raises(ValueError, rb.add_property, new_attr)
+    assert_raises(ValueError, lith.add_property, new_attr)
 
 
 def test_adding_new_attribute_extra_rock_id():
@@ -187,11 +187,11 @@ def test_adding_new_attribute_extra_rock_id():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
 
     new_attr = {'D': {1: 0.001, 2: 0.0001, 3: 5.3}}
 
-    assert_raises(ValueError, rb.add_property, new_attr)
+    assert_raises(ValueError, lith.add_property, new_attr)
 
 
 def test_adding_new_id_extra_attribute():
@@ -201,12 +201,12 @@ def test_adding_new_id_extra_attribute():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
 
     new_attr = {'K_sp': {4: 0.001, 5: 0.0001},
                 'D':    {4: 0.001, 5: 0.0001}}
 
-    assert_raises(ValueError, rb.add_rock_type, new_attr)
+    assert_raises(ValueError, lith.add_rock_type, new_attr)
 
 def test_adding_new_id_missing_attribute():
     """Test adding an new rock type with an extra attribute."""
@@ -215,9 +215,9 @@ def test_adding_new_id_missing_attribute():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
     new_attr = {'D':  {4: 0.001, 5: 0.0001}}
-    assert_raises(ValueError, rb.add_rock_type, new_attr)
+    assert_raises(ValueError, lith.add_rock_type, new_attr)
 
 
 def test_updating_attribute_that_doesnt_exist():
@@ -227,8 +227,8 @@ def test_updating_attribute_that_doesnt_exist():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, rb.update_rock_properties, 'spam', 1, 4)
+    lith = Lithology(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, lith.update_rock_properties, 'spam', 1, 4)
 
 
 def test_updating_rock_type_that_doesnt_exist():
@@ -238,8 +238,8 @@ def test_updating_rock_type_that_doesnt_exist():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, rb.update_rock_properties, 'K_sp', 3, 4)
+    lith = Lithology(mg, thicknesses, ids, attrs)
+    assert_raises(ValueError, lith.update_rock_properties, 'K_sp', 3, 4)
 
 
 def test_run_one_step_deposit_no_id_raises_error():
@@ -249,9 +249,9 @@ def test_run_one_step_deposit_no_id_raises_error():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
     z += 1
-    assert_raises(ValueError, rb.run_one_step)
+    assert_raises(ValueError, lith.run_one_step)
 
 
 def test_run_one_step_erodes_all_raises_error():
@@ -261,6 +261,6 @@ def test_run_one_step_erodes_all_raises_error():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    rb = Lithology(mg, thicknesses, ids, attrs)
+    lith = Lithology(mg, thicknesses, ids, attrs)
     z -= 30
-    assert_raises(ValueError, rb.run_one_step)
+    assert_raises(ValueError, lith.run_one_step)
