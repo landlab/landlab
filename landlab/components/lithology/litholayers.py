@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Create a LithoLayers object with different properties."""
-"""
-Create a block of rock with different properties.
+"""Create a LithoLayers component with different properties."""
 
-@author: barnhark
-"""
 import numpy as np
 from landlab.components.lithology.lithology import Lithology
 
 
 class LithoLayers(Lithology):
 
-    """Create LithoLayers object
+    """Create LithoLayers component.
 
     A LithoLayers is a three dimentional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
