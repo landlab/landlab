@@ -176,7 +176,6 @@ class Lithology(object):
 
         # if thickness is a 2d array.
         if self._init_thicknesses.ndim == 2:
-
             # assert that the 2nd dimension is the same as the number of nodes.
             if self._init_thicknesses.shape[1] != self._grid.number_of_nodes:
                 msg = ('Thicknesses provided to Lithology are ',
@@ -256,7 +255,7 @@ class Lithology(object):
             raise ValueError(msg)
 
     def __getitem__(self, name):
-        return self._layers.get_surface_values(name)
+        return self._get_surface_values(name)
 
     @property
     def tracked_properties(self):
@@ -417,7 +416,7 @@ class Lithology(object):
     def _update_surface_values(self):
         """Update Lithology surface values"""
         # Update surface values for each attribute.
-        self._grid['node'][self._rock_id_name][:] = self[self._rock_id_name]
+        self._grid['node'][self._rock_id_name][:] = self._surface_rock_type
         for at in self._properties:
             self._grid['node'][at][:] = self[at]
 
@@ -498,21 +497,16 @@ class Lithology(object):
                         'rock type or add_rock_type. ' + str(missing_ids))
                  raise ValueError(msg)
 
-        # collect attilithutes
+        # add_rock_type
         if rock_id is not None:
-            new_layer_properties = {self._rock_id_name: rock_id}
-            for at in self._properties:
-                try:
-                    layer_value = list(map(self._attrs[at].get, rock_id))
-                except TypeError: # if not iterable
-                    layer_value = self._attrs[at].get(rock_id)
-
-                new_layer_properties[at] = layer_value
-
             # add layer
-            self._layers.add(thickness, **new_layer_properties)
+            attributes = {self._rock_id_name: rock_id}
+            self._layers.add(thickness, **attributes)
         else:
             self._layers.add(thickness)
+
+        # update surface rock type
+        self._surface_rock_type = self._layers.get_surface_values(self._rock_id_name)
 
         # update surface values
         self._update_surface_values()
@@ -568,9 +562,6 @@ class Lithology(object):
                 self._grid.add_empty('node', at)
             self._attrs[at] = attrs[at]
             self._properties.append(at)
-
-            # update layers to add a tracked value.
-            self._layers[at] = self._get_new_values(at)
 
         # update surface values
         self._update_surface_values()
@@ -680,19 +671,12 @@ class Lithology(object):
         # set the value in the attribute dictionary
         self._attrs[at][rock_id] = value
 
-        # set the value in the layers object
-        self._layers[at] = self._get_new_values(at)
-
         # update surface values
         self._update_surface_values()
 
-    def _get_new_values(self, at):
-        """Get new values for attribute."""
-        out = []
-        rk_type = self._layers[self._rock_id_name]
-        for i in range(rk_type.shape[0]):
-            out.append(list(map(self._attrs[at].get, rk_type[i, :])))
-        return np.array(out)
+    def _get_surface_values(self, at):
+        """Get surface values for attribute."""
+        return np.array(list(map(self._attrs[at].get, self._surface_rock_type)))
 
     def run_one_step(self, dz_advection=0, rock_id=None):
         """Update Lithology.
