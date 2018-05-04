@@ -7,12 +7,30 @@ import numpy as np
 
 
 def _deposit_or_erode(layers, n_layers, dz):
-    """Add a new layer to the top of a stack.
+    """Update the array that contains layers with deposition or erosion.
+
+    This function operates on the entire array that contain the layers (active,
+    and allocated but not yet active). The number of active layers includes the
+    layer that is currently being added. Thus the row with the index
+    ``n_layers - 1`` is the layer that is currently being added as an active
+    layer.
+
+    Note that in EventLayers, layers represent an event, and not necessarily
+    material.
+
+    This means that if only erosion occurs, the array elements in the row with
+    the index ``n_layers - 1`` will be set to zero and thickness will be
+    removed from lower layers. Note that lower layers have smaller row indicies
+    as the bottom of the layer stack has row index zero.
+
+    If deposition occurs, the array elements in the row with index
+    ``n_layers - 1`` will be set to the value of dz.
 
     Parameters
     ----------
     layers : ndarray of shape `(n_layers, n_nodes)`
-        Array of layer thicknesses.
+        Array of layer thicknesses. This array is the datastructure that
+        contains all allocated layers, active or inactive.
     n_layers : int
         Number of active layers.
     dz : ndarray of shape `(n_nodes, )`
@@ -24,24 +42,43 @@ def _deposit_or_erode(layers, n_layers, dz):
     >>> import numpy as np
     >>> from landlab.layers.eventlayers import _deposit_or_erode
 
-    >>> layers = np.full((4, 3), -1.)
+    First we create a numpy array allocated to contain layers. We fill it with
+    -1. These -1.'s do not represent negative layer thickness. In EventLayers
+    this array is created with np.empty, but that creates different numbers
+    every time and doesn't work for testing.
+
+    >>> allocated_layers_array = np.full((4, 3), -1.)
+
+    Next we add a layer with spatially variable thickness. We specify that the
+    number of active layers (including the one being added) is 1.
+
     >>> dz = np.array([1., 2., 3.])
-    >>> _deposit_or_erode(layers, 1, dz)
+    >>> _deposit_or_erode(allocated_layers_array, 1, dz)
     >>> layers
     array([[ 1.,  2.,  3.],
            [-1., -1., -1.],
            [-1., -1., -1.],
            [-1., -1., -1.]])
 
+    As you can see, this changes the value of the first row in the array. The
+    remainder of the array represents space in the datatastructure that has
+    been allocated to contain layers, but does not yet contain active layers.
+
+    Next we add a layer of thickness 1. To do this, we now need to specify that
+    the number of active layers is 2.
+
     >>> dz = np.array([1., 1., 1.])
-    >>> _deposit_or_erode(layers, 2, dz)
+    >>> _deposit_or_erode(allocated_layers_array, 2, dz)
     >>> layers
     array([[ 1.,  2.,  3.],
            [ 1.,  1.,  1.],
            [-1., -1., -1.],
            [-1., -1., -1.]])
 
-    >>> _deposit_or_erode(layers, 3, [1., -1., -2.])
+    Finally, we do some erosion. We specify that the number of active layers is
+    3 and give a spatially variable field of erosion and deposition.
+
+    >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
     >>> layers
     array([[ 1.,  2.,  2.],
            [ 1.,  0.,  0.],
@@ -63,12 +100,13 @@ def _deposit_or_erode(layers, n_layers, dz):
 
 
 def _get_surface_index(layers, n_layers, surface_index):
-    """Get index within each stack of the topographic surface.
+    """Get index within each stack of the layer at the topographic surface.
 
     Parameters
     ----------
     layers : ndarray of shape `(n_layers, n_nodes)`
-        Array of layer thicknesses.
+        Array of layer thicknesses. This array is the datastructure that
+        contains all allocated layers, active or inactive.
     n_layers : int
         Number of active layers.
     surface_index : ndarray of shape `(n_nodes, )`
@@ -81,6 +119,10 @@ def _get_surface_index(layers, n_layers, surface_index):
 
     >>> layers = np.full((5, 3), 1.)
     >>> dz = np.array([-1., -2., -3.])
+
+    Note here, if you are very confused by the use of ``_deposit_or_erode``
+    we recommend you read the docstring associated with that function.
+
     >>> _deposit_or_erode(layers, 5, dz)
     >>> layers
     array([[ 1.,  1.,  1.],
