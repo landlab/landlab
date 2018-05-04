@@ -171,7 +171,7 @@ class Lithology(object):
         self._attrs = attrs
         self._number_of_init_layers = self._init_thicknesses.shape[0]
         self._properties = list(attrs.keys())
-
+        self._rock_id_name = 'rock_type__id'
         # assert that thicknesses and ids are correct and consistent shapes
 
         # if thickness is a 2d array.
@@ -225,8 +225,8 @@ class Lithology(object):
                 self._grid.add_empty('node', at)
 
         # add a field for the rock type id
-        if 'rock_type__id' not in self._grid.at_node:
-            self._grid.add_empty('node', 'rock_type__id')
+        if self._rock_id_name not in self._grid.at_node:
+            self._grid.add_empty('node', self._rock_id_name)
 
         # verify that all IDs have attributes.
         self._check_property_dictionary()
@@ -417,7 +417,7 @@ class Lithology(object):
     def _update_surface_values(self):
         """Update Lithology surface values"""
         # Update surface values for each attribute.
-        self._grid['node']['rock_type__id'][:] = self['rock_type__id']
+        self._grid['node'][self._rock_id_name][:] = self[self._rock_id_name]
         for at in self._properties:
             self._grid['node'][at][:] = self[at]
 
@@ -500,7 +500,7 @@ class Lithology(object):
 
         # collect attilithutes
         if rock_id is not None:
-            new_layer_properties = {'rock_type__id': rock_id}
+            new_layer_properties = {self._rock_id_name: rock_id}
             for at in self._properties:
                 try:
                     layer_value = list(map(self._attrs[at].get, rock_id))
@@ -689,7 +689,7 @@ class Lithology(object):
     def _get_new_values(self, at):
         """Get new values for attribute."""
         out = []
-        rk_type = self._layers['rock_type__id']
+        rk_type = self._layers[self._rock_id_name]
         for i in range(rk_type.shape[0]):
             out.append(list(map(self._attrs[at].get, rk_type[i, :])))
         return np.array(out)
