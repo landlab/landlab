@@ -256,7 +256,7 @@ class Lithology(object):
             raise ValueError(msg)
 
     def __getitem__(self, name):
-        return self._layers.surface_values(name)
+        return self._layers.get_surface_values(name)
 
     @property
     def tracked_properties(self):

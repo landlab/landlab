@@ -593,7 +593,7 @@ class EventLayers(object):
 
         To get the values at the surface of the layer stack:
 
-        >>> layers.surface_values('age')
+        >>> layers.get_surface_values('age')
         array([ 3.,  6.,  8.])
         """
         if self.number_of_layers == 0:
@@ -615,7 +615,7 @@ class EventLayers(object):
         _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
         return self._surface_index
 
-    def surface_values(self, name):
+    def get_surface_values(self, name):
         _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
 
         return self._attrs[name][self._surface_index,
