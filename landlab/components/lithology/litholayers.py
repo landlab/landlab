@@ -12,6 +12,7 @@ from landlab.components.lithology.lithology import Lithology
 
 
 class LithoLayers(Lithology):
+
     """Create LithoLayers object
 
     A LithoLayers is a three dimentional representation of material operated on

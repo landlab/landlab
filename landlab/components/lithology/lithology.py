@@ -7,6 +7,7 @@ from landlab.layers import EventLayers, MaterialLayers
 
 
 class Lithology(object):
+
     """Create a Lithology object.
 
     A Lithology is a three dimentional representation of material operated on
