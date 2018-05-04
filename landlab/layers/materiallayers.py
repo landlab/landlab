@@ -344,7 +344,7 @@ class MaterialLayers(EventLayers):
             self._erode(dz)
 
     def _erode(self, dz):
-        """ """
+        """Erode MaterialLayers without adding a new layer"""
         _deposit_or_erode(self._attrs['_dz'], self.number_of_layers+1, dz)
         _get_surface_index(self._attrs['_dz'], self.number_of_layers+1, self._surface_index)
         if np.all((self._surface_index + 1) < self.number_of_layers):
