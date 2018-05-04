@@ -705,6 +705,11 @@ class Lithology(object):
         >>> attrs = {'K_sp': {1: 0.001,
         ...                   2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
+        >>> lith.dz
+        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
+               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
+               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
         >>> lith.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
 
@@ -716,17 +721,96 @@ class Lithology(object):
         >>> lith.thickness
         array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
 
-        If you deposit, a valid rock_id must be provided
+        The default of Lithology is to use MaterialLayers from the Landlab
+        layers submodule. This means that when we erode, we will remove a layer
+        from the layers datastructure if it has no material anywhere.
+
+        >>> lith.dz
+        array([[ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ],
+               [ 4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ],
+               [ 2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ],
+               [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5]])
+
+        We can see the value of the rock type at the surface.
+
+        >>> mg.at_node['rock_type__id']
+        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+        If you deposit, a valid rock_id must be provided. If the rock type
+        is the same as the current surface value everywhere, then the layersw
+        will be combined.
 
         >>> z += 1.5
         >>> lith.run_one_step(dz_advection=0, rock_id = 1)
         >>> lith.thickness
         array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
 
-        The default of Lithology is to use MaterialLayers from the landlab
-        layers submodule. This means that when we erode, we will remove a layer
-        from the layers datastructure if it has no material anywhere.
+        >>> lith.dz
+        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
+               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
+               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.]])
 
+        This contrasts with the behavior of Lithology if we use EventLayers.
+        Next we repeat this example with EventLayers. Note that no matter which
+        method you use, the values of the model grid fields will be the same.
+        These two methods differ only in the details of the data structure they
+        use to store the layer information.
+
+            >>> mg = RasterModelGrid(3, 3)
+            >>> z = mg.add_ones('node', 'topographic__elevation')
+            >>> thicknesses = [1, 2, 4, 1]
+            >>> ids = [1, 2, 1, 2]
+            >>> attrs = {'K_sp': {1: 0.001,
+            ...                   2: 0.0001}}
+            >>> lith = Lithology(mg, thicknesses, ids, attrs,
+            ...                  layer_type='EventLayers')
+            >>> lith.dz
+            array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
+                   [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
+                   [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
+                   [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+            >>> lith.thickness
+            array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
+
+            If we erode the surface, and then update Lithology, the thickness
+            will change. However, with EventLayers, the ``lith.dz`` structure
+            will be different. It will have a layer with thickness zero that
+            represents the event of erosion.
+
+            >>> z -= 0.5
+            >>> lith.run_one_step(dz_advection=0)
+            >>> lith.thickness
+            array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
+            >>> lith.dz
+            array([[ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ],
+                   [ 4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ],
+                   [ 2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ],
+                   [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5],
+                   [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
+
+            We can see the value of the rock type at the surface. As expected,
+            it is just the same as if we used MaterialLayers.
+
+            >>> mg.at_node['rock_type__id']
+            array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+
+            If you deposit, a valid rock_id must be provided. Unlike
+            MaterialLayers, these two layers will not be combined, even if they
+            have the same properties.
+
+            >>> z += 1.5
+            >>> lith.run_one_step(dz_advection=0, rock_id = 1)
+            >>> lith.thickness
+            array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
+
+            >>> lith.dz
+            array([[ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ],
+                   [ 4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ],
+                   [ 2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ],
+                   [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5],
+                   [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+                   [ 1.5,  1.5,  1.5,  1.5,  1.5,  1.5,  1.5,  1.5,  1.5]])
         """
         # calculate amount of erosion
         elevation_change = (self._grid['node']['topographic__elevation'] -
