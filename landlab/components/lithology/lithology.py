@@ -68,7 +68,7 @@ class Lithology(object):
 
     _cite_as = """ """
 
-    def __init__(self, grid, thicknesses, ids, attrs, layer_type = "EventLayers"):
+    def __init__(self, grid, thicknesses, ids, attrs, layer_type = "MaterialLayers"):
         """Create a new instance of Lithology.
 
         Parameters
