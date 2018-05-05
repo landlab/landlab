@@ -29,6 +29,25 @@ _DEFAULT_NUM_COLS = 5
 _TAN60 = 1.732
 _NEVER = 1.0e50  # this arbitrarily large val is also defined in ..cfuncs.pyx
 
+
+def is_perim_link(link, grid):
+    """Return True if both nodes are boundaries; False otherwise.
+
+    Examples
+    --------
+    >>> from landlab import HexModelGrid
+    >>> import numpy as np
+    >>> mg = HexModelGrid(3, 4, 1.0, orientation='vertical', shape='rect')
+    >>> is_perim_link(6, mg)
+    True
+    >>> is_perim_link(17, mg)
+    False
+    """
+    from landlab import CORE_NODE
+    return (grid.status_at_node[grid.node_at_link_tail[link]] != CORE_NODE
+            and grid.status_at_node[grid.node_at_link_tail[link]] != CORE_NODE)
+
+
 class HexLatticeTectonicizer(object):
     """Handles tectonics and baselevel for CellLab-CTS models.
 
@@ -402,9 +421,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         nc = self.grid.number_of_node_columns
         num_links = self.grid.number_of_links
         default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
-        first_link_for_shift = default_offset + ((nc - 1) // 2) + (nc % 1)
+        self.first_link_for_shift = default_offset + ((nc - 1) // 2) + (nc % 1)
 
-        for ln in range(num_links - 1, first_link_for_shift, -1):
+        for ln in range(num_links - 1, self.first_link_for_shift, -1):
             if self._link_in_footwall(ln, node_in_footwall):
                 tail_node = self.grid.node_at_link_tail[ln]
                 (_, c) = self.grid.node_row_and_column(tail_node)
@@ -417,6 +436,49 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                     if (c % 2) == 1 and link_orientation == 0:
                         offset -= 1
                 self.link_offset_id[ln] = ln - offset
+
+
+    def shift_link_states(self, ca):
+        """Shift link data up and right.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> import numpy as np
+
+        >>> mg = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect')
+        >>> nsd = {0 : 'yes', 1 : 'no'}
+        >>> xnlist = []
+        >>> xnlist.append(Transition((1,0,0), (1,1,0), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((1,0,1), (1,1,1), 1.0, 'frogging'))
+        >>> xnlist.append(Transition((1,0,2), (1,1,2), 1.0, 'frogging'))
+        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> nsg[3:6] = 1
+        >>> pid = np.arange(16, dtype=int)
+        >>> pdata = np.arange(16)
+        >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
+        >>> ohcts.link_state[7:]
+        array([ 1,  7, 11,  0,  0,  9,  6,  2,  4,  8,  0,  0,  8,  4,  0,  0,  0])
+        >>> lnf = LatticeNormalFault(-0.01, mg, nsg, pid, pdata, 0.0)
+        >>> lnf.link_offset_id
+        >>> lnf.shift_link_states(ohcts)
+        >>> ohcts.link_state[7:]
+        array([ 1,  7, 11,  0,  0,  9,  6,  2,  4,  8,  0,  0,  1,  7,  0,  0,  9])
+        """
+        #TODO: COMPLETE THE ABOVE TEST(s); MAKE SURE BOUNDARIES ARE HANDLED
+        #PROPERLY
+        num_links = self.grid.number_of_links
+        for lnk in range(num_links - 1, self.first_link_for_shift, -1):
+            link_offset = self.link_offset_id[lnk]
+            if link_offset != lnk:
+                if is_perim_link(link_offset, self.grid):
+                    pass  # TODO: CALL UPDATE LINK STATE AND XN HERE
+                else:
+                    ca.link_state[lnk] = ca.link_state[link_offset[lnk]]
+                    ca.next_trn_id[lnk] = ca.next_trn_id[link_offset[lnk]]
+                    ca.next_update[lnk] = ca.next_update[link_offset[lnk]]
 
     def do_offset(self, rock_state=1):
         """Apply 60-degree normal-fault offset.
