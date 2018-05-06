@@ -22,7 +22,7 @@ from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, tan, cos, pi)
 import numpy as np
-from ..cfuncs import get_next_event_new
+from ..cfuncs import get_next_event_new, update_link_state_new
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -423,7 +423,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
         self.first_link_for_shift = default_offset + ((nc - 1) // 2) + (nc % 1)
 
-        for ln in range(num_links - 1, self.first_link_for_shift, -1):
+        for ln in range(num_links - 1, self.first_link_for_shift - 1, -1):
             if self._link_in_footwall(ln, node_in_footwall):
                 tail_node = self.grid.node_at_link_tail[ln]
                 (_, c) = self.grid.node_row_and_column(tail_node)
@@ -438,7 +438,30 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                 self.link_offset_id[ln] = ln - offset
 
 
-    def shift_link_states(self, ca):
+    def assign_new_link_state_and_transition(self, link, ca):
+        """Update state and schedule new transition for given link"""
+
+        tail_state = ca.node_state[self.grid.node_at_link_tail[link]]
+        head_state = ca.node_state[self.grid.node_at_link_head[link]]
+        orientation = ca.link_orientation[link]
+        new_link_state =  (orientation * ca.num_node_states_sq +
+                           tail_state * ca.num_node_states + head_state)
+
+        update_link_state_new(link, new_link_state, ca.bnd_lnk, ca.node_state,
+                              self.grid.node_at_link_tail,
+                              self.grid.node_at_link_head,
+                              ca.link_orientation,
+                              ca.number_of_node_states,
+                              ca.number_of_node_states_sq,
+                              ca.link_state,
+                              ca.n_trn,
+                              ca.priority_queue,
+                              ca.next_update,
+                              ca.next_trn_id,
+                              ca.trn_id,
+                              ca.trn_rate)
+
+    def shift_link_states(self, ca, current_time):
         """Shift link data up and right.
 
         Examples
@@ -455,30 +478,37 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> xnlist.append(Transition((1,0,1), (1,1,1), 1.0, 'frogging'))
         >>> xnlist.append(Transition((1,0,2), (1,1,2), 1.0, 'frogging'))
         >>> nsg = mg.add_zeros('node', 'node_state_grid')
-        >>> nsg[3:6] = 1
+        >>> nsg[:8] = 1
         >>> pid = np.arange(16, dtype=int)
         >>> pdata = np.arange(16)
         >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-        >>> ohcts.link_state[7:]
-        array([ 1,  7, 11,  0,  0,  9,  6,  2,  4,  8,  0,  0,  8,  4,  0,  0,  0])
+        >>> ohcts.link_state[:16]
+        array([ 0,  0,  0,  0,  0,  3,  0,  7, 11,  3,  0,  7, 11,  7,  0,  2])
         >>> lnf = LatticeNormalFault(-0.01, mg, nsg, pid, pdata, 0.0)
+        >>> lnf.first_link_for_shift
+        17
         >>> lnf.link_offset_id
-        >>> lnf.shift_link_states(ohcts)
-        >>> ohcts.link_state[7:]
-        array([ 1,  7, 11,  0,  0,  9,  6,  2,  4,  8,  0,  0,  1,  7,  0,  0,  9])
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+                1,  2, 19,  5, 21, 22,  7, 24,  9, 26, 27, 12, 29, 15, 31, 32, 17,
+               34])
+        >>> lnf.shift_link_states(ohcts, 0.0)
+        >>> ohcts.link_state[:16]
+        array([ 0,  0,  0,  0,  0,  3,  0,  7, 11,  3,  0,  7, 11,  7,  0,  2])
         """
         #TODO: COMPLETE THE ABOVE TEST(s); MAKE SURE BOUNDARIES ARE HANDLED
         #PROPERLY
+        # HANDLE LINKS CROSSED BY FAULT PLANE
         num_links = self.grid.number_of_links
-        for lnk in range(num_links - 1, self.first_link_for_shift, -1):
+        for lnk in range(num_links - 1, self.first_link_for_shift - 1, -1):
             link_offset = self.link_offset_id[lnk]
             if link_offset != lnk:
                 if is_perim_link(link_offset, self.grid):
-                    pass  # TODO: CALL UPDATE LINK STATE AND XN HERE
+                    self.assign_new_link_state_and_transition(lnk, ca,
+                                                              current_time)
                 else:
-                    ca.link_state[lnk] = ca.link_state[link_offset[lnk]]
-                    ca.next_trn_id[lnk] = ca.next_trn_id[link_offset[lnk]]
-                    ca.next_update[lnk] = ca.next_update[link_offset[lnk]]
+                    ca.link_state[lnk] = ca.link_state[link_offset]
+                    ca.next_trn_id[lnk] = ca.next_trn_id[link_offset]
+                    ca.next_update[lnk] = ca.next_update[link_offset]
 
     def do_offset(self, rock_state=1):
         """Apply 60-degree normal-fault offset.
