@@ -22,7 +22,7 @@ from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, tan, cos, pi)
 import numpy as np
-from ..cfuncs import get_next_event_new, update_link_state_new
+from ..cfuncs import get_next_event_new  #, update_link_state_new
 
 _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
@@ -447,19 +447,19 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         new_link_state =  (orientation * ca.num_node_states_sq +
                            tail_state * ca.num_node_states + head_state)
 
-        update_link_state_new(link, new_link_state, ca.bnd_lnk, ca.node_state,
-                              self.grid.node_at_link_tail,
-                              self.grid.node_at_link_head,
-                              ca.link_orientation,
-                              ca.number_of_node_states,
-                              ca.number_of_node_states_sq,
-                              ca.link_state,
-                              ca.n_trn,
-                              ca.priority_queue,
-                              ca.next_update,
-                              ca.next_trn_id,
-                              ca.trn_id,
-                              ca.trn_rate)
+#        update_link_state_new(link, new_link_state, ca.bnd_lnk, ca.node_state,
+#                              self.grid.node_at_link_tail,
+#                              self.grid.node_at_link_head,
+#                              ca.link_orientation,
+#                              ca.number_of_node_states,
+#                              ca.number_of_node_states_sq,
+#                              ca.link_state,
+#                              ca.n_trn,
+#                              ca.priority_queue,
+#                              ca.next_update,
+#                              ca.next_trn_id,
+#                              ca.trn_id,
+#                              ca.trn_rate)
 
     def shift_link_states(self, ca, current_time):
         """Shift link data up and right.
@@ -503,8 +503,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             link_offset = self.link_offset_id[lnk]
             if link_offset != lnk:
                 if is_perim_link(link_offset, self.grid):
-                    self.assign_new_link_state_and_transition(lnk, ca,
-                                                              current_time)
+                    pass  # TODO: FIX THIS
+#                    self.assign_new_link_state_and_transition(lnk, ca,
+#                                                              current_time)
                 else:
                     ca.link_state[lnk] = ca.link_state[link_offset]
                     ca.next_trn_id[lnk] = ca.next_trn_id[link_offset]

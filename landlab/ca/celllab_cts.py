@@ -145,12 +145,17 @@ if _USE_CYTHON:
     from .cfuncs import (update_link_states_and_transitions,
                          run_cts, run_cts_lean, PriorityQueue)
 
+# TODO:
+#   - REMOVE TEST CLAUSE (MAKE IT NORMAL BEHAVIOR)
+#   - REMOVE OBSOLUTE, UNUSED METHODS
+#   - RENAME "_new" METHODS (REMOVE THE "_new")
+#   - UPDATE CALLING SYNTAX IN CELLLAB_CTS AND FRIENDS
 if _CYTEST:
     from landlab.ca.cfuncs import (update_node_states,
                                    push_transitions_to_event_queue_new,
                                    do_transition_new,
                                    update_link_states_and_transitions_new,
-                                   run_cts_new)
+                                   run_cts_new, get_next_event_new)
 
 _NEVER = 1e50
 
