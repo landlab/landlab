@@ -1,33 +1,25 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 27 13:36:34 2018
 
-@author: njlyons
-"""
-
-fig, axes = plt.subplots(1, 1)
-
-l=plt.Line2D([0,0.5],[1,1],color='k')
-axes.add_line(l)
-
-l.set_ydata([2,2])
-#
-#l.get_xdata()
+from itertools import product
+import numpy as np
+from string import ascii_uppercase
 
 
+_clades = {}
 
-#l=plt.Line2D([0,0.5],[2,2],linewidth=1,markeredgecolor='k',markerfacecolor='k',linestyle='-')
-#axes.add_line(l)
+alphabet = list(ascii_uppercase)
 
-axes.set_xlim([0,5])
-axes.set_ylim([0,3])
+for i in range(26*3+26):
+    used_ids = list(_clades.keys())
+    potential_clade_name = np.setdiff1d(alphabet, used_ids)
 
+    size = 1
 
-n = '(((3:1000,4:1000)2:1000,(5:1000,6:1000)1:2000)0);'
+    while len(potential_clade_name) == 0:
+        a = product(ascii_uppercase, repeat=size)
+        a = [''.join(s) for s in a]
+        potential_clade_name = np.setdiff1d(a, used_ids)
+        size += 1
 
-for i, c in enumerate(n[::-1]):
-    if c == ')':
+    _clades[potential_clade_name[0]] = -1
 
-
-
+print(_clades)

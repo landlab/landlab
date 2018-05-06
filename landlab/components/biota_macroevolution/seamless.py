@@ -1,11 +1,13 @@
 """Simulate the macroevolution processes of species.
 
-Landlab component that tracks the species in a model domain.
+Landlab component that populates a model domain with species and evolves the
+species over time.
 
 Component written by Nathan Lyons beginning August 20, 2017.
 """
 
 from collections import OrderedDict
+from itertools import product
 from landlab import Component
 from landlab.components.biota_macroevolution import Record
 from landlab.core.messages import warning_message
@@ -197,7 +199,8 @@ class BiotaEvolver(Component):
         data = OrderedDict({'time_appeared': t, 'time_disappeared': np.nan,
                             'subtype': st, 'object': new_species})
         new_species_df = DataFrame(data, index=index)
-        self.species = self.species.append(new_species_df).unstack().stack()
+#        self.species = self.species.append(new_species_df).unstack().stack()
+        self.species = self.species.append(new_species_df)
 
     def _update_zones_data_frame(self, zones_at_time, time):
         z = self.zones
@@ -259,19 +262,22 @@ class BiotaEvolver(Component):
             self.record.loc[len(self.record), 'time'] = time
 
     def _get_unused_clade_id(self):
-        used_ids = list(self._clades.keys())
-
         alphabet = list(ascii_uppercase)
-        clade_id = np.setdiff1d(alphabet, used_ids)
+        used_ids = list(self._clades.keys())
+        potential_clade_name = np.setdiff1d(alphabet, used_ids)
 
-        duplicator = alphabet
-        while len(clade_id) == 0:
-           duplicator = np.core.defchararray.add(alphabet, duplicator)
-           clade_id = np.setdiff1d(duplicator, used_ids)
+        size = 1
+        while len(potential_clade_name) == 0:
+            a = product(ascii_uppercase, repeat=size)
+            a = [''.join(s) for s in a]
+            potential_clade_name = np.setdiff1d(a, used_ids)
+            size += 1
 
-        self._clades[clade_id[0]] = -1
+        clade_name = potential_clade_name[0]
 
-        return clade_id[0]
+        self._clades[clade_name] = -1
+
+        return clade_name
 
     def _get_unused_species_id(self, clade_id):
         self._clades[clade_id] += 1

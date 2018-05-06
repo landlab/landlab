@@ -86,6 +86,7 @@ class Species(object):
         # does not disperse to or remain in any zones.
 
         for v in zone_paths.itertuples():
+            print(v.path_type)
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
                 self.record.loc[time, 'zones'] = v.destinations
@@ -101,6 +102,9 @@ class Species(object):
                 for d in v.destinations:
                     child_species_d = Species(time, d, parent_species=self)
                     child_species.append(child_species_d)
+
+            elif v.path_type == Zone.ONE_TO_NONE:
+                output['species_persists'] = False
 
         # Output a unique array of child species.
         output['child_species'] = np.array(list(set(child_species)))

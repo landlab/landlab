@@ -214,4 +214,4 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
     axes.spines['left'].set_visible(False)
     axes.spines['right'].set_visible(False)
 
-#    return lines
+    return lines
