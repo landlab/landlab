@@ -224,7 +224,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # the nodes into a grid.
         super(HexModelGrid, self)._initialize(
             pts[:, 0], pts[:, 1], reorient_links)
-        
+
         # Handle special case of boundary nodes in rectangular grid shape.
         # One pair of edges will have the nodes staggered. By default, only the
         # outer nodes will be assigned boundary status; we need the inner edge
@@ -242,7 +242,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         One pair of edges will have the nodes staggered. By default, only the
         outer nodes will be assigned boundary status; we need the inner edge
         nodes on these "ragged" edges also to be flagged as boundary nodes.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -741,7 +741,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self._configure_hexplot(data, data_label, color_map)
         else:
             if self._hexplot_pc.cmap != color_map:
-                self._configure_hexplot(data, data_label, color_map)            
+                self._configure_hexplot(data, data_label, color_map)
 
         # Handle *data*: if it's a numpy array, then we consider it the
         # data to be plotted. If it's a string, we consider it the name of the
@@ -815,6 +815,72 @@ class HexModelGrid(VoronoiDelaunayGrid):
             return ans[0]
         else:
             return ans
+
+    def set_watershed_boundary_condition_outlet_id(self,
+                                                   outlet_id,
+                                                   node_data,
+                                                   nodata_value=-9999.):
+        """Set the boundary conditions for a watershed on a HexModelGrid.
+
+        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).
+        All nodes with data values are set to CORE_NODES (0), with the
+        exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
+
+        Note that the outer ring of the HexModelGrid is set to CLOSED_BOUNDARY, even
+        if there are nodes that have values.  The only exception to this would
+        be if the outlet node is on the boundary, which is acceptable.
+
+        Assumes that the id of the outlet is already known.
+
+        This assumes that the grid has a single watershed.  If this is not
+        the case this will not work.
+
+        Parameters
+        ----------
+        outlet_id : integer
+            id of the outlet node
+        node_data : ndarray
+            Data values.
+        nodata_value : float, optional
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+        The example will use a HexModelGrid with node data values
+        as illustrated:
+
+                1. ,  2. ,  3. ,  4. ,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+          0. ,  1. ,  2. ,  3. ,  4. ,  5.,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+                1. ,  2. ,  3. ,  4.
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> z = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z += hmg.x_of_node + 1.0
+
+        >>> hmg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+           1], dtype=uint8)
+
+        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(
+        ...          9, z, -9999.)
+        >>> hmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
+           4], dtype=uint8)
+
+        LLCATS: BC
+        """
+        # make ring of no data nodes
+        self.status_at_node[self.boundary_nodes] =  CLOSED_BOUNDARY
+        # set no data nodes to inactive boundaries
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+        # set the boundary condition (fixed value) at the outlet_node
+        self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+
+
+
 def from_dict(param_dict):
     """
     Create a HexModelGrid from the dictionary-like object, *param_dict*.
