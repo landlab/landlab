@@ -1233,7 +1233,8 @@ class CellLabCTSModel(object):
             Current time in simulation
         """
         if _DEBUG:
-            print('update_link_state_new() link ' + str(link) + ' to state ' + str(new_link_state) + ' at time ' + str(current_time))
+            print('update_link_state_new() link ' + str(link) + ' to state '
+                  + str(new_link_state) + ' at time ' + str(current_time))
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
@@ -1241,11 +1242,11 @@ class CellLabCTSModel(object):
             fns = self.node_state[self.grid.node_at_link_tail[link]]
             tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
-            new_link_state = orientation * self.num_node_states_sq + \
-                fns * self.num_node_states + tns
+            new_link_state = int(orientation * self.num_node_states_sq
+                                 + fns * self.num_node_states + tns)
 
         self.link_state[link] = new_link_state
-        if self.n_xn[new_link_state] > 0:
+        if self.n_trn[new_link_state] > 0:
             if _CYTEST:
                 (event_time, trn_id) = get_next_event_new(link,
                                                 new_link_state, 
@@ -1254,10 +1255,12 @@ class CellLabCTSModel(object):
                                                 self.trn_id,
                                                 self.trn_rate)
             else:
-                (event_time, trn_id) = self.get_next_event_new(link, new_link_state, current_time)
+                (event_time, trn_id) = self.get_next_event_new(link, 
+                                        new_link_state, current_time)
             self.priority_queue.push(link, event_time)
             if _DEBUG:
-                print('Pushed event at ' + str(link) + ' for time ' + str(event_time) + ' id ' + str(trn_id))
+                print('Pushed event at ' + str(link) + ' for time '
+                      + str(event_time) + ' id ' + str(trn_id))
             self.next_update[link] = event_time
             self.next_trn_id[link] = trn_id
         else:
