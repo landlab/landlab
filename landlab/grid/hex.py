@@ -11,6 +11,8 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 import six
 
+from .base import (CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE,
+                   CORE_NODE)
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from .decorators import return_readonly_id_array
 
@@ -757,7 +759,62 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         return ax
 
+    def node_has_boundary_neighbor(self, ids):
+        """Check if HexModelGrid nodes have neighbors that are boundary nodes.
 
+        Parameters
+        ----------
+        mg : HexModelGrid
+            Source grid
+        node_id : int
+            ID of node to test.
+
+        Returns
+        -------
+        boolean
+            ``True`` if node has a neighbor on the boundary, ``False`` otherwise.
+
+
+        Checks to see if one of the eight neighbor nodes of node(s) with
+        *id* has a boundary node.  Returns True if a node has a boundary node,
+        False if all neighbors are interior.
+
+                0,  1,  2,  3,
+              4,  5,  6,  7,  8,
+            9, 10,  11, 12, 13, 14,
+              15, 16, 17, 18, 19,
+                20, 21, 22, 23
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> hmg.node_has_boundary_neighbor(6)
+        True
+        >>> hmg.node_has_boundary_neighbor(12)
+        False
+        >>> hmg.node_has_boundary_neighbor([12, 0])
+        [False, True]
+
+        LLCATS: NINF CONN BC
+        """
+        ans = []
+        for i in numpy.atleast_1d(numpy.asarray(ids)):
+            neighbors = self.adjacent_nodes_at_node[i]
+            real_neighbors = neighbors[neighbors != BAD_INDEX_VALUE]
+            if real_neighbors.size == 0:
+                ans.append(True)
+            else:
+                neighbor_status = self.status_at_node[real_neighbors].astype(bool)
+                if numpy.any(neighbor_status != CORE_NODE):
+                    ans.append(True)
+                else:
+                    ans.append(False)
+
+        if len(ans) == 1:
+            return ans[0]
+        else:
+            return ans
 def from_dict(param_dict):
     """
     Create a HexModelGrid from the dictionary-like object, *param_dict*.
