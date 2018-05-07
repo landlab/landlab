@@ -13,6 +13,7 @@ import six
 
 from .base import (CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE,
                    CORE_NODE)
+from ..core.utils import as_id_array
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from .decorators import return_readonly_id_array
 
@@ -879,7 +880,134 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
+    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
+                                         return_outlet_id=False):
+        """
+        Finds the node adjacent to a boundary node with the smallest value.
+        This node is set as the outlet.  The outlet node must have a data
+        value.  Can return the outlet id as a one element numpy array if
+        return_outlet_id is set to True.
 
+        All nodes with nodata_value are set to CLOSED_BOUNDARY
+        (grid.status_at_node == 4). All nodes with data values are set to
+        CORE_NODES (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+
+        Note that the outer ring (perimeter) of the grid is set to
+        CLOSED_BOUNDARY, even if there are nodes that have values. The only
+        exception to this would be if the outlet node is on the perimeter, which
+        is acceptable.
+
+        This routine assumes that all of the nodata_values are on the outside of
+        the data values. In other words, there are no islands of nodata_values
+        surrounded by nodes with data.
+
+        This also assumes that the grid has a single watershed (that is a single
+        outlet node).
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float, optional
+            Value that indicates an invalid value.
+        return_outlet_id : boolean, optional
+            Indicates whether or not to return the id of the found outlet
+
+        Examples
+        --------
+        The example will use a HexModelGrid with node data values
+        as illustrated:
+
+                1. ,  2. ,  3. ,  4. ,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+          0. ,  1. ,  2. ,  3. ,  4. ,  5.,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+                1. ,  2. ,  3. ,  4.
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> z = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z += hmg.x_of_node + 1.0
+        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999.,
+        ...                                               True)
+        >>> out_id
+        array([9])
+        >>> hmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
+           4], dtype=uint8)
+
+        LLCATS: BC
+        """
+        # make ring of no data nodes
+        self.status_at_node[self.boundary_nodes] =  CLOSED_BOUNDARY
+
+        # set no data nodes to inactive boundaries
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
+        #locs is a list that contains locations where
+        #node data is not equal to the nodata value
+        locs = numpy.where(node_data != nodata_value)
+        if len(locs) < 1:
+            raise ValueError('All data values are no_data values')
+
+        # now find minimum of the data values
+        min_val = numpy.min(node_data[locs])
+
+        # now find where minimum values are
+        min_locs = numpy.where(node_data == min_val)[0]
+
+        # check all the locations with the minimum value to see if one
+        not_found = True
+        while not_found:
+            # now check the min locations to see if any are next to
+            # a boundary node
+            local_not_found = True
+            next_to_boundary=[]
+
+            # check all nodes rather than selecting the first node that meets
+            # the criteria
+            for i in range(len(min_locs)):
+                next_to_boundary.append(self.node_has_boundary_neighbor(min_locs[i]))
+
+            # if any of those nodes were adjacent to the boundary, check
+            #that  there is only one. If only one, set as outlet loc, else,
+            # raise a value error
+            if any(next_to_boundary):
+                local_not_found = False
+                if sum(next_to_boundary)>1:
+                    potential_locs = min_locs[numpy.where(numpy.asarray(next_to_boundary))[0]]
+                    raise ValueError(('Grid has two potential outlet nodes.'
+                                      'They have the following node IDs: \n'+str(potential_locs)+
+                                     '\nUse the method set_watershed_boundary_condition_outlet_id '
+                                     'to explicitly select one of these '
+                                     'IDs as the outlet node.'
+                                     ))
+                else:
+                    outlet_loc = min_locs[numpy.where(next_to_boundary)[0][0]]
+
+            # checked all of the min vals, (so done with inner while)
+            # and none of the min values were outlet candidates
+            if local_not_found:
+                # need to find the next largest minimum value
+                # first find the locations of all values greater
+                # than the old minimum
+                # not done with outer while
+                locs = numpy.where((node_data > min_val) &
+                                (node_data != nodata_value))
+                # now find new minimum of these values
+                min_val = numpy.min(node_data[locs])
+                min_locs = numpy.where(node_data == min_val)[0]
+            else:
+                # if locally found, it is also globally found
+                # so done with outer while
+                not_found = False
+
+        # set outlet boundary condition
+        self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
+
+        if return_outlet_id:
+            return as_id_array(numpy.array([outlet_loc]))
 
 def from_dict(param_dict):
     """
