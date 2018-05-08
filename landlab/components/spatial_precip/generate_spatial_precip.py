@@ -46,6 +46,15 @@ class SpatialPrecipitationDistribution(Component):
     stochastically generated total. You can access the actual total for the
     last season using the property `(median_)total_rainfall_last_season`.
 
+    The component offers the option to modify the maximum number of storms
+    simulated per year. If you find simulations encountering this limit too
+    often, you may need to raise this limit. Conversely, it could be lowered
+    to reduce memory usage over small grids. However, in increasing the value,
+    beware - the component maintains two limit*nnodes arrays, which will chew
+    through memory if the limit gets too high. The default will happily
+    simulate grids up to around 50 km * 50 km using the default probability
+    distributions.
+
     Key methods are:
     yield_storms
         Generate a timeseries of storm:interstorm duration pairs, alongside
@@ -98,7 +107,7 @@ class SpatialPrecipitationDistribution(Component):
     - Step changes mid-run cannot be explicitly modelled. Instead, run the
         component for a fixed duration, make the change to the
         distribution input parameter, then run it again.
-    - Storms can be centred at any grid element, not just over nodes.
+    - Storms can be centred at any spatial coordinate, not just over nodes.
     - Edge buffering is now dynamic; i.e., big storms have a bigger edge
         buffer than smaller storms. Storms can be centered off the grid
         edges.
@@ -259,7 +268,8 @@ class SpatialPrecipitationDistribution(Component):
             'Depth of water delivered in total in each model year',
     }
 
-    def __init__(self, grid, number_of_years=1, orographic_scenario=None):
+    def __init__(self, grid, number_of_years=1, orographic_scenario=None,
+                 max_numstorms=5000):
         """Create the SpatialPrecipitationDistribution generator component.
 
         Parameters
@@ -280,7 +290,7 @@ class SpatialPrecipitationDistribution(Component):
         self._temp_dataslots2 = np.zeros(gaugecount, dtype='float')
         self._numyrs = number_of_years
 
-        self._max_numstorms = 5000
+        self._max_numstorms = max_numstorms
         # This is for initializing matrices. Trailing zeros are deleted from
         # matrixes at the end of the code.
 
@@ -1458,9 +1468,9 @@ if __name__ == "__main__":
     from landlab.plot import imshow_grid_at_node
     from matplotlib.pyplot import show
 
-    nx = 40
-    ny = 40
-    dx = 250.
+    nx = 50
+    ny = 50
+    dx = 1000.
     mg = RasterModelGrid((nx, ny), dx)
     # closed_nodes = np.zeros((nx, ny), dtype=bool)
     # closed_nodes[:, :10] = True
@@ -1476,7 +1486,7 @@ if __name__ == "__main__":
     count = 0
     total_t = 0.
     for dt, interval_t in rain.yield_storms(style='whole_year',
-                                            limit='total_time'):
+                                            limit='total_rainfall'):
         count += 1
         total_t += dt + interval_t
         # print(rain.median_total_rainfall_this_year)
