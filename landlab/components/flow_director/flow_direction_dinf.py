@@ -11,7 +11,7 @@ KRB Feb 2017
 """
 
 from landlab.core.utils import as_id_array
-from landlab.utils.return_array import _return_array_at_node
+from landlab.utils.return_array import return_array_at_node
 from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 from landlab import VoronoiDelaunayGrid  # for type tests
@@ -109,7 +109,7 @@ def flow_directions_dinf(grid,
         raise NotImplementedError('Dinfinity is currently implemented for'
                                   ' Raster grids only')
     # get elevs
-    elevs = _return_array_at_node(grid, elevs)
+    elevs = return_array_at_node(grid, elevs)
 
     ### Step 1, some basic set-up, gathering information about the grid.
 

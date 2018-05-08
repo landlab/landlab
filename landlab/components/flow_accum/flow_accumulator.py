@@ -16,7 +16,7 @@ import warnings
 
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
-from landlab.utils.return_array import _return_array_at_node
+from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
 
 from landlab.components.flow_accum import flow_accum_bw
@@ -619,7 +619,7 @@ class FlowAccumulator(Component):
 
         # save elevations and node_cell_area to class properites.
         self.surface = surface
-        self.surface_values = _return_array_at_node(grid, surface)
+        self.surface_values = return_array_at_node(grid, surface)
 
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
@@ -715,7 +715,7 @@ class FlowAccumulator(Component):
                 # should be set to one everywhere.
                 grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
-                runoff_rate = _return_array_at_node(grid, runoff_rate)
+                runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node['water__unit_flux_in'] = runoff_rate
         else:
             if runoff_rate is not None:
@@ -723,7 +723,7 @@ class FlowAccumulator(Component):
                        "'water__unit_flux_in' and a provided float or " +
                        "array for the runoff_rate argument. THE FIELD IS " +
                        "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                runoff_rate = _return_array_at_node(grid, runoff_rate)
+                runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node['water__unit_flux_in'] = runoff_rate
 
         # perform a test (for politeness!) that the old name for the water_in

@@ -8,7 +8,7 @@ component does not make any attempt to advect topography laterally.
 
 import numpy as np
 from landlab import Component, FieldError
-from landlab.utils.return_array import _return_array_at_node
+from landlab.utils.return_array import return_array_at_node
 
 
 TWO_PI = 2.0*np.pi
@@ -202,11 +202,11 @@ class NormalFault(Component):
             # surfaces and save
             for surf in faulted_surface:
                 try:
-                    self.surfaces[surf] = (_return_array_at_node(grid, surf))
+                    self.surfaces[surf] = (return_array_at_node(grid, surf))
                 except FieldError:
                     self._not_yet_instantiated.append(surf)
         else:
-            self.surfaces[faulted_surface] = (_return_array_at_node(grid, faulted_surface))
+            self.surfaces[faulted_surface] = (return_array_at_node(grid, faulted_surface))
 
         if fault_dip_angle > 90.0:
             raise ValueError('NormaFault fault_dip_angle must be less than 90 '
@@ -276,7 +276,7 @@ class NormalFault(Component):
             still_not_instantiated = []
             for surf in self._not_yet_instantiated:
                 if surf in self._grid.at_node:
-                    self.surfaces[surf] = (_return_array_at_node(self._grid, surf))
+                    self.surfaces[surf] = (return_array_at_node(self._grid, surf))
                 else:
                     still_not_instantiated.append(surf)
             self._not_yet_instantiated = still_not_instantiated
