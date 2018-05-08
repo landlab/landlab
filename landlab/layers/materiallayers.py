@@ -10,6 +10,68 @@ from landlab.layers.eventlayers import (EventLayers,
                                         _get_surface_index)
 
 
+def _just_erode(layers, n_layers, dz):
+    """Update the array that contains layers with erosion.
+
+    This function operates on the entire array that contain the layers (active,
+    and allocated but not yet active). In this function, no new layer is added 
+    if only erosion Toccurs, Thus, unlike the ``_deposit_or_erode`` function, 
+    a new layer is not being added. The row with the index ``n_layers`` is the 
+    layer that is currently being added as an active
+    layer.
+
+
+    Parameters
+    ----------
+    layers : ndarray of shape `(n_layers, n_nodes)`
+        Array of layer thicknesses. This array is the datastructure that
+        contains all allocated layers, active or inactive.
+    n_layers : int
+        Number of active layers.
+    dz : ndarray of shape `(n_nodes, )`
+        Thickness of the new layer. Negative thicknesses mean
+        erode the top-most layers.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.layers.materiallayers import _just_erode
+
+    First we create a numpy array allocated to contain layers. We fill it with
+    -1. These -1.'s do not represent negative layer thickness. In EventLayers
+    this array is created with np.empty, but that creates different numbers
+    every time and doesn't work for testing.
+
+    >>> allocated_layers_array = np.full((4, 3), 1.)
+
+    Next we add a layer with spatially variable thickness. We specify that the
+    number of active layers (including the one being added) is 1.
+
+    >>> dz = np.array([-0., -1., -2.])
+    >>> _just_erode(allocated_layers_array, 4, dz)
+    >>> allocated_layers_array
+    array([[ 1.,  1.,  1.],
+           [ 1.,  1.,  1.],
+           [ 1.,  1.,  0.],
+           [ 1.,  0.,  0.]])
+    """
+    from .ext.materiallayers import just_erode 
+
+    layers = layers.reshape((layers.shape[0], -1))
+    try:
+        dz = dz.reshape((layers.shape[1], ))
+
+    except (AttributeError, ValueError):
+        dz = np.broadcast_to(dz, (layers.shape[1], ))
+    finally:
+        dz = np.asfarray(dz)
+
+    just_erode(layers, n_layers, dz)
+
+
+
+
+
 class MaterialLayersMixIn(object):
 
     """MixIn that adds a MaterialLayers attribute to a ModelGrid."""
@@ -190,7 +252,7 @@ class MaterialLayers(EventLayers):
         >>> layers['size']
         array([['sand', 'sand', 'sand'],
                ['sand', 'sand', 'sand']],
-          dtype='<U4')
+              dtype='<U4')
 
         Attributes for each layer will exist even if part the the layer is
         associated with erosion.
@@ -225,7 +287,7 @@ class MaterialLayers(EventLayers):
         >>> layers['size']
         array([['sand', 'sand', 'sand'],
                ['sand', 'sand', 'sand']],
-               dtype='<U4')
+              dtype='<U4')
         >>> layers.number_of_layers
         2
 
@@ -345,7 +407,7 @@ class MaterialLayers(EventLayers):
 
     def _erode(self, dz):
         """Erode MaterialLayers without adding a new layer"""
-        _deposit_or_erode(self._attrs['_dz'], self.number_of_layers+1, dz)
-        _get_surface_index(self._attrs['_dz'], self.number_of_layers+1, self._surface_index)
+        _just_erode(self._attrs['_dz'], self.number_of_layers, dz)
+        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
         if np.all((self._surface_index + 1) < self.number_of_layers):
             self._number_of_layers = np.max(self._surface_index) + 1
