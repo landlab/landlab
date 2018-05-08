@@ -1470,7 +1470,7 @@ if __name__ == "__main__":
 
     nx = 50
     ny = 50
-    dx = 1000.
+    dx = 500.
     mg = RasterModelGrid((nx, ny), dx)
     # closed_nodes = np.zeros((nx, ny), dtype=bool)
     # closed_nodes[:, :10] = True
@@ -1486,7 +1486,7 @@ if __name__ == "__main__":
     count = 0
     total_t = 0.
     for dt, interval_t in rain.yield_storms(style='whole_year',
-                                            limit='total_rainfall'):
+                                            limit='total_time'):
         count += 1
         total_t += dt + interval_t
         # print(rain.median_total_rainfall_this_year)
