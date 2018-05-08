@@ -930,15 +930,6 @@ class SpatialPrecipitationDistribution(Component):
                     # This is the pdf fitted to all available station precip
                     # data (normal dist). It will be sampled below.
                     Ptot_pdf_norm = monsoon_total_rf_gaussian
-                    # This step change case can now be handled direct from
-                    # input flags
-                    # if self._ptot_scenario == 'ptot+':
-                    #     Ptot_pdf_norm = {'sigma': 64., 'mu': 271.}
-                    # elif self._ptot_scenario == 'ptot-':
-                    #     Ptot_pdf_norm = {'sigma': 64., 'mu': 143.}
-                    # else:
-                    #     Ptot_pdf_norm = {'sigma': 64., 'mu': 207.}
-                    # the trending cases need to be handled in the loop
 
                     # This is the pdf fitted to all available station duration
                     # data (GEV dist). It will be sampled below.
