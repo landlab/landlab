@@ -141,7 +141,7 @@ class LithoLayers(Lithology):
 
         >>> lith['K_sp']
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
-            0.001 ,  0.0001])
+                0.001 ,  0.0001])
         """
         self._grid = grid
 
