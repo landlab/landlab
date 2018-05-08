@@ -17,7 +17,7 @@ Created on Mon Nov 17 08:01:49 2014
 @author: gtucker
 """
 
-from landlab import HexModelGrid
+from landlab import HexModelGrid, ACTIVE_LINK
 from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, tan, cos, pi)
@@ -244,8 +244,10 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                        fault_x_intercept))
         
         # Set up array of link offsets: when slip occurs, what link's data get
-        # copied into the present link?
+        # copied into the present link? Which links get cut by fault plane and
+        # need to have their states reset?
         self.setup_link_offsets(in_footwall)
+        self.make_list_of_fault_crossing_links(in_footwall)
 
         # Helpful to have an array of node IDs for the bottom full row. Because
         # the nodes in the bottom row are staggered in a vertical, rectangular
@@ -437,6 +439,34 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                         offset -= 1
                 self.link_offset_id[ln] = ln - offset
 
+    def make_list_of_fault_crossing_links(self, in_footwall):
+        """Make and store array with indices of links cut by fault.
+
+        Examples
+        --------
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab import HexModelGrid
+        >>> pid = np.arange(16, dtype=int)
+        >>> pdata = np.arange(16)
+        >>> ns = np.arange(16, dtype=int)
+        >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect')
+        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
+        >>> lnf.fault_crossing_links
+        array([ 9, 12, 17, 22, 25])
+        """
+        fault_crossing_links = []
+        for lnk in range(self.grid.number_of_links):
+            if self.grid.status_at_link[lnk] == ACTIVE_LINK:
+                tail = self.grid.node_at_link_tail[lnk]
+                head = self.grid.node_at_link_head[lnk]
+
+                # If one node is in the footwall and the other isn't
+                #if (in_footwall[tail] + in_footwall[head]) == 1:
+                if ((in_footwall[tail] and not in_footwall[head])
+                    or (in_footwall[head] and not in_footwall[tail])):
+                    fault_crossing_links.append(lnk)
+
+        self.fault_crossing_links = np.array(fault_crossing_links, dtype=int)
 
     def assign_new_link_state_and_transition(self, link, ca, current_time):
         """Update state and schedule new transition for given link"""
@@ -481,9 +511,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> ohcts.link_state[:16]
         array([ 0,  0,  0,  0,  0,  3,  0,  7, 11,  3,  0,  7, 11,  7,  0,  2])
         """
-        #TODO: COMPLETE THE ABOVE TEST(s); MAKE SURE BOUNDARIES ARE HANDLED
-        #PROPERLY
+        #TODO: 
         # HANDLE LINKS CROSSED BY FAULT PLANE
+        #  - in init, create array of IDs of links with one node in footwall
+        #    and one not
+        #  - loop through this list, calling assign_...
+        # CALL THIS FROM DO_OFFSET
         num_links = self.grid.number_of_links
         for lnk in range(num_links - 1, self.first_link_for_shift - 1, -1):
             link_offset = self.link_offset_id[lnk]
