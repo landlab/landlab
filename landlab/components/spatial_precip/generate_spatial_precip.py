@@ -46,6 +46,13 @@ class SpatialPrecipitationDistribution(Component):
     stochastically generated total. You can access the actual total for the
     last season using the property `(median_)total_rainfall_last_season`.
 
+    Note that this component cannot simulate the occurrence of more than one
+    storm at the same time. Storms that should be synchronous will instead
+    occur sequentially, with no interstorm time. This limitation means that
+    if enough storms occur in a year that numstorms*mean_storm_duration
+    exceeds one year, the number of simulated storms will saturate. This
+    limitation may be relaxed in the future.
+
     The component offers the option to modify the maximum number of storms
     simulated per year. If you find simulations encountering this limit too
     often, you may need to raise this limit. Conversely, it could be lowered
@@ -315,6 +322,8 @@ class SpatialPrecipitationDistribution(Component):
         self._running_total_rainfall_this_year = self.grid.zeros('node')
         self._running_total_rainfall_this_season = self.grid.zeros('node')
 
+        self._open_area = self.grid.cell_area_at_node[open_nodes].sum()
+
     def yield_storms(self, limit='total_time', style='whole_year',
                      total_rf_trend=0., storminess_trend=0.,
                      monsoon_fraction_of_year=0.42,
@@ -322,13 +331,13 @@ class SpatialPrecipitationDistribution(Component):
                          'sigma': 64., 'mu': 207.},
                      monsoon_storm_duration_GEV={
                          'shape': -0.570252, 'sigma': 35.7389, 'mu': 34.1409,
-                         'trunc_interval': (1., 1040.)},
+                         'trunc_interval': (0., 1040.)},
                      monsoon_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
                      monsoon_storm_interarrival_GEV={
-                         'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
-                         'trunc_interval': (0., 120.)},
+                         'shape': -0.807971, 'sigma': 1.40304e9,
+                         'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                      monsoon_storm_radial_weakening_gaussian={
                          'sigma': 0.08, 'mu': 0.25,
                          'trunc_interval': (0.15, 0.67)},
@@ -336,13 +345,13 @@ class SpatialPrecipitationDistribution(Component):
                          'sigma': 52., 'mu': 1.65},
                      winter_storm_duration_fisk={
                          'c': 1.0821, 'scale': 68.4703,
-                         'trunc_interval': (1., 5000.)},
+                         'trunc_interval': (0., 5000.)},
                      winter_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
                      winter_storm_interarrival_GEV={
-                         'shape': 1.1131, 'sigma': 53.2671, 'mu': 47.4944,
-                         'trunc_interval': (1., 720.)},
+                         'shape': 1.1131, 'sigma': 7.87044e9,
+                         'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                      winter_storm_radial_weakening_gaussian={
                          'sigma': 0.08, 'mu': 0.25,
                          'trunc_interval': (0.15, 0.67)}):
@@ -395,7 +404,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -413,7 +423,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -461,8 +472,8 @@ class SpatialPrecipitationDistribution(Component):
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
                     monsoon_storm_interarrival_GEV={
-                        'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
-                        'trunc_interval': (0., 120.)},
+                        'shape': -0.807971, 'sigma': 1.40304e9,
+                        'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                     monsoon_storm_radial_weakening_gaussian={
                         'sigma': 0.08, 'mu': 0.25,
                         'trunc_interval': (0.15, 0.67)},
@@ -475,8 +486,8 @@ class SpatialPrecipitationDistribution(Component):
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
                     winter_storm_interarrival_GEV={
-                        'shape': 1.1131, 'sigma': 53.2671, 'mu': 47.4944,
-                        'trunc_interval': (1., 720.)},
+                        'shape': 1.1131, 'sigma': 7.87044e9,
+                        'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                     winter_storm_radial_weakening_gaussian={
                         'sigma': 0.08, 'mu': 0.25,
                         'trunc_interval': (0.15, 0.67)}):
@@ -529,7 +540,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -547,7 +559,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -592,8 +605,8 @@ class SpatialPrecipitationDistribution(Component):
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
                       monsoon_storm_interarrival_GEV={
-                          'shape': -0.807971, 'sigma': 9.49574, 'mu': 10.6108,
-                          'trunc_interval': (0., 120.)},
+                          'shape': -0.807971, 'sigma': 1.40304e9,
+                          'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                       monsoon_storm_radial_weakening_gaussian={
                           'sigma': 0.08, 'mu': 0.25,
                           'trunc_interval': (0.15, 0.67)},
@@ -606,8 +619,8 @@ class SpatialPrecipitationDistribution(Component):
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
                       winter_storm_interarrival_GEV={
-                          'shape': 1.1131, 'sigma': 53.2671, 'mu': 47.4944,
-                          'trunc_interval': (1., 720.)},
+                          'shape': 1.1131, 'sigma': 7.87044e9,
+                          'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                       winter_storm_radial_weakening_gaussian={
                           'sigma': 0.08, 'mu': 0.25,
                           'trunc_interval': (0.15, 0.67)}):
@@ -661,7 +674,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -679,7 +693,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -729,8 +744,8 @@ class SpatialPrecipitationDistribution(Component):
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
                          monsoon_storm_interarrival_GEV={
-                             'shape': -0.807971, 'sigma': 9.49574,
-                             'mu': 10.6108, 'trunc_interval': (0., 120.)},
+                             'shape': -0.807971, 'sigma': 1.40304e9,
+                             'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                          monsoon_storm_radial_weakening_gaussian={
                              'sigma': 0.08, 'mu': 0.25,
                              'trunc_interval': (0.15, 0.67)},
@@ -744,8 +759,8 @@ class SpatialPrecipitationDistribution(Component):
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
                          winter_storm_interarrival_GEV={
-                             'shape': 1.1131, 'sigma': 53.2671, 'mu': 47.4944,
-                             'trunc_interval': (1., 720.)},
+                             'shape': 1.1131, 'sigma': 7.87044e9,
+                             'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                          winter_storm_radial_weakening_gaussian={
                              'sigma': 0.08, 'mu': 0.25,
                              'trunc_interval': (0.15, 0.67)}):
@@ -782,7 +797,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -799,7 +815,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS.
+            In HRS * M**2. i.e., a bigger catchment will have a shorter
+            interstorm duration.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -981,6 +998,7 @@ class SpatialPrecipitationDistribution(Component):
                         # ...just in case
                         if int_arr_val < 0.:
                             int_arr_val = 0.
+                    int_arr_val /= self._open_area
                     self._int_arr_val = int_arr_val
                     # ^Samples from distribution of interarrival times (hr).
                     # This can be used to develop STORM output for use in
@@ -1109,7 +1127,7 @@ class SpatialPrecipitationDistribution(Component):
                     intensity_val = (lambda_[int_dur_curve_val] *
                                      np.exp(-0.508 * duration_val) +
                                      kappa[int_dur_curve_val] *
-                                     np.exp(-0.008*duration_val) +
+                                     np.exp(-0.008 * duration_val) +
                                      C[int_dur_curve_val])
                     # ...these curves are based on empirical data from WG
 
@@ -1468,9 +1486,9 @@ if __name__ == "__main__":
     from landlab.plot import imshow_grid_at_node
     from matplotlib.pyplot import show
 
-    nx = 50
-    ny = 50
-    dx = 500.
+    nx = 17
+    ny = 8
+    dx = 1000.
     mg = RasterModelGrid((nx, ny), dx)
     # closed_nodes = np.zeros((nx, ny), dtype=bool)
     # closed_nodes[:, :10] = True
@@ -1482,31 +1500,31 @@ if __name__ == "__main__":
 
     z = mg.add_zeros('node', 'topographic__elevation')
     z += 1400.
-    rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
+    rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
     count = 0
     total_t = 0.
     for dt, interval_t in rain.yield_storms(style='whole_year',
                                             limit='total_time'):
         count += 1
         total_t += dt + interval_t
-        # print(rain.median_total_rainfall_this_year)
-        if count % 50 == 0:
+        print(dt, interval_t)
+        if count % 100 == 0:
             # imshow_grid_at_node(mg, rain.total_rainfall_this_year,
             #                     cmap='Blues')
             print('Season:', rain.current_season, 'of yr', rain.current_year)
             print('Current storm:', count)
-            print('MEANS')
-            print(rain.total_rainfall_this_season[rain._opennodes].mean())
-            print(rain.total_rainfall_last_season[rain._opennodes].mean())
-            print(rain.total_rainfall_this_year[rain._opennodes].mean())
-            print(rain.total_rainfall_last_year[rain._opennodes].mean())
-            print('-----')
-            print('MEDIANS')
-            print(rain.median_total_rainfall_this_season)
-            print(rain.median_total_rainfall_last_season)
-            print(rain.median_total_rainfall_this_year)
-            print(rain.median_total_rainfall_last_year)
-            print('*****')
+            # print('MEANS')
+            # print(rain.total_rainfall_this_season[rain._opennodes].mean())
+            # print(rain.total_rainfall_last_season[rain._opennodes].mean())
+            # print(rain.total_rainfall_this_year[rain._opennodes].mean())
+            # print(rain.total_rainfall_last_year[rain._opennodes].mean())
+            # print('-----')
+            # print('MEDIANS')
+            # print(rain.median_total_rainfall_this_season)
+            # print(rain.median_total_rainfall_last_season)
+            # print(rain.median_total_rainfall_this_year)
+            # print(rain.median_total_rainfall_last_year)
+            # print('*****')
             show()
     print("Effective total years:")
     print(total_t/24./365.)
