@@ -185,6 +185,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
@@ -512,10 +513,6 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         array([ 0,  0,  0,  0,  0,  3,  0,  7, 11,  3,  0,  7, 11,  7,  0,  2])
         """
         #TODO: 
-        # HANDLE LINKS CROSSED BY FAULT PLANE
-        #  - in init, create array of IDs of links with one node in footwall
-        #    and one not
-        #  - loop through this list, calling assign_...
         # CALL THIS FROM DO_OFFSET
         num_links = self.grid.number_of_links
         for lnk in range(num_links - 1, self.first_link_for_shift - 1, -1):
@@ -529,7 +526,10 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                     ca.next_trn_id[lnk] = ca.next_trn_id[link_offset]
                     ca.next_update[lnk] = ca.next_update[link_offset]
 
-    def do_offset(self, rock_state=1):
+        for lnk in self.fault_crossing_links:
+            self.assign_new_link_state_and_transition(lnk, ca, current_time)
+
+    def do_offset(self, ca=None, current_time=0.0, rock_state=1):
         """Apply 60-degree normal-fault offset.
 
         Offset is applied to a hexagonal grid with vertical node orientation
@@ -545,10 +545,14 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> import numpy as np
         >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
         >>> from landlab import HexModelGrid
+        >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
+        >>> from landlab.ca.celllab_cts import Transition
+
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
         >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> nsd = {0 : 'yes', 1 : 'no'}
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.do_offset(rock_state=25)
         >>> ns
@@ -610,6 +614,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
         if self.first_fw_col==0:
             self.node_state[:self.n_footwall_rows[0]] = rock_state
+
+        if ca is not None:
+            self.shift_link_states()
 
 
 class LatticeUplifter(HexLatticeTectonicizer):
