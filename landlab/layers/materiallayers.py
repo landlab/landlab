@@ -5,71 +5,8 @@ import sys
 
 import numpy as np
 
-from landlab.layers.eventlayers import (EventLayers,
-                                        _deposit_or_erode,
+from landlab.layers.eventlayers import (EventLayers, _deposit_or_erode,
                                         _get_surface_index)
-
-
-def _just_erode(layers, n_layers, dz):
-    """Update the array that contains layers with erosion.
-
-    This function operates on the entire array that contain the layers (active,
-    and allocated but not yet active). In this function, no new layer is added 
-    if only erosion Toccurs, Thus, unlike the ``_deposit_or_erode`` function, 
-    a new layer is not being added. The row with the index ``n_layers`` is the 
-    layer that is currently being added as an active
-    layer.
-
-
-    Parameters
-    ----------
-    layers : ndarray of shape `(n_layers, n_nodes)`
-        Array of layer thicknesses. This array is the datastructure that
-        contains all allocated layers, active or inactive.
-    n_layers : int
-        Number of active layers.
-    dz : ndarray of shape `(n_nodes, )`
-        Thickness of the new layer. Negative thicknesses mean
-        erode the top-most layers.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.layers.materiallayers import _just_erode
-
-    First we create a numpy array allocated to contain layers. We fill it with
-    -1. These -1.'s do not represent negative layer thickness. In EventLayers
-    this array is created with np.empty, but that creates different numbers
-    every time and doesn't work for testing.
-
-    >>> allocated_layers_array = np.full((4, 3), 1.)
-
-    Next we add a layer with spatially variable thickness. We specify that the
-    number of active layers (including the one being added) is 1.
-
-    >>> dz = np.array([-0., -1., -2.])
-    >>> _just_erode(allocated_layers_array, 4, dz)
-    >>> allocated_layers_array
-    array([[ 1.,  1.,  1.],
-           [ 1.,  1.,  1.],
-           [ 1.,  1.,  0.],
-           [ 1.,  0.,  0.]])
-    """
-    from .ext.materiallayers import just_erode 
-
-    layers = layers.reshape((layers.shape[0], -1))
-    try:
-        dz = dz.reshape((layers.shape[1], ))
-
-    except (AttributeError, ValueError):
-        dz = np.broadcast_to(dz, (layers.shape[1], ))
-    finally:
-        dz = np.asfarray(dz)
-
-    just_erode(layers, n_layers, dz)
-
-
-
 
 
 class MaterialLayersMixIn(object):
@@ -167,9 +104,6 @@ class MaterialLayers(EventLayers):
     behaves if material properties are also tracked.
     """
 
-    def __init__(self, number_of_stacks, allocated=0):
-        super(MaterialLayers, self).__init__(number_of_stacks, allocated=allocated)
-
     def add(self, dz, **kwds):
         """Add a layer to the  MaterialLayers stacks.
 
@@ -249,7 +183,10 @@ class MaterialLayers(EventLayers):
         >>> layers['type']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
-        >>> layers['size']
+        >>> np.all(layers['size'] == [['sand', 'sand', 'sand'],
+        ...                           ['sand', 'sand', 'sand']])
+        True
+
         array([['sand', 'sand', 'sand'],
                ['sand', 'sand', 'sand']],
               dtype='<U4')
@@ -284,10 +221,9 @@ class MaterialLayers(EventLayers):
         >>> layers['type']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
-        >>> layers['size']
-        array([['sand', 'sand', 'sand'],
-               ['sand', 'sand', 'sand']],
-              dtype='<U4')
+        >>> np.all(layers['size'] == [['sand', 'sand', 'sand'],
+        ...                           ['sand', 'sand', 'sand']])
+        True
         >>> layers.number_of_layers
         2
 
@@ -297,9 +233,8 @@ class MaterialLayers(EventLayers):
 
         >>> layers.get_surface_values('type')
         array([ 3.,  6.,  6.])
-        >>> layers.get_surface_values('size')
-        array(['sand', 'sand', 'sand'],
-              dtype='<U4')
+        >>> np.all(layers.get_surface_values('size') == ['sand', 'sand', 'sand'])
+        True
 
         Since the surface has different types, adding material will create a
         new layer.
@@ -332,82 +267,51 @@ class MaterialLayers(EventLayers):
         >>> layers.number_of_layers
         3
         """
+        dz = np.asarray(dz)
+
         if self.number_of_layers == 0:
             self._setup_layers(**kwds)
 
-        # if deposition will occur
-        if np.any(np.asarray(dz)>0.0):
+        compatible = self.number_of_layers > 0 and self.is_compatible(dz, **kwds)
 
-            # check if the deposit can be combined with the current surface
-            # deposit.
+        if not compatible:
+            self._add_empty_layer()
 
-            # short circuit this if no layers exist yet.
-            if self.number_of_layers == 0:
-                #print('first deposit!')
-                compatible = False
-            else:
-                # start by getting the current surface index.
-                compatible = True
-                _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
-                #print(self._surface_index)
-                # for each type stored attribute, check if the current surface
-                # value and the new value are the same. Once one value is
-                # incompatible, break and consider incompatible.
-                for name in kwds:
-                    current_surface_values = self[name][self._surface_index,
-                                                        np.arange(self._number_of_stacks)]
-                    new_layer_values = kwds[name]
-                    if np.array_equiv(current_surface_values, new_layer_values):
-                        pass
-                    else:
-                        compatible = False
-                        break
-            # if the layers are compatible, just increment the value of the
-            # layer thickness for the deposit parts of dz, and then erode the
-            # negative parts of dt.
-
-            if compatible:
-                #print('compatible')
-                if np.asarray(dz).size == 1:
-                    # if size is one, we don't need to worry about the
-                    # pos and negative parts.
-                    #print('adding')
-
-                    self._attrs['_dz'][self._surface_index,
-                                       np.arange(self._number_of_stacks)] += np.asarray(dz)
-                else:
-                    #print('more complicated')
-                    positive_part = np.asarray(dz).copy()
-                    positive_part[positive_part<0] = 0.0
-                    self._attrs['_dz'][self._surface_index,
-                                       np.arange(self._number_of_stacks)] += np.asarray(positive_part)
-
-                    negative_part = np.asarray(dz).copy()
-                    negative_part[negative_part>0] = 0.0
-                    self._erode(negative_part)
-            # if a new layer is needed, then add an empty layer and track
-            # attributes
-            else:
-                #print('incompatible')
-                self._add_empty_layer()
-                _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
-
-                for name in kwds:
-                    try:
-                        self[name][-1] = kwds[name]
-                    except KeyError:
-                        print('{0} is not being tracked. Ignoring'.format(name),
-                              file=sys.stderr)
-
-        # if no deposition will occur, then do not create new layer, erode,
-        # and do not track properties.
-        else:
-            #print('just eroding')
-            self._erode(dz)
-
-    def _erode(self, dz):
-        """Erode MaterialLayers without adding a new layer"""
-        _just_erode(self._attrs['_dz'], self.number_of_layers, dz)
+        _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
         _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
-        if np.all((self._surface_index + 1) < self.number_of_layers):
-            self._number_of_layers = np.max(self._surface_index) + 1
+
+        self._remove_empty_layers()
+
+        if not compatible:
+            for name in kwds:
+                try:
+                    self[name][-1] = kwds[name]
+                except KeyError:
+                    print('{0} is not being tracked. Ignoring'.format(name),
+                          file=sys.stderr)
+
+    def _remove_empty_layers(self):
+        number_of_filled_layers = self.surface_index.max() + 1
+        if number_of_filled_layers < self.number_of_layers:
+            self._number_of_layers = number_of_filled_layers
+
+    def is_compatible(self, dz, **kwds):
+        """Check if a new layer is compatible with the existing top layer.
+
+        Parameters
+        ----------
+        dz : float or array_like
+            Thickness to add to each stack.
+
+        Returns
+        -------
+        bool
+            ``True`` if the new layer is compatible, otherwise ``False``.
+        """
+        where_deposition = np.where(dz > 0.)[0]
+        if len(where_deposition) > 0:
+            for name in kwds:
+                is_compatible = self[name][self.surface_index] == kwds[name]
+                if not np.all(is_compatible[where_deposition]):
+                    return False
+        return True
