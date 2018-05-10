@@ -967,7 +967,7 @@ cpdef void iterate_sde_downstream(
             hillslope_sediment_flux[i] +
             river_volume_flux_into_node[i])
         node_capacity = transport_capacities[i]
-        # ^we work in volume flux, not volume per se here
+        # ^we work in volume discharge, not volume per se here
 
         if sed_flux_into_this_node_bydt < node_capacity:
             # ^note incision is forbidden at capacity
