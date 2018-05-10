@@ -48,61 +48,6 @@ class StreamPowerEroder(Component):
     runoff values at each pixel to the flow router using the input argument
     *use_Q*.
 
-    Construction::
-
-        StreamPowerEroder(grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
-                          m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
-                          use_W=None, use_Q=None)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    K_sp : float, array, or field name
-        K in the stream power equation (units vary with other parameters).
-    threshold_sp : positive float, optional
-        The threshold stream power, below which no erosion occurs. This
-        threshold is assumed to be in "stream power" units, i.e., if
-        sp_type is 'Shear_stress', the value should be tau**a.
-    sp_type : {'set_mn', 'Total', 'Unit', 'Shear_stress'}
-        Controls how the law is implemented. If 'set_mn', use the supplied
-        values of m_sp and n_sp. Else, component will derive values of m and n
-        from supplied values of a_sp, b_sp, and c_sp, following Whipple and
-        Tucker:
-
-        *  If ``'Total'``, ``m = a * c``, ``n = a``.
-        *  If ``'Unit'``, ``m = a * c *(1 - b)``, ``n = a``.
-        *  If ``'Shear_stress'``, ``m = 2 * a * c * (1 - b) / 3``,
-           ``n = 2 * a / 3``.
-
-    m_sp : float, optional
-        m in the stream power equation (power on drainage area). Overridden if
-        a_sp, b_sp, and c_sp are supplied.
-    n_sp : float, optional, ~ 0.5<n_sp<4.
-        n in the stream power equation (power on slope). Overridden if
-        a_sp, b_sp, and c_sp are supplied.
-    a_sp : float, optional
-        The power on the SP/shear term to get the erosion rate; the "erosional
-        process" term. Only used if sp_type is not 'set_mn'.
-    b_sp : float, optional
-        The power on discharge to get width; the "hydraulic geometry" term.
-        Only used if sp_type in ('Unit', 'Shear_stress').
-    c_sp : float, optional
-        The power on area to get discharge; the "basin hydology" term. Only
-        used if sp_type is not 'set_mn'.
-    use_W : None, array, or field name, optional
-        If not None, component will look for node-centered data describing
-        channel width in grid.at_node[use_W] or if an array, will take the
-        array as the channel widths. It will use the widths to implement
-        incision ~ stream power per unit width. If sp_type is 'set_mn',
-        follows the equation given above. If sp_type in ('Unit',
-        'Shear_stress'), the width value will be implemented directly. W has no
-        effect if sp_type is 'Total'.
-    use_Q : None, array, or field name, optional
-        If not None, the equation becomes E=K*Q**m*S**n. Effectively sets c=1
-        in Wh&T's 1999 derivation, if you are setting m and n through a, b,
-        and c.
-
     Examples
     --------
     >>> import numpy as np
@@ -220,7 +165,57 @@ class StreamPowerEroder(Component):
     def __init__(self, grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
                  m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
                  use_W=None, use_Q=None, **kwds):
-        """Initialize the StreamPowerEroder"""
+        """Initialize the StreamPowerEroder
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        K_sp : float, array, or field name
+            K in the stream power equation (units vary with other parameters).
+        threshold_sp : positive float, optional
+            The threshold stream power, below which no erosion occurs. This
+            threshold is assumed to be in "stream power" units, i.e., if
+            sp_type is 'Shear_stress', the value should be tau**a.
+        sp_type : {'set_mn', 'Total', 'Unit', 'Shear_stress'}
+            Controls how the law is implemented. If 'set_mn', use the supplied
+            values of m_sp and n_sp. Else, component will derive values of m and n
+            from supplied values of a_sp, b_sp, and c_sp, following Whipple and
+            Tucker:
+
+            *  If ``'Total'``, ``m = a * c``, ``n = a``.
+            *  If ``'Unit'``, ``m = a * c *(1 - b)``, ``n = a``.
+            *  If ``'Shear_stress'``, ``m = 2 * a * c * (1 - b) / 3``,
+               ``n = 2 * a / 3``.
+
+        m_sp : float, optional
+            m in the stream power equation (power on drainage area). Overridden if
+            a_sp, b_sp, and c_sp are supplied.
+        n_sp : float, optional, ~ 0.5<n_sp<4.
+            n in the stream power equation (power on slope). Overridden if
+            a_sp, b_sp, and c_sp are supplied.
+        a_sp : float, optional
+            The power on the SP/shear term to get the erosion rate; the "erosional
+            process" term. Only used if sp_type is not 'set_mn'.
+        b_sp : float, optional
+            The power on discharge to get width; the "hydraulic geometry" term.
+            Only used if sp_type in ('Unit', 'Shear_stress').
+        c_sp : float, optional
+            The power on area to get discharge; the "basin hydology" term. Only
+            used if sp_type is not 'set_mn'.
+        use_W : None, array, or field name, optional
+            If not None, component will look for node-centered data describing
+            channel width in grid.at_node[use_W] or if an array, will take the
+            array as the channel widths. It will use the widths to implement
+            incision ~ stream power per unit width. If sp_type is 'set_mn',
+            follows the equation given above. If sp_type in ('Unit',
+            'Shear_stress'), the width value will be implemented directly. W has no
+            effect if sp_type is 'Total'.
+        use_Q : None, array, or field name, optional
+            If not None, the equation becomes E=K*Q**m*S**n. Effectively sets c=1
+            in Wh&T's 1999 derivation, if you are setting m and n through a, b,
+            and c.
+        """
         if type(use_Q) is str and use_Q == 'water__discharge':
             use_Q = 'surface_water__discharge'
         self._grid = grid
@@ -435,9 +430,14 @@ class StreamPowerEroder(Component):
 
         defined_flow_receivers = np.not_equal(self._grid['node'][
             link_mapping], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid._length_of_link_with_diagonals[
-            self._grid['node'][link_mapping][
-                defined_flow_receivers]]
+
+        try:
+            length_of_link = self._grid.length_of_d8
+        except AttributeError:
+            length_of_link = self._grid.length_of_link
+
+        flow_link_lengths = length_of_link[
+            self._grid.at_node[link_mapping][defined_flow_receivers]]
         flow_receivers = self.grid['node'][flow_receiver]
 
         if W_if_used is not None:
@@ -568,7 +568,7 @@ class StreamPowerEroder(Component):
             threshdt = self.sp_crit * dt
 
         # solve using Brent's Method in Cython for Speed
-        if type(threshdt) == float:
+        if isinstance(threshdt, float):
             brent_method_erode_fixed_threshold(
                 upstream_order_IDs, flow_receivers, threshdt, self.alpha,
                 self._n, z)

@@ -1,76 +1,85 @@
 environment:
 
   global:
-    # PYTHON: "C:\\conda"
-    # MINICONDA_VERSION: "3.5.5"
-    WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
-    # NUMPY_VERSION: "1.9.1"
     PYPI_PASS:
       secure: 8om/mA+rp/SBcVXDrFC9LgyKPcEmlseSUT4WBBOgfYM=
     ANACONDA_TOKEN:
-      secure: fK53X8HNpJY7ZeW8q7FYjpNdqi/rgfn94s+vtWGObHHjQMMNiidbNS/lk939vdA6
-    BUILD_STR: "dev"
+      secure: +l38MCyFk16Wb40xBFaa8U/F5pvBAnIUlsYMXPjLCnnPbsPbpkSWwbk6084u/GCV
+    WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
-    # - PYTHON: "C:\\Miniconda"
-    #   DISTUTILS_USE_SDK: "1"
-    #   PYTHON_VERSION: "2.6"
-    - PYTHON: "C:\\Python27"
-      DISTUTILS_USE_SDK: "1"
-      PYTHON_VERSION: "2.7"
-      CONDA_NPY: 1.11
-    # - PYTHON: "C:\\Python34"
-    #   DISTUTILS_USE_SDK: "1"
-    #   PYTHON_VERSION: "3.4"
-    - PYTHON: "C:\\Python35"
-      PYTHON_VERSION: "3.5"
-      CONDA_NPY: 1.11
-    - PYTHON: "C:\\Python36"
-      PYTHON_VERSION: "3.6"
-      CONDA_NPY: 1.11
-    #   PYTHON_ARCH: "64"
-    #   NUMPY_VERSION: "1.10.4"
+    - TARGET_ARCH: x86
+      CONDA_NPY: 111
+      CONDA_PY: 27
+      CONDA_INSTALL_LOCN: C:\\Miniconda
+
+    - TARGET_ARCH: x64
+      CONDA_NPY: 111
+      CONDA_PY: 27
+      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
+      DISTUTILS_USE_SDK: 1
+
+    - TARGET_ARCH: x86
+      CONDA_NPY: 111
+      CONDA_INSTALL_LOCN: C:\\Miniconda35
+      CONDA_PY: 35
+
+    - TARGET_ARCH: x64
+      CONDA_NPY: 111
+      CONDA_INSTALL_LOCN: C:\\Miniconda35-x64
+      CONDA_PY: 35
+
+    - TARGET_ARCH: x86
+      CONDA_NPY: 111
+      CONDA_INSTALL_LOCN: C:\\Miniconda36
+      CONDA_PY: 36
+
+    - TARGET_ARCH: x64
+      CONDA_NPY: 111
+      CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
+      CONDA_PY: 36
 
 platform:
   - x64
-  - x86
+
+os: Previous Visual Studio 2015
+# os: Visual Studio 2013
 
 init:
-  - "ECHO %PYTHON% %PYTHON_VERSION% %HOME% %PLATFORM%"
+  - "ECHO %CONDA_INSTALL_LOCN% %CONDA_PY% %HOME% %PLATFORM%"
   - "ECHO %APPVEYOR_REPO_BRANCH%"
 
 install:
-  - powershell .ci/appveyor/install.ps1
-  - if "%APPVEYOR_REPO_TAG%"=="true" if "%APPVEYOR_REPO_TAG_NAME:~0,1%"=="v" set BUILD_STR=""
-  - IF "%PLATFORM%"=="x64" (SET SUFFIX="_64") ELSE (SET SUFFIX="_32")
-  - "set PATH=%PYTHON%%SUFFIX%;%PYTHON%%SUFFIX%/Scripts;%PYTHON%%SUFFIX%/Library/bin;%PATH%"
-  - conda info
-  - conda config --set always_yes yes
-  - conda update conda
-  - conda install -q --force --no-deps psutil ruamel_yaml requests
-  - conda install -q python=%PYTHON_VERSION%
-  - conda install -q conda-build
-  - conda install -q anaconda-client
-  - pip install twine
-  - "%WITH_COMPILER% conda build -q .conda-recipe"
-  - "%WITH_COMPILER% conda install -q landlab --use-local"
-  - "conda list"
+  - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
+  - cmd: conda update --yes --quiet conda
+  - cmd: set PYTHONUNBUFFERED=1
+  - cmd: conda info
+  - cmd: conda config --set always_yes yes
+  - cmd: conda update conda
+  - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests
+  - cmd: conda install -q conda-build=3.0
+  - cmd: conda install -q anaconda-client
+  - cmd: conda install -q numpy=1.11
+  - cmd: pip install twine
+  - cmd: conda list
+
 build: false
 
 test_script:
-  # - "%WITH_COMPILER% python setup.py install"
-  - "%WITH_COMPILER% python scripts/test-installed-landlab.py"
+  - "%WITH_COMPILER% conda build -q .conda-recipe --no-test --old-build-string"
+  # - cmd: conda install -q landlab --use-local
+  # - cmd: python scripts/test-installed-landlab.py
 
 after_test:
-  - "%WITH_COMPILER% python setup.py bdist_wheel"
+  - cmd: python setup.py bdist_wheel
 
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   - path: 'dist\*'
 
 deploy_script:
-  - "python .ci/appveyor/pypi_upload.py"
-  - "python .ci/appveyor/anaconda_upload.py"
+  - cmd: python .ci/appveyor/anaconda_upload.py
+  - cmd: python .ci/appveyor/pypi_upload.py
 
 notifications:
   - provider: Slack

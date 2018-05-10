@@ -25,34 +25,6 @@ class PrecipitationDistribution(Component):
     duration, precipitation intensity or storm depth from a Poisson
     distribution when given a mean value.
 
-    Construction::
-
-        PrecipitationDistribution(grid=None,
-                                  mean_storm_duration=0.0,
-                                  mean_interstorm_duration=0.0,
-                                  mean_storm_depth=0.0, total_t=0.0,
-                                  delta_t=0.0, random_seed=0)
-
-    Parameters
-    ----------
-    grid : ModelGrid or None
-        A Landlab grid (optional). If provided, storm intensities will be
-        stored as a grid scalar field ('rainfall__flux') as the component
-        simulates storms.
-    mean_storm_duration : float
-        Average duration of a precipitation event.
-    mean_interstorm_duration : float
-        Average duration between precipitation events.
-    mean_storm_depth : float
-        Average depth of precipitation events.
-    total_t : float, optional
-        If generating a time series, the total amount of time .
-    delta_t : float, optional
-        If you want to break up storms into determined subsections using
-        yield_storm_interstorm_duration_intensity, a delta_t is needed.
-    random_seed : int or float, optional
-        Seed value for random-number generator.
-
     Examples
     --------
     >>> from landlab.components.uniform_precip import PrecipitationDistribution

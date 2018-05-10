@@ -31,29 +31,6 @@ class DrainageDensity(Component):
 
     Written by C. Shobe on 7/11/2016, modified 10/7/2016.
 
-    Construction::
-
-        DrainageDensity(grid, channel__mask=None, area_coefficient=None,
-                        slope_coefficient=None, area_exponent=None,
-                        slope_exponent=None,
-                        channelization_threshold=None)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-    channel__mask : Array that holds 1's where
-        channels exist and 0's elsewhere
-    area_coefficient : coefficient to multiply drainage area by,
-        for calculating channelization threshold
-    slope_coefficient : coefficient to multiply slope by,
-        for calculating channelization threshold
-    area_exponent : exponent to raise drainage area to,
-        for calculating channelization threshold
-    slope_exponent : exponent to raise slope to,
-        for calculating channelization threshold
-    channelization_threshold : threshold value above
-        which channels exist
-
     Examples
     --------
     >>> import numpy as np
@@ -156,9 +133,8 @@ class DrainageDensity(Component):
         Parameters
         ----------
         grid : ModelGrid
-            Landlab ModelGrid object
-        channel__mask : array, optional (default is None)
-            Array that holds 1's where channels exist and 0's elsewhere
+        channel__mask : Array that holds 1's where
+            channels exist and 0's elsewhere
         area_coefficient : coefficient to multiply drainage area by,
             for calculating channelization threshold
         slope_coefficient : coefficient to multiply slope by,
@@ -288,7 +264,7 @@ class DrainageDensity(Component):
         from .cfuncs import _calc_dists_to_channel
         _calc_dists_to_channel(self.channel_network,
                                self.flow_receivers,
-                               self.grid._length_of_link_with_diagonals,
+                               self.grid.length_of_d8,
                                self.stack_links,
                                self.distance_to_channel,
                                self.grid.number_of_nodes)

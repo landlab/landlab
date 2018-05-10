@@ -27,6 +27,9 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_INT8 = np.int8
 ctypedef np.int8_t DTYPE_INT8_t
 
+DTYPE_UINT8 = np.uint8
+ctypedef np.uint8_t DTYPE_UINT8_t
+
 cdef char _DEBUG = 0
 
 
@@ -286,7 +289,7 @@ cpdef update_link_states_and_transitions_new(
 @cython.wraparound(False)
 @cython.cdivision(True)
 cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-                       np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                       np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
                        DTYPE_INT_t head_node,
                        DTYPE_INT_t new_link_state,
@@ -597,7 +600,7 @@ cdef void do_transition(Event event,
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                   np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                   np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                   np.ndarray[DTYPE_INT_t, ndim=1] propid,
                   object prop_data,
@@ -770,7 +773,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
                   np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                   np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
                   np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                   DTYPE_INT_t num_node_states,
                   DTYPE_INT_t num_node_states_sq,
                   np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -937,7 +940,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
                 prop_data[propid[tail_node]] = prop_reset_value
             if status_at_node[head_node] != _CORE:
                 prop_data[propid[head_node]] = prop_reset_value
-            if trn_prop_update_fn[this_trn_id] is not None:
+            if trn_prop_update_fn[this_trn_id] != 0:
                 trn_prop_update_fn[this_trn_id](
                     this_cts_model, tail_node, head_node, event_time)
 
@@ -950,7 +953,7 @@ cpdef double run_cts_new(double run_to, double current_time,
                      np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                      np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,            
                      np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
-                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                      DTYPE_INT_t num_node_states,
                      DTYPE_INT_t num_node_states_sq,
                      np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -1053,7 +1056,7 @@ cpdef double run_cts(double run_to, double current_time,
                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                      np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                      np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                      np.ndarray[DTYPE_INT_t, ndim=1] propid,
                      object prop_data,
@@ -1254,7 +1257,7 @@ cdef void do_transition_lean(Event event,
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                   np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                   np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                   np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                   np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
@@ -1391,7 +1394,7 @@ cpdef double run_cts_lean(double run_to, double current_time,
                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                      np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                      np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                      np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                      np.ndarray[DTYPE_INT_t, ndim=2] xn_to,

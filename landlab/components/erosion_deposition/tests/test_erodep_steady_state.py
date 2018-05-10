@@ -149,11 +149,12 @@ def test_erodep_slope_area_shear_stress_scaling():
     vs = 1.0
     U = 0.001
     dt = 10.0
-
+    m_sp = 0.33
+    n_sp = 0.67
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.33, n_sp=0.67,
+    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=m_sp, n_sp=n_sp,
                            method='simple_stream_power',
-                           discharge_method='drainage_area', 
+                           discharge_method='drainage_area',
                            area_field='drainage_area',
                            solver='adaptive')
 
@@ -165,11 +166,11 @@ def test_erodep_slope_area_shear_stress_scaling():
 
     # Test the results
     s = rg.at_node['topographic__steepest_slope']
-    sa_factor = ((1.0 + vs) * U / K) ** (1.0 / 0.67)
-    a6 = 5.0
-    a8 = 3.0
-    s6 = sa_factor * (a6 ** -(0.33 / 0.67))
-    s8 = sa_factor * (a8 ** -(0.33 / 0.67))
+    sa_factor = ((1.0 + vs) * U / K) ** (1.0 / n_sp)
+    a6 = rg.at_node['drainage_area'][6]
+    a8 = rg.at_node['drainage_area'][8]
+    s6 = sa_factor * (a6 ** -(m_sp / n_sp))
+    s8 = sa_factor * (a8 ** -(m_sp / n_sp))
     assert_equal(np.round(s[6], 2), np.round(s6, 2))
     assert_equal(np.round(s[8], 2), np.round(s8, 2))
 

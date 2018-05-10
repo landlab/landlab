@@ -30,7 +30,6 @@ from landlab.components.flow_director import(FlowDirectorD8,
 from landlab import CLOSED_BOUNDARY
 from landlab import BAD_INDEX_VALUE as XX
 
-
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -47,6 +46,7 @@ def test_check_fields():
 
     fa = FlowAccumulator(mg, runoff_rate=2.)
     assert_array_equal(np.full(100, 2.), mg.at_node['water__unit_flux_in'])
+
 
 def test_director_adding_methods_are_equivalent_Steepest():
     """Check that different methods to specifying the director are the same."""
@@ -152,6 +152,7 @@ def test_director_adding_methods_are_equivalent_Dinf():
         assert_array_equal(mg2.at_node[key],
                            mg3.at_node[key])
 
+
 def test_director_adding_methods_are_equivalent_MFD():
     """Check that different methods to specifying the director are the same."""
 
@@ -186,6 +187,7 @@ def test_director_adding_methods_are_equivalent_MFD():
         assert_array_equal(mg2.at_node[key],
                            mg3.at_node[key])
 
+
 def test_passing_a_bad_component():
     """Check that a random component can't be a director."""
     from landlab.components import ChiFinder
@@ -195,6 +197,7 @@ def test_passing_a_bad_component():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     assert_raises(ValueError, FlowAccumulator, mg, 'topographic__elevation', flow_director=ChiFinder)
+
 
 def test_error_for_to_many_with_depression():
     """Check that an error is thrown when to_many methods started DF."""
@@ -216,6 +219,7 @@ def test_error_for_to_many_with_depression():
     fa1 = FlowAccumulator(mg1, flow_director='DINF')
     fa1.run_one_step()
     assert_raises(ValueError, DepressionFinderAndRouter, mg1)
+
 
 def test_fields():
     """Check to make sure the right fields have been created.
@@ -260,7 +264,6 @@ def test_fields():
     assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D'])
 
 
-
 def test_accumulated_area_closes():
     """Check that accumulated area is area of core nodes."""
 
@@ -276,3 +279,23 @@ def test_accumulated_area_closes():
         drained_area = np.sum(drainage_area[mg.boundary_nodes])
         core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
         assert_equal(drained_area, core_area)
+
+# def test_passing_unnecessary_kwarg():
+#     """Test that passing a bad kwarg raises a ValueError."""
+#     mg = RasterModelGrid((10,10), spacing=(1, 1))
+#     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+#     assert_raises(ValueError, FlowAccumulator, mg, bad_kwarg='woo')
+
+def test_specifying_routing_method_wrong():
+    """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
+    mg = RasterModelGrid((10,10), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+
+    assert_raises(ValueError, FlowAccumulator, mg,
+                  flow_director='D4',
+                  depression_finder='DepressionFinderAndRouter')
+
+    df = DepressionFinderAndRouter(mg)
+    assert_raises(ValueError, FlowAccumulator, mg,
+                  flow_director='D4',
+                  depression_finder=df)

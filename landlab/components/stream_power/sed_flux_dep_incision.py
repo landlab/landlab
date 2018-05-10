@@ -549,7 +549,7 @@ class SedDepEroder(Component):
         core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0],
                                              grid.core_nodes,
                                              assume_unique=True)
-        link_length[core_draining_nodes] = grid._length_of_link_with_diagonals[
+        link_length[core_draining_nodes] = grid.length_of_d8[
             grid.at_node[steepest_link][core_draining_nodes]]
 
         # calc fluxes from hillslopes into each node:

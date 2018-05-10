@@ -13,8 +13,7 @@ import numpy as np
 
 
 class KinwaveOverlandFlowModel(Component):
-    """
-    Calculate water flow over topography.
+    """Calculate water flow over topography.
 
     Landlab component that implements a two-dimensional
     kinematic wave model. This is an extremely simple, unsophisticated
@@ -25,26 +24,6 @@ class KinwaveOverlandFlowModel(Component):
     method), precipitation rate is constant for a given duration (then zero),
     and all parameters are uniform in space. Also, the terrain is assumed
     to be stable over time. Caveat emptor!
-
-    Construction:
-
-        KinwaveOverlandFlowModel(grid, precip_rate=1.0,
-                                 precip_duration=1.0,
-                                 infilt_rate=0.0,
-                                 roughness=0.01, **kwds)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab grid object.
-    precip_rate : float, optional (defaults to 1 mm/hr)
-        Precipitation rate, mm/hr
-    precip_duration : float, optional (defaults to 1 hour)
-        Duration of precipitation, hours
-    infilt_rate : float, optional (defaults to 0)
-        Maximum rate of infiltration, mm/hr
-    roughnes : float, defaults to 0.01
-        Manning roughness coefficient, s/m^1/3
 
     Examples
     --------
@@ -73,7 +52,7 @@ class KinwaveOverlandFlowModel(Component):
 
     _var_units = {
         'topographic__elevation': 'm',
-        'topographic__slope': 'm/m',
+        'topographic__gradient': 'm/m',
         'surface_water__depth': 'm',
         'water__velocity': 'm/s',
         'water__specific_discharge': 'm2/s',
@@ -114,7 +93,7 @@ class KinwaveOverlandFlowModel(Component):
             Duration of precipitation, hours
         infilt_rate : float, optional (defaults to 0)
             Maximum rate of infiltration, mm/hr
-        roughnes : float, defaults to 0.01
+        roughness : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
         """
 
@@ -162,6 +141,8 @@ class KinwaveOverlandFlowModel(Component):
 
     def run_one_step(self, dt, current_time=0.0, **kwds):
         """Calculate water flow for a time period `dt`.
+
+        Default units for dt are *seconds*.
         """
         # Calculate water depth at links. This implements an "upwind" scheme
         # in which water depth at the links is the depth at the higher of the
