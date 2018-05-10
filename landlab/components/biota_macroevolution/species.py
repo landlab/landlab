@@ -3,7 +3,6 @@
 
 from landlab.components.biota_macroevolution import Record, Zone
 import numpy as np
-import pandas as pd
 
 
 class Species(object):
@@ -33,8 +32,7 @@ class Species(object):
         parent_species : BiotaEvolver Species
             The parent species object. An id of -1 indicates no parent species.
         """
-        self.record = Record()
-        self.record = pd.DataFrame(columns=['zones'])
+        self.record = Record(columns=['zones'])
 
         # Set parameters.
         self._identifier = None
@@ -45,13 +43,14 @@ class Species(object):
             z = initial_zones
         else:
             z = [initial_zones]
-        self.record.loc[initial_time, 'zones'] = z
+#        self.record.loc[initial_time, 'zones'] = z
+        self.record.append_entry(initial_time, {'zones': z})
 
     def __str__(self):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
 
-    def run_macroevolution_processes(self, time, zone_paths):
-        """ Run disperal, speciation, and extinction processes.
+    def evolve(self, time, zone_paths):
+        """Run species evolutionary processes.
 
         Extinction is not explicitly implemented in this method. The base class
         of species leaves extinction to the disappearance of the range of a
@@ -88,7 +87,7 @@ class Species(object):
         for v in zone_paths.itertuples():
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
-                self.record.loc[time, 'zones'] = v.destinations
+                self.record.append_entry(time, {'zones': v.destinations})
                 output['species_persists'] = True
 
             elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:

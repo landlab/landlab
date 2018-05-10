@@ -11,8 +11,28 @@ class Record(DataFrame):
     """
 
     def __init__(self, *args, **kw):
+        if 'columns' in kw:
+            kw['columns'].insert(0, 'time')
+        else:
+            kw['columns'] = ['time']
         super(Record, self).__init__(*args, **kw)
-        self.index.name = 'step'
+
+        self.index.name = 'index'
+
+    def append_entry(self, time, dictionary):
+        dictionary['time'] = time
+
+        # Handle unincluded columns.
+        unset_cols = list(set(self.columns.tolist()) - set(dictionary.keys()))
+        for c in unset_cols:
+            dictionary[c] = None
+
+        # Handle new columns.
+        unset_cols = list(set(dictionary.keys()) - set(self.columns.tolist()))
+        for c in unset_cols:
+            self.loc[:len(self), c] = None
+
+        self.loc[len(self)] = dictionary
 
     def get_time_prior_to_time(self, time):
         times = array(self.times)

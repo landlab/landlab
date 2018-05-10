@@ -280,3 +280,8 @@ class Zone(object):
             zones.append(Zone(zone_mask))
 
         return zones
+
+#    @property
+#    def mask(self):
+#        latest_time = self.record.time.max()
+#        self.record

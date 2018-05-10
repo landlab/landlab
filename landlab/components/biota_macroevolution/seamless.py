@@ -63,7 +63,6 @@ class BiotaEvolver(Component):
         self.zones = DataFrame(columns=columns)
 
         self.record = Record()
-        self.record['time'] = np.nan
 
         self.zone_paths = DataFrame(columns=['time', 'origin', 'destinations',
                                              'path_type'])
@@ -165,13 +164,13 @@ class BiotaEvolver(Component):
 
         for es in extant_species:
             # Get paths that include the zone origin of this species.
-            species_zones = es.record.loc[prior_time, 'zones']
+            species_zones = es.record.loc[es.record.time == prior_time].zones
             indices = np.where(np.isin(origins, species_zones))[0]
 
             if len(indices) > 0:
                 es_paths = zone_paths.loc[indices]
 
-                output = es.run_macroevolution_processes(time, es_paths)
+                output = es.evolve(time, es_paths)
 
                 if not output['species_persists']:
                     extinct_species.append(es)
