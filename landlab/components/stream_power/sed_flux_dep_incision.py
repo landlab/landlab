@@ -722,7 +722,7 @@ class SedDepEroder(Component):
         """
         self.erode(dt=dt, flooded_nodes=flooded_nodes, **kwds)
 
-    def show_sed_flux_function(self):
+    def show_sed_flux_function(self, **kwds):
         """
         This is a helper function to visualize the sediment flux function
         chosen during component instantiation. Plots to current figure
@@ -737,7 +737,7 @@ class SedDepEroder(Component):
                 xval, self.kappa, self.nu, self.c, self.phi, self.norm)
             yvals.append(yval)
         yvals = np.array(yvals)
-        plot(xvals, yvals)
+        plot(xvals, yvals, **kwds)
         xlim((0, 1))
         ylim((0, 1))
         xlabel('Relative sediment flux (Qs/Qc)')
