@@ -86,7 +86,6 @@ class Species(object):
         # does not disperse to or remain in any zones.
 
         for v in zone_paths.itertuples():
-            print(v.path_type)
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
                 self.record.loc[time, 'zones'] = v.destinations

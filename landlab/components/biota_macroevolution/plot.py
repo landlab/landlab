@@ -2,7 +2,8 @@
 
 from copy import deepcopy
 from landlab.plot import imshow_grid
-from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import MaxNLocator
+from matplotlib import colors
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -37,9 +38,10 @@ def plot_species_range(species, grid):
     c1 = [1, 1, 1, 1]
     c2 = [0, 0, 1, 1]
 
-    cmap = LinearSegmentedColormap.from_list('streamOverlay', [c1,c2], 2)
+    cmap = colors.LinearSegmentedColormap.from_list('streamOverlay', [c1, c2],
+                                                    2)
     cmap._init() # create the _lut array, with rgba values
-    alphas = np.linspace(0, 1, cmap.N+3)
+    alphas = np.linspace(0, 1, cmap.N + 3)
     cmap._lut[:,-1] = alphas
 
     plt.figure('Species range')
@@ -48,21 +50,32 @@ def plot_species_range(species, grid):
     imshow_grid(grid, combined_range_mask, cmap=cmap,
                     allow_colorbar=False)
 
+
 def plot_number_of_species(record, species_data_frame, axes=None):
 
     # Prepare figure.
     if axes == None:
-        fig = plt.figure('Number of species')
+        title = 'Number of species'
+        plt.close(title)
+        fig = plt.figure(title)
         axes = fig.add_axes(plt.axes())
 
-    times = list(record.keys())
+    times = record.time.tolist()
     count = []
 
-    sdf = species_data_frame.species
+    s = species_data_frame
 
     for t in times:
-        species_t = sdf.object[record.time == record.time__last].tolist()
-        count.append(len(species_data_frame.species_at_time(t)))
+        appeared_before_time = s.time_appeared <= t
+        disappeared_after_time = np.logical_or(s.time_disappeared > t,
+                                               s.time_disappeared.isnull())
+
+        extant_at_time = np.all([appeared_before_time, disappeared_after_time],
+                                0)
+
+        species_t = s.object[extant_at_time].tolist()
+
+        count.append(len(species_t))
 
     times_in_ky = np.multiply(times, 1e-3)
 
@@ -70,6 +83,17 @@ def plot_number_of_species(record, species_data_frame, axes=None):
 
     axes.set_xlabel('Time (ky)')
     axes.set_ylabel('Number of species')
+
+    # Cast y axis labels values as integers.
+    axes.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+
+def imshow_zones(mg, zones):
+    for z in zones:
+        c = (z.plot_color[0], z.plot_color[1], z.plot_color[2], 0.7)
+        cmap = colors.LinearSegmentedColormap.from_list('streamOverlay',
+                                                        [(1,1,1,0), c], 2)
+        imshow_grid(mg, z.mask, cmap=cmap, allow_colorbar=False)
 
 
 def plot_tree(species, times, axes=None, x_multiplier=0.001,
@@ -102,8 +126,9 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
     # Create matplotlib axes if axes were not inputted.
 
     if axes == None:
-        plt.close('Phylogenetic tree')
-        fig = plt.figure('Phylogenetic tree')
+        title = 'Phylogenetic of species'
+        plt.close(title)
+        fig = plt.figure(title)
         axes = fig.add_axes(plt.axes())
 
     # Construct the tree by clade then by time.

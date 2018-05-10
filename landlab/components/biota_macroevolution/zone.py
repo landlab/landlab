@@ -1,7 +1,6 @@
 """Zone BiotaEvolver object.
 """
 
-from copy import deepcopy
 from landlab.components.biota_macroevolution import Record
 from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 import numpy as np
@@ -104,7 +103,7 @@ class Zone(object):
 
         # New zones that do not intersect prior zones will be process after
         # the prior zones.
-        new_overlap_not_found = deepcopy(new_zones)
+        new_overlap_not_found = np.array(new_zones)
 
         # The cumulation of captured grid area for zones is retained
         # in order to add it to be_record_supplement after all zones are
@@ -218,9 +217,9 @@ class Zone(object):
         # Update zones that were replaced using the dominant zones above.
         for zone in replacements.keys():
             for index, row in paths.iterrows():
-                for d in row.destinations:
-                    if d == zone:
-                        paths.loc[index, 'destinations'].append(replacements[zone])
+                if zone in row.destinations:
+                    i = np.where(zone == np.array(row.destinations))[0][0]
+                    paths.loc[index, 'destinations'][i] = replacements[zone]
 
         add_on = {'number_of_captures': number_of_captures,
                   'sum_of_area_captured': cum_area_captured}
