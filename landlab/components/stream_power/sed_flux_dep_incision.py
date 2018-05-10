@@ -33,39 +33,42 @@ class SedDepEroder(Component):
     This module implements sediment flux dependent channel incision
     following::
 
-        E = f(Qs, Qc) * ([a stream power-like term] - [an optional threshold]),
+        E = f(Qs, Qc) * [a stream power-like term],
 
     where E is the bed erosion rate, Qs is the volumetric sediment discharge
     into a node, and Qc is the volumetric sediment transport capacity (as a
     discharge) at that node.
-
-    This component is under active research and development; proceed with its
-    use at your own risk.
 
     The details of the implementation are a function of the two key
     arguments, *sed_dependency_type* and *Qc*. The former controls the
     shape of the sediment dependent response function f(Qs, Qc), the
     latter controls the way in which sediment transport capacities are
     calculated.
-    ***Note that this new implementation only permits a power_law formulation
-    for Qc***
+
     For Qc, 'power_law' broadly follows the assumptions in Gasparini et
     al. 2006, 2007. Note however that these equations in this instance
     calculate DISCHARGE, not the more common FLUX, since resolving fluxes on
-    grid diagonals is extremely challenging.
+    grid diagonals is nontrivial in Landlab but necessary for this
+    implementation. At the present time, only 'power_law' is permitted as a
+    parameter for Qc, but it is anticipated that in the future other
+    formulations will be implemented.
 
     If ``Qc == 'power_law'``::
 
         E  = K_sp * f(Qs, Qc) * A ** m_sp * S ** n_sp;
         Qc = K_t * A ** m_t * S ** n_t
 
-    If ``Qc == 'Voller_generalized'`` (not yet implemented)::
-
-        Qc = K_t * A ** b_t * max[(S ** n_t - S_crit ** n_t) ** m_t, 0.]
+    where Qs is volumetric sediment discharge, Qc is volumetric sediment
+    discharge capacity, A is upstream drainage area, S is local topographic
+    slope, m_sp, n_sp, m_t, and n_t are constants, and K_sp and K_t are
+    (spatially constant) prefactors.
 
     The component uses the field channel_sediment__depth as the record of the
     sediment on the bed at any given time. This may be set and/or freely
     modified by the user, but will be created by the component if not found.
+    However, under some conditions, modification of this field "manually" may
+    induce model instability, i.e., the component is not unconditionally
+    stable.
     Tools-driven bedrock erosion is permitted only when this layer thickness
     is reduced to zero. The sediment recorded in channel_sediment__depth is
     considered loose, and freely transportable by clearwater flow.
@@ -122,12 +125,7 @@ class SedDepEroder(Component):
         Hobley et al., 2011. 'None' gives a constant value of 1.
         NB: 'parabolic' is currently not supported, due to numerical
         stability issues at channel heads.
-    Qc : {'power_law', 'Voller_generalized'}
-        Whether to use 1. Qc = K_t * A**m_t * S**n_t, or 2. Voller et al.'s (in
-        prep.) slightly more complex version,
-        Qc = K_t * A_w**b_t * max[(S**n_t - S_crit**n_t)**m_t, 0]. Note
-        Voller_generalized is equivalent to MPM if m_t == 3/2, n_t = 2/3,
-        K_t = 8.*np.sqrt(C_f)*k_w/(specific_g - 1).
+    Qc : {'power_law', }
         At present, only `power_law` is supported.
 
     If ``sed_dependency_type == 'generalized_humped'``...
@@ -161,14 +159,6 @@ class SedDepEroder(Component):
         Power on drainage area in the transport capacity equation.
     n_t : float
         Power on slope in the transport capacity equation.
-
-    If ``Qc = 'Voller_generalized'`` we add on top of this list:
-
-    b_t : float
-        Scaling parameter to turn drainage area into water discharge, i.e.,
-        Q_w = k_w * A ** b_t.
-    S_crit : float or array
-        Critical threshold slope below which incision is forbidden.
 
     Examples
     --------
@@ -589,12 +579,12 @@ class SedDepEroder(Component):
 
             max_tstep_wave = 0.2 * np.nanmin(link_length /
                                              wave_stab_cond_denominator)
+            # ^adding additional scaling per CHILD, tho CHILD uses 0.2
             if np.isclose(self._n, 0.):
                 # janky special condition to enable code to still run for the
                 # limiting case of n_sp == 0 -> this throws the stability cond
                 # entirely onto the diffusive aspect, so be very careful!!
                 max_tstep_wave = 100000000000.
-            # ^adding additional scaling per CHILD, tho CHILD uses 0.2
             self.wave_denom = wave_stab_cond_denominator
             self.link_length = link_length
             self.max_tstep_wave = max_tstep_wave
@@ -663,7 +653,7 @@ class SedDepEroder(Component):
                 # out. We make exception got nodes that need to be filled in
                 # "just so"
                 # the new handling of flooded nodes as of 25/10/16 should make
-                # this redundant
+                # this redundant, but retained to help ensure stability
                 this_tstep = min((t_to_converge, dt_secs))
                 t_elapsed_internal += this_tstep
                 if t_elapsed_internal >= dt_secs:
@@ -740,7 +730,7 @@ class SedDepEroder(Component):
         method.
         """
         from matplotlib.pyplot import plot, xlim, ylim, xlabel, ylabel
-        xvals = np.arange(0, 1.01, 0.01)
+        xvals = np.linspace(0., 1., 101)
         yvals = []
         for xval in xvals:
             yval = self.sed_flux_fn_gen(
