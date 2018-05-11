@@ -55,15 +55,12 @@ class BiotaEvolver(Component):
         """
         Component.__init__(self, grid, **kwds)
 
-        # Create DataFrames.
-        columns = ['time_appeared', 'time_disappeared', 'subtype', 'object']
-
-        self.species = DataFrame(columns=['clade', 'species', 'time_appeared',
-                                 'time_disappeared', 'subtype', 'object'])
-        self.zones = DataFrame(columns=columns)
-
+        # Set DataFrames.
         self.record = Record()
-
+        self.species = DataFrame(columns=['clade', 'species', 'time_appeared',
+                                 'time_disappeared', 'latest_time', 'subtype', 'object'])
+        self.zones = DataFrame(columns=['time_appeared', 'time_disappeared', 'latest_time',
+                                        'subtype', 'object'])
         self.zone_paths = DataFrame(columns=['time', 'origin', 'destinations',
                                              'path_type'])
 
@@ -72,7 +69,7 @@ class BiotaEvolver(Component):
 
     # Update methods
 
-    def run_one_step(self, time, zones_at_time, **kwargs):
+    def run_one_step(self, time, zones_at_time, **kwds):
         """Run the macroevolution processes for a single timestep.
 
         Data describing the connectivity of zones over time is stored in the
@@ -91,10 +88,10 @@ class BiotaEvolver(Component):
         else:
             self.record.append_entry(time)
 
-            paths = self._get_zone_paths(time, zones_at_time, **kwargs)
+            paths = self._get_zone_paths(time, zones_at_time, **kwds)
 
             child_species, extinct_species = self._update_species(time, paths,
-                                                                  **kwargs)
+                                                                  **kwds)
 
             # Flatten and get unique zone path destinations.
             destinations = paths.destinations.tolist()
@@ -106,7 +103,7 @@ class BiotaEvolver(Component):
             self._update_zones_DataFrame(updated_zones, time)
             self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
-    def _get_zone_paths(self, time, new_zones, **kwargs):
+    def _get_zone_paths(self, time, new_zones, **kwds):
         prior_time = self.record.get_time_prior_to_time(time)
         prior_zones = self.zones_at_time(prior_time)
         zone_types = set([type(p) for p in new_zones])
@@ -120,7 +117,7 @@ class BiotaEvolver(Component):
             new_with_type = list(filter(lambda z: isinstance(z, zt),
                                         new_zones))
             output = zt._get_paths(priors_with_type, new_with_type, time,
-                                   self._grid, **kwargs)
+                                   self._grid, **kwds)
 
             # Parse path output.
             paths = paths.append(output['paths'], ignore_index=True)
@@ -136,7 +133,7 @@ class BiotaEvolver(Component):
 
         return paths
 
-    def _update_species(self, time, zone_paths, **kwargs):
+    def _update_species(self, time, zone_paths, **kwds):
         # Process only the species extant at the prior time.
         prior_time = self.record.get_time_prior_to_time(time)
         extant_species = self.species_at_time(prior_time)
@@ -170,6 +167,7 @@ class BiotaEvolver(Component):
     def _set_disappearance_time_for_species(self, species, time):
         mask = np.in1d(self.species.object.values, species)
         self.species.time_disappeared[mask] = [time] * len(species)
+        self.species.latest_time[mask] = [time] * len(species)
 
     def _add_species_to_DataFrame(self, new_species, time):
         clade, num = ([s.identifier[0] for s in new_species],
@@ -177,7 +175,7 @@ class BiotaEvolver(Component):
         t = [time] * len(new_species)
         st = [(s.subtype) for s in new_species]
         data = OrderedDict({'clade': clade, 'species': num, 'time_appeared': t,
-                            'time_disappeared': np.nan, 'subtype': st,
+                            'time_disappeared': np.nan, 'latest_time': t, 'subtype': st,
                             'object': new_species})
 
         new_species_df = DataFrame(data)
@@ -200,7 +198,6 @@ class BiotaEvolver(Component):
                                 'subtype': st, 'object': z_new})
             new_zones = DataFrame(data)
             self.zones = z.append(new_zones, ignore_index=True)
-            self.zones.index.name = 'index'
 
     def _object_set_difference(self, objects, dataframe):
         objs = set(objects)
@@ -259,38 +256,6 @@ class BiotaEvolver(Component):
         self._species_ids[clade_name] += 1
         return (clade_name, self._species_ids[clade_name])
 
-    def calculate_extinctions_per_million_species_per_year(self, time):
-        """Get the quantity, extinctions per million species per year (E/MSY).
-
-        E/MSY is calculated for the species that existed at or before time.
-
-        Parameters
-        ----------
-        time : float
-            The final time included in the calculation.
-
-        Returns
-        -------
-        e_per_msy : float
-            Extinctions per million species per year.
-        """
-        # Get the species, s that existed at or before time.
-        s = self.species.loc[self.species.time_appeared <= time]
-        number_of_species = len(s)
-
-        # Cumulate the extant years of species.
-        latest_time = np.repeat(time, number_of_species)
-        latest_time[s.time_disappeared != np.nan] = s.time_disappeared
-        species_years = sum(latest_time - s.time_appeared)
-
-        number_of_extant_species_at_time = len(self.species_at_time(time))
-        number_of_extinctions = (number_of_species -
-                                 number_of_extant_species_at_time)
-
-        e_per_msy = number_of_extinctions / species_years * 1e6
-
-        return e_per_msy
-
     # Query methods
 
     def species_at_time(self, time):
@@ -340,30 +305,80 @@ class BiotaEvolver(Component):
 
         return zones
 
-    def species_with_identifier(self, clade=None, number=None):
-        #TODO: dynamically determine parameter type
-        """Get the species of a clade.
+    def species_with_identifier(self, identifier_element,
+                                return_objects=False):
+        """Get species with an identifier element.
+
+        A singular species is returned when *identifier_element* is a tuple
+        with elements that match a species in the *species* DataFrame. The
+        first element is the clade name and the second element is the species
+        number.
+
+        The species of a clade are returned when *identifier_element* is
+        a string that matches a clade name in the *species* DataFrame.
+
+        The species that share a species number are returned when
+        *identifier_element* is an integer that matches species number in the
+        *species* DataFrame.
+
+        By default, the species with *identifier_element* will be returned in a
+        DataFrame. Alternatiely, a list of Species objects can be returned by
+        setting *return_objects* to ``True``. A singular species is returned
+        when *identifier_element* is a tuple. Otherwise, multiple species are
+        returned.
 
         Parameters
         ----------
-        clade : string
-            The identifier of the clade that contains the species to retrieve.
-        number : int
+        identifier_element : tuple, str, or int
+            The identifier element of the species to return.
+        return_objects : boolean, optional
+            ``True`` returns species as BiotaEvolver objects. ``False``, the
+            default, returns a DataFrame.
 
         Returns
         -------
-        species : BiotaEvolver Species list
-
+        Pandas DataFrame, BiotaEvolver Species, or BiotaEvolver Species list
+            The species with identifiers that matched *identifier_element*. The
+            type of the return object is set by *return_objects*.
         """
-        if clade == None and number == None:
+        s_in = self.species
+
+        element_type = type(identifier_element)
+
+        if element_type == tuple:
+            # Get a singular species using a clade name and number.
+            clade = identifier_element[0]
+            num = identifier_element[1]
+
+            if not np.all([len(identifier_element) == 2,
+                           isinstance(clade, str), isinstance(num, int)], 0):
+                raise TypeError('*identifier_element* when it is a tuple must '
+                                'have a length of 2. The first element must '
+                                'be a string, and the second must be an '
+                                'integer.')
+
+            s_out = self.species.loc[np.all([s_in.clade == clade,
+                                             s_in.species == num], 0)]
+
+        elif element_type == str:
+            # Get the species of a clade.
+            s_out = s_in.loc[s_in.clade == identifier_element]
+
+        elif element_type == int:
+            # Get the species that match a number.
+            s_out = self.species.loc[s_in.species == identifier_element]
+
+        else:
+            raise TypeError('*identifier_element* must be a tuple, string, or '
+                            'integer.')
+
+        if len(s_out) == 0:
             return None
-
-        species = self.species
-
-        if clade != None:
-            species = species.loc[species.clade == clade]
-
-        if number != None:
-            species = species.loc[species.species == number]
-
-        return species.object.tolist()
+        elif return_objects:
+            s_out_list = s_out.object.tolist()
+            if element_type == tuple:
+                return s_out_list[0]
+            else:
+                return s_out_list
+        else:
+            return s_out

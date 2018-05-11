@@ -17,8 +17,6 @@ class Record(DataFrame):
             kw['columns'] = ['time']
         super(Record, self).__init__(*args, **kw)
 
-        self.index.name = 'index'
-
     def append_entry(self, time, dictionary=None):
         if dictionary == None:
             dictionary = {}
