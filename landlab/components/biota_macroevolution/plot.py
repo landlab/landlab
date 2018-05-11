@@ -118,7 +118,7 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
 
     # Sort inputs in reverse order for plotting.
 
-    clades = species.index.get_level_values('clade').unique().tolist()
+    clades = species.clade.unique().tolist()
     clades.sort(reverse=True)
 
     times.sort(reverse=True)
@@ -139,8 +139,7 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
     lines = []
 
     for clade in clades:
-        clade_mask = species.index.get_level_values('clade') == clade
-        species_clade = species.loc[clade_mask]
+        species_clade = species.loc[species.clade == clade]
 
         # Store y-axis position of species to connect branches over time.
         y_species = {}
@@ -162,7 +161,8 @@ def plot_tree(species, times, axes=None, x_multiplier=0.001,
             last_time[np.argwhere(np.isnan(t_extinct))] = max(times)
 
             # Get the species at time sorted by species identifier.
-            time_mask = np.all([species_clade.time_appeared <= earlier_time,
+            time_appeared = np.array(species_clade.time_appeared)
+            time_mask = np.all([time_appeared <= earlier_time,
                                 last_time >= later_time], 0)
             species_time = species_clade.loc[time_mask]
             species_time = species_time.sort_values(['parent_id',

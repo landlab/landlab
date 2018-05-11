@@ -19,7 +19,10 @@ class Record(DataFrame):
 
         self.index.name = 'index'
 
-    def append_entry(self, time, dictionary):
+    def append_entry(self, time, dictionary=None):
+        if dictionary == None:
+            dictionary = {}
+
         dictionary['time'] = time
 
         # Handle unincluded columns.

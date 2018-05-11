@@ -12,7 +12,7 @@ from landlab import Component
 from landlab.components.biota_macroevolution import Record
 from landlab.core.messages import warning_message
 import numpy as np
-from pandas import DataFrame, MultiIndex
+from pandas import DataFrame
 from string import ascii_uppercase
 
 
@@ -57,9 +57,9 @@ class BiotaEvolver(Component):
 
         # Create DataFrames.
         columns = ['time_appeared', 'time_disappeared', 'subtype', 'object']
-        index = MultiIndex(levels=[[],[]], labels=[[],[]],
-                              names=['clade', 'number'])
-        self.species = DataFrame(columns=columns, index=index)
+
+        self.species = DataFrame(columns=['clade', 'species', 'time_appeared',
+                                 'time_disappeared', 'subtype', 'object'])
         self.zones = DataFrame(columns=columns)
 
         self.record = Record()
@@ -67,25 +67,13 @@ class BiotaEvolver(Component):
         self.zone_paths = DataFrame(columns=['time', 'origin', 'destinations',
                                              'path_type'])
 
-        # Keep track of the clades (keys) and the max species number (values).
-        self._clades = {}
+        # Track the clade names (keys) and the max species number (values).
+        self._species_ids = {}
 
     # Update methods
 
     def run_one_step(self, time, zones_at_time, **kwargs):
         """Run the macroevolution processes for a single timestep.
-
-        Parameters
-        ----------
-        time : float
-            The time in the simulation.
-        zones_at_time : Zone list
-            A list of the BiotaEvolver Zone objects at time.
-        """
-        self.evolve_species(time, zones_at_time, **kwargs)
-
-    def evolve_species(self, time, zones_at_time, **kwargs):
-        """Run the macroevolution processes of all extant species.
 
         Data describing the connectivity of zones over time is stored in the
         zone_paths DataFrame.
@@ -95,29 +83,28 @@ class BiotaEvolver(Component):
         time : float
             The time in the simulation.
         zones_at_time : Zone list
-            A list of BiotaEvolver Zone objects.
+            A list of the BiotaEvolver Zone objects at time.
         """
-        self._update_record(time)
-
         if len(self.species) == 0:
             warning_message('No species exist. Introduce species to '
                             'BiotaEvolver.')
         else:
+            self.record.append_entry(time)
+
             paths = self._get_zone_paths(time, zones_at_time, **kwargs)
 
-            child_species, extinct_species = self._get_surviving_species(time,
-                                                                         paths)
+            child_species, extinct_species = self._update_species(time, paths,
+                                                                  **kwargs)
 
             # Flatten and get unique zone path destinations.
             destinations = paths.destinations.tolist()
             updated_zones = list(set(sum(destinations, [])))
 
-            self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
-
             # Update DataFrames.
             self._set_disappearance_time_for_species(extinct_species, time)
             self._add_species_to_DataFrame(child_species, time)
-            self._update_zones_data_frame(updated_zones, time)
+            self._update_zones_DataFrame(updated_zones, time)
+            self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
     def _get_zone_paths(self, time, new_zones, **kwargs):
         prior_time = self.record.get_time_prior_to_time(time)
@@ -149,12 +136,10 @@ class BiotaEvolver(Component):
 
         return paths
 
-    def _get_surviving_species(self, time, zone_paths):
+    def _update_species(self, time, zone_paths, **kwargs):
         # Process only the species extant at the prior time.
         prior_time = self.record.get_time_prior_to_time(time)
         extant_species = self.species_at_time(prior_time)
-
-        origins = zone_paths.origin.tolist()
 
         # Get the species that persist in `time` given the outcome of the
         # macroevolution processes of the species.
@@ -162,25 +147,21 @@ class BiotaEvolver(Component):
         child_species = []
         extinct_species = []
 
-        for es in extant_species:
-            # Get paths that include the zone origin of this species.
-            species_zones = es.record.loc[es.record.time == prior_time].zones
-            indices = np.where(np.isin(origins, species_zones))[0]
+        species_types = set([type(s) for s in extant_species])
 
-            if len(indices) > 0:
-                es_paths = zone_paths.loc[indices]
+        for st in species_types:
+            s_with_type = list(filter(lambda s: isinstance(s, st),
+                                      extant_species))
 
-                output = es.evolve(time, es_paths)
+            output = st._evolve_type(prior_time, time, s_with_type, zone_paths)
 
-                if not output['species_persists']:
-                    extinct_species.append(es)
+            child_species.extend(output['child_species'])
+            extinct_species.extend(output['extinct_species'])
 
-                if len(output['child_species']) > 0:
-                    child_species.extend(output['child_species'])
-
-                    # Set id for child species.
-                    for cs in output['child_species']:
-                        cs._identifier = self._get_unused_species_id(es.clade)
+            # Set id for child species.
+            for cs in output['child_species']:
+                clade = cs.parent_species.clade
+                cs._identifier = self._get_unused_species_id(clade)
 
         return child_species, extinct_species
 
@@ -191,17 +172,18 @@ class BiotaEvolver(Component):
         self.species.time_disappeared[mask] = [time] * len(species)
 
     def _add_species_to_DataFrame(self, new_species, time):
-        ids = [s.identifier for s in new_species]
-        index = MultiIndex.from_tuples(ids, names=['clade', 'number'])
+        clade, num = ([s.identifier[0] for s in new_species],
+                      [s.identifier[1] for s in new_species])
         t = [time] * len(new_species)
         st = [(s.subtype) for s in new_species]
-        data = OrderedDict({'time_appeared': t, 'time_disappeared': np.nan,
-                            'subtype': st, 'object': new_species})
-        new_species_df = DataFrame(data, index=index)
-#        self.species = self.species.append(new_species_df).unstack().stack()
-        self.species = self.species.append(new_species_df)
+        data = OrderedDict({'clade': clade, 'species': num, 'time_appeared': t,
+                            'time_disappeared': np.nan, 'subtype': st,
+                            'object': new_species})
 
-    def _update_zones_data_frame(self, zones_at_time, time):
+        new_species_df = DataFrame(data)
+        self.species = self.species.append(new_species_df, ignore_index=True)
+
+    def _update_zones_DataFrame(self, zones_at_time, time):
         z = self.zones
         z_updated, z_new = self._object_set_difference(zones_at_time, z)
 
@@ -219,11 +201,6 @@ class BiotaEvolver(Component):
             new_zones = DataFrame(data)
             self.zones = z.append(new_zones, ignore_index=True)
             self.zones.index.name = 'index'
-
-    def _update_record(self, time):
-        data = OrderedDict({'time': [time]})
-        new_record = DataFrame(data)
-        self.record = self.record.append(new_record, ignore_index=True)
 
     def _object_set_difference(self, objects, dataframe):
         objs = set(objects)
@@ -249,20 +226,20 @@ class BiotaEvolver(Component):
         time : float
             The time in the simulation.
         """
-        cid = self._get_unused_clade_id()
-        sid = self._get_unused_species_id(cid)
+        cn = self._get_unused_clade_name()
+        sid = self._get_unused_species_id(cn)
         species._identifier = sid
 
         species_zones = species.record.loc[time, 'zones']
 
         self._add_species_to_DataFrame([species], time)
-        self._update_zones_data_frame(species_zones, time)
+        self._update_zones_DataFrame(species_zones, time)
         if time not in self.record.times:
             self.record.loc[len(self.record), 'time'] = time
 
-    def _get_unused_clade_id(self):
+    def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
-        used_ids = list(self._clades.keys())
+        used_ids = list(self._species_ids.keys())
         potential_clade_name = np.setdiff1d(alphabet, used_ids)
 
         size = 1
@@ -274,13 +251,13 @@ class BiotaEvolver(Component):
 
         clade_name = potential_clade_name[0]
 
-        self._clades[clade_name] = -1
+        self._species_ids[clade_name] = -1
 
         return clade_name
 
-    def _get_unused_species_id(self, clade_id):
-        self._clades[clade_id] += 1
-        return (clade_id, self._clades[clade_id])
+    def _get_unused_species_id(self, clade_name):
+        self._species_ids[clade_name] += 1
+        return (clade_name, self._species_ids[clade_name])
 
     def calculate_extinctions_per_million_species_per_year(self, time):
         """Get the quantity, extinctions per million species per year (E/MSY).
@@ -314,7 +291,7 @@ class BiotaEvolver(Component):
 
         return e_per_msy
 
-    # Convenience methods.
+    # Query methods
 
     def species_at_time(self, time):
         """Get the species extant at a time.
@@ -363,24 +340,30 @@ class BiotaEvolver(Component):
 
         return zones
 
-    def species_of_clade(self, clade):
+    def species_with_identifier(self, clade=None, number=None):
+        #TODO: dynamically determine parameter type
         """Get the species of a clade.
 
         Parameters
         ----------
         clade : string
             The identifier of the clade that contains the species to retrieve.
+        number : int
 
         Returns
         -------
         species : BiotaEvolver Species list
 
         """
-        clade_species = self.species.index.get_level_values('clade') == clade
-        return self.species.object[clade_species].tolist()
+        if clade == None and number == None:
+            return None
 
-    def species_with_identifier(self, clade, species_number):
-        clade_species = self.species.index.get_level_values('clade') == clade
-        species = self.species.index.get_level_values('number') == species_number
-        clade_and_species = np.all([clade_species, species], 0)
-        return self.species.object[clade_and_species].tolist()[0]
+        species = self.species
+
+        if clade != None:
+            species = species.loc[species.clade == clade]
+
+        if number != None:
+            species = species.loc[species.species == number]
+
+        return species.object.tolist()

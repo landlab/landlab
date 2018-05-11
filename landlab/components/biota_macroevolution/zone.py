@@ -281,6 +281,9 @@ class Zone(object):
 
         return zones
 
+    def set_mask_at_time(self, time):
+        self.record.append
+
 #    @property
 #    def mask(self):
 #        latest_time = self.record.time.max()

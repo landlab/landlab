@@ -43,13 +43,40 @@ class Species(object):
             z = initial_zones
         else:
             z = [initial_zones]
-#        self.record.loc[initial_time, 'zones'] = z
+
         self.record.append_entry(initial_time, {'zones': z})
 
     def __str__(self):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
 
-    def evolve(self, time, zone_paths):
+    @classmethod
+    def _evolve_type(cls, prior_time, time, extant_species, zone_paths):
+        origins = zone_paths.origin.tolist()
+
+        # Get the species that persist in `time` given the outcome of the
+        # macroevolution processes of the species.
+
+        output = {'child_species': [], 'extinct_species': []}
+
+        for es in extant_species:
+            # Get paths that include the zone origin of this species.
+            species_zones = es.record.loc[es.record.time == prior_time].zones
+            indices = np.where(np.isin(origins, species_zones))[0]
+
+            if len(indices) > 0:
+                es_paths = zone_paths.loc[indices]
+
+                species_persists, child_species = es._evolve(time, es_paths)
+
+                if not species_persists:
+                    output['extinct_species'].append(es)
+
+                if len(child_species) > 0:
+                    output['child_species'].extend(child_species)
+
+        return output
+
+    def _evolve(self, time, zone_paths, **kwargs):
         """Run species evolutionary processes.
 
         Extinction is not explicitly implemented in this method. The base class
@@ -78,7 +105,7 @@ class Species(object):
                     The items of this dictionary will become items in the
                     BiotaEvolver record for this time.
         """
-        output = {}
+        species_persists = True
         child_species = []
 
         # Disperse and speciate. Extinction effectively occurs when the species
@@ -88,26 +115,26 @@ class Species(object):
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
                 self.record.append_entry(time, {'zones': v.destinations})
-                output['species_persists'] = True
+                species_persists = True
 
             elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:
                 # The zone and the species within it was fragmented. A new
                 # child species is added to every destination zone. The species
                 # self does not continue. It is assumed to have evolved into
                 # one of the child species.
-                output['species_persists'] = False
+                species_persists = False
 
                 for d in v.destinations:
                     child_species_d = Species(time, d, parent_species=self)
                     child_species.append(child_species_d)
 
             elif v.path_type == Zone.ONE_TO_NONE:
-                output['species_persists'] = False
+                species_persists = False
 
-        # Output a unique array of child species.
-        output['child_species'] = np.array(list(set(child_species)))
+        # Create a unique array of child species.
+        child_species = np.array(list(set(child_species)))
 
-        return output
+        return species_persists, child_species
 
     @property
     def identifier(self):
