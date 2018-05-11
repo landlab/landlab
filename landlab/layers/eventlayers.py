@@ -47,7 +47,7 @@ def _deposit_or_erode(layers, n_layers, dz):
     this array is created with np.empty, but that creates different numbers
     every time and doesn't work for testing.
 
-    >>> allocated_layers_array = np.full((4, 3), -1.)
+    >>> allocated_layers_array = np.full((4, 3), 0.)
 
     Next we add a layer with spatially variable thickness. We specify that the
     number of active layers (including the one being added) is 1.
@@ -56,9 +56,9 @@ def _deposit_or_erode(layers, n_layers, dz):
     >>> _deposit_or_erode(allocated_layers_array, 1, dz)
     >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
-           [-1., -1., -1.],
-           [-1., -1., -1.],
-           [-1., -1., -1.]])
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.]])
 
     As you can see, this changes the value of the first row in the array. The
     remainder of the array represents space in the datatastructure that has
@@ -72,8 +72,8 @@ def _deposit_or_erode(layers, n_layers, dz):
     >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
            [ 1.,  1.,  1.],
-           [-1., -1., -1.],
-           [-1., -1., -1.]])
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.]])
 
     Finally, we do some erosion. We specify that the number of active layers is
     3 and give a spatially variable field of erosion and deposition.
@@ -83,14 +83,20 @@ def _deposit_or_erode(layers, n_layers, dz):
     array([[ 1.,  2.,  2.],
            [ 1.,  0.,  0.],
            [ 1.,  0.,  0.],
-           [-1., -1., -1.]])
+           [ 0.,  0.,  0.]])
+
+    >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
+    >>> allocated_layers_array
+    array([[ 1.,  1.,  0.],
+           [ 1.,  0.,  0.],
+           [ 2.,  0.,  0.],
+           [ 0.,  0.,  0.]])
     """
     from .ext.eventlayers import deposit_or_erode
 
     layers = layers.reshape((layers.shape[0], -1))
     try:
         dz = dz.reshape((layers.shape[1], ))
-
     except (AttributeError, ValueError):
         dz = np.broadcast_to(dz, (layers.shape[1], ))
     finally:
@@ -126,15 +132,15 @@ def _get_surface_index(layers, n_layers, surface_index):
     >>> _deposit_or_erode(layers, 5, dz)
     >>> layers
     array([[ 1.,  1.,  1.],
+           [ 1.,  1.,  1.],
            [ 1.,  1.,  0.],
            [ 1.,  0.,  0.],
-           [ 0.,  0.,  0.],
            [ 0.,  0.,  0.]])
 
     >>> surface_index = np.empty(3, dtype=int)
     >>> _get_surface_index(layers, 5, surface_index)
     >>> surface_index
-    array([2, 1, 0])
+    array([3, 2, 1])
     """
     from .ext.eventlayers import get_surface_index
 
@@ -644,6 +650,7 @@ class EventLayers(object):
         self._add_empty_layer()
 
         _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
+        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
 
         for name in kwds:
             try:
@@ -654,14 +661,10 @@ class EventLayers(object):
 
     @property
     def surface_index(self):
-        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
         return self._surface_index
 
     def get_surface_values(self, name):
-        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
-
-        return self._attrs[name][self._surface_index,
-                                 np.arange(self._number_of_stacks)]
+        return self._attrs[name][self.surface_index, np.arange(self._number_of_stacks)]
 
     def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
@@ -669,6 +672,7 @@ class EventLayers(object):
             self._resize(self.allocated + 1)
 
         self._number_of_layers += 1
+        self._attrs['_dz'][self.number_of_layers - 1, :] = 0.
         for name in self._attrs:
             self._attrs[name][self.number_of_layers - 1] = 0.
 

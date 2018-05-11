@@ -15,18 +15,17 @@ def deposit_or_erode(np.ndarray[np.float_t, ndim=2] layers, int n_layers,
 
     for col in range(n_stacks):
         if dz[col] >= 0.:
-            layers[top_ind, col] = dz[col]
+            layers[top_ind, col] += dz[col]
         else:
-            layers[top_ind, col] = 0.
-
             amount_to_remove = - dz[col]
             removed = 0.
-            for layer in range(top_ind - 1, -1, -1):
+            for layer in range(top_ind, -1, -1):
                 removed += layers[layer, col]
                 layers[layer, col] = 0.
                 if removed > amount_to_remove:
                     layers[layer, col] = removed - amount_to_remove
                     break
+
 
 @cython.boundscheck(False)
 def get_surface_index(np.ndarray[np.float_t, ndim=2] layers, int n_layers,
