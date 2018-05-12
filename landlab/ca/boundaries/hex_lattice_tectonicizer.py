@@ -431,7 +431,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                                      + (nc - 1) + (nc % 2))
 
         for ln in range(num_links - 1, self.first_link_for_shift - 1, -1):
-            if self._link_in_footwall(ln, node_in_footwall):
+            if (self._link_in_footwall(ln, node_in_footwall)
+                and self.grid.status_at_link[ln] == ACTIVE_LINK):
                 tail_node = self.grid.node_at_link_tail[ln]
                 (_, c) = self.grid.node_row_and_column(tail_node)
                 link_orientation = self._get_link_orientation(ln)
@@ -499,6 +500,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf.fault_crossing_links
         array([ 9, 12, 17, 22, 25])
         """
+        # TODO: THIS IS NOW OBSOLETE
         fault_crossing_links = []
         for lnk in range(self.grid.number_of_links):
             if self.grid.status_at_link[lnk] == ACTIVE_LINK:
@@ -570,7 +572,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                     ca.next_trn_id[lnk] = ca.next_trn_id[link_offset]
                     ca.next_update[lnk] = ca.next_update[link_offset]
 
-        for lnk in self.fault_crossing_links:
+        for lnk in self.links_to_update:
             self.assign_new_link_state_and_transition(lnk, ca, current_time)
 
     def do_offset(self, ca=None, current_time=0.0, rock_state=1):
@@ -612,10 +614,17 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'test'))
         >>> ohcts = OrientedHexCTS(grid, nsd, xnlist, ns)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-        >>> ohcts.link_state
+        >>> ohcts.link_state[7:35]
+        array([2, 0, 0, 6, 9, 0, 2, 2, 4, 8, 4, 8, 0, 0, 0, 8, 4, 8, 4, 0, 0, 4,
+               8, 4, 8, 0, 0, 0])
         >>> lnf.do_offset(ca=ohcts, current_time=0.0, rock_state=1)
-        >>> ohcts.link_state
+        >>> ohcts.link_state[7:35]
+        array([ 3,  0,  0,  7, 11,  0,  2,  3,  4,  9,  7, 11,  0,  3,  0,  8,  5,
+               11,  7,  0,  2,  4,  9,  6,  9,  0,  2,  0])
         """
+        #TODO: IN LAST TEST ABOVE, LINK 34 IS A VERTICAL BOUNDARY, SO SHOULD
+        #NOT HAVE HAD A SHIFT BUT IT DID---SO MODIFY THE SHIFT STUFF TO *NOT*
+        #SHIFT BOUNDARY LINKS (EITHER WAY)
 
         # If we need to shift the property ID numbers, we'll first need to
         # record the property IDs in those nodes that are about to "shift off
