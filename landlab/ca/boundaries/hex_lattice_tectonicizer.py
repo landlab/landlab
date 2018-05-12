@@ -550,7 +550,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         20
         >>> lnf.link_offset_id
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
-                1,  2, 19,  5, 21, 22,  7, 24,  9, 26, 27, 12, 29, 15, 31, 32, 17,
+               17, 18, 19, 20, 21, 22,  7, 24,  9, 26, 27, 28, 29, 30, 31, 32, 33,
                34])
         >>> lnf.shift_link_states(ohcts, 0.0)
         >>> ohcts.link_state[:16]
