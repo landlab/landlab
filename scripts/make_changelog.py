@@ -42,7 +42,6 @@ def git_log(start=None, stop='HEAD'):
           ]
     if start:
         cmd.append('{start}..{stop}'.format(start=start, stop=stop))
-
     return subprocess.check_output(cmd).strip()
 
 
@@ -104,9 +103,10 @@ def prettify_message(message):
 def brief(start=None, stop='HEAD'):
     changes = []
     for change in git_log(start=start, stop=stop).split(os.linesep):
-        message = prettify_message(change)
-        if message:
-            changes.append(message)
+        if change:
+            message = prettify_message(change)
+            if message:
+                changes.append(message)
 
     return changes
 
@@ -135,8 +135,10 @@ def main():
     changelog = OrderedDict()
     release_date = dict()
     for start, stop in zip(tags[1:], tags[:-1]):
-        changelog[stop] = group_changes(brief(start=start, stop=stop))
-        release_date[stop] = git_tag_date(stop)
+        changes = brief(start=start, stop=stop)
+        if changes:
+            changelog[stop] = group_changes(changes)
+            release_date[stop] = git_tag_date(stop)
 
     env = jinja2.Environment(loader=jinja2.DictLoader({'changelog': CHANGELOG}))
     print(env.get_template('changelog').render(releases=changelog,
