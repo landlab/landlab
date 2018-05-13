@@ -678,3 +678,59 @@ class Graph(object):
     @read_only_array
     def area_of_patch(self):
         return get_area_of_patch(self)
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def adjacent_nodes_at_node(self):
+        """Get adjacent nodes.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+
+        First, a simple example with no diagonals.
+
+        >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> graph = Graph((node_y, node_x), links=links)
+        array([[ 1,  3, -1, -1],
+               [ 2,  4,  0, -1],
+               [ 5,  1, -1, -1],
+               [ 4,  6,  0, -1],
+               [ 5,  7,  3,  1],
+               [ 8,  4,  2, -1],
+               [ 7,  3, -1, -1],
+               [ 8,  6,  4, -1],
+               [ 7,  5, -1, -1]])
+
+        Next, we add the diagonal from node 0 to node 4.
+
+        >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8),
+        ...          (0, 4))
+        >>> graph = Graph((node_y, node_x), links=links)
+        array([[ 1,  4,  3, -1, -1],
+               [ 2,  4,  0, -1, -1],
+               [ 5,  1, -1, -1, -1],
+               [ 4,  6,  0, -1, -1],
+               [ 5,  7,  3,  0,  1],
+               [ 8,  4,  2, -1, -1],
+               [ 7,  3, -1, -1, -1],
+               [ 8,  6,  4, -1, -1],
+               [ 7,  5, -1, -1, -1]])
+        """
+        node_is_at_tail = np.choose(self.link_dirs_at_node + 1,
+                                    np.array((1, -1, 0), dtype=np.int8))
+        out = self.nodes_at_link[self.links_at_node, node_is_at_tail]
+        out[node_is_at_tail == -1] = -1
+
+        return out
