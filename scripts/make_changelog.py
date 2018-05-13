@@ -37,7 +37,7 @@ def git_log(start=None, stop='HEAD'):
     cmd = ['git', 'log', '--first-parent', 'master', '--merges',
            '--topo-order',
            # '--pretty=message: %s+author:%an+body: %b'],
-           '--pretty=%s',
+           '--pretty=%s [%an]',
            # '--oneline',
           ]
     if start:
@@ -63,27 +63,42 @@ def releases(ascending=True):
         return tags[::-1]
 
 
-def prettify_message(message):
-    if message.startswith('Merge pull request'):
-        m = re.match(
-            'Merge pull request (?P<pr>#[0-9]+) from (?P<branch>[\s\S]*$)',
-            message
-        )
-        return '{branch} [{pr}]'.format(**m.groupdict())
-    elif message.startswith('Merge branch'):
-        return None
+def format_pr_message(message):
+    m = re.match(
+        'Merge pull request (?P<pr>#[0-9]+) '
+        'from (?P<branch>[\S]*)'
+        '(?P<postscript>[\s\S]*$)',
+        message
+    )
+    if m:
+        return '{branch} [{pr}]{postscript}'.format(**m.groupdict())
     else:
-        m = re.match(
-            '(?P<first>\w+)(?P<rest>[\s\S]*)$',
-            message
-        )
-        word = m.groupdict()['first']
-        if word in ('Add', 'Fix', 'Deprecate', ):
-            return word + 'ed' + m.groupdict()['rest']
-        elif word in ('Change', 'Remove', ):
-            return word + 'd' + m.groupdict()['rest']
-        else:
-            return message
+        raise ValueError('not a pull request')
+
+
+def format_changelog_message(message):
+    m = re.match(
+        '(?P<first>\w+)(?P<rest>[\s\S]*)$',
+        message
+    )
+    word = m.groupdict()['first']
+    if word in ('Add', 'Fix', 'Deprecate', ):
+        return word + 'ed' + m.groupdict()['rest']
+    elif word in ('Change', 'Remove', ):
+        return word + 'd' + m.groupdict()['rest']
+    else:
+        return message
+
+
+def prettify_message(message):
+    if message.startswith('Merge branch'):
+        return None
+
+    try:
+        message = format_pr_message(message)
+    except ValueError:
+        message = format_changelog_message(message)
+    return message
 
 
 def brief(start=None, stop='HEAD'):
