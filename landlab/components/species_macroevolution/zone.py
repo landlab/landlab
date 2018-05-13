@@ -1,7 +1,7 @@
-"""Zone BiotaEvolver object.
+"""Zone SpeciesEvolver object.
 """
 
-from landlab.components.biota_macroevolution import Record
+from landlab.components.species_macroevolution import Record
 from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 import numpy as np
 import pandas as pd
@@ -86,8 +86,8 @@ class Zone(object):
             Zone connectivity across two timesteps in a DataFrame with the
             columns, time, origin, destinations, and path_type.
         be_record_supplement : dictionary
-            The items of this dictionary will become items in the BiotaEvolver
-            record for this time.
+            The items of this dictionary will become items in the
+            SpeciesEvolver record for this time.
         """
         paths = pd.DataFrame(columns=['time', 'origin', 'destinations',
                                       'path_type'])
@@ -224,7 +224,7 @@ class Zone(object):
         add_on = {'number_of_captures': number_of_captures,
                   'sum_of_area_captured': cum_area_captured}
 
-        output = {'paths': paths, 'biota_evolver_record_add_on': add_on}
+        output = {'paths': paths, 'species_evolver_record_add_on': add_on}
 
         return output
 

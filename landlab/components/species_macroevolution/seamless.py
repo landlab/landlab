@@ -3,20 +3,20 @@
 Landlab component that populates a model domain with species and evolves the
 species over time.
 
-Component written by Nathan Lyons beginning August 20, 2017.
+Component written by Nathan Lyons beginning August 2017.
 """
 
 from collections import OrderedDict
 from itertools import product
 from landlab import Component
-from landlab.components.biota_macroevolution import Record
+from landlab.components.species_macroevolution import Record
 from landlab.core.messages import warning_message
 import numpy as np
 from pandas import DataFrame
 from string import ascii_uppercase
 
 
-class BiotaEvolver(Component):
+class SpeciesEvolver(Component):
     """Simulate the macroevolution processes of species.
 
     Component attributes species and zones are Pandas DataFrames that contain
@@ -30,10 +30,10 @@ class BiotaEvolver(Component):
 
     Construction:
 
-        BiotaEvolver(grid)
+        SpeciesEvolver(grid)
     """
 
-    _name = 'BiotaEvolver'
+    _name = 'SpeciesEvolver'
 
     _input_var_names = ()
 
@@ -46,7 +46,7 @@ class BiotaEvolver(Component):
     _var_doc = {}
 
     def __init__(self, grid, **kwds):
-        """Initialize BiotaEvolver.
+        """Initialize SpeciesEvolver.
 
         Parameters
         ----------
@@ -58,8 +58,8 @@ class BiotaEvolver(Component):
         # Set DataFrames.
         self.record = Record()
         self.species = DataFrame(columns=['clade', 'species', 'time_appeared',
-                                 'time_disappeared', 'latest_time', 'subtype', 'object'])
-        self.zones = DataFrame(columns=['time_appeared', 'time_disappeared', 'latest_time',
+                                          'latest_time', 'subtype', 'object'])
+        self.zones = DataFrame(columns=['time_appeared', 'latest_time',
                                         'subtype', 'object'])
         self.zone_paths = DataFrame(columns=['time', 'origin', 'destinations',
                                              'path_type'])
@@ -80,26 +80,23 @@ class BiotaEvolver(Component):
         time : float
             The time in the simulation.
         zones_at_time : Zone list
-            A list of the BiotaEvolver Zone objects at time.
+            A list of the SpeciesEvolver Zone objects at time.
         """
         if len(self.species) == 0:
-            warning_message('No species exist. Introduce species to '
-                            'BiotaEvolver.')
+            print(warning_message('No species exist. Introduce species to '
+                                  'SpeciesEvolver.'))
         else:
             self.record.append_entry(time)
 
             paths = self._get_zone_paths(time, zones_at_time, **kwds)
-
-            child_species, extinct_species = self._update_species(time, paths,
-                                                                  **kwds)
+            survivors = self._get_surviving_species(time, paths, **kwds)
 
             # Flatten and get unique zone path destinations.
             destinations = paths.destinations.tolist()
             updated_zones = list(set(sum(destinations, [])))
 
             # Update DataFrames.
-            self._set_disappearance_time_for_species(extinct_species, time)
-            self._add_species_to_DataFrame(child_species, time)
+            self._update_species_DataFrame(survivors, time)
             self._update_zones_DataFrame(updated_zones, time)
             self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
@@ -122,8 +119,8 @@ class BiotaEvolver(Component):
             # Parse path output.
             paths = paths.append(output['paths'], ignore_index=True)
 
-            if 'biota_evolver_record_add_on' in output.keys():
-                add_on = output['biota_evolver_record_add_on']
+            if 'species_evolver_record_add_on' in output.keys():
+                add_on = output['species_evolver_record_add_on']
                 for key in add_on.keys():
                     if key not in self.record.columns:
                         self.record[key] = np.NaN * len(self.record)
@@ -133,7 +130,7 @@ class BiotaEvolver(Component):
 
         return paths
 
-    def _update_species(self, time, zone_paths, **kwds):
+    def _get_surviving_species(self, time, zone_paths, **kwds):
         # Process only the species extant at the prior time.
         prior_time = self.record.get_time_prior_to_time(time)
         extant_species = self.species_at_time(prior_time)
@@ -141,8 +138,7 @@ class BiotaEvolver(Component):
         # Get the species that persist in `time` given the outcome of the
         # macroevolution processes of the species.
 
-        child_species = []
-        extinct_species = []
+        surviving_species = []
 
         species_types = set([type(s) for s in extant_species])
 
@@ -152,34 +148,37 @@ class BiotaEvolver(Component):
 
             output = st._evolve_type(prior_time, time, s_with_type, zone_paths)
 
-            child_species.extend(output['child_species'])
-            extinct_species.extend(output['extinct_species'])
+            surviving_species.extend(output['surviving_parent_species'])
+            surviving_species.extend(output['child_species'])
 
             # Set id for child species.
             for cs in output['child_species']:
                 clade = cs.parent_species.clade
                 cs._identifier = self._get_unused_species_id(clade)
 
-        return child_species, extinct_species
+        return surviving_species
 
     # Update DataFrame methods
 
-    def _set_disappearance_time_for_species(self, species, time):
-        mask = np.in1d(self.species.object.values, species)
-        self.species.time_disappeared[mask] = [time] * len(species)
-        self.species.latest_time[mask] = [time] * len(species)
+    def _update_species_DataFrame(self, species_at_time, time):
+        sdf = self.species
+        s_updated, s_new = self._object_set_difference(species_at_time, sdf)
 
-    def _add_species_to_DataFrame(self, new_species, time):
-        clade, num = ([s.identifier[0] for s in new_species],
-                      [s.identifier[1] for s in new_species])
-        t = [time] * len(new_species)
-        st = [(s.subtype) for s in new_species]
-        data = OrderedDict({'clade': clade, 'species': num, 'time_appeared': t,
-                            'time_disappeared': np.nan, 'latest_time': t, 'subtype': st,
-                            'object': new_species})
+        if s_updated:
+            # Update the latest time value of the updated species.
+            s_updated_mask = np.in1d(sdf.object.values, s_updated)
+            sdf.latest_time[s_updated_mask] = [time] * len(s_updated)
 
-        new_species_df = DataFrame(data)
-        self.species = self.species.append(new_species_df, ignore_index=True)
+        if s_new:
+            clade = [s.identifier[0] for s in s_new]
+            s_number = [s.identifier[1] for s in s_new]
+            t = [time] * len(s_new)
+            st = [(s.subtype) for s in s_new]
+            data = OrderedDict({'clade': clade, 'species': s_number,
+                                'time_appeared': t, 'latest_time': t,
+                                'subtype': st, 'object': s_new})
+            new_species = DataFrame(data)
+            self.species = sdf.append(new_species, ignore_index=True)
 
     def _update_zones_DataFrame(self, zones_at_time, time):
         z = self.zones
@@ -214,11 +213,11 @@ class BiotaEvolver(Component):
     # Species methods
 
     def introduce_species(self, species, time):
-        """Add a species to BiotaEvolver.
+        """Add a species to SpeciesEvolver.
 
         Parameters
         ----------
-        species : BiotaEvolver Species
+        species : SpeciesEvolver Species
             The species to introduce.
         time : float
             The time in the simulation.
@@ -229,7 +228,7 @@ class BiotaEvolver(Component):
 
         species_zones = species.record.loc[time, 'zones']
 
-        self._add_species_to_DataFrame([species], time)
+        self._update_species_DataFrame([species], time)
         self._update_zones_DataFrame(species_zones, time)
         if time not in self.record.times:
             self.record.loc[len(self.record), 'time'] = time
@@ -268,19 +267,16 @@ class BiotaEvolver(Component):
 
         Returns
         -------
-        species : BiotaEvolver Species list
+        species : SpeciesEvolver Species list
             The species that exist at the inputted time.
         """
-        s = self.species
+        sdf = self.species
 
-        appeared_before_time = s.time_appeared <= time
-        disappeared_after_time = np.logical_or(s.time_disappeared > time,
-                                               s.time_disappeared.isnull())
+        appeared_before_time = sdf.time_appeared <= time
+        present_at_time = sdf.latest_time >= time
+        extant_at_time = np.all([appeared_before_time, present_at_time], 0)
 
-        extant_at_time = np.all([appeared_before_time, disappeared_after_time],
-                                0)
-
-        species = s.object[extant_at_time].tolist()
+        species = sdf.object[extant_at_time].tolist()
 
         return species
 
@@ -294,7 +290,7 @@ class BiotaEvolver(Component):
 
         Returns
         -------
-        zones : BiotaEvolver Zone list
+        zones : SpeciesEvolver Zone list
             The zones that exist at the inputted time.
         """
         con1 = time >= self.zones.time_appeared
@@ -332,16 +328,16 @@ class BiotaEvolver(Component):
         identifier_element : tuple, str, or int
             The identifier element of the species to return.
         return_objects : boolean, optional
-            ``True`` returns species as BiotaEvolver objects. ``False``, the
+            ``True`` returns species as SpeciesEvolver objects. ``False``, the
             default, returns a DataFrame.
 
         Returns
         -------
-        Pandas DataFrame, BiotaEvolver Species, or BiotaEvolver Species list
+        Pandas DataFrame, SpeciesEvolver Species, or SpeciesEvolver Species list
             The species with identifiers that matched *identifier_element*. The
             type of the return object is set by *return_objects*.
         """
-        s_in = self.species
+        sdf = self.species
 
         element_type = type(identifier_element)
 
@@ -357,16 +353,16 @@ class BiotaEvolver(Component):
                                 'be a string, and the second must be an '
                                 'integer.')
 
-            s_out = self.species.loc[np.all([s_in.clade == clade,
-                                             s_in.species == num], 0)]
+            s_out = self.species.loc[np.all([sdf.clade == clade,
+                                             sdf.species == num], 0)]
 
         elif element_type == str:
             # Get the species of a clade.
-            s_out = s_in.loc[s_in.clade == identifier_element]
+            s_out = sdf.loc[sdf.clade == identifier_element]
 
         elif element_type == int:
             # Get the species that match a number.
-            s_out = self.species.loc[s_in.species == identifier_element]
+            s_out = self.species.loc[sdf.species == identifier_element]
 
         else:
             raise TypeError('*identifier_element* must be a tuple, string, or '

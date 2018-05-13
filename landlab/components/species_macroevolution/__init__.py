@@ -1,7 +1,7 @@
 from .record import Record
-from .seamless import BiotaEvolver
+from .seamless import SpeciesEvolver
 from .zone import Zone
 from .plot import *
 from .species import Species
 
-__all__ = ['BiotaEvolver']
+__all__ = ['SpeciesEvolver']
