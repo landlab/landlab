@@ -246,6 +246,18 @@ class SpatialPrecipitationDistribution(Component):
 
     _name = 'SpatialPrecipitationDistribution'
 
+    _cite_as = """@Article{gmd-2018-86,
+        title={STORM: A simple, flexible, and parsimonious stochastic rainfall
+               generator for simulating climate and climate change},
+        author={Singer, M. B. and Michaelides, K. and Hobley, D. E. J.},
+        journal={Geoscientific Model Development Discussions},
+        volume={2018},
+        pages={1--25},
+        year={2018},
+        url={https://www.geosci-model-dev-discuss.net/gmd-2018-86/},
+        doi={10.5194/gmd-2018-86}
+        }"""
+
     _input_var_names = (
         'topographic__elevation',
     )
