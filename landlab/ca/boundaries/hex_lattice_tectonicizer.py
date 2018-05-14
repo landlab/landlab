@@ -141,9 +141,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> lnf.outgoing_node
     array([12, 17, 19, 22])
 
-    >>> pid = arange(16, dtype=int)
-    >>> ns = arange(16, dtype=int)
-    >>> pdata = arange(16)
+    >>> pid = np.arange(16, dtype=int)
+    >>> ns = np.arange(16, dtype=int)
+    >>> pdata = np.arange(16)
     >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect',
     ...                     reorient_links=True)
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
@@ -159,9 +159,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> lnf.propid
     array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
 
-    >>> pid = arange(20, dtype=int)
-    >>> ns = arange(20, dtype=int)
-    >>> pdata = arange(20)
+    >>> pid = np.arange(20, dtype=int)
+    >>> ns = np.arange(20, dtype=int)
+    >>> pdata = np.arange(20)
     >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical', shape='rect',
     ...                     reorient_links=True)
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
@@ -994,7 +994,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
         >>> pd = mg.add_zeros('node', 'propdata')
         >>> lu = LatticeUplifter(propid=ca.propid, prop_data=pd)
-        >>> lu.node_state[:] = arange(len(lu.node_state))
+        >>> lu.node_state[:] = np.arange(len(lu.node_state))
         >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)
         >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
         array([ 0, 25,  2, 25, 25,
