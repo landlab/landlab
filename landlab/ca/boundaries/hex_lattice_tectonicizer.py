@@ -129,7 +129,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = np.arange(25, dtype=int)
     >>> pdata = np.arange(25)
     >>> ns = np.arange(25, dtype=int)
-    >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect',
+    ...                     reorient_links=True)
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.first_fw_col
     1
@@ -143,7 +144,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = arange(16, dtype=int)
     >>> ns = arange(16, dtype=int)
     >>> pdata = arange(16)
-    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect',
+    ...                     reorient_links=True)
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.num_fw_rows
     array([0, 1, 3, 4])
@@ -160,7 +162,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = arange(20, dtype=int)
     >>> ns = arange(20, dtype=int)
     >>> pdata = arange(20)
-    >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+    >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical', shape='rect',
+    ...                     reorient_links=True)
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.incoming_node
     array([1, 3, 4, 6])
@@ -189,7 +192,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
+        ...                     shape='rect', reorient_links=True)
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         0
@@ -203,7 +207,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(16, dtype=int)
         >>> pdata = np.arange(16)
         >>> ns = np.arange(16, dtype=int)
-        >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical',
+        ...                     shape='rect', reorient_links=True)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         1
@@ -217,7 +222,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(45, dtype=int)
         >>> pdata = np.arange(45)
         >>> ns = np.arange(45, dtype=int)
-        >>> grid = HexModelGrid(5, 9, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> grid = HexModelGrid(5, 9, 1.0, orientation='vertical',
+        ...                     shape='rect', reorient_links=True)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         1
@@ -243,7 +249,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         #   Figure out which nodes are and are not within the footwall
         in_footwall = (self.grid.node_y < _TAN60 * (self.grid.node_x -
                        fault_x_intercept))
-        
+
         # Set up array of link offsets: when slip occurs, what link's data get
         # copied into the present link? Which links get cut by fault plane and
         # need to have their states reset?
@@ -375,7 +381,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         """Return True of both nodes are in footwall, False otherwise."""
         return (node_in_footwall[self.grid.node_at_link_tail[link]]
                 and node_in_footwall[self.grid.node_at_link_head[link]])
-        
+
     def _get_link_orientation(self, link):
         """Return link orientation code for given link."""
         assert self.grid.orientation[0] == 'v', 'assumes vertical orientation'
@@ -403,7 +409,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
+        ...                     shape='rect')
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
         >>> lnf.link_offset_id
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
@@ -413,7 +420,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(36, dtype=int)
         >>> pdata = np.arange(36)
         >>> ns = np.arange(36, dtype=int)
-        >>> grid = HexModelGrid(6, 6, 1.0, orientation='vertical', shape='rect')
+        >>> grid = HexModelGrid(6, 6, 1.0, orientation='vertical',
+        ...                     shape='rect')
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_link_for_shift
         32
@@ -445,12 +453,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     def _setup_links_to_update_after_offset(self, in_footwall):
         """Create and store array with IDs of links for which to update
         transitions after fault offset.
-        
+
         These are: all active boundary links with at least one node in the
-        footwall, plus the lowest non-boundary links, including the 
+        footwall, plus the lowest non-boundary links, including the
         next-to-lowest vertical links and those angling that are below them,
         plus the fault-crossing links.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -599,7 +607,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
+        ...                     shape='rect', reorient_links=True)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.do_offset(rock_state=25)
         >>> ns
@@ -659,8 +668,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # left and down one or two nodes. We do this replacement if indices
             # contains any data.
             first_repl = bottom_node + n_base_nodes * self.nc
-            last_repl = first_repl + (self.num_fw_rows[c] - \
-                        (n_base_nodes + 1)) * self.nc
+            last_repl = first_repl + (self.num_fw_rows[c] -
+                                      (n_base_nodes + 1)) * self.nc
             indices = arange(first_repl, last_repl + 1, self.nc)
 
             if len(indices) > 0:
@@ -672,9 +681,10 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
         if self.propid is not None:
             self.propid[self.incoming_node] = propids_for_incoming_nodes
-            self.prop_data[self.propid[self.incoming_node]] = self.prop_reset_value
+            self.prop_data[
+                self.propid[self.incoming_node]] = self.prop_reset_value
 
-        if self.first_fw_col==0:
+        if self.first_fw_col == 0:
             self.node_state[:self.n_footwall_rows[0]] = rock_state
 
         if ca is not None:
@@ -698,7 +708,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu.inner_base_row_nodes
         array([1, 3, 4])
 
-        >>> hg = HexModelGrid(5, 6, 1.0, orientation='vertical', shape='rect', reorient_links=True)
+        >>> hg = HexModelGrid(5, 6, 1.0, orientation='vertical', shape='rect',
+        ...                   reorient_links=True)
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.inner_base_row_nodes
         array([1, 2, 3, 4])
@@ -732,15 +743,15 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.block_layer_dip_angle = block_layer_dip_angle
             self.layer_left_x = layer_left_x
             self.y0_top = y0_top
-            
+
     def _setup_links_to_update_after_uplift(self):
         """Create and store array with IDs of links for which to update
         transitions after uplift.
-        
+
         These are: all active boundary links, plus the lowest non-boundary
         links, including the next-to-lowest vertical links and those angling
         that are below them.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -765,14 +776,14 @@ class LatticeUplifter(HexLatticeTectonicizer):
         boundary = logical_or(g.status_at_node[g.node_at_link_tail] != 0,
                               g.status_at_node[g.node_at_link_head] != 0)
         active_bnd = logical_and(boundary, g.status_at_link == 0)
-        self.links_to_update = as_id_array(where(logical_or(lower_active, 
+        self.links_to_update = as_id_array(where(logical_or(lower_active,
                                                             active_bnd))[0])
 
     def _get_new_base_nodes(self, rock_state):
         """
         Return an array (or scalar) of states for the newly uplifted bottom
         inner row.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -812,7 +823,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         new_base_nodes = zeros(len(self.inner_base_row_nodes), dtype=int)
 
         if self.block_layer_dip_angle == 0.0:  # horizontal
-            
+
             if self.cum_uplift < self.block_layer_thickness:
                 new_base_nodes[:] = self.block_ID
             else:
@@ -822,29 +833,30 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
             layer_right_x = self.layer_left_x + self.block_layer_thickness
             inside_layer = where(logical_and(
-                    self.grid.x_of_node[self.inner_base_row_nodes] >= self.layer_left_x,
-                    self.grid.x_of_node[self.inner_base_row_nodes] <= layer_right_x))[0]
+                    self.grid.x_of_node[
+                        self.inner_base_row_nodes] >= self.layer_left_x,
+                    self.grid.x_of_node[
+                        self.inner_base_row_nodes] <= layer_right_x))[0]
             new_base_nodes[:] = rock_state
             new_base_nodes[inside_layer] = self.block_ID
-        
+
         else:
-            
+
             x = self.grid.x_of_node[self.inner_base_row_nodes]
             y = self.grid.y_of_node[self.inner_base_row_nodes]
             m = tan(pi * self.block_layer_dip_angle / 180.0)
             y_top = m * x + self.y0_top
-            y_bottom = y_top - (self.block_layer_thickness 
+            y_bottom = y_top - (self.block_layer_thickness
                                 / cos(pi * self.block_layer_dip_angle / 180.0))
             inside_layer = where(logical_and(y >= y_bottom, y <= y_top))
             new_base_nodes[:] = rock_state
             new_base_nodes[inside_layer] = self.block_ID
-        
+
         return new_base_nodes
-        
 
     def shift_link_and_transition_data_upward(self, ca, current_time):
         """Applies uplift to links and transitions.
-        
+
         For each link that lies above the y = 1.5 cells line, assign the
         properties of the link one row down.
 
@@ -901,7 +913,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         # Define the offset in ID between a link and its neighbor one row up
         # (or down)
         shift = nc + 2 * (nc - 1)
-        
+
         # Loop from top to bottom of grid, shifting the following link data
         # upward: state of link, ID of its next transition, and time of its
         # next transition.
@@ -922,7 +934,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
             if ca.priority_queue._queue[i][2] < first_no_shift_id:
                 ca.priority_queue._queue[i] = (ca.priority_queue._queue[i][0],
                                                ca.priority_queue._queue[i][1],
-                                               (ca.priority_queue._queue[i][2] 
+                                               (ca.priority_queue._queue[i][2]
                                                + shift))
 
         # Update state of links along the boundaries.
@@ -939,7 +951,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
             ca.link_state[lk] = new_link_state
             if ca.n_trn[new_link_state] > 0:
                 (event_time, this_trn_id) = get_next_event_new(lk,
-                                                               new_link_state, 
+                                                               new_link_state,
                                                                current_time,
                                                                ca.n_trn,
                                                                ca.trn_id,
@@ -960,8 +972,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
             self.propid[self.inner_base_row_nodes+self.nc*r] =  \
                     self.propid[self.inner_base_row_nodes+self.nc*(r-1)]
         self.propid[self.inner_base_row_nodes] = top_row_propid
-        self.prop_data[self.propid[self.inner_base_row_nodes]] = \
-                    self.prop_reset_value
+        self.prop_data[
+            self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
 
     def uplift_interior_nodes(self, ca, current_time, rock_state=1):
         """
@@ -991,7 +1003,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
         >>> lu.propid # doctest: +NORMALIZE_WHITESPACE
-        array([ 0, 21,  2, 23, 24, 
+        array([ 0, 21,  2, 23, 24,
                 5,  1,  7,  3,  4,
                10,  6, 12,  8,  9,
                15, 11, 17, 13, 14,
@@ -1022,6 +1034,6 @@ class LatticeUplifter(HexLatticeTectonicizer):
         self.shift_link_and_transition_data_upward(ca, current_time)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import doctest
     doctest.testmod()
