@@ -136,19 +136,16 @@ class Space(Component):
 
     Now we test to see if soil depth and topography are right:
 
-    >>> mg.at_node['soil__depth'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.50000906,  0.5       ,  0.5       ,  0.5       ,  0.5       ,
-            0.5       ,  0.49537393,  0.49305759,  0.49193247,  0.5       ,
-            0.5       ,  0.49304854,  0.49304459,  0.4913106 ,  0.5       ,
-            0.5       ,  0.49177241,  0.4913074 ,  0.48573171,  0.5       ,
-            0.5       ,  0.5       ,  0.5       ,  0.5       ,  0.5       ])
+    >>> np.around(mg.at_node['soil__depth'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.493,
+            0.492,  0.5  ,  0.5  ,  0.493,  0.493,  0.491,  0.5  ,  0.5  ,
+            0.492,  0.491,  0.486,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ])
 
-    >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.42290479,  1.53606698,  2.5727653 ,  3.51126678,  4.56077707,
-            1.58157495,  0.42399277,  0.428743  ,  0.43834115,  5.50969486,
-            2.54008677,  0.4287476 ,  0.42875161,  0.43888606,  6.52641123,
-            3.55874171,  0.43848567,  0.43888881,  0.45116241,  7.55334077,
-            4.55922478,  5.5409473 ,  6.57035008,  7.5038935 ,  8.51034357])
+    >>> np.around(mg.at_node['topographic__elevation'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.429,
+            0.438,  5.51 ,  2.54 ,  0.429,  0.429,  0.439,  6.526,  3.559,
+            0.438,  0.439,  0.451,  7.553,  4.559,  5.541,  6.57 ,  7.504,
+            8.51 ])
     """
 
     _name= 'Space'
@@ -247,12 +244,12 @@ class Space(Component):
         except KeyError:
             self.soil__depth = grid.add_zeros(
                 'soil__depth', at='node', dtype=float)
-            
+
         if isinstance(grid, RasterModelGrid):
             self.link_lengths = grid.length_of_d8
         else:
             self.link_lengths = grid.length_of_link
-            
+
         try:
             self.bedrock__elevation = grid.at_node['bedrock__elevation']
         except KeyError:
@@ -626,7 +623,7 @@ class Space(Component):
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
 
-        Used to update slope values between sub-time-steps, when we do not 
+        Used to update slope values between sub-time-steps, when we do not
         re-run flow routing.
 
         Examples
@@ -655,7 +652,7 @@ class Space(Component):
         r = self._grid.at_node['flow__receiver_node']
         slp = self._grid.at_node['topographic__steepest_slope']
         slp[:] = (z - z[r]) / self.link_lengths[self.link_to_reciever]
-        
+
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):
         """Run step with CHILD-like solver that adjusts time steps to prevent
