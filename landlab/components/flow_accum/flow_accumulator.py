@@ -111,12 +111,13 @@ class FlowAccumulator(Component):
         uninstantiated FlowDirector class, or an instance of a FlowDirector
         class. This sets the method used to calculate flow directions.
         Default is 'FlowDirectorSteepest'
-    runoff_rate : float, optional (m/time)
-        If provided, sets the (spatially constant) runoff rate. If a spatially
-        variable runoff rate is desired, use the input field
-        'water__unit_flux_in'. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field.
-        If neither are set, defaults to spatially constant unit input.
+    runoff_rate : field name, array, or float, optional (m/time)
+        If provided, sets the runoff rate and will be assigned to the grid field
+        'water__unit_flux_in'. If a spatially and and temporally variable runoff
+        rate is desired, pass this field name and update the field through model
+        run time. If both the field and argument are present at the time of
+        initialization, runoff_rate will *overwrite* the field. If neither are
+        set, defaults to spatially constant unit input.
     depression_finder : string, class, instance of class, optional
          A string of class name (e.g., 'DepressionFinderAndRouter'), an
          uninstantiated DepressionFinder class, or an instance of a
