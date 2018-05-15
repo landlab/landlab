@@ -299,3 +299,96 @@ def test_specifying_routing_method_wrong():
     assert_raises(ValueError, FlowAccumulator, mg,
                   flow_director='D4',
                   depression_finder=df)
+
+
+def test_field_name_array_float_case1():
+    """Topography as field, runoff rate as float"""
+    mg = RasterModelGrid((5,4), spacing=(1, 1))
+    topographic__elevation = np.array([0.,  0.,  0., 0.,
+                                       0., 21., 10., 0.,
+                                       0., 31., 20., 0.,
+                                       0., 32., 30., 0.,
+                                       0.,  0.,  0., 0.])
+    _ = mg.add_field('node', 'topographic__elevation', topographic__elevation)
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+
+    fa = FlowAccumulator(mg, 'topographic__elevation', runoff_rate=10.)
+    assert_array_equal(mg.at_node['water__unit_flux_in'], 10.*np.ones(mg.size('node')))
+
+    fa.run_one_step()
+    reciever = np.array([ 0,  1,  2,  3,
+                          4,  1,  2,  7,
+                          8, 10,  6, 11,
+                         12, 14, 10, 15,
+                         16, 17, 18, 19])
+
+    da = np.array([ 0.,  1.,  5.,  0.,
+                    0.,  1.,  5.,  0.,
+                    0.,  1.,  4.,  0.,
+                    0.,  1.,  2.,  0.,
+                    0.,  0.,  0.,  0.])
+
+    q = np.array([ 0.,  10.,  50.,  0.,
+                   0.,  10.,  50.,  0.,
+                   0.,  10.,  40.,  0.,
+                   0.,  10.,  20.,  0.,
+                   0.,   0.,   0.,  0.])
+
+    assert_array_equal(mg.at_node['flow__receiver_node'], reciever)
+    assert_array_equal(mg.at_node['drainage_area'], da)
+    assert_array_equal(mg.at_node['surface_water__discharge'], q)
+
+
+def test_field_name_array_float_case2():
+    """Topography as field, runoff rate as field name"""
+    pass
+
+def test_field_name_array_float_case3():
+    """Topography as field, runoff rate as float"""
+    pass
+
+def test_field_name_array_float_case4():
+    """Topography as array, runoff rate as float"""
+    mg = RasterModelGrid((5,4), spacing=(1, 1))
+    topographic__elevation = np.array([0.,  0.,  0., 0.,
+                                       0., 21., 10., 0.,
+                                       0., 31., 20., 0.,
+                                       0., 32., 30., 0.,
+                                       0.,  0.,  0., 0.])
+    _ = mg.add_field('node', 'topographic__elevation', topographic__elevation)
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+
+    fa = FlowAccumulator(mg, topographic__elevation, runoff_rate=10.)
+    assert_array_equal(mg.at_node['water__unit_flux_in'], 10.*np.ones(mg.size('node')))
+
+    fa.run_one_step()
+    reciever = np.array([ 0,  1,  2,  3,
+                          4,  1,  2,  7,
+                          8, 10,  6, 11,
+                         12, 14, 10, 15,
+                         16, 17, 18, 19])
+
+    da = np.array([ 0.,  1.,  5.,  0.,
+                    0.,  1.,  5.,  0.,
+                    0.,  1.,  4.,  0.,
+                    0.,  1.,  2.,  0.,
+                    0.,  0.,  0.,  0.])
+
+    q = np.array([ 0.,  10.,  50.,  0.,
+                   0.,  10.,  50.,  0.,
+                   0.,  10.,  40.,  0.,
+                   0.,  10.,  20.,  0.,
+                   0.,   0.,   0.,  0.])
+
+    assert_array_equal(mg.at_node['flow__receiver_node'], reciever)
+    assert_array_equal(mg.at_node['drainage_area'], da)
+    assert_array_equal(mg.at_node['surface_water__discharge'], q)
+
+
+def test_field_name_array_float_case5():
+    """Topography as array, runoff rate as field name"""
+    pass
+
+def test_field_name_array_float_case6():
+    """Topography as array, runoff rate as float"""
+    pass
