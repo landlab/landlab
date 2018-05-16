@@ -107,11 +107,11 @@ def flow_directions_dinf(grid,
     This method also works if the elevations are passed as an array instead of
     the (implied) field name 'topographic__elevation'.
 
+    >>> z = grid['node']['topographic__elevation']
     >>> (receivers, proportions,
     ... steepest_slope, steepest_receiver,
-    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid,
-    ...                                                             grid['node']['topographic__elevation'])
-    >>> receivers
+    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
+    >>> receiv6ers
     array([[ 0, -1],
            [ 0,  3],
            [ 1,  4],
