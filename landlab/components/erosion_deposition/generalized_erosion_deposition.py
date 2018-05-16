@@ -1,7 +1,7 @@
 import numpy as np
 from landlab import Component
 from landlab import RasterModelGrid
-from landlab.utils.return_array import _return_array_at_node
+from landlab.utils.return_array import return_array_at_node
 from .cfuncs import calculate_qs_in
 DEFAULT_MINIMUM_TIME_STEP = 0.001 # default minimum time step duration
 
