@@ -103,6 +103,35 @@ def flow_directions_dinf(grid,
            [ 1.        ,  0.        ],
            [ 0.40966553,  0.59033447],
            [ 0.40966553,  0.59033447]])
+
+    This method also works if the elevations are passed as an array instead of
+    the (implied) field name 'topographic__elevation'.
+
+    >>> (receivers, proportions,
+    ... steepest_slope, steepest_receiver,
+    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid,
+    ...                                                             grid['node']['topographic__elevation'])
+    >>> receivers
+    array([[ 0, -1],
+           [ 0,  3],
+           [ 1,  4],
+           [ 0,  1],
+           [ 3,  0],
+           [ 4,  1],
+           [ 3,  4],
+           [ 6,  3],
+           [ 7,  4]])
+
+    >>> proportions
+    array([[ 1.        ,  0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447]])
     """
     # grid type testing
     if isinstance(grid, VoronoiDelaunayGrid):
