@@ -196,20 +196,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         self._grid = grid #store grid
 
-        # Create arrays for sediment influx at each node, discharge to the
-        # power "m", and deposition rate
-        self.qs_in = np.zeros(grid.number_of_nodes)
-        self.Q_to_the_m = np.zeros(grid.number_of_nodes)
-        self.S_to_the_n = np.zeros(grid.number_of_nodes)
-        self.depo_rate = np.zeros(self.grid.number_of_nodes)
-
-        # store other constants
-        self.m_sp = float(m_sp)
-        self.n_sp = float(n_sp)
-        self.phi = float(phi)
-        self.v_s = float(v_s)
-        self.dt_min = dt_min
-
         # E/D specific inits.
         self.frac_coarse = 1.0 - F_f
 
