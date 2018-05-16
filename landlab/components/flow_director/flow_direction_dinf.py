@@ -111,7 +111,7 @@ def flow_directions_dinf(grid,
     >>> (receivers, proportions,
     ... steepest_slope, steepest_receiver,
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
-    >>> receiv6ers
+    >>> receivers
     array([[ 0, -1],
            [ 0,  3],
            [ 1,  4],
