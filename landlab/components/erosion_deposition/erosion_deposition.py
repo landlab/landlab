@@ -231,8 +231,8 @@ class ErosionDeposition(Component):
         self.frac_coarse = 1.0 - F_f
 
         # K's and critical values can be floats, grid fields, or arrays
-        self.K = _return_array_at_node(grid, K)
-        self.sp_crit = _return_array_at_node(grid, sp_crit)
+        self.K = return_array_at_node(grid, K)
+        self.sp_crit = return_array_at_node(grid, sp_crit)
 
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)

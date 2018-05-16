@@ -247,11 +247,11 @@ class Space(_GeneralizedErosionDeposition):
         self.Er = np.zeros(grid.number_of_nodes)
 
         #K's and critical values can be floats, grid fields, or arrays
-        self.K_sed = _return_array_at_node(grid, K_sed)
-        self.K_br = _return_array_at_node(grid, K_br)
+        self.K_sed = return_array_at_node(grid, K_sed)
+        self.K_br = return_array_at_node(grid, K_br)
 
-        self.sp_crit_sed = _return_array_at_node(grid, sp_crit_sed)
-        self.sp_crit_br = _return_array_at_node(grid, sp_crit_br)
+        self.sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
+        self.sp_crit_br = return_array_at_node(grid, sp_crit_br)
 
 
         #go through erosion methods to ensure correct hydrology
