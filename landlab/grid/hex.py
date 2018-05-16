@@ -773,7 +773,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Returns
         -------
         boolean
-            ``True`` if node has a neighbor on the boundary, ``False`` otherwise.
+            ``True`` if node has a neighbor with a boundary ID, 
+            ``False`` otherwise.
 
 
         Checks to see if one of the eight neighbor nodes of node(s) with
