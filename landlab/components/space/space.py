@@ -3,7 +3,6 @@ from six import string_types
 import numpy as np
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (_GeneralizedErosionDeposition,
                                                             DEFAULT_MINIMUM_TIME_STEP)
-from landlab import RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 from .cfuncs import calculate_qs_in
 
@@ -229,6 +228,7 @@ class Space(_GeneralizedErosionDeposition):
         self._grid = grid #store grid
 
         # space specific inits
+        self.H_star = H_star
         try:
             self.soil__depth = grid.at_node['soil__depth']
         except KeyError:

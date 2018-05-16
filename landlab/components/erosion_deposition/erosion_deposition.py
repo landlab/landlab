@@ -1,6 +1,6 @@
 import numpy as np
-from landlab import Component
-from landlab import RasterModelGrid
+from landlab.components.erosion_deposition.generalized_erosion_deposition import (_GeneralizedErosionDeposition,
+                                                            DEFAULT_MINIMUM_TIME_STEP)
 from landlab.utils.return_array import return_array_at_node
 from .cfuncs import calculate_qs_in
 
@@ -8,7 +8,7 @@ ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
 DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
-class ErosionDeposition(Component):
+class ErosionDeposition(_GeneralizedErosionDeposition):
     """
     Erosion-Deposition model in the style of Davy and Lague (2009)
 
@@ -189,27 +189,10 @@ class ErosionDeposition(Component):
            -0.054, -0.053, -0.035,  7.053,  4.059,  5.041,  6.07 ,  7.004,
             8.01 ])
         """
-        self.flow_receivers = grid.at_node['flow__receiver_node']
-        self.stack = grid.at_node['flow__upstream_node_order']
-        self.elev = grid.at_node['topographic__elevation']
-        self.slope = grid.at_node['topographic__steepest_slope']
-        self.link_to_reciever = grid.at_node['flow__link_to_receiver_node']
+        super(ErosionDeposition, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
+                                                phi=phi, F_f=F_f, v_s=v_s,
+                                                dt_min=dt_min)
 
-        if isinstance(grid, RasterModelGrid):
-            self.link_lengths = grid.length_of_d8
-        else:
-            self.link_lengths = grid.length_of_link
-
-        try:
-            self.qs = grid.at_node['sediment__flux']
-        except KeyError:
-            self.qs = grid.add_zeros(
-                'sediment__flux', at='node', dtype=float)
-        try:
-            self.q = grid.at_node['surface_water__discharge']
-        except KeyError:
-            self.q = grid.add_zeros(
-                'surface_water__discharge', at='node', dtype=float)
 
         self._grid = grid #store grid
 
@@ -463,7 +446,7 @@ class ErosionDeposition(Component):
 
         #topo elev is old elev + deposition - erosion
         cores = self.grid.core_nodes
-        self.elev[cores] += ((self.depo_rate[cores]
+        self.topographic__elevation[cores] += ((self.depo_rate[cores]
                               - self.erosion_term[cores]) * dt)
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
