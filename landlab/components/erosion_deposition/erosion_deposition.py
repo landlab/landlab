@@ -197,7 +197,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._grid = grid #store grid
 
         # E/D specific inits.
-        self.frac_coarse = 1.0 - F_f
 
         # K's and critical values can be floats, grid fields, or arrays
         self.K = return_array_at_node(grid, K)
@@ -424,7 +423,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                         self.qs_in,
                         self.erosion_term,
                         self.v_s,
-                        self.frac_coarse)
+                        self.F_f)
 
         self.depo_rate[:] = 0.0
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
