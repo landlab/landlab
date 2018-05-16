@@ -37,7 +37,6 @@ class Zone(object):
         """
         self.record = Record()
         self.mask = mask
-        self.species = []
         self.plot_color = (random(), random(), random(), 1)
 
     def __str__(self):

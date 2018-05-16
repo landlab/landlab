@@ -25,7 +25,7 @@ class Species(object):
         ----------
         initial_time : float
             Initial time of the species.
-        initial_zones : Zone list
+        initial_zones : SpeciesEvolver Zone or Zone list
             A list of SpeciesEvolver Zone objects of the species at the initial
             time.
         parent_species : SpeciesEvolver Species
@@ -65,7 +65,7 @@ class Species(object):
             if len(indices) > 0:
                 es_paths = zone_paths.loc[indices]
 
-                species_persists, child_species = es._evolve(time, es_paths)
+                species_persists, child_species = es.evolve(time, es_paths)
 
                 if species_persists:
                     output['surviving_parent_species'].append(es)
@@ -75,7 +75,7 @@ class Species(object):
 
         return output
 
-    def _evolve(self, time, zone_paths, **kwargs):
+    def evolve(self, time, zone_paths, **kwargs):
         """Run species evolutionary processes.
 
         Extinction is not explicitly implemented in this method. The base class

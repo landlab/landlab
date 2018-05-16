@@ -7,9 +7,10 @@ Component written by Nathan Lyons beginning August 2017.
 """
 
 from collections import OrderedDict
+import inspect
 from itertools import product
 from landlab import Component
-from landlab.components.species_macroevolution import Record
+from landlab.components.species_macroevolution import plot, Record
 from landlab.core.messages import warning_message
 import numpy as np
 from pandas import DataFrame
@@ -67,6 +68,11 @@ class SpeciesEvolver(Component):
         # Track the clade names (keys) and the max species number (values).
         self._species_ids = {}
 
+        # Add plotting functions.
+        for name, func in inspect.getmembers(plot, inspect.isroutine):
+            if inspect.isfunction(func) and inspect.getmodule(func) == plot:
+                setattr(self, name, func)
+
     # Update methods
 
     def run_one_step(self, time, zones_at_time, **kwds):
@@ -102,7 +108,7 @@ class SpeciesEvolver(Component):
 
     def _get_zone_paths(self, time, new_zones, **kwds):
         prior_time = self.record.get_time_prior_to_time(time)
-        prior_zones = self.zones_at_time(prior_time)
+        prior_zones = self.zones_at_time(prior_time, return_objects=True)
         zone_types = set([type(p) for p in new_zones])
 
         paths = DataFrame(columns=['time', 'origin', 'destinations',
@@ -111,6 +117,7 @@ class SpeciesEvolver(Component):
         for zt in zone_types:
             priors_with_type = list(filter(lambda z: isinstance(z, zt),
                                            prior_zones))
+
             new_with_type = list(filter(lambda z: isinstance(z, zt),
                                         new_zones))
             output = zt._get_paths(priors_with_type, new_with_type, time,
@@ -133,7 +140,7 @@ class SpeciesEvolver(Component):
     def _get_surviving_species(self, time, zone_paths, **kwds):
         # Process only the species extant at the prior time.
         prior_time = self.record.get_time_prior_to_time(time)
-        extant_species = self.species_at_time(prior_time)
+        extant_species = self.species_at_time(prior_time, return_objects=True)
 
         # Get the species that persist in `time` given the outcome of the
         # macroevolution processes of the species.
@@ -257,49 +264,53 @@ class SpeciesEvolver(Component):
 
     # Query methods
 
-    def species_at_time(self, time):
+    def species_at_time(self, time, return_objects=False):
         """Get the species extant at a time.
 
         Parameters
         ----------
         time : float
             The time in the simulation.
+        return_objects : boolean, optional
+            ``True`` returns species as SpeciesEvolver objects. ``False``, the
+            default, returns a DataFrame.
 
         Returns
         -------
         species : SpeciesEvolver Species list
             The species that exist at the inputted time.
         """
-        sdf = self.species
+        return self._object_at_time(self.species, time, return_objects)
 
-        appeared_before_time = sdf.time_appeared <= time
-        present_at_time = sdf.latest_time >= time
-        extant_at_time = np.all([appeared_before_time, present_at_time], 0)
-
-        species = sdf.object[extant_at_time].tolist()
-
-        return species
-
-    def zones_at_time(self, time):
+    def zones_at_time(self, time, return_objects=False):
         """Get the zones extant at a time.
 
         Parameters
         ----------
         time : float
             The time in the simulation.
+        return_objects : boolean, optional
+            ``True`` returns zones as SpeciesEvolver objects. ``False``, the
+            default, returns a DataFrame.
 
         Returns
         -------
         zones : SpeciesEvolver Zone list
             The zones that exist at the inputted time.
         """
-        con1 = time >= self.zones.time_appeared
-        con2 = time <= self.zones.latest_time
-        is_at_time = np.all([con1, con2], axis=0)
+        return self._object_at_time(self.zones, time, return_objects)
 
-        zones = self.zones.object[is_at_time].tolist()
+    def _object_at_time(self, df, time, return_objects):
+        appeared_before_time = df.time_appeared <= time
+        present_at_time = df.latest_time >= time
+        extant_at_time = np.all([appeared_before_time, present_at_time], 0)
 
-        return zones
+        df_time = df.loc[extant_at_time]
+
+        if return_objects:
+            return df_time.object.tolist()
+        else:
+            return df_time
 
     def species_with_identifier(self, identifier_element,
                                 return_objects=False):
@@ -333,7 +344,7 @@ class SpeciesEvolver(Component):
 
         Returns
         -------
-        Pandas DataFrame, SpeciesEvolver Species, or SpeciesEvolver Species list
+        DataFrame, SpeciesEvolver Species, or SpeciesEvolver Species list
             The species with identifiers that matched *identifier_element*. The
             type of the return object is set by *return_objects*.
         """
@@ -378,3 +389,32 @@ class SpeciesEvolver(Component):
                 return s_out_list
         else:
             return s_out
+
+    def get_area_species_data(self):
+        """Get the area and number of species of each zone.
+
+        """
+        time = self.record.time__latest
+
+        species_time = self.species_at_time(time, return_objects=True)
+        zones_time = self.zones_at_time(time, return_objects=True)
+
+        cell_area = self._grid.dx * self._grid.dy
+
+        data = {'area': [], 'number_of_species': []}
+
+        for z in zones_time:
+            mask = z.mask
+#            data['area'].append(np.sum(mask) * cell_area)
+            data['area'].append(self._grid.at_node['drainage_area'][mask].max())
+
+            z_species_count = 0
+
+            for s in species_time:
+                zones_species = s.record.zones.loc[s.record.time == time].tolist()[0]
+                if z in zones_species:
+                    z_species_count += 1
+
+            data['number_of_species'].append(z_species_count)
+
+        return data
