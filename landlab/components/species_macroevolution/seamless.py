@@ -91,6 +91,9 @@ class SpeciesEvolver(Component):
         if len(self.species) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
+        elif len(self.record) == 0:
+            print(warning_message('Species must be introduced at a time prior'
+                                  ' to the ``run_one_step`` time.'))
         else:
             self.record.append_entry(time)
 
@@ -219,19 +222,19 @@ class SpeciesEvolver(Component):
 
     # Species methods
 
-    def introduce_species(self, species, time):
+    def introduce_species(self, species):
         """Add a species to SpeciesEvolver.
 
         Parameters
         ----------
         species : SpeciesEvolver Species
             The species to introduce.
-        time : float
-            The time in the simulation.
         """
         cn = self._get_unused_clade_name()
         sid = self._get_unused_species_id(cn)
         species._identifier = sid
+
+        time = species.record.time__latest
 
         species_zones = species.record.loc[time, 'zones']
 
@@ -329,7 +332,7 @@ class SpeciesEvolver(Component):
         *species* DataFrame.
 
         By default, the species with *identifier_element* will be returned in a
-        DataFrame. Alternatiely, a list of Species objects can be returned by
+        DataFrame. Alternatively, a list of Species objects can be returned by
         setting *return_objects* to ``True``. A singular species is returned
         when *identifier_element* is a tuple. Otherwise, multiple species are
         returned.
