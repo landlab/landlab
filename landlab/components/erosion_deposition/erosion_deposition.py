@@ -183,12 +183,11 @@ class ErosionDeposition(Component):
 
         Now we test to see if topography is right:
 
-        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([-0.47709521,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-                1.08157495, -0.07997982, -0.06459322, -0.05380581,  5.00969486,
-                2.04008677, -0.06457996, -0.06457219, -0.05266169,  6.02641123,
-                3.05874171, -0.05350698, -0.05265586, -0.03498794,  7.05334077,
-                4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])
+        >>> np.around(mg.at_node['topographic__elevation'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
+        array([-0.477,  1.036,  2.073,  3.011,  4.061,  1.082, -0.08 , -0.065,
+           -0.054,  5.01 ,  2.04 , -0.065, -0.065, -0.053,  6.026,  3.059,
+           -0.054, -0.053, -0.035,  7.053,  4.059,  5.041,  6.07 ,  7.004,
+            8.01 ])
         """
         self.flow_receivers = grid.at_node['flow__receiver_node']
         self.stack = grid.at_node['flow__upstream_node_order']
