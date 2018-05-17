@@ -72,7 +72,7 @@ class _GeneralizedErosionDeposition(Component):
         phi
         F_f
         v_s
-        discharge_field
+        discharge_field :
         dt_min : float, optional
             Default values is 0.001.
         """
@@ -88,7 +88,6 @@ class _GeneralizedErosionDeposition(Component):
             self.link_lengths = grid.length_of_d8
         else:
             self.link_lengths = grid.length_of_link
-
 
         try:
             self.qs_ext = grid.at_node['external_sediment__flux']
