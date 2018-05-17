@@ -288,7 +288,7 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_hydrology()
         self._calc_erosion_rates()
 
-        self.qs_in[:] = 0
+        self.qs_in[:] = self.qs_ext
 
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -456,7 +456,7 @@ class Space(_GeneralizedErosionDeposition):
             self._calc_hydrology()
             self._calc_erosion_rates()
 
-            # this is where entrainment needs to be corrected.
+            # CORRECTION HERE?
             self.Es[flooded_nodes] = 0.0
             self.Er[flooded_nodes] = 0.0
 
