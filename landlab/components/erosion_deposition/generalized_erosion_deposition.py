@@ -151,7 +151,7 @@ class _GeneralizedErosionDeposition(Component):
         and uses either q=A^m or q=Q^m depending on discharge method. If
         discharge method is None, default is q=A^m.
         """
-        if self.discharge_method == None:
+        if self.discharge_method is None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         else:
             if self.discharge_method == 'area_field':
@@ -191,9 +191,9 @@ class _GeneralizedErosionDeposition(Component):
         user-defined thresholds for sediment entrainment and bedrock erosion.
         """
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
-        if self.method == 'threshold_stream_power' and self.discharge_method == None:
+        if self.discharge_method is None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
-        elif self.method == 'threshold_stream_power' and self.discharge_method is not None:
+        else:
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
                     if isinstance(self.area_field, string_types):
@@ -227,9 +227,9 @@ class _GeneralizedErosionDeposition(Component):
         default to q=A^m.
         """
         self.Q_to_the_m = np.zeros(len(self.grid.at_node['drainage_area']))
-        if self.method == 'stochastic_hydrology' and self.discharge_method == None:
+        if self.discharge_method is None:
             raise TypeError('Supply a discharge method to use stoc. hydro!')
-        elif self.discharge_method is not None:
+        else:
             if self.discharge_method == 'drainage_area':
                 if self.area_field is not None:
                     if isinstance(self.area_field, string_types):
