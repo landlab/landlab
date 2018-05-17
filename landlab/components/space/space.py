@@ -23,10 +23,10 @@ class Space(_GeneralizedErosionDeposition):
     ----------
     grid : ModelGrid
         Landlab ModelGrid object
-    K_sed : float
-        Erodibility constant for sediment (units vary).
-    K_br : float
-        Erodibility constant for bedrock (units vary).
+    K_sed : float, field name, or array
+        Erodibility for sediment (units vary).
+    K_br : float, field name, or array
+        Erodibility for bedrock (units vary).
     F_f : float
         Fraction of permanently suspendable fines in bedrock [-].
     phi : float
@@ -39,13 +39,12 @@ class Space(_GeneralizedErosionDeposition):
         Drainage area exponent (units vary)
     n_sp : float
         Slope exponent (units vary)
-    sp_crit_sed : float
+    sp_crit_sed : float, field name, or array
         Critical stream power to erode sediment [E/(TL^2)]
-    sp_crit_br : float
+    sp_crit_br : float, field name, or array
         Critical stream power to erode rock [E/(TL^2)]
-    discharge_field : string or array
-        Used if discharge_method = 'discharge_field'.Either field name or
-        array of length(number_of_nodes) containing drainage areas [L^2/T].
+    discharge_field : float, field name, or array
+        Discharge [L^2/T].
     solver : string
         Solver to use. Options at present include:
             (1) 'basic' (default): explicit forward-time extrapolation.

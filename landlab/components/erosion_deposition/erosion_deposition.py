@@ -72,8 +72,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K : float
-            Erodibility constant for substrate (units vary).
+        K : float, field name, or array
+            Erodibility for substrate (units vary).
         phi : float
             Sediment porosity [-].
         v_s : float
@@ -82,14 +82,13 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             Drainage area exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
-        sp_crit : float
+        sp_crit : float, field name, or array
             Critical stream power to erode substrate [E/(TL^2)]
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
-        discharge_field : string or array
-            Used if discharge_method = 'discharge_field'.Either field name or
-            array of length(number_of_nodes) containing drainage areas [L^2/T].
+        discharge_field : float, field name, or array
+            Discharge [L^2/T].
         solver : string
             Solver to use. Options at present include:
                 (1) 'basic' (default): explicit forward-time extrapolation.
@@ -200,7 +199,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                              + "'basic', 'adaptive'")
 
     def calc_erosion_rates(self):
-        """ """
+        """Calculate erosion rates"""
         omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         omega_over_sp_crit = np.divide(omega, self.sp_crit,
                              out=np.zeros_like(omega), where=self.sp_crit!=0)
