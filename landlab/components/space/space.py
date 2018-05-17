@@ -253,33 +253,6 @@ class Space(_GeneralizedErosionDeposition):
         self.sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
         self.sp_crit_br = return_array_at_node(grid, sp_crit_br)
 
-        #go through erosion methods to ensure correct hydrology
-        self.method = str(method)
-        if discharge_method is not None:
-            self.discharge_method = str(discharge_method)
-        else:
-            self.discharge_method = None
-        if area_field is not None:
-            self.area_field = str(area_field)
-        else:
-            self.area_field = None
-        if discharge_field is not None:
-            self.discharge_field = str(discharge_field)
-        else:
-            self.discharge_field = None
-
-        if self.method == 'simple_stream_power':
-            self.calc_hydrology = self.simple_stream_power
-        elif self.method == 'threshold_stream_power':
-            self.calc_hydrology = self.threshold_stream_power
-        elif self.method == 'stochastic_hydrology':
-            self.calc_hydrology = self.stochastic_hydrology
-        else:
-            print('METHOD:')
-            print(self.method)
-            raise ValueError('Specify erosion method (simple stream power,\
-                            threshold stream power, or stochastic hydrology)!')
-
         # Handle option for solver
         if solver == 'basic':
             self.run_one_step = self.run_one_step_basic
