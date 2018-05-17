@@ -31,7 +31,7 @@ def test_erodep_slope_area_small_vs():
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
                            method='simple_stream_power',
-                           discharge_method='drainage_area', 
+                           discharge_method='area_field',
                            area_field='drainage_area',
                            solver='adaptive')
 
@@ -68,11 +68,11 @@ def test_erodep_slope_area_big_vs():
     vs = 1000.0
     U = 0.001
     dt = 10.0
-    
+
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
                            method='simple_stream_power',
-                           discharge_method='drainage_area', 
+                           discharge_method='area_field',
                            area_field='drainage_area',
                            solver='adaptive')
 
@@ -112,7 +112,7 @@ def test_erodep_slope_area_with_vs_unity():
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
                            method='simple_stream_power',
-                           discharge_method='drainage_area', 
+                           discharge_method='area_field',
                            area_field='drainage_area',
                            solver='adaptive')
 
@@ -154,7 +154,7 @@ def test_erodep_slope_area_shear_stress_scaling():
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=m_sp, n_sp=n_sp,
                            method='simple_stream_power',
-                           discharge_method='drainage_area',
+                           discharge_method='area_field',
                            area_field='drainage_area',
                            solver='adaptive')
 
@@ -196,7 +196,7 @@ def test_erodep_slope_area_with_threshold():
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
                            sp_crit=wc,
                            method='threshold_stream_power',
-                           discharge_method='drainage_area', 
+                           discharge_method='area_field',
                            area_field='drainage_area',
                            solver='adaptive')
 

@@ -31,7 +31,7 @@ def test_can_run_with_hex():
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(mg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
                            method='simple_stream_power',
-                           discharge_method='drainage_area',
+                           discharge_method='area_field',
                            area_field='drainage_area',
                            solver='adaptive')
 
