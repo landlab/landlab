@@ -38,13 +38,13 @@ from . import gradients
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
 def _node_has_boundary_neighbor(mg, id, method='d8'):
-    """Test if a node is next to a boundary.
+    """Test if a RasterModelGrid node is next to a boundary.
 
     Test if one of the neighbors of node *id* is a boundary node.
 
     Parameters
     ----------
-    mg : ModelGrid
+    mg : RasterModelGrid
         Source grid
     node_id : int
         ID of node to test.
@@ -396,50 +396,50 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
-            
+
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict['type'] != 'RasterModelGrid':
             assert TypeError('Saved model instance not of '
                              'RasterModelGrid type.')
-        
+
         dx = state_dict['dx']
         shape = state_dict['shape']
         num_rows = shape[0]
         num_cols = shape[1]
-        
+
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
-        
+
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(num_rows, num_cols, dx)
-                                                 
+
         super(RasterModelGrid, self).__init__()
 
         self.looped_node_properties = {}
 
         # Recreate the state of the grid and the information it new
         # about itself
-        
+
         # If angle of links existed, create them
         if state_dict['_angle_of_link_created']:
             self._create_angle_of_link()
-        
+
         # If patches existed, create them
         if state_dict['_patches_created']:
             temp = self.nodes_at_patch
             temp2 = self.links_at_patch
             del temp
             del temp2
-        
+
         # If forced cell area existed.
         if state_dict['forced_cell_areas_created']:
             temp = self._create_cell_areas_array_force_inactive()
             del temp
-            
+
         # If neighbor list existed, create them
         if state_dict['neighbor_list_created']:
             self._create_neighbor_list()
-        
+
         # Set status at links and nodes
         self.status_at_node[:] = state_dict['status_at_node']
 
@@ -454,12 +454,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                                field_set[field]['value_array'],
                                units=field_set[field]['units'])
         self.bc_set_code = state_dict['bc_set_code']
-            
+
     def __getstate__(self):
         """Get state for pickling."""
         # initialize state_dict
         state_dict = {}
-        
+
         # save basic information about the shape and size of the grid
         state_dict['type'] = 'RasterModelGrid'
         state_dict['dx'] = self.dx
@@ -480,14 +480,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 state_dict['forced_cell_areas_created'] = False
         except AttributeError:
             state_dict['forced_cell_areas_created'] = False
-            
+
         # save status information at nodes (status at link set based on status
         # at node
         state_dict['status_at_node'] = np.asarray(self._node_status)
-        
+
         # save all fields. This is the key part, since saving ScalarDataFields, breaks
         # pickle and/or dill
-        
+
         groups = {}
         for group in self._groups.keys():
             field_set_dict = {}
@@ -498,15 +498,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 field_dict['units'] = self.field_units(group, field)
                 field_set_dict[field] = field_dict
             groups[group] = field_set_dict
-        
+
         state_dict['_groups'] = groups
-        
+
         #save BC set code
         state_dict['bc_set_code'] = self.bc_set_code
-        
+
         #return state_dict
         return state_dict
-    
+
     @classmethod
     def from_dict(cls, params):
         """Create a RasterModelGrid from a dictionary.
@@ -702,7 +702,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # Flag indicating whether we have created patches
         self._patches_created = False
-        
+
         # Flag indicating whether we have created link angles
         self._angle_of_link_created = False
 
@@ -2579,86 +2579,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return diagonal_link_slopes
 
-    @deprecated(use='calc_flux_div_at_node', version=1.0)
-    def calculate_flux_divergence_at_nodes(self, active_link_flux, out=None):
-        """Flux divergence at nodes.
-
-        Same as calculate_flux_divergence_at_active_cells, but works with and
-        returns a list of net unit fluxes that corresponds to all nodes, rather
-        than just active cells.
-
-        Note that we DO compute net unit fluxes at boundary nodes (even though
-        these don't have active cells associated with them, and often don't
-        have cells of any kind, because they are on the perimeter). It's up to
-        the user to decide what to do with these boundary values.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0)
-        >>> u = [0., 1., 2., 3., 0.,
-        ...      1., 2., 3., 2., 3.,
-        ...      0., 1., 2., 1., 2.,
-        ...      0., 0., 2., 2., 0.]
-        >>> u = np.array(u)
-        >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
-        >>> grad
-        array([ 1.,  1., -1.,  1.,  1., -1.,  1., -1., -1., -1.,  1.,  1., -1.,
-                1., -1.,  0.,  1.])
-        >>> flux = -grad    # downhill flux proportional to gradient
-        >>> df = rmg.calculate_flux_divergence_at_nodes(flux)
-        >>> df
-        array([ 0., -1., -1.,  1.,  0., -1.,  2.,  4., -2.,  1., -1.,  0.,  1.,
-               -4.,  1.,  0., -1.,  0.,  1.,  0.])
-
-        If calculate_gradients_at_nodes is called inside a loop, you can
-        improve speed by creating an array outside the loop. For example, do
-        this once, before the loop:
-
-        >>> df = rmg.zeros(centering='node') # outside loop
-        >>> rmg.number_of_nodes
-        20
-
-        Then do this inside the loop:
-
-        >>> df = rmg.calculate_flux_divergence_at_nodes(flux, df)
-
-        In this case, the function will not have to create the df array.
-
-        LLCATS: DEPR NINF GRAD
-        """
-        if out is None:
-            out = self.zeros(at='node')
-        return rfuncs.calculate_flux_divergence_at_nodes(
-            self, active_link_flux, out=out)
-
-    @deprecated(use='calc_flux_div_at_node', version=1.0)
-    def calculate_flux_divergence(self, q, id):
-        """Flux divergence.
-
-        Candidate for depreciation, DEJH 5/14
-
-        .. todo:: UPDATE THIS TO USE NEW DATA STRUCTURES!
-
-        This is like calculate_flux_divergences (plural!), but only does
-        it for cell "id".
-
-        LLCATS: DEPR NINF GRAD
-        """
-
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('RasterModelGrid.calculate_flux_divergence here with '
-                       'cell ' + id)
-            six.print_('q: ' + q[self.faces[id, 0:4]])
-
-        fd = (
-            (q[self.faces[id, 0]] - q[self.faces[id, 2]]) / self.dx +
-            (q[self.faces[id, 1]] - q[self.faces[id, 3]]) / self.dy
-        )
-
-        return fd
-
     @deprecated(use='set_closed_boundaries_at_grid_edges', version='0.1')
     def update_noflux_boundaries(self, u, bc=None):
         """Deprecated.
@@ -3907,6 +3827,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method for use if remove_disconnected==True
 
+        Returns
+        --------
+        outlet_loc : array
+            Array of size 1 containing id of outlet location
+
         Examples
         --------
         The first example will use a 4,4 grid with node data values
@@ -3976,7 +3901,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # now find where minimum values are
         min_locs = np.where(node_data == min_val)[0]
 
-        
+
         # check all the locations with the minimum value to see if one
         # is adjacent to a boundary location.  If so, that will be the
         # watershed outlet.  If none of these points qualify, then
@@ -3991,13 +3916,13 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             # a boundary node
             local_not_found = True
             next_to_boundary=[]
-            
+
             # check all nodes rather than selecting the first node that meets
             # the criteria
             for i in range(len(min_locs)):
                 next_to_boundary.append(self.has_boundary_neighbor(min_locs[i]))
-            
-            # if any of those nodes were adjacent to the boundary, check 
+
+            # if any of those nodes were adjacent to the boundary, check
             #that  there is only one. If only one, set as outlet loc, else,
             # raise a value error
             if any(next_to_boundary):
@@ -4286,11 +4211,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
-
-        Returns
-        --------
-        outlet_loc : int
-            id of outlet location
 
         Examples
         --------

@@ -16,6 +16,7 @@ import os
 import warnings
 from functools import wraps
 import textwrap
+import inspect
 
 import numpy as np
 import six
@@ -100,6 +101,43 @@ def read_only_array(func):
     return _wrapped
 
 
+def add_signature_to_doc(func):
+    """Add a function signature to the first line of a docstring.
+
+    Add the signature of a function to the first line of its docstring.
+    This is useful for functions that are decorated in such a way
+    that its signature changes.
+
+    Parameters
+    ----------
+    func : function
+        Function to add signature to.
+
+    Returns
+    -------
+    str
+        The new docstring with the function signature on the first line.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.utils.decorators import add_signature_to_doc
+
+    >>> def foo(arg1, kwd=None):
+    ...     '''Do something.'''
+    ...     pass
+    >>> print(add_signature_to_doc(foo))
+    foo(arg1, kwd=None)
+    <BLANKLINE>
+    Do something.
+    """
+    argspec = inspect.getargspec(func)
+    return """{name}{argspec}
+
+{body}""".format(name=func.__name__, argspec=inspect.formatargspec(*argspec),
+           body=inspect.getdoc(func))
+
+
 def use_file_name_or_kwds(func):
 
     """Decorate a method so that it takes a file name or keywords.
@@ -145,6 +183,8 @@ def use_file_name_or_kwds(func):
     >>> foo.kw
     1000000.0
     """
+
+    func.__doc__ = add_signature_to_doc(func)
 
     @wraps(func)
     def _wrapped(self, *args, **kwds):
@@ -244,6 +284,9 @@ class use_field_name_or_array(object):
 
     def __call__(self, func):
         """Wrap the function."""
+
+        func.__doc__ = add_signature_to_doc(func)
+
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
@@ -251,7 +294,104 @@ class use_field_name_or_array(object):
                 vals = grid[self._at][vals]
             else:
                 vals = np.asarray(vals).flatten()
-    
+
+            return func(grid, vals, *args, **kwds)
+        return _wrapped
+
+
+class use_field_name_array_or_value(object):
+
+    """Decorate a function so that it accepts a field name, array, or value.
+
+    Parameters
+    ----------
+    func : function
+        A function that accepts a grid and array as arguments.
+    at_element : str
+        The element type that the field is defined on ('node', 'cell',
+        etc.)
+
+    Returns
+    -------
+    func
+        A wrapped function that accepts a grid and either a field name,
+        a numpy array, or a value as arguments.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+
+    >>> def my_func(grid, vals):
+    ...     return grid.area_of_cell * vals
+    >>> my_func(grid, np.arange(grid.number_of_cells))
+    array([  0.,   2.,   4.,   6.,   8.,  10.])
+
+    Decorate the function so that the second argument can be array-like,
+    the name of a field contained withing the grid, or a value (float, int,
+    etc.). The decorator takes a single argument that is the name (as a `str`)
+    of the grid element that the values are defined on ("node", "cell", etc.).
+
+    >>> from landlab.utils.decorators import use_field_name_array_or_value
+    >>> @use_field_name_array_or_value('cell')
+    ... def my_func(grid, vals):
+    ...     return grid.area_of_cell * vals
+
+    The array of values now can be list or anything that can be converted to
+    a numpy array.
+
+    >>> my_func(grid, [0, 1, 2, 3, 4, 5])
+    array([  0.,   2.,   4.,   6.,   8.,  10.])
+
+    The array of values doesn't have to be flat.
+
+    >>> vals = np.array([[0, 1, 2], [3, 4, 5]])
+    >>> my_func(grid, vals)
+    array([  0.,   2.,   4.,   6.,   8.,  10.])
+
+    The array of values can be a field name.
+
+    >>> _ = grid.add_field('cell', 'elevation', [0, 1, 2, 3, 4, 5])
+    >>> my_func(grid, 'elevation')
+    array([  0.,   2.,   4.,   6.,   8.,  10.])
+
+    The array of values can be a value (float, int, etc.).
+
+    >>> my_func(grid, 4.0)
+    array([ 8.,  8.,  8.,  8.,  8.,  8.])
+    """
+
+    def __init__(self, at_element):
+        """Initialize the decorator.
+
+        Parameters
+        ----------
+        at_element : str
+            The element type that the field is defined on ('node', 'cell',
+            etc.)
+        """
+        self._at = at_element
+
+    def __call__(self, func):
+        """Wrap the function."""
+
+        func.__doc__ = add_signature_to_doc(func)
+
+        @wraps(func)
+        def _wrapped(grid, vals, *args, **kwds):
+            """Convert the second argument to an array."""
+            if isinstance(vals, six.string_types):
+                vals = grid[self._at][vals]
+            else:
+                expected_size = grid.size(self._at)
+                vals = np.asarray(vals).flatten()
+                if vals.size == 1:
+                    vals = np.broadcast_to(vals, (expected_size,))
+
+                if vals.size != expected_size:
+                    raise ValueError(('Array passed to function decorated with '
+                                      'use_field_name_array_or_value is not '
+                                      'the size of fields at ' + self._at))
             return func(grid, vals, *args, **kwds)
         return _wrapped
 
@@ -281,21 +421,21 @@ def make_return_array_immutable(func):
 
 # def deprecated(use, version):
 #     """Mark a function as deprecated.
-# 
+#
 #     Parameters
 #     ----------
 #     use : str
 #         Name of replacement function to use.
 #     version : str
 #         Version number when function was marked as deprecated.
-# 
+#
 #     Returns
 #     -------
 #     func
 #         A wrapped function that issues a deprecation warning.
 #     """
 #     def real_decorator(func):
-# 
+#
 #         def _wrapped(*args, **kwargs):
 #             """Warn that the function is deprecated before calling it."""
 #             warnings.warn(
@@ -303,9 +443,9 @@ def make_return_array_immutable(func):
 #                     name=func.__name__), category=DeprecationWarning)
 #             return func(*args, **kwargs)
 #         _wrapped.__dict__.update(func.__dict__)
-# 
+#
 #         return _wrapped
-# 
+#
 #     return real_decorator
 
 def deprecated(use, version):

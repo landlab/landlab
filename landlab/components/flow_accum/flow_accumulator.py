@@ -16,7 +16,7 @@ import warnings
 
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
-from landlab.utils.decorators import use_field_name_or_array
+from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
 
 from landlab.components.flow_accum import flow_accum_bw
@@ -25,17 +25,6 @@ from landlab.components.flow_accum import flow_accum_to_n
 from landlab import BAD_INDEX_VALUE
 import six
 import numpy as np
-
-
-@use_field_name_or_array('node')
-def _return_surface(grid, surface):
-    """
-    Private function to return the surface to direct flow over.
-
-    This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array.
-    """
-    return surface
 
 
 class FlowAccumulator(Component):
@@ -122,12 +111,13 @@ class FlowAccumulator(Component):
         uninstantiated FlowDirector class, or an instance of a FlowDirector
         class. This sets the method used to calculate flow directions.
         Default is 'FlowDirectorSteepest'
-    runoff_rate : float, optional (m/time)
-        If provided, sets the (spatially constant) runoff rate. If a spatially
-        variable runoff rate is desired, use the input field
-        'water__unit_flux_in'. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field.
-        If neither are set, defaults to spatially constant unit input.
+    runoff_rate : field name, array, or float, optional (m/time)
+        If provided, sets the runoff rate and will be assigned to the grid field
+        'water__unit_flux_in'. If a spatially and and temporally variable runoff
+        rate is desired, pass this field name and update the field through model
+        run time. If both the field and argument are present at the time of
+        initialization, runoff_rate will *overwrite* the field. If neither are
+        set, defaults to spatially constant unit input.
     depression_finder : string, class, instance of class, optional
          A string of class name (e.g., 'DepressionFinderAndRouter'), an
          uninstantiated DepressionFinder class, or an instance of a
@@ -630,7 +620,7 @@ class FlowAccumulator(Component):
 
         # save elevations and node_cell_area to class properites.
         self.surface = surface
-        self.surface_values = _return_surface(grid, surface)
+        self.surface_values = return_array_at_node(grid, surface)
 
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.
@@ -642,11 +632,6 @@ class FlowAccumulator(Component):
         # flow director component if necessary
         self._add_director(flow_director)
         self._add_depression_finder(depression_finder)
-
-        # check that all KWARGS are used.
-        if len(self.kwargs)>0:
-            raise ValueError('unused kwargs passed to FlowAccumulator: ',
-                             self.kwargs)
 
         # This component will track of the following variables.
         # Attempt to create each, if they already exist, assign the existing
@@ -723,18 +708,6 @@ class FlowAccumulator(Component):
 
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
-        # testing input for runoff rate, can be None, a string associated with
-        # a field at node, a single float or int, or an array of size number of
-        # nodes.
-        if runoff_rate is not None:
-            if isinstance(runoff_rate, str):
-                runoff_rate = grid.at_node[runoff_rate]
-            elif isinstance(runoff_rate, (float, int)):
-                pass
-            else:
-                assert runoff_rate.size == grid.number_of_nodes
-
-        # test for water__unit_flux_in
         try:
             grid.at_node['water__unit_flux_in']
         except FieldError:
@@ -743,29 +716,20 @@ class FlowAccumulator(Component):
                 # should be set to one everywhere.
                 grid.add_ones('node', 'water__unit_flux_in', dtype=float)
             else:
-                if isinstance(runoff_rate, (float, int)):
-                    grid.add_empty('node', 'water__unit_flux_in', dtype=float)
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
+                runoff_rate = return_array_at_node(grid, runoff_rate)
+                grid.at_node['water__unit_flux_in'] = runoff_rate
         else:
             if runoff_rate is not None:
                 print ("FlowAccumulator found both the field " +
                        "'water__unit_flux_in' and a provided float or " +
                        "array for the runoff_rate argument. THE FIELD IS " +
                        "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!")
-                if isinstance(runoff_rate, (float, int)):
-                    grid.at_node['water__unit_flux_in'].fill(runoff_rate)
-                else:
-                    grid.at_node['water__unit_flux_in'] = runoff_rate
+                runoff_rate = return_array_at_node(grid, runoff_rate)
+                grid.at_node['water__unit_flux_in'] = runoff_rate
 
         # perform a test (for politeness!) that the old name for the water_in
         # field is not present:
-        try:
-            grid.at_node['water__discharge_in']
-        except FieldError:
-            pass
-        else:
+        if 'water__discharge_in' in grid.at_node:
             warnings.warn("This component formerly took 'water__discharge" +
                           "_in' as an input field. However, this field is " +
                           "now named 'water__unit_flux_in'. You are still " +

@@ -940,7 +940,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
                 prop_data[propid[tail_node]] = prop_reset_value
             if status_at_node[head_node] != _CORE:
                 prop_data[propid[head_node]] = prop_reset_value
-            if trn_prop_update_fn[this_trn_id] is not None:
+            if trn_prop_update_fn[this_trn_id] != 0:
                 trn_prop_update_fn[this_trn_id](
                     this_cts_model, tail_node, head_node, event_time)
 

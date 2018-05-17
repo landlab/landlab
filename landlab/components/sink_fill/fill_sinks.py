@@ -33,29 +33,6 @@ class SinkFiller(Component):
     Constructor assigns a copy of the grid, and calls the initialize
     method.
 
-    Construction::
-
-        SinkFiller(grid, routing='D8', apply_slope=False, fill_slope=1.e-5):
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A landlab grid.
-    routing : {'D8', 'D4'} (optional)
-        If grid is a raster type, controls whether fill connectivity can
-        occur on diagonals ('D8', default), or only orthogonally ('D4').
-        Has no effect if grid is not a raster.
-    apply_slope : bool
-        If False (default), leave the top of the filled sink flat. If True,
-        apply the slope fill_slope to the top surface to allow subsequent flow
-        routing. A test is performed to ensure applying this slope will not
-        alter the drainage structure at the edge of the filled region
-        (i.e., that we are not accidentally reversing the flow direction
-        far from the outlet.)
-    fill_slope : float (m/m)
-        The slope added to the top surface of filled pits to allow flow
-        routing across them, if apply_slope.
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -126,6 +103,26 @@ class SinkFiller(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, routing='D8', apply_slope=False,
                  fill_slope=1.e-5, **kwds):
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A landlab grid.
+        routing : {'D8', 'D4'} (optional)
+            If grid is a raster type, controls whether fill connectivity can
+            occur on diagonals ('D8', default), or only orthogonally ('D4').
+            Has no effect if grid is not a raster.
+        apply_slope : bool
+            If False (default), leave the top of the filled sink flat. If True,
+            apply the slope fill_slope to the top surface to allow subsequent flow
+            routing. A test is performed to ensure applying this slope will not
+            alter the drainage structure at the edge of the filled region
+            (i.e., that we are not accidentally reversing the flow direction
+            far from the outlet.)
+        fill_slope : float (m/m)
+            The slope added to the top surface of filled pits to allow flow
+            routing across them, if apply_slope.
+        """
         self._grid = grid
         if routing is not 'D8':
             assert routing is 'D4'
