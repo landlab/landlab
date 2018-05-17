@@ -409,21 +409,18 @@ class Space(_GeneralizedErosionDeposition):
     def calc_erosion_rates(self):
         """ """
         # if sp_crits are zero, then this colapses to correct all the time.
-        omega_sed = self.K_sed * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
-        omega_br = self.K_br * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
+        omega_sed = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp)
+        omega_br = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp)
 
-        self.Es = (omega_sed - self.sp_crit_sed * (1 - np.exp(-omega_sed /\
-            self.sp_crit_sed))) * \
-            (1.0 - np.exp(-self.soil__depth / self.H_star))
-        self.Er = (omega_br - self.sp_crit_br * (1 - np.exp(-omega_br /\
-            self.sp_crit_br))) * \
-            np.exp(-self.soil__depth / self.H_star)
-        self.sed_erosion_term = omega_sed - self.sp_crit_sed * \
-            (1 - np.exp(-omega_sed / self.sp_crit_sed))
-        self.br_erosion_term = omega_br - self.sp_crit_br * \
-            (1 - np.exp(-omega_br / self.sp_crit_br))
+        self.sed_erosion_term = omega_sed - self.sp_crit_sed * (1 - np.exp(-omega_sed / self.sp_crit_sed))
+        self.sed_erosion_term[self.sp_crit_sed == 0] = omega_sed[self.sp_crit_sed == 0]
+
+        self.br_erosion_term = omega_br - self.sp_crit_br * (1 - np.exp(-omega_br / self.sp_crit_br))
+        self.br_erosion_term[self.sp_crit_br == 0] = omega_br[self.sp_crit_br == 0]
+
+        self.Es = self.sed_erosion_term * (1.0 - np.exp(-self.soil__depth / self.H_star))
+
+        self.Er = self.br_erosion_term * np.exp(-self.soil__depth / self.H_star)
 
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
