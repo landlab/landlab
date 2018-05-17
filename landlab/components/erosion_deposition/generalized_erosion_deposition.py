@@ -60,6 +60,16 @@ class _GeneralizedErosionDeposition(Component):
                  dt_min=DEFAULT_MINIMUM_TIME_STEP):
         """Initialize the ErosionDeposition model.
 
+        Parameters
+        ----------
+        grid
+        m_sp
+        n_sp
+        phi
+        F_f
+        v_s
+        dt_min : float, optional
+            Default values is 0.001.
         """
         super(_GeneralizedErosionDeposition, self).__init__(grid)
 
