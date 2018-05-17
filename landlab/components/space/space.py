@@ -318,57 +318,68 @@ class Space(_GeneralizedErosionDeposition):
 
         ##first, potential blowup case:
         #positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
-            (flooded==False)] = self.H_star * \
-            np.log((self.sed_erosion_term[(self.q > 0) & (blowup==True) & \
-            (self.slope > 0) & (flooded==False)] / self.H_star) * dt + \
-            np.exp(self.soil__depth[(self.q > 0) & (blowup==True) & \
-            (self.slope > 0) & (flooded==False)] / self.H_star))
+        pos_not_flood = ((self.q > 0) &
+                         (blowup==True) &
+                         (self.slope > 0) &
+                         (flooded==False))
+        self.soil__depth[pos_not_flood] = (self.H_star *
+                                           np.log((self.sed_erosion_term[pos_not_flood] /
+                                                   self.H_star) *
+                                                  dt +
+                                                  np.exp(self.soil__depth[pos_not_flood] /
+                                                         self.H_star)))
         #positive slopes, flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope > 0) & \
-            (flooded==True)] = (self.depo_rate[(self.q > 0) & \
-            (blowup==True) & (self.slope > 0) & (flooded==True)] / (1 - self.phi)) * dt
+        pos_flood = ((self.q > 0) &
+                     (blowup==True) &
+                     (self.slope > 0) &
+                     (flooded==True))
+        self.soil__depth[pos_flood] = (self.depo_rate[pos_flood] / (1 - self.phi)) * dt
+
         #non-positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==True) & (self.slope <= 0) & \
-            (flooded==False)] += (self.depo_rate[(self.q > 0) & \
-            (blowup==True) & (self.slope <= 0) & (flooded==False)] / \
-            (1 - self.phi)) * dt
+        non_pos_not_flood = ((self.q > 0) &
+                             (blowup==True) &
+                             (self.slope <= 0) &
+                             (flooded==False))
+        self.soil__depth[non_pos_not_flood] += (self.depo_rate[non_pos_not_flood] /
+                                                (1 - self.phi) *
+                                                dt)
 
         ##more general case:
-        #positive slopes, not flooded
-        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope > 0) & \
-            (flooded==False)] = self.H_star * \
-            np.log((1 / ((self.depo_rate[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / (1 - self.phi)) / \
-            (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)]) - 1)) * \
-            (np.exp((self.depo_rate[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / (1 - self.phi) - \
-            (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)]))*(dt / self.H_star)) * \
-            (((self.depo_rate[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / (1 - self.phi) / \
-            (self.sed_erosion_term[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)])) - 1) * \
-            np.exp(self.soil__depth[(self.q > 0) & (blowup==False) & \
-            (self.slope > 0) & (flooded==False)] / self.H_star)  + 1) - 1))
-        #places where slope <= 0 but not flooded:
-        self.soil__depth[(self.q > 0) & (blowup==False) & (self.slope <= 0) & \
-            (flooded==False)] += (self.depo_rate[(self.q > 0) & \
-            (blowup==False) & (self.slope <= 0) & (flooded==False)] / \
-            (1 - self.phi)) * dt
-        #flooded nodes:
-        self.soil__depth[(self.q > 0) & (blowup==False) & (flooded==True)] += \
-            (self.depo_rate[(self.q > 0) & (blowup==False) & \
-            (flooded==True)] / (1 - self.phi)) * dt
+        pos_not_flood = ((self.q > 0) &
+                         (blowup==False) &
+                         (self.slope > 0) &
+                         (flooded==False))
+        self.soil__depth[pos_not_flood] = (self.H_star *
+            np.log((1 / ((self.depo_rate[pos_not_flood] / (1 - self.phi)) /
+                    (self.sed_erosion_term[pos_not_flood]) - 1)) *
+                   (np.exp((self.depo_rate[pos_not_flood] / (1 - self.phi) -
+                    (self.sed_erosion_term[pos_not_flood]))*(dt / self.H_star)) *
+                    (((self.depo_rate[pos_not_flood] / (1 - self.phi) /
+                    (self.sed_erosion_term[pos_not_flood])) - 1) *
+                    np.exp(self.soil__depth[pos_not_flood] / self.H_star)  + 1) - 1)))
 
-        self.bedrock__elevation[self.q > 0] += dt * \
-            (-self.br_erosion_term[self.q > 0] * \
-            (np.exp(-self.soil__depth[self.q > 0] / self.H_star)))
+        #places where slope <= 0 but not flooded:
+        neg_slope_not_flooded = ((self.q > 0) &
+                                 (blowup==False) &
+                                 (self.slope <= 0) &
+                                 (flooded==False))
+        self.soil__depth[neg_slope_not_flooded] += (self.depo_rate[neg_slope_not_flooded] /
+                                                    (1 - self.phi) *
+                                                    dt)
+
+        #flooded nodes:
+        flooded_nodes = (self.q > 0) & (blowup==False) & (flooded==True)
+        self.soil__depth[flooded_nodes] += (self.depo_rate[flooded_nodes] /
+                                            (1 - self.phi) *
+                                            dt)
+
+        # where discharge exists
+        discharge_exists = self.q > 0
+        self.bedrock__elevation[discharge_exists] += dt * \
+            (-self.br_erosion_term[discharge_exists] * \
+            (np.exp(-self.soil__depth[discharge_exists] / self.H_star)))
 
         #finally, determine topography by summing bedrock and soil
-#        self.topographic__elevation[:] = self.bedrock__elevation + \
-#            self.soil__depth
         cores = self._grid.core_nodes
         self.topographic__elevation[cores] = self.bedrock__elevation[cores] + \
             self.soil__depth[cores]
