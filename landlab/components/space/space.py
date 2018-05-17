@@ -313,7 +313,6 @@ class Space(_GeneralizedErosionDeposition):
         self.Es = self.sed_erosion_term * (1.0 - np.exp(-self.soil__depth / self.H_star))
         self.Er = self.br_erosion_term * np.exp(-self.soil__depth / self.H_star)
 
-
     def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
         a time period 'dt'.
