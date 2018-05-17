@@ -269,11 +269,11 @@ class Space(_GeneralizedErosionDeposition):
             self.discharge_field = None
 
         if self.method == 'simple_stream_power':
-            self.calc_ero_rates = self.simple_stream_power
+            self.calc_hydrology = self.simple_stream_power
         elif self.method == 'threshold_stream_power':
-            self.calc_ero_rates = self.threshold_stream_power
+            self.calc_hydrology = self.threshold_stream_power
         elif self.method == 'stochastic_hydrology':
-            self.calc_ero_rates = self.stochastic_hydrology
+            self.calc_hydrology = self.stochastic_hydrology
         else:
             print('METHOD:')
             print(self.method)
@@ -332,14 +332,7 @@ class Space(_GeneralizedErosionDeposition):
 
         #TODO: FIGURE OUT WHY WE BOTHER TO CALC AND STORE BOTH ES/ER AND
         #**_EROSION_TERM?
-        self.Es[:] = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
-            (1.0 - np.exp(-self.soil__depth / self.H_star))
-        self.Er[:] = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
-            np.exp(-self.soil__depth / self.H_star)
-        self.sed_erosion_term = self.K_sed * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
-        self.br_erosion_term = self.K_br * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
+
 
     def threshold_stream_power(self):
         """Use stream power with entrainment/erosion thresholds.
@@ -374,20 +367,7 @@ class Space(_GeneralizedErosionDeposition):
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
-        omega_sed = self.K_sed * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
-        omega_br = self.K_br * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
-        self.Es = (omega_sed - self.sp_crit_sed * (1 - np.exp(-omega_sed /\
-            self.sp_crit_sed))) * \
-            (1.0 - np.exp(-self.soil__depth / self.H_star))
-        self.Er = (omega_br - self.sp_crit_br * (1 - np.exp(-omega_br /\
-            self.sp_crit_br))) * \
-            np.exp(-self.soil__depth / self.H_star)
-        self.sed_erosion_term = omega_sed - self.sp_crit_sed * \
-            (1 - np.exp(-omega_sed / self.sp_crit_sed))
-        self.br_erosion_term = omega_br - self.sp_crit_br * \
-            (1 - np.exp(-omega_br / self.sp_crit_br))
+
 
     def stochastic_hydrology(self):
         """Allows custom area and discharge fields, no default behavior.
@@ -425,14 +405,26 @@ class Space(_GeneralizedErosionDeposition):
                                 'not nnodes long!')
             else:
                 raise ValueError('Specify discharge method for stoch hydro!')
-        self.Es = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
+
+    def calc_erosion_rates(self):
+        """ """
+        # if sp_crits are zero, then this colapses to correct all the time.
+        omega_sed = self.K_sed * self.Q_to_the_m * \
+            np.power(self.slope, self.n_sp)
+        omega_br = self.K_br * self.Q_to_the_m * \
+            np.power(self.slope, self.n_sp)
+
+        self.Es = (omega_sed - self.sp_crit_sed * (1 - np.exp(-omega_sed /\
+            self.sp_crit_sed))) * \
             (1.0 - np.exp(-self.soil__depth / self.H_star))
-        self.Er = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp) * \
+        self.Er = (omega_br - self.sp_crit_br * (1 - np.exp(-omega_br /\
+            self.sp_crit_br))) * \
             np.exp(-self.soil__depth / self.H_star)
-        self.sed_erosion_term = self.K_sed * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
-        self.br_erosion_term = self.K_br * self.Q_to_the_m * \
-            np.power(self.slope, self.n_sp)
+        self.sed_erosion_term = omega_sed - self.sp_crit_sed * \
+            (1 - np.exp(-omega_sed / self.sp_crit_sed))
+        self.br_erosion_term = omega_br - self.sp_crit_br * \
+            (1 - np.exp(-omega_br / self.sp_crit_br))
+
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
         """Calculate change in rock and alluvium thickness for
@@ -446,14 +438,8 @@ class Space(_GeneralizedErosionDeposition):
             Indices of flooded nodes, passed from flow router
         """
         #Choose a method for calculating erosion:
-        if self.method == 'stochastic_hydrology':
-            self.stochastic_hydrology()
-        elif self.method == 'simple_stream_power':
-            self.simple_stream_power()
-        elif self.method == 'threshold_stream_power':
-            self.threshold_stream_power()
-        else:
-            raise ValueError('Specify an erosion method!')
+        self.calc_hydrology()
+        self.calc_erosion_rates()
 
         self.qs_in[:] = 0
 
@@ -612,7 +598,10 @@ class Space(_GeneralizedErosionDeposition):
                 first_iteration = False
 
             # Calculate rates of entrainment
-            self.calc_ero_rates()
+            self.calc_hydrology()
+            self.calc_erosion_rates()
+
+            # this is where entrainment needs to be corrected.
             self.Es[flooded_nodes] = 0.0
             self.Er[flooded_nodes] = 0.0
 
