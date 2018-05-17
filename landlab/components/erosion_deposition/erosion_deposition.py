@@ -62,8 +62,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     def __init__(self, grid, K=None, phi=None, v_s=None,
                  m_sp=None, n_sp=None, sp_crit=0.0, F_f=0.0,
-                 method=None, discharge_method=None,
-                 area_field=None, discharge_field=None, solver='basic',
+                 discharge_field='surface_water__discharge',
+                 solver='basic',
                  dt_min=DEFAULT_MINIMUM_TIME_STEP,
                  **kwds):
         """Initialize the ErosionDeposition model.
@@ -87,17 +87,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
-        method : string
-            Either "simple_stream_power", "threshold_stream_power", or
-            "stochastic_hydrology". Method for calculating sediment
-            and bedrock entrainment/erosion.
-        discharge_method : string
-            Either "area_field" or "discharge_field". If using stochastic
-            hydrology, determines whether component is supplied with
-            drainage area or discharge.
-        area_field : string or array
-            Used if discharge_method = 'area_field'. Either field name or
-            array of length(number_of_nodes) containing drainage areas [L^2].
         discharge_field : string or array
             Used if discharge_method = 'discharge_field'.Either field name or
             array of length(number_of_nodes) containing drainage areas [L^2/T].
@@ -129,12 +118,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         >>> dx = 10
         >>> mg = RasterModelGrid((nr, nc), 10.0)
         >>> _ = mg.add_zeros('node', 'topographic__elevation')
-        >>> mg['node']['topographic__elevation'] += mg.node_y/10 + \
-                mg.node_x/10 + np.random.rand(len(mg.node_y)) / 10
-        >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,\
-                                                       left_is_closed=True,\
-                                                       right_is_closed=True,\
-                                                       top_is_closed=True)
+        >>> mg['node']['topographic__elevation'] += (mg.node_y/10 +
+        ...        mg.node_x/10 + np.random.rand(len(mg.node_y)) / 10)
+        >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+        ...                                               left_is_closed=True,
+        ...                                               right_is_closed=True,
+        ...                                               top_is_closed=True)
         >>> mg.set_watershed_boundary_condition_outlet_id(0,\
                 mg['node']['topographic__elevation'], -9999.)
         >>> fsc_dt = 100.
@@ -166,11 +155,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         Instantiate the E/D component:
 
-        >>> ed = ErosionDeposition(mg, K=0.00001, phi=0.0, v_s=0.001,\
-                                m_sp=0.5, n_sp = 1.0, sp_crit=0,\
-                                method='simple_stream_power',\
-                                discharge_method=None, area_field=None,\
-                                discharge_field=None)
+        >>> ed = ErosionDeposition(mg, K=0.00001, phi=0.0, v_s=0.001,
+        ...                        m_sp=0.5, n_sp = 1.0, sp_crit=0)
 
         Now run the E/D component for 2000 short timesteps:
 
@@ -191,7 +177,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         """
         super(ErosionDeposition, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
                                                 phi=phi, F_f=F_f, v_s=v_s,
-                                                dt_min=dt_min)
+                                                dt_min=dt_min,
+                                                discharge_field=discharge_field)
 
 
         self._grid = grid #store grid

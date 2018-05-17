@@ -59,6 +59,7 @@ class _GeneralizedErosionDeposition(Component):
 
     def __init__(self, grid, m_sp=None, n_sp=None,
                  phi=None, F_f=None, v_s=None,
+                 discharge_field='surface_water__discharge',
                  dt_min=DEFAULT_MINIMUM_TIME_STEP):
         """Initialize the ErosionDeposition model.
 
@@ -112,6 +113,8 @@ class _GeneralizedErosionDeposition(Component):
         self.dt_min = dt_min
         self.F_f = float(F_f)
 
+        self.discharge_field = discharge_field
+
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
 
@@ -142,10 +145,5 @@ class _GeneralizedErosionDeposition(Component):
                          self.link_lengths[self.link_to_reciever])
 
     def calc_hydrology(self):
-        #if discharge_field is None:
-        #     self.discharge_field = 'surface_water__discharge'
-        # else:
-        #     self.discharge_field = discharge_field
-        self.discharge_field = 'surface_water__discharge'
         self.q[:] = self.grid.at_node[self.discharge_field]
         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)

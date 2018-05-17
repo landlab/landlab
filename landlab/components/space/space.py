@@ -43,17 +43,6 @@ class Space(_GeneralizedErosionDeposition):
         Critical stream power to erode sediment [E/(TL^2)]
     sp_crit_br : float
         Critical stream power to erode rock [E/(TL^2)]
-    method : string
-        Either "simple_stream_power", "threshold_stream_power", or
-        "stochastic_hydrology". Method for calculating sediment
-        and bedrock entrainment/erosion.
-    discharge_method : string
-        Either "area_field" or "discharge_field". If using stochastic
-        hydrology, determines whether component is supplied with
-        drainage area or discharge.
-    area_field : string or array
-        Used if discharge_method = 'area_field'. Either field name or
-        array of length(number_of_nodes) containing drainage areas [L^2].
     discharge_field : string or array
         Used if discharge_method = 'discharge_field'.Either field name or
         array of length(number_of_nodes) containing drainage areas [L^2/T].
@@ -121,9 +110,7 @@ class Space(_GeneralizedErosionDeposition):
     >>> ha = Space(mg, K_sed=0.00001, K_br=0.00000000001,
     ...            F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
     ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
-    ...            sp_crit_br=0, method='simple_stream_power',
-    ...            discharge_method=None, area_field=None,
-    ...            discharge_field=None)
+    ...            sp_crit_br=0)
 
     Now run the Space component for 2000 short timesteps:
 
@@ -214,8 +201,8 @@ class Space(_GeneralizedErosionDeposition):
     def __init__(self, grid, K_sed=None, K_br=None, F_f=None,
                  phi=None, H_star=None, v_s=None,
                  m_sp=None, n_sp=None, sp_crit_sed=None,
-                 sp_crit_br=None, method=None, discharge_method=None,
-                 area_field=None, discharge_field=None, solver='basic',
+                 sp_crit_br=None, discharge_field='surface_water__discharge',
+                 solver='basic',
                  dt_min=DEFAULT_MINIMUM_TIME_STEP,
                  **kwds):
         """Initialize the Space model.
@@ -223,7 +210,8 @@ class Space(_GeneralizedErosionDeposition):
         """
         super(Space, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
                                     phi=phi, F_f=F_f, v_s=v_s,
-                                    dt_min=dt_min)
+                                    dt_min=dt_min,
+                                    discharge_field=discharge_field)
 
         self._grid = grid #store grid
 
@@ -409,10 +397,7 @@ class Space(_GeneralizedErosionDeposition):
         >>> sp = Space(rg, K_sed=1.0, K_br=0.1,
         ...            F_f=0.5, phi=0.0, H_star=1., v_s=1.0,
         ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
-        ...            sp_crit_br=0, method='simple_stream_power',
-        ...            discharge_method='area_field',
-        ...            area_field='drainage_area',
-        ...            discharge_field=None, solver='adaptive')
+        ...            sp_crit_br=0, solver='adaptive')
         >>> sp.run_one_step(dt=10.0)
 
         >>> np.round(sp.Es[5:7], 4)

@@ -24,9 +24,7 @@ def test_can_run_with_hex():
     sp = Space(mg, K_sed=0.00001, K_br=0.00000000001,
                          F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
                          m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
-                         sp_crit_br=0, method='simple_stream_power',
-                         discharge_method=None, area_field=None,
-                         discharge_field=None)
+                         sp_crit_br=0)
 
     # ... and run it to steady state.
     for i in range(2000):
