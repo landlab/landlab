@@ -8,8 +8,9 @@ from .cfuncs import calculate_qs_in
 DEFAULT_MINIMUM_TIME_STEP = 0.001 # default minimum time step duration
 
 class _GeneralizedErosionDeposition(Component):
-    """
+    """ Base class for erosion-deposition type components.
 
+    More documenation here.
     """
 
     _name= 'ErosionDeposition'
@@ -71,6 +72,7 @@ class _GeneralizedErosionDeposition(Component):
         phi
         F_f
         v_s
+        discharge_field
         dt_min : float, optional
             Default values is 0.001.
         """
@@ -99,11 +101,8 @@ class _GeneralizedErosionDeposition(Component):
         except KeyError:
             self.qs = grid.add_zeros(
                 'sediment__flux', at='node', dtype=float)
-        try:
-            self.q = grid.at_node['surface_water__discharge']
-        except KeyError:
-            self.q = grid.add_zeros(
-                'surface_water__discharge', at='node', dtype=float)
+
+        self.q = return_array_at_node(grid, discharge_field)
 
         # Create arrays for sediment influx at each node, discharge to the
         # power "m", and deposition rate
@@ -120,7 +119,6 @@ class _GeneralizedErosionDeposition(Component):
         self.dt_min = dt_min
         self.F_f = float(F_f)
 
-        self.discharge_field = discharge_field
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
@@ -152,5 +150,4 @@ class _GeneralizedErosionDeposition(Component):
                          self.link_lengths[self.link_to_reciever])
 
     def _calc_hydrology(self):
-        self.q[:] = self.grid.at_node[self.discharge_field]
         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
