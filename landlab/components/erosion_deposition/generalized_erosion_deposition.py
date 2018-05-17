@@ -144,6 +144,6 @@ class _GeneralizedErosionDeposition(Component):
                           self.topographic__elevation[self.flow_receivers]) /
                          self.link_lengths[self.link_to_reciever])
 
-    def calc_hydrology(self):
+    def _calc_hydrology(self):
         self.q[:] = self.grid.at_node[self.discharge_field]
         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)

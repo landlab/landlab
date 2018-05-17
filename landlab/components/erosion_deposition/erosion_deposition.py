@@ -198,7 +198,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             raise ValueError("Parameter 'solver' must be one of: "
                              + "'basic', 'adaptive'")
 
-    def calc_erosion_rates(self):
+    def _calc_erosion_rates(self):
         """Calculate erosion rates"""
         omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         omega_over_sp_crit = np.divide(omega, self.sp_crit,
@@ -218,8 +218,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             Indices of flooded nodes, passed from flow router
         """
 
-        self.calc_hydrology()
-        self.calc_erosion_rates()
+        self._calc_hydrology()
+        self._calc_erosion_rates()
 
         self.erosion_term[flooded_nodes] = 0.0
         self.qs_in[:] = 0.0
@@ -281,8 +281,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 first_iteration = False
 
             # Calculate rates of entrainment
-            self.calc_hydrology()
-            self.calc_erosion_rates()
+            self._calc_hydrology()
+            self._calc_erosion_rates()
             self.erosion_term[flooded_nodes] = 0.0
             self.qs_in[:] = 0.0
 
