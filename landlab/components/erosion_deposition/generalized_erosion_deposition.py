@@ -194,7 +194,7 @@ class _GeneralizedErosionDeposition(Component):
         if self.discharge_method is None:
             self.Q_to_the_m[:] = np.power(self.grid.at_node['drainage_area'], self.m_sp)
         else:
-            if self.discharge_method == 'drainage_area':
+            if self.discharge_method == 'area_field':
                 if self.area_field is not None:
                     if isinstance(self.area_field, string_types):
                         self.drainage_area = self._grid.at_node[self.area_field]
