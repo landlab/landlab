@@ -274,8 +274,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
-        self.S_to_the_n[:] = 0
-        self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
 
     def threshold_stream_power(self):
         """Use stream power with entrainment/erosion thresholds.
@@ -310,10 +308,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                         raise TypeError('Supplied type of discharge_field ' +
                                 'was not recognised, or array was ' +
                                 'not nnodes long!')
-
-        self.S_to_the_n[:] = 0
-        self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
-
 
     def stochastic_hydrology(self):
         """Allows custom area and discharge fields, no default behavior.
@@ -350,13 +344,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                                 'not nnodes long!')
             else:
                 raise ValueError('Specify discharge method for stoch hydro!')
-        self.S_to_the_n[:] = 0
-        self.S_to_the_n[self.slope > 0] = np.power(self.slope[self.slope > 0] , self.n_sp)
-
 
     def calc_erosion_rates(self):
         """ """
-        omega = self.K * self.Q_to_the_m * self.S_to_the_n
+        omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         self.erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega / self.sp_crit))
         self.erosion_term[self.sp_crit == 0] = omega[self.sp_crit == 0]
 
