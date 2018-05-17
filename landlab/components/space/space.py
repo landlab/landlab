@@ -461,7 +461,7 @@ class Space(_GeneralizedErosionDeposition):
             self.Er[flooded_nodes] = 0.0
 
             # Zero out sediment influx for new iteration
-            self.qs_in[:] = 0.0
+            self.qs_in[:] = self.qs_ext
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
