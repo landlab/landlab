@@ -253,7 +253,6 @@ class Space(_GeneralizedErosionDeposition):
         self.sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
         self.sp_crit_br = return_array_at_node(grid, sp_crit_br)
 
-
         #go through erosion methods to ensure correct hydrology
         self.method = str(method)
         if discharge_method is not None:
@@ -539,39 +538,6 @@ class Space(_GeneralizedErosionDeposition):
         cores = self._grid.core_nodes
         self.topographic__elevation[cores] = self.bedrock__elevation[cores] + \
             self.soil__depth[cores]
-
-    def _update_flow_link_slopes(self):
-        """Updates gradient between each core node and its receiver.
-
-        Used to update slope values between sub-time-steps, when we do not
-        re-run flow routing.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import FlowAccumulator
-        >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
-        >>> z[:] = rg.x_of_node + rg.y_of_node
-        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
-        >>> fa.run_one_step()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 1.41421356,  1.41421356])
-        >>> sp = Space(rg, K_sed=0.00001, K_br=0.00000000001,\
-                                F_f=0.5, phi=0.1, H_star=1., v_s=0.001,\
-                                m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
-                                sp_crit_br=0, method='simple_stream_power',\
-                                discharge_method=None, area_field=None,\
-                                discharge_field=None)
-        >>> z *= 0.1
-        >>> sp._update_flow_link_slopes()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 0.14142136,  0.14142136])
-        """
-        z = self._grid.at_node['topographic__elevation']
-        r = self._grid.at_node['flow__receiver_node']
-        slp = self._grid.at_node['topographic__steepest_slope']
-        slp[:] = (z - z[r]) / self.link_lengths[self.link_to_reciever]
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):

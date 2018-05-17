@@ -365,38 +365,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         self.qs_in[:] = 0.0
 
-    def _update_flow_link_slopes(self):
-        """Updates gradient between each core node and its receiver.
-
-        Used to update slope values between sub-time-steps, when we do not
-        re-run flow routing.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import FlowAccumulator
-        >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
-        >>> z[:] = rg.x_of_node + rg.y_of_node
-        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
-        >>> fa.run_one_step()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 1.41421356,  1.41421356])
-        >>> sp = ErosionDeposition(rg, K=0.00001, phi=0.1, v_s=0.001,\
-                                   m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,\
-                                   sp_crit_br=0, method='simple_stream_power',\
-                                   discharge_method=None, area_field=None,\
-                                   discharge_field=None)
-        >>> z *= 0.1
-        >>> sp._update_flow_link_slopes()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 0.14142136,  0.14142136])
-        """
-        z = self._grid.at_node['topographic__elevation']
-        r = self._grid.at_node['flow__receiver_node']
-        slp = self._grid.at_node['topographic__steepest_slope']
-        slp[:] = (z - z[r]) / self.link_lengths[self.link_to_reciever]
-
     def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
@@ -482,7 +450,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                             self.qs_in,
                             self.erosion_term,
                             self.v_s,
-                            self.frac_coarse)
+                            self.F_f)
 
             # Use Qs to calculate deposition rate at each node.
             self.depo_rate[:] = 0.0
