@@ -299,14 +299,18 @@ class Space(_GeneralizedErosionDeposition):
         omega_sed = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         omega_br = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp)
 
-        self.sed_erosion_term = omega_sed - self.sp_crit_sed * (1 - np.exp(-omega_sed / self.sp_crit_sed))
-        self.sed_erosion_term[self.sp_crit_sed == 0] = omega_sed[self.sp_crit_sed == 0]
+        omega_sed_over_sp_crit = np.divide(omega_sed, self.sp_crit_sed,
+                                           out=np.zeros_like(omega_sed),
+                                           where=self.sp_crit_sed!=0)
 
-        self.br_erosion_term = omega_br - self.sp_crit_br * (1 - np.exp(-omega_br / self.sp_crit_br))
-        self.br_erosion_term[self.sp_crit_br == 0] = omega_br[self.sp_crit_br == 0]
+        omega_br_over_sp_crit = np.divide(omega_br, self.sp_crit_br,
+                                           out=np.zeros_like(omega_br),
+                                           where=self.sp_crit_br!=0)
+
+        self.sed_erosion_term = omega_sed - self.sp_crit_sed * (1.0 - np.exp(-omega_sed_over_sp_crit))
+        self.br_erosion_term = omega_br - self.sp_crit_br * (1.0 - np.exp(-omega_br_over_sp_crit))
 
         self.Es = self.sed_erosion_term * (1.0 - np.exp(-self.soil__depth / self.H_star))
-
         self.Er = self.br_erosion_term * np.exp(-self.soil__depth / self.H_star)
 
 
