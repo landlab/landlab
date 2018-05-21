@@ -305,7 +305,7 @@ class ItemCollection(object):
                                       'an element id below zero. This is not '
                                       'permitted.'))
         dtype = self.DataFrame['element_id'].dtype
-        if dtype != int:
+        if isinstance(dtype, int) == False:
             raise ValueError(('You have passed a non integer element id. to '
                              'ItemCollection, this is not permitted.'))
 
