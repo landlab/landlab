@@ -210,6 +210,7 @@ Tectonics
 
   landlab.components.flexure
   landlab.components.gflex
+  landlab.components.normal_fault
 
 Fire
 ----
@@ -234,6 +235,14 @@ The Component base class
   :maxdepth: 4
 
   landlab.core.model_component
+
+ItemCollection
+==============
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.item_collection
 
 Input/Output (IO)
 =================
