@@ -25,27 +25,30 @@ grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
 graph.plot_graph(grid, at='node,link')
 
-grid.at_node['topographic__elevation'] = [0., 1, 3, 2, 3, 4, 4, 2]
+grid.at_node['topographic__elevation'] = [0., 1., 3., 2., 3., 4., 4., 2.]
 
 area = grid.add_ones('cell_area_at_node', at = 'node')
 
-fa = FlowAccumulator(grid)
+#fa = FlowAccumulator(grid)
 
-fa.run_one_step()
+#fa.run_one_step()
 
-#%%
-# each must also have
-grid.at_link['Area'] = [,,,,,,]
-grid.at_link['Slope'] = [,,,,,,]  
-grid.at_link['Length'] = [1000,1000,1000,1000,1000,1000,1000]
+#%% Set geometry for each link
+
+# Ultimately, map between flow accumulator and shapefile reader info...
+# map_upstream_node_to_link
+
+grid.at_link['drainage_area'] = [1000,100,700,200,700,300,400]
+grid.at_link['channel_slope'] = [0.01,0.02,0.01,0.02,0.02,0.03,0.03]  
+grid.at_link['link_length'] = [1000,1000,1000,1000,1000,1000,1000]
 
 # modify elevations so they are consistent with adjusted slopes
 
 
 # %% initialize bed sediment (will become its own component)
 
-
-parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
+# Ultimately,
+# parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
     # parcels have 'time added' and 'starting location/link' as an attribute. 
 
 
@@ -137,5 +140,5 @@ for t in range(timesteps):
     
     
     nst.run_one_step
-    
+
     
