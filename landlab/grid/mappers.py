@@ -23,6 +23,7 @@ Grid mapping functions
     ~landlab.grid.mappers.map_downwind_node_link_mean_to_node
     ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
     ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.mappers.map_upstream_node_to_link
     ~landlab.grid.mappers.dummy_func_to_demonstrate_docstring_modification
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
