@@ -1436,22 +1436,38 @@ def map_upstream_node_to_link(grid, var_name):
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid, FlowAccumulator
-    >>>
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulator
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_upstream_node_to_link
+
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_node['topographic__elevation'] = np.array([ 0.,  1.,  2.,  3.,
+    ...                               4.,  5.,  6.,  7.,
+    ...                               8.,  9., 10., 11.])
+    >>> fa = FlowAccumulator(rmg, 'topographic__elevation')
+    >>> fa.run_one_step()
+    >>> map_upstream_node_to_link(rmg, 'topographic__elevation')
+    array([-1., -1., -1., -1.,  5.,  6., -1., -1., -1., -1., -1., -1., -1.,
+           -1., -1., -1., -1.])
+
     """
     # we want to map the node value to the downstream link.
 
     # values
-    values = grid['node'][values]
+    values = grid['node'][var_name]
 
     # link_id downstream of each node.
-    link_to_reciever = grid['node']['flow__links_to_receiver_nodes']
+    link_to_receiver = grid['node']['flow__link_to_receiver_node']
 
     vals = np.zeros(grid.size('link'))
     for i in range(len(vals)):
-        upstream_node = np.where(link_to_reciever == i)[0]
-        vals[i] = values[upstream_node]
-
+        upstream_node = np.where(link_to_receiver == i)[0]
+        if upstream_node.size > 0:
+            vals[i] = values[upstream_node]
+        else:
+            vals[i] = -1
+    return vals
 
 def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
     """A dummy function to demonstrate automated docstring changes.
