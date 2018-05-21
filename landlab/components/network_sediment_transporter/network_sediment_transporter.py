@@ -33,6 +33,7 @@ class NetworkSedimentTransporter(Component):
     Option 1 - Uniform recharge::
         NetworkSedimentTransporter(grid, 
                              bed_parcels,
+                             transport_method = 'WilcockCrow',
                              transporter = asdfasdf
                              discharge,
                              channel_geometry,
@@ -91,6 +92,7 @@ class NetworkSedimentTransporter(Component):
     def __init__(self, grid, 
                  bed_parcels_item_collector,
                  discharge,
+                 transport_method = 'WilcockCrow',
                  channel_width,
                  flow_depth,
                  active_layer_thickness,
@@ -103,7 +105,10 @@ class NetworkSedimentTransporter(Component):
         and more here...
         """
 
-
+        self.transport_method = transport_method
+        if self.transport_method =="WilcockCrow":
+            self.update_transport_time = self._calc_transport_wilcock_crow
+            
     def partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep
@@ -150,12 +155,14 @@ class NetworkSedimentTransporter(Component):
             
             Slope(Slope<1e-4)=1e-4;
 
-    def calculate_transport_time(self):
+    def _calc_transport_wilcock_crow(self):
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation. 
         
         Note: could have options here (e.g. Wilcock and Crowe, FLVB, MPM, etc)
         """
+        
+
          #  COPIED FROM JON'S MATLAB CODE       
             for i=1:LinkNum
                     if isempty(P_loc{t,i})
