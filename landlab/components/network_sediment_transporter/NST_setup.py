@@ -9,23 +9,35 @@ Created on Sun May 20 15:54:03 2018
 import numpy
 
 from landlab.grid.network import NetworkModelGrid
+from landlab.components import FlowAccumulator
+
+from landlab.plot import graph
 
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
-y_of_node = (0, 1, 2, 2, 3, 4, 4, 1)
-x_of_node = (0, 0, 1, -0.5, -1, 1, -1.5, -0.5)
+y_of_node = (0, 1, 2, 2, 3, 4, 4, 1.25)
+x_of_node = (0, 0, 1, -0.5, -1, 0.5, -1.5, -1)
 
 nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
 
 grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-grid.at_node['topographic__elevation'] = [0, 1, 3, 2, 3, 4, 4, 2]
+graph.plot_graph(grid, at='node,link')
 
+grid.at_node['topographic__elevation'] = [0., 1, 3, 2, 3, 4, 4, 2]
+
+area = grid.add_ones('cell_area_at_node', at = 'node')
+
+fa = FlowAccumulator(grid)
+
+fa.run_one_step()
+
+#%%
 # each must also have
 grid.at_link['Area'] = [,,,,,,]
 grid.at_link['Slope'] = [,,,,,,]  
-grid.at_link['Length'] = [,,,,,,]
+grid.at_link['Length'] = [1000,1000,1000,1000,1000,1000,1000]
 
 # modify elevations so they are consistent with adjusted slopes
 
