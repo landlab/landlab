@@ -1,0 +1,11 @@
+dt:
+0.1
+#These values are for running the process-
+rock_density:
+2.7
+sed_density:
+2.7
+kappa:
+100.
+S_crit:
+0.56
