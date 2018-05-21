@@ -13,19 +13,19 @@ from landlab.grid.network import NetworkModelGrid
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
-y_of_node = (0, 1, 2, 2, 3)
-x_of_node = (0, 0, -1, 1, 2)
+y_of_node = (0, 1, 2, 2, 3, 4, 4, 1)
+x_of_node = (0, 0, 1, -0.5, -1, 1, -1.5, -0.5)
 
-nodes_at_link = ((1, 0), (2, 1), (3, 1), (3, 4))
+nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
 
 grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-grid.at_node['z'] = [1, 2, 3, 4, 5]
+grid.at_node['topographic__elevation'] = [0, 1, 3, 2, 3, 4, 4, 2]
 
 # each must also have
-grid.at_link['Area']
-grid.at_link['Slope']
-grid.at_link['Length']
+grid.at_link['Area'] = [,,,,,,]
+grid.at_link['Slope'] = [,,,,,,]  
+grid.at_link['Length'] = [,,,,,,]
 
 # modify elevations so they are consistent with adjusted slopes
 
