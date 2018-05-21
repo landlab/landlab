@@ -1429,6 +1429,29 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
 
     return out
 
+def map_upstream_node_to_link(grid, var_name):
+    """Map upstream node to link.
+
+    Based on 'flow__links_to_receiver_nodes'
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid, FlowAccumulator
+    >>>
+    """
+    # we want to map the node value to the downstream link.
+
+    # values
+    values = grid['node'][values]
+
+    # link_id downstream of each node.
+    link_to_reciever = grid['node']['flow__links_to_receiver_nodes']
+
+    vals = np.zeros(grid.size('link'))
+    for i in range(len(vals)):
+        upstream_node = np.where(link_to_reciever == i)[0]
+        vals[i] = values[upstream_node]
+
 
 def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
     """A dummy function to demonstrate automated docstring changes.
