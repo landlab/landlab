@@ -259,6 +259,11 @@ class Lithology(object):
         return self._get_surface_values(name)
 
     @property
+    def ids(self):
+        """Rock type IDs used by Lithology."""
+        return list(self._ids)
+
+    @property
     def tracked_properties(self):
         """Properties tracked by Lithology.
 
@@ -404,10 +409,10 @@ class Lithology(object):
         ids = []
         for at in self._properties:
             ids.extend(self._attrs[at].keys())
-        self.ids = frozenset(np.unique(ids))
+        self._ids = frozenset(np.unique(ids))
 
         for at in self._properties:
-            for i in self.ids:
+            for i in self._ids:
                 if i not in self._attrs[at]:
                     msg = ('A rock type with ID value ' + str(i) + 'was '
                            'specified in Lithology. No value '
@@ -482,15 +487,15 @@ class Lithology(object):
 
         # verify that rock type added exists.
         try:
-            all_ids_present = self.ids.issuperset(rock_id)
+            all_ids_present = self._ids.issuperset(rock_id)
             new_ids = rock_id
         except TypeError:
-            all_ids_present = self.ids.issuperset([rock_id])
+            all_ids_present = self._ids.issuperset([rock_id])
             new_ids = [rock_id]
 
         if all_ids_present == False:
 
-            missing_ids = set(new_ids).difference(self.ids)
+            missing_ids = set(new_ids).difference(self._ids)
 
             if np.any(thickness>0):
                  msg = ('Lithology add_layer was given a rock type id that does '
@@ -546,13 +551,13 @@ class Lithology(object):
 
             new_rids = attrs[at].keys()
             for rid in new_rids:
-                if rid not in self.ids:
+                if rid not in self._ids:
                     msg = ('add_property has an attribute(' + str(at) + ')'
                            ' for rock type ' + str(rid) + ' that no other. Rock '
                            ' type has. This is not permitted.')
                     raise ValueError(msg)
 
-            for rid in self.ids:
+            for rid in self._ids:
                 if rid not in new_rids:
                     msg = ('add_property needs a value for id ' + str(rid) + ''
                            ' and attribute ' + str(at) + '.')
@@ -589,7 +594,7 @@ class Lithology(object):
         >>> lith.add_rock_type({'K_sp': {4: 0.03,
         ...                            6: 0.004}})
         >>> lith.ids
-        frozenset({1, 2, 4, 6})
+        [1, 2, 4, 6]
         >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001, 4: 0.03, 6: 0.004}}
 
@@ -619,7 +624,7 @@ class Lithology(object):
                 else:
                     new_ids.append(rid)
                     self._attrs[at][rid] = att_dict[rid]
-        self.ids = self.ids.union(new_ids)
+        self._ids = self._ids.union(new_ids)
 
         # update surface values
         self._update_surface_values()
@@ -663,7 +668,7 @@ class Lithology(object):
                    'this attribute does not exist.')
             raise ValueError(msg)
 
-        if self.ids.issuperset([rock_id]) == False:
+        if self._ids.issuperset([rock_id]) == False:
             msg = ('Lithology cannot update the value of rock type '
                    '' + str(rock_id) + 'for attribute ' + str(at) + ' as '
                    'this rock type is not yet defined.')
