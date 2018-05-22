@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-This code outlines very basic inputs for the Network_bedload_morphodyn component
+This code outlines very a very basic use case for the NetworkSedimentTransporter
+component. 
 
 Created on Sun May 20 15:54:03 2018
 
-@author: pfeif
+@authors: Jon Czuba, Allison Pfeiffer, Katy Barnhart
 """
-import numpy
-
+import numpy as np
 from landlab.grid.network import NetworkModelGrid
-from landlab.components import FlowAccumulator
-
+from landlab.item_collection import ItemCollection
 from landlab.plot import graph
-
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -29,18 +27,15 @@ grid.at_node['topographic__elevation'] = [0., 1., 3., 2., 3., 4., 4., 2.]
 
 area = grid.add_ones('cell_area_at_node', at = 'node')
 
-#fa = FlowAccumulator(grid)
-
-#fa.run_one_step()
 
 #%% Set geometry for each link
 
 # Ultimately, map between flow accumulator and shapefile reader info...
 # map_upstream_node_to_link
 
-grid.at_link['drainage_area'] = [1000,100,700,200,700,300,400]
+grid.at_link['drainage_area'] = [1000,100,700,200,700,300,400] # m
 grid.at_link['channel_slope'] = [0.01,0.02,0.01,0.02,0.02,0.03,0.03]  
-grid.at_link['link_length'] = [1000,1000,1000,1000,1000,1000,1000]
+grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
 # modify elevations so they are consistent with adjusted slopes
 
@@ -51,66 +46,31 @@ grid.at_link['link_length'] = [1000,1000,1000,1000,1000,1000,1000]
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
     # parcels have 'time added' and 'starting location/link' as an attribute. 
 
+element_id = np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6], dtype=int) # current link for each parcel
+starting_link = element_id # starting link for each parcel
+time_arrival_in_link = np.zeros(np.size(element_id)) # time of arrival in each link
+volume = np.ones(np.size(element_id)) # (m3) the volume of each parcel
+D = 0.05 * np.ones(np.size(element_id)) # (m) the diameter of grains in each parcel
+lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each parcel
+active_layer = np.ones(np.size(element_id)) # 1 = active/surface layer; 0 = subsurface layer
 
-populate item collection
-
-each parcel has: ID, source, volume, D, link, location w/in link, Timestep arrival in link? age?, active layer 
-
-        # COPIED FROM JON'S MATLAB CODE
-            #compute capacity for all links
-            capacity=Btmax.*Length.*theta;# m3 PROBLEM: we haven't given ourselves the info to determine Btmax yet...
-            
-            
-            Dpsd=[2,2.83,5.66,16,45.3,90.5,181]'./1000;%m
-            Fsspsd=[0.1,0.03,0.05,0.15,0.12,0.18,0.37]';
-            
-            VolIn=Btmax.*Length.*theta;%m3
-            
-            %subsurface
-            VolInd=repmat(VolIn,1,gsclass).*repmat(Fsspsd',LinkNum,1);
-            pidx=1;
-            
-            for i = 1:length(VolInd)
-                for k = 1:7
-                    %j=7-k+1;
-                    j=k;
-                    if VolInd(i,j) == 0
-                        continue
-                    np=ceil(VolInd(i,j)./10);
-                    pvol=VolInd(i,j)./np;
-                    P_loc{1,i}=cat(2,P_loc{1,i},repmat(0,1,np));
-                    P_idx{1,i}=cat(2,P_idx{1,i},pidx+(0:1:np-1));
-                    pidx=pidx+np;
-                    P_storage{1,i}=cat(2,P_storage{1,i},zeros(1,np));%activate
-                    P_tt{1,i}=cat(2,P_tt{1,i},zeros(1,np));%all 0 sec
-                    P_vol{1,i}=cat(2,P_vol{1,i},repmat(pvol,1,np));
-                    P_d{1,i}=cat(2,P_d{1,i},repmat(Dpsd(j),1,np));
-            
-            %surface
-            VolInd=repmat(VolIn,1,gsclass).*repmat(Fsfpsd',LinkNum,1);
-            for i = 1:length(VolInd)
-                for k = 1:7
-                    %j=7-k+1;
-                    j=k;
-                    if VolInd(i,j) == 0
-                        continue
-            
-                    np=ceil(VolInd(i,j)./10);
-                    pvol=VolInd(i,j)./np;
-                    P_loc{1,i}=cat(2,P_loc{1,i},repmat(0,1,np));
-                    P_idx{1,i}=cat(2,P_idx{1,i},pidx+(0:1:np-1));
-                    pidx=pidx+np;
-                    P_storage{1,i}=cat(2,P_storage{1,i},zeros(1,np));%activate
-                    P_tt{1,i}=cat(2,P_tt{1,i},zeros(1,np));%all 0 sec
-                    P_vol{1,i}=cat(2,P_vol{1,i},repmat(pvol,1,np));
-                    P_d{1,i}=cat(2,P_d{1,i},repmat(Dpsd(j),1,np));
- 
+data = {'starting_link': starting_link,
+        'volume': volume,
+        'D': D,
+        'lithology': lithology,
+        'time_arrival_in_link': time_arrival_in_link,
+        'active_layer': active_layer}
+        
+parcels = ItemCollection(grid,
+    data = data,
+    grid_element ='link',
+    element_id = element_id)
 
 
 # Add parcels in at a given time --> attribute in the item collection
 
 # %% Instantiate component(s)
-dis = ExteralDischargeSetter(grid, filename, model='dhsvm')
+#dis = ExteralDischargeSetter(grid, filename, model='dhsvm')
         
 #sq = SyntheticDischargeMaker(discharge,drainage_area) # OR read DHSVM. 
     # define a surface_water_discharge for each link and each timestep
@@ -128,7 +88,7 @@ for t in range(timesteps):
     
     # sq.run_one_step  
     Qgage = 200. # for Methow, this is ~4*mean flow
-    dt = 60*60*24;
+    dt = 60*60*24; # (seconds) daily timestep
     
     # sc.run_one_step   
     Bgage=30.906.*Qgage.^0.1215;
@@ -138,7 +98,5 @@ for t in range(timesteps):
     H=(repmat(Hgage,1,LinkNum)./(Agage.^0.4)).*repmat(usarea',timesteps,1).^0.4;
     Btmax=max(B,[],1)';
     
-    
+    # Run our component
     nst.run_one_step
-
-    

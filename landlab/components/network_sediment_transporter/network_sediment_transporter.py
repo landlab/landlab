@@ -155,7 +155,7 @@ class NetworkSedimentTransporter(Component):
             
             Slope(Slope<1e-4)=1e-4;
 
-    def _calc_transport_wilcock_crow(self):
+    def _calc_transport_wilcock_crowe(self): # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation. 
         
@@ -209,7 +209,7 @@ class NetworkSedimentTransporter(Component):
                 clear actidx actvol actsandidx actsandvol Fs taursg
 
 
-    def move_parcel_downstream(self, i):
+    def move_parcel_downstream(self, i):    # Jon
         """Method to update parcel location for each parcel in the active 
         layer. 
         """
