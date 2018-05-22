@@ -217,6 +217,7 @@ Tectonics
 
   landlab.components.flexure
   landlab.components.gflex
+  landlab.components.normal_fault
 
 Fire
 ----
