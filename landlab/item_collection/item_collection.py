@@ -304,8 +304,8 @@ class ItemCollection(object):
                     raise ValueError(('An item residing at ' + at + ' has '
                                       'an element id below zero. This is not '
                                       'permitted.'))
-        dtype = self.DataFrame['element_id'].dtype
-        if isinstance(dtype, int) == False:
+
+        if isinstance(self.DataFrame.element_id.values[0], (int, np.integer)) == False:
             raise ValueError(('You have passed a non integer element id. to '
                              'ItemCollection, this is not permitted.'))
 
