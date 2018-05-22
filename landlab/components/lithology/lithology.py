@@ -190,7 +190,7 @@ class Lithology(object):
                            'inconsistent with each other.')
                     raise ValueError(msg)
                 # if tests pass set value of IDs.
-                self._ids = np.asarray(ids)
+                self._layer_ids = np.asarray(ids)
 
             # if IDS is a 1d array
             elif np.asarray(ids).ndim == 1:
@@ -200,7 +200,7 @@ class Lithology(object):
                            'thicknesses.')
                     raise ValueError(msg)
                 # if tests pass, broadcast ids to correct shape.
-                self._ids = np.broadcast_to(np.atleast_2d(np.asarray(ids)).T,
+                self._layer_ids = np.broadcast_to(np.atleast_2d(np.asarray(ids)).T,
                                             self._init_thicknesses.shape)
 
             else:
@@ -213,7 +213,7 @@ class Lithology(object):
                 msg = ('Thicknesses and IDs provided to Lithology are ',
                            'inconsistent with each other.')
                 raise ValueError(msg)
-            self._ids = np.asarray(ids)
+            self._layer_ids = np.asarray(ids)
         else:
             msg = ('Thicknesses must be of shape `(n_layers, )` or `(n_layers, '
                    'n_nodes)`. Passed array has more than 2 dimensions.')
@@ -245,9 +245,9 @@ class Lithology(object):
         # From bottom to top, add layers to the Lithology with attributes.
         for i in range(self._number_of_init_layers-1, -1, -1):
             try:
-                self.add_layer(self._init_thicknesses[i, :], self._ids[i, :])
+                self.add_layer(self._init_thicknesses[i, :], self._layer_ids[i, :])
             except IndexError:
-                self.add_layer(self._init_thicknesses[i], self._ids[i])
+                self.add_layer(self._init_thicknesses[i], self._layer_ids[i])
 
         # check that rock exists at the surface everywhere.
         if np.any(self._layers.thickness <= 0):
@@ -616,7 +616,7 @@ class Lithology(object):
             att_dict = attrs[at]
             rids = att_dict.keys()
             for rid in rids:
-                if rid in self._ids:
+                if rid in self._layer_ids:
                     msg = ('Rock type ID ' + str(rid) + ' for attribute '
                            '' + str(at) + ' has already been added. This is '
                            'not allowed')
