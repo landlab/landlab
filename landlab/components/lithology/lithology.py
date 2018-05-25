@@ -3,6 +3,9 @@
 """Create a Lithology object with different properties."""
 
 import numpy as np
+from scipy.interpolate import interp1d
+import xarray as xr
+
 from landlab.layers import EventLayers, MaterialLayers
 
 
@@ -62,6 +65,7 @@ class Lithology(object):
     update_rock_properties
     add_layer
     run_one_step
+    rock_cube_to_xarray
     """
 
     _name = 'Lithology'
@@ -683,6 +687,55 @@ class Lithology(object):
     def _get_surface_values(self, at):
         """Get surface values for attribute."""
         return np.array(list(map(self._attrs[at].get, self._surface_rock_type)))
+
+    def rock_cube_to_xarray(self, depths):
+        """Construct a 3D rock cube of rock type ID as an xarray dataset.
+
+        Create an xarray dataset in (x, y, z) that shows the rock type with
+        depth relative to the current topographic surface.
+
+        Here the z dimension is depth relative to the current topographic
+        surface, NOT depth relative to an absolute datum.
+
+        Note also that when this method is called, it will construct the current
+        values of lithology with depth, NOT the initial values.
+
+        Paramters
+        ---------
+        depths : array
+
+        Returns
+        -------
+        ds : xarray dataset
+        """
+        depths = np.asarray(depths)
+        rock_type = self._layers[self._rock_id_name]
+        rock_cube = np.empty((depths.size, self._grid.shape[0], self._grid.shape[1]))
+
+        # at each node point, interpolate between ztop/bottomo correct.y
+        for sid in range(self._layers.number_of_stacks):
+            coord = np.unravel_index(sid, (self._grid.shape[0], self._grid.shape[1]))
+            real_layers = self.dz[:,sid] > 0
+            f = interp1d(np.flipud(self.z_top[real_layers, sid]), np.flipud(rock_type[real_layers, sid]), kind='previous')
+            vals = f(depths)
+            rock_cube[:, coord[0], coord[1]] = vals
+
+        ds = xr.Dataset(data_vars={'rock_type__id': (('z', 'y', 'x'),
+                                                     rock_cube,
+                                                     {'units' : '-',
+                                                      'long_name' : 'Rock Type ID Code'})},
+                        coords={'x': (('x'),
+                                      self._grid.x_of_node.reshape(self._grid.shape)[0,:],
+                                      {'units' : 'meters'}),
+                                'y': (('y'),
+                                      self._grid.y_of_node.reshape(self._grid.shape)[:, 1],
+                                      {'units' : 'meters'}),
+                                'z': (('z'),
+                                      depths,
+                                      {'units': 'meters',
+                                       'long_name': 'Depth Below Initial Topographic Surface'})})
+
+        return ds
 
     def run_one_step(self, dz_advection=0, rock_id=None):
         """Update Lithology.
