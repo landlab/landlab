@@ -39,3 +39,14 @@ def test_z0s_bad_order():
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     assert_raises(ValueError, LithoLayers, mg, z0s, ids, attrs)
+
+
+def test_bad_function():
+    """Test that providing a function of three variables."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
+    ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    func = lambda x, y, z: 0*x + 0*y + z
+    assert_raises(ValueError, LithoLayers, mg, z0s, ids, attrs, function=func)
