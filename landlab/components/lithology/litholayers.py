@@ -160,6 +160,10 @@ class LithoLayers(Lithology):
 
         z_surf = function(self._grid.x_of_node - x0, self._grid.y_of_node - y0)
 
+        if z_surf.shape != self._grid.x_of_node.shape:
+            msg = 'LithoLayers: function must return an array of shape (n_nodes,)'
+            raise ValueError(msg)
+
         layer_thicknesses = []
         layer_ids = []
 
