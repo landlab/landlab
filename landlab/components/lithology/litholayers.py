@@ -146,11 +146,11 @@ class LithoLayers(Lithology):
         self._grid = grid
 
         if np.asarray(z0s).size != np.asarray(ids).size:
-            msg = 'size of zs and ids must be the same'
+            msg = 'LithoLayers: Size of layer depths and layer IDs must be the same'
             raise ValueError(msg)
 
         if np.any(np.diff(z0s) < 0):
-            msg = 'bad order'
+            msg = 'LithoLayers: Bad layer depth order passed.'
             raise ValueError(msg)
 
         z_surf = function(self._grid.x_of_node - x0, self._grid.y_of_node - y0)
