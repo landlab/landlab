@@ -733,7 +733,7 @@ class Lithology(object):
                                 'z': (('z'),
                                       depths,
                                       {'units': 'meters',
-                                       'long_name': 'Depth Below Initial Topographic Surface'})})
+                                       'long_name': 'Depth Below Topographic Surface'})})
 
         return ds
 
