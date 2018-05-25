@@ -145,6 +145,11 @@ class LithoLayers(Lithology):
         """
         self._grid = grid
 
+        function_args = function.__code__.co_varnames
+        if len(function_args) != 2:
+            msg = 'LithoLayers: function must take only two arguments, x and y.'
+            raise ValueError(msg)
+
         if np.asarray(z0s).size != np.asarray(ids).size:
             msg = 'LithoLayers: Size of layer depths and layer IDs must be the same'
             raise ValueError(msg)
