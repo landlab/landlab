@@ -7,11 +7,11 @@ Created on Mon Apr 30 09:17:36 2018
 """
 
 import numpy as np
-#from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal#, assert_array_almost_equal
 from nose.tools import assert_raises#, assert_almost_equal, assert_equal
 
 from landlab import RasterModelGrid
-from landlab.components import Lithology
+from landlab.components import Lithology, LithoLayers
 
 def test_bad_layer_method():
     """Test passing a bad name for the layer method."""
@@ -264,3 +264,53 @@ def test_run_one_step_erodes_all_raises_error():
     lith = Lithology(mg, thicknesses, ids, attrs)
     z -= 30
     assert_raises(ValueError, lith.run_one_step)
+
+def test_rock_block_xarray():
+    """Test that the xarray method works as expected."""
+    func = lambda x, y : x + y
+    sample_depths = np.arange(0, 10, 1)
+
+    mg = RasterModelGrid((3, 3), 1)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    layer_ids = np.tile([0,1,2,3], 5)
+    layer_elevations = 3. * np.arange(-10, 10)
+    layer_elevations[-1] = layer_elevations[-2] + 100
+    attrs = {'K_sp': {0: 0.0003,
+                      1: 0.0001,
+                      2: 0.0002,
+                      3: 0.0004}}
+
+    lith = LithoLayers(mg, layer_elevations, layer_ids, function=func, attrs=attrs)
+    ds = lith.rock_cube_to_xarray(sample_depths)
+    expected_array = np.array([[[ 3.,  2.,  2.],
+                                [ 2.,  2.,  2.],
+                                [ 2.,  2.,  1.]],
+                               [[ 3.,  3.,  2.],
+                                [ 3.,  2.,  2.],
+                                [ 2.,  2.,  2.]],
+                               [[ 3.,  3.,  3.],
+                                [ 3.,  3.,  2.],
+                                [ 3.,  2.,  2.]],
+                               [[ 0.,  3.,  3.],
+                                [ 3.,  3.,  3.],
+                                [ 3.,  3.,  2.]],
+                               [[ 0.,  0.,  3.],
+                                [ 0.,  3.,  3.],
+                                [ 3.,  3.,  3.]],
+                               [[ 0.,  0.,  0.],
+                                [ 0.,  0.,  3.],
+                                [ 0.,  3.,  3.]],
+                               [[ 1.,  0.,  0.],
+                                [ 0.,  0.,  0.],
+                                [ 0.,  0.,  3.]],
+                               [[ 1.,  1.,  0.],
+                                [ 1.,  0.,  0.],
+                                [ 0.,  0.,  0.]],
+                               [[ 1.,  1.,  1.],
+                                [ 1.,  1.,  0.],
+                                [ 1.,  0.,  0.]],
+                               [[ 2.,  1.,  1.],
+                                [ 1.,  1.,  1.],
+                                [ 1.,  1.,  0.]]])
+
+    assert_array_equal(ds.rock_type__id.values , expected_array)
