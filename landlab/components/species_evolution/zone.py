@@ -1,7 +1,7 @@
 """Zone SpeciesEvolver object.
 """
 
-from landlab.components.species_macroevolution import Record
+from landlab.components.species_evolution import Record
 from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 import numpy as np
 import pandas as pd
@@ -50,23 +50,22 @@ class Zone(object):
         """Get the data of connectivity paths across two timesteps.
 
         Paths represent the temporal connectivity of zones. The returned
-        DataFrame describes all of the paths of the inputted zones. The
-        origin of a path is a prior zone. The destinations of a path are the
+        DataFrame describes all of the paths of the inputted zones. The origin
+        of a path is a prior zone. The destinations of a path are the
         zones that spatially intersect the prior zone.
 
-        Path type is determined by the number of zone
-        connections between the prior and current timesteps. The path type
-        refers to these connects and is designated by a string with the
-        pattern, x-to-y where x and y are the descriptive counts (none, one, or
-        many) of zone(s) at the prior and current timestep, respectively. For
-        example, a path type of one-to-many is a zone in the prior timestep
-        that was fragmented into many zones in the current timestep.
+        Path type is determined by the number of zone connections between the
+        prior and current timesteps. The path type refers to these connects and
+        is designated by a string with the pattern, x-to-y where x and y are
+        the descriptive counts (none, one, or many) of zone(s) at the prior and
+        current timestep, respectively. For example, a path type of one-to-many
+        is a zone in the prior timestep that was fragmented into many zones in
+        the current timestep.
 
-        In any of the `many` path type, a rule determines which of the
-        prior zones persist as the zone in the current timestep. The zone
-        with the greatest area of intersection between the prior and current
-        timesteps persists to the current timestep along with the others in
-        `new_zones`.
+        In any of the `many` path type, a rule determines which of the prior
+        zones persist as the zone in the current timestep. The zone with the
+        greatest area of intersection between the prior and current timesteps
+        persists to the current timestep along with the others in `new_zones`.
 
         Parameters
         ----------

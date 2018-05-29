@@ -7,10 +7,9 @@ Component written by Nathan Lyons beginning August 2017.
 """
 
 from collections import OrderedDict
-import inspect
 from itertools import product
 from landlab import Component
-from landlab.components.species_macroevolution import plot, Record
+from landlab.components.species_evolution import Record
 from landlab.core.messages import warning_message
 import numpy as np
 from pandas import DataFrame
@@ -67,11 +66,6 @@ class SpeciesEvolver(Component):
 
         # Track the clade names (keys) and the max species number (values).
         self._species_ids = {}
-
-        # Add plotting functions.
-        for name, func in inspect.getmembers(plot, inspect.isroutine):
-            if inspect.isfunction(func) and inspect.getmodule(func) == plot:
-                setattr(self, name, func)
 
     # Update methods
 

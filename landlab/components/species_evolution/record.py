@@ -3,7 +3,9 @@ from pandas import DataFrame
 
 
 class Record(DataFrame):
-    """Pandas DataFrame to store attributes over time.
+    """Data structure to store attributes over time.
+
+    Inherits from Pandas DataFrame.
 
     Timestep is the index and 'attributes' are the values. The attributes are
     in turn dictionaries where the key is the of the attribute and values are
@@ -33,7 +35,10 @@ class Record(DataFrame):
         for c in unset_cols:
             self.loc[:len(self), c] = None
 
-        self.loc[len(self)] = dictionary
+        i = len(self)
+
+        for k, v in dictionary.items():
+            self.loc[i, k] = v
 
     def get_time_prior_to_time(self, time):
         times = array(self.times)

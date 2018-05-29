@@ -32,7 +32,7 @@ from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
-from .species_macroevolution import SpeciesEvolver
+from .species_evolution import SpeciesEvolver
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .normal_fault import NormalFault
 

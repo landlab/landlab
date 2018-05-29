@@ -1,7 +1,7 @@
 """Species SpeciesEvolver object.
 """
 
-from landlab.components.species_macroevolution import Record, Zone
+from landlab.components.species_evolution import Record, Zone
 import numpy as np
 
 
@@ -43,7 +43,7 @@ class Species(object):
         else:
             z = [initial_zones]
 
-        self.record.append_entry(initial_time, {'zones': z})
+        self.record.append_entry(initial_time, dictionary={'zones': z})
 
     def __str__(self):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))

@@ -9,8 +9,6 @@ import numpy as np
 from pandas import concat, DataFrame
 
 
-
-
 def plot_area_versus_species(area, number_of_species, axes=None):
     """ Plot the number of species as a function of zone area.
 
@@ -94,7 +92,7 @@ def plot_number_of_species(record, species_DataFrame, axes=None,
     axes.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 
-def plot_zones_in_mapview(mg, zones):
+def plot_zones(mg, zones):
     """
 
     """
