@@ -52,7 +52,9 @@ class _FlowDirector(Component):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_direction', 'topographic__elevation']
+    ['topographic__elevation']
+    >>> sorted(list(mg.at_link.keys()))
+    ['flow__link_direction']
 
     _FlowDirector also works if you pass it an array instead of a field name.
 
@@ -66,7 +68,7 @@ class _FlowDirector(Component):
     _FlowDirector will create a field called ``'flow__link_direction'``.
 
     >>> fd.flow__link_direction
-    array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+    array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     If a field is already existing, it will be used instead.
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
@@ -74,12 +76,10 @@ class _FlowDirector(Component):
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
     ...                  at = 'node')
-    >>> _ = mg.add_field('flow__link_direction',
-    ...                  mg.node_x,
-    ...                  at = 'node')
+    >>> _ = mg.add_ones('flow__link_direction', at = 'link', dtype=int)
     >>> fd = _FlowDirector(mg, z)
     >>> fd.flow__link_direction
-    array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     """
 
     _name = '_FlowDirector'
@@ -102,12 +102,12 @@ class _FlowDirector(Component):
         self.surface_values = return_array_at_node(grid, surface)
 
         # create a : 'flow__link_direction' field if it does not exist yest
-        if 'flow__link_direction' not in self._grid.at_node:
+        if 'flow__link_direction' not in self._grid.at_link:
             self.flow__link_direction = grid.add_field('flow__link_direction',
-                                                        grid.zeros(at='node', dtype=int),
-                                                        at='node', dtype=int)
+                                                        grid.zeros(at='link', dtype=int),
+                                                        at='link', dtype=int)
         else:
-            self.flow__link_direction = grid.at_node['flow__link_direction']
+            self.flow__link_direction = grid.at_link['flow__link_direction']
 
     def _changed_surface(self):
         """Check if the surface values have changed.

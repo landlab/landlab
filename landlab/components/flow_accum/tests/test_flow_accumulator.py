@@ -233,7 +233,6 @@ def test_fields():
 
     assert_equal(sorted(list(mg.at_node.keys())), ['drainage_area',
                                                    'flow__data_structure_delta',
-                                                   'flow__link_direction',
                                                    'flow__link_to_receiver_node',
                                                    'flow__receiver_node',
                                                    'flow__sink_flag',
@@ -242,7 +241,7 @@ def test_fields():
                                                    'topographic__elevation',
                                                    'topographic__steepest_slope',
                                                    'water__unit_flux_in'])
-    assert_equal(sorted(list(mg.at_link.keys())), ['flow__data_structure_D'])
+    assert_equal(sorted(list(mg.at_link.keys())), ['flow__data_structure_D', 'flow__link_direction'])
 
     mg2 = RasterModelGrid((10,10), spacing=(1, 1))
     _ = mg2.add_field('topographic__elevation', mg2.node_x + mg2.node_y, at = 'node')
@@ -250,7 +249,6 @@ def test_fields():
     fa2.run_one_step()
     assert_equal(sorted(list(mg2.at_node.keys())), ['drainage_area',
                                                     'flow__data_structure_delta',
-                                                    'flow__link_direction',
                                                     'flow__link_to_receiver_node',
                                                     'flow__links_to_receiver_nodes',
                                                     'flow__receiver_node',
@@ -263,7 +261,7 @@ def test_fields():
                                                     'topographic__steepest_slope',
                                                     'water__unit_flux_in'])
 
-    assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D'])
+    assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D', 'flow__link_direction'])
 
 
 def test_accumulated_area_closes():

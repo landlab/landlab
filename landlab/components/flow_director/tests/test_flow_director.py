@@ -74,14 +74,13 @@ def test_check_fields():
     z0 = mg0.add_field('topographic__elevation', mg0.node_x**2 + mg0.node_y**2, at = 'node')
     fd0 = _FlowDirector(mg0, 'topographic__elevation')
     assert_equal(sorted(list(mg0.at_node.keys())),
-                 ['flow__link_direction', 'topographic__elevation'])
+                 ['topographic__elevation'])
     assert_equal(np.size(mg0.at_node['topographic__elevation']), mg0.number_of_nodes)
 
     mg1 = RasterModelGrid((10,10), spacing=(1, 1))
     z1 = mg1.add_field('topographic__elevation', mg1.node_x**2 + mg1.node_y**2, at = 'node')
     fd1 = _FlowDirectorToMany(mg1, 'topographic__elevation')
-    assert_equal(sorted(list(mg1.at_node.keys())), ['flow__link_direction',
-                                                    'flow__link_to_receiver_node',
+    assert_equal(sorted(list(mg1.at_node.keys())), ['flow__link_to_receiver_node',
                                                     'flow__receiver_node',
                                                     'flow__sink_flag',
                                                     'topographic__elevation',
@@ -91,8 +90,7 @@ def test_check_fields():
     mg2 = RasterModelGrid((10,10), spacing=(1, 1))
     z2 = mg2.add_field('topographic__elevation', mg2.node_x**2 + mg2.node_y**2, at = 'node')
     fd2 = _FlowDirectorToOne(mg2, 'topographic__elevation')
-    assert_equal(sorted(list(mg2.at_node.keys())), ['flow__link_direction',
-                                                    'flow__link_to_receiver_node',
+    assert_equal(sorted(list(mg2.at_node.keys())), ['flow__link_to_receiver_node',
                                                     'flow__receiver_node',
                                                     'flow__sink_flag',
                                                     'topographic__elevation',
@@ -103,8 +101,7 @@ def test_check_fields():
     mg3 = RasterModelGrid((10,10), spacing=(1, 1))
     z3 = mg3.add_field('topographic__elevation', mg3.node_x**2 + mg3.node_y**2, at = 'node')
     fd3 = FlowDirectorMFD(mg3, 'topographic__elevation')
-    assert_equal(sorted(list(mg3.at_node.keys())), ['flow__link_direction',
-                                                    'flow__link_to_receiver_node',
+    assert_equal(sorted(list(mg3.at_node.keys())), ['flow__link_to_receiver_node',
                                                     'flow__links_to_receiver_nodes',
                                                     'flow__receiver_node',
                                                     'flow__receiver_nodes',
@@ -119,8 +116,7 @@ def test_check_fields():
     mg4 = RasterModelGrid((10,10), spacing=(1, 1))
     z4 = mg4.add_field('topographic__elevation', mg4.node_x**2 + mg4.node_y**2, at = 'node')
     fd4 = FlowDirectorDINF(mg4, 'topographic__elevation')
-    assert_equal(sorted(list(mg4.at_node.keys())), ['flow__link_direction',
-                                                    'flow__link_to_receiver_node',
+    assert_equal(sorted(list(mg4.at_node.keys())), ['flow__link_to_receiver_node',
                                                     'flow__links_to_receiver_nodes',
                                                     'flow__receiver_node',
                                                     'flow__receiver_nodes',
@@ -133,8 +129,7 @@ def test_check_fields():
     mg5 = RasterModelGrid((10,10), spacing=(1, 1))
     z5 = mg5.add_field('topographic__elevation', mg5.node_x**2 + mg5.node_y**2, at = 'node')
     fd5 = FlowDirectorSteepest(mg5, 'topographic__elevation')
-    assert_equal(sorted(list(mg5.at_node.keys())), ['flow__link_direction',
-                                                    'flow__link_to_receiver_node',
+    assert_equal(sorted(list(mg5.at_node.keys())), ['flow__link_to_receiver_node',
                                                     'flow__receiver_node',
                                                     'flow__sink_flag',
                                                     'topographic__elevation',
@@ -145,8 +140,7 @@ def test_check_fields():
     mg6 = RasterModelGrid((10,10), spacing=(1, 1))
     z6 = mg6.add_field('topographic__elevation', mg6.node_x**2 + mg6.node_y**2, at = 'node')
     fd6 = FlowDirectorD8(mg6, 'topographic__elevation')
-    assert_equal(sorted(list(mg6.at_node.keys())), ['flow__link_direction',
-                                                    'flow__link_to_receiver_node',
+    assert_equal(sorted(list(mg6.at_node.keys())), ['flow__link_to_receiver_node',
                                                     'flow__receiver_node',
                                                     'flow__sink_flag',
                                                     'topographic__elevation',

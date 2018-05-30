@@ -63,12 +63,11 @@ class _FlowDirectorToOne(_FlowDirector):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_direction',
-    'flow__link_to_receiver_node',
-    'flow__receiver_node',
-    'flow__sink_flag',
-    'topographic__elevation',
-    'topographic__steepest_slope']
+    ['flow__link_to_receiver_node',
+     'flow__receiver_node',
+     'flow__sink_flag',
+     'topographic__elevation',
+     'topographic__steepest_slope']
     """
 
     _name = 'FlowDirectorToOne'
@@ -174,7 +173,7 @@ class _FlowDirectorToOne(_FlowDirector):
         active_flow_links = self.links_to_receiver[is_active_flow_link]
 
         # for each of those links, the position is the upstream node
-        upstream_node_of_active_flow_link = np.where(is_active_flow_link)[0]
+        upstream_node_of_active_flow_link = numpy.where(is_active_flow_link)[0]
 
         # get the head node
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
