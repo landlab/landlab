@@ -73,6 +73,8 @@ class FlowAccumulator(Component):
            receiver, or BAD_INDEX_VALUE if no link:
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
+        -  Link array identifing if flow goes with (1) or against (-1) the link
+           direction: *'flow__link_direction'*
 
     DirectToMany Methods (MFD) store the following as ModelGrid
     fields:
@@ -93,6 +95,8 @@ class FlowAccumulator(Component):
            receiver, or BAD_INDEX_VALUE if no link:
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
+        -  Link array identifing if flow goes with (1) or against (-1) the link
+           direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`
 

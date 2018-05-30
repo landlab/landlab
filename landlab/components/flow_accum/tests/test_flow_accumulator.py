@@ -233,6 +233,7 @@ def test_fields():
 
     assert_equal(sorted(list(mg.at_node.keys())), ['drainage_area',
                                                    'flow__data_structure_delta',
+                                                   'flow__link_direction',
                                                    'flow__link_to_receiver_node',
                                                    'flow__receiver_node',
                                                    'flow__sink_flag',
@@ -249,6 +250,7 @@ def test_fields():
     fa2.run_one_step()
     assert_equal(sorted(list(mg2.at_node.keys())), ['drainage_area',
                                                     'flow__data_structure_delta',
+                                                    'flow__link_direction',
                                                     'flow__link_to_receiver_node',
                                                     'flow__links_to_receiver_nodes',
                                                     'flow__receiver_node',

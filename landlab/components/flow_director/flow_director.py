@@ -24,6 +24,11 @@ class _FlowDirector(Component):
     Instead it has the functionality that all flow direction calculators need
     to initialize and check boundary conditions.
 
+    It also creates the following field used by all FlowDirectors.
+
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow__link_direction'*
+
     The primary method of this class, :func:`run_one_step` is not implemented.
 
     Parameters
@@ -46,16 +51,35 @@ class _FlowDirector(Component):
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> list(mg.at_node.keys())
-    ['topographic__elevation']
+    >>> sorted(list(mg.at_node.keys()))
+    ['flow__link_direction', 'topographic__elevation']
 
     _FlowDirector also works if you pass it an array instead of a field name.
+
     >>> import numpy as np
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> z = np.array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd = _FlowDirector(mg, z)
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+
+    _FlowDirector will create a field called ``'flow__link_direction'``.
+
+    >>> fd.flow__link_direction
+    array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    If a field is already existing, it will be used instead.
+    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation',
+    ...                  mg.node_x + mg.node_y,
+    ...                  at = 'node')
+    >>> _ = mg.add_field('flow__link_direction',
+    ...                  mg.node_x,
+    ...                  at = 'node')
+    >>> fd = _FlowDirector(mg, z)
+    >>> fd.flow__link_direction
+    array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
     """
 
     _name = '_FlowDirector'
@@ -76,6 +100,14 @@ class _FlowDirector(Component):
         # save elevations as class properites.
         self.surface = surface
         self.surface_values = return_array_at_node(grid, surface)
+
+        # create a : 'flow__link_direction' field if it does not exist yest
+        if 'flow__link_direction' not in self._grid.at_node:
+            self.flow__link_direction = grid.add_field('flow__link_direction',
+                                                        grid.zeros(at='node', dtype=int),
+                                                        at='node', dtype=int)
+        else:
+            self.flow__link_direction = grid.at_node['flow__link_direction']
 
     def _changed_surface(self):
         """Check if the surface values have changed.
