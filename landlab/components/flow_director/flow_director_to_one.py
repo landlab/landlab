@@ -178,9 +178,9 @@ class _FlowDirectorToOne(_FlowDirector):
         # get the head node
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
 
-        # if head node is upstream node = 1, else -1
-        self.flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = 1
-        self.flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = -1
+        # if head node is upstream node = -1, else 1
+        self.flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
+        self.flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
 
 
     # set properties. These are the same for all DirectToOne Directors
