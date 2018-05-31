@@ -247,6 +247,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                                                                     dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True
 
+        # determine link directions
         self._determine_link_directions()
 
         return receiver
