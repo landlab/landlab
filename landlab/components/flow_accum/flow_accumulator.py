@@ -710,6 +710,24 @@ class FlowAccumulator(Component):
         """Return the upstream node order (drainage stack)."""
         return self._grid['node']['flow__upstream_node_order']
 
+    @property
+    def link_order_upstream(self):
+        """Return the upstream order of active links."""
+        if self.flow_director.to_n_receivers == 'one':
+            downstream_links = self._grid['node']['flow__link_to_receiver_node'][self.node_order_upstream]
+            return downstream_links[downstream_links != BAD_INDEX_VALUE]
+
+        else:
+            raise NotImplementedError('not implemented for to_many')
+
+    @property
+    def headwater_nodes(self):
+        """ """
+        delta = np.concatenate(([0], self.delta_structure))
+        num_donors = np.diff(delta) # note closed nodes have a value of 1 here since they flow to themselves
+        source_nodes = np.where(num_donors == 0)[0]
+        return source_nodes
+
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
         try:

@@ -90,6 +90,19 @@ class FlowDirectorD8(_FlowDirectorToOne):
             12, 10, 10, 15,
             16, 17, 18, 19])
 
+    And the at-link field ``'flow__link_direction'`` indicates if the flow along
+    the link is with or against the direction indicated by ``'link_dirs_at_node'``
+    (from tail node to head node).
+
+    >>> mg_2.at_link['flow__link_direction']
+    array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
+        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0])
+
+    This indicates that flow on links 4, 5, 12, and 19 goes against the
+    topologic ordering -- that is that flow goes from head node to tail node --
+    and that flow goes with the topologic ordering on links 15 and 22. All other
+    links have no flow on them.
+
     The flow directors also have the ability to return the flow receiver nodes
 
     >>> receiver = fd.direct_flow()

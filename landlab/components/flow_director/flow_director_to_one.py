@@ -152,7 +152,7 @@ class _FlowDirectorToOne(_FlowDirector):
         depression finding.
         """
         # start by re-setting all links to zero.
-        self.flow__link_direction[:] = 0
+        self._flow__link_direction[:] = 0
 
         # grid.link_dirs_at_node: 0 = NA, -1 = out of (this node is HEAD)
         # -1 = into (this node is TAIL)
@@ -179,11 +179,12 @@ class _FlowDirectorToOne(_FlowDirector):
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
 
         # if head node is upstream node = -1, else 1
-        self.flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
-        self.flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
+        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
+        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
 
 
     # set properties. These are the same for all DirectToOne Directors
+    # Number of Node
     @property
     def node_receiving_flow(self):
         """Return the node id of the node receiving flow."""
@@ -203,6 +204,44 @@ class _FlowDirectorToOne(_FlowDirector):
     def sink_flag(self):
         """Return the array with sink flags."""
         return self._grid['node']['flow__sink_flag']
+
+    @property
+    def link_to_flow_upstream_node(self):
+        pass
+
+    @property
+    def upstream_nodes(self):
+        pass
+
+    # Number of Link (or number of D8)
+    @property
+    def flow__link_direction(self):
+        """Return the array indicating if flow is going with or against link direction."""
+        return self._flow__link_direction
+
+    @property
+    def upstream_node_at_link(self):
+        """At-link array of the upstream node"""
+        out = -1 * self._grid.ones(at='link', dtype=int)
+        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[self._flow__link_direction == 1]
+        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[self._flow__link_direction == -1]
+        return out
+
+    @property
+    def downstream_node_at_link(self):
+        """At-link array of the downstream node"""
+        out = -1 * self._grid.ones(at='link', dtype=int)
+        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[self._flow__link_direction == 1]
+        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[self._flow__link_direction == -1]
+        return out
+
+    @property
+    def upstream_link_at_link(self):
+        pass
+
+    @property
+    def downstream_link_at_link(self):
+        pass
 
 
 if __name__ == '__main__':

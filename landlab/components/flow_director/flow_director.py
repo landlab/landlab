@@ -103,11 +103,11 @@ class _FlowDirector(Component):
 
         # create a : 'flow__link_direction' field if it does not exist yest
         if 'flow__link_direction' not in self._grid.at_link:
-            self.flow__link_direction = grid.add_field('flow__link_direction',
+            self._flow__link_direction = grid.add_field('flow__link_direction',
                                                         grid.zeros(at='link', dtype=int),
                                                         at='link', dtype=int)
         else:
-            self.flow__link_direction = grid.at_link['flow__link_direction']
+            self._flow__link_direction = grid.at_link['flow__link_direction']
 
     def _changed_surface(self):
         """Check if the surface values have changed.

@@ -146,3 +146,6 @@ def test_check_fields():
                                                     'topographic__elevation',
                                                     'topographic__steepest_slope'])
     assert_equal(np.size(mg6.at_node['topographic__elevation']), mg6.number_of_nodes)
+
+def test_link_flow_direction_hex():
+    1==3
