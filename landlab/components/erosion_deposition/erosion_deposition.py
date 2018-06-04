@@ -479,7 +479,8 @@ class ErosionDeposition(Component):
                         self.qs_in,
                         self.erosion_term,
                         self.v_s,
-                        self.frac_coarse)
+                        self.frac_coarse,
+                        self.phi)
 
         self.depo_rate[:] = 0.0
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
@@ -538,7 +539,8 @@ class ErosionDeposition(Component):
                             self.qs_in,
                             self.erosion_term,
                             self.v_s,
-                            self.frac_coarse)
+                            self.frac_coarse,
+                            self.phi)
 
             # Use Qs to calculate deposition rate at each node.
             self.depo_rate[:] = 0.0

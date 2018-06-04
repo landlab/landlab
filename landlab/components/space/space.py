@@ -551,7 +551,8 @@ class Space(Component):
                         self.Es,
                         self.Er,
                         self.v_s,
-                        self.F_f)
+                        self.F_f,
+                        self.phi)
 
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0]
                                       * (self.v_s / self.q[self.q > 0]))
@@ -744,7 +745,9 @@ class Space(Component):
                             self.Es,
                             self.Er,
                             self.v_s,
-                            self.F_f)
+                            self.F_f,
+                            self.phi)
+
             self.depo_rate[self.q > 0] = (self.qs[self.q > 0]
                                           * (self.v_s / self.q[self.q > 0]))
             # TODO handle flooded nodes in the above fn
