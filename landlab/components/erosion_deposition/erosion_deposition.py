@@ -199,6 +199,7 @@ class ErosionDeposition(Component):
         self.elev = grid.at_node['topographic__elevation']
         self.slope = grid.at_node['topographic__steepest_slope']
         self.link_to_reciever = grid.at_node['flow__link_to_receiver_node']
+        self.cell_area_at_node = grid.cell_area_at_node
 
         if isinstance(grid, RasterModelGrid):
             self.link_lengths = grid.length_of_d8
@@ -472,13 +473,14 @@ class ErosionDeposition(Component):
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
                         self.flow_receivers,
-                        self.link_lengths[self.link_to_reciever],
+                        self.cell_area_at_node,
                         self.q,
                         self.qs,
                         self.qs_in,
                         self.erosion_term,
                         self.v_s,
-                        self.frac_coarse)
+                        self.frac_coarse,
+                        self.phi)
 
         self.depo_rate[:] = 0.0
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
@@ -531,13 +533,14 @@ class ErosionDeposition(Component):
             # Sweep through nodes from upstream to downstream, calculating Qs.
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
-                            self.link_lengths[self.link_to_reciever],
+                            self.cell_area_at_node,
                             self.q,
                             self.qs,
                             self.qs_in,
                             self.erosion_term,
                             self.v_s,
-                            self.frac_coarse)
+                            self.frac_coarse,
+                            self.phi)
 
             # Use Qs to calculate deposition rate at each node.
             self.depo_rate[:] = 0.0
