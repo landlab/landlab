@@ -1,12 +1,12 @@
 from landlab import RasterModelGrid, HexModelGrid
-from landlab.components import Space, FlowAccumulator
+from landlab.components import Space, FlowAccumulator, DepressionFinderAndRouter
 import numpy as np
 from numpy import testing
 
 def test_matches_detachment_solution():
     """
     Test that model matches the detachment-limited analytical solution
-    for slope/area relationship at steady state: S=(U/K)^(1/n)*A^(-m/n).
+    for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
     """
     
     #set up a 3x3 grid with one open outlet node and low initial elevations.
@@ -33,8 +33,6 @@ def test_matches_detachment_solution():
     # Create a D8 flow handler
     fa = FlowAccumulator(mg, flow_director='D8')
     
-    #Instantiate DepressionFinderAndRouter
-    
     # Parameter values for detachment-limited test
     K_br = 0.01
     U = 0.0001
@@ -53,7 +51,7 @@ def test_matches_detachment_solution():
     for i in range(2000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
-        z[mg.core_nodes] += U * dt #m/yr
+        z[mg.core_nodes] += U * dt #m
         br[mg.core_nodes] = z[mg.core_nodes] - soil[mg.core_nodes]
     
     #compare numerical and analytical slope solutions
@@ -63,6 +61,78 @@ def test_matches_detachment_solution():
     testing.assert_array_almost_equal(num_slope, analytical_slope, 
                                       decimal=8, 
                                       err_msg='SPACE detachment-limited test failed',
+                                      verbose=True)
+    
+def test_matches_transport_solution():
+    """
+    Test that model matches the transport-limited analytical solution
+    for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m) 
+    + U / (K_sed * A^m))^(1/n).
+    """
+    
+    #set up a 3x3 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), 10.0)
+    
+    z = mg.add_zeros('node', 'topographic__elevation')
+    br = mg.add_zeros('node', 'bedrock__elevation')
+    soil = mg.add_zeros('node', 'soil__depth')
+
+    mg['node']['topographic__elevation'] += mg.node_y / 100000 \
+        + mg.node_x / 100000 \
+        + np.random.rand(len(mg.node_y)) / 10000
+    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+                                           left_is_closed=True,
+                                           right_is_closed=True,
+                                           top_is_closed=True)
+    mg.set_watershed_boundary_condition_outlet_id(0,
+                                                  mg['node']['topographic__elevation'], 
+                                                  -9999.)
+    soil[:] += 100. #initial soil depth of 100 m
+    br[:] = z[:]
+    z[:] += soil[:]
+    
+    #Instantiate DepressionFinderAndRouter
+    df = DepressionFinderAndRouter(mg)
+    
+    # Create a D8 flow handler
+    fa = FlowAccumulator(mg, flow_director='D8', 
+                         depression_finder='DepressionFinderAndRouter')
+    
+    # Parameter values for detachment-limited test
+    K_sed = 0.01
+    U = 0.0001
+    dt = 1.0
+    F_f = 1.0 #all detached rock disappears; detachment-ltd end-member
+    m_sp = 0.5
+    n_sp = 1.0
+    v_s = 0.5
+    
+    # Instantiate the Space component...
+    sp = Space(mg, K_sed=K_sed, K_br=0.01,
+                         F_f=F_f, phi=0.1, H_star=1., v_s=v_s,
+                         m_sp=m_sp, n_sp=n_sp, sp_crit_sed=0,
+                         sp_crit_br=0)
+
+    # ... and run it to steady state (4000x1-year timesteps).
+    for i in range(4000):
+        fa.run_one_step()
+        flooded = np.where(df.flood_status==3)[0]
+        sp.run_one_step(dt=dt, flooded_nodes=flooded)
+        br[mg.core_nodes] += U * dt #m
+        soil[0] = 100.
+        z[:] = br[:] + soil[:]
+    
+    #compare numerical and analytical slope solutions
+    num_slope = mg.at_node['topographic__steepest_slope'][mg.core_nodes]
+    analytical_slope = np.power(((U * v_s) / (K_sed \
+        * np.power(mg.at_node['drainage_area'][mg.core_nodes], m_sp)))\
+        + (U / (K_sed * np.power(mg.at_node['drainage_area'][mg.core_nodes], \
+        m_sp))), 1./n_sp)
+    testing.assert_array_almost_equal(num_slope, analytical_slope, 
+                                      decimal=8, 
+                                      err_msg='SPACE transport-limited test failed',
                                       verbose=True)
         
 def test_can_run_with_hex():
@@ -80,7 +150,7 @@ def test_can_run_with_hex():
     U = 0.001
     dt = 10.0
 
-    # Create the ErosionDeposition component...
+    # Create the Space component...
     sp = Space(mg, K_sed=0.00001, K_br=0.00000000001,
                          F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
                          m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
