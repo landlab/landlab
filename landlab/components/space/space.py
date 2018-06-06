@@ -44,7 +44,11 @@ class Space(_GeneralizedErosionDeposition):
     sp_crit_br : float, field name, or array
         Critical stream power to erode rock [E/(TL^2)]
     discharge_field : float, field name, or array
-        Discharge [L^2/T].
+        Discharge [L^2/T]. The default is to use the grid field
+        'surface_water__discharge', which is simply drainage area
+        multiplied by the default rainfall rate (1 m/yr). To use custom
+        spatially/temporally varying flow, use 'water__unit_flux_in'
+        as the discharge field.
     solver : string
         Solver to use. Options at present include:
             (1) 'basic' (default): explicit forward-time extrapolation.
