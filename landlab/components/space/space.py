@@ -288,7 +288,7 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_hydrology()
         self._calc_erosion_rates()
 
-        self.qs_in[:] = self.qs_ext
+        self.qs_in[:] = 0
 
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -462,7 +462,7 @@ class Space(_GeneralizedErosionDeposition):
             self.Er[flooded_nodes] = 0.0
 
             # Zero out sediment influx for new iteration
-            self.qs_in[:] = self.qs_ext
+            self.qs_in[:] = 0
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
