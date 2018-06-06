@@ -294,14 +294,15 @@ class Space(_GeneralizedErosionDeposition):
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
                         self.flow_receivers,
-                        self.link_lengths[self.link_to_reciever],
+                        self.cell_area_at_node,
                         self.q,
                         self.qs,
                         self.qs_in,
                         self.Es,
                         self.Er,
                         self.v_s,
-                        self.F_f)
+                        self.F_f,
+                        self.phi)
 
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0]
                                       * (self.v_s / self.q[self.q > 0]))
@@ -465,14 +466,16 @@ class Space(_GeneralizedErosionDeposition):
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
-                            self.link_lengths[self.link_to_reciever],
+                            self.cell_area_at_node,
                             self.q,
                             self.qs,
                             self.qs_in,
                             self.Es,
                             self.Er,
                             self.v_s,
-                            self.F_f)
+                            self.F_f,
+                            self.phi)
+
             self.depo_rate[self.q > 0] = (self.qs[self.q > 0]
                                           * (self.v_s / self.q[self.q > 0]))
             # TODO handle flooded nodes in the above fn

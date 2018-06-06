@@ -228,13 +228,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
                         self.flow_receivers,
-                        self.link_lengths[self.link_to_reciever],
+                        self.cell_area_at_node,
                         self.q,
                         self.qs,
                         self.qs_in,
                         self.erosion_term,
                         self.v_s,
-                        self.F_f)
+                        self.F_f,
+                        self.phi)
 
         self.depo_rate[:] = 0.0
         self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
@@ -289,13 +290,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             # Sweep through nodes from upstream to downstream, calculating Qs.
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
-                            self.link_lengths[self.link_to_reciever],
+                            self.cell_area_at_node,
                             self.q,
                             self.qs,
                             self.qs_in,
                             self.erosion_term,
                             self.v_s,
-                            self.F_f)
+                            self.F_f,
+                            self.phi)
 
             # Use Qs to calculate deposition rate at each node.
             self.depo_rate[:] = 0.0
