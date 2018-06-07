@@ -89,66 +89,45 @@ class RichDemFlowAccumulator(Component):
         ...                  mg.node_x + mg.node_y,
         ...                  at = 'node')
         """
-
         super(RichDemFlowAccumulator, self).__init__(grid)
+
         # Keep a local reference to the grid
         self._grid = grid
+
+        # check that the method works.
+        if route_method in _VALID_METHODS:
+            self.method = route_method
+        else:
+            raise ValueError('RichDemFlowAccumulator: route_method invalid.')
 
         # Grid type testing
         if not isinstance(self._grid, RasterModelGrid):
             raise ValueError('RichDemFlowAccumulator only works with RasterModelGrids.')
 
-        self.kwargs = kwargs
-        self.no_data = no_data
-        # filled surface
+        # get kwargs and no data.
+        self._kwargs = kwargs
+        self._no_data = no_data
+
+        # get the surface to route flow on.
         self.surface = surface
         self.surface_values = return_array_at_node(grid, surface)
-        
-        # status at node
+
+        # get and save status at node
         self._status = grid.status_at_node
 
         # cell area
-        self.node_cell_area = self._grid.cell_area_at_node.copy()
-        self.node_cell_area[self._grid.closed_boundary_nodes] = 0.
+        self._node_cell_area = self._grid.cell_area_at_node.copy()
+        self._node_cell_area[self._grid.closed_boundary_nodes] = 0.
 
-        try:
-            self.water__unit_flux_in = grid.add_ones('water__unit_flux_in', at='node',
-                                                      dtype=float)
-        except FieldError:
-            self.water__unit_flux_in = grid.at_node['water__unit_flux_in']
+        # setup required fields.
+        self._setup_accumulator_fields()
 
-        try:
-            self.drainage_area = grid.add_zeros('drainage_area', at='node',
-                                                dtype=float)
-        except FieldError:
-            self.drainage_area = grid.at_node['drainage_area']
+        # get the routing kwargs
+        self._route_kwargs = {}
 
-        try:
-            self.discharges = grid.add_zeros('surface_water__discharge',
-                                             at='node', dtype=float)
-        except FieldError:
-            self.discharges = grid.at_node['surface_water__discharge']
-
-        try:
-            self.upstream_ordered_nodes = grid.add_field('flow__upstream_node_order',
-                                                         BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
-                                                         at='node', dtype=int)
-        except FieldError:
-            self.upstream_ordered_nodes = grid.at_node[
-                'flow__upstream_node_order']
-
-      
-        # check that the method works.
-        self.method = route_method
-        self.route_kwargs = {}
-
+        # set routing kwargs for Freeman.
         if route_method == 'Freeman':
-            self.route_kwargs['exponent'] = self.kwargs.get('exponent', 4.0)
-
-        # depression/breaching syntax.
-        #beau_filled    = rd.FillDepressions(beau, in_place=False)
-        #beau_epsilon   = rd.FillDepressions(beau, epsilon=True, in_place=False)
-        #beau_breached    = rd.BreachDepressions(beau, in_place=False)
+            self._route_kwargs['exponent'] = self._kwargs.get('exponent', 4.0)
 
     @property
     def node_drainage_area(self):
@@ -165,30 +144,56 @@ class RichDemFlowAccumulator(Component):
         """Return the upstream node order (drainage stack)."""
         return self._grid['node']['flow__upstream_node_order']
 
+    def _setup_accumulator_fields(self):
+        if 'water__unit_flux_in' in grid.at_node:
+            self.water__unit_flux_in = grid.at_node['water__unit_flux_in']
+        else:
+            self.water__unit_flux_in = grid.add_ones('water__unit_flux_in', at='node',
+                                                      dtype=float)
+
+        if 'drainage_area' in grid.at_node:
+            self.drainage_area = grid.at_node['drainage_area']
+        else:
+            self.drainage_area = grid.add_zeros('drainage_area', at='node',
+                                                dtype=float)
+
+        if 'surface_water__discharge' in grid.at_node:
+            self.discharges = grid.at_node['surface_water__discharge']
+        else:
+            self.discharges = grid.add_zeros('surface_water__discharge',
+                                             at='node', dtype=float)
+
+        if 'flow__upstream_node_order' in grid.at_node:
+            self.upstream_ordered_nodes = grid.at_node['flow__upstream_node_order']
+        else:
+            self.upstream_ordered_nodes = grid.add_field('flow__upstream_node_order',
+                                                         BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
+                                                         at='node', dtype=int)
+
     def accumulate_flow(self):
         """
         """
         # need to specify no data correctly.
-        vals = self.surface_values
-        vals[self._status == 4] = self.no_data
+        vals = self.surface_values.copy()
+        vals[self._status == 4] = self._no_data
         self._rich_dem_array = rd.rdarray(vals.reshape(self._grid.shape), no_data=self.no_data)
 
         # some things to figure out:
-        # 1) How to deal with boundary conditions in RichDem (e.g. closed or 
+        # 1) How to deal with boundary conditions in RichDem (e.g. closed or
         # fixed boundary nodes). We don't want to set those to no-data and I
-        # don't think that setting them to have zero area will be sufficient. 
-        
-        # run twice if water__unit_flux_in is not 1.0
+        # don't think that setting them to have zero area will be sufficient.
+
+        # run twice if water__unit_flux_in is not  1.0 everywhere.
         a = rd.FlowAccumulation(self._rich_dem_array,
                                 method=self.method,
-                                weights = self.node_cell_area.reshape(self._grid.shape),
-                                **self.route_kwargs).flatten()
+                                weights = self._node_cell_area.reshape(self._grid.shape),
+                                **self._route_kwargs).flatten()
         a[self._status == 4] = 0.0
         if np.any(self.water__unit_flux_in != 1.0) :
             q = rd.FlowAccumulation(self._rich_dem_array,
                                     method=self.method,
-                                    weights = (self.water__unit_flux_in.reshape(self._grid.shape) * 
-                                               self.node_cell_area.reshape(self._grid.shape)),     
+                                    weights = (self.water__unit_flux_in.reshape(self._grid.shape) *
+                                               self._node_cell_area.reshape(self._grid.shape)),
                                     **self.route_kwargs).flatten()
             q[self._status == 4] = 0
         else:
