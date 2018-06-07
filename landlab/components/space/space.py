@@ -18,6 +18,11 @@ class Space(_GeneralizedErosionDeposition):
     Landlab component for 2-D calculation of sediment transport, bedrock
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
     https://doi.org/10.5194/gmd-10-4577-2017, 2017.
+    
+    Note: If timesteps are large enough that Es*dt (sediment erosion)
+    exceeds sediment thickness H, the 'adaptive' solver is necessary to
+    subdivide timesteps. Compare Es and H arrays to determine whether
+    timesteps are appropriate or too large for the 'basic' solver.
 
     Parameters
     ----------
