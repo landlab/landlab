@@ -1,13 +1,11 @@
 #!/usr/env/python
 
 """
-flow_accumulator.py: Component to accumulate flow and calculate drainage area.
+Component to accumulate flow and calculate drainage area using RichDem XXX Link here.
 
-Provides the FlowAccumulator component which accumulates flow and calculates
-drainage area. FlowAccumulator supports multiple methods for calculating flow
-direction. Optionally a depression finding component can be specified and flow
-directing, depression finding, and flow routing can all be accomplished
-together.
+Provides the RichDemFlowAccumulator component which accumulates flow and
+calculates drainage area. This component only works with RasterModelGrids and
+supports those options available in the RichDem package XXX link here.
 """
 
 from __future__ import print_function
@@ -39,12 +37,9 @@ class RichDemFlowAccumulator(Component):
         Expectation is that this has been pit filled.
     route_method : string
         A string of method. Options are:
-        D4
-        D8
-        Rho8
-        Quinn
-        Freeman (also needs an exponent)
-        Dinf
+    kwargs : additional keyword arguments
+        Some RichDem methods take additional arguments. They are as follows:
+        The 'Freeman' method takes a 'exponent' argument (default value 4.0).
 
     Examples
     --------
@@ -71,8 +66,9 @@ class RichDemFlowAccumulator(Component):
         for the flow_director and depression_finder keyword arguments, tests
         the argument of runoff_rate, and initializes new fields.
 
-        modify water__unit_flux_in in order to specify spatially or temporarlly variable
-        water unit flux in.
+        If spatially variable water unit flux in is desired, then the user
+        must modify the at-node model grid field ``water__unit_flux_in``. This
+        is multiplied by the cell area and accumulated.
 
         Examples
         --------
