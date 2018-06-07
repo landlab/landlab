@@ -145,30 +145,35 @@ class RichDemFlowAccumulator(Component):
         return self._grid['node']['flow__upstream_node_order']
 
     def _setup_accumulator_fields(self):
-        if 'water__unit_flux_in' in grid.at_node:
-            self.water__unit_flux_in = grid.at_node['water__unit_flux_in']
+        if 'water__unit_flux_in' in self._grid.at_node:
+            self.water__unit_flux_in = self._grid.at_node['water__unit_flux_in']
         else:
-            self.water__unit_flux_in = grid.add_ones('water__unit_flux_in', at='node',
+            self.water__unit_flux_in = self._grid.add_ones('water__unit_flux_in',
+                                                           at='node',
+                                                           dtype=float)
+
+        if 'drainage_area' in self._grid.at_node:
+            self.drainage_area = self._grid.at_node['drainage_area']
+        else:
+            self.drainage_area = self._grid.add_zeros('drainage_area',
+                                                      at='node',
                                                       dtype=float)
 
-        if 'drainage_area' in grid.at_node:
-            self.drainage_area = grid.at_node['drainage_area']
+        if 'surface_water__discharge' in self._grid.at_node:
+            self.discharges = self._grid.at_node['surface_water__discharge']
         else:
-            self.drainage_area = grid.add_zeros('drainage_area', at='node',
-                                                dtype=float)
+            self.discharges = self._grid.add_zeros('surface_water__discharge',
+                                                   at='node',
+                                                   dtype=float)
 
-        if 'surface_water__discharge' in grid.at_node:
-            self.discharges = grid.at_node['surface_water__discharge']
+        if 'flow__upstream_node_order' in self._grid.at_node:
+            self.upstream_ordered_nodes = self._grid.at_node['flow__upstream_node_order']
         else:
-            self.discharges = grid.add_zeros('surface_water__discharge',
-                                             at='node', dtype=float)
-
-        if 'flow__upstream_node_order' in grid.at_node:
-            self.upstream_ordered_nodes = grid.at_node['flow__upstream_node_order']
-        else:
-            self.upstream_ordered_nodes = grid.add_field('flow__upstream_node_order',
-                                                         BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
-                                                         at='node', dtype=int)
+            self.upstream_ordered_nodes = self._grid.add_field('flow__upstream_node_order',
+                                                               BAD_INDEX_VALUE*self._grid.ones(at='node',
+                                                                                               dtype=int),
+                                                               at='node',
+                                                               dtype=int)
 
     def accumulate_flow(self):
         """
@@ -176,7 +181,8 @@ class RichDemFlowAccumulator(Component):
         # need to specify no data correctly.
         vals = self.surface_values.copy()
         vals[self._status == 4] = self._no_data
-        self._rich_dem_array = rd.rdarray(vals.reshape(self._grid.shape), no_data=self.no_data)
+        self._rich_dem_array = rd.rdarray(vals.reshape(self._grid.shape),
+                                          no_data=self._no_data)
 
         # some things to figure out:
         # 1) How to deal with boundary conditions in RichDem (e.g. closed or
