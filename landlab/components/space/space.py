@@ -358,6 +358,7 @@ class Space(_GeneralizedErosionDeposition):
                          (blowup==False) &
                          (self.slope > 0) &
                          (flooded==False))
+
         self.soil__depth[pos_not_flood] = (self.H_star *
             np.log((1 / ((self.depo_rate[pos_not_flood] / (1 - self.phi)) /
                     (self.sed_erosion_term[pos_not_flood]) - 1)) *
@@ -366,7 +367,7 @@ class Space(_GeneralizedErosionDeposition):
                     (((self.depo_rate[pos_not_flood] / (1 - self.phi) /
                     (self.sed_erosion_term[pos_not_flood])) - 1) *
                     np.exp(self.soil__depth[pos_not_flood] / self.H_star)  + 1) - 1)))
-
+        
         #places where slope <= 0 but not flooded:
         neg_slope_not_flooded = ((self.q > 0) &
                                  (blowup==False) &
@@ -507,7 +508,7 @@ class Space(_GeneralizedErosionDeposition):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self.porosity_factor * (self.depo_rate - self.Es)
+            dHdt = self.porosity_factor * (self.depo_rate) - self.Es
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = - (TIME_STEP_FACTOR
                                                   * H[decreasing_H]
