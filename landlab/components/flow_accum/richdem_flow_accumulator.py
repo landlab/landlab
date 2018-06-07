@@ -23,10 +23,18 @@ import numpy as np
 
 import richdem as rd
 
+_VALID_METHODS = ['D4',
+                  'D8',
+                  'Rho8',
+                  'Quinn',
+                  'Freeman',
+                  'Dinf']
+
 
 class RichDemFlowAccumulator(Component):
 
     """
+
 
     Parameters
     ----------
