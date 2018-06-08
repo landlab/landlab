@@ -15,7 +15,7 @@ from __future__ import print_function
 import warnings
 
 from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import RasterModelGrid, VoronoiDelaunayGrid, NetworkModelGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
 
