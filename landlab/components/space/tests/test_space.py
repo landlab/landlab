@@ -9,7 +9,7 @@ def test_matches_detachment_solution():
     for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
     """
     
-    #set up a 3x3 grid with one open outlet node and low initial elevations.
+    #set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
     mg = RasterModelGrid((nr, nc), 10.0)
@@ -75,7 +75,7 @@ def test_matches_transport_solution():
     sediment flux: Qs = U * A * (1 - phi).
     """
     
-    #set up a 3x3 grid with one open outlet node and low initial elevations.
+    #set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
     mg = RasterModelGrid((nr, nc), 10.0)
@@ -127,7 +127,7 @@ def test_matches_transport_solution():
         flooded = np.where(df.flood_status==3)[0]
         sp.run_one_step(dt=dt, flooded_nodes=flooded)
         br[mg.core_nodes] += U * dt #m
-        soil[0] = 100.
+        soil[0] = 100. #enforce constant soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]
     
     #compare numerical and analytical slope solutions
@@ -165,7 +165,7 @@ def test_matches_bedrock_alluvial_solution():
     H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
     """
     
-    #set up a 3x3 grid with one open outlet node and low initial elevations.
+    #set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
     mg = RasterModelGrid((nr, nc), 10.0)
@@ -184,7 +184,7 @@ def test_matches_bedrock_alluvial_solution():
     mg.set_watershed_boundary_condition_outlet_id(0,
                                                   mg['node']['topographic__elevation'], 
                                                   -9999.)
-    soil[:] += 0. #initial soil depth of 100 m
+    soil[:] += 0. #initial condition of no soil depth.
     br[:] = z[:]
     z[:] += soil[:]
     
@@ -212,13 +212,13 @@ def test_matches_bedrock_alluvial_solution():
                          m_sp=m_sp, n_sp=n_sp, sp_crit_sed=0,
                          sp_crit_br=0)
 
-    # ... and run it to steady state (4000x1-year timesteps).
+    # ... and run it to steady state (10000x1-year timesteps).
     for i in range(10000):
         fa.run_one_step()
         flooded = np.where(df.flood_status==3)[0]
         sp.run_one_step(dt=dt, flooded_nodes=flooded)
         br[mg.core_nodes] += U * dt #m
-        soil[0] = 0.
+        soil[0] = 0. #enforce 0 soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]
     
     #compare numerical and analytical slope solutions
