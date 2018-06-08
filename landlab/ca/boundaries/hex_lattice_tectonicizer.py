@@ -283,7 +283,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         self.num_fw_rows = zeros(self.nc, dtype=int)
         for c in range(self.nc):
             current_row = 0
-            while (current_row < self.nr and
+            while (current_row < self.nr - 1 and
                    in_footwall[bottom_row_node_id[c] + self.nc*current_row]):
                 self.num_fw_rows[c] += 1
                 current_row += 1
