@@ -18,6 +18,11 @@ class Space(_GeneralizedErosionDeposition):
     Landlab component for 2-D calculation of sediment transport, bedrock
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
     https://doi.org/10.5194/gmd-10-4577-2017, 2017.
+    
+    Note: If timesteps are large enough that Es*dt (sediment erosion)
+    exceeds sediment thickness H, the 'adaptive' solver is necessary to
+    subdivide timesteps. Compare Es and H arrays to determine whether
+    timesteps are appropriate or too large for the 'basic' solver.
 
     Parameters
     ----------
@@ -44,7 +49,11 @@ class Space(_GeneralizedErosionDeposition):
     sp_crit_br : float, field name, or array
         Critical stream power to erode rock [E/(TL^2)]
     discharge_field : float, field name, or array
-        Discharge [L^2/T].
+        Discharge [L^2/T]. The default is to use the grid field
+        'surface_water__discharge', which is simply drainage area
+        multiplied by the default rainfall rate (1 m/yr). To use custom
+        spatially/temporally varying flow, use 'water__unit_flux_in'
+        as the discharge field.
     solver : string
         Solver to use. Options at present include:
             (1) 'basic' (default): explicit forward-time extrapolation.
@@ -288,7 +297,7 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_hydrology()
         self._calc_erosion_rates()
 
-        self.qs_in[:] = self.qs_ext
+        self.qs_in[:] = 0
 
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -349,6 +358,7 @@ class Space(_GeneralizedErosionDeposition):
                          (blowup==False) &
                          (self.slope > 0) &
                          (flooded==False))
+
         self.soil__depth[pos_not_flood] = (self.H_star *
             np.log((1 / ((self.depo_rate[pos_not_flood] / (1 - self.phi)) /
                     (self.sed_erosion_term[pos_not_flood]) - 1)) *
@@ -357,7 +367,7 @@ class Space(_GeneralizedErosionDeposition):
                     (((self.depo_rate[pos_not_flood] / (1 - self.phi) /
                     (self.sed_erosion_term[pos_not_flood])) - 1) *
                     np.exp(self.soil__depth[pos_not_flood] / self.H_star)  + 1) - 1)))
-
+        
         #places where slope <= 0 but not flooded:
         neg_slope_not_flooded = ((self.q > 0) &
                                  (blowup==False) &
@@ -462,7 +472,7 @@ class Space(_GeneralizedErosionDeposition):
             self.Er[flooded_nodes] = 0.0
 
             # Zero out sediment influx for new iteration
-            self.qs_in[:] = self.qs_ext
+            self.qs_in[:] = 0
 
             calculate_qs_in(np.flipud(self.stack),
                             self.flow_receivers,
@@ -498,7 +508,7 @@ class Space(_GeneralizedErosionDeposition):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self.porosity_factor * (self.depo_rate - self.Es)
+            dHdt = self.porosity_factor * (self.depo_rate) - self.Es
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = - (TIME_STEP_FACTOR
                                                   * H[decreasing_H]
