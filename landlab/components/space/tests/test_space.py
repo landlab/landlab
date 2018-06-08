@@ -70,6 +70,9 @@ def test_matches_transport_solution():
     Test that model matches the transport-limited analytical solution
     for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m) 
     + U / (K_sed * A^m))^(1/n).
+    
+    Also test that model matches the analytical solution for steady-state
+    sediment flux: Qs = U * A * (1 - phi).
     """
     
     #set up a 3x3 grid with one open outlet node and low initial elevations.
@@ -110,15 +113,16 @@ def test_matches_transport_solution():
     m_sp = 0.5
     n_sp = 1.0
     v_s = 0.5
+    phi=0.5
     
     # Instantiate the Space component...
     sp = Space(mg, K_sed=K_sed, K_br=0.01,
-                         F_f=F_f, phi=0.0, H_star=1., v_s=v_s,
+                         F_f=F_f, phi=phi, H_star=1., v_s=v_s,
                          m_sp=m_sp, n_sp=n_sp, sp_crit_sed=0,
                          sp_crit_br=0)
 
-    # ... and run it to steady state (4000x1-year timesteps).
-    for i in range(4000):
+    # ... and run it to steady state (5000x1-year timesteps).
+    for i in range(5000):
         fa.run_one_step()
         flooded = np.where(df.flood_status==3)[0]
         sp.run_one_step(dt=dt, flooded_nodes=flooded)
@@ -128,15 +132,26 @@ def test_matches_transport_solution():
     
     #compare numerical and analytical slope solutions
     num_slope = mg.at_node['topographic__steepest_slope'][mg.core_nodes]
-    analytical_slope = np.power(((U * v_s) / (K_sed \
-        * np.power(mg.at_node['drainage_area'][mg.core_nodes], m_sp)))\
-        + (U / (K_sed * np.power(mg.at_node['drainage_area'][mg.core_nodes], \
-        m_sp))), 1./n_sp)
+    analytical_slope = (np.power(((U * v_s) / (K_sed 
+        * np.power(mg.at_node['drainage_area'][mg.core_nodes], m_sp)))
+        + (U / (K_sed * np.power(mg.at_node['drainage_area'][mg.core_nodes], 
+        m_sp))), 1./n_sp))
         
     #test for match with analytical slope-area relationship
     testing.assert_array_almost_equal(num_slope, analytical_slope, 
                                       decimal=8, 
-                                      err_msg='SPACE transport-limited test failed',
+                                      err_msg='SPACE transport-limited slope-area test failed',
+                                      verbose=True)
+    
+    #compare numerical and analytical sediment flux solutions
+    num_sedflux = mg.at_node['sediment__flux'][mg.core_nodes]
+    analytical_sedflux = (U * mg.at_node['drainage_area'][mg.core_nodes]
+        * (1 - phi))
+    
+    #test for match with anakytical sediment flux
+    testing.assert_array_almost_equal(num_sedflux, analytical_sedflux, 
+                                      decimal=8, 
+                                      err_msg='SPACE transport-limited sediment flux test failed',
                                       verbose=True)
     
 def test_matches_bedrock_alluvial_solution():
@@ -147,7 +162,7 @@ def test_matches_bedrock_alluvial_solution():
     
     Also test that the soil depth everywhere matches the bedrock-alluvial
     analytical solution at steady state: 
-    H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s)))
+    H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
     """
     
     #set up a 3x3 grid with one open outlet node and low initial elevations.
@@ -159,9 +174,9 @@ def test_matches_bedrock_alluvial_solution():
     br = mg.add_zeros('node', 'bedrock__elevation')
     soil = mg.add_zeros('node', 'soil__depth')
 
-    mg['node']['topographic__elevation'] += mg.node_y / 100000 \
-        + mg.node_x / 100000 \
-        + np.random.rand(len(mg.node_y)) / 10000
+    mg['node']['topographic__elevation'] += (mg.node_y / 100000 
+        + mg.node_x / 100000 
+        + np.random.rand(len(mg.node_y)) / 10000)
     mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
                                            left_is_closed=True,
                                            right_is_closed=True,
@@ -208,10 +223,10 @@ def test_matches_bedrock_alluvial_solution():
     
     #compare numerical and analytical slope solutions
     num_slope = mg.at_node['topographic__steepest_slope'][mg.core_nodes]
-    analytical_slope = np.power(((U * v_s * (1 - F_f)) / (K_sed \
-        * np.power(mg.at_node['drainage_area'][mg.core_nodes], m_sp)))\
-        + (U / (K_br * np.power(mg.at_node['drainage_area'][mg.core_nodes], \
-        m_sp))), 1./n_sp)
+    analytical_slope = (np.power(((U * v_s * (1 - F_f)) / (K_sed 
+        * np.power(mg.at_node['drainage_area'][mg.core_nodes], m_sp)))
+        + (U / (K_br * np.power(mg.at_node['drainage_area'][mg.core_nodes], 
+        m_sp))), 1./n_sp))
         
     #test for match with analytical slope-area relationship
     testing.assert_array_almost_equal(num_slope, analytical_slope, 
