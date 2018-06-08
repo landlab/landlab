@@ -442,3 +442,39 @@ def test_adding_items_with_not_enough_variables():
                           data = new_data,
                           grid_element = loc,
                           element_id = [6, 7])
+
+
+def test_aggregate_filter_list():
+    grid = RasterModelGrid(3,3)
+    element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5]
+    volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
+    ages = [10, 11, 12, 13, 14, 15, 16, 8, 10]
+    grid_element = 'node'
+    data = {'ages': ages,
+            'volumes':volumes}
+    ic = ItemCollection(grid,
+                        data = data,
+                        grid_element ='node',
+                        element_id = element_id)
+
+    filter_list = [False, True, True, True, True, True, True, False, False]# this should work
+    v = ic.calc_aggregate_value(np.sum, 'volumes', filter_array = filter_list)
+    correct_v = [  8.,   3.,   4.,   5.,  np.nan,  np.nan,  np.nan,  np.nan,  np.nan]
+    assert_array_equal(v, correct_v)
+
+
+def test_aggregate_bad_filter_list():
+    grid = RasterModelGrid(3,3)
+    element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5]
+    volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
+    ages = [10, 11, 12, 13, 14, 15, 16, 8, 10]
+    grid_element = 'node'
+    data = {'ages': ages,
+            'volumes':volumes}
+    ic = ItemCollection(grid,
+                        data = data,
+                        grid_element ='node',
+                        element_id = element_id)
+
+    filter_list = [False, True, True, True, True, True, True, False]# this should work
+    assert_raises(ValueError, ic.calc_aggregate_value, np.sum, 'volumes', filter_array = filter_list)
