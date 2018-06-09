@@ -292,6 +292,37 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
         self._flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
 
+    @property
+    def link_flow_direction_at_node():
+        """Return array that mirrors links at node that indicates flow direction."""
+
+        out = np.zeros_like(self._grid.links_at_node)
+        no_link = self._grid.links_at_node == -1
+        topologic_direction_at_node = self._grid.link_dirs_at_node
+
+    # Number of Link (or number of D8)
+    @property
+    def flow__link_direction(self):
+        """Return the array indicating if flow is going with or against link direction."""
+        return self._flow__link_direction
+
+    @property
+    def upstream_node_at_link(self):
+        """At-link array of the upstream node"""
+        out = -1 * self._grid.ones(at='link', dtype=int)
+        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[self._flow__link_direction == 1]
+        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[self._flow__link_direction == -1]
+        return out
+
+    @property
+    def downstream_node_at_link(self):
+        """At-link array of the downstream node"""
+        out = -1 * self._grid.ones(at='link', dtype=int)
+        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[self._flow__link_direction == 1]
+        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[self._flow__link_direction == -1]
+        return out
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

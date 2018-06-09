@@ -142,8 +142,6 @@ class _FlowDirectorToOne(_FlowDirector):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError('run_one_step()')
 
-
-
     # set properties. These are the same for all DirectToOne Directors
     # Number of Node
     @property
@@ -165,44 +163,6 @@ class _FlowDirectorToOne(_FlowDirector):
     def sink_flag(self):
         """Return the array with sink flags."""
         return self._grid['node']['flow__sink_flag']
-
-    @property
-    def link_to_flow_upstream_node(self):
-        pass
-
-    @property
-    def upstream_nodes(self):
-        pass
-
-    # Number of Link (or number of D8)
-    @property
-    def flow__link_direction(self):
-        """Return the array indicating if flow is going with or against link direction."""
-        return self._flow__link_direction
-
-    @property
-    def upstream_node_at_link(self):
-        """At-link array of the upstream node"""
-        out = -1 * self._grid.ones(at='link', dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[self._flow__link_direction == 1]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[self._flow__link_direction == -1]
-        return out
-
-    @property
-    def downstream_node_at_link(self):
-        """At-link array of the downstream node"""
-        out = -1 * self._grid.ones(at='link', dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[self._flow__link_direction == 1]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[self._flow__link_direction == -1]
-        return out
-
-    @property
-    def upstream_link_at_link(self):
-        pass
-
-    @property
-    def downstream_link_at_link(self):
-        pass
 
 
 if __name__ == '__main__':
