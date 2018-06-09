@@ -641,6 +641,33 @@ class HexModelGrid(VoronoiDelaunayGrid):
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
 
+    def node_row_and_column(self, node_id):
+        """Row and column from node ID, FOR VERT RECT CONFIGURATION ONLY.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect', orientation='vert')
+        >>> grid.node_row_and_column(5)
+        (1, 2)
+        >>> grid = HexModelGrid(3, 5, shape='rect', orientation='vert')
+        >>> grid.node_row_and_column(13)
+        (2, 1)
+        """
+        assert self.orientation[0] == 'v', 'grid orientation must be vertical'
+        try:
+            (nr, nc) = self._shape
+        except:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined rows and columns.')
+
+        row = node_id // nc
+        n_mod_nc = node_id % nc
+        half_nc = (nc + 1) // 2
+        col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
+        return (row, col)            
+            
+
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
