@@ -426,7 +426,6 @@ cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
     cdef int i
     cdef char propswap
     cdef double next_time, this_next
-    cdef Event my_event
 
     # Find next event time for each potential transition
     if n_trn[current_state] == 1:
