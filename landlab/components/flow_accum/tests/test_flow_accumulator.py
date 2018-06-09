@@ -261,7 +261,7 @@ def test_fields():
                                                     'topographic__steepest_slope',
                                                     'water__unit_flux_in'])
 
-    assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D', 'flow__link_direction'])
+    assert_equal(sorted(list(mg2.at_link.keys())), ['flow__data_structure_D'])
 
 
 def test_accumulated_area_closes():

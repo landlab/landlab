@@ -43,8 +43,6 @@ class FlowDirectorD8(_FlowDirectorToOne):
        receiver, or BAD_INDEX_VALUE if no link:
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-    -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -89,19 +87,6 @@ class FlowDirectorD8(_FlowDirectorToOne):
              8,  6,  6, 11,
             12, 10, 10, 15,
             16, 17, 18, 19])
-
-    And the at-link field ``'flow__link_direction'`` indicates if the flow along
-    the link is with or against the direction indicated by ``'link_dirs_at_node'``
-    (from tail node to head node).
-
-    >>> mg_2.at_link['flow__link_direction']
-    array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
-        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0])
-
-    This indicates that flow on links 4, 5, 12, and 19 goes against the
-    topologic ordering -- that is that flow goes from head node to tail node --
-    and that flow goes with the topologic ordering on links 15 and 22. All other
-    links have no flow on them.
 
     The flow directors also have the ability to return the flow receiver nodes
 

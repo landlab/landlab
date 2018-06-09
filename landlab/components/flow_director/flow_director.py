@@ -53,8 +53,6 @@ class _FlowDirector(Component):
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
     ['topographic__elevation']
-    >>> sorted(list(mg.at_link.keys()))
-    ['flow__link_direction']
 
     _FlowDirector also works if you pass it an array instead of a field name.
 
@@ -64,22 +62,6 @@ class _FlowDirector(Component):
     >>> fd = _FlowDirector(mg, z)
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-
-    _FlowDirector will create a field called ``'flow__link_direction'``.
-
-    >>> fd.flow__link_direction
-    array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-
-    If a field is already existing, it will be used instead.
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
-    >>> _ = mg.add_ones('flow__link_direction', at = 'link', dtype=int)
-    >>> fd = _FlowDirector(mg, z)
-    >>> fd.flow__link_direction
-    array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     """
 
     _name = '_FlowDirector'
@@ -100,14 +82,6 @@ class _FlowDirector(Component):
         # save elevations as class properites.
         self.surface = surface
         self.surface_values = return_array_at_node(grid, surface)
-
-        # create a : 'flow__link_direction' field if it does not exist yest
-        if 'flow__link_direction' not in self._grid.at_link:
-            self._flow__link_direction = grid.add_field('flow__link_direction',
-                                                        grid.zeros(at='link', dtype=int),
-                                                        at='link', dtype=int)
-        else:
-            self._flow__link_direction = grid.at_link['flow__link_direction']
 
     def _changed_surface(self):
         """Check if the surface values have changed.
