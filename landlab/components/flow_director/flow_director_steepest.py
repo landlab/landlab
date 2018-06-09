@@ -99,6 +99,91 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     and that flow goes with the topologic ordering on links 15 and 22. All other
     links have no flow on them.
 
+    The FlowDirectorSteepest attribute ``flow__link_direction_at_node`` indicates
+    the link flow direction (with or against topology directions) for all links
+    at node. The ordering of links at node mirrors the grid attribute
+    ``links_at_node``.
+
+    >>> fd_2.flow__link_direction_at_node
+    array([[ 0,  0,  0,  0],
+           [ 0, -1,  0,  0],
+           [ 0, -1,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0, -1],
+           [ 0, -1,  0, -1],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 1,  0,  0,  0],
+           [ 0, -1,  1, -1],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 1,  0,  0,  0],
+           [ 0,  0,  1, -1],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0]])
+
+    For example, this indicates that node 10 has flow going along three links
+    that are attached to it. The link to the East has no flow, the link to the
+    North has flow going against the topologic direction, the link to the West
+    has flow going with the topologic direction, and the link to the South has
+    flow going against the topologic direction.
+
+    In many use cases, one might want to know which links are bringing flow into
+    or out of the node. The flow director attribute ``flow__link_incoming_at_node``
+    provides this information. Here -1 means that flow is outgoing from the node
+    and 1 means it is incoming.
+
+    >>> fd_2.flow__link_incoming_at_node
+    array([[ 0,  0,  0,  0],
+           [ 0,  1,  0,  0],
+           [ 0,  1,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0, -1],
+           [ 0,  1,  0, -1],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [-1,  0,  0,  0],
+           [ 0,  1,  1, -1],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [-1,  0,  0,  0],
+           [ 0,  0,  1, -1],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0]])
+
+    So if one wanted to identify the source nodes at node, you would do the
+    following:
+
+    >>> np.where(fd_2.flow__link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, 0)
+    array([[ 0,  0,  0,  0],
+           [ 0,  5,  0,  0],
+           [ 0,  6,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0, 10,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0, 14,  9,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0, 13,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0],
+           [ 0,  0,  0,  0]])
+
     The flow directors also have the ability to return the flow receiver nodes
 
     >>> receiver = fd.direct_flow()
@@ -171,6 +256,15 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self.method = 'D4'
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+
+        # create a : 'flow__link_direction' field if it does not exist yest
+        if 'flow__link_direction' not in self._grid.at_link:
+            self._flow__link_direction = grid.add_field('flow__link_direction',
+                                                        grid.zeros(at='link', dtype=int),
+                                                        at='link', dtype=int)
+        else:
+            self._flow__link_direction = grid.at_link['flow__link_direction']
+
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):
@@ -293,12 +387,20 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
 
     @property
-    def link_flow_direction_at_node():
+    def flow__link_direction_at_node(self):
         """Return array that mirrors links at node that indicates flow direction."""
+        flow__link_direction_at_node = self.flow__link_direction[self._grid.links_at_node]
+        flow__link_direction_at_node[self._grid.links_at_node == -1] = 0
+        return flow__link_direction_at_node
 
-        out = np.zeros_like(self._grid.links_at_node)
-        no_link = self._grid.links_at_node == -1
-        topologic_direction_at_node = self._grid.link_dirs_at_node
+
+    @property
+    def flow__link_incoming_at_node(self):
+        """Return array that mirrors links at node and indicates if flow is
+        incoming (1) or outgoing (-1)."""
+        incoming_at_node = (self.flow__link_direction_at_node *
+                            self._grid.link_dirs_at_node)
+        return incoming_at_node
 
     # Number of Link (or number of D8)
     @property
