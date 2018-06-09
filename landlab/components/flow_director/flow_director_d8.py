@@ -207,8 +207,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
                                                                     dtype=bool)
         self._grid['node']['flow__sink_flag'][sink] = True
 
-        # determine link directions
-        self._determine_link_directions()
+        ## determine link directions
+        #self._determine_link_directions()
 
         return receiver
 
