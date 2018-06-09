@@ -252,6 +252,46 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         return receiver
 
+    def _determine_link_directions(self):
+        """Determine link directions and set flow__link_direction field.
+
+        This routine is slightly different between the route-to-one and
+        route-to-many methods.
+
+        An additional issue may be if this also needs to be updated by
+        depression finding.
+        """
+        # start by re-setting all links to zero.
+        self._flow__link_direction[:] = 0
+
+        # grid.link_dirs_at_node: 0 = NA, -1 = out of (this node is HEAD)
+        # -1 = into (this node is TAIL)
+
+        # grid.links_at_node = Link ID at node
+
+        # grid.node_at_link_head = node ID at link HEAD
+        # grid.node_at_link_tail = node ID at link tail
+
+        # links that are used are in `flow__link_to_receiver_node`.
+        # if `flow__link_to_receiver_node` is leading to the link HEAD node,
+        # then -1, otherwise 1 (double check this is not the reverse).
+
+        # identify where flow is active on links
+        is_active_flow_link = self.links_to_receiver != BAD_INDEX_VALUE
+
+        # make an array that says which link ID is active
+        active_flow_links = self.links_to_receiver[is_active_flow_link]
+
+        # for each of those links, the position is the upstream node
+        upstream_node_of_active_flow_link = numpy.where(is_active_flow_link)[0]
+
+        # get the head node
+        head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
+
+        # if head node is upstream node = -1, else 1
+        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
+        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
