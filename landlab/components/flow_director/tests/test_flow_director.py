@@ -73,18 +73,17 @@ def test_check_fields():
     mg0 = RasterModelGrid((10,10), spacing=(1, 1))
     z0 = mg0.add_field('topographic__elevation', mg0.node_x**2 + mg0.node_y**2, at = 'node')
     fd0 = _FlowDirector(mg0, 'topographic__elevation')
-    assert_equal(sorted(list(mg0.at_node.keys())),
-                 ['topographic__elevation'])
+    assert_equal(list(mg0.at_node.keys()), ['topographic__elevation'])
     assert_equal(np.size(mg0.at_node['topographic__elevation']), mg0.number_of_nodes)
 
     mg1 = RasterModelGrid((10,10), spacing=(1, 1))
     z1 = mg1.add_field('topographic__elevation', mg1.node_x**2 + mg1.node_y**2, at = 'node')
     fd1 = _FlowDirectorToMany(mg1, 'topographic__elevation')
     assert_equal(sorted(list(mg1.at_node.keys())), ['flow__link_to_receiver_node',
-                                                    'flow__receiver_node',
-                                                    'flow__sink_flag',
-                                                    'topographic__elevation',
-                                                    'topographic__steepest_slope'])
+                                                     'flow__receiver_node',
+                                                     'flow__sink_flag',
+                                                     'topographic__elevation',
+                                                     'topographic__steepest_slope'])
     assert_equal(np.size(mg1.at_node['topographic__elevation']), mg1.number_of_nodes)
 
     mg2 = RasterModelGrid((10,10), spacing=(1, 1))
@@ -102,13 +101,13 @@ def test_check_fields():
     z3 = mg3.add_field('topographic__elevation', mg3.node_x**2 + mg3.node_y**2, at = 'node')
     fd3 = FlowDirectorMFD(mg3, 'topographic__elevation')
     assert_equal(sorted(list(mg3.at_node.keys())), ['flow__link_to_receiver_node',
-                                                    'flow__links_to_receiver_nodes',
-                                                    'flow__receiver_node',
-                                                    'flow__receiver_nodes',
-                                                    'flow__receiver_proportions',
-                                                    'flow__sink_flag',
-                                                    'topographic__elevation',
-                                                    'topographic__steepest_slope'])
+                                                     'flow__links_to_receiver_nodes',
+                                                     'flow__receiver_node',
+                                                     'flow__receiver_nodes',
+                                                     'flow__receiver_proportions',
+                                                     'flow__sink_flag',
+                                                     'topographic__elevation',
+                                                     'topographic__steepest_slope'])
     assert_equal(np.size(mg3.at_node['topographic__elevation']), mg3.number_of_nodes)
 
 
@@ -117,13 +116,13 @@ def test_check_fields():
     z4 = mg4.add_field('topographic__elevation', mg4.node_x**2 + mg4.node_y**2, at = 'node')
     fd4 = FlowDirectorDINF(mg4, 'topographic__elevation')
     assert_equal(sorted(list(mg4.at_node.keys())), ['flow__link_to_receiver_node',
-                                                    'flow__links_to_receiver_nodes',
-                                                    'flow__receiver_node',
-                                                    'flow__receiver_nodes',
-                                                    'flow__receiver_proportions',
-                                                    'flow__sink_flag',
-                                                    'topographic__elevation',
-                                                    'topographic__steepest_slope'])
+                                                     'flow__links_to_receiver_nodes',
+                                                     'flow__receiver_node',
+                                                     'flow__receiver_nodes',
+                                                     'flow__receiver_proportions',
+                                                     'flow__sink_flag',
+                                                     'topographic__elevation',
+                                                     'topographic__steepest_slope'])
     assert_equal(np.size(mg4.at_node['topographic__elevation']), mg4.number_of_nodes)
 
     mg5 = RasterModelGrid((10,10), spacing=(1, 1))
@@ -148,4 +147,15 @@ def test_check_fields():
     assert_equal(np.size(mg6.at_node['topographic__elevation']), mg6.number_of_nodes)
 
 def test_link_flow_direction_hex():
-    1==3
+    pass
+
+def test_flow_director_steepest_flow__link_dir_field_creation():
+    mg = RasterModelGrid((3,3), spacing=(1, 1))
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    z = mg.add_field('topographic__elevation',
+                      mg.node_x + mg.node_y,
+                      at = 'node')
+    f = mg.add_ones('flow__link_direction', at = 'link', dtype=int)
+    fd = FlowDirectorSteepest(mg, z)
+    assert_array_equal(fd.flow__link_direction,
+                       np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
