@@ -24,6 +24,11 @@ class _FlowDirector(Component):
     Instead it has the functionality that all flow direction calculators need
     to initialize and check boundary conditions.
 
+    It also creates the following field used by all FlowDirectors.
+
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow__link_direction'*
+
     The primary method of this class, :func:`run_one_step` is not implemented.
 
     Parameters
@@ -46,10 +51,11 @@ class _FlowDirector(Component):
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> list(mg.at_node.keys())
+    >>> sorted(list(mg.at_node.keys()))
     ['topographic__elevation']
 
     _FlowDirector also works if you pass it an array instead of a field name.
+
     >>> import numpy as np
     >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
     >>> z = np.array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
