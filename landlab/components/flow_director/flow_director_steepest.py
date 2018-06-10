@@ -162,27 +162,27 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     So if one wanted to identify the source nodes at node, you would do the
     following:
 
-    >>> np.where(fd_2.flow__link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, 0)
-    array([[ 0,  0,  0,  0],
-           [ 0,  5,  0,  0],
-           [ 0,  6,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0, 10,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0, 14,  9,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0, 13,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0]])
+    >>> np.where(fd_2.flow__link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, -1)
+    array([[-1, -1, -1, -1],
+           [-1,  5, -1, -1],
+           [-1,  6, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, 10, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, 14,  9, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, 13, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1],
+           [-1, -1, -1, -1]])
 
     The flow directors also have the ability to return the flow receiver nodes
 
