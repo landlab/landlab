@@ -882,7 +882,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu = LatticeUplifter(grid=mg)
         >>> nu = ohcts.next_update
         >>> np.round(nu[mg.active_links], 2)
-        array([0.8 , 1.26, 0.92, 0.79, 0.55, 1.04, 0.58, 2.22, 3.31, 0.48, 1.57])
+        array([ 0.8 ,  1.26,  0.92,  0.79,  0.55,  1.04,  0.58,  2.22,  3.31,
+                0.48,  1.57])
         >>> pq = ohcts.priority_queue
         >>> pq._queue[0][2]  # link for first event = 20, not shifted
         20
@@ -894,7 +895,8 @@ class LatticeUplifter(HexLatticeTectonicizer):
         0.58
         >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
         >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
-        array([0.75, 0.84, 2.6 , 0.07, 0.09, 0.8 , 0.02, 1.79, 1.51, 2.04, 3.85])
+        array([ 0.75,  0.84,  2.6 ,  0.07,  0.09,  0.8 ,  0.02,  1.79,  1.51,
+                2.04,  3.85])
         >>> pq._queue[0][2]  # new soonest event
         15
         >>> pq._queue[9][2]  # was previously 7, now shifted up...

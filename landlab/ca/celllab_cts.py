@@ -721,7 +721,7 @@ class CellLabCTSModel(object):
         >>> cts.trn_to
         array([2, 1, 6, 7])
         >>> cts.trn_rate
-        array([1., 2., 3., 4.])
+        array([ 1.,  2.,  3.,  4.])
         """
 
         # First, create an array that stores the number of possible transitions
