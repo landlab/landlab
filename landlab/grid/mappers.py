@@ -1444,6 +1444,6 @@ def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
     --------
     ...
 
-    LLCATS: DEPR MAP
+    LLCATS: MAP
     """
     pass
