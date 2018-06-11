@@ -1014,7 +1014,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
-        for r in range(self.nr - 2, 0, -1):
+        for r in range(self.nr - 1, 0, -1):
             # This row gets the contents of the nodes 1 row down
             self.node_state[self.inner_base_row_nodes+self.nc*r] = \
                     self.node_state[self.inner_base_row_nodes+self.nc*(r-1)]
