@@ -171,7 +171,8 @@ class FieldDataset(dict):
         return self._ds
 
     def keys(self):
-        return self._ds.variables
+        return [name.split('@')[0] for name in self._ds.variables]
+        # return self._ds.variables
 
     def set_value(self, name, value_array, attrs=None):
         attrs = attrs or {}
@@ -512,7 +513,7 @@ class GraphFields(object):
 
         LLCATS: FIELDINF
         """
-        return self[group].keys()
+        return [name.split('@')[0] for name in self[group].keys()]
 
     def size(self, group):
         """Size of the arrays stored in a group.
