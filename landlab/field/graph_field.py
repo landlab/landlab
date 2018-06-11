@@ -150,8 +150,8 @@ class FieldDataset(dict):
     def __init__(self, *args, **kwds):
         self._name, self._size = args[0], args[1]
         self._fixed_size = bool(kwds.get('fixed_size', True))
-        # self._ds = xr.Dataset()
-        self._ds = kwds.pop('ds', xr.Dataset())
+        ds = kwds.pop('ds', None)
+        self._ds = xr.Dataset() if ds is None else ds
         self._units = {}
 
     @property
@@ -398,7 +398,12 @@ class GraphFields(object):
         """
         dataset_name = 'at_' + loc
         if loc not in self._groups:
-            setattr(self, dataset_name, FieldDataset(loc, size, ds=self.ds))
+            try:
+                ds = self.ds
+            except AttributeError:
+                ds = None
+            finally:
+                setattr(self, dataset_name, FieldDataset(loc, size, ds=ds))
             self._groups.add(loc)
         else:
             raise ValueError('{loc} location already exists'.format(loc=loc))
