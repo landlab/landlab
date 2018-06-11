@@ -281,7 +281,7 @@ def test_fields():
                                                    'topographic__elevation',
                                                    'topographic__steepest_slope',
                                                    'water__unit_flux_in'])
-    assert_equal(sorted(list(mg.at_grid.keys())), ['flow__data_structure_D'])
+    assert_equal(sorted(list(mg.at_link.keys())), ['flow__data_structure_D', 'flow__link_direction'])
 
     mg2 = RasterModelGrid((10,10), spacing=(1, 1))
     _ = mg2.add_field('topographic__elevation', mg2.node_x + mg2.node_y, at = 'node')

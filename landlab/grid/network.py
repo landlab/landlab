@@ -64,7 +64,7 @@ class NetworkModelGrid(Graph, GraphFields):
 
         Examples
         --------
-        >>> TODO
+        >>> #TODO
         """
         return self._node_status
 
@@ -80,8 +80,6 @@ class NetworkModelGrid(Graph, GraphFields):
     def status_at_link(self):
         """Get array of the status of all links.
 
-        Examples
-        --------
         Examples
         --------
         >>> # TODO

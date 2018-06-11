@@ -145,3 +145,17 @@ def test_check_fields():
                                                     'topographic__elevation',
                                                     'topographic__steepest_slope'])
     assert_equal(np.size(mg6.at_node['topographic__elevation']), mg6.number_of_nodes)
+
+def test_link_flow_direction_hex():
+    pass
+
+def test_flow_director_steepest_flow__link_dir_field_creation():
+    mg = RasterModelGrid((3,3), spacing=(1, 1))
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    z = mg.add_field('topographic__elevation',
+                      mg.node_x + mg.node_y,
+                      at = 'node')
+    f = mg.add_ones('flow__link_direction', at = 'link', dtype=int)
+    fd = FlowDirectorSteepest(mg, z)
+    assert_array_equal(fd.flow__link_direction,
+                       np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))

@@ -15,7 +15,7 @@ from __future__ import print_function
 import warnings
 
 from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid, NetworkModelGrid  # for type testing
+from landlab import RasterModelGrid, VoronoiDelaunayGrid, NetworkModelGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
 
 from landlab.core.messages import warning_message
@@ -74,6 +74,8 @@ class FlowAccumulator(Component):
            receiver, or BAD_INDEX_VALUE if no link:
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
+        -  Link array identifing if flow goes with (1) or against (-1) the link
+           direction: *'flow__link_direction'*
 
     DirectToMany Methods (MFD) store the following as ModelGrid
     fields:
@@ -94,6 +96,8 @@ class FlowAccumulator(Component):
            receiver, or BAD_INDEX_VALUE if no link:
            *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
+        -  Link array identifing if flow goes with (1) or against (-1) the link
+           direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`
 
@@ -707,6 +711,24 @@ class FlowAccumulator(Component):
     def node_order_upstream(self):
         """Return the upstream node order (drainage stack)."""
         return self._grid['node']['flow__upstream_node_order']
+
+    @property
+    def link_order_upstream(self):
+        """Return the upstream order of active links."""
+        if self.flow_director.to_n_receivers == 'one':
+            downstream_links = self._grid['node']['flow__link_to_receiver_node'][self.node_order_upstream]
+            return downstream_links[downstream_links != BAD_INDEX_VALUE]
+
+        else:
+            raise NotImplementedError('not implemented for to_many')
+
+    @property
+    def headwater_nodes(self):
+        """ """
+        delta = np.concatenate(([0], self.delta_structure))
+        num_donors = np.diff(delta) # note closed nodes have a value of 1 here since they flow to themselves
+        source_nodes = np.where(num_donors == 0)[0]
+        return source_nodes
 
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""

@@ -497,7 +497,11 @@ class ItemCollection(object):
                                   (self.DataFrame['element_id'] == element_id)]
         return vals
 
-    def calc_aggregate_value(self, func, var, at='node', fill_value=_FILL_VALUE, args=(), **kwargs):
+    def calc_aggregate_value(self, func, var,
+                             at='node',
+                             fill_value=_FILL_VALUE,
+                             filter_array=None,
+                             args=(), **kwargs):
         """Apply a function to a variable aggregated at grid elements.
 
         Parameters
@@ -511,6 +515,8 @@ class ItemCollection(object):
         fill_value : str, float, int, optional
             Value to use for grid element locations where no items are located.
             Default is np.nan.
+        filter_array : boolean array of size (number-of-items,)
+            Array to filter items in the item collection before aggregation.
         args : tuple, optional
             Additional positional arguments to pass to function in after the
             array/series
@@ -540,6 +546,18 @@ class ItemCollection(object):
         ...                     data = data,
         ...                     grid_element ='node',
         ...                     element_id = element_id)
+        >>> print(ic.DataFrame)
+          grid_element  element_id  ages  volumes
+        0         node           0    10        4
+        1         node           0    11        5
+        2         node           0    12        1
+        3         node           0    13        2
+        4         node           1    14        3
+        5         node           2    15        4
+        6         node           3    16        5
+        7         node           4     8        6
+        8         node           5    10        7
+
 
         We can calculate aggregate values by passing the function we want to
         use to `calc_aggregate_value`.
@@ -558,11 +576,30 @@ class ItemCollection(object):
         >>> print(s)
         [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
 
+        If you want to first filter the items and then aggregate, create an
+        filter array that is of size (number-of-items,) and has True for items
+        that should be retained and False for items that should be ignored.
 
+        For example, if we wanted to aggregate volume for items with an age
+        greater than 10 we would to the following:
+
+        >>> f = ic.DataFrame['ages'] > 10.
+        >>> v = ic.calc_aggregate_value(np.sum, 'volumes', filter_array = f)
+        >>> print(v)
+        [  8.   3.   4.   5.  nan  nan  nan  nan  nan]
         """
         # select those items located on the correct type of element,
         # group by element_id and sum.
-        grouped = self.DataFrame.loc[self.DataFrame['grid_element'] == at].groupby('element_id')
+        if filter_array is None:
+            filt = (self.DataFrame['grid_element'] == at)
+        else:
+            filter_array = np.squeeze(np.asarray(filter_array))
+            if filter_array.size == self.DataFrame.shape[0]:
+                filt = (self.DataFrame['grid_element'] == at)&(filter_array)
+            else:
+                raise ValueError(('ItemCollection: filter_array has incorrect '
+                                   'size. It must be of size (number-of-items,)'))
+        grouped = self.DataFrame.loc[filt].groupby('element_id')
         vals = grouped.agg(func, *args, **kwargs)
 
         # create a nan array that we will fill with the results of the sum

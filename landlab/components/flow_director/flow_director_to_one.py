@@ -63,9 +63,11 @@ class _FlowDirectorToOne(_FlowDirector):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_to_receiver_node', 'flow__receiver_node',
-           'flow__sink_flag', 'topographic__elevation',
-           'topographic__steepest_slope']
+    ['flow__link_to_receiver_node',
+     'flow__receiver_node',
+     'flow__sink_flag',
+     'topographic__elevation',
+     'topographic__steepest_slope']
     """
 
     _name = 'FlowDirectorToOne'
@@ -141,6 +143,7 @@ class _FlowDirectorToOne(_FlowDirector):
         raise NotImplementedError('run_one_step()')
 
     # set properties. These are the same for all DirectToOne Directors
+    # Number of Node
     @property
     def node_receiving_flow(self):
         """Return the node id of the node receiving flow."""
