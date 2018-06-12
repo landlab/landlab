@@ -11,7 +11,7 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 def test_read_methow():
     file = os.path.join(_TEST_DATA_DIR, 'methow', 'Methow_Network.shp')
-    grid = read_shapefile(file)
+    grid = read_shapefile.read_shapefile(file)
     # TODO add assertions about the resulting grid.
 
     # # for plotting and testing
@@ -39,5 +39,5 @@ def test_read_methow():
 
 def test_read_elwah_dhsvm():
     file = os.path.join(_TEST_DATA_DIR, 'elwah_dhsvm', 'elwha_example.shp')
-    grid = read_shapefile(file)
+    grid = read_shapefile.read_shapefile(file)
     # TODO add assertions about the resulting grid.
