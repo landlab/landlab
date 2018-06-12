@@ -136,6 +136,7 @@ def test_director_adding_methods_are_equivalent_D8():
                                    mg2[loc][key])
 
                 assert_array_equal(mg2[loc][key],
+                                   mg3[loc][key])
 
 
 def test_director_adding_methods_are_equivalent_Dinf():
