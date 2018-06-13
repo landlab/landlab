@@ -79,7 +79,9 @@ def test_soil_field_already_on_grid():
                          solver='basic')
 
     #ensure that 'soil__depth' field is everywhere equal to 1.0 m.
-    testing.assert_array_equal(np.ones(mg.number_of_nodes), sp.soil__depth)
+    testing.assert_array_equal(np.ones(mg.number_of_nodes), sp.soil__depth,
+                               err_msg='SPACE soil depth field test failed',
+                               verbose=True)
 
 
 def test_br_field_already_on_grid():
@@ -121,7 +123,9 @@ def test_br_field_already_on_grid():
 
     #ensure that 'bedrock__elevation' field is everywhere equal to 1.0 m.
     testing.assert_array_equal(np.ones(mg.number_of_nodes), 
-                               sp.bedrock__elevation)
+                               sp.bedrock__elevation,
+                               err_msg='SPACE bedrock field test failed',
+                               verbose=True)
 
 
 def test_matches_detachment_solution():
