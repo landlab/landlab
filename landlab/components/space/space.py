@@ -18,7 +18,7 @@ class Space(_GeneralizedErosionDeposition):
     Landlab component for 2-D calculation of sediment transport, bedrock
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
     https://doi.org/10.5194/gmd-10-4577-2017, 2017.
-    
+
     Note: If timesteps are large enough that Es*dt (sediment erosion)
     exceeds sediment thickness H, the 'adaptive' solver is necessary to
     subdivide timesteps. Compare Es and H arrays to determine whether
@@ -262,7 +262,7 @@ class Space(_GeneralizedErosionDeposition):
                              + "'basic', 'adaptive'")
 
     def _calc_erosion_rates(self):
-        """ """
+        """Calculate erosion rates."""
         # if sp_crits are zero, then this colapses to correct all the time.
         omega_sed = self.K_sed * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         omega_br = self.K_br * self.Q_to_the_m * np.power(self.slope, self.n_sp)
@@ -366,7 +366,7 @@ class Space(_GeneralizedErosionDeposition):
                     (((self.depo_rate[pos_not_flood] / (1 - self.phi) /
                     (self.sed_erosion_term[pos_not_flood])) - 1) *
                     np.exp(self.soil__depth[pos_not_flood] / self.H_star)  + 1) - 1)))
-        
+
         #places where slope <= 0 but not flooded:
         neg_slope_not_flooded = ((self.q > 0) &
                                  (blowup==False) &
