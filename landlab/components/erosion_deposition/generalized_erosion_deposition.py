@@ -66,15 +66,25 @@ class _GeneralizedErosionDeposition(Component):
 
         Parameters
         ----------
-        grid
-        m_sp
-        n_sp
-        phi
-        F_f
-        v_s
-        discharge_field :
+        grid : ModelGrid
+            Landlab ModelGrid object
+        m_sp : float
+            Drainage area exponent (units vary)
+        n_sp : float
+            Slope exponent (units vary)
+        phi : float
+            Sediment porosity [-].
+        F_f : float
+            Fraction of eroded material that turns into "fines" that do not
+            contribute to (coarse) sediment load. Defaults to zero.
+        v_s : float
+            Effective settling velocity for chosen grain size metric [L/T].
+        discharge_field : float, field name, or array
+            Discharge [L^2/T].
         dt_min : float, optional
-            Default values is 0.001.
+            Only applies when adaptive solver is used. Minimum timestep that
+            adaptive solver will use when subdividing unstable timesteps.
+            Default values is 0.001. [T].
         """
         super(_GeneralizedErosionDeposition, self).__init__(grid)
 

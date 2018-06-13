@@ -2,18 +2,130 @@ from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import Space, FlowAccumulator, DepressionFinderAndRouter
 import numpy as np
 from numpy import testing
+from nose.tools import assert_raises
 
 
 def test_bad_solver_name():
-    pass
+    """
+    Test that any solver name besides 'basic' and 'adaptive' raises an error.
+    """
 
+    #set up a 5x5 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), 10.0)
+
+    z = mg.add_zeros('node', 'topographic__elevation')
+    br = mg.add_zeros('node', 'bedrock__elevation')
+    soil = mg.add_zeros('node', 'soil__depth')
+
+    mg['node']['topographic__elevation'] += mg.node_y / 10000 \
+        + mg.node_x / 10000 \
+        + np.random.rand(len(mg.node_y)) / 10000
+    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+                                           left_is_closed=True,
+                                           right_is_closed=True,
+                                           top_is_closed=True)
+    mg.set_watershed_boundary_condition_outlet_id(0,
+                                                  mg['node']['topographic__elevation'],
+                                                  -9999.)
+    br[:] = z[:] - soil[:]
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(mg, flow_director='D8')
+
+    #try to instantiate SPACE using a wrong solver name
+    assert_raises(ValueError, Space, mg, K_sed=0.01, K_br=0.01, F_f=0.0, 
+                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
+                         sp_crit_sed=0, sp_crit_br=0, 
+                         solver='something_else')
+    
 
 def test_soil_field_already_on_grid():
-    pass
+    """
+    Test that an existing soil grid field is not changed by instantiating 
+    SPACE.
+    """
+
+    #set up a 5x5 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), 10.0)
+
+    z = mg.add_zeros('node', 'topographic__elevation')
+    br = mg.add_zeros('node', 'bedrock__elevation')
+    soil = mg.add_zeros('node', 'soil__depth')
+    soil += 1. #add 1m of soil everywehre
+
+    mg['node']['topographic__elevation'] += mg.node_y / 10000 \
+        + mg.node_x / 10000 \
+        + np.random.rand(len(mg.node_y)) / 10000
+    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+                                           left_is_closed=True,
+                                           right_is_closed=True,
+                                           top_is_closed=True)
+    mg.set_watershed_boundary_condition_outlet_id(0,
+                                                  mg['node']['topographic__elevation'],
+                                                  -9999.)
+    br[:] = z[:] - soil[:]
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(mg, flow_director='D8')
+
+    #Instantiate SPACE
+    sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0, 
+                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
+                         sp_crit_sed=0, sp_crit_br=0, 
+                         solver='basic')
+
+    #ensure that 'soil__depth' field is everywhere equal to 1.0 m.
+    testing.assert_array_equal(np.ones(mg.number_of_nodes), sp.soil__depth,
+                               err_msg='SPACE soil depth field test failed',
+                               verbose=True)
 
 
 def test_br_field_already_on_grid():
-    pass
+    """
+    Test that an existing bedrock elevation grid field is not changed by 
+    instantiating SPACE.
+    """
+
+    #set up a 5x5 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), 10.0)
+
+    z = mg.add_zeros('node', 'topographic__elevation')
+    br = mg.add_zeros('node', 'bedrock__elevation')
+    br += 1. #make bedrock elevation 5m below surface
+    soil = mg.add_zeros('node', 'soil__depth')
+
+    mg['node']['topographic__elevation'] += mg.node_y / 10000 \
+        + mg.node_x / 10000 \
+        + np.random.rand(len(mg.node_y)) / 10000
+    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+                                           left_is_closed=True,
+                                           right_is_closed=True,
+                                           top_is_closed=True)
+    mg.set_watershed_boundary_condition_outlet_id(0,
+                                                  mg['node']['topographic__elevation'],
+                                                  -9999.)
+    z[:] = br[:] + soil[:]
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(mg, flow_director='D8')
+
+    #Instantiate SPACE
+    sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0, 
+                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
+                         sp_crit_sed=0, sp_crit_br=0, 
+                         solver='basic')
+
+    #ensure that 'bedrock__elevation' field is everywhere equal to 1.0 m.
+    testing.assert_array_equal(np.ones(mg.number_of_nodes), 
+                               sp.bedrock__elevation,
+                               err_msg='SPACE bedrock field test failed',
+                               verbose=True)
 
 
 def test_matches_detachment_solution():
