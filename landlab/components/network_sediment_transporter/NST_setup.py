@@ -33,7 +33,7 @@ area = grid.add_ones('cell_area_at_node', at = 'node')
 # Ultimately, map between flow accumulator and shapefile reader info...
 # map_upstream_node_to_link
 
-grid.at_link['drainage_area'] = [1000,100,700,200,700,300,400] # m
+grid.at_link['drainage_area'] = [100e+6,10e+6,70e+6,20e+6,70e+6,30e+6,40e+6] # m
 grid.at_link['channel_slope'] = [0.01,0.02,0.01,0.02,0.02,0.03,0.03]  
 grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
@@ -43,7 +43,7 @@ grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
 g = 9.81 
 rho = 1000
-
+theta = 0.5
 
 # %% initialize bed sediment (will become its own component)
 
@@ -56,11 +56,15 @@ starting_link = element_id # starting link for each parcel
 time_arrival_in_link = np.zeros(np.size(element_id)) # time of arrival in each link
 volume = np.ones(np.size(element_id)) # (m3) the volume of each parcel
 D = 0.05 * np.ones(np.size(element_id)) # (m) the diameter of grains in each parcel
-D[0] = 0.075
-D[5] = 0.0001 # make one of them sand
 lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each parcel
 active_layer = np.ones(np.size(element_id)) # 1 = active/surface layer; 0 = subsurface layer
 density = 2650 * np.ones(np.size(element_id)) # (kg/m3) 
+
+
+D[0] = 0.075
+D[5] = 0.0001 # make one of them sand
+active_layer[12] = 0 # make one of them inactive
+
 
 data = {'starting_link': starting_link,
         'volume': volume,
@@ -77,6 +81,27 @@ parcels = ItemCollection(grid,
 
 # Add parcels in at a given time --> attribute in the item collection
 
+
+# %% Flow parameters (this will happen in the sq.run_one_step and sc.run_one_step)
+
+timesteps = 1;
+
+Qgage = 200. # for Methow, this is ~4*mean flow
+dt = 60*60*24; # (seconds) daily timestep
+Bgage=30.906*Qgage**0.1215; # (m)
+Hgage=0.2703*Qgage**0.3447; # (m)
+Agage=4.5895e+9;# (m2)
+
+B=((np.tile(Bgage,(grid.number_of_links))/(Agage**0.5))
+  *np.tile(grid.at_link['drainage_area'],(timesteps))**0.5)
+
+H=((np.tile(Hgage,(grid.number_of_links))/(Agage**0.4))
+  *np.tile(grid.at_link['drainage_area'],(timesteps))**0.4)
+
+
+Btmax=np.amax(B, axis = 0)
+
+
 # %% Instantiate component(s)
 #dis = ExteralDischargeSetter(grid, filename, model='dhsvm')
         
@@ -90,21 +115,19 @@ nst = NetworkSedimentTransporter(so many inputs!)
 
 # %% Run the component(s)
 
+timesteps = 10;
+
 for t in range(timesteps):
     
     # move any sediment additions from forcing Item collector to bed item collector
     
     # sq.run_one_step  
-    Qgage = 200. # for Methow, this is ~4*mean flow
-    dt = 60*60*24; # (seconds) daily timestep
+    #   will assign discharge for each reach
+
     
     # sc.run_one_step   
-    Bgage=30.906.*Qgage.^0.1215;
-    Hgage=0.2703.*Qgage.^0.3447;
-    Agage=4.5895e+9;#m2
-    B=(repmat(Bgage,1,LinkNum)./(Agage.^0.5)).*repmat(usarea',timesteps,1).^0.5;
-    H=(repmat(Hgage,1,LinkNum)./(Agage.^0.4)).*repmat(usarea',timesteps,1).^0.4;
-    Btmax=max(B,[],1)';
+    #   will assign flow depth for each reach (for this timestep)
+
     
     # Run our component
-    nst.run_one_step
+   nst.run_one_step
