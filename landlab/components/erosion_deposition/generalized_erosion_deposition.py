@@ -91,12 +91,6 @@ class _GeneralizedErosionDeposition(Component):
             self.link_lengths = grid.length_of_link
 
         try:
-            self.qs_ext = grid.at_node['external_sediment__flux']
-        except KeyError:
-            self.qs_ext = grid.add_zeros(
-                'external_sediment__flux', at='node', dtype=float)
-
-        try:
             self.qs = grid.at_node['sediment__flux']
         except KeyError:
             self.qs = grid.add_zeros(
