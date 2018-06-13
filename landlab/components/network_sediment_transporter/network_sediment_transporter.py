@@ -146,7 +146,7 @@ class NetworkSedimentTransporter(Component):
         """
         #  COPIED FROM JON'S MATLAB CODE
             #%compute/update slope
-            for i=1:LinkNum
+            for i in LinkNum
                 if i==OutletLinkID
                     Slope(i,1)=(Elev(t,i)-mnelev(i,1))./Length(i,1);
                 else
@@ -161,26 +161,57 @@ class NetworkSedimentTransporter(Component):
         
         Note: could have options here (e.g. Wilcock and Crowe, FLVB, MPM, etc)
         """
+        Darray = np.array(parcels.DataFrame.D)
+        Activearray = np.array(parcels.DataFrame.active_layer)
+        Rhoarray = np.array(parcels.DataFrame.density)
+        Volarray = np.array(parcels.DataFrame.volume)
+        Linkarray = np.array(parcels.DataFrame.element_id) #link that the parcel is currently in
         
-
-         #  COPIED FROM JON'S MATLAB CODE       
-            for i=1:LinkNum
-                    if isempty(P_loc{t,i})
-                        continue
+        
+        # Calculate bed statistics for all of the links
+        vol_tot =  parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
+        
+        findactive = parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer        
+        vol_active = parcels.calc_aggregate_value(np.sum,
+                                                  'volume',at = 'link',
+                                                  filter_array = findactive)
+              
+        findactivesand = np.logical_and(Darray>0.002,active_layer ==1)        
+        vol_sand = parcels.calc_aggregate_value(np.sum,
+                                                'volume',at = 'link',
+                                                filter_array = findactivesand) 
+        frac_sand = vol_sand/vol_active
+        frac_sand[np.isnan(frac_sand)== True] = 0
+        
+        d_mean_active = np.zeros(np.size(element_id))
+        d_mean_active.fill(np.nan)
+        
+        # Assign those things to the grid -- might be useful for plotting later...?
+        
+        grid.at_link['sediment_total_volume'] = vol_tot        
+        grid.at_link['sediment__active__volume'] = vol_active
+        grid.at_link['sediment__active__sand_fraction'] = frac_sand
+        
+         #    
+           xxx for i in LinkNum
+                  xxx  if sediment_volume_active_layer > 0
+                   xxx    continue
                     
-                actidx=P_storage{t,i}==0;
-                actvol=sum(P_vol{t,i}(actidx));
+                # calculate the surface mean grain size
                 
-                Dg(t,i)=((sum(P_vol{t,i}(actidx)./actvol.*...
-                ((P_d{t,i}(actidx)))))); # AP note: calculate the surface grain size
+                active_here = np.logical_and(Linkarray == i,active_layer == 1)
                 
-                actsandidx=and(P_storage{t,i}==0,P_d{t,i}==0.002); #% AP note: calculate the sand content
-                actsandvol=sum(P_vol{t,i}(actsandidx)); 
-                Fs=actsandvol./actvol; 
+                d_i = Darray[active_here]
+                vol_i = Volarray[active_here]
                 
-                taursg=rho.*R.*g.*Dg(t,i).*(0.021+0.015.*exp(-20.*Fs));
+                d_mean_active[i] = np.sum(d_i * vol_i)/vol_active[i]
                 
-                for k=1:gsclass # Wilcock and crowe claculate transport for each parcel
+                taursg=rho.*R.*g.*Dg.*(0.021+0.015*exp(-20.*frac_sand)); 
+                
+                xxx for j in parcelsinthislink # Wilcock and crowe claculate transport for each parcel
+
+                    R_j = (Rhoarray[i]-rho)/rho
+                   xxx taursg[j] = rho * R_j * g *d_mean_active[i]*(0.021+0.015*exp(-20.*frac_sand))
                     
                     actidxj=and(P_storage{t,i}==0,P_d{t,i}==Dpsd(k));
                     actvolj=sum(P_vol{t,i}(actidxj));
@@ -197,9 +228,9 @@ class NetworkSedimentTransporter(Component):
                     else
                         Wj=14.*(1-0.894./sqrt(tautaurj)).^4.5;
                     
-                    
                     if k==1
                         P_tt{t,i}(actidxj)=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./Fs;
+                        
                     else
                         P_tt{t,i}(actidxj)=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./(1-Fs)./Fj;
                     

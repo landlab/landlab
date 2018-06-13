@@ -39,6 +39,11 @@ grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
 # modify elevations so they are consistent with adjusted slopes
 
+## Basic parameters
+
+g = 9.81 
+rho = 1000
+
 
 # %% initialize bed sediment (will become its own component)
 
@@ -51,21 +56,24 @@ starting_link = element_id # starting link for each parcel
 time_arrival_in_link = np.zeros(np.size(element_id)) # time of arrival in each link
 volume = np.ones(np.size(element_id)) # (m3) the volume of each parcel
 D = 0.05 * np.ones(np.size(element_id)) # (m) the diameter of grains in each parcel
+D[0] = 0.075
+D[5] = 0.0001 # make one of them sand
 lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each parcel
 active_layer = np.ones(np.size(element_id)) # 1 = active/surface layer; 0 = subsurface layer
+density = 2650 * np.ones(np.size(element_id)) # (kg/m3) 
 
 data = {'starting_link': starting_link,
         'volume': volume,
         'D': D,
         'lithology': lithology,
         'time_arrival_in_link': time_arrival_in_link,
-        'active_layer': active_layer}
+        'active_layer': active_layer,
+        'density': density}
         
 parcels = ItemCollection(grid,
     data = data,
     grid_element ='link',
     element_id = element_id)
-
 
 # Add parcels in at a given time --> attribute in the item collection
 
