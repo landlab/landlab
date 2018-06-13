@@ -90,9 +90,9 @@ class _GeneralizedErosionDeposition(Component):
         else:
             self.link_lengths = grid.length_of_link
 
-        try:
+        if 'sediment__flux' in grid.at_node:
             self.qs = grid.at_node['sediment__flux']
-        except KeyError:
+        else:
             self.qs = grid.add_zeros(
                 'sediment__flux', at='node', dtype=float)
 

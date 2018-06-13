@@ -225,15 +225,16 @@ class Space(_GeneralizedErosionDeposition):
 
         # space specific inits
         self.H_star = H_star
-        try:
+
+        if 'soil__depth' in grid.at_node:
             self.soil__depth = grid.at_node['soil__depth']
-        except KeyError:
+        else:
             self.soil__depth = grid.add_zeros(
                 'soil__depth', at='node', dtype=float)
 
-        try:
+        if 'bedrock__elevation' in grid.at_node:
             self.bedrock__elevation = grid.at_node['bedrock__elevation']
-        except KeyError:
+        else:
             self.bedrock__elevation = grid.add_zeros(
                 'bedrock__elevation', at='node', dtype=float)
             self.bedrock__elevation[:] = self.topographic__elevation -\
