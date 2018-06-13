@@ -11,6 +11,7 @@ from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy.testing import assert_equal
 
+
 def test_erodep_slope_area_small_vs():
     """Test steady state run with Vs << 1."""
 
@@ -49,6 +50,7 @@ def test_erodep_slope_area_small_vs():
     assert_equal(np.round(s[11], 3), np.round(s11, 3))
     assert_equal(np.round(s[12], 3), np.round(s12, 3))
 
+
 def test_erodep_slope_area_big_vs():
     """Test steady state run with Vs >> 1."""
 
@@ -86,6 +88,7 @@ def test_erodep_slope_area_big_vs():
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
+
 def test_erodep_slope_area_with_vs_unity():
     """Test steady state run with Vs = 1."""
 
@@ -122,6 +125,7 @@ def test_erodep_slope_area_with_vs_unity():
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
+
 
 def test_erodep_slope_area_shear_stress_scaling():
     """Test steady state run with m_sp = 0.33, n_sp=0.67, Vs = 1."""
@@ -162,6 +166,7 @@ def test_erodep_slope_area_shear_stress_scaling():
     assert_equal(np.round(s[6], 2), np.round(s6, 2))
     assert_equal(np.round(s[8], 2), np.round(s8, 2))
 
+
 def test_erodep_slope_area_with_threshold():
     """Test steady state run with Vs = 1 and wc = 0.00001."""
 
@@ -200,6 +205,7 @@ def test_erodep_slope_area_with_threshold():
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
+
 
 if __name__ == '__main__':
     test_erodep_slope_area_shear_stress_scaling()
