@@ -256,8 +256,6 @@ class Space(_GeneralizedErosionDeposition):
         elif solver == 'adaptive':
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self.time_to_flat = np.zeros(grid.number_of_nodes)
-            if self.phi >= 1.0:
-                raise ValueError('Porosity phi must be < 1.0')
             self.porosity_factor = 1.0 / (1.0 - self.phi)
         else:
             raise ValueError("Parameter 'solver' must be one of: "

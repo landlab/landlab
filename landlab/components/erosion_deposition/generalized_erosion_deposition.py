@@ -113,6 +113,17 @@ class _GeneralizedErosionDeposition(Component):
         self.dt_min = dt_min
         self.F_f = float(F_f)
 
+        if phi >= 1.0:
+            raise ValueError('Porosity must be < 1.0')
+
+        if F_f > 1.0:
+            raise ValueError('Fraction of fines must be <= 1.0')
+
+        if phi < 0.0:
+            raise ValueError('Porosity must be > 0.0')
+
+        if F_f < 0.0:
+            raise ValueError('Fraction of fines must be > 0.0')
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
