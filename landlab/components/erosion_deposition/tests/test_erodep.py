@@ -11,6 +11,14 @@ from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy.testing import assert_equal
 
+def test_bad_solver_option():
+    pass
+
+
+def test_steady_state_with_basic_solver_option():
+    pass
+
+
 def test_can_run_with_hex():
     """Test that model can run with hex model grid."""
 

@@ -3,6 +3,19 @@ from landlab.components import Space, FlowAccumulator, DepressionFinderAndRouter
 import numpy as np
 from numpy import testing
 
+
+def test_bad_solver_name():
+    pass
+
+
+def test_soil_field_already_on_grid():
+    pass
+
+
+def test_br_field_already_on_grid():
+    pass
+
+
 def test_matches_detachment_solution():
     """
     Test that model matches the detachment-limited analytical solution
