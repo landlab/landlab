@@ -161,26 +161,30 @@ class NetworkSedimentTransporter(Component):
         
         Note: could have options here (e.g. Wilcock and Crowe, FLVB, MPM, etc)
         """
+# %%
         Darray = np.array(parcels.DataFrame.D)
         Activearray = np.array(parcels.DataFrame.active_layer)
         Rhoarray = np.array(parcels.DataFrame.density)
         Volarray = np.array(parcels.DataFrame.volume)
         Linkarray = np.array(parcels.DataFrame.element_id) #link that the parcel is currently in
-        
+        Ttimearray = np.zeros(np.size(element_id)) 
+        Ttimearray.fill(np.nan)
         
         # Calculate bed statistics for all of the links
         vol_tot =  parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
         
         findactive = parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer        
-        vol_active = parcels.calc_aggregate_value(np.sum,
+        vol_act = parcels.calc_aggregate_value(np.sum,
                                                   'volume',at = 'link',
                                                   filter_array = findactive)
               
-        findactivesand = np.logical_and(Darray>0.002,active_layer ==1)        
-        vol_sand = parcels.calc_aggregate_value(np.sum,
+        findactivesand = np.logical_and(Darray<0.002,active_layer ==1)        
+        vol_act_sand = parcels.calc_aggregate_value(np.sum,
                                                 'volume',at = 'link',
-                                                filter_array = findactivesand) 
-        frac_sand = vol_sand/vol_active
+                                                filter_array = findactivesand)
+        vol_act_sand[np.isnan(vol_act_sand)==True] = 0
+        
+        frac_sand = vol_act_sand/vol_act
         frac_sand[np.isnan(frac_sand)== True] = 0
         
         d_mean_active = np.zeros(np.size(element_id))
@@ -189,47 +193,55 @@ class NetworkSedimentTransporter(Component):
         # Assign those things to the grid -- might be useful for plotting later...?
         
         grid.at_link['sediment_total_volume'] = vol_tot        
-        grid.at_link['sediment__active__volume'] = vol_active
+        grid.at_link['sediment__active__volume'] = vol_act
         grid.at_link['sediment__active__sand_fraction'] = frac_sand
         
-         #    
-           xxx for i in LinkNum
-                  xxx  if sediment_volume_active_layer > 0
-                   xxx    continue
+# %%        
+        for i in range(grid.number_of_links):
+                 # xxx  if sediment_volume_active_layer > 0
+                  # xxx    continue
                     
                 # calculate the surface mean grain size
                 
-                active_here = np.logical_and(Linkarray == i,active_layer == 1)
+                active_here = np.where(np.logical_and(Linkarray == i,active_layer == 1))[0]
                 
-                d_i = Darray[active_here]
-                vol_i = Volarray[active_here]
+                d_act_i = Darray[active_here]
+                vol_act_i = Volarray[active_here]
                 
-                d_mean_active[i] = np.sum(d_i * vol_i)/vol_active[i]
+                d_mean_active[i] = np.sum(d_act_i * vol_act_i)/(vol_act[i])
                 
-                taursg=rho.*R.*g.*Dg.*(0.021+0.015*exp(-20.*frac_sand)); 
+                # Wilcock and crowe claculate transport for each active parcel in this link
                 
-                xxx for j in parcelsinthislink # Wilcock and crowe claculate transport for each parcel
-
-                    R_j = (Rhoarray[i]-rho)/rho
-                   xxx taursg[j] = rho * R_j * g *d_mean_active[i]*(0.021+0.015*exp(-20.*frac_sand))
+                for j in range(0,np.size(active_here)): 
                     
-                    actidxj=and(P_storage{t,i}==0,P_d{t,i}==Dpsd(k));
-                    actvolj=sum(P_vol{t,i}(actidxj));
-                    Fj=actvolj./actvol;
+                    R_j = (Rhoarray[j]-rho)/rho
                     
-                    b=0.67./(1+exp(1.5-Dpsd(k)./Dg(t,i)));
+                    taursg = rho * R_j * g * d_mean_active[i] * (0.021 + 0.015*np.exp(-20.*frac_sand[i]))
                     
-                    tau=rho.*g.*H(t,i).*Slope(i,1);
-                    taurj=taursg.*(Dpsd(k)./Dg(t,i)).^b;
-                    tautaurj=tau./taurj;
+#                    actidxj=and(P_storage{t,i}==0,P_d{t,i}==Dpsd(k));
+#                    actvolj=sum(P_vol{t,i}(actidxj));
                     
-                    if tautaurj<1.35
-                        Wj=0.002.*tautaurj.^7.5;
-                    else
-                        Wj=14.*(1-0.894./sqrt(tautaurj)).^4.5;
+                    Fj = vol_act[j]/np.sum(vol_act_i);
                     
-                    if k==1
-                        P_tt{t,i}(actidxj)=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./Fs;
+                    b = 0.67 / (1 + np.exp(1.5 - d_act_i[j] / d_mean_active[i]))
+                    
+                    tau = rho * g * H[i] * grid.at_link['channel_slope'][i]
+                    
+                    taurj = taursg * (d_act_i[j] / d_mean_active[i]) **b
+                    
+                    tautaurj = tau / taurj
+                    
+                    if tautaurj < 1.35:
+                        
+                        Wj = 0.002 * tautaurj **7.5
+                        
+                    else:
+                        
+                        Wj = 14.*( 1 - 0.894/np.sqrt(tautaurj))**4.5
+                    
+                    
+                    if k==1 # UGH-- how to I index back to the original link number?
+                        Ttimearray[j]=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./Fs;
                         
                     else
                         P_tt{t,i}(actidxj)=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./(1-Fs)./Fj;
