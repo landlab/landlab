@@ -222,7 +222,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._calc_erosion_rates()
 
         self.erosion_term[flooded_nodes] = 0.0
-        self.qs_in[:] = self.qs_ext
+        self.qs_in[:] = 0.0
 
         #iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -286,7 +286,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._calc_hydrology()
             self._calc_erosion_rates()
             self.erosion_term[flooded_nodes] = 0.0
-            self.qs_in[:] = self.qs_ext
+            self.qs_in[:] = 0.0
 
             # Sweep through nodes from upstream to downstream, calculating Qs.
             calculate_qs_in(np.flipud(self.stack),
