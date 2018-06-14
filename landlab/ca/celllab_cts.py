@@ -159,7 +159,7 @@ if _CYTEST:
 
 _NEVER = 1e50
 
-_DEBUG = False
+_DEBUG = True
 
 _TEST = False
 
@@ -1859,8 +1859,39 @@ class CellLabCTSModel(object):
             if _DEBUG:
                 print(self.node_state)
 
-        
-    
+    def transition_info_as_string(self, event):
+        """Returns info about a particular event as a string, for debug."""
+        link = event[2]
+        tail = self.grid.node_at_link_tail[link]
+        head = self.grid.node_at_link_head[link]
+        new_link_state = self.trn_to[self.next_trn_id[link]]
+        new_tail_state = ((new_link_state / self.num_node_states)
+                          % self.num_node_states) 
+        new_head_state = new_link_state % self.num_node_states
+        info_str = (str(event[0]) + ' '                       # sched time
+                    + str(self.next_update[link]) + ' '       # sched time
+                    + str(link) + ' '                         # link ID
+                    + str(tail) + '=>'                        # tail ID
+                    + str(head) + ' '                         # head ID
+                    + str(self.link_orientation[link]) + ' '  # orientation
+                    + str(self.node_state[tail]) + '=>'       # tail state
+                    + str(self.node_state[head]) + ' '        # head state
+                    + str(self.link_state[link]) + ' '        # link state
+                    + str(self.next_trn_id[link]) + ' '       # trn ID
+                    + str(new_link_state) + ' '               # new link state
+                    + str(new_tail_state) + '=>'               # new tail state
+                    + str(new_head_state)                     # new head state
+                    )
+        return info_str
+                    
+
+    def print_scheduled_transitions(self):
+        """Display list of transitions in PQ, and related data, for debug."""
+        print('tme tml lnk tln hdn orn tst hst tid nls nts nhs')
+        for trn_event in self.priority_queue._queue:
+            print(self.transition_info_as_string(trn_event))
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
