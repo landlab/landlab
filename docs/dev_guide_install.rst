@@ -201,7 +201,7 @@ interpreter::
 
 This will run a series of tests and print our the result of each test. If
 there are any failures, you can report that at the `landlab issue tracker <https://github.com/landlab/landlab/issues>`_. 
-Note that these tests will fail if you try to run them in a spyder iPython console. They should not fail if you start Python (or iPython) from a command line. 
+Note that these tests will fail if you try to run them in a spyder iPython console. They should not fail if you start Python (or iPython) from a command line. These tests will not work with numpy 1.14. 
 
 
 Coding Style
@@ -254,7 +254,7 @@ script found in the ``scripts`` folder::
 
 Note that this script will test whatever version of landlab you have installed,
 which may or may not be the one you are working on in your current working
-directory.
+directory. These test will not work with numpy 1.14.
 
 Troubleshooting
 ===============
