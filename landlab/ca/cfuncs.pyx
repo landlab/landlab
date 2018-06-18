@@ -27,6 +27,9 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_INT8 = np.int8
 ctypedef np.int8_t DTYPE_INT8_t
 
+DTYPE_UINT8 = np.uint8
+ctypedef np.uint8_t DTYPE_UINT8_t
+
 cdef char _DEBUG = 0
 
 
@@ -286,7 +289,7 @@ cpdef update_link_states_and_transitions_new(
 @cython.wraparound(False)
 @cython.cdivision(True)
 cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-                       np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                       np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                        DTYPE_INT_t tail_node, 
                        DTYPE_INT_t head_node,
                        DTYPE_INT_t new_link_state,
@@ -299,6 +302,9 @@ cpdef update_node_states(np.ndarray[DTYPE_INT_t, ndim=1] node_state,
         node_state[tail_node] = (new_link_state / num_states) % num_states # assume integer division!!
     if status_at_node[head_node] == _CORE:
         node_state[head_node] = new_link_state % num_states
+    if _DEBUG:
+        print(('UNS new tail state: ', node_state[tail_node]))
+        print(('UNS new head state: ', node_state[head_node]))
 
 
 @cython.boundscheck(True)
@@ -378,7 +384,7 @@ cpdef get_next_event(DTYPE_INT_t link, DTYPE_INT_t current_state,
 
 @cython.boundscheck(True)
 @cython.wraparound(False)
-cdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state, 
+cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state, 
                    DTYPE_t current_time, 
                    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
                    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
@@ -420,15 +426,11 @@ cdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
     cdef int i
     cdef char propswap
     cdef double next_time, this_next
-    cdef Event my_event
-
-    #print('GNE C link ' + str(link) + ' state ' + str(current_state))
 
     # Find next event time for each potential transition
     if n_trn[current_state] == 1:
         this_trn_id = trn_id[current_state, 0]
         next_time = np.random.exponential(1.0 / trn_rate[this_trn_id])
-        #print(' gne 1 trn, next = ' + str(next_time) + ' id=' + str(this_trn_id))
     else:
         next_time = _NEVER
         this_trn_id = -1
@@ -437,7 +439,6 @@ cdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
             if this_next < next_time:
                 next_time = this_next
                 this_trn_id = trn_id[current_state, i]
-        #print(' gne >1 trn, next = ' + str(next_time) + ' id=' + str(this_trn_id))
 
     return (next_time + current_time, this_trn_id)
 
@@ -563,6 +564,9 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     cdef int fns, tns
     cdef int this_trn_id
     cdef int orientation
+    
+    if _DEBUG:
+        print(('ULSN', link, link_state[link], new_link_state, current_time))
 
     # If the link connects to a boundary, we might have a different state
     # than the one we planned
@@ -572,6 +576,8 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
         orientation = link_orientation[link]
         new_link_state = orientation * num_node_states_sq + \
             fns * num_node_states + tns
+        if _DEBUG:
+            print((' bnd True', new_link_state))
 
     link_state[link] = new_link_state
     if n_trn[new_link_state] > 0:
@@ -593,7 +599,7 @@ cdef void do_transition(Event event,
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                   np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                   np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                   np.ndarray[DTYPE_INT_t, ndim=1] propid,
                   object prop_data,
@@ -766,7 +772,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
                   np.ndarray[DTYPE_INT_t, ndim=1] node_state,
                   np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
                   np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                   DTYPE_INT_t num_node_states,
                   DTYPE_INT_t num_node_states_sq,
                   np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -831,7 +837,8 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
     cdef int i
 
     if _DEBUG:
-        print(('DTN', event_time, event_link, next_update[event_link]))
+        print(('DTN', event_time, event_link, link_state[event_link], next_update[event_link]))
+
     # We'll process the event if its update time matches the one we have
     # recorded for the link in question. If not, it means that the link has
     # changed state since the event was pushed onto the event queue, and
@@ -840,7 +847,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
 
         tail_node = node_at_link_tail[event_link]
         head_node = node_at_link_head[event_link]
-
+        
         # Remember the previous state of each node so we can detect whether the
         # state has changed
         old_tail_node_state = node_state[tail_node]
@@ -848,6 +855,13 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
 
         this_trn_id = next_trn_id[event_link]
         this_trn_to = trn_to[this_trn_id]
+
+        if _DEBUG:
+            print((this_trn_id, this_trn_to))
+            print(('tail:', tail_node))
+            print(('tail state:', old_tail_node_state))
+            print(('head:', head_node))
+            print(('head state:', old_head_node_state))
 
         update_node_states(node_state, status_at_node, tail_node,
                            head_node, this_trn_to, num_node_states)
@@ -925,7 +939,7 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
                 prop_data[propid[tail_node]] = prop_reset_value
             if status_at_node[head_node] != _CORE:
                 prop_data[propid[head_node]] = prop_reset_value
-            if trn_prop_update_fn[this_trn_id] is not None:
+            if trn_prop_update_fn[this_trn_id] != 0:
                 trn_prop_update_fn[this_trn_id](
                     this_cts_model, tail_node, head_node, event_time)
 
@@ -938,7 +952,7 @@ cpdef double run_cts_new(double run_to, double current_time,
                      np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                      np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,            
                      np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
-                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                      DTYPE_INT_t num_node_states,
                      DTYPE_INT_t num_node_states_sq,
                      np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
@@ -971,10 +985,11 @@ cpdef double run_cts_new(double run_to, double current_time,
         Needed if caller wants to plot after every transition
     (see celllab_cts.py for other parameters)
     """
+    import sys
     cdef double ev_time
     cdef int ev_idx
     cdef int ev_link
-    
+
     # Continue until we've run out of either time or events
     while current_time < run_to and priority_queue._queue:
 
@@ -989,7 +1004,8 @@ cpdef double run_cts_new(double run_to, double current_time,
 
             if _DEBUG:
                 print('event:', ev_time, ev_link, trn_to[next_trn_id[ev_link]])
-                
+                print('pq top is now:', priority_queue._queue[0])
+
             # ... and execute the transition
             do_transition_new(ev_link, ev_time, priority_queue, next_update,
                               node_at_link_tail,
@@ -1039,7 +1055,7 @@ cpdef double run_cts(double run_to, double current_time,
                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                      np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                      np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                      np.ndarray[DTYPE_INT_t, ndim=1] propid,
                      object prop_data,
@@ -1240,7 +1256,7 @@ cdef void do_transition_lean(Event event,
                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                   np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                   np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                  np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                  np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                   np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                   np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                   np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
@@ -1377,7 +1393,7 @@ cpdef double run_cts_lean(double run_to, double current_time,
                      np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,                  
                      np.ndarray[DTYPE_INT_t, ndim=1] node_state,            
                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                     np.ndarray[DTYPE_INT8_t, ndim=1] status_at_node,
+                     np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
                      np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
                      np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
                      np.ndarray[DTYPE_INT_t, ndim=2] xn_to,

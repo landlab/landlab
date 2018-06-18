@@ -18,7 +18,8 @@ import numpy as np
 def water_fn(x, a, b, c, d, e):
     """Evaluates the solution to the water-depth equation.
 
-    Called by scipy.newton() to find solution for $x$ using Newton's method.
+    Called by scipy.newton() to find solution for :math:`x`
+    using Newton's method.
 
     Parameters
     ----------
@@ -27,38 +28,45 @@ def water_fn(x, a, b, c, d, e):
     a : float
         "alpha" parameter (see below)
     b : float
-        Weighting factor on new versus old time step. $b=1$ means purely
-        implicit solution with all weight on $H$ at new time step. $b=0$ (not
-        recommended) would mean purely explicit.
+        Weighting factor on new versus old time step. :math:`b=1` means purely
+        implicit solution with all weight on :math:`H` at new time
+        step. :math:`b=0` (not recommended) would mean purely explicit.
     c : float
-        Water depth at old time step (time step $t$ instead of $t+1$)
+        Water depth at old time step (time step :math:`t` instead
+        of :math:`t+1`)
     d : float
         Depth-discharge exponent; normally either 5/3 (Manning) or 3/2 (Chezy)
     e : float
         Water inflow volume per unit cell area in one time step.
 
-    This equation represents the implicit solution for water depth $H$ at the
-    next time step. In the code below, it is formulated in a generic way. 
-    Written using more familiar terminology, the equation is:
+    This equation represents the implicit solution for water depth
+    :math:`H` at the next time step. In the code below, it is
+    formulated in a generic way.  Written using more familiar
+    terminology, the equation is:
 
-    $H - H_0 + \alpha ( w H + (w-1) H_0)^d - \Delta t (R + Q_{in} / A)$
+    .. math::
+
+        H - H_0 + \alpha ( w H + (w-1) H_0)^d - \Delta t (R + Q_{in} / A)
+
+    .. math::
+
+        \alpha = \frac{\Delta t \sum S^{1/2}}{C_f A}
     
-    $\alpha = \frac{\Delta t \sum S^{1/2}}{C_f A}$
-    
-    where $H$ is water depth at the given node at the new time step, $H_0$ is
-    water depth at the prior time step, $w$ is a weighting factor, $d$ is the
-    depth-discharge exponent (2/3 or 1/2), $\Delta t$ is time-step duration,
-    $R$ is local runoff rate, $Q_{in}$ is inflow discharge, $A$ is cell area,
-    $C_f$ is a dimensional roughness coefficient, and $\sum S^{1/2}$ represents
-    the sum of square-root-of-downhill-gradient over all outgoing (downhill)
-    links.
+    where :math:`H` is water depth at the given node at the new
+    time step, :math:`H_0` is water depth at the prior time step,
+    :math:`w` is a weighting factor, :math:`d` is the depth-discharge
+    exponent (2/3 or 1/2), :math:`\Delta t` is time-step duration,
+    :math:`R` is local runoff rate, :math:`Q_{in}` is inflow
+    discharge, :math:`A` is cell area, :math:`C_f` is a
+    dimensional roughness coefficient, and :math:`\sum S^{1/2}`
+    represents the sum of square-root-of-downhill-gradient over
+    all outgoing (downhill) links.
     """
     return x - c + a * (b * x + (b - 1.0) * c) ** d - e
 
 
 class KinwaveImplicitOverlandFlow(Component):
-    """
-    Calculate shallow water flow over topography.
+    """Calculate shallow water flow over topography.
 
     Landlab component that implements a two-dimensional kinematic wave model.
     This is a form of the 2D shallow-water equations in which energy slope is
@@ -67,68 +75,63 @@ class KinwaveImplicitOverlandFlow(Component):
     over the topography. Because we are working downstream, we can assume that
     we know the total water inflow to a given cell. We solve the following mass 
     conservation equation at each cell:
+    
+    .. math::
+
+        (H^{t+1} - H^t)/\Delta t = Q_{in}/A - Q_{out}/A + R
         
-        $(H^{t+1} - H^t)/\Delta t = Q_{in}/A - Q_{out}/A + R$
-        
-    where $H$ is water depth, $t$ indicates time step number, $\Delta t$ is
-    time step duration, $Q_{in}$ is total inflow discharge, $Q_{out}$ is total
-    outflow discharge, $A$ is cell area, and $R$ is local runoff rate 
-    (precipitation minus infiltration; could be negative if runon infiltration
-    is occurring).
+    where :math:`H` is water depth, :math:`t` indicates time step
+    number, :math:`\Delta t` is time step duration, :math:`Q_{in}` is
+    total inflow discharge, :math:`Q_{out}` is total outflow
+    discharge, :math:`A` is cell area, and :math:`R` is local
+    runoff rate (precipitation minus infiltration; could be
+    negative if runon infiltration is occurring).
     
     The specific outflow discharge leaving a cell along one of its faces is:
-        
-        $q = (1/C_r) H^\alpha S^{1/2}$
+
+    .. math::
+
+        q = (1/C_r) H^\alpha S^{1/2}
     
-    where $C_r$ is a roughness coefficient (such as Manning's n), $\alpha$ is
-    an exponent equal to 5/3 for the Manning equation and 3/2 for the Chezy
-    family, and $S$ is the downhill-positive gradient of the link that crosses
-    this particular face. Outflow discharge is zero for links that are flat or
-    "uphill" from the given node. Total discharge out of a cell is then the
-    sum of (specific discharge x face width) over all outflow faces
+    where :math:`C_r` is a roughness coefficient (such as
+    Manning's n), :math:`\alpha` is an exponent equal to :math:`5/3`
+    for the Manning equation and :math:`3/2` for the Chezy family,
+    and :math:`S` is the downhill-positive gradient of the link
+    that crosses this particular face. Outflow discharge is zero
+    for links that are flat or "uphill" from the given node.
+    Total discharge out of a cell is then the sum of (specific
+    discharge x face width) over all outflow faces
+
+    .. math::
+
+        Q_{out} = \sum_{i=1}^N (1/C_r) H^\alpha S_i^{1/2} W_i
         
-        $Q_{out} = \sum_{i=1}^N (1/C_r) H^\alpha S_i^{1/2} W_i$
-        
-    where $N$ is the number of outflow faces (i.e., faces where the ground
-    slopes downhill away from the cell's node), and $W_i$ is the width of face
-    $i$.
+    where :math:`N` is the number of outflow faces (i.e., faces
+    where the ground slopes downhill away from the cell's node),
+    and :math:`W_i` is the width of face :math:`i`.
     
     We use the depth at the cell's node, so this simplifies to:
 
-        $Q_{out} = (1/C_r) H'^\alpha \sum_{i=1}^N S_i^{1/2} W_i$
+    .. math::
+
+        Q_{out} = (1/C_r) H'^\alpha \sum_{i=1}^N S_i^{1/2} W_i
         
-    We define $H$ in the above as a weighted sum of the "old" (time step $t$)
-    and "new" (time step $t+1$) depth values:
-        
-        $H' = w H^{t+1} + (1-w) H^t$
+    We define :math:`H` in the above as a weighted sum of
+    the "old" (time step :math:`t`) and "new" (time step :math:`t+1`)
+    depth values:
+
+    .. math::
+
+        H' = w H^{t+1} + (1-w) H^t
     
-    If $w=1$, the method is fully implicit. If $w=0$, it is a simple forward
-    explicit method.
+    If :math:`w=1`, the method is fully implicit. If :math:`w=0`,
+    it is a simple forward explicit method.
     
     When we combine these equations, we have an equation that includes the
-    unknown $H^{t+1}$ and a bunch of terms that are known. If $w\ne 0$, it is
-    a nonlinear equation in $H^{t+1}$, and must be solved iteratively. We do
-    this using a root-finding method in the scipy.optimize library.
-
-    Construction:
-
-        KinwaveImplicitOverlandFlow(grid, precip_rate=1.0,
-                                    precip_duration=1.0,
-                                    infilt_rate=0.0,
-                                    roughness=0.01, **kwds)
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab grid object.
-    precip_rate : float, optional (defaults to 1 mm/hr)
-        Precipitation rate, mm/hr
-    precip_duration : float, optional (defaults to 1 hour)
-        Duration of precipitation, hours
-    infilt_rate : float, optional (defaults to 0)
-        Maximum rate of infiltration, mm/hr
-    roughnes : float, defaults to 0.01
-        Manning roughness coefficient, s/m^1/3
+    unknown :math:`H^{t+1}` and a bunch of terms that are known.
+    If :math:`w\ne 0`, it is a nonlinear equation in :math:`H^{t+1}`,
+    and must be solved iteratively. We do this using a root-finding
+    method in the scipy.optimize library.
 
     Examples
     --------
@@ -343,7 +346,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # we have a raster grid, there will be four neighbors and four
                 # proportions, some of which may be zero and some between 0 and
                 # 1.
-                self.disch_in[self.grid.neighbors_at_node[n]] += (outflow
+                self.disch_in[self.grid.adjacent_nodes_at_node[n]] += (outflow
                     * self.flow_accum.flow_director.proportions[n])
 
                 # TODO: the above is enough to implement the solution for flow

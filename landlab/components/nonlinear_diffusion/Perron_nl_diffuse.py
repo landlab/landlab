@@ -17,8 +17,8 @@ from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class PerronNLDiffuse(Component):
-    '''
-    This component implements nonlinear diffusion, following Perron (2011).
+
+    """Nonlinear diffusion, following Perron (2011).
 
     This module uses Taylor Perron's implicit (2011) method to solve the
     nonlinear hillslope diffusion equation across a rectangular, regular grid
@@ -34,24 +34,6 @@ class PerronNLDiffuse(Component):
     future release; use at your own risk.
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        PerronNLDiffuse(grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
-                        rock_density=2700., sed_density=2700.)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A Landlab raster grid
-    nonlinear_diffusivity : float, array or field name
-        The nonlinear diffusivity
-    S_crit : float (radians)
-        The critical hillslope angle
-    rock_density : float (kg*m**-3)
-        The density of intact rock
-    sed_density : float (kg*m**-3)
-        The density of the mobile (sediment) layer
 
     Examples
     --------
@@ -75,7 +57,7 @@ class PerronNLDiffuse(Component):
     ...       0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
     >>> np.allclose(z, z_target)
     True
-    '''
+    """
 
     _name = 'PerronNLDiffuse'
 
@@ -94,6 +76,20 @@ class PerronNLDiffuse(Component):
     @use_file_name_or_kwds
     def __init__(self, grid, nonlinear_diffusivity=None, S_crit=33.*np.pi/180.,
                  rock_density=2700., sed_density=2700., **kwds):
+        """
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A Landlab raster grid
+        nonlinear_diffusivity : float, array or field name
+            The nonlinear diffusivity
+        S_crit : float (radians)
+            The critical hillslope angle
+        rock_density : float (kg*m**-3)
+            The density of intact rock
+        sed_density : float (kg*m**-3)
+            The density of the mobile (sediment) layer
+        """
         # disable internal_uplift option:
         internal_uplift = None
         self._grid = grid
@@ -617,7 +613,7 @@ class PerronNLDiffuse(Component):
         extended_elevs = np.empty(
             self.grid.number_of_nodes + 1, dtype=float)
         extended_elevs[-1] = np.nan
-        node_neighbors = self.grid.active_neighbors_at_node
+        node_neighbors = self.grid.active_adjacent_nodes_at_node
         extended_elevs[:-1] = new_grid['node'][self.values_to_diffuse]
         max_offset = np.nanmax(np.fabs(
             extended_elevs[:-1][node_neighbors] -
@@ -720,12 +716,10 @@ class PerronNLDiffuse(Component):
             elev[right_edge] = elev[inside_right_edge]
 
         # replacing loop:
-        cell_neighbors = grid.active_neighbors_at_node
+        cell_neighbors = grid.active_adjacent_nodes_at_node
         # ^E,N,W,S
-        cell_diagonals = grid._get_diagonal_list()  # NE,NW,SW,SE
-        # cell_neighbors[cell_neighbors == BAD_INDEX_VALUE] = -1
+        cell_diagonals = grid.diagonal_adjacent_nodes_at_node # NE,NW,SW,SE
         # ^this should be dealt with by active_neighbors... (skips bad nodes)
-        cell_diagonals[cell_diagonals == BAD_INDEX_VALUE] = -1
 
         _z_x = (elev[cell_neighbors[:, 0]] - elev[cell_neighbors[:, 2]]
                 ) * 0.5 * _one_over_delta_x

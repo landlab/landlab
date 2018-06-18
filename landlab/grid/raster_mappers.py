@@ -2,7 +2,7 @@
 """Grid element mappers that are specific to raster grids.
 
 Mapping functions unique to raster grids
-+++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
     :toctree: generated/
@@ -40,10 +40,6 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     .. note::
 
         This considers all inactive links to have a value of 0.
-
-    Construction::
-
-        map_sum_of_inlinks_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -98,10 +94,6 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
 
     This considers all inactive links to have a value of 0.
 
-    Construction::
-
-        map_mean_of_inlinks_to_node(grid, var_name, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -155,10 +147,6 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
     .. note::
 
         This considers all inactive links to have a value of 0.
-
-    Construction::
-
-        map_max_of_inlinks_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -215,10 +203,6 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
 
         This considers all inactive links to have a value of 0.
 
-    Construction::
-
-        map_min_of_inlinks_to_node(grid, var_name, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -272,10 +256,6 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     .. note::
 
         This considers all inactive links to have a value of 0.
-
-    Construction::
-
-        map_sum_of_outlinks_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -331,10 +311,6 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
 
         This considers all inactive links to have a value of 0.
 
-    Construction::
-
-        map_mean_of_outlinks_to_node(grid, var_name, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -388,10 +364,6 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
     .. note::
 
         This considers all inactive links to have a value of 0.
-
-    Construction::
-
-        map_max_of_outlinks_to_node(grid, var_name, out=None)
 
     Parameters
     ----------
@@ -447,10 +419,6 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
 
         This considers all inactive links to have a value of 0.
 
-    Construction::
-
-        map_min_of_outlinks_to_node(grid, var_name, out=None)
-
     Parameters
     ----------
     grid : ModelGrid
@@ -503,10 +471,6 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
     .. note::
 
         This considers all inactive links to have a value of 0.
-
-    Construction::
-
-        map_mean_of_links_to_node(grid, var_name, out=None)
 
     Parameters
     ----------

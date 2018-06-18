@@ -108,14 +108,14 @@ def test_nodes_around_point():
 
 @with_setup(setup_grid)
 def test_neighbor_list_with_scalar_arg():
-    assert_array_equal(rmg.active_neighbors_at_node[6], np.array([7, 11, 5, 1]))
-    assert_array_equal(rmg.active_neighbors_at_node[-1], np.array([X, X, X, X]))
-    assert_array_equal(rmg.active_neighbors_at_node[-2], np.array([X, X, X, 13]))
+    assert_array_equal(rmg.active_adjacent_nodes_at_node[6], np.array([7, 11, 5, 1]))
+    assert_array_equal(rmg.active_adjacent_nodes_at_node[-1], np.array([X, X, X, X]))
+    assert_array_equal(rmg.active_adjacent_nodes_at_node[-2], np.array([X, X, X, 13]))
 
 
 @with_setup(setup_grid)
 def test_neighbor_list_with_array_arg():
-    assert_array_equal(rmg.active_neighbors_at_node[[6, -1]],
+    assert_array_equal(rmg.active_adjacent_nodes_at_node[[6, -1]],
                        np.array([[7, 11, 5, 1], [X, X, X, X]]))
 
 
@@ -131,7 +131,7 @@ def test_neighbor_list_with_no_args():
         [X,  X,  X,  X], [X,  X,  X, 11], [X,  X,  X, 12], [X,  X,  X, 13],
         [X,  X,  X,  X]])
 
-    assert_array_equal(rmg.active_neighbors_at_node, expected)
+    assert_array_equal(rmg.active_adjacent_nodes_at_node, expected)
 
 
 @with_setup(setup_grid)
@@ -172,12 +172,12 @@ def test_node_axis_coordinates():
 
 @with_setup(setup_grid)
 def test_diagonal_list():
-    assert_array_equal(rmg._get_diagonal_list(6), np.array([12, 10, 0, 2]))
-    assert_array_equal(rmg._get_diagonal_list(-1), np.array([X, X, 13, X]))
-    assert_array_equal(rmg._get_diagonal_list([6, -1]),
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[6], np.array([12, 10, 0, 2]))
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[-1], np.array([X, X, 13, X]))
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[[6, -1]],
                        np.array([[12, 10, 0, 2], [X, X, 13, X]]))
     assert_array_equal(
-        rmg._get_diagonal_list(),
+        rmg.diagonal_adjacent_nodes_at_node,
         np.array([[6, X, X, X], [7, 5, X, X], [8, 6, X, X],
                   [9, 7, X, X], [X, 8, X, X],
                   [11, X, X, 1], [12, 10,  0,  2], [13, 11,  1,  3],
@@ -190,7 +190,7 @@ def test_diagonal_list():
 
 @with_setup(setup_grid)
 def test_diagonal_list_boundary():
-    assert_array_equal(rmg._get_diagonal_list(0), np.array([6, X, X, X]))
+    assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[0], np.array([6, X, X, X]))
 
 
 @with_setup(setup_grid)
@@ -233,50 +233,6 @@ def test_active_links():
 
 
 @with_setup(setup_grid)
-def test_active_link_num_inlink():
-    assert_array_equal(rmg._node_numactiveinlink,
-                       np.array([0, 0, 0, 0, 0,
-                                 0, 2, 2, 2, 1,
-                                 0, 2, 2, 2, 1,
-                                 0, 1, 1, 1, 0]))
-
-
-@with_setup(setup_grid)
-def test_active_link_num_outlink():
-    assert_array_equal(rmg._node_numactiveoutlink, np.array([0, 1, 1, 1, 0,
-                                                            1, 2, 2, 2, 0,
-                                                            1, 2, 2, 2, 0,
-                                                            0, 0, 0, 0, 0]))
-
-
-@with_setup(setup_grid)
-def test_active_inlink_matrix():
-    assert_array_equal(rmg._node_active_inlink_matrix,
-                       np.array([[-1, -1, -1, -1, -1,
-                                  -1,  0,  1,  2, -1,
-                                  -1,  3,  4,  5, -1,
-                                  -1,  6, 7,  8, -1],
-                                 [-1, -1, -1, -1, -1,
-                                  -1,  9, 10, 11, 12,
-                                  -1, 13, 14, 15, 16,
-                                  -1, -1, -1, -1, -1]]))
-
-
-@with_setup(setup_grid)
-def test_active_outlink_matrix():
-    assert_array_equal(
-        rmg._node_active_outlink_matrix,
-        np.array([[-1,  0,  1,  2, -1,
-                   -1,  3,  4,  5, -1,
-                   -1,  6,  7,  8, -1,
-                   -1, -1, -1, -1, -1],
-                  [-1, -1, -1, -1, -1,
-                   9, 10, 11, 12, -1,
-                   13, 14, 15, 16, -1,
-                   -1, -1, -1, -1, -1]]))
-
-
-@with_setup(setup_grid)
 def test__active_links_at_node_scalar_interior():
     assert_array_equal(rmg._active_links_at_node([6]),
                        np.array([[5, 9, 14, 10]]).T)
@@ -310,6 +266,16 @@ def test__active_links_at_node_with_no_args():
 
 
 @with_setup(setup_grid)
+def test_nodes_at_link():
+    """Test nodes_at_link shares data with tail and head."""
+    assert_array_equal(rmg.nodes_at_link[:, 0], rmg.node_at_link_tail)
+    assert_array_equal(rmg.nodes_at_link[:, 1], rmg.node_at_link_head)
+
+    assert_true(np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_tail))
+    assert_true(np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_head))
+
+
+@with_setup(setup_grid)
 def test_node_at_link_tail():
     assert_array_equal(
         rmg.node_at_link_tail,
@@ -333,49 +299,6 @@ def test_node_at_link_head():
                   11, 12, 13, 14,
                   15, 16, 17, 18, 19,
                   16, 17, 18, 19]))
-
-
-@with_setup(setup_grid)
-def test_link_num_inlink():
-    assert_array_equal(rmg._node_numinlink,
-                       np.array([0, 1, 1, 1, 1,
-                                 1, 2, 2, 2, 2,
-                                 1, 2, 2, 2, 2,
-                                 1, 2, 2, 2, 2]))
-
-
-@with_setup(setup_grid)
-def test_link_num_outlink():
-    assert_array_equal(rmg._node_numoutlink, np.array([2, 2, 2, 2, 1,
-                                                      2, 2, 2, 2, 1,
-                                                      2, 2, 2, 2, 1,
-                                                      1, 1, 1, 1, 0]))
-
-
-@with_setup(setup_grid)
-def test__node_inlink_matrix():
-    assert_array_equal(rmg._node_inlink_matrix,
-                       np.array([[-1, -1, -1, -1, -1,
-                                   4,  5,  6,  7,  8,
-                                  13, 14, 15, 16, 17,
-                                  22, 23, 24, 25, 26],
-                                 [-1,  0,  1,  2,  3,
-                                  -1,  9, 10, 11, 12,
-                                  -1, 18, 19, 20, 21,
-                                  -1, 27, 28, 29, 30]]))
-
-
-@with_setup(setup_grid)
-def test__node_outlink_matrix():
-    assert_array_equal(rmg._node_outlink_matrix,
-                       np.array([[ 4,  5,  6,  7,  8,
-                                  13, 14, 15, 16, 17,
-                                  22, 23, 24, 25, 26,
-                                  -1, -1, -1, -1, -1],
-                                 [ 0,  1,  2,  3, -1,
-                                   9, 10, 11, 12, -1,
-                                  18, 19, 20, 21, -1,
-                                  27, 28, 29, 30, -1]]))
 
 
 @with_setup(setup_grid)
@@ -449,11 +372,10 @@ def test_grid_coords_to_node_id_outside_of_grid():
 
 
 @with_setup(setup_grid)
-def test_create_diagonal_list():
-    rmg._create_diagonal_list()
-
+def test_diagonal_adjacent_nodes_at_node():
+    """Test diagonally adjacent nodes."""
     assert_array_equal(
-        rmg._get_diagonal_list(),
+        rmg.diagonal_adjacent_nodes_at_node,
         np.array([[6, X, X, X], [7, 5, X, X], [8, 6, X, X],
                   [9, 7, X, X], [X, 8, X, X],
                   [11, X, X, 1], [12, 10,  0,  2], [13, 11,  1,  3],

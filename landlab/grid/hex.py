@@ -11,6 +11,9 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 import six
 
+from .base import (CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE,
+                   CORE_NODE)
+from ..core.utils import as_id_array
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from .decorators import return_readonly_id_array
 
@@ -223,8 +226,52 @@ class HexModelGrid(VoronoiDelaunayGrid):
         super(HexModelGrid, self)._initialize(
             pts[:, 0], pts[:, 1], reorient_links)
 
+        # Handle special case of boundary nodes in rectangular grid shape.
+        # One pair of edges will have the nodes staggered. By default, only the
+        # outer nodes will be assigned boundary status; we need the inner edge
+        # nodes on these "ragged" edges also to be flagged as boundary nodes.
+        if shape[0].lower() == 'r':
+            self._set_boundary_stat_at_rect_grid_ragged_edges(orientation, dx)
+
         # Remember grid spacing
         self._dx = dx
+
+    def _set_boundary_stat_at_rect_grid_ragged_edges(self, orientation, dx):
+        """Assign boundary status to all edge nodes along the 'ragged' edges.
+
+        Handle special case of boundary nodes in rectangular grid shape.
+        One pair of edges will have the nodes staggered. By default, only the
+        outer nodes will be assigned boundary status; we need the inner edge
+        nodes on these "ragged" edges also to be flagged as boundary nodes.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hg = HexModelGrid(3, 3, shape='rect', dx=2.0)
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
+        >>> hg = HexModelGrid(3, 3, shape='rect', orientation='vert')
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
+        >>> hg = HexModelGrid(4, 4, shape='rect', orientation='vert')
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> hg = HexModelGrid(3, 4, shape='rect')
+        >>> hg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        """
+        if orientation[0].lower() == 'v':  # vert; top & bottom staggered
+            bot_row = numpy.where(self.y_of_node <= 0.5 * dx)[0]
+            self.status_at_node[bot_row] = self.status_at_node[0]
+            top_row = numpy.where(self.y_of_node
+                                  >= (self._nrows - 1) * dx)[0]
+            self.status_at_node[top_row] = self.status_at_node[0]
+        else:  # horizontal orientation; left & right staggered
+            left_row = numpy.where(self.x_of_node <= 0.5 * dx)[0]
+            self.status_at_node[left_row] = self.status_at_node[0]
+            right_row = numpy.where(self.x_of_node
+                                    >= (self._ncols - 1) * dx)[0]
+            self.status_at_node[right_row] = self.status_at_node[0]
 
     def _create_cell_areas_array(self):
         r"""Create an array of surface areas of hexagonal cells.
@@ -594,6 +641,33 @@ class HexModelGrid(VoronoiDelaunayGrid):
             raise AttributeError(
                 'Only rectangular Hex grids have defined edges.')
 
+    def node_row_and_column(self, node_id):
+        """Row and column from node ID, FOR VERT RECT CONFIGURATION ONLY.
+        
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid(3, 4, shape='rect', orientation='vert')
+        >>> grid.node_row_and_column(5)
+        (1, 2)
+        >>> grid = HexModelGrid(3, 5, shape='rect', orientation='vert')
+        >>> grid.node_row_and_column(13)
+        (2, 1)
+        """
+        assert self.orientation[0] == 'v', 'grid orientation must be vertical'
+        try:
+            (nr, nc) = self._shape
+        except:
+            raise AttributeError(
+                'Only rectangular Hex grids have defined rows and columns.')
+
+        row = node_id // nc
+        n_mod_nc = node_id % nc
+        half_nc = (nc + 1) // 2
+        col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
+        return (row, col)            
+            
+
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
@@ -690,9 +764,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         import copy
 
         try:
-            self._hexplot_configured is True
+            self._hexplot_configured
         except:
             self._configure_hexplot(data, data_label, color_map)
+        else:
+            if self._hexplot_pc.cmap != color_map:
+                self._configure_hexplot(data, data_label, color_map)
 
         # Handle *data*: if it's a numpy array, then we consider it the
         # data to be plotted. If it's a string, we consider it the name of the
@@ -710,6 +787,255 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         return ax
 
+    def node_has_boundary_neighbor(self, ids):
+        """Check if HexModelGrid nodes have neighbors that are boundary nodes.
+
+        Parameters
+        ----------
+        mg : HexModelGrid
+            Source grid
+        node_id : int
+            ID of node to test.
+
+        Returns
+        -------
+        boolean
+            ``True`` if node has a neighbor with a boundary ID, 
+            ``False`` otherwise.
+
+
+        Checks to see if one of the eight neighbor nodes of node(s) with
+        *id* has a boundary node.  Returns True if a node has a boundary node,
+        False if all neighbors are interior.
+
+                0,  1,  2,  3,
+              4,  5,  6,  7,  8,
+            9, 10,  11, 12, 13, 14,
+              15, 16, 17, 18, 19,
+                20, 21, 22, 23
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> hmg.node_has_boundary_neighbor(6)
+        True
+        >>> hmg.node_has_boundary_neighbor(12)
+        False
+        >>> hmg.node_has_boundary_neighbor([12, 0])
+        [False, True]
+
+        LLCATS: NINF CONN BC
+        """
+        ans = []
+        for i in numpy.atleast_1d(numpy.asarray(ids)):
+            neighbors = self.adjacent_nodes_at_node[i]
+            real_neighbors = neighbors[neighbors != BAD_INDEX_VALUE]
+            if real_neighbors.size == 0:
+                ans.append(True)
+            else:
+                neighbor_status = self.status_at_node[real_neighbors].astype(bool)
+                if numpy.any(neighbor_status != CORE_NODE):
+                    ans.append(True)
+                else:
+                    ans.append(False)
+
+        if len(ans) == 1:
+            return ans[0]
+        else:
+            return ans
+
+    def set_watershed_boundary_condition_outlet_id(self,
+                                                   outlet_id,
+                                                   node_data,
+                                                   nodata_value=-9999.):
+        """Set the boundary conditions for a watershed on a HexModelGrid.
+
+        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).
+        All nodes with data values are set to CORE_NODES (0), with the
+        exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
+
+        Note that the outer ring of the HexModelGrid is set to CLOSED_BOUNDARY, even
+        if there are nodes that have values.  The only exception to this would
+        be if the outlet node is on the boundary, which is acceptable.
+
+        Assumes that the id of the outlet is already known.
+
+        This assumes that the grid has a single watershed.  If this is not
+        the case this will not work.
+
+        Parameters
+        ----------
+        outlet_id : integer
+            id of the outlet node
+        node_data : ndarray
+            Data values.
+        nodata_value : float, optional
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+        The example will use a HexModelGrid with node data values
+        as illustrated:
+
+                1. ,  2. ,  3. ,  4. ,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+          0. ,  1. ,  2. ,  3. ,  4. ,  5.,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+                1. ,  2. ,  3. ,  4.
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> z = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z += hmg.x_of_node + 1.0
+
+        >>> hmg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+           1], dtype=uint8)
+
+        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(
+        ...          9, z, -9999.)
+        >>> hmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
+           4], dtype=uint8)
+
+        LLCATS: BC
+        """
+        # make ring of no data nodes
+        self.status_at_node[self.boundary_nodes] =  CLOSED_BOUNDARY
+        # set no data nodes to inactive boundaries
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+        # set the boundary condition (fixed value) at the outlet_node
+        self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+
+    def set_watershed_boundary_condition(self, node_data, nodata_value=-9999.,
+                                         return_outlet_id=False):
+        """
+        Finds the node adjacent to a boundary node with the smallest value.
+        This node is set as the outlet.  The outlet node must have a data
+        value.  Can return the outlet id as a one element numpy array if
+        return_outlet_id is set to True.
+
+        All nodes with nodata_value are set to CLOSED_BOUNDARY
+        (grid.status_at_node == 4). All nodes with data values are set to
+        CORE_NODES (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+
+        Note that the outer ring (perimeter) of the grid is set to
+        CLOSED_BOUNDARY, even if there are nodes that have values. The only
+        exception to this would be if the outlet node is on the perimeter, which
+        is acceptable.
+
+        This routine assumes that all of the nodata_values are on the outside of
+        the data values. In other words, there are no islands of nodata_values
+        surrounded by nodes with data.
+
+        This also assumes that the grid has a single watershed (that is a single
+        outlet node).
+
+        Parameters
+        ----------
+        node_data : ndarray
+            Data values.
+        nodata_value : float, optional
+            Value that indicates an invalid value.
+        return_outlet_id : boolean, optional
+            Indicates whether or not to return the id of the found outlet
+
+        Examples
+        --------
+        The example will use a HexModelGrid with node data values
+        as illustrated:
+
+                1. ,  2. ,  3. ,  4. ,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+          0. ,  1. ,  2. ,  3. ,  4. ,  5.,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+                1. ,  2. ,  3. ,  4.
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> z = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z += hmg.x_of_node + 1.0
+        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999.,
+        ...                                               True)
+        >>> out_id
+        array([9])
+        >>> hmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
+           4], dtype=uint8)
+
+        LLCATS: BC
+        """
+        # make ring of no data nodes
+        self.status_at_node[self.boundary_nodes] =  CLOSED_BOUNDARY
+
+        # set no data nodes to inactive boundaries
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
+        #locs is a list that contains locations where
+        #node data is not equal to the nodata value
+        locs = numpy.where(node_data != nodata_value)
+        if len(locs) < 1:
+            raise ValueError('All data values are no_data values')
+
+        # now find minimum of the data values
+        min_val = numpy.min(node_data[locs])
+
+        # now find where minimum values are
+        min_locs = numpy.where(node_data == min_val)[0]
+
+        # check all the locations with the minimum value to see if one
+        not_found = True
+        while not_found:
+            # now check the min locations to see if any are next to
+            # a boundary node
+            local_not_found = True
+            next_to_boundary=[]
+
+            # check all nodes rather than selecting the first node that meets
+            # the criteria
+            for i in range(len(min_locs)):
+                next_to_boundary.append(self.node_has_boundary_neighbor(min_locs[i]))
+
+            # if any of those nodes were adjacent to the boundary, check
+            #that  there is only one. If only one, set as outlet loc, else,
+            # raise a value error
+            if any(next_to_boundary):
+                local_not_found = False
+                if sum(next_to_boundary)>1:
+                    potential_locs = min_locs[numpy.where(numpy.asarray(next_to_boundary))[0]]
+                    raise ValueError(('Grid has two potential outlet nodes.'
+                                      'They have the following node IDs: \n'+str(potential_locs)+
+                                     '\nUse the method set_watershed_boundary_condition_outlet_id '
+                                     'to explicitly select one of these '
+                                     'IDs as the outlet node.'
+                                     ))
+                else:
+                    outlet_loc = min_locs[numpy.where(next_to_boundary)[0][0]]
+
+            # checked all of the min vals, (so done with inner while)
+            # and none of the min values were outlet candidates
+            if local_not_found:
+                # need to find the next largest minimum value
+                # first find the locations of all values greater
+                # than the old minimum
+                # not done with outer while
+                locs = numpy.where((node_data > min_val) &
+                                (node_data != nodata_value))
+                # now find new minimum of these values
+                min_val = numpy.min(node_data[locs])
+                min_locs = numpy.where(node_data == min_val)[0]
+            else:
+                # if locally found, it is also globally found
+                # so done with outer while
+                not_found = False
+
+        # set outlet boundary condition
+        self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
+
+        if return_outlet_id:
+            return as_id_array(numpy.array([outlet_loc]))
 
 def from_dict(param_dict):
     """
