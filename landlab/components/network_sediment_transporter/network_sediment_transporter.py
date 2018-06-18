@@ -155,91 +155,91 @@ class NetworkSedimentTransporter(Component):
             
             Slope(Slope<1e-4)=1e-4;
 
-    def _calc_transport_wilcock_crowe(self): # Allison
+# %%
+    def _calc_transport_wilcock_crowe(self,itemcollection,H_foreachlink): # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation. 
         
         Note: could have options here (e.g. Wilcock and Crowe, FLVB, MPM, etc)
         """
+# %% 
+        # parcel attribute arrays from ItemCollector
         Darray = np.array(parcels.DataFrame.D)
         Activearray = np.array(parcels.DataFrame.active_layer)
         Rhoarray = np.array(parcels.DataFrame.density)
         Volarray = np.array(parcels.DataFrame.volume)
         Linkarray = np.array(parcels.DataFrame.element_id) #link that the parcel is currently in
+        R = (Rhoarray-rho)/rho
         
+        # parcel attribute arrays to populate below
+        frac_sand_array = np.zeros(np.size(element_id))
+        vol_act_array = np.zeros(np.size(element_id))
+        Sarray = np.zeros(np.size(element_id)) 
+        Harray = np.zeros(np.size(element_id)) 
+        Larray = np.zeros(np.size(element_id))
+        d_mean_active = np.zeros(np.size(element_id))
+        d_mean_active.fill(np.nan)
+        Ttimearray = np.zeros(np.size(element_id)) 
         
         # Calculate bed statistics for all of the links
         vol_tot =  parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
         
         findactive = parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer        
-        vol_active = parcels.calc_aggregate_value(np.sum,
+        vol_act = parcels.calc_aggregate_value(np.sum,
                                                   'volume',at = 'link',
                                                   filter_array = findactive)
               
-        findactivesand = np.logical_and(Darray>0.002,active_layer ==1)        
-        vol_sand = parcels.calc_aggregate_value(np.sum,
+        findactivesand = np.logical_and(Darray<0.002,active_layer ==1)        
+        vol_act_sand = parcels.calc_aggregate_value(np.sum,
                                                 'volume',at = 'link',
-                                                filter_array = findactivesand) 
-        frac_sand = vol_sand/vol_active
+                                                filter_array = findactivesand)
+
+        vol_act_sand[np.isnan(vol_act_sand)==True] = 0
+        frac_sand = vol_act_sand/vol_act
         frac_sand[np.isnan(frac_sand)== True] = 0
         
-        d_mean_active = np.zeros(np.size(element_id))
-        d_mean_active.fill(np.nan)
-        
+        # Calc attributes for each link, map to parcel arrays
+        for i in range(grid.number_of_links): 
+            
+            active_here = np.where(np.logical_and(Linkarray == i,active_layer == 1))[0]
+            
+            d_act_i = Darray[active_here]
+            vol_act_i = Volarray[active_here]
+            d_mean_active[Linkarray == i] = np.sum(d_act_i * vol_act_i)/(vol_act[i])
+            
+            frac_sand_array[Linkarray == i] = frac_sand[i]
+            vol_act_array[Linkarray == i] = vol_act[i]
+            Sarray[Linkarray == i] = grid.at_link['channel_slope'][i]
+            Harray[Linkarray == i] = H[i]
+            Larray[Linkarray == i] = grid.at_link['link_length'][i]
+
+        # Wilcock and crowe claculate transport for all parcels (active and inactive)            
+        taursg = rho * R * g * d_mean_active * (0.021 + 0.015*np.exp(-20.*frac_sand_array))        
+        frac_parcel = vol_act_array/Volarray;        
+        b = 0.67 / (1 + np.exp(1.5 - Darray/ d_mean_active))        
+        tau = rho * g * Harray * Sarray        
+        taur = taursg * (Darray / d_mean_active) **b        
+        tautaur = tau / taur
+        tautaur_cplx = tautaur.astype(np.complex128) 
+        # ^ work around needed b/c np fails with non-integer powers of negative numbers        
+        W = 14 * np.power(( 1 - (0.894/np.sqrt(tautaur_cplx))), 4.5)        
+        W[tautaur_cplx<1.35] = 0.002 * np.power(tautaur[tautaur_cplx<1.35],7.5)        
+        W = W.real
+
+        # assign travel times only where active==1    
+        Ttimearray[Activearray==1] = rho**(3/2)*R[Activearray==1]*g*Larray[Activearray==1]*theta/W[Activearray==1]/tau[Activearray==1]**(3/2)/(1-frac_sand_array[Activearray==1])/frac_parcel[Activearray==1]
+        Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*theta/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
+        # ^ why?? if k = 1 ---> if it's sand...?  ASK JON about the logic here...                            
+                            
+        #del i b tau taur tautaur tautaur_cplzx taursg W findactive findactivesand
+
         # Assign those things to the grid -- might be useful for plotting later...?
-        
         grid.at_link['sediment_total_volume'] = vol_tot        
-        grid.at_link['sediment__active__volume'] = vol_active
+        grid.at_link['sediment__active__volume'] = vol_act
         grid.at_link['sediment__active__sand_fraction'] = frac_sand
         
-         #    
-           xxx for i in LinkNum
-                  xxx  if sediment_volume_active_layer > 0
-                   xxx    continue
-                    
-                # calculate the surface mean grain size
-                
-                active_here = np.logical_and(Linkarray == i,active_layer == 1)
-                
-                d_i = Darray[active_here]
-                vol_i = Volarray[active_here]
-                
-                d_mean_active[i] = np.sum(d_i * vol_i)/vol_active[i]
-                
-                taursg=rho.*R.*g.*Dg.*(0.021+0.015*exp(-20.*frac_sand)); 
-                
-                xxx for j in parcelsinthislink # Wilcock and crowe claculate transport for each parcel
-
-                    R_j = (Rhoarray[i]-rho)/rho
-                   xxx taursg[j] = rho * R_j * g *d_mean_active[i]*(0.021+0.015*exp(-20.*frac_sand))
-                    
-                    actidxj=and(P_storage{t,i}==0,P_d{t,i}==Dpsd(k));
-                    actvolj=sum(P_vol{t,i}(actidxj));
-                    Fj=actvolj./actvol;
-                    
-                    b=0.67./(1+exp(1.5-Dpsd(k)./Dg(t,i)));
-                    
-                    tau=rho.*g.*H(t,i).*Slope(i,1);
-                    taurj=taursg.*(Dpsd(k)./Dg(t,i)).^b;
-                    tautaurj=tau./taurj;
-                    
-                    if tautaurj<1.35
-                        Wj=0.002.*tautaurj.^7.5;
-                    else
-                        Wj=14.*(1-0.894./sqrt(tautaurj)).^4.5;
-                    
-                    if k==1
-                        P_tt{t,i}(actidxj)=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./Fs;
-                        
-                    else
-                        P_tt{t,i}(actidxj)=rho.^(3/2).*R.*g.*Length(i).*theta./Wj./tau.^(3/2)./(1-Fs)./Fj;
-                    
-                    
-                    clear actidxj actvolj Fj b tau taurj tautaurj Wj
-                
-                clear actidx actvol actsandidx actsandvol Fs taursg
-
-
+        
+# %%
     def move_parcel_downstream(self, i):    # Jon
         """Method to update parcel location for each parcel in the active 
         layer. 
