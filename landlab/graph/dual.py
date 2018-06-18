@@ -244,3 +244,7 @@ class DualGraph(Graph):
     @property
     def area_of_cell(self):
         return self._dual.area_of_patch
+
+    @property
+    def adjacent_corners_at_corner(self):
+        return self._dual.adjacent_nodes_at_node

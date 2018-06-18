@@ -15,6 +15,8 @@ from landlab.utils.decorators import use_file_name_or_kwds
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
 
+from landlab import RasterModelGrid
+
 from .cfuncs import (brent_method_erode_fixed_threshold,
                      brent_method_erode_variable_threshold)
 
@@ -315,10 +317,15 @@ class FastscapeEroder(Component):
         z = self._grid.at_node['topographic__elevation']
         defined_flow_receivers = np.not_equal(
             self._grid.at_node['flow__link_to_receiver_node'], UNDEFINED_INDEX)
-        flow_link_lengths = self._grid.length_of_d8[
-            self._grid.at_node['flow__link_to_receiver_node'][
-                defined_flow_receivers]]
 
+        if isinstance(self._grid, RasterModelGrid):
+            flow_link_lengths = self._grid.length_of_d8[
+                self._grid.at_node['flow__link_to_receiver_node'][
+                    defined_flow_receivers]]
+        else:
+            flow_link_lengths = self._grid.length_of_link[
+                self._grid.at_node['flow__link_to_receiver_node'][
+                    defined_flow_receivers]]
         # make arrays from input the right size
         if isinstance(self.K, np.ndarray):
             K_here = self.K[defined_flow_receivers]
@@ -341,7 +348,7 @@ class FastscapeEroder(Component):
             self.K = K_if_used
 
         n = float(self.n)
-        
+
         np.power(self._grid['node'][self.discharge_name], self.m,
                  out=self.A_to_the_m)
         self.alpha[defined_flow_receivers] = (

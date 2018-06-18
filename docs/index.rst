@@ -90,6 +90,15 @@ inherits from `VoronoiDelauneyGrid` and adds the following:
 
    landlab.grid.radial
 
+Layers
+======
+
+Landlab has the ability to add Layers to the grid.
+
+  .. toctree::
+     :maxdepth: 4
+
+     landlab.layers
 
 Components
 ==========
@@ -105,7 +114,10 @@ Hillslope geomorphology
 
    landlab.components.diffusion
    landlab.components.nonlinear_diffusion
+   landlab.components.depth_dependent_diffusion
    landlab.components.transport_length_diffusion
+   landlab.components.taylor_nonlinear_hillslope_flux
+   landlab.components.depth_dependent_taylor_soil_creep
 
 Fluvial geomorphology
 ---------------------
@@ -115,6 +127,7 @@ Fluvial geomorphology
 
    landlab.components.stream_power
    landlab.components.detachment_ltd_erosion
+   landlab.components.erosion_deposition
    landlab.components.space
 
 Flow routing
@@ -123,6 +136,8 @@ Flow routing
 .. toctree::
    :maxdepth: 4
 
+   landlab.components.flow_director
+   landlab.components.flow_accum
    landlab.components.flow_routing
    landlab.components.sink_fill
 
@@ -170,6 +185,14 @@ Precipitation
 
   landlab.components.uniform_precip
 
+Weathering
+----------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.weathering
+
 Terrain Analysis
 ----------------
 
@@ -187,6 +210,7 @@ Tectonics
 
   landlab.components.flexure
   landlab.components.gflex
+  landlab.components.normal_fault
 
 Fire
 ----
