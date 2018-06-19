@@ -22,6 +22,8 @@ ext_modules = [
               ['landlab/grid/cfuncs.pyx']),
     Extension('landlab.components.flexure.cfuncs',
               ['landlab/components/flexure/cfuncs.pyx']),
+    Extension('landlab.components.flexure.ext.flexure1d',
+              ['landlab/components/flexure/ext/flexure1d.pyx']),
     Extension('landlab.components.flow_accum.cfuncs',
               ['landlab/components/flow_accum/cfuncs.pyx']),
     Extension('landlab.components.flow_director.cfuncs',
