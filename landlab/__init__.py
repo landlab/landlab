@@ -12,8 +12,9 @@
 from __future__ import absolute_import
 import os
 
-# from ._info import version as  __version__
 from ._registry import registry
+
+cite_as = registry.format_citations
 
 __all__ = ['registry']
 
