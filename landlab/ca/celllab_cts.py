@@ -159,7 +159,7 @@ if _CYTEST:
 
 _NEVER = 1e50
 
-_DEBUG = True
+_DEBUG = False
 
 _TEST = False
 
@@ -720,8 +720,8 @@ class CellLabCTSModel(object):
                [0, 0]])
         >>> cts.trn_to
         array([2, 1, 6, 7])
-        >>> cts.trn_rate
-        array([ 1.,  2.,  3.,  4.])
+        >>> cts.trn_rate  # doctest: +NORMALIZE_WHITESPACE
+        array([1., 2., 3., 4.])
         """
 
         # First, create an array that stores the number of possible transitions
@@ -1138,7 +1138,6 @@ class CellLabCTSModel(object):
                    self.num_link_states, self.n_xn))
 
         for i in self.grid.active_links:
-            # for i in range(self.grid.number_of_active_links):
 
             if self.n_xn[self.link_state[i]] > 0:
                 (ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
@@ -1304,6 +1303,7 @@ class CellLabCTSModel(object):
             print('py do_transition() for link',event.link,'time',event.time, ' cur time ', current_time)
             print(np.count_nonzero(self.node_state != 0))
             print(self.link_state[event.link])
+
         # We'll process the event if its update time matches the one we have
         # recorded for the link in question. If not, it means that the link has
         # changed state since the event was pushed onto the event queue, and
@@ -1575,20 +1575,6 @@ class CellLabCTSModel(object):
                             self.node_state[this_link_fromnode] * self.num_node_states +
                             self.node_state[this_link_tonode])
                         assert new_link_state == new_link_state2, 'oops'
-#                        if _CYTEST:
-#                            update_link_state_new(link, new_link_state, event_time,
-#                                          self.bnd_lnk, self.node_state,
-#                                          self.grid.node_at_link_tail,
-#                                          self.grid.node_at_link_head,
-#                                          self.link_orientation,
-#                                          self.num_node_states,
-#                                          self.num_node_states_sq,
-#                                          self.link_state, self.n_trn,
-#                                          self.priority_queue,
-#                                          self.next_update,
-#                                          self.next_trn_id,
-#                                          self.trn_id, self.trn_rate)
-#                        else:
                         self.update_link_state_new(
                                             link, new_link_state, event_time)
 
