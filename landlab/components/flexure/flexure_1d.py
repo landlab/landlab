@@ -138,40 +138,43 @@ class Flexure1D(Component):
     False
     """
 
-    _name = '1D Flexure Equation'
+    _name = "1D Flexure Equation"
 
-    _input_var_names = (
-        'lithosphere__increment_of_overlying_pressure',
-    )
+    _input_var_names = ("lithosphere__increment_of_overlying_pressure",)
 
-    _output_var_names = (
-        'lithosphere_surface__increment_of_elevation',
-    )
+    _output_var_names = ("lithosphere_surface__increment_of_elevation",)
 
     _var_units = {
-        'lithosphere__increment_of_overlying_pressure': 'Pa',
-        'lithosphere_surface__increment_of_elevation': 'm',
+        "lithosphere__increment_of_overlying_pressure": "Pa",
+        "lithosphere_surface__increment_of_elevation": "m",
     }
 
     _var_mapping = {
-        'lithosphere__increment_of_overlying_pressure': 'node',
-        'lithosphere_surface__increment_of_elevation': 'node',
+        "lithosphere__increment_of_overlying_pressure": "node",
+        "lithosphere_surface__increment_of_elevation": "node",
     }
 
     _var_doc = {
-        'lithosphere__increment_of_overlying_pressure':
-            'Applied pressure to the lithosphere over a time step',
-        'lithosphere_surface__increment_of_elevation':
-            'The change in elevation of the top of the lithosphere (the land '
-            'surface) in one timestep',
+        "lithosphere__increment_of_overlying_pressure": "Applied pressure to the lithosphere over a time step",
+        "lithosphere_surface__increment_of_elevation": "The change in elevation of the top of the lithosphere (the land "
+        "surface) in one timestep",
     }
 
     POISSON = .25
 
     @use_file_name_or_kwds
-    def __init__(self, grid, eet=65e3, youngs=7e10, method='airy',
-                 rho_mantle=3300., rho_water=1030., gravity=9.80665,
-                 rows=None, **kwds):
+    def __init__(
+        self,
+        grid,
+        eet=65e3,
+        youngs=7e10,
+        method="airy",
+        rho_mantle=3300.,
+        rho_water=1030.,
+        gravity=9.80665,
+        rows=None,
+        **kwds
+    ):
         """Initialize the flexure component.
 
         Parameters
@@ -194,9 +197,8 @@ class Flexure1D(Component):
             Node rows that this component will operate on (default is to
             operate on *all* rows).
         """
-        if method not in ('airy', 'flexure'):
-            raise ValueError(
-                '{method}: method not understood'.format(method=method))
+        if method not in ("airy", "flexure"):
+            raise ValueError("{method}: method not understood".format(method=method))
 
         self._grid = grid
 
@@ -211,10 +213,9 @@ class Flexure1D(Component):
 
         for name in self._input_var_names + self._output_var_names:
             if name not in self.grid.at_node:
-                self.grid.add_zeros(name, units=self._var_units[name],
-                                    at='node')
+                self.grid.add_zeros(name, units=self._var_units[name], at="node")
 
-        self._rows = (rows, ) or Ellipsis
+        self._rows = (rows,) or Ellipsis
 
         self._x_at_node = self.grid.x_of_node.reshape(self.grid.shape).copy()
 
@@ -226,7 +227,7 @@ class Flexure1D(Component):
     @eet.setter
     def eet(self, new_val):
         if new_val <= 0:
-            raise ValueError('Effective elastic thickness must be positive.')
+            raise ValueError("Effective elastic thickness must be positive.")
         try:
             del self._rigidity, self._alpha
         except AttributeError:
@@ -309,8 +310,9 @@ class Flexure1D(Component):
         try:
             self._rigidity
         except AttributeError:
-            self._rigidity = (self._eet ** 3. * self._youngs /
-                              (12. * (1. - self.POISSON ** 2.)))
+            self._rigidity = (
+                self._eet ** 3. * self._youngs / (12. * (1. - self.POISSON ** 2.))
+            )
         finally:
             return self._rigidity
 
@@ -320,8 +322,7 @@ class Flexure1D(Component):
         try:
             self._gamma_mantle
         except AttributeError:
-            self._gamma_mantle = (self._rho_mantle -
-                                  self._rho_water) * self._gravity
+            self._gamma_mantle = (self._rho_mantle - self._rho_water) * self._gravity
         finally:
             return self._gamma_mantle
 
@@ -336,22 +337,27 @@ class Flexure1D(Component):
 
     @property
     def load_at_node(self):
-        return self.grid.at_node['lithosphere__increment_of_overlying_pressure'].reshape(self.grid.shape)
+        return self.grid.at_node[
+            "lithosphere__increment_of_overlying_pressure"
+        ].reshape(self.grid.shape)
 
     @property
     def dz_at_node(self):
-        return self.grid.at_node['lithosphere_surface__increment_of_elevation'].reshape(self.grid.shape)
+        return self.grid.at_node["lithosphere_surface__increment_of_elevation"].reshape(
+            self.grid.shape
+        )
 
     def update(self):
         """Update fields with current loading conditions."""
         load = self.load_at_node[self._rows]
         deflection = self.dz_at_node[self._rows]
 
-        if self._method == 'airy':
+        if self._method == "airy":
             deflection[:] = load / self.gamma_mantle
         else:
-            Flexure1D.calc_flexure(self.x_at_node[0], load,
-                                   self.alpha, self.rigidity, out=deflection)
+            Flexure1D.calc_flexure(
+                self.x_at_node[0], load, self.alpha, self.rigidity, out=deflection
+            )
 
         if not np.may_share_memory(deflection, self.dz_at_node):
             self.dz_at_node[self._rows] = deflection
@@ -374,11 +380,12 @@ class Flexure1D(Component):
         ndarray of float
             Deflections caused by the loading.
         """
-        if self._method == 'airy':
+        if self._method == "airy":
             deflection[:] = load / self.gamma_mantle
         else:
-            Flexure1D.calc_flexure(self.x_at_node[0], loads, self.alpha,
-                                   self.rigidity, out=out)
+            Flexure1D.calc_flexure(
+                self.x_at_node[0], loads, self.alpha, self.rigidity, out=out
+            )
 
         return out
 
