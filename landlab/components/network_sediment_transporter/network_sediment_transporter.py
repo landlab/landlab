@@ -90,9 +90,9 @@ class NetworkSedimentTransporter(Component):
     # Run Component
     @use_file_name_or_kwds
     def __init__(self, grid, 
-                 bed_parcels_item_collector,
+                 parcels,
                  discharge,
-                 transport_method = 'WilcockCrow',
+                 transport_method = 'WilcockCrowe',
                  channel_width,
                  flow_depth,
                  active_layer_thickness,
@@ -104,42 +104,64 @@ class NetworkSedimentTransporter(Component):
             A raster grid.
         and more here...
         """
+        
+        self.transport_method = transport_method # self.transport_method makes it a class variable, that can be accessed within any method within this class
+        if self.transport_method =="WilcockCrowe":
+            self.update_transport_time = self._calc_transport_wilcock_crowe
+        
+        self.parcels = parcels
+        self.grid = grid
 
-        self.transport_method = transport_method
-        if self.transport_method =="WilcockCrow":
-            self.update_transport_time = self._calc_transport_wilcock_crow
-            
-    def partition_active_and_storage_layers(self, **kwds):
+
+        super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
+        
+        
+    def partition_active_and_storage_layers(self, **kwds): # Allison is working on this
         """For each parcel in the network, determines whether it is in the
-        active or storage layer during this timestep
+        active or storage layer during this timestep, then updates node elevations
         """
-        # COPIED FROM JON'S MATLAB CODE
-        #cycle through each link
-            for i=1:LinkNum
-                if ~isempty(P_vol{t,i}) %only do this check capacity if parcels are in link
-                    #First In Last Out
-                    #compute cumulative volume in link beginning with last in
-                    cvol=fliplr(cumsum(fliplr(P_vol{t,i})));
-                    #%determine which parcels that were the first to enter are above capacity
-                    exc=find(cvol>capacity(i,1),1,'last');
-                    #%if parcels have been identified above capacity then
-                    if ~isempty(exc)
-                    #    %set their status to inactive, 1
-                        P_storage{t,i}(1,1:exc)=1;
-                    #    %set their travel time to 0
-                        P_tt{t,i}(1,1:exc)=0;
-                        
-                    #    %UPDATE Elevations beginning here
-                    #    %compute volume inactive
-                        vstor=sum(P_vol{t,i}(1:exc))./(1-Lp);%m3 vol in storage, porosity Lp=0.4(?)
-                    #    %length and upstream link lengths to compute new elev
-                        Elev(t,i)=mxelevmod(i,1)+(2.*vstor)./sum(B(t,elevid)'.*Length(elevid,1));
-                    #    %UPDATE Elevations complete
-                        
-                        clear cvol exc vstor usid elevid
+# %%
+        vol_tot =  parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
+        
+        capacity = 3* np.ones(np.size(element_id)) # REPLACE with real calculation for capacity
+        
+        for i in range(grid.number_of_links):
+            if vol_tot[i]>0: #only do this check capacity if parcels are in link
+                
+                #First In Last Out
+                parcel_id_thislink = np.where(parcels.DataFrame.element_id.values == i)[0]
+               
+                time_arrival_sort = np.flip(np.argsort(parcels.DataFrame.time_arrival_in_link.values[parcel_id_thislink]),0)
+                parcel_id_time_sorted = parcel_id_thislink[time_arrival_sort]
+                
+                cumvol = np.cumsum(parcels.DataFrame.volume.values[parcel_id_time_sorted])                
 
-            
-
+                idxinactive = np.where(cumvol>capacity[i])
+                make_inactive = parcel_id_time_sorted[idxinactive]
+                
+                parcels.set_value(item_id = parcel_id_thislink,variable = 'active_layer', value = 1)
+                parcels.set_value(item_id = make_inactive,variable = 'active_layer', value = 0)
+        
+        # Update Node Elevations
+        findactive = parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer        
+        vol_act = parcels.calc_aggregate_value(np.sum,
+                                                  'volume',at = 'link',
+                                                  filter_array = findactive)
+        vol_stor = (vol_tot-vol_act)/(1-Lp)
+        # ^ Jon-- what's the rationale behind only calculating new node elevations 
+        # using the storage volume (rather than the full sediment volume)?
+        
+        # in a for loop for now
+# %%        
+        # XXXXXXXXXXXXX Pseudo code...
+        for l in range(grid.number_of_nodes):
+            if somethingaboutheadnode[l]==0: #we don't update head node elevations
+                
+                elev change = 2*volstore(downstreamlink)/(np.sum(width_of_neighborLinks * length_of_neighbor_links))
+                
+                elevation(l) = elevation(l) + elev change
+        
+# %%
     def adjust_slope(self, seed=0):
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
@@ -156,19 +178,27 @@ class NetworkSedimentTransporter(Component):
             Slope(Slope<1e-4)=1e-4;
 
 # %%
-    def _calc_transport_wilcock_crowe(self,itemcollection,H_foreachlink): # Allison
+    def _calc_transport_wilcock_crowe(self, H_foreachlink): # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation. 
         
         Note: could have options here (e.g. Wilcock and Crowe, FLVB, MPM, etc)
         """
-# %% 
+        
+        parcels = self._parcels
+        grid = self._grid
+        
+# %%
         # parcel attribute arrays from ItemCollector
-        Darray = np.array(parcels.DataFrame.D)
-        Activearray = np.array(parcels.DataFrame.active_layer)
-        Rhoarray = np.array(parcels.DataFrame.density)
-        Volarray = np.array(parcels.DataFrame.volume)
-        Linkarray = np.array(parcels.DataFrame.element_id) #link that the parcel is currently in
+        
+        # another way of doing this --> check to see if this is copying. we don't want to be copying
+        Darray = parcels.DataFrame.D.values
+        
+#        Darray = np.array(parcels.DataFrame.D,copy=False) # this gives a copy, but we can set copy to false..?
+        Activearray = parcels.DataFrame.active_layer.values
+        Rhoarray = parcels.DataFrame.density.values
+        Volarray = parcels.DataFrame.volume.values
+        Linkarray = parcels.DataFrame.element_id.values #link that the parcel is currently in
         R = (Rhoarray-rho)/rho
         
         # parcel attribute arrays to populate below

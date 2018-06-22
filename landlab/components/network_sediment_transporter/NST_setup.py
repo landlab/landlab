@@ -45,15 +45,19 @@ g = 9.81
 rho = 1000
 theta = 0.5
 
+Lp = 0.3  #porosity of the bed material
+
 # %% initialize bed sediment (will become its own component)
 
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
     # parcels have 'time added' and 'starting location/link' as an attribute. 
 
-element_id = np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6], dtype=int) # current link for each parcel
+element_id = np.array([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 1], dtype=int) # current link for each parcel
 starting_link = element_id # starting link for each parcel
-time_arrival_in_link = np.zeros(np.size(element_id)) # time of arrival in each link
+#parcel_id = np.arange(0,np.size(element_id)) # each parcel has a unique identifier
+np.random.seed(0)
+time_arrival_in_link = np.random.rand(np.size(element_id)) # time of arrival in each link -- larger numbers are younger
 volume = np.ones(np.size(element_id)) # (m3) the volume of each parcel
 D = 0.05 * np.ones(np.size(element_id)) # (m) the diameter of grains in each parcel
 lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each parcel
@@ -63,8 +67,8 @@ density = 2650 * np.ones(np.size(element_id)) # (kg/m3)
 
 D[0] = 0.075
 D[5] = 0.0001 # make one of them sand
-active_layer[12] = 0 # make one of them inactive
 
+volume[2] = 0.3
 
 data = {'starting_link': starting_link,
         'volume': volume,
@@ -111,7 +115,7 @@ Btmax=np.amax(B, axis = 0)
 #sc = SyntheticChannelGeomMaker(hydraulic_geometry_scaling_rules,discharge)
     # 
 
-nst = NetworkSedimentTransporter(so many inputs!)
+nst = NetworkSedimentTransporter(grid,parcels,depth...?)
 
 # %% Run the component(s)
 
