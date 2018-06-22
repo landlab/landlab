@@ -254,3 +254,21 @@ def test_load_at_node():
 
     assert_true(np.may_share_memory(vals, flex.load_at_node))
     assert_equal(flex.load_at_node.shape, (3, 5))
+
+
+def test_x_is_contiguous():
+    """Test that x_at_node is contiguous."""
+    flex = Flexure1D(RasterModelGrid((3, 5)))
+    assert_true(flex.x_at_node.flags['C_CONTIGUOUS'])
+
+
+def test_dz_is_contiguous():
+    """Test that dz_at_node is contiguous."""
+    flex = Flexure1D(RasterModelGrid((3, 5)))
+    assert_true(flex.dz_at_node.flags['C_CONTIGUOUS'])
+
+
+def test_load_is_contiguous():
+    """Test that load_at_node is contiguous."""
+    flex = Flexure1D(RasterModelGrid((3, 5)))
+    assert_true(flex.load_at_node.flags['C_CONTIGUOUS'])
