@@ -216,6 +216,8 @@ class Flexure1D(Component):
 
         self._rows = (rows, ) or Ellipsis
 
+        self._x_at_node = self.grid.x_of_node.reshape(self.grid.shape).copy()
+
     @property
     def eet(self):
         """Effective elastic thickness (m)."""
@@ -330,7 +332,7 @@ class Flexure1D(Component):
 
     @property
     def x_at_node(self):
-        return self.grid.x_of_node.reshape(self.grid.shape)
+        return self._x_at_node
 
     @property
     def load_at_node(self):
