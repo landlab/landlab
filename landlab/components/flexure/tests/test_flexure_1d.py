@@ -255,7 +255,6 @@ def test_x_at_node():
         flex.x_at_node,
         [[0., 1., 2., 3., 4.], [0., 1., 2., 3., 4.], [0., 1., 2., 3., 4.]],
     )
-    assert_true(np.may_share_memory(flex.x_at_node, flex.grid.x_of_node))
 
 
 def test_dz_at_node():
