@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 This file was auto-generated using `scripts/make_changelog.py`.
 
 
+## [v1.5.1] 2018-06-22
+
+### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
+
+### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
+
 ## [v1.5.0] 2018-06-18
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -21,6 +30,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added cite_as function to get landlab component citations [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -35,6 +45,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 ## [v1.4.0] 2018-05-03
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -48,6 +59,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added adjacent_nodes_at_node, adjacent_corners_at_corner to Graph. [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -67,6 +79,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 ## [v1.3.1] 2018-03-24
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -80,6 +93,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added adjacent_nodes_at_node, adjacent_corners_at_corner to Graph. [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -115,6 +129,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -136,6 +151,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -208,6 +224,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -229,6 +246,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -300,6 +318,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -322,6 +341,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -422,6 +442,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -444,6 +465,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -566,6 +588,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -588,6 +611,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -710,6 +734,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -732,6 +757,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -857,6 +883,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -879,6 +906,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1001,6 +1029,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1023,6 +1052,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1145,6 +1175,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1167,6 +1198,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1289,6 +1321,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1311,6 +1344,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1433,6 +1467,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1455,6 +1490,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1579,6 +1615,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1601,6 +1638,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1723,6 +1761,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1745,6 +1784,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -1867,6 +1907,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -1889,6 +1930,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2012,6 +2054,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2034,6 +2077,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2157,6 +2201,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2179,6 +2224,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2302,6 +2348,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2324,6 +2371,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2450,6 +2498,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2472,6 +2521,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2603,6 +2653,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2625,6 +2676,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2747,6 +2799,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2769,6 +2822,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -2939,6 +2993,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -2961,6 +3016,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -3141,6 +3197,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -3163,6 +3220,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -3343,6 +3401,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -3365,6 +3424,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -3545,6 +3605,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -3567,6 +3628,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -3747,6 +3809,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -3769,6 +3832,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -3949,6 +4013,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -3971,6 +4036,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -4151,6 +4217,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -4173,6 +4240,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -4366,6 +4434,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -4388,6 +4457,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -4585,6 +4655,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -4607,6 +4678,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -4802,6 +4874,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -4824,6 +4897,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -5019,6 +5093,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -5041,6 +5116,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -5236,6 +5312,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -5258,6 +5335,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -5453,6 +5531,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -5475,6 +5554,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -5671,6 +5751,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -5693,6 +5774,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -5889,6 +5971,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -5911,6 +5994,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -6107,6 +6191,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -6129,6 +6214,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -6325,6 +6411,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -6347,6 +6434,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -6548,6 +6636,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -6570,6 +6659,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -6772,6 +6862,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -6794,6 +6885,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -7000,6 +7092,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -7022,6 +7115,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -7228,6 +7322,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -7250,6 +7345,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -7456,6 +7552,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -7478,6 +7575,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -7686,6 +7784,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -7708,6 +7807,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
@@ -7918,6 +8018,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Removed unused code from flow_direction_DN [Eric Hutton]
 
 ### Fixed
+* Fixed bug in Flexure1D when using "flexure" method [Eric Hutton]
 * Fixed unit test failures related to masked arrays (#710) [Eric Hutton]
 * Fixed failed Travis builds being reported as passing [Eric Hutton]
 * Fixed doctest for graph.adjacent_nodes_at_node [Eric Hutton]
@@ -7940,6 +8041,7 @@ This file was auto-generated using `scripts/make_changelog.py`.
 * Added event layers to track stratigraphy [Eric Hutton]
 
 ### Changed
+* amanaster2/master [#733] [Sai Siddhartha Nudurupati]
 * landlab/barnhark/major_cleanup_to_space_and_erodepo_init [#709] [Katy Barnhart]
 * landlab/gt/fix-doctest-issue-726 [#728] [Greg Tucker]
 * landlab/gt/ca-top-hit-bug [#720] [Greg Tucker]
