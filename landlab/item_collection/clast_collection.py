@@ -145,20 +145,25 @@ class ClastCollection(ItemCollection):
 
         Define grid and initial topography:
         >>> mg = RasterModelGrid(5,5)
-        >>> z = mg.node_y*0.1
+        >>> z = mg.node_y*0.2
         >>> _ = mg.add_field('node', 'topographic__elevation', z)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-        >>> mg.set_watershed_boundary_condition_outlet_id(
-        ...     2,mg['node']['topographic__elevation'], -9999.)
+        >>> mg.set_watershed_boundary_condition_outlet_id(2,
+        ...                                               mg['node']['topographic__elevation'],
+        ...                                               -9999.)
 
         Instantiate flow router and hillslope diffuser:
-        >>> fr = FlowRouter(mg, method='D4') #FlowDirectorSteepest(mg)
+        >>> fr = FlowRouter(mg, method='D4')
         >>> kappa = 0.001
-        >>> tl_diff = TransportLengthHillslopeDiffuser(mg, erodibility=kappa,slope_crit=0.6)
+        >>> tl_diff = TransportLengthHillslopeDiffuser(mg,
+        ...                                            erodibility=kappa,
+        ...                                            slope_crit=0.6)
 
         Instantiate clast collection, one clast, starting position near the
         middle of the grid, its base near the surface:
-        >>> init_position = [1.8, 2.2, mg.at_node['topographic__elevation'][12]-0.01]
+        >>> init_position = [1.8,
+        ...                  2.2,
+        ...                  mg.at_node['topographic__elevation'][12]-0.02]
         >>> CS = ClastCollection(mg,
         ...                 clast_x=[init_position[0]],
         ...                 clast_y=[init_position[1]],
@@ -176,18 +181,28 @@ class ClastCollection(ItemCollection):
 
         Clast did not move (because not entirely in eroded sediment layer)
         Check that position has not changed:
-        >>> np.array_equal([CS.DataFrame.at[0,'clast__x'], CS.DataFrame.at[0,'clast__y'], CS.DataFrame.at[0,'clast__elev']], init_position)
+        >>> np.array_equal(
+        ...     [CS.DataFrame.at[0,'clast__x'],
+        ...      CS.DataFrame.at[0,'clast__y'],
+        ...      CS.DataFrame.at[0,'clast__elev']],
+        ...      init_position)
         True
 
         Run again for one timestep, clast will move:
         >>> fr.run_one_step()
         >>> tl_diff.run_one_step(50)
-        >>> CS.run_one_step(dt=50, Si=1.2, kappa=kappa, uplift=None, erosion_method='TLDiff')
+        >>> CS.run_one_step(dt=50,
+        ...                 Si=1.2,
+        ...                 kappa=kappa,
+        ...                 uplift=None,
+        ...                 erosion_method='TLDiff')
 
         Clast has moved within same cell:
         >>> np.array_equal(
-        ...     [CS.DataFrame.at[0,'clast__x'], CS.DataFrame.at[0,'clast__y'],\
-        ...      CS.DataFrame.at[0,'clast__elev']], init_position)
+        ...     [CS.DataFrame.at[0,'clast__x'],
+        ...      CS.DataFrame.at[0,'clast__y'],
+        ...      CS.DataFrame.at[0,'clast__elev']],
+        ...      init_position)
         False
         >>> CS.DataFrame.at[0,'element_id']
         4
@@ -197,11 +212,15 @@ class ClastCollection(ItemCollection):
 
         Run again for longer time, clast will move to next cell:
 
-        >>> for t in range(0, 501, 50):
+        >>> for t in range(0, 10001, 50):
         ...    np.random.seed(seed = 5000)
         ...    fr.run_one_step()
         ...    tl_diff.run_one_step(50)
-        ...    CS.run_one_step(dt=50, Si=1.2, kappa=kappa, uplift=None, erosion_method='TLDiff')
+        ...    CS.run_one_step(dt=50,
+        ...                    Si=1.2,
+        ...                    kappa=kappa,
+        ...                    uplift=None,
+        ...                    erosion_method='TLDiff')
 
         Clast has moved to next cell:
         >>> CS.DataFrame.at[0,'element_id']
@@ -209,11 +228,16 @@ class ClastCollection(ItemCollection):
 
         Run again, will move to next cell which is the outlet:
 
-        >>> for t in range(0, 401, 50):
-        ...    np.random.seed(seed = 6000)
+        >>> mg.at_node['topographic__elevation'][2]=-1.
+
+        >>> for t in range(0, 501, 50):
         ...    fr.run_one_step()
         ...    tl_diff.run_one_step(50)
-        ...    CS.run_one_step(dt=50, Si=1.2, kappa=kappa, uplift=None, erosion_method='TLDiff')
+        ...    CS.run_one_step(dt=50,
+        ...                    Si=1.2,
+        ...                    kappa=kappa,
+        ...                    uplift=None,
+        ...                    erosion_method='TLDiff')
 
         Clast has moved to next cell (reference node is now boundary node 2):
         >>> [CS.DataFrame.at[0,'element_id'], CS.DataFrame.at[0,'clast__node']]
