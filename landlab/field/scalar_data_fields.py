@@ -47,7 +47,7 @@ def need_to_reshape_array(array, field_size):
     if field_size > 1:
         stored_shape = (field_size, )
     else:
-        stored_shape = array.squeeze().shape
+        stored_shape = (1,)
 
     return array.shape != stored_shape
 
@@ -478,7 +478,7 @@ class ScalarDataFields(dict):
         if self.size is None:
             self.size = value_array.size
 
-        if need_to_reshape_array(value_array, self.size):
+        if value_array.size > 1 and need_to_reshape_array(value_array, self.size):
             value_array = value_array.reshape((self.size, -1)).squeeze()
 
         if name not in self:
