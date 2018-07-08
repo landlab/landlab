@@ -396,14 +396,15 @@ class SpeciesEvolver(Component):
         species_time = self.species_at_time(time, return_objects=True)
         zones_time = self.zones_at_time(time, return_objects=True)
 
-        cell_area = self._grid.dx * self._grid.dy
-
         data = {'area': [], 'number_of_species': []}
 
         for z in zones_time:
             mask = z.mask
 #            data['area'].append(np.sum(mask) * cell_area)
-            data['area'].append(self._grid.at_node['drainage_area'][mask].max())
+            if len(np.where(mask)[0]) == 0:
+                data['area'].append(0)
+            else:
+                data['area'].append(self._grid.at_node['drainage_area'][mask].max())
 
             z_species_count = 0
 

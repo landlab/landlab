@@ -270,7 +270,7 @@ class Zone(object):
 
         zones = []
 
-        stream_mask = grid.at_node['drainage_area'] >= 1e6
+        stream_mask = grid.at_node['drainage_area'] >= area_threshold
 
         for outlet in outlets:
             watershed_mask = grid.at_node['watershed'] == outlet
