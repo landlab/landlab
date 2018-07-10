@@ -26,7 +26,7 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
-from .cfuncs import _add_to_stack
+from .cfuncs import _add_to_stack, _accumulate
 
 class _DrainageStack():
 
@@ -306,14 +306,9 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
         drainage_area[boundary_nodes] = 0
         discharge[boundary_nodes] = 0
 
-    # Iterate backward through the list, which means we work from upstream to
-    # downstream.
-    for i in range(np-1, -1, -1):
-        donor = s[i]
-        recvr = r[donor]
-        if donor != recvr:
-            drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += discharge[donor]
+    # Call the cfunc to work accumulate from upstream to downstream, permitting
+    # transmission losses
+    _accumulate(np, s, r, drainage_area, discharge)
 
     return drainage_area, discharge
 
