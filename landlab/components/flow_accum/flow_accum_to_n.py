@@ -554,6 +554,8 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     # Call the cfunc to work accumulate from upstream to downstream, permitting
     # transmission losses
     _accumulate_to_n(np, q, s, r, p, drainage_area, discharge)
+    # nodes at channel heads can still be negative with this method, so...
+    discharge = discharge.clip(0.)
 
 #        donors = s[i]
 #        #print donors
