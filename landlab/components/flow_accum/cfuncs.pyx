@@ -35,11 +35,39 @@ cpdef _add_to_stack(DTYPE_INT_t l, DTYPE_INT_t j,
 
 
 @cython.boundscheck(False)
-cpdef _accumulate(DTYPE_INT_t np,
-                  np.ndarray[DTYPE_INT_t, ndim=1] s,
-                  np.ndarray[DTYPE_INT_t, ndim=1] r,
-                  np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-                  np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
+cpdef _accumulate_to_n(DTYPE_INT_t np, DTYPE_INT_t q,
+                       np.ndarray[DTYPE_INT_t, ndim=1] s,
+                       np.ndarray[DTYPE_INT_t, ndim=2] r,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
+    """
+    Accumulates drainage area and discharge, permitting transmission losses.
+    """
+    cdef int donor, recvr, i, v
+    cdef float accum, proportion
+
+    # Iterate backward through the list, which means we work from upstream to
+    # downstream.
+    for i in range(np-1, -1, -1):
+        donor = s[i]
+        for v in range(q):
+            recvr = r[donor, v]
+            proportion = p[donor, v]
+            if proportion > 0.:
+                if donor != recvr:
+                    drainage_area[recvr] += proportion*drainage_area[donor]
+                    accum = discharge[recvr] + proportion*discharge[donor]
+                    if accum < 0.:
+                        accum = 0.
+                    discharge[recvr] = accum
+
+@cython.boundscheck(False)
+cpdef _accumulate_bw(DTYPE_INT_t np,
+                     np.ndarray[DTYPE_INT_t, ndim=1] s,
+                     np.ndarray[DTYPE_INT_t, ndim=1] r,
+                     np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
+                     np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
     """
     Accumulates drainage area and discharge, permitting transmission losses.
     """

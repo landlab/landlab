@@ -48,7 +48,7 @@ Created: KRB Oct 2016 (modified from flow_accumu_bw)
 """
 import numpy
 from six.moves import range
-from .cfuncs import _accumulate
+from .cfuncs import _accumulate_to_n
 
 class _DrainageStack_to_n():
 
@@ -553,7 +553,7 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
 
     # Call the cfunc to work accumulate from upstream to downstream, permitting
     # transmission losses
-    _accumulate(np, s, r, drainage_area, discharge)
+    _accumulate_to_n(np, q, s, r, p, drainage_area, discharge)
 
 #        donors = s[i]
 #        #print donors

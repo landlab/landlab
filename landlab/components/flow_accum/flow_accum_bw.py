@@ -26,7 +26,7 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
-from .cfuncs import _add_to_stack, _accumulate
+from .cfuncs import _add_to_stack, _accumulate_bw
 
 class _DrainageStack():
 
@@ -308,7 +308,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
     # Call the cfunc to work accumulate from upstream to downstream, permitting
     # transmission losses
-    _accumulate(np, s, r, drainage_area, discharge)
+    _accumulate_bw(np, s, r, drainage_area, discharge)
 
     return drainage_area, discharge
 
