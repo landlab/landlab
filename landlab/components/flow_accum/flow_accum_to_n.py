@@ -480,6 +480,8 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     runoff : float or ndarray
         Local runoff rate at each cell (in water depth per time). If it's an
         array, must have same length as s (that is, the number of nodes).
+        runoff *is* permitted to be negative, in which case it performs as a
+        transmission loss.
 
     Returns
     -------

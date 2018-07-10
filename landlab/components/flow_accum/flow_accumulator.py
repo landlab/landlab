@@ -118,6 +118,9 @@ class FlowAccumulator(Component):
         run time. If both the field and argument are present at the time of
         initialization, runoff_rate will *overwrite* the field. If neither are
         set, defaults to spatially constant unit input.
+        Both a runoff_rate array and the 'water__unit_flux_in' field are
+        permitted to contain negative values, in which case they mimic
+        transmission losses rather than e.g. rain inputs.
     depression_finder : string, class, instance of class, optional
          A string of class name (e.g., 'DepressionFinderAndRouter'), an
          uninstantiated DepressionFinder class, or an instance of a
