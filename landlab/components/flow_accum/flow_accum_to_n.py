@@ -528,10 +528,10 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     ...               [ 0.95,  0.05]])
     >>> s = np.array([4, 5, 1, 7, 2, 6, 0, 8, 3, 9])
     >>> a, q = find_drainage_area_and_discharge_to_n(s, r, p)
-    >>> a
+    >>> a.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> q
+    >>> q.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     """
@@ -617,10 +617,10 @@ def flow_accumulation_to_n(receiver_nodes,
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> a, q, s = flow_accumulation_to_n(r, p)
-    >>> a
+    >>> a.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> q
+    >>> q.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     >>> s[0] == 4

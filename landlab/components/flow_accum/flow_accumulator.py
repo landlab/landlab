@@ -297,12 +297,12 @@ class FlowAccumulator(Component):
            [22, -1, -1, -1, -1, -1, -1, -1],
            [23, -1, -1, -1, -1, -1, -1, -1],
            [24, -1, -1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.41168825,  2.06497116,  1.3253788 ,  0.40380592,  0.        ,
-            2.06497116,  3.40811691,  2.5753788 ,  1.37867966,  0.        ,
-            1.3253788 ,  2.5753788 ,  2.17157288,  1.29289322,  0.        ,
-            0.40380592,  1.37867966,  1.29289322,  1.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    >>> mg.at_node['drainage_area'].round(4) # doctest: +NORMALIZE_WHITESPACE
+    array([ 1.4117,  2.065 ,  1.3254,  0.4038,  0.    ,
+            2.065 ,  3.4081,  2.5754,  1.3787,  0.    ,
+            1.3254,  2.5754,  2.1716,  1.2929,  0.    ,
+            0.4038,  1.3787,  1.2929,  1.    ,  0.    ,
+            0.    ,  0.    ,  0.    ,  0.    ,  0.    ])
 
     It may seem odd that there are no round numbers in the drainage area field.
     This is because flow is directed to all downhill boundary nodes and
@@ -310,8 +310,8 @@ class FlowAccumulator(Component):
 
     To check that flow is conserved, sum along all boundary nodes.
 
-    >>> sum(mg.at_node['drainage_area'][mg.boundary_nodes])
-    9.0000000000000018
+    >>> round(sum(mg.at_node['drainage_area'][mg.boundary_nodes]), 4)
+    9.0
 
     This should be the same as the number of core nodes --- as boundary nodes
     in landlab do not have area.
