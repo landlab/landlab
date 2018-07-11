@@ -193,7 +193,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             self.delta[defined_flow_receivers] = ((K
                 * self.A_to_the_m[defined_flow_receivers] )
                 / (thresh * flow_link_lengths))
-            self.delta[defined_flow_receivers[thresh == 0.0]] == 0.0
+
+            self.delta[defined_flow_receivers][thresh == 0.0] = 0.0
         else:
             if thresh == 0:
                 self.delta[defined_flow_receivers] = 0.0
