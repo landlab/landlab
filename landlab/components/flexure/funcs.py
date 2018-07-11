@@ -34,7 +34,7 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.):
     """
     D = E * pow(h, 3) / 12. / (1. - pow(_POISSON, 2))
 
-    assert(n_dim == 1 or n_dim == 2)
+    assert n_dim == 1 or n_dim == 2
 
     if n_dim == 2:
         alpha = pow(D / gamma_mantle, .25)
@@ -46,17 +46,15 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.):
 
 def _calculate_distances(locs, coords):
     if isinstance(locs[0], (float, int)):
-        return np.sqrt(pow(coords[0] - locs[0], 2) +
-                       pow(coords[1] - locs[1], 2))
+        return np.sqrt(pow(coords[0] - locs[0], 2) + pow(coords[1] - locs[1], 2))
     else:
         r = pow(coords[0][:, np.newaxis] - locs[0], 2)
         r += pow(coords[1][:, np.newaxis] - locs[1], 2)
         return np.sqrt(r, out=r)
 
 
-def _calculate_deflections(load, locs, coords, alpha, out=None,
-                           gamma_mantle=33000.):
-    c = - load / (2. * np.pi * gamma_mantle * pow(alpha, 2.))
+def _calculate_deflections(load, locs, coords, alpha, out=None, gamma_mantle=33000.):
+    c = -load / (2. * np.pi * gamma_mantle * pow(alpha, 2.))
     r = _calculate_distances(locs, coords) / alpha
 
     if isinstance(c, (float, int)):
@@ -137,12 +135,12 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     5.265e-07
     """
     params = params or dict(eet=6500., youngs=7.e10)
-    eet, youngs = params['eet'], params['youngs']
-    gamma_mantle = params.get('gamma_mantle', 33000.)
+    eet, youngs = params["eet"], params["youngs"]
+    gamma_mantle = params.get("gamma_mantle", 33000.)
 
-    assert(len(loc) in [1, 2])
-    assert(len(coords) == len(loc))
-    assert(len(coords[0].shape) == 1)
+    assert len(loc) in [1, 2]
+    assert len(coords) == len(loc)
+    assert len(coords[0].shape) == 1
 
     if not isinstance(load, (int, float, np.ndarray)):
         load = np.array(load)
@@ -150,12 +148,12 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     if out is None:
         out = np.empty(coords[0].size, dtype=np.float)
 
-    alpha = get_flexure_parameter(eet, youngs, len(loc),
-                                  gamma_mantle=gamma_mantle)
+    alpha = get_flexure_parameter(eet, youngs, len(loc), gamma_mantle=gamma_mantle)
 
     if len(loc) == 2:
-        _calculate_deflections(load, loc, coords, alpha, out=out,
-                               gamma_mantle=gamma_mantle)
+        _calculate_deflections(
+            load, loc, coords, alpha, out=out, gamma_mantle=gamma_mantle
+        )
     else:
         c = load / (2. * alpha * gamma_mantle)
         r = abs(coords[0] - loc[0]) / alpha
@@ -164,8 +162,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     return out
 
 
-def subside_point_loads(loads, locs, coords, params=None, deflection=None,
-                        n_procs=1):
+def subside_point_loads(loads, locs, coords, params=None, deflection=None, n_procs=1):
     """Calculate deflection at points due multiple point loads.
 
     Calculate lithospheric deflections due to *loads* at coordinates
@@ -197,25 +194,26 @@ def subside_point_loads(loads, locs, coords, params=None, deflection=None,
         Array of deflections.
     """
     params = params or dict(eet=6500., youngs=7.e10)
-    eet, youngs = params['eet'], params['youngs']
-    gamma_mantle = params.get('gamma_mantle', 33000.)
+    eet, youngs = params["eet"], params["youngs"]
+    gamma_mantle = params.get("gamma_mantle", 33000.)
 
     if deflection is None:
         deflection = np.empty(coords[0].size, dtype=np.float)
 
-    assert(len(coords) in [1, 2])
-    assert(len(locs) == len(coords))
-    assert(loads.size == locs[0].size)
+    assert len(coords) in [1, 2]
+    assert len(locs) == len(coords)
+    assert loads.size == locs[0].size
 
     if n_procs > 1:
-        _subside_in_parallel(deflection, loads, locs, coords, eet, youngs,
-                             gamma_mantle, n_procs=n_procs)
+        _subside_in_parallel(
+            deflection, loads, locs, coords, eet, youngs, gamma_mantle, n_procs=n_procs
+        )
     else:
         for index in loads.nonzero()[0]:
             loc = [dim.flat[index] for dim in locs]
-            deflection += subside_point_load(loads.flat[index], loc,
-                                             coords, eet, youngs,
-                                             gamma_mantle)
+            deflection += subside_point_load(
+                loads.flat[index], loc, coords, eet, youngs, gamma_mantle
+            )
     return deflection
 
 
@@ -223,13 +221,11 @@ def _subside_point_load_helper(args):
     return subside_point_load(*args)
 
 
-def _subside_in_parallel(dz, loads, locs, coords, eet, youngs, gamma_mantle,
-                         n_procs=4):
+def _subside_in_parallel(dz, loads, locs, coords, eet, youngs, gamma_mantle, n_procs=4):
     args = []
     for index in loads.nonzero()[0]:
         loc = (locs[0].flat[index], locs[1].flat[index])
-        args.append((loads.flat[index], loc, coords, eet, youngs,
-                     gamma_mantle))
+        args.append((loads.flat[index], loc, coords, eet, youngs, gamma_mantle))
 
     pool = Pool(processes=n_procs)
 
@@ -242,6 +238,7 @@ def _subside_in_parallel(dz, loads, locs, coords, eet, youngs, gamma_mantle,
             dz += result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

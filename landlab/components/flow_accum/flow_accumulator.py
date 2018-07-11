@@ -731,9 +731,7 @@ class FlowAccumulator(Component):
 
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
-        try:
-            grid.at_node['water__unit_flux_in']
-        except FieldError:
+        if 'water__unit_flux_in' not in grid.at_node:
             if runoff_rate is None:
                 # assume that if runoff rate is not supplied, that the value
                 # should be set to one everywhere.

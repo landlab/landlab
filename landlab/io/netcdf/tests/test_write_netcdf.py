@@ -30,7 +30,7 @@ def test_netcdf_write_int64_field_netcdf4():
 
         for name in ['topographic__elevation']:
             assert_true(name in root.variables)
-            assert_array_equal(root.variables[name][:].flat,
+            assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
             assert_equal(root.variables[name][:].dtype, 'int64')
 
@@ -50,7 +50,7 @@ def test_netcdf_write_uint8_field_netcdf4():
 
         for name in ['topographic__elevation']:
             assert_true(name in root.variables)
-            assert_array_equal(root.variables[name][:].flat,
+            assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
             assert_equal(root.variables[name][:].dtype, 'uint8')
 
@@ -72,7 +72,7 @@ def test_netcdf_write_as_netcdf3_64bit():
 
         for name in ['topographic__elevation', 'uplift_rate']:
             assert_true(name in f.variables)
-            assert_array_equal(f.variables[name][:].flat, field.at_node[name])
+            assert_array_equal(f.variables[name][:].flatten(), field.at_node[name])
 
         f.close()
 
@@ -92,7 +92,7 @@ def test_netcdf_write_as_netcdf3_classic():
 
         for name in ['topographic__elevation', 'uplift_rate']:
             assert_true(name in f.variables)
-            assert_array_equal(f.variables[name][:].flat, field.at_node[name])
+            assert_array_equal(f.variables[name][:].flatten(), field.at_node[name])
 
         f.close()
 
@@ -118,13 +118,13 @@ def test_netcdf_write():
         assert_equal(set(root.variables),
                      set(['x', 'y', 'topographic__elevation']))
 
-        assert_array_equal(root.variables['x'][:].flat,
+        assert_array_equal(root.variables['x'][:].flatten(),
                            np.array([0., 1., 2., 0., 1., 2., 0., 1., 2.,
                                      0., 1., 2., ]))
-        assert_array_equal(root.variables['y'][:].flat,
+        assert_array_equal(root.variables['y'][:].flatten(),
                            np.array([0., 0., 0., 1., 1., 1., 2., 2., 2.,
                                      3., 3., 3., ]))
-        assert_array_equal(root.variables['topographic__elevation'][:].flat,
+        assert_array_equal(root.variables['topographic__elevation'][:].flatten(),
                            field.at_node['topographic__elevation'])
 
         root.close()
@@ -145,7 +145,7 @@ def test_netcdf_write_as_netcdf4_classic():
 
         for name in ['topographic__elevation', 'uplift_rate']:
             assert_true(name in root.variables)
-            assert_array_equal(root.variables[name][:].flat,
+            assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
 
         root.close()
@@ -167,7 +167,7 @@ def test_netcdf_write_names_keyword_as_list():
 
         assert_true('topographic__elevation' in root.variables)
         assert_true('uplift_rate' not in root.variables)
-        assert_array_equal(root.variables['topographic__elevation'][:].flat,
+        assert_array_equal(root.variables['topographic__elevation'][:].flatten(),
                            field.at_node['topographic__elevation'])
 
         root.close()
@@ -188,7 +188,7 @@ def test_netcdf_write_names_keyword_as_str():
 
         assert_true('topographic__elevation' not in root.variables)
         assert_true('uplift_rate' in root.variables)
-        assert_array_equal(root.variables['uplift_rate'][:].flat,
+        assert_array_equal(root.variables['uplift_rate'][:].flatten(),
                            field.at_node['uplift_rate'])
 
         root.close()
@@ -209,7 +209,7 @@ def test_netcdf_write_names_keyword_as_none():
 
         for name in ['topographic__elevation', 'uplift_rate']:
             assert_true(name in root.variables)
-            assert_array_equal(root.variables[name][:].flat,
+            assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
 
         root.close()
@@ -287,7 +287,7 @@ def test_netcdf_write_at_cells():
 
         for name in ['topographic__elevation', 'uplift_rate']:
             assert_true(name in root.variables)
-            assert_array_equal(root.variables[name][:].flat,
+            assert_array_equal(root.variables[name][:].flatten(),
                                field.at_cell[name])
 
         assert_equal(set(root.dimensions), set(['nv', 'ni', 'nj', 'nt']))
