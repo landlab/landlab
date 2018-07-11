@@ -106,6 +106,12 @@ class _GeneralizedErosionDeposition(Component):
             self.qs = grid.add_zeros(
                 'sediment__flux', at='node', dtype=float)
 
+
+        if 'external_sediment__flux' in grid.at_node:
+            self.qs_ext = grid.at_node['external_sediment__flux']
+        else:
+            self.qs_ext = grid.add_zeros('external_sediment__flux', at='node', dtype=float)
+
         self.q = return_array_at_node(grid, discharge_field)
 
         # Create arrays for sediment influx at each node, discharge to the
