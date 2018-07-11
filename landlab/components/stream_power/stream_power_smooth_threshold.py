@@ -173,10 +173,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             K = self.K
 
         # Handle possibility of spatially varying threshold
-        if type(self.thresholds) is np.ndarray:
+        if isinstance(self.thresholds, np.ndarray):
             thresh = self.thresholds[defined_flow_receivers]
         else:
-            thresh = self.thresholds            
+            thresh = self.thresholds
 
         # Set up alpha, beta, delta arrays
         #
@@ -194,21 +194,24 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
-
         self.delta[defined_flow_receivers==False] = 0.0
-        self.delta[defined_flow_receivers] = ((K
-            * self.A_to_the_m[defined_flow_receivers] )
-            / (thresh * flow_link_lengths))
+        if isinstance(self.thresholds, np.ndarray):
+            self.delta[defined_flow_receivers] = ((K
+                * self.A_to_the_m[defined_flow_receivers] )
+                / (thresh * flow_link_lengths))
+            self.delta[defined_flow_receivers[thresh == 0.0]] == 0.0
+        else:
+            if thresh == 0:
+                self.delta[defined_flow_receivers] = 0.0
+            else:
+                self.delta[defined_flow_receivers] = ((K
+                    * self.A_to_the_m[defined_flow_receivers] )
+                    / (thresh * flow_link_lengths))
 
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
-        smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers, 
+        smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers,
                                          z, self.alpha, self.gamma, self.delta)
-
-        # TODO: handle case self.thresholds = 0
-        # THIS WOULD REQUIRE SETTING DELTA = 0 WHEN/WHERE THRESHOLD = 0
-
-
 
 #if __name__ == '__main__':
 #    from landlab import RasterModelGrid
