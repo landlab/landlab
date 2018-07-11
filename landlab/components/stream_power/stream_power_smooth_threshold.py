@@ -160,12 +160,6 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # (Later on, add functionality for a runoff rate, or discharge, or
         # variable K)
 
-        # Handle possibility of spatially varying threshold
-        if type(self.thresholds) is np.ndarray:
-            thresh = self.thresholds[defined_flow_receivers]
-        else:
-            thresh = self.thresholds
-
         # Handle possibility of spatially varying K
         if type(self.K) is np.ndarray:
             K = self.K[defined_flow_receivers]
