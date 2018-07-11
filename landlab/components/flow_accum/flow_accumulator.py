@@ -226,8 +226,8 @@ class FlowAccumulator(Component):
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
     ...                        flow_director=FlowDirectorSteepest)
-    >>> runoff_rate = np.arange(mg.number_of_nodes)
-    >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
+    >>> runoff_rate = np.arange(mg.number_of_nodes, dtype=float)
+    >>> rnff = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
     ...                  noclobber=False)
     >>> fa.run_one_step()
     >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
@@ -236,6 +236,35 @@ class FlowAccumulator(Component):
                0.,   900.,  4600.,     0.,
                0.,  1300.,  2700.,     0.,
                0.,     0.,     0.,     0.])
+
+    The flow accumulator will happily work with a negative runoff rate, which
+    could be used to allow, e.g., transmission losses:
+
+    >>> runoff_rate.fill(1.)
+    >>> fa.run_one_step()
+    >>> mg.at_node['surface_water__discharge']
+    array([   0.,  100.,  500.,    0.,
+              0.,  100.,  500.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+    >>> runoff_rate[:8] = -0.5
+    >>> fa.run_one_step()
+    >>> mg.at_node['surface_water__discharge']
+    array([   0.,    0.,  350.,    0.,
+              0.,    0.,  350.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+
+    The drainage area array is unaffected, as you would expect:
+
+    >>> mg.at_node['drainage_area']
+    array([   0.,  100.,  500.,    0.,
+              0.,  100.,  500.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
 
     The FlowAccumulator component will work for both raster grids and irregular
     grids. For the example we will use a Hexagonal Model Grid, a special type of
