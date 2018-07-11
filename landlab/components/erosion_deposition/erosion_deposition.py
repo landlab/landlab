@@ -97,6 +97,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                     stable step size based on the shortest time to "flattening"
                     among all upstream-downstream node pairs.
 
+        If an external sediment flux is desired by the user, then...
+
         Examples
         ---------
         >>> import numpy as np
