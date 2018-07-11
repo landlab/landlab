@@ -77,6 +77,9 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
                  rainfall_intensity=1., use_Q=None, **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
+        if n_sp != 1.0:
+            raise ValueError(('StreamPowerSmoothThresholdEroder currently only '
+                              'supports n_sp = 1'))
 
         # Call base-class init
         super(StreamPowerSmoothThresholdEroder,
