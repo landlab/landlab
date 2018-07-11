@@ -12,7 +12,8 @@ def add_load_to_middle_of_grid(grid, load):
     shape = grid.shape
 
     load_array = grid.field_values(
-        'node', 'lithosphere__overlying_pressure_increment').view()
+        "node", "lithosphere__overlying_pressure_increment"
+    ).view()
     load_array.shape = shape
     load_array[shape[0] / 2, shape[1] / 2] = load
 
@@ -23,15 +24,19 @@ def main():
 
     grid = RasterModelGrid(n_rows, n_cols, dx)
 
-    flex = Flexure(grid, method='flexure')
+    flex = Flexure(grid, method="flexure")
 
     add_load_to_middle_of_grid(grid, 1e7)
 
     flex.update()
 
-    grid.imshow('node', 'lithosphere_surface__elevation_increment',
-                symmetric_cbar=True, show=True)
+    grid.imshow(
+        "node",
+        "lithosphere_surface__elevation_increment",
+        symmetric_cbar=True,
+        show=True,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
