@@ -253,7 +253,7 @@ class NormalFault(Component):
         This may seem incorrect as the model time and the current time are not
         the same. However, this is correct as the NormalFault runs one step only
         at the first of each 10 timesteps. The value of 2910.0 reflects that
-        NormalFault ran from model time 29000 to 29100 and has not run since
+        NormalFault ran from model time 29000.0 to 29100.0 and has not run since
         which is what we'd expect.
 
         """
