@@ -262,15 +262,7 @@ class NormalFault(Component):
         self.faulted_nodes = np.zeros(self._grid.size('node'), dtype=bool)
         self.faulted_nodes[faulted_node_ids] = True
 
-    def run_one_step(self, dt):
-        """Run_one_step method for NormalFault.
-
-        Parameters
-        ----------
-        dt : float
-            Time increment used to advance the NormalFault component.
-
-        """
+    def _check_surfaces(self):
         if len(self._not_yet_instantiated)>0:
             still_not_instantiated = []
             for surf in self._not_yet_instantiated:
@@ -280,18 +272,19 @@ class NormalFault(Component):
                     still_not_instantiated.append(surf)
             self._not_yet_instantiated = still_not_instantiated
 
+    def run_one_earthquake(self, dz):
+        """ """
+        self._check_surfaces()
+
         # save z before uplift only if using include boundaries.
         if self.include_boundaries:
             surfs_before_uplift = {}
             for surf_name in self.surfaces:
                 surfs_before_uplift[surf_name] = self.surfaces[surf_name].copy()
 
-        # calculate the current uplift rate
-        current_uplift_rate = np.interp(self.current_time, self.throw_time, self.throw_rate)
-
         # uplift the faulted_nodes
         for surf_name in self.surfaces:
-            self.surfaces[surf_name][self.faulted_nodes] += current_uplift_rate * dt
+            self.surfaces[surf_name][self.faulted_nodes] += dz
 
         # if faulted nodes includes boundaries we must do some extra work because
         # landlab components will typically not erode these boundaries. This means
@@ -342,6 +335,26 @@ class NormalFault(Component):
                     elevations_to_average[self._grid.neighbors_at_node == -1] = np.nan
                     elevations_to_average[neighbor_is_faulted == False] = np.nan
                     self.surfaces[surf_name][un_averaged_nodes] = np.nanmean(elevations_to_average[un_averaged_nodes], axis=1)
+
+    def run_one_step(self, dt, current_time=None):
+        """Run_one_step method for NormalFault.
+
+        Parameters
+        ----------
+        dt : float
+            Time increment used to advance the NormalFault component.
+        current_time : float, optional
+            Current time...
+        """
+        # if current time is provided, use it to re-set the current time.
+        if current_time is not None:
+            self.current_time = current_time
+
+        # calculate the current uplift rate
+        current_uplift_rate = np.interp(self.current_time, self.throw_time, self.throw_rate)
+
+        # run one earthquake of size current_uplift_rate * dt
+        self.run_one_earthquake(current_uplift_rate * dt)
 
         # increment time
         self.current_time += dt
