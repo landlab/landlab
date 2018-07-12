@@ -31,7 +31,7 @@ class Species(object):
         parent_species : SpeciesEvolver Species
             The parent species object. An id of -1 indicates no parent species.
         """
-        self.record = Record(columns=['zones'])
+        self.record = Record()
 
         # Set parameters.
         self._identifier = None
@@ -43,7 +43,7 @@ class Species(object):
         else:
             z = [initial_zones]
 
-        self.record.append_entry(initial_time, dictionary={'zones': z})
+        self.record.insert_time(initial_time, data={'zones': z})
 
     def __str__(self):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
@@ -59,7 +59,8 @@ class Species(object):
 
         for es in extant_species:
             # Get paths that include the zone origin of this species.
-            species_zones = es.record.loc[es.record.time == prior_time].zones
+            time_mask = es.record.DataFrame.time == prior_time
+            species_zones = es.record.DataFrame.loc[time_mask].zones
             indices = np.where(np.isin(origins, species_zones))[0]
 
             if len(indices) > 0:
@@ -113,7 +114,7 @@ class Species(object):
         for v in zone_paths.itertuples():
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
-                self.record.append_entry(time, {'zones': v.destinations})
+                self.record.insert_time(time, {'zones': v.destinations})
                 species_persists = True
 
             elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:

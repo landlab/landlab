@@ -85,11 +85,11 @@ class SpeciesEvolver(Component):
         if len(self.species) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
-        elif len(self.record) == 0:
+        elif len(self.record.DataFrame) == 0:
             print(warning_message('Species must be introduced at a time prior'
                                   ' to the ``run_one_step`` time.'))
         else:
-            self.record.append_entry(time)
+            self.record.insert_time(time)
 
             paths = self._get_zone_paths(time, zones_at_time, **kwds)
             survivors = self._get_surviving_species(time, paths, **kwds)
@@ -125,12 +125,13 @@ class SpeciesEvolver(Component):
 
             if 'species_evolver_record_add_on' in output.keys():
                 add_on = output['species_evolver_record_add_on']
-                for key in add_on.keys():
-                    if key not in self.record.columns:
-                        self.record[key] = np.NaN * len(self.record)
-
-                    i = self.record.time == time
-                    self.record.loc[i, key] = add_on[key]
+                self.record.insert_time
+#                for key in add_on.keys():
+#                    if key not in self.record.DataFrame.columns:
+#                        self.record[key] = np.NaN * len(self.record)
+#
+#                    i = self.record.time == time
+#                    self.record.loc[i, key] = add_on[key]
 
         return paths
 
