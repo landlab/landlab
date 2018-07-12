@@ -150,6 +150,9 @@ class NetworkSedimentTransporter(Component):
         vol_stor = (vol_tot-vol_act)/(1-Lp)
         # ^ Jon-- what's the rationale behind only calculating new node elevations 
         # using the storage volume (rather than the full sediment volume)?
+        # Jon response -- because during transport, that is the sediment defining the immobile
+        # substrate that is setting the slope. Parcels that are actively transporting should not
+        # affect the slope because they are moving.
         
         # in a for loop for now
 # %%        
@@ -274,6 +277,84 @@ class NetworkSedimentTransporter(Component):
         """Method to update parcel location for each parcel in the active 
         layer. 
         """
+# %%
+ 
+# imports from Katy's "Navigating Flow Networks"       
+        
+# import numpy
+import numpy as np
+
+# import necessary landlab components
+from landlab import RasterModelGrid
+from landlab.components import FlowDirectorSteepest, FlowAccumulator
+
+
+from landlab import BAD_INDEX_VALUE
+
+# import landlab plotting functionality
+from landlab.plot.drainage_plot import drainage_plot
+
+        
+fd = FlowDirectorSteepest(grid)
+fd.run_one_step()
+fa = FlowAccumulator(grid, flow_director=fd)
+fa.run_one_step()
+
+# %%        
+        # we need to make sure we are pointing to the array rather than making copies
+        current_link = parcels.DataFrame.element_id.values # same as Linkarray, this will be updated below        
+        location_in_link = parcels.DataFrame.location_in_link.values # updated below
+        # Ttimearray -- needs to be brought in here            
+        #^ Ttimearray is the time to move through the entire length of a link
+            
+        # However, a parcel is not always at the US end of a link, so need to determine 
+        # how much time it takes for that parcel to move out of the current link based on its
+        # current location ...
+        time_to_exit_current_link = Ttimearray*(1-location_in_link)
+        running_travel_time_in_dt = time_to_exit_current_link
+            
+        
+        for p in range(parcels.number_of_items):
+            #^ loop through all parcels, this loop could probably be removed in future refinements
+                   
+            # ... and compare to the timestep dt
+            # loop through until you find the link the parcel will reside in after dt
+            while running_travel_time_in_dt[p] <= dt :
+                # determine downstream link
+                downstream_link_id = fd.link_to_flow_receiving_node[fd.downstream_node_at_link[element_id[p]]]
+                                
+                if downstream_link_id == -1 : #parcel has exited the network
+                    # I think we should then remove this parcel from the parcel item collector
+                    # if so, we manipulate the exiting parcel here, but may want to note something about its exit
+                    # such as output volume and output time into a separate outlet array
+                    # ADD CODE FOR THIS HERE, right now these parcel will just cycle through not actually leaving the system
+                    break # break out of while loop
+                
+                current_link[p] = downstream_link_id
+                location_in_link[p] = 0 # place parcel at upstream end of DS link
+                # ARRIVAL TIME in this link ("current_link") is equal to "t" running time + "running_travel_time_in_dt"
+                   
+                # movement in DS link is at the same velocity as in US link
+                # perhaps modify in future or ensure this type of travel is kept to a minimum by
+                # dt < travel time
+                time_to_exit_current_link[p] = time_to_exit_current_link[p] / grid.at_link['link_length'][element_id[p]] * grid.at_link['link_length'][current_link[p]]
+                running_travel_time_in_dt[p] = running_travel_time_in_dt[p] + time_to_exit_current_link[p]
+                # TRACK RUNNING TRAVEL DISTANCE HERE SIMILAR TO RUNNING TRAVEL TIME
+
+            time_in_link_before_dt = time_to_exit_current_link[p] - (running_travel_time_in_dt[p] - dt)
+            #^ if in same link, this equals dt    
+                
+            # update location in current link
+            location_in_link[p] = location_in_link[p] + (time_in_link_before_dt / time_to_exit_current_link[p])
+
+            # update parcel attributes
+            parcels.DataFrame.location_in_link.values[p] = location_in_link[p]
+            parcels.DataFrame.element_id.values[p] = current_link[p]
+            parcels.DataFrame.active_layer.values[p] = 1 # reset to 1 (active) to be recomputed/determined at next timestep
+            # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE            
+            
+
+# %%    WE COULD PROBABLY DELETE ALL OF THIS PSEUDO PYTHON/MATLAB CODE NOW THAT IT IS CODED IN PYTHON ABOVE    
         for i in range(number of links):
             
             # if the current link is empty, go to the next link

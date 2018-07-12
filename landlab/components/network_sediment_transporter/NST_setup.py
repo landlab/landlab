@@ -23,7 +23,9 @@ grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
 graph.plot_graph(grid, at='node,link')
 
-grid.at_node['topographic__elevation'] = [0., 1., 3., 2., 3., 4., 4., 2.]
+grid.at_node['topographic__elevation'] = [0., 1., 3., 2., 3., 4., 4.1, 5.]
+#^ in order for the FlowDirector and FlowAccumulator to work properly with the network model grid
+# I had to change the last two elements from 4. and 2. to 4.1 and 5. in order to avoid slopes <=0
 
 area = grid.add_ones('cell_area_at_node', at = 'node')
 
@@ -41,8 +43,8 @@ grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
 ## Basic parameters
 
-g = 9.81 
-rho = 1000
+g = 9.81 # m/s2
+rho = 1000 # kg/m3
 theta = 0.5
 
 Lp = 0.3  #porosity of the bed material
@@ -64,6 +66,7 @@ lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each 
 active_layer = np.ones(np.size(element_id)) # 1 = active/surface layer; 0 = subsurface layer
 density = 2650 * np.ones(np.size(element_id)) # (kg/m3) 
 
+location_in_link = np.zeros(np.size(element_id)) # [0 1], 0 is upstream end of link, 1 is downstream end
 
 D[0] = 0.075
 D[5] = 0.0001 # make one of them sand
@@ -76,7 +79,8 @@ data = {'starting_link': starting_link,
         'lithology': lithology,
         'time_arrival_in_link': time_arrival_in_link,
         'active_layer': active_layer,
-        'density': density}
+        'density': density,
+        'location_in_link': location_in_link}
         
 parcels = ItemCollection(grid,
     data = data,
