@@ -32,6 +32,7 @@ from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .erosion_deposition import ErosionDeposition
 from .space import Space
 from .landslides import LandslideProbability
+from .species_evolution import SpeciesEvolver
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .normal_fault import NormalFault
 
@@ -52,6 +53,6 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
               LandslideProbability, DepthDependentTaylorDiffuser,
-              NormalFault]
+              NormalFault, SpeciesEvolver]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
