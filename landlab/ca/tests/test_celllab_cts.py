@@ -10,7 +10,7 @@ Created on Thu Jul  9 08:20:06 2015
 from nose.tools import assert_equal
 from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid, HexModelGrid
-from landlab.ca.celllab_cts import Transition, Event
+from landlab.ca.celllab_cts import Transition #X, Event
 from landlab.ca.raster_cts import RasterCTS
 from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 from landlab.ca.hex_cts import HexCTS
