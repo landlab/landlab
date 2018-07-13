@@ -880,48 +880,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         For each link that lies above the y = 1.5 cells line, assign the
         properties of the link one row down.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
-        >>> from landlab.ca.celllab_cts import Transition
-        >>> import numpy as np
-
-        >>> mg = HexModelGrid(4, 3, 1.0, orientation='vertical', shape='rect')
-        >>> nsd = {0 : 'yes', 1 : 'no'}
-        >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
-        >>> xnlist.append(Transition((0,0,1), (1,1,1), 1.0, 'frogging'))
-        >>> xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'frogging'))
-        >>> nsg = mg.add_zeros('node', 'node_state_grid')
-        >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-        >>> ohcts.link_state[mg.active_links]
-        array([0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
-        >>> ohcts.next_trn_id[mg.active_links]
-        array([0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
-        >>> lu = LatticeUplifter(grid=mg)
-        >>> nu = ohcts.next_update
-        >>> np.round(nu[mg.active_links], 2) # doctest: +NORMALIZE_WHITESPACE
-        array([0.8 , 1.26, 0.92, 0.79, 0.55, 1.04, 0.58, 2.22, 3.31, 0.48, 1.57])
-        >>> pq = ohcts.priority_queue
-        >>> pq._queue[0][2]  # link for first event = 20, not shifted
-        20
-        >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.48
-        0.48
-        >>> pq._queue[2][2]  # this event scheduled for link 15...
-        15
-        >>> round(pq._queue[2][0], 2)  # ...transition scheduled for t = 0.58
-        0.58
-        >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
-        >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
-        array([0.75, 0.84, 2.6 , 0.07, 0.09, 0.8 , 0.02, 1.79, 1.51, 2.04, 3.85])
-        >>> pq._queue[0][2]  # new soonest event
-        15
-        >>> pq._queue[9][2]  # was previously 7, now shifted up...
-        14
-        >>> round(pq._queue[9][0], 2)  # ...but still scheduled for t = 0.80
-        0.8
+        
+        (For an example, see unit test:
+            test_shift_link_and_transition_data_upward)
         """
 
         # Find the ID of the first link above the y = 1.5 line

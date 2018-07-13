@@ -309,6 +309,32 @@ def test_grain_hill_model():
                        [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7])
 
 
+def test_setup_transition_data():
+    """Test the CellLabCTSModel setup_transition_data method."""
+    grid = RasterModelGrid((3, 4))
+    nsd = {0 : 'zero', 1 : 'one'}
+    trn_list = []
+    trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
+    trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
+    trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
+    trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
+    ins = np.arange(12) % 2
+    cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
+
+    assert_array_equal(cts.n_trn, [0, 1, 1, 0, 0, 2, 0, 0])
+    assert_array_equal(cts.trn_id,
+                       [[0, 0],
+                        [0, 0],
+                        [1, 0],
+                        [0, 0],
+                        [0, 0],
+                        [2, 3],
+                        [0, 0],
+                        [0, 0]])
+    assert_array_equal(cts.trn_to, [2, 1, 6, 7])
+    assert_array_equal(cts.trn_rate, [1., 2., 3., 4.])
+
+
 if __name__ == '__main__':
     test_transition()
     test_raster_cts()

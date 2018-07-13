@@ -671,58 +671,7 @@ class CellLabCTSModel(object):
             print((self.link_state))
 
     def setup_transition_data(self, xn_list):
-        """Create transition data arrays.
-
-        PREVIOUS METHOD:
-        
-        Using the transition list and the number of link states, creates
-        three arrays that collectively contain data on state transitions:
-
-        * ``n_xn``: for each link state, contains the number of transitions out
-          of that state.
-        * ``xn_to``: 2D array that records, for each link state and each
-          transition, the new state into which the link transitions.
-        * ``xn_rate``: 2D array that records, for each link state and each
-          transition, the rate (1/time) of the transition.
-        * ``xn_propswap``: 2D array that indicates, for each link state and
-          each transition, whether that transition is accompanied by a
-          "property" swap, in which the two cells exchange properties (in
-          order to represent a particle moving)
-          
-        NEW METHOD:
-        
-        
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.ca.celllab_cts import Transition
-        >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4))
-        >>> nsd = {0 : 'zero', 1 : 'one'}
-        >>> trn_list = []
-        >>> trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
-        >>> trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
-        >>> trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
-        >>> trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
-        >>> ins = np.arange(12) % 2
-        >>> cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
-        >>> cts.n_trn
-        array([0, 1, 1, 0, 0, 2, 0, 0])
-        >>> cts.trn_id
-        array([[0, 0],
-               [0, 0],
-               [1, 0],
-               [0, 0],
-               [0, 0],
-               [2, 3],
-               [0, 0],
-               [0, 0]])
-        >>> cts.trn_to
-        array([2, 1, 6, 7])
-        >>> cts.trn_rate  # doctest: +NORMALIZE_WHITESPACE
-        array([1., 2., 3., 4.])
-        """
+        """Create transition data arrays."""
 
         # First, create an array that stores the number of possible transitions
         # out of each state.
