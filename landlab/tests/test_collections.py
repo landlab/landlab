@@ -231,7 +231,7 @@ def test_1_component_find_connections():
     palette = Palette(sample=Sample1)
 
     with pytest.raises(NoProvidersError):
-        palette.find_connections
+        palette.find_connections()
 
 
 def test_2_components_create():

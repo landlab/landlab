@@ -4,11 +4,7 @@ Unit tests for landlab.components.overland_flow.OverlandFlow
 
 last updated: 3/14/16
 """
-from nose.tools import assert_equal, assert_true, assert_raises, with_setup
-try:
-    from nose.tools import assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is_instance
+from nose.tools import with_setup
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -33,37 +29,39 @@ def setup_grid():
 
 @with_setup(setup_grid)
 def test_deAlm_name():
-    assert_equal(deAlm.name, 'OverlandFlow')
+    assert deAlm.name == 'OverlandFlow'
 
 
 @with_setup(setup_grid)
 def test_deAlm_input_var_names():
-    assert_equal(deAlm.input_var_names,  ('surface_water__depth',
-                                          'topographic__elevation',))
+    assert deAlm.input_var_names == (
+        'surface_water__depth',
+        'topographic__elevation',
+    )
 
 
 @with_setup(setup_grid)
 def test_deAlm_output_var_names():
-    assert_equal(deAlm.output_var_names, ('surface_water__depth',
-                                          'surface_water__discharge',
-                                          'water_surface__gradient', ))
+    assert deAlm.output_var_names == (
+        'surface_water__depth',
+        'surface_water__discharge',
+        'water_surface__gradient',
+    )
 
 @with_setup(setup_grid)
 def test_deAlm_var_units():
-    assert_equal(set(deAlm.input_var_names) |
-                 set(deAlm.output_var_names),
-                 set(dict(deAlm.units).keys()))
+    assert set(deAlm.input_var_names) | set(deAlm.output_var_names) == set(dict(deAlm.units).keys())
 
-    assert_equal(deAlm.var_units('surface_water__depth'), 'm')
-    assert_equal(deAlm.var_units('surface_water__discharge'), 'm3/s')
-    assert_equal(deAlm.var_units('water_surface__gradient'), '-')
-    assert_equal(deAlm.var_units('topographic__elevation'), 'm')
+    assert deAlm.var_units('surface_water__depth') == 'm'
+    assert deAlm.var_units('surface_water__discharge') == 'm3/s'
+    assert deAlm.var_units('water_surface__gradient') == '-'
+    assert deAlm.var_units('topographic__elevation') == 'm'
 
 
 @with_setup(setup_grid)
 def test_grid_shape():
-    assert_equal(deAlm.grid.number_of_node_rows, _SHAPE[0])
-    assert_equal(deAlm.grid.number_of_node_columns, _SHAPE[1])
+    assert deAlm.grid.number_of_node_rows == _SHAPE[0]
+    assert deAlm.grid.number_of_node_columns == _SHAPE[1]
 
 
 def test_deAlm_analytical():

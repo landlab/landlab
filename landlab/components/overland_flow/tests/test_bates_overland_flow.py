@@ -4,11 +4,7 @@ Unit tests for landlab.components.overland_flow.OverlandFlowBates
 
 last updated: 3/14/16
 """
-from nose.tools import assert_equal, assert_true, assert_raises, with_setup
-try:
-    from nose.tools import assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is_instance
+from nose.tools import with_setup
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -31,33 +27,32 @@ def setup_grid():
 
 @with_setup(setup_grid)
 def test_Bates_name():
-    assert_equal(bates.name, 'OverlandFlowBates')
+    assert bates.name == 'OverlandFlowBates'
 
 
 @with_setup(setup_grid)
 def test_Bates_input_var_names():
-    # DEJH added sets to remove reliance on ordering
-    assert_equal(set(bates.input_var_names),  set(('surface_water__depth',
-                                                   'topographic__elevation')))
+    assert set(bates.input_var_names) == set(('surface_water__depth', 'topographic__elevation'))
 
 
 @with_setup(setup_grid)
 def test_Bates_output_var_names():
-    # DEJH added sets to remove reliance on ordering
-    assert_equal(set(bates.output_var_names), set(('surface_water__depth',
-                                                   'surface_water__discharge',
-                                                   'water_surface__gradient')))
+    assert set(bates.output_var_names) == set(
+        (
+            'surface_water__depth',
+            'surface_water__discharge',
+            'water_surface__gradient',
+        )
+    )
 
 @with_setup(setup_grid)
 def test_Bates_var_units():
-    assert_equal(set(bates.input_var_names) |
-                 set(bates.output_var_names),
-                 set(dict(bates.units).keys()))
+    assert set(bates.input_var_names) | set(bates.output_var_names) == set(dict(bates.units).keys())
 
-    assert_equal(bates.var_units('surface_water__depth'), 'm')
-    assert_equal(bates.var_units('surface_water__discharge'), 'm3/s')
-    assert_equal(bates.var_units('water_surface__gradient'), 'm/m')
-    assert_equal(bates.var_units('topographic__elevation'), 'm')
+    assert bates.var_units('surface_water__depth') == 'm'
+    assert bates.var_units('surface_water__discharge') == 'm3/s'
+    assert bates.var_units('water_surface__gradient') == 'm/m'
+    assert bates.var_units('topographic__elevation') == 'm'
 
 
 @with_setup(setup_grid)
@@ -65,16 +60,16 @@ def test_field_initialized_to_zero():
     for name in bates.grid['node'].keys():
         field = bates.grid['node'][name]
         if name != 'surface_water__depth':
-            assert_true(np.all(np.isclose(field, 0.)))
+            assert np.all(np.isclose(field, 0.))
         else:
-            assert_true(np.all(np.isclose(field, 0.001)))
+            assert np.all(np.isclose(field, 0.001))
             # this remains broken, and needs JA's attention
 
 
 @with_setup(setup_grid)
 def test_grid_shape():
-    assert_equal(bates.grid.number_of_node_rows, _SHAPE[0])
-    assert_equal(bates.grid.number_of_node_columns, _SHAPE[1])
+    assert bates.grid.number_of_node_rows == _SHAPE[0]
+    assert bates.grid.number_of_node_columns == _SHAPE[1]
 
 
 def test_Bates_analytical():

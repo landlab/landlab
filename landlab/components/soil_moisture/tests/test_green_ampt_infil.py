@@ -4,11 +4,7 @@ Unit tests for landlab.components.soil_moisture.SoilInfiltrationGreenAmpt
 
 last updated: 3/14/16
 """
-from nose.tools import assert_equal, assert_true, assert_raises, with_setup
-try:
-    from nose.tools import assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is_instance
+from nose.tools import with_setup
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -43,34 +39,31 @@ def setup_grid():
 
 @with_setup(setup_grid)
 def test_SI_name():
-    assert_equal(SI.name, 'SoilInfiltrationGreenAmpt')
+    assert SI.name == 'SoilInfiltrationGreenAmpt'
 
 
 @with_setup(setup_grid)
 def test_SI_input_var_names():
-    assert_equal(SI.input_var_names,  ('surface_water__depth',
-                                          'soil_water_infiltration__depth',))
+    assert SI.input_var_names == ('surface_water__depth', 'soil_water_infiltration__depth',)
 
 
 @with_setup(setup_grid)
 def test_SI_output_var_names():
-    assert_equal(SI.output_var_names, ('surface_water__depth',
-                                          'soil_water_infiltration__depth',))
+    assert SI.output_var_names == ('surface_water__depth', 'soil_water_infiltration__depth',)
+
 
 @with_setup(setup_grid)
 def test_SI_var_units():
-    assert_equal(set(SI.input_var_names) |
-                 set(SI.output_var_names),
-                 set(dict(SI.units).keys()))
+    assert set(SI.input_var_names) | set(SI.output_var_names) == set(dict(SI.units).keys())
 
-    assert_equal(SI.var_units('surface_water__depth'), 'm')
-    assert_equal(SI.var_units('soil_water_infiltration__depth'), 'm')
+    assert SI.var_units('surface_water__depth') == 'm'
+    assert SI.var_units('soil_water_infiltration__depth') == 'm'
 
 
 @with_setup(setup_grid)
 def test_grid_shape():
-    assert_equal(SI.grid.number_of_node_rows, _SHAPE[0])
-    assert_equal(SI.grid.number_of_node_columns, _SHAPE[1])
+    assert SI.grid.number_of_node_rows == _SHAPE[0]
+    assert SI.grid.number_of_node_columns == _SHAPE[1]
 
 
 @with_setup(setup_grid)

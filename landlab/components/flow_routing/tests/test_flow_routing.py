@@ -14,13 +14,7 @@ from six.moves import range
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
-                        assert_almost_equal, assert_equal)
-try:
-    from nose.tools import (assert_is, assert_set_equal, assert_dict_equal)
-except ImportError:
-    from landlab.testing.tools import (assert_is, assert_set_equal,
-                                       assert_dict_equal)
+from nose.tools import with_setup, assert_almost_equal
 
 import landlab
 from landlab import RasterModelGrid, RadialModelGrid, FieldError

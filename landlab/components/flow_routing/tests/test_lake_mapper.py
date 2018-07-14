@@ -15,8 +15,7 @@ from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
-from nose.tools import (with_setup, assert_true, assert_false,
-                        assert_almost_equal, assert_equal)
+from nose.tools import with_setup, assert_almost_equal
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -657,7 +656,7 @@ def test_three_pits():
     lc[74:76] = 74
     assert_array_equal(lf.lake_map, lc)
     assert_array_equal(lf.lake_codes, [33, 37, 74])
-    assert_equal(lf.number_of_lakes, 3)
+    assert lf.number_of_lakes == 3
     assert_array_almost_equal(lf.lake_areas, [2., 1., 2.])
     assert_array_almost_equal(lf.lake_volumes, [2., 2., 4.])
 
@@ -732,13 +731,13 @@ def test_composite_pits():
                    XX, XX, XX, XX, XX, XX, XX, XX, XX, XX])
     
     #test the remaining properties:
-    assert_equal(lf.lake_outlets.size, 1)
-    assert_equal(lf.lake_outlets[0], 72)
+    assert lf.lake_outlets.size == 1
+    assert lf.lake_outlets[0] == 72
     outlets_in_map = np.unique(lf.depression_outlet_map)
-    assert_equal(outlets_in_map.size, 2)
-    assert_equal(outlets_in_map[1], 72)
-    assert_equal(lf.number_of_lakes, 1)
-    assert_equal(lf.lake_codes[0], 57)
+    assert outlets_in_map.size == 2
+    assert outlets_in_map[1] == 72
+    assert lf.number_of_lakes == 1
+    assert lf.lake_codes[0] == 57
     assert_array_equal(lf.lake_map, lc)
     assert_almost_equal(lf.lake_areas[0], 25.)
     assert_almost_equal(lf.lake_volumes[0], 63.)
@@ -750,8 +749,8 @@ def test_D8_D4_fill():
     """
     lfD8.map_depressions(pits=None, reroute_flow=False)
     lfD4.map_depressions(pits=None, reroute_flow=False)
-    assert_equal(lfD8.number_of_lakes, 1)
-    assert_equal(lfD4.number_of_lakes, 3)
+    assert lfD8.number_of_lakes == 1
+    assert lfD4.number_of_lakes == 3
     
     correct_D8_lake_map = np.empty(7*7, dtype=int)
     correct_D8_lake_map.fill(XX)
@@ -782,8 +781,8 @@ def test_D8_D4_route():
     frD4.route_flow()
     lfD8.map_depressions()
     lfD4.map_depressions()
-    assert_equal(lfD8.number_of_lakes, 1)
-    assert_equal(lfD4.number_of_lakes, 3)
+    assert lfD8.number_of_lakes == 1
+    assert lfD4.number_of_lakes == 3
 
 #    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
 #                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,

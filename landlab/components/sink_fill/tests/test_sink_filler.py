@@ -6,22 +6,18 @@ Created on Tues Oct 20, 2015
 
 @author: dejh
 """
+import pytest
 
-import landlab
-from landlab import RasterModelGrid, FieldError
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.sink_fill import SinkFiller
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
+from nose.tools import with_setup, assert_almost_equal
+
+import landlab
 from landlab import BAD_INDEX_VALUE as XX
-from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
-                        assert_almost_equal, assert_equal)
-try:
-    from nose.tools import (assert_is, assert_set_equal, assert_dict_equal)
-except ImportError:
-    from landlab.testing.tools import (assert_is, assert_set_equal,
-                                       assert_dict_equal)
+from landlab import RasterModelGrid, FieldError
+from landlab.components.flow_routing import FlowRouter
+from landlab.components.sink_fill import SinkFiller
 
 
 def setup_dans_grid1():
@@ -213,7 +209,8 @@ def check_fields(grid):
     assert_array_equal(z, mg.at_node['topographic__elevation'])
     assert_array_equal(np.zeros(mg.number_of_nodes),
                        mg.at_node['sediment_fill__depth'])
-    assert_raises(FieldError, mg.at_node['drainage_area'])
+    with pytest.raises(FieldError):
+        mg.at_node['drainage_area']
 
 
 @with_setup(setup_dans_grid1)
@@ -243,16 +240,16 @@ def test_drainage_directions_change():
     new_elevs = old_elevs.copy()
     new_elevs[40] = 2.
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
-    assert_false(cond)
+    assert not cond
     new_elevs[23] = 0.5
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
-    assert_false(cond)
+    assert not cond
     new_elevs[23] = 1.
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
-    assert_false(cond)
+    assert not cond
     new_elevs[23] = 1.2
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
-    assert_true(cond)
+    assert cond
 
 
 @with_setup(setup_dans_grid1)
@@ -324,7 +321,7 @@ def test_filler_inclined2():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow()
-    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
+    assert mg.at_node['flow__sink_flag'][mg.core_nodes].sum() == 0
 
 
 @with_setup(setup_dans_grid4)
@@ -344,7 +341,7 @@ def test_stupid_shaped_hole():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow()
-    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
+    assert mg.at_node['flow__sink_flag'][mg.core_nodes].sum() == 0
 
 
 @with_setup(setup_dans_grid5)
@@ -368,7 +365,7 @@ def test_D4_routing():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][lake2],
                               hole2)
     fr.route_flow(method='D4')
-    assert_equal(mg.at_node['flow__sink_flag'][mg.core_nodes].sum(), 0)
+    assert mg.at_node['flow__sink_flag'][mg.core_nodes].sum() == 0
 
 
 @with_setup(setup_dans_grid5)

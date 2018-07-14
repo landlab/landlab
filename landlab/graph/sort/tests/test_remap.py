@@ -10,7 +10,7 @@ def test_remap():
 
     rtn = remap(src, mapping)
     assert_array_equal(rtn, [10, 20, 30, 40])
-    assert rtn is src
+    assert rtn is not src
 
 
 def test_remap_inplace():

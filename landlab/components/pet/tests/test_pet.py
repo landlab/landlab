@@ -1,12 +1,9 @@
 """
 Unit tests for landlab.components.pet.potential_evapotranspiration_field
 """
-from nose.tools import assert_equal, assert_true, assert_raises, with_setup
+import pytest
+from nose.tools import with_setup
 from numpy.testing import assert_array_almost_equal
-try:
-    from nose.tools import assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is_instance
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -29,73 +26,69 @@ def setup_grid():
 
 @with_setup(setup_grid)
 def test_name():
-    assert_equal(PET.name, 'Potential Evapotranspiration')
+    assert PET.name == 'Potential Evapotranspiration'
 
 
 @with_setup(setup_grid)
 def test_input_var_names():
-    assert_equal(PET.input_var_names,
-                 ('radiation__ratio_to_flat_surface',))
+    assert PET.input_var_names == ('radiation__ratio_to_flat_surface', )
 
 
 @with_setup(setup_grid)
 def test_output_var_names():
-    assert_equal(sorted(PET.output_var_names),
-                 ['radiation__incoming_shortwave_flux',
-                  'radiation__net_flux',
-                  'radiation__net_longwave_flux',
-                  'radiation__net_shortwave_flux',
-                  'surface__potential_evapotranspiration_rate'])
+    assert sorted(PET.output_var_names) == [
+        'radiation__incoming_shortwave_flux',
+        'radiation__net_flux',
+        'radiation__net_longwave_flux',
+        'radiation__net_shortwave_flux',
+        'surface__potential_evapotranspiration_rate',
+    ]
 
 
 @with_setup(setup_grid)
 def test_var_units():
-    assert_equal(set(PET.input_var_names) |
-                 set(PET.output_var_names),
-                 set(dict(PET.units).keys()))
+    assert set(PET.input_var_names) | set(PET.output_var_names) == set(dict(PET.units).keys())
 
-    assert_equal(PET.var_units('radiation__incoming_shortwave_flux'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__net_flux'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__net_longwave_flux'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__net_shortwave_flux'), 'W/m^2')
-    assert_equal(PET.var_units('radiation__ratio_to_flat_surface'), 'None')
-    assert_equal(PET.var_units('surface__potential_evapotranspiration_rate'),
-                 'mm')
+    assert PET.var_units('radiation__incoming_shortwave_flux') == 'W/m^2'
+    assert PET.var_units('radiation__net_flux') == 'W/m^2'
+    assert PET.var_units('radiation__net_longwave_flux') == 'W/m^2'
+    assert PET.var_units('radiation__net_shortwave_flux') == 'W/m^2'
+    assert PET.var_units('radiation__ratio_to_flat_surface') == 'None'
+    assert PET.var_units('surface__potential_evapotranspiration_rate') == 'mm'
 
 
 @with_setup(setup_grid)
 def test_grid_shape():
-    assert_equal(PET.grid.number_of_node_rows, _SHAPE[0])
-    assert_equal(PET.grid.number_of_node_columns, _SHAPE[1])
+    assert PET.grid.number_of_node_rows == _SHAPE[0]
+    assert PET.grid.number_of_node_columns == _SHAPE[1]
 
 
 @with_setup(setup_grid)
 def test_grid_x_extent():
-    assert_equal(PET.grid.extent[1], (_SHAPE[1] - 1) * _SPACING[1])
+    assert PET.grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
 
 
 @with_setup(setup_grid)
 def test_grid_y_extent():
-    assert_equal(PET.grid.extent[0], (_SHAPE[0] - 1) * _SPACING[0])
+    assert PET.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
 
 
 @with_setup(setup_grid)
 def test_field_getters():
     for name in PET.grid['node']:
         field = PET.grid['node'][name]
-        assert_is_instance(field, np.ndarray)
-        assert_equal(field.shape,
-                     (PET.grid.number_of_node_rows *
-                      PET.grid.number_of_node_columns, ))
+        assert isinstance(field, np.ndarray)
+        assert field.shape == (PET.grid.number_of_node_rows *
+                               PET.grid.number_of_node_columns, )
                       
     for name in PET.grid['cell']:
         field = PET.grid['cell'][name]
-        assert_is_instance(field, np.ndarray)
-        assert_equal(field.shape,
-                     (PET.grid.number_of_cell_rows *
-                      PET.grid.number_of_cell_columns, ))
+        assert isinstance(field, np.ndarray)
+        assert field.shape == (PET.grid.number_of_cell_rows *
+                               PET.grid.number_of_cell_columns, )
 
-    assert_raises(KeyError, lambda: PET.grid['not_a_var_name'])
+    with pytest.raises(KeyError):
+        PET.grid['not_a_var_name']
 
 
 @with_setup(setup_grid)
