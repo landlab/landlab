@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose import with_setup
 
 from landlab import RasterModelGrid
 
@@ -17,10 +16,10 @@ def setup_grids():
     })
 
 
-@with_setup(setup_grids)
 def test_unit_spacing():
     """Test with a grid with unit spacing."""
-    rmg, values_at_nodes = _GRIDS['unit'], np.arange(20)
+    rmg = RasterModelGrid((4, 5))
+    values_at_nodes = np.arange(20)
     grads = rmg.calc_grad_at_link(values_at_nodes)[rmg.active_links]
 
     assert_array_equal(grads,
@@ -34,10 +33,10 @@ def test_unit_spacing():
     assert_array_equal(grads, diffs)
 
 
-@with_setup(setup_grids)
 def test_non_unit_spacing():
     """Test with a grid with non-unit spacing."""
-    rmg, values_at_nodes = _GRIDS['non_square'], np.arange(20)
+    rmg = RasterModelGrid((4, 5), spacing=(5, 2))
+    values_at_nodes = np.arange(20)
 
     grads = rmg.calc_grad_at_link(values_at_nodes)[rmg.active_links]
     assert_array_equal(grads,
@@ -55,10 +54,10 @@ def test_non_unit_spacing():
                                  5.0, 5.0, 5.0,]))
 
 
-@with_setup(setup_grids)
 def test_out_array():
     """Test using the out keyword."""
-    rmg, values_at_nodes = _GRIDS['non_square'], np.arange(20)
+    rmg = RasterModelGrid((4, 5), spacing=(5, 2))
+    values_at_nodes = np.arange(20)
 
     output_array = np.empty(rmg.number_of_links)
     rtn_array = rmg.calc_grad_at_link(values_at_nodes, out=output_array)
@@ -71,7 +70,6 @@ def test_out_array():
     assert rtn_array is output_array
 
 
-@with_setup(setup_grids)
 def test_diff_out_array():
     """Test returned array is the same as that passed as out keyword."""
     rmg = RasterModelGrid(4, 5)

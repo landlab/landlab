@@ -1,14 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup
 
 from landlab import RasterModelGrid
-
-
-def setup_grid():
-    globals().update({
-        'rmg': RasterModelGrid(4, 5)
-    })
 
 
 def test_boundary_node():
@@ -17,19 +10,19 @@ def test_boundary_node():
     assert not rmg.node_has_boundary_neighbor(14)
 
 
-@with_setup(setup_grid)
 def test_last_index():
+    rmg = RasterModelGrid((4, 5))
     assert rmg.node_has_boundary_neighbor(-1)
 
 
-@with_setup(setup_grid)
 def test_id_as_list():
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.node_has_boundary_neighbor([-1, 0]),
                        np.array([True, True]))
 
 
-@with_setup(setup_grid)
 def test_id_as_array():
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.node_has_boundary_neighbor(np.arange(20)),
                        np.array([True, True, True, True, True,
                                  True, True, True, True, True,
