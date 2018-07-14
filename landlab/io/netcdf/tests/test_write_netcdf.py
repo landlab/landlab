@@ -1,8 +1,7 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
-
+import pytest
 import numpy as np
-from nose.tools import assert_equal, assert_true, assert_raises
 from nose import SkipTest
 from numpy.testing import assert_array_equal
 
@@ -29,10 +28,10 @@ def test_netcdf_write_int64_field_netcdf4():
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         for name in ['topographic__elevation']:
-            assert_true(name in root.variables)
+            assert name in root.variables
             assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
-            assert_equal(root.variables[name][:].dtype, 'int64')
+            assert root.variables[name][:].dtype == 'int64'
 
         root.close()
 
@@ -49,10 +48,10 @@ def test_netcdf_write_uint8_field_netcdf4():
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         for name in ['topographic__elevation']:
-            assert_true(name in root.variables)
+            assert name in root.variables
             assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
-            assert_equal(root.variables[name][:].dtype, 'uint8')
+            assert root.variables[name][:].dtype == 'uint8'
 
         root.close()
 
@@ -71,7 +70,7 @@ def test_netcdf_write_as_netcdf3_64bit():
         f = netcdf.netcdf_file('test.nc', 'r')
 
         for name in ['topographic__elevation', 'uplift_rate']:
-            assert_true(name in f.variables)
+            assert name in f.variables
             assert_array_equal(f.variables[name][:].flatten(), field.at_node[name])
 
         f.close()
@@ -91,7 +90,7 @@ def test_netcdf_write_as_netcdf3_classic():
         f = netcdf.netcdf_file('test.nc', 'r')
 
         for name in ['topographic__elevation', 'uplift_rate']:
-            assert_true(name in f.variables)
+            assert name in f.variables
             assert_array_equal(f.variables[name][:].flatten(), field.at_node[name])
 
         f.close()
@@ -109,14 +108,13 @@ def test_netcdf_write():
         write_netcdf('test.nc', field, format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
-        assert_equal(set(root.dimensions), set(['ni', 'nj', 'nt']))
-        assert_equal(len(root.dimensions['ni']), 3)
-        assert_equal(len(root.dimensions['nj']), 4)
-        assert_true(len(root.dimensions['nt']), 1)
-        assert_true(root.dimensions['nt'].isunlimited())
+        assert set(root.dimensions) == set(['ni', 'nj', 'nt'])
+        assert len(root.dimensions['ni']) == 3
+        assert len(root.dimensions['nj']) == 4
+        assert len(root.dimensions['nt']) == 1
+        assert root.dimensions['nt'].isunlimited()
 
-        assert_equal(set(root.variables),
-                     set(['x', 'y', 'topographic__elevation']))
+        assert set(root.variables) == set(['x', 'y', 'topographic__elevation'])
 
         assert_array_equal(root.variables['x'][:].flatten(),
                            np.array([0., 1., 2., 0., 1., 2., 0., 1., 2.,
@@ -144,7 +142,7 @@ def test_netcdf_write_as_netcdf4_classic():
         root = nc.Dataset('test.nc', 'r', format='NETCDF4_CLASSIC')
 
         for name in ['topographic__elevation', 'uplift_rate']:
-            assert_true(name in root.variables)
+            assert name in root.variables
             assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
 
@@ -165,8 +163,8 @@ def test_netcdf_write_names_keyword_as_list():
                      format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
-        assert_true('topographic__elevation' in root.variables)
-        assert_true('uplift_rate' not in root.variables)
+        assert 'topographic__elevation' in root.variables
+        assert 'uplift_rate' not in root.variables
         assert_array_equal(root.variables['topographic__elevation'][:].flatten(),
                            field.at_node['topographic__elevation'])
 
@@ -186,8 +184,8 @@ def test_netcdf_write_names_keyword_as_str():
         write_netcdf('test.nc', field, names='uplift_rate', format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
-        assert_true('topographic__elevation' not in root.variables)
-        assert_true('uplift_rate' in root.variables)
+        assert 'topographic__elevation' not in root.variables
+        assert 'uplift_rate' in root.variables
         assert_array_equal(root.variables['uplift_rate'][:].flatten(),
                            field.at_node['uplift_rate'])
 
@@ -208,7 +206,7 @@ def test_netcdf_write_names_keyword_as_none():
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
         for name in ['topographic__elevation', 'uplift_rate']:
-            assert_true(name in root.variables)
+            assert name in root.variables
             assert_array_equal(root.variables[name][:].flatten(),
                                field.at_node[name])
 
@@ -220,7 +218,7 @@ def test_2d_unit_spacing():
     (x, y) = np.meshgrid(np.arange(5.), np.arange(4.))
 
     spacing = _get_raster_spacing((y, x))
-    assert_equal(spacing, 1.)
+    assert spacing == 1.
 
 
 def test_2d_non_unit_spacing():
@@ -228,21 +226,23 @@ def test_2d_non_unit_spacing():
     (x, y) = np.meshgrid(np.arange(5.) * 2, np.arange(4.) * 2)
 
     spacing = _get_raster_spacing((y, x))
-    assert_equal(spacing, 2.)
+    assert spacing == 2.
 
 
 def test_2d_uneven_spacing_axis_0():
     """Test _get_raster_spacing with a 2D grid with uneven spacing in y."""
     (x, y) = np.meshgrid(np.logspace(0., 2., num=5), np.arange(4.))
 
-    assert_raises(NotRasterGridError, _get_raster_spacing, (y, x))
+    with pytest.raises(NotRasterGridError):
+        _get_raster_spacing((y, x))
 
 
 def test_2d_uneven_spacing_axis_1():
     """Test _get_raster_spacing with a 2D grid with uneven spacing in x."""
     (x, y) = np.meshgrid(np.arange(4.), np.logspace(0., 2., num=5))
 
-    assert_raises(NotRasterGridError, _get_raster_spacing, (y, x))
+    with pytest.raises(NotRasterGridError):
+        _get_raster_spacing((y, x))
 
 
 def test_2d_switched_coords():
@@ -250,25 +250,25 @@ def test_2d_switched_coords():
     (x, y) = np.meshgrid(np.arange(5.), np.arange(4.))
 
     spacing = _get_raster_spacing((x, y))
-    assert_equal(spacing, 0.)
+    assert spacing == 0.
 
 
 def test_1d_unit_spacing():
     """Test _get_raster_spacing with a 1D grid with unit spacing."""
     spacing = _get_raster_spacing((np.arange(5.), ))
-    assert_equal(spacing, 1.)
+    assert spacing == 1.
 
 
 def test_1d_non_unit_spacing():
     """Test _get_raster_spacing with a 1D grid with non-unit spacing."""
     spacing = _get_raster_spacing((np.arange(5.) * 2, ))
-    assert_equal(spacing, 2.)
+    assert spacing == 2.
 
 
 def test_1d_uneven_spacing():
     """Test _get_raster_spacing with a 1D grid with uneven spacing in y."""
-    assert_raises(NotRasterGridError, _get_raster_spacing,
-                  (np.logspace(0., 2., num=5), ))
+    with pytest.raises(NotRasterGridError):
+        _get_raster_spacing((np.logspace(0., 2., num=5), ))
 
 
 def test_netcdf_write_at_cells():
@@ -286,18 +286,16 @@ def test_netcdf_write_at_cells():
         root = nc.Dataset('test-cells.nc', 'r', format='NETCDF4')
 
         for name in ['topographic__elevation', 'uplift_rate']:
-            assert_true(name in root.variables)
+            assert name in root.variables
             assert_array_equal(root.variables[name][:].flatten(),
                                field.at_cell[name])
 
-        assert_equal(set(root.dimensions), set(['nv', 'ni', 'nj', 'nt']))
-        assert_equal(len(root.dimensions['nv']), 4)
-        assert_equal(len(root.dimensions['ni']), 1)
-        assert_equal(len(root.dimensions['nj']), 2)
-        assert_true(len(root.dimensions['nt']), 1)
-        assert_true(root.dimensions['nt'].isunlimited())
+        assert set(root.dimensions) == set(['nv', 'ni', 'nj', 'nt'])
+        assert len(root.dimensions['nv']) == 4
+        assert len(root.dimensions['ni']) == 1
+        assert len(root.dimensions['nj']) == 2
+        assert len(root.dimensions['nt']) == 1
+        assert root.dimensions['nt'].isunlimited()
 
-        assert_equal(set(root.variables),
-                     set(['x_bnds', 'y_bnds', 'topographic__elevation',
-                          'uplift_rate']))
+        assert set(root.variables) == set(['x_bnds', 'y_bnds', 'topographic__elevation', 'uplift_rate'])
         root.close()

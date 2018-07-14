@@ -1,6 +1,5 @@
 """Test HexGraph and DualHexGraph."""
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_almost_equal)
+from nose.tools import  assert_almost_equal
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
@@ -14,39 +13,39 @@ def test_create():
     """Test creating a dual hex graph with rectangular layout."""
     graph = DualHexGraph((4, 3), node_layout='rect')
 
-    assert_equal(graph.number_of_nodes, 12)
-    assert_equal(graph.number_of_links, 23)
-    assert_equal(graph.number_of_patches, 12)
+    assert graph.number_of_nodes == 12
+    assert graph.number_of_links == 23
+    assert graph.number_of_patches == 12
 
-    assert_equal(graph.number_of_corners, 10)
-    assert_equal(graph.number_of_faces, 11)
-    assert_equal(graph.number_of_cells, 2)
+    assert graph.number_of_corners == 10
+    assert graph.number_of_faces == 11
+    assert graph.number_of_cells == 2
 
 
 def test_create_hex():
     """Test creating a dual hex graph with hex layout."""
     graph = DualHexGraph((4, 3), node_layout='hex')
 
-    assert_equal(graph.number_of_nodes, 16)
-    assert_equal(graph.number_of_links, 34)
-    assert_equal(graph.number_of_patches, 19)
+    assert graph.number_of_nodes == 16
+    assert graph.number_of_links == 34
+    assert graph.number_of_patches == 19
 
-    assert_equal(graph.number_of_corners, 19)
-    assert_equal(graph.number_of_faces, 23)
-    assert_equal(graph.number_of_cells, 5)
+    assert graph.number_of_corners == 19
+    assert graph.number_of_faces == 23
+    assert graph.number_of_cells == 5
 
 
 def test_create_rect1():
     """Test creating a dual hex graph."""
     graph = DualHexGraph((4, 3), node_layout='rect1')
 
-    assert_equal(graph.number_of_nodes, 14)
-    assert_equal(graph.number_of_links, 28)
-    assert_equal(graph.number_of_patches, 15)
+    assert graph.number_of_nodes == 14
+    assert graph.number_of_links == 28
+    assert graph.number_of_patches == 15
 
-    assert_equal(graph.number_of_corners, 13)
-    assert_equal(graph.number_of_faces, 15)
-    assert_equal(graph.number_of_cells, 3)
+    assert graph.number_of_corners == 13
+    assert graph.number_of_faces == 15
+    assert graph.number_of_cells == 3
 
 
 def test_spacing():

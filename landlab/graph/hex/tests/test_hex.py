@@ -1,6 +1,5 @@
 """Test HexGraph and DualHexGraph."""
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_almost_equal)
+from nose.tools import assert_almost_equal
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from scipy.spatial import Voronoi
 import numpy as np
@@ -12,27 +11,27 @@ def test_create_rect():
     """Test creating a hex graph with rectangular layout."""
     graph = HexGraph((3, 2), node_layout='rect')
 
-    assert_equal(graph.number_of_nodes, 6)
-    assert_equal(graph.number_of_links, 9)
-    assert_equal(graph.number_of_patches, 4)
+    assert graph.number_of_nodes == 6
+    assert graph.number_of_links == 9
+    assert graph.number_of_patches == 4
 
 
 def test_create_hex():
     """Test creating a hex graph with hex layout."""
     graph = HexGraph((3, 2), node_layout='hex')
 
-    assert_equal(graph.number_of_nodes, 7)
-    assert_equal(graph.number_of_links, 12)
-    assert_equal(graph.number_of_patches, 6)
+    assert graph.number_of_nodes == 7
+    assert graph.number_of_links == 12
+    assert graph.number_of_patches == 6
 
 
 def test_create_rect1():
     """Test creating a hex graph."""
     graph = HexGraph((3, 2), node_layout='rect1')
 
-    assert_equal(graph.number_of_nodes, 7)
-    assert_equal(graph.number_of_links, 12)
-    assert_equal(graph.number_of_patches, 6)
+    assert graph.number_of_nodes == 7
+    assert graph.number_of_links == 12
+    assert graph.number_of_patches == 6
 
 
 def test_spacing():

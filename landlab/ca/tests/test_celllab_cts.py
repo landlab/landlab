@@ -7,7 +7,6 @@ Created on Thu Jul  9 08:20:06 2015
 @author: gtucker
 """
 
-from nose.tools import assert_equal
 from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid, HexModelGrid
 from landlab.ca.celllab_cts import Transition, Event
@@ -43,12 +42,12 @@ def test_transition():
     """Test instantiation of Transition() object."""
     t = Transition((0, 0, 0), (1, 1, 0), 1.0, name='test',
                    swap_properties=False, prop_update_fn=None)
-    assert_equal(t.from_state, (0,0,0))
-    assert_equal(t.to_state, (1,1,0))
-    assert_equal(t.rate, 1.0)
-    assert_equal(t.name, 'test')
-    assert_equal(t.swap_properties, False)
-    assert_equal(t.prop_update_fn, None)
+    assert t.from_state == (0,0,0)
+    assert t.to_state == (1,1,0)
+    assert t.rate == 1.0
+    assert t.name == 'test'
+    assert t.swap_properties == False
+    assert t.prop_update_fn == None
 
 
 def test_raster_cts():
@@ -148,7 +147,7 @@ def test_oriented_raster_cts():
     nsg = mg.add_zeros('node', 'node_state_grid')
     orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
 
-    assert_equal(orcts.num_link_states, 8)
+    assert orcts.num_link_states == 8
     #assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
     assert_array_equal(orcts.link_orientation, [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0])
 
@@ -162,7 +161,7 @@ def test_hex_cts():
     nsg = mg.add_zeros('node', 'node_state_grid')
     hcts = HexCTS(mg, nsd, xnlist, nsg)
 
-    assert_equal(hcts.num_link_states, 4)
+    assert hcts.num_link_states == 4
     assert_array_equal(hcts.link_orientation, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 
@@ -175,7 +174,7 @@ def test_oriented_hex_cts():
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     
-    assert_equal(ohcts.num_link_states, 12)
+    assert ohcts.num_link_states == 12
     #assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
     assert_array_equal(ohcts.link_orientation, [2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1])
     
