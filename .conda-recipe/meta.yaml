@@ -37,7 +37,7 @@ test:
     - pytest
     - pytest-cov
   commands:
-    - pytest --pyargs landlab --doctest-modules --cov-report  --cov-report=xml -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
+    - pytest --pyargs landlab --doctest-modules --cov-report=xml -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
 
 build:
   number: 0
