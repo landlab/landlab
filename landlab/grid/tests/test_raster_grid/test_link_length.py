@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import with_setup, assert_is
+from nose.tools import with_setup
 
 from landlab import RasterModelGrid
 

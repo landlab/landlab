@@ -1,10 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid
 
@@ -89,7 +85,7 @@ def test_out_array():
         np.array([1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5,
                   5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1],
                  dtype=float))
-    assert_is(rtn_grads, grads)
+    assert rtn_grads is grads
 
 
 @with_setup(setup_unit_grid)
@@ -102,4 +98,4 @@ def test_diff_out_array():
         np.array([1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5,
                   5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 1, 1],
                  dtype=float))
-    assert_is(rtn_diff, diff)
+    assert rtn_diff is diff

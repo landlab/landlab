@@ -1,13 +1,7 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import (assert_equal, assert_raises, raises, assert_true,
-                        assert_false)
 from nose.tools import with_setup
-
-try:
-    from nose.tools import assert_is, assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is, assert_is_instance
 
 from landlab import RasterModelGrid
 from landlab import BAD_INDEX_VALUE as X
@@ -40,61 +34,61 @@ def setup_grid():
 def test_init_with_kwds_classic():
     grid = RasterModelGrid(num_rows=4, num_cols=5, dx=1.)
 
-    assert_equal(grid.number_of_node_rows, 4)
-    assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.dy, 1)
-    assert_equal(grid.dx, 1)
+    assert grid.number_of_node_rows == 4
+    assert grid.number_of_node_columns == 5
+    assert grid.dy == 1
+    assert grid.dx == 1
 
     grid = RasterModelGrid(3, 7, 2)
 
-    assert_equal(grid.number_of_node_rows, 3)
-    assert_equal(grid.number_of_node_columns, 7)
-    assert_equal(grid.dy, 2.)
-    assert_equal(grid.dx, 2.)
+    assert grid.number_of_node_rows == 3
+    assert grid.number_of_node_columns == 7
+    assert grid.dy == 2.
+    assert grid.dx == 2.
 
 
 def test_init_new_style():
     grid = RasterModelGrid((4, 5), spacing=2)
 
-    assert_equal(grid.number_of_node_rows, 4)
-    assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.dy, 2.)
-    assert_equal(grid.dx, 2.)
+    assert grid.number_of_node_rows == 4
+    assert grid.number_of_node_columns == 5
+    assert grid.dy == 2.
+    assert grid.dx == 2.
 
     grid = RasterModelGrid((4, 5))
 
-    assert_equal(grid.number_of_node_rows, 4)
-    assert_equal(grid.number_of_node_columns, 5)
-    assert_equal(grid.dy, 1.)
-    assert_equal(grid.dx, 1.)
+    assert grid.number_of_node_rows == 4
+    assert grid.number_of_node_columns == 5
+    assert grid.dy == 1.
+    assert grid.dx == 1.
 
 
 def test_spacing_is_float():
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.dy, 1.)
-    assert_is_instance(grid.dy, float)
-    assert_equal(grid.dx, 1.)
-    assert_is_instance(grid.dx, float)
+    assert grid.dy == 1.
+    assert isinstance(grid.dy, float)
+    assert grid.dx == 1.
+    assert isinstance(grid.dx, float)
 
     grid = RasterModelGrid((4, 5), spacing=2)
-    assert_equal(grid.dy, 2.)
-    assert_is_instance(grid.dy, float)
-    assert_equal(grid.dx, 2.)
-    assert_is_instance(grid.dx, float)
+    assert grid.dy == 2.
+    assert isinstance(grid.dy, float)
+    assert grid.dx == 2.
+    assert isinstance(grid.dx, float)
 
 
 @with_setup(setup_grid)
 def test_grid_dimensions():
     """Test extent of grid with unit spacing."""
-    assert_equal(rmg.extent[0], rmg.number_of_node_rows - 1)
-    assert_equal(rmg.extent[1], rmg.number_of_node_columns - 1)
+    assert rmg.extent[0] == rmg.number_of_node_rows - 1
+    assert rmg.extent[1] == rmg.number_of_node_columns - 1
 
 
 def test_grid_dimensions_non_unit_spacing():
     """Test extent of grid with non-unit spacing."""
     rmg = RasterModelGrid((4, 5), spacing=2.)
-    assert_equal(rmg.extent[0], 6.)
-    assert_equal(rmg.extent[1], 8.)
+    assert rmg.extent[0] == 6.
+    assert rmg.extent[1] == 8.
 
 
 @with_setup(setup_grid)
@@ -151,23 +145,23 @@ def test_node_y():
 
 
 @with_setup(setup_grid)
-@raises(ValueError)
 def test_node_x_is_immutable():
-    rmg.node_x[0] = 0
+    with pytest.raises(ValueError):
+        rmg.node_x[0] = 0
 
 
 @with_setup(setup_grid)
-@raises(ValueError)
 def test_node_y_is_immutable():
-    rmg.node_y[0] = 0
+    with pytest.raises(ValueError):
+        rmg.node_y[0] = 0
 
 
 @with_setup(setup_grid)
 def test_node_axis_coordinates():
-    assert_is(rmg.node_axis_coordinates(axis=0).base, rmg.node_y.base)
-    assert_is(rmg.node_axis_coordinates(axis=1).base, rmg.node_x.base)
-    assert_is(rmg.node_axis_coordinates(axis=-1).base, rmg.node_x.base)
-    assert_is(rmg.node_axis_coordinates(axis=-2).base, rmg.node_y.base)
+    assert rmg.node_axis_coordinates(axis=0).base is rmg.node_y.base
+    assert rmg.node_axis_coordinates(axis=1).base is rmg.node_x.base
+    assert rmg.node_axis_coordinates(axis=-1).base is rmg.node_x.base
+    assert rmg.node_axis_coordinates(axis=-2).base is rmg.node_y.base
 
 
 @with_setup(setup_grid)
@@ -196,9 +190,9 @@ def test_diagonal_list_boundary():
 @with_setup(setup_grid)
 def test_node_is_core():
     for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:
-        assert_false(rmg.node_is_core(cell_id))
+        assert not rmg.node_is_core(cell_id)
     for cell_id in [6, 7, 8, 11, 12, 13]:
-        assert_true(rmg.node_is_core(cell_id))
+        assert rmg.node_is_core(cell_id)
 
 
 @with_setup(setup_grid)
@@ -209,7 +203,7 @@ def test_get_interior_cells():
 
 @with_setup(setup_grid)
 def test_active_links():
-    assert_equal(rmg.number_of_active_links, 17)
+    assert rmg.number_of_active_links == 17
     assert_array_equal(rmg.active_links,
                        np.array([ 5,  6,  7,
                                   9, 10, 11, 12,
@@ -271,8 +265,8 @@ def test_nodes_at_link():
     assert_array_equal(rmg.nodes_at_link[:, 0], rmg.node_at_link_tail)
     assert_array_equal(rmg.nodes_at_link[:, 1], rmg.node_at_link_head)
 
-    assert_true(np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_tail))
-    assert_true(np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_head))
+    assert np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_tail)
+    assert np.may_share_memory(rmg.nodes_at_link, rmg.node_at_link_head)
 
 
 @with_setup(setup_grid)
@@ -357,7 +351,7 @@ def test_face_at_link():
 
 @with_setup(setup_grid)
 def test_grid_coords_to_node_id_with_scalar():
-    assert_equal(rmg.grid_coords_to_node_id(3, 4), 19)
+    assert rmg.grid_coords_to_node_id(3, 4) == 19
 
 
 @with_setup(setup_grid)
@@ -368,7 +362,8 @@ def test_grid_coords_to_node_id_with_array():
 
 @with_setup(setup_grid)
 def test_grid_coords_to_node_id_outside_of_grid():
-    assert_raises(ValueError, rmg.grid_coords_to_node_id, 5, 0)
+    with pytest.raises(ValueError):
+        rmg.grid_coords_to_node_id(5, 0)
 
 
 @with_setup(setup_grid)

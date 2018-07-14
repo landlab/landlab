@@ -1,14 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-from nose.tools import assert_equal
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
-from landlab.grid.raster_gradients import (
-    calc_grad_across_cell_corners)
+from landlab.grid.raster_gradients import calc_grad_across_cell_corners
 
 
 def setup_unit_grid():
@@ -65,5 +59,5 @@ def test_with_out_keyword():
     out = np.empty((1, 4))
     rtn = rmg.calc_grad_across_cell_corners(
         values_at_nodes, 5, out=out)
-    assert_is(rtn, out)
+    assert rtn is out
     assert_array_equal(out, np.array([[6., 4., -6., -4.]]) / np.sqrt(2))

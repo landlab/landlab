@@ -1,11 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-from nose.tools import assert_equal
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
 from landlab.grid.raster_gradients import calc_grad_across_cell_faces
 
@@ -63,5 +58,5 @@ def test_with_out_keyword():
     """Test using the out keyword."""
     out = np.empty((1, 4))
     rtn = rmg.calc_grad_across_cell_faces(values_at_nodes, 5, out=out)
-    assert_is(rtn, out)
+    assert rtn is out
     assert_array_equal(out, np.array([[1., 5., -1., -5.]]))

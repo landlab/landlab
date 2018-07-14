@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup, assert_true
+from nose.tools import with_setup
 
 from landlab import FIXED_GRADIENT_BOUNDARY
 from landlab import RasterModelGrid
@@ -14,7 +14,7 @@ def setup_grid():
 
 @with_setup(setup_grid)
 def test_id_as_int():
-    assert_true(rmg.node_is_boundary(0))
+    assert rmg.node_is_boundary(0)
 
 
 @with_setup(setup_grid)

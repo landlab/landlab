@@ -1,10 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup, assert_true, assert_false
-try:
-    from nose.tools import assert_tuple_equal
-except ImportError:
-    from landlab.testing.tools import assert_tuple_equal
+from nose.tools import with_setup
 
 from landlab import RasterModelGrid
 
@@ -17,13 +13,13 @@ def setup_grid():
 
 def test_boundary_node():
     rmg = RasterModelGrid(5, 6)
-    assert_true(rmg.node_has_boundary_neighbor(0))
-    assert_false(rmg.node_has_boundary_neighbor(14))
+    assert rmg.node_has_boundary_neighbor(0)
+    assert not rmg.node_has_boundary_neighbor(14)
 
 
 @with_setup(setup_grid)
 def test_last_index():
-    assert_true(rmg.node_has_boundary_neighbor(-1))
+    assert rmg.node_has_boundary_neighbor(-1)
 
 
 @with_setup(setup_grid)

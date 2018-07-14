@@ -1,10 +1,6 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 from nose import with_setup
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid
 
@@ -72,7 +68,7 @@ def test_out_array():
                                  1.0, 1.0, 1.0,
                                  0.5, 0.5, 0.5, 0.5,
                                  1.0, 1.0, 1.0]))
-    assert_is(rtn_array, output_array)
+    assert rtn_array is output_array
 
 
 @with_setup(setup_grids)
@@ -89,4 +85,4 @@ def test_diff_out_array():
                   5, 5, 5,
                   1, 1, 1, 1,
                   5, 5, 5]))
-    assert_is(rtn_diff, diff)
+    assert rtn_diff is diff

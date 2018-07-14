@@ -1,6 +1,7 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup, raises
+from nose.tools import with_setup
 
 from landlab import RasterModelGrid
 
@@ -25,15 +26,15 @@ def test_unit_grid_last_cell():
 
 
 @with_setup(setup)
-@raises(IndexError)
 def test_out_of_range():
-    rmg.area_of_cell[5]
+    with pytest.raises(IndexError):
+        rmg.area_of_cell[5]
 
 
 @with_setup(setup)
-@raises(ValueError)
 def test_is_immutable():
-    rmg.area_of_cell[0] = 0.
+    with pytest.raises(ValueError):
+        rmg.area_of_cell[0] = 0.
 
 
 def test_all_cells_with_spacing():
