@@ -2,7 +2,6 @@
 Unit tests for landlab.components.landslides.landslide_probability
 """
 import pytest
-from nose.tools import with_setup
 from numpy.testing import assert_array_almost_equal
 import numpy as np
 
@@ -14,27 +13,13 @@ from landlab.components import LandslideProbability
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
-def setup_grid():
-    """Setting up test raster grid.
-    """
-    grid = RasterModelGrid((20, 20), spacing=10e0)
-    grid.at_node['topographic__slope'] = (
-        np.zeros(grid.number_of_nodes, dtype=float))
-    ls_prob = LandslideProbability(grid)
-    globals().update({
-        'ls_prob': LandslideProbability(grid)
-    })
-
-
-@with_setup(setup_grid)
-def test_name():
+def test_name(ls_prob):
     """Testing if the name is right.
     """
     assert ls_prob.name == 'Landslide Probability'
 
 
-@with_setup(setup_grid)
-def test_input_var_names():
+def test_input_var_names(ls_prob):
     """Testing if the input_var_names outputs the right list.
     """
     assert sorted(ls_prob.input_var_names) == [
@@ -51,8 +36,7 @@ def test_input_var_names():
     ]
 
 
-@with_setup(setup_grid)
-def test_output_var_names():
+def test_output_var_names(ls_prob):
     """Testing if output_var_names outputs the right list.
     """
     assert sorted(ls_prob.output_var_names) == [
@@ -62,8 +46,7 @@ def test_output_var_names():
     ]
 
 
-@with_setup(setup_grid)
-def test_var_units():
+def test_var_units(ls_prob):
     """Testing if units are right.
     """
     assert set(ls_prob.input_var_names) | set(ls_prob.output_var_names), set(dict(ls_prob.units).keys())
@@ -83,30 +66,26 @@ def test_var_units():
     assert ls_prob.var_units('soil__probability_of_saturation') == 'None'
 
 
-@with_setup(setup_grid)
-def test_grid_shape():
+def test_grid_shape(ls_prob):
     """Testing if the grid shape matches the inputs.
     """
     assert ls_prob.grid.number_of_node_rows == _SHAPE[0]
     assert ls_prob.grid.number_of_node_columns == _SHAPE[1]
 
 
-@with_setup(setup_grid)
-def test_grid_x_extent():
+def test_grid_x_extent(ls_prob):
     """Testing if x extent is right.
     """
     assert ls_prob.grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
 
 
-@with_setup(setup_grid)
-def test_grid_y_extent():
+def test_grid_y_extent(ls_prob):
     """Testing if y extent is right.
     """
     assert ls_prob.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
 
 
-@with_setup(setup_grid)
-def test_field_getters():
+def test_field_getters(ls_prob):
     """Testing if the right field is called.
     """
     for name in ls_prob.grid['node']:
@@ -119,8 +98,7 @@ def test_field_getters():
         ls_prob.grid['not_a_var_name']
 
 
-@with_setup(setup_grid)
-def test_field_initialized_to_zero():
+def test_field_initialized_to_zero(ls_prob):
     """Testing if the fields are initialized with zeros.
     """
     for name in ls_prob.grid['node']:

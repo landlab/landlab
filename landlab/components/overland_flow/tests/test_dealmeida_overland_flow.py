@@ -4,52 +4,36 @@ Unit tests for landlab.components.overland_flow.OverlandFlow
 
 last updated: 3/14/16
 """
-from nose.tools import with_setup
 import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
 from landlab.grid.structured_quad.links import left_edge_horizontal_ids
 
+
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0., 0.))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
-def setup_grid():
-    from landlab import RasterModelGrid
-    grid = RasterModelGrid((32, 240), spacing=25)
-    grid.add_zeros('node', 'surface_water__depth')
-    grid.add_zeros('node', 'topographic__elevation')
-    grid.add_zeros('surface_water__discharge', at='link')
-    deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
-    globals().update({
-        'deAlm': OverlandFlow(grid)})
-
-
-
-@with_setup(setup_grid)
-def test_deAlm_name():
+def test_deAlm_name(deAlm):
     assert deAlm.name == 'OverlandFlow'
 
 
-@with_setup(setup_grid)
-def test_deAlm_input_var_names():
+def test_deAlm_input_var_names(deAlm):
     assert deAlm.input_var_names == (
         'surface_water__depth',
         'topographic__elevation',
     )
 
 
-@with_setup(setup_grid)
-def test_deAlm_output_var_names():
+def test_deAlm_output_var_names(deAlm):
     assert deAlm.output_var_names == (
         'surface_water__depth',
         'surface_water__discharge',
         'water_surface__gradient',
     )
 
-@with_setup(setup_grid)
-def test_deAlm_var_units():
+def test_deAlm_var_units(deAlm):
     assert set(deAlm.input_var_names) | set(deAlm.output_var_names) == set(dict(deAlm.units).keys())
 
     assert deAlm.var_units('surface_water__depth') == 'm'
@@ -58,14 +42,12 @@ def test_deAlm_var_units():
     assert deAlm.var_units('topographic__elevation') == 'm'
 
 
-@with_setup(setup_grid)
-def test_grid_shape():
+def test_grid_shape(deAlm):
     assert deAlm.grid.number_of_node_rows == _SHAPE[0]
     assert deAlm.grid.number_of_node_columns == _SHAPE[1]
 
 
 def test_deAlm_analytical():
-    from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing = 25)
     grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
@@ -98,7 +80,6 @@ def test_deAlm_analytical():
 
 
 def test_deAlm_analytical_imposed_dt_short():
-    from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing=25)
     grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')
@@ -131,7 +112,6 @@ def test_deAlm_analytical_imposed_dt_short():
 
 
 def test_deAlm_analytical_imposed_dt_long():
-    from landlab import RasterModelGrid
     grid = RasterModelGrid((32, 240), spacing=25)
     grid.add_zeros('node', 'surface_water__depth')
     grid.add_zeros('node', 'topographic__elevation')

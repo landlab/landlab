@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 """Unit tests for landlab.components.flexure.Flexure1D."""
 import pytest
-from nose.tools import with_setup
 from numpy.testing import (
     assert_array_equal,
     assert_array_less,
@@ -19,53 +18,40 @@ from landlab.components.flexure import Flexure1D
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
-def setup_grid():
-    from landlab import RasterModelGrid
-
-    grid = RasterModelGrid((20, 20), spacing=10e3)
-    flex = Flexure1D(grid)
-    globals().update({"flex": Flexure1D(grid)})
-
-
-@with_setup(setup_grid)
-def test_name():
+def test_name(flex1d):
     """Test component name exists and is a string."""
-    assert isinstance(flex.name, str)
+    assert isinstance(flex1d.name, str)
 
 
-@with_setup(setup_grid)
-def test_input_var_names():
+def test_input_var_names(flex1d):
     """Test input_var_names is a tuple of strings."""
-    assert isinstance(flex.input_var_names, tuple)
-    for name in flex.input_var_names:
+    assert isinstance(flex1d.input_var_names, tuple)
+    for name in flex1d.input_var_names:
         assert isinstance(name, str)
 
 
-@with_setup(setup_grid)
-def test_output_var_names():
+def test_output_var_names(flex1d):
     """Test output_var_names is a tuple of strings."""
-    assert isinstance(flex.output_var_names, tuple)
-    for name in flex.output_var_names:
+    assert isinstance(flex1d.output_var_names, tuple)
+    for name in flex1d.output_var_names:
         assert isinstance(name, str)
 
 
-@with_setup(setup_grid)
-def test_var_units():
+def test_var_units(flex1d):
     """Test input/output var units."""
-    assert isinstance(flex.units, tuple)
-    for name, units in flex.units:
-        assert name in flex.input_var_names + flex.output_var_names
+    assert isinstance(flex1d.units, tuple)
+    for name, units in flex1d.units:
+        assert name in flex1d.input_var_names + flex1d.output_var_names
         assert isinstance(units, str)
 
 
-@with_setup(setup_grid)
-def test_var_mapping():
+def test_var_mapping(flex1d):
     """Test input/output var mappings."""
-    assert isinstance(flex._var_mapping, dict)
-    for name in flex.input_var_names + flex.output_var_names:
-        assert name in flex._var_mapping
-        assert isinstance(flex._var_mapping[name], str)
-        assert flex._var_mapping[name] in (
+    assert isinstance(flex1d._var_mapping, dict)
+    for name in flex1d.input_var_names + flex1d.output_var_names:
+        assert name in flex1d._var_mapping
+        assert isinstance(flex1d._var_mapping[name], str)
+        assert flex1d._var_mapping[name] in (
             "node",
             "link",
             "patch",
@@ -75,13 +61,12 @@ def test_var_mapping():
         )
 
 
-@with_setup(setup_grid)
-def test_var_doc():
+def test_var_doc(flex1d):
     """Test input/output var docs."""
-    assert isinstance(flex._var_doc, dict)
-    for name in flex.input_var_names + flex.output_var_names:
-        assert name in flex._var_doc
-        assert isinstance(flex._var_doc[name], str)
+    assert isinstance(flex1d._var_doc, dict)
+    for name in flex1d.input_var_names + flex1d.output_var_names:
+        assert name in flex1d._var_doc
+        assert isinstance(flex1d._var_doc[name], str)
 
 
 def test_calc_airy():
