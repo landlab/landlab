@@ -1,5 +1,5 @@
 """Test HexGraph and DualHexGraph."""
-from nose.tools import assert_almost_equal
+from pytest import approx
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from scipy.spatial import Voronoi
 import numpy as np
@@ -47,13 +47,13 @@ def test_origin():
     """Test setting the origin."""
     graph = HexGraph((4, 3))
 
-    assert_almost_equal(graph.y_of_node[0], 0.)
-    assert_almost_equal(graph.x_of_node[0], 0.)
+    assert graph.y_of_node[0] == approx(0.)
+    assert graph.x_of_node[0] == approx(0.)
 
     graph = HexGraph((4, 3), origin=(.5, .25))
 
-    assert_almost_equal(graph.y_of_node[0], .5)
-    assert_almost_equal(graph.x_of_node[0], .25)
+    assert graph.y_of_node[0] == approx(.5)
+    assert graph.x_of_node[0] == approx(.25)
 
 
 def test_orientation():

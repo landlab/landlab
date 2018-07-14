@@ -15,7 +15,8 @@ from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
-from nose.tools import with_setup, assert_almost_equal
+from nose.tools import with_setup
+
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -630,8 +631,7 @@ def test_three_pits():
     assert_array_equal(mg.at_node['flow__sink_flag'], flow_sinks_target)
     
     # test conservation of mass:
-    assert_almost_equal(mg.at_node['drainage_area'
-                                       ].reshape((10,10))[1:-1,1].sum(), 8.**2)
+    assert mg.at_node['drainage_area'].reshape((10,10))[1:-1,1].sum() == approx 8.**2)
     # ^all the core nodes
     
     # test the actual flow field:
@@ -691,8 +691,7 @@ def test_composite_pits():
     assert_array_equal(mg.at_node['flow__sink_flag'], flow_sinks_target)
     
     # test conservation of mass:
-    assert_almost_equal(mg.at_node['drainage_area'
-                                       ].reshape((10,10))[1:-1,1].sum(), 8.**2)
+    assert mg.at_node['drainage_area'].reshape((10,10))[1:-1,1].sum() == approx(8.**2)
     # ^all the core nodes
     
     # test the actual flow field:
@@ -739,8 +738,8 @@ def test_composite_pits():
     assert lf.number_of_lakes == 1
     assert lf.lake_codes[0] == 57
     assert_array_equal(lf.lake_map, lc)
-    assert_almost_equal(lf.lake_areas[0], 25.)
-    assert_almost_equal(lf.lake_volumes[0], 63.)
+    assert lf.lake_areas[0] == approx(25.)
+    assert lf.lake_volumes[0] == approx(63.)
 
 @with_setup(setup_D4_grid)
 def test_D8_D4_fill():

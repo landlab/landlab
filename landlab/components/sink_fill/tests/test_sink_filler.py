@@ -11,7 +11,7 @@ import pytest
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import with_setup, assert_almost_equal
+from nose.tools import with_setup
 
 import landlab
 from landlab import BAD_INDEX_VALUE as XX
@@ -274,7 +274,7 @@ def test_add_slopes():
     elevs_out, lake_out = hf._add_slopes(slope_to_add, outlet, lake_code)
     assert_array_equal(slope_to_add*(np.arange(2.)+1.)+outlet_elev,
                        elevs_out[straight_north])
-    assert_almost_equal(slope_to_add*rt2+outlet_elev, elevs_out[off_angle])
+    assert slope_to_add * rt2 + outlet_elev == approx(elevs_out[off_angle])
     assert_array_equal(new_z, elevs_out)
     assert_array_equal(lake, lake_out)
 

@@ -11,10 +11,11 @@ import os
 
 from six.moves import range
 
+from pytest import approx
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nose.tools import with_setup, assert_almost_equal
+from nose.tools import with_setup
 
 import landlab
 from landlab import RasterModelGrid, RadialModelGrid, FieldError
@@ -405,7 +406,7 @@ def test_voronoi():
     fr.route_flow()
     assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
                               A_target_core)
-    assert_almost_equal(vmg.at_node['drainage_area'][12], A_target_outlet)
+    assert vmg.at_node['drainage_area'][12] == approx(A_target_outlet)
 
 
 @with_setup(setup_voronoi_closedinternal)
@@ -419,4 +420,4 @@ def test_voronoi_closedinternal():
 
     assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
                               A_target_internal)
-    assert_almost_equal(vmg.at_node['drainage_area'][12], A_target_outlet)
+    assert vmg.at_node['drainage_area'][12] == approx(A_target_outlet)
