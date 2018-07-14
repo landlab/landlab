@@ -2,7 +2,6 @@
 """Unit tests for landlab.io.netcdf module."""
 import pytest
 import numpy as np
-from nose import SkipTest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
@@ -96,11 +95,9 @@ def test_netcdf_write_as_netcdf3_classic():
         f.close()
 
 
+@pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
 def test_netcdf_write():
     """Test generic write_netcdf."""
-    if not WITH_NETCDF4:
-        raise SkipTest('netCDF4 package not installed')
-
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
 
@@ -128,11 +125,9 @@ def test_netcdf_write():
         root.close()
 
 
+@pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
 def test_netcdf_write_as_netcdf4_classic():
     """Test write_netcdf to netcdf4 classic format."""
-    if not WITH_NETCDF4:
-        raise SkipTest('netCDF4 package not installed')
-
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -149,11 +144,9 @@ def test_netcdf_write_as_netcdf4_classic():
         root.close()
 
 
+@pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_list():
     """Test write_netcdf using a list for the *names* keyword."""
-    if not WITH_NETCDF4:
-        raise SkipTest('netCDF4 package not installed')
-
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -171,11 +164,9 @@ def test_netcdf_write_names_keyword_as_list():
         root.close()
 
 
+@pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_str():
     """Test write_netcdf using a ``str`` for the *names* keyword."""
-    if not WITH_NETCDF4:
-        raise SkipTest('netCDF4 package not installed')
-
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -192,11 +183,9 @@ def test_netcdf_write_names_keyword_as_str():
         root.close()
 
 
+@pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
 def test_netcdf_write_names_keyword_as_none():
     """Test write_netcdf using ``None`` for the *names* keyword."""
-    if not WITH_NETCDF4:
-        raise SkipTest('netCDF4 package not installed')
-
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
@@ -271,11 +260,9 @@ def test_1d_uneven_spacing():
         _get_raster_spacing((np.logspace(0., 2., num=5), ))
 
 
+@pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
 def test_netcdf_write_at_cells():
     """Test write_netcdf using with cell fields"""
-    if not WITH_NETCDF4:
-        raise SkipTest('netCDF4 package not installed')
-
     field = RasterModelGrid((4, 3))
     field.add_field('cell', 'topographic__elevation',
                     np.arange(field.number_of_cells))
