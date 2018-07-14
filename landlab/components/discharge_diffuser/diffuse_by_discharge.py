@@ -49,6 +49,7 @@ class DischargeDiffuser(Component):
     Examples
     --------
     >>> from landlab import HexModelGrid
+    >>> from landlab.components import PotentialityFlowRouter
     >>> import numpy as np
     >>> mg = HexModelGrid(4, 6, dx=2., shape='rect', orientation='vertical')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
