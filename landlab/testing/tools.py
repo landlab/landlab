@@ -98,62 +98,62 @@ def assert_array_is_int(x):
 
 
 def assert_close(val1, val2, msg=None):
-    assert np.allclose(val1, val2), msg=msg
+    assert np.allclose(val1, val2), msg
 
 
 def assert_is(expr1, expr2, msg=None):
-    assert expr1 is expr2, msg=msg
+    assert expr1 is expr2, msg
 
 
 def assert_is_not(expr1, expr2, msg=None):
-    assert expr1 is not expr2, msg=msg
+    assert expr1 is not expr2, msg
 
 
 def assert_is_none(expr, msg=None):
-    assert expr is None, msg=msg
+    assert expr is None, msg
 
 
 def assert_is_not_none(expr, msg=None):
-    assert expr is not None, msg=msg
+    assert expr is not None, msg
 
 
 def assert_in(first, second, msg=None):
-    assert first in second, msg=msg
+    assert first in second, msg
 
 
 def assert_is_not_in(first, second, msg=None):
-    assert first not in second, msg=msg
+    assert first not in second, msg
 
 
 def assert_is_instance(obj, cls, msg=None):
-    assert isinstance(obj, cls), msg=msg
+    assert isinstance(obj, cls), msg
 
 
 def assert_not_is_instance(obj, cls, msg=None):
-    assert not isinstance(obj, cls), msg=msg
+    assert not isinstance(obj, cls), msg
 
 
 def assert_list_equal(list1, list2, msg=None):
-    assert isinstance(list1, list), msg=msg
-    assert isinstance(list2, list), msg=msg
+    assert isinstance(list1, list), msg
+    assert isinstance(list2, list), msg
     for a, b in zip(list1, list2):
-        assert a == b, msg=msg
+        assert a == b, msg
 
 
 def assert_tuple_equal(tuple1, tuple2, msg=None):
-    assert isinstance(tuple1, tuple), msg=msg
-    assert isinstance(tuple1, tuple), msg=msg
+    assert isinstance(tuple1, tuple), msg
+    assert isinstance(tuple1, tuple), msg
     for a, b in zip(tuple1, tuple2):
-        assert a == b, msg=msg
+        assert a == b, msg
 
 
 def assert_dict_equal(dict1, dict2, msg=None):
-    assert isinstance(dict1, dict), msg=msg
-    assert isinstance(dict2, dict), msg=msg
-    assert dict1 == dict2, msg=msg
+    assert isinstance(dict1, dict), msg
+    assert isinstance(dict2, dict), msg
+    assert dict1 == dict2, msg
 
 
 def assert_set_equal(set1, set2, msg=None):
-    assert isinstance(set1, set), msg=msg
-    assert isinstance(set2, set), msg=msg
-    assert set1 == set2, msg=msg
+    assert isinstance(set1, set), msg
+    assert isinstance(set2, set), msg
+    assert set1 == set2, msg
