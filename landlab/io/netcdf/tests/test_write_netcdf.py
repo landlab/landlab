@@ -7,7 +7,6 @@ from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid
 from landlab.io.netcdf import write_netcdf, NotRasterGridError, WITH_NETCDF4
 from landlab.io.netcdf.read import _get_raster_spacing
-from landlab.testing.tools import cdtemp
 
 try:
     import netCDF4 as nc
@@ -15,13 +14,13 @@ except ImportError:
     pass
 
 
-def test_netcdf_write_int64_field_netcdf4():
+def test_netcdf_write_int64_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an int64 field."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation',
                     np.arange(12, dtype=np.int64))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, format='NETCDF4')
 
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
@@ -35,13 +34,13 @@ def test_netcdf_write_int64_field_netcdf4():
         root.close()
 
 
-def test_netcdf_write_uint8_field_netcdf4():
+def test_netcdf_write_uint8_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an uint8 field."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation',
                     np.arange(12, dtype=np.uint8))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, format='NETCDF4')
 
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
@@ -55,7 +54,7 @@ def test_netcdf_write_uint8_field_netcdf4():
         root.close()
 
 
-def test_netcdf_write_as_netcdf3_64bit():
+def test_netcdf_write_as_netcdf3_64bit(tmpdir):
     """Test write_netcdf with output format 64-bit netcdf3."""
     from scipy.io import netcdf
 
@@ -63,7 +62,7 @@ def test_netcdf_write_as_netcdf3_64bit():
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, format='NETCDF3_64BIT')
 
         f = netcdf.netcdf_file('test.nc', 'r')
@@ -75,7 +74,7 @@ def test_netcdf_write_as_netcdf3_64bit():
         f.close()
 
 
-def test_netcdf_write_as_netcdf3_classic():
+def test_netcdf_write_as_netcdf3_classic(tmpdir):
     """Test write_netcdf with output format classic netcdf3."""
     from scipy.io import netcdf
 
@@ -83,7 +82,7 @@ def test_netcdf_write_as_netcdf3_classic():
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, format='NETCDF3_CLASSIC')
 
         f = netcdf.netcdf_file('test.nc', 'r')
@@ -96,12 +95,12 @@ def test_netcdf_write_as_netcdf3_classic():
 
 
 @pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
-def test_netcdf_write():
+def test_netcdf_write(tmpdir):
     """Test generic write_netcdf."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
@@ -126,13 +125,13 @@ def test_netcdf_write():
 
 
 @pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
-def test_netcdf_write_as_netcdf4_classic():
+def test_netcdf_write_as_netcdf4_classic(tmpdir):
     """Test write_netcdf to netcdf4 classic format."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, format='NETCDF4_CLASSIC')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4_CLASSIC')
 
@@ -145,13 +144,13 @@ def test_netcdf_write_as_netcdf4_classic():
 
 
 @pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
-def test_netcdf_write_names_keyword_as_list():
+def test_netcdf_write_names_keyword_as_list(tmpdir):
     """Test write_netcdf using a list for the *names* keyword."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, names=['topographic__elevation'],
                      format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
@@ -165,13 +164,13 @@ def test_netcdf_write_names_keyword_as_list():
 
 
 @pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
-def test_netcdf_write_names_keyword_as_str():
+def test_netcdf_write_names_keyword_as_str(tmpdir):
     """Test write_netcdf using a ``str`` for the *names* keyword."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, names='uplift_rate', format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
@@ -184,13 +183,13 @@ def test_netcdf_write_names_keyword_as_str():
 
 
 @pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
-def test_netcdf_write_names_keyword_as_none():
+def test_netcdf_write_names_keyword_as_none(tmpdir):
     """Test write_netcdf using ``None`` for the *names* keyword."""
     field = RasterModelGrid(4, 3)
     field.add_field('node', 'topographic__elevation', np.arange(12.))
     field.add_field('node', 'uplift_rate', np.arange(12.))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test.nc', field, names=None, format='NETCDF4')
         root = nc.Dataset('test.nc', 'r', format='NETCDF4')
 
@@ -261,14 +260,14 @@ def test_1d_uneven_spacing():
 
 
 @pytest.mark.skipif(not WITH_NETCDF4, reason='netCDF4 package not installed')
-def test_netcdf_write_at_cells():
+def test_netcdf_write_at_cells(tmpdir):
     """Test write_netcdf using with cell fields"""
     field = RasterModelGrid((4, 3))
     field.add_field('cell', 'topographic__elevation',
                     np.arange(field.number_of_cells))
     field.add_field('cell', 'uplift_rate', np.arange(field.number_of_cells))
 
-    with cdtemp() as _:
+    with tmpdir.as_cwd():
         write_netcdf('test-cells.nc', field, format='NETCDF4')
         root = nc.Dataset('test-cells.nc', 'r', format='NETCDF4')
 

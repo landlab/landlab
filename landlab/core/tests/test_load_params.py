@@ -1,7 +1,6 @@
 from six import StringIO
 
 from landlab.core import load_params
-from landlab.testing.tools import cdtemp
 
 
 YAML_PARAMS_STR = """
@@ -47,9 +46,9 @@ def test_from_yaml_file_like():
     assert isinstance(params['y'], int)
 
 
-def test_from_yaml_path():
+def test_from_yaml_path(tmpdir):
     """Load parameters from YAML-formatted string."""
-    with cdtemp() as dir:
+    with tmpdir.as_cwd():
         with open('params.yaml', 'w') as fp:
             fp.write(YAML_PARAMS_STR)
         params = load_params('./params.yaml')
@@ -74,9 +73,9 @@ def test_from_yaml_file_like():
     assert isinstance(params['y'], int)
 
 
-def test_from_yaml_path():
+def test_from_yaml_path(tmpdir):
     """Load parameters from YAML-formatted string."""
-    with cdtemp() as dir:
+    with tmpdir.as_cwd():
         with open('params.txt', 'w') as fp:
             fp.write(MPD_PARAMS_STR)
         params = load_params('./params.txt')

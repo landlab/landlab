@@ -6,6 +6,7 @@ Created on Sun Sep 27 09:52:50, 2015
 
 @author: gtucker, amended dejh
 """
+from pytest import approx
 
 import landlab
 from landlab import RasterModelGrid
@@ -631,7 +632,7 @@ def test_three_pits():
     assert_array_equal(mg.at_node['flow__sink_flag'], flow_sinks_target)
     
     # test conservation of mass:
-    assert mg.at_node['drainage_area'].reshape((10,10))[1:-1,1].sum() == approx 8.**2)
+    assert mg.at_node['drainage_area'].reshape((10,10))[1:-1,1].sum() == approx(8.**2)
     # ^all the core nodes
     
     # test the actual flow field:
