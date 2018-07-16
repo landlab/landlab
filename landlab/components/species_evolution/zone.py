@@ -1,7 +1,7 @@
 """Zone SpeciesEvolver object.
 """
 
-from landlab.components.species_evolution import Record
+from landlab.components.species_evolution import RecordCollection
 from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 import numpy as np
 import pandas as pd
@@ -35,7 +35,7 @@ class Zone(object):
             The initial mask of the zone. True elements of this array
             correspond to the nodes of the zone.
         """
-        self.record = Record()
+        self.records = RecordCollection()
         self.mask = mask
         self.plot_color = (random(), random(), random(), 1)
 
@@ -83,9 +83,9 @@ class Zone(object):
         paths : Pandas DataFrame
             Zone connectivity across two timesteps in a DataFrame with the
             columns, time, origin, destinations, and path_type.
-        be_record_supplement : dictionary
+        be_records_supplement : dictionary
             The items of this dictionary will become items in the
-            SpeciesEvolver record for this time.
+            SpeciesEvolver records for this time.
         """
         paths = pd.DataFrame(columns=['time', 'origin', 'destinations',
                                       'path_type'])
@@ -104,7 +104,7 @@ class Zone(object):
         new_overlap_not_found = np.array(new_zones)
 
         # The cumulation of captured grid area for zones is retained
-        # in order to add it to be_record_supplement after all zones are
+        # in order to add it to be_records_supplement after all zones are
         # processed.
         number_of_captures = 0
         cum_area_captured = 0
@@ -222,7 +222,7 @@ class Zone(object):
         add_on = {'number_of_captures': number_of_captures,
                   'sum_of_area_captured': cum_area_captured}
 
-        output = {'paths': paths, 'species_evolver_record_add_on': add_on}
+        output = {'paths': paths, 'species_evolver_records_add_on': add_on}
 
         return output
 
@@ -280,9 +280,10 @@ class Zone(object):
         return zones
 
     def set_mask_at_time(self, time):
-        self.record.append
+        self.records.append
 
-#    @property
-#    def mask(self):
-#        latest_time = self.record.time.max()
-#        self.record
+    @property
+    def mask(self):
+        """Get the zone mask of the latest time."""
+        latest_time = self.records.time__latest
+        return self.records.get_value(latest_time, 'mask')

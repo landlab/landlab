@@ -9,7 +9,7 @@ Component written by Nathan Lyons beginning August 2017.
 from collections import OrderedDict
 from itertools import product
 from landlab import Component
-from landlab.components.species_evolution import Record
+from landlab.components.species_evolution import RecordCollection
 from landlab.core.messages import warning_message
 import numpy as np
 from pandas import DataFrame
@@ -56,7 +56,7 @@ class SpeciesEvolver(Component):
         Component.__init__(self, grid, **kwds)
 
         # Set DataFrames.
-        self.record = Record()
+        self.records = RecordCollection()
         self.species = DataFrame(columns=['clade', 'species', 'time_appeared',
                                           'latest_time', 'subtype', 'object'])
         self.zones = DataFrame(columns=['time_appeared', 'latest_time',
@@ -85,11 +85,11 @@ class SpeciesEvolver(Component):
         if len(self.species) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
-        elif len(self.record.DataFrame) == 0:
+        elif len(self.records.DataFrame) == 0:
             print(warning_message('Species must be introduced at a time prior'
                                   ' to the ``run_one_step`` time.'))
         else:
-            self.record.insert_time(time)
+            self.records.insert_time(time)
 
             paths = self._get_zone_paths(time, zones_at_time, **kwds)
             survivors = self._get_surviving_species(time, paths, **kwds)
@@ -104,7 +104,7 @@ class SpeciesEvolver(Component):
             self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
     def _get_zone_paths(self, time, new_zones, **kwds):
-        prior_time = self.record.get_time_prior_to_time(time)
+        prior_time = self.records.get_time_prior_to_time(time)
         prior_zones = self.zones_at_time(prior_time, return_objects=True)
         zone_types = set([type(p) for p in new_zones])
 
@@ -123,21 +123,15 @@ class SpeciesEvolver(Component):
             # Parse path output.
             paths = paths.append(output['paths'], ignore_index=True)
 
-            if 'species_evolver_record_add_on' in output.keys():
-                add_on = output['species_evolver_record_add_on']
-                self.record.insert_time
-#                for key in add_on.keys():
-#                    if key not in self.record.DataFrame.columns:
-#                        self.record[key] = np.NaN * len(self.record)
-#
-#                    i = self.record.time == time
-#                    self.record.loc[i, key] = add_on[key]
+            if 'species_evolver_records_add_on' in output.keys():
+                add_on = output['species_evolver_records_add_on']
+                self.records.modify_time(time, add_on)
 
         return paths
 
     def _get_surviving_species(self, time, zone_paths, **kwds):
         # Process only the species extant at the prior time.
-        prior_time = self.record.get_time_prior_to_time(time)
+        prior_time = self.records.get_time_prior_to_time(time)
         extant_species = self.species_at_time(prior_time, return_objects=True)
 
         # Get the species that persist in `time` given the outcome of the
@@ -229,14 +223,14 @@ class SpeciesEvolver(Component):
         sid = self._get_unused_species_id(cn)
         species._identifier = sid
 
-        time = species.record.time__latest
+        time = species.records.time__latest
 
-        species_zones = species.record.loc[time, 'zones']
+        species_zones = species.records.get_value(time, 'zones')
 
         self._update_species_DataFrame([species], time)
         self._update_zones_DataFrame(species_zones, time)
-        if time not in self.record.times:
-            self.record.loc[len(self.record), 'time'] = time
+#        if time not in self.records.times:
+#            self.records.DataFrame.loc[len(self.records), 'time'] = time
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
@@ -392,7 +386,7 @@ class SpeciesEvolver(Component):
         """Get the area and number of species of each zone.
 
         """
-        time = self.record.time__latest
+        time = self.records.time__latest
 
         species_time = self.species_at_time(time, return_objects=True)
         zones_time = self.zones_at_time(time, return_objects=True)
@@ -410,7 +404,7 @@ class SpeciesEvolver(Component):
             z_species_count = 0
 
             for s in species_time:
-                zones_species = s.record.zones.loc[s.record.time == time].tolist()[0]
+                zones_species = s.records.get_value(time, 'zones')
                 if z in zones_species:
                     z_species_count += 1
 
