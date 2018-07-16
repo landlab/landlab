@@ -12,6 +12,14 @@
 from __future__ import absolute_import
 import os
 
+from numpy import set_printoptions
+try:
+    set_printoptions(legacy='1.13')
+except TypeError:
+    pass
+finally:
+    del set_printoptions
+
 from ._registry import registry
 
 cite_as = registry.format_citations
