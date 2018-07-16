@@ -32,14 +32,10 @@ requirements:
 
 test:
   requires:
-    - landlab
     - numpy <1.14
     - pytest
-    - pytest-cov
-    - coveralls
   commands:
-    - pytest --pyargs landlab --doctest-modules --cov-report=xml -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
-    - coveralls
+    - pytest --pyargs landlab --doctest-modules -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
 
 build:
   number: 0
