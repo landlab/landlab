@@ -45,6 +45,7 @@ install:
 - conda info -a && conda list
 script:
 - conda install --file=requirements.txt
+- conda install "numpy<1.14"
 - python setup.py develop
 - pytest --cov --cov-report=xml:$(pwd)/coverage.xml
 - coveralls
