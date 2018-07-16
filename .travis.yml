@@ -53,7 +53,8 @@ script:
   if [[ "$BUILD_DOCS" == "1" && "$TRAVIS_OS_NAME" == "linux" ]]; then
     (cd docs && make html)
   fi
-- if [[ "$TRAVIS_TAG" == v* ]]; then
+- |
+  if [[ "$TRAVIS_TAG" == v* ]]; then
     conda build -q .conda-recipe --old-build-string --no-test
   fi
 virtualenv:
