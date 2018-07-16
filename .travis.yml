@@ -41,18 +41,18 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage sphinx
-- conda install -q numpy=1.11
-- pip install coveralls
+- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov
 - conda info -a && conda list
 script:
-- conda build -q .conda-recipe --old-build-string
+- conda install --file=requirements.txt
+- python setup.py develop
+- pytest --cov --cov-report=xml:$(pwd)/coverage.xml
+- coveralls
 - |
   if [[ "$BUILD_DOCS" == "1" && "$TRAVIS_OS_NAME" == "linux" ]]; then
-    conda install -q landlab --use-local -c $(dirname $(conda build --output ./.conda-recipe/ --old-build-string))
     (cd docs && make html)
   fi
-  # - bash .ci/travis/run_travis_test.sh
+- conda build -q .conda-recipe --old-build-string --no-test
 virtualenv:
   system_site_packages: false
 after_success:
@@ -61,9 +61,7 @@ after_success:
     LANDLAB_PACKAGE=$(conda build --output ./.conda-recipe --old-build-string)
     anaconda -t $ANACONDA_TOKEN upload --force --user landlab --channel main $LANDLAB_PACKAGE
     bash .ci/travis/deploy_to_pypi.sh
-    # bash .ci/travis/deploy_to_anaconda.sh
   fi
-- if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
 # deploy:
 #   provider: pypi
 #   user: mcflugen
