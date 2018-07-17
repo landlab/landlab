@@ -15,11 +15,11 @@ import numpy as np
 class FieldProfiler:
 
     def __init__(self, grid, field, start, end):
-        """
-        Create profiles of model grid field values.
+        """Create profiles of model grid field values.
 
-        The profile extends from start to end. The field is sampled at the
-        resolution of the grid.
+        The profile extends from *start* to *end*. The field is sampled at
+        approximately the resolution of *grid*. Profile traces that are
+        horizontal or vertical will
 
         Parameters
         ----------
@@ -34,66 +34,60 @@ class FieldProfiler:
         """
 
         if field not in grid.at_node.keys():
-            raise FieldError('A grid field, {} is required to '
-                             'create a profile.'.format(field))
+            raise FieldError('the field, {} must be a field of the input grid '
+                             'to create a profile'.format(field))
 
+        # Store inputs.
         self._grid = grid
         self._field = field
 
-        # Handle inputs that can be integers or tuples for the profile
-        # endpoints.
-        start_node, x0, y0 = self._get_node_x_y(start)
-        end_node, x1, y1 = self._get_node_x_y(end)
+        x_in = np.empty(2)
+        y_in = np.empty(2)
+
+        # Handle profile endpoint inputs that can be integers or tuples.
+        x_in[0], y_in[0] = self._get_node_x_y(start)
+        x_in[1], y_in[1] = self._get_node_x_y(end)
 
         # Get sample coordinates.
-        n_samples = np.ceil(np.hypot(x1 - x0, y1 - y0) / grid.dx) + 1
-        x_samples = np.linspace(x0, x1, n_samples)
-        y_samples = np.linspace(y0, y1, n_samples)
 
-        # Set sample parameters.
-        self.coordinates = []
-        self.distance = []
-        self.field_value = []
+        dx = grid.dx
 
-        for xi, yi in zip(x_samples, y_samples):
-            node = self._grid.find_nearest_node((xi, yi))
+        total_distance = np.hypot(x_in[1] - x_in[0], y_in[1] - y_in[0])
+        n = np.floor(total_distance / dx)
 
-            if not grid.node_is_boundary(node):
+        n_samples = np.floor(np.hypot(x_in[1] - x_in[0], y_in[1] - y_in[0]) / dx)
+        print(np.hypot(x_in[1] - x_in[0], y_in[1] - y_in[0]), n_samples, n)
+        x_samples = np.linspace(x_in[0], x_in[1], n, endpoint=False)
+        y_samples = np.linspace(y_in[0], y_in[1], n, endpoint=False)
+        self.coordinates = list(zip(x_samples, y_samples))
 
-                if len(self.coordinates) == 0:
-                    di = 0
-                else:
-                    prior_coordinates = self.coordinates[-1]
-                    xp = prior_coordinates[0]
-                    yp = prior_coordinates[1]
-                    di = np.hypot(xi - xp, yi - yp) + self.distance[-1]
+        self.distance = np.hypot(x_samples - x_in[0], y_samples - y_in[0])
 
-                zi = self._grid.at_node[self._field][node]
-                self.coordinates.append((xi, yi))
-                self.distance.append(di)
-                self.field_value.append(zi)
+        # Get the nodes nearest to the sample coordinates in order to get the
+        # field value at these nodes.
+
+        self.nodes = self._grid.find_nearest_node((x_samples, y_samples))
+
+        self.field_value = self._grid.at_node[self._field][self.nodes]
 
     def _get_node_x_y(self, point):
         if isinstance(point, (float, int)):
-            node = int(point)
             x = self._grid.x_of_node[point]
             y = self._grid.y_of_node[point]
         elif isinstance(point, tuple):
-            node = self._grid.find_nearest_node((point[0], point[1]))
             x = point[0]
             y = point[1]
 
-        return node, x, y
+        return x, y
 
     def plot(self, distance_unit_label, field_y_axis_label, **kwds):
-        """
-        Create a figure of the grid field profile.
+        """Create a figure of the grid field profile.
 
         The figure has two subplots:
-            1. The trace of the profile plotted on the grid shaded by the
-               field values.
-            2. The profile illustrating the profile samples (distance vs the
-               field value).
+        1.  The trace of the profile plotted on the grid shaded by the field
+            values.
+        2.  The profile illustrating the profile samples (distance vs the
+            field value).
 
         Parameters
         ----------
