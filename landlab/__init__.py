@@ -47,10 +47,6 @@ from .field.scalar_data_fields import FieldError
 from .grid import *
 from .plot import *
 
-from .testing.nosetester import LandlabTester
-test = LandlabTester().test
-bench = LandlabTester().bench
-
 __all__.extend(['ModelParameterDictionary', 'MissingKeyError',
                 'ParameterValueError', 'Component', 'Palette', 'Arena',
                 'NoProvidersError', 'Implements', 'ImplementsOrRaise',
