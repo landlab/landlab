@@ -75,3 +75,38 @@ def sink_grid3():
     sink_grid.lake2 = lake2
 
     return sink_grid
+
+
+@pytest.fixture
+def sink_grid4():
+    """
+    Create a 10x10 test grid with two well defined holes in it, into an
+    inclined surface. This time, one of the holes is a stupid shape, which
+    will require the component to arrange flow back "uphill".
+    """
+    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+
+    lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
+    lake2 = np.array([78, 87, 88])
+    guard_nodes = np.array([23, 33, 53, 63, 73, 83])
+    lake = np.concatenate((lake1, lake2))
+    # outlet = 35  # shouldn't be needed
+    # outlet_array = np.array([outlet])
+
+    z = np.ones(100, dtype=float)
+    # add slope
+    z += sink_grid.node_x
+    z[guard_nodes] += 0.001  # forces the flow out of a particular node
+    z[lake] = 0.
+
+    # depr_outlet_target = np.empty(100, dtype=float)
+    # depr_outlet_target.fill(XX)
+    # depr_outlet_target = XX  # not well defined in this simplest case...?
+
+    sink_grid.add_field("node", "topographic__elevation", z, units="-")
+    sink_grid.lake1 = lake1
+    sink_grid.lake2 = lake2
+
+    # fr = FlowRouter(mg)
+
+    return sink_grid

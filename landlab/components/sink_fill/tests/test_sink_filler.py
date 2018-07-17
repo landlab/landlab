@@ -20,40 +20,6 @@ from landlab.components.flow_routing import FlowRouter
 from landlab.components.sink_fill import SinkFiller
 
 
-def setup_dans_grid4():
-    """
-    Create a 10x10 test grid with two well defined holes in it, into an
-    inclined surface. This time, one of the holes is a stupid shape, which
-    will require the component to arrange flow back "uphill".
-    """
-    global hf, fr, mg
-    global z, depr_outlet_target
-    global lake, lake1, lake2, outlet, outlet_array
-
-    lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
-    lake2 = np.array([78, 87, 88])
-    guard_nodes = np.array([23, 33, 53, 63, 73, 83])
-    lake = np.concatenate((lake1, lake2))
-    outlet = 35  # shouldn't be needed
-    outlet_array = np.array([outlet])
-
-    mg = RasterModelGrid(10, 10, 1.)
-
-    z = np.ones(100, dtype=float)
-    # add slope
-    z += mg.node_x
-    z[guard_nodes] += 0.001  # forces the flow out of a particular node
-    z[lake] = 0.
-
-    depr_outlet_target = np.empty(100, dtype=float)
-    depr_outlet_target.fill(XX)
-    depr_outlet_target = XX  # not well defined in this simplest case...?
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-    fr = FlowRouter(mg)
-
-
 def setup_dans_grid5():
     """
     Create a 10x10 test grid with two well defined holes in it, into an
@@ -206,7 +172,6 @@ def test_filler_flat(sink_grid2):
     )
 
 
-# @with_setup(setup_dans_grid3)
 def test_filler_inclined(sink_grid3):
     """
     Tests a flat fill into an inclined surface, with two holes.
@@ -223,7 +188,6 @@ def test_filler_inclined(sink_grid3):
     )
 
 
-# @with_setup(setup_dans_grid3)
 def test_filler_inclined2(sink_grid3):
     """
     Tests an inclined fill into an inclined surface, with two holes.
@@ -257,12 +221,10 @@ def test_filler_inclined2(sink_grid3):
     assert sink_grid3.at_node["flow__sink_flag"][sink_grid3.core_nodes].sum() == 0
 
 
-@with_setup(setup_dans_grid4)
-def test_stupid_shaped_hole():
-    """
-    Tests inclined fill into a surface with a deliberately awkward shape.
-    """
-    hf = SinkFiller(mg, apply_slope=True)
+def test_stupid_shaped_hole(sink_grid4):
+    """Tests inclined fill into a surface with a deliberately awkward shape."""
+    fr = FlowRouter(sink_grid4)
+    hf = SinkFiller(sink_grid4, apply_slope=True)
     hf.fill_pits()
     hole1 = np.array(
         [
@@ -281,10 +243,14 @@ def test_stupid_shaped_hole():
     )
     hole2 = np.array([7.4, 7.2, 7.6])
 
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake1], hole1)
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake2], hole2)
+    assert_array_almost_equal(
+        sink_grid4.at_node["topographic__elevation"][sink_grid4.lake1], hole1
+    )
+    assert_array_almost_equal(
+        sink_grid4.at_node["topographic__elevation"][sink_grid4.lake2], hole2
+    )
     fr.route_flow()
-    assert mg.at_node["flow__sink_flag"][mg.core_nodes].sum() == 0
+    assert sink_grid4.at_node["flow__sink_flag"][sink_grid4.core_nodes].sum() == 0
 
 
 @with_setup(setup_dans_grid5)
