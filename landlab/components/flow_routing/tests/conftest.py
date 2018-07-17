@@ -3,7 +3,7 @@ import os
 import pytest
 import numpy as np
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 from landlab import BAD_INDEX_VALUE as XX
 from landlab.components.flow_routing import FlowRouter, DepressionFinderAndRouter
 
@@ -168,6 +168,151 @@ def dans_grid1():
     dans_grid.frcvr_target = frcvr_target
     dans_grid.upids_target = upids_target
     dans_grid.Q_target = Q_target
+    dans_grid.steepest_target = steepest_target
+    dans_grid.links2rcvr_target = links2rcvr_target
+
+    return dans_grid
+
+
+@pytest.fixture
+def internal_closed():
+    """
+    Create a 6x5 test grid, but with two internal nodes closed.
+    This is a sheet flow test.
+    """
+    mg = RasterModelGrid((6, 5), spacing=(10., 10.))
+
+    mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
+    mg.status_at_node[7] = CLOSED_BOUNDARY
+    mg.status_at_node[16] = CLOSED_BOUNDARY
+
+    z = mg.node_x.copy()
+
+    Q_in = np.full(25, 2.)
+
+    A_target = (
+        np.array(
+            [
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+                1.,
+                1.,
+                0.,
+                1.,
+                0.,
+                6.,
+                6.,
+                3.,
+                1.,
+                0.,
+                0.,
+                0.,
+                2.,
+                1.,
+                0.,
+                3.,
+                3.,
+                2.,
+                1.,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+            ]
+        )
+        * 100.
+    )
+
+    frcvr_target = np.array(
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            5,
+            7,
+            12,
+            9,
+            10,
+            10,
+            11,
+            12,
+            14,
+            15,
+            16,
+            11,
+            17,
+            19,
+            20,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+        ]
+    )
+
+    links2rcvr_target = np.full(mg.number_of_nodes, XX)
+    links2rcvr_target[mg.core_nodes] = np.array([9, 62, 18, 19, 20, 67, 29, 36, 37, 38])
+
+    steepest_target = np.array(
+        [
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+            1.,
+            0.,
+            0.,
+            0.,
+            0.,
+            1.,
+            1.,
+            1.,
+            0.,
+            0.,
+            0.,
+            0.,
+            1.,
+            0.,
+            0.,
+            1.,
+            1.,
+            1.,
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+        ]
+    )
+    steepest_target[np.array([8, 17])] = 1. / np.sqrt(2.)
+
+    mg.add_field("node", "topographic__elevation", z, units="-")
+
+    class DansGrid(object):
+        pass
+
+    dans_grid = DansGrid()
+    dans_grid.mg = mg
+    dans_grid.z = z
+    dans_grid.Q_in = Q_in
+    dans_grid.A_target = A_target
+    dans_grid.frcvr_target = frcvr_target
     dans_grid.steepest_target = steepest_target
     dans_grid.links2rcvr_target = links2rcvr_target
 

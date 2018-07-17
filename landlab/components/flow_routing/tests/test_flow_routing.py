@@ -27,139 +27,6 @@ from landlab import BAD_INDEX_VALUE as XX
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-def setup_internal_closed():
-    """
-    Create a 6x5 test grid, but with two internal nodes closed.
-    This is a sheet flow test.
-    """
-    global fr, mg
-    global z, Q_in, A_target, frcvr_target, upids_target, Q_target, steepest_target, links2rcvr_target
-
-    mg = RasterModelGrid((6, 5), spacing=(10., 10.))
-
-    mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    mg.status_at_node[7] = CLOSED_BOUNDARY
-    mg.status_at_node[16] = CLOSED_BOUNDARY
-
-    z = mg.node_x.copy()
-
-    Q_in = np.full(25, 2.)
-
-    A_target = (
-        np.array(
-            [
-                0.,
-                0.,
-                0.,
-                0.,
-                0.,
-                1.,
-                1.,
-                0.,
-                1.,
-                0.,
-                6.,
-                6.,
-                3.,
-                1.,
-                0.,
-                0.,
-                0.,
-                2.,
-                1.,
-                0.,
-                3.,
-                3.,
-                2.,
-                1.,
-                0.,
-                0.,
-                0.,
-                0.,
-                0.,
-                0.,
-            ]
-        )
-        * 100.
-    )
-
-    frcvr_target = np.array(
-        [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            5,
-            7,
-            12,
-            9,
-            10,
-            10,
-            11,
-            12,
-            14,
-            15,
-            16,
-            11,
-            17,
-            19,
-            20,
-            20,
-            21,
-            22,
-            24,
-            25,
-            26,
-            27,
-            28,
-            29,
-        ]
-    )
-
-    links2rcvr_target = np.full(mg.number_of_nodes, XX)
-    links2rcvr_target[mg.core_nodes] = np.array([9, 62, 18, 19, 20, 67, 29, 36, 37, 38])
-
-    steepest_target = np.array(
-        [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            1.,
-            0.,
-            0.,
-            0.,
-            0.,
-            1.,
-            1.,
-            1.,
-            0.,
-            0.,
-            0.,
-            0.,
-            1.,
-            0.,
-            0.,
-            1.,
-            1.,
-            1.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-        ]
-    )
-    steepest_target[np.array([8, 17])] = 1. / np.sqrt(2.)
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-
 def setup_voronoi():
     """
     Setup a simple 20 point Voronoi Delaunay grid (radial for ease)
@@ -378,17 +245,26 @@ def test_irreg_topo_new(dans_grid2):
     )
 
 
-@with_setup(setup_internal_closed)
-def test_internal_closed():
+def test_internal_closed(internal_closed):
     """Test closed nodes in the core of the grid."""
-    fr = FlowRouter(mg)
+    fr = FlowRouter(internal_closed.mg)
     fr.route_flow()
-    assert_array_almost_equal(A_target, mg.at_node["drainage_area"])
-    assert_array_equal(frcvr_target, mg.at_node["flow__receiver_node"])
-    assert_array_equal(links2rcvr_target, mg.at_node["flow__link_to_receiver_node"])
-    assert_array_almost_equal(A_target, mg.at_node["surface_water__discharge"])
     assert_array_almost_equal(
-        steepest_target, mg.at_node["topographic__steepest_slope"]
+        internal_closed.A_target, internal_closed.mg.at_node["drainage_area"]
+    )
+    assert_array_equal(
+        internal_closed.frcvr_target, internal_closed.mg.at_node["flow__receiver_node"]
+    )
+    assert_array_equal(
+        internal_closed.links2rcvr_target,
+        internal_closed.mg.at_node["flow__link_to_receiver_node"],
+    )
+    assert_array_almost_equal(
+        internal_closed.A_target, internal_closed.mg.at_node["surface_water__discharge"]
+    )
+    assert_array_almost_equal(
+        internal_closed.steepest_target,
+        internal_closed.mg.at_node["topographic__steepest_slope"],
     )
 
 
