@@ -1,8 +1,5 @@
 #! /usr/bin/env python
 
-#from ez_setup import use_setuptools
-#use_setuptools()
-
 from setuptools import setup, find_packages, Extension
 from setuptools.command.install import install
 from setuptools.command.develop import develop
