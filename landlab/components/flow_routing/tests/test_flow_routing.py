@@ -27,57 +27,6 @@ from landlab import BAD_INDEX_VALUE as XX
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-def setup_dans_grid1():
-    """
-    Create a 5x5 test grid.
-    This is a sheet flow test.
-    """
-    global fr, mg, infile
-    global z, Q_in, A_target, frcvr_target, upids_target, Q_target, \
-        steepest_target, links2rcvr_target
-
-    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
-
-    infile = os.path.join(_THIS_DIR, 'test_fr_input.txt')
-
-    z = mg.node_x.copy()
-
-    Q_in = np.full(25, 2.)
-
-    A_target = np.array([0.,  0.,  0.,  0.,  0.,
-                         3.,  3.,  2.,  1.,  0.,
-                         3.,  3.,  2.,  1.,  0.,
-                         3.,  3.,  2.,  1.,  0.,
-                         0.,  0.,  0.,  0.,  0.])*100.
-
-    frcvr_target = np.array([0,  1,  2,  3,  4,
-                             5,  5,  6,  7,  9,
-                            10, 10, 11, 12, 14,
-                            15, 15, 16, 17, 19,
-                            20, 21, 22, 23, 24])
-
-    upids_target = np.array([0,  1,  2,  3,  4,
-                             5,  6,  7,  8,  9,
-                            10, 11, 12, 13, 14,
-                            15, 16, 17, 18, 19,
-                            20, 21, 22, 23, 24])
-
-    links2rcvr_target = np.full(25, XX)
-    links2rcvr_target[mg.core_nodes] = np.array([ 9, 10, 11,
-                                                 18, 19, 20,
-                                                 27, 28, 29])
-
-    Q_target = A_target * 2.  # only once Q_in is used
-
-    steepest_target = np.array([0.,  0.,  0.,  0.,  0.,
-                                0.,  1.,  1.,  1.,  0.,
-                                0.,  1.,  1.,  1.,  0.,
-                                0.,  1.,  1.,  1.,  0.,
-                                0.,  0.,  0.,  0.,  0.])
-
-    mg.add_field('node', 'topographic__elevation', z, units='-')
-
-
 def setup_dans_grid2():
     """
     Create a 5x5 test grid.
@@ -289,56 +238,52 @@ def setup_voronoi_closedinternal():
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
 
 
-@with_setup(setup_dans_grid1)
-def test_check_fields():
+def test_check_fields(dans_grid1):
     """Check to make sure the right fields have been created."""
-    fr = FlowRouter(mg)
-    assert_array_equal(z, mg.at_node['topographic__elevation'])
-    assert_array_equal(np.zeros(25), mg.at_node['drainage_area'])
-    assert_array_equal(np.ones(25), mg.at_node['water__unit_flux_in'])
+    fr = FlowRouter(dans_grid1.mg)
+    assert_array_equal(dans_grid1.z, dans_grid1.mg.at_node['topographic__elevation'])
+    assert_array_equal(np.zeros(25), dans_grid1.mg.at_node['drainage_area'])
+    assert_array_equal(np.ones(25), dans_grid1.mg.at_node['water__unit_flux_in'])
 
-    fr = FlowRouter(mg, infile)
-    assert_array_equal(np.full(25, 2.), mg.at_node['water__unit_flux_in'])
+    fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
+    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node['water__unit_flux_in'])
 
 
-@with_setup(setup_dans_grid1)
-def test_check_field_input():
+def test_check_field_input(dans_grid1):
     """Check we can successfully pass water__discharge_in."""
-    mg.add_field('node', 'water__unit_flux_in',
-                 np.full(25, 3.), units='m**3/s')
-    fr = FlowRouter(mg)
-    assert_array_equal(np.full(25, 3.), mg.at_node['water__unit_flux_in'])
-    fr = FlowRouter(mg, infile)
-    assert_array_equal(np.full(25, 2.), mg.at_node['water__unit_flux_in'])
+    dans_grid1.mg.add_field('node', 'water__unit_flux_in',
+                            np.full(25, 3.), units='m**3/s')
+    fr = FlowRouter(dans_grid1.mg)
+    assert_array_equal(np.full(25, 3.), dans_grid1.mg.at_node['water__unit_flux_in'])
+    fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
+    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node['water__unit_flux_in'])
 
 
-@with_setup(setup_dans_grid1)
-def test_accumulate_D8():
+def test_accumulate_D8(dans_grid1):
     """Test accumulation works for D8 in a simple scenario."""
-    fr = FlowRouter(mg)
+    fr = FlowRouter(dans_grid1.mg)
     fr.route_flow()
-    assert_array_equal(A_target, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target, mg.at_node['flow__receiver_node'])
-    assert_array_equal(upids_target, mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(links2rcvr_target, mg.at_node['flow__link_to_receiver_node'])
-    assert_array_equal(A_target, mg.at_node['surface_water__discharge'])
-    assert_array_equal(steepest_target,
-                       mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node['drainage_area'])
+    assert_array_equal(dans_grid1.frcvr_target, dans_grid1.mg.at_node['flow__receiver_node'])
+    assert_array_equal(dans_grid1.upids_target, dans_grid1.mg.at_node['flow__upstream_node_order'])
+    assert_array_equal(dans_grid1.links2rcvr_target, dans_grid1.mg.at_node['flow__link_to_receiver_node'])
+    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node['surface_water__discharge'])
+    assert_array_equal(dans_grid1.steepest_target,
+                       dans_grid1.mg.at_node['topographic__steepest_slope'])
 
 
-@with_setup(setup_dans_grid1)
-def test_variable_Qin():
+def test_variable_Qin(dans_grid1):
     """Test variable Qin field."""
     Qin_local = np.zeros(25, dtype=float)
     Qin_local[13] = 2.
-    mg.add_field('node', 'water__unit_flux_in',
-                 Qin_local, units='m**3/s')
-    fr = FlowRouter(mg)
+    dans_grid1.mg.add_field('node', 'water__unit_flux_in',
+                            Qin_local, units='m**3/s')
+    fr = FlowRouter(dans_grid1.mg)
     fr.route_flow()
     Qout_local = np.zeros_like(Qin_local)
     Qout_local[10:14] = 200.
-    assert_array_equal(Qout_local, mg.at_node['surface_water__discharge'])
-    assert_array_equal(A_target, mg.at_node['drainage_area'])
+    assert_array_equal(Qout_local, dans_grid1.mg.at_node['surface_water__discharge'])
+    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node['drainage_area'])
     # note that A DOES NOT CHANGE when messing with Q_in
 
 
