@@ -14,10 +14,6 @@ def dans_grid1():
     Create a 5x5 test grid.
     This is a sheet flow test.
     """
-    # global fr, mg, infile
-    # global z, Q_in, A_target, frcvr_target, upids_target, Q_target, \
-    #     steepest_target, links2rcvr_target
-
     mg = RasterModelGrid((5, 5), spacing=(10., 10.))
 
     this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -608,11 +604,6 @@ def dans_grid2():
 
     mg.add_field("node", "topographic__elevation", z, units="-")
 
-    # global fr, mg, infile
-    # global z, A_target_D8, A_target_D4, frcvr_target_D8, frcvr_target_D4, \
-    #     upids_target_D8, upids_target_D4, steepest_target_D8, \
-    #     steepest_target_D4, links2rcvr_target_D8, links2rcvr_target_D4
-
     class DansGrid(object):
         pass
 
@@ -630,6 +621,560 @@ def dans_grid2():
     dans_grid.steepest_target_D4 = steepest_target_D4
     dans_grid.links2rcvr_target_D8 = links2rcvr_target_D8
     dans_grid.links2rcvr_target_D4 = links2rcvr_target_D4
+
+    return dans_grid
+
+
+@pytest.fixture
+def dans_grid3():
+    """
+    Create a 7x7 test grid with a well defined hole in it.
+    """
+    mg = RasterModelGrid(7, 7, 1.)
+
+    z = np.array(
+        [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            0.0,
+            0.0,
+            2.0,
+            1.6,
+            1.5,
+            1.6,
+            2.0,
+            0.0,
+            0.0,
+            2.0,
+            1.7,
+            1.6,
+            1.7,
+            2.0,
+            0.0,
+            0.0,
+            2.0,
+            1.8,
+            2.0,
+            2.0,
+            2.0,
+            0.0,
+            0.0,
+            1.0,
+            0.6,
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
+    ).flatten()
+
+    r_old = np.array(
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            1,
+            2,
+            3,
+            4,
+            5,
+            13,
+            14,
+            14,
+            17,
+            17,
+            17,
+            20,
+            20,
+            21,
+            21,
+            17,
+            17,
+            17,
+            27,
+            27,
+            28,
+            28,
+            37,
+            38,
+            39,
+            34,
+            34,
+            35,
+            44,
+            44,
+            44,
+            46,
+            41,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+        ]
+    ).flatten()
+
+    #    r_new = np.array([0,  1,  2,  3,  4,  5,  6,
+    #                      7,  1,  2,  3,  4,  5, 13,
+    #                     14, 14, 23, 23, 24, 20, 20,
+    #                     21, 21, 30, 30, 24, 27, 27,
+    #                     28, 28, 37, 38, 39, 34, 34,
+    #                     35, 44, 44, 44, 46, 41, 41,
+    #                     42, 43, 44, 45, 46, 47, 48]).flatten()
+
+    r_new = np.array(
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            1,
+            2,
+            3,
+            4,
+            5,
+            13,
+            14,
+            14,
+            23,
+            24,
+            24,
+            20,
+            20,
+            21,
+            21,
+            30,
+            30,
+            24,
+            27,
+            27,
+            28,
+            28,
+            37,
+            38,
+            39,
+            34,
+            34,
+            35,
+            44,
+            44,
+            44,
+            46,
+            41,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+        ]
+    ).flatten()
+
+    A_old = np.array(
+        [
+            [
+                0.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                0.,
+                0.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                0.,
+                1.,
+                1.,
+                1.,
+                6.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                0.,
+                1.,
+                2.,
+                2.,
+                2.,
+                1.,
+                1.,
+                0.,
+                0.,
+                5.,
+                0.,
+                2.,
+                0.,
+                0.,
+            ]
+        ]
+    ).flatten()
+
+    #    A_new = np.array([[0.,  1.,  1.,  1.,  1.,  1.,  0.,
+    #                       0.,  1.,  1.,  1.,  1.,  1.,  0.,
+    #                       1.,  1.,  1.,  1.,  1.,  1.,  1.,
+    #                       1.,  1.,  3.,  3.,  1.,  1.,  1.,
+    #                       1.,  1.,  7.,  1.,  1.,  1.,  1.,
+    #                       0.,  1.,  8.,  2.,  2.,  1.,  1.,
+    #                       0.,  0., 11.,  0.,  2.,  0.,  0.]]).flatten()
+
+    A_new = np.array(
+        [
+            [
+                0.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                0.,
+                0.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                0.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                2.,
+                4.,
+                1.,
+                1.,
+                1.,
+                1.,
+                1.,
+                7.,
+                1.,
+                1.,
+                1.,
+                1.,
+                0.,
+                1.,
+                8.,
+                2.,
+                2.,
+                1.,
+                1.,
+                0.,
+                0.,
+                11.,
+                0.,
+                2.,
+                0.,
+                0.,
+            ]
+        ]
+    ).flatten()
+
+    #    s_new = np.array([0,  1,  8,  2,  9,  3, 10,
+    #                      4, 11,  5, 12,  6,  7, 13,
+    #                     14, 15, 20, 19, 21, 22, 27,
+    #                     26, 28, 29, 34, 33, 35, 41,
+    #                     40, 42, 43, 44, 36, 37, 30,
+    #                     23, 16, 17, 24, 18, 25, 38,
+    #                     31, 45, 46, 39, 32, 47, 48]).flatten()
+
+    s_new = np.array(
+        [
+            0,
+            1,
+            8,
+            2,
+            9,
+            3,
+            10,
+            4,
+            11,
+            5,
+            12,
+            6,
+            7,
+            13,
+            14,
+            15,
+            20,
+            19,
+            21,
+            22,
+            27,
+            26,
+            28,
+            29,
+            34,
+            33,
+            35,
+            41,
+            40,
+            42,
+            43,
+            44,
+            36,
+            37,
+            30,
+            23,
+            16,
+            24,
+            17,
+            18,
+            25,
+            38,
+            31,
+            45,
+            46,
+            39,
+            32,
+            47,
+            48,
+        ]
+    ).flatten()
+
+    links_old = np.array(
+        [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            7,
+            8,
+            9,
+            10,
+            11,
+            -1,
+            -1,
+            26,
+            28,
+            -1,
+            29,
+            31,
+            -1,
+            -1,
+            39,
+            113,
+            35,
+            114,
+            44,
+            -1,
+            -1,
+            52,
+            60,
+            61,
+            62,
+            57,
+            -1,
+            -1,
+            146,
+            73,
+            149,
+            75,
+            70,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+        ]
+    ).flatten()
+
+    #    links_new = np.array([-1,  -1,  -1,  -1,  -1,  -1,  -1,
+    #                          -1,   7,   8,   9,  10,  11,  -1,
+    #                          -1,  26,  34, 113, 115,  31,  -1,
+    #                          -1,  39,  47, 125,  42,  44,  -1,
+    #                          -1,  52,  60,  61,  62,  57,  -1,
+    #                          -1, 146,  73, 149,  75,  70,  -1,
+    #                          -1,  -1,  -1,  -1,  -1,  -1,  -1]).flatten()
+
+    links_new = np.array(
+        [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            7,
+            8,
+            9,
+            10,
+            11,
+            -1,
+            -1,
+            26,
+            34,
+            35,
+            115,
+            31,
+            -1,
+            -1,
+            39,
+            47,
+            125,
+            42,
+            44,
+            -1,
+            -1,
+            52,
+            60,
+            61,
+            62,
+            57,
+            -1,
+            -1,
+            146,
+            73,
+            149,
+            75,
+            70,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+        ]
+    ).flatten()
+
+    depr_outlet_target = np.array(
+        [
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            30,
+            30,
+            30,
+            XX,
+            XX,
+            XX,
+            XX,
+            30,
+            30,
+            30,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+        ]
+    ).flatten()
+
+    mg.add_field("node", "topographic__elevation", z, units="-")
+
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+
+    class DansGrid(object):
+        pass
+
+    dans_grid = DansGrid()
+    dans_grid.mg = mg
+    dans_grid.fr = fr
+    dans_grid.lf = lf
+    dans_grid.z = z
+    dans_grid.r_new = r_new
+    dans_grid.r_old = r_old
+    dans_grid.A_new = A_new
+    dans_grid.A_old = A_old
+    dans_grid.s_new = s_new
+    dans_grid.depr_outlet_target = depr_outlet_target
+    dans_grid.links_old = links_old
+    dans_grid.links_new = links_new
 
     return dans_grid
 

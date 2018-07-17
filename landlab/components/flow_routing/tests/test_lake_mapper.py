@@ -15,7 +15,6 @@ from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import BAD_INDEX_VALUE as XX
-from nose.tools import with_setup
 
 
 NUM_GRID_ROWS = 8
@@ -42,547 +41,6 @@ def create_test_grid():
     rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     return rmg
-
-
-def setup_dans_grid():
-    """
-    Create a 7x7 test grid with a well defined hole in it.
-    """
-    from landlab import RasterModelGrid
-    from landlab.components.flow_routing import FlowRouter, DepressionFinderAndRouter
-
-    global fr, lf, mg
-    global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
-    global links_old, links_new
-
-    mg = RasterModelGrid(7, 7, 1.)
-
-    z = np.array(
-        [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            2.0,
-            2.0,
-            2.0,
-            2.0,
-            2.0,
-            0.0,
-            0.0,
-            2.0,
-            1.6,
-            1.5,
-            1.6,
-            2.0,
-            0.0,
-            0.0,
-            2.0,
-            1.7,
-            1.6,
-            1.7,
-            2.0,
-            0.0,
-            0.0,
-            2.0,
-            1.8,
-            2.0,
-            2.0,
-            2.0,
-            0.0,
-            0.0,
-            1.0,
-            0.6,
-            1.0,
-            1.0,
-            1.0,
-            0.0,
-            0.0,
-            0.0,
-            -0.5,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
-    ).flatten()
-
-    r_old = np.array(
-        [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            1,
-            2,
-            3,
-            4,
-            5,
-            13,
-            14,
-            14,
-            17,
-            17,
-            17,
-            20,
-            20,
-            21,
-            21,
-            17,
-            17,
-            17,
-            27,
-            27,
-            28,
-            28,
-            37,
-            38,
-            39,
-            34,
-            34,
-            35,
-            44,
-            44,
-            44,
-            46,
-            41,
-            41,
-            42,
-            43,
-            44,
-            45,
-            46,
-            47,
-            48,
-        ]
-    ).flatten()
-
-    #    r_new = np.array([0,  1,  2,  3,  4,  5,  6,
-    #                      7,  1,  2,  3,  4,  5, 13,
-    #                     14, 14, 23, 23, 24, 20, 20,
-    #                     21, 21, 30, 30, 24, 27, 27,
-    #                     28, 28, 37, 38, 39, 34, 34,
-    #                     35, 44, 44, 44, 46, 41, 41,
-    #                     42, 43, 44, 45, 46, 47, 48]).flatten()
-
-    r_new = np.array(
-        [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            1,
-            2,
-            3,
-            4,
-            5,
-            13,
-            14,
-            14,
-            23,
-            24,
-            24,
-            20,
-            20,
-            21,
-            21,
-            30,
-            30,
-            24,
-            27,
-            27,
-            28,
-            28,
-            37,
-            38,
-            39,
-            34,
-            34,
-            35,
-            44,
-            44,
-            44,
-            46,
-            41,
-            41,
-            42,
-            43,
-            44,
-            45,
-            46,
-            47,
-            48,
-        ]
-    ).flatten()
-
-    A_old = np.array(
-        [
-            [
-                0.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                0.,
-                0.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                0.,
-                1.,
-                1.,
-                1.,
-                6.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                0.,
-                1.,
-                2.,
-                2.,
-                2.,
-                1.,
-                1.,
-                0.,
-                0.,
-                5.,
-                0.,
-                2.,
-                0.,
-                0.,
-            ]
-        ]
-    ).flatten()
-
-    #    A_new = np.array([[0.,  1.,  1.,  1.,  1.,  1.,  0.,
-    #                       0.,  1.,  1.,  1.,  1.,  1.,  0.,
-    #                       1.,  1.,  1.,  1.,  1.,  1.,  1.,
-    #                       1.,  1.,  3.,  3.,  1.,  1.,  1.,
-    #                       1.,  1.,  7.,  1.,  1.,  1.,  1.,
-    #                       0.,  1.,  8.,  2.,  2.,  1.,  1.,
-    #                       0.,  0., 11.,  0.,  2.,  0.,  0.]]).flatten()
-
-    A_new = np.array(
-        [
-            [
-                0.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                0.,
-                0.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                0.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                2.,
-                4.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                7.,
-                1.,
-                1.,
-                1.,
-                1.,
-                0.,
-                1.,
-                8.,
-                2.,
-                2.,
-                1.,
-                1.,
-                0.,
-                0.,
-                11.,
-                0.,
-                2.,
-                0.,
-                0.,
-            ]
-        ]
-    ).flatten()
-
-    #    s_new = np.array([0,  1,  8,  2,  9,  3, 10,
-    #                      4, 11,  5, 12,  6,  7, 13,
-    #                     14, 15, 20, 19, 21, 22, 27,
-    #                     26, 28, 29, 34, 33, 35, 41,
-    #                     40, 42, 43, 44, 36, 37, 30,
-    #                     23, 16, 17, 24, 18, 25, 38,
-    #                     31, 45, 46, 39, 32, 47, 48]).flatten()
-
-    s_new = np.array(
-        [
-            0,
-            1,
-            8,
-            2,
-            9,
-            3,
-            10,
-            4,
-            11,
-            5,
-            12,
-            6,
-            7,
-            13,
-            14,
-            15,
-            20,
-            19,
-            21,
-            22,
-            27,
-            26,
-            28,
-            29,
-            34,
-            33,
-            35,
-            41,
-            40,
-            42,
-            43,
-            44,
-            36,
-            37,
-            30,
-            23,
-            16,
-            24,
-            17,
-            18,
-            25,
-            38,
-            31,
-            45,
-            46,
-            39,
-            32,
-            47,
-            48,
-        ]
-    ).flatten()
-
-    links_old = np.array(
-        [
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            7,
-            8,
-            9,
-            10,
-            11,
-            -1,
-            -1,
-            26,
-            28,
-            -1,
-            29,
-            31,
-            -1,
-            -1,
-            39,
-            113,
-            35,
-            114,
-            44,
-            -1,
-            -1,
-            52,
-            60,
-            61,
-            62,
-            57,
-            -1,
-            -1,
-            146,
-            73,
-            149,
-            75,
-            70,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-        ]
-    ).flatten()
-
-    #    links_new = np.array([-1,  -1,  -1,  -1,  -1,  -1,  -1,
-    #                          -1,   7,   8,   9,  10,  11,  -1,
-    #                          -1,  26,  34, 113, 115,  31,  -1,
-    #                          -1,  39,  47, 125,  42,  44,  -1,
-    #                          -1,  52,  60,  61,  62,  57,  -1,
-    #                          -1, 146,  73, 149,  75,  70,  -1,
-    #                          -1,  -1,  -1,  -1,  -1,  -1,  -1]).flatten()
-
-    links_new = np.array(
-        [
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            7,
-            8,
-            9,
-            10,
-            11,
-            -1,
-            -1,
-            26,
-            34,
-            35,
-            115,
-            31,
-            -1,
-            -1,
-            39,
-            47,
-            125,
-            42,
-            44,
-            -1,
-            -1,
-            52,
-            60,
-            61,
-            62,
-            57,
-            -1,
-            -1,
-            146,
-            73,
-            149,
-            75,
-            70,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-            -1,
-        ]
-    ).flatten()
-
-    depr_outlet_target = np.array(
-        [
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            30,
-            30,
-            30,
-            XX,
-            XX,
-            XX,
-            XX,
-            30,
-            30,
-            30,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-        ]
-    ).flatten()
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-    fr = FlowRouter(mg)
-    lf = DepressionFinderAndRouter(mg)
 
 
 def check_fields1(grid):
@@ -1494,33 +952,38 @@ def test_lake_mapper():
     check_array_values2(rmg, lm)
 
 
-@with_setup(setup_dans_grid)
-def test_initial_routing():
+def test_initial_routing(dans_grid3):
     """
     Test the action of fr.route_flow() on the grid.
     """
-    fr.route_flow()
-    assert_array_equal(mg.at_node["flow__receiver_node"], r_old)
-    assert_array_almost_equal(mg.at_node["drainage_area"], A_old)
+    dans_grid3.fr.route_flow()
+    assert_array_equal(dans_grid3.mg.at_node["flow__receiver_node"], dans_grid3.r_old)
+    assert_array_almost_equal(dans_grid3.mg.at_node["drainage_area"], dans_grid3.A_old)
 
 
-@with_setup(setup_dans_grid)
-def test_rerouting_with_supplied_pits():
+def test_rerouting_with_supplied_pits(dans_grid3):
     """
     Test with the output from a successful run of fr.route_flow.
     """
-    fr.route_flow()
-    assert_array_equal(mg.at_node["flow__link_to_receiver_node"], links_old)
-    lf.map_depressions()
-    assert_array_equal(mg.at_node["flow__receiver_node"], r_new)
-    assert_array_almost_equal(mg.at_node["drainage_area"], A_new)
-    assert_array_almost_equal(mg.at_node["surface_water__discharge"], A_new)
-    assert_array_equal(mg.at_node["flow__upstream_node_order"], s_new)
-    assert_array_equal(mg.at_node["flow__link_to_receiver_node"], links_new)
+    dans_grid3.fr.route_flow()
+    assert_array_equal(
+        dans_grid3.mg.at_node["flow__link_to_receiver_node"], dans_grid3.links_old
+    )
+    dans_grid3.lf.map_depressions()
+    assert_array_equal(dans_grid3.mg.at_node["flow__receiver_node"], dans_grid3.r_new)
+    assert_array_almost_equal(dans_grid3.mg.at_node["drainage_area"], dans_grid3.A_new)
+    assert_array_almost_equal(
+        dans_grid3.mg.at_node["surface_water__discharge"], dans_grid3.A_new
+    )
+    assert_array_equal(
+        dans_grid3.mg.at_node["flow__upstream_node_order"], dans_grid3.s_new
+    )
+    assert_array_equal(
+        dans_grid3.mg.at_node["flow__link_to_receiver_node"], dans_grid3.links_new
+    )
 
 
-@with_setup(setup_dans_grid)
-def test_changing_slopes():
+def test_changing_slopes(dans_grid3):
     """
     Test with the output from a successful run of fr.route_flow.
     """
@@ -1577,17 +1040,6 @@ def test_changing_slopes():
             0.,
         ]
     )
-    #    slope_new = np.array(
-    #        [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-    #          0.        ,  0.        ,  0.        ,  2.        ,  2.        ,
-    #          2.        ,  2.        ,  2.        ,  0.        ,  0.        ,
-    #          2.        ,  0.        ,  0.        ,  0.        ,  2.        ,
-    #          0.        ,  0.        ,  2.        ,  0.        ,  0.        ,
-    #          0.        ,  2.        ,  0.        ,  0.        ,  2.        ,
-    #          1.2       ,  1.        ,  1.        ,  2.        ,  0.        ,
-    #          0.        ,  1.06066017,  1.1       ,  1.06066017,  1.        ,
-    #          1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-    #          0.        ,  0.        ,  0.        ,  0.        ])
     slope_new = np.array(
         [
             0.,
@@ -1641,45 +1093,54 @@ def test_changing_slopes():
             0.,
         ]
     )
-    fr.run_one_step()
-    assert_array_almost_equal(mg.at_node["topographic__steepest_slope"], slope_old)
-    lf.map_depressions()
-    assert_array_almost_equal(mg.at_node["topographic__steepest_slope"], slope_new)
+    dans_grid3.fr.run_one_step()
+    assert_array_almost_equal(
+        dans_grid3.mg.at_node["topographic__steepest_slope"], slope_old
+    )
+    dans_grid3.lf.map_depressions()
+    assert_array_almost_equal(
+        dans_grid3.mg.at_node["topographic__steepest_slope"], slope_new
+    )
 
 
-@with_setup(setup_dans_grid)
-def test_filling_alone():
+def test_filling_alone(dans_grid3):
     """
     Test the filler alone, w/o supplying information on the pits.
     
     Setting the the *pits* parameter to None causes the mapper to look for pits
     using its _find_pits method.
     """
-    lf.map_depressions(pits=None, reroute_flow=False)
-    assert_array_equal(mg.at_node["flow__receiver_node"], XX * np.ones(49, dtype=int))
-    assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
+    dans_grid3.lf.map_depressions(pits=None, reroute_flow=False)
+    assert_array_equal(
+        dans_grid3.mg.at_node["flow__receiver_node"], XX * np.ones(49, dtype=int)
+    )
+    assert_array_equal(
+        dans_grid3.lf.depression_outlet_map, dans_grid3.depr_outlet_target
+    )
 
 
-@with_setup(setup_dans_grid)
-def test_filling_supplied_pits():
+def test_filling_supplied_pits(dans_grid3):
     """
     Test the filler without rereouting, but confusingly, where there *is*
     aready routing information available!
     Also tests the supply of an array for 'pits'
     """
-    fr.route_flow()
-    lf.map_depressions(pits=mg.at_node["flow__sink_flag"], reroute_flow=False)
-    assert_array_equal(mg.at_node["flow__receiver_node"], r_old)
+    dans_grid3.fr.route_flow()
+    dans_grid3.lf.map_depressions(
+        pits=dans_grid3.mg.at_node["flow__sink_flag"], reroute_flow=False
+    )
+    assert_array_equal(dans_grid3.mg.at_node["flow__receiver_node"], dans_grid3.r_old)
 
 
-@with_setup(setup_dans_grid)
-def test_pits_as_IDs():
+def test_pits_as_IDs(dans_grid3):
     """
     Smoke test for passing specific IDs, not an array, to the mapper.
     """
-    fr.route_flow()
-    lf.map_depressions(pits=np.where(mg.at_node["flow__sink_flag"])[0])
-    assert_array_almost_equal(mg.at_node["drainage_area"], A_new)
+    dans_grid3.fr.route_flow()
+    dans_grid3.lf.map_depressions(
+        pits=np.where(dans_grid3.mg.at_node["flow__sink_flag"])[0]
+    )
+    assert_array_almost_equal(dans_grid3.mg.at_node["drainage_area"], dans_grid3.A_new)
 
 
 def test_edge_draining():
@@ -2495,14 +1956,3 @@ def test_D8_D4_route(d4_grid):
         d4_grid.mg1.at_node["drainage_area"].reshape((7, 7))[:, 0].sum(),
         d4_grid.mg2.at_node["drainage_area"].reshape((7, 7))[:, 0].sum(),
     )
-
-
-if __name__ == "__main__":
-    # test_lake_mapper()
-    setup_dans_grid2()
-    test_edge_draining()
-    # test_initial_routing()
-    # test_rerouting_with_supplied_pits()
-    # test_changing_slopes()
-    # test_filling_alone()
-    #    test_pits_as_IDs()
