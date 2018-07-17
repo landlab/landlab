@@ -27,78 +27,6 @@ from landlab import BAD_INDEX_VALUE as XX
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-def setup_dans_grid2():
-    """
-    Create a 5x5 test grid.
-    This tests more complex routing, with diffs between D4 & D8.
-    """
-    global fr, mg, infile
-    global z, A_target_D8, A_target_D4, frcvr_target_D8, frcvr_target_D4, \
-        upids_target_D8, upids_target_D4, steepest_target_D8, \
-        steepest_target_D4, links2rcvr_target_D8, links2rcvr_target_D4
-
-    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
-
-    infile = os.path.join(_THIS_DIR, 'test_fr_input.txt')
-
-    z = np.array([7.,  7.,  7.,  7.,  7.,
-                  7.,  5., 3.2,  6.,  7.,
-                  7.,  2.,  3.,  5.,  7.,
-                  7.,  1., 1.9,  4.,  7.,
-                  7.,  0.,  7.,  7.,  7.])
-
-    A_target_D8 = np.array([0.,     0.,     0.,     0.,     0.,
-                            0.,   100.,   200.,   100.,     0.,
-                            0.,   400.,   100.,   100.,     0.,
-                            0.,   600.,   300.,   100.,     0.,
-                            0.,   900.,     0.,     0.,     0.])
-
-    A_target_D4 = np.array([0.,     0.,     0.,     0.,     0.,
-                            0.,   100.,   200.,   100.,     0.,
-                            0.,   200.,   400.,   100.,     0.,
-                            0.,   900.,   600.,   100.,     0.,
-                            0.,   900.,     0.,     0.,     0.])
-
-    frcvr_target_D8 = np.array([0, 1, 2, 3, 4, 5, 11, 11, 7, 9, 10, 16, 16, 17,
-                                14, 15, 21, 21, 17, 19, 20, 21, 22, 23, 24])
-
-    frcvr_target_D4 = np.array([ 0,  1,  2,  3,  4, 
-                                 5, 11, 12,  7,  9,
-                                10, 16, 17, 12, 14,
-                                15, 21, 16, 17, 19,
-                                20, 21, 22, 23, 24])
-
-    upids_target_D8 = np.array([0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21,
-                                16, 11, 6, 7, 8, 12, 17, 13, 18, 22, 23, 24])
-
-    upids_target_D4 = np.array([0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21,
-                                16, 11, 6, 17, 12, 7, 8, 13, 18, 22, 23, 24])
-
-    links2rcvr_target_D8 = np.full(25, XX)
-    links2rcvr_target_D8[mg.core_nodes] = np.array([14, 51, 11,
-                                                    23, 59, 61,
-                                                    32, 67, 29])
-
-    links2rcvr_target_D4 = np.full(25, XX)
-    links2rcvr_target_D4[mg.core_nodes] = np.array([14, 15, 11,
-                                                    23, 24, 20,
-                                                    32, 28, 29])
-
-    steepest_target_D8 = np.array([0., 0., 0., 0., 0.,
-                                   0., 0.3, 0.08485281, 0.28, 0.,
-                                   0., 0.1, 0.14142136, 0.21920310, 0.,
-                                   0., 0.1, 0.13435029, 0.21,  0.,
-                                   0., 0., 0., 0.,  0.])
-
-    steepest_target_D4 = np.array([0., 0., 0., 0., 0.,
-                                   0., 0.3, 0.02, 0.28, 0.,
-                                   0., 0.1, 0.11, 0.2, 0.,
-                                   0., 0.1, 0.09, 0.21, 0.,
-                                   0., 0., 0., 0., 0.])
-
-    mg.add_field('node', 'topographic__elevation', z, units='-')
-
-
 def setup_internal_closed():
     """
     Create a 6x5 test grid, but with two internal nodes closed.
@@ -287,49 +215,46 @@ def test_variable_Qin(dans_grid1):
     # note that A DOES NOT CHANGE when messing with Q_in
 
 
-@with_setup(setup_dans_grid2)
-def test_irreg_topo():
+def test_irreg_topo(dans_grid2):
     """Test D8 routing on a toy irregular topo."""
-    fr = FlowRouter(mg)
+    fr = FlowRouter(dans_grid2.mg)
     fr.route_flow()
-    assert_array_equal(A_target_D8, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target_D8, mg.at_node['flow__receiver_node'])
-    assert_array_equal(upids_target_D8, mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(links2rcvr_target_D8,
-                       mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(steepest_target_D8,
-                              mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid2.A_target_D8, dans_grid2.mg.at_node['drainage_area'])
+    assert_array_equal(dans_grid2.frcvr_target_D8, dans_grid2.mg.at_node['flow__receiver_node'])
+    assert_array_equal(dans_grid2.upids_target_D8, dans_grid2.mg.at_node['flow__upstream_node_order'])
+    assert_array_equal(dans_grid2.links2rcvr_target_D8,
+                       dans_grid2.mg.at_node['flow__link_to_receiver_node'])
+    assert_array_almost_equal(dans_grid2.steepest_target_D8,
+                              dans_grid2.mg.at_node['topographic__steepest_slope'])
 
 
-@with_setup(setup_dans_grid2)
-def test_irreg_topo_old():
+def test_irreg_topo_old(dans_grid2):
     """
     Test D4 routing on a toy irregular topo, old style, where 'method' is
     passed to the run method, not the init.
     """
-    fr = FlowRouter(mg)
+    fr = FlowRouter(dans_grid2.mg)
     fr.route_flow(method='D4')
-    assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target_D4, mg.at_node['flow__receiver_node'])
-    assert_array_equal(upids_target_D4, mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(links2rcvr_target_D4,
-                       mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(steepest_target_D4,
-                              mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node['drainage_area'])
+    assert_array_equal(dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node['flow__receiver_node'])
+    assert_array_equal(dans_grid2.upids_target_D4, dans_grid2.mg.at_node['flow__upstream_node_order'])
+    assert_array_equal(dans_grid2.links2rcvr_target_D4,
+                       dans_grid2.mg.at_node['flow__link_to_receiver_node'])
+    assert_array_almost_equal(dans_grid2.steepest_target_D4,
+                              dans_grid2.mg.at_node['topographic__steepest_slope'])
 
 
-@with_setup(setup_dans_grid2)
-def test_irreg_topo_new():
+def test_irreg_topo_new(dans_grid2):
     """Test D4 routing on a toy irregular topo. 'method' passed to init."""
-    fr = FlowRouter(mg, method='D4')
+    fr = FlowRouter(dans_grid2.mg, method='D4')
     fr.route_flow()
-    assert_array_equal(A_target_D4, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target_D4, mg.at_node['flow__receiver_node'])
-    assert_array_equal(upids_target_D4, mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(links2rcvr_target_D4,
-                       mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(steepest_target_D4,
-                              mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node['drainage_area'])
+    assert_array_equal(dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node['flow__receiver_node'])
+    assert_array_equal(dans_grid2.upids_target_D4, dans_grid2.mg.at_node['flow__upstream_node_order'])
+    assert_array_equal(dans_grid2.links2rcvr_target_D4,
+                       dans_grid2.mg.at_node['flow__link_to_receiver_node'])
+    assert_array_almost_equal(dans_grid2.steepest_target_D4,
+                              dans_grid2.mg.at_node['topographic__steepest_slope'])
 
 
 @with_setup(setup_internal_closed)

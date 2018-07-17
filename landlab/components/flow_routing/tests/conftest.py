@@ -62,15 +62,110 @@ def dans_grid1():
     class DansGrid(object):
         pass
 
-    dans_grid1 = DansGrid()
-    dans_grid1.mg = mg
-    dans_grid1.z = z
-    dans_grid1.infile = infile
-    dans_grid1.A_target = A_target
-    dans_grid1.frcvr_target = frcvr_target 
-    dans_grid1.upids_target = upids_target 
-    dans_grid1.Q_target = Q_target 
-    dans_grid1.steepest_target = steepest_target 
-    dans_grid1.links2rcvr_target = links2rcvr_target 
+    dans_grid = DansGrid()
+    dans_grid.mg = mg
+    dans_grid.z = z
+    dans_grid.infile = infile
+    dans_grid.A_target = A_target
+    dans_grid.frcvr_target = frcvr_target
+    dans_grid.upids_target = upids_target
+    dans_grid.Q_target = Q_target
+    dans_grid.steepest_target = steepest_target
+    dans_grid.links2rcvr_target = links2rcvr_target
 
-    return dans_grid1
+    return dans_grid
+
+
+@pytest.fixture
+def dans_grid2():
+    """
+    Create a 5x5 test grid.
+    This tests more complex routing, with diffs between D4 & D8.
+    """
+    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
+
+    this_dir = os.path.abspath(os.path.dirname(__file__))
+    infile = os.path.join(this_dir, 'test_fr_input.txt')
+
+    z = np.array([7.,  7.,  7.,  7.,  7.,
+                  7.,  5., 3.2,  6.,  7.,
+                  7.,  2.,  3.,  5.,  7.,
+                  7.,  1., 1.9,  4.,  7.,
+                  7.,  0.,  7.,  7.,  7.])
+
+    A_target_D8 = np.array([0.,     0.,     0.,     0.,     0.,
+                            0.,   100.,   200.,   100.,     0.,
+                            0.,   400.,   100.,   100.,     0.,
+                            0.,   600.,   300.,   100.,     0.,
+                            0.,   900.,     0.,     0.,     0.])
+
+    A_target_D4 = np.array([0.,     0.,     0.,     0.,     0.,
+                            0.,   100.,   200.,   100.,     0.,
+                            0.,   200.,   400.,   100.,     0.,
+                            0.,   900.,   600.,   100.,     0.,
+                            0.,   900.,     0.,     0.,     0.])
+
+    frcvr_target_D8 = np.array([0, 1, 2, 3, 4, 5, 11, 11, 7, 9, 10, 16, 16, 17,
+                                14, 15, 21, 21, 17, 19, 20, 21, 22, 23, 24])
+
+    frcvr_target_D4 = np.array([ 0,  1,  2,  3,  4, 
+                                 5, 11, 12,  7,  9,
+                                10, 16, 17, 12, 14,
+                                15, 21, 16, 17, 19,
+                                20, 21, 22, 23, 24])
+
+    upids_target_D8 = np.array([0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21,
+                                16, 11, 6, 7, 8, 12, 17, 13, 18, 22, 23, 24])
+
+    upids_target_D4 = np.array([0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21,
+                                16, 11, 6, 17, 12, 7, 8, 13, 18, 22, 23, 24])
+
+    links2rcvr_target_D8 = np.full(25, XX)
+    links2rcvr_target_D8[mg.core_nodes] = np.array([14, 51, 11,
+                                                    23, 59, 61,
+                                                    32, 67, 29])
+
+    links2rcvr_target_D4 = np.full(25, XX)
+    links2rcvr_target_D4[mg.core_nodes] = np.array([14, 15, 11,
+                                                    23, 24, 20,
+                                                    32, 28, 29])
+
+    steepest_target_D8 = np.array([0., 0., 0., 0., 0.,
+                                   0., 0.3, 0.08485281, 0.28, 0.,
+                                   0., 0.1, 0.14142136, 0.21920310, 0.,
+                                   0., 0.1, 0.13435029, 0.21,  0.,
+                                   0., 0., 0., 0.,  0.])
+
+    steepest_target_D4 = np.array([0., 0., 0., 0., 0.,
+                                   0., 0.3, 0.02, 0.28, 0.,
+                                   0., 0.1, 0.11, 0.2, 0.,
+                                   0., 0.1, 0.09, 0.21, 0.,
+                                   0., 0., 0., 0., 0.])
+
+    mg.add_field('node', 'topographic__elevation', z, units='-')
+
+
+    # global fr, mg, infile
+    # global z, A_target_D8, A_target_D4, frcvr_target_D8, frcvr_target_D4, \
+    #     upids_target_D8, upids_target_D4, steepest_target_D8, \
+    #     steepest_target_D4, links2rcvr_target_D8, links2rcvr_target_D4
+
+    class DansGrid(object):
+        pass
+
+    dans_grid = DansGrid()
+    dans_grid.mg = mg
+    dans_grid.z = z
+    dans_grid.infile = infile
+    dans_grid.A_target_D8 = A_target_D8
+    dans_grid.A_target_D4 = A_target_D4
+    dans_grid.frcvr_target_D8 = frcvr_target_D8
+    dans_grid.frcvr_target_D4 = frcvr_target_D4
+    dans_grid.upids_target_D8 = upids_target_D8
+    dans_grid.upids_target_D4 = upids_target_D4
+    dans_grid.steepest_target_D8 = steepest_target_D8
+    dans_grid.steepest_target_D4 = steepest_target_D4
+    dans_grid.links2rcvr_target_D8 = links2rcvr_target_D8
+    dans_grid.links2rcvr_target_D4 = links2rcvr_target_D4
+
+    return dans_grid
