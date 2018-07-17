@@ -20,56 +20,6 @@ from landlab.components.flow_routing import FlowRouter
 from landlab.components.sink_fill import SinkFiller
 
 
-def setup_dans_grid5():
-    """
-    Create a 10x10 test grid with two well defined holes in it, into an
-    inclined surface. This time, one of the holes is a stupid shape, which
-    will require the component to arrange flow back "uphill". Exactly as
-    V4, but this version tests D4 routing.
-
-    Notes
-    -----
-    Here is the elevation grid:
-
-    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
-    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
-    1.      2.      3.      4.001   5.      6.      7.      8.      9.     10.
-    1.      2.      3.      4.001   0.      0.      0.      8.      9.     10.
-    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
-    1.      2.      3.      4.001   0.      0.      0.      8.      9.     10.
-    1.      2.      3.      4.001   5.      0.      7.      8.      9.     10.
-    1.      2.      3.      4.001   0.      6.      7.      8.      0.     10.
-    1.      2.      3.      4.001   5.      6.      7.      0.      0.     10.
-    1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
-    """
-    global hf, fr, mg
-    global z, depr_outlet_target
-    global lake, lake1, lake2, outlet, outlet_array
-
-    lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
-    lake2 = np.array([78, 87, 88])
-    guard_nodes = np.array([23, 33, 53, 63, 73, 83])
-    lake = np.concatenate((lake1, lake2))
-    outlet = 35  # shouldn't be needed
-    outlet_array = np.array([outlet])
-
-    mg = RasterModelGrid(10, 10, 1.)
-
-    z = np.ones(100, dtype=float)
-    # add slope
-    z += mg.node_x
-    z[guard_nodes] += 0.001  # forces the flow out of a particular node
-    z[lake] = 0.
-
-    depr_outlet_target = np.empty(100, dtype=float)
-    depr_outlet_target.fill(XX)
-    depr_outlet_target = XX  # not well defined in this simplest case...?
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-    fr = FlowRouter(mg)
-
-
 def check_fields(sink_grid1):
     """
     Check to make sure the right fields have been created.
@@ -253,13 +203,13 @@ def test_stupid_shaped_hole(sink_grid4):
     assert sink_grid4.at_node["flow__sink_flag"][sink_grid4.core_nodes].sum() == 0
 
 
-@with_setup(setup_dans_grid5)
-def test_D4_routing():
+def test_D4_routing(sink_grid5):
     """
     Tests inclined fill into a surface with a deliberately awkward shape.
     This is testing D4 routing.
     """
-    hf = SinkFiller(mg, routing="D4", apply_slope=True)
+    fr = FlowRouter(sink_grid5)
+    hf = SinkFiller(sink_grid5, routing="D4", apply_slope=True)
     hf.fill_pits()
     #    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
     #                      4.0005, 4.00066667, 4.00058333, 4.00075,
@@ -281,23 +231,30 @@ def test_D4_routing():
     )
     hole2 = np.array([7.6, 7.2, 7.4])
 
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake1], hole1)
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake2], hole2)
+    assert_array_almost_equal(
+        sink_grid5.at_node["topographic__elevation"][sink_grid5.lake1], hole1
+    )
+    assert_array_almost_equal(
+        sink_grid5.at_node["topographic__elevation"][sink_grid5.lake2], hole2
+    )
     fr.route_flow(method="D4")
-    assert mg.at_node["flow__sink_flag"][mg.core_nodes].sum() == 0
+    assert sink_grid5.at_node["flow__sink_flag"][sink_grid5.core_nodes].sum() == 0
 
 
-@with_setup(setup_dans_grid5)
-def test_D4_filling():
+def test_D4_filling(sink_grid5):
     """
     Tests inclined fill into a surface with a deliberately awkward shape.
     This is testing D4 without inclining the surface.
     """
-    hf = SinkFiller(mg, routing="D4")
+    hf = SinkFiller(sink_grid5, routing="D4")
     hf.fill_pits()
-    hole1 = 4. * np.ones_like(lake1, dtype=float)
+    hole1 = 4. * np.ones_like(sink_grid5.lake1, dtype=float)
     hole1[-1] += 0.001
-    hole2 = 7. * np.ones_like(lake2, dtype=float)
+    hole2 = 7. * np.ones_like(sink_grid5.lake2, dtype=float)
 
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake1], hole1)
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake2], hole2)
+    assert_array_almost_equal(
+        sink_grid5.at_node["topographic__elevation"][sink_grid5.lake1], hole1
+    )
+    assert_array_almost_equal(
+        sink_grid5.at_node["topographic__elevation"][sink_grid5.lake2], hole2
+    )
