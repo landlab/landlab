@@ -13,7 +13,7 @@ from landlab import RasterModelGrid
 from landlab.components.flow_routing import FlowRouter, DepressionFinderAndRouter
 from numpy import sin, pi
 import numpy as np  # for use of np.round
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 from landlab import BAD_INDEX_VALUE as XX
 
 
@@ -957,8 +957,8 @@ def test_initial_routing(dans_grid3):
     Test the action of fr.route_flow() on the grid.
     """
     dans_grid3.fr.route_flow()
-    assert_array_equal(dans_grid3.mg.at_node["flow__receiver_node"], dans_grid3.r_old)
-    assert_array_almost_equal(dans_grid3.mg.at_node["drainage_area"], dans_grid3.A_old)
+    assert dans_grid3.mg.at_node["flow__receiver_node"] == approx(dans_grid3.r_old)
+    assert dans_grid3.mg.at_node["drainage_area"] == approx(dans_grid3.A_old)
 
 
 def test_rerouting_with_supplied_pits(dans_grid3):
@@ -971,15 +971,13 @@ def test_rerouting_with_supplied_pits(dans_grid3):
     )
     dans_grid3.lf.map_depressions()
     assert_array_equal(dans_grid3.mg.at_node["flow__receiver_node"], dans_grid3.r_new)
-    assert_array_almost_equal(dans_grid3.mg.at_node["drainage_area"], dans_grid3.A_new)
-    assert_array_almost_equal(
-        dans_grid3.mg.at_node["surface_water__discharge"], dans_grid3.A_new
+    assert dans_grid3.mg.at_node["drainage_area"] == approx(dans_grid3.A_new)
+    assert dans_grid3.mg.at_node["surface_water__discharge"] == approx(dans_grid3.A_new)
+    assert dans_grid3.mg.at_node["flow__upstream_node_order"] == approx(
+        dans_grid3.s_new
     )
-    assert_array_equal(
-        dans_grid3.mg.at_node["flow__upstream_node_order"], dans_grid3.s_new
-    )
-    assert_array_equal(
-        dans_grid3.mg.at_node["flow__link_to_receiver_node"], dans_grid3.links_new
+    assert dans_grid3.mg.at_node["flow__link_to_receiver_node"] == approx(
+        dans_grid3.links_new
     )
 
 
@@ -1094,13 +1092,9 @@ def test_changing_slopes(dans_grid3):
         ]
     )
     dans_grid3.fr.run_one_step()
-    assert_array_almost_equal(
-        dans_grid3.mg.at_node["topographic__steepest_slope"], slope_old
-    )
+    assert dans_grid3.mg.at_node["topographic__steepest_slope"] == approx(slope_old)
     dans_grid3.lf.map_depressions()
-    assert_array_almost_equal(
-        dans_grid3.mg.at_node["topographic__steepest_slope"], slope_new
-    )
+    assert dans_grid3.mg.at_node["topographic__steepest_slope"] == approx(slope_new)
 
 
 def test_filling_alone(dans_grid3):
@@ -1140,7 +1134,7 @@ def test_pits_as_IDs(dans_grid3):
     dans_grid3.lf.map_depressions(
         pits=np.where(dans_grid3.mg.at_node["flow__sink_flag"])[0]
     )
-    assert_array_almost_equal(dans_grid3.mg.at_node["drainage_area"], dans_grid3.A_new)
+    assert dans_grid3.mg.at_node["drainage_area"] == approx(dans_grid3.A_new)
 
 
 def test_edge_draining():
@@ -1278,8 +1272,8 @@ def test_edge_draining():
 
     fr.route_flow()
     lf.map_depressions()
-    assert_array_almost_equal(mg.at_node["drainage_area"], A_new)
-    assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
+    assert mg.at_node["drainage_area"] == approx(A_new)
+    assert lf.depression_outlet_map == approx(depr_outlet_target)
 
 
 def test_degenerate_drainage():
@@ -1363,10 +1357,7 @@ def test_degenerate_drainage():
 
     thelake = np.concatenate((lake_pits, [22])).sort()
 
-    assert_array_almost_equal(mg.at_node["drainage_area"], correct_A)
-
-    # assert np.all(np.equal(lf.lake_map[thelake], lf.lake_map[thelake[0]]))
-    # assert not lf.lake_map[thelake[0]] == XX
+    assert mg.at_node["drainage_area"] == approx(correct_A)
 
 
 def test_three_pits():
@@ -1517,8 +1508,8 @@ def test_three_pits():
     assert_array_equal(lf.lake_map, lc)
     assert_array_equal(lf.lake_codes, [33, 37, 74])
     assert lf.number_of_lakes == 3
-    assert_array_almost_equal(lf.lake_areas, [2., 1., 2.])
-    assert_array_almost_equal(lf.lake_volumes, [2., 2., 4.])
+    assert lf.lake_areas == approx([2., 1., 2.])
+    assert lf.lake_volumes == approx([2., 2., 4.])
 
 
 def test_composite_pits():
@@ -1817,12 +1808,8 @@ def test_D8_D4_fill(d4_grid):
     assert_array_equal(d4_grid.lfD8.lake_map, correct_D8_lake_map)
     assert_array_equal(d4_grid.lfD4.lake_map, correct_D4_lake_map)
 
-    assert_array_almost_equal(
-        d4_grid.mg1.at_node["depression__depth"], correct_D8_depths
-    )
-    assert_array_almost_equal(
-        d4_grid.mg2.at_node["depression__depth"], correct_D4_depths
-    )
+    assert d4_grid.mg1.at_node["depression__depth"] == approx(correct_D8_depths)
+    assert d4_grid.mg2.at_node["depression__depth"] == approx(correct_D4_depths)
 
 
 def test_D8_D4_route(d4_grid):
@@ -1952,7 +1939,6 @@ def test_D8_D4_route(d4_grid):
     )
     assert_array_equal(d4_grid.mg1.at_node["flow__receiver_node"], flow_recD8)
     assert_array_equal(d4_grid.mg2.at_node["flow__receiver_node"], flow_recD4)
-    assert_array_almost_equal(
-        d4_grid.mg1.at_node["drainage_area"].reshape((7, 7))[:, 0].sum(),
-        d4_grid.mg2.at_node["drainage_area"].reshape((7, 7))[:, 0].sum(),
+    assert d4_grid.mg1.at_node["drainage_area"].reshape((7, 7))[:, 0].sum() == approx(
+        d4_grid.mg2.at_node["drainage_area"].reshape((7, 7))[:, 0].sum()
     )

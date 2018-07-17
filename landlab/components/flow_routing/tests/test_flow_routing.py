@@ -13,7 +13,7 @@ from six.moves import range
 
 from pytest import approx
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 import landlab
 from landlab import RasterModelGrid, RadialModelGrid, FieldError
@@ -99,9 +99,8 @@ def test_irreg_topo(dans_grid2):
         dans_grid2.links2rcvr_target_D8,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert_array_almost_equal(
-        dans_grid2.steepest_target_D8,
-        dans_grid2.mg.at_node["topographic__steepest_slope"],
+    assert dans_grid2.steepest_target_D8 == approx(
+        dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
 
@@ -123,9 +122,8 @@ def test_irreg_topo_old(dans_grid2):
         dans_grid2.links2rcvr_target_D4,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert_array_almost_equal(
-        dans_grid2.steepest_target_D4,
-        dans_grid2.mg.at_node["topographic__steepest_slope"],
+    assert dans_grid2.steepest_target_D4 == approx(
+        dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
 
@@ -144,9 +142,8 @@ def test_irreg_topo_new(dans_grid2):
         dans_grid2.links2rcvr_target_D4,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert_array_almost_equal(
-        dans_grid2.steepest_target_D4,
-        dans_grid2.mg.at_node["topographic__steepest_slope"],
+    assert dans_grid2.steepest_target_D4 == approx(
+        dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
 
@@ -154,8 +151,8 @@ def test_internal_closed(internal_closed):
     """Test closed nodes in the core of the grid."""
     fr = FlowRouter(internal_closed.mg)
     fr.route_flow()
-    assert_array_almost_equal(
-        internal_closed.A_target, internal_closed.mg.at_node["drainage_area"]
+    assert internal_closed.A_target == approx(
+        internal_closed.mg.at_node["drainage_area"]
     )
     assert_array_equal(
         internal_closed.frcvr_target, internal_closed.mg.at_node["flow__receiver_node"]
@@ -164,12 +161,11 @@ def test_internal_closed(internal_closed):
         internal_closed.links2rcvr_target,
         internal_closed.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert_array_almost_equal(
-        internal_closed.A_target, internal_closed.mg.at_node["surface_water__discharge"]
+    assert internal_closed.A_target == approx(
+        internal_closed.mg.at_node["surface_water__discharge"]
     )
-    assert_array_almost_equal(
-        internal_closed.steepest_target,
-        internal_closed.mg.at_node["topographic__steepest_slope"],
+    assert internal_closed.steepest_target == approx(
+        internal_closed.mg.at_node["topographic__steepest_slope"]
     )
 
 
@@ -216,9 +212,7 @@ def test_voronoi():
     A_target_outlet = vmg.area_of_cell.sum()
 
     fr.route_flow()
-    assert_array_almost_equal(
-        vmg.at_node["drainage_area"][vmg.core_nodes], A_target_core
-    )
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == approx(A_target_core)
     assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
 
 
@@ -250,7 +244,5 @@ def test_voronoi_closedinternal():
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
     fr.route_flow()
 
-    assert_array_almost_equal(
-        vmg.at_node["drainage_area"][vmg.core_nodes], A_target_internal
-    )
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == approx(A_target_internal)
     assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
