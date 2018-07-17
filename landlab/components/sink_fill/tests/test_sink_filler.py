@@ -20,34 +20,6 @@ from landlab.components.flow_routing import FlowRouter
 from landlab.components.sink_fill import SinkFiller
 
 
-def setup_dans_grid2():
-    """
-    Create a 10x10 test grid with a well defined hole in it, from a flat
-    surface.
-    """
-    global hf, mg
-    global z, depr_outlet_target
-    global lake, outlet, lake_code, outlet_array
-
-    lake = np.array([44, 45, 46, 54, 55, 56, 64, 65, 66])
-    outlet = 35  # shouldn't be needed
-    lake_code = 44
-    outlet_array = np.array([outlet])
-
-    mg = RasterModelGrid(10, 10, 1.)
-
-    z = np.ones(100, dtype=float)
-    z[lake] = 0.
-
-    depr_outlet_target = np.empty(100, dtype=float)
-    depr_outlet_target.fill(XX)
-    depr_outlet_target = XX  # not well defined in this simplest case...?
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-    hf = SinkFiller(mg)
-
-
 def setup_dans_grid3():
     """
     Create a 10x10 test grid with two well defined holes in it, into an
@@ -253,16 +225,17 @@ def test_add_slopes(sink_grid1):
     assert_array_equal(sink_grid1.lake, lake_out)
 
 
-@with_setup(setup_dans_grid2)
-def test_filler_flat():
+def test_filler_flat(sink_grid2):
     """
     Very simple, though possibly degerate, case, filling a 3x3 hole up to
     the flat surface surrounding it.
     """
+    hf = SinkFiller(sink_grid2)
     hf.fill_pits()
-    assert_array_equal(hf._elev[lake], np.ones(9, dtype=float))
+    assert_array_equal(hf._elev[sink_grid2.lake], np.ones(9, dtype=float))
     assert_array_equal(
-        mg.at_node["topographic__elevation"][lake], np.ones(9, dtype=float)
+        sink_grid2.at_node["topographic__elevation"][sink_grid2.lake],
+        np.ones(9, dtype=float),
     )
 
 

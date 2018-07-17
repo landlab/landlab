@@ -30,3 +30,22 @@ def sink_grid1():
     sink_grid.lake = np.array([16, 17, 18, 23, 24, 25])
 
     return sink_grid
+
+
+@pytest.fixture
+def sink_grid2():
+    """
+    Create a 10x10 test grid with a well defined hole in it, from a flat
+    surface.
+    """
+    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+
+    lake = np.array([44, 45, 46, 54, 55, 56, 64, 65, 66])
+
+    z = np.ones(100, dtype=float)
+    z[lake] = 0.
+
+    sink_grid.add_field("topographic__elevation", z, at="node", units="-")
+    sink_grid.lake = lake
+
+    return sink_grid
