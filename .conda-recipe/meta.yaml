@@ -22,7 +22,6 @@ requirements:
     - numpy >=1.11,<1.14
     - scipy
     - xarray
-    - nose
     - matplotlib
     - numpydoc
     - netcdf4
