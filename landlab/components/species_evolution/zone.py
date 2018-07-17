@@ -27,7 +27,7 @@ class Zone(object):
     MANY_TO_ONE = 'many-to-one'
     MANY_TO_MANY = 'many-to-many'
 
-    def __init__(self, mask):
+    def __init__(self, time, mask):
         """
         Parameters
         ----------
@@ -282,8 +282,8 @@ class Zone(object):
     def set_mask_at_time(self, time):
         self.records.append
 
-    @property
-    def mask(self):
-        """Get the zone mask of the latest time."""
-        latest_time = self.records.time__latest
-        return self.records.get_value(latest_time, 'mask')
+#    @property
+#    def mask(self):
+#        """Get the zone mask of the latest time."""
+#        latest_time = self.records.time__latest
+#        return self.records.get_value(latest_time, 'mask')

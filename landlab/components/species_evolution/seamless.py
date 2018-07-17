@@ -104,7 +104,7 @@ class SpeciesEvolver(Component):
             self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
     def _get_zone_paths(self, time, new_zones, **kwds):
-        prior_time = self.records.get_time_prior_to_time(time)
+        prior_time = self.records.get_model_time_prior_to_time(time)
         prior_zones = self.zones_at_time(prior_time, return_objects=True)
         zone_types = set([type(p) for p in new_zones])
 
@@ -131,7 +131,7 @@ class SpeciesEvolver(Component):
 
     def _get_surviving_species(self, time, zone_paths, **kwds):
         # Process only the species extant at the prior time.
-        prior_time = self.records.get_time_prior_to_time(time)
+        prior_time = self.records.get_model_time_prior_to_time(time)
         extant_species = self.species_at_time(prior_time, return_objects=True)
 
         # Get the species that persist in `time` given the outcome of the
@@ -223,7 +223,7 @@ class SpeciesEvolver(Component):
         sid = self._get_unused_species_id(cn)
         species._identifier = sid
 
-        time = species.records.time__latest
+        time = species.records.model__latest_time
 
         species_zones = species.records.get_value(time, 'zones')
 
@@ -386,7 +386,7 @@ class SpeciesEvolver(Component):
         """Get the area and number of species of each zone.
 
         """
-        time = self.records.time__latest
+        time = self.records.model__latest_time
 
         species_time = self.species_at_time(time, return_objects=True)
         zones_time = self.zones_at_time(time, return_objects=True)

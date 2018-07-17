@@ -59,7 +59,7 @@ class Species(object):
 
         for es in extant_species:
             # Get paths that include the zone origin of this species.
-            time_mask = es.records.DataFrame.time == prior_time
+            time_mask = es.records.DataFrame.model__time == prior_time
             species_zones = es.records.DataFrame.loc[time_mask].zones
             indices = np.where(np.isin(origins, species_zones))[0]
 
