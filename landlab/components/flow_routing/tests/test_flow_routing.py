@@ -33,8 +33,7 @@ def setup_internal_closed():
     This is a sheet flow test.
     """
     global fr, mg
-    global z, Q_in, A_target, frcvr_target, upids_target, Q_target, \
-        steepest_target, links2rcvr_target
+    global z, Q_in, A_target, frcvr_target, upids_target, Q_target, steepest_target, links2rcvr_target
 
     mg = RasterModelGrid((6, 5), spacing=(10., 10.))
 
@@ -46,35 +45,119 @@ def setup_internal_closed():
 
     Q_in = np.full(25, 2.)
 
-    A_target = np.array([0.,  0.,  0.,  0.,  0.,
-                         1.,  1.,  0.,  1.,  0.,
-                         6.,  6.,  3.,  1.,  0.,
-                         0.,  0.,  2.,  1.,  0.,
-                         3.,  3.,  2.,  1.,  0.,
-                         0.,  0.,  0.,  0.,  0.])*100.
+    A_target = (
+        np.array(
+            [
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+                1.,
+                1.,
+                0.,
+                1.,
+                0.,
+                6.,
+                6.,
+                3.,
+                1.,
+                0.,
+                0.,
+                0.,
+                2.,
+                1.,
+                0.,
+                3.,
+                3.,
+                2.,
+                1.,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+            ]
+        )
+        * 100.
+    )
 
-    frcvr_target = np.array([0,  1,  2,  3,  4,
-                             5,  5,  7, 12,  9,
-                            10, 10, 11, 12, 14,
-                            15, 16, 11, 17, 19,
-                            20, 20, 21, 22, 24,
-                            25, 26, 27, 28, 29])
+    frcvr_target = np.array(
+        [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            5,
+            7,
+            12,
+            9,
+            10,
+            10,
+            11,
+            12,
+            14,
+            15,
+            16,
+            11,
+            17,
+            19,
+            20,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+        ]
+    )
 
     links2rcvr_target = np.full(mg.number_of_nodes, XX)
-    links2rcvr_target[mg.core_nodes] = np.array([ 9, 62,
-                                                 18, 19, 20,
-                                                 67, 29,
-                                                 36, 37, 38])
+    links2rcvr_target[mg.core_nodes] = np.array([9, 62, 18, 19, 20, 67, 29, 36, 37, 38])
 
-    steepest_target = np.array([0.,  0.,  0.,  0.,  0.,
-                                0.,  1.,  0.,  0.,  0.,
-                                0.,  1.,  1.,  1.,  0.,
-                                0.,  0.,  0.,  1.,  0.,
-                                0.,  1.,  1.,  1.,  0.,
-                                0.,  0.,  0.,  0.,  0.])
-    steepest_target[np.array([8, 17])] = 1./np.sqrt(2.)
+    steepest_target = np.array(
+        [
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+            1.,
+            0.,
+            0.,
+            0.,
+            0.,
+            1.,
+            1.,
+            1.,
+            0.,
+            0.,
+            0.,
+            0.,
+            1.,
+            0.,
+            0.,
+            1.,
+            1.,
+            1.,
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+        ]
+    )
+    steepest_target[np.array([8, 17])] = 1. / np.sqrt(2.)
 
-    mg.add_field('node', 'topographic__elevation', z, units='-')
+    mg.add_field("node", "topographic__elevation", z, units="-")
 
 
 def setup_voronoi():
@@ -85,36 +168,38 @@ def setup_voronoi():
     global A_target_core, A_target_outlet
     vmg = RadialModelGrid(2, dr=2.)
     z = np.full(20, 10., dtype=float)
-    #vmg.status_at_node[8:] = CLOSED_BOUNDARY
+    # vmg.status_at_node[8:] = CLOSED_BOUNDARY
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
     vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
-    #z[7] = 0.  # outlet
+    # z[7] = 0.  # outlet
     z[12] = 0.  # outlet
-    #inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
+    # inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
     inner_elevs = (8., 7., 3., 1., 6., 4., 5.)
-    #z[:7] = np.array(inner_elevs)
+    # z[:7] = np.array(inner_elevs)
     z[vmg.core_nodes] = np.array(inner_elevs)
-    vmg.add_field('node', 'topographic__elevation', z, units='-')
+    vmg.add_field("node", "topographic__elevation", z, units="-")
     fr = FlowRouter(vmg)
 
-#    nodes_contributing = [np.array([0, 3, 4, 5]),
-#                          np.array([0, 1, 2, 3, 4, 5, 6]),
-#                          np.array([2, ]),
-#                          np.array([3, ]),
-#                          np.array([4, ]),
-#                          np.array([5, ]),
-#                          np.array([6, ])]
+    #    nodes_contributing = [np.array([0, 3, 4, 5]),
+    #                          np.array([0, 1, 2, 3, 4, 5, 6]),
+    #                          np.array([2, ]),
+    #                          np.array([3, ]),
+    #                          np.array([4, ]),
+    #                          np.array([5, ]),
+    #                          np.array([6, ])]
 
     # The follow list contains arrays with the IDs of cells contributing flow
     # to nodes 5, 6, 8, 9, 10, 13, and 14, respectively (which correspond to
     # cells 0-6)
-    cells_contributing = [np.array([0, ]),
-                          np.array([1, ]),
-                          np.array([1, 2, 4, 6]),
-                          np.array([0, 1, 2, 3, 4, 5, 6]),
-                          np.array([4, ]),
-                          np.array([5, ]),
-                          np.array([6, ])]
+    cells_contributing = [
+        np.array([0]),
+        np.array([1]),
+        np.array([1, 2, 4, 6]),
+        np.array([0, 1, 2, 3, 4, 5, 6]),
+        np.array([4]),
+        np.array([5]),
+        np.array([6]),
+    ]
 
     A_target_core = np.zeros(vmg.number_of_core_nodes)
     for i in range(7):
@@ -130,88 +215,100 @@ def setup_voronoi_closedinternal():
     global A_target_internal, A_target_outlet
     vmg = RadialModelGrid(2, dr=2.)
     z = np.full(20, 10., dtype=float)
-#    vmg.status_at_node[8:] = CLOSED_BOUNDARY
-#    vmg.status_at_node[0] = CLOSED_BOUNDARY  # new internal closed
-#    z[7] = 0.  # outlet
-#    inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
-#    z[:7] = np.array(inner_elevs)
+    #    vmg.status_at_node[8:] = CLOSED_BOUNDARY
+    #    vmg.status_at_node[0] = CLOSED_BOUNDARY  # new internal closed
+    #    z[7] = 0.  # outlet
+    #    inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
+    #    z[:7] = np.array(inner_elevs)
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
     vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
     vmg.status_at_node[8] = CLOSED_BOUNDARY  # new internal closed
     z[12] = 0.  # outlet
     inner_elevs = (8., 7., 1., 6., 4., 5.)
     z[vmg.core_nodes] = np.array(inner_elevs)
-    vmg.add_field('node', 'topographic__elevation', z, units='-')
+    vmg.add_field("node", "topographic__elevation", z, units="-")
     fr = FlowRouter(vmg)
 
-#    nodes_contributing = [[],
-#                          np.array([1, 2, 3, 4, 5, 6]),
-#                          np.array([2, 3, 4, 5]),
-#                          np.array([3, 4, 5]),
-#                          np.array([4, 5]),
-#                          np.array([5, ]),
-#                          np.array([6, ])]
+    #    nodes_contributing = [[],
+    #                          np.array([1, 2, 3, 4, 5, 6]),
+    #                          np.array([2, 3, 4, 5]),
+    #                          np.array([3, 4, 5]),
+    #                          np.array([4, 5]),
+    #                          np.array([5, ]),
+    #                          np.array([6, ])]
 
-    cells_contributing = [np.array([0, ]),
-                          np.array([1, ]),
-                          np.array([0, 1, 3, 4, 5, 6]),
-                          np.array([1, 4]),
-                          np.array([1, 4, 5, 6]),
-                          np.array([1, 4, 6])]
+    cells_contributing = [
+        np.array([0]),
+        np.array([1]),
+        np.array([0, 1, 3, 4, 5, 6]),
+        np.array([1, 4]),
+        np.array([1, 4, 5, 6]),
+        np.array([1, 4, 6]),
+    ]
 
     A_target_internal = np.zeros(vmg.number_of_core_nodes, dtype=float)
     for i in range(6):
         A_target_internal[i] = vmg.area_of_cell[cells_contributing[i]].sum()
-#        A_target_internal[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
+    #        A_target_internal[i] = vmg.area_of_cell[nodes_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
 
 
 def test_check_fields(dans_grid1):
     """Check to make sure the right fields have been created."""
     fr = FlowRouter(dans_grid1.mg)
-    assert_array_equal(dans_grid1.z, dans_grid1.mg.at_node['topographic__elevation'])
-    assert_array_equal(np.zeros(25), dans_grid1.mg.at_node['drainage_area'])
-    assert_array_equal(np.ones(25), dans_grid1.mg.at_node['water__unit_flux_in'])
+    assert_array_equal(dans_grid1.z, dans_grid1.mg.at_node["topographic__elevation"])
+    assert_array_equal(np.zeros(25), dans_grid1.mg.at_node["drainage_area"])
+    assert_array_equal(np.ones(25), dans_grid1.mg.at_node["water__unit_flux_in"])
 
     fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
-    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node['water__unit_flux_in'])
+    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
 def test_check_field_input(dans_grid1):
     """Check we can successfully pass water__discharge_in."""
-    dans_grid1.mg.add_field('node', 'water__unit_flux_in',
-                            np.full(25, 3.), units='m**3/s')
+    dans_grid1.mg.add_field(
+        "node", "water__unit_flux_in", np.full(25, 3.), units="m**3/s"
+    )
     fr = FlowRouter(dans_grid1.mg)
-    assert_array_equal(np.full(25, 3.), dans_grid1.mg.at_node['water__unit_flux_in'])
+    assert_array_equal(np.full(25, 3.), dans_grid1.mg.at_node["water__unit_flux_in"])
     fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
-    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node['water__unit_flux_in'])
+    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
 def test_accumulate_D8(dans_grid1):
     """Test accumulation works for D8 in a simple scenario."""
     fr = FlowRouter(dans_grid1.mg)
     fr.route_flow()
-    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node['drainage_area'])
-    assert_array_equal(dans_grid1.frcvr_target, dans_grid1.mg.at_node['flow__receiver_node'])
-    assert_array_equal(dans_grid1.upids_target, dans_grid1.mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(dans_grid1.links2rcvr_target, dans_grid1.mg.at_node['flow__link_to_receiver_node'])
-    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node['surface_water__discharge'])
-    assert_array_equal(dans_grid1.steepest_target,
-                       dans_grid1.mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node["drainage_area"])
+    assert_array_equal(
+        dans_grid1.frcvr_target, dans_grid1.mg.at_node["flow__receiver_node"]
+    )
+    assert_array_equal(
+        dans_grid1.upids_target, dans_grid1.mg.at_node["flow__upstream_node_order"]
+    )
+    assert_array_equal(
+        dans_grid1.links2rcvr_target,
+        dans_grid1.mg.at_node["flow__link_to_receiver_node"],
+    )
+    assert_array_equal(
+        dans_grid1.A_target, dans_grid1.mg.at_node["surface_water__discharge"]
+    )
+    assert_array_equal(
+        dans_grid1.steepest_target, dans_grid1.mg.at_node["topographic__steepest_slope"]
+    )
 
 
 def test_variable_Qin(dans_grid1):
     """Test variable Qin field."""
     Qin_local = np.zeros(25, dtype=float)
     Qin_local[13] = 2.
-    dans_grid1.mg.add_field('node', 'water__unit_flux_in',
-                            Qin_local, units='m**3/s')
+    dans_grid1.mg.add_field("node", "water__unit_flux_in", Qin_local, units="m**3/s")
     fr = FlowRouter(dans_grid1.mg)
     fr.route_flow()
     Qout_local = np.zeros_like(Qin_local)
     Qout_local[10:14] = 200.
-    assert_array_equal(Qout_local, dans_grid1.mg.at_node['surface_water__discharge'])
-    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node['drainage_area'])
+    assert_array_equal(Qout_local, dans_grid1.mg.at_node["surface_water__discharge"])
+    assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node["drainage_area"])
     # note that A DOES NOT CHANGE when messing with Q_in
 
 
@@ -219,13 +316,21 @@ def test_irreg_topo(dans_grid2):
     """Test D8 routing on a toy irregular topo."""
     fr = FlowRouter(dans_grid2.mg)
     fr.route_flow()
-    assert_array_equal(dans_grid2.A_target_D8, dans_grid2.mg.at_node['drainage_area'])
-    assert_array_equal(dans_grid2.frcvr_target_D8, dans_grid2.mg.at_node['flow__receiver_node'])
-    assert_array_equal(dans_grid2.upids_target_D8, dans_grid2.mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(dans_grid2.links2rcvr_target_D8,
-                       dans_grid2.mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(dans_grid2.steepest_target_D8,
-                              dans_grid2.mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid2.A_target_D8, dans_grid2.mg.at_node["drainage_area"])
+    assert_array_equal(
+        dans_grid2.frcvr_target_D8, dans_grid2.mg.at_node["flow__receiver_node"]
+    )
+    assert_array_equal(
+        dans_grid2.upids_target_D8, dans_grid2.mg.at_node["flow__upstream_node_order"]
+    )
+    assert_array_equal(
+        dans_grid2.links2rcvr_target_D8,
+        dans_grid2.mg.at_node["flow__link_to_receiver_node"],
+    )
+    assert_array_almost_equal(
+        dans_grid2.steepest_target_D8,
+        dans_grid2.mg.at_node["topographic__steepest_slope"],
+    )
 
 
 def test_irreg_topo_old(dans_grid2):
@@ -234,27 +339,43 @@ def test_irreg_topo_old(dans_grid2):
     passed to the run method, not the init.
     """
     fr = FlowRouter(dans_grid2.mg)
-    fr.route_flow(method='D4')
-    assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node['drainage_area'])
-    assert_array_equal(dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node['flow__receiver_node'])
-    assert_array_equal(dans_grid2.upids_target_D4, dans_grid2.mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(dans_grid2.links2rcvr_target_D4,
-                       dans_grid2.mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(dans_grid2.steepest_target_D4,
-                              dans_grid2.mg.at_node['topographic__steepest_slope'])
+    fr.route_flow(method="D4")
+    assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node["drainage_area"])
+    assert_array_equal(
+        dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node["flow__receiver_node"]
+    )
+    assert_array_equal(
+        dans_grid2.upids_target_D4, dans_grid2.mg.at_node["flow__upstream_node_order"]
+    )
+    assert_array_equal(
+        dans_grid2.links2rcvr_target_D4,
+        dans_grid2.mg.at_node["flow__link_to_receiver_node"],
+    )
+    assert_array_almost_equal(
+        dans_grid2.steepest_target_D4,
+        dans_grid2.mg.at_node["topographic__steepest_slope"],
+    )
 
 
 def test_irreg_topo_new(dans_grid2):
     """Test D4 routing on a toy irregular topo. 'method' passed to init."""
-    fr = FlowRouter(dans_grid2.mg, method='D4')
+    fr = FlowRouter(dans_grid2.mg, method="D4")
     fr.route_flow()
-    assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node['drainage_area'])
-    assert_array_equal(dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node['flow__receiver_node'])
-    assert_array_equal(dans_grid2.upids_target_D4, dans_grid2.mg.at_node['flow__upstream_node_order'])
-    assert_array_equal(dans_grid2.links2rcvr_target_D4,
-                       dans_grid2.mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(dans_grid2.steepest_target_D4,
-                              dans_grid2.mg.at_node['topographic__steepest_slope'])
+    assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node["drainage_area"])
+    assert_array_equal(
+        dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node["flow__receiver_node"]
+    )
+    assert_array_equal(
+        dans_grid2.upids_target_D4, dans_grid2.mg.at_node["flow__upstream_node_order"]
+    )
+    assert_array_equal(
+        dans_grid2.links2rcvr_target_D4,
+        dans_grid2.mg.at_node["flow__link_to_receiver_node"],
+    )
+    assert_array_almost_equal(
+        dans_grid2.steepest_target_D4,
+        dans_grid2.mg.at_node["topographic__steepest_slope"],
+    )
 
 
 @with_setup(setup_internal_closed)
@@ -262,21 +383,23 @@ def test_internal_closed():
     """Test closed nodes in the core of the grid."""
     fr = FlowRouter(mg)
     fr.route_flow()
-    assert_array_almost_equal(A_target, mg.at_node['drainage_area'])
-    assert_array_equal(frcvr_target, mg.at_node['flow__receiver_node'])
-    assert_array_equal(links2rcvr_target, mg.at_node['flow__link_to_receiver_node'])
-    assert_array_almost_equal(A_target, mg.at_node['surface_water__discharge'])
-    assert_array_almost_equal(steepest_target,
-                              mg.at_node['topographic__steepest_slope'])
+    assert_array_almost_equal(A_target, mg.at_node["drainage_area"])
+    assert_array_equal(frcvr_target, mg.at_node["flow__receiver_node"])
+    assert_array_equal(links2rcvr_target, mg.at_node["flow__link_to_receiver_node"])
+    assert_array_almost_equal(A_target, mg.at_node["surface_water__discharge"])
+    assert_array_almost_equal(
+        steepest_target, mg.at_node["topographic__steepest_slope"]
+    )
 
 
 @with_setup(setup_voronoi)
 def test_voronoi():
     """Test routing on a (radial) voronoi."""
     fr.route_flow()
-    assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
-                              A_target_core)
-    assert vmg.at_node['drainage_area'][12] == approx(A_target_outlet)
+    assert_array_almost_equal(
+        vmg.at_node["drainage_area"][vmg.core_nodes], A_target_core
+    )
+    assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
 
 
 @with_setup(setup_voronoi_closedinternal)
@@ -288,6 +411,7 @@ def test_voronoi_closedinternal():
     #             vmg.at_node['drainage_area'][i], vmg.at_node['flow__receiver_node'][i], \
     #             vmg.at_node['topographic__elevation'][i]
 
-    assert_array_almost_equal(vmg.at_node['drainage_area'][vmg.core_nodes],
-                              A_target_internal)
-    assert vmg.at_node['drainage_area'][12] == approx(A_target_outlet)
+    assert_array_almost_equal(
+        vmg.at_node["drainage_area"][vmg.core_nodes], A_target_internal
+    )
+    assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
