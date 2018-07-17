@@ -169,43 +169,6 @@ def setup_dans_grid():
     lf = DepressionFinderAndRouter(mg)
 
 
-def setup_D4_grid():
-    """
-    Test functionality of routing when D4 is specified.
-    
-    The elevation field in this test looks like:
-    
-    1   2   3   4   5   6   7
-    
-    1   2   3   0   5   0   7
-    
-    1   2   3   4   0   0   7
-    
-    1   2   3   0   5   6   7
-    
-    1   2   0   0   0   6   7
-    
-    1   2   3   0   5   6   7
-    
-    1   2   3   4   5   6   7
-    """
-    global frD8, frD4, lfD8, lfD4, mg1, mg2
-    global z, lake_nodes
-
-    mg1 = RasterModelGrid(7, 7, 1.)
-    mg2 = RasterModelGrid(7, 7, 1.)
-    z = mg1.node_x.copy() + 1.
-    lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
-    z[lake_nodes] = 0.
-    mg1.add_field('node', 'topographic__elevation', z, units='-')
-    mg2.add_field('node', 'topographic__elevation', z, units='-')
-
-    frD8 = FlowRouter(mg1, method='D8')
-    frD4 = FlowRouter(mg2, method='D4')
-    lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
-    lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
-
-
 def check_fields1(grid):
     """
     Check to make sure the right fields have been created.
@@ -742,47 +705,47 @@ def test_composite_pits():
     assert lf.lake_areas[0] == approx(25.)
     assert lf.lake_volumes[0] == approx(63.)
 
-@with_setup(setup_D4_grid)
-def test_D8_D4_fill():
+
+def test_D8_D4_fill(d4_grid):
     """
     Tests the functionality of D4 filling.
     """
-    lfD8.map_depressions(pits=None, reroute_flow=False)
-    lfD4.map_depressions(pits=None, reroute_flow=False)
-    assert lfD8.number_of_lakes == 1
-    assert lfD4.number_of_lakes == 3
+    d4_grid.lfD8.map_depressions(pits=None, reroute_flow=False)
+    d4_grid.lfD4.map_depressions(pits=None, reroute_flow=False)
+    assert d4_grid.lfD8.number_of_lakes == 1
+    assert d4_grid.lfD4.number_of_lakes == 3
     
     correct_D8_lake_map = np.empty(7*7, dtype=int)
     correct_D8_lake_map.fill(XX)
-    correct_D8_lake_map[lake_nodes] = 10
+    correct_D8_lake_map[d4_grid.lake_nodes] = 10
     correct_D4_lake_map = correct_D8_lake_map.copy()
-    correct_D4_lake_map[lake_nodes[5:]] = 32
-    correct_D4_lake_map[lake_nodes[-2]] = 38
+    correct_D4_lake_map[d4_grid.lake_nodes[5:]] = 32
+    correct_D4_lake_map[d4_grid.lake_nodes[-2]] = 38
     correct_D8_depths = np.zeros(7*7, dtype=float)
-    correct_D8_depths[lake_nodes] = 2.
+    correct_D8_depths[d4_grid.lake_nodes] = 2.
     correct_D4_depths = correct_D8_depths.copy()
-    correct_D4_depths[lake_nodes[5:]] = 4.
-    correct_D4_depths[lake_nodes[-2]] = 3.
+    correct_D4_depths[d4_grid.lake_nodes[5:]] = 4.
+    correct_D4_depths[d4_grid.lake_nodes[-2]] = 3.
     
-    assert_array_equal(lfD8.lake_map, correct_D8_lake_map)
-    assert_array_equal(lfD4.lake_map, correct_D4_lake_map)
+    assert_array_equal(d4_grid.lfD8.lake_map, correct_D8_lake_map)
+    assert_array_equal(d4_grid.lfD4.lake_map, correct_D4_lake_map)
     
-    assert_array_almost_equal(mg1.at_node['depression__depth'],
+    assert_array_almost_equal(d4_grid.mg1.at_node['depression__depth'],
                               correct_D8_depths)
-    assert_array_almost_equal(mg2.at_node['depression__depth'],
+    assert_array_almost_equal(d4_grid.mg2.at_node['depression__depth'],
                               correct_D4_depths)
 
-@with_setup(setup_D4_grid)
-def test_D8_D4_route():
+
+def test_D8_D4_route(d4_grid):
     """
     Tests the functionality of D4 routing.
     """
-    frD8.route_flow()
-    frD4.route_flow()
-    lfD8.map_depressions()
-    lfD4.map_depressions()
-    assert lfD8.number_of_lakes == 1
-    assert lfD4.number_of_lakes == 3
+    d4_grid.frD8.route_flow()
+    d4_grid.frD4.route_flow()
+    d4_grid.lfD8.map_depressions()
+    d4_grid.lfD4.map_depressions()
+    assert d4_grid.lfD8.number_of_lakes == 1
+    assert d4_grid.lfD4.number_of_lakes == 3
 
 #    flow_recD8 = np.array([ 0,  1,  2,  3,  4,  5,  6,  7, 16, 10, 16, 10, 18,
 #                           13, 14, 14, 15, 16, 10, 18, 20, 21, 16, 16, 16, 18,
@@ -800,12 +763,10 @@ def test_D8_D4_route():
                            13, 14, 14, 15, 16, 17, 18, 20, 21, 21, 16, 17, 18,
                            33, 27, 28, 28, 29, 38, 31, 32, 34, 35, 35, 36, 37,
                            32, 33, 41, 42, 43, 44, 45, 46, 47, 48])
-    assert_array_equal(mg1.at_node['flow__receiver_node'], flow_recD8)
-    assert_array_equal(mg2.at_node['flow__receiver_node'], flow_recD4)
-    assert_array_almost_equal(mg1.at_node['drainage_area'].reshape((7,7))[:,
-                                  0].sum(),
-                              mg2.at_node['drainage_area'].reshape((7,7))[:,
-                                  0].sum())
+    assert_array_equal(d4_grid.mg1.at_node['flow__receiver_node'], flow_recD8)
+    assert_array_equal(d4_grid.mg2.at_node['flow__receiver_node'], flow_recD4)
+    assert_array_almost_equal(d4_grid.mg1.at_node['drainage_area'].reshape((7,7))[:, 0].sum(),
+                              d4_grid.mg2.at_node['drainage_area'].reshape((7,7))[:, 0].sum())
 
 
 if __name__=='__main__':

@@ -5,6 +5,9 @@ import numpy as np
 
 from landlab import RasterModelGrid
 from landlab import BAD_INDEX_VALUE as XX
+from landlab.components.flow_routing import (
+    FlowRouter, DepressionFinderAndRouter,
+)
 
 
 @pytest.fixture
@@ -169,3 +172,52 @@ def dans_grid2():
     dans_grid.links2rcvr_target_D4 = links2rcvr_target_D4
 
     return dans_grid
+
+
+@pytest.fixture
+def d4_grid():
+    """Test functionality of routing when D4 is specified.
+
+    The elevation field in this test looks like::
+
+    1   2   3   4   5   6   7
+
+    1   2   3   0   5   0   7
+
+    1   2   3   4   0   0   7
+
+    1   2   3   0   5   6   7
+
+    1   2   0   0   0   6   7
+
+    1   2   3   0   5   6   7
+
+    1   2   3   4   5   6   7
+    """
+    mg1 = RasterModelGrid(7, 7, 1.)
+    mg2 = RasterModelGrid(7, 7, 1.)
+    z = mg1.node_x.copy() + 1.
+    lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
+    z[lake_nodes] = 0.
+    mg1.add_field('node', 'topographic__elevation', z, units='-')
+    mg2.add_field('node', 'topographic__elevation', z, units='-')
+
+    frD8 = FlowRouter(mg1, method='D8')
+    frD4 = FlowRouter(mg2, method='D4')
+    lfD8 = DepressionFinderAndRouter(mg1, routing='D8')
+    lfD4 = DepressionFinderAndRouter(mg2, routing='D4')
+
+    class DansGrid(object):
+        pass
+
+    d4_grid = DansGrid()
+    d4_grid.mg1 = mg1
+    d4_grid.mg2 = mg2
+    d4_grid.z = z
+    d4_grid.lake_nodes = lake_nodes
+    d4_grid.frD8 = frD8
+    d4_grid.frD4 = frD4
+    d4_grid.lfD8 = lfD8
+    d4_grid.lfD4 = lfD4
+
+    return d4_grid
