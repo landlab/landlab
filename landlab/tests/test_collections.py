@@ -14,27 +14,20 @@ class Sample1(object):
 
     """A sample component."""
 
-    __implements__ = (BmiBase, BmiNoGrid, )
+    __implements__ = (BmiBase, BmiNoGrid)
 
-    _input_var_names = [
-        'air__temperature',
-        'surface__elevation',
-    ]
-    _output_var_names = [
-        'deposition__rate',
-    ]
+    _input_var_names = ["air__temperature", "surface__elevation"]
+    _output_var_names = ["deposition__rate"]
 
-    model_name = 'Sample 1'
-    author_name = 'Eric Hutton'
-    version = '0.1'
-    time_units = 's'
-    time_step_type = 'fixed'
-    step_method = 'explicit'
-    grid_type = 'none'
+    model_name = "Sample 1"
+    author_name = "Eric Hutton"
+    version = "0.1"
+    time_units = "s"
+    time_step_type = "fixed"
+    step_method = "explicit"
+    grid_type = "none"
 
-    _vars = {
-        'deposition__rate': [1.]
-    }
+    _vars = {"deposition__rate": [1.]}
 
     def initialize(self, name):
         pass
@@ -67,10 +60,10 @@ class Sample1(object):
         return 1.
 
     def get_var_type(self, name):
-        return 'float64'
+        return "float64"
 
     def get_var_units(self, name):
-        return 'm'
+        return "m"
 
     def set_value(self, name, value):
         pass
@@ -84,28 +77,20 @@ class Sample2(object):
 
     """A sample component."""
 
-    __implements__ = (BmiBase, BmiNoGrid, )
+    __implements__ = (BmiBase, BmiNoGrid)
 
-    _input_var_names = [
-        'deposition__rate',
-    ]
-    _output_var_names = [
-        'air__temperature',
-        'surface__elevation',
-    ]
+    _input_var_names = ["deposition__rate"]
+    _output_var_names = ["air__temperature", "surface__elevation"]
 
-    model_name = 'Sample 2'
-    author_name = 'Eric Hutton'
-    version = '0.1'
-    time_units = 's'
-    time_step_type = 'fixed'
-    step_method = 'explicit'
-    grid_type = 'none'
+    model_name = "Sample 2"
+    author_name = "Eric Hutton"
+    version = "0.1"
+    time_units = "s"
+    time_step_type = "fixed"
+    step_method = "explicit"
+    grid_type = "none"
 
-    _vars = {
-        'air__temperature': [1.],
-        'surface__elevation': [1.],
-    }
+    _vars = {"air__temperature": [1.], "surface__elevation": [1.]}
 
     def initialize(self, name):
         pass
@@ -138,10 +123,10 @@ class Sample2(object):
         return 1.
 
     def get_var_type(self, name):
-        return 'float64'
+        return "float64"
 
     def get_var_units(self, name):
-        return 'm'
+        return "m"
 
     def get_value(self, name):
         return self._vars[name]
@@ -160,10 +145,10 @@ def test_empty_palette():
     assert palette.uses() == []
     assert palette.provides() == []
 
-    providers = palette.find_provider('air__temperature')
+    providers = palette.find_provider("air__temperature")
     assert providers == []
 
-    users = palette.find_user('air__temperature')
+    users = palette.find_user("air__temperature")
     assert users == []
 
     connections = palette.find_connections()
@@ -181,17 +166,17 @@ def test_1_component_dict_interface():
 
     assert dict(sample=Sample1) == palette
     assert len(palette) == 1
-    assert list(palette.keys()) == ['sample']
+    assert list(palette.keys()) == ["sample"]
     assert list(palette.values()) == [Sample1]
 
     items = list(palette.items())
-    assert ('sample', Sample1) == items[0]
+    assert ("sample", Sample1) == items[0]
 
 
 def test_1_component_list():
     palette = Palette(sample=Sample1)
 
-    assert ['sample'] == list(palette.list())
+    assert ["sample"] == list(palette.list())
 
 
 def test_1_component_uses():
@@ -199,7 +184,7 @@ def test_1_component_uses():
 
     uses = palette.uses()
     uses.sort()
-    assert ['air__temperature', 'surface__elevation'] == uses
+    assert ["air__temperature", "surface__elevation"] == uses
 
 
 def test_1_component_provides():
@@ -207,24 +192,24 @@ def test_1_component_provides():
 
     provides = palette.provides()
     provides.sort()
-    assert ['deposition__rate'] == provides
+    assert ["deposition__rate"] == provides
 
 
 def test_1_component_find_providers():
     palette = Palette(sample=Sample1)
 
-    providers = palette.find_provider('air__temperature')
+    providers = palette.find_provider("air__temperature")
     assert providers == []
 
-    providers = palette.find_provider('deposition__rate')
-    assert providers == ['sample']
+    providers = palette.find_provider("deposition__rate")
+    assert providers == ["sample"]
 
 
 def test_1_component_find_users():
     palette = Palette(sample=Sample1)
 
-    users = palette.find_user('air__temperature')
-    assert users == ['sample']
+    users = palette.find_user("air__temperature")
+    assert users == ["sample"]
 
 
 def test_1_component_find_connections():
@@ -248,7 +233,7 @@ def test_2_components_dict_interface():
 
     keys = list(palette.keys())
     keys.sort()
-    assert ['one', 'two'] == keys
+    assert ["one", "two"] == keys
 
     values = palette.values()
     assert 2 == len(values)
@@ -257,8 +242,8 @@ def test_2_components_dict_interface():
     items = list(palette.items())
     items.sort()
     assert 2 == len(items)
-    assert ('one', Sample1) == items[0]
-    assert ('two', Sample2) == items[1]
+    assert ("one", Sample1) == items[0]
+    assert ("two", Sample2) == items[1]
 
 
 def test_2_components_list():
@@ -266,7 +251,7 @@ def test_2_components_list():
 
     components = list(palette.list())
     components.sort()
-    assert ['one', 'two'] == components
+    assert ["one", "two"] == components
 
 
 def test_2_components_uses():
@@ -274,7 +259,7 @@ def test_2_components_uses():
 
     uses = palette.uses()
     uses.sort()
-    assert ['air__temperature', 'deposition__rate', 'surface__elevation'] == uses
+    assert ["air__temperature", "deposition__rate", "surface__elevation"] == uses
 
 
 def test_2_components_provides():
@@ -282,33 +267,32 @@ def test_2_components_provides():
 
     provides = palette.provides()
     provides.sort()
-    assert ['air__temperature', 'deposition__rate', 'surface__elevation'] == provides
+    assert ["air__temperature", "deposition__rate", "surface__elevation"] == provides
 
 
 def test_2_components_find_providers():
     palette = Palette(one=Sample1, two=Sample2)
 
-    providers = palette.find_provider('air__temperature')
-    assert ['two'] == providers
+    providers = palette.find_provider("air__temperature")
+    assert ["two"] == providers
 
-    providers = palette.find_provider('deposition__rate')
-    assert ['one'] == providers
+    providers = palette.find_provider("deposition__rate")
+    assert ["one"] == providers
 
 
 def test_2_components_find_users():
     palette = Palette(one=Sample1, two=Sample2)
 
-    users = palette.find_user('air__temperature')
-    assert ['one'] == users
+    users = palette.find_user("air__temperature")
+    assert ["one"] == users
 
 
 def test_2_components_find_connections():
     palette = Palette(one=Sample1, two=Sample2)
 
     connections = {
-        'one': {'deposition__rate': ['two']},
-        'two': {'air__temperature': ['one'],
-                'surface__elevation': ['one']},
+        "one": {"deposition__rate": ["two"]},
+        "two": {"air__temperature": ["one"], "surface__elevation": ["one"]},
     }
     assert connections == palette.find_connections()
 
@@ -317,40 +301,40 @@ def test_arena_instantiate():
     arena = Arena()
     assert dict() == arena
 
-    arena.instantiate(Sample1, 'one')
+    arena.instantiate(Sample1, "one")
     assert 1 == len(arena)
-    assert 'one' in arena
-    assert isinstance(arena['one'], Sample1)
+    assert "one" in arena
+    assert isinstance(arena["one"], Sample1)
 
-    arena.instantiate(Sample2, 'two')
+    arena.instantiate(Sample2, "two")
     assert 2 == len(arena)
-    assert 'one' in arena and 'two' in arena
-    assert isinstance(arena['one'], Sample1)
-    assert isinstance(arena['two'], Sample2)
+    assert "one" in arena and "two" in arena
+    assert isinstance(arena["one"], Sample1)
+    assert isinstance(arena["two"], Sample2)
 
 
 def test_arena_connect():
     arena = Arena()
-    arena.instantiate(Sample1, 'one')
-    arena.instantiate(Sample2, 'two')
+    arena.instantiate(Sample1, "one")
+    arena.instantiate(Sample2, "two")
 
-    arena.connect('one', 'two', 'air__temperature')
-    arena.connect('one', 'two', 'surface__elevation')
-    arena.connect('two', 'one', 'deposition__rate')
+    arena.connect("one", "two", "air__temperature")
+    arena.connect("one", "two", "surface__elevation")
+    arena.connect("two", "one", "deposition__rate")
 
-    dz = arena['one'].get_value('deposition__rate')
-    t = arena['two'].get_value('air__temperature')
-    z = arena['two'].get_value('surface__elevation')
+    dz = arena["one"].get_value("deposition__rate")
+    t = arena["two"].get_value("air__temperature")
+    z = arena["two"].get_value("surface__elevation")
 
 
 def test_arena_walk():
     arena = Arena()
-    arena.instantiate(Sample1, 'one')
-    arena.instantiate(Sample2, 'two')
+    arena.instantiate(Sample1, "one")
+    arena.instantiate(Sample2, "two")
 
-    arena.connect('one', 'two', 'air__temperature')
-    arena.connect('one', 'two', 'surface__elevation')
-    arena.connect('two', 'one', 'deposition__rate')
+    arena.connect("one", "two", "air__temperature")
+    arena.connect("one", "two", "surface__elevation")
+    arena.connect("two", "one", "deposition__rate")
 
-    tree = arena.walk('one')
-    assert ['one', 'two'] == tree
+    tree = arena.walk("one")
+    assert ["one", "two"] == tree
