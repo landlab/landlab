@@ -143,7 +143,6 @@ setup(name='landlab',
       packages=find_packages(),
       package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
                          'preciptest.in']},
-      test_suite='nose.collector',
       cmdclass=versioneer.get_cmdclass({
           'install': install_and_register,
           'develop': develop_and_register,
