@@ -49,3 +49,29 @@ def sink_grid2():
     sink_grid.lake = lake
 
     return sink_grid
+
+
+@pytest.fixture
+def sink_grid3():
+    """
+    Create a 10x10 test grid with two well defined holes in it, into an
+    inclined surface.
+    """
+    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+
+    lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56])
+    lake2 = np.array([77, 78, 87, 88])
+    guard_nodes = np.array([23, 33, 53, 63])
+    lake = np.concatenate((lake1, lake2))
+
+    z = np.ones(100, dtype=float)
+    # add slope
+    z += sink_grid.node_x
+    z[guard_nodes] += 0.001
+    z[lake] = 0.
+
+    sink_grid.add_field("node", "topographic__elevation", z, units="-")
+    sink_grid.lake1 = lake1
+    sink_grid.lake2 = lake2
+
+    return sink_grid

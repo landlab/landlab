@@ -20,39 +20,6 @@ from landlab.components.flow_routing import FlowRouter
 from landlab.components.sink_fill import SinkFiller
 
 
-def setup_dans_grid3():
-    """
-    Create a 10x10 test grid with two well defined holes in it, into an
-    inclined surface.
-    """
-    global hf, fr, mg
-    global z, depr_outlet_target
-    global lake, lake1, lake2, outlet, outlet_array, rcvr
-
-    lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56])
-    lake2 = np.array([77, 78, 87, 88])
-    guard_nodes = np.array([23, 33, 53, 63])
-    lake = np.concatenate((lake1, lake2))
-    outlet = 35  # shouldn't be needed
-    outlet_array = np.array([outlet])
-
-    mg = RasterModelGrid(10, 10, 1.)
-
-    z = np.ones(100, dtype=float)
-    # add slope
-    z += mg.node_x
-    z[guard_nodes] += 0.001
-    z[lake] = 0.
-
-    depr_outlet_target = np.empty(100, dtype=float)
-    depr_outlet_target.fill(XX)
-    depr_outlet_target = XX  # not well defined in this simplest case...?
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-    fr = FlowRouter(mg)
-
-
 def setup_dans_grid4():
     """
     Create a 10x10 test grid with two well defined holes in it, into an
@@ -239,28 +206,32 @@ def test_filler_flat(sink_grid2):
     )
 
 
-@with_setup(setup_dans_grid3)
-def test_filler_inclined():
+# @with_setup(setup_dans_grid3)
+def test_filler_inclined(sink_grid3):
     """
     Tests a flat fill into an inclined surface, with two holes.
     """
-    hf = SinkFiller(mg)
+    hf = SinkFiller(sink_grid3)
     hf.fill_pits()
     assert_array_equal(
-        mg.at_node["topographic__elevation"][lake1], np.ones(9, dtype=float) * 4.
+        sink_grid3.at_node["topographic__elevation"][sink_grid3.lake1],
+        np.ones(9, dtype=float) * 4.,
     )
     assert_array_equal(
-        mg.at_node["topographic__elevation"][lake2], np.ones(4, dtype=float) * 7.
+        sink_grid3.at_node["topographic__elevation"][sink_grid3.lake2],
+        np.ones(4, dtype=float) * 7.,
     )
 
 
-@with_setup(setup_dans_grid3)
-def test_filler_inclined2():
+# @with_setup(setup_dans_grid3)
+def test_filler_inclined2(sink_grid3):
     """
     Tests an inclined fill into an inclined surface, with two holes.
     """
-    z_init = z.copy()
-    hf = SinkFiller(mg, apply_slope=True)
+    z_init = sink_grid3.at_node["topographic__elevation"].copy()
+    fr = FlowRouter(sink_grid3)
+    hf = SinkFiller(sink_grid3, apply_slope=True)
+
     hf.fill_pits()
     hole1 = np.array(
         [
@@ -276,10 +247,14 @@ def test_filler_inclined2():
         ]
     )
     hole2 = np.array([7.16666667, 7.33333333, 7.5, 7.66666667])
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake1], hole1)
-    assert_array_almost_equal(mg.at_node["topographic__elevation"][lake2], hole2)
+    assert_array_almost_equal(
+        sink_grid3.at_node["topographic__elevation"][sink_grid3.lake1], hole1
+    )
+    assert_array_almost_equal(
+        sink_grid3.at_node["topographic__elevation"][sink_grid3.lake2], hole2
+    )
     fr.route_flow()
-    assert mg.at_node["flow__sink_flag"][mg.core_nodes].sum() == 0
+    assert sink_grid3.at_node["flow__sink_flag"][sink_grid3.core_nodes].sum() == 0
 
 
 @with_setup(setup_dans_grid4)
