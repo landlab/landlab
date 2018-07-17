@@ -11,7 +11,6 @@ import pytest
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import with_setup
 
 import landlab
 from landlab import BAD_INDEX_VALUE as XX
