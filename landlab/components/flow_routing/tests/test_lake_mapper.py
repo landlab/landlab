@@ -1028,153 +1028,6 @@ def check_array_values1(rmg, lm):
     )
 
 
-def setup_dans_grid2():
-    """
-    Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
-    """
-    from landlab import RasterModelGrid
-    from landlab.components.flow_routing import FlowRouter, DepressionFinderAndRouter
-
-    global fr, lf, mg
-    global z, r_new, r_old, A_new, A_old, s_new, depr_outlet_target
-
-    mg = RasterModelGrid((7, 7), (1., 1.))
-
-    z = mg.node_x.copy()
-    guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
-    edges = np.concatenate((np.arange(7), np.arange(42, 49)))
-    hole_here = np.array(([15, 16, 22, 23, 29, 30]))
-    z[guard_sides] = z[13]
-    z[edges] = -2.  # force flow outwards from the tops of the guards
-    z[hole_here] = -1.
-    # print(z)
-
-    #    A_new = np.array([[[0.,   1.,   1.,   1.,   1.,   1.,   0.,
-    #                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
-    #                       15.,   9.,   4.,   3.,   2.,   1.,   0.,
-    #                        0.,   6.,   4.,   3.,   2.,   1.,   0.,
-    #                        0.,   1.,   4.,   3.,   2.,   1.,   0.,
-    #                        0.,   1.,   1.,   1.,   1.,   1.,   0.,
-    #                        0.,   1.,   1.,   1.,   1.,   1.,   0.]]]).flatten()
-
-    A_new = np.array(
-        [
-            [
-                [
-                    0.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    0.,
-                    0.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    0.,
-                    15.,
-                    5.,
-                    4.,
-                    3.,
-                    2.,
-                    1.,
-                    0.,
-                    0.,
-                    10.,
-                    4.,
-                    3.,
-                    2.,
-                    1.,
-                    0.,
-                    0.,
-                    1.,
-                    4.,
-                    3.,
-                    2.,
-                    1.,
-                    0.,
-                    0.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    0.,
-                    0.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    1.,
-                    0.,
-                ]
-            ]
-        ]
-    ).flatten()
-
-    depr_outlet_target = np.array(
-        [
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            14,
-            14,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            14,
-            14,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            14,
-            14,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-            XX,
-        ]
-    ).flatten()
-
-    mg.add_field("node", "topographic__elevation", z, units="-")
-
-    fr = FlowRouter(mg)
-    lf = DepressionFinderAndRouter(mg)
-
-
 def check_fields2(grid):
     """
     Check to make sure the right fields have been created.
@@ -1829,15 +1682,140 @@ def test_pits_as_IDs():
     assert_array_almost_equal(mg.at_node["drainage_area"], A_new)
 
 
-@with_setup(setup_dans_grid2)
 def test_edge_draining():
     """
     This tests when the lake attempts to drain from an edge, where an issue
     is suspected.
     """
+    # Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
+    mg = RasterModelGrid((7, 7), (1., 1.))
+
+    z = mg.node_x.copy()
+    guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
+    edges = np.concatenate((np.arange(7), np.arange(42, 49)))
+    hole_here = np.array(([15, 16, 22, 23, 29, 30]))
+    z[guard_sides] = z[13]
+    z[edges] = -2.  # force flow outwards from the tops of the guards
+    z[hole_here] = -1.
+
+    A_new = np.array(
+        [
+            [
+                [
+                    0.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    0.,
+                    0.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    0.,
+                    15.,
+                    5.,
+                    4.,
+                    3.,
+                    2.,
+                    1.,
+                    0.,
+                    0.,
+                    10.,
+                    4.,
+                    3.,
+                    2.,
+                    1.,
+                    0.,
+                    0.,
+                    1.,
+                    4.,
+                    3.,
+                    2.,
+                    1.,
+                    0.,
+                    0.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    0.,
+                    0.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    1.,
+                    0.,
+                ]
+            ]
+        ]
+    ).flatten()
+
+    depr_outlet_target = np.array(
+        [
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            14,
+            14,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            14,
+            14,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            14,
+            14,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+            XX,
+        ]
+    ).flatten()
+
+    mg.add_field("node", "topographic__elevation", z, units="-")
+
+    fr = FlowRouter(mg)
+    lf = DepressionFinderAndRouter(mg)
+
     fr.route_flow()
-    # print('after route, before map')
-    # print(fr.grid.at_node['flow__receiver_node'])
     lf.map_depressions()
     assert_array_almost_equal(mg.at_node["drainage_area"], A_new)
     assert_array_equal(lf.depression_outlet_map, depr_outlet_target)
