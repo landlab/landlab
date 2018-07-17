@@ -3,7 +3,6 @@
 Unit tests for landlab.model_parameter_dictionary
 """
 import pytest
-from nose.tools import with_setup
 import os
 import tempfile
 import numpy as np
@@ -123,51 +122,23 @@ def test_dict_index(pdict_setup):
     assert pdict_setup.param_dict["INT_VAL"] == "1"
 
 
-def setup_auto_type():
-    from six import StringIO
-
-    _TEST_FILE = u"""
-# A Comment
-INT_VAL:
-1
-DBL_VAL:
-1.2
-STR_VAL:
-landlab
-BOOL_VAL:
-true
-INT_ARRAY_VAL:
-1,2 ,4 ,7
-
-DBL_ARRAY_VAL:
-1.,2. ,4. ,7.
-    """
-    param_dict = ModelParameterDictionary(
-        auto_type=True, from_file=StringIO(_TEST_FILE)
-    )
-    globals().update({"param_dict": param_dict})
+def test_auto_type(auto_type_setup):
+    assert auto_type_setup["INT_VAL"] == 1
+    assert auto_type_setup["DBL_VAL"] == 1.2
+    assert auto_type_setup["STR_VAL"] == "landlab"
+    assert auto_type_setup["BOOL_VAL"] == True
 
 
-@with_setup(setup_auto_type)
-def test_auto_type():
-    assert param_dict["INT_VAL"] == 1
-    assert param_dict["DBL_VAL"] == 1.2
-    assert param_dict["STR_VAL"] == "landlab"
-    assert param_dict["BOOL_VAL"] == True
-
-
-@with_setup(setup_auto_type)
-def test_int_vector():
-    val = param_dict["INT_ARRAY_VAL"]
+def test_int_vector(auto_type_setup):
+    val = auto_type_setup["INT_ARRAY_VAL"]
 
     assert list(val) == [1, 2, 4, 7]
     assert isinstance(val, np.ndarray)
     assert val.dtype == np.int
 
 
-@with_setup(setup_auto_type)
-def test_float_vector():
-    val = param_dict["DBL_ARRAY_VAL"]
+def test_float_vector(auto_type_setup):
+    val = auto_type_setup["DBL_ARRAY_VAL"]
 
     assert list(val) == [1., 2., 4., 7.]
     assert isinstance(val, np.ndarray)

@@ -1,12 +1,11 @@
 import pytest
+from six import StringIO
 
 from landlab import ModelParameterDictionary
 
 
 @pytest.fixture
 def pdict_setup():
-    from six import StringIO
-
     test_param_dict_file = u"""
     # A Comment
     INT_VAL:
@@ -35,3 +34,26 @@ def pdict_setup():
     setup.param_dict_file = test_param_dict_file
 
     return setup
+
+
+@pytest.fixture
+def auto_type_setup():
+    TEST_FILE = u"""
+# A Comment
+INT_VAL:
+1
+DBL_VAL:
+1.2
+STR_VAL:
+landlab
+BOOL_VAL:
+true
+INT_ARRAY_VAL:
+1,2 ,4 ,7
+
+DBL_ARRAY_VAL:
+1.,2. ,4. ,7.
+    """
+    param_dict = ModelParameterDictionary(auto_type=True, from_file=StringIO(TEST_FILE))
+
+    return param_dict
