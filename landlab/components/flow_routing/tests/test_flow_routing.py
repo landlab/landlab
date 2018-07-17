@@ -15,8 +15,6 @@ from pytest import approx
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nose.tools import with_setup
-
 import landlab
 from landlab import RasterModelGrid, RadialModelGrid, FieldError
 from landlab.components.flow_routing import FlowRouter
