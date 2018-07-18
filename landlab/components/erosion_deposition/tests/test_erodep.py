@@ -11,7 +11,8 @@ from landlab.components import (ErosionDeposition, FlowAccumulator,
                                 DepressionFinderAndRouter)
 import numpy as np
 from numpy import testing
-from nose.tools import assert_raises
+import pytest
+
 
 def test_bad_solver_name():
     """
@@ -40,9 +41,9 @@ def test_bad_solver_name():
     fa = FlowAccumulator(mg, flow_director='D8')
 
     #try to instantiate ErodionDeposition using a wrong solver name
-    assert_raises(ValueError, ErosionDeposition, mg, K=0.01,
-                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
-                         sp_crit=0, F_f=0.0, solver='something_else')
+    with pytest.raises(ValueError):
+        ErosionDeposition(mg, K=0.01, phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0,
+                          sp_crit=0, F_f=0.0, solver='something_else')
 
 
 def test_steady_state_with_basic_solver_option():

@@ -1,8 +1,5 @@
 #! /usr/bin/env python
 
-#from ez_setup import use_setuptools
-#use_setuptools()
-
 from setuptools import setup, find_packages, Extension
 from setuptools.command.install import install
 from setuptools.command.develop import develop
@@ -129,17 +126,6 @@ setup(name='landlab',
       url='https://github.com/landlab',
       description='Plugin-based component modeling tool.',
       long_description=open('README.rst').read(),
-      install_requires=['scipy>=0.12',
-                        'nose>=1.3',
-                        'matplotlib',
-                        'sympy',
-                        'pandas',
-                        'six',
-                        'pyyaml',
-                        'netCDF4',
-                        'xarray',
-                       ],
-      #                  'Cython>=0.22'],
       setup_requires=['cython'],
       classifiers=[
           'Intended Audience :: Science/Research',
@@ -154,7 +140,6 @@ setup(name='landlab',
       packages=find_packages(),
       package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
                          'preciptest.in']},
-      test_suite='nose.collector',
       cmdclass=versioneer.get_cmdclass({
           'install': install_and_register,
           'develop': develop_and_register,
