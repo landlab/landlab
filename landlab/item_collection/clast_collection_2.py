@@ -852,7 +852,8 @@ class ClastCollection(ItemCollection):
 
 
         # Calculate lambda_0 and lambda_mean :
-        df.at[clast, 'lambda_0'] = ((self._dt * self._kappa * _grid.dx) / (2 * df.at[clast,'clast__radius'])) * (np.tan(df.at[clast, 'slope__steepest_dip']) * ((self._Si-np.tan(df.at[clast, 'slope__steepest_dip']))/(self._Si+np.tan(df.at[clast, 'slope__steepest_dip']))))
+        df.at[clast, 'lambda_0'] = self._kappa / (2 * df.at[clast,'clast__radius'] * self._disturbance_fqcy)
+        # ((self._dt * self._kappa * _grid.dx) / (2 * df.at[clast,'clast__radius'])) * (np.tan(df.at[clast, 'slope__steepest_dip']) * ((self._Si-np.tan(df.at[clast, 'slope__steepest_dip']))/(self._Si+np.tan(df.at[clast, 'slope__steepest_dip']))))
                 #(self._dt * self._kappa * _grid.dx) / (
 #                        2 * df.at[clast,'clast__radius'])) #self._Si *
 # self._Si *
@@ -988,7 +989,7 @@ class ClastCollection(ItemCollection):
         # Update hop length:
         self.df.at[clast, 'hop_length'] += self.rand_length
 
-    def _move_out_of_cell(self, clast):
+    def _first_move_out_of_cell(self, clast):
         """ Move the clast out of the cell, along the path of steepest slope.
         The clast gets placed fully in the target cell, just along the face it
         just crossed. This happens if the travel distance drawn from the
@@ -1010,6 +1011,14 @@ class ClastCollection(ItemCollection):
 
         self.df.at[clast, 'clast__node'] = self.df.at[clast, 'target_node']
         self.df.at[clast, 'element_id'] = self._grid.cell_at_node[self.df.at[clast, 'clast__node']]
+
+
+    def _move_again(self, clast):
+        """ TO DO
+        """
+
+        _remaining_trav_dist = self.rand_length - self.df.at[clast, 'hop_length']
+
 
 
     def phantom(self, clast):
@@ -1055,16 +1064,26 @@ class ClastCollection(ItemCollection):
         clast__node = self.df.at[clast, 'clast__node']
         clast__elev = self.df.at[clast, 'clast__elev']
         topo__elev = self._grid.at_node['topographic__elevation'][clast__node]
-        erosion = self._erosion__depth[clast__node]
+#        erosion = self._erosion__depth[clast__node]
 
         _detach = np.zeros(1, dtype=bool)
 
-        if erosion >= topo__elev - clast__elev:
+#        if erosion >= topo__elev - clast__elev:
+#            _detach = True
+#        else:
+#            _detach = False
+#
+#        return _detach
+
+        _disturb_fqcy = self._disturbance_fqcy
+        _clast_depth = topo__elev - clast__elev
+
+        proba_mobile = (1-np.exp(-_disturb_fqcy * dt)) * np.exp(-_clast_depth)
+
+        if proba_mobile >= :
             _detach = True
         else:
             _detach = False
-
-        return _detach
 
     def _cell_is_hillslope(self, clast):
         """Test if cell currently occupied by clast is hillslope (or river).
@@ -1109,7 +1128,8 @@ class ClastCollection(ItemCollection):
                                  uplift=None,
                                  erosion_method='TLDiff',
                                  hillslope_river__threshold=1e4,
-                                 lateral_spreading='off'):
+                                 lateral_spreading='off',
+                                 disturbance_fqcy=1):
         """See :func:`run_one_step`
 
         """
@@ -1145,6 +1165,7 @@ class ClastCollection(ItemCollection):
         self._Si = Si
         self._threshold = hillslope_river__threshold
         self._lateral_spreading = lateral_spreading
+        self._disturbance_fqcy = disturbance_fqcy
 
 
         # Uplift:
@@ -1178,31 +1199,37 @@ class ClastCollection(ItemCollection):
                     ClastCollection._move_to(self, clast)
                     print('move_to')
 
-                    self.df.at[clast, 'hop_length'] =0
+                    self.df.at[clast, 'hop_length'] = 0.
                     self.rand_length = 0.
-                    #Test if moves (leaves node):
+                    #Test if moves (leaves cell):
                     if np.isnan(self.df.at[clast,'slope__steepest_azimuth']) == False: # if centered slope is not null (not on a flat)
                         print('not on flat')
-                        while ClastCollection._change_cell_proba(self, clast) == True:
+                        if ClastCollection._change_cell_proba(self, clast) == True:
                             if ClastCollection.phantom(self, clast) == False:
                                 print('HERE')
                                 print(self.df)
                                 print('must change cell')
-                                ClastCollection._move_out_of_cell(self,clast)
+
+                                ClastCollection._first_move_out_of_cell(self,clast)
+
+                                ########JUST FOR TESTING PURPOSE##################################
                                 print('moved out')
                                 print('clastx= %s' %self.DataFrame.at[clast, 'clast__x'])
                                 print('clasty= %s' %self.DataFrame.at[clast, 'clast__y'])
                                 figure(1)
                                 plot(self.DataFrame.at[clast, 'clast__x'], self.DataFrame.at[clast, 'clast__y'], 'o', color='gray', markersize=1)
-                                ########JUST FOR TESTING PURPOSE##################################
                                 if self.df.at[clast, 'clast__node'] != self.df.at[clast, 'target_node']:
                                     print('Error: moved to wrong node')
                                 ##################################################################
+
                                 self.df.at[clast, 'target_node_flag'] = -1
                                 ClastCollection._neighborhood(self, clast)
                                 print('done new neighborhood')
                                 ClastCollection._move_to(self, clast)
-                                print('done new move_to, test change_cell_proba')
+                                print('done new move_to')
+                                # move using scaling:
+                                ClastCollection._move_again:
+
                             else:
                                 print('clast has gone out of grid')
                                 break
@@ -1244,7 +1271,8 @@ class ClastCollection(ItemCollection):
                      uplift=None,
                      erosion_method='TLDiff',
                      hillslope_river__threshold=1e4,
-                     lateral_spreading='off'):
+                     lateral_spreading='off',
+                     disturbance_fqcy=1):
 
         """ Run the clast-tracker for one timestep dt: evaluate the type of
         cell each clast is currently in, wheteher each clast is detached,
@@ -1282,4 +1310,5 @@ class ClastCollection(ItemCollection):
                                       uplift,
                                       erosion_method,
                                       hillslope_river__threshold,
-                                      lateral_spreading)
+                                      lateral_spreading,
+                                      disturbance_fqcy)
