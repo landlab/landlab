@@ -17,6 +17,8 @@ from landlab.components.flow_routing import (DepressionFinderAndRouter,
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy as np
 
+# TODO: this should probably follow Barnes et al., 2014 for max efficiency
+
 
 class SinkFiller(Component):
     """
