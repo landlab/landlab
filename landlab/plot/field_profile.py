@@ -10,7 +10,7 @@ class FieldProfiler:
     The profile is laid out by `points` that act as the vertices, including
     endpoints, of the profile trace. Sections of the profile between the points
     are referred to as `segments`. The profile trace will be one segment
-    (making a straight line) when `points` has exactly two elements. The
+    when `points` has exactly two elements (making a straight line) . The
     profile will have multiple segments when `points` has greater than two
     elements and the trace can be more complex than a straight line.
 
@@ -49,13 +49,13 @@ class FieldProfiler:
         grid : RasterModelGrid
             A landlab RasterModelGrid.
         field : string
-            The `grid` field at node in which to extract a profile.
+            The `grid` field at node in which to extract the profile.
         points : tuple list or integer list
-            Each element of the list is a vertex point along the profile. The
+            Each element of the list is a vertex of the profile trace. The
             elements can be tuples of coordinates (x, y) and/or node ids.
         sample_spacing : float, integer, or none
             The distance along the profile to sample `field`. The default value
-            of `none` will set this sample spacing as the `dx` of `grid`.
+            of `none` will set the sample spacing to the `dx` of `grid`.
 
         Examples
         --------
