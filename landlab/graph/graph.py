@@ -168,13 +168,13 @@ class Graph(object):
 
     def freeze(self):
         """Freeze the graph by making arrays read-only."""
-        for var in self.ds:
+        for var in self.ds.variables:
             self.ds[var].values.flags.writeable = False
         self._frozen = True
 
     def thaw(self):
         """Thaw the graph by making arrays writable."""
-        for var in self.ds:
+        for var in self.ds.variables:
             self.ds[var].values.flags.writeable = True
         self._frozen = False
 
