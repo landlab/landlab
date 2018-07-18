@@ -12,10 +12,11 @@
 from __future__ import absolute_import
 import os
 
-from ._info import version as  __version__
 from ._registry import registry
 
-__all__ = ['__version__', 'registry']
+cite_as = registry.format_citations
+
+__all__ = ['registry']
 
 if 'DISPLAY' not in os.environ:
     try:
@@ -46,3 +47,7 @@ __all__.extend(['ModelParameterDictionary', 'MissingKeyError',
                 'ParameterValueError', 'Component', 'Palette', 'Arena',
                 'NoProvidersError', 'Implements', 'ImplementsOrRaise',
                 'Framework', 'FieldError', 'LandlabTester', 'load_params'])
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

@@ -35,15 +35,6 @@ array([ 0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
         0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
         0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
         0.07559526,  0.07559526,  0.07559526,  0.07559526,  0.07559526])
-
-    Construction::
-
-        depth_dependent_mannings_n(grid,
-                                      water_depths='surface_water__depth',
-                                      min_mannings_n=0.06,
-                                      index_flow_depth=0.0003,
-                                      veg_drag_exponent=(-1./3.)):
-
 """
 
 import numpy as np

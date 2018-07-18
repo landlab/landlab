@@ -23,13 +23,13 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([1, 1, 1, 1,
            1, 0, 0, 1,
-           1, 1, 1, 1], dtype=int8)
+           1, 1, 1, 1], dtype=uint8)
 
     >>> grid.set_status_at_node_on_edges(right=CLOSED_BOUNDARY)
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([1, 1, 1, 4,
            1, 0, 0, 4,
-           1, 1, 1, 4], dtype=int8)
+           1, 1, 1, 4], dtype=uint8)
 
     >>> from landlab import FIXED_GRADIENT_BOUNDARY
     >>> grid = RasterModelGrid((3, 4))
@@ -43,7 +43,7 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([1, 1, 1, 2,
            1, 0, 0, 2,
-           4, 4, 4, 2], dtype=int8)
+           4, 4, 4, 2], dtype=uint8)
 
     In the above example, if you wanted the corner to have the status of the
     top edge, you need to make two calls to `set_status_at_node_on_edges`,
@@ -54,7 +54,7 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([1, 1, 1, 2,
            1, 0, 0, 2,
-           4, 4, 4, 4], dtype=int8)
+           4, 4, 4, 4], dtype=uint8)
 
     An example that sets all of the edges shows how corners are set.
 
@@ -62,7 +62,7 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([3, 4, 4, 4,
            3, 0, 0, 1,
-           2, 2, 2, 1], dtype=int8)
+           2, 2, 2, 1], dtype=uint8)
 
     LLCATS: BC
     """

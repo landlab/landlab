@@ -33,7 +33,7 @@ else:
 print('Uploading to {channel} channel'.format(channel=channel))
 
 try:
-    cmd = ' '.join(['conda', 'build', '--output', '.conda-recipe'])
+    cmd = ' '.join(['conda', 'build', '--output', '.conda-recipe', '--old-build-string'])
     resp = subprocess.check_output(cmd, shell=True)
 except subprocess.CalledProcessError:
     traceback.print_exc()
@@ -58,10 +58,14 @@ print(file_to_upload)
 if not os.path.isfile(file_to_upload):
     raise RuntimeError('{name}: not a file'.format(name=file_to_upload))
 
-try:
-    cmd = ' '.join(['anaconda', '-t', token, 'upload', '--force',
-                    '--user', 'landlab', '--channel', channel,
-                    file_to_upload.decode('utf-8')])
-    subprocess.check_call(cmd, shell=True)
-except subprocess.CalledProcessError:
-    traceback.print_exc()
+cmd = ' '.join(['anaconda', '-t', token, 'upload', '--force',
+                '--user', 'landlab', '--channel', channel,
+                file_to_upload.decode('utf-8')])
+
+if channel == 'main':
+    try:
+        subprocess.check_call(cmd, shell=True)
+    except subprocess.CalledProcessError:
+        traceback.print_exc()
+else:
+    print('Not a tagged release. Not deploying to Anaconda Cloud.')

@@ -11,6 +11,7 @@ from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy.testing import assert_equal
 
+
 def test_erodep_slope_area_small_vs():
     """Test steady state run with Vs << 1."""
 
@@ -30,9 +31,6 @@ def test_erodep_slope_area_small_vs():
 
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           method='simple_stream_power',
-                           discharge_method='drainage_area', 
-                           area_field='drainage_area',
                            solver='adaptive')
 
     # ... and run it to steady state.
@@ -46,11 +44,12 @@ def test_erodep_slope_area_small_vs():
     sa_factor = (1.0 + vs) * U / K
     a11 = 2.0
     a12 = 1.0
-    s = rg.at_node['topographic__steepest_slope']    
+    s = rg.at_node['topographic__steepest_slope']
     s11 = sa_factor * (a11 ** -0.5)
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 3), np.round(s11, 3))
     assert_equal(np.round(s[12], 3), np.round(s12, 3))
+
 
 def test_erodep_slope_area_big_vs():
     """Test steady state run with Vs >> 1."""
@@ -68,12 +67,9 @@ def test_erodep_slope_area_big_vs():
     vs = 1000.0
     U = 0.001
     dt = 10.0
-    
+
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           method='simple_stream_power',
-                           discharge_method='drainage_area', 
-                           area_field='drainage_area',
                            solver='adaptive')
 
     # ... and run it to steady state.
@@ -91,6 +87,7 @@ def test_erodep_slope_area_big_vs():
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
+
 
 def test_erodep_slope_area_with_vs_unity():
     """Test steady state run with Vs = 1."""
@@ -111,9 +108,6 @@ def test_erodep_slope_area_with_vs_unity():
 
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           method='simple_stream_power',
-                           discharge_method='drainage_area', 
-                           area_field='drainage_area',
                            solver='adaptive')
 
     # ... and run it to steady state.
@@ -132,6 +126,7 @@ def test_erodep_slope_area_with_vs_unity():
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
+
 def test_erodep_slope_area_shear_stress_scaling():
     """Test steady state run with m_sp = 0.33, n_sp=0.67, Vs = 1."""
 
@@ -149,12 +144,10 @@ def test_erodep_slope_area_shear_stress_scaling():
     vs = 1.0
     U = 0.001
     dt = 10.0
-
+    m_sp = 0.33
+    n_sp = 0.67
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.33, n_sp=0.67,
-                           method='simple_stream_power',
-                           discharge_method='drainage_area', 
-                           area_field='drainage_area',
+    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=m_sp, n_sp=n_sp,
                            solver='adaptive')
 
     # ... and run it to steady state.
@@ -165,13 +158,14 @@ def test_erodep_slope_area_shear_stress_scaling():
 
     # Test the results
     s = rg.at_node['topographic__steepest_slope']
-    sa_factor = ((1.0 + vs) * U / K) ** (1.0 / 0.67)
-    a6 = 5.0
-    a8 = 3.0
-    s6 = sa_factor * (a6 ** -(0.33 / 0.67))
-    s8 = sa_factor * (a8 ** -(0.33 / 0.67))
+    sa_factor = ((1.0 + vs) * U / K) ** (1.0 / n_sp)
+    a6 = rg.at_node['drainage_area'][6]
+    a8 = rg.at_node['drainage_area'][8]
+    s6 = sa_factor * (a6 ** -(m_sp / n_sp))
+    s8 = sa_factor * (a8 ** -(m_sp / n_sp))
     assert_equal(np.round(s[6], 2), np.round(s6, 2))
     assert_equal(np.round(s[8], 2), np.round(s8, 2))
+
 
 def test_erodep_slope_area_with_threshold():
     """Test steady state run with Vs = 1 and wc = 0.00001."""
@@ -194,9 +188,6 @@ def test_erodep_slope_area_with_threshold():
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
                            sp_crit=wc,
-                           method='threshold_stream_power',
-                           discharge_method='drainage_area', 
-                           area_field='drainage_area',
                            solver='adaptive')
 
     # ... and run it to steady state.
@@ -214,6 +205,7 @@ def test_erodep_slope_area_with_threshold():
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
+
 
 if __name__ == '__main__':
     test_erodep_slope_area_shear_stress_scaling()

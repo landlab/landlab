@@ -25,32 +25,6 @@ class SteepnessFinder(Component):
     for a Landlab landscape.
     Follows broadly the approach used in GeomorphTools, geomorphtools.org.
 
-    Construction::
-
-        SteepnessFinder(grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                        elev_step=0., discretization_length=0.)
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A landlab RasterModelGrid.
-    reference_concavity : float
-        The reference concavity to use in the calculation.
-    min_drainage_area : float (m**2; default 1.e6)
-        The minimum drainage area above which steepness indices are 
-        calculated.
-        Defaults to 1.e6 m**2, per Wobus et al. 2006.
-    elev_step : float (m; default 0.)
-        If >0., becomes a vertical elevation change step to use to
-        discretize the data (per Wobus). If 0., all nodes are used and
-        no discretization happens.
-    discretization_length : float (m; default 0.)
-        If >0., becomes the lengthscale over which to segment the profiles -
-        i.e., one different steepness index value is calculated every
-        discretization_length. If only one (or no) points are present in a
-        segment, it will be lumped together with the next segment.
-        If zero, one value is assigned to each channel node.
-
     Examples
     --------
     >>> import numpy as np
@@ -143,7 +117,26 @@ class SteepnessFinder(Component):
     def __init__(self, grid, reference_concavity=0.5, min_drainage_area=1.e6,
                  elev_step=0., discretization_length=0., **kwds):
         """
-        Constructor for the component.
+        Parameters
+        ----------
+        grid : RasterModelGrid
+            A landlab RasterModelGrid.
+        reference_concavity : float
+            The reference concavity to use in the calculation.
+        min_drainage_area : float (m**2; default 1.e6)
+            The minimum drainage area above which steepness indices are
+            calculated.
+            Defaults to 1.e6 m**2, per Wobus et al. 2006.
+        elev_step : float (m; default 0.)
+            If >0., becomes a vertical elevation change step to use to
+            discretize the data (per Wobus). If 0., all nodes are used and
+            no discretization happens.
+        discretization_length : float (m; default 0.)
+            If >0., becomes the lengthscale over which to segment the profiles -
+            i.e., one different steepness index value is calculated every
+            discretization_length. If only one (or no) points are present in a
+            segment, it will be lumped together with the next segment.
+            If zero, one value is assigned to each channel node.
         """
         self._grid = grid
         self._reftheta = reference_concavity
@@ -294,8 +287,7 @@ class SteepnessFinder(Component):
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
         ch_dists[0] = 0.
-        np.cumsum(self.grid._length_of_link_with_diagonals[ch_links[:-1]],
-                  out=ch_dists[1:])
+        np.cumsum(self.grid.length_of_d8[ch_links[:-1]], out=ch_dists[1:])
         return ch_dists
 
     def interpolate_slopes_with_step(self, ch_nodes, ch_dists,

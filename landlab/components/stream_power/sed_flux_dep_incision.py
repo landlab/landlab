@@ -75,135 +75,6 @@ class SedDepEroder(Component):
     *flooded_depths* be passed to the run method. A flooded depression
     acts as a perfect sediment trap, and will be filled sequentially
     from the inflow points towards the outflow points.
-
-    Construction::
-
-        SedDepEroder(grid, K_sp=1.e-6, g=9.81, rock_density=2700,
-                     sediment_density=2700, fluid_density=1000,
-                     runoff_rate=1.,
-                     sed_dependency_type='generalized_humped',
-                     kappa_hump=13.683, nu_hump=1.13, phi_hump=4.24,
-                     c_hump=0.00181, Qc='power_law', m_sp=0.5, n_sp=1.,
-                     K_t=1.e-4, m_t=1.5, n_t=1., C_MPM=1., a_sp=1.,
-                     b_sp=0.5, c_sp=1., k_w=2.5, k_Q=2.5e-7,
-                     mannings_n=0.05, threshold_shear_stress=None,
-                     Dchar=0.05, set_threshold_from_Dchar=True,
-                     set_Dchar_from_threshold=False,
-                     threshold_Shields=0.05,
-                     slope_sensitive_threshold=False,
-                     pseudoimplicit_repeats=5,
-                     return_stream_properties=False)
-
-    Parameters
-    ----------
-    grid : a ModelGrid
-        A grid.
-    K_sp : float (time unit must be *years*)
-        K in the stream power equation; the prefactor on the erosion
-        equation (units vary with other parameters).
-    g : float (m/s**2)
-        Acceleration due to gravity.
-    rock_density : float (Kg m**-3)
-        Bulk intact rock density.
-    sediment_density : float (Kg m**-3)
-        Typical density of loose sediment on the bed.
-    fluid_density : float (Kg m**-3)
-        Density of the fluid.
-    runoff_rate : float, array or field name (m/s)
-        The rate of excess overland flow production at each node (i.e.,
-        rainfall rate less infiltration).
-    pseudoimplicit_repeats : int
-        Number of loops to perform with the pseudoimplicit iterator,
-        seeking a stable solution. Convergence is typically rapid.
-    return_stream_properties : bool
-        Whether to perform a few additional calculations in order to set
-        the additional optional output fields, 'channel__width',
-        'channel__depth', and 'channel__discharge' (default False).
-    sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
-                           'almost_parabolic'}
-        The shape of the sediment flux function. For definitions, see
-        Hobley et al., 2011. 'None' gives a constant value of 1.
-        NB: 'parabolic' is currently not supported, due to numerical
-        stability issues at channel heads.
-    Qc : {'power_law', 'MPM'}
-        Whether to use simple stream-power-like equations for both
-        sediment transport capacity and erosion rate, or more complex
-        forms based directly on the Meyer-Peter Muller equation and a
-        shear stress based erosion model consistent with MPM (per
-        Hobley et al., 2011).
-
-    If ``sed_dependency_type == 'generalized_humped'``...
-
-    kappa_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        function amplitude (i.e., scales the function to a maximum of 1).
-        Default follows Leh valley values from Hobley et al., 2011.
-    nu_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        rate of rise of the "tools" limb. Default follows Leh valley
-        values from Hobley et al., 2011.
-    phi_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        rate of fall of the "cover" limb. Default follows Leh valley
-        values from Hobley et al., 2011.
-    c_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        degree of function asymmetry. Default follows Leh valley values
-        from Hobley et al., 2011.
-
-    If ``Qc == 'power_law'``...
-
-    m_sp : float
-        Power on drainage area in the erosion equation.
-    n_sp : float
-        Power on slope in the erosion equation.
-    K_t : float (time unit must be in *years*)
-        Prefactor in the transport capacity equation.
-    m_t : float
-        Power on drainage area in the transport capacity equation.
-    n_t : float
-        Power on slope in the transport capacity equation.
-
-    if ``Qc == 'MPM'``...
-
-    C_MPM : float
-        A prefactor on the MPM relation, allowing tuning to known sediment
-        saturation conditions (leave as 1. in most cases).
-    a_sp : float
-        Power on shear stress to give erosion rate.
-    b_sp : float
-        Power on drainage area to give channel width.
-    c_sp : float
-        Power on drainage area to give discharge.
-    k_w : float (unit variable with b_sp)
-        Prefactor on A**b_sp to give channel width.
-    k_Q : float (unit variable with c_sp, but time unit in *seconds*)
-        Prefactor on A**c_sp to give discharge.
-    mannings_n : float
-        Manning's n for the channel.
-    threshold_shear_stress : None or float (Pa)
-        The threshold shear stress in the equation for erosion rate. If
-        None, implies that *set_threshold_from_Dchar* is True, and this
-        parameter will get set from the Dchar value and critical Shields
-        number.
-    Dchar :None, float, array, or field name (m)
-        The characteristic grain size on the bed, that controls the
-        relationship between critical Shields number and critical shear
-        stress. If None, implies that *set_Dchar_from_threshold* is True,
-        and this parameter will get set from the threshold_shear_stress
-        value and critical Shields number.
-    set_threshold_from_Dchar : bool
-        If True (default), threshold_shear_stress will be set based on
-        Dchar and threshold_Shields.
-    set_Dchar_from_threshold : bool
-        If True, Dchar will be set based on threshold_shear_stress and
-        threshold_Shields. Default is False.
-    threshold_Shields : None or float
-        The threshold Shields number. If None, implies that
-        *slope_sensitive_threshold* is True.
-    slope_sensitive_threshold : bool
-        If True, the threshold_Shields will be set according to
-        0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
     """
 
     _name = 'SedDepEroder'
@@ -332,7 +203,119 @@ class SedDepEroder(Component):
                  # params for model numeric behavior:
                  pseudoimplicit_repeats=5, return_stream_properties=False,
                  **kwds):
-        """Constructor for the class."""
+        """Constructor for the class.
+
+        Parameters
+        ----------
+        grid : a ModelGrid
+            A grid.
+        K_sp : float (time unit must be *years*)
+            K in the stream power equation; the prefactor on the erosion
+            equation (units vary with other parameters).
+        g : float (m/s**2)
+            Acceleration due to gravity.
+        rock_density : float (Kg m**-3)
+            Bulk intact rock density.
+        sediment_density : float (Kg m**-3)
+            Typical density of loose sediment on the bed.
+        fluid_density : float (Kg m**-3)
+            Density of the fluid.
+        runoff_rate : float, array or field name (m/s)
+            The rate of excess overland flow production at each node (i.e.,
+            rainfall rate less infiltration).
+        pseudoimplicit_repeats : int
+            Number of loops to perform with the pseudoimplicit iterator,
+            seeking a stable solution. Convergence is typically rapid.
+        return_stream_properties : bool
+            Whether to perform a few additional calculations in order to set
+            the additional optional output fields, 'channel__width',
+            'channel__depth', and 'channel__discharge' (default False).
+        sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
+                               'almost_parabolic'}
+            The shape of the sediment flux function. For definitions, see
+            Hobley et al., 2011. 'None' gives a constant value of 1.
+            NB: 'parabolic' is currently not supported, due to numerical
+            stability issues at channel heads.
+        Qc : {'power_law', 'MPM'}
+            Whether to use simple stream-power-like equations for both
+            sediment transport capacity and erosion rate, or more complex
+            forms based directly on the Meyer-Peter Muller equation and a
+            shear stress based erosion model consistent with MPM (per
+            Hobley et al., 2011).
+
+        If ``sed_dependency_type == 'generalized_humped'``...
+
+        kappa_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            function amplitude (i.e., scales the function to a maximum of 1).
+            Default follows Leh valley values from Hobley et al., 2011.
+        nu_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            rate of rise of the "tools" limb. Default follows Leh valley
+            values from Hobley et al., 2011.
+        phi_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            rate of fall of the "cover" limb. Default follows Leh valley
+            values from Hobley et al., 2011.
+        c_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            degree of function asymmetry. Default follows Leh valley values
+            from Hobley et al., 2011.
+
+        If ``Qc == 'power_law'``...
+
+        m_sp : float
+            Power on drainage area in the erosion equation.
+        n_sp : float
+            Power on slope in the erosion equation.
+        K_t : float (time unit must be in *years*)
+            Prefactor in the transport capacity equation.
+        m_t : float
+            Power on drainage area in the transport capacity equation.
+        n_t : float
+            Power on slope in the transport capacity equation.
+
+        if ``Qc == 'MPM'``...
+
+        C_MPM : float
+            A prefactor on the MPM relation, allowing tuning to known sediment
+            saturation conditions (leave as 1. in most cases).
+        a_sp : float
+            Power on shear stress to give erosion rate.
+        b_sp : float
+            Power on drainage area to give channel width.
+        c_sp : float
+            Power on drainage area to give discharge.
+        k_w : float (unit variable with b_sp)
+            Prefactor on A**b_sp to give channel width.
+        k_Q : float (unit variable with c_sp, but time unit in *seconds*)
+            Prefactor on A**c_sp to give discharge.
+        mannings_n : float
+            Manning's n for the channel.
+        threshold_shear_stress : None or float (Pa)
+            The threshold shear stress in the equation for erosion rate. If
+            None, implies that *set_threshold_from_Dchar* is True, and this
+            parameter will get set from the Dchar value and critical Shields
+            number.
+        Dchar :None, float, array, or field name (m)
+            The characteristic grain size on the bed, that controls the
+            relationship between critical Shields number and critical shear
+            stress. If None, implies that *set_Dchar_from_threshold* is True,
+            and this parameter will get set from the threshold_shear_stress
+            value and critical Shields number.
+        set_threshold_from_Dchar : bool
+            If True (default), threshold_shear_stress will be set based on
+            Dchar and threshold_Shields.
+        set_Dchar_from_threshold : bool
+            If True, Dchar will be set based on threshold_shear_stress and
+            threshold_Shields. Default is False.
+        threshold_Shields : None or float
+            The threshold Shields number. If None, implies that
+            *slope_sensitive_threshold* is True.
+        slope_sensitive_threshold : bool
+            If True, the threshold_Shields will be set according to
+            0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
+        """
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
 
@@ -620,7 +603,7 @@ class SedDepEroder(Component):
         core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0],
                                              grid.core_nodes,
                                              assume_unique=True)
-        link_length[core_draining_nodes] = grid._length_of_link_with_diagonals[
+        link_length[core_draining_nodes] = grid.length_of_d8[
             grid.at_node[steepest_link][core_draining_nodes]]
 
         if self.Qc == 'MPM':

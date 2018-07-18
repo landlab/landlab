@@ -11,23 +11,12 @@ KRB Feb 2017
 """
 
 from landlab.core.utils import as_id_array
-from landlab.utils.decorators import use_field_name_or_array
+from landlab.utils.return_array import return_array_at_node
 from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 from landlab import VoronoiDelaunayGrid  # for type tests
 
 import numpy as np
-
-
-@use_field_name_or_array('node')
-def _return_surface(grid, surface):
-    """
-    Private function to return the surface to direct flow over.
-
-    This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array.
-    """
-    return surface
 
 
 def flow_directions_dinf(grid,
@@ -114,13 +103,42 @@ def flow_directions_dinf(grid,
            [ 1.        ,  0.        ],
            [ 0.40966553,  0.59033447],
            [ 0.40966553,  0.59033447]])
+
+    This method also works if the elevations are passed as an array instead of
+    the (implied) field name 'topographic__elevation'.
+
+    >>> z = grid['node']['topographic__elevation']
+    >>> (receivers, proportions,
+    ... steepest_slope, steepest_receiver,
+    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
+    >>> receivers
+    array([[ 0, -1],
+           [ 0,  3],
+           [ 1,  4],
+           [ 0,  1],
+           [ 3,  0],
+           [ 4,  1],
+           [ 3,  4],
+           [ 6,  3],
+           [ 7,  4]])
+
+    >>> proportions
+    array([[ 1.        ,  0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447]])
     """
     # grid type testing
     if isinstance(grid, VoronoiDelaunayGrid):
         raise NotImplementedError('Dinfinity is currently implemented for'
                                   ' Raster grids only')
     # get elevs
-    elevs = _return_surface(grid, elevs)
+    elevs = return_array_at_node(grid, elevs)
 
     ### Step 1, some basic set-up, gathering information about the grid.
 
@@ -146,8 +164,8 @@ def flow_directions_dinf(grid,
     # create list of triangle neighbors at node. Use orientation associated
     # with tarboton's 1997 algorithm, orthogonal link first, then diagonal.
     # has shape, (nnodes, 8 triangles, 2 neighbors)
-    n_at_node = grid.neighbors_at_node
-    dn_at_node = grid._diagonal_neighbors_at_node
+    n_at_node = grid.adjacent_nodes_at_node
+    dn_at_node = grid.diagonal_adjacent_nodes_at_node
 
     triangle_neighbors_at_node = np.stack([np.vstack((n_at_node[:,0], dn_at_node[:,0])),
                                            np.vstack((n_at_node[:,1], dn_at_node[:,0])),
@@ -161,8 +179,8 @@ def flow_directions_dinf(grid,
     triangle_neighbors_at_node = triangle_neighbors_at_node.swapaxes(0,1)
 
     # next create, triangle links at node
-    l_at_node = grid.links_at_node
-    dl_at_node = grid._diagonal_links_at_node
+    l_at_node = grid.d8s_at_node[:, :4]
+    dl_at_node = grid.d8s_at_node[:, 4:]
     triangle_links_at_node = np.stack([np.vstack((l_at_node[:,0], dl_at_node[:,0])),
                                        np.vstack((l_at_node[:,1], dl_at_node[:,0])),
                                        np.vstack((l_at_node[:,1], dl_at_node[:,1])),
@@ -176,8 +194,8 @@ def flow_directions_dinf(grid,
 
     # next create link directions and active link directions at node
     # link directions
-    ld_at_node = grid._link_dirs_at_node
-    dld_at_node = grid._diag__link_dirs_at_node
+    ld_at_node = grid.link_dirs_at_node
+    dld_at_node = grid.diagonal_dirs_at_node
     triangle_link_dirs_at_node = np.stack([np.vstack((ld_at_node[:,0], dld_at_node[:,0])),
                                            np.vstack((ld_at_node[:,1], dld_at_node[:,0])),
                                            np.vstack((ld_at_node[:,1], dld_at_node[:,1])),
@@ -191,7 +209,7 @@ def flow_directions_dinf(grid,
 
 #    # active link directions.
 #    ald_at_node = grid.active_link_dirs_at_node
-#    adld_at_node = grid._diag__active_link_dirs_at_node
+#    adld_at_node = grid.active_diagonal_dirs_at_node
 #
 #    triangle_active_link_dirs_at_node = np.stack([np.vstack((ald_at_node[:,0], adld_at_node[:,0])),
 #                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,0])),
@@ -205,7 +223,7 @@ def flow_directions_dinf(grid,
 #    triangle_active_link_dirs_at_node = triangle_active_link_dirs_at_node.swapaxes(0,1)
 #
     # need to create a list of diagonal links since it doesn't exist.
-    diag_links = np.sort(np.unique(grid._diag_links_at_node))
+    diag_links = np.sort(np.unique(grid.d8s_at_node[:, 4:]))
     diag_links = diag_links[diag_links>0]
 
     # calculate graidents across diagonals and orthogonals

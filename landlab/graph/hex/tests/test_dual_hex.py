@@ -82,3 +82,18 @@ def test_orientation():
     graph = DualHexGraph((4, 3), orientation='horizontal')
     assert_array_almost_equal(graph.x_of_corner,
                               [1.5, 1, 2, 1, 2, .5, 1.5, .5, 1.5, 1])
+
+
+def test_adjacent_corners_at_corner():
+    graph = DualHexGraph((3, 3), node_layout='hex')
+    assert_array_equal(graph.adjacent_corners_at_corner,
+                       [[ 3,  2, -1],
+                        [ 4 , 3, -1],
+                        [ 5,  0, -1],
+                        [ 6,  0,  1],
+                        [ 7,  1, -1],
+                        [ 8,  2, -1],
+                        [ 9,  8,  3],
+                        [ 9,  4, -1],
+                        [ 5,  6, -1],
+                        [ 6,  7, -1]])

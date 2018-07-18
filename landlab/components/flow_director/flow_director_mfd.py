@@ -20,8 +20,7 @@ import numpy
 
 class FlowDirectorMFD(_FlowDirectorToMany):
 
-    """
-    Single-path (steepest direction) flow direction without diagonals.
+    """Single-path (steepest direction) flow direction without diagonals.
 
     This components finds the steepest single-path steepest descent flow
     directions. It is equivalent to D4 method in the special case of a raster
@@ -48,21 +47,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
-
-    Construction::
-
-        FlowDirectorMFD(grid, surface='topographic__elevation')
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node, optional
-        The surface to direct flow across, default is field at node:
-        topographic__self.surface_valuesation.
-    partition_method: string, optional
-        Method for partitioning flow. Options include 'slope' (default) and
-        'square_root_of_slope'.
 
     Examples
     --------
@@ -308,7 +292,18 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     _name = 'FlowDirectorMFD'
 
     def __init__(self, grid, surface='topographic__elevation', **kwargs):
-        """Initialize FlowDirectorMFD."""
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node, optional
+            The surface to direct flow across, default is field at node:
+            topographic__self.surface_valuesation.
+        partition_method: string, optional
+            Method for partitioning flow. Options include 'slope' (default) and
+            'square_root_of_slope'.
+        """
         # unpack kwargs:
         try:
             partition_method = kwargs.pop('partition_method')
@@ -333,7 +328,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         if self._is_Voroni == False and diagonals == True:
             self.max_receivers = 8
         else:
-            self.max_receivers = self._grid.neighbors_at_node.shape[1]
+            self.max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
 
         # set the number of recievers, proportions, and receiver links with the
         # right size.
@@ -412,7 +407,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
         # Option for no diagonals (default)
         if self.diagonals == False:
-            neighbors_at_node = self.grid.neighbors_at_node
+            neighbors_at_node = self.grid.adjacent_nodes_at_node
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node
 
@@ -422,16 +417,13 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # Option with diagonals.
         else:
 
-            # Make sure diagonal links have been created
-            self.grid._create_diag_links_at_node()
-
             # need to create a list of diagonal links since it doesn't exist.
-            diag_links = numpy.sort(numpy.unique(self.grid._diag_links_at_node))
+            diag_links = numpy.sort(numpy.unique(self.grid.d8s_at_node[:, 4:]))
             diag_links = diag_links[diag_links > 0]
 
             # get diagonal active links (though this actually includes ALL
             # active links)
-            dal, d8h, d8t = self.grid._d8_active_links()
+            dal = self.grid.active_d8
 
             # calculate graidents across diagonals
             diag_grads = numpy.zeros(diag_links.shape)
@@ -444,14 +436,14 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             ortho_grads = self.grid.calc_grad_at_link(self.surface_values)
 
             # concatenate the diagonal and orthogonal grid elements
-            neighbors_at_node = numpy.hstack((self.grid.neighbors_at_node,
-                                              self.grid._diagonal_neighbors_at_node))
-            links_at_node = numpy.hstack((self.grid.links_at_node,
-                                          self.grid._diagonal_links_at_node))
+            neighbors_at_node = numpy.hstack((self.grid.adjacent_nodes_at_node,
+                                              self.grid.diagonal_adjacent_nodes_at_node))
             active_link_dir_at_node = numpy.hstack((self.grid.active_link_dirs_at_node,
-                                                    self.grid._diag__active_link_dirs_at_node))
+                                                    self.grid.active_diagonal_dirs_at_node))
             link_slope = numpy.hstack((ortho_grads,
                                        diag_grads))
+
+            links_at_node = self.grid.d8s_at_node
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(
