@@ -1,0 +1,37 @@
+clock:
+  start: 0.0
+  step: 1000.0
+  stop: 400000.0
+grid:
+  origin: 0.0
+  shape:
+  - 3
+  - 200
+  spacing: 500.0
+  bc:
+    top: closed
+    bottom: closed
+sea_level:
+  amplitude: 80.
+  wave_length: 100000.
+  phase: 25000.
+  mean: 0.
+submarine_diffusion:
+  alpha: 0.0005
+  sediment_load: 50.
+  plain_slope: .008
+  shoreface_height: 5.0
+  shelf_slope: 0.01
+  wave_base: 30.0
+subsidence:
+  filepath: subsidence_marmara.csv
+flexure:
+  method: airy
+  rho_mantle: 3300.
+sediments:
+  layers: 2,
+  sand_size: 1.,
+  mud_size:  0.006,
+  sand_density: 2650.
+  mud_density: 2720.
+  sand_frac: 0.5
