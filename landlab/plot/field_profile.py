@@ -85,7 +85,7 @@ class FieldProfiler:
         the profile crosses.
         >>> row_mask = mg.y_of_node[mg.core_nodes] == 3 * mg.dy
         >>> fp.field_value == mg.at_node[field][mg.core_nodes][row_mask]
-        array([ True,  True,  True,  True,  True])
+        array([ True,  True,  True,  True,  True], dtype=bool)
         """
         if field not in grid.at_node.keys():
             raise FieldError('the field, {} must be a field of the input grid '
@@ -264,8 +264,6 @@ class FieldProfiler:
         axes[0].legend(bbox_to_anchor=(0.5, 1.3), loc=9, borderaxespad=0,
             ncol=2)
 
-        axes[0].plot(self.sample_x, self.sample_y, 'y.')
-
         # Plot profile.
 
         d = self.distance
@@ -297,7 +295,7 @@ class FieldProfiler:
         at the nodes where the profile crosses given that the profile sample
         distance grid resolution and are 1.
         >>> fp.distance == mg.x_of_node[mg.y_of_node == 1]
-        array([ True,  True,  True])
+        array([ True,  True,  True], dtype=bool)
         """
         return np.array(self._distance)
 
@@ -318,7 +316,7 @@ class FieldProfiler:
         Arrays of profile and grid field values will match at the nodes where
         the profile crosses.
         >>> fp.field_value == mg.at_node['random_value'][mg.y_of_node == 1]
-        array([ True,  True,  True])
+        array([ True,  True,  True], dtype=bool)
         """
         return np.array(self._field_value)
 
@@ -339,7 +337,7 @@ class FieldProfiler:
         Arrays of profile sample and grid column x-coordinates will match at
         the nodes where the profile crosses.
         >>> fp.sample_x == mg.x_of_node[mg.y_of_node == 1]
-        array([ True,  True,  True])
+        array([ True,  True,  True], dtype=bool)
         """
         return np.array(self._sample_x)
 
@@ -360,7 +358,7 @@ class FieldProfiler:
         Arrays of profile sample and grid column y-coordinates will match at
         the nodes where the profile crosses.
         >>> fp.sample_y == mg.y_of_node[mg.y_of_node == 1]
-        array([ True,  True,  True])
+        array([ True,  True,  True], dtype=bool)
         """
         return np.array(self._sample_y)
 
@@ -382,7 +380,7 @@ class FieldProfiler:
         profile crosses.
         >>> grid_nodes = mg.nodes.flatten()
         >>> fp.nodes == grid_nodes[mg.y_of_node == 1]
-        array([ True,  True,  True])
+        array([ True,  True,  True], dtype=bool)
         """
         return np.array(self._nodes)
 
@@ -404,7 +402,7 @@ class FieldProfiler:
         The x-coordinate of the profile trace and grid coordinates of the input
         profile nodes will be equal.
         >>> fp.trace_x == mg.x_of_node[profile_nodes]
-        array([ True,  True])
+        array([ True,  True], dtype=bool)
         """
         return np.array(self._trace_x)
 
@@ -426,6 +424,6 @@ class FieldProfiler:
         The y-coordinate of the profile trace and grid coordinates of the input
         profile nodes will be equal.
         >>> fp.trace_y == mg.y_of_node[profile_nodes]
-        array([ True,  True])
+        array([ True,  True], dtype=bool)
         """
         return np.array(self._trace_y)
