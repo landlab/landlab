@@ -130,7 +130,7 @@ class SubmarineDiffuser(LinearDiffuser):
         z_before = self.grid.at_node['topographic__elevation'].copy()
 
         shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
-                               z_before[self.grid.node_at_cell], self.sea_level)
+                               z_before[self.grid.node_at_cell], sea_level = self.sea_level)
         self.calc_diffusion_coef(shore)
 
         super(SubmarineDiffuser, self).run_one_step(dt)

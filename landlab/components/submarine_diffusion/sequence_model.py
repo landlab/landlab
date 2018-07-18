@@ -2,6 +2,7 @@
 from .sea_level import SinusoidalSeaLevel, SeaLevelTimeSeries
 from .subsidence import SubsidenceTimeSeries
 from .submarine import SubmarineDiffuser
+from .fluvial import Fluvial
 from ..flexure.sediment_flexure import SedimentFlexure
 from .raster_model import RasterModel
 
@@ -26,7 +27,7 @@ class SequenceModel(RasterModel):
         'submarine_diffusion': {
             'plain_slope': 0.0008,
             'wave_base': 60.,
-            'shoreface_depth': 15.,
+            'shoreface_height': 15.,
             'alpha': .0005,
             'shelf_slope': .001,
             'sediment_load': 3.,
@@ -43,6 +44,14 @@ class SequenceModel(RasterModel):
             'method': 'airy',
             'rho_mantle': 3300.,
         },
+          'sediments': {
+            'layers': 2,
+            'sand': 1.0,
+            'mud':  0.006,
+            'sand_density': 2650.,
+            'mud_density': 2720.,
+            'sand_frac': 0.5,
+        },
     }
 
     LONG_NAME = {
@@ -56,15 +65,17 @@ class SequenceModel(RasterModel):
 
         z0 = self.grid.add_empty('bedrock_surface__elevation', at='node')
         z = self.grid.add_empty('topographic__elevation', at='node')
+        percent_sand = self.grid.add_empty('sand_frac', at='node')
 
-        z[:] = - .01 * self.grid.x_of_node + 10.
-        z0[:] = z
 
-        self.grid.layers.add(0.,
+        z[:] = - .001 * self.grid.x_of_node + 20.
+        z0[:] = z 
+        
+        self.grid.layers.add(10.,
                              age=self.clock.start,
                              water_depth=-z[self.grid.core_nodes],
-                             t0=0.)
-
+                             t0=10.,percent_sand = 0.5)
+        
 
         self._sea_level = SinusoidalSeaLevel(self.grid, start=clock['start'],
                                              **sea_level)
@@ -73,12 +84,14 @@ class SequenceModel(RasterModel):
 
         self._submarine_diffusion = SubmarineDiffuser(self.grid,
                                                       **submarine_diffusion)
+        self._fluvial = FluvialSand(self.grid,**fluvial)
         self._flexure = SedimentFlexure(self.grid, **flexure)
 
         self._components = (
             self._sea_level,
             self._subsidence,
             self._submarine_diffusion,
+            self._fluvial,
             self._flexure,
         )
 
@@ -93,7 +106,8 @@ class SequenceModel(RasterModel):
         self.grid.layers.add(dz[self.grid.node_at_cell],
                              age=self.clock.time,
                              water_depth=water_depth[self.grid.node_at_cell],
-                             t0=dz[self.grid.node_at_cell].clip(0.))
+                             t0=dz[self.grid.node_at_cell].clip(0.),
+                             percent_sand=percent_sand[self.grid.node_at_cell])
 
 
 if __name__ == '__main__':

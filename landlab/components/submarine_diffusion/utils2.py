@@ -75,9 +75,9 @@ def find_shoreline2(x, z, sea_level=0., kind='cubic'):
                                                       z[l1]*x[l2]*x[l3])+ z[l3]*x[l2]*x[l2])*x[l1])/ (
                 (x[l3]-x[l2])*x[l1]*x[l1] + (-x[l3]*x[l3] + x[l2]*x[l2])*x[l1] + (x[l2]*x[l3]*x[l3]-x[l2]*x[l2]*x[l3]))
         yy = z
-        yy[index_at_shore: len(yy)]   = quad(x[index_at_shore: len(yy)],a,b,c)
+        yy[:index_at_shore]   = quad(x[:index_at_shore],a,b,c)
         func = interp1d(x, yy - sea_level, kind='quadratic')
-        x_of_shoreline1 = bisect(func, x[index_at_shore - 1], x[index_at_shore])
+        x_of_shoreline1 = bisect(func, x[index_at_shore - 1]-.01, x[index_at_shore])
         print (x_of_shoreline1)
         l1 = index_at_shore 
         l2 = index_at_shore + 1
@@ -91,7 +91,7 @@ def find_shoreline2(x, z, sea_level=0., kind='cubic'):
                                                       z[l1]*x[l2]*x[l3])+ z[l3]*x[l2]*x[l2])*x[l1])/ (
                 (x[l3]-x[l2])*x[l1]*x[l1] + (-x[l3]*x[l3] + x[l2]*x[l2])*x[l1] + (x[l2]*x[l3]*x[l3]-x[l2]*x[l2]*x[l3]))
         yy = z
-        yy[1:index_at_shore - 1]   = quad(x[1:index_at_shore - 1],a,b,c)
+        yy[index_at_shore:]   = quad(x[index_at_shore:],a,b,c)
         x_of_shoreline2 = bisect(func, x[index_at_shore - 1], x[index_at_shore])
         print x_of_shoreline2
         shore = (x_of_shoreline1 + x_of_shoreline2)/2
