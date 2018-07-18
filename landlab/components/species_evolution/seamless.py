@@ -46,7 +46,7 @@ class SpeciesEvolver(Component):
     _var_doc = {}
 
     def __init__(self, grid, **kwds):
-        """Initialize SpeciesEvolver.
+        """Instantiate SpeciesEvolver.
 
         Parameters
         ----------
@@ -70,7 +70,7 @@ class SpeciesEvolver(Component):
     # Update methods
 
     def run_one_step(self, time, zones_at_time, **kwds):
-        """Run the macroevolution processes for a single timestep.
+        """Run macroevolution processes for a single timestep.
 
         Data describing the connectivity of zones over time is stored in the
         zone_paths DataFrame.
