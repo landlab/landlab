@@ -15,3 +15,11 @@ def flex():
 def flex1d():
     grid = RasterModelGrid((20, 20), spacing=10e3)
     return Flexure1D(grid)
+
+
+FLEXURE_KEYWORDS = ("eet", "youngs", "rho_mantle", "rho_water", "gravity")
+
+
+def pytest_generate_tests(metafunc):
+    if "flexure_keyword" in metafunc.fixturenames:
+        metafunc.parametrize("flexure_keyword", FLEXURE_KEYWORDS)

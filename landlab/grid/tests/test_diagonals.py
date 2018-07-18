@@ -15,9 +15,23 @@ def test_nodes_at_diagonal():
 
     diagonals = create_nodes_at_diagonal((4, 3))
     assert isinstance(diagonals, np.ndarray)
-    assert_array_equal(diagonals, [[0,  4], [1, 3], [1,  5], [2,  4],
-                                   [3,  7], [4, 6], [4,  8], [5,  7],
-                                   [6, 10], [7, 9], [7, 11], [8, 10]])
+    assert_array_equal(
+        diagonals,
+        [
+            [0, 4],
+            [1, 3],
+            [1, 5],
+            [2, 4],
+            [3, 7],
+            [4, 6],
+            [4, 8],
+            [5, 7],
+            [6, 10],
+            [7, 9],
+            [7, 11],
+            [8, 10],
+        ],
+    )
 
 
 def test_nodes_at_diagonal_1d():
@@ -38,70 +52,15 @@ def test_nodes_at_diagonal_out_keyword():
     assert_array_equal(diagonals, [[0, 3], [1, 2], [2, 5], [3, 4]])
 
 
-def test_values_are_cached():
-    """Test that attributes of diagonals are cached."""
-    names = (
-        'diagonals_at_node',
-        'diagonal_dirs_at_node',
-        'diagonal_adjacent_nodes_at_node',
-        'd8_adjacent_nodes_at_node',
-        'nodes_at_diagonal',
-        'nodes_at_d8',
-        'd8s_at_node',
-        'd8_dirs_at_node',
-        # 'd8_status_at_node',
-        'length_of_diagonal',
-        'length_of_d8',
-        'status_at_diagonal',
-        'diagonal_status_at_node',
-        'active_diagonals',
-        'active_diagonal_dirs_at_node',
-        'status_at_d8',
-        'active_d8',
-        'active_d8_dirs_at_node',
-    )
-
-    for name in names:
-        def _check_value_is_cached(attr):
-            grid = RasterModelGrid((4, 3))
-            x = getattr(grid, attr)
-            assert x is getattr(grid, attr)
-        _check_value_is_cached.description = 'Test {name} is cached'.format(
-            name=name)
-        yield _check_value_is_cached, name
+def test_diagonal_values_are_cached(diagonal_property):
+    grid = RasterModelGrid((4, 3))
+    x = getattr(grid, diagonal_property)
+    assert x is getattr(grid, diagonal_property)
 
 
-def test_values_are_readonly():
-    """Test that diagonals attributes are readonly."""
-    names = (
-        'diagonals_at_node',
-        'diagonal_dirs_at_node',
-        'diagonal_adjacent_nodes_at_node',
-        'd8_adjacent_nodes_at_node',
-        'nodes_at_diagonal',
-        'nodes_at_d8',
-        'd8s_at_node',
-        'd8_dirs_at_node',
-        # 'd8_status_at_node',
-        'length_of_diagonal',
-        'length_of_d8',
-        'status_at_diagonal',
-        'diagonal_status_at_node',
-        'active_diagonals',
-        'active_diagonal_dirs_at_node',
-        'status_at_d8',
-        'active_d8',
-        'active_d8_dirs_at_node',
-    )
-
-    for name in names:
-        def _check_value_is_readonly(attr):
-            grid = RasterModelGrid((4, 3))
-            x = getattr(grid, attr)
-            with pytest.raises(ValueError):
-                x[0] = 999
-            assert x.flags['WRITEABLE'] is False
-        _check_value_is_readonly.description = 'Test {name} is readonly'.format(
-            name=name)
-        yield _check_value_is_readonly, name
-
+def test_diagonal_values_are_readonly(diagonal_property):
+    grid = RasterModelGrid((4, 3))
+    x = getattr(grid, diagonal_property)
+    with pytest.raises(ValueError):
+        x[0] = 999
+    assert x.flags["WRITEABLE"] is False

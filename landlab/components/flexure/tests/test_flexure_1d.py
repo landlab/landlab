@@ -161,30 +161,26 @@ def test_calc_flexure():
         assert_array_almost_equal(dz[0], dz[row])
 
 
-def test_setter_updates():
-    """Test that the setters update dependant parameters."""
-    setters = {
-        "eet": ("rigidity", "alpha"),
-        "youngs": ("rigidity", "alpha"),
-        "rho_water": ("gamma_mantle", "alpha"),
-        "rho_mantle": ("gamma_mantle", "alpha"),
-        "gravity": ("gamma_mantle", "alpha"),
-    }
+DEPENDS_ON = {
+    "eet": ("rigidity", "alpha"),
+    "youngs": ("rigidity", "alpha"),
+    "rho_water": ("gamma_mantle", "alpha"),
+    "rho_mantle": ("gamma_mantle", "alpha"),
+    "gravity": ("gamma_mantle", "alpha"),
+}
+
+
+def test_setters(flexure_keyword):
     EPS = 1e-6
-    for setter, names in setters.items():
-        for name in names:
-
-            def _check_dependant_is_updated(setter, name):
-                flex = Flexure1D(RasterModelGrid((3, 5)))
-                val_before = 1. * getattr(flex, name)
-                setattr(flex, setter, getattr(flex, setter) * (1. + EPS) + EPS)
-                assert val_before != getattr(flex, name)
-
-            _check_dependant_is_updated.description = "Test {0} updates {1}".format(
-                setter, name
-            )
-
-            yield _check_dependant_is_updated, setter, name
+    flex = Flexure1D(RasterModelGrid((3, 5)))
+    val_before = {}
+    for name in DEPENDS_ON[flexure_keyword]:
+        val_before[name] = 1. * getattr(flex, name)
+    for name in DEPENDS_ON[flexure_keyword]:
+        setattr(
+            flex, flexure_keyword, getattr(flex, flexure_keyword) * (1. + EPS) + EPS
+        )
+        assert val_before[name] != getattr(flex, name)
 
 
 def test_method_keyword():
@@ -197,32 +193,12 @@ def test_method_keyword():
         Flexure1D(RasterModelGrid((3, 5)), method="Flexure")
 
 
-def test_constants_keywords():
-    """Test the keywords for physical constants."""
-    names = ("eet", "youngs", "rho_mantle", "rho_water", "gravity")
-    for name in names:
-
-        def _check_is_set(name):
-            flex = Flexure1D(RasterModelGrid((3, 5)), **{name: 1.})
-            assert getattr(flex, name) == 1.
-
-        def _check_is_float(name):
-            flex = Flexure1D(RasterModelGrid((3, 5)), **{name: 1})
-            assert isinstance(getattr(flex, name), float)
-
-        def _check_error_if_negative(name):
-            with pytest.raises(ValueError):
-                flex = Flexure1D(RasterModelGrid((3, 5)), **{name: -1})
-
-        _check_is_set.description = "Test {name} keyword".format(name=name)
-        _check_is_float.description = "Test {name} attribute is float".format(name=name)
-        _check_error_if_negative.description = "Test {name} must not be negative".format(
-            name=name
-        )
-
-        yield _check_is_set, name
-        yield _check_is_float, name
-        yield _check_error_if_negative, name
+def test_flexure_keywords(flexure_keyword):
+    flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: 1.})
+    assert getattr(flex, flexure_keyword) == 1.
+    assert isinstance(getattr(flex, flexure_keyword), float)
+    with pytest.raises(ValueError):
+        flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: -1})
 
 
 def test_x_at_node():
