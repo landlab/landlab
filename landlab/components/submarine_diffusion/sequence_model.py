@@ -44,7 +44,7 @@ class SequenceModel(RasterModel):
             'method': 'airy',
             'rho_mantle': 3300.,
         },
-          'sediments': {
+        'sediments': {
             'layers': 2,
             'sand': 1.0,
             'mud':  0.006,
@@ -60,7 +60,8 @@ class SequenceModel(RasterModel):
     }
 
     def __init__(self, grid=None, clock=None, submarine_diffusion=None,
-                 sea_level=None, subsidence=None, flexure=None):
+                 sea_level=None, subsidence=None, flexure=None,
+                 sediments=None):
         RasterModel.__init__(self, grid=grid, clock=clock)
 
         z0 = self.grid.add_empty('bedrock_surface__elevation', at='node')
