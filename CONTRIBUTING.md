@@ -123,7 +123,7 @@ conventions that we would like you to follow.
 
 * All contributed code must be well tested. This should be done 
   through both doctests as well as more standard unit tests through 
-  [`nose`](http://nose.readthedocs.io/en/latest/index.html).
+  [`pytest`](http://docs.pytest.org).
 * Doctests should be short, easy-to-read tests that are instructive
   to a user.
 * Unit tests should be significanly more extensive and give your
@@ -138,7 +138,7 @@ conventions that we would like you to follow.
   probably want to create a very small (e.g. 5x5 model grid and hand
   calculate what the correct answer is). Then assert that your code
   reproduces that answer. 
-* Unit tests [must be discoverable by `nose`](http://nose.readthedocs.io/en/latest/finding_tests.html). 
+* Unit tests [must be discoverable by `pytest`](http://docs.pytest.org).
   This means that the unit tests should be in folders called `test` 
   within the component or utility folder, in `.py` files that start with 
   the name `test` and within functions with names that begin with the 

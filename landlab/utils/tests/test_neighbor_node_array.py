@@ -1,10 +1,5 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import assert_equal, assert_raises, assert_false, assert_true
-try:
-    from nose.tools import assert_is, assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is, assert_is_instance
 import landlab.utils.structured_grid as sgrid
 from landlab.utils.structured_grid import BAD_INDEX_VALUE
 
@@ -21,8 +16,8 @@ def test_default():
                                  [5, X, 3, 1],
                                  [X, X, 4, 2]]).T)
 
-    assert_true(neighbors.flags['C_CONTIGUOUS'])
-    assert_true(neighbors.base is None)
+    assert neighbors.flags['C_CONTIGUOUS']
+    assert neighbors.base is None
 
 
 def test_set_out_of_bounds():
