@@ -29,7 +29,7 @@ class SteepnessFinder(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> from landlab.components import FlowRouter, FastscapeEroder
+    >>> from landlab.components import FlowRouter, FastscapeEroder, SteepnessFinder
     >>> mg = RasterModelGrid((3, 10), (100., 100.))
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
