@@ -26,6 +26,7 @@ class ChiFinder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import FlowRouter, FastscapeEroder
+    >>> from landlab.components import ChiFinder
     >>> mg = RasterModelGrid((3, 4), 1.)
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
@@ -239,6 +240,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 4), 1.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -291,6 +293,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 4), 3.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -381,6 +384,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 4), 2.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -437,6 +441,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((3, 4), 1.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -476,7 +481,7 @@ class ChiFinder(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import FlowRouter
+        >>> from landlab.components import FlowRouter, ChiFinder
         >>> mg = RasterModelGrid((3, 4), 1.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -576,6 +581,7 @@ class ChiFinder(Component):
         >>> from landlab import imshow_grid_at_node
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowRouter, FastscapeEroder
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 5), 100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
