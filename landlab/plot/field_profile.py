@@ -49,7 +49,7 @@ class FieldProfiler:
         grid : RasterModelGrid
             A landlab RasterModelGrid.
         field : string
-            The `grid` field at node in which to extract the profile.
+            The `grid` field at nodes in which to extract the profile.
         points : tuple list or integer list
             Each element of the list is a vertex of the profile trace. The
             elements can be tuples of coordinates (x, y) and/or node ids.
@@ -89,7 +89,7 @@ class FieldProfiler:
         """
         if field not in grid.at_node.keys():
             raise FieldError('the field, {} must be a field of the input grid '
-                             'to create a profile'.format(field))
+                             'at nodes to create a profile'.format(field))
 
         if not isinstance(points, list) or len(points) < 2:
             raise ValueError('`points` must be a list of at least 2 elements')
@@ -222,7 +222,7 @@ class FieldProfiler:
         """Plot the grid field profile.
 
         The figure has two subplots:
-        1.  The trace of the profile plotted on the grid shaded by the field
+        1.  The trace of the profile plotted on the grid colored by the field
             values.
         2.  The profile illustrating the profile samples (distance vs the
             field value).
@@ -234,8 +234,8 @@ class FieldProfiler:
         field_y_axis_label : string
             The field value label for the profile figure y-axis.
         **kwds : tuple or integer
-            The same parameters in :func:`imshow_grid_at_node` can be used
-            in this method.
+            The same parameters in :func:`imshow_grid` can be used in this
+            method.
         """
         fig, axes = plt.subplots(2, 1)
 
@@ -293,7 +293,7 @@ class FieldProfiler:
 
         The profile distance values and grid column x-coordinates will be equal
         at the nodes where the profile crosses given that the profile sample
-        distance grid resolution and are 1.
+        spacing and grid resolution are 1.
         >>> fp.distance == mg.x_of_node[mg.y_of_node == 1]
         array([ True,  True,  True], dtype=bool)
         """
