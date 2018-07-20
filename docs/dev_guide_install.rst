@@ -121,7 +121,7 @@ Installing Landlab in developer mode
 .. note::
 
     This assumes **you have never put Landlab on your machine before**. If you've
-    previously used pip to install Landlab, we recommmend you take that version
+    previously used pip to install Landlab, we recommend you take that version
     off first. At a command prompt, use the command: *pip uninstall landlab*
 
 Now that you have a working copy of the Landlab code on you computer, you need to
@@ -243,14 +243,6 @@ responsible for the failures, please fix them until the tests pass. Note that
 you do not need to send a new pull request after committing for fixes. They
 will be added to the current pull request and the tests automatically rerun.
 
-You can also run unit tests locally with the ``test-installed-landlab.py``
-script found in the ``scripts`` folder::
-
-    $ python test-installed-landlab.py
-
-Note that this script will test whatever version of landlab you have installed,
-which may or may not be the one you are working on in your current working
-directory. These test will not work with numpy 1.14.
 
 Troubleshooting
 ===============
@@ -259,14 +251,14 @@ What do I do if my pull request cannot be automatically merged?
 ---------------------------------------------------------------
 
 Get the latest upstream/master and go to the `master` branch. Remember,
-*do not develop here*.  Always develop in a feature branch. Merge the lastest
+*do not develop here*.  Always develop in a feature branch. Merge the latest
 upstream master with your master::
 
   > git fetch upstream
   > git checkout master
   > git merge upstream/master
 
-Go to the branch on which you are developing and merge the lastest upstream
+Go to the branch on which you are developing and merge the latest upstream
 master with your branch::
 
   > git checkout <branch_name>
