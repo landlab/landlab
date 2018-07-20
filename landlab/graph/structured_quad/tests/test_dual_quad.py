@@ -1,6 +1,4 @@
 """Test StructuredQuadGraph."""
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_almost_equal, assert_is)
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
@@ -13,26 +11,26 @@ def test_create():
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
 
-    assert_equal(graph.number_of_nodes, 9)
-    assert_equal(graph.number_of_links, 12)
-    assert_equal(graph.number_of_patches, 4)
+    assert graph.number_of_nodes == 9
+    assert graph.number_of_links == 12
+    assert graph.number_of_patches == 4
 
-    assert_equal(graph.number_of_corners, 4)
-    assert_equal(graph.number_of_faces, 4)
-    assert_equal(graph.number_of_cells, 1)
+    assert graph.number_of_corners == 4
+    assert graph.number_of_faces == 4
+    assert graph.number_of_cells == 1
 
 
 def test_create_raster():
     """Test creating a quad graph."""
     graph = DualUniformRectilinearGraph((3, 4), spacing=(2., 3.))
 
-    assert_equal(graph.number_of_nodes, 12)
-    assert_equal(graph.number_of_links, 17)
-    assert_equal(graph.number_of_patches, 6)
+    assert graph.number_of_nodes == 12
+    assert graph.number_of_links == 17
+    assert graph.number_of_patches == 6
 
-    assert_equal(graph.number_of_corners, 6)
-    assert_equal(graph.number_of_faces, 7)
-    assert_equal(graph.number_of_cells, 2)
+    assert graph.number_of_corners == 6
+    assert graph.number_of_faces == 7
+    assert graph.number_of_cells == 2
 
 
 def test_raster_spacing():
@@ -116,7 +114,7 @@ def test_length_of_face():
 
     assert_array_almost_equal(graph.length_of_face, [1.5, 1.5, 1.5, 1.5])
     assert_array_almost_equal(graph.width_of_face,[1.5, 1.5, 1.5, 1.5])
-    assert_is(graph.length_of_face, graph.width_of_face)
+    assert graph.length_of_face is graph.width_of_face
 
 
 def test_area_of_cell():

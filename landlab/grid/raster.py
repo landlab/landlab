@@ -39,13 +39,13 @@ from ..field.graph_field import GraphFields
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
 def _node_has_boundary_neighbor(mg, id, method='d8'):
-    """Test if a node is next to a boundary.
+    """Test if a RasterModelGrid node is next to a boundary.
 
     Test if one of the neighbors of node *id* is a boundary node.
 
     Parameters
     ----------
-    mg : ModelGrid
+    mg : RasterModelGrid
         Source grid
     node_id : int
         ID of node to test.
@@ -423,44 +423,44 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         if state_dict['type'] != 'RasterModelGrid':
             assert TypeError('Saved model instance not of '
                              'RasterModelGrid type.')
-        
+
         dx = state_dict['dx']
         shape = state_dict['shape']
         num_rows = shape[0]
         num_cols = shape[1]
-        
+
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
-        
+
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(num_rows, num_cols, dx)
-                                                 
+
         super(RasterModelGrid, self).__init__()
 
         self.looped_node_properties = {}
 
         # Recreate the state of the grid and the information it new
         # about itself
-        
+
         # If angle of links existed, create them
         if state_dict['_angle_of_link_created']:
             self._create_angle_of_link()
-        
+
         # If patches existed, create them
         if state_dict['_patches_created']:
             temp = self.nodes_at_patch
             temp2 = self.links_at_patch
             del temp
             del temp2
-        
+
         # If forced cell area existed.
         if state_dict['forced_cell_areas_created']:
             temp = self._create_cell_areas_array_force_inactive()
             del temp
-            
+
         # If neighbor list existed, create them
         if state_dict['neighbor_list_created']:
             self._create_neighbor_list()
-        
+
         # Set status at links and nodes
         self.status_at_node[:] = state_dict['status_at_node']
 
@@ -475,12 +475,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
                                field_set[field]['value_array'],
                                units=field_set[field]['units'])
         self.bc_set_code = state_dict['bc_set_code']
-            
+
     def __getstate__(self):
         """Get state for pickling."""
         # initialize state_dict
         state_dict = {}
-        
+
         # save basic information about the shape and size of the grid
         state_dict['type'] = 'RasterModelGrid'
         state_dict['dx'] = self.dx
@@ -501,14 +501,14 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
                 state_dict['forced_cell_areas_created'] = False
         except AttributeError:
             state_dict['forced_cell_areas_created'] = False
-            
+
         # save status information at nodes (status at link set based on status
         # at node
         state_dict['status_at_node'] = np.asarray(self._node_status)
-        
+
         # save all fields. This is the key part, since saving ScalarDataFields, breaks
         # pickle and/or dill
-        
+
         groups = {}
         for group in self._groups.keys():
             field_set_dict = {}
@@ -519,15 +519,15 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
                 field_dict['units'] = self.field_units(group, field)
                 field_set_dict[field] = field_dict
             groups[group] = field_set_dict
-        
+
         state_dict['_groups'] = groups
-        
+
         #save BC set code
         state_dict['bc_set_code'] = self.bc_set_code
-        
+
         #return state_dict
         return state_dict
-    
+
     @classmethod
     def from_dict(cls, params):
         """Create a RasterModelGrid from a dictionary.
@@ -723,7 +723,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
 
         # Flag indicating whether we have created patches
         self._patches_created = False
-        
+
         # Flag indicating whether we have created link angles
         self._angle_of_link_created = False
 
@@ -3241,6 +3241,11 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method for use if remove_disconnected==True
 
+        Returns
+        --------
+        outlet_loc : array
+            Array of size 1 containing id of outlet location
+
         Examples
         --------
         The first example will use a 4,4 grid with node data values
@@ -3310,7 +3315,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         # now find where minimum values are
         min_locs = np.where(node_data == min_val)[0]
 
-        
+
         # check all the locations with the minimum value to see if one
         # is adjacent to a boundary location.  If so, that will be the
         # watershed outlet.  If none of these points qualify, then
@@ -3325,13 +3330,13 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
             # a boundary node
             local_not_found = True
             next_to_boundary=[]
-            
+
             # check all nodes rather than selecting the first node that meets
             # the criteria
             for i in range(len(min_locs)):
                 next_to_boundary.append(self.has_boundary_neighbor(min_locs[i]))
-            
-            # if any of those nodes were adjacent to the boundary, check 
+
+            # if any of those nodes were adjacent to the boundary, check
             #that  there is only one. If only one, set as outlet loc, else,
             # raise a value error
             if any(next_to_boundary):
@@ -3620,11 +3625,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
-
-        Returns
-        --------
-        outlet_loc : int
-            id of outlet location
 
         Examples
         --------

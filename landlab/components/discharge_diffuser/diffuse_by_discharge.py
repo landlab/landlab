@@ -58,9 +58,8 @@ class DischargeDiffuser(Component):
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
     >>> Q_at_core_nodes = np.array(
-    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
-    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
-    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
+    ...     [ 13.57233404,  13.93522481,  11.52216193,  11.29307277,
+    ...        8.80884751,   8.86380667,   6.47446459,   6.82161521])
     >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
     ...             Q_at_core_nodes)
     True

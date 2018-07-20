@@ -11,23 +11,12 @@ KRB Feb 2017
 """
 
 from landlab.core.utils import as_id_array
-from landlab.utils.decorators import use_field_name_or_array
+from landlab.utils.return_array import return_array_at_node
 from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 from landlab import VoronoiDelaunayGrid  # for type tests
 
 import numpy as np
-
-
-@use_field_name_or_array('node')
-def _return_surface(grid, surface):
-    """
-    Private function to return the surface to direct flow over.
-
-    This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array.
-    """
-    return surface
 
 
 def flow_directions_dinf(grid,
@@ -114,6 +103,35 @@ def flow_directions_dinf(grid,
            [ 1.        ,  0.        ],
            [ 0.40966553,  0.59033447],
            [ 0.40966553,  0.59033447]])
+
+    This method also works if the elevations are passed as an array instead of
+    the (implied) field name 'topographic__elevation'.
+
+    >>> z = grid['node']['topographic__elevation']
+    >>> (receivers, proportions,
+    ... steepest_slope, steepest_receiver,
+    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
+    >>> receivers
+    array([[ 0, -1],
+           [ 0,  3],
+           [ 1,  4],
+           [ 0,  1],
+           [ 3,  0],
+           [ 4,  1],
+           [ 3,  4],
+           [ 6,  3],
+           [ 7,  4]])
+
+    >>> proportions
+    array([[ 1.        ,  0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        , -0.        ],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447],
+           [ 1.        ,  0.        ],
+           [ 0.40966553,  0.59033447],
+           [ 0.40966553,  0.59033447]])
     """
     try:
         grid.d8s_at_node
@@ -121,7 +139,7 @@ def flow_directions_dinf(grid,
         raise NotImplementedError('Dinfinity is currently implemented for'
                                   ' Raster grids only')
     # get elevs
-    elevs = _return_surface(grid, elevs)
+    elevs = return_array_at_node(grid, elevs)
 
     ### Step 1, some basic set-up, gathering information about the grid.
 

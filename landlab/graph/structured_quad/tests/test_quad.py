@@ -1,6 +1,4 @@
 """Test StructuredQuadGraph."""
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_almost_equal)
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
 
@@ -13,9 +11,9 @@ def test_create():
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = StructuredQuadGraph((y, x), shape=(3, 3))
 
-    assert_equal(graph.number_of_nodes, 9)
-    assert_equal(graph.number_of_links, 12)
-    assert_equal(graph.number_of_patches, 4)
+    assert graph.number_of_nodes == 9
+    assert graph.number_of_links == 12
+    assert graph.number_of_patches == 4
 
 
 def test_perimeter_nodes():

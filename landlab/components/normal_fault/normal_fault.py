@@ -7,26 +7,10 @@ component does not make any attempt to advect topography laterally.
  """
 
 import numpy as np
-from landlab import Component
-from landlab.utils.decorators import use_field_name_or_array
+from landlab import Component, FieldError
 
 
 TWO_PI = 2.0*np.pi
-
-@use_field_name_or_array('node')
-def _return_surface(grid, surface):
-    """
-    Private function to return the surface modfy with the normal fault.
-
-    This function exists to take advantange of the 'use_field_name_or_array
-    decorator which permits providing the surface as a field name or array.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-    surface : str or ndarray of shape `(n_nodes, )`
-    """
-    return surface
 
 class NormalFault(Component):
     """NormalFault implements relative rock motion due to a normal fault.
@@ -85,6 +69,9 @@ class NormalFault(Component):
             Surface that is modified by the NormalFault component. Must be a
             field name or a list of field names if the fault should uplift more
             than one field. Default value is `topographic__elevation`.
+            If the faulted surface does not yet exist, it will be ingored. The
+            ``run_one_step`` method will check to see an ignored field has been
+            added and if it has been, it will modify it.
         fault_throw_rate_through_time : dict, optional
             Dictionary that specifies the time varying throw rate on the fault.
             Expected format is:
@@ -208,13 +195,17 @@ class NormalFault(Component):
 
         # get the surface to be faulted
         self.surfaces = {}
+        self._not_yet_instantiated = []
         if isinstance(faulted_surface, list):
             # if faulted surface is a list, then itterate through multiple
             # surfaces and save
             for surf in faulted_surface:
-                self.surfaces[surf] = (_return_surface(grid, surf))
+                try:
+                    self.surfaces[surf] = grid.at_node[surf]
+                except FieldError:
+                    self._not_yet_instantiated.append(surf)
         else:
-            self.surfaces[faulted_surface] = (_return_surface(grid, faulted_surface))
+            self.surfaces[faulted_surface] = grid.at_node[faulted_surface]
 
         if fault_dip_angle > 90.0:
             raise ValueError('NormaFault fault_dip_angle must be less than 90 '
@@ -280,6 +271,15 @@ class NormalFault(Component):
             Time increment used to advance the NormalFault component.
 
         """
+        if len(self._not_yet_instantiated)>0:
+            still_not_instantiated = []
+            for surf in self._not_yet_instantiated:
+                if surf in self._grid.at_node:
+                    self.surfaces[surf] = self._grid.at_node[surf]
+                else:
+                    still_not_instantiated.append(surf)
+            self._not_yet_instantiated = still_not_instantiated
+
         # save z before uplift only if using include boundaries.
         if self.include_boundaries:
             surfs_before_uplift = {}

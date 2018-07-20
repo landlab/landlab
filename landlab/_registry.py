@@ -181,7 +181,25 @@ class ComponentRegistry(object):
 
     @staticmethod
     def get_name(obj):
-        """Get the display name for an object."""
+        """Get the display name for an object.
+
+        Examples
+        >>> from landlab._registry import ComponentRegistry
+        >>> class MontyPython(object):
+        ...     name = "Eric Idle"
+        >>> ComponentRegistry.get_name(MontyPython)
+        'Eric Idle'
+        >>> class MontyPython(object):
+        ...     _name = "Graham Chapman"
+        >>> ComponentRegistry.get_name(MontyPython)
+        'Graham Chapman'
+        >>> class MontyPython(object):
+        ...     pass
+        >>> ComponentRegistry.get_name(MontyPython)
+        'MontyPython'
+
+        --------
+        """
         name = 'Unknown'
         for attr in ('name', '_name', '__name__'):
             try:

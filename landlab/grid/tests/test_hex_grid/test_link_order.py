@@ -7,8 +7,7 @@ Created on Sat Nov 14 10:36:03 2015
 import numpy as np
 
 from landlab import HexModelGrid
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from nose.tools import assert_true, assert_equal
+from numpy.testing import assert_array_equal
 
 
 def test_hex_grid_link_order():
@@ -33,10 +32,8 @@ def test_nodes_at_link():
     assert_array_equal(grid.nodes_at_link[:, 0], grid.node_at_link_tail)
     assert_array_equal(grid.nodes_at_link[:, 1], grid.node_at_link_head)
 
-    assert_true(np.may_share_memory(grid.nodes_at_link,
-                                    grid.node_at_link_tail))
-    assert_true(np.may_share_memory(grid.nodes_at_link,
-                                    grid.node_at_link_head))
+    assert np.may_share_memory(grid.nodes_at_link, grid.node_at_link_tail)
+    assert np.may_share_memory(grid.nodes_at_link, grid.node_at_link_head)
 
 
 def test_face_at_link():

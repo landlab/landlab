@@ -1,9 +1,7 @@
-
+import pytest
 
 import numpy as np
 from numpy.testing import assert_array_equal
-
-from nose.tools import assert_true, assert_raises
 
 from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import NormalFault
@@ -56,7 +54,7 @@ def test_anti_aximuth_greq_2pi():
     nf = NormalFault(grid, **param_dict)
 
 
-    assert_true(nf.fault_anti_azimuth > 2.0*np.pi)
+    assert nf.fault_anti_azimuth > 2.0*np.pi
 
     out = np.array([[ True,  True,  True,  True,  True,  True],
                     [ True,  True,  True,  True,  True,  True],
@@ -108,20 +106,21 @@ def test_dip_geq_90():
 
     _ = grid.add_zeros('node', 'topographic__elevation')
 
-    assert_raises(ValueError, NormalFault, grid, fault_dip_angle=90.001)
-    
-    
+    with pytest.raises(ValueError):
+        NormalFault(grid, fault_dip_angle=90.001)
+
+
 def test_uplifting_multiple_fields():
     """Test uplifting multiple fields with NormalFault."""
     grid = RasterModelGrid((6, 6), spacing=10)
 
     _ = grid.add_zeros('node', 'topographic__elevation')
-    
+
     zbr = grid.add_zeros('node', 'bedrock__elevation')
-    
+
     zbr -= 1.
-    
-    param_dict = {'faulted_surface': ['topographic__elevation', 
+
+    param_dict = {'faulted_surface': ['topographic__elevation',
                                       'bedrock__elevation'],
                   'fault_dip_angle': 90.0,
                   'fault_throw_rate_through_time': {'time': [0, 9, 10],
@@ -131,26 +130,92 @@ def test_uplifting_multiple_fields():
                                   'y2': 20.0,
                                   'x2': 0.0},
                   'include_boundaries': True}
-    
+
     nf = NormalFault(grid, **param_dict)
-    
-    
+
+
     nf.run_one_step(dt=10)
-    
-    elev = np.array([  0.,   0.,   0.,   0.,   0.,   0.,   
+
+    elev = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
                        0.,  10.,  10.,  10.,  10.,   0.,
-                       0.,  10.,  10.,  10.,  10.,   0.,   
-                       0.,   0.,   0.,   0.,  10.,   0.,   
-                       0.,   0.,   0.,   0.,   0.,   0.,   
+                       0.,  10.,  10.,  10.,  10.,   0.,
+                       0.,   0.,   0.,   0.,  10.,   0.,
+                       0.,   0.,   0.,   0.,   0.,   0.,
                        0.,   0.,   0.,   0.,   0.,   0.])
-    
+
     bedrock = np.array([-1., -1., -1., -1., -1., -1.,
-                        -1.,  9.,  9.,  9.,  9., -1., 
-                        -1.,  9.,  9.,  9.,  9., -1., 
-                        -1., -1., -1., -1.,  9., -1., 
-                        -1., -1., -1., -1., -1., -1., 
+                        -1.,  9.,  9.,  9.,  9., -1.,
+                        -1.,  9.,  9.,  9.,  9., -1.,
+                        -1., -1., -1., -1.,  9., -1.,
+                        -1., -1., -1., -1., -1., -1.,
                         -1., -1., -1., -1., -1., -1.])
-    
+
     assert_array_equal(grid.at_node['topographic__elevation'], elev)
     assert_array_equal(grid.at_node['bedrock__elevation'], bedrock)
-        
+
+def test_uplifting_a_not_yet_created_field():
+    """Test uplifting a field that does not exist with  NormalFault."""
+    grid = RasterModelGrid((6, 6), spacing=10)
+
+    _ = grid.add_zeros('node', 'topographic__elevation')
+
+    zbr = grid.add_zeros('node', 'bedrock__elevation')
+
+    zbr -= 1.
+
+    param_dict = {'faulted_surface': ['topographic__elevation',
+                                      'bedrock__elevation',
+                                      'spam',
+                                      'eggs'],
+                  'fault_dip_angle': 90.0,
+                  'fault_throw_rate_through_time': {'time': [0, 9, 10],
+                                                    'rate': [1, 1, 1]},
+                  'fault_trace': {'y1': 30.0,
+                                  'x1': 30.0,
+                                  'y2': 20.0,
+                                  'x2': 0.0},
+                  'include_boundaries': True}
+
+    assert 'spam' not in grid.at_node
+    assert 'eggs' not in grid.at_node
+
+    # instantiating NormalFault will not create spam or eggs
+    nf = NormalFault(grid, **param_dict)
+
+    assert 'spam' not in grid.at_node
+    assert 'eggs' not in grid.at_node
+
+    assert 'spam' in nf._not_yet_instantiated
+    assert 'eggs' in nf._not_yet_instantiated
+
+    # running NormalFault will not create spam or eggs
+    nf.run_one_step(dt=10)
+
+    assert 'spam' not in grid.at_node
+    assert 'eggs' not in grid.at_node
+
+    assert 'spam' in nf._not_yet_instantiated
+    assert 'eggs' in nf._not_yet_instantiated
+
+    # running NormalFault after adding spam and eggs will result in NormalFault
+    # modifying these fields.
+
+    _ = grid.add_zeros('node', 'eggs')
+
+    _ = grid.add_zeros('node', 'spam')
+
+    nf.run_one_step(dt=10)
+
+    assert 'spam' in grid.at_node
+    assert 'eggs' in grid.at_node
+
+    vals = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
+                       0.,  10.,  10.,  10.,  10.,   0.,
+                       0.,  10.,  10.,  10.,  10.,   0.,
+                       0.,   0.,   0.,   0.,  10.,   0.,
+                       0.,   0.,   0.,   0.,   0.,   0.,
+                       0.,   0.,   0.,   0.,   0.,   0.])
+
+
+    assert_array_equal(grid.at_node['eggs'], vals)
+    assert_array_equal(grid.at_node['spam'], vals)

@@ -700,6 +700,7 @@ class Graph(object):
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
+        >>> graph.adjacent_nodes_at_node
         array([[ 1,  3, -1, -1],
                [ 2,  4,  0, -1],
                [ 5,  1, -1, -1],
@@ -720,6 +721,7 @@ class Graph(object):
         ...          (6, 7), (7, 8),
         ...          (0, 4))
         >>> graph = Graph((node_y, node_x), links=links)
+        >>> graph.adjacent_nodes_at_node
         array([[ 1,  4,  3, -1, -1],
                [ 2,  4,  0, -1, -1],
                [ 5,  1, -1, -1, -1],
