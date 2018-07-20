@@ -4,6 +4,7 @@ Created on Sat Nov 14 10:36:03 2015
 
 @author: gtucker
 """
+from pytest import approx
 import numpy as np
 
 from landlab import HexModelGrid
@@ -45,7 +46,7 @@ def test_face_at_link():
 
 def test_width_of_face():
     grid = HexModelGrid(3, 3)
-    assert_array_almost_equal(grid.width_of_face, np.tan(np.pi / 6.))
+    assert grid.width_of_face == approx(np.tan(np.pi / 6.))
     assert_equal(len(grid.width_of_face), grid.number_of_faces)
 
 
