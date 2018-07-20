@@ -7,6 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+import warnings
 
 import numpy
 import six
@@ -96,6 +97,19 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         node_layout = shape
         shape = (base_num_rows, base_num_cols)
         spacing = dx
+
+        if orientation.startswith('vert'):
+            warnings.warn(
+                "orientation vert is deprecated. Use vertical",
+                category=DeprecationWarning,
+            )
+            orientation = 'vertical'
+        elif orientation.startswith('horiz'):
+            warnings.warn(
+                "orientation horiz is deprecated. Use horizontal",
+                category=DeprecationWarning,
+            )
+            orientation = 'horizontal'
 
         DualHexGraph.__init__(self, shape, spacing=spacing, origin=origin,
                               orientation=orientation, node_layout=node_layout)
