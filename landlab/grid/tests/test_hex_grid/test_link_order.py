@@ -46,8 +46,8 @@ def test_face_at_link():
 
 def test_width_of_face():
     grid = HexModelGrid(3, 3)
-    assert grid.width_of_face == approx(np.tan(np.pi / 6.))
-    assert_equal(len(grid.width_of_face), grid.number_of_faces)
+    assert grid.width_of_face == approx(np.tan(np.pi / 6.), abs=1e-5)
+    assert len(grid.width_of_face) == grid.number_of_faces
 
 
 def test_link_at_face():
