@@ -1,8 +1,8 @@
+import pytest
 import numpy as np
 
 from landlab import HexModelGrid
 from numpy.testing import assert_array_equal
-from nose.tools import assert_false, assert_raises, assert_is
 
 
 def test_perimeter_nodes():
@@ -42,8 +42,8 @@ def test_edges_are_readonly():
     for name in names:
         def _test_readonly():
             grid = HexModelGrid(3, 4, shape='rect')
-            assert_false(grid.perimeter_nodes.flags['WRITEABLE'])
-            with assert_raises(ValueError):
+            assert not grid.perimeter_nodes.flags['WRITEABLE']
+            with pytest.raises(ValueError):
                 getattr(grid, name)[0] = 999
         _test_readonly.description = 'Test {name} is readonly'.format(name=name)
         yield _test_readonly
@@ -57,6 +57,6 @@ def test_edges_are_cached():
         def _test_cached():
             grid = HexModelGrid(3, 4, shape='rect')
             x = grid.perimeter_nodes
-            assert_is(grid.perimeter_nodes, x)
+            assert grid.perimeter_nodes is x
         _test_cached.description = 'Test {name} is cached'.format(name=name)
         yield _test_cached

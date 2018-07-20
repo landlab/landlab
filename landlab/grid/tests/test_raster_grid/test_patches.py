@@ -1,7 +1,7 @@
+import pytest
+from pytest import approx
 import numpy as np
-from numpy.testing import (assert_array_equal, assert_array_almost_equal,
-                           assert_raises)
-from nose.tools import assert_equal
+from numpy.testing import assert_array_equal
 from landlab import BAD_INDEX_VALUE as XX
 
 from landlab import RasterModelGrid
@@ -81,8 +81,7 @@ class TestSlopesAtPatches():
         rmg = RasterModelGrid((4, 5))
         rmg.at_node['topographic__elevation'] = rmg.node_x.copy()
         slopes_out = rmg.calc_slope_at_node()
-        assert_array_almost_equal(slopes_out, np.full(20, np.pi/4.,
-                                  dtype=float))
+        assert slopes_out == approx(np.full(20, np.pi/4., dtype=float))
 
     def test_slopes_at_patches_comps(self):
         rmg = RasterModelGrid((4, 5))
@@ -90,17 +89,14 @@ class TestSlopesAtPatches():
         slopes_out = rmg.calc_slope_at_node(
             rmg.at_node['topographic__elevation'],
             return_components=True)
-        assert_array_almost_equal(slopes_out[0],
-                                  np.full(20, np.pi/4., dtype=float))
-        assert_array_almost_equal(slopes_out[1][1],
-                                  np.full(20, -np.pi/4., dtype=float))
-        assert_array_almost_equal(slopes_out[1][0],
-                                  np.zeros(20, dtype=float))
+        assert slopes_out[0] == approx(np.full(20, np.pi/4., dtype=float))
+        assert slopes_out[1][1] == approx(np.full(20, -np.pi/4., dtype=float))
+        assert slopes_out[1][0] == approx(np.zeros(20, dtype=float))
 
 
 def test_number_of_patches():
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.number_of_patches, 12)
+    assert grid.number_of_patches == 12
 
 
 def test_patches_at_node():
@@ -121,7 +117,7 @@ def test_links_at_patch():
                   [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]],
                 dtype=np.int))
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.links_at_patch[0] = -1
 
 
@@ -134,5 +130,5 @@ def test_patches_at_link():
                   [ 5,  4], [-1,  5], [ 3, -1], [ 4, -1], [ 5, -1]],
                  dtype=int))
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.patches_at_link[0] = -1

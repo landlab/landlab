@@ -1,6 +1,6 @@
+import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_raises
-from nose.tools import assert_equal, assert_tuple_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 
@@ -45,26 +45,26 @@ def test_nodes_at_edge():
     for edge in ('right', 'top', 'left', 'bottom'):
         assert_array_equal(grid.nodes_at_edge(edge),
                            getattr(grid, 'nodes_at_{0}_edge'.format(edge)))
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.nodes_at_edge('not-an-edge')
 
 
 def test_grid_shape():
     """Test shape of grid."""
     grid = RasterModelGrid((3, 4))
-    assert_tuple_equal(grid.shape, (3, 4))
+    assert grid.shape == (3, 4)
 
 
 def test_node_rows():
     """Test number of node rows."""
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.number_of_node_rows, 4)
+    assert grid.number_of_node_rows == 4
 
 
 def test_node_columns():
     """Test number of node columns."""
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.number_of_node_columns, 5)
+    assert grid.number_of_node_columns == 5
 
 
 def test_x_of_node():
@@ -74,7 +74,7 @@ def test_x_of_node():
         grid.x_of_node,
         np.array([ 0.,  3.,  6.,  9.,  0.,  3.,  6.,  9.,  0.,  3.,  6.,  9.]))
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.x_of_node[0, 0] = 1.
 
 
@@ -85,7 +85,7 @@ def test_y_of_node():
         grid.y_of_node,
         np.array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.]))
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.y_of_node[0, 0] = 1.
 
 
@@ -99,32 +99,32 @@ def test_xy_of_node():
     assert_array_equal(grid.xy_of_node[:, 0], grid.x_of_node)
     assert_array_equal(grid.xy_of_node[:, 1], grid.y_of_node)
 
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.xy_of_node[0, 0] = 1.
 
 
 def test_dx():
     """Test spacing of columns."""
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.dx, 1.)
+    assert grid.dx == 1.
 
     grid = RasterModelGrid((4, 5), 2.)
-    assert_equal(grid.dx, 2.)
+    assert grid.dx == 2.
 
     grid = RasterModelGrid((4, 5), (1., 2.))
-    assert_equal(grid.dx, 2.)
+    assert grid.dx == 2.
 
 
 def test_dy():
     """Test spacing of rows."""
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.dy, 1.)
+    assert grid.dy == 1.
 
     grid = RasterModelGrid((4, 5), 2.0)
-    assert_equal(grid.dy, 2.)
+    assert grid.dy == 2.
 
     grid = RasterModelGrid((4, 5), (1., 2.))
-    assert_equal(grid.dy, 1.)
+    assert grid.dy == 1.
 
 
 def test_nodes_at_patch():
@@ -133,5 +133,5 @@ def test_nodes_at_patch():
     assert_array_equal(grid.nodes_at_patch,
                        np.array([[4, 3, 0, 1], [5, 4, 1, 2],
                                  [7, 6, 3, 4], [8, 7, 4, 5]], dtype=int))
-    with assert_raises(ValueError):
+    with pytest.raises(ValueError):
         grid.nodes_at_patch[0, 0] = 42
