@@ -31,6 +31,17 @@ class SpeciesEvolver(Component):
     Construction:
 
         SpeciesEvolver(grid)
+
+    Attributes
+    ----------
+    records : RecordCollection
+        A Landlab RecordCollection.
+    species : DataFrame
+        A Pandas DataFrame.
+    zones : DataFrame
+        A Pandas DataFrame.
+    zone_paths : DataFrame
+        A Pandas DataFrame.
     """
 
     _name = 'SpeciesEvolver'

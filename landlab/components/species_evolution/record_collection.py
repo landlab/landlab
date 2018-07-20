@@ -40,7 +40,7 @@ class RecordCollection(object):
             self.DataFrame = self.DataFrame.sort_values('model__time')
         self.DataFrame.reset_index(inplace=True, drop=True)
 
-    def insert_time(self, model__time, data=None):
+    def insert_time(self, model__time, data=None, clobber=False):
         """Insert a record.
 
         Only model times that do not exist in the RecordCollection may be
@@ -54,6 +54,7 @@ class RecordCollection(object):
             The data that will be inserted in the record at *model__time*. The
             dictionary keys will be the column labels. The dictionary values
             will be the values of the corresponding keys/columns.
+        clobber : boolean
 
         Examples
         --------
@@ -77,8 +78,11 @@ class RecordCollection(object):
         2      200000            1100.0       [1, 2, 3]
         """
         if model__time in self.DataFrame.model__time.tolist():
-            raise ValueError('the model time, {} already exists in '
-                             'DataFrame'.format(model__time))
+            if clobber:
+                self.remove_time(model__time)
+            else:
+                raise ValueError('the model time, {} already exists in '
+                                 'DataFrame'.format(model__time))
 
         # Prepare data dictionary.
 

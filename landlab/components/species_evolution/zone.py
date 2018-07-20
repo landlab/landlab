@@ -27,16 +27,20 @@ class Zone(object):
     MANY_TO_ONE = 'many-to-one'
     MANY_TO_MANY = 'many-to-many'
 
-    def __init__(self, time, mask):
+    def __init__(self, initial_time, mask):
         """
         Parameters
         ----------
+
         mask : boolean ndarray
             The initial mask of the zone. True elements of this array
             correspond to the nodes of the zone.
         """
-        self.records = RecordCollection()
         self.mask = mask
+
+        self.records = RecordCollection()
+        self.records.insert_time(initial_time, data={'mask': mask})
+
         self.plot_color = (random(), random(), random(), 1)
 
     def __str__(self):
@@ -109,6 +113,8 @@ class Zone(object):
         number_of_captures = 0
         cum_area_captured = 0
         cell_area = grid.dx * grid.dy
+
+        all_destinations = []
 
         for p in prior_zones:
             # Get the new zones that overlap the prior zone.
@@ -205,6 +211,8 @@ class Zone(object):
                       'destinations': destinations,
                       'path_type': path_type}
 
+            all_destinations.extend(destinations)
+
         # Handle new zones that did not overlap prior zones.
         for n in new_overlap_not_found:
             path_type = cls._determine_path_type(p_overlaps_n_count,
@@ -218,6 +226,12 @@ class Zone(object):
                 if zone in row.destinations:
                     i = np.where(zone == np.array(row.destinations))[0][0]
                     paths.loc[index, 'destinations'][i] = replacements[zone]
+
+        # Update zone records.
+        for zone in all_destinations:
+            print(zone, zone.records.DataFrame)
+            zone.records.insert_time(time, data={'mask': zone.mask},
+                                     clobber=True)
 
         add_on = {'number_of_captures': number_of_captures,
                   'sum_of_area_captured': cum_area_captured}
@@ -262,28 +276,40 @@ class Zone(object):
         return zones[np.argmax(n_zone_overlap_nodes)]
 
     @staticmethod
-    def get_zones_with_area_threshold(grid, area_threshold):
+    def get_stream_zones_with_area_threshold(time, grid, threshold):
+        """Get zones using a drainage area threshold for streams.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab ModelGrid.
+        threshold: float or integer
+
+
+        """
+        # Get watershed outlets.
+
         grid.at_node['watershed'] = get_watershed_masks_with_area_threshold(
-                grid, area_threshold)
-        outlets = np.unique(grid.at_node['watershed'])
-        outlets = np.delete(outlets, np.where(outlets == -1))
+                grid, threshold)
+        outlets_with_nulls = np.unique(grid.at_node['watershed'])
+        outlets = np.delete(outlets_with_nulls,
+                            np.where(outlets_with_nulls == -1))
 
-        zones = []
+        # Create a zone at stream nodes in each watershed.
 
-        stream_mask = grid.at_node['drainage_area'] >= area_threshold
+        zones = [None] * len(outlets)
 
-        for outlet in outlets:
+        stream_mask = grid.at_node['drainage_area'] >= threshold
+
+        for i, outlet in enumerate(outlets):
             watershed_mask = grid.at_node['watershed'] == outlet
             zone_mask = np.all([watershed_mask, stream_mask], 0)
-            zones.append(Zone(zone_mask))
+            zones[i] = Zone(time, zone_mask)
 
         return zones
-
-    def set_mask_at_time(self, time):
-        self.records.append
 
 #    @property
 #    def mask(self):
 #        """Get the zone mask of the latest time."""
-#        latest_time = self.records.time__latest
+#        latest_time = self.records.model__latest_time
 #        return self.records.get_value(latest_time, 'mask')
