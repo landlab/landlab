@@ -194,7 +194,7 @@ Testing the Landlab installation
 ================================
 
 The easiest way to test your install is to check the version from inside 
-the Pythonbinterpreter::
+the Python interpreter::
 
   >>> import landlab
   >>> landlab.__version__ 
