@@ -143,9 +143,9 @@ folder) run the following command::
 With Landlab uninstalled, you will not longer be able to import Landlab
 from outside to root folder of your working copy.
 
-To check you have correctly installed Landlab, run the Landlab tests.
+To check you have correctly installed Landlab, check your installed version.
 Do this by importing landlab in an interactive Python shell, then calling
-*landlab.test()*.
+*landlab.__version__*.
 
 
 Fetching updates to the trunk
@@ -193,15 +193,11 @@ tools.
 Testing the Landlab installation
 ================================
 
-The easiest way to run the Landlab tests is to do so from inside the Python
-interpreter::
+The easiest way to test your install is to check the version from inside 
+the Pythonbinterpreter::
 
   >>> import landlab
-  >>> landlab.test()
-
-This will run a series of tests and print our the result of each test. If
-there are any failures, you can report that at the `landlab issue tracker <https://github.com/landlab/landlab/issues>`_. 
-Note that these tests will fail if you try to run them in a spyder iPython console. They should not fail if you start Python (or iPython) from a command line. These tests will not work with numpy 1.14. 
+  >>> landlab.__version__ 
 
 
 Coding Style

@@ -38,9 +38,11 @@ This open-source manuscript is a gateway for entering the Landlab world:
 
 http://www.earth-surf-dynam.net/5/21/2017/
 
-After installation, tests can be run with:
+After installation, check that you have the latest 
+version (Python shell command):
 
-    $ python -c 'import landlab; landlab.test()'
+    >>> import landlab
+    >>> landlab.__version__
 
 The most current development version is always available from our git
 repository:
