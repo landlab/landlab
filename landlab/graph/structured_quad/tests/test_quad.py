@@ -1,5 +1,7 @@
 """Test StructuredQuadGraph."""
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from pytest import approx
+
+from numpy.testing import assert_array_equal
 import numpy as np
 
 from landlab.graph import StructuredQuadGraph, UniformRectilinearGraph
@@ -28,8 +30,7 @@ def test_length_of_link():
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = StructuredQuadGraph((y, x), shape=(3, 3))
-    assert_array_almost_equal(graph.length_of_link,
-                              [1., 2., 1., 1., 1., 1., 2., 2., 2., 2., 1., 2.])
+    assert graph.length_of_link == approx([1., 2., 1., 1., 1., 1., 2., 2., 2., 2., 1., 2.])
 
 
 def test_area_of_patch():
@@ -37,7 +38,7 @@ def test_area_of_patch():
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = StructuredQuadGraph((y, x), shape=(3, 3))
-    assert_array_almost_equal(graph.area_of_patch, [1., 2., 2., 4.])
+    assert graph.area_of_patch == approx([1., 2., 2., 4.])
 
 
 def test_nodes_at_patch():
@@ -123,7 +124,7 @@ def test_link_dirs_at_node_raster():
          [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
          [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
          [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
-    assert_true(graph.link_dirs_at_node.dtype == np.int8)
+    assert graph.link_dirs_at_node.dtype == np.int8
 
 
 
