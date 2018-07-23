@@ -14,6 +14,8 @@ from landlab import FieldError, Component, BAD_INDEX_VALUE
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
+from landlab.components.lake_fill.lake_fill_barnes import StablePriorityQueue
+from landlab.components import LakeMapperBarnes
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import CLOSED_BOUNDARY
@@ -24,69 +26,6 @@ import heapq
 import itertools
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
-
-
-class StablePriorityQueue():
-    """
-    Implements a stable priority queue, that tracks insertion order; i.e., this
-    is used to break ties.
-
-    See https://docs.python.org/2/library/heapq.html#priority-queue-implementation-notes
-    & https://www.sciencedirect.com/science/article/pii/S0098300413001337
-    """
-    def __init__(self):
-        self._pq = []                          # list of entries arranged in a heap
-        self._entry_finder = {}                # mapping of tasks to entries
-        self._REMOVED = BAD_INDEX_VALUE        # placeholder for a removed task
-        self._counter = itertools.count()      # unique sequence count
-        self._nodes_ever_in_queue = deque([])  # tracks what has ever been added
-
-    def add_task(self, task, priority=0):
-        "Add a new task or update the priority of an existing task"
-        if task in self._entry_finder:
-            self.remove_task(task)
-        count = next(self._counter)
-        entry = [priority, count, task]
-        self._entry_finder[task] = entry
-        heapq.heappush(self._pq, entry)
-        self._nodes_ever_in_queue.append(task)
-
-    def remove_task(self, task):
-        "Mark an existing task as _REMOVED.  Raise KeyError if not found."
-        entry = self._entry_finder.pop(task)
-        entry[-1] = self._REMOVED
-
-    def pop_task(self):
-        "Remove and return the lowest priority task. Raise KeyError if empty."
-        while self._pq:
-            priority, count, task = heapq.heappop(self._pq)
-            if task is not self._REMOVED:
-                del self._entry_finder[task]
-                return task
-        raise KeyError('pop from an empty priority queue')
-
-    def peek_at_task(self):
-        """
-        Return the lowest priority task without removal. Raise KeyError if
-        empty.
-        """
-        while self._pq:
-            priority, count, task = self._pq[0]
-            if task is not self._REMOVED:
-                return task
-        raise KeyError('peeked at an empty priority queue')
-
-    def nodes_currently_in_queue(self):
-        "Return array of nodes currently in the queue."
-        mynodes = [task for (priority, count, task) in self._pq]
-        return np.array(mynodes)
-
-    def nodes_ever_in_queue(self):
-        """
-        Return array of all nodes ever added to this queue object. Repeats
-        are permitted.
-        """
-        return np.array(self._nodes_ever_in_queue)
 
 
 def _fill_one_node_to_flat(grid, fill_surface, all_neighbors,
@@ -172,45 +111,39 @@ def _fill_one_node_to_flat(grid, fill_surface, all_neighbors,
             openq.add_task(n, priority=fill_surface[n])
 
 
-class LakeMapperBarnes(Component):
+class LakeFillerBarnes(Component):
     """
-    Note this will also flag our lake nodes, since we can access
-    nodes_ever_in_queue for each spill point.
+    Uses the Barnes et al (2014) algorithms to replace pits with flats, or
+    optionally to very shallow gradient surfaces to allow continued draining.
 
     Parameters
     ----------
     grid : ModelGrid
         A grid.
     surface : field name at node or array of length node
-        The surface to direct flow across.
+        The surface to fill.
     method : {'steepest', 'd8'}
         Whether or not to recognise diagonals as valid flow paths, if a raster.
         Otherwise, no effect.
-    fill : bool
-        If True, surface will be modified to convert pits to flats or slightly
-        inclined surfaces, as determined by fill_flat.
     fill_flat : bool
         If True, pits will be filled to perfectly horizontal. If False, the new
         surface will be slightly inclined to give steepest descent flow paths
-        to the outlet. Only has effect when fill == True.
-    fill_surface : bool
-        If fill == True, sets the field or array to fill. If fill_surface is
-        surface, this operation occurs in place, and is faster.
-        Note that the component will overwrite fill_surface if it exists; to
-        supply an existing water level to it, supply it as surface, not
-        fill_surface.
+        to the outlet.
     route_flow_steepest_descent : bool
         If True, the component outputs the 'flow__receiver_node' and
         'flow__link_to_receiver_node' fields.
     calc_slopes : bool
         For direct comparison with the flow_director components, if True, the
         component outputs the 'topographic__steepest_slope' field.
+    track_filled_nodes : bool
+        If True, permits use of a suite of component properties to query
+        which nodes were filled, and by how much. Set to False to enhance
+        component speed.
     """
     def __init__(self, grid, surface='topographic__elevation',
-                 method='d8', fill=False, fill_flat=True,
-                 fill_surface='topographic__elevation',
+                 method='d8', fill_flat=True,
                  route_flow_steepest_descent=True,
-                 calc_slopes=True):
+                 calc_slopes=True, track_filled_nodes=True):
         """
         Examples
         --------
@@ -242,6 +175,9 @@ class LakeMapperBarnes(Component):
         self._runcounter = itertools.count()
         self._runcount = -1  # not yet run
         self._lastcountforlakemap = -1  # lake_map has not yet been called
+        self._trackingcounter = itertools.count()  # sequ counter if tracking
+        self._trackercount = -1  # tracking calls not yet run
+        self._lastcountfortracker = -1
 
         # get the neighbour call set up:
         assert method in {'steepest', 'd8'}
@@ -278,17 +214,21 @@ class LakeMapperBarnes(Component):
         # check if we are modifying in place or not:
         self._inplace = surface is fill_surface
         # then
-        if fill:
-            self._surface = return_array_at_node(grid, surface)
-            self._fill_surface = return_array_at_node(grid, fill_surface)
-            if fill_flat:
-                self._fill_one_node = self._fill_one_node_to_flat
-            else:
-                self._fill_one_node = self._fill_one_node_to_slant
-
-        # HACKY TWO LINES TO REMOVE POST DEBUG
         self._surface = return_array_at_node(grid, surface)
-        self._fill_surface = return_array_at_node(grid, fill_surface)
+        self._fill_surface = return_array_at_node(grid, surface)
+        if fill_flat:
+            self._fill_one_node = self._fill_one_node_to_flat
+        else:
+            self._fill_one_node = self._fill_one_node_to_slant
+        if track_filled_nodes:
+            self._tracking_fill = True
+            self._orig_surface = self._surface.copy()
+            self._lakefiller = LakeMapperBarnes(
+                grid, surface=self._orig_surface, method=method, fill=True, fill_flat=fill_flat, fill_surface=surface,
+                route_flow_steepest_descent=route_flow_steepest_descent,
+                calc_slopes=calc_slopes)
+        else:
+            self._tracking_fill = False
 
     def _fill_one_node_to_slant(self, grid, fill_surface, all_neighbors,
                                 pitq, openq, closedq):
@@ -343,230 +283,101 @@ class LakeMapperBarnes(Component):
                 openq.add_task(n, priority=fill_surface[n])
 
 
-    def _fill_to_flat_with_tracking(self, fill_surface, all_neighbors,
-                                    pitq, openq, closedq):
-        """
-        Implements the Barnes et al. algorithm for a simple fill. Assumes the
-        _open and _closed lists have already been updated per Barnes algos 2&3,
-        lns 1-7.
-
-        This version runs a little more slowly to enable tracking of which nodes
-        are linked to which outlets.
-
-        Parameters
-        ----------
-        fill_surface : 1-D array
-            The surface to fill in LL node order. Modified in place.
-        all_neighbors : (nnodes, max_nneighbours) array
-            Adjacent nodes at each node.
-        pitq : heap queue (i.e., a structured list)
-            Current nodes known to be in a lake, if already identified.
-        openq : StablePriorityQueue object
-            Ordered queue of nodes remaining to be checked out by the algorithm
-            that are known not to be in a lake.
-        closedq : 1-D boolean array of length nnodes
-            Nodes already or not to be explored by the algorithm.
-
-        Returns
-        -------
-        lakemappings : {outlet_ID : [nodes draining to outlet]}
-            Dict with outlet nodes of individual lakes as keys, and lists of
-            each node inundated (i.e., depth > 0.) by that lake. Note
-            len(keys) is the number of individually mapped lakes.
-
-        """
-        lakemappings = dict()
-        outlet_ID = BAD_INDEX_VALUE
-        while True:
-            try:
-                c = heapq.heappop(pitq)
-            except IndexError:
-                try:
-                    c = openq.pop_task()
-                    outlet_ID = c
-                except KeyError:
-                    break
-            else:
-                try:
-                    lakemappings[outlet_ID].append(c)  # add this node to lake
-                except KeyError:  # this is the first node of a new lake
-                    lakemappings[outlet_ID] = deque([c, ])
-
-            cneighbors = all_neighbors[c]
-            openneighbors = cneighbors[
-                np.logical_not(closedq[cneighbors])]  # for efficiency
-            closedq[openneighbors] = True
-            for n in openneighbors:
-                if fill_surface[n] <= fill_surface[c]:
-                    fill_surface[n] = fill_surface[c]
-                    heapq.heappush(pitq, n)
-                else:
-                    openq.add_task(n, priority=fill_surface[n])
-            print(np.sort(openq.nodes_currently_in_queue()), pitq)
-        return lakemappings
-
     def run_one_step(self):
         "Fills the surface to remove all pits."
-        # increment the run count
-        self._runcount = next(self._runcounter)
-        # First get _fill_surface in order.
-        self._fill_surface[:] = self._surface  # surfaces begin identical
-        # note this is nice & efficent if _fill_surface is _surface
-        # now, return _closed to its initial cond, w only the CLOSED_BOUNDARY
-        # and grid draining nodes pre-closed:
-        closedq = self._closed.copy()
-        if self._dontreroute:  # i.e. algos 2 & 3
-            for edgenode in self._edges:
-                self._open.add_task(edgenode, priority=self._surface[edgenode])
-            self._closed[self._edges] = True
-            while True:
-                try:
-                    self._fill_one_node(self.grid, )
-                except KeyError:  # run out of nodes to fill...
-                    break
-
-    def run_one_step_to_flat_with_tracking(self):
-        """
-        Fills the surface, but also creates a property that is a dict of lake
-        outlets and inundated nodes.
-
-        Examples
-        --------
-
-        Elementary test:
-
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
-        >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-        >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
-        >>> lmb.run_one_step_to_flat_with_tracking()
-
-        Test with two pits:
-
-        >>> z[:] = mg.node_x.max() - mg.node_x
-        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
-        >>> z[7] = 2.  # is a lake on its own
-        >>> z[9] = 0.5
-        >>> z[15] = 0.3
-        >>> z[14] = 0.6  # [9, 14, 15] is a lake
-        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
-        >>> z_init = z.copy()
-        >>> lmb.run_one_step_to_flat_with_tracking()
-
-        """
-        # do the prep:
-        # increment the run counter
-        self._runcount = next(self._runcounter)
-        # First get _fill_surface in order.
-        self._fill_surface[:] = self._surface  # surfaces begin identical
-        # note this is nice & efficent if _fill_surface is _surface
-        # now, return _closed to its initial cond, w only the CLOSED_BOUNDARY
-        # and grid draining nodes pre-closed:
-        closedq = self._closed.copy()
-        for edgenode in self._edges:
-            self._open.add_task(edgenode, priority=self._surface[edgenode])
-        self._closed[self._edges] = True
-        for edgenode in self._edges:
-            self._open.add_task(edgenode, priority=self._surface[edgenode])
-        self._closed[self._edges] = True
-        self._lakemappings = self._fill_to_flat_with_tracking(
-            self._fill_surface, self._allneighbors, self._pit, self._open,
-            closedq)
+        if self._tracking_fill:
+            self._lakefiller.run_one_step()
+        else:
+            # increment the run count
+            self._runcount = next(self._runcounter)
+            # First get _fill_surface in order.
+            self._fill_surface[:] = self._surface  # surfaces begin identical
+            # note this is nice & efficent if _fill_surface is _surface
+            # now, return _closed to its initial cond, w only the
+            # CLOSED_BOUNDARY and grid draining nodes pre-closed:
+            closedq = self._closed.copy()
+            if self._dontreroute:  # i.e. algos 2 & 3
+                for edgenode in self._edges:
+                    self._open.add_task(
+                        edgenode, priority=self._surface[edgenode])
+                self._closed[self._edges] = True
+                while True:
+                    try:
+                        self._fill_one_node(self.grid, )
+                    except KeyError:  # run out of nodes to fill...
+                        break
 
     @property
-    def lake_dict(self):
+    def fill_dict(self):
         """
-        Return a dictionary where the keys are the outlet nodes of each lake,
-        and the values are deques of nodes within each lake. Both keys and
-        values are not returned in order.
+        Return a dictionary where the keys are the outlet nodes of each filled
+        area, and the values are deques of nodes within each. Items are not
+        returned in ID order.
         """
-        return self._lakemappings
+        assert self._tracking_fill
+        return self._lakefiller.lake_dict
 
 # NOTE: need additional counter on the tracking mechanism to ensure that's getting run, else _lakemappings could be wrong or out-of-date
 
     @property
-    def lake_outlets(self):
+    def fill_outlets(self):
         """
-        Returns the outlet for each lake, not necessarily in ID order.
+        Returns the outlet for each filled area, not necessarily in ID order.
         """
-        return self._lakemappings.keys()
+        assert self._tracking_fill
+        return self._lakefiller.lake_outlets
 
     @property
-    def number_of_lakes(self):
+    def number_of_fills(self):
         """
-        Return the number of individual lakes.
+        Return the number of individual filled areas.
         """
-        return len(self._lakemappings)
+        assert self._tracking_fill
+        return self._lakefiller.number_of_lakes
 
     @property
-    def lake_map(self):
+    def fill_map(self):
         """
-        Return an array of ints, where each node within a lake is labelled
+        Return an array of ints, where each filled node is labelled
         with its outlet node ID.
-        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE
+        Nodes not in a filled area are labelled with LOCAL_BAD_INDEX_VALUE
         (default -1).
         """
-        if self._runcount > self._lastcountforlakemap:
-            # things have changed since last call to lake_map
-            self._lake_map = np.full(mg.number_of_nodes, LOCAL_BAD_INDEX_VALUE,
-                                     dtype=int)
-            for (outlet, lakenodes) in self.lake_dict.iteritems():
-                self._lake_map[lakenodes] = outlet
-        else:
-            pass  # old map is fine
-        self._lastcountforlakemap = self._runcount
-        return self._lakemap
+        assert self._tracking_fill
+        return self._lakefiller.lake_map
 
     @property
-    def lake_at_node(self):
+    def fill_at_node(self):
         """
-        Return a boolean array, True if the node is flooded, False otherwise.
+        Return a boolean array, True if the node is filled, False otherwise.
         """
-        return self.lake_map != LOCAL_BAD_INDEX_VALUE
+        assert self._tracking_fill
+        return self._lakefiller.lake_at_node
 
     @property
     def fill_depth(self):
         """Return the change in surface elevation at each node this step.
         """
-        assert not self._inplace
-        return self._fill_surface - self._surface
+        assert self._tracking_fill
+        return self._lakefiller.fill_depth
 
     @property
-    def lake_areas(self):
+    def fill_areas(self):
         """
-        A nlakes-long array of the area of each lake. The order is the same as
-        that of the keys in lake_dict, and of lake_outlets.
+        A nlakes-long array of the area of each fill. The order is the same as
+        that of the keys in fill_dict, and of fill_outlets.
         """
-        lakeareas = np.empty(self.number_of_lakes, dtype=float)
-        for (i, (outlet, lakenodes)) in enumerate(
-             self.lake_dict.iteritems()):
-            lakeareas[i] = self.grid.cell_area_at_node[lakenodes].sum()
-        return lakeareas
+        assert self._tracking_fill
+        return self._lakefiller.lake_areas
 
     @property
-    def lake_volumes(self):
+    def fill_volumes(self):
         """
-        A nlakes-long array of the volume of each lake. The order is the same
-        as that of the keys in lake_dict, and of lake_outlets.
-        Note that this calculation is performed relative to the initial
-        surface, so is only a true lake volume if the initial surface was the
-        rock suface (not an earlier water level).
+        A nlakes-long array of the volume of each fill. The order is the same
+        as that of the keys in fill_dict, and of fill_outlets.
         """
-        assert not self._inplace
-        lake_vols = np.empty(self.number_of_lakes, dtype=float)
-        col_vols = self.grid.cell_area_at_node * self.fill_depth
-        for (i, (outlet, lakenodes)) in enumerate(
-             self.lake_dict.iteritems()):
-            lake_vols[i] = col_vols[lakenodes].sum()
-        return lake_vols
+        assert self._tracking_fill
+        return self._lakefiller.lake_volumes
 
 
 class LakeEvaporator(Component):
