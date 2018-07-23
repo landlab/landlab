@@ -1,9 +1,8 @@
-#Importing the requested modules
-
+import pytest
 import numpy as np
 import math
-from nose.tools import assert_raises
 from numpy.testing import assert_array_equal, assert_almost_equal
+
 from landlab import RasterModelGrid, FieldError, HexModelGrid
 from landlab.components import FlowAccumulator, FlowDirectorSteepest
 from landlab.utils.flow__distance import calculate_flow__distance
@@ -14,11 +13,12 @@ def test_no_flow_recievers():
 
     # instantiate a model grid, do not run flow accumulation on it
 
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
 
     # test that the flow distance utility will fail because of a ValueError
 
-    assert_raises(FieldError, calculate_flow__distance, mg)
+    with pytest.raises(FieldError):
+        calculate_flow__distance(mg)
 
 
 def test_no_upstream_array():
@@ -39,7 +39,8 @@ def test_no_upstream_array():
 
     # test that the flow distance utility will fail because of a ValueError
 
-    assert_raises(FieldError, calculate_flow__distance, mg)
+    with pytest.raises(FieldError):
+        calculate_flow__distance(mg)
 
 
 def test_flow__distance_regular_grid_d8():

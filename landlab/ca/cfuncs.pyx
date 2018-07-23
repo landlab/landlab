@@ -564,7 +564,7 @@ cdef void update_link_state_new(DTYPE_INT_t link, DTYPE_INT_t new_link_state,
     cdef int fns, tns
     cdef int this_trn_id
     cdef int orientation
-    
+
     if _DEBUG:
         print(('ULSN', link, link_state[link], new_link_state, current_time))
 
@@ -847,7 +847,14 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
 
         tail_node = node_at_link_tail[event_link]
         head_node = node_at_link_head[event_link]
-        
+
+        # DEBUG
+        if status_at_node[tail_node] == 4 or status_at_node[head_node] == 4:
+            print(('TRN INFO: ', event_time, event_link, link_state[event_link], next_update[event_link]))
+            print('TAIL ' + str(tail_node) + ' ' + status_at_node[tail_node])
+            print('HEAD ' + str(head_node) + ' ' + status_at_node[tail_node])
+            #_DEBUG = True
+
         # Remember the previous state of each node so we can detect whether the
         # state has changed
         old_tail_node_state = node_state[tail_node]
@@ -942,7 +949,6 @@ cpdef void do_transition_new(DTYPE_INT_t event_link,
             if trn_prop_update_fn[this_trn_id] != 0:
                 trn_prop_update_fn[this_trn_id](
                     this_cts_model, tail_node, head_node, event_time)
-
 
 cpdef double run_cts_new(double run_to, double current_time,
                      PriorityQueue priority_queue,

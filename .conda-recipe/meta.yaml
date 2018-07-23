@@ -22,7 +22,6 @@ requirements:
     - numpy >=1.11,<1.14
     - scipy
     - xarray
-    - nose
     - matplotlib
     - numpydoc
     - netcdf4
@@ -32,10 +31,10 @@ requirements:
 
 test:
   requires:
-    - landlab
-    - numpy <1.14
+    - pytest
+  commands:
+    - pytest --pyargs landlab --doctest-modules -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
 
 build:
   number: 0
-  string: {{ environ.get('BUILD_STR', '') }}
   script: python setup.py install --single-version-externally-managed --record record.txt

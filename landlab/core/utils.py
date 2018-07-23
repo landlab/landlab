@@ -364,8 +364,6 @@ def strip_grid_from_method_docstring(funcs):
         --------
         ...
     <BLANKLINE>
-        LLCATS: MAP
-    <BLANKLINE>
     """
     import re
     for name, func in funcs.items():
