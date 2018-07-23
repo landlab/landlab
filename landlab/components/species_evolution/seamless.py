@@ -5,45 +5,63 @@ species over time.
 
 Component written by Nathan Lyons beginning August 2017.
 """
-
 from collections import OrderedDict
 from itertools import product
+from string import ascii_uppercase
+
+import numpy as np
+from pandas import DataFrame
+
 from landlab import Component
 from landlab.components.species_evolution import RecordCollection
 from landlab.core.messages import warning_message
-import numpy as np
-from pandas import DataFrame
-from string import ascii_uppercase
 
 
 class SpeciesEvolver(Component):
     """Simulate the macroevolution processes of species.
 
-    Component attributes species and zones are Pandas DataFrames that contain
-    all of the species and zones, respectively.
+    This component evolves the species introduced to a model grid. The
+    evolution rules are programmed in `Species` objects. The geographic range
+    of species is controlled by `Zone` objects. Component attributes `species`
+    and `zones` are Pandas DataFrames that contain all of the species and zones
+    of a model, respectively.
+
+    A general workflow:
+
+    1.  The component is instantiated.
+    2.  Species are introduced by the :func:`introduce_species` method.
+    3.  The primary method of this class is :func:`run_one_step`. The temporal
+        connectivity of zones is identified by this method and stored in
+        `zone_paths`. The Species method :func:`evolve` is called through
+        :func:`run_one_step`.
+
+        Species evolution rules take into account
+    4.
+
+
+
+    Species are automatically assigned identifiers in the order that they are
+    introduced or created by parent species. Clades are
+    lettered from A to Z then AA to AZ and so forth. Clade members are numbered
+    in the order of appearance.
+
+
 
     This component is adapted from SEAMLESS (Spatially Explicit Area Model of
     Landscape Evolution by SimulationS). See Albert et al., 2017, Systematic
     Biology 66.
-
-    The primary method of this class is :func:`run_one_step`.
-
-    Construction:
-
-        SpeciesEvolver(grid)
 
     Attributes
     ----------
     records : RecordCollection
         A Landlab RecordCollection.
     species : DataFrame
-        A Pandas DataFrame.
+        A Pandas DataFrame containing species data.
     zones : DataFrame
-        A Pandas DataFrame.
+        A Pandas DataFrame containing zone data.
     zone_paths : DataFrame
-        A Pandas DataFrame.
+        A Pandas DataFrame containing zone path data.
     """
-
     _name = 'SpeciesEvolver'
 
     _input_var_names = ()
@@ -63,6 +81,14 @@ class SpeciesEvolver(Component):
         ----------
         grid : ModelGrid
             A Landlab ModelGrid.
+
+        Examples
+        --------
+        >>> from landlab.components import (FastscapeEroder, FlowRouter,
+                                            LinearDiffuser, SpeciesEvolver)
+        >>> from landlab import RasterModelGrid
+        >>>
+
         """
         Component.__init__(self, grid, **kwds)
 
@@ -100,7 +126,11 @@ class SpeciesEvolver(Component):
             print(warning_message('Species must be introduced at a time prior'
                                   ' to the ``run_one_step`` time.'))
         else:
-            self.records.insert_time(time)
+            if time not in self.records.model__times:
+                self.records.insert_time(time)
+
+            if not type(zones_at_time) == list:
+                zones_at_time = [zones_at_time]
 
             paths = self._get_zone_paths(time, zones_at_time, **kwds)
             survivors = self._get_surviving_species(time, paths, **kwds)
@@ -240,8 +270,8 @@ class SpeciesEvolver(Component):
 
         self._update_species_DataFrame([species], time)
         self._update_zones_DataFrame(species_zones, time)
-#        if time not in self.records.times:
-#            self.records.DataFrame.loc[len(self.records), 'time'] = time
+        if time not in self.records.model__times:
+            self.records.insert_time(time)
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
@@ -282,6 +312,10 @@ class SpeciesEvolver(Component):
         -------
         species : SpeciesEvolver Species list
             The species that exist at the inputted time.
+
+        Examples
+        --------
+
         """
         return self._object_at_time(self.species, time, return_objects)
 
@@ -410,7 +444,8 @@ class SpeciesEvolver(Component):
             if len(np.where(mask)[0]) == 0:
                 data['area'].append(0)
             else:
-                data['area'].append(self._grid.at_node['drainage_area'][mask].max())
+                area_max = self._grid.at_node['drainage_area'][mask].max()
+                data['area'].append(area_max)
 
             z_species_count = 0
 

@@ -111,7 +111,8 @@ class RecordCollection(object):
                                                        keep='last')]
 
         else:
-            self.DataFrame = self.DataFrame.append(data, ignore_index=True)
+            self.DataFrame = self.DataFrame.append(data, ignore_index=True,
+                                                   sort=True)
 
         self._reset_index()
 
@@ -169,7 +170,7 @@ class RecordCollection(object):
                 df = old_df[old_cols].merge(new_df[cols], left_index=True,
                            right_index=True, how='outer')
                 df = df[df.model__time.notnull()]
-                df = self.DataFrame.append(df, sort=False)
+                df = self.DataFrame.append(df, ignore_index=True, sort=False)
 
                 # Remove the copy of the row at *model__time* with unmodified
                 # data.

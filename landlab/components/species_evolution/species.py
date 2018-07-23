@@ -1,8 +1,8 @@
 """Species SpeciesEvolver object.
 """
+import numpy as np
 
 from landlab.components.species_evolution import RecordCollection, Zone
-import numpy as np
 
 
 class Species(object):

@@ -1,11 +1,12 @@
 """Zone SpeciesEvolver object.
 """
+from random import random
+
+import numpy as np
+import pandas as pd
 
 from landlab.components.species_evolution import RecordCollection
 from landlab.utils.watershed import get_watershed_masks_with_area_threshold
-import numpy as np
-import pandas as pd
-from random import random
 
 
 class Zone(object):
@@ -229,7 +230,6 @@ class Zone(object):
 
         # Update zone records.
         for zone in all_destinations:
-            print(zone, zone.records.DataFrame)
             zone.records.insert_time(time, data={'mask': zone.mask},
                                      clobber=True)
 

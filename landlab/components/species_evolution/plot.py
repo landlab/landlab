@@ -1,12 +1,13 @@
 # SpeciesEvolver plot functions.
-
 from copy import deepcopy
-from landlab.plot import imshow_grid
+
 from matplotlib.ticker import MaxNLocator
 from matplotlib import colors
 import matplotlib.pyplot as plt
 import numpy as np
 from pandas import concat, DataFrame
+
+from landlab.plot import imshow_grid
 
 
 def plot_area_versus_species(area, number_of_species, axes=None):
