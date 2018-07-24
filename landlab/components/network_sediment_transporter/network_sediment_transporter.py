@@ -123,9 +123,10 @@ class NetworkSedimentTransporter(Component):
 # %%
         vol_tot =  parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
         
-        capacity = 3* np.ones(np.size(element_id)) # REPLACE with real calculation for capacity
+        capacity = 2* np.ones(np.size(element_id)) # REPLACE with real calculation for capacity
         
         for i in range(grid.number_of_links):
+            
             if vol_tot[i]>0: #only do this check capacity if parcels are in link
                 
                 #First In Last Out
@@ -153,32 +154,65 @@ class NetworkSedimentTransporter(Component):
         # Jon response -- because during transport, that is the sediment defining the immobile
         # substrate that is setting the slope. Parcels that are actively transporting should not
         # affect the slope because they are moving.
-        
-        # in a for loop for now
-# %%        
-        # XXXXXXXXXXXXX Pseudo code...
-        for l in range(grid.number_of_nodes):
-            if somethingaboutheadnode[l]==0: #we don't update head node elevations
-                
-                elev change = 2*volstore(downstreamlink)/(np.sum(width_of_neighborLinks * length_of_neighbor_links))
-                
-                elevation(l) = elevation(l) + elev change
+
         
 # %%
-    def adjust_slope(self, seed=0):
+    def adjust_elevation_and_slope(self, seed=0): # Allison is working on this as of July 23, 2018
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
         """
-        #  COPIED FROM JON'S MATLAB CODE
-            #%compute/update slope
-            for i in LinkNum
-                if i==OutletLinkID
-                    Slope(i,1)=(Elev(t,i)-mnelev(i,1))./Length(i,1);
-                else
-                    Slope(i,1)=(Elev(t,i)-Elev(t,Connect(i,2)))./Length(i,1);
-                
+#%% Clean these up... where to do all of the imports? Ask Katy
+        from landlab.components import FlowDirectorSteepest, FlowAccumulator
+        
+        fd = FlowDirectorSteepest(grid)
+        fd.run_one_step()
+        fa = FlowAccumulator(grid, flow_director=fd)
+        fa.run_one_step()
+
+# %%
+
+        number_of_contributors = np.sum(fd.flow__link_incoming_at_node == 1, axis=1)
+        downstream_link_id = fd.link_to_flow_receiving_node[fd.downstream_node_at_link]
+        upstream_contributing_links_at_node = np.where(fd.flow__link_incoming_at_node == 1, grid.links_at_node, -1)
+        
+        # Update the node elevations depending on the quantity of stored sediment
+        for l in range(grid.number_of_nodes):
             
-            Slope(Slope<1e-4)=1e-4;
+            if number_of_contributors[l] > 0: #we don't update head node elevations
+                
+                upstream_links = upstream_contributing_links_at_node[l]                
+                real_upstream_links = upstream_links[upstream_links != BAD_INDEX_VALUE]                
+                width_of_upstream_links = grid.at_link['channel_width'][real_upstream_links]                
+                length_of_upstream_links = grid.at_link['link_length'][real_upstream_links]
+                
+                width_of_downstream_link = grid.at_link['channel_width'][downstream_link_id][l]
+                length_of_downstream_link = grid.at_link['link_length'][downstream_link_id][l]
+                
+                if downstream_link_id[l] == BAD_INDEX_VALUE: # I'm sure there's a better way to do this, but...
+                    length_of_downstream_link = 0
+                
+                # IMPROVE: deal with the downstream most link...
+                elev_change = 2*vol_stor[downstream_link_id][l]/(np.sum(width_of_upstream_links * length_of_upstream_links)
+                    + width_of_downstream_link * length_of_downstream_link)
+                
+                grid.at_node['topographic__elevation'][l] += elev_change
+      
+        # Update channel slope
+        for l in range(grid.number_of_links):
+            
+            upstream_node_id = fd.upstream_node_at_link[l]
+            downstream_node_id = fd.downstream_node_at_link[l]
+            
+            chan_slope = ((grid.at_node['topographic__elevation'][upstream_node_id]
+                - grid.at_node['topographic__elevation'][downstream_node_id])
+                / grid.at_link['link_length'][l])
+                            
+            if chan_slope < 1e-4:
+                chan_slope = 1e-4
+                
+            grid.at_link['channel_slope'][l] = chan_slope
+
+
 
 # %%
     def _calc_transport_wilcock_crowe(self, H_foreachlink): # Allison
@@ -339,6 +373,7 @@ fa.run_one_step()
                 # dt < travel time
                 time_to_exit_current_link[p] = time_to_exit_current_link[p] / grid.at_link['link_length'][element_id[p]] * grid.at_link['link_length'][current_link[p]]
                 running_travel_time_in_dt[p] = running_travel_time_in_dt[p] + time_to_exit_current_link[p]
+                
                 # TRACK RUNNING TRAVEL DISTANCE HERE SIMILAR TO RUNNING TRAVEL TIME
 
             time_in_link_before_dt = time_to_exit_current_link[p] - (running_travel_time_in_dt[p] - dt)
@@ -351,55 +386,7 @@ fa.run_one_step()
             parcels.DataFrame.location_in_link.values[p] = location_in_link[p]
             parcels.DataFrame.element_id.values[p] = current_link[p]
             parcels.DataFrame.active_layer.values[p] = 1 # reset to 1 (active) to be recomputed/determined at next timestep
+           
             # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE            
             
 
-# %%    WE COULD PROBABLY DELETE ALL OF THIS PSEUDO PYTHON/MATLAB CODE NOW THAT IT IS CODED IN PYTHON ABOVE    
-        for i in range(number of links):
-            
-            # if the current link is empty, go to the next link
-            
-            for p in range(number of parcels in that link at this time):
-                
-                # Move parcels downstream
-                
-                # COPIED FROM JON'S MATLAB CODE
-                
-                sm=[];#%time to move through current and downstream links
-                csm=[];#%cumulative time to move through current and ds links
-                sm=P_tt{t,i}(p)*(1-P_loc{t,i}(1,p));#%seconds, time to move out of current link
-                csm=sm;#%seconds
-                ii=i;
-                
-                while csm(end)<=dt #%loop until cumulative time toward outlet exceeds timestep
-                    ii=Connect(ii,2); #%set ds link
-                    if isnan(ii) #%if downstream is the outlet
-                        #%leave outlet before dt ends
-                        sm=cat(1,sm,NaN);
-                        csm=cat(1,csm,sum(sm));
-                        OutVol(t,1)=OutVol(t,1)+P_vol{t,i}(1,p);
-                        break
-    
-                    sm=cat(1,sm,P_tt{t,i}(p)./Length(i).*Length(ii)); # travel at same velocity but in ds link
-                    csm=cat(1,csm,sum(sm)); # cumulative time to move through all subsequent links
-    
-                # update parcel location
-                
-                if ~isnan(csm(end)) #%check to make sure parcel is still in the system
-                    pi=Connect(i,length(csm)); #%parcel link
-                    if length(csm)==1 #%still in same link
-                        pl=(P_tt{t,i}(p)*P_loc{t,i}(1,p)+dt)/P_tt{t,i}(p);#%update location from current ploc
-                    else #%moved to a ds link
-                        pl=1-((csm(end)-dt)/P_tt{t,i}(p));#%update location from beginning of link
-                        if pl<1 #%overshooting the next link, UPDATE IN FUTURE
-                            pl=1;
-                        #%note csm(end)-dt computes time remaining to move
-                        #%through the rest of the link
-                                  
-                    P_loc{t+1,pi}=cat(2,P_loc{t+1,pi},pl);
-    
-                    P_idx{t+1,pi}=cat(2,P_idx{t+1,pi},P_idx{t,i}(1,p));
-                    P_storage{t+1,pi}=cat(2,P_storage{t+1,pi},0);%activate
-                    P_vol{t+1,pi}=cat(2,P_vol{t+1,pi},P_vol{t,i}(1,p));
-                    P_d{t+1,pi}=cat(2,P_d{t+1,pi},P_d{t,i}(1,p));
-                    P_tt{t+1,pi}=cat(2,P_tt{t+1,pi},0);%set to 0                
