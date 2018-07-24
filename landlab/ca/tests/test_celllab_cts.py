@@ -7,10 +7,9 @@ Created on Thu Jul  9 08:20:06 2015
 @author: gtucker
 """
 
-from nose.tools import assert_equal
 from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid, HexModelGrid
-from landlab.ca.celllab_cts import Transition, Event
+from landlab.ca.celllab_cts import Transition #X, Event
 from landlab.ca.raster_cts import RasterCTS
 from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 from landlab.ca.hex_cts import HexCTS
@@ -43,12 +42,12 @@ def test_transition():
     """Test instantiation of Transition() object."""
     t = Transition((0, 0, 0), (1, 1, 0), 1.0, name='test',
                    swap_properties=False, prop_update_fn=None)
-    assert_equal(t.from_state, (0,0,0))
-    assert_equal(t.to_state, (1,1,0))
-    assert_equal(t.rate, 1.0)
-    assert_equal(t.name, 'test')
-    assert_equal(t.swap_properties, False)
-    assert_equal(t.prop_update_fn, None)
+    assert t.from_state == (0,0,0)
+    assert t.to_state == (1,1,0)
+    assert t.rate == 1.0
+    assert t.name == 'test'
+    assert t.swap_properties == False
+    assert t.prop_update_fn == None
 
 
 def test_raster_cts():
@@ -148,7 +147,7 @@ def test_oriented_raster_cts():
     nsg = mg.add_zeros('node', 'node_state_grid')
     orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
 
-    assert_equal(orcts.num_link_states, 8)
+    assert orcts.num_link_states == 8
     #assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
     assert_array_equal(orcts.link_orientation, [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0])
 
@@ -162,7 +161,7 @@ def test_hex_cts():
     nsg = mg.add_zeros('node', 'node_state_grid')
     hcts = HexCTS(mg, nsd, xnlist, nsg)
 
-    assert_equal(hcts.num_link_states, 4)
+    assert hcts.num_link_states == 4
     assert_array_equal(hcts.link_orientation, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 
@@ -175,7 +174,7 @@ def test_oriented_hex_cts():
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     
-    assert_equal(ohcts.num_link_states, 12)
+    assert ohcts.num_link_states == 12
     #assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
     assert_array_equal(ohcts.link_orientation, [2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1])
     
@@ -307,6 +306,32 @@ def test_grain_hill_model():
     # Test
     assert_array_equal(grain_hill_model.grid.at_node['node_state'][20:38],
                        [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7])
+
+
+def test_setup_transition_data():
+    """Test the CellLabCTSModel setup_transition_data method."""
+    grid = RasterModelGrid((3, 4))
+    nsd = {0 : 'zero', 1 : 'one'}
+    trn_list = []
+    trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
+    trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
+    trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
+    trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
+    ins = np.arange(12) % 2
+    cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
+
+    assert_array_equal(cts.n_trn, [0, 1, 1, 0, 0, 2, 0, 0])
+    assert_array_equal(cts.trn_id,
+                       [[0, 0],
+                        [0, 0],
+                        [1, 0],
+                        [0, 0],
+                        [0, 0],
+                        [2, 3],
+                        [0, 0],
+                        [0, 0]])
+    assert_array_equal(cts.trn_to, [2, 1, 6, 7])
+    assert_array_equal(cts.trn_rate, [1., 2., 3., 4.])
 
 
 if __name__ == '__main__':
