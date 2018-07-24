@@ -34,7 +34,9 @@ class NormalFault(Component):
     priority.
 
     2) **run_one_earthquake**: A single uplift event of size dz can be specified
-    by this method.
+    by this method. If NormalFault is used in this way, any specifications
+    provided in the ``fault_throw_rate_through_time`` keyword argument will be
+    ignored.
 
     Note that the NormalFault component does not prevent a user from combining
     the **run_one_step** and **run_one_earthquake** methods. It is encumbent
@@ -175,8 +177,9 @@ class NormalFault(Component):
 
         This results in uplift of the faulted nodes, as we would expect.
 
-        If the user knows how much uplift they want to occur in an event, they
-        can use the **run_one_earthquake** function.
+        If the user knows how much uplift (dz) they want to occur in an event,
+        they can use the **run_one_earthquake** function with a specified dz.
+        In this case fault_throw_rate_through_time will be ignored.
 
         >>> nf.run_one_earthquake(dz=100)
         >>> z.reshape(grid.shape)
