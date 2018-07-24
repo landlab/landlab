@@ -20,7 +20,6 @@ x_of_node = (0, 0, 1, -0.5, -1, 0.5, -1.5, -1)
 nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
 
 grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
-
 graph.plot_graph(grid, at='node,link')
 
 grid.at_node['topographic__elevation'] = [0., 1., 3., 2., 3., 4., 4.1, 5.]
@@ -39,6 +38,8 @@ grid.at_link['drainage_area'] = [100e+6,10e+6,70e+6,20e+6,70e+6,30e+6,40e+6] # m
 grid.at_link['channel_slope'] = [0.01,0.02,0.01,0.02,0.02,0.03,0.03]  
 grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
+grid.at_link['channel_width'] = 15 * np.ones(np.size(grid.at_link['drainage_area'])) # m REPLACE with something hydraulically meaningful
+grid.at_link['channel_width'][3]= 10
 # modify elevations so they are consistent with adjusted slopes
 
 ## Basic parameters
