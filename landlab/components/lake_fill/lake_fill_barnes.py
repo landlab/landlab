@@ -24,6 +24,7 @@ import heapq
 import itertools
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
+LARGE_ELEV = 9999999999.
 
 
 class StablePriorityQueue():
@@ -35,11 +36,12 @@ class StablePriorityQueue():
     & https://www.sciencedirect.com/science/article/pii/S0098300413001337
     """
     def __init__(self):
-        self._pq = []                          # list of entries arranged in a heap
+        self._pq = []                          # list of entries as a heap
         self._entry_finder = {}                # mapping of tasks to entries
         self._REMOVED = BAD_INDEX_VALUE        # placeholder for a removed task
         self._counter = itertools.count()      # unique sequence count
-        self._nodes_ever_in_queue = deque([])  # tracks what has ever been added
+        self._nodes_ever_in_queue = deque([])  # tracks all nodes that have
+                                               # ever been added
 
     def add_task(self, task, priority=0):
         "Add a new task or update the priority of an existing task"
@@ -122,12 +124,17 @@ class LakeMapperBarnes(Component):
     calc_slopes : bool
         For direct comparison with the flow_director components, if True, the
         component outputs the 'topographic__steepest_slope' field.
+    ignore_overfill : bool
+        If True, suppresses the Error that would normally be raised during
+        creation of a gentle incline on a fill surface. Typically this would
+        happen on a synthetic DEM where more than one outlet is possible at
+        the same elevation.
     """
     def __init__(self, grid, surface='topographic__elevation',
                  method='d8', fill=False, fill_flat=True,
                  fill_surface='topographic__elevation',
                  route_flow_steepest_descent=True,
-                 calc_slopes=True):
+                 calc_slopes=True, ignore_overfill=False):
         """
         Examples
         --------
@@ -162,6 +169,9 @@ class LakeMapperBarnes(Component):
         self._trackingcounter = itertools.count()  # sequ counter if tracking
         self._trackercount = -1  # tracking calls not yet run
         self._lastcountfortracker = -1
+        self._PitTop = LARGE_ELEV  # variable to not overfill slanted surfaces
+        self._ignore_overfill = ignore_overfill
+        self._overfill_flag = False
 
         # get the neighbour call set up:
         assert method in {'steepest', 'd8'}
@@ -211,7 +221,7 @@ class LakeMapperBarnes(Component):
         self._fill_surface = return_array_at_node(grid, fill_surface)
 
     def _fill_one_node_to_slant(self, grid, fill_surface, all_neighbors,
-                                pitq, openq, closedq):
+                                pitq, openq, closedq, ignore_overfill):
         """
         Implements the Barnes et al. algorithm to obtain a naturally draining
         surface. Assumes the _open and _closed lists have already been updated
@@ -241,70 +251,86 @@ class LakeMapperBarnes(Component):
         ...     try:
         ...         lmb._fill_one_node_to_slant(
         ...             mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
-        ...             lmb._closed)
+        ...             lmb._closed, False)
         ...     except KeyError:
         ...         break
         ...     else:
-        ...         print(np.sort(lmb._open.nodes_currently_in_queue()), lmb._pit) ### REMOVE
+        ...         print(np.sort(lmb._open.nodes_currently_in_queue()),
+        ...               lmb._pit, lmb._PitTop) ### REMOVE
 
-        Test with two pits:
+        Test a failing example:
 
-        >>> z[:] = mg.node_x.max() - mg.node_x
-        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
-        >>> z[7] = 2.  # is a lake on its own
-        >>> z[9] = 0.5
-        >>> z[15] = 0.3
-        >>> z[14] = 0.6  # [9, 14, 15] is a lake
-        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> mg = RasterModelGrid((3, 7), 1.)
+        >>> for edge in ('top', 'right', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
+        ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
-        >>> lmb.run_one_step_to_flat_with_tracking()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb._closed = mg.zeros('node', dtype=bool)
+        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> edges = np.array([7, ])
+        >>> for edgenode in edges:
+        ...     lmb._open.add_task(edgenode, priority=z[edgenode])
+        >>> lmb._closed[edges] = True
+        >>> while True:
+        ...     try:
+        ...         lmb._fill_one_node_to_slant(
+        ...             mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...             lmb._closed, False)
+        ...     except KeyError:
+        ...         break
         """
         try:
             topopen = openq.peek_at_task()
         except KeyError:
-            pass_on = True
+            noopen = True
+        else:
+            noopen = False
         try:
             toppit = pitq[0]
         except IndexError:
-            pass_on = True
+            nopit = True
         else:
-            pass_on = not np.isclose(topopen, toppit)  # careful; does this invalidate the incrementing part??
-        if not pass_on:
+            nopit = False
+        if not (nopit or noopen):
+            if topopen == toppit:  # intentionally tight comparison
                 c = openq.pop_task()
-                PitTop = None
+                self._PitTop = LARGE_ELEV
+        if not nopit:
+            c = heapq.heappop(pitq)
+            if np.isclose(self._PitTop, LARGE_ELEV):
+                self._PitTop = fill_surface[c]
         else:
-            try:
-                c = heapq.heappop(pitq)
-                try:
-                    if PitTop is None:  ######## not clear exactly when PitTop gets first defined; check this.
-                        PitTop = fill_surface[c]
-                except NameError:
-                    pass
-            except IndexError:
-                c = openq.pop_task()  # again, returns KeyError if empty
-                PitTop = None
+            c = openq.pop_task()  # again, returns KeyError if empty
+            self._PitTop = LARGE_ELEV
 
-        cneighbors = all_neighbors[c]
-        openneighbors = cneighbors[
-            np.logical_not(closedq[cneighbors])]  # for efficiency
-        closedq[openneighbors] = True
-        for n in openneighbors:
+        for n in all_neighbors[c]:
+            if closedq[n]:
+                continue
+            else:
+                closedq[n] = True
             nextval = np.nextafter(
-                fill_surface[c], 9999999999.)
+                fill_surface[c], LARGE_ELEV)
             if self._gridclosednodes[n]:
                 heapq.heappush(pitq, n)
             elif fill_surface[n] <= nextval:
-                if (PitTop < fill_surface[n] and
+                if (self._PitTop < fill_surface[n] and
                         nextval >= fill_surface[n]):
-                    pass
-#                    raise ValueError(
-#                        "Pit is overfilled due to very low gradients in DEM"
-#                    )
+                    if ignore_overfill:
+                        self._overfill_flag = True
+                    else:
+                        raise ValueError(
+                            "Pit is overfilled due to creation of two " +
+                            "outlets as the minimum gradient gets applied. " +
+                            "Suppress this Error with the ignore_overfill " +
+                            "flag at component instantiation."
+                            )
                 fill_surface[n] = nextval
                 heapq.heappush(pitq, n)
             else:
                 openq.add_task(n, priority=fill_surface[n])
-
 
     def _fill_to_flat_with_tracking(self, fill_surface, all_neighbors,
                                     pitq, openq, closedq):
@@ -313,8 +339,8 @@ class LakeMapperBarnes(Component):
         _open and _closed lists have already been updated per Barnes algos 2&3,
         lns 1-7.
 
-        This version runs a little more slowly to enable tracking of which nodes
-        are linked to which outlets.
+        This version runs a little more slowly to enable tracking of which
+        nodes are linked to which outlets.
 
         Parameters
         ----------
@@ -365,7 +391,127 @@ class LakeMapperBarnes(Component):
                     heapq.heappush(pitq, n)
                 else:
                     openq.add_task(n, priority=fill_surface[n])
-            print(np.sort(openq.nodes_currently_in_queue()), pitq)
+            # print(np.sort(openq.nodes_currently_in_queue()), pitq)
+        return lakemappings
+
+    def _fill_to_slant_with_tracking(self, grid, fill_surface, all_neighbors,
+                                    pitq, openq, closedq, ignore_overfill,
+                                    track_lakes):
+        """
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb._closed = mg.zeros('node', dtype=bool)
+        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> edges = np.array([11, 17, 23])
+        >>> for edgenode in edges:
+        ...     lmb._open.add_task(edgenode, priority=z[edgenode])
+        >>> lmb._closed[edges] = True
+        >>> lmb._fill_to_slant_with_tracking(
+        >>>         mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        >>>         lmb._closed, False, True)
+
+        Test a failing example:
+
+        >>> mg = RasterModelGrid((3, 7), 1.)
+        >>> for edge in ('top', 'right', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
+        ...                                 1.0000000000000004, 1.5]
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb._closed = mg.zeros('node', dtype=bool)
+        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> edges = np.array([7, ])
+        >>> for edgenode in edges:
+        ...     lmb._open.add_task(edgenode, priority=z[edgenode])
+        >>> lmb._closed[edges] = True
+        >>> while True:
+        ...     try:
+        ...         lmb._fill_one_node_to_slant(
+        ...             mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...             lmb._closed, False)
+        ...     except KeyError:
+        ...         break
+        """
+        lakemappings = dict()
+        outlet_ID = BAD_INDEX_VALUE
+        while True:
+            try:
+                topopen = openq.peek_at_task()
+            except KeyError:
+                noopen = True
+            else:
+                noopen = False
+            try:
+                toppit = pitq[0]
+            except IndexError:
+                nopit = True
+            else:
+                nopit = False
+            if not (nopit or noopen):
+                if topopen == toppit:  # intentionally tight comparison
+                    c = openq.pop_task()
+                    outlet_ID = c
+                    self._PitTop = LARGE_ELEV
+            if not nopit:
+                c = heapq.heappop(pitq)
+                if np.isclose(self._PitTop, LARGE_ELEV):
+                    self._PitTop = fill_surface[c]
+                if track_lakes:
+                    try:
+                        lakemappings[outlet_ID].append(c)
+                        # ^add this node to lake
+                    except KeyError:
+                        # ^this is the first node of a new lake
+                        lakemappings[outlet_ID] = deque([c, ])
+            else:
+                try:
+                    c = openq.pop_task()
+                    # ^again, returns KeyError if empty
+                except KeyError:
+                    break
+                outlet_ID = c
+                self._PitTop = LARGE_ELEV
+
+            for n in all_neighbors[c]:
+                if closedq[n]:
+                    continue
+                else:
+                    closedq[n] = True
+                nextval = np.nextafter(
+                    fill_surface[c], LARGE_ELEV)
+                if self._gridclosednodes[n]:
+                    heapq.heappush(pitq, n)
+                elif fill_surface[n] <= nextval:
+                    if (self._PitTop < fill_surface[n] and
+                            nextval >= fill_surface[n]):
+                        if ignore_overfill:
+                            self._overfill_flag = True
+                        else:
+                            raise ValueError(
+                                "Pit is overfilled due to creation of two " +
+                                "outlets as the minimum gradient gets " +
+                                "applied. Suppress this Error with the " +
+                                "ignore_overfill flag at component " +
+                                "instantiation."
+                                )
+                    fill_surface[n] = nextval
+                    heapq.heappush(pitq, n)
+                else:
+                    openq.add_task(n, priority=fill_surface[n])
         return lakemappings
 
     def run_one_step(self):
@@ -384,7 +530,9 @@ class LakeMapperBarnes(Component):
             self._closed[self._edges] = True
             while True:
                 try:
-                    self._fill_one_node(self.grid, )
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("once", RuntimeWarning)
+                        self._fill_one_node(self.grid, )
                 except KeyError:  # run out of nodes to fill...
                     break
 
@@ -530,6 +678,14 @@ class LakeMapperBarnes(Component):
              self.lake_dict.iteritems()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
+
+    def is_there_overfill(self):
+        """
+        If the ignore_overfill flag was set to True at instantiation, this
+        property indicates if any depression in the grid has, at any point,
+        been overfilled.
+        """
+        return self._overfill_flag
 
 
 class LakeEvaporator(Component):

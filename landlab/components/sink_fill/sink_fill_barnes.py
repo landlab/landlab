@@ -139,11 +139,17 @@ class LakeFillerBarnes(Component):
         If True, permits use of a suite of component properties to query
         which nodes were filled, and by how much. Set to False to enhance
         component speed.
+    ignore_overfill : bool
+        If True, suppresses the Error that would normally be raised during
+        creation of a gentle incline on a fill surface (i.e., if
+        fill_flat=False). Typically this would happen on a synthetic DEM
+        where more than one outlet is possible at the same elevation.
     """
     def __init__(self, grid, surface='topographic__elevation',
                  method='d8', fill_flat=True,
                  route_flow_steepest_descent=True,
-                 calc_slopes=True, track_filled_nodes=True):
+                 calc_slopes=True, track_filled_nodes=True,
+                 ignore_overfill=False):
         """
         Examples
         --------
@@ -178,6 +184,7 @@ class LakeFillerBarnes(Component):
         self._trackingcounter = itertools.count()  # sequ counter if tracking
         self._trackercount = -1  # tracking calls not yet run
         self._lastcountfortracker = -1
+        self._ignore_overfill = ignore_overfill
 
         # get the neighbour call set up:
         assert method in {'steepest', 'd8'}
@@ -224,64 +231,12 @@ class LakeFillerBarnes(Component):
             self._tracking_fill = True
             self._orig_surface = self._surface.copy()
             self._lakefiller = LakeMapperBarnes(
-                grid, surface=self._orig_surface, method=method, fill=True, fill_flat=fill_flat, fill_surface=surface,
+                grid, surface=self._orig_surface, method=method, fill=True,
+                fill_flat=fill_flat, fill_surface=surface,
                 route_flow_steepest_descent=route_flow_steepest_descent,
-                calc_slopes=calc_slopes)
+                calc_slopes=calc_slopes, ignore_overfill=ignore_overfill)
         else:
             self._tracking_fill = False
-
-    def _fill_one_node_to_slant(self, grid, fill_surface, all_neighbors,
-                                pitq, openq, closedq):
-        """
-        Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface. Assumes the _open and _closed lists have already been updated
-        per Barnes algos 2&3, lns 1-7.
-        """
-        try:
-            topopen = openq.peek_at_task()
-        except KeyError:
-            pass_on = True
-        try:
-            toppit = pitq[0]
-        except IndexError:
-            pass_on = True
-        else:
-            pass_on = not np.isclose(topopen, toppit)  # careful; does this invalidate the incrementing part??
-        if not pass_on:
-                c = openq.pop_task()
-                PitTop = None
-        else:
-            try:
-                c = heapq.heappop(pitq)
-                try:
-                    if PitTop is None:  ######## not clear exactly when PitTop gets first defined; check this.
-                        PitTop = fill_surface[c]
-                except NameError:
-                    pass
-            except IndexError:
-                c = openq.pop_task()  # again, returns KeyError if empty
-                PitTop = None
-
-        cneighbors = all_neighbors[c]
-        openneighbors = cneighbors[
-            np.logical_not(closedq[cneighbors])]  # for efficiency
-        closedq[openneighbors] = True
-        for n in openneighbors:
-            nextval = np.nextafter(
-                fill_surface[c], 9999999999.)
-            if self._gridclosednodes[n]:
-                heapq.heappush(pitq, n)
-            elif fill_surface[n] <= nextval:
-                if (PitTop < fill_surface[n] and
-                        nextval >= fill_surface[n]):
-                    raise ValueError(
-                        "Pit is overfilled due to very low gradients in DEM"
-                    )
-                fill_surface[n] = nextval
-                heapq.heappush(pitq, n)
-            else:
-                openq.add_task(n, priority=fill_surface[n])
-
 
     def run_one_step(self):
         "Fills the surface to remove all pits."
