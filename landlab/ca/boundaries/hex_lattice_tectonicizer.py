@@ -17,7 +17,7 @@ Created on Mon Nov 17 08:01:49 2014
 @author: gtucker
 """
 
-from landlab import HexModelGrid, ACTIVE_LINK
+from landlab import HexModelGrid, ACTIVE_LINK, CORE_NODE
 from landlab.core.utils import as_id_array
 from numpy import (amax, zeros, arange, array, sqrt, where, logical_and,
                    logical_or, logical_xor, tan, cos, pi)
@@ -28,6 +28,12 @@ _DEFAULT_NUM_ROWS = 5
 _DEFAULT_NUM_COLS = 5
 _TAN60 = 1.732
 _NEVER = 1.0e50  # this arbitrarily large val is also defined in ..cfuncs.pyx
+
+
+def is_interior_link(link, grid):
+    """Return True if both nodes are core; False otherwise."""
+    return (grid.status_at_node[grid.node_at_link_tail[link]] == CORE_NODE
+            and grid.status_at_node[grid.node_at_link_head[link]] == CORE_NODE)
 
 
 def is_perim_link(link, grid):
@@ -43,9 +49,8 @@ def is_perim_link(link, grid):
     >>> is_perim_link(17, mg)
     False
     """
-    from landlab import CORE_NODE
     return (grid.status_at_node[grid.node_at_link_tail[link]] != CORE_NODE
-            and grid.status_at_node[grid.node_at_link_tail[link]] != CORE_NODE)
+            and grid.status_at_node[grid.node_at_link_head[link]] != CORE_NODE)
 
 
 class HexLatticeTectonicizer(object):
@@ -253,7 +258,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         # Set up array of link offsets: when slip occurs, what link's data get
         # copied into the present link? Which links get cut by fault plane and
         # need to have their states reset?
-        self.setup_link_offsets(in_footwall)
+        self._setup_link_offsets(in_footwall)
         self._setup_links_to_update_after_offset(in_footwall)
 
         # Helpful to have an array of node IDs for the bottom full row. Because
@@ -396,11 +401,13 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         else:
             return 2  # right and down
 
-    def setup_link_offsets(self, node_in_footwall):
+    def _setup_link_offsets(self, node_in_footwall):
         """Set up array with link IDs for shifting link data up and right.
 
         Notes
         -----
+        The array contains the ID of the link TO WHICH the contents get
+        shifted upon fault slip.
 
         Examples
         --------
@@ -412,43 +419,51 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
         ...                     shape='rect')
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
-        >>> lnf.link_offset_id
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
-               17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  7, 28, 29, 10, 11, 32, 13,
-               34, 35, 36, 16, 17, 39, 20, 41, 42, 23, 24, 45, 46, 47, 48, 49, 50,
-               30, 52, 33, 54, 55, 56, 57, 58])
+        >>> lnf.link_offset_id[16:24]
+        array([37, 17, 18, 19, 40, 21, 22, 43])
+        >>> lnf.first_link_shifted_from
+        16
+        >>> lnf.first_link_shifted_to
+        37
+        
         >>> pid = np.arange(36, dtype=int)
         >>> pdata = np.arange(36)
         >>> ns = np.arange(36, dtype=int)
         >>> grid = HexModelGrid(6, 6, 1.0, orientation='vertical',
         ...                     shape='rect')
-        >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-        >>> lnf.first_link_for_shift
-        32
-        >>> lnf.link_offset_id[61:74]
-        array([36, 37, 63, 64, 65, 66, 67, 68, 69, 45, 71, 72, 48])
+        >>> lnf = LatticeNormalFault(-0.1, grid, ns, pid, pdata, 0.0)
+        >>> lnf.first_link_shifted_from
+        19
+        >>> lnf.first_link_shifted_to
+        44
+        >>> lnf.link_offset_id[19:41]
+        array([44, 45, 21, 22, 23, 48, 25, 26, 52, 53, 29, 30, 31, 57, 33, 34, 35,
+               61, 37, 38, 39, 64])
         """
         self.link_offset_id = arange(self.grid.number_of_links, dtype=np.int)
         nc = self.grid.number_of_node_columns
-        num_links = self.grid.number_of_links
         default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
-        self.first_link_for_shift = (default_offset + ((nc - 1) // 2)
-                                     + (nc - 1) + (nc % 2))
+        self.first_link_shifted_from = 0
+        self.first_link_shifted_to = 0
 
-        for ln in range(num_links - 1, self.first_link_for_shift - 1, -1):
+        for ln in range(self.grid.number_of_links - (default_offset + 1)):
             if (self._link_in_footwall(ln, node_in_footwall)
-                and self.grid.status_at_link[ln] == ACTIVE_LINK):
+                and is_interior_link(ln, self.grid)):
                 tail_node = self.grid.node_at_link_tail[ln]
                 (_, c) = self.grid.node_row_and_column(tail_node)
                 link_orientation = self._get_link_orientation(ln)
                 offset = default_offset
                 if nc % 2 == 1:  # odd number of columns
-                    if (link_orientation + (c % 2)) == 2:
+                    if (link_orientation + ((c - 1) % 2)) == 2:
                         offset += 1
                 else:  # even number of columns
-                    if (c % 2) == 1 and link_orientation == 0:
+                    if (c % 2) == 0 and link_orientation == 0:
                         offset -= 1
-                self.link_offset_id[ln] = ln - offset
+                if is_interior_link(ln + offset, self.grid):
+                    self.link_offset_id[ln] = ln + offset
+                    if self.first_link_shifted_from == 0:
+                        self.first_link_shifted_from = ln
+                        self.first_link_shifted_to = ln + offset
 
     def _setup_links_to_update_after_offset(self, in_footwall):
         """Create and store array with IDs of links for which to update
@@ -463,18 +478,15 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(5, 5, orientation='vert', shape='rect')
-        >>> lu = LatticeNormalFault(grid=hg)
-        >>> lu.first_link_for_shift
-        27
+        >>> lu = LatticeNormalFault(fault_x_intercept=-0.01, grid=hg)
+        >>> lu.first_link_shifted_to
+        37
         >>> lu.links_to_update
-        array([ 7, 10, 11, 13, 14, 16, 17, 18, 20, 23, 24, 25, 29, 31, 33, 37, 38,
-               43, 44, 50, 51, 53])
+        array([ 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 22, 23, 24, 25, 26, 27, 29,
+               30, 31, 33, 36, 38, 42, 44, 46, 50, 51, 53])
         """
-        #TODO:
-        # - in shift links, go through PQ and change ID of those links that
-        #   have a non-self shift ID
         g = self.grid
-        lower_active = logical_and(arange(g.number_of_links) < self.first_link_for_shift,
+        lower_active = logical_and(arange(g.number_of_links) < self.first_link_shifted_to,
                                    g.status_at_link == ACTIVE_LINK)
         link_in_fw = logical_or(in_footwall[g.node_at_link_tail],
                                 in_footwall[g.node_at_link_head])
@@ -509,22 +521,31 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> from landlab.ca.celllab_cts import Transition
         >>> import numpy as np
 
-        >>> mg = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect')
+        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
         >>> nsd = {0 : 'yes', 1 : 'no'}
         >>> xnlist = []
         >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'test'))
         >>> xnlist.append(Transition((0,0,1), (1,1,1), 1.0, 'test'))
         >>> xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'test'))
         >>> nsg = mg.add_zeros('node', 'node_state_grid')
-        >>> pid = np.arange(16, dtype=int)
-        >>> pdata = np.arange(16)
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
         >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-        >>> lnf = LatticeNormalFault(grid=mg)
-        >>> np.round(ohcts.priority_queue._queue[1], 4)
-        array([ 0.0737, 14.    , 23.    ])
+        >>> lnf = LatticeNormalFault(-0.1, grid=mg)
+        >>> pq = ohcts.priority_queue._queue
+        >>> (int(1000 * pq[11][0]), pq[11][1:])
+        (752, (11, 23))
+        >>> (int(1000 * pq[12][0]), pq[12][1:])
+        (483, (9, 20))
+        >>> (int(1000 * pq[30][0]), pq[30][1:])
+        (575, (6, 16))
         >>> lnf.do_offset(ca=ohcts)
-        >>> np.round(ohcts.priority_queue._queue[1], 4)
-        array([ 0.0737, 14.    ,  7.    ])
+        >>> (int(1000 * pq[48][0]), pq[48][1:])
+        (752, (11, 43))
+        >>> (int(1000 * pq[54][0]), pq[54][1:])
+        (483, (9, 40))
+        >>> (int(1000 * pq[61][0]), pq[61][1:])
+        (575, (6, 37))
         """
         for i in range(len(ca.priority_queue._queue)):
             link = ca.priority_queue._queue[i][2]
@@ -543,42 +564,44 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> from landlab.ca.celllab_cts import Transition
         >>> import numpy as np
 
-        >>> mg = HexModelGrid(4, 4, 1.0, orientation='vertical', shape='rect')
+        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical', shape='rect')
         >>> nsd = {0 : 'yes', 1 : 'no'}
         >>> xnlist = []
         >>> xnlist.append(Transition((1,0,0), (1,1,0), 1.0, 'frogging'))
         >>> xnlist.append(Transition((1,0,1), (1,1,1), 1.0, 'frogging'))
         >>> xnlist.append(Transition((1,0,2), (1,1,2), 1.0, 'frogging'))
         >>> nsg = mg.add_zeros('node', 'node_state_grid')
-        >>> nsg[:8] = 1
-        >>> pid = np.arange(16, dtype=int)
-        >>> pdata = np.arange(16)
+        >>> nsg[:10] = 1
+        >>> pid = np.arange(25, dtype=int)
+        >>> pdata = np.arange(25)
         >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-        >>> ohcts.link_state[:16]
-        array([ 0,  0,  0,  0,  0,  3,  0,  7, 11,  3,  0,  7, 11,  7,  0,  2])
+        >>> ohcts.link_state
+        array([ 0,  0,  0,  0,  0,  0,  0,  3,  0,  0,  7, 11,  0,  3,  3,  7, 11,
+                7, 11,  0,  2,  0,  9,  6,  9,  6,  2,  2,  4,  8,  4,  8,  0,  0,
+                0,  8,  4,  8,  4,  0,  0,  4,  8,  4,  8,  0,  0,  0,  8,  4,  8,
+                4,  0,  0,  0,  0,  0,  0,  0])
         >>> lnf = LatticeNormalFault(-0.01, mg, nsg, pid, pdata, 0.0)
-        >>> lnf.first_link_for_shift
-        20
+        >>> lnf.first_link_shifted_from
+        16
         >>> lnf.link_offset_id
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
-               17, 18, 19, 20, 21, 22,  7, 24,  9, 26, 27, 28, 29, 30, 31, 32, 33,
-               34])
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 37,
+               17, 18, 19, 40, 21, 22, 43, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+               34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+               51, 52, 53, 54, 55, 56, 57, 58])
         >>> lnf.shift_link_states(ohcts, 0.0)
-        >>> ohcts.link_state[:16]
-        array([ 0,  0,  0,  0,  0,  3,  0,  7, 11,  3,  0,  7, 11,  7,  0,  2])
+        >>> ohcts.link_state
+        array([ 0,  0,  0,  0,  0,  0,  0,  3,  0,  0,  7, 11,  0,  3,  3,  7, 11,
+                7, 11,  0,  2,  0,  9,  6,  9,  6,  2,  2,  4,  8,  4,  8,  0,  0,
+                0,  8,  4, 11,  4,  0,  2,  4,  8,  6,  8,  0,  0,  0,  8,  4,  8,
+                4,  0,  0,  0,  0,  0,  0,  0])
         """
-
         num_links = self.grid.number_of_links
-        for lnk in range(num_links - 1, self.first_link_for_shift - 1, -1):
+        for lnk in range(num_links - 1, self.first_link_shifted_from - 1, -1):
             link_offset = self.link_offset_id[lnk]
             if link_offset != lnk:
-                if is_perim_link(link_offset, self.grid):
-                    self.assign_new_link_state_and_transition(lnk, ca,
-                                                              current_time)
-                else:
-                    ca.link_state[lnk] = ca.link_state[link_offset]
-                    ca.next_trn_id[lnk] = ca.next_trn_id[link_offset]
-                    ca.next_update[lnk] = ca.next_update[link_offset]
+                ca.link_state[link_offset] = ca.link_state[lnk]
+                ca.next_trn_id[link_offset] = ca.next_trn_id[lnk]
+                ca.next_update[link_offset] = ca.next_update[lnk]
 
         self.shift_scheduled_transitions(ca, current_time)
 
@@ -684,11 +707,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             self.prop_data[
                 self.propid[self.incoming_node]] = self.prop_reset_value
 
-        if self.first_fw_col == 0:
-            self.node_state[:self.n_footwall_rows[0]] = rock_state
-
         if ca is not None:
             self.shift_link_states(ca, current_time)
+
 
 
 class LatticeUplifter(HexLatticeTectonicizer):
@@ -859,48 +880,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         For each link that lies above the y = 1.5 cells line, assign the
         properties of the link one row down.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
-        >>> from landlab.ca.celllab_cts import Transition
-        >>> import numpy as np
-
-        >>> mg = HexModelGrid(4, 3, 1.0, orientation='vertical', shape='rect')
-        >>> nsd = {0 : 'yes', 1 : 'no'}
-        >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
-        >>> xnlist.append(Transition((0,0,1), (1,1,1), 1.0, 'frogging'))
-        >>> xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'frogging'))
-        >>> nsg = mg.add_zeros('node', 'node_state_grid')
-        >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-        >>> ohcts.link_state[mg.active_links]
-        array([0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
-        >>> ohcts.next_trn_id[mg.active_links]
-        array([0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
-        >>> lu = LatticeUplifter(grid=mg)
-        >>> nu = ohcts.next_update
-        >>> np.round(nu[mg.active_links], 2)
-        array([0.8 , 1.26, 0.92, 0.79, 0.55, 1.04, 0.58, 2.22, 3.31, 0.48, 1.57])
-        >>> pq = ohcts.priority_queue
-        >>> pq._queue[0][2]  # link for first event = 20, not shifted
-        20
-        >>> round(pq._queue[0][0], 2)  # transition scheduled for t = 0.48
-        0.48
-        >>> pq._queue[2][2]  # this event scheduled for link 15...
-        15
-        >>> round(pq._queue[2][0], 2)  # ...transition scheduled for t = 0.58
-        0.58
-        >>> lu.shift_link_and_transition_data_upward(ohcts, 0.0)
-        >>> np.round(nu[mg.active_links], 2)  # note new events lowest 5 links
-        array([0.75, 0.84, 2.6 , 0.07, 0.09, 0.8 , 0.02, 1.79, 1.51, 2.04, 3.85])
-        >>> pq._queue[0][2]  # new soonest event
-        15
-        >>> pq._queue[9][2]  # was previously 7, now shifted up...
-        14
-        >>> round(pq._queue[9][0], 2)  # ...but still scheduled for t = 0.80
-        0.8
+        
+        (For an example, see unit test:
+            test_shift_link_and_transition_data_upward)
         """
 
         # Find the ID of the first link above the y = 1.5 line
@@ -1012,7 +994,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         # Shift the node states up by a full row. A "full row" includes two
         # staggered rows.
-        for r in range(self.nr - 2, 0, -1):
+        for r in range(self.nr - 1, 0, -1):
             # This row gets the contents of the nodes 1 row down
             self.node_state[self.inner_base_row_nodes+self.nc*r] = \
                     self.node_state[self.inner_base_row_nodes+self.nc*(r-1)]

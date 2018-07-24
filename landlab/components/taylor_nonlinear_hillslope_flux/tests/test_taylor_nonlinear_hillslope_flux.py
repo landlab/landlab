@@ -5,34 +5,38 @@ Created on Fri Mar  3 10:39:32 2017
 
 @author: KRB
 """
+import warnings
 
-from landlab import RasterModelGrid
-from landlab.components import (TaylorNonLinearDiffuser)
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import assert_raises
 
-import warnings
+from landlab import RasterModelGrid
+from landlab.components import TaylorNonLinearDiffuser
+
 
 def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**2
     Cdiff = TaylorNonLinearDiffuser(mg)
-    assert_raises(RuntimeError, Cdiff.soilflux, 10, if_unstable='raise')
+    with pytest.raises(RuntimeError):
+        Cdiff.soilflux(10, if_unstable='raise')
 
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**2
-    assert_raises(TypeError, TaylorNonLinearDiffuser, mg, bad_name='true')
+    with pytest.raises(TypeError):
+        TaylorNonLinearDiffuser(mg, bad_name='true')
 
 def test_infinite_taylor_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**4
     Cdiff = TaylorNonLinearDiffuser(mg, nterms=400)
-    assert_raises(RuntimeError, Cdiff.soilflux, 10)
+    with pytest.raises(RuntimeError):
+        Cdiff.soilflux(10)
 
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))
