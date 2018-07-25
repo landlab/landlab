@@ -40,8 +40,8 @@ class StablePriorityQueue():
         self._entry_finder = {}                # mapping of tasks to entries
         self._REMOVED = BAD_INDEX_VALUE        # placeholder for a removed task
         self._counter = itertools.count()      # unique sequence count
-        self._nodes_ever_in_queue = deque([])  # tracks all nodes that have
-                                               # ever been added
+        self._nodes_ever_in_queue = deque([])
+        # last one tracks all nodes that have ever been added
 
     def add_task(self, task, priority=0):
         "Add a new task or update the priority of an existing task"
@@ -112,7 +112,7 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors,
     closedq : 1-D boolean array of length nnodes
         Nodes already or not to be explored by the algorithm.
     dummy : any Python object
-        for function equivance with _fill_one_node_to_slant
+        Necessary for direct comparison with _fill_one_node_to_slant.
 
     Examples
     --------
@@ -186,9 +186,6 @@ class LakeMapperBarnes(Component):
     method : {'steepest', 'd8'}
         Whether or not to recognise diagonals as valid flow paths, if a raster.
         Otherwise, no effect.
-    fill : bool
-        If True, surface will be modified to convert pits to flats or slightly
-        inclined surfaces, as determined by fill_flat.
     fill_flat : bool
         If True, pits will be filled to perfectly horizontal. If False, the new
         surface will be slightly inclined to give steepest descent flow paths
@@ -197,8 +194,8 @@ class LakeMapperBarnes(Component):
         If fill == True, sets the field or array to fill. If fill_surface is
         surface, this operation occurs in place, and is faster.
         Note that the component will overwrite fill_surface if it exists; to
-        supply an existing water level to it, supply it as surface, not
-        fill_surface.
+        supply an existing water level to it, supply that water level field as
+        surface, not fill_surface.
     route_flow_steepest_descent : bool
         If True, the component outputs the 'flow__receiver_node' and
         'flow__link_to_receiver_node' fields.
@@ -207,21 +204,28 @@ class LakeMapperBarnes(Component):
         component outputs the 'topographic__steepest_slope' field.
     ignore_overfill : bool
         If True, suppresses the Error that would normally be raised during
-        creation of a gentle incline on a fill surface. Typically this would
-        happen on a synthetic DEM where more than one outlet is possible at
-        the same elevation.
+        creation of a gentle incline on a fill surface (i.e., if not
+        fill_flat). Typically this would happen on a synthetic DEM where more
+        than one outlet is possible at the same elevation. If True, the
+        was_there_overfill property can still be used to see if this has
+        occurred.
+    track_lakes : bool
+        If True, the component permits a slight hit to performance in order to
+        explicitly track which nodes have been filled, and to enable queries
+        on that data in retrospect. Set to False to simply fill the surface
+        and be done with it.
     """
     def __init__(self, grid, surface='topographic__elevation',
-                 method='d8', fill=False, fill_flat=True,
+                 method='d8', fill_flat=True,
                  fill_surface='topographic__elevation',
                  route_flow_steepest_descent=True,
-                 calc_slopes=True, ignore_overfill=False):
+                 calc_slopes=True, ignore_overfill=False, track_lakes=True):
         """
         Examples
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes
+        >>> from landlab.components import LakeMapperBarnes
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -253,10 +257,11 @@ class LakeMapperBarnes(Component):
         self._PitTop = LARGE_ELEV  # variable to not overfill slanted surfaces
         self._ignore_overfill = ignore_overfill
         self._overfill_flag = False
+        self._track_lakes = track_lakes
 
         # get the neighbour call set up:
-        assert method in {'steepest', 'd8'}
-        if method == 'd8':
+        assert method in {'steepest', 'd8', 'D8'}
+        if method in ('d8', 'D8'):
             try:
                 self._allneighbors = self.grid.d8s_at_node
             except AttributeError:
@@ -286,16 +291,23 @@ class LakeMapperBarnes(Component):
         self._dontreroute = not route_flow_steepest_descent
 # NOTE: check the overlap with the rerouting method here.
 # do we have to still implicitly do the filling??
-        # check if we are modifying in place or not:
+        # check if we are modifying in place or not. This gets used to check
+        # it makes sense to calculate various properties.
         self._inplace = surface is fill_surface
         # then
-        if fill:
-            self._surface = return_array_at_node(grid, surface)
-            self._fill_surface = return_array_at_node(grid, fill_surface)
-            if fill_flat:
-                self._fill_one_node = _fill_one_node_to_flat
-            else:
-                self._fill_one_node = self._fill_one_node_to_slant
+        self._surface = return_array_at_node(grid, surface)
+        self._fill_surface = return_array_at_node(grid, fill_surface)
+# NOTE: buggy functionality of return_array_at_node here means component can't
+# yet handle arrays as opposed to fields...
+
+# NOTE: Build FR functionality
+# NOTE: check properties do the checks they need to
+
+        self._fill_flat = fill_flat
+        if fill_flat:
+            self._fill_one_node = _fill_one_node_to_flat
+        else:
+            self._fill_one_node = self._fill_one_node_to_slant
 
     def _fill_one_node_to_slant(self, fill_surface, all_neighbors,
                                 pitq, openq, closedq, ignore_overfill):
@@ -327,7 +339,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes
+        >>> from landlab.components import LakeMapperBarnes
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -598,7 +610,7 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_tracking(
+        >>> lmb._fill_to_slant_with_optional_tracking(
         >>>         z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         >>>         lmb._closed, False, True)
         {16: deque([15, 9, 8, 14, 20, 21])}
@@ -620,9 +632,9 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_tracking(z, mg.adjacent_nodes_at_node,
-        ...                                  lmb._pit, lmb._open, lmb._closed,
-        ...                                  False, True)
+        >>> lmb._fill_to_slant_with_optional_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     lmb._closed, False, True)
         {8: deque([7]), 16: deque([15, 9, 14, 22])}
         >>> fr = FlowRouter(mg, method='D4')
         >>> fr.route_flow()
@@ -654,9 +666,9 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_tracking(z, mg.adjacent_nodes_at_node,
-        ...                                  lmb._pit, lmb._open, lmb._closed,
-        ...                                  False, False)  # empty dict now
+        >>> lmb._fill_to_slant_with_optional_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     lmb._closed, False, False)  # empty dict now
         {}
 
         >>> fr.route_flow()  # drains fine still, as above
@@ -679,9 +691,9 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_tracking(z, mg.adjacent_nodes_at_node,
-        ...                                  lmb._pit, lmb._open, lmb._closed,
-        ...                                  False, True)
+        >>> lmb._fill_to_slant_with_optional_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     lmb._closed, False, True)
         ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
         """
         lakemappings = dict()
@@ -755,40 +767,14 @@ class LakeMapperBarnes(Component):
         return lakemappings
 
     def run_one_step(self):
-        "Fills the surface to remove all pits."
-        # increment the run count
-        self._runcount = next(self._runcounter)
-        # First get _fill_surface in order.
-        self._fill_surface[:] = self._surface  # surfaces begin identical
-        # note this is nice & efficent if _fill_surface is _surface
-        # now, return _closed to its initial cond, w only the CLOSED_BOUNDARY
-        # and grid draining nodes pre-closed:
-        closedq = self._closed.copy()
-        if self._dontreroute:  # i.e. algos 2 & 3
-            for edgenode in self._edges:
-                self._open.add_task(edgenode, priority=self._surface[edgenode])
-            self._closed[self._edges] = True
-            while True:
-                try:
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("once", RuntimeWarning)
-                        self._fill_one_node(self.grid, )
-                except KeyError:  # run out of nodes to fill...
-                    break
-
-    def run_one_step_to_flat_with_tracking(self):
         """
-        Fills the surface, but also creates a property that is a dict of lake
-        outlets and inundated nodes.
+        Fills the surface to fill all pits.
 
         Examples
         --------
-
-        Elementary test:
-
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -797,10 +783,13 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
-        >>> lmb.run_one_step_to_flat_with_tracking()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
 
-        Test with two pits:
+        Test two pits:
 
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -810,8 +799,28 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb.run_one_step_to_flat_with_tracking()
-
+        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb._closed = mg.zeros('node', dtype=bool)
+        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> edges = np.array([11, 17, 23])
+        >>> for edgenode in edges:
+        ...     lmb._open.add_task(edgenode, priority=z[edgenode])
+        >>> lmb._closed[edges] = True
+        >>> lmb._fill_to_slant_with_optional_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     lmb._closed, False, True)
+        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> fr = FlowRouter(mg, method='D4')
+        >>> fr.route_flow()
+        >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
+        True
+        >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
+        ...                             0.,   1.,   2.,   3.,   1.,   1.,
+        ...                             0.,   1.,   4.,   9.,  10.,  10.,
+        ...                             0.,   1.,   2.,   1.,   1.,   1.,
+        ...                             0.,   0.,   0.,   0.,   0.,   0.])
+        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        True
         """
         # do the prep:
         # increment the run counter
@@ -822,15 +831,37 @@ class LakeMapperBarnes(Component):
         # now, return _closed to its initial cond, w only the CLOSED_BOUNDARY
         # and grid draining nodes pre-closed:
         closedq = self._closed.copy()
-        for edgenode in self._edges:
-            self._open.add_task(edgenode, priority=self._surface[edgenode])
-        self._closed[self._edges] = True
-        for edgenode in self._edges:
-            self._open.add_task(edgenode, priority=self._surface[edgenode])
-        self._closed[self._edges] = True
-        self._lakemappings = self._fill_to_flat_with_tracking(
-            self._fill_surface, self._allneighbors, self._pit, self._open,
-            closedq)
+# NOTE: several of the below were formerly self._closed...????
+# Are these updates even necessary???
+        if self._track_lakes:
+            for edgenode in self._edges:
+                self._open.add_task(edgenode, priority=self._surface[edgenode])
+            closedq[self._edges] = True
+            if self._fill_flat:
+                self._lakemappings = self._fill_to_flat_with_tracking(
+                    self._fill_surface, self._allneighbors, self._pit,
+                    self._open, closedq)
+            else:
+                self._lakemappings = (
+                    self._fill_to_slant_with_optional_tracking(
+                        self._fill_surface, self._allneighbors, self._pit,
+                        self._open, closedq,
+                        ignore_overfill=self._ignore_overfill,
+                        track_lakes=True))
+
+        else:  # not tracked
+            if self._dontreroute:  # i.e. algos 2 & 3
+                for edgenode in self._edges:
+                    self._open.add_task(edgenode,
+                                        priority=self._surface[edgenode])
+                closedq[self._edges] = True
+                while True:
+                    try:
+                        self._fill_one_node(
+                            self._surface, self._allneighbors, self._pit,
+                            self._open, closedq, self._ignore_overfill)
+                    except KeyError:  # run out of nodes to fill...
+                        break
 
     @property
     def lake_dict(self):
@@ -919,7 +950,7 @@ class LakeMapperBarnes(Component):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 
-    def is_there_overfill(self):
+    def was_there_overfill(self):
         """
         If the ignore_overfill flag was set to True at instantiation, this
         property indicates if any depression in the grid has, at any point,
