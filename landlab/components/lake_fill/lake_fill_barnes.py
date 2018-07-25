@@ -91,7 +91,7 @@ class StablePriorityQueue():
         return np.array(self._nodes_ever_in_queue)
 
 
-def _fill_one_node_to_flat(grid, fill_surface, all_neighbors,
+def _fill_one_node_to_flat(fill_surface, all_neighbors,
                            pitq, openq, closedq, dummy):
     """
     Implements the Barnes et al. algorithm for a simple fill. Assumes the
@@ -100,8 +100,6 @@ def _fill_one_node_to_flat(grid, fill_surface, all_neighbors,
 
     Parameters
     ----------
-    grid : ModelGrid
-        In this function, behaves as a dummy parameter.
     fill_surface : 1-D array of length nnodes
         The surface to fill in LL node order. Modified in place.
     all_neighbors : (nnodes, max_nneighbours) array
@@ -138,7 +136,7 @@ def _fill_one_node_to_flat(grid, fill_surface, all_neighbors,
     >>> closedq[edges] = True
     >>> while True:
     ...     try:
-    ...         _fill_one_node_to_flat(mg, zw, mg.adjacent_nodes_at_node,
+    ...         _fill_one_node_to_flat(zw, mg.adjacent_nodes_at_node,
     ...                                pitq, openq, closedq, None)
     ...     except KeyError:
     ...         break
@@ -295,20 +293,35 @@ class LakeMapperBarnes(Component):
             self._surface = return_array_at_node(grid, surface)
             self._fill_surface = return_array_at_node(grid, fill_surface)
             if fill_flat:
-                self._fill_one_node = self._fill_one_node_to_flat
+                self._fill_one_node = _fill_one_node_to_flat
             else:
                 self._fill_one_node = self._fill_one_node_to_slant
 
-        # HACKY TWO LINES TO REMOVE POST DEBUG
-        self._surface = return_array_at_node(grid, surface)
-        self._fill_surface = return_array_at_node(grid, fill_surface)
-
-    def _fill_one_node_to_slant(self, grid, fill_surface, all_neighbors,
+    def _fill_one_node_to_slant(self, fill_surface, all_neighbors,
                                 pitq, openq, closedq, ignore_overfill):
         """
         Implements the Barnes et al. algorithm to obtain a naturally draining
         surface. Assumes the _open and _closed lists have already been updated
         per Barnes algos 2&3, lns 1-7.
+
+        Parameters
+        ----------
+        fill_surface : 1-D array of length nnodes
+            The surface to fill in LL node order. Modified in place.
+        all_neighbors : (nnodes, max_nneighbours) array
+            Adjacent nodes at each node.
+        pitq : heap queue (i.e., a structured list)
+            Current nodes known to be in a lake, if already identified.
+        openq : StablePriorityQueue object
+            Ordered queue of nodes remaining to be checked out by the algorithm
+            that are known not to be in a lake.
+        closedq : 1-D boolean array of length nnodes
+            Nodes already or not to be explored by the algorithm.
+        ignore_overfill : bool
+            If False, method will raise a ValueError if adding an increment
+            to the node's elevation would fundamentally alter the resulting
+            drainage pattern (e.g., it would create a new outlet somewhere).
+            If True, the elevation of the node will be changed regardless.
 
         Examples
         --------
@@ -334,7 +347,7 @@ class LakeMapperBarnes(Component):
 
         >>> for i in range(3):  # run a couple of steps
         ...     lmb._fill_one_node_to_slant(
-        ...         mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...         z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...         lmb._closed, False)
         ...     print(lmb._open.peek_at_task())
         ...     assert lmb._pit == []  # these steps don't find pits
@@ -343,7 +356,7 @@ class LakeMapperBarnes(Component):
         16
 
         >>> lmb._fill_one_node_to_slant(
-        ...     mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...     lmb._closed, False)
         >>> lmb._pit == [15, ]  # Popping 16 off "open" puts 15 in "pit"
         True
@@ -353,7 +366,7 @@ class LakeMapperBarnes(Component):
         True
 
         >>> lmb._fill_one_node_to_slant(
-        ...     mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...     lmb._closed, False)
         >>> lmb._pit == [9, 21, 14]  # 15 pops of pit, these neighbors go in
         True
@@ -365,7 +378,7 @@ class LakeMapperBarnes(Component):
         True
 
         >>> lmb._fill_one_node_to_slant(
-        ...     mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...     lmb._closed, False)
         >>> lmb._pit == [8, 21, 14]  # 9 popped off pit, 8 went in. And so on.
 
@@ -390,7 +403,7 @@ class LakeMapperBarnes(Component):
         >>> while True:
         ...     try:
         ...         lmb._fill_one_node_to_slant(
-        ...             mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...             z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...             lmb._closed, False)
         ...     except KeyError:
         ...         break
@@ -528,10 +541,43 @@ class LakeMapperBarnes(Component):
             # print(np.sort(openq.nodes_currently_in_queue()), pitq)
         return lakemappings
 
-    def _fill_to_slant_with_tracking(self, grid, fill_surface, all_neighbors,
-                                    pitq, openq, closedq, ignore_overfill,
-                                    track_lakes):
+    def _fill_to_slant_with_optional_tracking(self, fill_surface,
+                                              all_neighbors, pitq, openq,
+                                              closedq, ignore_overfill,
+                                              track_lakes):
         """
+        Parameters
+        ----------
+        fill_surface : 1-D array of length nnodes
+            The surface to fill in LL node order. Modified in place.
+        all_neighbors : (nnodes, max_nneighbours) array
+            Adjacent nodes at each node.
+        pitq : heap queue (i.e., a structured list)
+            Current nodes known to be in a lake, if already identified.
+        openq : StablePriorityQueue object
+            Ordered queue of nodes remaining to be checked out by the algorithm
+            that are known not to be in a lake.
+        closedq : 1-D boolean array of length nnodes
+            Nodes already or not to be explored by the algorithm.
+        ignore_overfill : bool
+            If False, method will raise a ValueError if adding an increment
+            to the node's elevation would fundamentally alter the resulting
+            drainage pattern (e.g., it would create a new outlet somewhere).
+            If True, the elevation of the node will be changed regardless.
+        track_lakes : bool
+            If True, returns a dict with data on the lakes created. If false,
+            returns an empty dict.
+
+        Returns
+        -------
+        lakemappings : dict
+            If track_lakes, {outlet_ID : [nodes draining to outlet]}. This is
+            a dict with outlet nodes of individual lakes as keys, and lists
+            (strictly, deques) of each node inundated (i.e., depth > 0.) by
+            that lake. Note len(keys) is the number of individually mapped
+            lakes.
+            If not track_lakes, an empty dict.
+
         Examples
         --------
         >>> import numpy as np
@@ -553,7 +599,7 @@ class LakeMapperBarnes(Component):
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
         >>> lmb._fill_to_slant_with_tracking(
-        >>>         mg, z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        >>>         z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         >>>         lmb._closed, False, True)
         {16: deque([15, 9, 8, 14, 20, 21])}
 
@@ -574,7 +620,7 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_tracking(mg, z, mg.adjacent_nodes_at_node,
+        >>> lmb._fill_to_slant_with_tracking(z, mg.adjacent_nodes_at_node,
         ...                                  lmb._pit, lmb._open, lmb._closed,
         ...                                  False, True)
         {8: deque([7]), 16: deque([15, 9, 14, 22])}
@@ -587,6 +633,33 @@ class LakeMapperBarnes(Component):
         ...                             0.,   1.,   4.,   9.,  10.,  10.,
         ...                             0.,   1.,   2.,   1.,   1.,   1.,
         ...                             0.,   0.,   0.,   0.,   0.,   0.])
+        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        True
+
+        With track_lakes == False, fill still works just fine, but the dict
+        returned is empty:
+
+        >>> z[:] = mg.node_x.max() - mg.node_x  # all this as above
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb._closed = mg.zeros('node', dtype=bool)
+        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> edges = np.array([11, 17, 23])
+        >>> for edgenode in edges:
+        ...     lmb._open.add_task(edgenode, priority=z[edgenode])
+        >>> lmb._closed[edges] = True
+        >>> lmb._fill_to_slant_with_tracking(z, mg.adjacent_nodes_at_node,
+        ...                                  lmb._pit, lmb._open, lmb._closed,
+        ...                                  False, False)  # empty dict now
+        {}
+
+        >>> fr.route_flow()  # drains fine still, as above
         >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
         True
 
@@ -606,7 +679,7 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_tracking(mg, z, mg.adjacent_nodes_at_node,
+        >>> lmb._fill_to_slant_with_tracking(z, mg.adjacent_nodes_at_node,
         ...                                  lmb._pit, lmb._open, lmb._closed,
         ...                                  False, True)
         ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
