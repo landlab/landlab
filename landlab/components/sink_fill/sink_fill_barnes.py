@@ -77,8 +77,6 @@ def _fill_one_node_to_flat(grid, fill_surface, all_neighbors,
     ...                                pitq, openq, closedq)
     ...     except KeyError:
     ...         break
-    ...     else:
-    ...         print(np.sort(openq.nodes_currently_in_queue()), pitq) ### REMOVE POST DEBUG
 
     Now check the values make sense.
 
