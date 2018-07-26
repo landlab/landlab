@@ -79,6 +79,13 @@ class SubmarineDiffuser(LinearDiffuser):
 
         kwds.setdefault('linear_diffusivity', 'kd')
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
+        
+        #z_before = self.grid.at_node['topographic__elevation'].copy()
+
+        #shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
+        #                       z_before[self.grid.node_at_cell], sea_level = self.sea_level)
+
+
 
 
     @property
@@ -131,9 +138,13 @@ class SubmarineDiffuser(LinearDiffuser):
 
         shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
                                z_before[self.grid.node_at_cell], sea_level = self.sea_level)
+            
         self.calc_diffusion_coef(shore)
 
         super(SubmarineDiffuser, self).run_one_step(dt)
+
+        shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
+                               z_before[self.grid.node_at_cell], sea_level = self.sea_level)
 
         self.grid.at_node['sediment_deposit__thickness'][:] = (
             self.grid.at_node['topographic__elevation'] - z_before

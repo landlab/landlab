@@ -85,7 +85,7 @@ class SequenceModel(RasterModel):
 
         self._submarine_diffusion = SubmarineDiffuser(self.grid,
                                                       **submarine_diffusion)
-        self._fluvial = FluvialSand(self.grid,**fluvial)
+        self._fluvial = Fluvial(self.grid, 0.5, sediment_load = submarine_diffusion['sediment_load'], plain_slope = submarine_diffusion['plain_slope'])
         self._flexure = SedimentFlexure(self.grid, **flexure)
 
         self._components = (
