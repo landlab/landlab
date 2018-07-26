@@ -220,8 +220,8 @@ class LakeMapperBarnes(Component):
     def __init__(self, grid, surface='topographic__elevation',
                  method='d8', fill_flat=True,
                  fill_surface='topographic__elevation',
-                 route_flow_steepest_descent=True,
-                 calc_slopes=True, ignore_overfill=False, track_lakes=True):
+                 route_flow_steepest_descent=False,
+                 calc_slopes=False, ignore_overfill=False, track_lakes=True):
         """
         Examples
         --------
@@ -236,7 +236,9 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False)
         """
         self._grid = grid
         self._open = StablePriorityQueue()
@@ -395,6 +397,7 @@ class LakeMapperBarnes(Component):
         ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...     lmb._closed, False)
         >>> lmb._pit == [8, 21, 14]  # 9 popped off pit, 8 went in. And so on.
+        True
 
         Test a failing example. This behaviour exists to prevent the
         application of the gradient from fundamentally altering the drainage
@@ -421,7 +424,9 @@ class LakeMapperBarnes(Component):
         ...             lmb._closed, False)
         ...     except KeyError:
         ...         break
-        ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        ...     except ValueError:
+        ...         print('ValueError was raised: here we overfilled')
+        ValueError was raised: here we overfilled
         """
         try:
             topopen = openq.peek_at_task()
@@ -506,6 +511,13 @@ class LakeMapperBarnes(Component):
 
         Examples
         --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import LakeMapperBarnes
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -521,9 +533,10 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_flat_with_tracking(z, mg.adjacent_nodes_at_node,
-        ...                                 lmb._pit, lmb._open, lmb._closed)
-        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> out = lmb._fill_to_flat_with_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open, lmb._closed)
+        >>> out == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        True
         """
         lakemappings = dict()
         outlet_ID = BAD_INDEX_VALUE
@@ -612,10 +625,11 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_optional_tracking(
-        >>>         z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
-        >>>         lmb._closed, False, True)
-        {16: deque([15, 9, 8, 14, 20, 21])}
+        >>> out = lmb._fill_to_slant_with_optional_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...     lmb._closed, False, True)
+        >>> out == {16: deque([15, 9, 8, 14, 20, 21])}
+        True
 
         Test two pits:
 
@@ -634,18 +648,19 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_optional_tracking(
+        >>> out = lmb._fill_to_slant_with_optional_tracking(
         ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
         ...     lmb._closed, False, True)
-        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> out == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        True
         >>> fr = FlowRouter(mg, method='D4')
-        >>> fr.route_flow()
+        >>> _ = fr.route_flow()
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
         >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
         ...                             0.,   1.,   2.,   3.,   1.,   1.,
-        ...                             0.,   1.,   4.,   9.,  10.,  10.,
-        ...                             0.,   1.,   2.,   1.,   1.,   1.,
+        ...                             0.,   1.,   4.,   9.,  11.,  11.,
+        ...                             0.,   1.,   2.,   1.,   1.,   0.,
         ...                             0.,   0.,   0.,   0.,   0.,   0.])
         >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
         True
@@ -673,7 +688,7 @@ class LakeMapperBarnes(Component):
         ...     lmb._closed, False, False)  # empty dict now
         {}
 
-        >>> fr.route_flow()  # drains fine still, as above
+        >>> _ = fr.route_flow()  # drains fine still, as above
         >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
         True
 
@@ -693,10 +708,16 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_optional_tracking(
-        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
-        ...     lmb._closed, False, True)
-        ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        >>> try:
+        ...     lmb._fill_to_slant_with_optional_tracking(
+        ...         z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
+        ...         lmb._closed, False, True)
+        ... except ValueError:
+        ...     print('ValueError was raised: Pit is overfilled due to ' +
+        ...           'creation of two outlets as the minimum gradient ' +
+        ...           'gets applied. Suppress this Error with the ' +
+        ...           'ignore_overfill flag at component instantiation.')
+        ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
         """
         lakemappings = dict()
         outlet_ID = BAD_INDEX_VALUE
@@ -791,13 +812,14 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        # >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
-        # ...                        fill_surface=z, fill_flat=False,
-        # ...                        route_flow_steepest_descent=False,
-        # ...                        calc_slopes=False, track_lakes=False)
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_flat=False,
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=False)
+
+        TODO: once return_array_at_node is fixed, this example should also
+        take fill_surface...
+
         >>> lmb.run_one_step()
         >>> z_out = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
         ...                    0. ,  2.1,  1.5,  1.5,  1.6,  0. ,
@@ -808,13 +830,17 @@ class LakeMapperBarnes(Component):
         True
         >>> np.all(np.equal(z, z_out))  # those 1.5's are actually a bit > 1.5
         False
-        >>> lmb.lake_map  # not created, as we aren't tracking
-        AssertionError: Enable tracking to access information about lakes
+        >>> try:
+        ...     lmb.lake_map  # not created, as we aren't tracking
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'Enable tracking to access information about lakes')
+        AssertionError was raised: Enable tracking to access information about lakes
         >>> lmb.was_there_overfill  # everything fine with slope adding
         False
 
         >>> fr = FlowRouter(mg, method='D4')  # routing will work fine now
-        >>> fr.route_flow()
+        >>> _ = fr.route_flow()
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
         >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
@@ -838,23 +864,35 @@ class LakeMapperBarnes(Component):
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
-        >>> lmb.lake_dict
-        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> lmb.lake_dict  == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        True
         >>> lmb.number_of_lakes
         2
-        >>> lmb.lake_depths  # z was both surface and 'fill_surface'
-        AssertionError: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
+        >>> try:
+        ...     lmb.lake_depths  # z was both surface and 'fill_surface'
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'surface and fill_surface must be different fields ' +
+        ...           'or arrays to enable the property fill_depth!')
+        AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest',
         ...                        fill_flat=False, track_lakes=True)
         >>> lmb.run_one_step()
-        >>> lmb.lake_dict
-        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        True
         >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))
         True
-        >>> lmb.run_one_step()  # z already filled, so...
-        ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        >>> try:
+        ...     lmb.run_one_step()  # z already filled, so...
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
+        ...           'Pit is overfilled due to creation of two outlets as ' +
+        ...           'the minimum gradient gets applied. Suppress this ' +
+        ...           'Error with the ignore_overfill flag at component ' +
+        ...           'instantiation.')
+        ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
 
         Suppress this behaviour with ignore_overfill:
 
@@ -863,8 +901,8 @@ class LakeMapperBarnes(Component):
         ...                        fill_flat=False, track_lakes=True,
         ...                        ignore_overfill=True)
         >>> lmb.run_one_step()
-        >>> lmb.lake_dict
-        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        True
         >>> lmb.run_one_step()
         >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))  # found them!
         True
@@ -905,7 +943,7 @@ class LakeMapperBarnes(Component):
                 while True:
                     try:
                         self._fill_one_node(
-                            self._surface, self._allneighbors, self._pit,
+                            self._fill_surface, self._allneighbors, self._pit,
                             self._open, closedq, self._ignore_overfill)
                     except KeyError:  # run out of nodes to fill...
                         break
@@ -935,16 +973,20 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=False)
         >>> lmb.run_one_step()
-        >>> lmb.lake_dict
-        AssertionError: Enable tracking to access information about lakes
+        >>> try:
+        ...     lmb.lake_dict
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'Enable tracking to access information about lakes')
+        AssertionError was raised: Enable tracking to access information about lakes
 
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=True)
         >>> lmb.run_one_step()
-        >>> lmb.lake_dict
-        {16: deque([15, 9, 8, 14, 20, 21])}
+        >>> lmb.lake_dict == {16: deque([15, 9, 8, 14, 20, 21])}
+        True
         """
         assert self._track_lakes, \
             "Enable tracking to access information about lakes"
@@ -975,8 +1017,12 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=False)
         >>> lmb.run_one_step()
-        >>> lmb.lake_outlets
-        AssertionError: Enable tracking to access information about lakes
+        >>> try:
+        ...     lmb.lake_outlets
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'Enable tracking to access information about lakes')
+        AssertionError was raised: Enable tracking to access information about lakes
 
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
@@ -1018,8 +1064,12 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=False)
         >>> lmb.run_one_step()
-        >>> lmb.number_of_lakes
-        AssertionError: Enable tracking to access information about lakes
+        >>> try:
+        ...     lmb.number_of_lakes
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'Enable tracking to access information about lakes')
+        AssertionError was raised: Enable tracking to access information about lakes
 
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
@@ -1062,8 +1112,12 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=False)
         >>> lmb.run_one_step()
-        >>> lmb.lake_map
-        AssertionError: Enable tracking to access information about lakes
+        >>> try:
+        ...     lmb.lake_map
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'Enable tracking to access information about lakes')
+        AssertionError was raised: Enable tracking to access information about lakes
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
@@ -1096,8 +1150,8 @@ class LakeMapperBarnes(Component):
         """
         if self._runcount > self._lastcountforlakemap:
             # things have changed since last call to lake_map
-            self._lake_map = np.full(mg.number_of_nodes, LOCAL_BAD_INDEX_VALUE,
-                                     dtype=int)
+            self._lake_map = np.full(self.grid.number_of_nodes,
+                                     LOCAL_BAD_INDEX_VALUE, dtype=int)
             for (outlet, lakenodes) in self.lake_dict.iteritems():
                 self._lake_map[lakenodes] = outlet
         else:
@@ -1168,12 +1222,17 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=True)
         >>> lmb.run_one_step()
-        >>> lmb.lake_depths  # won't work as surface & fill_surface are both z
-        AssertionError: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
+        >>> try:  # won't work as surface & fill_surface are both z
+        ...     lmb.lake_depths
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'surface and fill_surface must be different fields ' +
+        ...           'or arrays to enable the property lake_depths!')
+        AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-                                   surface=z_init,
+        ...                        surface=z_init,
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=True)
         >>> lmb.run_one_step()
@@ -1185,7 +1244,7 @@ class LakeMapperBarnes(Component):
         >>> np.all(np.equal(lmb.lake_depths,
         ...                 lake_depths))  # slope applied, so...
         False
-        >>> np.allclose(lmb.lke_depths, lake_depths)
+        >>> np.allclose(lmb.lake_depths, lake_depths)
         True
         """
         assert not self._inplace, \
@@ -1221,8 +1280,12 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=False)
         >>> lmb.run_one_step()
-        >>> lmb.lake_areas  # note track_lakes=False
-        AssertionError: Enable tracking to access information about lakes
+        >>> try:
+        ...     lmb.lake_areas  # note track_lakes=False
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'Enable tracking to access information about lakes')
+        AssertionError was raised: Enable tracking to access information about lakes
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
@@ -1270,12 +1333,17 @@ class LakeMapperBarnes(Component):
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=True)
         >>> lmb.run_one_step()
-        >>> lmb.lake_volumes  # won't work as surface & fill_surface are both z
-        AssertionError: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
+        >>> try:  # won't work as surface & fill_surface are both z
+        ...     lmb.lake_volumes
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'surface and fill_surface must be different fields ' +
+        ...           'or arrays to enable the property lake_volumes!')
+        AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-                                   surface=z_init,
+        ...                        surface=z_init,
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, track_lakes=True)
         >>> lmb.run_one_step()
@@ -1312,16 +1380,28 @@ class LakeMapperBarnes(Component):
         ...                        calc_slopes=False, ignore_overfill=False,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
-        >>> lmb.was_there_overfill
-        AssertionError: was_there_overfill is only defined if filling to an inclined surface!
+        >>> try:
+        ...     lmb.was_there_overfill
+        ... except AssertionError:
+        ...     print('AssertionError was raised: ' +
+        ...           'was_there_overfill is only defined if filling to an ' +
+        ...           'inclined surface!')
+        AssertionError was raised: was_there_overfill is only defined if filling to an inclined surface!
 
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
         ...                        route_flow_steepest_descent=False,
         ...                        calc_slopes=False, ignore_overfill=False,
         ...                        track_lakes=True)
-        >>> lmb.run_one_step()
-        ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        >>> try:
+        ...     lmb.run_one_step()
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
+        ...           'Pit is overfilled due to creation of two outlets ' +
+        ...           'as the minimum gradient gets applied. Suppress this ' +
+        ...           'Error with the ignore_overfill flag at component ' +
+        ...           'instantiation.')
+        ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
 
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
