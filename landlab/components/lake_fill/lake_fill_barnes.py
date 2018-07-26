@@ -191,10 +191,10 @@ class LakeMapperBarnes(Component):
     fill_flat : bool
         If True, pits will be filled to perfectly horizontal. If False, the new
         surface will be slightly inclined to give steepest descent flow paths
-        to the outlet. Only has effect when fill == True.
+        to the outlet.
     fill_surface : bool
-        If fill == True, sets the field or array to fill. If fill_surface is
-        surface, this operation occurs in place, and is faster.
+        Sets the field or array to fill. If fill_surface is surface, this
+        operation occurs in place, and is faster.
         Note that the component will overwrite fill_surface if it exists; to
         supply an existing water level to it, supply that water level field as
         surface, not fill_surface.
