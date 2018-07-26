@@ -856,11 +856,13 @@ class LakeMapperBarnes(Component):
         Test two pits:
 
         >>> z[:] = mg.node_x.max() - mg.node_x
-        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[23] = 1.3
+        >>> z[15] = 0.3
+        >>> z[10] = 1.3  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own, if d8
         >>> z[9] = 0.5
-        >>> z[15] = 0.3
         >>> z[14] = 0.6  # [9, 14, 15] is a lake in both methods
+        >>> z[16] = 1.2
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if d8
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='d8', fill_flat=True,
