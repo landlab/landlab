@@ -43,7 +43,6 @@ class SubmarineDiffuser(LinearDiffuser):
                  shoreface_height=15., alpha=.0005, shelf_slope=.001,
                  sediment_load=3., **kwds):
         """Diffuse the ocean bottom.
-
         Parameters
         ----------
         grid: RasterModelGrid
@@ -79,13 +78,6 @@ class SubmarineDiffuser(LinearDiffuser):
 
         kwds.setdefault('linear_diffusivity', 'kd')
         super(SubmarineDiffuser, self).__init__(grid, **kwds)
-        
-        #z_before = self.grid.at_node['topographic__elevation'].copy()
-
-        #shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
-        #                       z_before[self.grid.node_at_cell], sea_level = self.sea_level)
-
-
 
 
     @property
@@ -136,15 +128,15 @@ class SubmarineDiffuser(LinearDiffuser):
     def run_one_step(self, dt):
         z_before = self.grid.at_node['topographic__elevation'].copy()
 
-        shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
-                               z_before[self.grid.node_at_cell], sea_level = self.sea_level)
-            
+        shore = find_shoreline(
+            self.grid.x_of_node[self.grid.node_at_cell],
+            z_before[self.grid.node_at_cell],
+            sea_level=self.grid.at_grid["sea_level__elevation"],
+        )
+
         self.calc_diffusion_coef(shore)
 
         super(SubmarineDiffuser, self).run_one_step(dt)
-
-        shore = find_shoreline(self.grid.x_of_node[self.grid.node_at_cell], 
-                               z_before[self.grid.node_at_cell], sea_level = self.sea_level)
 
         self.grid.at_node['sediment_deposit__thickness'][:] = (
             self.grid.at_node['topographic__elevation'] - z_before
