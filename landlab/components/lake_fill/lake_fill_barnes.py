@@ -764,7 +764,13 @@ class LakeMapperBarnes(Component):
 
     def run_one_step(self):
         """
-        Fills the surface to fill all pits.
+        Fills the surface to fill all pits. Note that a second run on a
+        surface that has already been filled will *not* "see" any existing
+        lakes correctly - it will see lakes, but with zero depths. In
+        particular, if fill_flat is False, an attempt to fill a
+        surface a second time will raise a ValueError unless ignore_overfill.
+        (In this case, setting ignore_overfill is True will give the expected
+        behaviour.)
 
         Examples
         --------
@@ -779,11 +785,39 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
-        ...                        fill_surface=z, fill_flat=False,
+        # >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        # ...                        fill_surface=z, fill_flat=False,
+        # ...                        route_flow_steepest_descent=False,
+        # ...                        calc_slopes=False, track_lakes=False)
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
         ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        calc_slopes=False, track_lakes=False)
         >>> lmb.run_one_step()
+        >>> z_out = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
+        ...                    0. ,  2.1,  1.5,  1.5,  1.6,  0. ,
+        ...                    0. ,  2. ,  1.5,  1.5,  1.5,  0. ,
+        ...                    0. ,  2.2,  1.5,  1.5,  1.7,  0. ,
+        ...                    0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
+        >>> np.allclose(z, z_out)
+        True
+        >>> np.all(np.equal(z, z_out))  # those 1.5's are actually a bit > 1.5
+        False
+        >>> lmb.lake_map  # not created, as we aren't tracking
+        AssertionError: Enable tracking to access information about lakes
+        >>> lmb.was_there_overfill  # everything fine with slope adding
+        False
+
+        >>> fr = FlowRouter(mg, method='D4')  # routing will work fine now
+        >>> fr.route_flow()
+        >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
+        True
+        >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
+        ...                             0.,   1.,   2.,   3.,   1.,   1.,
+        ...                             0.,   1.,   4.,   9.,  10.,  10.,
+        ...                             0.,   1.,   2.,   1.,   1.,   1.,
+        ...                             0.,   0.,   0.,   0.,   0.,   0.])
+        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        True
 
         Test two pits:
 
@@ -795,27 +829,38 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
-        >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
-        >>> edges = np.array([11, 17, 23])
-        >>> for edgenode in edges:
-        ...     lmb._open.add_task(edgenode, priority=z[edgenode])
-        >>> lmb._closed[edges] = True
-        >>> lmb._fill_to_slant_with_optional_tracking(
-        ...     z, mg.adjacent_nodes_at_node, lmb._pit, lmb._open,
-        ...     lmb._closed, False, True)
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
+        ...                        track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_dict
         {8: deque([7]), 16: deque([15, 9, 14, 22])}
-        >>> fr = FlowRouter(mg, method='D4')
-        >>> fr.route_flow()
-        >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
+        >>> lmb.number_of_lakes
+        2
+        >>> lmb.lake_depths  # z was both surface and 'fill_surface'
+        AssertionError: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
+
+        >>> z[:] = z_init
+        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                        fill_flat=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_dict
+        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))
         True
-        >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
-        ...                             0.,   1.,   2.,   3.,   1.,   1.,
-        ...                             0.,   1.,   4.,   9.,  10.,  10.,
-        ...                             0.,   1.,   2.,   1.,   1.,   1.,
-        ...                             0.,   0.,   0.,   0.,   0.,   0.])
-        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        >>> lmb.run_one_step()  # z already filled, so...
+        ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+
+        Suppress this behaviour with ignore_overfill:
+
+        >>> z[:] = z_init
+        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                        fill_flat=False, track_lakes=True,
+        ...                        ignore_overfill=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_dict
+        {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> lmb.run_one_step()
+        >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))  # found them!
         True
         """
         # do the prep:
@@ -864,9 +909,39 @@ class LakeMapperBarnes(Component):
         """
         Return a dictionary where the keys are the outlet nodes of each lake,
         and the values are deques of nodes within each lake. Items are not
-        returned in ID order.
+        returned in ID order. The outlet nodes are NOT part of the lake.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=False)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_dict
+        AssertionError: Enable tracking to access information about lakes
+
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_dict
+        {16: deque([15, 9, 8, 14, 20, 21])}
         """
-        assert self._track_lakes
+        assert self._track_lakes, \
+            "Enable tracking to access information about lakes"
         return self._lakemappings
 
 # NOTE: need additional counter on the tracking mechanism to ensure that's getting run, else _lakemappings could be wrong or out-of-date
@@ -875,25 +950,143 @@ class LakeMapperBarnes(Component):
     def lake_outlets(self):
         """
         Returns the outlet for each lake, not necessarily in ID order.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=False)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_outlets
+        AssertionError: Enable tracking to access information about lakes
+
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_outlets == [16, ]
+        True
         """
-        assert self._track_lakes
+        assert self._track_lakes, \
+            "Enable tracking to access information about lakes"
         return self._lakemappings.keys()
 
     @property
     def number_of_lakes(self):
         """
-        Return the number of individual lakes.
+        Return the number of individual lakes. Lakes sharing outlet nodes are
+        considered part of the same lake.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=False)
+        >>> lmb.run_one_step()
+        >>> lmb.number_of_lakes
+        AssertionError: Enable tracking to access information about lakes
+
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        ...                        fill_surface=z, fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.number_of_lakes
+        2
         """
-        assert self._track_lakes
+        assert self._track_lakes, \
+            "Enable tracking to access information about lakes"
         return len(self._lakemappings)
 
     @property
     def lake_map(self):
         """
         Return an array of ints, where each node within a lake is labelled
-        with its outlet node ID.
+        with its outlet node ID. The outlet nodes are NOT part of the lakes.
         Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE
         (default -1).
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=False)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_map
+        AssertionError: Enable tracking to access information about lakes
+
+        >>> z[:] = z_init
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lake_map = np.array([-1, -1, -1, -1, -1, -1,
+        ...                      -1,  8, -1, 16, -1, -1,
+        ...                      -1, -1, 16, 16, -1, -1,
+        ...                      -1, -1, -1, -1, 16, -1,
+        ...                      -1, -1, -1, -1, -1, -1])
+        >>> np.all(np.equal(lmb.lake_map, lake_map))
+        True
+
+        Note that the outlet node is NOT part of the lake.
+
+        Updating the elevations works fine:
+
+        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> lmb.run_one_step()
+        >>> new_lake_map = np.array([-1, -1, -1, -1, -1, -1,
+        ...                          -1, -1, 16, 16, -1, -1,
+        ...                          -1, -1, 16, 16, -1, -1,
+        ...                          -1, -1, 16, 16, -1, -1,
+        ...                          -1, -1, -1, -1, -1, -1])
+        >>> np.all(np.equal(lmb.lake_map, new_lake_map))
+        True
         """
         if self._runcount > self._lastcountforlakemap:
             # things have changed since last call to lake_map
@@ -904,27 +1097,136 @@ class LakeMapperBarnes(Component):
         else:
             pass  # old map is fine
         self._lastcountforlakemap = self._runcount
-        return self._lakemap
+        return self._lake_map
 
     @property
     def lake_at_node(self):
         """
         Return a boolean array, True if the node is flooded, False otherwise.
+        The outlet nodes are NOT part of the lakes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lake_at_node = np.array([False, False, False, False, False, False,
+        ...                          False,  True, False,  True, False, False,
+        ...                          False, False,  True,  True, False, False,
+        ...                          False, False, False, False,  True, False,
+        ...                          False, False, False, False, False, False],
+        ...                          dtype=bool)
+        >>> np.all(np.equal(lmb.lake_at_node, lake_at_node))
+        True
         """
         return self.lake_map != LOCAL_BAD_INDEX_VALUE
 
     @property
-    def fill_depth(self):
+    def lake_depths(self):
         """Return the change in surface elevation at each node this step.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_depths  # won't work as surface & fill_surface are both z
+        AssertionError: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
+
+        >>> z[:] = z_init
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+                                   surface=z_init,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lake_depths = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
+        ...                          0. ,  1. ,  0. ,  0.5,  0. ,  0. ,
+        ...                          0. ,  0. ,  0.4,  0.7,  0. ,  0. ,
+        ...                          0. ,  0. ,  0. ,  0. ,  0.1,  0. ,
+        ...                          0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
+        >>> np.all(np.equal(lmb.lake_depths,
+        ...                 lake_depths))  # slope applied, so...
+        False
+        >>> np.allclose(lmb.lke_depths, lake_depths)
+        True
         """
-        assert not self._inplace
+        assert not self._inplace, \
+            "surface and fill_surface must be different fields or arrays " + \
+            "to enable the property lake_depths!"
         return self._fill_surface - self._surface
 
     @property
     def lake_areas(self):
         """
         A nlakes-long array of the area of each lake. The order is the same as
-        that of the keys in lake_dict, and of lake_outlets.
+        that of the keys in lake_dict, and of lake_outlets. Note that outlet
+        nodes are not parts of the lakes.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=False)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_areas  # note track_lakes=False
+        AssertionError: Enable tracking to access information about lakes
+
+        >>> z[:] = z_init
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_outlets
+        [16, 8]
+        >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))
+        True
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
         for (i, (outlet, lakenodes)) in enumerate(
@@ -940,22 +1242,113 @@ class LakeMapperBarnes(Component):
         Note that this calculation is performed relative to the initial
         surface, so is only a true lake volume if the initial surface was the
         rock suface (not an earlier water level).
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_volumes  # won't work as surface & fill_surface are both z
+        AssertionError: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
+
+        >>> z[:] = z_init
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+                                   surface=z_init,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.lake_outlets
+        [16, 8]
+        >>> np.allclose(lmb.lake_volumes, np.array([ 1.7,  1. ]))
+        True
         """
-        assert not self._inplace
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
-        col_vols = self.grid.cell_area_at_node * self.fill_depth
+        col_vols = self.grid.cell_area_at_node * self.lake_depths
         for (i, (outlet, lakenodes)) in enumerate(
              self.lake_dict.iteritems()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 
+    @property
     def was_there_overfill(self):
         """
         If the ignore_overfill flag was set to True at instantiation, this
         property indicates if any depression in the grid has, at any point,
         been overfilled.
+
+        Examples
+        --------
+        >>> mg = RasterModelGrid((3, 7), 1.)
+        >>> for edge in ('top', 'right', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
+        ...                                 1.0000000000000004, 1.5]
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, ignore_overfill=False,
+        ...                        track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.was_there_overfill
+        AssertionError: was_there_overfill is only defined if filling to an inclined surface!
+
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, ignore_overfill=False,
+        ...                        track_lakes=True)
+        >>> lmb.run_one_step()
+        ValueError: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+
+        >>> z_init = z.copy()
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, ignore_overfill=True,
+        ...                        track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.was_there_overfill
+        True
+
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1., 1.5]
+        >>> lmb.run_one_step()
+        >>> lmb.was_there_overfill  # still true as was in the previous example
+        True
+
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1., 1.5]
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        ...                        route_flow_steepest_descent=False,
+        ...                        calc_slopes=False, ignore_overfill=True,
+        ...                        track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> lmb.was_there_overfill  # Now reset
+        False
+
+        >>> lmb.run_one_step()  # 2nd run on same fill_surface creates overfill
+        >>> lmb.was_there_overfill
+        True
+
+        Note however that in this last example, values have NOT changed.
         """
-        assert self._fill_flat is False
+        assert self._fill_flat is False, \
+            "was_there_overfill is only defined if filling to an " + \
+            "inclined surface!"
         return self._overfill_flag
 
 
