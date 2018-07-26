@@ -26,6 +26,8 @@ import itertools
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.
 
+# TODO: Needs to have rerouting functionality...
+
 
 class StablePriorityQueue():
     """
@@ -286,18 +288,22 @@ class LakeMapperBarnes(Component):
 
         # now, work out what constitutes a "surface" under various input opts:
         self._dontreroute = not route_flow_steepest_descent
-# NOTE: check the overlap with the rerouting method here.
-# do we have to still implicitly do the filling??
+
+        # NOTE: this component can't yet do this rerouting, so...
+        if route_flow_steepest_descent:
+            raise ValueError, "Component can't yet do rerouting, sorry..."
+        
         # check if we are modifying in place or not. This gets used to check
         # it makes sense to calculate various properties.
         self._inplace = surface is fill_surface
         # then
         self._surface = return_array_at_node(grid, surface)
         self._fill_surface = return_array_at_node(grid, fill_surface)
-# NOTE: buggy functionality of return_array_at_node here means component can't
-# yet handle arrays as opposed to fields...
+        
+        # NOTE: buggy functionality of return_array_at_node here means
+        # component can't yet handle arrays as opposed to fields...
+        # This will be resolved by a modification to return_array_at_node
 
-# NOTE: Build FR functionality
 
         self._fill_flat = fill_flat
         if fill_flat:
