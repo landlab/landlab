@@ -865,8 +865,8 @@ class LakeMapperBarnes(Component):
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='d8', fill_flat=True,
         ...                        track_lakes=True)
-        >>> lmb.run_one_step()  # note the 'd8' routing now
-        >>> lmb.lake_dict  == {22: deque([15, 9, 14])}
+        >>> lmb.run_one_step()  # note the d8 routing now
+        >>> lmb.lake_dict == {22: deque([15, 9, 14])}
         True
         >>> lmb.number_of_lakes
         1
