@@ -654,7 +654,7 @@ class LakeMapperBarnes(Component):
         >>> out == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
         >>> fr = FlowRouter(mg, method='D4')
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
         >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
@@ -688,7 +688,7 @@ class LakeMapperBarnes(Component):
         ...     lmb._closed, False, False)  # empty dict now
         {}
 
-        >>> _ = fr.route_flow()  # drains fine still, as above
+        >>> fr.run_one_step()  # drains fine still, as above
         >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
         True
 
@@ -840,7 +840,7 @@ class LakeMapperBarnes(Component):
         False
 
         >>> fr = FlowRouter(mg, method='D4')  # routing will work fine now
-        >>> _ = fr.route_flow()
+        >>> fr.run_one_step()
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
         >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,

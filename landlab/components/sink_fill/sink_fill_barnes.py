@@ -16,7 +16,6 @@ from landlab.components import LakeMapperBarnes
 from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
 from landlab.components.lake_fill.lake_fill_barnes import StablePriorityQueue
-from landlab.components import LakeMapperBarnes
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import CLOSED_BOUNDARY
@@ -35,8 +34,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
     optionally to very shallow gradient surfaces to allow continued draining.
 
     This component is NOT intended for use iteratively as a model runs;
-    rather, it is to fill in an initial topography. If you want to fill pits
-    as a landscape develops, you are after the LakeMapperBarnes component.
+    rather, it is to fill in an initial topography. If you want to repeatedly
+    fill pits as a landscape develops, you are after the SinkFillerBarnes
+    component.
 
     The locations and depths etc. of the fills will be tracked, and properties
     are provided to access this information.
@@ -63,11 +63,11 @@ class SinkFillerBarnes(LakeMapperBarnes):
         occurred.
     """
     def __init__(self, grid, surface='topographic__elevation',
-                 method='d8', fill_flat=True,
+                 method='d8', fill_flat=False,
                  ignore_overfill=False):
         # Most of the functionality of this component is directly inherited
-        # from LakeMapperBarnes, so
-        super().__init__(grid, surface=surface,
+        # from SinkFillerBarnes, so
+        super(SinkFillerBarnes, self).__init__(grid, surface=surface,
                      method=method, fill_flat=fill_flat,
                      fill_surface=surface,
                      route_flow_steepest_descent=False,
@@ -76,9 +76,114 @@ class SinkFillerBarnes(LakeMapperBarnes):
         # note we will always track the fills, since we're only doing this
         # once... Likewise, no need for flow routing; this is not going to
         # get used dynamically.
+        self._supplied_surface = return_array_at_node(grid, surface).copy()
 
     def run_one_step(self):
-        super().run_one_step()
+        """
+        Fills the surface to remove all pits.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab.components import SinkFillerBarnes, FlowRouter
+        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> z_init = z.copy()
+        >>> sfb = SinkFillerBarnes(mg, method='steepest')  #, surface=z
+
+        TODO: once return_array_at_node is fixed, this example should also
+        take surface... GIVE IT surface=z  !!
+
+        >>> sfb.run_one_step()
+        >>> z_out = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
+        ...                    0. ,  2.1,  1.5,  1.5,  1.6,  0. ,
+        ...                    0. ,  2. ,  1.5,  1.5,  1.5,  0. ,
+        ...                    0. ,  2.2,  1.5,  1.5,  1.7,  0. ,
+        ...                    0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
+        >>> # np.allclose(z, z_out)  ->  True once fixed
+        >>> np.all(np.equal(z, z_out))  # those 1.5's are actually a bit > 1.5
+        False
+        >>> fill_map = np.array([-1, -1, -1, -1, -1, -1,
+        ...                      -1, -1, 16, 16, -1, -1,
+        ...                      -1, -1, 16, 16, -1, -1,
+        ...                      -1, -1, 16, 16, -1, -1,
+        ...                      -1, -1, -1, -1, -1, -1])
+        >>> np.all(sfb.fill_map == fill_map)
+        True
+        >>> np.all(sfb.fill_at_node == (sfb.fill_map > -1))  # bool equivalent
+        True
+        >>> sfb.was_there_overfill  # everything fine with slope adding
+        False
+
+        >>> fr = FlowRouter(mg, method='D4')  # routing will work fine now
+        >>> fr.run_one_step()
+        >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
+        True
+        >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
+        ...                             0.,   1.,   2.,   3.,   1.,   1.,
+        ...                             0.,   1.,   4.,   9.,  10.,  10.,
+        ...                             0.,   1.,   2.,   1.,   1.,   1.,
+        ...                             0.,   0.,   0.,   0.,   0.,   0.])
+        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        True
+
+        Test two pits and a flat fill:
+
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own
+        >>> z[9] = 0.5
+        >>> z[15] = 0.3
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z_init = z.copy()
+        >>> sfb = SinkFillerBarnes(mg, method='steepest', fill_flat=True)
+        >>> sfb.run_one_step()
+        >>> sfb.fill_dict  == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        True
+        >>> sfb.number_of_fills
+        2
+        >>> sfb.fill_outlets == [16, 8]
+        True
+        >>> np.allclose(sfb.fill_areas, np.array([4., 1.]))  # same order
+        True
+
+        Unlike the LakeMapperBarnes equivalents, fill_depths and fill_volumes
+        are always available through this component:
+
+        >>> fill_depths = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
+        ...                          0. ,  1. ,  0. ,  0.5,  0. ,  0. ,
+        ...                          0. ,  0. ,  0.4,  0.7,  0. ,  0. ,
+        ...                          0. ,  0. ,  0. ,  0. ,  0.1,  0. ,
+        ...                          0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
+        >>> np.allclose(sfb.fill_depths, fill_depths)
+        True
+        >>> np.allclose(sfb.fill_volumes, np.array([1.7, 1.]))
+        True
+
+        Note that with a flat fill, we can't drain the surface. The surface
+        is completely flat, so each and every core node within the fill
+        becomes a sink.
+
+        >>> fr.run_one_step()
+        >>> where_is_filled = np.where(sfb.fill_map > -1, 1, 0)
+        >>> np.all(
+        ...     mg.at_node['flow__sink_flag'][mg.core_nodes] ==
+        ...     where_is_filled[mg.core_nodes])
+        True
+
+        (Note that the fill_map does not think that the perimeter nodes are
+        sinks, since they haven't changed elevation. In contrast, the
+        FlowRouter *does* think they are, because these nodes are where flow
+        terminates.)
+        """
+        super(SinkFillerBarnes, self).run_one_step()
 
     @property
     def fill_dict(self):
@@ -87,21 +192,21 @@ class SinkFillerBarnes(LakeMapperBarnes):
         area, and the values are deques of nodes within each. Items are not
         returned in ID order.
         """
-        return super().fill_dict
+        return super(SinkFillerBarnes, self).lake_dict
 
     @property
     def fill_outlets(self):
         """
         Returns the outlet for each filled area, not necessarily in ID order.
         """
-        return super().lake_outlets
+        return super(SinkFillerBarnes, self).lake_outlets
 
     @property
     def number_of_fills(self):
         """
         Return the number of individual filled areas.
         """
-        return super().number_of_lakes
+        return super(SinkFillerBarnes, self).number_of_lakes
 
     @property
     def fill_map(self):
@@ -111,20 +216,20 @@ class SinkFillerBarnes(LakeMapperBarnes):
         Nodes not in a filled area are labelled with LOCAL_BAD_INDEX_VALUE
         (default -1).
         """
-        return super().lake_map
+        return super(SinkFillerBarnes, self).lake_map
 
     @property
     def fill_at_node(self):
         """
         Return a boolean array, True if the node is filled, False otherwise.
         """
-        return super().lake_at_node
+        return super(SinkFillerBarnes, self).lake_at_node
 
     @property
-    def fill_depth(self):
+    def fill_depths(self):
         """Return the change in surface elevation at each node this step.
         """
-        return super().lake_depth
+        return self._surface - self._supplied_surface
 
     @property
     def fill_areas(self):
@@ -132,7 +237,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         A nlakes-long array of the area of each fill. The order is the same as
         that of the keys in fill_dict, and of fill_outlets.
         """
-        return super().lake_areas
+        return super(SinkFillerBarnes, self).lake_areas
 
     @property
     def fill_volumes(self):
@@ -140,191 +245,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
         A nlakes-long array of the volume of each fill. The order is the same
         as that of the keys in fill_dict, and of fill_outlets.
         """
-        return super().lake_volumes
-
-
-
-
-
-
-#         """
-#         Examples
-#         --------
-#         >>> import numpy as np
-#         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-#         >>> # from landlab.components import LakeMapperBarnes
-#         >>> mg = RasterModelGrid((5, 6), 1.)
-#         >>> for edge in ('left', 'top', 'bottom'):
-#         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-#         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
-#         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
-#         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-#         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-#         >>> z_init = z.copy()
-#         >>> lmb = LakeMapperBarnes(mg, method='steepest')
-#         """
-#         self._grid = grid
-#         self._open = StablePriorityQueue()
-#         self._pit = []
-#         self._closed = self.grid.zeros('node', dtype=bool)
-#         self._gridclosednodes = self.grid.status_at_node == CLOSED_BOUNDARY
-#         gridopennodes = np.logical_not(self._gridclosednodes)
-#         # close up the CLOSED_BOUNDARY permanently:
-#         self._closed[self._gridclosednodes] = True
-# 
-#         # this component maintains its own internal count of how often it has
-#         # been called. This is to enable "cheap" data access of the various
-#         # available data structures without needless recalculation
-#         self._runcounter = itertools.count()
-#         self._runcount = -1  # not yet run
-#         self._lastcountforlakemap = -1  # lake_map has not yet been called
-#         self._trackingcounter = itertools.count()  # sequ counter if tracking
-#         self._trackercount = -1  # tracking calls not yet run
-#         self._lastcountfortracker = -1
-#         self._ignore_overfill = ignore_overfill
-# 
-#         # get the neighbour call set up:
-#         assert method in {'steepest', 'd8'}
-#         if method == 'd8':
-#             try:
-#                 self._allneighbors = self.grid.d8s_at_node
-#             except AttributeError:
-#                 self._allneighbors = self.grid.adjacent_nodes_at_node
-#         else:
-#             self._allneighbors = self.grid.adjacent_nodes_at_node
-# 
-#         # A key difference from the "pure" Barnes algorithm for LL is that
-#         # we must'n flood from all the edges. Instead, we can only flood from
-#         # a true grid edge, i.e., only the FIXED boundary types. (Both
-#         # CLOSED and LOOPED assume flow either can't get out there, or at
-#         # least, there's more land in that direction that will be handled
-#         # otherwise.) Note we'l add a test that there is at least some kind
-#         # of outlet!!
-#         self._edges = np.where(np.logical_or(
-#             self.grid.status_at_node == FIXED_VALUE_BOUNDARY,
-#             self.grid.status_at_node == FIXED_GRADIENT_BOUNDARY))[0]
-#         if self._edges.size == 0:
-#             raise ValueError(
-#                 'No valid outlets found on the grid! You cannot run the ' +
-#                 'filling algorithms!')
-#         # and finally, close these up permanently as well (edges will always
-#         # be edges...)
-#         self._closed[self._edges] = True
-# 
-#         # now, work out what constitutes a "surface" under various input opts:
-#         self._dontreroute = not route_flow_steepest_descent
-# # NOTE: check the overlap with the rerouting method here.
-# # do we have to still implicitly do the filling??
-#         # check if we are modifying in place or not:
-#         self._inplace = surface is fill_surface
-#         # then
-#         self._surface = return_array_at_node(grid, surface)
-#         self._fill_surface = return_array_at_node(grid, surface)
-#         if fill_flat:
-#             self._fill_one_node = self._fill_one_node_to_flat
-#         else:
-#             self._fill_one_node = self._fill_one_node_to_slant
-#         if track_filled_nodes:
-#             self._tracking_fill = True
-#             self._orig_surface = self._surface.copy()
-#             self._lakefiller = LakeMapperBarnes(
-#                 grid, surface=self._orig_surface, method=method, fill=True,
-#                 fill_flat=fill_flat, fill_surface=surface,
-#                 route_flow_steepest_descent=route_flow_steepest_descent,
-#                 calc_slopes=calc_slopes, ignore_overfill=ignore_overfill)
-#         else:
-#             self._tracking_fill = False
-# 
-#     def run_one_step(self):
-#         "Fills the surface to remove all pits."
-#         if self._tracking_fill:
-#             self._lakefiller.run_one_step()
-#         else:
-#             # increment the run count
-#             self._runcount = next(self._runcounter)
-#             # First get _fill_surface in order.
-#             self._fill_surface[:] = self._surface  # surfaces begin identical
-#             # note this is nice & efficent if _fill_surface is _surface
-#             # now, return _closed to its initial cond, w only the
-#             # CLOSED_BOUNDARY and grid draining nodes pre-closed:
-#             closedq = self._closed.copy()
-#             if self._dontreroute:  # i.e. algos 2 & 3
-#                 for edgenode in self._edges:
-#                     self._open.add_task(
-#                         edgenode, priority=self._surface[edgenode])
-#                 self._closed[self._edges] = True
-#                 while True:
-#                     try:
-#                         self._fill_one_node(self.grid, )
-#                     except KeyError:  # run out of nodes to fill...
-#                         break
-
-    # @property
-    # def fill_dict(self):
-    #     """
-    #     Return a dictionary where the keys are the outlet nodes of each filled
-    #     area, and the values are deques of nodes within each. Items are not
-    #     returned in ID order.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.lake_dict
-    # 
-    # @property
-    # def fill_outlets(self):
-    #     """
-    #     Returns the outlet for each filled area, not necessarily in ID order.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.lake_outlets
-    # 
-    # @property
-    # def number_of_fills(self):
-    #     """
-    #     Return the number of individual filled areas.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.number_of_lakes
-    # 
-    # @property
-    # def fill_map(self):
-    #     """
-    #     Return an array of ints, where each filled node is labelled
-    #     with its outlet node ID.
-    #     Nodes not in a filled area are labelled with LOCAL_BAD_INDEX_VALUE
-    #     (default -1).
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.lake_map
-    # 
-    # @property
-    # def fill_at_node(self):
-    #     """
-    #     Return a boolean array, True if the node is filled, False otherwise.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.lake_at_node
-    # 
-    # @property
-    # def fill_depth(self):
-    #     """Return the change in surface elevation at each node this step.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.fill_depth
-    # 
-    # @property
-    # def fill_areas(self):
-    #     """
-    #     A nlakes-long array of the area of each fill. The order is the same as
-    #     that of the keys in fill_dict, and of fill_outlets.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.lake_areas
-    # 
-    # @property
-    # def fill_volumes(self):
-    #     """
-    #     A nlakes-long array of the volume of each fill. The order is the same
-    #     as that of the keys in fill_dict, and of fill_outlets.
-    #     """
-    #     assert self._tracking_fill
-    #     return self._lakefiller.lake_volumes
+        fill_vols = np.empty(self.number_of_fills, dtype=float)
+        col_vols = self.grid.cell_area_at_node * self.fill_depths
+        for (i, (outlet, fillnodes)) in enumerate(
+             self.fill_dict.iteritems()):
+            fill_vols[i] = col_vols[fillnodes].sum()
+        return fill_vols
