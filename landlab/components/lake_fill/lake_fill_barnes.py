@@ -264,8 +264,10 @@ class LakeMapperBarnes(Component):
         assert method in {'steepest', 'd8', 'D8'}
         if method in ('d8', 'D8'):
             try:
-                self._allneighbors = self.grid.d8s_at_node
-            except AttributeError:
+                self._allneighbors = np.concatenate(
+                    (self.grid.adjacent_nodes_at_node,
+                     self.grid.diagonal_adjacent_nodes_at_node), axis=1)
+            except AttributeError:  # not a raster
                 self._allneighbors = self.grid.adjacent_nodes_at_node
         else:
             self._allneighbors = self.grid.adjacent_nodes_at_node
@@ -804,7 +806,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes, FlowRouter
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6), 2.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -844,9 +846,9 @@ class LakeMapperBarnes(Component):
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
         >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
-        ...                             0.,   1.,   2.,   3.,   1.,   1.,
-        ...                             0.,   1.,   4.,   9.,  10.,  10.,
-        ...                             0.,   1.,   2.,   1.,   1.,   1.,
+        ...                             0.,   4.,   8.,  12.,   4.,   4.,
+        ...                             0.,   4.,  16.,  36.,  40.,  40.,
+        ...                             0.,   4.,   8.,   4.,   4.,   4.,
         ...                             0.,   0.,   0.,   0.,   0.,   0.])
         >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
         True
@@ -855,19 +857,19 @@ class LakeMapperBarnes(Component):
 
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
-        >>> z[7] = 2.  # is a lake on its own
+        >>> z[7] = 2.  # is a lake on its own, if d8
         >>> z[9] = 0.5
         >>> z[15] = 0.3
-        >>> z[14] = 0.6  # [9, 14, 15] is a lake
-        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake in both methods
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if d8
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
+        >>> lmb = LakeMapperBarnes(mg, method='d8', fill_flat=True,
         ...                        track_lakes=True)
-        >>> lmb.run_one_step()
-        >>> lmb.lake_dict  == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> lmb.run_one_step()  # note the 'd8' routing now
+        >>> lmb.lake_dict  == {22: deque([15, 9, 14])}
         True
         >>> lmb.number_of_lakes
-        2
+        1
         >>> try:
         ...     lmb.lake_depths  # z was both surface and 'fill_surface'
         ... except AssertionError:
@@ -879,10 +881,12 @@ class LakeMapperBarnes(Component):
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest',
         ...                        fill_flat=False, track_lakes=True)
-        >>> lmb.run_one_step()
+        >>> lmb.run_one_step()  # compare to the method='d8' lakes, above...
         >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
-        >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))
+        >>> lmb.number_of_lakes
+        2
+        >>> np.allclose(lmb.lake_areas, np.array([ 16.,  4.]))
         True
         >>> try:
         ...     lmb.run_one_step()  # z already filled, so...
@@ -904,8 +908,36 @@ class LakeMapperBarnes(Component):
         >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
         >>> lmb.run_one_step()
-        >>> np.allclose(lmb.lake_areas, np.array([ 4.,  1.]))  # found them!
+        >>> np.allclose(lmb.lake_areas, np.array([ 16.,  4.]))  # found them!
         True
+
+        The component is completely happy with irregular grids:
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4, dx=2.)
+        >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z_hex[:] = hmg.node_x
+        >>> z_hex[11] = -3.
+        >>> z_hex[12] = -1.  # middle nodes become a pit
+        >>> z_hex_init = z_hex.copy()
+        >>> lmb = LakeMapperBarnes(hmg, fill_flat=True, track_lakes=False)
+        >>> lmb.run_one_step()
+        >>> np.allclose(z_hex[10:13], 0.)
+        True
+        >>> z_hex[:] = z_hex_init
+        >>> lmb = LakeMapperBarnes(hmg, fill_flat=False, surface=z_hex_init,
+        ...                        track_lakes=True)
+        >>> lmb.run_one_step()
+        >>> np.allclose(z_hex[10:13], 0.)
+        True
+        >>> z_hex[11] > z_hex[10]
+        True
+        >>> z_hex[12] > z_hex[11]
+        True
+        >>> np.allclose(lmb.lake_depths[10:14], np.array([ 0.,  3.,  1.,  0.]))
+        True
+        >>> np.round(lmb.lake_volumes, 4)
+        array([ 13.8564])
         """
         # do the prep:
         # increment the run counter
