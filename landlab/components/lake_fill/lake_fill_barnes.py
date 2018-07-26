@@ -251,9 +251,6 @@ class LakeMapperBarnes(Component):
         self._runcounter = itertools.count()
         self._runcount = -1  # not yet run
         self._lastcountforlakemap = -1  # lake_map has not yet been called
-        self._trackingcounter = itertools.count()  # sequ counter if tracking
-        self._trackercount = -1  # tracking calls not yet run
-        self._lastcountfortracker = -1
         self._PitTop = LARGE_ELEV  # variable to not overfill slanted surfaces
         self._ignore_overfill = ignore_overfill
         self._overfill_flag = False
@@ -301,7 +298,6 @@ class LakeMapperBarnes(Component):
 # yet handle arrays as opposed to fields...
 
 # NOTE: Build FR functionality
-# NOTE: check properties do the checks they need to
 
         self._fill_flat = fill_flat
         if fill_flat:
@@ -870,6 +866,7 @@ class LakeMapperBarnes(Component):
         and the values are deques of nodes within each lake. Items are not
         returned in ID order.
         """
+        assert self._track_lakes
         return self._lakemappings
 
 # NOTE: need additional counter on the tracking mechanism to ensure that's getting run, else _lakemappings could be wrong or out-of-date
@@ -879,6 +876,7 @@ class LakeMapperBarnes(Component):
         """
         Returns the outlet for each lake, not necessarily in ID order.
         """
+        assert self._track_lakes
         return self._lakemappings.keys()
 
     @property
@@ -886,6 +884,7 @@ class LakeMapperBarnes(Component):
         """
         Return the number of individual lakes.
         """
+        assert self._track_lakes
         return len(self._lakemappings)
 
     @property
@@ -956,6 +955,7 @@ class LakeMapperBarnes(Component):
         property indicates if any depression in the grid has, at any point,
         been overfilled.
         """
+        assert self._fill_flat is False
         return self._overfill_flag
 
 
