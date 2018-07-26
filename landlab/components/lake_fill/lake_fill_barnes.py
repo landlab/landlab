@@ -596,7 +596,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -782,7 +782,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -921,7 +921,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -961,7 +961,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1000,7 +1000,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1045,7 +1045,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1115,7 +1115,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1151,7 +1151,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1204,7 +1204,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1253,7 +1253,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> # from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowRouter
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
