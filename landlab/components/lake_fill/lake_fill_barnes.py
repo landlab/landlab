@@ -847,14 +847,14 @@ class LakeMapperBarnes(Component):
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z_new = mg.add_zeros('node', 'topographic__fill', dtype=float)
         >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
-                                   fill_surface='topographic__fill',
+        ...                        fill_surface='topographic__fill',
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> orig_surf = lmb._track_original_surface()
         >>> surface is orig_surf
         True
         >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
-                                   fill_surface='topographic__elevation',
+        ...                        fill_surface='topographic__elevation',
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> orig_surf = lmb._track_original_surface()
@@ -905,28 +905,6 @@ class LakeMapperBarnes(Component):
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
         ...                        redirect_flow_steepest_descent=True,
         ...                        track_lakes=True)
-
-
-        >>> lake_dict = {8: deque([7]), 16: deque([15, 9, 14, 22])}
-        >>> fd.run_one_step()  # fill the director fields
-        >>> fa.run_one_step()  # get a drainage_area
-        >>> np.alltrue(mg.at_node['flow__sink_flag'][[7, 15, 22]])  # sinks
-        True
-        >>> nodes_in_lakes = np.array([7, 9, 14, 15, 22])
-        >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
-        >>> receivers_init = mg.at_node['flow__receiver_node'].copy()
-        >>> rec_links_init = mg.at_node['flow__link_to_receiver_node'].copy()
-        >>> steepest_init = mg.at_node['topographic__steepest_slope'].copy()
-        >>> drainage_area = mg.at_node['drainage_area'].copy()
-        >>> orig_surf = lmb._track_original_surface()
-        >>> outlets = np.where(mg.status_at_node == FIXED_VALUE_BOUNDARY)
-        >>> drainage_area[outlets].sum() == mg.cell_area_at_node[
-        ...     mg.core_nodes].sum()
-        >>> lmb._redirect_flowdirs(orig_surf, lake_dict)
-        
-        
-
-
 
         In this test, we won't run the lmb. Instead, directly specify the
         correct answer:
