@@ -851,14 +851,14 @@ class LakeMapperBarnes(Component):
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> orig_surf = lmb._track_original_surface()
-        >>> surface is orig_surf
+        >>> z is orig_surf
         True
         >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
         ...                        fill_surface='topographic__elevation',
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> orig_surf = lmb._track_original_surface()
-        >>> surface is orig_surf
+        >>> z is orig_surf
         False
         """
         if self._inplace:
@@ -914,7 +914,7 @@ class LakeMapperBarnes(Component):
         >>> fa.run_one_step()  # get a drainage_area
         >>> np.alltrue(mg.at_node['flow__sink_flag'][[7, 15, 22]])  # sinks
         True
-        >>> nodes_in_lakes = np.array([7, 9, 14, 15, 22])
+        >>> nodes_in_lakes = np.array([7, 8, 9, 14, 15, 16, 22])
         >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
 
         Now save the info we already have on the Flow fields:
@@ -1006,8 +1006,9 @@ class LakeMapperBarnes(Component):
                     out_elev = min_val
             self._receivers[min_neighbor] = outlet
             self._receiverlinks[min_neighbor] = min_link
-            self._steepestslopes[min_neighbor] = ((surface[outlet] -
-                surface[min_neighbor]) / self.grid.length_of_d8[min_link])
+            self._steepestslopes[min_neighbor] = (
+                (surface[outlet] - surface[min_neighbor]) /
+                self.grid.length_of_d8[min_link])
 
             while True:
                 try:
@@ -1025,7 +1026,6 @@ class LakeMapperBarnes(Component):
                             elif n == -1:
                                 continue
                             else:
-                                print(c, n)
                                 self._receivers[n] = c
                                 self._receiverlinks[n] = l
                                 self._steepestslopes[n] = 0.

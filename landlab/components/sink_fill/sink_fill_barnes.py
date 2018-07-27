@@ -70,8 +70,8 @@ class SinkFillerBarnes(LakeMapperBarnes):
         super(SinkFillerBarnes, self).__init__(grid, surface=surface,
                      method=method, fill_flat=fill_flat,
                      fill_surface=surface,
-                     route_flow_steepest_descent=False,
-                     calc_slopes=False, ignore_overfill=ignore_overfill,
+                     redirect_flow_steepest_descent=False,
+                     ignore_overfill=ignore_overfill,
                      track_lakes=True)
         # note we will always track the fills, since we're only doing this
         # once... Likewise, no need for flow routing; this is not going to
