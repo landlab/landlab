@@ -8,7 +8,7 @@ Fill sinks in a landscape to the brim, following the Barnes et al. (2014) algos.
 
 from __future__ import print_function
 
-import warnings
+from warnings import warn
 
 from landlab import FieldError, Component, BAD_INDEX_VALUE
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
@@ -17,6 +17,9 @@ from landlab.core.messages import warning_message
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import CLOSED_BOUNDARY
+from landlab.components import FlowDirectorSteepest
+# ^ this simply in case Katy updates to add more fields, that we would also
+# need to update...
 from collections import deque
 import six
 import numpy as np
@@ -198,12 +201,20 @@ class LakeMapperBarnes(Component):
         Note that the component will overwrite fill_surface if it exists; to
         supply an existing water level to it, supply that water level field as
         surface, not fill_surface.
-    route_flow_steepest_descent : bool
-        If True, the component outputs the 'flow__receiver_node' and
-        'flow__link_to_receiver_node' fields.
-    calc_slopes : bool
-        For direct comparison with the flow_director components, if True, the
-        component outputs the 'topographic__steepest_slope' field.
+    redirect_flow_steepest_descent : bool
+        If True, the component outputs modified versions of the
+        'flow__receiver_node', 'flow__link_to_receiver_node',
+        'flow__sink_flag', and 'topographic__steepest_slope' fields. These
+        are the fields output by the FlowDirector components, so set to
+        True if you wish to pass this LakeFiller to the FlowAccumulator,
+        or if you wish to work directly with the new, correct flow directions
+        and slopes without rerunning these components on your new surface.
+        Ensure the necessary fields already exist, and have already been
+        calculated by a FlowDirector! This also means you need to instantiate
+        your FlowDirector **before** you instantiate the LakeFillerBarnes.
+        Note that the new topographic__steepest_slope will always be set to
+        zero, even if fill_flat=False (i.e., there is actually a miniscule
+        gradient on the new topography, which gets ignored).
     ignore_overfill : bool
         If True, suppresses the Error that would normally be raised during
         creation of a gentle incline on a fill surface (i.e., if not
@@ -220,8 +231,8 @@ class LakeMapperBarnes(Component):
     def __init__(self, grid, surface='topographic__elevation',
                  method='d8', fill_flat=True,
                  fill_surface='topographic__elevation',
-                 route_flow_steepest_descent=False,
-                 calc_slopes=False, ignore_overfill=False, track_lakes=True):
+                 redirect_flow_steepest_descent=False,
+                 ignore_overfill=False, track_lakes=True):
         """
         Examples
         --------
@@ -237,8 +248,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest',
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False)
+        ...                        redirect_flow_steepest_descent=False)
         """
         self._grid = grid
         self._open = StablePriorityQueue()
@@ -289,25 +299,55 @@ class LakeMapperBarnes(Component):
         # and finally, close these up permanently as well (edges will always
         # be edges...)
         self._closed[self._edges] = True
+        # ...note there's a slight of hand here, Because of the ordering of LL
+        # grids, the last node will always be a boundary node, even for very
+        # odd Voronois. This enables us to treat out -1s in the neighbour
+        # arrays as always True. But, just in case...
+        assert self._closed[-1] == True
 
-        # now, work out what constitutes a "surface" under various input opts:
-        self._dontreroute = not route_flow_steepest_descent
-
-        # NOTE: this component can't yet do this rerouting, so...
-        if route_flow_steepest_descent:
-            raise ValueError("Component can't yet do rerouting, sorry...")
-        
         # check if we are modifying in place or not. This gets used to check
         # it makes sense to calculate various properties.
         self._inplace = surface is fill_surface
         # then
         self._surface = return_array_at_node(grid, surface)
         self._fill_surface = return_array_at_node(grid, fill_surface)
-        
+
         # NOTE: buggy functionality of return_array_at_node here means
         # component can't yet handle arrays as opposed to fields...
         # This will be resolved by a modification to return_array_at_node
 
+        # now, work out what constitutes a "surface" under various input opts:
+        self._dontredirect = not redirect_flow_steepest_descent
+
+        if redirect_flow_steepest_descent:
+            # this routine only permitted if we store the lake info, so
+            assert track_lakes, "You must track_lakes to redirect the flow!"
+            # Check we have the necessary fields already existing.
+            # These will raise FieldErrors if they don't.
+            # This will cause a bunch of our tests to break, so users will
+            # never see this.
+            assert len(FlowDirectorSteepest.output_var_names)  == 4
+            self._receivers = self.grid.at_node['flow__receiver_node']
+            assert len(self._receivers.shape) == 1, \
+                'The LakeFillerBarnes does not yet work with one-to-many ' + \
+                'flow directing schemes!'
+            self._receiverlinks = self.grid.at_node[
+                'flow__link_to_receiver_node']
+            self._sinkflags = self.grid.at_node['flow__sink_flag']
+            self._steepestslopes = self.grid.at_node[
+                'topographic__steepest_slope']
+            # if raster, do the neighbors & diagonals separate when rerouting
+            # so we'll need to pull these separately:
+            try:
+                self._neighbor_arrays = (
+                    self.grid.adjacent_nodes_at_node,
+                    self.grid.diagonal_adjacent_nodes_at_node)
+                self._link_arrays = (
+                    self.grid.links_at_node,
+                    self.grid.d8s_at_node[:, 4:])
+            except AttributeError:  # this wasn't a raster
+                self._neighbor_arrays = (self.grid.adjacent_nodes_at_node, )
+                self._link_arrays = (self.grid.links_at_node, )
 
         self._fill_flat = fill_flat
         if fill_flat:
@@ -791,6 +831,232 @@ class LakeMapperBarnes(Component):
                     openq.add_task(n, priority=fill_surface[n])
         return lakemappings
 
+    def _track_original_surface(self):
+        """
+        This helper method ensures that if flow is to be redircted, the
+        _redirect_flowdirs() method can still get access to this information
+        when it needs it. The idea here is that the operation is essentially
+        free when surface and fill_surface were different to start with,
+        which should make us faster.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import LakeMapperBarnes
+        >>> mg = RasterModelGrid((5, 6), 2.)
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z_new = mg.add_zeros('node', 'topographic__fill', dtype=float)
+        >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
+                                   fill_surface='topographic__fill',
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
+        >>> orig_surf = lmb._track_original_surface()
+        >>> surface is orig_surf
+        True
+        >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
+                                   fill_surface='topographic__elevation',
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
+        >>> orig_surf = lmb._track_original_surface()
+        >>> surface is orig_surf
+        False
+        """
+        if self._inplace:
+            orig_surf = self._surface.copy()
+        else:
+            orig_surf = self._surface
+        return orig_surf
+
+    def _redirect_flowdirs(self, surface, lake_dict):
+        """
+        For nodes within lakes that have already been defined, modifies
+        existing FlowDirector fields to account for the lake filling, viz.
+        'flow__receiver_node', 'flow__link_to_receiver_node',
+        'flow__sink_flag', and 'topographic__steepest_slope'.
+
+        Note that the topographic__steepest_slope of a lake node will always
+        be exactly 0., even if fill_flat is False.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from collections import deque
+        >>> from landlab import RasterModelGrid
+        >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+        >>> from landlab.components import LakeMapperBarnes
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> from landlab.components import FlowAccumulator
+        >>> mg = RasterModelGrid((5, 6), 2.)
+        >>> for edge in ('left', 'top', 'bottom'):
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z[:] = mg.node_x.max() - mg.node_x
+        >>> z[23] = 1.3
+        >>> z[15] = 0.3
+        >>> z[10] = 1.3  # raise "guard" exit nodes
+        >>> z[7] = 2.  # is a lake on its own, if d8
+        >>> z[9] = 0.5
+        >>> z[14] = 0.6  # [9, 14, 15] is a lake in both methods
+        >>> z[16] = 1.2
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if d8
+        >>> z_init = z.copy()
+        >>> fd = FlowDirectorSteepest(mg)
+        >>> fa = FlowAccumulator(mg)
+        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
+        ...                        redirect_flow_steepest_descent=True,
+        ...                        track_lakes=True)
+
+
+        >>> lake_dict = {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> fd.run_one_step()  # fill the director fields
+        >>> fa.run_one_step()  # get a drainage_area
+        >>> np.alltrue(mg.at_node['flow__sink_flag'][[7, 15, 22]])  # sinks
+        True
+        >>> nodes_in_lakes = np.array([7, 9, 14, 15, 22])
+        >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
+        >>> receivers_init = mg.at_node['flow__receiver_node'].copy()
+        >>> rec_links_init = mg.at_node['flow__link_to_receiver_node'].copy()
+        >>> steepest_init = mg.at_node['topographic__steepest_slope'].copy()
+        >>> drainage_area = mg.at_node['drainage_area'].copy()
+        >>> orig_surf = lmb._track_original_surface()
+        >>> outlets = np.where(mg.status_at_node == FIXED_VALUE_BOUNDARY)
+        >>> drainage_area[outlets].sum() == mg.cell_area_at_node[
+        ...     mg.core_nodes].sum()
+        >>> lmb._redirect_flowdirs(orig_surf, lake_dict)
+        
+        
+
+
+
+        In this test, we won't run the lmb. Instead, directly specify the
+        correct answer:
+
+        >>> lake_dict = {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> fd.run_one_step()  # fill the director fields
+        >>> fa.run_one_step()  # get a drainage_area
+        >>> np.alltrue(mg.at_node['flow__sink_flag'][[7, 15, 22]])  # sinks
+        True
+        >>> nodes_in_lakes = np.array([7, 9, 14, 15, 22])
+        >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
+
+        Now save the info we already have on the Flow fields:
+
+        >>> receivers_init = mg.at_node['flow__receiver_node'].copy()
+        >>> rec_links_init = mg.at_node['flow__link_to_receiver_node'].copy()
+        >>> steepest_init = mg.at_node['topographic__steepest_slope'].copy()
+        >>> drainage_area = mg.at_node['drainage_area'].copy()
+        >>> orig_surf = lmb._track_original_surface()
+
+        Note flow doesn't make it to the outlets:
+
+        >>> outlets = np.where(mg.status_at_node == FIXED_VALUE_BOUNDARY)
+        >>> drainage_area[outlets].sum() == mg.cell_area_at_node[
+        ...     mg.core_nodes].sum()
+        False
+
+        Now, run the method:
+
+        >>> lmb._redirect_flowdirs(orig_surf, lake_dict)
+
+        Now, we haven't touched the nodes outside the lakes:
+
+        >>> np.all(np.equal(receivers_init[nodes_not_in_lakes],
+        ...                 mg.at_node['flow__receiver_node'][
+        ...                     nodes_not_in_lakes]))
+        True
+        >>> np.all(np.equal(rec_links_init[nodes_not_in_lakes],
+        ...     mg.at_node['flow__links_to_receiver_node'][
+        ...         nodes_not_in_lakes]))
+        True
+        >>> np.all(np.equal(steepest_init[nodes_not_in_lakes],
+        ...     mg.at_node['topographic__steepest_slope'][nodes_not_in_lakes]))
+        True
+
+        ...but the ones inside have been rewired to new patterns:
+        >>> np.all(np.equal(receivers_init[nodes_in_lakes],
+        ...                 mg.at_node['flow__receiver_node'][nodes_in_lakes]))
+        False
+        >>> np.all(np.equal(rec_links_init[nodes_in_lakes],
+        ...     mg.at_node['flow__links_to_receiver_node'][nodes_in_lakes]))
+        False
+        >>> np.all(np.equal(steepest_init[nodes_in_lakes],
+        ...     mg.at_node['topographic__steepest_slope'][nodes_in_lakes]))
+        False
+
+        There are now no pits:
+
+        >>> np.any(mg.at_node['flow__sink_flag'][[7, 15, 22]])
+        False
+
+        ... and the lake nodes now flow out:
+
+        >>> mg.at_node['flow__receiver_node'][lake_dict[16]]
+        array([16, 16, 15, 16])
+        >>> mg.at_node['flow__receiver_node'][lake_dict[8]]
+        array([8])
+        """
+        openq = self._open
+        closedq = self.grid.ones('node', dtype=bool)
+        # start as True everywhere & open as needed, lake by lake.
+        assert len(openq.nodes_currently_in_queue()) == 0
+
+        # now the actual loop. Work forward lake by lake to avoid unnecessary
+        # processing (nodes outside lakes are already correct, by definition).
+        for (outlet, lakenodes) in lake_dict.items():
+            # open the lake:
+            closedq[lakenodes] = False
+            openq.add_task(outlet, priority=surface[outlet])
+            # it's possible the outlet used to drain *into* the lake,
+            # so it needs separate consideration:
+            out_elev = LARGE_ELEV
+            for neighbor_set, link_set in zip(
+                    self._neighbor_arrays, self._link_arrays):
+                not_lake_neighbors = np.equal(
+                    closedq[neighbor_set[outlet]], True)
+                minusones = np.equal(neighbor_set[outlet], -1)
+                not_lake_neighbors[minusones] = False
+                try:
+                    min_val = np.amin(
+                        surface[neighbor_set[outlet][not_lake_neighbors]])
+                except ValueError:
+                    continue
+                if min_val < out_elev:
+                    min_neighbor_byTrue = np.argmin(
+                        surface[neighbor_set[outlet][not_lake_neighbors]])
+                    min_neighbor = neighbor_set[outlet][min_neighbor_byTrue]
+                    min_link = link_set[outlet][min_neighbor_byTrue]
+                    out_elev = min_val
+            self._receivers[min_neighbor] = outlet
+            self._receiverlinks[min_neighbor] = min_link
+            self._steepestslopes[min_neighbor] = ((surface[outlet] -
+                surface[min_neighbor]) / self.grid.length_of_d8[min_link])
+
+            while True:
+                try:
+                    c = openq.pop_task()
+                except KeyError:
+                    break
+                else:
+                    closedq[c] = True
+                    # if raster, do the neighbors & diagonals separate...
+                    for neighbor_set, link_set in zip(
+                            self._neighbor_arrays, self._link_arrays):
+                        for (n, l) in zip(neighbor_set[c, :], link_set[c, :]):
+                            if closedq[n]:
+                                continue
+                            elif n == -1:
+                                continue
+                            else:
+                                print(c, n)
+                                self._receivers[n] = c
+                                self._receiverlinks[n] = l
+                                self._steepestslopes[n] = 0.
+                                closedq[n] = True
+                                openq.add_task(n, priority=surface[n])
+            # closedq[lakenodes] = True  # seal up the lake again
+        # by the time we get here, we've removed all the pits! So...
+        self._sinkflags[self.grid.core_nodes] = 0
+
     def run_one_step(self):
         """
         Fills the surface to fill all pits. Note that a second run on a
@@ -816,8 +1082,8 @@ class LakeMapperBarnes(Component):
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=False)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
 
         TODO: once return_array_at_node is fixed, this example should also
         take fill_surface...
@@ -947,6 +1213,10 @@ class LakeMapperBarnes(Component):
         # First get _fill_surface in order.
         self._fill_surface[:] = self._surface  # surfaces begin identical
         # note this is nice & efficent if _fill_surface is _surface
+        # if we're doing a redirect, we're going to need to preserve this
+        # initial topo, so let's do that:
+        if not self._dontredirect:
+            orig_topo = self._track_original_surface()
         # now, return _closed to its initial cond, w only the CLOSED_BOUNDARY
         # and grid draining nodes pre-closed:
         closedq = self._closed.copy()
@@ -967,20 +1237,23 @@ class LakeMapperBarnes(Component):
                         self._open, closedq,
                         ignore_overfill=self._ignore_overfill,
                         track_lakes=True))
+            if not self._dontredirect:
+                self._redirect_flowdirs(orig_surface, self._lakemappings)
 
         else:  # not tracked
-            if self._dontreroute:  # i.e. algos 2 & 3
-                for edgenode in self._edges:
-                    self._open.add_task(edgenode,
-                                        priority=self._surface[edgenode])
-                closedq[self._edges] = True
-                while True:
-                    try:
-                        self._fill_one_node(
-                            self._fill_surface, self._allneighbors, self._pit,
-                            self._open, closedq, self._ignore_overfill)
-                    except KeyError:  # run out of nodes to fill...
-                        break
+            # note we've already checked _dontredirect is True in setup,
+            # so we don't need to worry about these cases.
+            for edgenode in self._edges:
+                self._open.add_task(edgenode,
+                                    priority=self._surface[edgenode])
+            closedq[self._edges] = True
+            while True:
+                try:
+                    self._fill_one_node(
+                        self._fill_surface, self._allneighbors, self._pit,
+                        self._open, closedq, self._ignore_overfill)
+                except KeyError:  # run out of nodes to fill...
+                    break
 
     @property
     def lake_dict(self):
@@ -1004,8 +1277,8 @@ class LakeMapperBarnes(Component):
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=False)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_dict
@@ -1016,8 +1289,8 @@ class LakeMapperBarnes(Component):
 
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.lake_dict == {16: deque([15, 9, 8, 14, 20, 21])}
         True
@@ -1048,8 +1321,8 @@ class LakeMapperBarnes(Component):
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=False)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_outlets
@@ -1060,8 +1333,8 @@ class LakeMapperBarnes(Component):
 
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.lake_outlets == [16, ]
         True
@@ -1095,8 +1368,8 @@ class LakeMapperBarnes(Component):
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=False)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.number_of_lakes
@@ -1107,8 +1380,8 @@ class LakeMapperBarnes(Component):
 
         >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.number_of_lakes
         2
@@ -1143,8 +1416,8 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=False)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_map
@@ -1155,8 +1428,8 @@ class LakeMapperBarnes(Component):
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lake_map = np.array([-1, -1, -1, -1, -1, -1,
         ...                      -1,  8, -1, 16, -1, -1,
@@ -1186,7 +1459,7 @@ class LakeMapperBarnes(Component):
             # things have changed since last call to lake_map
             self._lake_map = np.full(self.grid.number_of_nodes,
                                      LOCAL_BAD_INDEX_VALUE, dtype=int)
-            for (outlet, lakenodes) in self.lake_dict.iteritems():
+            for (outlet, lakenodes) in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
         else:
             pass  # old map is fine
@@ -1217,8 +1490,8 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lake_at_node = np.array([False, False, False, False, False, False,
         ...                          False,  True, False,  True, False, False,
@@ -1253,8 +1526,8 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> try:  # won't work as surface & fill_surface are both z
         ...     lmb.lake_depths
@@ -1267,8 +1540,8 @@ class LakeMapperBarnes(Component):
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
         ...                        surface=z_init,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lake_depths = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
         ...                          0. ,  1. ,  0. ,  0.5,  0. ,  0. ,
@@ -1311,8 +1584,8 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=False)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=False)
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_areas  # note track_lakes=False
@@ -1323,8 +1596,8 @@ class LakeMapperBarnes(Component):
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.lake_outlets
         [16, 8]
@@ -1333,7 +1606,7 @@ class LakeMapperBarnes(Component):
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
         for (i, (outlet, lakenodes)) in enumerate(
-             self.lake_dict.iteritems()):
+             self.lake_dict.items()):
             lakeareas[i] = self.grid.cell_area_at_node[lakenodes].sum()
         return lakeareas
 
@@ -1364,8 +1637,8 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> try:  # won't work as surface & fill_surface are both z
         ...     lmb.lake_volumes
@@ -1378,8 +1651,8 @@ class LakeMapperBarnes(Component):
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
         ...                        surface=z_init,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.lake_outlets
         [16, 8]
@@ -1389,7 +1662,7 @@ class LakeMapperBarnes(Component):
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
         col_vols = self.grid.cell_area_at_node * self.lake_depths
         for (i, (outlet, lakenodes)) in enumerate(
-             self.lake_dict.iteritems()):
+             self.lake_dict.items()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 
@@ -1410,9 +1683,8 @@ class LakeMapperBarnes(Component):
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, ignore_overfill=False,
-        ...                        track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        ignore_overfill=False, track_lakes=True)
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.was_there_overfill
@@ -1424,9 +1696,8 @@ class LakeMapperBarnes(Component):
 
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, ignore_overfill=False,
-        ...                        track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        ignore_overfill=False, track_lakes=True)
         >>> try:
         ...     lmb.run_one_step()
         ... except ValueError:
@@ -1439,9 +1710,8 @@ class LakeMapperBarnes(Component):
 
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, ignore_overfill=True,
-        ...                        track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        ignore_overfill=True, track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.was_there_overfill
         True
@@ -1453,9 +1723,8 @@ class LakeMapperBarnes(Component):
 
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1., 1.5]
         >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
-        ...                        route_flow_steepest_descent=False,
-        ...                        calc_slopes=False, ignore_overfill=True,
-        ...                        track_lakes=True)
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        ignore_overfill=True, track_lakes=True)
         >>> lmb.run_one_step()
         >>> lmb.was_there_overfill  # Now reset
         False
