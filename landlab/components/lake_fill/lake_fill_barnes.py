@@ -295,7 +295,7 @@ class LakeMapperBarnes(Component):
 
         # NOTE: this component can't yet do this rerouting, so...
         if route_flow_steepest_descent:
-            raise ValueError, "Component can't yet do rerouting, sorry..."
+            raise ValueError("Component can't yet do rerouting, sorry...")
         
         # check if we are modifying in place or not. This gets used to check
         # it makes sense to calculate various properties.
