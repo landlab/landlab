@@ -207,7 +207,7 @@ class ResourceRedistribution(Component):
         burnt_shrubs = np.where(V == 4)[0]
         if int(burnt_shrubs.shape[0]) > 0:
             burnt_shrubs_neigh = np.unique(
-                    self.grid.get_looped_cell_neighbor_list()[burnt_shrubs])
+                    self.grid.looped_neighbors_at_cell[burnt_shrubs])
             R[burnt_shrubs_neigh] += (
                     eroded_soil_shrub / float(burnt_shrubs_neigh.shape[0]))
             exclusive = (
@@ -240,7 +240,7 @@ class ResourceRedistribution(Component):
         if int(locs_to_adj.shape[0]) > 0:        
             resource_adjusted = np.sum(R[locs_to_adj] - self._R_threshold)
             locs_to_adj_neigh = np.unique(
-                    self.grid.get_looped_cell_neighbor_list()[locs_to_adj])
+                    self.grid.looped_neighbors_at_cell[locs_to_adj])
             eligible_locs_to_adj_neigh = (
                     locs_to_adj_neigh[R[locs_to_adj_neigh] < self._R_dep_threshold])
             if int(eligible_locs_to_adj_neigh.shape[0]) > 0:
@@ -280,8 +280,8 @@ class ResourceRedistribution(Component):
         bare_cells = np.where(V == 0)[0]
         shrub_grz_regrwth = bare_cells[np.where(R[bare_cells] >  self._Rth_sh)[0]]
         neigh_sh_grz_regrwth = (
-            self.grid.get_looped_cell_neighbor_list()[shrub_grz_regrwth])
-        ns_sh = self._np_ndarray_count(V, neigh_sh_grz_regrwth)
+            self.grid.looped_neighbors_at_cell[shrub_grz_regrwth])
+        ns_sh = self._np_ndarray_count(neigh_sh_grz_regrwth)
         ns_Pgrz = (ns_sh *  self._Pen)      # ns * P2
         P_check_3 = np.random.random(ns_Pgrz.shape)
         est_3 = shrub_grz_regrwth[np.where(P_check_3 < ns_Pgrz)[0]]
@@ -325,7 +325,7 @@ class ResourceRedistribution(Component):
                 shrubs_[np.where(V_age[shrubs_] > self._sh_mor_dis_low_thresh_age)])
         Pmor_age[adult_shrubs] = (
                  self._sh_mor_dis_low_slp +
-                 ((np.asfarray(V_age[adult_shrubs]) - self._sh_mor_dis_low_thresh_age)
+                 ((np.asfarray(V_age[adult_shrubs]) - self._sh_mor_dis_low_thresh_age) /
                  (self._sh_max_age - self._sh_mor_dis_low_thresh_age) *
                  (self._sh_mor_dis_high_slp)))
         return (Pmor_age)
@@ -357,7 +357,7 @@ class ResourceRedistribution(Component):
                                 2 * 0.4 * self._sh_mor_ws_thresh *
                                 np.random.random_sample())
               # Shrubs' water stress probability
-        Pmor_age = self._compute_Prob_mortality_age(V, V_age, Pmor_age)
+        Pmor_age = self._compute_Prob_mortality_age(V_age, Pmor_age)
         Pmor_age_ws += Pmor_age
         P_check_3 = np.random.random(V.shape)
         kill_3 = np.where(P_check_3 < Pmor_age_ws)[0]
