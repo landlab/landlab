@@ -82,10 +82,10 @@ cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
 
 cdef calc_centroid_of_polygon(float * x, float * y, long n_vertices,
                               double * out):
-    cdef float x_of_centroid = 0.
-    cdef float y_of_centroid = 0.
-    cdef float area = calc_area_of_polygon(x, y, n_vertices)
-    cdef float c
+    cdef double x_of_centroid = 0.
+    cdef double y_of_centroid = 0.
+    cdef double area = calc_area_of_polygon(x, y, n_vertices)
+    cdef double c
     cdef int n
 
     c = x[n_vertices - 1] * y[0] - x[0] * y[n_vertices - 1]
@@ -109,7 +109,7 @@ cdef calc_centroid_of_polygon(float * x, float * y, long n_vertices,
 
 
 cdef calc_area_of_polygon(float * x, float * y, long n_vertices):
-    cdef float area = 0.
+    cdef double area = 0.
     cdef int n
 
     for n in range(n_vertices - 1):
