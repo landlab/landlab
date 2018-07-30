@@ -16,7 +16,7 @@ from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import CLOSED_BOUNDARY
+from landlab import CLOSED_BOUNDARY, CORE_NODE
 from landlab.components import FlowDirectorSteepest
 # ^ this simply in case Katy updates to add more fields, that we would also
 # need to update...
@@ -892,10 +892,10 @@ class LakeMapperBarnes(Component):
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[23] = 1.3
-        >>> z[15] = 0.3
+        >>> z[15] = -2.  # this deep pit causes the outlet to first drain *in*
         >>> z[10] = 1.3  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own, if d8
-        >>> z[9] = 0.5
+        >>> z[9] = -1.
         >>> z[14] = 0.6  # [9, 14, 15] is a lake in both methods
         >>> z[16] = 1.2
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if d8
@@ -916,6 +916,10 @@ class LakeMapperBarnes(Component):
         True
         >>> nodes_in_lakes = np.array([7, 8, 9, 14, 15, 16, 22])
         >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
+
+        Note we're here defining the outlets as inside the lakes, which isn't
+        actually the behaviour of the component, but helps us demonstrate
+        what changes, below.
 
         Now save the info we already have on the Flow fields:
 
@@ -943,7 +947,7 @@ class LakeMapperBarnes(Component):
         ...                     nodes_not_in_lakes]))
         True
         >>> np.all(np.equal(rec_links_init[nodes_not_in_lakes],
-        ...     mg.at_node['flow__links_to_receiver_node'][
+        ...     mg.at_node['flow__link_to_receiver_node'][
         ...         nodes_not_in_lakes]))
         True
         >>> np.all(np.equal(steepest_init[nodes_not_in_lakes],
@@ -951,11 +955,12 @@ class LakeMapperBarnes(Component):
         True
 
         ...but the ones inside have been rewired to new patterns:
+
         >>> np.all(np.equal(receivers_init[nodes_in_lakes],
         ...                 mg.at_node['flow__receiver_node'][nodes_in_lakes]))
         False
         >>> np.all(np.equal(rec_links_init[nodes_in_lakes],
-        ...     mg.at_node['flow__links_to_receiver_node'][nodes_in_lakes]))
+        ...     mg.at_node['flow__link_to_receiver_node'][nodes_in_lakes]))
         False
         >>> np.all(np.equal(steepest_init[nodes_in_lakes],
         ...     mg.at_node['topographic__steepest_slope'][nodes_in_lakes]))
@@ -966,12 +971,26 @@ class LakeMapperBarnes(Component):
         >>> np.any(mg.at_node['flow__sink_flag'][[7, 15, 22]])
         False
 
-        ... and the lake nodes now flow out:
+        The lake nodes now flow out:
 
         >>> mg.at_node['flow__receiver_node'][lake_dict[16]]
         array([16, 16, 15, 16])
         >>> mg.at_node['flow__receiver_node'][lake_dict[8]]
         array([8])
+
+        ...and any outlet nodes that used to drain into the lake now drain
+        out. Note that 8 has also rewired itself, since it now drains directly
+        into a lake. However, in this case, node 8 already drained outwards;
+        it now just drains to a slightly different lake node.
+
+        >>> receivers_init[8]
+        9
+        >>> mg.at_node['flow__receiver_node'][8]
+        15
+        >>> receivers_init[16]
+        15
+        >>> mg.at_node['flow__receiver_node'][16]
+        17
         """
         openq = self._open
         closedq = self.grid.ones('node', dtype=bool)
@@ -984,31 +1003,37 @@ class LakeMapperBarnes(Component):
             # open the lake:
             closedq[lakenodes] = False
             openq.add_task(outlet, priority=surface[outlet])
+
             # it's possible the outlet used to drain *into* the lake,
             # so it needs separate consideration:
-            out_elev = LARGE_ELEV
-            for neighbor_set, link_set in zip(
-                    self._neighbor_arrays, self._link_arrays):
-                not_lake_neighbors = np.equal(
-                    closedq[neighbor_set[outlet]], True)
-                minusones = np.equal(neighbor_set[outlet], -1)
-                not_lake_neighbors[minusones] = False
-                try:
-                    min_val = np.amin(
-                        surface[neighbor_set[outlet][not_lake_neighbors]])
-                except ValueError:
-                    continue
-                if min_val < out_elev:
-                    min_neighbor_byTrue = np.argmin(
-                        surface[neighbor_set[outlet][not_lake_neighbors]])
-                    min_neighbor = neighbor_set[outlet][min_neighbor_byTrue]
-                    min_link = link_set[outlet][min_neighbor_byTrue]
-                    out_elev = min_val
-            self._receivers[min_neighbor] = outlet
-            self._receiverlinks[min_neighbor] = min_link
-            self._steepestslopes[min_neighbor] = (
-                (surface[outlet] - surface[min_neighbor]) /
-                self.grid.length_of_d8[min_link])
+            if self.grid.status_at_node[outlet] != CORE_NODE:
+                # don't do anything if the outlet happens to be a boundary
+                pass
+            else:
+                out_elev = LARGE_ELEV
+                for neighbor_set, link_set in zip(
+                        self._neighbor_arrays, self._link_arrays):
+                    not_lake_neighbors = np.equal(
+                        closedq[neighbor_set[outlet]], True)
+                    minusones = np.equal(neighbor_set[outlet], -1)
+                    not_lake_neighbors[minusones] = False
+                    try:
+                        min_val = np.amin(
+                            surface[neighbor_set[outlet][not_lake_neighbors]])
+                    except ValueError:
+                        continue
+                    if min_val < out_elev:
+                        min_neighbor_byTrue = np.argmin(
+                            surface[neighbor_set[outlet][not_lake_neighbors]])
+                        min_neighbor = neighbor_set[outlet][
+                            min_neighbor_byTrue]
+                        min_link = link_set[outlet][min_neighbor_byTrue]
+                        out_elev = min_val
+                self._receivers[outlet] = min_neighbor
+                self._receiverlinks[outlet] = min_link
+                self._steepestslopes[outlet] = (
+                    (surface[outlet] - surface[min_neighbor]) /
+                    self.grid.length_of_d8[min_link])
 
             while True:
                 try:
@@ -1024,6 +1049,10 @@ class LakeMapperBarnes(Component):
                             if closedq[n]:
                                 continue
                             elif n == -1:
+                                closedq[n] = True
+                                continue
+                            elif self.grid.status_at_node[n] != CORE_NODE:
+                                closedq[n] = True
                                 continue
                             else:
                                 self._receivers[n] = c
@@ -1032,8 +1061,8 @@ class LakeMapperBarnes(Component):
                                 closedq[n] = True
                                 openq.add_task(n, priority=surface[n])
             # closedq[lakenodes] = True  # seal up the lake again
-        # by the time we get here, we've removed all the pits! So...
-        self._sinkflags[self.grid.core_nodes] = 0
+            # by the time we get here, we've removed all the pits! So...
+            self._sinkflags[lakenodes] = 0
 
     def run_one_step(self):
         """
