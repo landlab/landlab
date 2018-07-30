@@ -17,7 +17,7 @@ from landlab.core.messages import warning_message
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import CLOSED_BOUNDARY, CORE_NODE
-from landlab.components import FlowDirectorSteepest
+from landlab.components import FlowDirectorSteepest, FlowAccumulator
 # ^ this simply in case Katy updates to add more fields, that we would also
 # need to update...
 from collections import deque
@@ -215,6 +215,13 @@ class LakeMapperBarnes(Component):
         Note that the new topographic__steepest_slope will always be set to
         zero, even if fill_flat=False (i.e., there is actually a miniscule
         gradient on the new topography, which gets ignored).
+    reaccumulate_flow : bool
+        If True, and redirect_flow_steepest_descent is True, the run method
+        will (re-)accumulate the flow after redirecting the flow. This means
+        the 'drainage_area' and 'surface_water__discharge' fields will now
+        reflect the new drainage patterns without having to manually
+        reaccumulate the discharge. If True but redirect_flow_steepest_descent
+        is False, raises an AssertionError.
     ignore_overfill : bool
         If True, suppresses the Error that would normally be raised during
         creation of a gentle incline on a fill surface (i.e., if not
@@ -232,6 +239,7 @@ class LakeMapperBarnes(Component):
                  method='d8', fill_flat=True,
                  fill_surface='topographic__elevation',
                  redirect_flow_steepest_descent=False,
+                 reaccumulate_flow=False,
                  ignore_overfill=False, track_lakes=True):
         """
         Examples
@@ -326,7 +334,7 @@ class LakeMapperBarnes(Component):
             # These will raise FieldErrors if they don't.
             # This will cause a bunch of our tests to break, so users will
             # never see this.
-            assert len(FlowDirectorSteepest.output_var_names)  == 4
+            assert len(FlowDirectorSteepest.output_var_names) == 4
             self._receivers = self.grid.at_node['flow__receiver_node']
             assert len(self._receivers.shape) == 1, \
                 'The LakeFillerBarnes does not yet work with one-to-many ' + \
@@ -345,9 +353,20 @@ class LakeMapperBarnes(Component):
                 self._link_arrays = (
                     self.grid.links_at_node,
                     self.grid.d8s_at_node[:, 4:])
+                self._neighbor_lengths = self.grid.length_of_d8
             except AttributeError:  # this wasn't a raster
                 self._neighbor_arrays = (self.grid.adjacent_nodes_at_node, )
                 self._link_arrays = (self.grid.links_at_node, )
+                self._neighbor_lengths = self.grid.length_of_link
+
+        if reaccumulate_flow:
+            assert redirect_flow_steepest_descent, (
+                "You must also redirect_flow_steepest_descent if you want " +
+                "to reaccumulate_flow!")
+            self._reaccumulate = True
+            self._fa = FlowAccumulator(self.grid)
+        else:
+            self._reaccumulate = False
 
         self._fill_flat = fill_flat
         if fill_flat:
@@ -991,6 +1010,14 @@ class LakeMapperBarnes(Component):
         15
         >>> mg.at_node['flow__receiver_node'][16]
         17
+
+        If we reaccumulate the flow, we'll now see that the boundary nodes do
+        now accumulate the total available discharge:
+
+        >>> area, discharge = fa.accumulate_flow(update_flow_director=False)
+        >>> mg.at_node['drainage_area'][outlets].sum() == (
+        ...     mg.cell_area_at_node[mg.core_nodes].sum())
+        True
         """
         openq = self._open
         closedq = self.grid.ones('node', dtype=bool)
@@ -1033,7 +1060,7 @@ class LakeMapperBarnes(Component):
                 self._receiverlinks[outlet] = min_link
                 self._steepestslopes[outlet] = (
                     (surface[outlet] - surface[min_neighbor]) /
-                    self.grid.length_of_d8[min_link])
+                    self._neighbor_lengths[min_link])
 
             while True:
                 try:
@@ -1078,7 +1105,8 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import LakeMapperBarnes, FlowRouter
+        >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
+        >>> from landlab.components import FlowDirectorSteepest
         >>> mg = RasterModelGrid((5, 6), 2.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -1114,8 +1142,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.was_there_overfill  # everything fine with slope adding
         False
 
-        >>> fr = FlowRouter(mg, method='D4')  # routing will work fine now
-        >>> fr.run_one_step()
+        >>> fd = FlowDirectorSteepest(mg)
+        >>> fa = FlowAccumulator(mg)  # routing will work fine now
+        >>> fd.run_one_step()
+        >>> fa.run_one_step()
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
         >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
@@ -1186,9 +1216,68 @@ class LakeMapperBarnes(Component):
         >>> np.allclose(lmb.lake_areas, np.array([ 16.,  4.]))  # found them!
         True
 
+        The component can redirect flow to account for the fills that have
+        been carried out (all necessary fields get updated):
+
+        >>> z[:] = z_init
+        >>> fd.run_one_step()
+        >>> init_flowdirs = mg.at_node['flow__receiver_node'].copy()
+        >>> fa.run_one_step()
+        >>> init_areas = mg.at_node['drainage_area'].copy()
+        >>> init_qw = mg.at_node['surface_water__discharge'].copy()
+
+        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                        fill_flat=False, track_lakes=True,
+        ...                        redirect_flow_steepest_descent=False,
+        ...                        ignore_overfill=True)
+        >>> lmb.run_one_step()
+        >>> np.all(mg.at_node['flow__receiver_node'] == init_flowdirs)
+        True
+
+        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                        fill_flat=False, track_lakes=True,
+        ...                        redirect_flow_steepest_descent=True,
+        ...                        ignore_overfill=True)
+        >>> lmb.run_one_step()
+        >>> np.all(mg.at_node['flow__receiver_node'] == init_flowdirs)
+        False
+
+        However, note that unless the reaccumulate_flow argument is also
+        set, the 'drainage_area' and 'surface_water__discharge' fields
+        *won't* also get updated:
+
+        >>> np.all(mg.at_node['drainage_area'] == init_areas)
+        True
+        >>> np.all(mg.at_node['surface_water__discharge'] == init_qw)
+        True
+
+        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                        fill_flat=False, track_lakes=True,
+        ...                        redirect_flow_steepest_descent=True,
+        ...                        reaccumulate_flow=True,
+        ...                        ignore_overfill=True)
+        >>> lmb.run_one_step()
+        >>> np.all(mg.at_node['drainage_area'] == init_areas)
+        False
+        >>> np.all(mg.at_node['surface_water__discharge'] == init_qw)
+        False
+
+        Be sure to set both redirect_flow_steepest_descent and
+        reaccumulate_flow to True if you want to reaccumulate flow...
+
+        >>> try:
+        ...     lmb = LakeMapperBarnes(mg, method='steepest',
+        ...                            fill_flat=False, track_lakes=True,
+        ...                            redirect_flow_steepest_descent=False,
+        ...                            reaccumulate_flow=True,
+        ...                            ignore_overfill=True)
+        ... except AssertionError:
+        ...     print('Oops!')
+        Oops!
+
         The component is completely happy with irregular grids:
 
-        >>> from landlab import HexModelGrid
+        >>> from landlab import HexModelGrid, FieldError
         >>> hmg = HexModelGrid(5, 4, dx=2.)
         >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
         >>> z_hex[:] = hmg.node_x
@@ -1200,8 +1289,19 @@ class LakeMapperBarnes(Component):
         >>> np.allclose(z_hex[10:13], 0.)
         True
         >>> z_hex[:] = z_hex_init
+        >>> try:
+        ...     lmb = LakeMapperBarnes(hmg, fill_flat=False,
+        ...                            surface=z_hex_init,
+        ...                            redirect_flow_steepest_descent=True,
+        ...                            track_lakes=True)
+        ... except FieldError:
+        ...     print("Oops!")  # flowdir field must already exist!
+        Oops!
+        >>> fd = FlowDirectorSteepest(hmg)
         >>> lmb = LakeMapperBarnes(hmg, fill_flat=False, surface=z_hex_init,
+        ...                        redirect_flow_steepest_descent=True,
         ...                        track_lakes=True)
+        >>> fd.run_one_step()
         >>> lmb.run_one_step()
         >>> np.allclose(z_hex[10:13], 0.)
         True
@@ -1245,7 +1345,9 @@ class LakeMapperBarnes(Component):
                         ignore_overfill=self._ignore_overfill,
                         track_lakes=True))
             if not self._dontredirect:
-                self._redirect_flowdirs(orig_surface, self._lakemappings)
+                self._redirect_flowdirs(orig_topo, self._lakemappings)
+                if self._reaccumulate:
+                    _, _ = self._fa.accumulate_flow(update_flow_director=False)
 
         else:  # not tracked
             # note we've already checked _dontredirect is True in setup,
@@ -1746,42 +1848,3 @@ class LakeMapperBarnes(Component):
             "was_there_overfill is only defined if filling to an " + \
             "inclined surface!"
         return self._overfill_flag
-
-
-class LakeEvaporator(Component):
-    """
-    This component will permit the lowering of a lake surface under
-    evaporation, following the "slab removal" method used in the
-    LakeFlooderBarnes. This is needed in case evaporation can change the
-    surface area significantly.
-    It can also be used by the LakeFlooderBarnes to permit the "special case"
-    there.
-    """
-
-
-class LakeFlooderBarnes(LakeMapperBarnes):
-    """
-    This algorithm honours the actual discharges supplying water to
-    depressions, and so honours water mass balance. It requires both a surface
-    and a water_surface to already exist, and flow routing to have already
-    occured over the surface (i.e., ignoring that water_surface).
-    """
-    # mechanism: expand outwards from the outflow, as in the normal LMB. Once
-    # the expansion meets a pit, ingest it.
-    # Continue to sum ingested pits as we go, and sum how many.
-    # Once single lake is filled, check we had enough water to do this.
-    # If not, flag as problematic.
-
-    # If we're OK, will still need to reduce outflow, but do this after?
-
-    # Problematic lakes need 2nd pass.
-
-    # Easier if only one pit in lake (special case). Take list of all elevs
-    # in the lake & sort.
-    # (If Voronoi, also need to track area at each.)
-    # This represents increments we can drop the surface by w/o changing
-    # area yet. So, given we know the water shortfall, take of water slabs til
-    # we get to the right vol.
-
-    # Else, we must iterate. Easiest to work outwards from the pits, per the
-    # approach in the old LakeMapper. i.e., take the slabs, but work upwards.
