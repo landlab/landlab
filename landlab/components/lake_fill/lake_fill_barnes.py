@@ -999,7 +999,7 @@ class LakeMapperBarnes(Component):
         15
         >>> mg.at_node['flow__receiver_node'][16]
         17
-        >>> np.is_close(mg.at_node['topographic__steepest_slope'][16], 0.6)
+        >>> np.isclose(mg.at_node['topographic__steepest_slope'][16], 0.6)
         True
 
         If we reaccumulate the flow, we'll now see that the boundary nodes do
@@ -1412,9 +1412,9 @@ class LakeMapperBarnes(Component):
         ...                       [ 7.,  7.,  6.,  4.,  3.,  2.,  1.,  0.]]))
         True
         >>> sp.run_one_step(0.1, flooded_nodes=lmb.lake_at_node)
-### RESOLVE FLOODED NODES
         >>> z
-        
+    
+### RESOLVE FLOODED NODES
         """
         # do the prep:
         # increment the run counter
