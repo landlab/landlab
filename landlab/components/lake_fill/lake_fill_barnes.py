@@ -346,16 +346,23 @@ class LakeMapperBarnes(Component):
                 'topographic__steepest_slope']
             # if raster, do the neighbors & diagonals separate when rerouting
             # so we'll need to pull these separately:
-            try:
+            if method == 'd8':
+                try:  # in case it's not a raster
+                    self._neighbor_arrays = (
+                        self.grid.adjacent_nodes_at_node,
+                        self.grid.diagonal_adjacent_nodes_at_node)
+                    self._link_arrays = (
+                        self.grid.links_at_node,
+                        self.grid.d8s_at_node[:, 4:])
+                    self._neighbor_lengths = self.grid.length_of_d8
+                except AttributeError:  # this wasn't a raster
+                    self._neighbor_arrays = (
+                        self.grid.adjacent_nodes_at_node, )
+                    self._link_arrays = (self.grid.links_at_node, )
+                    self._neighbor_lengths = self.grid.length_of_link
+            else:
                 self._neighbor_arrays = (
-                    self.grid.adjacent_nodes_at_node,
-                    self.grid.diagonal_adjacent_nodes_at_node)
-                self._link_arrays = (
-                    self.grid.links_at_node,
-                    self.grid.d8s_at_node[:, 4:])
-                self._neighbor_lengths = self.grid.length_of_d8
-            except AttributeError:  # this wasn't a raster
-                self._neighbor_arrays = (self.grid.adjacent_nodes_at_node, )
+                    self.grid.adjacent_nodes_at_node, )
                 self._link_arrays = (self.grid.links_at_node, )
                 self._neighbor_lengths = self.grid.length_of_link
 
@@ -959,31 +966,19 @@ class LakeMapperBarnes(Component):
 
         >>> lmb._redirect_flowdirs(orig_surf, lake_dict)
 
-        Now, we haven't touched the nodes outside the lakes:
+        Now the flow directions all ignore the pits:
 
-        >>> np.all(np.equal(receivers_init[nodes_not_in_lakes],
-        ...                 mg.at_node['flow__receiver_node'][
-        ...                     nodes_not_in_lakes]))
-        True
-        >>> np.all(np.equal(rec_links_init[nodes_not_in_lakes],
-        ...     mg.at_node['flow__link_to_receiver_node'][
-        ...         nodes_not_in_lakes]))
-        True
-        >>> np.all(np.equal(steepest_init[nodes_not_in_lakes],
-        ...     mg.at_node['topographic__steepest_slope'][nodes_not_in_lakes]))
+        >>> np.all(np.equal(mg.at_node['flow__receiver_node'],
+        ...                 np.array([ 0,  1,  2,  3,  4,  5,
+        ...                            6,  8,  9, 15,  9, 11,
+        ...                           12, 14, 15, 16, 17, 17,
+        ...                           18, 20, 14, 15, 16, 23,
+        ...                           24, 25, 26, 27, 28, 29])))
         True
 
-        ...but the ones inside have been rewired to new patterns:
-
-        >>> np.all(np.equal(receivers_init[nodes_in_lakes],
-        ...                 mg.at_node['flow__receiver_node'][nodes_in_lakes]))
-        False
-        >>> np.all(np.equal(rec_links_init[nodes_in_lakes],
-        ...     mg.at_node['flow__link_to_receiver_node'][nodes_in_lakes]))
-        False
-        >>> np.all(np.equal(steepest_init[nodes_in_lakes],
-        ...     mg.at_node['topographic__steepest_slope'][nodes_in_lakes]))
-        False
+        (Note the filling of the pits might redirect the occasional node
+        not in a lake, but on its perimeter - if the node used to drain
+        into the lake, but now has a steeper descent path elsewhere.)
 
         There are now no pits:
 
@@ -993,26 +988,19 @@ class LakeMapperBarnes(Component):
         The lake nodes now flow out:
 
         >>> mg.at_node['flow__receiver_node'][lake_dict[16]]
-        array([16, 16, 15, 16])
+        array([16, 15, 15, 16])
         >>> mg.at_node['flow__receiver_node'][lake_dict[8]]
         array([8])
 
         ...and any outlet nodes that used to drain into the lake now drain
-        out. Note that 8 has also rewired itself, since it now drains directly
-        into a lake. However, in this case, node 8 already drained outwards;
-        it now just drains to a slightly different lake node.
+        out.
 
-        >>> receivers_init[8]
-        9
-        >>> mg.at_node['flow__receiver_node'][8]
-        15
         >>> receivers_init[16]
         15
         >>> mg.at_node['flow__receiver_node'][16]
         17
         >>> np.is_close(mg.at_node['topographic__steepest_slope'][16], 0.6)
         True
-        
 
         If we reaccumulate the flow, we'll now see that the boundary nodes do
         now accumulate the total available discharge:
@@ -1041,8 +1029,7 @@ class LakeMapperBarnes(Component):
 
             # it's possible the outlet used to drain *into* the lake,
             # so it needs separate consideration. Likewise, the gradients
-            # of the perimeter nodes, although going the right way, are likely
-            # to be wrong.
+            # of the perimeter nodes are likely to be wrong.
             if self.grid.status_at_node[outlet] != CORE_NODE:
                 # don't do anything if the outlet happens to be a boundary
                 pass
@@ -1077,8 +1064,6 @@ class LakeMapperBarnes(Component):
                     (surface[outlet] - surface[min_neighbor]) /
                     self._neighbor_lengths[min_link])
 
-            print(closedq.reshape(self.grid.shape))
-
             while True:
                 try:
                     c = openq.pop_task()
@@ -1098,7 +1083,6 @@ class LakeMapperBarnes(Component):
                                 closedq[n] = 2
                                 continue
                             else:
-                                print(n)
                                 if closedq[n] == 0:
                                     self._receivers[n] = c
                                     self._receiverlinks[n] = l
@@ -1116,7 +1100,6 @@ class LakeMapperBarnes(Component):
                                         closedq[n] = 2
                                         liminal_nodes.append(n)
                                         # ...& don't add to the queue
-            print(liminal_nodes)
 
             # now know which nodes we need to reassess. So:
             for liminal in liminal_nodes:
@@ -1148,87 +1131,18 @@ class LakeMapperBarnes(Component):
                                 self._neighbor_lengths[min_link])
                         else:
                             pass
-                assert min_link != -1, neighbors_valid  # link successfully found
+                assert min_link != -1, neighbors_valid
+                # ^link successfully found
                 self._receivers[liminal] = min_receiver
                 self._receiverlinks[liminal] = min_link
                 self._steepestslopes[liminal] = max_grad
 
             # by the time we get here, we've removed all the pits! So...
-            print('lakenodes ', lakenodes)
             self.grid.at_node['flow__sink_flag'][lakenodes] = 0
             # reclose the lake:
             closedq[outlet] = 1
             closedq[lakenodes] = 1
             closedq[liminal_nodes] = 1
-
-# this all an absolute mess
-# 
-#             # reopen the lake for now
-#             closedq[lakenodes] = 0
-#             print(closedq.reshape(self.grid.shape))
-#             # redo the grads of anything in the deque:
-#             for liminal in liminal_nodes:
-#                 #out_elev = LARGE_ELEV
-#                 out_elev_in = self._fill_surface[self.grid.at_node[
-#                     'flow__receiver_node'][liminal]]
-#                 out_elev = out_elev_in
-#                 # the existing lowest elev
-#                 min_val = LARGE_ELEV
-#                 for neighbor_set, link_set in zip(
-#                         self._neighbor_arrays, self._link_arrays):
-#                     lake_neighbors = np.equal(
-#                         closedq[neighbor_set[liminal]], 0)
-#                     #lake_neighbors = np.ones_like(neighbor_set[liminal], dtype=bool)
-#                     minusones = np.equal(neighbor_set[liminal], -1)
-#                     lake_neighbors[minusones] = False
-#                     closednodes = np.equal(
-#                         self.grid.status_at_node[neighbor_set[liminal]],
-#                         CLOSED_BOUNDARY)  # closed BCs can't count
-#                     lake_neighbors[closednodes] = False
-#                     try:
-#                         min_val = np.amin(
-#                             self._fill_surface[neighbor_set[liminal][
-#                                 lake_neighbors]])
-#                     except ValueError:  # if lake is only in diags, or whatever
-#                         continue
-#                     print('lim, out_elev, min_val', liminal, out_elev, min_val)
-#                     if min_val <= out_elev:
-#                         viable_nodes = neighbor_set[liminal][
-#                             lake_neighbors]
-#                         min_neighbor_byTrue = np.argmin(
-#                             self._fill_surface[viable_nodes])
-#                         min_neighbor = viable_nodes[min_neighbor_byTrue]
-#                         min_link = link_set[liminal][lake_neighbors][
-#                             min_neighbor_byTrue]
-#                         out_elev = min_val
-#                 # if out_elev == out_elev_in:
-#                 #     continue
-# #####ALL MESSED UP
-# # run last run_one_step eg
-#                     # if closedq[min_neighbor] == 3:
-#                     #     self._receivers[min_neighbor] = liminal
-#                     #     self._receiverlinks[min_neighbor] = min_link
-#                     #     self._steepestslopes[min_neighbor] = (
-#                     #         (self._fill_surface[min_neighbor] -
-#                     #          self._fill_surface[liminal]) /
-#                     #         self._neighbor_lengths[min_link])
-#                     # elif closedq[min_neighbor] == 0:
-# 
-#                 # now we have the lowest node inside the lake. But we only
-#                 # want to overprint if this is actually deeper than what
-#                 # we have already. So:
-#                 if min_val < out_elev_in:
-#                     lake_slope = ((self._fill_surface[liminal] -
-#                                    self._fill_surface[min_neighbor]) /
-#                                   self._neighbor_lengths[min_link])
-#                     print(lake_slope)
-#                     if lake_slope > self._steepestslopes[liminal]:
-#                         self._receivers[liminal] = min_neighbor
-#                         self._receiverlinks[liminal] = min_link
-#                         self._steepestslopes[liminal] = lake_slope
-#                     # else:  # these cases are found nr the outlet
-#                     #     pass
-
 
     def run_one_step(self):
         """
@@ -1461,7 +1375,7 @@ class LakeMapperBarnes(Component):
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> from landlab.components import FlowDirectorSteepest
         >>> from landlab.components import StreamPowerEroder
-        >>> mg = RasterModelGrid((6, 8))
+        >>> mg = RasterModelGrid((6, 8), 1.)
         >>> for edge in ('right', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1473,24 +1387,32 @@ class LakeMapperBarnes(Component):
         >>> fd = FlowDirectorSteepest(mg)
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, fill_flat=True, surface=z_init,
+        ...                        method='d8',
         ...                        redirect_flow_steepest_descent=True,
         ...                        reaccumulate_flow=True,
         ...                        track_lakes=True)
         >>> sp = StreamPowerEroder(mg, K_sp=1., m_sp=1., n_sp=1.)
         >>> fd.run_one_step()
         >>> fa.run_one_step()
-        >>> np.isclose(mg.at_node['topographic__steepest_slope'][11], 2.)
+        >>> np.isclose(mg.at_node['topographic__steepest_slope'][18], 1.5)
         True
-        >>> np.allclose(mg.at_node['drainage_area'].reshape(mg.shape)[1, :],
-        ...             np.array([ 2.,  2.,  1.,  1.,  4.,  2.,  1.,  0.]))
+        >>> np.allclose(mg.at_node['drainage_area'].reshape(mg.shape)[1:5, :],
+        ...             np.array([[ 2.,  2.,  1.,  4.,  3.,  2.,  1.,  0.],
+        ...                       [ 1.,  1.,  1., 13.,  3.,  2.,  1.,  0.],
+        ...                       [ 2.,  2.,  1.,  4.,  3.,  2.,  1.,  0.],
+        ...                       [ 6.,  6.,  5.,  4.,  3.,  2.,  1.,  0.]]))
         True
         >>> lmb.run_one_step()
-        >>> np.isclose(mg.at_node['topographic__steepest_slope'][11], 1.)
+        >>> np.isclose(mg.at_node['topographic__steepest_slope'][18], 1.)
         True
-        >>> np.allclose(mg.at_node['drainage_area'].reshape(mg.shape)[1, :],
-        ...             np.array([ 6.,  6.,  5.,  4.,  3.,  2.,  1.,  0.]))
+        >>> np.allclose(mg.at_node['drainage_area'].reshape(mg.shape)[1:5, :],
+        ...             np.array([[13., 13., 12.,  4.,  3.,  2.,  1.,  0.],
+        ...                       [ 2.,  2.,  1.,  7.,  3.,  2.,  1.,  0.],
+        ...                       [ 2.,  2.,  1.,  1.,  3.,  2.,  1.,  0.],
+        ...                       [ 7.,  7.,  6.,  4.,  3.,  2.,  1.,  0.]]))
         True
-        >>> sp.run_one_step(1.)
+        >>> sp.run_one_step(0.1, flooded_nodes=lmb.lake_at_node)
+### RESOLVE FLOODED NODES
         >>> z
         
         """
