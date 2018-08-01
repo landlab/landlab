@@ -8,13 +8,7 @@ import os
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
-                        assert_almost_equal, assert_equal)
-try:
-    from nose.tools import (assert_is, assert_set_equal, assert_dict_equal)
-except ImportError:
-    from landlab.testing.tools import (assert_is, assert_set_equal,
-                                       assert_dict_equal)
+import pytest
 
 import landlab
 from landlab import RasterModelGrid, HexModelGrid, FieldError # NetworkModelGrid,
@@ -98,8 +92,8 @@ def test_bad_grid_element():
             data = {'age': age,
                     'volume': volume}
 
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = 'foo',
@@ -112,8 +106,8 @@ def test_bad_grid_element():
             data = {'age': age,
                     'volume': volume}
 
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = grid_element,
@@ -137,8 +131,8 @@ def test_non_int_element_id():
             data = {'age': age,
                     'volume': volume}
 
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = loc,
@@ -162,8 +156,8 @@ def test_big_element_id():
             data = {'age': age,
                     'volume': volume}
 
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = loc,
@@ -187,8 +181,8 @@ def test_small_element_id():
             # test that a too small element raises a warming
             data = {'age': age,
                     'volume': volume}
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = loc,
@@ -211,8 +205,8 @@ def test_wrong_length_data():
             data = {'age': age[:-1],
                     'volume': volume}
             # test wrong length data
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = loc,
@@ -241,8 +235,8 @@ def test_element_id_size():
             grid_element.fill(loc)
 
             # test wrong length data
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = grid_element,
@@ -270,8 +264,8 @@ def test_grid_element_size():
             grid_element.fill(loc)
 
             # test wrong length data
-            assert_raises(ValueError,
-                          ItemCollection,
+            with pytest.raises(ValueError):
+                ItemCollection(
                           grid,
                           data = data,
                           grid_element = grid_element[:-1],
@@ -304,8 +298,8 @@ def test_adding_bad_size_variable():
                                 grid_element = loc,
                                 element_id = element_id)
 
-            assert_raises(ValueError,
-                          ic.add_variable,
+            with pytest.raises(ValueError):
+                ic.add_variable(
                           'new_var',
                           new_var)
 
@@ -339,8 +333,8 @@ def test_adding_non_string_variable_name():
                                 grid_element = loc,
                                 element_id = element_id)
 
-            assert_raises(ValueError,
-                          ic.add_variable,
+            with pytest.raises(ValueError):
+                ic.add_variable(
                           1.1,
                           new_var)
 
@@ -370,8 +364,8 @@ def test_adding_old_variable_name():
                                 grid_element = loc,
                                 element_id = element_id)
 
-            assert_raises(ValueError,
-                          ic.add_variable,
+            with pytest.raises(ValueError):
+                ic.add_variable(
                           'age',
                           new_var)
 
@@ -405,8 +399,8 @@ def test_adding_items_with_extra_variables():
                         'volume': new_volume,
                         'foo': foo}
 
-            assert_raises(ValueError,
-                          ic.add_item,
+            with pytest.raises(ValueError):
+                ic.add_item(
                           data = new_data,
                           grid_element = loc,
                           element_id = [6, 7])
@@ -437,8 +431,8 @@ def test_adding_items_with_not_enough_variables():
                                 element_id = element_id)
             new_data = {'age': new_age}
 
-            assert_raises(ValueError,
-                          ic.add_item,
+            with pytest.raises(ValueError):
+                ic.add_item(
                           data = new_data,
                           grid_element = loc,
                           element_id = [6, 7])
@@ -477,4 +471,5 @@ def test_aggregate_bad_filter_list():
                         element_id = element_id)
 
     filter_list = [False, True, True, True, True, True, True, False]# this should work
-    assert_raises(ValueError, ic.calc_aggregate_value, np.sum, 'volumes', filter_array = filter_list)
+    with pytest.raises(ValueError):
+        ic.calc_aggregate_value(np.sum, 'volumes', filter_array = filter_list)
