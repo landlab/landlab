@@ -219,10 +219,12 @@ class LakeMapperBarnes(Component):
     reaccumulate_flow : bool
         If True, and redirect_flow_steepest_descent is True, the run method
         will (re-)accumulate the flow after redirecting the flow. This means
-        the 'drainage_area' and 'surface_water__discharge' fields will now
-        reflect the new drainage patterns without having to manually
-        reaccumulate the discharge. If True but redirect_flow_steepest_descent
-        is False, raises an AssertionError.
+        the 'drainage_area', 'surface_water__discharge',
+        'flow__upstream_node_order', and the other various flow accumulation
+        fields (see output field names) will now reflect the new drainage
+        patterns without having to manually reaccumulate the discharge. If
+        True but redirect_flow_steepest_descent is False, raises an
+        AssertionError.
     ignore_overfill : bool
         If True, suppresses the Error that would normally be raised during
         creation of a gentle incline on a fill surface (i.e., if not
@@ -236,6 +238,81 @@ class LakeMapperBarnes(Component):
         on that data in retrospect. Set to False to simply fill the surface
         and be done with it.
     """
+
+    _name = 'LakeMapperBarnes'
+
+    _input_var_names = (
+        'topographic__elevation',
+        'drainage_area',
+        'surface_water__discharge',
+        'flow__link_to_receiver_node',
+        'flow__upstream_node_order',
+        'flow__data_structure_delta',
+        'flow__data_structure_D',
+        'flow__receiver_node',
+        'flow__sink_flag',
+    )
+
+    _output_var_names = (
+        'topographic__elevation',
+        'drainage_area',
+        'surface_water__discharge',
+        'flow__link_to_receiver_node',
+        'flow__upstream_node_order',
+        'flow__data_structure_delta',
+        'flow__data_structure_D',
+        'flow__receiver_node',
+        'flow__sink_flag',
+    )
+
+    _var_units = {
+        'topographic__elevation': 'm',
+        'drainage_area': 'm**2',
+        'surface_water__discharge': 'm**3/s',
+        'flow__link_to_receiver_node': '-',
+        'flow__upstream_node_order': '-',
+        'flow__data_structure_delta': '-',
+        'flow__data_structure_D': '-',
+        'flow__receiver_node': '-',
+        'flow__sink_flag': '-',
+    }
+
+    _var_mapping = {
+        'topographic__elevation': 'node',
+        'drainage_area': 'node',
+        'surface_water__discharge': 'node',
+        'flow__link_to_receiver_node': 'node',
+        'flow__upstream_node_order': 'node',
+        'flow__data_structure_delta': 'node',
+        'flow__data_structure_D': 'link',
+        'flow__receiver_node': 'node',
+        'flow__sink_flag': 'node',
+    }
+
+    _var_doc = {
+        'topographic__elevation': 'Land surface topographic elevation',
+        'drainage_area':
+            "Upstream accumulated surface area contributing to the node's "
+            "discharge",
+        'surface_water__discharge': 'Discharge of water through each node',
+        'flow__link_to_receiver_node':
+            'ID of link downstream of each node, which carries the discharge',
+        'flow__upstream_node_order':
+            'Node array containing downstream-to-upstream ordered list of '
+            'node IDs',
+        'flow__data_structure_delta':
+            'Node array containing the elements delta[1:] of the data '
+            'structure "delta" used for construction of the downstream-to-'
+            'upstream node array',
+        'flow__data_structure_D':
+            'Link array containing the data structure D used for construction'
+            'of the downstream-to-upstream node array',
+        'flow__receiver_node':
+            'Node array of receivers (node that receives flow from current '
+            'node)',
+        'flow__sink_flag': 'Boolean array, True at local lows',
+    }
+
     def __init__(self, grid, surface='topographic__elevation',
                  method='d8', fill_flat=True,
                  fill_surface='topographic__elevation',
