@@ -1,9 +1,5 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid
 import landlab.grid.mappers as maps
@@ -70,7 +66,7 @@ class TestNodeToLinkMappers():
         out = np.empty_like(link_values)
         rtn = maps.map_link_tail_node_to_link(rmg, 'values', out=out)
         assert_array_equal(out, link_values)
-        assert_is(rtn, out)
+        assert rtn is out
 
     def test_from_node(self):
         rmg = RasterModelGrid(4, 5, 1.)

@@ -5,15 +5,15 @@ Created on Fri Mar  3 10:39:32 2017
 
 @author: gtucker
 """
+import pytest
+import warnings
 
-from landlab import RasterModelGrid
-from landlab.components import (DepthDependentDiffuser,
-                                ExponentialWeatherer)
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import assert_raises
 
-import warnings
+from landlab import RasterModelGrid
+from landlab.components import DepthDependentDiffuser, ExponentialWeatherer
+
 
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
@@ -24,9 +24,10 @@ def test_raise_kwargs_error():
     BRz += mg.node_x/2.
     soilTh[:] = z - BRz
     expweath = ExponentialWeatherer(mg)
-    assert_raises(TypeError, DepthDependentDiffuser, mg, diffusivity=1)
+    with pytest.raises(TypeError):
+        DepthDependentDiffuser(mg, diffusivity=1)
     
     DDdiff = DepthDependentDiffuser(mg)
     
-    assert_raises(TypeError, DDdiff.soilflux, 2., bad_var=1)
-
+    with pytest.raises(TypeError):
+        DDdiff.soilflux(2., bad_var=1)

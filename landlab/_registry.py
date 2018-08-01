@@ -54,7 +54,7 @@ Examples
     publisher={Copernicus GmbH}
     }
 <BLANKLINE>
-## Isostatic flexure
+## Flexure
     @article{hutton2008sedflux,
     title={Sedflux 2.0: An advanced process-response model that
         generates three-dimensional stratigraphy},
@@ -82,10 +82,11 @@ class ComponentRegistry(object):
 
     def __init__(self, objs=None):
         self._registered = []
-        try:
-            [self.add(obj) for obj in objs]
-        except TypeError:
-            self.add(objs)
+        if objs is not None:
+            try:
+                [self.add(obj) for obj in objs]
+            except TypeError:
+                self.add(objs)
 
     def add(self, cls):
         """Add a class to the registry.
@@ -109,7 +110,7 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class FooBar(object):
         ...    pass
@@ -138,7 +139,7 @@ class ComponentRegistry(object):
         Examples
         --------
         >>> from __future__ import print_function
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
         ...     pass
@@ -178,7 +179,25 @@ class ComponentRegistry(object):
 
     @staticmethod
     def get_name(obj):
-        """Get the display name for an object."""
+        """Get the display name for an object.
+
+        Examples
+        >>> from landlab._registry import ComponentRegistry
+        >>> class MontyPython(object):
+        ...     name = "Eric Idle"
+        >>> ComponentRegistry.get_name(MontyPython)
+        'Eric Idle'
+        >>> class MontyPython(object):
+        ...     _name = "Graham Chapman"
+        >>> ComponentRegistry.get_name(MontyPython)
+        'Graham Chapman'
+        >>> class MontyPython(object):
+        ...     pass
+        >>> ComponentRegistry.get_name(MontyPython)
+        'MontyPython'
+
+        --------
+        """
         name = 'Unknown'
         for attr in ('name', '_name', '__name__'):
             try:
@@ -215,7 +234,7 @@ class ComponentRegistry(object):
         Examples
         --------
         >>> from __future__ import print_function
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
 
         >>> class HolyGrailFinder(object):

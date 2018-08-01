@@ -2,7 +2,8 @@ from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy import testing
-from nose.tools import assert_raises
+import pytest
+
 
 def test_Ff_bad_vals():
     """
@@ -34,8 +35,9 @@ def test_Ff_bad_vals():
 
 
     # Instantiate the ErosionDeposition component...
-    assert_raises(ValueError, ErosionDeposition, mg, K=0.01, F_f=2.0, phi=0.5, 
-                  v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0.0, solver='basic')
+    with pytest.raises(ValueError):
+        ErosionDeposition(mg, K=0.01, F_f=2.0, phi=0.5, v_s=0.001, m_sp=0.5,
+                          n_sp=1.0, sp_crit=0.0, solver='basic')
 
 
 def test_phi_bad_vals():
@@ -67,8 +69,10 @@ def test_phi_bad_vals():
                          depression_finder='DepressionFinderAndRouter')
 
     # Instantiate the ErosionDeposition component...
-    assert_raises(ValueError, ErosionDeposition, mg, K=0.01, F_f=0.0, phi=2.0, 
-                  v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0.0, solver='basic')
+    with pytest.raises(ValueError):
+        ErosionDeposition(mg, K=0.01, F_f=0.0, phi=2.0,
+                          v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0.0,
+                          solver='basic')
 
 
 def test_q_as_field():
