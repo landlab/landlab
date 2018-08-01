@@ -9,14 +9,17 @@ from pandas import DataFrame
 
 from landlab.field import GroupError
 
-_LOCATIONS = {'node': 'number_of_nodes',
-              'patch': 'number_of_patches',
-              'link': 'number_of_links',
-              'corner': 'number_of_corners',
-              'face': 'number_of_faces',
-              'cell': 'number_of_cells'}
+_LOCATIONS = {
+    "node": "number_of_nodes",
+    "patch": "number_of_patches",
+    "link": "number_of_links",
+    "corner": "number_of_corners",
+    "face": "number_of_faces",
+    "cell": "number_of_cells",
+}
 
 _FILL_VALUE = np.nan
+
 
 class ItemCollection(object):
     """
@@ -257,14 +260,14 @@ class ItemCollection(object):
         self.variable_names = list(np.sort(list(data.keys())))
 
         # add grid element and element ID to data frame
-        data['grid_element'] = grid_element
-        data['element_id'] = element_id
+        data["grid_element"] = grid_element
+        data["element_id"] = element_id
 
         # initialized the PD dataframe now that we've done checks
         self.DataFrame = DataFrame(data)
 
         # order DataFrame
-        self._column_order = ['grid_element', 'element_id'] + self.variable_names
+        self._column_order = ["grid_element", "element_id"] + self.variable_names
         self.DataFrame = self.DataFrame[self._column_order]
 
         # check that element IDs do not exceed number of elements on this grid
@@ -283,8 +286,9 @@ class ItemCollection(object):
         if np.all(num_items[0] == np.array(num_items)):
             self.number_of_items = num_items[0]
         else:
-            raise ValueError(('Data passed to ItemCollection must be '
-                              ' the same length.'))
+            raise ValueError(
+                ("Data passed to ItemCollection must be " " the same length.")
+            )
 
     def _check_element_id_values(self):
         """Check that element_id values are valid."""
@@ -292,22 +296,36 @@ class ItemCollection(object):
 
             max_size = self._grid[at].size
 
-            selected_elements = self.DataFrame.loc[self.DataFrame['grid_element'] == at, 'element_id']
+            selected_elements = self.DataFrame.loc[
+                self.DataFrame["grid_element"] == at, "element_id"
+            ]
 
             if selected_elements.size > 0:
                 if max(selected_elements) >= max_size:
-                    raise ValueError(('An item residing at ' + at + ' has an '
-                                      'element_id larger than the size of this '
-                                      'part of the grid.'))
+                    raise ValueError(
+                        (
+                            "An item residing at " + at + " has an "
+                            "element_id larger than the size of this "
+                            "part of the grid."
+                        )
+                    )
                 less_than_zero = selected_elements < 0
                 if any(less_than_zero):
-                    raise ValueError(('An item residing at ' + at + ' has '
-                                      'an element id below zero. This is not '
-                                      'permitted.'))
+                    raise ValueError(
+                        (
+                            "An item residing at " + at + " has "
+                            "an element id below zero. This is not "
+                            "permitted."
+                        )
+                    )
 
         if isinstance(self.DataFrame.element_id.values[0], (int, np.integer)) == False:
-            raise ValueError(('You have passed a non integer element id. to '
-                             'ItemCollection, this is not permitted.'))
+            raise ValueError(
+                (
+                    "You have passed a non integer element id. to "
+                    "ItemCollection, this is not permitted."
+                )
+            )
 
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check that grid_element and element_id are the right size."""
@@ -316,11 +334,16 @@ class ItemCollection(object):
             if grid_element in self.permitted_locations:
                 pass
             else:
-                raise ValueError(('Location index provided: ' + grid_element +
-                                  ' is not a permitted location for this grid '
-                                  'type.'))
+                raise ValueError(
+                    (
+                        "Location index provided: "
+                        + grid_element
+                        + " is not a permitted location for this grid "
+                        "type."
+                    )
+                )
             ge_name = grid_element
-            grid_element = np.empty((self.number_of_items, ), dtype=object)
+            grid_element = np.empty((self.number_of_items,), dtype=object)
             grid_element.fill(ge_name)
 
         else:
@@ -328,16 +351,28 @@ class ItemCollection(object):
                 if loc in self.permitted_locations:
                     pass
                 else:
-                    raise ValueError(('Location index provided: ' + loc + ' is not'
-                                     ' a permitted location for this grid type.'))
+                    raise ValueError(
+                        (
+                            "Location index provided: " + loc + " is not"
+                            " a permitted location for this grid type."
+                        )
+                    )
 
         if len(grid_element) != self.number_of_items:
-            raise ValueError(('grid_element passed to ItemCollection must be '
-                              ' the same length as the data or 1.'))
+            raise ValueError(
+                (
+                    "grid_element passed to ItemCollection must be "
+                    " the same length as the data or 1."
+                )
+            )
 
         if len(element_id) != self.number_of_items:
-            raise ValueError(('element_id passed to ItemCollection must be '
-                              ' the same length as the data.'))
+            raise ValueError(
+                (
+                    "element_id passed to ItemCollection must be "
+                    " the same length as the data."
+                )
+            )
 
         return grid_element
 
@@ -356,22 +391,31 @@ class ItemCollection(object):
             if np.array(values).size == self.DataFrame.shape[0]:
                 pass
             else:
-                raise ValueError(('Values passed to add_variable must have '
-                                  'the same size as the current ItemCollection.'))
+                raise ValueError(
+                    (
+                        "Values passed to add_variable must have "
+                        "the same size as the current ItemCollection."
+                    )
+                )
 
             if variable in self.DataFrame.columns.values:
-                raise ValueError(('Variable name ' + variable + ' passed to add_variable '
-                                  'already exists. This is not permitted.'))
+                raise ValueError(
+                    (
+                        "Variable name " + variable + " passed to add_variable "
+                        "already exists. This is not permitted."
+                    )
+                )
         else:
-            raise ValueError(('Variable name passed to add_variable must be of '
-                              'type string.'))
+            raise ValueError(
+                ("Variable name passed to add_variable must be of " "type string.")
+            )
 
         # assign variable to values
         self.DataFrame[variable] = values
 
         # reassign variable names and re-order dataframe
         self.variable_names = list(np.sort(list(self.DataFrame)[2:]))
-        self._column_order = ['grid_element', 'element_id'] + self.variable_names
+        self._column_order = ["grid_element", "element_id"] + self.variable_names
         self.DataFrame = self.DataFrame[self._column_order]
 
     def add_item(self, data=None, grid_element=None, element_id=None):
@@ -400,8 +444,8 @@ class ItemCollection(object):
         grid_element = self._check_grid_element_and_id(grid_element, element_id)
 
         # add grid element and element ID to data frame
-        data['grid_element'] = grid_element
-        data['element_id'] = element_id
+        data["grid_element"] = grid_element
+        data["element_id"] = element_id
 
         new_data = DataFrame(data)
 
@@ -410,17 +454,25 @@ class ItemCollection(object):
 
         for colname in new_columns:
             if colname not in old_columns:
-                raise ValueError(('A data associated with a new column name is '
-                                  'being passed to ItemCollection using the '
-                                  'method add_item. You must first add this '
-                                  'variable using the method add_variable.'))
+                raise ValueError(
+                    (
+                        "A data associated with a new column name is "
+                        "being passed to ItemCollection using the "
+                        "method add_item. You must first add this "
+                        "variable using the method add_variable."
+                    )
+                )
         for colname in old_columns:
             if colname not in new_columns:
-                raise ValueError(('New items are being added to an '
-                                  'ItemCollection that do not include already '
-                                  'existing variables. When adding items to '
-                                  'ItemCollection you must pass values for all '
-                                  'existing variables.'))
+                raise ValueError(
+                    (
+                        "New items are being added to an "
+                        "ItemCollection that do not include already "
+                        "existing variables. When adding items to "
+                        "ItemCollection you must pass values for all "
+                        "existing variables."
+                    )
+                )
 
         # append new data frame, ingoring its current index (which just adds)
         # additional indicies.
@@ -478,7 +530,7 @@ class ItemCollection(object):
         """
         self.DataFrame.loc[item_id, variable] = value
 
-    def get_items_on_grid_element(self, at=None, element_id = 0):
+    def get_items_on_grid_element(self, at=None, element_id=0):
         """Get all items on a grid element with a particular element_id.
 
         Parameters
@@ -493,15 +545,22 @@ class ItemCollection(object):
         Dataframe
         """
 
-        vals = self.DataFrame.loc[(self.DataFrame['grid_element'] == at) &
-                                  (self.DataFrame['element_id'] == element_id)]
+        vals = self.DataFrame.loc[
+            (self.DataFrame["grid_element"] == at)
+            & (self.DataFrame["element_id"] == element_id)
+        ]
         return vals
 
-    def calc_aggregate_value(self, func, var,
-                             at='node',
-                             fill_value=_FILL_VALUE,
-                             filter_array=None,
-                             args=(), **kwargs):
+    def calc_aggregate_value(
+        self,
+        func,
+        var,
+        at="node",
+        fill_value=_FILL_VALUE,
+        filter_array=None,
+        args=(),
+        **kwargs
+    ):
         """Apply a function to a variable aggregated at grid elements.
 
         Parameters
@@ -591,15 +650,19 @@ class ItemCollection(object):
         # select those items located on the correct type of element,
         # group by element_id and sum.
         if filter_array is None:
-            filt = (self.DataFrame['grid_element'] == at)
+            filt = self.DataFrame["grid_element"] == at
         else:
             filter_array = np.squeeze(np.asarray(filter_array))
             if filter_array.size == self.DataFrame.shape[0]:
-                filt = (self.DataFrame['grid_element'] == at)&(filter_array)
+                filt = (self.DataFrame["grid_element"] == at) & (filter_array)
             else:
-                raise ValueError(('ItemCollection: filter_array has incorrect '
-                                   'size. It must be of size (number-of-items,)'))
-        grouped = self.DataFrame.loc[filt].groupby('element_id')
+                raise ValueError(
+                    (
+                        "ItemCollection: filter_array has incorrect "
+                        "size. It must be of size (number-of-items,)"
+                    )
+                )
+        grouped = self.DataFrame.loc[filt].groupby("element_id")
         vals = grouped.agg(func, *args, **kwargs)
 
         # create a nan array that we will fill with the results of the sum
