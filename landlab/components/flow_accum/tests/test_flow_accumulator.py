@@ -5,16 +5,9 @@
 # Created on Thurs Nov 12, 2015
 import os
 
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-
-from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
-                        assert_almost_equal, assert_equal)
-try:
-    from nose.tools import (assert_is, assert_set_equal, assert_dict_equal)
-except ImportError:
-    from landlab.testing.tools import (assert_is, assert_set_equal,
-                                       assert_dict_equal)
 
 import landlab
 from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
@@ -72,26 +65,16 @@ def test_director_adding_methods_are_equivalent_Steepest():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for loc in ['node', 'link', 'grid']:
-        for key in mg0[loc].keys():
-            if loc == 'grid':
-                assert_array_equal(mg0[loc][key][0],
-                                   mg1[loc][key][0])
+    for key in mg0.at_node.keys():
+        assert_array_equal(mg0.at_node[key],
+                           mg1.at_node[key])
 
-                assert_array_equal(mg1[loc][key][0],
-                                   mg2[loc][key][0])
+        assert_array_equal(mg1.at_node[key],
+                           mg2.at_node[key])
 
-                assert_array_equal(mg2[loc][key][0],
-                                   mg3[loc][key][0])
-            else:
-                assert_array_equal(mg0[loc][key],
-                                   mg1[loc][key])
+        assert_array_equal(mg2.at_node[key],
+                           mg3.at_node[key])
 
-                assert_array_equal(mg1[loc][key],
-                                   mg2[loc][key])
-
-                assert_array_equal(mg2[loc][key],
-                                   mg3[loc][key])
 
 def test_director_adding_methods_are_equivalent_D8():
     """Check that different methods to specifying the director are the same."""
@@ -117,25 +100,15 @@ def test_director_adding_methods_are_equivalent_D8():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for loc in ['node', 'link', 'grid']:
-        for key in mg0[loc].keys():
-            if loc == 'grid':
-                assert_array_equal(mg0[loc][key][0],
-                                   mg1[loc][key][0])
+    for key in mg0.at_node.keys():
+        assert_array_equal(mg0.at_node[key],
+                           mg1.at_node[key])
 
-                assert_array_equal(mg1[loc][key][0],
-                                   mg2[loc][key][0])
+        assert_array_equal(mg1.at_node[key],
+                           mg2.at_node[key])
 
-                assert_array_equal(mg2[loc][key][0],
-                                   mg3[loc][key][0])
-            else:
-                assert_array_equal(mg0[loc][key],
-                                   mg1[loc][key])
-
-                assert_array_equal(mg1[loc][key],
-                                   mg2[loc][key])
-
-                assert_array_equal(mg2[loc][key],
+        assert_array_equal(mg2.at_node[key],
+                           mg3.at_node[key])
 
 
 def test_director_adding_methods_are_equivalent_Dinf():
@@ -162,25 +135,15 @@ def test_director_adding_methods_are_equivalent_Dinf():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for loc in ['node', 'link', 'grid']:
-        for key in mg0[loc].keys():
-            if loc == 'grid':
-                assert_array_equal(mg0[loc][key][0],
-                                   mg1[loc][key][0])
+    for key in mg0.at_node.keys():
+        assert_array_equal(mg0.at_node[key],
+                           mg1.at_node[key])
 
-                assert_array_equal(mg1[loc][key][0],
-                                   mg2[loc][key][0])
+        assert_array_equal(mg1.at_node[key],
+                           mg2.at_node[key])
 
-                assert_array_equal(mg2[loc][key][0],
-                                   mg3[loc][key][0])
-            else:
-                assert_array_equal(mg0[loc][key],
-                                   mg1[loc][key])
-
-                assert_array_equal(mg1[loc][key],
-                                   mg2[loc][key])
-
-                assert_array_equal(mg2[loc][key],
+        assert_array_equal(mg2.at_node[key],
+                           mg3.at_node[key])
 
 
 def test_director_adding_methods_are_equivalent_MFD():
@@ -207,25 +170,15 @@ def test_director_adding_methods_are_equivalent_MFD():
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for loc in ['node', 'link', 'grid']:
-        for key in mg0[loc].keys():
-            if loc == 'grid':
-                assert_array_equal(mg0[loc][key][0],
-                                   mg1[loc][key][0])
+    for key in mg0.at_node.keys():
+        assert_array_equal(mg0.at_node[key],
+                           mg1.at_node[key])
 
-                assert_array_equal(mg1[loc][key][0],
-                                   mg2[loc][key][0])
+        assert_array_equal(mg1.at_node[key],
+                           mg2.at_node[key])
 
-                assert_array_equal(mg2[loc][key][0],
-                                   mg3[loc][key][0])
-            else:
-                assert_array_equal(mg0[loc][key],
-                                   mg1[loc][key])
-
-                assert_array_equal(mg1[loc][key],
-                                   mg2[loc][key])
-
-                assert_array_equal(mg2[loc][key],
+        assert_array_equal(mg2.at_node[key],
+                           mg3.at_node[key])
 
 
 def test_passing_a_bad_component():
@@ -236,7 +189,8 @@ def test_passing_a_bad_component():
     _ = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
-    assert_raises(ValueError, FlowAccumulator, mg, 'topographic__elevation', flow_director=ChiFinder)
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg, 'topographic__elevation', flow_director=ChiFinder)
 
 
 def test_error_for_to_many_with_depression():
@@ -249,16 +203,20 @@ def test_error_for_to_many_with_depression():
     z1 = mg1.add_field('topographic__elevation', mg1.node_x**2 + mg1.node_y**2, at = 'node')
 
 
-    assert_raises(ValueError, FlowAccumulator, mg0, flow_director='MFD', depression_finder='DepressionFinderAndRouter')
-    assert_raises(ValueError, FlowAccumulator, mg0, flow_director='DINF', depression_finder='DepressionFinderAndRouter')
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg0, flow_director='MFD', depression_finder='DepressionFinderAndRouter')
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg0, flow_director='DINF', depression_finder='DepressionFinderAndRouter')
 
     fa0 = FlowAccumulator(mg0, flow_director='MFD')
     fa0.run_one_step()
-    assert_raises(ValueError, DepressionFinderAndRouter, mg0)
+    with pytest.raises(ValueError):
+        DepressionFinderAndRouter(mg0)
 
     fa1 = FlowAccumulator(mg1, flow_director='DINF')
     fa1.run_one_step()
-    assert_raises(ValueError, DepressionFinderAndRouter, mg1)
+    with pytest.raises(ValueError):
+        DepressionFinderAndRouter(mg1)
 
 
 def test_fields():
@@ -271,37 +229,37 @@ def test_fields():
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
-    assert_equal(sorted(list(mg.at_node.keys())), ['drainage_area',
-                                                   'flow__data_structure_delta',
-                                                   'flow__link_to_receiver_node',
-                                                   'flow__receiver_node',
-                                                   'flow__sink_flag',
-                                                   'flow__upstream_node_order',
-                                                   'surface_water__discharge',
-                                                   'topographic__elevation',
-                                                   'topographic__steepest_slope',
-                                                   'water__unit_flux_in'])
-    assert_equal(sorted(list(mg.at_grid.keys())), ['flow__data_structure_D'])
+    assert sorted(list(mg.at_node.keys())) == ['drainage_area',
+                                               'flow__data_structure_delta',
+                                               'flow__link_to_receiver_node',
+                                               'flow__receiver_node',
+                                               'flow__sink_flag',
+                                               'flow__upstream_node_order',
+                                               'surface_water__discharge',
+                                               'topographic__elevation',
+                                               'topographic__steepest_slope',
+                                               'water__unit_flux_in']
+    assert sorted(list(mg.at_link.keys())) == ['flow__data_structure_D']
 
     mg2 = RasterModelGrid((10,10), spacing=(1, 1))
     _ = mg2.add_field('topographic__elevation', mg2.node_x + mg2.node_y, at = 'node')
     fa2 = FlowAccumulator(mg2, flow_director='MFD')
     fa2.run_one_step()
-    assert_equal(sorted(list(mg2.at_node.keys())), ['drainage_area',
-                                                    'flow__data_structure_delta',
-                                                    'flow__link_to_receiver_node',
-                                                    'flow__links_to_receiver_nodes',
-                                                    'flow__receiver_node',
-                                                    'flow__receiver_nodes',
-                                                    'flow__receiver_proportions',
-                                                    'flow__sink_flag',
-                                                    'flow__upstream_node_order',
-                                                    'surface_water__discharge',
-                                                    'topographic__elevation',
-                                                    'topographic__steepest_slope',
-                                                    'water__unit_flux_in'])
+    assert sorted(list(mg2.at_node.keys())) == ['drainage_area',
+                                                'flow__data_structure_delta',
+                                                'flow__link_to_receiver_node',
+                                                'flow__links_to_receiver_nodes',
+                                                'flow__receiver_node',
+                                                'flow__receiver_nodes',
+                                                'flow__receiver_proportions',
+                                                'flow__sink_flag',
+                                                'flow__upstream_node_order',
+                                                'surface_water__discharge',
+                                                'topographic__elevation',
+                                                'topographic__steepest_slope',
+                                                'water__unit_flux_in']
 
-    assert_equal(sorted(list(mg2.at_grid.keys())), ['flow__data_structure_D'])
+    assert sorted(list(mg2.at_link.keys())) == ['flow__data_structure_D']
 
 
 def test_accumulated_area_closes():
@@ -318,27 +276,27 @@ def test_accumulated_area_closes():
         drainage_area = mg.at_node['drainage_area']
         drained_area = np.sum(drainage_area[mg.boundary_nodes])
         core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
-        assert_equal(drained_area, core_area)
+        assert drained_area == core_area
 
 # def test_passing_unnecessary_kwarg():
 #     """Test that passing a bad kwarg raises a ValueError."""
 #     mg = RasterModelGrid((10,10), spacing=(1, 1))
 #     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-#     assert_raises(ValueError, FlowAccumulator, mg, bad_kwarg='woo')
+#     with pytest.raises(ValueError):
+#         FlowAccumulator(mg, bad_kwarg='woo')
 
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
     mg = RasterModelGrid((10,10), spacing=(1, 1))
     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
 
-    assert_raises(ValueError, FlowAccumulator, mg,
-                  flow_director='D4',
-                  depression_finder='DepressionFinderAndRouter')
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg, flow_director='D4',
+                        depression_finder='DepressionFinderAndRouter')
 
     df = DepressionFinderAndRouter(mg)
-    assert_raises(ValueError, FlowAccumulator, mg,
-                  flow_director='D4',
-                  depression_finder=df)
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg, flow_director='D4', depression_finder=df)
 
 
 def test_field_name_array_float_case1():
