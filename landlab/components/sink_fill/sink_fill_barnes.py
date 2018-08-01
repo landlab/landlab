@@ -30,8 +30,9 @@ LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
 class SinkFillerBarnes(LakeMapperBarnes):
     """
-    Uses the Barnes et al (2014) algorithms to replace pits with flats, or
-    optionally to very shallow gradient surfaces to allow continued draining.
+    Uses the Barnes et al (2014) algorithms to replace pits in a topography
+    with flats, or optionally with very shallow gradient surfaces to allow
+    continued draining.
 
     This component is NOT intended for use iteratively as a model runs;
     rather, it is to fill in an initial topography. If you want to repeatedly
@@ -65,6 +66,11 @@ class SinkFillerBarnes(LakeMapperBarnes):
     def __init__(self, grid, surface='topographic__elevation',
                  method='d8', fill_flat=False,
                  ignore_overfill=False):
+        """
+        Initialise the component. Note the heavy inheritance from the
+        LakeMapperBarnes. These are, essentially the same thing, but do
+        slightly different jobs.
+        """
         # Most of the functionality of this component is directly inherited
         # from SinkFillerBarnes, so
         super(SinkFillerBarnes, self).__init__(
