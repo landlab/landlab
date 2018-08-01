@@ -1101,6 +1101,7 @@ class LakeMapperBarnes(Component):
                                         liminal_nodes.append(n)
                                         # ...& don't add to the queue
 
+            # TODO: obvious case for Cython accel here
             # now know which nodes we need to reassess. So:
             for liminal in liminal_nodes:
                 min_elev = LARGE_ELEV
@@ -1374,47 +1375,138 @@ class LakeMapperBarnes(Component):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> from landlab.components import FlowDirectorSteepest
-        >>> from landlab.components import StreamPowerEroder
+        >>> from landlab.components import FastscapeEroder
         >>> mg = RasterModelGrid((6, 8), 1.)
         >>> for edge in ('right', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
-        >>> z[:] = mg.node_x
-        >>> z[11] = 1.5
-        >>> z[19] = 0.5
-        >>> z[34] = 1.1
-        >>> z_init = z.copy()
+
+        Because it is what we want the FastscapeEroder to see and work on,
+        it's actually the water surface that needs to go in as
+        'topographic__elevation'. We'll also need to keep track of the bed
+        elevation though, since the LakeMapper will need it. We start them
+        equal (i.e., topo starts dry).
+
+        >>> z_water = mg.add_zeros(
+        ...     'node', 'topographic__elevation', dtype=float)
+        >>> z_water[:] = mg.node_x
+        >>> z_water[11] = 1.5
+        >>> z_water[19] = 0.5
+        >>> z_water[34] = 1.1
+        >>> z_bed = mg.add_zeros(
+        ...     'node', 'bedrock__elevation', dtype=float)
+        >>> z_bed[:] = z_water  # topo starts dry
+
+        Let's just take a look:
+
+        >>> np.all(np.equal(
+        ...     np.round(z_water, 2),
+        ...     np.array([0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 1.5, 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 0.5, 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 1.1, 3. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ])))
+        True
+
         >>> fd = FlowDirectorSteepest(mg)
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, fill_flat=True, surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, fill_flat=True,
+        ...                        surface='bedrock__elevation',
+        ...                        fill_surface='topographic__elevation',
         ...                        method='d8',
         ...                        redirect_flow_steepest_descent=True,
         ...                        reaccumulate_flow=True,
         ...                        track_lakes=True)
-        >>> sp = StreamPowerEroder(mg, K_sp=1., m_sp=1., n_sp=1.)
+        >>> sp = FastscapeEroder(mg, K_sp=1., m_sp=0., n_sp=1.)
         >>> fd.run_one_step()
-        >>> fa.run_one_step()
+        >>> fa.run_one_step()  # node 18 is draining into the pit...
         >>> np.isclose(mg.at_node['topographic__steepest_slope'][18], 1.5)
         True
-        >>> np.allclose(mg.at_node['drainage_area'].reshape(mg.shape)[1:5, :],
-        ...             np.array([[ 2.,  2.,  1.,  4.,  3.,  2.,  1.,  0.],
-        ...                       [ 1.,  1.,  1., 13.,  3.,  2.,  1.,  0.],
-        ...                       [ 2.,  2.,  1.,  4.,  3.,  2.,  1.,  0.],
-        ...                       [ 6.,  6.,  5.,  4.,  3.,  2.,  1.,  0.]]))
+        >>> np.allclose(mg.at_node['drainage_area'],
+        ...             np.array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        ...                        2.,  2.,  1.,  4.,  3.,  2.,  1.,  0.,
+        ...                        1.,  1.,  1., 13.,  3.,  2.,  1.,  0.,
+        ...                        2.,  2.,  1.,  4.,  3.,  2.,  1.,  0.,
+        ...                        6.,  6.,  5.,  4.,  3.,  2.,  1.,  0.,
+        ...                        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]))
         True
-        >>> lmb.run_one_step()
+        >>> lmb.run_one_step()  # now node 18 drains correctly, outward ->
         >>> np.isclose(mg.at_node['topographic__steepest_slope'][18], 1.)
         True
-        >>> np.allclose(mg.at_node['drainage_area'].reshape(mg.shape)[1:5, :],
-        ...             np.array([[13., 13., 12.,  4.,  3.,  2.,  1.,  0.],
-        ...                       [ 2.,  2.,  1.,  7.,  3.,  2.,  1.,  0.],
-        ...                       [ 2.,  2.,  1.,  1.,  3.,  2.,  1.,  0.],
-        ...                       [ 7.,  7.,  6.,  4.,  3.,  2.,  1.,  0.]]))
+        >>> np.allclose(mg.at_node['drainage_area'],
+        ...             np.array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        ...                       13., 13., 12.,  4.,  3.,  2.,  1.,  0.,
+        ...                        2.,  2.,  1.,  7.,  3.,  2.,  1.,  0.,
+        ...                        2.,  2.,  1.,  1.,  3.,  2.,  1.,  0.,
+        ...                        7.,  7.,  6.,  4.,  3.,  2.,  1.,  0.,
+        ...                        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]))
         True
-        >>> sp.run_one_step(0.1, flooded_nodes=lmb.lake_at_node)
-        >>> z
-    
-### RESOLVE FLOODED NODES
+        >>> np.all(np.equal(
+        ...     np.round(z_water, 2),
+        ...     np.array([0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 2. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 2. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 1.1, 3. , 4. , 5. , 6. , 7. ,
+        ...               0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ])))
+        True
+
+        >>> sp.run_one_step(0.05)  # note m=0 to illustrate effect of slopes
+        >>> np.all(np.equal(
+        ...     np.round(z_water, 2),
+        ...     np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
+        ...               0.  , 0.95, 1.95, 2.  , 3.9 , 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.95, 2.  , 3.9 , 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
+        ...               0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ])))
+        True
+
+        If we want to keep this going honouring the depths of the lakes try
+        this next in your loop:
+
+        >>> z_bed[:] = np.minimum(z_water, z_bed)
+        >>> np.all(np.equal(
+        ...     np.round(z_bed, 2),
+        ...     np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
+        ...               0.  , 0.95, 1.95, 1.5 , 3.9 , 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.95, 0.5 , 3.9 , 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
+        ...               0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ])))
+        True
+        >>> fd.run_one_step()
+        >>> fa.run_one_step()
+        >>> lmb.run_one_step()
+
+        Lake node depths are now updated in lmb:
+
+        >>> np.round(
+        ...     [lmb.lake_depths[lake] for lake in lmb.lake_dict.values()], 2)
+        array([[ 0.45,  1.45]])
+
+        ...and the "topography" (i.e., water surface) at the flooded nodes
+        has lowered itself as the lip of the outlet was eroded in the last
+        step:
+
+        >>> np.all(np.equal(
+        ...     np.round(z_water, 2),
+        ...     np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
+        ...               0.  , 0.95, 1.95, 1.95 , 3.9 , 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.95, 1.95 , 3.9 , 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
+        ...               0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
+        ...               0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ])))
+        True
+
+        >>> sp.run_one_step(0.05)
+
+        ...and so on.
+
+        Note that this approach, without passing `flooded_nodes` to the
+        FastscapeEroder run method, is both more "Landlabbic" and also
+        ensures the information about the lake and the water surface
+        topography are all updated cleanly and correctly.
         """
         # do the prep:
         # increment the run counter
