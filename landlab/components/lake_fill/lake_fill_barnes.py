@@ -180,8 +180,25 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors,
 
 class LakeMapperBarnes(Component):
     """
-    Note this will also flag our lake nodes, since we can access
-    nodes_ever_in_queue for each spill point.
+    A Landlab implementation of the Barnes et al. (2014) lake filling & lake
+    routing algorithms, lightly modified and adapted for Landlab by DEJH. This
+    component is designed as a direct replacement for the LakeMapper as
+    existing pre-Aug 2018, and provides a suite of properties to access
+    information about the lakes created each time it is run.
+
+    A variety of options is provided. Flow routing is one-to-one in this
+    implementation, but can be either D4 ("steepest") or D8 on a raster.
+    The surface can be filled to either flat or a very slight downward
+    incline, such that subsequent flow routing will run over the lake surface.
+    The filling can either be performed in place, or on a new (water) surface
+    distinct from the original (rock) surface. For efficiency, data structures
+    describing the lakes and their properties are only created, and existing
+    flow direction and flow accumulation fields modified, if those flags are
+    set at instantiation.
+
+    With care, this component can be used to create a dynamically flooding
+    surface in a fluvial landscape (interacting with, e.g., the
+    StreamPowerEroder). See the run_one_step docstring for an example.
 
     Parameters
     ----------
@@ -320,21 +337,7 @@ class LakeMapperBarnes(Component):
                  reaccumulate_flow=False,
                  ignore_overfill=False, track_lakes=True):
         """
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
-        >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-        >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest',
-        ...                        redirect_flow_steepest_descent=False)
+        Initialize the component.
         """
         self._grid = grid
         self._open = StablePriorityQueue()
@@ -462,8 +465,7 @@ class LakeMapperBarnes(Component):
                                 pitq, openq, closedq, ignore_overfill):
         """
         Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface. Assumes the _open and _closed lists have already been updated
-        per Barnes algos 2&3, lns 1-7.
+        surface, updating a single node. Assumes the _open and _closed lists have already been updated per Barnes algos 2&3, lns 1-7.
 
         Parameters
         ----------
@@ -626,9 +628,9 @@ class LakeMapperBarnes(Component):
     def _fill_to_flat_with_tracking(self, fill_surface, all_neighbors,
                                     pitq, openq, closedq):
         """
-        Implements the Barnes et al. algorithm for a simple fill. Assumes the
-        _open and _closed lists have already been updated per Barnes algos 2&3,
-        lns 1-7.
+        Implements the Barnes et al. algorithm for a simple fill over the
+        grid. Assumes the _open and _closed lists have already been updated
+        per Barnes algos 2&3, lns 1-7.
 
         This version runs a little more slowly to enable tracking of which
         nodes are linked to which outlets.
@@ -718,6 +720,13 @@ class LakeMapperBarnes(Component):
                                               closedq, ignore_overfill,
                                               track_lakes):
         """
+        Implements the Barnes et al. algorithm to obtain a naturally draining
+        surface over the grid. Assumes the _open and _closed lists have
+        already been updated per Barnes algos 2&3, lns 1-7.
+
+        This version runs a little more slowly to enable tracking of which
+        nodes are linked to which outlets.
+
         Parameters
         ----------
         fill_surface : 1-D array of length nnodes
@@ -1179,7 +1188,7 @@ class LakeMapperBarnes(Component):
                                         # ...& don't add to the queue
 
             # TODO: obvious case for Cython accel here
-            # now know which nodes we need to reassess. So:
+            # Now know which nodes we need to reassess. So:
             for liminal in liminal_nodes:
                 min_elev = LARGE_ELEV
                 min_link = -1
@@ -1231,6 +1240,10 @@ class LakeMapperBarnes(Component):
         surface a second time will raise a ValueError unless ignore_overfill.
         (In this case, setting ignore_overfill is True will give the expected
         behaviour.)
+
+        If reaccumulate_flow was True at instantiation, run_one_step also
+        updates all the various flow fields produced by the FlowDirector and
+        FlowAccumulator components.
 
         Examples
         --------
@@ -1882,7 +1895,10 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_depths(self):
-        """Return the change in surface elevation at each node this step.
+        """
+        Return the change in surface elevation at each node this step.
+        Requires that surface and fill_surface were not the same array at
+        instantiation.
 
         Examples
         --------
@@ -1994,6 +2010,9 @@ class LakeMapperBarnes(Component):
         Note that this calculation is performed relative to the initial
         surface, so is only a true lake volume if the initial surface was the
         rock suface (not an earlier water level).
+
+        Requires that surface and fill_surface were not the same array at
+        instantiation.
 
         Examples
         --------
