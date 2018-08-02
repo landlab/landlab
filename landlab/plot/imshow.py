@@ -118,7 +118,7 @@ def imshow_grid_at_node(grid, values, **kwds):
     if isinstance(values, str):
         values_at_node = grid.at_node[values]
     else:
-        values_at_node = values
+        values_at_node = values.reshape((-1, ))
 
     if values_at_node.size != grid.number_of_nodes:
         raise ValueError('number of values does not match number of nodes')

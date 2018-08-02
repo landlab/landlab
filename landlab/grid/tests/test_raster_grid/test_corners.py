@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import assert_equal
 
 from landlab import RasterModelGrid
 
@@ -8,7 +7,7 @@ from landlab import RasterModelGrid
 def test_number_of_corners():
     """Test number of corners on a raster."""
     grid = RasterModelGrid((4, 5))
-    assert_equal(grid.number_of_corners, 12)
+    assert grid.number_of_corners == 12
 
 
 def test_add_ones_at_corners():
