@@ -33,8 +33,8 @@ class LakeEvaporator(Component):
     at each lake node.
 
     The component operates by knowing the maximum fill condition that a lake
-    could reach, then 
-    
+    could reach, then
+
 
     Parameters
     ----------
@@ -118,10 +118,10 @@ class LakeEvaporator(Component):
                     slc = slice(add_index-1, None, -1)  # work down
                     elev_diff_below = init_water_level - elevs_in_order[add_index]
                     elev_diff = elev_diff_below
-                if 
+                if
                 first_vol = vol_first_slab * elev_diff/(elev_above-elev_below)
-            
-            
+
+
 
 def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                                         pit_nodes, Vw_at_pits, surface_z,
@@ -212,14 +212,14 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
             if lake_map[nghb] < 0 or lake_map[nghb] += num_pits:  # virgin territory
                 # nodes on the perim of other pits are fair game!
                 zsurf_nghb = water_z[nghb]  # actual water level at start
-                
+
 #### START HERE
-                
-                
-                
-                
-                
-                
+
+
+
+
+
+
                 if zsurf_nghb >= current_node_zsurf:
                     if zsurf_nghb > nextlowest_zsurf:
                         flood_order.add_task(nghb, priority=zsurf_nghb)
@@ -236,7 +236,7 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                 ######FOUND A SILL, TREAT HERE...? -> YES
                 # what is the lake we found?
                 found_lake = lake_map[nghb]
-                # flag it for merge, but we can only 
+                # flag it for merge, but we can only
                 # Think this will be easier if we merge this lake into the
                 # one we're working on right now...
                 lake_map[lake_map == found_lake] = currentnode_pit
@@ -244,21 +244,21 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                 for dict_to_merge in (vol_rem_at_pit, accum_area_at_pit,)
                     dict_to_merge[currentnode_pit] += dict_to_merge.pop(
                         found_lake)
-                
+
                 lake_water_volume_balance
                 accum_ks_at_pit
                 accum_cs_at_pit
                 lake_is_full
-                
-                
+
+
                 ## lake_water_level[currentnode_pit] = lake_water_level[found_lake]
                 # not yet. Still need to raise the currentnode to the level.
                 # or not at all? Still need to budget all this raising...
-                
-                
-                
-                
-                
+
+
+
+
+
                 pass
 
         # we're going to need to work lakes simulateously, so:
@@ -303,7 +303,7 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                     ######FOUND A SILL, TREAT HERE...? -> YES
                     # what is the lake we found?
                     found_lake = lake_map[nghb]
-                    # flag it for merge, but we can only 
+                    # flag it for merge, but we can only
                     # Think this will be easier if we merge this lake into the
                     # one we're working on right now...
                     lake_map[lake_map == found_lake] = currentnode_pit
@@ -311,21 +311,21 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                     for dict_to_merge in (vol_rem_at_pit, accum_area_at_pit,)
                         dict_to_merge[currentnode_pit] += dict_to_merge.pop(
                             found_lake)
-                    
+
                     lake_water_volume_balance
                     accum_ks_at_pit
                     accum_cs_at_pit
                     lake_is_full
-                    
-                    
+
+
                     ## lake_water_level[currentnode_pit] = lake_water_level[found_lake]
                     # not yet. Still need to raise the currentnode to the level.
                     # or not at all? Still need to budget all this raising...
-                    
-                    
-                    
-                    
-                    
+
+
+
+
+
                     pass
 
             if lake_map[nextlowest] >= 0:
@@ -337,7 +337,7 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                 # do we mean continue? maybe still need to flood up. Or do later?
                 # THINK THIS IS REDUNDANT SO
                 raise AssertionError
-                
+
             zsurf_next = water_z[nextlowest]
             z_increment = zsurf_next - zsurf_node
             # try to flood up to next

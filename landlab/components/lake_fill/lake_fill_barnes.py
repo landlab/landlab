@@ -23,14 +23,13 @@ from landlab.components import FlowDirectorSteepest, FlowAccumulator
 # need to update...
 from collections import deque
 import six
+from six.moves import range
 import numpy as np
 import heapq
 import itertools
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.
-
-# TODO: Needs to have rerouting functionality...
 
 
 class StablePriorityQueue():
@@ -95,6 +94,48 @@ class StablePriorityQueue():
         are permitted.
         """
         return np.array(self._nodes_ever_in_queue)
+
+    def merge_queues(self, StablePriorityQueue_in):
+        """
+        Add all elements from the supplied queue to this one. Remove the
+        lower priority instances of the task.
+
+        Examples
+        --------
+        >>> from landlab.components.lake_fill import StablePriorityQueue
+        >>> q1 = StablePriorityQueue()
+        >>> q2 = StablePriorityQueue()
+        >>> q1.add_task(3, priority=4)
+        >>> q1.add_task(2, priority=4)
+        >>> q2.add_task(1, priority=1)
+        >>> q2.add_task(2, priority=2)
+        >>> q2.add_task(3, priority=4)
+        >>> q2.add_task(4, priority=3)
+        >>> q1.merge_queues(q2)
+        >>> q1.nodes_currently_in_queue()
+        [1, 2, 4, 3]
+        >>> try:
+        ...     q2
+        ... except NameError:
+        ...     print('Oops')
+        Oops
+        """
+        self._pq.extend(StablePriorityQueue_in._pq)
+        tasksort = lambda x: (x[2], x[0], x[1])  # task, priority, count
+        self._pq.sort(key=tasksort)
+        taskdiffs = [self._pq[i+1][2] - self._pq[i][2]
+                     for i in range(len(self._pq) - 1)]
+        newpq = [self._pq[0], ]  # first val always good
+        newpq.extend([self._pq[i+1] for i in range(len(taskdiffs))
+                      if taskdiffs[i] != 0])
+        # backsort = lambda x: (x[0], x[1], x[2])
+        newpq.sort()
+        heapq.heapify(newpq)
+        self._nodes_ever_in_queue.extend(
+            StablePriorityQueue_in._nodes_ever_in_queue)
+        self._pq = newpq
+
+
 
 
 def _fill_one_node_to_flat(fill_surface, all_neighbors,
