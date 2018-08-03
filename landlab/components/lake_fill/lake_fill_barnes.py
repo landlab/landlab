@@ -113,7 +113,7 @@ class StablePriorityQueue():
         >>> q2.add_task(4, priority=3)
         >>> q1.merge_queues(q2)
         >>> q1.nodes_currently_in_queue()
-        [1, 2, 4, 3]
+        array([1, 2, 4, 3])
         >>> try:
         ...     q2
         ... except NameError:
