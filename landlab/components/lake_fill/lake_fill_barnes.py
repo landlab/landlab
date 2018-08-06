@@ -114,11 +114,6 @@ class StablePriorityQueue():
         >>> q1.merge_queues(q2)
         >>> q1.nodes_currently_in_queue()
         array([1, 2, 4, 3])
-        >>> try:
-        ...     q2
-        ... except NameError:
-        ...     print('Oops')
-        Oops
         """
         self._pq.extend(StablePriorityQueue_in._pq)
         tasksort = lambda x: (x[2], x[0], x[1])  # task, priority, count
