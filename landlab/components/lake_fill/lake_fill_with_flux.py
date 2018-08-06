@@ -24,6 +24,9 @@ from landlab import BAD_INDEX_VALUE
 import six
 import numpy as np
 
+LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
+LARGE_ELEV = 9999999999.
+
 
 class LakeEvaporator(Component):
     """
@@ -391,6 +394,223 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                         accum_ks_at_pit[currentnode_pit] * z_increment)
             # now, simply move to this next lowest node
             current_node = nextlowest
+
+
+def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
+                         lake_q_dict, init_water_surface,
+                         lake_water_level,
+                         accum_area_at_pit,
+                         vol_rem_at_pit,
+                         lake_water_volume_balance,
+                         accum_ks_at_pit,
+                         accum_cs_at_pit,
+                         lake_is_full,
+                         lake_spill_node,
+                         water_vol_balance_at_node,
+                         ):
+    """
+    Lift a lake level from a starting elevation to a new break point.
+    Break points are specified by (a) running out of discharge, (b)
+    making contact with another lake,
+    or (c) reaching a spill point for the current depression. (b) is a bit
+    of a special case - we test for this by contact, not by level. We are
+    permitted to keep raising the level past the lake level if we don't
+    actually touch another lake, don't meet a spill, & still have enough
+    water to do it.
+
+    Parameters
+    ----------
+    neighbors : (nnodes, max_nneighbors) array
+        The neighbors at each node on the grid.
+    Current pit : int
+        Node ID of the pit that uniquely identifies the current lake that
+        we are filling.
+    lake_map : array of ints
+        Grid-node array of -1s with IDs where a node is known to be flooded
+        from that pit.
+    master_pit_q: StablePriorityQueue
+        This queue holds the current lakes in the grid, ordered by water
+        surface elevation priority. The current lake will have just been
+        popped off this list, exposing the next highest surface.
+    lake_q_dict : dict of StablePriorityQueues
+        A dict of queues holding nodes known to be on the perimeter of each lake.
+        We hold this information since we return to each lake repeatedly to
+        update the elevs. If the lake hasn't been filled before, this will
+        just contain the pit node.
+    init_water_surface : array
+        The original topo of the water surface at the start of the step,
+        i.e., before we start moving the lake water levels this time around.
+    lake_water_level : dict
+        The current (transient) water level at each lake.
+     accum_area_at_pit,
+     vol_rem_at_pit,
+     lake_water_volume_balance,
+     accum_ks_at_pit,
+     accum_cs_at_pit,
+     lake_is_full,
+
+     lake_spill_node : dict
+        the current spill node of each lake. -1 if not defined.
+    water_vol_balance_at_node : (float, float)
+        polyparams for a linear fit of the water vol balance func.
+    """
+    # We work upwards in elev from the current level, raising the level to
+    # the next lowest node. We are looking for the first sign of flow
+    # going into a node that isn't already in the queue that is *downhill*
+    # of the current elevation. The idea here is that either a node is
+    # accessible from below via another route, in which case it's already in
+    # the queue, or it's over a saddle, and thus belongs to a separate pit.
+    tobreak = False  # delayed break flag
+    cpit = current_pit  # shorthand
+#     abs_elev_limit = master_pit_q.peek_at_task()
+# #### probably redundant
+    pit_nghb_code = cpit + grid.number_of_nodes
+    # ^this code used to flag possible nodes to inundate, but that aren't
+    # flooded yet.
+    surf_z = init_water_surface
+    while not tobreak:
+        cnode = lake_q_dict[cpit].pop_task()
+        # note that this is the next node we will try to flood, not the one
+        # we are currently flooding. But conversely, a node that has the
+        # water at its level does count as flooded by this lake (i.e., a
+        # lake sill will be incorporated into that lake once the water
+        # reaches it)
+        # Now, try to raise the level to this height, without running out
+        # of water...
+        z_increment = surf_z[cnode] - lake_water_level[cpit]
+        # # Check we aren't about to attempt a raise over and above the
+        # # absolute limit:
+        # if surf_z[cnode] > abs_elev_limit:
+        #     z_increment = abs_elev_limit - lake_water_level[cpit]
+        #     master_pit_q.add_task(cpit, priority=lake_water_level[cpit])
+        #     # put level back in the list
+        #     tobreak = True
+        V_increment_to_fill = (
+            z_increment * accum_area_at_pit[cpit] -
+            lake_water_volume_balance[cpit])
+        # & remember to update the vol_balance below
+        if V_increment_to_fill < 0.:
+            # this really should not happen!!
+            raise AssertionError("lake is gaining too much direct input!!")
+        # Note that the addition of the vol balance makes it harder to
+        # actually fill the step in most cases.
+
+        if vol_rem_at_pit[cpit] <= V_increment_to_fill:
+            # we don't have the water to get onto the next level
+            lake_is_full[cpit] = True
+            lake_spill_node[cpit] = -1
+            z_available = vol_rem_at_pit[cpit]/accum_area_at_pit[cpit]
+            lake_water_level[cpit] += z_available
+            # no need to update water balance terms, since (a) this lake is
+            # done, and (b) k's anc c's don't change anyway  as lake area is
+            # static
+            # Now, the lake can't grow any more! (...at the moment.)
+            # there's still potential here for this lake to grow more, and
+            # if it does, the first node to rise will be this one. So,
+            # stick the node back in the local lake queue, along with all
+            # the higher neighbors that never got raised to before we severed
+            # the iteration:
+            lake_q_dict[cpit].add_task(cnode, priority=lake_water_level[cpit])
+            # But do not re-list this in the main queue!
+            # Update the loss due to the increased depth:
+            lake_water_volume_balance[cpit] += (
+                accum_ks_at_pit[c_pit] * z_available)
+            # Then simply...
+            break  # break cond (a)
+        else:
+            # successful fill of node
+            vol_rem_at_pit[cpit] -= V_increment_to_fill
+            lake_water_level[cpit] += z_increment
+            accum_area_at_pit[cpit] += grid.cell_area_at_node[cnode]
+
+            # Now, a special case where we've filled the lake to this level,
+            # but it turns out this node is in fact the spill of an
+            # adjacent lake...
+            if 0 <= lake_map[cnode] < grid.number_of_nodes:
+                # this condition only triggered (I think!) if we are now
+                # raised to the spill level of an existing lake.
+                # this then becomes break case (b) - except we cheat, and
+                # don't actually break, since we're safe to continue raising
+                # the new, composite lake as if it were a new one.
+                _some_func_to_merge_lakes(this_pit, that_pit)
+                # we allow the loop to continue after this, provided the
+                # queues and dicts are all correctly merged
+            else:  # we only want to add the node if it's fresh!
+                # update the dicts describing the lake, as it floods onto
+                # the new surface.
+                _propagate_lake_to_next_node(cpit, cnode,
+                                             grid.cell_area_at_node,
+                                             z_increment,
+                                             accum_area_at_pit,
+                                             lake_water_volume_balance,
+                                             water_vol_balance_at_node,
+                                             accum_ks_at_pit, c_to_add)
+                # incorporate the node into the lake:
+                lake_map[cnode] = cpit
+                # (this redundant if we merged lakes)
+
+        # OK, so we've filled that node. Now let's consider where next...
+        cnghbs = neighbors[cnode]
+        # note that an "open" neighbor should potentially include the spill
+        # node of an adjacent lake. This case dealt with in the raise step.
+        for n in np.nditer(cnghbs):
+            if lake_map[n] not in (cpit, pit_nghb_code):
+                # ^virgin node (n==-1), or spill of other lake (0<=n<nnodes and
+                # n!=cpit), or node is already in nghb queue of another lake,
+                # but not actually flooded (n>=nnodes and n!=pit_nghb_code).
+                # Now, if we've got to here, then all open neighbors must lead
+                # upwards; a spur rather than a sill will have already been
+                # explored from below. So if the topo falls, that's a true sill
+                if surf_z[n] < surf_z[cnode]:
+                    lake_spill_node[cpit] = cnode
+                    master_pit_q.add_task(
+                        cpit, priority=lake_water_level[cpit])
+                    tobreak = True
+                    # ...but nevertheless, we want to keep loading the others
+                    # so we can continue to use this list later if the lake
+                    # acquires a new flux
+                else:
+                    lake_q_dict[cpit].add_task(n, priority=surf_z[n])
+                    lake_map[n] = pit_nghb_code
+                    # we're perfectly happy to add nghbs that exceed the
+                    # (current) abs_elev_limit, since we are likely to be
+                    # back in this lake at some point
+
+
+def _merge_two_lakes(grid, this_pit, that_pit, lake_dict, lake_map,
+                     lake_q_dict,
+                     lake_water_level,
+                     accum_area_at_pit,
+                     vol_rem_at_pit,
+                     lake_water_volume_balance,
+                     accum_ks_at_pit,
+                     accum_cs_at_pit,
+                     lake_is_full,
+                     lake_spill_node):
+    """
+    Take two lakes that are known to be at the same level & in contact,
+    and merge them.
+    """
+    # Note we *will* still have stuff in the master_pit_q that has the ID of
+    # a replaced lake. Deal with this by spotting that those lake codes no
+    # longer work as dict keys...
+    # Check they've got to the same level (really ought to have!)
+    assert np.isclose(lake_water_level[this_pit], lake_water_level[that_pit])
+    _ = lake_water_level.pop(that_pit)
+    # merge the queues
+    lake_q_dict[this_pit].merge_queues(lake_q_dict[that_pit])
+    _ = lake_q_dict.pop(that_pit)
+    # merge the maps
+    lake_map[lake_map == that_pit] = this_pit
+    # merge the various dicts
+    for dct in (accum_area_at_pit, vol_rem_at_pit, lake_water_volume_balance,
+                accum_ks_at_pit):
+        dct[this_pit] += dct.pop(that_pit)
+    # the c dict is OK (not adding a new node); just remove it in that_pit
+    for dct in (accum_cs_at_pit, lake_is_full, lake_spill_node):
+        _ = dct.pop(that_pit)
+    lake_spill_node[this_pit] = -1
+
 
 def _propagate_lake_to_next_node(current_pit_id, node_to_flood,
                                  area_map, z_increment,
