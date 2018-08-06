@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 
 from landlab.components.species_evolution import RecordCollection
-from landlab.utils.watershed import get_watershed_masks_with_area_threshold
-
+#from landlab.utils.watershed import get_watershed_masks_with_area_threshold
+from .watershed import get_watershed_masks_with_area_threshold
 
 class Zone(object):
     """The nodes and attributes of the entities that species populate.

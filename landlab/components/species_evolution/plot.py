@@ -31,7 +31,7 @@ def plot_area_versus_species(area, number_of_species, axes=None):
         fig = plt.figure(title)
         axes = fig.add_axes(plt.axes())
 
-    plt.plot(area, number_of_species, 'k.')
+    plt.loglog(area, number_of_species, 'k.')
     plt.xlabel('Stream area ($m^2$)')
     plt.ylabel('Number of species')
 

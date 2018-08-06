@@ -5,10 +5,10 @@ from pandas import DataFrame
 class RecordCollection(object):
     """Data structure that stores data of model time steps.
 
-    Data is stored in the *DataFrame* property that is a Pandas DataFrame. Each
+    Data is stored in the `DataFrame` property that is a Pandas DataFrame. Each
     row is a record of data at a model time.
 
-    The first column, *model__time* is entered when data is added or modified
+    The first column, `model__time` is entered when data is added or modified
     with RecordCollection methods. Only 1 record can exist for a model time,
     although a record can be modified and removed after it is created.
 
@@ -18,7 +18,7 @@ class RecordCollection(object):
 
     RecordCollection facilitates some functionality of Pandas DataFrames.
     Additional Pandas functionality can be used by calling the methods of
-    *DataFrame* directly.
+    `DataFrame` directly.
     """
 
     def __init__(self, maintain_insert_order=False):
@@ -51,7 +51,7 @@ class RecordCollection(object):
         model__time : integer or float
             The model time of the record to insert.
         data : dictionary
-            The data that will be inserted in the record at *model__time*. The
+            The data that will be inserted in the record at `model__time`. The
             dictionary keys will be the column labels. The dictionary values
             will be the values of the corresponding keys/columns.
         clobber : boolean
@@ -124,7 +124,7 @@ class RecordCollection(object):
         model__time : integer or float
             The model time of the record to modify.
         data : dictionary
-            The data that will be inserted in the record at *model__time*. The
+            The data that will be inserted in the record at `model__time`. The
             dictionary keys will be the column labels. The dictionary values
             will be the values of the corresponding keys/columns. Columns no
 
@@ -146,11 +146,11 @@ class RecordCollection(object):
             raise ValueError('the model time, {} is not in '
                              'RecordCollection'.format(model__time))
 
-        # Get the row of *time*.
+        # Get the row of `time`.
         old_df = self.DataFrame[self.DataFrame.model__time == model__time]
         old_df.reset_index(inplace=True, drop=True)
 
-        # Create a DataFrame of the data to place at *model__time*.
+        # Create a DataFrame of the data to place at `model__time`.
         new_df = DataFrame([data])
 
         # Get columns only in old DataFrame.
@@ -172,7 +172,7 @@ class RecordCollection(object):
                 df = df[df.model__time.notnull()]
                 df = self.DataFrame.append(df, ignore_index=True, sort=False)
 
-                # Remove the copy of the row at *model__time* with unmodified
+                # Remove the copy of the row at `model__time` with unmodified
                 # data.
                 self.DataFrame = df[~df.duplicated('model__time', keep='last')]
 
@@ -218,7 +218,7 @@ class RecordCollection(object):
         Returns
         -------
         object
-            The value of *variable* at *model__time*. The type of the returned
+            The value of `variable` at `model__time`. The type of the returned
             object is dependent on the type of the variable value.
 
         Examples
@@ -244,9 +244,9 @@ class RecordCollection(object):
     def get_model_time_prior_to_time(self, input_time):
         """Get the model time most immediately prior to an input time.
 
-        The *input_time* does not need to be a time in *model__time* of
-        *DataFrame*. Whichever *model__time* value is both nearest and prior to
-        *input_time* is returned.
+        The `input_time` does not need to be a time in `model__time` of
+        `DataFrame`. Whichever `model__time` value is both nearest and prior to
+        `input_time` is returned.
 
         Parameters
         ----------
@@ -256,7 +256,7 @@ class RecordCollection(object):
         Returns
         -------
         integer or float
-            The model time prior to *input_time*. The type of the returned time
+            The model time prior to `input_time`. The type of the returned time
             is dependent on the number type initially inserted into the
             DataFrame.
 
@@ -273,7 +273,7 @@ class RecordCollection(object):
         times = array(self.model__times)
         input_time_greater_than_model_time = times < input_time
 
-        # Return the model time most immediately prior to *input_time* if there
+        # Return the model time most immediately prior to `input_time` if there
         # is such a model time.
         if any(input_time_greater_than_model_time):
             return times[input_time_greater_than_model_time].max()
