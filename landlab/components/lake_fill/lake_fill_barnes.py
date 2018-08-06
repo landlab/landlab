@@ -258,6 +258,19 @@ class LakeMapperBarnes(Component):
 
     _name = 'LakeMapperBarnes'
 
+    _cite_as = """@article{BARNES2014117,
+        title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
+        journal = "Computers & Geosciences",
+        volume = "62",
+        pages = "117 - 127",
+        year = "2014",
+        issn = "0098-3004",
+        doi = "https://doi.org/10.1016/j.cageo.2013.04.024",
+        url = "http://www.sciencedirect.com/science/article/pii/S0098300413001337",
+        author = "Richard Barnes and Clarence Lehman and David Mulla",
+        keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
+        }"""
+
     _input_var_names = (
         'topographic__elevation',
         'drainage_area',
