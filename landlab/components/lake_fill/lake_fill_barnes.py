@@ -45,7 +45,7 @@ class StablePriorityQueue():
         self._entry_finder = {}                # mapping of tasks to entries
         self._REMOVED = BAD_INDEX_VALUE        # placeholder for a removed task
         self._counter = itertools.count()      # unique sequence count
-        self._nodes_ever_in_queue = deque([])
+        self._tasks_ever_in_queue = deque([])
         # last one tracks all nodes that have ever been added
 
     def add_task(self, task, priority=0):
@@ -56,7 +56,7 @@ class StablePriorityQueue():
         entry = [priority, count, task]
         self._entry_finder[task] = entry
         heapq.heappush(self._pq, entry)
-        self._nodes_ever_in_queue.append(task)
+        self._tasks_ever_in_queue.append(task)
 
     def remove_task(self, task):
         "Mark an existing task as _REMOVED.  Raise KeyError if not found."
@@ -83,17 +83,17 @@ class StablePriorityQueue():
                 return task
         raise KeyError('peeked at an empty priority queue')
 
-    def nodes_currently_in_queue(self):
+    def tasks_currently_in_queue(self):
         "Return array of nodes currently in the queue."
         mynodes = [task for (priority, count, task) in self._pq]
         return np.array(mynodes)
 
-    def nodes_ever_in_queue(self):
+    def tasks_ever_in_queue(self):
         """
         Return array of all nodes ever added to this queue object. Repeats
         are permitted.
         """
-        return np.array(self._nodes_ever_in_queue)
+        return np.array(self._tasks_ever_in_queue)
 
     def merge_queues(self, StablePriorityQueue_in):
         """
@@ -293,6 +293,19 @@ class LakeMapperBarnes(Component):
     """
 
     _name = 'LakeMapperBarnes'
+
+    _cite_as = """@article{BARNES2014117,
+        title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
+        journal = "Computers & Geosciences",
+        volume = "62",
+        pages = "117 - 127",
+        year = "2014",
+        issn = "0098-3004",
+        doi = "https://doi.org/10.1016/j.cageo.2013.04.024",
+        url = "http://www.sciencedirect.com/science/article/pii/S0098300413001337",
+        author = "Richard Barnes and Clarence Lehman and David Mulla",
+        keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
+        }"""
 
     _input_var_names = (
         'topographic__elevation',
@@ -748,7 +761,7 @@ class LakeMapperBarnes(Component):
                     heapq.heappush(pitq, n)
                 else:
                     openq.add_task(n, priority=fill_surface[n])
-            # print(np.sort(openq.nodes_currently_in_queue()), pitq)
+            # print(np.sort(openq.tasks_currently_in_queue()), pitq)
         return lakemappings
 
     def _fill_to_slant_with_optional_tracking(self, fill_surface,
