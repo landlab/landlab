@@ -112,7 +112,7 @@ class StablePriorityQueue():
         >>> q2.add_task(3, priority=4)
         >>> q2.add_task(4, priority=3)
         >>> q1.merge_queues(q2)
-        >>> q1.nodes_currently_in_queue()
+        >>> q1.tasks_currently_in_queue()
         array([1, 2, 4, 3])
         """
         self._pq.extend(StablePriorityQueue_in._pq)
@@ -126,8 +126,8 @@ class StablePriorityQueue():
         # backsort = lambda x: (x[0], x[1], x[2])
         newpq.sort()
         heapq.heapify(newpq)
-        self._nodes_ever_in_queue.extend(
-            StablePriorityQueue_in._nodes_ever_in_queue)
+        self._tasks_ever_in_queue.extend(
+            StablePriorityQueue_in._tasks_ever_in_queue)
         self._pq = newpq
 
 

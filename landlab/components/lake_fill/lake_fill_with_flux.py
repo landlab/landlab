@@ -196,9 +196,9 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                                     -1, 43, -1, -1, -1, -1,
     ...                                     -1, -1, -1, -1, -1, -1])))
     True
-    >>> master_pit_q.nodes_currently_in_queue()  # sill, so 7 is in it after
+    >>> master_pit_q.tasks_currently_in_queue()  # sill, so 7 is in it after
     np.array([7])
-    >>> lake_q_dict[7].nodes_currently_in_queue()
+    >>> lake_q_dict[7].tasks_currently_in_queue()
     np.array([ 6,  1, 20, 18, 12,  2, 25,  9])
     >>> lake_water_level
     {7: -5.0, 10: -8.0, 27: -8.0}
@@ -238,9 +238,9 @@ Since changes, this is not stopping its fill...
     ...                                     -1, 43, -1, -1, -1, -1,
     ...                                     -1, -1, -1, -1, -1, -1])))
     True
-    >>> master_pit_q.nodes_currently_in_queue() # 10 filled, so left off
+    >>> master_pit_q.tasks_currently_in_queue() # 10 filled, so left off
     np.array([7])
-    >>> lake_q_dict[10].nodes_currently_in_queue()
+    >>> lake_q_dict[10].tasks_currently_in_queue()
     np.array([16,  4, 11, 17, 22,  9])
     >>> lake_water_level
     {7: -5.0, 10: -6.5, 27: -8.0}
