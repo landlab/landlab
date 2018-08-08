@@ -514,8 +514,15 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
                                                    flood_from_zero=freshnode, ...)
         lake_water_level[cpit] += z_increment
         if not filled:
-            # tobreak = True
+            # Now, the lake can't grow any more! (...at the moment.)
+            # there's still potential here for this lake to grow more, and
+            # if it does, the first node to rise will be this one. So,
+            # stick the node back in the local lake queue, along with all
+            # the higher neighbors that never got raised to before we severed
+            # the iteration:
+            lake_q_dict[cpit].add_task(cnode, priority=lake_water_level[cpit])
             break
+
         # Now, a special case where we've filled the lake to this level,
         # but it turns out the next node is in fact the spill of an
         # adjacent lake...
@@ -620,25 +627,56 @@ def _get_float_water_vol_balance_terms(
     Takes the floats or arrays of the water_vol_balance_terms, and returns
     the appropriate float value at the given node, already having termed a
     "loss per unit depth" into a "volume loss".
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> area_map = 2. * np.arange(4) + 1.
+    >>> c, K = _get_float_water_vol_balance_terms((-3., np.arange(4)),
+    ...                                           area_map, 0)
+    >>> type(c) is float
+    True
+    >>> type(K) is float
+    True
+    >>> c
+    -3.
+    >>> K
+    0.
+
+    >>> c, K = _get_float_water_vol_balance_terms((-1 * np.arange(4), 2.),
+    ...                                           area_map, 3)
+    >>> type(c) is float
+    True
+    >>> type(K) is float
+    True
+    >>> np.isclose(c, -21.)
+    True
+    >>> np.isclose(K, 14.)
+    True
     """
     cell_A = area_map[node]
-    if type(water_vol_balance_terms[0]) is np.array:
+    if type(water_vol_balance_terms[0]) is np.ndarray:
         c = water_vol_balance_terms[0][node]
     else:
         c = water_vol_balance_terms[0]
-    if type(water_vol_balance_terms[1]) is np.array:
+    if type(water_vol_balance_terms[1]) is np.ndarray:
         K = water_vol_balance_terms[1][node]
     else:
         K = water_vol_balance_terms[1]
     return (c*cell_A, K*cell_A)
 
 
-def _raise_water_level(cpit, cnode, z_increment, flood_from_zero=True,
+def _raise_water_level(cpit, cnode, area_map, z_increment,
                        lake_map, water_vol_balance_terms,
-                       accum_area_at_pit, vol_rem_at_pit, accum_Ks_at_pit, ):
+                       accum_area_at_pit, vol_rem_at_pit, accum_Ks_at_pit,
+                       lake_is_full, lake_spill_node,
+                       flood_from_zero=True):
     """
     Lift water level from the foot of a newly flooded node surface to the
     level of the next lowest, while honouring and water balance losses.
+
+    Note: does not actually raise the water_level value! Returns the
+    change in lake elevation instead.
 
     Parameters
     ----------
@@ -646,30 +684,198 @@ def _raise_water_level(cpit, cnode, z_increment, flood_from_zero=True,
         Current pit identifying this lake.
     cnode : int
         The node that is currently being inundated.
+    area_map : array of floats
+        The area of the cells at nodes across the grid.
     z_increment : float
         The total change in elevation between the current level and the target
         level.
-    flood_from_zero : bool
-        Flag to indicate whether the fill was from a node already inundated,
-        or the inundation of a fresh node. (established from lake_map codes)
     lake_map : array of ints
     water_vol_balance_terms : (c, K)
 
     accum_area_at_pit : dict
-    vol_rem_at_pit
+    vol_rem_at_pit : dict
+    lake_is_full
+    lake_spill_node
+
+    flood_from_zero : bool
+        Flag to indicate whether the fill was from a node already inundated,
+        or the inundation of a fresh node. (established from lake_map codes)
 
     Returns
     -------
     (full_fill, z_increment) : (bool, float)
         Did the node fully fill, and what increment of water depth was added
         in the end?
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> lake_map_init = np.ones(9, dtype=int) * -1
+    >>> lake_map_init[4] = 5
+    >>> lake_map = lake_map_init.copy()
+    >>> area_map = np.array([ 2., 2., 2.,
+    ...                       4., 3., 2.,
+    ...                       1., 2., 2.])
+    >>> area_map[3] = 4.
+    >>> area_map[4] = 3.
+    >>> accum_area_at_pit = {5: 3.}
+    >>> vol_rem_at_pit = {5: 100.}
+    >>> accum_Ks_at_pit = {5: 0.}
+    >>> lake_is_full = {5: False}
+    >>> lake_spill_node = {5: 8}
+    >>> full, dz = _raise_water_level(cpit=5, cnode=3, area_map=area_map,
+    ...                               z_increment=3., lake_map=lake_map,
+    ...                               water_vol_balance_terms=(0., 0.),
+    ...                               accum_area_at_pit=accum_area_at_pit,
+    ...                               vol_rem_at_pit=vol_rem_at_pit,
+    ...                               accum_Ks_at_pit=accum_Ks_at_pit,
+    ...                               lake_is_full=lake_is_full,
+    ...                               lake_spill_node=lake_spill_node,
+    ...                               flood_from_zero=True)
+    >>> full
+    True
+    >>> dz == 3.
+    True
+    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
+    ...                                   5,  5, -1,
+    ...                                  -1, -1, -1]))
+    True
+    >>> np.isclose(accum_area_at_pit[5], 7.)
+    True
+    >>> np.isclose(vol_rem_at_pit[5], 79.)
+    True
+    >>> np.isclose(accum_Ks_at_pit[5], 0.)
+    True
+    >>> lake_is_full[5]
+    False
+    >>> lake_spill_node[5]
+    8
+
+    >>> full, dz = _raise_water_level(cpit=5, cnode=5, area_map=area_map,
+    ...                               z_increment=4., lake_map=lake_map,
+    ...                               water_vol_balance_terms=(-5., 0.),
+    ...                               accum_area_at_pit=accum_area_at_pit,
+    ...                               vol_rem_at_pit=vol_rem_at_pit,
+    ...                               accum_Ks_at_pit=accum_Ks_at_pit,
+    ...                               lake_is_full=lake_is_full,
+    ...                               lake_spill_node=lake_spill_node,
+    ...                               flood_from_zero=True)
+    >>> full
+    True
+    >>> dz == 4.
+    True
+    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
+    ...                                   5,  5,  5,
+    ...                                  -1, -1, -1]))
+    True
+    >>> np.isclose(accum_area_at_pit[5], 9.)
+    True
+    >>> np.isclose(vol_rem_at_pit[5], 33.)
+    True
+    >>> np.isclose(accum_Ks_at_pit[5], 0.)
+    True
+    >>> lake_is_full[5]
+    False
+    >>> lake_spill_node[5]
+    8
+
+    >>> full, dz = _raise_water_level(cpit=5, cnode=6, area_map=area_map,
+    ...                               z_increment=1., lake_map=lake_map,
+    ...                               water_vol_balance_terms=(-34., -3.),
+    ...                               accum_area_at_pit=accum_area_at_pit,
+    ...                               vol_rem_at_pit=vol_rem_at_pit,
+    ...                               accum_Ks_at_pit=accum_Ks_at_pit,
+    ...                               lake_is_full=lake_is_full,
+    ...                               lake_spill_node=lake_spill_node,
+    ...                               flood_from_zero=True)
+    >>> full
+    False
+    >>> dz == 0.
+    True
+    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
+    ...                                   5,  5,  5,
+    ...                                   5, -1, -1]))
+    True
+    >>> np.isclose(accum_area_at_pit[5], 10.)
+    True
+    >>> np.isclose(vol_rem_at_pit[5], -1.)
+    True
+    >>> np.isclose(accum_Ks_at_pit[5], 0.)
+    True
+    >>> lake_is_full[5]
+    True
+    >>> lake_spill_node[5]
+    -1
+
+    >>> lake_is_full[5] = False
+    >>> lake_spill_node[5] = 8
+    >>> vol_rem_at_pit[5] = 87.
+    >>> full, dz = _raise_water_level(cpit=5, cnode=6, area_map=area_map,
+    ...                               z_increment=2., lake_map=lake_map,
+    ...                               water_vol_balance_terms=(-34., -3.),
+    ...                               accum_area_at_pit=accum_area_at_pit,
+    ...                               vol_rem_at_pit=vol_rem_at_pit,
+    ...                               accum_Ks_at_pit=accum_Ks_at_pit,
+    ...                               lake_is_full=lake_is_full,
+    ...                               lake_spill_node=lake_spill_node,
+    ...                               flood_from_zero=False)
+    >>> full
+    True
+    >>> dz == 2.
+    True
+    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
+    ...                                   5,  5,  5,
+    ...                                   5, -1, -1]))
+    True
+    >>> np.isclose(accum_area_at_pit[5], 10.)  # ...still
+    True
+    >>> np.isclose(vol_rem_at_pit[5], 61.)  # -6 loss, -20 rise
+    True
+    >>> np.isclose(accum_Ks_at_pit[5], -3.)
+    True
+    >>> lake_is_full[5]
+    False
+    >>> lake_spill_node[5]
+    8
+
+    >>> full, dz = _raise_water_level(cpit=5, cnode=2, area_map=area_map,
+    ...                               z_increment=10., lake_map=lake_map,
+    ...                               water_vol_balance_terms=(
+    ...                                 np.arange(9), np.ones(9)),
+    ...                               accum_area_at_pit=accum_area_at_pit,
+    ...                               vol_rem_at_pit=vol_rem_at_pit,
+    ...                               accum_Ks_at_pit=accum_Ks_at_pit,
+    ...                               lake_is_full=lake_is_full,
+    ...                               lake_spill_node=lake_spill_node,
+    ...                               flood_from_zero=True)
+    >>> full
+    False
+    >>> np.isclose(dz, 5.)
+
+    >>> np.all_equal(lake_map, np.array([-1, -1,  5,
+    ...                                   5,  5,  5,
+    ...                                   5, -1, -1]))
+    True
+    >>> np.isclose(accum_area_at_pit[5], 12.)
+    True
+    >>> np.isclose(vol_rem_at_pit[5], 0.)  +4, then -5 (=-3+2) loss, -60 rise
+    True
+    >>> np.isclose(accum_Ks_at_pit[5], -3.)  # node not filled, so not changed
+    True
+    >>> lake_is_full[5]
+    True
+    >>> lake_spill_node[5]
+    -1
     """
     # first up, one way or another this is now in the lake:
     lake_map[cnode] = cpit
+    if flood_from_zero:
+        accum_area_at_pit[cpit] += area_map[cnode]
     V_increment_to_fill = (
         z_increment * accum_area_at_pit[cpit])
     c_added_at_start, K_to_lift = _get_float_water_vol_balance_terms(
-        water_vol_balance_terms, cnode)
+        water_vol_balance_terms, area_map, cnode)
 
     if flood_from_zero:
         vol_rem_at_pit[cpit] += c_added_at_start
@@ -686,20 +892,12 @@ def _raise_water_level(cpit, cnode, z_increment, flood_from_zero=True,
     # account any gains wrt the flow routing)
     if vol_rem_at_pit[cpit] < V_increment_to_fill:
         # we don't have the water to get onto the next level
-        frac = vol_rem_at_pit/V_increment_to_fill
+        frac = vol_rem_at_pit[cpit]/V_increment_to_fill
         lake_is_full[cpit] = True
         lake_spill_node[cpit] = -1
         z_available = frac * z_increment
         vol_rem_at_pit[cpit] = 0.
-        # Now, the lake can't grow any more! (...at the moment.)
-        # there's still potential here for this lake to grow more, and
-        # if it does, the first node to rise will be this one. So,
-        # stick the node back in the local lake queue, along with all
-        # the higher neighbors that never got raised to before we severed
-        # the iteration:
-        lake_q_dict[cpit].add_task(cnode, priority=lake_water_level[cpit])
         return (False, z_available)
-
     else:
         # successful fill of node
         # increment the K term, so when we fill next this node is already
@@ -714,11 +912,6 @@ def _route_outlet_to_next(outlet_ID, flow__receiver_nodes, z_surf, lake_map):
     Take an outlet node, and then follow the steepest descent path until it
     reaches a distinct lake.
     """
-
-
-def frog():
-    return 0
-    return 1
 
 
 
