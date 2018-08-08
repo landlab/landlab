@@ -28,104 +28,6 @@ LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.
 
 
-class LakeEvaporator(Component):
-    """
-    Component to take a water surface overlying a bedrock surface as a series
-    of (specified) existing lakes, then reduce the volume of water in each
-    lake (i.e., drop the water surface) according to a loss term specified
-    at each lake node.
-
-    The component operates by knowing the maximum fill condition that a lake
-    could reach, then
-
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        The grid on which to operate the component.
-    water_surface : array or field name
-        The free surface of the topography.
-    ground_surface : array or field name
-        The (rock, soil) surface at or underlying the water_surface.
-    water_balance : array or field name
-        The driving water balance term, negative for loss, positive for gain.
-        Expressed as flux in each cell, i.e., [L/T]
-        Note that any gain that would lift a lake beyond full is considered
-        lost; it is NOT transferred to the next lake downstream.
-    lake_dict : dict of {outlet: (iterable of lake nodes)}
-        A lake dictionary providing a description of the lakes across the
-        landscape **if every pit in the landscape were to be completely
-        filled**. This is required for efficiency of the component.
-    """
-    def __init__(self, grid, water_surface, ground_surface, water_balance,
-                 lake_dict):
-        """
-        Initialise the component.
-        """
-        self._grid = grid
-        self._water = return_array_at_node(water_surface)
-        self._ground = return_array_at_node(ground_surface)
-        assert np.all(np.less_equal(self._ground, self._water)), \
-            "Ground surface must be at or below the water surface everywhere!"
-        self._water_balance = return_array_at_node(water_balance)
-        self._lakes = lake_dict
-
-    def _solve_one_lake(self, lake_out, lake_node_array):
-        """
-        """
-        total_water_balance_vol = (
-            self._water_balance[lake_node_array] *
-            self.grid.cell_area_at_node[lake_node_array]).sum()
-        if np.isclose(total_water_balance_vol, 0.):
-            pass  # no adjustment here
-        else:
-            init_water_level = self._water[lake_node_array[0]]
-            max_level = self._ground[lake_out]
-            # check the fill level makes sense... Also implicit in the method
-            assert np.allclose(self._water[lake_node_array], init_water_level)
-            # sort the nodes in the lake by ground elev
-            lake_node_elevs = self._ground[lake_node_array]
-            node_order = np.argsort(lake_node_elevs)
-            elevs_in_order = self._ground[node_order]
-            nodes_in_order = lake_node_array[node_order]
-            areas_in_order = self.grid.cell_area_at_node[nodes_in_order]
-            elev_diffs_in_order = np.ediff1d(elevs_in_order)
-            accumulated_area_in_order = np.cumsum(areas_in_order)
-            vol_diffs_in_order = (
-                elev_diffs_in_order * accumulated_area_in_order[:-1])
-            # ^this is the volume required to change the volume by one
-            # "elevation step" at the various heights
-            total_vol_in_order = np.cumsum(vol_diffs_in_order)
-            # so, where does the starting elev appear in the node order?
-            add_index = np.searchsorted(elevs_in_order, init_water_level)
-            # Note we *don't* need to know the init vol. Doing it relative
-            # to first position should work...
-            if add_index - 2 < 0:
-                first_vol = 0.
-                assert total_water_balance_vol > 0.
-                slc = slice(add_index, None, 1)  # we will advance up
-            else:
-                vol_to_above = np.amin((total_vol_in_order[add_index-1], 0.))
-                vol_to_below = np.amin((total_vol_in_order[add_index-2], 0.))
-                # if bone dry pit, add_index==0, both are 0.
-                elev_above = elevs_in_order[add_index]
-                elev_below = elevs_in_order[add_index - 1]
-
-                # now whether we increase or drop matters:
-                vol_first_slab = vol_to_above - vol_to_below
-                if total_water_balance_vol > 0.:
-                    slc = slice(add_index, None, 1)  # we will advance up
-                    elev_diff_above = elevs_in_order[add_index] - init_water_level
-                    elev_diff = elev_diff_above
-                else:
-                    slc = slice(add_index-1, None, -1)  # work down
-                    elev_diff_below = init_water_level - elevs_in_order[add_index]
-                    elev_diff = elev_diff_below
-                if
-                first_vol = vol_first_slab * elev_diff/(elev_above-elev_below)
-
-
-
 def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
                                         pit_nodes, Vw_at_pits, surface_z,
                                         water_z, water_vol_balance_terms,
@@ -175,235 +77,19 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
         lake_is_full[pit] = False
         lake_water_volume_balance[pit] = 0.
         accum_Ks_at_pit[pit] = 0.
-    # these will get adjusted thru fill process
-    # ^ idea here w vol_rem is that we will propagate the info on what the
-    # total V assoc w each pit as well as the pit ID itself. This will let us
-    # adjust the total vol balance as the lake spreads (e.g., if infiltration
-    # matters)
-
-    # note there's a special case hiding in here where one subbasin can fill
-    # to a sill, but the fill in the next depression isn't enough to reach
-    # it. Clearly we need to transfer this overtop into the next basin, but
-    # not clear how to establish this connectivity...
-
-    flood_order = StablePriorityQueue()
-    for pit_ID in pit_nodes_in_order:
-        flood_order.add_task(pit, priority=water_z[pit])
-
-    tomerge_flag = -1  # if this has a +ve number, will merge lakes
-    lakes_weve_look_at = set()
-    lakes_to_work = set()
-    # distinguish these so we can't put lakes we've filled back in the list
-    while True:
-        # the trick here is to NOT actually update the elevs at the nodes.
-        # instead we simply move the "virtual" water level up, so we don't
-        # have to explicitly track the levels at all the nodes, and modify
-        # them every step
-        # grab the next node:
-        current_node = flood_order.pop_task()
-        current_node_pit = lake_map[current_node]
-        if maybe_pit not in lakes_weve_look_at:
-            lakes_weve_look_at.append(current_node)
-            lakes_to_work.append(current_node)
-        node_neighbors = neighbors_at_nodes[current_node]
-        current_node_zsurf = lake_water_level[current_node_pit]
-
-        # load up the queue. Likely one of these will be next, so do it 1st
-        for nghb in np.nditer(node_neighbors):
-            if lake_map[nghb] < 0 or lake_map[nghb] += num_pits:  # virgin territory
-                # nodes on the perim of other pits are fair game!
-                zsurf_nghb = water_z[nghb]  # actual water level at start
-
-#### START HERE
 
 
-
-
-
-
-                if zsurf_nghb >= current_node_zsurf:
-                    if zsurf_nghb > nextlowest_zsurf:
-                        flood_order.add_task(nghb, priority=zsurf_nghb)
-                        lake_map[nghb] = currentnode_pit + num_pits
-                        # this is clever flagging to distinguish which lake
-                        # a perimeter node is part of, but that it isn't
-                        # yet flooded...
-                    else:
-                        flood_order.add_task(nextlowest,
-                                             priority=nextlowest_zsurf)
-                        nextlowest = nghb
-                        nextlowest_zsurf = zsurf_nghb
-            else:
-                ######FOUND A SILL, TREAT HERE...? -> YES
-                # what is the lake we found?
-                found_lake = lake_map[nghb]
-                # flag it for merge, but we can only
-                # Think this will be easier if we merge this lake into the
-                # one we're working on right now...
-                lake_map[lake_map == found_lake] = currentnode_pit
-                # merge the info in the dicts...
-                for dict_to_merge in (vol_rem_at_pit, accum_area_at_pit,)
-                    dict_to_merge[currentnode_pit] += dict_to_merge.pop(
-                        found_lake)
-
-                lake_water_volume_balance
-                accum_Ks_at_pit
-                lake_is_full
-
-
-                ## lake_water_level[currentnode_pit] = lake_water_level[found_lake]
-                # not yet. Still need to raise the currentnode to the level.
-                # or not at all? Still need to budget all this raising...
-
-
-
-
-
-                pass
-
-        # we're going to need to work lakes simulateously, so:
-        for currentnode_pit in lakes_to_work:      ########CALL THIS PIT
-            if lake_is_full[currentnode_pit]:
-                # stop treating this pit entirely
-                lakes_to_work.remove(currentnode_pit)
-                #### do we need to take out the perim nodes that might remain?
-                continue
-            # for the purposes of the logic, a flooded node (i.e., tagged w ID)
-            # is one which is contiguous w a filled node. Does NOT have to be
-            # filled to its level
-            zsurf_node = lake_water_level[currentnode_pit]  # formerly water_z
-            # at this point we know the water is lapping at the foot of this node
-            node_neighbors = neighbors_at_nodes[current_node]
-            currentnode_A = accum_area_at_pit[currentnode_pit]
-            currentnode_V_rem = vol_rem_at_pit[currentnode_pit]
-            # both already incremented at end of last step
-
-            # what's the next node likely to be right now?
-            nextlowest = flood_order.pop_task()
-            nextlowest_zsurf = lake_water_level[nextlowest]
-
-            # load up the queue. Likely one of these will be next, so do it 1st
-            for nghb in np.nditer(node_neighbors):
-                if lake_map[nghb] < 0 or lake_map[nghb] += num_pits:  # virgin territory
-                    # nodes on the perim of other pits are fair game!
-                    zsurf_nghb = water_z[nghb]
-                    if zsurf_nghb >= zsurf_node:
-                        if zsurf_nghb > nextlowest_zsurf:
-                            flood_order.add_task(nghb, priority=zsurf_nghb)
-                            lake_map[nghb] = currentnode_pit + num_pits
-                            # this is clever flagging to distinguish which lake
-                            # a perimeter node is part of, but that it isn't
-                            # yet flooded...
-                        else:
-                            flood_order.add_task(nextlowest,
-                                                 priority=nextlowest_zsurf)
-                            nextlowest = nghb
-                            nextlowest_zsurf = zsurf_nghb
-                else:
-                    ######FOUND A SILL, TREAT HERE...? -> YES
-                    # what is the lake we found?
-                    found_lake = lake_map[nghb]
-                    # flag it for merge, but we can only
-                    # Think this will be easier if we merge this lake into the
-                    # one we're working on right now...
-                    lake_map[lake_map == found_lake] = currentnode_pit
-                    # merge the info in the dicts...
-                    for dict_to_merge in (vol_rem_at_pit, accum_area_at_pit,)
-                        dict_to_merge[currentnode_pit] += dict_to_merge.pop(
-                            found_lake)
-
-                    lake_water_volume_balance
-                    accum_Ks_at_pit
-                    lake_is_full
-
-
-                    ## lake_water_level[currentnode_pit] = lake_water_level[found_lake]
-                    # not yet. Still need to raise the currentnode to the level.
-                    # or not at all? Still need to budget all this raising...
-
-
-
-
-
-                    pass
-
-            if lake_map[nextlowest] >= 0:
-                # found an existing flooded surface, i.e., A SILL
-                # Note possible for this to be a sill now when it wasn't before...
-                # COME BACK AND SAVE THIS INFO
-                # flag the sill, then route the discharge down into the next
-                # depression?? (grab the flowdirs?)
-                # do we mean continue? maybe still need to flood up. Or do later?
-                # THINK THIS IS REDUNDANT SO
-                raise AssertionError
-
-            zsurf_next = water_z[nextlowest]
-            z_increment = zsurf_next - zsurf_node
-            # try to flood up to next
-            V_increment_to_fill = (
-                z_increment * currentnode_A -
-                lake_water_volume_balance[currentnode_pit])
-            # & remember to update the vol_balance below
-            if V_increment_to_fill < 0.:
-                # this really should not happen!!
-                raise AssertionError, "lake is gaining too much direct input!!"
-            # Note that the addition of the vol balance makes it harder to
-            # actually fill the step in most cases.
-
-            if currentnode_V_rem <= V_increment_to_fill:
-                # we don't have the water to get onto the next level
-                lake_is_full[currentnode_pit] = True
-                z_available = currentnode_V_rem/currentnode_A
-                lake_water_level[currentnode_pit] += z_available
-                # no need to update water balance terms, since (a) this lake is
-                # done, and (b) k's anc c's don't change anyway  as lake area is
-                # static
-                # Now, the lake can't grow any more! (...at the moment.)
-            else:
-                # successful fill of node
-                vol_rem_at_pit[currentnode_pit] -= V_increment_to_fill
-                lake_water_level[currentnode_pit] += z_increment
-                # propagate the lake info into this next node, if it's
-                # contiguous...
-                if lake_map[current_node] == lake_map[nextlowest]:
-                    # update the dicts describing the lake, as it floods onto
-                    # the new surface.
-                    _propagate_lake_to_next_node(currentnode_pit, nextlowest,
-                                                 area_map, z_increment,
-                                                 accum_area_at_pit,
-                                                 lake_water_volume_balance,
-                                                 water_vol_balance_terms,
-                                                 accum_Ks_at_pit, c_to_add)
-                else:
-                    # NOT contiguous. In this case, we put it back in the
-                    # queue, as it has more growing to do to reach an actual
-                    # neighbor:
-                    flood_order.add_task(
-                        current_node, priority=lake_water_level[currentnode_pit])
-                    # TODO: What is the surface to use at various pts? Check.
-                    # note that due to the ordered queue, we will handle the
-                    # two pits that must be dealt with here in an alternating
-                    # fashion. This is important, since we are bringing both
-                    # up to the same level simulataneously.
-                    # Also, update the loss due to the increased depth:
-                    lake_water_volume_balance[currentnode_pit] += (
-                        accum_Ks_at_pit[currentnode_pit] * z_increment)
-            # now, simply move to this next lowest node
-            current_node = nextlowest
-
-
-def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
+def _raise_lake_to_limit(current_pit, lake_map, area_map,
+                         master_pit_q,
                          lake_q_dict, init_water_surface,
                          lake_water_level,
                          accum_area_at_pit,
                          vol_rem_at_pit,
-                         lake_water_volume_balance,
                          accum_Ks_at_pit,
                          lake_is_full,
                          lake_spill_node,
                          water_vol_balance_terms,
-                         neighbors, closednodes,
-                         ):
+                         neighbors, closednodes):
     """
     Lift a lake level from a starting elevation to a new break point.
     Break points are specified by (a) running out of discharge, (b)
@@ -419,10 +105,7 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
 
     Parameters
     ----------
-    neighbors : (nnodes, max_nneighbors) array
-        The neighbors at each node on the grid.
-    closednodes : nodes not to be explored by the algorithm.
-    Current pit : int
+    Current_pit : int
         Node ID of the pit that uniquely identifies the current lake that
         we are filling.
     lake_map : array of ints
@@ -447,9 +130,6 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
      vol_rem_at_pit : dict
         The "excess" water volume available at each lake, that will be used to
         continue to raise the water level until exhausted.
-     lake_water_volume_balance : dict
-        The volume loss expected from each lake under current lake area and
-        depth.
      accum_Ks_at_pit : dict
         Stores the current total k term in the (optional) water balance
         equation across the sum of all nodes in each lake.
@@ -462,6 +142,129 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
     water_vol_balance_terms : (float c, float K)
         polyparams for a linear fit of the water vol balance func, such that
         V = A * (K*z + c)
+    neighbors : (nnodes, max_nneighbors) array
+        The neighbors at each node on the grid.
+    closednodes : array of bool
+        Nodes not to be explored by the algorithm.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.lake_fill import StablePriorityQueue
+    >>> from landlab import RasterModelGrid
+    >>> init_water_surface = np.array([  0.,  0.,  0.,  0.,  0.,  0.,
+    ...                                  0., -9., -6.,  0., -8.,  0.,
+    ...                                  0., -8., -5., -6., -7.,  0.,
+    ...                                  0., -7.,  0., -7.,  0.,  0.,
+    ...                                  0.,  0.,  0., -8., -3., -1.,
+    ...                                  0.,  0.,  0.,  0., -2.,  0.])
+    >>> lake_map = -1 * np.ones(36, dtype=int)
+    >>> area_map = 2. * np.ones(36, dtype=float)
+    >>> master_pit_q = StablePriorityQueue()
+    >>> lake_q_dict = {7: StablePriorityQueue(), 10: StablePriorityQueue(),
+    ...                27: StablePriorityQueue()}
+    >>> lake_water_level = {7: init_water_surface[7],
+    ...                     10: init_water_surface[10],
+    ...                     27: init_water_surface[27]}
+    >>> accum_area_at_pit = {7: 0., 10: 0., 27: 0.}
+    >>> vol_rem_at_pit = {7: 100., 10: 4., 27: 100.}
+    >>> accum_Ks_at_pit = {7: 0., 10: 0., 27: 0.}
+    >>> lake_is_full = {7: False, 10: False, 27: False}
+    >>> lake_spill_node = {7: -1, 10: -1, 27: -1}
+    >>> grid = RasterModelGrid((6, 6), 2.)
+    >>> neighbors = grid.adjacent_nodes_at_node
+    >>> closednodes = np.zeros(36, dtype=bool)
+    >>> closednodes[34] = True
+    >>> water_vol_balance_terms = (0., 0.)
+
+    >>> for cpit in (7, ):
+    ...     for nghb in neighbors[cpit]:
+    ...         lake_q_dict[cpit].add_task(nghb,
+    ...                                    priority=init_water_surface[nghb])
+    ...         lake_map[nghb] = cpit + 36
+
+    >>> _raise_lake_to_limit(7, lake_map, area_map, master_pit_q,
+    ...                      lake_q_dict, init_water_surface, lake_water_level,
+    ...                      accum_area_at_pit, vol_rem_at_pit,
+    ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...                      water_vol_balance_terms, neighbors, closednodes)
+
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, -1, -1,
+    ...                                     43,  7,  7, 43, -1, -1,
+    ...                                     43,  7, 79, -1, -1, -1,
+    ...                                     43,  7, 43, -1, -1, -1,
+    ...                                     -1, 43, -1, -1, -1, -1,
+    ...                                     -1, -1, -1, -1, -1, -1])))
+    True
+    >>> master_pit_q.nodes_currently_in_queue()  # sill, so 7 is in it after
+    np.array([7])
+    >>> lake_q_dict[7].nodes_currently_in_queue()
+    np.array([ 6,  1, 20, 18, 12,  2, 25,  9])
+    >>> lake_water_level
+    {7: -5.0, 10: -8.0, 27: -8.0}
+    >>> accum_area_at_pit
+    {7: 8.0, 10: 0.0, 27: 0.0}
+    >>> vol_rem_at_pit
+    {7: 80.0, 10: 4.0, 27: 100.0}
+    >>> accum_Ks_at_pit
+    {7: 0.0, 10: 0.0, 27: 0.0}
+    >>> lake_is_full
+    {7: False, 10: False, 27: False}
+    >>> lake_spill_node
+    {7: 14, 10: -1, 27: -1}
+
+    >>> for cpit in (10, ):
+    ...     for nghb in neighbors[cpit]:
+    ...         lake_q_dict[cpit].add_task(nghb,
+    ...                                    priority=init_water_surface[nghb])
+    ...         lake_map[nghb] = cpit + 36
+
+    >>> _raise_lake_to_limit(10, lake_map, area_map, master_pit_q,
+    ...                      lake_q_dict, init_water_surface, lake_water_level,
+    ...                      accum_area_at_pit, vol_rem_at_pit,
+    ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...                      water_vol_balance_terms, neighbors, closednodes)
+
+
+
+
+Since changes, this is not stopping its fill...
+
+
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
+    ...                                     43,  7,  7, 46, 10, 46,
+    ...                                     43,  7, 79, 46, 10, 46,
+    ...                                     43,  7, 43, -1, 46, -1,
+    ...                                     -1, 43, -1, -1, -1, -1,
+    ...                                     -1, -1, -1, -1, -1, -1])))
+    True
+    >>> master_pit_q.nodes_currently_in_queue() # 10 filled, so left off
+    np.array([7])
+    >>> lake_q_dict[10].nodes_currently_in_queue()
+    np.array([16,  4, 11, 17, 22,  9])
+    >>> lake_water_level
+    {7: -5.0, 10: -6.5, 27: -8.0}
+    >>> accum_area_at_pit
+    {7: 8.0, 10: 4.0, 27: 0.0}
+    >>> vol_rem_at_pit
+    {7: 80.0, 10: 0.0, 27: 100.0}
+    >>> accum_Ks_at_pit
+    {7: 0.0, 10: 0.0, 27: 0.0}
+    >>> lake_is_full
+    {7: False, 10: True, 27: False}
+    >>> lake_spill_node
+    {7: 14, 10: -1, 27: -1}
+
+    >>> vol_rem_at_pit[10] = 100.
+    >>> _raise_lake_to_limit(10, lake_map, area_map, master_pit_q,
+    ...                      lake_q_dict, init_water_surface, lake_water_level,
+    ...                      accum_area_at_pit, vol_rem_at_pit,
+    ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...                      water_vol_balance_terms, neighbors, closednodes
+
+
+    ...Issues here around the restart on a part-filled node.
+
     """
     # We work upwards in elev from the current level, raising the level to
     # the next lowest node. We are looking for the first sign of flow
@@ -471,10 +274,11 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
     # the queue, or it's over a saddle, and thus belongs to a separate pit.
     tobreak = False  # delayed break flag
     cpit = current_pit  # shorthand
-    pit_nghb_code = cpit + grid.number_of_nodes
+    nnodes = init_water_surface.size
+    pit_nghb_code = cpit + nnodes
     # ^this code used to flag possible nodes to inundate, but that aren't
     # flooded yet.
-    spill_code = pit_nghb_code + grid.number_of_nodes
+    spill_code = pit_nghb_code + nnodes
     # ^more funky flagging to indicate a future spill
     surf_z = init_water_surface
 
@@ -506,12 +310,20 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
         # cnode is the current node we are flooding.
         # is the cnode truly virgin?
         freshnode = (lake_map[cnode] < 0) or (
-            lake_map[cnode] >= grid.number_of_nodes)
+            lake_map[cnode] >= nnodes)
         # Now, try to raise the level to this height, without running out
         # of water...
         z_increment = surf_z[nnode] - lake_water_level[cpit]
-        (filled, z_increment) = _raise_water_level(cpit, cnode, z_increment,
-                                                   flood_from_zero=freshnode, ...)
+        if z_increment < 0.:
+            # this test picks up the cases where we're returning to a lake that
+            # only got part-filled, and are kicking off again with cnode=cpit
+            cnode = nnode
+            continue
+        (filled, z_increment) = _raise_water_level(
+            cpit, cnode, area_map, z_increment, lake_map,
+            water_vol_balance_terms, accum_area_at_pit, vol_rem_at_pit,
+            accum_Ks_at_pit, lake_is_full, lake_spill_node,
+            flood_from_zero=freshnode)
         lake_water_level[cpit] += z_increment
         if not filled:
             # Now, the lake can't grow any more! (...at the moment.)
@@ -521,19 +333,29 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
             # the higher neighbors that never got raised to before we severed
             # the iteration:
             lake_q_dict[cpit].add_task(cnode, priority=lake_water_level[cpit])
-            break
+            # lake_is_filled gets flagged inside _raise_water_level
+            tobreak = True
 
         # Now, a special case where we've filled the lake to this level,
         # but it turns out the next node is in fact the spill of an
         # adjacent lake...
-        if 0 <= lake_map[nnode] < grid.number_of_nodes:
+        if lake_map[nnode] >= 2 * nnodes:
             # this condition only triggered (I think!) if we are now
             # raised to the spill level of an existing lake.
             # this then becomes break case (b) - except we cheat, and
             # don't actually break, since we're safe to continue raising
             # the new, composite lake as if it were a new one.
             cpit = _merge_two_lakes(
-                this_pit=cpit, that_pit=lake_map[nnode])
+                this_pit=cpit, that_pit=lake_map[nnode] - 2*nnodes,
+                z_topo=init_water_surface,
+                lake_map=lake_map, lake_q_dict=lake_q_dict,
+                lake_water_level=lake_water_level,
+                accum_area_at_pit=accum_area_at_pit,
+                vol_rem_at_pit=vol_rem_at_pit,
+                accum_Ks_at_pit=accum_Ks_at_pit,
+                lake_is_full=lake_is_full,
+                lake_spill_node=lake_spill_node)
+            print('Merging!', cpit)
             # we allow the loop to continue after this, provided the
             # queues and dicts are all correctly merged
             # in this case, leave the cnode as it is... they're all at the
@@ -548,9 +370,10 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
         cnghbs = neighbors[cnode]
         # note that an "open" neighbor should potentially include the spill
         # node of an adjacent lake. This case dealt with in the raise step.
-        for n in np.nditer(cnghbs):
+        for n in cnghbs:
             if not closednodes[n]:
-                if lake_map[n] not in (cpit, pit_nghb_code, spill_code):
+                if (lake_map[n] not in (cpit, pit_nghb_code)) and (
+                        lake_map[n] < 2.*nnodes):
                     # ^virgin node (n==-1), or unclaimed nghb of other lake
                     # (0<=n<nnodes and n!=cpit), or future spill of another
                     # lake are all permitted.
@@ -559,6 +382,7 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
                     # been explored from below. So if the topo falls, current
                     # node is a true sill
                     if surf_z[n] < surf_z[cnode]:
+                        #print('Down!', cnode, n, lake_water_level[cpit])
                         lake_map[cnode] = spill_code
                         # "magic" coding that lets this lake put "dibs" on that
                         # spill node.
@@ -571,16 +395,16 @@ def _raise_lake_to_limit(grid, current_pit, lake_dict, lake_map, master_pit_q,
                         # others so we can continue to use this list later if
                         # the lake acquires a new flux
                     else:
+                        #print('Up!', cnode, n, lake_water_level[cpit])
                         lake_q_dict[cpit].add_task(n, priority=surf_z[n])
                         lake_map[n] = pit_nghb_code
 
 
-def _merge_two_lakes(grid, this_pit, that_pit, z_topo, lake_dict, lake_map,
+def _merge_two_lakes(this_pit, that_pit, z_topo, lake_map,
                      lake_q_dict,
                      lake_water_level,
                      accum_area_at_pit,
                      vol_rem_at_pit,
-                     lake_water_volume_balance,
                      accum_Ks_at_pit,
                      lake_is_full,
                      lake_spill_node):
@@ -605,14 +429,14 @@ def _merge_two_lakes(grid, this_pit, that_pit, z_topo, lake_dict, lake_map,
         low_pit = that_pit
         hi_pit = this_pit
 
+    print(hi_pit, low_pit)
     # merge the queues
     lake_q_dict[low_pit].merge_queues(lake_q_dict[hi_pit])
     _ = lake_q_dict.pop(hi_pit)
     # merge the maps
     lake_map[lake_map == hi_pit] = low_pit
     # merge the various dicts
-    for dct in (accum_area_at_pit, vol_rem_at_pit, lake_water_volume_balance,
-                accum_Ks_at_pit):
+    for dct in (accum_area_at_pit, vol_rem_at_pit, accum_Ks_at_pit):
         dct[low_pit] += dct.pop(hi_pit)
     for dct in (lake_water_level, lake_is_full, lake_spill_node):
         _ = dct.pop(hi_pit)
@@ -621,8 +445,8 @@ def _merge_two_lakes(grid, this_pit, that_pit, z_topo, lake_dict, lake_map,
     return low_pit
 
 
-def _get_float_water_vol_balance_terms(
-        water_vol_balance_terms, area_map, node):
+def _get_float_water_vol_balance_terms(water_vol_balance_terms,
+                                       area_map, node):
     """
     Takes the floats or arrays of the water_vol_balance_terms, and returns
     the appropriate float value at the given node, already having termed a
@@ -737,9 +561,9 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> dz == 3.
     True
-    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
-    ...                                   5,  5, -1,
-    ...                                  -1, -1, -1]))
+    >>> np.all(np.equal((lake_map, np.array([-1, -1, -1,
+    ...                                       5,  5, -1,
+    ...                                      -1, -1, -1])))
     True
     >>> np.isclose(accum_area_at_pit[5], 7.)
     True
@@ -765,9 +589,9 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> dz == 4.
     True
-    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
-    ...                                   5,  5,  5,
-    ...                                  -1, -1, -1]))
+    >>> np.all(np.equal(lake_map, np.array([-1, -1, -1,
+    ...                                      5,  5,  5,
+    ...                                     -1, -1, -1])))
     True
     >>> np.isclose(accum_area_at_pit[5], 9.)
     True
@@ -793,9 +617,9 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     False
     >>> dz == 0.
     True
-    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
-    ...                                   5,  5,  5,
-    ...                                   5, -1, -1]))
+    >>> np.all(np.equal(lake_map, np.array([-1, -1, -1,
+    ...                                      5,  5,  5,
+    ...                                      5, -1, -1])))
     True
     >>> np.isclose(accum_area_at_pit[5], 10.)
     True
@@ -824,9 +648,9 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> dz == 2.
     True
-    >>> np.all_equal(lake_map, np.array([-1, -1, -1,
-    ...                                   5,  5,  5,
-    ...                                   5, -1, -1]))
+    >>> np.all(np.equal(lake_map, np.array([-1, -1, -1,
+    ...                                      5,  5,  5,
+    ...                                      5, -1, -1])))
     True
     >>> np.isclose(accum_area_at_pit[5], 10.)  # ...still
     True
@@ -853,9 +677,9 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     False
     >>> np.isclose(dz, 5.)
 
-    >>> np.all_equal(lake_map, np.array([-1, -1,  5,
-    ...                                   5,  5,  5,
-    ...                                   5, -1, -1]))
+    >>> np.all(np.equal(lake_map, np.array([-1, -1,  5,
+    ...                                      5,  5,  5,
+    ...                                      5, -1, -1])))
     True
     >>> np.isclose(accum_area_at_pit[5], 12.)
     True
