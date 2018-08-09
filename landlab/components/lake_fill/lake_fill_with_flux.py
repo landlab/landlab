@@ -277,10 +277,39 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> vol_rem_at_pit
     {7: 80.0, 10: 98.0, 27: 100.0}
     >>> lake_is_full
-    {7: False, 10: True, 27: False}
+    {7: False, 10: False, 27: False}
     >>> lake_spill_node
     {7: 14, 10: 15, 27: -1}
 
+
+    >>> _raise_lake_to_limit(10, lake_map, area_map, master_pit_q,
+    ...                      lake_q_dict, init_water_surface, lake_water_level,
+    ...                      accum_area_at_pit, vol_rem_at_pit,
+    ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...                      water_vol_balance_terms, neighbors, closednodes)  # nothing happens at all, as we're at a sill already
+
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
+    ...                                     43,  7,  7, 46, 10, 46,
+    ...                                     43,  7, 79, 82, 10, 46,
+    ...                                     43,  7, 43, -1, 46, -1,
+    ...                                     -1, 43, -1, -1, -1, -1,
+    ...                                     -1, -1, -1, -1, -1, -1])))
+    True
+    >>> lake_water_level
+    {7: -5.0, 10: -6.0, 27: -8.0}
+    >>> lake_is_full
+    {7: False, 10: False, 27: False}
+
+    >>> for cpit in (27, ):
+    ...     for nghb in neighbors[cpit]:
+    ...         lake_q_dict[cpit].add_task(nghb,
+    ...                                    priority=init_water_surface[nghb])
+    ...         lake_map[nghb] = max((cpit + 36, lake_map[nghb]))
+    >>> _raise_lake_to_limit(27, lake_map, area_map, master_pit_q,
+    ...                      lake_q_dict, init_water_surface, lake_water_level,
+    ...                      accum_area_at_pit, vol_rem_at_pit,
+    ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...                      water_vol_balance_terms, neighbors, closednodes)
     """
     # We work upwards in elev from the current level, raising the level to
     # the next lowest node. We are looking for the first sign of flow
@@ -288,8 +317,14 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     # of the current elevation. The idea here is that either a node is
     # accessible from below via another route, in which case it's already in
     # the queue, or it's over a saddle, and thus belongs to a separate pit.
-    tobreak = False  # delayed break flag
     cpit = current_pit  # shorthand
+    # First, check it's valid to call this in the first place. Nothing
+    # should happen if this is called on a node that already has a spill:
+    if lake_spill_node[cpit] != -1:
+        return
+    # (alternatively, this could raise an error...)
+
+    tobreak = False  # delayed break flag
     nnodes = init_water_surface.size
     pit_nghb_code = cpit + nnodes
     # ^this code used to flag possible nodes to inundate, but that aren't
@@ -308,9 +343,13 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     cnode = lake_q_dict[cpit].pop_task()
 
     while not tobreak:
-        print('Start at', cnode)
-        print('lake_q', lake_q_dict[cpit].tasks_currently_in_queue())
+        print('New loop. lake_q', lake_q_dict[cpit].tasks_currently_in_queue())
         nnode = lake_q_dict[cpit].pop_task()
+        if 0 <= lake_map[nnode] < nnodes:
+            # this is not a valid next node, as it's already in a lake.
+            # this can arise after lakes are merged...
+            continue
+        print('Start at', cnode, 'Next', nnode, 'Code next', lake_map[nnode])
         # note that this is the next node we will try to flood, not the one
         # we are currently flooding. A node is incorporated into the lake at
         # the point when _raise_water_level is run.
@@ -359,7 +398,10 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
                 accum_Ks_at_pit=accum_Ks_at_pit,
                 lake_is_full=lake_is_full,
                 lake_spill_node=lake_spill_node)
+            lake_map[nnode] = cpit
             print('Merging!', cpit)
+            cnode = nnode
+            continue
             # we allow the loop to continue after this, provided the
             # queues and dicts are all correctly merged
             # in this case, leave the cnode as it is... they're all at the
@@ -376,8 +418,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
         # node of an adjacent lake. This case dealt with in the raise step.
         for n in cnghbs:
             if not closednodes[n]:
-                if (lake_map[n] not in (cpit, pit_nghb_code)) and (
-                        lake_map[n] < 2.*nnodes):
+                if lake_map[n] not in (cpit, pit_nghb_code):
                     # ^virgin node (n==-1), or unclaimed nghb of other lake
                     # (0<=n<nnodes and n!=cpit), or future spill of another
                     # lake are all permitted.
@@ -400,7 +441,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
                     else:
                         print('Up!', cnode, n, lake_water_level[cpit])
                         lake_q_dict[cpit].add_task(n, priority=surf_z[n])
-                        lake_map[n] = pit_nghb_code
+                        lake_map[n] = max((pit_nghb_code, lake_map[n]))
+                        # note outlet codes take priority
 
 
 def _merge_two_lakes(this_pit, that_pit, z_topo, lake_map,
@@ -432,9 +474,11 @@ def _merge_two_lakes(this_pit, that_pit, z_topo, lake_map,
         low_pit = that_pit
         hi_pit = this_pit
 
-    print(hi_pit, low_pit)
     # merge the queues
+    print('this queue', lake_q_dict[this_pit].tasks_currently_in_queue())
+    print('that queue', lake_q_dict[that_pit].tasks_currently_in_queue())
     lake_q_dict[low_pit].merge_queues(lake_q_dict[hi_pit])
+    print('new queue', lake_q_dict[low_pit].tasks_currently_in_queue())
     _ = lake_q_dict.pop(hi_pit)
     # merge the maps
     lake_map[lake_map == hi_pit] = low_pit
@@ -718,8 +762,6 @@ def _route_outlet_to_next(outlet_ID, flow__receiver_nodes, z_surf, lake_map):
     Take an outlet node, and then follow the steepest descent path until it
     reaches a distinct lake.
     """
-
-
 
 
 class LakeFillerWithFlux(LakeMapperBarnes):
