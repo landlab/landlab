@@ -177,6 +177,9 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> closednodes[34] = True
     >>> water_vol_balance_terms = (0., 0.)
 
+    >>> for cpit in (7, 10, 27):
+    ...     lake_q_dict[cpit].add_task(cpit, priority=lake_water_level[cpit])
+
     >>> for cpit in (7, ):
     ...     for nghb in neighbors[cpit]:
     ...         lake_q_dict[cpit].add_task(nghb,
@@ -225,12 +228,6 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes)
 
-
-
-
-Since changes, this is not stopping its fill...
-
-
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
     ...                                     43,  7, 79, 46, 10, 46,
@@ -240,8 +237,8 @@ Since changes, this is not stopping its fill...
     True
     >>> master_pit_q.tasks_currently_in_queue() # 10 filled, so left off
     np.array([7])
-    >>> lake_q_dict[10].tasks_currently_in_queue()
-    np.array([16,  4, 11, 17, 22,  9])
+    >>> lake_q_dict[10].tasks_currently_in_queue()  # half-filled node back in
+    np.array([16,  9, 15, 17, 22,  4, 11])
     >>> lake_water_level
     {7: -5.0, 10: -6.5, 27: -8.0}
     >>> accum_area_at_pit
@@ -255,15 +252,34 @@ Since changes, this is not stopping its fill...
     >>> lake_spill_node
     {7: 14, 10: -1, 27: -1}
 
-    >>> vol_rem_at_pit[10] = 100.
+    >>> vol_rem_at_pit[10] = 100  # recharge to continue fill
     >>> _raise_lake_to_limit(10, lake_map, area_map, master_pit_q,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
-    ...                      water_vol_balance_terms, neighbors, closednodes
+    ...                      water_vol_balance_terms, neighbors, closednodes)
 
-
-    ...Issues here around the restart on a part-filled node.
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
+    ...                                     43,  7,  7, 46, 10, 46,
+    ...                                     43,  7, 79, 82, 10, 46,
+    ...                                     43,  7, 43, -1, 46, -1,
+    ...                                     -1, 43, -1, -1, -1, -1,
+    ...                                     -1, -1, -1, -1, -1, -1])))
+    True
+    >>> master_pit_q.tasks_currently_in_queue()
+    np.array([10, 7])
+    >>> lake_q_dict[10].tasks_currently_in_queue()
+    np.array([11,  9,  4, 17, 22])
+    >>> lake_water_level
+    {7: -5.0, 10: -6.0, 27: -8.0}
+    >>> accum_area_at_pit
+    {7: 8.0, 10: 4.0, 27: 0.0}
+    >>> vol_rem_at_pit
+    {7: 80.0, 10: 98.0, 27: 100.0}
+    >>> lake_is_full
+    {7: False, 10: True, 27: False}
+    >>> lake_spill_node
+    {7: 14, 10: 15, 27: -1}
 
     """
     # We work upwards in elev from the current level, raising the level to
@@ -281,28 +297,19 @@ Since changes, this is not stopping its fill...
     spill_code = pit_nghb_code + nnodes
     # ^more funky flagging to indicate a future spill
     surf_z = init_water_surface
+    # We're calling this in the first place, so...
+    lake_is_full[cpit] = False
 
-    ###### define cnode init here, and define neighbor queue correctly
-    # might have to change ordering in the loop.
-    cnode = cpit
-    # add the neighbors here so they get immediately explored?
-    # No, this probably needs doing **in the init steps (of the calling method)**
-    # so everything is consistent
-    # ...for that init of the method...
-    # cnghbs = neighbors[cpit]
-    # pit_nghb_code = cpit + grid.number_of_nodes
-    # for n in np.nditer(cnghbs):
-    #     if not closednodes[n]:
-    #         # by definition, all neighbors of a pit are uphill, so
-    #         lake_q_dict[cpit].add_task(n, priority=surf_z[n])
-    #         lake_map[n] = pit_nghb_code
-    #         # note that these potential neighbors can happily appear in more than
-    #         # one list if they're spills... and indeed, this is implicit in how the
-    #         # algorithm works!
-
-    ####### we should optionally be saving all the volume information...?
+    # This func assumes that when it receives a lake_q_dict, it will be pre-
+    # loaded with (first, though this should be clear from the priority) the
+    # cpit, or the node from which the iteration should start (i.e., the
+    # node where the lake terminated last time), and then also that node's
+    # immediate neighbors. This means this works:
+    cnode = lake_q_dict[cpit].pop_task()
 
     while not tobreak:
+        print('Start at', cnode)
+        print('lake_q', lake_q_dict[cpit].tasks_currently_in_queue())
         nnode = lake_q_dict[cpit].pop_task()
         # note that this is the next node we will try to flood, not the one
         # we are currently flooding. A node is incorporated into the lake at
@@ -314,27 +321,24 @@ Since changes, this is not stopping its fill...
         # Now, try to raise the level to this height, without running out
         # of water...
         z_increment = surf_z[nnode] - lake_water_level[cpit]
-        if z_increment < 0.:
-            # this test picks up the cases where we're returning to a lake that
-            # only got part-filled, and are kicking off again with cnode=cpit
-            cnode = nnode
-            continue
         (filled, z_increment) = _raise_water_level(
             cpit, cnode, area_map, z_increment, lake_map,
             water_vol_balance_terms, accum_area_at_pit, vol_rem_at_pit,
-            accum_Ks_at_pit, lake_is_full, lake_spill_node,
+            accum_Ks_at_pit, lake_spill_node,
             flood_from_zero=freshnode)
         lake_water_level[cpit] += z_increment
         if not filled:
+            print('Ran out of water:', cnode)
             # Now, the lake can't grow any more! (...at the moment.)
             # there's still potential here for this lake to grow more, and
             # if it does, the first node to rise will be this one. So,
             # stick the node back in the local lake queue, along with all
             # the higher neighbors that never got raised to before we severed
             # the iteration:
+            lake_is_full[cpit] = True
+            lake_q_dict[cpit].add_task(nnode, priority=surf_z[nnode])
             lake_q_dict[cpit].add_task(cnode, priority=lake_water_level[cpit])
-            # lake_is_filled gets flagged inside _raise_water_level
-            tobreak = True
+            break
 
         # Now, a special case where we've filled the lake to this level,
         # but it turns out the next node is in fact the spill of an
@@ -382,11 +386,10 @@ Since changes, this is not stopping its fill...
                     # been explored from below. So if the topo falls, current
                     # node is a true sill
                     if surf_z[n] < surf_z[cnode]:
-                        #print('Down!', cnode, n, lake_water_level[cpit])
+                        print('Down!', cnode, n, lake_water_level[cpit])
                         lake_map[cnode] = spill_code
                         # "magic" coding that lets this lake put "dibs" on that
                         # spill node.
-##### is the spill coding strictly necessary?
                         lake_spill_node[cpit] = cnode
                         master_pit_q.add_task(
                             cpit, priority=lake_water_level[cpit])
@@ -395,7 +398,7 @@ Since changes, this is not stopping its fill...
                         # others so we can continue to use this list later if
                         # the lake acquires a new flux
                     else:
-                        #print('Up!', cnode, n, lake_water_level[cpit])
+                        print('Up!', cnode, n, lake_water_level[cpit])
                         lake_q_dict[cpit].add_task(n, priority=surf_z[n])
                         lake_map[n] = pit_nghb_code
 
@@ -493,8 +496,7 @@ def _get_float_water_vol_balance_terms(water_vol_balance_terms,
 def _raise_water_level(cpit, cnode, area_map, z_increment,
                        lake_map, water_vol_balance_terms,
                        accum_area_at_pit, vol_rem_at_pit, accum_Ks_at_pit,
-                       lake_is_full, lake_spill_node,
-                       flood_from_zero=True):
+                       lake_spill_node, flood_from_zero=True):
     """
     Lift water level from the foot of a newly flooded node surface to the
     level of the next lowest, while honouring and water balance losses.
@@ -518,7 +520,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
 
     accum_area_at_pit : dict
     vol_rem_at_pit : dict
-    lake_is_full
     lake_spill_node
 
     flood_from_zero : bool
@@ -546,7 +547,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     >>> accum_area_at_pit = {5: 3.}
     >>> vol_rem_at_pit = {5: 100.}
     >>> accum_Ks_at_pit = {5: 0.}
-    >>> lake_is_full = {5: False}
     >>> lake_spill_node = {5: 8}
     >>> full, dz = _raise_water_level(cpit=5, cnode=3, area_map=area_map,
     ...                               z_increment=3., lake_map=lake_map,
@@ -554,7 +554,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_Ks_at_pit=accum_Ks_at_pit,
-    ...                               lake_is_full=lake_is_full,
     ...                               lake_spill_node=lake_spill_node,
     ...                               flood_from_zero=True)
     >>> full
@@ -571,8 +570,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> np.isclose(accum_Ks_at_pit[5], 0.)
     True
-    >>> lake_is_full[5]
-    False
     >>> lake_spill_node[5]
     8
 
@@ -582,7 +579,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_Ks_at_pit=accum_Ks_at_pit,
-    ...                               lake_is_full=lake_is_full,
     ...                               lake_spill_node=lake_spill_node,
     ...                               flood_from_zero=True)
     >>> full
@@ -599,8 +595,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> np.isclose(accum_Ks_at_pit[5], 0.)
     True
-    >>> lake_is_full[5]
-    False
     >>> lake_spill_node[5]
     8
 
@@ -610,7 +604,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_Ks_at_pit=accum_Ks_at_pit,
-    ...                               lake_is_full=lake_is_full,
     ...                               lake_spill_node=lake_spill_node,
     ...                               flood_from_zero=True)
     >>> full
@@ -627,21 +620,17 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> np.isclose(accum_Ks_at_pit[5], 0.)
     True
-    >>> lake_is_full[5]
-    True
     >>> lake_spill_node[5]
     -1
-
-    >>> lake_is_full[5] = False
     >>> lake_spill_node[5] = 8
     >>> vol_rem_at_pit[5] = 87.
+
     >>> full, dz = _raise_water_level(cpit=5, cnode=6, area_map=area_map,
     ...                               z_increment=2., lake_map=lake_map,
     ...                               water_vol_balance_terms=(-34., -3.),
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_Ks_at_pit=accum_Ks_at_pit,
-    ...                               lake_is_full=lake_is_full,
     ...                               lake_spill_node=lake_spill_node,
     ...                               flood_from_zero=False)
     >>> full
@@ -658,8 +647,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> np.isclose(accum_Ks_at_pit[5], -3.)
     True
-    >>> lake_is_full[5]
-    False
     >>> lake_spill_node[5]
     8
 
@@ -670,7 +657,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_Ks_at_pit=accum_Ks_at_pit,
-    ...                               lake_is_full=lake_is_full,
     ...                               lake_spill_node=lake_spill_node,
     ...                               flood_from_zero=True)
     >>> full
@@ -687,8 +673,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     True
     >>> np.isclose(accum_Ks_at_pit[5], -3.)  # node not filled, so not changed
     True
-    >>> lake_is_full[5]
-    True
     >>> lake_spill_node[5]
     -1
     """
@@ -704,7 +688,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     if flood_from_zero:
         vol_rem_at_pit[cpit] += c_added_at_start
         if vol_rem_at_pit[cpit] < 0.:
-            lake_is_full[cpit] = True
             lake_spill_node[cpit] = -1
             return (False, 0.)  # return a zero, but the node is still flooded
 
@@ -717,7 +700,6 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     if vol_rem_at_pit[cpit] < V_increment_to_fill:
         # we don't have the water to get onto the next level
         frac = vol_rem_at_pit[cpit]/V_increment_to_fill
-        lake_is_full[cpit] = True
         lake_spill_node[cpit] = -1
         z_available = frac * z_increment
         vol_rem_at_pit[cpit] = 0.
