@@ -89,7 +89,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
                          lake_is_full,
                          lake_spill_node,
                          water_vol_balance_terms,
-                         neighbors, closednodes):
+                         neighbors, closednodes, drainingnodes):
     """
     Lift a lake level from a starting elevation to a new break point.
     Break points are specified by (a) running out of discharge, (b)
@@ -146,6 +146,9 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
         The neighbors at each node on the grid.
     closednodes : array of bool
         Nodes not to be explored by the algorithm.
+    drainingnodes : array of bool
+        Once a lake raises itself to the level of one of these nodes, it will
+        cease to rise any more, ever (i.e., these are boundary nodes!)
 
     Examples
     --------
@@ -175,6 +178,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> neighbors = grid.adjacent_nodes_at_node
     >>> closednodes = np.zeros(36, dtype=bool)
     >>> closednodes[34] = True
+    >>> drainingnodes = np.zeros(36, dtype=bool)
+    >>> drainingnodes[29] = True  # create an outlet
     >>> water_vol_balance_terms = (0., 0.)
 
     >>> for cpit in (7, 10, 27):
@@ -190,7 +195,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
-    ...                      water_vol_balance_terms, neighbors, closednodes)
+    ...                      water_vol_balance_terms, neighbors, closednodes,
+    ...                      drainingnodes)
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, -1, -1,
     ...                                     43,  7,  7, 43, -1, -1,
@@ -226,7 +232,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
-    ...                      water_vol_balance_terms, neighbors, closednodes)
+    ...                      water_vol_balance_terms, neighbors, closednodes,
+    ...                      drainingnodes)
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -257,7 +264,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
-    ...                      water_vol_balance_terms, neighbors, closednodes)
+    ...                      water_vol_balance_terms, neighbors, closednodes,
+    ...                      drainingnodes)
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -286,7 +294,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
-    ...                      water_vol_balance_terms, neighbors, closednodes)  # nothing happens at all, as we're at a sill already
+    ...                      water_vol_balance_terms, neighbors, closednodes,
+    ...                      drainingnodes)  # nothing happens at all, as we're at a sill already
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -309,7 +318,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
-    ...                      water_vol_balance_terms, neighbors, closednodes)
+    ...                      water_vol_balance_terms, neighbors, closednodes,
+    ...                      drainingnodes)
     """
     # We work upwards in elev from the current level, raising the level to
     # the next lowest node. We are looking for the first sign of flow
@@ -408,6 +418,10 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
             # same level now
             # allow a nghb check just in case we have a super funky geometry,
             # but very likely to find new neighbors
+        if drainingnodes[nnode]:
+            lake_map[nnode] = spill_code
+            lake_spill_node[cpit] = nnode
+            break
         cnode = nnode
         # ^Note, even in the merging case, we leave the actual sill as the next
         # node, so the current z_surf makes sense next time around
