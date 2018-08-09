@@ -115,6 +115,13 @@ class StablePriorityQueue():
         >>> q1.tasks_currently_in_queue()
         array([1, 2, 4, 3])
         """
+        # make sure counter is advanced far enough:
+        self._counter = itertools.count(
+            next(self._counter) + next(StablePriorityQueue_in._counter))
+        # update the ever list:
+        self._tasks_ever_in_queue.extend(
+            StablePriorityQueue_in._tasks_ever_in_queue)
+        # rebuild _pq:
         self._pq.extend(StablePriorityQueue_in._pq)
         tasksort = lambda x: (x[2], x[0], x[1])  # task, priority, count
         self._pq.sort(key=tasksort)
@@ -130,7 +137,8 @@ class StablePriorityQueue():
             StablePriorityQueue_in._tasks_ever_in_queue)
         self._pq = newpq
 
-
+        # rebuild the _entry_finder:
+        self._entry_finder = {entry[2]: entry for entry in self._pq}
 
 
 def _fill_one_node_to_flat(fill_surface, all_neighbors,
