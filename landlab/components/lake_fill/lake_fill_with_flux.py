@@ -170,7 +170,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                     10: init_water_surface[10],
     ...                     27: init_water_surface[27]}
     >>> accum_area_at_pit = {7: 0., 10: 0., 27: 0.}
-    >>> vol_rem_at_pit = {7: 100., 10: 4., 27: 100.}
+    >>> vol_rem_at_pit = {7: 100., 10: 4., 27: 8.5}
     >>> accum_Ks_at_pit = {7: 0., 10: 0., 27: 0.}
     >>> lake_is_full = {7: False, 10: False, 27: False}
     >>> lake_spill_node = {7: -1, 10: -1, 27: -1}
@@ -214,7 +214,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> accum_area_at_pit
     {7: 8.0, 10: 0.0, 27: 0.0}
     >>> vol_rem_at_pit
-    {7: 80.0, 10: 4.0, 27: 100.0}
+    {7: 80.0, 10: 4.0, 27: 8.5}
     >>> accum_Ks_at_pit
     {7: 0.0, 10: 0.0, 27: 0.0}
     >>> lake_is_full
@@ -251,7 +251,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> accum_area_at_pit
     {7: 8.0, 10: 4.0, 27: 0.0}
     >>> vol_rem_at_pit
-    {7: 80.0, 10: 0.0, 27: 100.0}
+    {7: 80.0, 10: 0.0, 27: 8.5}
     >>> accum_Ks_at_pit
     {7: 0.0, 10: 0.0, 27: 0.0}
     >>> lake_is_full
@@ -259,7 +259,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> lake_spill_node
     {7: 14, 10: -1, 27: -1}
 
-    >>> vol_rem_at_pit[10] = 100  # recharge to continue fill
+    >>> vol_rem_at_pit[10] = 4.5  # recharge to continue fill
     >>> _raise_lake_to_limit(10, lake_map, area_map, master_pit_q,
     ...                      lake_q_dict, init_water_surface, lake_water_level,
     ...                      accum_area_at_pit, vol_rem_at_pit,
@@ -283,7 +283,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> accum_area_at_pit
     {7: 8.0, 10: 4.0, 27: 0.0}
     >>> vol_rem_at_pit
-    {7: 80.0, 10: 98.0, 27: 100.0}
+    {7: 80.0, 10: 98.0, 27: 8.5}
     >>> lake_is_full
     {7: False, 10: False, 27: False}
     >>> lake_spill_node
@@ -319,7 +319,56 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)
+    ...                      drainingnodes)  # call seamlessly merges the lakes & continues the subsequent rise until the (combined) water available craps out
+
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
+    ...                                     43,  7,  7, 46, 10, 46,
+    ...                                     43,  7, 79, 10, 10, 46,
+    ...                                     43,  7, 63, 10, 63, -1,
+    ...                                     -1, 43, 63, 10, 63, -1,
+    ...                                     -1, -1, -1, 63, -1, -1])))
+    True
+    >>> lake_q_dict[10].tasks_currently_in_queue()
+    np.array([15, 14, 11, 17, 28, 26,  4, 20, 22,  9, 33])
+    >>> lake_water_level
+    {7: -5.0, 10: -5.5}
+    >>> accum_area_at_pit
+    {7: 8.0, 10: 10.0}
+    >>> vol_rem_at_pit
+    {7: 80.0, 10: 0.0}
+    >>> lake_is_full
+    {7: False, 10: True}
+    >>> lake_spill_node
+    {7: 14, 10: -1}
+
+    >>> vol_rem_at_pit[10] = 100.  # juice it up again
+    >>> _raise_lake_to_limit(10, lake_map, area_map, master_pit_q,
+    ...                      lake_q_dict, init_water_surface, lake_water_level,
+    ...                      accum_area_at_pit, vol_rem_at_pit,
+    ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...                      water_vol_balance_terms, neighbors, closednodes,
+    ...                      drainingnodes)  # now, rise continues until the combined lake hits the drainingnode at 29. Note it doesn't feel the lower, closed node at 34.
+
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
+    ...                                     43,  7,  7, 46,  7, 46,
+    ...                                     43,  7,  7,  7,  7, 46,
+    ...                                     43,  7, 63,  7, 63, -1,
+    ...                                     -1, 43, 63,  7,  7, 82,
+    ...                                     -1, -1, -1, 63, -1, -1])))
+    True
+    >>> lake_q_dict[10].tasks_currently_in_queue()
+# why the rogue -1???
+    np.array([[11,  6, 33,  4,  9, 26,  1,  2, 17, -1, 20, 12, 25, 18, 22])
+    >>> lake_water_level
+    {7: -1.0}
+    >>> accum_area_at_pit
+    {7: 22.0}
+    >>> vol_rem_at_pit
+    {7: 91.0}
+    >>> lake_is_full
+    {7: False}
+    >>> lake_spill_node
+    {7: 29}
     """
     # We work upwards in elev from the current level, raising the level to
     # the next lowest node. We are looking for the first sign of flow
@@ -408,9 +457,9 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
                 accum_Ks_at_pit=accum_Ks_at_pit,
                 lake_is_full=lake_is_full,
                 lake_spill_node=lake_spill_node)
-            lake_map[nnode] = cpit
             print('Merging!', cpit)
             cnode = nnode
+            print('Vol, A', vol_rem_at_pit[cpit], accum_area_at_pit[cpit])
             continue
             # we allow the loop to continue after this, provided the
             # queues and dicts are all correctly merged
@@ -470,6 +519,10 @@ def _merge_two_lakes(this_pit, that_pit, z_topo, lake_map,
     """
     Take two lakes that are known to be at the same level & in contact,
     and merge them.
+
+    Remember, at the time of merge, any sill is NOT part of the merged lake
+    (a call of _raise_water_level on the sill is required to actually
+    inundate it).
 
     Returns
     -------
