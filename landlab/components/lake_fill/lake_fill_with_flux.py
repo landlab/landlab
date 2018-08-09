@@ -324,9 +324,9 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
     ...                                     43,  7, 79, 10, 10, 46,
-    ...                                     43,  7, 63, 10, 63, -1,
-    ...                                     -1, 43, 63, 10, 63, -1,
-    ...                                     -1, -1, -1, 63, -1, -1])))
+    ...                                     43,  7, 46, 10, 46, -1,
+    ...                                     -1, 43, 46, 10, 46, -1,
+    ...                                     -1, -1, -1, 46, -1, -1])))
     True
     >>> lake_q_dict[10].tasks_currently_in_queue()
     np.array([15, 14, 11, 17, 28, 26,  4, 20, 22,  9, 33])
@@ -349,16 +349,15 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      water_vol_balance_terms, neighbors, closednodes,
     ...                      drainingnodes)  # now, rise continues until the combined lake hits the drainingnode at 29. Note it doesn't feel the lower, closed node at 34.
 
-    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
-    ...                                     43,  7,  7, 46,  7, 46,
-    ...                                     43,  7,  7,  7,  7, 46,
-    ...                                     43,  7, 63,  7, 63, -1,
-    ...                                     -1, 43, 63,  7,  7, 82,
+    >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 43, -1,
+    ...                                     43,  7,  7, 43,  7, 43,
+    ...                                     43,  7,  7,  7,  7, 43,
+    ...                                     43,  7, 43,  7, 43, -1,
+    ...                                     -1, 43, 43,  7,  7, 79,
     ...                                     -1, -1, -1, 63, -1, -1])))
     True
     >>> lake_q_dict[10].tasks_currently_in_queue()
-# why the rogue -1???
-    np.array([[11,  6, 33,  4,  9, 26,  1,  2, 17, -1, 20, 12, 25, 18, 22])
+    np.array([[11,  6, 33,  4,  9, 26,  1,  2, 17, 22, 20, 12, 25, 18])
     >>> lake_water_level
     {7: -1.0}
     >>> accum_area_at_pit
@@ -460,6 +459,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
             print('Merging!', cpit)
             cnode = nnode
             print('Vol, A', vol_rem_at_pit[cpit], accum_area_at_pit[cpit])
+            pit_nghb_code = cpit + nnodes
+            spill_code = pit_nghb_code + nnodes
             continue
             # we allow the loop to continue after this, provided the
             # queues and dicts are all correctly merged
@@ -534,6 +535,7 @@ def _merge_two_lakes(this_pit, that_pit, z_topo, lake_map,
     # longer work as dict keys...
     # Check they've got to the same level (really ought to have!)
     assert np.isclose(lake_water_level[this_pit], lake_water_level[that_pit])
+    nnodes = lake_map.size
     if z_topo[this_pit] < z_topo[that_pit]:
         low_pit = this_pit
         hi_pit = that_pit
@@ -549,6 +551,7 @@ def _merge_two_lakes(this_pit, that_pit, z_topo, lake_map,
     _ = lake_q_dict.pop(hi_pit)
     # merge the maps
     lake_map[lake_map == hi_pit] = low_pit
+    lake_map[lake_map == (hi_pit + nnodes)] = low_pit + nnodes
     # merge the various dicts
     for dct in (accum_area_at_pit, vol_rem_at_pit, accum_Ks_at_pit):
         dct[low_pit] += dct.pop(hi_pit)
