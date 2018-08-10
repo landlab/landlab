@@ -827,11 +827,131 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
         return (True, z_increment)
 
 
-def _route_outlet_to_next(outlet_ID, flow__receiver_nodes, z_surf, lake_map):
+def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
+                          link_lengths, links_at_node, z_surf, lake_map,
+                          neighbors, closednodes, drainingnodes):
     """
     Take an outlet node, and then follow the steepest descent path until it
-    reaches a distinct lake.
+    reaches a distinct lake.  Transmission losses are here NOT accounted for;
+    we assume it all comes out in the wash given they likely were applied
+    during the initial flow accumulation that provided the inputs to the pits.
+
+    Returns
+    -------
+    (next_lake_ID, draining_node_out) : (int, int)
+        next_lake_ID is the ID of the next lake reached by flow from this
+        spill point. -1 if flow drains into a drainingnode. draining_node_out
+        is the node ID of one of the drainingnode which the flow reaches, -1
+        if the flow terminates in a lake. i.e., one of these values will always
+        be -1.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> z_surf = np.array([ 10.,  1., 10., 10., 10.,
+    ...                      1.,  3.,  2.,  1.,  0.,
+    ...                     10., 10.,  1., 10., 10.,])
+    >>> lake_map = np.array([ 19, -1, -1, -1, 21,
+    ...                        4, 34, -1, 21,  6,
+    ...                       19, -1, -1, -1, 21])
+    >>> spill = 6
+    >>> lake_at_head = 4
+    >>> closednodes = np.zeros(15, dtype=bool)
+    >>> closednodes[[1, 12]] = True
+    >>> drainingnodes = np.zeros(15, dtype=bool)
+    >>> drainingnodes[12] = True
+    >>> mg = RasterModelGrid((3, 5), (1., 2.))
+    >>> flow_rec_node = np.array([ 5,  1,  7,  8,  9,
+    ...                            5,  1, 12,  9,  9,
+    ...                            5,  6, 12,  8,  9])
+    >>> (lake, drain) = _route_outlet_to_next(
+    ...     spill, lake_at_head, flow_rec_node, mg.length_of_link,
+    ...     mg.links_at_node, z_surf, lake_map, mg.adjacent_nodes_at_node,
+    ...     closednodes, drainingnodes)
+    >>> lake
+    6
+    >>> drain
+    -1
+    >>> closednodes[12] = False
+    >>> (lake, drain) = _route_outlet_to_next(
+    ...     spill, lake_at_head, flow_rec_node, mg.length_of_link,
+    ...     mg.links_at_node, z_surf, lake_map, mg.adjacent_nodes_at_node,
+    ...     closednodes, drainingnodes)
+    >>> lake
+    -1
+    >>> drain
+    12
     """
+    # first, resolve possible issue with FD of the outlet. It's possible it
+    # currently drains back into the lake, which we need to correct.
+    nghbs = neighbors[outlet_ID]
+    nnodes = lake_map.size
+    steepest_nghb = _steepest_valid_neighbor(
+        outlet_ID, nghbs, lake_at_head, z_surf, lake_map, links_at_node,
+        link_lengths, closednodes, drainingnodes)
+    lake_code_steepest = lake_map[steepest_nghb]
+    while (lake_code_steepest < 0 or lake_code_steepest >= nnodes):
+        if drainingnodes[steepest_nghb]:
+            return (-1, steepest_nghb)
+        new_steepest_nghb = flow__receiver_nodes[steepest_nghb]
+        if closednodes[new_steepest_nghb]:
+            # locally forbidden, not necessarily seen by flow routing
+            # so redirect here
+            new_steepest_nghb = _steepest_valid_neighbor(
+                steepest_nghb, neighbors[steepest_nghb], lake_at_head, z_surf,
+                lake_map, links_at_node, link_lengths, closednodes,
+                drainingnodes)
+        steepest_nghb = new_steepest_nghb
+        lake_code_steepest = lake_map[steepest_nghb]
+    return (lake_code_steepest, -1)
+
+
+def _steepest_valid_neighbor(node, nghbs, lake_at_head, z_surf, lake_map,
+                             links_at_node, link_lengths, closednodes,
+                             drainingnodes):
+    """
+    Find the node at the end of the steepest downward link from a node, that
+    is not a closednode, nor in the lake at the head of the flow.
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> z_surf = np.array([ 10.,  1., 10., 10., 10.,
+    ...                      1.,  3.,  2.,  1.,  0.,
+    ...                     10., 10.,  1., 10., 10.,])
+    >>> lake_map = np.array([ 19, -1, -1, -1, 21,
+    ...                        4, 34, -1, 21,  6,
+    ...                       19, -1, -1, -1, 21])
+    >>> closednodes = np.zeros(15, dtype=bool)
+    >>> closednodes[1] = True
+    >>> drainingnodes = np.zeros(15, dtype=bool)
+    >>> drainingnodes[12] = True
+    >>> mg = RasterModelGrid((3, 5), (1., 2.))
+    >>> for node in (6, 7, 12, 14):
+    ...     nghbs = mg.adjacent_nodes_at_node[node]
+    ...     print(_steepest_valid_neighbor(node, nghbs, 4, z_surf, lake_map,
+    ...                                    mg.links_at_node, mg.length_of_link,
+    ...                                    closednodes, drainingnodes))
+    7
+    12
+    12
+    9
+    """
+    if drainingnodes[node]:
+        return node  # this really should be redundant in a sensible use case
+    nnodes = lake_map.size
+    lake_code_nghbs = lake_map[nghbs]
+    valid_positions = np.logical_and.reduce((
+        np.not_equal(nghbs, -1), np.not_equal(closednodes[nghbs], True),
+        np.not_equal(lake_code_nghbs, lake_at_head)))
+    valid_nghbs = nghbs[valid_positions]
+    slopes = ((z_surf[valid_nghbs] - z_surf[node]) /
+              link_lengths[links_at_node[node, valid_positions]])
+    steepest_nghb = valid_nghbs[np.argmin(slopes)]
+    return steepest_nghb
 
 
 class LakeFillerWithFlux(LakeMapperBarnes):
