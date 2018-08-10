@@ -65,17 +65,15 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
     vol_rem_at_pit = {}
     accum_area_at_pit = {}
     lake_water_level = {}
-    lake_water_volume_balance = {}  # tracks any total water balance on lake
     accum_Ks_at_pit = {}
     lake_is_full = {}
     for pit, vol, A, level in zip(pit_nodes_in_order, Vw_at_pits_in_order,
                                   area_map[pit_node_sort],
                                   zwater_nodes_in_order):
         vol_rem_at_pit[pit] = vol
-        accum_area_at_pit[pit] = A
         lake_water_level[pit] = level
         lake_is_full[pit] = False
-        lake_water_volume_balance[pit] = 0.
+        accum_area_at_pit[pit] = 0.
         accum_Ks_at_pit[pit] = 0.
 
 
