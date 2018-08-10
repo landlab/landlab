@@ -126,10 +126,10 @@ class DataRecord(Dataset):
         compat: str (optional)
             String indicating how to compare variables of the same name
             for potential conflicts:
-                - ‘broadcast_equals’: all values must be equal when variables
+                - 'broadcast_equals': all values must be equal when variables
                 are broadcast against each other to ensure common dimensions.
-                - ‘equals’: all values and dimensions must be the same.
-                - ‘identical’: all values, dimensions and attributes must be
+                - 'equals': all values and dimensions must be the same.
+                - 'identical': all values, dimensions and attributes must be
                 the same.
                 Default value is 'broadcast_equals'.
 
@@ -318,6 +318,19 @@ class DataRecord(Dataset):
                              'permitted, must be list or array.'))
             else:
                 if item_id is not None:
+                    # check that item_id already exist:
+                    for i in item_id:
+                        if i in self['item_id'].values:
+                            pass
+                        else:
+                            raise ValueError ('There is no item with item_id' +
+                                              i +', modify the value(s) you'
+                                              'pass as ''item_id'' or create'
+                                              'a new item using the method'
+                                              'add_item.')
+
+
+
                     coords_to_add = {'time' : np.array(model__time),
                                      'item_id' : item_id}
                     # check that new_record has grid_element and element_id
