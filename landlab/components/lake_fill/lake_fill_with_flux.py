@@ -77,6 +77,92 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
         accum_Ks_at_pit[pit] = 0.
 
 
+def raise_lakes_to_water_exhaustion(
+        pit_nodes,
+        water_volume_at_pit,
+        flow__receiver_nodes,
+        link_lengths,
+        links_at_node,
+        lake_map,
+        area_map,
+        master_pit_q,
+        lake_q_dict,
+        init_water_surface,
+        lake_water_level,
+        accum_area_at_pit,
+        vol_rem_at_pit,
+        accum_Ks_at_pit,
+        lake_is_full,
+        lake_spill_node,
+        water_vol_balance_terms,
+        neighbors,
+        closednodes,
+        drainingnodes,
+        water_out_dict):
+    """
+    For known water volumes at pits, raise a water surface to honour those
+    volumes and any gains and losses created by the lakes themselves.
+
+    Parameters
+    ----------
+    ...
+    water_out_dict : dict
+        Dict with the True drainingnodes as keys and the water volumes
+        reaching those nodes as values. Only gets populated where lake
+        overflow discharges actually reach the node; also note that this
+        water volume is only what is overtopped, and it does not include
+        any discharge accumulating at that node "conventionally".
+    """
+    while True:
+        try:
+            cpit = master_pit_q.peek_at_task()  # check the lowest node
+        except KeyError:  # all done
+            break
+        # Call below will break when water at that pit is exhausted, or
+        # when it reaches a sill. In the latter case, the pit will have
+        # been put back in the master queue.
+        # These are the important cases. If one of these gets popped off
+        # the queue here, it means that the *lowest* thing was a sill.
+        # That means rather than raise it, we need to flood the water down
+        # and out of it; i.e., we should NEVER be raising a lake at a sill.
+        # So before we call _raise_lake_to_limit, first check the
+        # lake_spill_node:
+        if lake_spill_node[cpit] != -1:
+            # flood water down
+            next_lake, escape_ID = _route_outlet_to_next(
+                lake_spill_node[cpit], cpit, flow__receiver_nodes,
+                link_lengths, links_at_node, init_water_surface, lake_map,
+                neighbors, closednodes, drainingnodes)
+            if next_lake != -1:
+                vol_rem_at_pit[next_lake] = vol_rem_at_pit[cpit]
+                vol_rem_at_pit[cpit] = 0.
+                lake_is_full[next_lake] = False
+                # now operate immediately on this node
+                cpit = next_lake
+            else:
+                # we are draining out. If we get here, there's no way this
+                # lake is of any importance any more to the lakes we are
+                # still working on, so
+                _ = _master_pit_q.pop_task()
+                water_out_dict[escape_ID] = vol_rem_at_pit[cpit]
+                vol_rem_at_pit[cpit] = 0.
+                continue
+        else:
+            cpit = master_pit_q.pop_task()
+
+        _raise_lake_to_limit(cpit, lake_map, area_map,
+                             master_pit_q,
+                             lake_q_dict, init_water_surface,
+                             lake_water_level,
+                             accum_area_at_pit,
+                             vol_rem_at_pit,
+                             accum_Ks_at_pit,
+                             lake_is_full,
+                             lake_spill_node,
+                             water_vol_balance_terms,
+                             neighbors, closednodes, drainingnodes)
+
+
 def _raise_lake_to_limit(current_pit, lake_map, area_map,
                          master_pit_q,
                          lake_q_dict, init_water_surface,
@@ -833,6 +919,10 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
     reaches a distinct lake.  Transmission losses are here NOT accounted for;
     we assume it all comes out in the wash given they likely were applied
     during the initial flow accumulation that provided the inputs to the pits.
+
+    Note that this function does not actually route the flow; it simply
+    finds and identifies the next lake or outlet downstream. Do this
+    discharge rewiring elsewhere.
 
     Returns
     -------
