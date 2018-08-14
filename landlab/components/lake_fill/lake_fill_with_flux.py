@@ -78,8 +78,6 @@ def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
 
 
 def raise_lakes_to_water_exhaustion(
-        pit_nodes,
-        water_volume_at_pit,
         flow__receiver_nodes,
         link_lengths,
         links_at_node,
@@ -112,10 +110,150 @@ def raise_lakes_to_water_exhaustion(
         overflow discharges actually reach the node; also note that this
         water volume is only what is overtopped, and it does not include
         any discharge accumulating at that node "conventionally".
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.lake_fill import StablePriorityQueue
+    >>> from landlab.components import FlowDirectorSteepest
+    >>> from landlab import RasterModelGrid
+    >>> init_water_surface = np.array([  0.,  0.,  0.,  0.,  0.,  0.,
+    ...                                  0., -9., -6.,  0., -8.,  0.,
+    ...                                  0., -8., -5., -6., -7.,  0.,
+    ...                                  0., -7.,  0., -7.,  0.,  0.,
+    ...                                  0.,  0.,  0., -8., -3., -1.,
+    ...                                  0.,  0.,  0.,  0., -2.,  0.])
+    >>> lake_map = -1 * np.ones(36, dtype=int)
+    >>> area_map = 2. * np.ones(36, dtype=float)
+    >>> master_pit_q = StablePriorityQueue()
+    >>> lake_q_dict = {7: StablePriorityQueue(), 10: StablePriorityQueue(),
+    ...                27: StablePriorityQueue()}
+    >>> lake_water_level = {7: init_water_surface[7],
+    ...                     10: init_water_surface[10],
+    ...                     27: init_water_surface[27]}
+    >>> accum_area_at_pit = {7: 0., 10: 0., 27: 0.}
+    >>> vol_rem_at_pit = {7: 100., 10: 4., 27: 8.5}
+    >>> accum_Ks_at_pit = {7: 0., 10: 0., 27: 0.}
+    >>> lake_is_full = {7: False, 10: False, 27: False}
+    >>> lake_spill_node = {7: -1, 10: -1, 27: -1}
+    >>> grid = RasterModelGrid((6, 6), 2.)
+    >>> grid.add_field('node', 'topographic__elevation', init_water_surface)
+    >>> fd = FlowDirectorSteepest(grid)
+    >>> fd.run_one_step()
+    >>> flow__receiver_nodes = grid.at_node['flow__receiver_node']
+    >>> link_lengths = grid.length_of_link
+    >>> links_at_node = grid.links_at_node
+    >>> neighbors = grid.adjacent_nodes_at_node
+    >>> closednodes = np.zeros(36, dtype=bool)
+    >>> closednodes[34] = True
+    >>> drainingnodes = np.zeros(36, dtype=bool)
+    >>> drainingnodes[29] = True  # create an outlet
+    >>> water_vol_balance_terms = (1., -4.)
+    >>> water_out_dict = {}
+
+    >>> for cpit in (7, 10, 27):
+    ...     lake_q_dict[cpit].add_task(cpit, priority=lake_water_level[cpit])
+
+    >>> for cpit in (7, 10, 27):
+    ...     for nghb in neighbors[cpit]:
+    ...         lake_q_dict[cpit].add_task(nghb,
+    ...                                    priority=init_water_surface[nghb])
+    ...         lake_map[nghb] = cpit + 36
+
+    >>> for cpit in (7, 10, 27):
+    ...     elev = lake_water_level[cpit]
+    ...     master_pit_q.add_task(cpit, priority=elev)
+
+    >>> raise_lakes_to_water_exhaustion(
+    ...     flow__receiver_nodes, link_lengths, links_at_node, lake_map,
+    ...     area_map, master_pit_q, lake_q_dict, init_water_surface,
+    ...     lake_water_level, accum_area_at_pit, vol_rem_at_pit,
+    ...     accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...     water_vol_balance_terms, neighbors, closednodes, drainingnodes,
+    ...     water_out_dict)
+
+    >>> vol_rem_at_pit[7] += 1000.  # recharge
+    >>> master_pit_q.add_task(7)  # re-permit action on the lake
+    >>> raise_lakes_to_water_exhaustion(
+    ...     flow__receiver_nodes, link_lengths, links_at_node, lake_map,
+    ...     area_map, master_pit_q, lake_q_dict, init_water_surface,
+    ...     lake_water_level, accum_area_at_pit, vol_rem_at_pit,
+    ...     accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...     water_vol_balance_terms, neighbors, closednodes, drainingnodes,
+    ...     water_out_dict)
+
+
+#### doublecheck the above example now we are propagating flow between lakes with possible skipping
+
+    Second example, more explicitly testing overtopping and cascading:
+
+    >>> from landlab import CLOSED_BOUNDARY
+    >>> init_water_surface = np.array([  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+    ...                                  0.,  9., -2.,  8.,  4.,  5., -1.,  6.,  0.,
+    ...                                  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    >>> lake_map = -1 * np.ones(27, dtype=int)
+    >>> area_map = 4. * np.ones(27, dtype=float)
+    >>> master_pit_q = StablePriorityQueue()
+    >>> mypits = (11, 13, 15)
+    >>> lake_q_dict = {}
+    >>> lake_water_level = {}
+    >>> accum_area_at_pit = {}
+    >>> accum_Ks_at_pit = {}
+    >>> lake_is_full = {}
+    >>> lake_spill_node = {}
+    >>> for cpit in mypits:
+    ...     lake_water_level[cpit] = init_water_surface[cpit]
+    ...     lake_q_dict[cpit] = StablePriorityQueue()
+    ...     accum_area_at_pit[cpit] = 0.
+    ...     accum_Ks_at_pit[cpit] = 0.
+    ...     lake_is_full[cpit] = False
+    ...     lake_spill_node[cpit] = -1
+    >>> vol_rem_at_pit = {11: 100., 13: 100., 15: 100.}
+    >>> grid = RasterModelGrid((3, 9), 2.)
+    >>> grid.add_field('node', 'topographic__elevation', init_water_surface)
+    >>> grid.status_at_node[:9] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[18:] = CLOSED_BOUNDARY
+    >>> fd = FlowDirectorSteepest(grid)
+    >>> fd.run_one_step()
+    >>> flow__receiver_nodes = grid.at_node['flow__receiver_node']
+    >>> link_lengths = grid.length_of_link
+    >>> links_at_node = grid.links_at_node
+    >>> neighbors = grid.adjacent_nodes_at_node
+    >>> closednodes = np.zeros(27, dtype=bool)
+    >>> closednodes[:9] = True
+    >>> closednodes[18:] = True
+    >>> drainingnodes = np.zeros(27, dtype=bool)
+    >>> drainingnodes[[9, 17]] = True  # create competing outlets
+    >>> water_vol_balance_terms = (0., 0.)
+    >>> water_out_dict = {}
+
+    >>> for cpit in mypits:
+    ...     lake_q_dict[cpit].add_task(cpit, priority=lake_water_level[cpit])
+
+    >>> for cpit in mypits:
+    ...     for nghb in neighbors[cpit]:
+    ...         if not closednodes[nghb]:
+    ...             lake_q_dict[cpit].add_task(
+    ...                 nghb, priority=init_water_surface[nghb])
+    ...             lake_map[nghb] = cpit + 27
+
+    >>> for cpit in mypits:
+    ...     elev = lake_water_level[cpit]
+    ...     master_pit_q.add_task(cpit, priority=elev)
+
+    >>> raise_lakes_to_water_exhaustion(
+    ...     flow__receiver_nodes, link_lengths, links_at_node, lake_map,
+    ...     area_map, master_pit_q, lake_q_dict, init_water_surface,
+    ...     lake_water_level, accum_area_at_pit, vol_rem_at_pit,
+    ...     accum_Ks_at_pit, lake_is_full, lake_spill_node,
+    ...     water_vol_balance_terms, neighbors, closednodes, drainingnodes,
+    ...     water_out_dict)
     """
+    flow_goes_to = {}  # this is for cascading flow
     while True:
+        print('outer loop')
         try:
-            cpit = master_pit_q.peek_at_task()  # check the lowest node
+            cpit = master_pit_q.pop_task()  # check the lowest node
         except KeyError:  # all done
             break
         # Call below will break when water at that pit is exhausted, or
@@ -127,12 +265,30 @@ def raise_lakes_to_water_exhaustion(
         # and out of it; i.e., we should NEVER be raising a lake at a sill.
         # So before we call _raise_lake_to_limit, first check the
         # lake_spill_node:
+        if cpit not in lake_spill_node.keys():
+            # possible to pop a lake that doesn't exist any more, so
+            print('No more lake!')
+            continue
         if lake_spill_node[cpit] != -1:
+            print('spilling')
             # flood water down
             next_lake, escape_ID = _route_outlet_to_next(
                 lake_spill_node[cpit], cpit, flow__receiver_nodes,
                 link_lengths, links_at_node, init_water_surface, lake_map,
                 neighbors, closednodes, drainingnodes)
+            flow_goes_to[cpit] = (next_lake, escape_ID)
+            print('nextlake:', next_lake)
+            while next_lake != -1:
+                next_lake = lake_map[next_lake]
+                # ^^in case lakes have merged since flow_goes_to was updated
+                # this will now be -1 if we're draining to a drainingnode,
+                # as well as if escape_ID was returned above
+                try:
+                    next_lake, escape_ID = flow_goes_to[next_lake]
+                except KeyError:
+                    break
+                    # we don't know where next_lake drains to, or it just
+                    # doesn't drain yet
             if next_lake != -1:
                 vol_rem_at_pit[next_lake] = vol_rem_at_pit[cpit]
                 vol_rem_at_pit[cpit] = 0.
@@ -143,12 +299,16 @@ def raise_lakes_to_water_exhaustion(
                 # we are draining out. If we get here, there's no way this
                 # lake is of any importance any more to the lakes we are
                 # still working on, so
-                _ = _master_pit_q.pop_task()
-                water_out_dict[escape_ID] = vol_rem_at_pit[cpit]
+                try:
+                    water_out_dict[escape_ID] += vol_rem_at_pit[cpit]
+                    # this necessary in case there is already water spilling,
+                    # and more is added later from above (a cascade)
+                except KeyError:
+                    water_out_dict[escape_ID] = vol_rem_at_pit[cpit]
                 vol_rem_at_pit[cpit] = 0.
                 continue
         else:
-            cpit = master_pit_q.pop_task()
+            pass
 
         _raise_lake_to_limit(cpit, lake_map, area_map,
                              master_pit_q,
@@ -160,7 +320,8 @@ def raise_lakes_to_water_exhaustion(
                              lake_is_full,
                              lake_spill_node,
                              water_vol_balance_terms,
-                             neighbors, closednodes, drainingnodes)
+                             neighbors, closednodes, drainingnodes,
+                             water_out_dict)
 
 
 def _raise_lake_to_limit(current_pit, lake_map, area_map,
@@ -173,7 +334,8 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
                          lake_is_full,
                          lake_spill_node,
                          water_vol_balance_terms,
-                         neighbors, closednodes, drainingnodes):
+                         neighbors, closednodes, drainingnodes,
+                         water_out_dict):
     """
     Lift a lake level from a starting elevation to a new break point.
     Break points are specified by (a) running out of discharge, (b)
@@ -233,6 +395,12 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     drainingnodes : array of bool
         Once a lake raises itself to the level of one of these nodes, it will
         cease to rise any more, ever (i.e., these are boundary nodes!)
+    water_out_dict : dict
+        Dict with the True drainingnodes as keys and the water volumes
+        reaching those nodes as values. Only gets populated where lake
+        overflow discharges actually reach the node; also note that this
+        water volume is only what is overtopped, and it does not include
+        any discharge accumulating at that node "conventionally".
 
     Examples
     --------
@@ -265,6 +433,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> drainingnodes = np.zeros(36, dtype=bool)
     >>> drainingnodes[29] = True  # create an outlet
     >>> water_vol_balance_terms = (0., 0.)
+    >>> water_out_dict = {}
 
     >>> for cpit in (7, 10, 27):
     ...     lake_q_dict[cpit].add_task(cpit, priority=lake_water_level[cpit])
@@ -280,7 +449,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)
+    ...                      drainingnodes, water_out_dict)
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, -1, -1,
     ...                                     43,  7,  7, 43, -1, -1,
@@ -317,7 +486,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)
+    ...                      drainingnodes, water_out_dict)
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -349,7 +518,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)
+    ...                      drainingnodes, water_out_dict)
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -379,7 +548,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)  # nothing happens at all, as we're at a sill already
+    ...                      drainingnodes, water_out_dict)  # nothing happens at all, as we're at a sill already
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -403,7 +572,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)  # call seamlessly merges the lakes & continues the subsequent rise until the (combined) water available craps out
+    ...                      drainingnodes, water_out_dict)  # call seamlessly merges the lakes & continues the subsequent rise until the (combined) water available craps out
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 46, -1,
     ...                                     43,  7,  7, 46, 10, 46,
@@ -431,7 +600,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     ...                      accum_area_at_pit, vol_rem_at_pit,
     ...                      accum_Ks_at_pit, lake_is_full, lake_spill_node,
     ...                      water_vol_balance_terms, neighbors, closednodes,
-    ...                      drainingnodes)  # now, rise continues until the combined lake hits the drainingnode at 29. Note it doesn't feel the lower, closed node at 34.
+    ...                      drainingnodes, water_out_dict)  # now, rise continues until the combined lake hits the drainingnode at 29. Note it doesn't feel the lower, closed node at 34.
 
     >>> np.all(np.equal(lake_map, np.array([-1, 43, 43, -1, 43, -1,
     ...                                     43,  7,  7, 43,  7, 43,
@@ -460,11 +629,11 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     # accessible from below via another route, in which case it's already in
     # the queue, or it's over a saddle, and thus belongs to a separate pit.
     cpit = current_pit  # shorthand
-    # First, check it's valid to call this in the first place. Nothing
-    # should happen if this is called on a node that already has a spill:
+    # First, check it's valid to call this in the first place. If this lake
+    # already has a spill, then the lake is already raise, so *this* func
+    # need not do anything. BUT we do need to route any excess onwards.
     if lake_spill_node[cpit] != -1:
         return
-    # (alternatively, this could raise an error...)
 
     tobreak = False  # delayed break flag
     nnodes = init_water_surface.size
@@ -555,6 +724,12 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
         if drainingnodes[nnode]:
             lake_map[nnode] = spill_code
             lake_spill_node[cpit] = nnode
+            try:
+                water_out_dict[nnode] += vol_rem_at_pit[cpit]
+                # this necessary in case there is already water spilling,
+                # and more is added later from above (a cascade)
+            except KeyError:
+                water_out_dict[nnode] = vol_rem_at_pit[cpit]
             break
         cnode = nnode
         # ^Note, even in the merging case, we leave the actual sill as the next
@@ -580,6 +755,9 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
                         # "magic" coding that lets this lake put "dibs" on that
                         # spill node.
                         lake_spill_node[cpit] = cnode
+                        ###
+                        lake_q_dict[cpit].add_task(cnode, priority=surf_z[cnode])
+                        ###
                         master_pit_q.add_task(
                             cpit, priority=lake_water_level[cpit])
                         tobreak = True
