@@ -28,55 +28,6 @@ LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.
 
 
-def fill_depression_from_pit_discharges(mg, depression_outlet, depression_nodes,
-                                        pit_nodes, Vw_at_pits, surface_z,
-                                        water_z, water_vol_balance_terms,
-                                        neighbors_at_nodes):
-    """
-    Take an outlet and its catchment nodes, then work outwards from the
-    pit nodes using the volumes of water at each to work out which nodes
-    are connected to which, and where is inundated.
-
-    Assumes we already know that the pit doesn't overtop, i.e., is its own
-    little endorheic basin.
-
-    DO NOT INCLINE THE WATER SURFACES!!
-
-    Idea here is that water_vol_balance_terms IS A FUNC OR ARRAY, such that
-    it can be sensitive to depth if necessary.
-    Provide water_vol_balance_terms as (c, K), where balance = K*depth + c.
-    Either can be 0. Equation must be linear. Note both terms are likely to
-    be negative... Much safer to ensure these always are, and add any
-    positive terms as part of the accumulation algorithm inputs
-    (AssertionErrors are likely for large gains...)
-    """
-    disch_map = mg.zeros('node', dtype=float)  # really a vol map!
-    lake_map = mg.zeros('node', dtype=int)
-    lake_map.fill(-1)  # this will store the unique lake IDs
-    area_map = mg.cell_area_at_node  # we will update this as we go...
-    # sort the pit nodes according to existing fill.
-    # We need to start at the lowest.
-    num_pits = len(pit_nodes)
-    zsurf_pit_nodes = water_z[pit_nodes]  # used to be surface_z. Does it matter?
-    pit_node_sort = np.argsort(zsurf_pit_nodes)
-    zwater_nodes_in_order = water_z[pit_node_sort]
-    pit_nodes_in_order = pit_nodes[pit_node_sort]
-    Vw_at_pits_in_order = Vw_at_pits[pit_node_sort]
-    vol_rem_at_pit = {}
-    accum_area_at_pit = {}
-    lake_water_level = {}
-    accum_K_at_pit = {}
-    lake_is_full = {}
-    for pit, vol, A, level in zip(pit_nodes_in_order, Vw_at_pits_in_order,
-                                  area_map[pit_node_sort],
-                                  zwater_nodes_in_order):
-        vol_rem_at_pit[pit] = vol
-        lake_water_level[pit] = level
-        lake_is_full[pit] = False
-        accum_area_at_pit[pit] = 0.
-        accum_K_at_pit[pit] = 0.
-
-
 def raise_lakes_to_water_exhaustion(
         flow__receiver_nodes,
         link_lengths,
@@ -1484,15 +1435,100 @@ def _steepest_valid_neighbor(node, nghbs, lake_at_head, link_lengths,
     return steepest_nghb
 
 
-class LakeFillerWithFlux(LakeMapperBarnes):
+class LakeFillerWithFlux(Component):
     """
     """
+    _input_var_names = (
+        'water_surface__elevation',
+        
+        'surface_water__discharge',
+        'flow__receiver_node',
+        'flow__sink_flag',)
 
-    def run_one_step(dt):
+    def __init__(self, grid):
+        self._grid = grid
+        self._zw = grid.at_node['water_surface__elevation']
+        self._Qw = grid.at_node['surface_water__discharge']
+        self._sinks = np.where(grid.at_node['flow__sink_flag'])[0]
+        self._receivers = grid.at_node['flow__receiver_node']
+
+        self._lake_map = grid.ones('node', dtype=int)
+        self._lake_map *= -1
+        self._area_map = grid.cell_area_at_node
+
+        self._master_pit_q = StablePriorityQueue()
+        self._Qw_at_pit = self._Qw[self._sinks]
+        self._lake_q_dict = {}
+        self._lake_water_level = {}
+        for cpit in self._sinks:
+            self._lake_q_dict[cpit] = StablePriorityQueue()
+            self._lake_water_level[cpit] = self._zw[cpit]
+        
+
+        
+        
+
+
+    def run_one_step(self, dt):
         """
+        >>> import numpy as np
+        >>> from landlab.components.lake_fill import StablePriorityQueue
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> from landlab import RasterModelGrid
+        >>> init_water_surface = np.array([  0.,  0.,  0.,  0.,  0.,  0.,
+        ...                                  0., -9., -6.,  0., -8.,  0.,
+        ...                                  0., -8., -5., -6., -7.,  0.,
+        ...                                  0., -7.,  0., -7.,  0.,  0.,
+        ...                                  0.,  0.,  0., -8., -3., -1.,
+        ...                                  0.,  0.,  0.,  0., -2.,  0.])
+        >>> lake_map = -1 * np.ones(36, dtype=int)
+        >>> area_map = 4. * np.ones(36, dtype=float)
+        >>> master_pit_q = StablePriorityQueue()
+        >>> lake_q_dict = {7: StablePriorityQueue(), 10: StablePriorityQueue(),
+        ...                27: StablePriorityQueue()}
+        >>> lake_water_level = {7: init_water_surface[7],
+        ...                     10: init_water_surface[10],
+        ...                     27: init_water_surface[27]}
+        >>> accum_area_at_pit = {7: 0., 10: 0., 27: 0.}
+        >>> vol_rem_at_pit = {7: 200., 10: 8., 27: 17.}
+        >>> accum_K_at_pit = {7: 0., 10: 0., 27: 0.}
+        >>> lake_is_full = {7: False, 10: False, 27: False}
+        >>> lake_spill_node = {7: -1, 10: -1, 27: -1}
+        >>> grid = RasterModelGrid((6, 6), 2.)
+        >>> _ = grid.add_field(
+        ...     'node', 'topographic__elevation', init_water_surface)
+        >>> fd = FlowDirectorSteepest(grid)
+        >>> fd.run_one_step()
+        >>> flow__receiver_nodes = grid.at_node['flow__receiver_node']
+        >>> link_lengths = grid.length_of_link
+        >>> links_at_node = grid.links_at_node
+        >>> neighbors = grid.adjacent_nodes_at_node
+        >>> closednodes = np.zeros(36, dtype=bool)
+        >>> closednodes[34] = True
+        >>> drainingnodes = np.zeros(36, dtype=bool)
+        >>> drainingnodes[29] = True  # create an outlet
+        >>> water_vol_balance_terms = (1., -4.)
+        >>> water_out_dict = {}
+
+        >>> for cpit in (7, 10, 27):
+        ...     lake_q_dict[cpit].add_task(cpit, priority=lake_water_level[cpit])
+
+        >>> for cpit in (7, 10, 27):
+        ...     for nghb in neighbors[cpit]:
+        ...         lake_q_dict[cpit].add_task(nghb,
+        ...                                    priority=init_water_surface[nghb])
+        ...         lake_map[nghb] = cpit + 36
+
+        >>> for cpit in (7, 10, 27):
+        ...     elev = lake_water_level[cpit]
+        ...     master_pit_q.add_task(cpit, priority=elev)
+
+        >>> raise_lakes_to_water_exhaustion(
+        ...     flow__receiver_nodes, link_lengths, links_at_node, lake_map,
+        ...     area_map, master_pit_q, lake_q_dict, init_water_surface,
+        ...     lake_water_level, accum_area_at_pit, vol_rem_at_pit,
+        ...     accum_K_at_pit, lake_is_full, lake_spill_node,
+        ...     water_vol_balance_terms, neighbors, closednodes, drainingnodes,
+        ...     water_out_dict)
         """
-        # First, we need a conventional lake fill. This involves calling the
-        # FillSinksBarnes component. Nice, FAST special cases where lakes fill
-        # up or only have one pit, which we can use to accelerate things,
-        # so this is very much worth it.
         pass
