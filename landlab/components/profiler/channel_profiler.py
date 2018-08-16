@@ -1,48 +1,64 @@
 # coding: utf8
 #! /usr/env/python
-"""Extract and plot channel long profiles.
+"""
+"""
 
-Plotting functions to extract and plot channel long profiles.
-
-Two options for use are available. For an integrated single-line call, use
-analyze_channel_network_and_plot(). This function wraps the other three
-functions and allows a single-line call to plot long profiles. First it uses
-channel_nodes to get the nodes belonging to the channels. Then it uses
-get_distances_upstream to get distances upstream. Finally it uses
-plot_profiles to make a plot.
+from six.moves import range
+import numpy as np
+from landlab.components.profiler import Profiler
 
 
-You can specify how many differents stream networks it handles using the
-number_of_channels parameter in the channel_nodes function (default is 1). The
-specific node ids for the beginning of the chanel can be passed with the
-keyword argument starting_nodes. If it is not specified, then the stream
-networks(s) will be chosed based on largest terminal drainage area.
+class ChannelProfiler(Profiler)
+    """Profile channels of a drainage network.
+
+    It is expected that the following at-node grid fields will be present.
+
+        'drainage_area'
+        'flow__receiver_node'
+        'flow__link_to_receiver_node'
+
+    Extract and plot channel long profiles.
+
+    Two options for use are available. For an integrated single-line call, use
+    analyze_channel_network_and_plot(). This function wraps the other three
+    functions and allows a single-line call to plot long profiles. First it uses
+    channel_nodes to get the nodes belonging to the channels. Then it uses
+    get_distances_upstream to get distances upstream. Finally it uses
+    plot_profiles to make a plot.
 
 
-Two options exist for controlling which channels within a given stream network
-are plotted. Set main_channel_only = True (default) to plot only the largest
-drainage leading that network's outlet node. main_channel_only = False will
-plot all channels within each network with drainage below the threshold value
-(default = 2 * grid cell area).
+    You can specify how many differents stream networks it handles using the
+    number_of_channels parameter in the channel_nodes function (default is 1). The
+    specific node ids for the beginning of the chanel can be passed with the
+    keyword argument starting_nodes. If it is not specified, then the stream
+    networks(s) will be chosed based on largest terminal drainage area.
 
-The functions will return the profile datastructure profile_structure and the
-distance upstream datastructure distances_upstream. rofile structure is a list
-of length number_of_channels. Each element of profile_structure is itself a
-list of length number of stream  segments that drain to each of the starting
-nodes. Each stream segment list contains the node ids of a stream segment from
-downstream to upstream. distances_upstream provides the equivalent structure
-but provides the distance upstream rather than the node id.
 
-Examples
----------
+    Two options exist for controlling which channels within a given stream network
+    are plotted. Set main_channel_only = True (default) to plot only the largest
+    drainage leading that network's outlet node. main_channel_only = False will
+    plot all channels within each network with drainage below the threshold value
+    (default = 2 * grid cell area).
+
+    The functions will return the profile datastructure profile_structure and the
+    distance upstream datastructure distances_upstream. rofile structure is a list
+    of length number_of_channels. Each element of profile_structure is itself a
+    list of length number of stream  segments that drain to each of the starting
+    nodes. Each stream segment list contains the node ids of a stream segment from
+    downstream to upstream. distances_upstream provides the equivalent structure
+    but provides the distance upstream rather than the node id.
+
+    Examples
+    ---------
 
     Start by importing necessary modules
 
     >>> import np as np
     >>> np.random.seed(42)
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowAccumulator, FastscapeEroder
-    >>> from landlab.plot import analyze_channel_network_and_plot
+    >>> from landlab.components import (FlowAccumulator,
+    ...                                 FastscapeEroder
+    ...                                 ChannelProfiler)
 
     Construct a grid and evolve some topography
 
@@ -66,8 +82,8 @@ Examples
     in general, we'd leave create_plot in its default value of create_plot=True,
     but we can't plot in the docstring
 
-    >>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg,
-    ...                                                                          create_plot=False)
+    >>> profiler = ChannelProfiler(mg)
+    >>> profiler.run_one_step()
 
     This creates the profile structure and distances upstream structure. Since we
     used the default values this will make only one profile, the biggest channel
@@ -76,10 +92,10 @@ Examples
     profile_structure will be a length 1 array and will contain one array that
     is the length in number of nodes of the single longest channel
 
-    >>> len(profile_structure) == 1
+    >>> len(profiler.profile_structure) == 1
     True
 
-    >>> len(profile_structure[0][0])
+    >>> len(profiler.profile_structure[0][0])
     58
 
     We can change the default values to get additional channels or to plot all
@@ -109,45 +125,27 @@ Examples
     This time we will use some non-default values. Providing the threshold in
     units of area indicates where the channel network will end.
     main_channel_only = False indicates that all parts of the stream network
-    >>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg,
-    ...                                                                          threshold = 100,
-    ...                                                                          main_channel_only=False,
-    ...                                                                          number_of_channels=3)
+
+    >>> profiler = ChannelProfiler(mg,
+    ...                            threshold = 100,
+    ...                            main_channel_only=False,
+    ...                            number_of_watersheds=3)
 
     This will create four channel networks. The datastructures profile_structure
     and distances_upstream will both be length 3
 
-    >>> len(profile_structure) == len(distances_upstream) == 3
+    >>> len(profiler.profile_structure) == len(profiler.distances_upstream) == 3
     True
 
     We can also specify exactly which node is the outlet for the channel.
 
-    >>> profile_structure, distances_upstream = analyze_channel_network_and_plot(mg,
-    ...                                                                          threshold = 100,
-    ...                                                                          starting_nodes = [0],
-    ...                                                                          number_of_channels=1)
+    >>> profiler = ChannelProfiler(mg,
+    ...                            threshold = 100,
+    ...                            starting_nodes = [0],
+    ...                            number_of_channels=1)
 
     It is important that the length of starting nodes is the same as the value
     of number_of_channels. If this is not the case, then an error will occur.
-
-
-"""
-
-from six.moves import range
-import numpy as np
-from landlab.components.profiler import Profiler
-
-
-class ChannelProfiler(Profiler)
-    """Profile channels of a drainage network.
-
-
-    It is expected that the following at-node grid fields will be present.
-
-        'drainage_area'
-        'flow__receiver_node'
-        'flow__link_to_receiver_node'
-
 
     Attributes
     ----------
