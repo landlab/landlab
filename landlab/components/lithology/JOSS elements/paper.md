@@ -35,7 +35,7 @@ bibliography: papers.bib
 
 The surface of the Earth reflects the competing advection of rock by tectonic processes and the erosion of rock by wind, water, and ice. The inherent strength and fracture spacing of rock influence erosion rates by changing the rate and physical process by which rock is detached and turned into mobile material. Variations in the rock properties over space and with depth reflect the legacy of sedimentary deposition and tectonic deformation.
 
-The Lithology and LithoLayers components in the Landlab toolkit were designed to permit Landlab users to implement variations in rock properties in Landlab models. Landlab is an Open Source Python package that provides a framework for the development of 2D numerical models, typically in Earth surface dynamics [@HobleyLandlab]. Landlab was designed as a  modular framework in which different process components can be mixed and matched to construct a model based on a user's needs.
+The Lithology and LithoLayers components in the Landlab toolkit were designed to permit Landlab users to implement variations in rock properties in Landlab models. Landlab is an Open Source Python package that provides a framework for the development of 2D numerical models, typically in Earth surface dynamics [@Hobley2017Creative]. Landlab was designed as a  modular framework in which different process components can be mixed and matched to construct a model based on a user's needs.
 
 Lithology is a three dimensional representation of layered. Layers may have spatially variable thickness and multiple attributes. Material can be removed through erosion or added to through deposition.
 
