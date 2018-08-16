@@ -49,7 +49,10 @@ def raise_lakes_to_water_exhaustion(
         neighbors,
         closednodes,
         drainingnodes,
-        water_out_dict):
+        water_out_dict,
+        add_to_discharges=False,
+        dt=None,
+        discharges=None):
     """
     For known water volumes at pits, raise a water surface to honour those
     volumes and any gains and losses created by the lakes themselves.
@@ -118,6 +121,14 @@ def raise_lakes_to_water_exhaustion(
         overflow discharges actually reach the node; also note that this
         water volume is only what is overtopped, and it does not include
         any discharge accumulating at that node "conventionally".
+    add_to_discharges : bool (optional)
+        If True, add the overtopping volume from each lake as a discharge to
+        each node through which it is now routed.
+    dt : float or None
+        The timestep, needed to turn a volume to a discharge. Only used if
+        add_to_discharges.
+    discharges : nnodes array of floats, or None
+        The discharges to which to add, if add_to_discharges.
 
     Examples
     --------
@@ -360,7 +371,9 @@ def raise_lakes_to_water_exhaustion(
             next_lake, escape_ID = _route_outlet_to_next(
                 lake_spill_node[cpit], cpit, flow__receiver_nodes,
                 link_lengths, links_at_node, init_water_surface, lake_map,
-                neighbors, closednodes, drainingnodes)
+                neighbors, closednodes, drainingnodes,
+                add_to_discharges=add_to_discharges, dt=dt,
+                volume_at_outlet=vol_rem_at_pit[cpit], discharges=discharges)
             flow_goes_to[cpit] = (next_lake, escape_ID)
             # print('nextlake:', next_lake)
             while next_lake != -1:
@@ -1245,7 +1258,7 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
                           link_lengths, links_at_node, z_surf, lake_map,
                           neighbors, closednodes, drainingnodes,
                           add_to_discharges=False, dt=None,
-                          volume_at_outlet=None, discharges=None,):
+                          volume_at_outlet=None, discharges=None):
     """
     Take an outlet node, and then follow the steepest descent path until it
     reaches a distinct lake.  Transmission losses are here NOT accounted for;
@@ -1576,13 +1589,14 @@ class LakeFillerWithFlux(Component):
     topo_is_stable : bool
         If True, component assumes topography will not change within the lakes
         in between calls to `run_one_step()`. This enables improvements in
-        run speed in calls after the first.
+        run speed in calls after the first. NOT YET IMPLEMENTED
     topo_advection : float
         If topo_is_stable, this permits the lakes to be advected up and down,
         e.g., if uplift is added to the topography, but still no change
-        happens within the lakes.
+        happens within the lakes. NOT YET IMPLEMENTED
     """
     _input_var_names = (
+        'topographic__elevation',
         'water_surface__elevation',
         'surface_water__discharge',
         'flow__receiver_node',
@@ -1594,17 +1608,17 @@ class LakeFillerWithFlux(Component):
                  topo_is_stable=False, topo_advection=0.):
         self._grid = grid
         self._water_vol_balance_terms = water_volume_balance_terms
+        self._add_to_Qw = add_to_existing_discharges
+        self._z = grid.at_node['topographic__elevation']  # not yet used, but it should be
         self._zw = grid.at_node['water_surface__elevation']
         self._Qw = grid.at_node['surface_water__discharge']
-        self._sinks = np.where(grid.at_node['flow__sink_flag'])[0]
         self._receivers = grid.at_node['flow__receiver_node']
-
+        self._sinks = None
         self._lake_map = grid.ones('node', dtype=int)
         self._lake_map *= -1
         self._area_map = grid.cell_area_at_node
 
         self._master_pit_q = StablePriorityQueue()
-        self._Qw_at_pit = self._Qw[self._sinks]
         self._lake_q_dict = {}
         self._lake_water_level = {}
         self._accum_area_at_pit = {}
@@ -1612,14 +1626,6 @@ class LakeFillerWithFlux(Component):
         self._accum_K_at_pit = {}
         self._lake_is_full = {}
         self._lake_spill_node = {}
-        for cpit in self._sinks:
-            self._lake_q_dict[cpit] = StablePriorityQueue()
-            self._lake_water_level[cpit] = self._zw[cpit]
-            self._accum_area_at_pit[cpit] = 0.
-            self._accum_K_at_pit[cpit] = 0.
-            self._lake_is_full[cpit] = False
-            self._lake_spill_node[cpit] = -1
-            # self._vol_rem_at_pit updates during run only
 
         self._lake_map_to_report = grid.ones('node', dtype=int)
         self._lake_map_to_report *= -1
@@ -1640,73 +1646,99 @@ class LakeFillerWithFlux(Component):
         self._drainingnodes = np.logical_or(
             grid.status_at_node == FIXED_VALUE_BOUNDARY,
             grid.status_at_node == FIXED_GRADIENT_BOUNDARY)
+        self._valid_pit_nodes = np.logical_and(
+            np.logical_not(self._closednodes),
+            np.logical_not(self._drainingnodes))
 
     def run_one_step(self, dt):
         """
         >>> import numpy as np
-        >>> from landlab.components.lake_fill import StablePriorityQueue
         >>> from landlab.components import FlowDirectorSteepest
+        >>> from landlab.components import FlowAccumulator
         >>> from landlab import RasterModelGrid
-        >>> init_water_surface = np.array([  0.,  0.,  0.,  0.,  0.,  0.,
+        >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+        >>> init_water_surface = np.array([  1.,  0.,  0.,  1.,  0.,  1.,
         ...                                  0., -9., -6.,  0., -8.,  0.,
         ...                                  0., -8., -5., -6., -7.,  0.,
         ...                                  0., -7.,  0., -7.,  0.,  0.,
-        ...                                  0.,  0.,  0., -8., -3., -1.,
-        ...                                  0.,  0.,  0.,  0., -2.,  0.])
-        >>> lake_map = -1 * np.ones(36, dtype=int)
-        >>> area_map = 4. * np.ones(36, dtype=float)
-        >>> master_pit_q = StablePriorityQueue()
-        >>> lake_q_dict = {7: StablePriorityQueue(), 10: StablePriorityQueue(),
-        ...                27: StablePriorityQueue()}
-        >>> lake_water_level = {7: init_water_surface[7],
-        ...                     10: init_water_surface[10],
-        ...                     27: init_water_surface[27]}
-        >>> accum_area_at_pit = {7: 0., 10: 0., 27: 0.}
-        >>> vol_rem_at_pit = {7: 200., 10: 8., 27: 17.}
-        >>> accum_K_at_pit = {7: 0., 10: 0., 27: 0.}
-        >>> lake_is_full = {7: False, 10: False, 27: False}
-        >>> lake_spill_node = {7: -1, 10: -1, 27: -1}
-        >>> grid = RasterModelGrid((6, 6), 2.)
-        >>> _ = grid.add_field(
-        ...     'node', 'topographic__elevation', init_water_surface)
+        ...                                  1.,  0.,  0., -8., -3., -1.,
+        ...                                  2.,  1.,  1.,  0., -2.,  0.])
+        >>> grid = RasterModelGrid((8, 8), 2.)
+        >>> for edge in ('right', 'left', 'top', 'bottom'):
+        ...     grid.status_at_node[grid.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[61] = FIXED_VALUE_BOUNDARY
+
+        >>> zw = grid.add_zeros('node', 'water_surface__elevation')
+        >>> zw.reshape((8, 8))[1:-1, 1:-1] = init_water_surface.reshape((6, 6))
+        >>> zw[61] = -3.
+        >>> z = grid.add_field('node', 'topographic__elevation', zw, copy=True)
         >>> fd = FlowDirectorSteepest(grid)
-        >>> fd.run_one_step()
-        >>> flow__receiver_nodes = grid.at_node['flow__receiver_node']
-        >>> link_lengths = grid.length_of_link
-        >>> links_at_node = grid.links_at_node
-        >>> neighbors = grid.adjacent_nodes_at_node
-        >>> closednodes = np.zeros(36, dtype=bool)
-        >>> closednodes[34] = True
-        >>> drainingnodes = np.zeros(36, dtype=bool)
-        >>> drainingnodes[29] = True  # create an outlet
+        >>> fa = FlowAccumulator(grid)
+
         >>> water_vol_balance_terms = [1., -4.]
-        >>> water_out_dict = {}
+        >>> dt = 2.65
 
-        >>> for cpit in (7, 10, 27):
-        ...     lake_q_dict[cpit].add_task(cpit, priority=lake_water_level[cpit])
+        >>> lfwf = LakeFillerWithFlux(
+        ...     grid, water_volume_balance_terms=water_vol_balance_terms)
 
-        >>> for cpit in (7, 10, 27):
-        ...     for nghb in neighbors[cpit]:
-        ...         lake_q_dict[cpit].add_task(nghb,
-        ...                                    priority=init_water_surface[nghb])
-        ...         lake_map[nghb] = cpit + 36
+        >>> fd.run_one_step()
+        >>> fa.run_one_step()
+        >>> lfwf.run_one_step(dt)
 
-        >>> for cpit in (7, 10, 27):
-        ...     elev = lake_water_level[cpit]
-        ...     master_pit_q.add_task(cpit, priority=elev)
+        >>> np.all(np.equal(lfwf._lake_map_to_report, np.array([
+        ...     -1, -1, -1, -1, -1, -1, -1, -1,
+        ...     -1, -1, -1, -1, -1, -1, -1, -1,
+        ...     -1, -1, 18, 18, -1, 21, -1, -1,
+        ...     -1, -1, 18, -1, 21, 21, -1, -1,
+        ...     -1, -1, 18, -1, 21, -1, -1, -1,
+        ...     -1, -1, -1, -1, 21, -1, -1, -1,
+        ...     -1, -1, -1, -1, -1, -1, -1, -1,
+        ...     -1, -1, -1, -1, -1, -1, -1, -1])))
+        True
 
-        >>> raise_lakes_to_water_exhaustion(
-        ...     flow__receiver_nodes, link_lengths, links_at_node, lake_map,
-        ...     area_map, master_pit_q, lake_q_dict, init_water_surface,
-        ...     lake_water_level, accum_area_at_pit, vol_rem_at_pit,
-        ...     accum_K_at_pit, lake_is_full, lake_spill_node,
-        ...     water_vol_balance_terms, neighbors, closednodes, drainingnodes,
-        ...     water_out_dict)
+        >>> np.round(grid.at_node['water_surface__elevation'],
+        ...          2).reshape(grid.shape)
+        array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+               [ 0.  ,  1.  ,  0.  ,  0.  ,  1.  ,  0.  ,  1.  ,  0.  ],
+               [ 0.  ,  0.  , -5.03, -5.03,  0.  , -5.  ,  0.  ,  0.  ],
+               [ 0.  ,  0.  , -5.03, -5.  , -5.  , -5.  ,  0.  ,  0.  ],
+               [ 0.  ,  0.  , -5.03,  0.  , -5.  ,  0.  ,  0.  ,  0.  ],
+               [ 0.  ,  1.  ,  0.  ,  0.  , -5.  , -3.  , -1.  ,  0.  ],
+               [ 0.  ,  2.  ,  1.  ,  1.  ,  0.  , -2.  ,  0.  ,  0.  ],
+               [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  , -3.  ,  0.  ,  0.  ]])
+
+
+        Note here that we've engineered a case where even though lake 21 is
+        overtopping, the additional discharge is still not enough to raise the
+        downstream lake to its level, so we retain both distinct lakes.
+
+##### just rerunning a second time does not work. Fix this.
+
         """
+        int_pits = np.logical_and(self.grid.at_node['flow__sink_flag'],
+                                  self._valid_pit_nodes)
+        self._sinks = np.where(int_pits)[0]
         self._water_out_dict = {}
+        # for now, reinit this every time, as we leave stuff in it otherwise
+        self._master_pit_q = StablePriorityQueue()
 
         for cpit in self._sinks:
             self._vol_rem_at_pit[cpit] = self._Qw[cpit] * dt
+            self._lake_water_level[cpit] = self._zw[cpit]
+            self._accum_area_at_pit[cpit] = 0.
+            self._accum_K_at_pit[cpit] = 0.
+            self._lake_is_full[cpit] = False
+            self._lake_spill_node[cpit] = -1
+            self._master_pit_q.add_task(cpit, priority=self._zw[cpit])
+            self._lake_q_dict[cpit] = StablePriorityQueue()
+            self._lake_q_dict[cpit].add_task(cpit, priority=self._zw[cpit])
+            for nghb in self._allneighbors[cpit]:
+                self._lake_q_dict[cpit].add_task(nghb, priority=self._zw[nghb])
+                if 0 <= self._lake_map[nghb] < self.grid.number_of_nodes:
+                    continue  # this was a lake already
+                self._lake_map[nghb] = max((cpit + self.grid.number_of_nodes,
+                                            self._lake_map[nghb]))
+                # ^^existing sills take priority
 
         raise_lakes_to_water_exhaustion(
             self._receivers, self.grid.length_of_link,
@@ -1716,13 +1748,14 @@ class LakeFillerWithFlux(Component):
             self._vol_rem_at_pit, self._accum_K_at_pit, self._lake_is_full,
             self._lake_spill_node, self._water_vol_balance_terms,
             self._allneighbors, self._closednodes, self._drainingnodes,
-            self._water_out_dict)
+            self._water_out_dict, add_to_discharges=self._add_to_Qw, dt=dt,
+            discharges=self._Qw)
 
         # now process these outputs onto the grid:
         self._lake_map_to_report.fill(-1)
         for lake in self._lake_is_full.keys():
             lakepos = self._lake_map == lake
-            self._lake_map_to_report[lakepos] == lake
-            self._zw[lakepos] = self._lake_water_level[lakepos]
+            self._lake_map_to_report[lakepos] = lake
+            self._zw[lakepos] = self._lake_water_level[lake]
             self._Qw[lakepos] = 0.  # no flow in the lake itself
             # the addition to _Qw elsewhere is handled within the raise.
