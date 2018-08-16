@@ -5,10 +5,12 @@
 
 from six.moves import range
 import numpy as np
-from landlab.components.profiler import Profiler
+
+from landlab import RasterModelGrid
+from landlab.components.profiler.base_profiler import Profiler
 
 
-class ChannelProfiler(Profiler)
+class ChannelProfiler(Profiler):
     """Profile channels of a drainage network.
 
     It is expected that the following at-node grid fields will be present.
@@ -53,11 +55,11 @@ class ChannelProfiler(Profiler)
 
     Start by importing necessary modules
 
-    >>> import np as np
+    >>> import numpy as np
     >>> np.random.seed(42)
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import (FlowAccumulator,
-    ...                                 FastscapeEroder
+    ...                                 FastscapeEroder,
     ...                                 ChannelProfiler)
 
     Construct a grid and evolve some topography
@@ -190,13 +192,13 @@ class ChannelProfiler(Profiler)
         """
         super(ChannelProfiler, self).__init__(grid)
 
-        self._grid = grid
         self.distances_upstream = []
         self._main_channel_only = main_channel_only
 
         if threshold is None:
             threshold = 2. * np.amin(grid.area_of_cell)
-
+        self.threshold = threshold
+        
         # verify that the number of starting nodes is the specified number of channels
         if starting_nodes is not None:
             if len(starting_nodes) is not number_of_watersheds:
@@ -204,9 +206,9 @@ class ChannelProfiler(Profiler)
                 raise ValueError(msg)
         else:
             starting_nodes = grid.boundary_nodes[np.argsort(
-                drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
+                self._drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
 
-        self._starting_nodes = _starting_nodes
+        self._starting_nodes = starting_nodes
 
     def run_one_step(self):
         """
@@ -247,7 +249,7 @@ class ChannelProfiler(Profiler)
         channel_upstream = True
 
         # add the reciever of j to the channel segment if it is not j.
-        recieving_node = self.flow_receiver[j]
+        recieving_node = self._flow_receiver[j]
         if recieving_node != j:
             channel_segment.append(recieving_node)
 
@@ -257,7 +259,7 @@ class ChannelProfiler(Profiler)
             channel_segment.append(j)
 
             # get supplying nodes
-            supplying_nodes = np.where(self.flow_receiver == j)[0]
+            supplying_nodes = np.where(self._flow_receiver == j)[0]
 
             # remove supplying nodes that are the outlet node
             supplying_nodes = supplying_nodes[
@@ -266,8 +268,8 @@ class ChannelProfiler(Profiler)
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
             if self._main_channel_only:
-                max_drainage = np.argmax(drainage_area[supplying_nodes])
-                if drainage_area[supplying_nodes[max_drainage]] < self.threshold:
+                max_drainage = np.argmax(self._drainage_area[supplying_nodes])
+                if self._drainage_area[supplying_nodes[max_drainage]] < self.threshold:
                     nodes_to_process = []
                     channel_upstream = False
                 else:
@@ -279,7 +281,7 @@ class ChannelProfiler(Profiler)
             else:
 
                 # get all upstream drainage areas
-                upstream_das = self.drainage_area[supplying_nodes]
+                upstream_das = self._drainage_area[supplying_nodes]
 
                 # if no nodes upstream exceed the threshold, exit
                 if np.sum(upstream_das > self.threshold) == 0:
@@ -291,7 +293,7 @@ class ChannelProfiler(Profiler)
                     # if only one upstream node exceeds the threshold, proceed up
                     # the channel.
                     if np.sum(upstream_das > self.threshold) == 1:
-                        max_drainage = np.argmax(self.drainage_area[supplying_nodes])
+                        max_drainage = np.argmax(self._drainage_area[supplying_nodes])
                         j = supplying_nodes[max_drainage]
                     # otherwise provide the multiple upstream nodes to be processed
                     # into a new channel.
@@ -314,20 +316,20 @@ class ChannelProfiler(Profiler)
         """
         self.profile_structure = []
 
-        if main_channel_only:
+        if self._main_channel_only:
             channel_network = []
-            for i in starting_nodes:
-                (channel_segment, nodes_to_process) = _get_channel_segment(i)
+            for i in self._starting_nodes:
+                (channel_segment, nodes_to_process) = self._get_channel_segment(i)
                 channel_network.append(np.array(channel_segment))
                 self.profile_structure.append(channel_network)
 
         else:
-            for i in starting_nodes:
+            for i in self._starting_nodes:
                 channel_network = []
                 queue = [i]
                 while len(queue) > 0:
                     node_to_process = queue.pop(0)
-                    (channel_segment, nodes_to_process) = _get_channel_segment(node_to_process)
+                    (channel_segment, nodes_to_process) = self._get_channel_segment(node_to_process)
                     channel_network.append(np.array(channel_segment))
                     queue.extend(nodes_to_process)
                 self.profile_structure.append(channel_network)
@@ -339,12 +341,12 @@ class ChannelProfiler(Profiler)
         end_distances = {}
 
         # set the starting values for the beginnings of each netwrok.
-        for network in self._profile_structure:
+        for network in self.profile_structure:
             starting_node = network[0][0]
             end_distances[starting_node] = 0
 
         # for each network
-        for network in self._profile_structure:
+        for network in self.profile_structure:
 
             network_values = []
             # for each segment in the network.
@@ -358,13 +360,13 @@ class ChannelProfiler(Profiler)
 
                 # itterate up the profile
                 for j in range(len(segment) - 1):
-                    if isinstance(self.grid, RasterModelGrid):
-                        total_distance += grid.length_of_d8[
-                            self.links_to_flow_receiver[segment[j + 1]]]
+                    if isinstance(self._grid, RasterModelGrid):
+                        total_distance += self._grid.length_of_d8[
+                            self._link_to_flow_receiver[segment[j + 1]]]
                         profile_values.append(total_distance)
                     else:
-                        total_distance += grid.length_of_link[
-                            links_to_flow_receiver[segment[j + 1]]]
+                        total_distance += self._grid.length_of_link[
+                            self._link_to_flow_receiver[segment[j + 1]]]
                         profile_values.append(total_distance)
                 network_values.append(np.array(profile_values))
                 end_distances[segment[-1]] = total_distance
