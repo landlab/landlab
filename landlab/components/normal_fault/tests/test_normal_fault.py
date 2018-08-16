@@ -1,9 +1,7 @@
-
+import pytest
 
 import numpy as np
 from numpy.testing import assert_array_equal
-
-from nose.tools import assert_true, assert_raises
 
 from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import NormalFault
@@ -56,7 +54,7 @@ def test_anti_aximuth_greq_2pi():
     nf = NormalFault(grid, **param_dict)
 
 
-    assert_true(nf.fault_anti_azimuth > 2.0*np.pi)
+    assert nf.fault_anti_azimuth > 2.0*np.pi
 
     out = np.array([[ True,  True,  True,  True,  True,  True],
                     [ True,  True,  True,  True,  True,  True],
@@ -108,7 +106,8 @@ def test_dip_geq_90():
 
     _ = grid.add_zeros('node', 'topographic__elevation')
 
-    assert_raises(ValueError, NormalFault, grid, fault_dip_angle=90.001)
+    with pytest.raises(ValueError):
+        NormalFault(grid, fault_dip_angle=90.001)
 
 
 def test_uplifting_multiple_fields():
