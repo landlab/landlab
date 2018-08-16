@@ -1,5 +1,5 @@
 ---
-title: Lithology and Litholayers: 'Landlab components for spatially variable rock properties'
+title: 'Lithology: 'A Landlab submodule for spatially variable rock properties'
 tags:
   - Python
   - Landlab
@@ -27,23 +27,19 @@ affiliations:
     index: 4
   - name: Tulane University, Department of Earth and Environmental Sciences
     index: 5
-date: 15 August 2018
+date: 16 August 2018
 bibliography: papers.bib
 ---
 
 # Summary
 
-The surface of the Earth reflects the competing advection of rock by tectonic processes and the erosion of rock by wind, water, and ice. The inherent strength and fracture spacing of rock influence erosion rates by changing the rate and physical process by which rock is detached and turned into mobile material. Variations in the rock properties over space and with depth reflect the legacy of sedimentary deposition and tectonic deformation.
+The surface of the Earth reflects the competing advection of rock by tectonic processes and the erosion of rock by wind, water, and ice. The inherent strength and fracture spacing of rock influence erosion rates by changing the rate and physical process by which rock is detached and turned into mobile material. Variations in the rock properties over space and with depth reflect the legacy of sedimentary deposition and tectonic deformation. Long-term landscape evolution modeling experiments that include the impact of spatially and temporally variable rock characteristics can be used to identify the impact of rock strength patterns on other geologic observables such as topography, erosion rates, and detrital mineral records (e.g. [@Forte2016Complexites]). Identifying these relationships allows for better interpretations of the geologic record.
 
-The Lithology and LithoLayers components in the Landlab toolkit were designed to permit Landlab users to implement variations in rock properties in Landlab models. Landlab is an Open Source Python package that provides a framework for the development of 2D numerical models, typically in Earth surface dynamics [@Hobley2017Creative]. Landlab was designed as a  modular framework in which different process components can be mixed and matched to construct a model based on a user's needs.
+Landlab is an Open Source Python package that provides a framework for the development of 2D numerical models, typically in Earth surface dynamics ([@Hobley2017Creative]). Landlab was designed as a  modular framework in which different process components can be mixed and matched to construct a model based on a user's needs. This contribution describes ``lithology``, a Landlab submodule designed to support the representation of 3D variations in rock material properties within the Landlab framework. It includes two classes: ``Lithology`` is a generic representation of spatially varying rock material and ``LithoLayers`` is a derived class that treats parallel layers of material variations. In both classes, each rock type may have multiple attributes, be removed through erosion, or added to through deposition. Two options for the underlying data-structure are supported: event layers, in which the data structure stores each time-step as an event, or material layers, in which material must be present in each layer. This second option is more memory efficient but does not record the transient dynamics of erosion and deposition.
 
-Lithology is a three dimensional representation of layered. Layers may have spatially variable thickness and multiple attributes. Material can be removed through erosion or added to through deposition.
+Source code for ``Lithology`` and ``Litholayers`` is available as part of the [Landlab python package](XXX). The ``lithology`` submodule is documented using Docstrings and the documentation can be found on the [Landlab ReadTheDocs site](XXX) documentation. Unit and docstring tests provide xxx% coverage of this submodule. [Pull Request # XXX](XXX) brought the ``lithology`` submodule into the core Landlab source code (note: as of initial JOSS submission this PR is still active as we anticipate making revisions before merging). A tagged version of Landlab that includes the ``lithology`` submodule is archived in Zenodo with the linked DOI:[@ZenodoLithologySourceCode] (note: doi not active for initial JOSS submission).
 
-Material or Event Layers.
-
-LithoLayers is a
-
-Source code for Lithology and Litholayers is available as part of the [Landlab python package](). A tagged version of Landlab that includes this functionality is archived in Zenodo with the linked DOI:[@ZenodoSourceCode]. In addition to the source code a Jupyter Notebook introducing the use of Lithology and Litholayers is now part of the Landlab tutorials repository. A tagged version of Landlab that includes this functionality has been archived with the following DOI: [@ZenodoNotebook].
+The Landlab project maintains a separate repository containing tutorials introducing core concepts and the use of individual submodules. In addition to the source code a Jupyter Notebook introducing the use of Lithology and Litholayers is now part of the Landlab tutorials repository. This tutorial was brought into the repository with [Pull Request # XXX](XXX)(note: as of initial JOSS submission this PR is still active as we anticipate making revisions before merging). A tagged version of Landlab that includes this functionality has been archived with the following DOI: [@ZenodoLithologyNotebook] (note: doi not active for initial JOSS submission).
 
 # Acknowledgements
 Thanks to Adam Forte, Matt Rossi, and Brian Yanites for helpful discussions during the development of this code and the accompanying Jupyter notebooks.
