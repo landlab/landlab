@@ -37,7 +37,7 @@ Examples
 
     Start by importing necessary modules
 
-    >>> import numpy as np
+    >>> import np as np
     >>> np.random.seed(42)
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
@@ -132,136 +132,50 @@ Examples
 
 """
 
-
 from six.moves import range
-
-import numpy
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    import warnings
-    warnings.warn('matplotlib not found', ImportWarning)
-
-from landlab.plot import imshow_grid
-
-from landlab.utils.return_array import return_array_at_node
-from landlab import RasterModelGrid
-from landlab import Component
-
-class Profiler(Component):
-    """
-    """
-    def __init__(self, grid, threshold):
-        super(Profiler, self).__init__(grid)
-        self._grid = grid
-
-        if threshold == None:
-            threshold = 2. * numpy.amin(grid.area_of_cell)
-
-        if 'drainage_area' in grid.at_node:
-            self.drainage_area = grid.at_node['drainage_area']
-        else:
-            msg = ''
-            raise ValueError(msg)
-
-        if 'flow__receiver_node' in grid.at_node:
-            self.flow_receiver = grid.at_node['flow__receiver_node']
-        else:
-            msg = ''
-            raise ValueError(msg)
-
-        if 'flow__link_to_receiver_nodes':
-            self.link_to_flow_receiver = grid.at_node['flow__link_to_receiver_node']
-        else:
-            msg = ''
-            raise ValueError(msg)
-
-    def plot_profiles(field='topographic_elevation'):
-        """
-        Plot distance-upstream vs arbitrary quantity, default when calling through
-        analyze_channel_network_and_plot is topographic_elevation.
-
-        Parameters
-        ----------
-        field : nnode array, required
-            Array of  the at-node-field to plot against distance upstream.
-        """
-        quantity = return_array(field)
-
-        # for each stream network
-        for i in range(len(self._profile_structure)):
-            network_nodes = self._profile_structure[i]
-            network_distance = self._distances_upstream[i]
-
-            # for each stream segment in the network
-            for j in range(len(network_nodes)):
-
-                # identify the nodes and distances upstream for this channel segment
-                the_nodes = network_nodes[j]
-                the_distances = network_distance[j]
-                plt.plot(the_distances, quantity[the_nodes])
-
-
-    def plot_profiles_in_map_view(grid, field='topographic__elevation',  **kwargs):
-        """
-        Plot profile locations in map view on a frame.
-
-        Parameters
-        ----------
-        field, name or nnode long array to plot with imshow_grid
-        **kwargs: additional parameters to pass to imshow_grid
-        """
-        # make imshow_grid background
-        imshow_grid(grid, field, **kwargs)
-
-        # for each stream network
-        for i in range(len(self._profile_structure)):
-            network_nodes = self._profile_structure[i]
-
-            # for each stream segment in the network
-            for j in range(len(network_nodes)):
-
-                # identify the nodes and distances upstream for this channel segment
-                the_nodes = network_nodes[j]
-                plt.plot(grid.x_of_node[the_nodes], grid.y_of_node[the_nodes])
+import numpy as np
+from landlab.components.profiler import Profiler
 
 
 class ChannelProfiler(Profiler)
-        """
-        Main function to analyse the channel network and make an distance upstream
-        vs the quantity stored at the model grid field give by the keyword argument
-        `field`.
+    """Profile channels of a drainage network.
 
-        This function wraps the other three present here, and allows a single-line
-        call to plot long profiles. First it uses channel_nodes to get the nodes
-        belonging to the channels. Then it uses get_distances_upstream to get
-        distances upstream. Finally it uses plot_profiles to make a plot.
 
-        Parameters
+    It is expected that the following at-node grid fields will be present.
+
+        'drainage_area'
+        'flow__receiver_node'
+        'flow__link_to_receiver_node'
+
+
+    Attributes
+    ----------
+    profile_structure, the channel segment datastructure.
+            profile structure is a list of length number_of_channels. Each
+            element of profile_structure is itself a list of length number of
+            stream segments that drain to each of the starting nodes. Each
+            stream segment list contains the node ids of a stream segment from
+            downstream to upstream.
+    distances_upstream, the channel segment datastructure.
+            A datastructure that parallels profile_structure but holds
+            distances upstream instead of node IDs.
+
+            Both lists are number_of_channels long.
+
+    """
+    def __init__(self, grid,
+                       number_of_watersheds=1,
+                       main_channel_only = True,
+                       starting_nodes=None,
+                       threshold=None):
+        """Parameters
         ----------
         grid : Landlab Model Grid instance, required
-        field : string or length nnode array, optional
-            Field name or array of the quantity to plot against distance upstream.
-            Default value is 'topographic__elevation'.
-        drainage_area : string or length nnode array, optional
-            Field name or array of the drainage area of the model grid. This field
-            is used to identify the boundary nodes with the largest terminal
-            drainage area and to identify the end of channels using the threshold
-            parameter. Default value is 'drainage_area' which will be created by
-            Landlab's FlowAccumulator or FlowRouter.
-        flow_receiver : string or length nnode array, optional
-            Field name or array of the flow_links to reciever node of the model
-            grid. Default value is 'flow__receiver_node' which will be created by
-            Landlab's FlowAccumulator or FlowRouter.
-        links_to_flow_receiver : string or length nnode array, optional
-            Field name or array of the flow_links to reciever node of the model
-            grid. Default value is 'flow__link_to_receiver_node' which will be
-            created by Landlab's FlowAccumulator or FlowRouter.
-        number_of_channels : int, optional
-            Total number of channels to plot. Default value is 1. If value is
+        number_of_watersheds : int, optional
+            Total number of watersheds to plot. Default value is 1. If value is
             greater than 1 and starting_nodes is not specified, then the
-            number_of_channels largest channels based on terminal drainage area
-            will be used.
+            number_of_watersheds largest watersheds based on the drainage area
+            at the model grid boundary.
         main_channel_only : Boolean, optional
             Flag to determine if only the main channel should be plotted, or if all
             stream segments with drainage area less than threshold should be
@@ -274,35 +188,15 @@ class ChannelProfiler(Profiler)
         threshold : float, optional
             Value to use for the minimum drainage area associated with a plotted
             channel segment. Default values is 2.0 x minimum grid cell area.
-        create_plot : boolean, optional
-            Flag to indicate if a distance-upstream vs plotted quantity plot should
-            be created. Default is True.
-
-        Returns
-        ----------
-        tuple, containing:
-            profile_structure, the channel segment datastructure.
-                profile structure is a list of length number_of_channels. Each
-                element of profile_structure is itself a list of length number of
-                stream segments that drain to each of the starting nodes. Each
-                stream segment list contains the node ids of a stream segment from
-                downstream to upstream.
-            distances_upstream, the channel segment datastructure.
-                A datastructure that parallels profile_structure but holds
-                distances upstream instead of node IDs.
-            Both lists are number_of_channels long.
-
-            """
-    def __init__(self, grid,
-                       number_of_watersheds=1,
-                       main_channel_only = True,
-                       starting_nodes=None,
-                       threshold=None):
-        super(ChannelProfiler, self).__init__(grid, threshold)
+        """
+        super(ChannelProfiler, self).__init__(grid)
 
         self._grid = grid
         self.distances_upstream = []
         self._main_channel_only = main_channel_only
+
+        if threshold is None:
+            threshold = 2. * np.amin(grid.area_of_cell)
 
         # verify that the number of starting nodes is the specified number of channels
         if starting_nodes is not None:
@@ -310,7 +204,7 @@ class ChannelProfiler(Profiler)
                 msg = "Length of starting_nodes must equal the number_of_channels!"
                 raise ValueError(msg)
         else:
-            starting_nodes = grid.boundary_nodes[numpy.argsort(
+            starting_nodes = grid.boundary_nodes[np.argsort(
                 drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
 
         self._starting_nodes = _starting_nodes
@@ -364,16 +258,16 @@ class ChannelProfiler(Profiler)
             channel_segment.append(j)
 
             # get supplying nodes
-            supplying_nodes = numpy.where(self.flow_receiver == j)[0]
+            supplying_nodes = np.where(self.flow_receiver == j)[0]
 
             # remove supplying nodes that are the outlet node
             supplying_nodes = supplying_nodes[
-                numpy.where(supplying_nodes != i)]
+                np.where(supplying_nodes != i)]
 
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
             if self._main_channel_only:
-                max_drainage = numpy.argmax(drainage_area[supplying_nodes])
+                max_drainage = np.argmax(drainage_area[supplying_nodes])
                 if drainage_area[supplying_nodes[max_drainage]] < self.threshold:
                     nodes_to_process = []
                     channel_upstream = False
@@ -389,7 +283,7 @@ class ChannelProfiler(Profiler)
                 upstream_das = self.drainage_area[supplying_nodes]
 
                 # if no nodes upstream exceed the threshold, exit
-                if numpy.sum(upstream_das > self.threshold) == 0:
+                if np.sum(upstream_das > self.threshold) == 0:
                     nodes_to_process = []
                     channel_upstream = False
 
@@ -397,8 +291,8 @@ class ChannelProfiler(Profiler)
                 else:
                     # if only one upstream node exceeds the threshold, proceed up
                     # the channel.
-                    if numpy.sum(upstream_das > self.threshold) == 1:
-                        max_drainage = numpy.argmax(self.drainage_area[supplying_nodes])
+                    if np.sum(upstream_das > self.threshold) == 1:
+                        max_drainage = np.argmax(self.drainage_area[supplying_nodes])
                         j = supplying_nodes[max_drainage]
                     # otherwise provide the multiple upstream nodes to be processed
                     # into a new channel.
@@ -425,7 +319,7 @@ class ChannelProfiler(Profiler)
             channel_network = []
             for i in starting_nodes:
                 (channel_segment, nodes_to_process) = _get_channel_segment(i)
-                channel_network.append(numpy.array(channel_segment))
+                channel_network.append(np.array(channel_segment))
                 self.profile_structure.append(channel_network)
 
         else:
@@ -435,7 +329,7 @@ class ChannelProfiler(Profiler)
                 while len(queue) > 0:
                     node_to_process = queue.pop(0)
                     (channel_segment, nodes_to_process) = _get_channel_segment(node_to_process)
-                    channel_network.append(numpy.array(channel_segment))
+                    channel_network.append(np.array(channel_segment))
                     queue.extend(nodes_to_process)
                 self.profile_structure.append(channel_network)
 
@@ -473,15 +367,6 @@ class ChannelProfiler(Profiler)
                         total_distance += grid.length_of_link[
                             links_to_flow_receiver[segment[j + 1]]]
                         profile_values.append(total_distance)
-                network_values.append(numpy.array(profile_values))
+                network_values.append(np.array(profile_values))
                 end_distances[segment[-1]] = total_distance
             self.distances_upstream.append(network_values)
-
-
-class RidgeProfiler(Profiler)
-    def __init__(self, grid):
-        super(RidgeProfiler, self).__init__(grid)
-        self._grid = grid
-
-    def something(self):
-        pass
