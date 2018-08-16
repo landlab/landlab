@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+# coding: utf8
+#! /usr/env/python
 """Extract and plot channel long profiles.
 
 Plotting functions to extract and plot channel long profiles.

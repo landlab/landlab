@@ -1,4 +1,5 @@
-
+# coding: utf8
+#! /usr/env/python
 """
 """
 
@@ -15,6 +16,6 @@ class RidgeProfiler(Profiler)
         self._grid = grid
 
     def something(self):
-        """ 
+        """
         """
         pass
