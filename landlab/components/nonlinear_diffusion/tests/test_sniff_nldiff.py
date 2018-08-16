@@ -15,11 +15,6 @@ import os
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
-
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.components.nonlinear_diffusion import PerronNLDiffuse
 
