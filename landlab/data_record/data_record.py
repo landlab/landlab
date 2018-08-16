@@ -165,34 +165,34 @@ class DataRecord(Dataset):
 
             if isinstance(items, dict):
                 try:
-                    self.grid_element, self.element_id = items['grid_element'], items['element_id']
+                    self.grid_elements, self.element_ids = items['grid_element'], items['element_id']
                 except KeyError:
                     print('You must provide an ''items'' dictionnary,'
                           '(see documentation for required format)')
-                self.number_of_items = len(self.element_id)
+                self.number_of_items = len(self.element_ids)
 
                 # check that grid_element and element_id exist on the grid and
                 #have valid format:
-                self.grid_element = self._check_grid_element_and_id(
-                        self.grid_element, self.element_id)
+                self.grid_elements = self._check_grid_element_and_id(
+                        self.grid_elements, self.element_ids)
 
                 # check that element IDs do not exceed number of elements
                 # on this grid
-                self._check_element_id_values(self.grid_element,
-                                              self.element_id)
+                self._check_element_id_values(self.grid_elements,
+                                              self.element_ids)
 
                 self.item_ids = np.array(range(self.number_of_items))
 
                 # create initial variables dictionary and coordinates:
                 if time is not None:
-                    data_vars_dict = {'grid_element' : (['item_id', 'time'], self.grid_element), #grid_element_init
-                             'element_id' : (['item_id', 'time'], self.element_id)} #element_id_init
+                    data_vars_dict = {'grid_element' : (['item_id', 'time'], self.grid_elements), #grid_element_init
+                             'element_id' : (['item_id', 'time'], self.element_ids)} #element_id_init
                     coords = {'time' : self.times,
                               'item_id' : self.item_ids}
 
                 else: # no time
-                    data_vars_dict = {'grid_element' : (['item_id'], self.grid_element),
-                             'element_id' : (['item_id'], self.element_id)}
+                    data_vars_dict = {'grid_element' : (['item_id'], self.grid_elements),
+                             'element_id' : (['item_id'], self.element_ids)}
                     coords = {'item_id' : self.item_ids}
 
             else:
@@ -255,12 +255,13 @@ class DataRecord(Dataset):
 
         else:
             for loc in grid_element:
-                if loc[0] in self.permitted_locations:
+                if loc[0] in self.permitted_locations or loc in self.permitted_locations: #depending on number of dimensions
                     pass
                 else:
                     raise ValueError((
-                            'Grid element provided: ' + loc[0] + ' is not'
+                            'Grid element provided: ' + loc + ' is not'
                             ' a permitted location for this grid type.'))
+
 
         if len(grid_element) != self.number_of_items:
             raise ValueError(('grid_element passed to DataRecord must be '
@@ -303,7 +304,7 @@ class DataRecord(Dataset):
 
     def add_record(self, model__time = None, item_id=None, new_record=None, **kwargs):
         """ Add a time-related record to an existing DataRecord.
-        New record can be a variable
+        New record can be a (potentially new) variable
         model__time must be list or array of size 1
         New record must be a dictionnary:
             {'variable_name_1' : (['dimensions'], variable_data_1)}
@@ -341,7 +342,7 @@ class DataRecord(Dataset):
 
         else: # no time
             if item_id is not None:
-                coords_to_add = {'item_id' : item_id}
+                coords_to_add = {'item_id' : np.array(item_id)}
                 # check that new_record has grid_element and element_id
                 # and that they are valid?
 
@@ -355,16 +356,17 @@ class DataRecord(Dataset):
         self.merge(ds_to_add, inplace='True', compat='no_conflicts')
 
 
-    def add_items(self,
+    def add_item(self,
                   model__time = None,
                   new_item=None,
                   new_item_spec=None,
                   **kwargs):
 
-        """ Add new items to the current Datarecord.
+        """ Add new item(s) to the current Datarecord.
 
+        model__time : list or array of size 1 (optional)
+            If items already exist in the Datarecord and they
         new_item : dict
-            If None: no item is created
             Structure is:
                 {'grid_element' : grid_element,
                  'element_id' : element_id}
@@ -385,60 +387,126 @@ class DataRecord(Dataset):
             added.
         """
 
+        if model__time is None and 'time' in self['grid_element'].coords:
+            raise ValueError(('The items previously defined in this Datarecord'
+                              ' have dimensions "time" and "item_id", '
+                              'please provide a "model__time" for the new'
+                              'item(s)'))
+
         if isinstance(new_item, dict):
                 try:
-                    self.grid_element, self.element_id = (
+                    self.grid_elements, self.element_ids = (
                             new_item['grid_element'], new_item['element_id'])
-                except KeyError:
-                    print('You must provide an ''items'' dictionnary,'
+
+                    number_of_new_items = len(new_item['element_id'])
+                    # first id of new item = last item in existing datarecord+1
+                    new_first_item_id = self['item_id'][-1].values + 1
+                    new_item_ids = np.array(range(new_first_item_id,
+                                     new_first_item_id+number_of_new_items))
+
+                    if model__time is not None:
+                            if isinstance(model__time, (list, np.array)) == False:
+                                raise TypeError(('You have passed a model__time that is not'
+                                'permitted, must be list or array.'))
+
+                            else:
+                                coords_to_add = {
+                                        'time' : np.array(model__time),
+                                        'item_id' : np.array(new_item_ids)}
+                                # check that grid_element and element_id exist
+                                # on the grid and have valid format:
+                                self.grid_elements = (
+                                        self._check_grid_element_and_id(
+                                                self.grid_elements,
+                                                self.element_ids))
+
+                                # check that element IDs do not exceed number
+                                # of elements on this grid
+                                self._check_element_id_values(
+                                        self.grid_elements, self.element_ids)
+
+                                data_vars_dict = {'grid_element' : (
+                                                ['item_id', 'time'],
+                                                self.grid_elements),
+                                                  'element_id' : (
+                                                ['item_id', 'time'],
+                                                self.element_ids)}
+
+
+                    else: # model time is None
+                        coords_to_add = {'item_id' : np.array(new_item_ids)}
+                        # check that grid_element and element_id exist on
+                        # the grid and have valid format:
+                        self.grid_elements = self._check_grid_element_and_id(
+                                                self.grid_elements,
+                                                self.element_ids)
+                        # check that element IDs do not exceed number of
+                        # elements on this grid
+                        self._check_element_id_values(
+                                self.grid_elements, self.element_ids)
+
+                        data_vars_dict = {'grid_element' : (
+                                ['item_id'], self.grid_elements),
+                             'element_id' : (['item_id'], self.element_ids)}
+
+                except KeyError: # items dict does not contain correct entries
+                    print('You must provide an ''items'' dictionnary'
                           '(see documentation for required format)')
-        else:
-            print('You must provide an ''items'' dictionnary,'
+        else: # new_item is not a dict
+            print('You must provide an ''items'' dictionnary'
                           '(see documentation for required format)')
 
-        number_of_new_items = len(new_item['element_id'])
-        # first id of new item = last item in existing datarecord+1:
-        new_first_item_id = self['item_id'][-1] +1
-        new_item_ids = range(new_first_item_id,
-                             new_first_item_id+number_of_new_items)
-
-
-        if model__time is not None:
-            if isinstance(model__time, (list, np.array)) == False:
-                raise TypeError(('You have passed a model__time that is not'
-                             'permitted, must be list or array.'))
-            else:
-                if new_item is not None:
-                    coords_to_add = {'time' : np.array(model__time),
-                                     'item_id' : new_item_ids}
-                    # check that grid_element and element_id exist on the grid
-                    # and have valid format:
-                    self.grid_element = self._check_grid_element_and_id(
-                            self.grid_element, self.element_id)
-
-                    # check that element IDs do not exceed number of elements
-                    # on this grid
-                    self._check_element_id_values(self.grid_element,
-                                                  self.element_id)
-
-        else: # no time
-            if new_item_ids is not None:
-                coords_to_add = {'item_id' : new_item_ids}
-                # check that new_record has grid_element and element_id
-                # and that they are valid?
 
         # other variables:
         if new_item_spec is not None:
-            data_vars_dict.update(data_vars)
+            data_vars_dict.update(new_item_spec)
 
         # Dataset of new record:
-        ds_to_add = Dataset(data_vars=new_record,
-                            coords=coords_to_add,
-                            **kwargs)
+        ds_to_add = Dataset(data_vars=data_vars_dict,
+                            coords=coords_to_add)
         # Merge new record and original dataset:
         #new_ds = xr.concat((self, ds_to_add), compat='equals')
         self.merge(ds_to_add, inplace='True', compat='no_conflicts')
 
     @property
     def variable_names(self):
-        return self.Dataset.data_vars
+        return self.data_vars
+
+    @property
+    def number_of_timesteps(self):
+        try:
+            return len(self.time)
+        except AttributeError:
+            print('This Datarecord does not record time')
+
+    @property
+    def times(self):
+        try:
+            return self.time.values
+        except AttributeError:
+            print('This Datarecord does not record time')
+
+    @property
+    def earliest_time(self):
+        try:
+            return min(self.time.values)
+        except AttributeError:
+            print('This Datarecord does not record time')
+
+    @property
+    def latest_time(self):
+        try:
+            return max(self.time.values)
+        except AttributeError:
+            print('This Datarecord does not record time')
+
+    @property
+    def prior_time(self):
+        try:
+            if self.number_of_timesteps < 2:
+                return np.nan
+            else:
+                return sorted(self.times)[-2]
+        except AttributeError:
+            print('This Datarecord does not record time')
+
