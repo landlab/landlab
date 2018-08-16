@@ -252,12 +252,7 @@ class Lithology(object):
                 self.add_layer(self._init_thicknesses[i, :], self._layer_ids[i, :])
             except IndexError:
                 self.add_layer(self._init_thicknesses[i], self._layer_ids[i])
-
-        # check that rock exists at the surface everywhere.
-        if np.any(self._layers.thickness <= 0):
-            msg = ('Lithology was instantiated with a thickness of '
-                   'zero at at least one node.')
-            raise ValueError(msg)
+                
 
     def __getitem__(self, name):
         return self._get_surface_values(name)
