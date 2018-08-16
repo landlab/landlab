@@ -1348,18 +1348,110 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
     -1
     >>> drain
     12
+
+    Add a test where we route past a separate lake, and also add to the
+    discharges.
+
+    >>> mg = RasterModelGrid((4, 4))
+    >>> z_surf = np.array([ 0. ,  1.5,  2. ,  3. ,
+    ...                     1. , -5. ,  2. ,  0. ,
+    ...                     0. ,  0.5,  2. ,  1. ,
+    ...                     0. ,  1. ,  2. ,  3. ])
+    >>> lake_map = np.array([ -1,  21,  -1,  23,
+    ...                       21,   5,  23,   7,
+    ...                       -1,  37,  39,   7,
+    ...                       -1,  -1,  -1,  23])
+    >>> flow_receiver_nodes = np.array([ 0,  5,  1,  7,
+    ...                                  5,  5,  5,  7,
+    ...                                  8,  5,  9,  7,
+    ...                                 12, 12, 13,  8])
+    >>> discharges = mg.ones('node', dtype=float)  # for clarity
+    >>> closednodes = mg.zeros('node', dtype=bool)
+    >>> drainingnodes = mg.zeros('node', dtype=bool)
+    >>> drainingnodes[mg.nodes_at_left_edge] = True
+
+    >>> (lake, drain) = _route_outlet_to_next(
+    ...     10, 7, flow_receiver_nodes, mg.length_of_link,
+    ...     mg.links_at_node, z_surf, lake_map, mg.adjacent_nodes_at_node,
+    ...     closednodes, drainingnodes, add_to_discharges=True,
+    ...     dt=2., volume_at_outlet=2., discharges=discharges)
+    >>> lake
+    5
+    >>> drain
+    -1
+    >>> np.allclose(discharges, np.array([1., 1., 1., 1.,
+    ...                                   1., 1., 1., 1.,
+    ...                                   1., 2., 2., 1.,
+    ...                                   1., 1., 1., 1.]))
+    True
+
+    >>> (lake, drain) = _route_outlet_to_next(
+    ...     9, 5, flow_receiver_nodes, mg.length_of_link,
+    ...     mg.links_at_node, z_surf, lake_map, mg.adjacent_nodes_at_node,
+    ...     closednodes, drainingnodes, add_to_discharges=True,
+    ...     dt=2., volume_at_outlet=6., discharges=discharges)
+    >>> lake
+    -1
+    >>> drain
+    8
+    >>> np.allclose(discharges, np.array([1., 1., 1., 1.,
+    ...                                   1., 1., 1., 1.,
+    ...                                   4., 3., 2., 1.,
+    ...                                   1., 1., 1., 1.]))
+    True
+
+    Note that this last case demonstrates that we can reverse flow across a
+    lake outlet as long as we know the outlet used to drain into the lake.
+    i.e., the outlet node got 3.0 (no addition of initial discharge), not 5.0
+    (3.0+2.0). The 4.0 is correct, as it isn't an outlet (3.0 + 1.0).
+
+    If the outlet originally drained away from the lake, its discharge would
+    behave additively, as it should:
+
+    >>> z_surf = np.array([ 0. ,  1.5,  2. ,  3. ,
+    ...                     1. , -5. ,  2. ,  0. ,
+    ...                    -6. ,  0.5,  2. ,  1. ,
+    ...                     0. ,  1. ,  2. ,  3. ])  # note the -6
+    >>> flow_receiver_nodes = np.array([ 0,  5,  1,  7,
+    ...                                  5,  5,  5,  7,
+    ...                                  8,  8,  9,  7,
+    ...                                 12, 12, 13,  8])
+    >>> discharges = np.array([1., 1., 1., 1.,
+    ...                        1., 1., 1., 1.,
+    ...                        2., 2., 2., 1.,
+    ...                        1., 1., 1., 1.])
+    >>> (lake, drain) = _route_outlet_to_next(
+    ...     9, 5, flow_receiver_nodes, mg.length_of_link,
+    ...     mg.links_at_node, z_surf, lake_map, mg.adjacent_nodes_at_node,
+    ...     closednodes, drainingnodes, add_to_discharges=True,
+    ...     dt=2., volume_at_outlet=6., discharges=discharges)  # as before
+    >>> np.allclose(discharges, np.array([1., 1., 1., 1.,
+    ...                                   1., 1., 1., 1.,
+    ...                                   5., 5., 2., 1.,
+    ...                                   1., 1., 1., 1.]))
+    True
     """
-    if add_to_discharges:
-        vol_to_add = volume_at_outlet / dt
-        discharges[outlet_ID] = vol_to_add # the outlet has flow over it
     # first, resolve possible issue with FD of the outlet. It's possible it
     # currently drains back into the lake, which we need to correct.
     nghbs = neighbors[outlet_ID]
     nnodes = lake_map.size
+
+    if add_to_discharges:
+        vol_to_add = volume_at_outlet / dt
+        # Now, outlet must have flow over it, but distinguish two cases:
+        if lake_map[flow__receiver_nodes[outlet_ID]] == lake_at_head:
+            # formerly was draining in, so overstamp the discharges at outlet
+            # (since we must have budgeted for them in vol_rem_at_pit)
+            discharges[outlet_ID] = vol_to_add
+        else:
+            # the outlet node drained away from the lake, so contribute to it.
+            discharges[outlet_ID] += vol_to_add
+
     steepest_nghb = _steepest_valid_neighbor(
         outlet_ID, nghbs, lake_at_head, link_lengths, links_at_node, z_surf,
         lake_map, closednodes, drainingnodes)
     lake_code_steepest = lake_map[steepest_nghb]
+
     while (lake_code_steepest < 0 or lake_code_steepest >= nnodes):
         if add_to_discharges:
             discharges[steepest_nghb] += vol_to_add
