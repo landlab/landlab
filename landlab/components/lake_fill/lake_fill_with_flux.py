@@ -15,6 +15,8 @@ import warnings
 
 from landlab import FieldError, Component
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import CLOSED_BOUNDARY
+from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab.components import LakeMapperBarnes
 from landlab.components.lake_fill import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node
@@ -98,7 +100,7 @@ def raise_lakes_to_water_exhaustion(
         Stores the status of each distinct pit in the depression.
     lake_spill_node : dict
         the current spill node of each lake. -1 if not defined.
-    water_vol_balance_terms : (float c, float K)
+    water_vol_balance_terms : [float c, float K]
         polyparams for a linear fit of the water vol balance func, such that
         dV = A * (K*z + c). Fit must be linear.
     neighbors : (nnodes, max_nneighbors) array
@@ -155,7 +157,7 @@ def raise_lakes_to_water_exhaustion(
     >>> closednodes[34] = True
     >>> drainingnodes = np.zeros(36, dtype=bool)
     >>> drainingnodes[29] = True  # create an outlet
-    >>> water_vol_balance_terms = (1., -4.)
+    >>> water_vol_balance_terms = [1., -4.]
     >>> water_out_dict = {}
 
     >>> for cpit in (7, 10, 27):
@@ -289,7 +291,7 @@ def raise_lakes_to_water_exhaustion(
     >>> closednodes[18:] = True
     >>> drainingnodes = np.zeros(27, dtype=bool)
     >>> drainingnodes[[9, 17]] = True  # create competing outlets
-    >>> water_vol_balance_terms = (0., 0.)
+    >>> water_vol_balance_terms = [0., 0.]
     >>> water_out_dict = {}
 
     >>> for cpit in mypits:
@@ -474,7 +476,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
         Stores the status of each distinct pit in the depression.
     lake_spill_node : dict
         the current spill node of each lake. -1 if not defined.
-    water_vol_balance_terms : (float c, float K)
+    water_vol_balance_terms : [float c, float K]
         polyparams for a linear fit of the water vol balance func, such that
         dV = A * (K*z + c). Fit must be linear.
     neighbors : (nnodes, max_nneighbors) array
@@ -523,7 +525,7 @@ def _raise_lake_to_limit(current_pit, lake_map, area_map,
     >>> closednodes[34] = True
     >>> drainingnodes = np.zeros(36, dtype=bool)
     >>> drainingnodes[29] = True  # create an outlet
-    >>> water_vol_balance_terms = (0., 0.)
+    >>> water_vol_balance_terms = [0., 0.]
     >>> water_out_dict = {}
 
     Now get the lake initial conditions sorted out:
@@ -1034,7 +1036,7 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
         Grid-node array of -1s with IDs where a node is known to be flooded
         from that pit, and ID-related coding for lake adjacent or lake outlet
         nodes.
-    water_vol_balance_terms : (float c, float K)
+    water_vol_balance_terms : [float c, float K]
         polyparams for a linear fit of the water vol balance func, such that
         dV = A * (K*z + c). Fit must be linear.
     accum_area_at_pit : dict
@@ -1076,7 +1078,7 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
     >>> lake_spill_node = {5: 8}
     >>> full, dz = _raise_water_level(cpit=5, cnode=3, area_map=area_map,
     ...                               z_increment=3., lake_map=lake_map,
-    ...                               water_vol_balance_terms=(0., 0.),
+    ...                               water_vol_balance_terms=[0., 0.],
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_K_at_pit=accum_K_at_pit,
@@ -1101,7 +1103,7 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
 
     >>> full, dz = _raise_water_level(cpit=5, cnode=5, area_map=area_map,
     ...                               z_increment=4., lake_map=lake_map,
-    ...                               water_vol_balance_terms=(-5., 0.),
+    ...                               water_vol_balance_terms=[-5., 0.],
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_K_at_pit=accum_K_at_pit,
@@ -1126,7 +1128,7 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
 
     >>> full, dz = _raise_water_level(cpit=5, cnode=6, area_map=area_map,
     ...                               z_increment=1., lake_map=lake_map,
-    ...                               water_vol_balance_terms=(-34., -3.),
+    ...                               water_vol_balance_terms=[-34., -3.],
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_K_at_pit=accum_K_at_pit,
@@ -1153,7 +1155,7 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
 
     >>> full, dz = _raise_water_level(cpit=5, cnode=6, area_map=area_map,
     ...                               z_increment=2., lake_map=lake_map,
-    ...                               water_vol_balance_terms=(-34., -3.),
+    ...                               water_vol_balance_terms=[-34., -3.],
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_K_at_pit=accum_K_at_pit,
@@ -1178,8 +1180,8 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
 
     >>> full, dz = _raise_water_level(cpit=5, cnode=2, area_map=area_map,
     ...                               z_increment=10., lake_map=lake_map,
-    ...                               water_vol_balance_terms=(
-    ...                                 np.arange(9), np.ones(9)),
+    ...                               water_vol_balance_terms=[
+    ...                                 np.arange(9), np.ones(9)],
     ...                               accum_area_at_pit=accum_area_at_pit,
     ...                               vol_rem_at_pit=vol_rem_at_pit,
     ...                               accum_K_at_pit=accum_K_at_pit,
@@ -1241,16 +1243,22 @@ def _raise_water_level(cpit, cnode, area_map, z_increment,
 
 def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
                           link_lengths, links_at_node, z_surf, lake_map,
-                          neighbors, closednodes, drainingnodes):
+                          neighbors, closednodes, drainingnodes,
+                          add_to_discharges=False, dt=None,
+                          volume_at_outlet=None, discharges=None,):
     """
     Take an outlet node, and then follow the steepest descent path until it
     reaches a distinct lake.  Transmission losses are here NOT accounted for;
     we assume it all comes out in the wash given they likely were applied
     during the initial flow accumulation that provided the inputs to the pits.
 
-    Note that this function does not actually route the flow; it simply
-    finds and identifies the next lake or outlet downstream. Do this
+    Unless add_to_discharges, this function does not actually route the flow;
+    it simply finds and identifies the next lake or outlet downstream. Do this
     discharge rewiring elsewhere.
+
+    If add_to_discharges, the function adds the overtopping volume to the
+    existing flow pattern as it goes. Supply dt, volume_at_outlet, and
+    discharges to enable this.
 
     Parameters
     ----------
@@ -1283,6 +1291,16 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
     drainingnodes : array of bool
         Once a lake raises itself to the level of one of these nodes, it will
         cease to rise any more, ever (i.e., these are boundary nodes!)
+    add_to_discharges : bool (optional)
+        If True, add the overtopping volume as a discharge to each node
+        through which it is now routed.
+    dt : float or None
+        The timestep, needed to turn a volume to a discharge. Only used if
+        add_to_discharges.
+    volume_at_outlet : float or None
+        The volume passing over the sill. Only used if add_to_discharges.
+    discharges : nnodes array of floats, or None
+        The discharges to which to add, if add_to_discharges.
 
     Returns
     -------
@@ -1331,6 +1349,9 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
     >>> drain
     12
     """
+    if add_to_discharges:
+        vol_to_add = volume_at_outlet / dt
+        discharges[outlet_ID] = vol_to_add # the outlet has flow over it
     # first, resolve possible issue with FD of the outlet. It's possible it
     # currently drains back into the lake, which we need to correct.
     nghbs = neighbors[outlet_ID]
@@ -1340,11 +1361,17 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
         lake_map, closednodes, drainingnodes)
     lake_code_steepest = lake_map[steepest_nghb]
     while (lake_code_steepest < 0 or lake_code_steepest >= nnodes):
+        if add_to_discharges:
+            discharges[steepest_nghb] += vol_to_add
         if drainingnodes[steepest_nghb]:
             return (-1, steepest_nghb)
         new_steepest_nghb = flow__receiver_nodes[steepest_nghb]
-        if closednodes[new_steepest_nghb]:
-            # locally forbidden, not necessarily seen by flow routing
+        if (closednodes[new_steepest_nghb] or
+                lake_map[steepest_nghb] >= 2*nnodes):
+            # if closednodes, this is locally forbidden, but not necessarily
+            # seen by flow routing. Also a special case where discharge
+            # could be routed through the outlet of another lake, and
+            # diverted into it.
             # so redirect here
             new_steepest_nghb = _steepest_valid_neighbor(
                 steepest_nghb, neighbors[steepest_nghb], lake_at_head,
@@ -1353,7 +1380,6 @@ def _route_outlet_to_next(outlet_ID, lake_at_head, flow__receiver_nodes,
         steepest_nghb = new_steepest_nghb
         lake_code_steepest = lake_map[steepest_nghb]
     return (lake_code_steepest, -1)
-
 
 def _steepest_valid_neighbor(node, nghbs, lake_at_head, link_lengths,
                              links_at_node, z_surf, lake_map, closednodes,
@@ -1437,16 +1463,45 @@ def _steepest_valid_neighbor(node, nghbs, lake_at_head, link_lengths,
 
 class LakeFillerWithFlux(Component):
     """
+
+
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A Landlab ModelGrid.
+    method : {'steepest', 'd8'}
+        Whether or not to recognise diagonals as valid flow paths, if a
+        raster. Otherwise, no effect.
+    water_volume_balance_terms : [c, K], c & K are floats or arrays of floats
+        polyparams for a linear fit of the water vol balance func, such that
+        dV = A * (K*z + c) at each node. Fit must be linear. Ensure the
+        object is a list or 2 element array and modify it in place if you
+        want to dynamically adjust these terms during a run.
+    add_to_existing_discharges : bool
+        If True, component modifies the 'surface_water__discharge' field to
+        account for any water overtopping the lakes.
+    topo_is_stable : bool
+        If True, component assumes topography will not change within the lakes
+        in between calls to `run_one_step()`. This enables improvements in
+        run speed in calls after the first.
+    topo_advection : float
+        If topo_is_stable, this permits the lakes to be advected up and down,
+        e.g., if uplift is added to the topography, but still no change
+        happens within the lakes.
     """
     _input_var_names = (
         'water_surface__elevation',
-        
         'surface_water__discharge',
         'flow__receiver_node',
-        'flow__sink_flag',)
+        'flow__sink_flag')
 
-    def __init__(self, grid):
+    def __init__(self, grid, method='steepest',
+                 water_volume_balance_terms=(0., 0.),
+                 add_to_existing_discharges=True,
+                 topo_is_stable=False, topo_advection=0.):
         self._grid = grid
+        self._water_vol_balance_terms = water_volume_balance_terms
         self._zw = grid.at_node['water_surface__elevation']
         self._Qw = grid.at_node['surface_water__discharge']
         self._sinks = np.where(grid.at_node['flow__sink_flag'])[0]
@@ -1460,14 +1515,39 @@ class LakeFillerWithFlux(Component):
         self._Qw_at_pit = self._Qw[self._sinks]
         self._lake_q_dict = {}
         self._lake_water_level = {}
+        self._accum_area_at_pit = {}
+        self._vol_rem_at_pit = {}
+        self._accum_K_at_pit = {}
+        self._lake_is_full = {}
+        self._lake_spill_node = {}
         for cpit in self._sinks:
             self._lake_q_dict[cpit] = StablePriorityQueue()
             self._lake_water_level[cpit] = self._zw[cpit]
-        
+            self._accum_area_at_pit[cpit] = 0.
+            self._accum_K_at_pit[cpit] = 0.
+            self._lake_is_full[cpit] = False
+            self._lake_spill_node[cpit] = -1
+            # self._vol_rem_at_pit updates during run only
 
-        
-        
+        self._lake_map_to_report = grid.ones('node', dtype=int)
+        self._lake_map_to_report *= -1
 
+        # get the neighbour call set up:
+        assert method in {'steepest', 'd8', 'D8'}
+        if method in ('d8', 'D8'):
+            try:
+                self._allneighbors = np.concatenate(
+                    (self.grid.adjacent_nodes_at_node,
+                     self.grid.diagonal_adjacent_nodes_at_node), axis=1)
+            except AttributeError:  # not a raster
+                self._allneighbors = self.grid.adjacent_nodes_at_node
+        else:
+            self._allneighbors = self.grid.adjacent_nodes_at_node
+
+        self._closednodes = grid.status_at_node == CLOSED_BOUNDARY
+        self._drainingnodes = np.logical_or(
+            grid.status_at_node == FIXED_VALUE_BOUNDARY,
+            grid.status_at_node == FIXED_GRADIENT_BOUNDARY)
 
     def run_one_step(self, dt):
         """
@@ -1507,7 +1587,7 @@ class LakeFillerWithFlux(Component):
         >>> closednodes[34] = True
         >>> drainingnodes = np.zeros(36, dtype=bool)
         >>> drainingnodes[29] = True  # create an outlet
-        >>> water_vol_balance_terms = (1., -4.)
+        >>> water_vol_balance_terms = [1., -4.]
         >>> water_out_dict = {}
 
         >>> for cpit in (7, 10, 27):
@@ -1531,4 +1611,26 @@ class LakeFillerWithFlux(Component):
         ...     water_vol_balance_terms, neighbors, closednodes, drainingnodes,
         ...     water_out_dict)
         """
-        pass
+        self._water_out_dict = {}
+
+        for cpit in self._sinks:
+            self._vol_rem_at_pit[cpit] = self._Qw[cpit] * dt
+
+        raise_lakes_to_water_exhaustion(
+            self._receivers, self.grid.length_of_link,
+            self.grid.links_at_node, self._lake_map, self._area_map,
+            self._master_pit_q, self._lake_q_dict, self._zw,
+            self._lake_water_level, self._accum_area_at_pit,
+            self._vol_rem_at_pit, self._accum_K_at_pit, self._lake_is_full,
+            self._lake_spill_node, self._water_vol_balance_terms,
+            self._allneighbors, self._closednodes, self._drainingnodes,
+            self._water_out_dict)
+
+        # now process these outputs onto the grid:
+        self._lake_map_to_report.fill(-1)
+        for lake in self._lake_is_full.keys():
+            lakepos = self._lake_map == lake
+            self._lake_map_to_report[lakepos] == lake
+            self._zw[lakepos] = self._lake_water_level[lakepos]
+            self._Qw[lakepos] = 0.  # no flow in the lake itself
+            # the addition to _Qw elsewhere is handled within the raise.
