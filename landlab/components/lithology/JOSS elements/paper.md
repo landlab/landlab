@@ -46,6 +46,6 @@ LithoLayers is a
 Source code for Lithology and Litholayers is available as part of the [Landlab python package](). A tagged version of Landlab that includes this functionality is archived in Zenodo with the linked DOI:[@ZenodoSourceCode]. In addition to the source code a Jupyter Notebook introducing the use of Lithology and Litholayers is now part of the Landlab tutorials repository. A tagged version of Landlab that includes this functionality has been archived with the following DOI: [@ZenodoNotebook].
 
 # Acknowledgements
-Thanks to Adam Forte, Matt Rossi, and Brian Yanites for helpful discussions during the development of this code and the accompanying Jupyter notebooks.
+The authors thank Adam Forte, Matt Rossi, and Brian Yanites for helpful discussions during the development of this code and the accompanying Jupyter notebooks.
 
 # References
