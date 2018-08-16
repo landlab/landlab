@@ -8,14 +8,12 @@ Created on Tue Feb 27 16:25:11 2018
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, FastscapeEroder, LinearDiffuser, DepressionFinderAndRouter
-from landlab.plot import analyze_channel_network_and_plot
+from landlab.components import FlowAccumulator, FastscapeEroder, LinearDiffuser, DepressionFinderAndRouter, ChannelProfiler
 
-from nose.tools import assert_raises
+import pytest
 
 def test_assertion_error():
     """Test that the correct assertion error will be raised."""
-
     mg = RasterModelGrid(10, 10)
     z = mg.add_zeros('topographic__elevation', at='node')
     z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
@@ -34,10 +32,51 @@ def test_assertion_error():
         ld.run_one_step(dt=dt)
         mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
 
+    with pytest.raises(AssertionError):
+        ChannelProfiler(mg,
+                        starting_nodes = [0],
+                        number_of_channels=2)
 
-    assert_raises(AssertionError,
-                  analyze_channel_network_and_plot,
-                  mg,
-                  threshold = 100,
-                  starting_nodes = [0],
-                  number_of_channels=2)
+
+def test_no_threshold():
+    mg = RasterModelGrid(10, 10)
+    z = mg.add_zeros('topographic__elevation', at='node')
+    z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+
+    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
+    mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
+    fa = FlowAccumulator(mg, flow_director='D8', depression_finder=DepressionFinderAndRouter)
+    fa.run_one_step()
+
+    profiler = ChannelProfiler(mg)
+
+    assert profiler._threshold == 2.0
+
+
+def test_no_drainage_area():
+    mg = RasterModelGrid(10, 10)
+    z = mg.add_zeros('topographic__elevation', at='node')
+    #da = mg.add_zeros('drainage_area', at='node')
+    flrn = mg.add_zeros('flow__link_to_receiver_nodes', at='node')
+    frn = mg.add_zeros('flow__receiver_node', at='node')
+    with pytest.raises(AssertionError):
+        ChannelProfiler(mg)
+
+
+def test_no_flow__link_to_receiver_nodes():
+    mg = RasterModelGrid(10, 10)
+    z = mg.add_zeros('topographic__elevation', at='node')
+    da = mg.add_zeros('drainage_area', at='node')
+    #flrn = mg.add_zeros('flow__link_to_receiver_nodes', at='node')
+    frn = mg.add_zeros('flow__receiver_node', at='node')
+    with pytest.raises(AssertionError):
+        ChannelProfiler(mg)
+
+def test_no_flow__receiver_node():
+    mg = RasterModelGrid(10, 10)
+    z = mg.add_zeros('topographic__elevation', at='node')
+    da = mg.add_zeros('drainage_area', at='node')
+    flrn = mg.add_zeros('flow__link_to_receiver_nodes', at='node')
+    #frn = mg.add_zeros('flow__receiver_node', at='node')
+    with pytest.raises(AssertionError):
+        ChannelProfiler(mg)
