@@ -107,8 +107,9 @@ def test_atts_lack_ids():
     mg = RasterModelGrid(3, 3)
     z = mg.add_zeros('node', 'topographic__elevation')
     thicknesses = [1, 2, 4, 1, 5]
-    ids = [1, 2, 1, 2]
-    attrs = {'K_sp': {2: 0.0001}}
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {2: 0.0001},
+             'age': {1: 100, 2:300}}
     with pytest.raises(ValueError):
         Lithology(mg, thicknesses, ids, attrs)
 
@@ -196,6 +197,21 @@ def test_adding_new_attribute_extra_rock_id():
 
     with pytest.raises(ValueError):
         lith.add_property(new_attr)
+
+
+def test_adding_new_id_existing_rock_type():
+    """Test adding an rock type that already exists."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1, 5]
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    lith = Lithology(mg, thicknesses, ids, attrs)
+
+    new_attr = {'K_sp': {1: 0.001, 5: 0.0001}}
+
+    with pytest.raises(ValueError):
+        lith.add_rock_type(new_attr)
 
 
 def test_adding_new_id_extra_attribute():
