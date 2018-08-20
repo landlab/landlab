@@ -130,10 +130,13 @@ class LakeMapperBarnes(Component):
     Landlabbian `run_one_step()` method as its driver, superceding
     DepressionFinderAndRouter's `map_depressions()`.
 
-    A variety of options is provided. Flow routing is one-to-one in this
+    A variety of options is provided. Flow routing is route-to-one in this
     implementation, but can be either D4 ("steepest") or D8 on a raster.
     The surface can be filled to either flat or a very slight downward
     incline, such that subsequent flow routing will run over the lake surface.
+    This incline is applied at machine precision to minimise the chances of
+    creating false outlets by overfill, and note that the gradient as
+    calculated on such surfaces may still appear to be zero.
     The filling can either be performed in place, or on a new (water) surface
     distinct from the original (rock) surface. For efficiency, data structures
     describing the lakes and their properties are only created, and existing
@@ -150,7 +153,7 @@ class LakeMapperBarnes(Component):
         A grid.
     surface : field name at node or array of length node
         The surface to direct flow across.
-    method : {'steepest', 'd8'}
+    method : {'steepest', 'D8'}
         Whether or not to recognise diagonals as valid flow paths, if a raster.
         Otherwise, no effect.
     fill_flat : bool
@@ -288,7 +291,7 @@ class LakeMapperBarnes(Component):
     }
 
     def __init__(self, grid, surface='topographic__elevation',
-                 method='d8', fill_flat=True,
+                 method='D8', fill_flat=True,
                  fill_surface='topographic__elevation',
                  redirect_flow_steepest_descent=False,
                  reaccumulate_flow=False,
@@ -317,8 +320,8 @@ class LakeMapperBarnes(Component):
         self._track_lakes = track_lakes
 
         # get the neighbour call set up:
-        assert method in {'steepest', 'd8', 'D8'}
-        if method in ('d8', 'D8'):
+        assert method in {'steepest', 'D8'}
+        if method is 'D8':
             try:
                 self._allneighbors = np.concatenate(
                     (self.grid.adjacent_nodes_at_node,
@@ -375,15 +378,15 @@ class LakeMapperBarnes(Component):
             assert len(FlowDirectorSteepest.output_var_names) == 4
             self._receivers = self.grid.at_node['flow__receiver_node']
             assert len(self._receivers.shape) == 1, \
-                'The LakeFillerBarnes does not yet work with one-to-many ' + \
-                'flow directing schemes!'
+                'The LakeFillerBarnes does not yet work with route-to-' + \
+                'many flow directing schemes!'
             self._receiverlinks = self.grid.at_node[
                 'flow__link_to_receiver_node']
             self._steepestslopes = self.grid.at_node[
                 'topographic__steepest_slope']
             # if raster, do the neighbors & diagonals separate when rerouting
             # so we'll need to pull these separately:
-            if method == 'd8':
+            if method == 'D8':
                 try:  # in case it's not a raster
                     self._neighbor_arrays = (
                         self.grid.adjacent_nodes_at_node,
@@ -963,11 +966,11 @@ class LakeMapperBarnes(Component):
         >>> z[23] = 1.3
         >>> z[15] = -2.  # this deep pit causes the outlet to first drain *in*
         >>> z[10] = 1.3  # raise "guard" exit nodes
-        >>> z[7] = 2.  # is a lake on its own, if d8
+        >>> z[7] = 2.  # is a lake on its own, if D8
         >>> z[9] = -1.
         >>> z[14] = 0.6  # [9, 14, 15] is a lake in both methods
         >>> z[16] = 1.2
-        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if d8
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if D8
         >>> z_init = z.copy()
         >>> fd = FlowDirectorSteepest(mg)
         >>> fa = FlowAccumulator(mg)
@@ -1263,15 +1266,15 @@ class LakeMapperBarnes(Component):
         >>> z[23] = 1.3
         >>> z[15] = 0.3
         >>> z[10] = 1.3  # raise "guard" exit nodes
-        >>> z[7] = 2.  # is a lake on its own, if d8
+        >>> z[7] = 2.  # is a lake on its own, if D8
         >>> z[9] = 0.5
         >>> z[14] = 0.6  # [9, 14, 15] is a lake in both methods
         >>> z[16] = 1.2
-        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if d8
+        >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if D8
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='d8', fill_flat=True,
+        >>> lmb = LakeMapperBarnes(mg, method='D8', fill_flat=True,
         ...                        track_lakes=True)
-        >>> lmb.run_one_step()  # note the d8 routing now
+        >>> lmb.run_one_step()  # note the D8 routing now
         >>> lmb.lake_dict == {22: deque([15, 9, 14])}
         True
         >>> lmb.number_of_lakes
@@ -1287,7 +1290,7 @@ class LakeMapperBarnes(Component):
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='steepest',
         ...                        fill_flat=False, track_lakes=True)
-        >>> lmb.run_one_step()  # compare to the method='d8' lakes, above...
+        >>> lmb.run_one_step()  # compare to the method='D8' lakes, above...
         >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
         >>> lmb.number_of_lakes
@@ -1460,7 +1463,7 @@ class LakeMapperBarnes(Component):
         >>> lmb = LakeMapperBarnes(mg, fill_flat=True,
         ...                        surface='bedrock__elevation',
         ...                        fill_surface='topographic__elevation',
-        ...                        method='d8',
+        ...                        method='D8',
         ...                        redirect_flow_steepest_descent=True,
         ...                        reaccumulate_flow=True,
         ...                        track_lakes=True)
