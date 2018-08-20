@@ -390,20 +390,14 @@ class LakeMapperBarnes(Component):
                 'topographic__steepest_slope']
             # if raster, do the neighbors & diagonals separate when rerouting
             # so we'll need to pull these separately:
-            if method == 'D8':
-                try:  # in case it's not a raster
-                    self._neighbor_arrays = (
-                        self.grid.adjacent_nodes_at_node,
-                        self.grid.diagonal_adjacent_nodes_at_node)
-                    self._link_arrays = (
-                        self.grid.links_at_node,
-                        self.grid.d8s_at_node[:, 4:])
-                    self._neighbor_lengths = self.grid.length_of_d8
-                except AttributeError:  # this wasn't a raster
-                    self._neighbor_arrays = (
-                        self.grid.adjacent_nodes_at_node, )
-                    self._link_arrays = (self.grid.links_at_node, )
-                    self._neighbor_lengths = self.grid.length_of_link
+            if isinstance(grid, RasterModelGrid) and method == 'D8':
+                self._neighbor_arrays = (
+                    self.grid.adjacent_nodes_at_node,
+                    self.grid.diagonal_adjacent_nodes_at_node)
+                self._link_arrays = (
+                    self.grid.links_at_node,
+                    self.grid.d8s_at_node[:, 4:])
+                self._neighbor_lengths = self.grid.length_of_d8
             else:
                 self._neighbor_arrays = (
                     self.grid.adjacent_nodes_at_node, )
