@@ -121,7 +121,14 @@ class LakeMapperBarnes(Component):
     routing algorithms, lightly modified and adapted for Landlab by DEJH. This
     component is designed as a direct replacement for the LakeMapper as
     existing pre-Aug 2018, and provides a suite of properties to access
-    information about the lakes created each time it is run.
+    information about the lakes created each time it is run. Only significant
+    difference is the way the lakes are coded: this component uses the
+    (unique) ID of the outlet node, whereas DepressionFinderAndRouter uses
+    one of the pit node IDs. Note also this component does not offer the
+    `lake_codes` or `display_depression_map` options, for essentially this
+    reason. Use `lake_map` instead for both. It also uses a much more
+    Landlabbian `run_one_step()` method as its driver, superceding
+    DepressionFinderAndRouter's `map_depressions()`.
 
     A variety of options is provided. Flow routing is one-to-one in this
     implementation, but can be either D4 ("steepest") or D8 on a raster.
