@@ -304,7 +304,6 @@ class LakeMapperBarnes(Component):
         self._pit = []
         self._closed = self.grid.zeros('node', dtype=bool)
         self._gridclosednodes = self.grid.status_at_node == CLOSED_BOUNDARY
-        gridopennodes = np.logical_not(self._gridclosednodes)
         # close up the CLOSED_BOUNDARY permanently:
         self._closed[self._gridclosednodes] = True
 
@@ -320,14 +319,19 @@ class LakeMapperBarnes(Component):
         self._track_lakes = track_lakes
 
         # get the neighbour call set up:
-        assert method in {'steepest', 'D8'}
+        if method not in {'steepest', 'D8'}:
+            raise ValueError(
+                "{method}: method must be 'steepest' or 'D8'".format(
+                    method=method))
         if method is 'D8':
-            try:
+            if isinstance(grid, RasterModelGrid):
                 self._allneighbors = np.concatenate(
                     (self.grid.adjacent_nodes_at_node,
                      self.grid.diagonal_adjacent_nodes_at_node), axis=1)
-            except AttributeError:  # not a raster
-                self._allneighbors = self.grid.adjacent_nodes_at_node
+            else:  # not a raster
+                raise ValueError(
+                    ('D8 is not a valid value for method if grid type is ' +
+                    '{gridtype}!').format(gridtype=type(grid)))
         else:
             self._allneighbors = self.grid.adjacent_nodes_at_node
 
