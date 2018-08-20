@@ -340,7 +340,7 @@ class LakeMapperBarnes(Component):
         # a true grid edge, i.e., only the FIXED boundary types. (Both
         # CLOSED and LOOPED assume flow either can't get out there, or at
         # least, there's more land in that direction that will be handled
-        # otherwise.) Note we'l add a test that there is at least some kind
+        # otherwise.) Note we add a test that there is at least some kind
         # of outlet!!
         self._edges = np.where(np.logical_or(
             self.grid.status_at_node == FIXED_VALUE_BOUNDARY,
