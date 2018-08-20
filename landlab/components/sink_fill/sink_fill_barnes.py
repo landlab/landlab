@@ -15,7 +15,7 @@ from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.components import LakeMapperBarnes
 from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
-from landlab.components.lake_fill.lake_fill_barnes import StablePriorityQueue
+from landlab.utils import StablePriorityQueue
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import CLOSED_BOUNDARY

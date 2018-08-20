@@ -15,6 +15,7 @@ from landlab import FieldError, Component, BAD_INDEX_VALUE
 from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
+from landlab.utils import StablePriorityQueue
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import CLOSED_BOUNDARY, CORE_NODE
@@ -31,70 +32,6 @@ LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.
 
 # TODO: Needs to have rerouting functionality...
-
-
-class StablePriorityQueue():
-    """
-    Implements a stable priority queue, that tracks insertion order; i.e., this
-    is used to break ties.
-
-    See https://docs.python.org/2/library/heapq.html#priority-queue-implementation-notes
-    & https://www.sciencedirect.com/science/article/pii/S0098300413001337
-    """
-    def __init__(self):
-        self._pq = []                          # list of entries as a heap
-        self._entry_finder = {}                # mapping of tasks to entries
-        self._REMOVED = BAD_INDEX_VALUE        # placeholder for a removed task
-        self._counter = itertools.count()      # unique sequence count
-        self._tasks_ever_in_queue = deque([])
-        # last one tracks all nodes that have ever been added
-
-    def add_task(self, task, priority=0):
-        "Add a new task or update the priority of an existing task"
-        if task in self._entry_finder:
-            self.remove_task(task)
-        count = next(self._counter)
-        entry = [priority, count, task]
-        self._entry_finder[task] = entry
-        heapq.heappush(self._pq, entry)
-        self._tasks_ever_in_queue.append(task)
-
-    def remove_task(self, task):
-        "Mark an existing task as _REMOVED.  Raise KeyError if not found."
-        entry = self._entry_finder.pop(task)
-        entry[-1] = self._REMOVED
-
-    def pop_task(self):
-        "Remove and return the lowest priority task. Raise KeyError if empty."
-        while self._pq:
-            priority, count, task = heapq.heappop(self._pq)
-            if task is not self._REMOVED:
-                del self._entry_finder[task]
-                return task
-        raise KeyError('pop from an empty priority queue')
-
-    def peek_at_task(self):
-        """
-        Return the lowest priority task without removal. Raise KeyError if
-        empty.
-        """
-        while self._pq:
-            priority, count, task = self._pq[0]
-            if task is not self._REMOVED:
-                return task
-        raise KeyError('peeked at an empty priority queue')
-
-    def tasks_currently_in_queue(self):
-        "Return array of nodes currently in the queue."
-        mynodes = [task for (priority, count, task) in self._pq]
-        return np.array(mynodes)
-
-    def tasks_ever_in_queue(self):
-        """
-        Return array of all nodes ever added to this queue object. Repeats
-        are permitted.
-        """
-        return np.array(self._tasks_ever_in_queue)
 
 
 def _fill_one_node_to_flat(fill_surface, all_neighbors,
