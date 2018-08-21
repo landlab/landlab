@@ -143,9 +143,9 @@ class DataRecord(Dataset):
 
         Example of a Datarecord with time as the only dimension:
         >>> dr1=DataRecord(grid, time=[0.],
-                           data_vars={'mean_elevation' : (['time'],
-                                                          np.array([100]))},
-                           attrs={'time_units' : 'y'})
+        ...                data_vars={'mean_elevation' : (['time'],
+        ...                                               np.array([100]))},
+        ...                attrs={'time_units' : 'y'})
 
         Datarecord is a xarray.Dataset, a multi-dimensional, in memory, array
         database. Dataset implements the mapping interface with keys given by
@@ -177,22 +177,22 @@ class DataRecord(Dataset):
 
         Example of a Datarecord with item_id as the only dimension:
         >>> my_items2 = {'grid_element': np.array(('node', 'link'), dtype=str),
-                         'element_id': np.array([1,3])}
+        ...              'element_id': np.array([1,3])}
         Note that both arrays have 1 dimension as they only vary along
         the dimension 'item_id'.
         >>> dr2=DataRecord(grid,
-                           items=my_items2)
+        ...                items=my_items2)
 
 
 
         Example of a Datarecord with dimension time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
-                         'element_id': np.array([[1],[3]])}
+        ...              'element_id': np.array([[1],[3]])}
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
         >>> dr3=DataRecord(grid,
-                           time=[0.],
-                           items=my_items3)
+        ...                time=[0.],
+        ...                items=my_items3)
         >>> dr3
         <xarray.DataRecord>
         Dimensions:       (item_id: 2, time: 1)
@@ -206,11 +206,11 @@ class DataRecord(Dataset):
         Items can be added to a Datarecord that already holds similar items,
         using the method 'add_item':
         >>> dr3.add_item(model__time=[1.0],
-                         new_item={'grid_element' : np.array(
-                                                         [['node'], ['node']]),
-                                   'element_id' : np.array([[4],[4]])},
-                         new_item_spec={'size': (
-                                         ['item_id', 'time'], [[10],[5]])})
+        ...              new_item={'grid_element' : np.array(
+        ...                                              [['node'], ['node']]),
+        ...                        'element_id' : np.array([[4],[4]])},
+        ...              new_item_spec={'size': (
+        ...                              ['item_id', 'time'], [[10],[5]])})
 
         Two items have been added at a new timestep 1.0:
         >>> dr3.coords
@@ -231,15 +231,15 @@ class DataRecord(Dataset):
         Records relating to pre-existing items can be added to the Datarecord
         using the method 'add_record':
         >>> dr3.add_record(model__time=[2.0],
-                           item_id=[0],
-                           new_record={'element_id': (
-                                   ['item_id', 'time'], [[2]])})
+        ...                item_id=[0],
+        ...                new_record={'element_id': (
+        ...                        ['item_id', 'time'], [[2]])})
         >>> dr3.get_data(2., 0)
 
         The 'add_record' method can also be used to add a non item-related
         record:
         >>> dr3.add_record(model__time=[50.0],
-                           new_record={'mean_elev': (['time'], [110])})
+        ...                new_record={'mean_elev': (['time'], [110])})
 
         """
 
