@@ -188,7 +188,7 @@ class LakeMapperBarnes(Component):
         fields (see output field names) will now reflect the new drainage
         patterns without having to manually reaccumulate the discharge. If
         True but redirect_flow_steepest_descent is False, raises an
-        AssertionError.
+        ValueError.
     ignore_overfill : bool
         If True, suppresses the Error that would normally be raised during
         creation of a gentle incline on a fill surface (i.e., if not
@@ -374,16 +374,18 @@ class LakeMapperBarnes(Component):
 
         if redirect_flow_steepest_descent:
             # this routine only permitted if we store the lake info, so
-            assert track_lakes, "You must track_lakes to redirect the flow!"
+            if not track_lakes:
+                raise ValueError("You must track_lakes to redirect the flow!")
             # Check we have the necessary fields already existing.
             # These will raise FieldErrors if they don't.
             # This will cause a bunch of our tests to break, so users will
             # never see this.
             assert len(FlowDirectorSteepest.output_var_names) == 4
             self._receivers = self.grid.at_node['flow__receiver_node']
-            assert len(self._receivers.shape) == 1, \
-                'The LakeFillerBarnes does not yet work with route-to-' + \
-                'many flow directing schemes!'
+            if len(self._receivers.shape) != 1:
+                raise ValueError(
+                    'The LakeFillerBarnes does not yet work with route-to-' +
+                    'many flow directing schemes!')
             self._receiverlinks = self.grid.at_node[
                 'flow__link_to_receiver_node']
             self._steepestslopes = self.grid.at_node[
@@ -1240,10 +1242,10 @@ class LakeMapperBarnes(Component):
         False
         >>> try:
         ...     lmb.lake_map  # not created, as we aren't tracking
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'Enable tracking to access information about lakes')
-        AssertionError was raised: Enable tracking to access information about lakes
+        ValueError was raised: Enable tracking to access information about lakes
         >>> lmb.was_there_overfill  # everything fine with slope adding
         False
 
@@ -1282,11 +1284,11 @@ class LakeMapperBarnes(Component):
         1
         >>> try:
         ...     lmb.lake_depths  # z was both surface and 'fill_surface'
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'surface and fill_surface must be different fields ' +
         ...           'or arrays to enable the property fill_depth!')
-        AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
+        ValueError was raised: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest',
@@ -1635,10 +1637,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_dict
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'Enable tracking to access information about lakes')
-        AssertionError was raised: Enable tracking to access information about lakes
+        ValueError was raised: Enable tracking to access information about lakes
 
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
@@ -1648,8 +1650,9 @@ class LakeMapperBarnes(Component):
         >>> lmb.lake_dict == {16: deque([15, 9, 8, 14, 20, 21])}
         True
         """
-        assert self._track_lakes, \
-            "Enable tracking to access information about lakes"
+        if not self._track_lakes:
+            raise ValueError(
+                "Enable tracking to access information about lakes")
         return self._lakemappings
 
     @property
@@ -1677,10 +1680,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_outlets
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'Enable tracking to access information about lakes')
-        AssertionError was raised: Enable tracking to access information about lakes
+        ValueError was raised: Enable tracking to access information about lakes
 
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
@@ -1690,9 +1693,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.lake_outlets == [16, ]
         True
         """
-        assert self._track_lakes, \
-            "Enable tracking to access information about lakes"
-        return self._lakemappings.keys()
+        if not self._track_lakes:
+            raise ValueError(
+                "Enable tracking to access information about lakes")
+        return list(self._lakemappings.keys())
 
     @property
     def number_of_lakes(self):
@@ -1724,10 +1728,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.number_of_lakes
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'Enable tracking to access information about lakes')
-        AssertionError was raised: Enable tracking to access information about lakes
+        ValueError was raised: Enable tracking to access information about lakes
 
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
@@ -1737,8 +1741,9 @@ class LakeMapperBarnes(Component):
         >>> lmb.number_of_lakes
         2
         """
-        assert self._track_lakes, \
-            "Enable tracking to access information about lakes"
+        if not self._track_lakes:
+            raise ValueError(
+                "Enable tracking to access information about lakes")
         return len(self._lakemappings)
 
     @property
@@ -1772,10 +1777,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_map
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'Enable tracking to access information about lakes')
-        AssertionError was raised: Enable tracking to access information about lakes
+        ValueError was raised: Enable tracking to access information about lakes
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
@@ -1885,11 +1890,11 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:  # won't work as surface & fill_surface are both z
         ...     lmb.lake_depths
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'surface and fill_surface must be different fields ' +
         ...           'or arrays to enable the property lake_depths!')
-        AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
+        ValueError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
@@ -1908,9 +1913,10 @@ class LakeMapperBarnes(Component):
         >>> np.allclose(lmb.lake_depths, lake_depths)
         True
         """
-        assert not self._inplace, \
-            "surface and fill_surface must be different fields or arrays " + \
-            "to enable the property lake_depths!"
+        if self._inplace:
+            raise ValueError(
+                "surface and fill_surface must be different fields or " +
+                "arrays to enable the property lake_depths!")
         return self._fill_surface - self._surface
 
     @property
@@ -1943,10 +1949,10 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.lake_areas  # note track_lakes=False
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'Enable tracking to access information about lakes')
-        AssertionError was raised: Enable tracking to access information about lakes
+        ValueError was raised: Enable tracking to access information about lakes
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
@@ -1999,11 +2005,11 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:  # won't work as surface & fill_surface are both z
         ...     lmb.lake_volumes
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'surface and fill_surface must be different fields ' +
         ...           'or arrays to enable the property lake_volumes!')
-        AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
+        ValueError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
@@ -2045,11 +2051,11 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> try:
         ...     lmb.was_there_overfill
-        ... except AssertionError:
-        ...     print('AssertionError was raised: ' +
+        ... except ValueError:
+        ...     print('ValueError was raised: ' +
         ...           'was_there_overfill is only defined if filling to an ' +
         ...           'inclined surface!')
-        AssertionError was raised: was_there_overfill is only defined if filling to an inclined surface!
+        ValueError was raised: was_there_overfill is only defined if filling to an inclined surface!
 
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
@@ -2092,7 +2098,8 @@ class LakeMapperBarnes(Component):
 
         Note however that in this last example, values have NOT changed.
         """
-        assert self._fill_flat is False, \
-            "was_there_overfill is only defined if filling to an " + \
-            "inclined surface!"
+        if self._fill_flat is True:
+            raise ValueError(
+                "was_there_overfill is only defined if filling to an " +
+                "inclined surface!")
         return self._overfill_flag
