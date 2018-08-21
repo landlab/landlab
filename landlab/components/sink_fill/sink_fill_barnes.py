@@ -3,7 +3,8 @@
 """
 fill_sinks_barnes.py
 
-Fill sinks in a landscape to the brim, following the Barnes et al. (2014) algos.
+Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
+algorithms.
 """
 
 from __future__ import print_function
@@ -36,8 +37,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     This component is NOT intended for use iteratively as a model runs;
     rather, it is to fill in an initial topography. If you want to repeatedly
-    fill pits as a landscape develops, you are after the SinkFillerBarnes
-    component.
+    fill pits as a landscape develops, you are after the LakeMapperBarnes
+    component. If you want flow paths on your filled landscape, manually run a
+    FlowDirector and FlowAccumulator for yourself.
 
     The locations and depths etc. of the fills will be tracked, and properties
     are provided to access this information.
@@ -48,13 +50,13 @@ class SinkFillerBarnes(LakeMapperBarnes):
         A grid.
     surface : field name at node or array of length node
         The surface to fill.
-    method : {'steepest', 'd8'}
+    method : {'Steepest', 'D8'}
         Whether or not to recognise diagonals as valid flow paths, if a raster.
         Otherwise, no effect.
     fill_flat : bool
         If True, pits will be filled to perfectly horizontal. If False, the new
-        surface will be slightly inclined to give steepest descent flow paths
-        to the outlet.
+        surface will be slightly inclined (at machine precision) to give
+        steepest descent flow paths to the outlet, once they are calculated.
     ignore_overfill : bool
         If True, suppresses the Error that would normally be raised during
         creation of a gentle incline on a fill surface (i.e., if not
@@ -64,12 +66,10 @@ class SinkFillerBarnes(LakeMapperBarnes):
         occurred.
     """
     def __init__(self, grid, surface='topographic__elevation',
-                 method='d8', fill_flat=False,
+                 method='D8', fill_flat=False,
                  ignore_overfill=False):
         """
-        Initialise the component. Note the heavy inheritance from the
-        LakeMapperBarnes. These are, essentially the same thing, but do
-        slightly different jobs.
+        Initialise the component.
         """
         # Most of the functionality of this component is directly inherited
         # from SinkFillerBarnes, so
@@ -100,7 +100,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> sfb = SinkFillerBarnes(mg, method='steepest')  #, surface=z
+        >>> sfb = SinkFillerBarnes(mg, method='Steepest')  #, surface=z
 
         TODO: once return_array_at_node is fixed, this example should also
         take surface... GIVE IT surface=z  !!
@@ -148,7 +148,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> sfb = SinkFillerBarnes(mg, method='steepest', fill_flat=True)
+        >>> sfb = SinkFillerBarnes(mg, method='Steepest', fill_flat=True)
         >>> sfb.run_one_step()
         >>> sfb.fill_dict  == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
