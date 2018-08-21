@@ -291,7 +291,7 @@ class LakeMapperBarnes(Component):
     }
 
     def __init__(self, grid, surface='topographic__elevation',
-                 method='D8', fill_flat=True,
+                 method='steepest', fill_flat=True,
                  fill_surface='topographic__elevation',
                  redirect_flow_steepest_descent=False,
                  reaccumulate_flow=False,
@@ -390,7 +390,7 @@ class LakeMapperBarnes(Component):
                 'topographic__steepest_slope']
             # if raster, do the neighbors & diagonals separate when rerouting
             # so we'll need to pull these separately:
-            if isinstance(grid, RasterModelGrid) and method == 'D8':
+            if method == 'D8':  # Raster test unnecessary given tests above
                 self._neighbor_arrays = (
                     self.grid.adjacent_nodes_at_node,
                     self.grid.diagonal_adjacent_nodes_at_node)
@@ -916,14 +916,16 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6), 2.)
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z_new = mg.add_zeros('node', 'topographic__fill', dtype=float)
-        >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
+        >>> lmb = LakeMapperBarnes(mg, method='D8',
+        ...                        surface='topographic__elevation',
         ...                        fill_surface='topographic__fill',
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> orig_surf = lmb._track_original_surface()
         >>> z is orig_surf
         True
-        >>> lmb = LakeMapperBarnes(mg, surface='topographic__elevation',
+        >>> lmb = LakeMapperBarnes(mg, method='D8',
+        ...                        surface='topographic__elevation',
         ...                        fill_surface='topographic__elevation',
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
@@ -1386,13 +1388,14 @@ class LakeMapperBarnes(Component):
         >>> z_hex[11] = -3.
         >>> z_hex[12] = -1.  # middle nodes become a pit
         >>> z_hex_init = z_hex.copy()
-        >>> lmb = LakeMapperBarnes(hmg, fill_flat=True, track_lakes=False)
+        >>> lmb = LakeMapperBarnes(hmg, method='steepest', fill_flat=True, track_lakes=False)
         >>> lmb.run_one_step()
         >>> np.allclose(z_hex[10:13], 0.)
         True
         >>> z_hex[:] = z_hex_init
         >>> try:
-        ...     lmb = LakeMapperBarnes(hmg, fill_flat=False,
+        ...     lmb = LakeMapperBarnes(hmg, method='steepest',
+        ...                            fill_flat=False,
         ...                            surface=z_hex_init,
         ...                            redirect_flow_steepest_descent=True,
         ...                            track_lakes=True)
@@ -1400,7 +1403,8 @@ class LakeMapperBarnes(Component):
         ...     print("Oops!")  # flowdir field must already exist!
         Oops!
         >>> fd = FlowDirectorSteepest(hmg)
-        >>> lmb = LakeMapperBarnes(hmg, fill_flat=False, surface=z_hex_init,
+        >>> lmb = LakeMapperBarnes(hmg, method='steepest',
+        ...                        fill_flat=False, surface=z_hex_init,
         ...                        redirect_flow_steepest_descent=True,
         ...                        track_lakes=True)
         >>> fd.run_one_step()
@@ -1458,10 +1462,9 @@ class LakeMapperBarnes(Component):
 
         >>> fd = FlowDirectorSteepest(mg)
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, fill_flat=True,
+        >>> lmb = LakeMapperBarnes(mg, method='D8', fill_flat=True,
         ...                        surface='bedrock__elevation',
         ...                        fill_surface='topographic__elevation',
-        ...                        method='D8',
         ...                        redirect_flow_steepest_descent=True,
         ...                        reaccumulate_flow=True,
         ...                        track_lakes=True)
