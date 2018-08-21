@@ -153,7 +153,7 @@ class LakeMapperBarnes(Component):
         A grid.
     surface : field name at node or array of length node
         The surface to direct flow across.
-    method : {'steepest', 'D8'}
+    method : {'Steepest', 'D8'}
         Whether or not to recognise diagonals as valid flow paths, if a raster.
         Otherwise, no effect.
     fill_flat : bool
@@ -291,7 +291,7 @@ class LakeMapperBarnes(Component):
     }
 
     def __init__(self, grid, surface='topographic__elevation',
-                 method='steepest', fill_flat=True,
+                 method='Steepest', fill_flat=True,
                  fill_surface='topographic__elevation',
                  redirect_flow_steepest_descent=False,
                  reaccumulate_flow=False,
@@ -319,9 +319,9 @@ class LakeMapperBarnes(Component):
         self._track_lakes = track_lakes
 
         # get the neighbour call set up:
-        if method not in {'steepest', 'D8'}:
+        if method not in {'Steepest', 'D8'}:
             raise ValueError(
-                "{method}: method must be 'steepest' or 'D8'".format(
+                "{method}: method must be 'Steepest' or 'D8'".format(
                     method=method))
         if method is 'D8':
             if isinstance(grid, RasterModelGrid):
@@ -405,11 +405,12 @@ class LakeMapperBarnes(Component):
                 self._neighbor_lengths = self.grid.length_of_link
 
         if reaccumulate_flow:
-            assert redirect_flow_steepest_descent, (
-                "You must also redirect_flow_steepest_descent if you want " +
-                "to reaccumulate_flow!")
+            if not redirect_flow_steepest_descent:
+                raise ValueError(
+                    "You must also redirect_flow_steepest_descent if you " +
+                    "want to reaccumulate_flow!")
             self._reaccumulate = True
-            self._fa = FlowAccumulator(self.grid)
+            self._fa = FlowAccumulator(self.grid, flow_director=method)
         else:
             self._reaccumulate = False
 
@@ -457,7 +458,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([11, 17, 23])
@@ -515,7 +516,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([7, ])
@@ -631,7 +632,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([11, 17, 23])
@@ -730,7 +731,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([11, 17, 23])
@@ -753,7 +754,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([11, 17, 23])
@@ -788,7 +789,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([11, 17, 23])
@@ -813,7 +814,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest')
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
         >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
         >>> edges = np.array([7, ])
@@ -974,7 +975,7 @@ class LakeMapperBarnes(Component):
         >>> z_init = z.copy()
         >>> fd = FlowDirectorSteepest(mg)
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=True,
         ...                        redirect_flow_steepest_descent=True,
         ...                        track_lakes=True)
 
@@ -1219,7 +1220,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
@@ -1288,7 +1289,7 @@ class LakeMapperBarnes(Component):
         AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest',
         ...                        fill_flat=False, track_lakes=True)
         >>> lmb.run_one_step()  # compare to the method='D8' lakes, above...
         >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
@@ -1310,7 +1311,7 @@ class LakeMapperBarnes(Component):
         Suppress this behaviour with ignore_overfill:
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest',
         ...                        fill_flat=False, track_lakes=True,
         ...                        ignore_overfill=True)
         >>> lmb.run_one_step()
@@ -1330,7 +1331,7 @@ class LakeMapperBarnes(Component):
         >>> init_areas = mg.at_node['drainage_area'].copy()
         >>> init_qw = mg.at_node['surface_water__discharge'].copy()
 
-        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest',
         ...                        fill_flat=False, track_lakes=True,
         ...                        redirect_flow_steepest_descent=False,
         ...                        ignore_overfill=True)
@@ -1338,7 +1339,7 @@ class LakeMapperBarnes(Component):
         >>> np.all(mg.at_node['flow__receiver_node'] == init_flowdirs)
         True
 
-        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest',
         ...                        fill_flat=False, track_lakes=True,
         ...                        redirect_flow_steepest_descent=True,
         ...                        ignore_overfill=True)
@@ -1355,7 +1356,7 @@ class LakeMapperBarnes(Component):
         >>> np.all(mg.at_node['surface_water__discharge'] == init_qw)
         True
 
-        >>> lmb = LakeMapperBarnes(mg, method='steepest',
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest',
         ...                        fill_flat=False, track_lakes=True,
         ...                        redirect_flow_steepest_descent=True,
         ...                        reaccumulate_flow=True,
@@ -1370,12 +1371,12 @@ class LakeMapperBarnes(Component):
         reaccumulate_flow to True if you want to reaccumulate flow...
 
         >>> try:
-        ...     lmb = LakeMapperBarnes(mg, method='steepest',
+        ...     lmb = LakeMapperBarnes(mg, method='Steepest',
         ...                            fill_flat=False, track_lakes=True,
         ...                            redirect_flow_steepest_descent=False,
         ...                            reaccumulate_flow=True,
         ...                            ignore_overfill=True)
-        ... except AssertionError:
+        ... except ValueError:
         ...     print('Oops!')
         Oops!
 
@@ -1388,13 +1389,13 @@ class LakeMapperBarnes(Component):
         >>> z_hex[11] = -3.
         >>> z_hex[12] = -1.  # middle nodes become a pit
         >>> z_hex_init = z_hex.copy()
-        >>> lmb = LakeMapperBarnes(hmg, method='steepest', fill_flat=True, track_lakes=False)
+        >>> lmb = LakeMapperBarnes(hmg, method='Steepest', fill_flat=True, track_lakes=False)
         >>> lmb.run_one_step()
         >>> np.allclose(z_hex[10:13], 0.)
         True
         >>> z_hex[:] = z_hex_init
         >>> try:
-        ...     lmb = LakeMapperBarnes(hmg, method='steepest',
+        ...     lmb = LakeMapperBarnes(hmg, method='Steepest',
         ...                            fill_flat=False,
         ...                            surface=z_hex_init,
         ...                            redirect_flow_steepest_descent=True,
@@ -1403,7 +1404,7 @@ class LakeMapperBarnes(Component):
         ...     print("Oops!")  # flowdir field must already exist!
         Oops!
         >>> fd = FlowDirectorSteepest(hmg)
-        >>> lmb = LakeMapperBarnes(hmg, method='steepest',
+        >>> lmb = LakeMapperBarnes(hmg, method='Steepest',
         ...                        fill_flat=False, surface=z_hex_init,
         ...                        redirect_flow_steepest_descent=True,
         ...                        track_lakes=True)
@@ -1627,7 +1628,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
@@ -1639,7 +1640,7 @@ class LakeMapperBarnes(Component):
         ...           'Enable tracking to access information about lakes')
         AssertionError was raised: Enable tracking to access information about lakes
 
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
@@ -1669,7 +1670,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
@@ -1681,7 +1682,7 @@ class LakeMapperBarnes(Component):
         ...           'Enable tracking to access information about lakes')
         AssertionError was raised: Enable tracking to access information about lakes
 
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
@@ -1716,7 +1717,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
@@ -1728,7 +1729,7 @@ class LakeMapperBarnes(Component):
         ...           'Enable tracking to access information about lakes')
         AssertionError was raised: Enable tracking to access information about lakes
 
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', surface=z_init,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', surface=z_init,
         ...                        fill_surface=z, fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
@@ -1765,7 +1766,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> lmb.run_one_step()
@@ -1777,7 +1778,7 @@ class LakeMapperBarnes(Component):
         AssertionError was raised: Enable tracking to access information about lakes
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
@@ -1839,7 +1840,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
@@ -1878,7 +1879,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
@@ -1891,7 +1892,7 @@ class LakeMapperBarnes(Component):
         AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        surface=z_init,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
@@ -1936,7 +1937,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=False)
         >>> lmb.run_one_step()
@@ -1948,7 +1949,7 @@ class LakeMapperBarnes(Component):
         AssertionError was raised: Enable tracking to access information about lakes
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
@@ -1992,7 +1993,7 @@ class LakeMapperBarnes(Component):
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
         >>> lmb.run_one_step()
@@ -2005,7 +2006,7 @@ class LakeMapperBarnes(Component):
         AssertionError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        surface=z_init,
         ...                        redirect_flow_steepest_descent=False,
         ...                        track_lakes=True)
@@ -2038,7 +2039,7 @@ class LakeMapperBarnes(Component):
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=True,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=True,
         ...                        redirect_flow_steepest_descent=False,
         ...                        ignore_overfill=False, track_lakes=True)
         >>> lmb.run_one_step()
@@ -2051,7 +2052,7 @@ class LakeMapperBarnes(Component):
         AssertionError was raised: was_there_overfill is only defined if filling to an inclined surface!
 
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        ignore_overfill=False, track_lakes=True)
         >>> try:
@@ -2065,7 +2066,7 @@ class LakeMapperBarnes(Component):
         ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
 
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        ignore_overfill=True, track_lakes=True)
         >>> lmb.run_one_step()
@@ -2078,7 +2079,7 @@ class LakeMapperBarnes(Component):
         True
 
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1., 1.5]
-        >>> lmb = LakeMapperBarnes(mg, method='steepest', fill_flat=False,
+        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
         ...                        redirect_flow_steepest_descent=False,
         ...                        ignore_overfill=True, track_lakes=True)
         >>> lmb.run_one_step()

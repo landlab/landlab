@@ -83,7 +83,7 @@ def test_neighbor_shaping_D4():
     mg.add_zeros('node', 'topographic__steepest_slope', dtype=float)
     mg.add_zeros('node', 'flow__receiver_node', dtype=int)
     mg.add_zeros('node', 'flow__link_to_receiver_node', dtype=int)
-    lmb = LakeMapperBarnes(mg, method='steepest',
+    lmb = LakeMapperBarnes(mg, method='Steepest',
                            redirect_flow_steepest_descent=True)
     for arr in (lmb._neighbor_arrays, lmb._link_arrays):
         assert len(arr) == 1
@@ -102,3 +102,15 @@ def test_neighbor_shaping_hex():
         assert len(arr) == 1
         assert arr[0].shape == (hmg.number_of_nodes, 6)
     assert len(lmb._neighbor_lengths) == hmg.number_of_links
+
+
+def test_accum_wo_reroute():
+    mg = RasterModelGrid((5, 5), dx=1.)
+    mg.add_zeros('node', 'topographic__elevation', dtype=float)
+    mg.add_zeros('node', 'topographic__steepest_slope', dtype=float)
+    mg.add_zeros('node', 'flow__receiver_node', dtype=int)
+    mg.add_zeros('node', 'flow__link_to_receiver_node', dtype=int)
+    with pytest.raises(ValueError):
+        lmb = LakeMapperBarnes(mg, method='Steepest',
+                               redirect_flow_steepest_descent=False,
+                               reaccumulate_flow=True)
