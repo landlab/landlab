@@ -382,7 +382,8 @@ class LakeMapperBarnes(Component):
             # never see this.
             assert len(FlowDirectorSteepest.output_var_names) == 4
             self._receivers = self.grid.at_node['flow__receiver_node']
-            if len(self._receivers.shape) != 1:
+            if len(self._receivers.shape) != 1 or (
+                    'flow__receiver_nodes' in grid.at_node.keys()):
                 raise ValueError(
                     'The LakeFillerBarnes does not yet work with route-to-' +
                     'many flow directing schemes!')
@@ -426,7 +427,8 @@ class LakeMapperBarnes(Component):
                                 pitq, openq, closedq, ignore_overfill):
         """
         Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface, updating a single node. Assumes the _open and _closed lists have already been updated per Barnes algos 2&3, lns 1-7.
+        surface, updating a single node. Assumes the _open and _closed lists
+        have already been updated per Barnes algos 2&3, lns 1-7.
 
         Parameters
         ----------
@@ -549,7 +551,13 @@ class LakeMapperBarnes(Component):
         else:
             nopit = False
         if not (nopit or noopen):
+            # not clear how this occurs, but present in Barnes ->
+            # DEJH suspects this should be an elevation comparison given the
+            # text description. Regardless, this is only to ensure
+            # repeatability, so it's not vital even if these cases don't
+            # trigger
             if topopen == toppit:  # intentionally tight comparison
+                # print('yessssss')
                 c = openq.pop_task()
                 self._PitTop = LARGE_ELEV
         if not nopit:
@@ -567,9 +575,11 @@ class LakeMapperBarnes(Component):
                 closedq[n] = True
             nextval = np.nextafter(
                 fill_surface[c], LARGE_ELEV)
-            if self._gridclosednodes[n]:
-                heapq.heappush(pitq, n)
-            elif fill_surface[n] <= nextval:
+            # DEJH believes that in the LL use cases this is impossible,
+            # but retained as comments since present in Barnes algorithm
+            # if self._gridclosednodes[n]:
+            #     heapq.heappush(pitq, n)
+            if fill_surface[n] <= nextval:  # former elif
                 if (self._PitTop < fill_surface[n] and
                         nextval >= fill_surface[n]):
                     if ignore_overfill:
@@ -851,6 +861,8 @@ class LakeMapperBarnes(Component):
                 toppit = None
             else:
                 nopit = False
+            # as above, DEJH is unclear how this clause triggers, so
+            # retained but untested ->
             if (not (nopit or noopen)) and (topopen == toppit):
                 # intentionally tight comparison
                 c = openq.pop_task()
@@ -883,9 +895,10 @@ class LakeMapperBarnes(Component):
                     closedq[n] = True
                 nextval = np.nextafter(
                     fill_surface[c], LARGE_ELEV)
-                if self._gridclosednodes[n]:
-                    heapq.heappush(pitq, n)
-                elif fill_surface[n] <= nextval:
+                # as in non-tracker, DEJH believes this is redundant in LL
+                # if self._gridclosednodes[n]:
+                #     heapq.heappush(pitq, n)
+                if fill_surface[n] <= nextval:  # formerly elif
                     if (self._PitTop < fill_surface[n] and
                             nextval >= fill_surface[n]):
                         if ignore_overfill:
@@ -950,7 +963,8 @@ class LakeMapperBarnes(Component):
         'flow__sink_flag', and 'topographic__steepest_slope'.
 
         Note that the topographic__steepest_slope of a lake node will always
-        be exactly 0., even if fill_flat is False.
+        be exactly 0., even if fill_flat is False. This is because we are
+        adding an increment to elevation at machine precision.
 
         Examples
         --------
