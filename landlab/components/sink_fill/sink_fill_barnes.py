@@ -8,6 +8,7 @@ algorithms.
 """
 
 from __future__ import print_function
+from six import iteritems
 
 import warnings
 
@@ -252,7 +253,6 @@ class SinkFillerBarnes(LakeMapperBarnes):
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
         col_vols = self.grid.cell_area_at_node * self.fill_depths
-        for (i, (outlet, fillnodes)) in enumerate(
-             self.fill_dict.iteritems()):
+        for (i, (outlet, fillnodes)) in enumerate(iteritems(self.fill_dict)):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols
