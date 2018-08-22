@@ -65,6 +65,9 @@ def flow_directions_mfd(elev,
         For each receiver, the proportion of flow (between 0 and 1) is given.
         A proportion of zero indicates that the link does not have flow along
         it.
+    slopes: ndarray of size (num nodes, max neighbors at node)
+        For each reciever, the slope value (positive downhill) in the direction
+        of flow.
     steepest_slope : ndarray
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
@@ -98,6 +101,7 @@ def flow_directions_mfd(elev,
     >>> slopes_to_neighbors_at_node = link_slope[links_at_node]*active_link_dir_at_node
     >>> (receivers,
     ... proportions,
+    ... slopes,
     ... steepest_slope,
     ... steepest_receiver,
     ... sink,
@@ -155,6 +159,7 @@ def flow_directions_mfd(elev,
     ...                         np.arctan(diag_grads)))
     >>> (receivers,
     ... proportions,
+    ... slopes,
     ... steepest_slope,
     ... steepest_receiver,
     ... sink,
@@ -305,7 +310,7 @@ def flow_directions_mfd(elev,
     (sink, ) = np.where(node_id==receivers[:,0])
     sink = as_id_array(sink)
 
-    return (receivers, proportions, steepest_slope, steepest_receiver, sink,
+    return (receivers, proportions, slopes_to_neighbors_at_node, steepest_slope, steepest_receiver, sink,
             receiver_links, steepest_link)
 
 if __name__ == '__main__':

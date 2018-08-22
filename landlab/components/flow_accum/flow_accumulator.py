@@ -78,20 +78,16 @@ class FlowAccumulator(Component):
     fields:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_nodes'*. This array is 2D, and is
+           there is no receiver: *'flow__receiver_node'*. This array is 2D, and is
            of dimension (number of nodes x max number of receivers).
         -  Node array of flow proportions: *'flow__receiver_proportions'*. This
            array is 2D, and is of dimension (number of nodes x max number of
            receivers).
-        -  Node array of links carrying flow:  *'flow__links_to_receiver_nodes'*.
+        -  Node array of links carrying flow:  *'flow__links_to_receiver_node'*.
            This array is 2D, and is of dimension (number of nodes x max number of
            receivers).
-        -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*
-        -  Node array of steepest downhill slope from each receiver:
+        -  Node array of downhill slopes from each receiver:
            *'topographic__steepest_slope'*
-        -  Node array containing ID of steepest link that leads from each node to a
-           receiver, or BAD_INDEX_VALUE if no link:
-           *'flow__link_to_receiver_node'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`
@@ -268,7 +264,7 @@ class FlowAccumulator(Component):
     ...                      flow_director='MFD',
     ...                      diagonals = True)
     >>> fa.run_one_step()
-    >>> mg.at_node['flow__receiver_nodes'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
     array([[ 0, -1, -1, -1, -1, -1, -1, -1],
            [ 1, -1, -1, -1, -1, -1, -1, -1],
            [ 2, -1, -1, -1, -1, -1, -1, -1],
@@ -969,7 +965,7 @@ class FlowAccumulator(Component):
 
         else:
             # step 2. Get r and p
-            r = self._grid['node']['flow__receiver_nodes']
+            r = self._grid['node']['flow__receiver_node']
             p = self._grid['node']['flow__receiver_proportions']
 
             # step 2. Stack, D, delta construction

@@ -77,11 +77,8 @@ def test_check_fields():
     z1 = mg1.add_field('topographic__elevation', mg1.node_x**2 + mg1.node_y**2, at = 'node')
     fd1 = _FlowDirectorToMany(mg1, 'topographic__elevation')
     assert sorted(list(mg1.at_node.keys())) == [
-        'flow__link_to_receiver_node',
-        'flow__receiver_node',
         'flow__sink_flag',
         'topographic__elevation',
-        'topographic__steepest_slope',
     ]
     assert np.size(mg1.at_node['topographic__elevation']) == mg1.number_of_nodes
 
@@ -103,9 +100,7 @@ def test_check_fields():
     fd3 = FlowDirectorMFD(mg3, 'topographic__elevation')
     assert sorted(list(mg3.at_node.keys())) == [
         'flow__link_to_receiver_node',
-        'flow__links_to_receiver_nodes',
         'flow__receiver_node',
-        'flow__receiver_nodes',
         'flow__receiver_proportions',
         'flow__sink_flag',
         'topographic__elevation',
@@ -118,9 +113,7 @@ def test_check_fields():
     fd4 = FlowDirectorDINF(mg4, 'topographic__elevation')
     assert sorted(list(mg4.at_node.keys())) == [
         'flow__link_to_receiver_node',
-        'flow__links_to_receiver_nodes',
         'flow__receiver_node',
-        'flow__receiver_nodes',
         'flow__receiver_proportions',
         'flow__sink_flag',
         'topographic__elevation',
