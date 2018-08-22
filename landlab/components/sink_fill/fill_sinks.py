@@ -123,6 +123,12 @@ class SinkFiller(Component):
             The slope added to the top surface of filled pits to allow flow
             routing across them, if apply_slope.
         """
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                raise ValueError('A route-to-multiple flow director has been '
+                                 'run on this grid. SinkFiller is not compatible '
+                                 'with route-to-multiple methods.')
+
         self._grid = grid
         if routing is not 'D8':
             assert routing is 'D4'
