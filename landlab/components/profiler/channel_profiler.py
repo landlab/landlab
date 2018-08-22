@@ -30,7 +30,7 @@ class ChannelProfiler(Profiler):
 
 
     You can specify how many differents stream networks it handles using the
-    number_of_channels parameter in the channel_nodes function (default is 1). The
+    number_of_watersheds parameter in the channel_nodes function (default is 1). The
     specific node ids for the beginning of the chanel can be passed with the
     keyword argument starting_nodes. If it is not specified, then the stream
     networks(s) will be chosed based on largest terminal drainage area.
@@ -44,7 +44,7 @@ class ChannelProfiler(Profiler):
 
     The functions will return the profile datastructure profile_structure and the
     distance upstream datastructure distances_upstream. rofile structure is a list
-    of length number_of_channels. Each element of profile_structure is itself a
+    of length number_of_watersheds. Each element of profile_structure is itself a
     list of length number of stream  segments that drain to each of the starting
     nodes. Each stream segment list contains the node ids of a stream segment from
     downstream to upstream. distances_upstream provides the equivalent structure
@@ -144,15 +144,15 @@ class ChannelProfiler(Profiler):
     >>> profiler = ChannelProfiler(mg,
     ...                            threshold = 100,
     ...                            starting_nodes = [0],
-    ...                            number_of_channels=1)
+    ...                            number_of_watersheds=1)
 
     It is important that the length of starting nodes is the same as the value
-    of number_of_channels. If this is not the case, then an error will occur.
+    of number_of_watersheds. If this is not the case, then an error will occur.
 
     Attributes
     ----------
     profile_structure, the channel segment datastructure.
-            profile structure is a list of length number_of_channels. Each
+            profile structure is a list of length number_of_watersheds. Each
             element of profile_structure is itself a list of length number of
             stream segments that drain to each of the starting nodes. Each
             stream segment list contains the node ids of a stream segment from
@@ -161,7 +161,7 @@ class ChannelProfiler(Profiler):
             A datastructure that parallels profile_structure but holds
             distances upstream instead of node IDs.
 
-            Both lists are number_of_channels long.
+            Both lists are number_of_watersheds long.
 
     """
     def __init__(self, grid,
@@ -181,10 +181,10 @@ class ChannelProfiler(Profiler):
             Flag to determine if only the main channel should be plotted, or if all
             stream segments with drainage area less than threshold should be
             plotted. Default value is True.
-        starting_nodes : length number_of_channels itterable, optional
-            Length number_of_channels itterable containing the node IDs of nodes
+        starting_nodes : length number_of_watersheds itterable, optional
+            Length number_of_watersheds itterable containing the node IDs of nodes
             to start the channel profiles from. If not provided, the default is the
-            number_of_channels node IDs on the model grid boundary with the largest
+            number_of_watersheds node IDs on the model grid boundary with the largest
             terminal drainage area
         threshold : float, optional
             Value to use for the minimum drainage area associated with a plotted
@@ -198,11 +198,11 @@ class ChannelProfiler(Profiler):
         if threshold is None:
             threshold = 2. * np.amin(grid.area_of_cell)
         self.threshold = threshold
-        
+
         # verify that the number of starting nodes is the specified number of channels
         if starting_nodes is not None:
             if len(starting_nodes) is not number_of_watersheds:
-                msg = "Length of starting_nodes must equal the number_of_channels!"
+                msg = "Length of starting_nodes must equal the number_of_watersheds!"
                 raise ValueError(msg)
         else:
             starting_nodes = grid.boundary_nodes[np.argsort(
@@ -308,7 +308,7 @@ class ChannelProfiler(Profiler):
         Create the profile_IDs data structure for channel network.
 
         The bound attribute self.profile structure is the channel segment
-        datastructure. profile structure is a list of length number_of_channels. Each element
+        datastructure. profile structure is a list of length number_of_watersheds. Each element
         of profile_structure is itself a list of length number of stream
         segments that drain to each of the starting nodes. Each stream segment
         list contains the node ids of a stream segment from downstream to
