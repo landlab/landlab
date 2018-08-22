@@ -54,8 +54,9 @@ def flow_directions_dinf(grid,
         A proportion of zero indicates that the link does not have flow along
         it.
     slopes: ndarray of size (num nodes, max neighbors at node)
-        For each reciever, the slope value (positive downhill) in the direction
-        of flow.
+        For each node in the array ``recievers``, the slope value (positive
+        downhill) in the direction of flow. If no flow occurs (value of
+        ``recievers`` is -1), then this array is set to 0.
     steepest_slope : ndarray
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
@@ -124,7 +125,16 @@ def flow_directions_dinf(grid,
            [ 3,  4],
            [ 6,  3],
            [ 7,  4]])
-
+    >>> slopes
+    array([[-2.        , -0.        ],
+           [ 2.        ,  0.70710678],
+           [ 2.        ,  0.70710678],
+           [ 1.        , -0.70710678],
+           [ 2.        ,  2.12132034],
+           [ 2.        ,  2.12132034],
+           [ 1.        , -0.70710678],
+           [ 2.        ,  2.12132034],
+           [ 2.        ,  2.12132034]])
     >>> proportions
     array([[ 1.        ,  0.        ],
            [ 1.        , -0.        ],
@@ -415,7 +425,6 @@ def flow_directions_dinf(grid,
 
     steepest_receiver = receivers[slope_sort]
     steepest_receiver[drains_to_self] = node_id[drains_to_self]
-
 
     # Optionally, handle baselevel nodes: they are their own receivers
     if baselevel_nodes is not None:

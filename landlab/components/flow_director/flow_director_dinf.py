@@ -34,11 +34,13 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     -  Node array of flow proportions: *'flow__receiver_proportions'*. This
        array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of links carrying flow:  *'flow__links_to_receiver_node'*.
+    -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of steepest downhill slope from each receiver:
-       *'topographic__steepest_slope'*
+    -  Node array of downhill slopes cooresponding to each receiver.:
+       *'topographic__steepest_slope'* This array is 2D, and is
+       of dimension (number of nodes x max number of receivers). If the slope is
+       uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -90,8 +92,8 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [10,  9],
            [-1, 10]])
 
-    It also stores the proportions of flow going to each receiver and the link
-    on which the flow moves in at node arrays.
+    It also stores the proportions of flow going to each receiver, the link on
+    which the flow moves in at node arrays, and the slope of each link.
 
     >>> mg.at_node['flow__receiver_proportions'] # doctest: +NORMALIZE_WHITESPACE
     array([[ 1.        ,  0.        ],

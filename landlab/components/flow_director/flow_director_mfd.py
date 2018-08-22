@@ -22,6 +22,13 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     """Multiple-path flow direction with or without out diagonals.
 
+    Directs flow by the multiple flow direction method. Each node is assigned
+    multiple flow directions, toward all of the N neighboring nodes that are
+    lower than it. If none of the neighboring nodes are lower, the location is
+    identified as a pit. Flow proportions can be calculated as proportional to
+    slope or proportional to the square root of slope, which is the solution to
+    a steady kinematic wave.
+
     Specifically, it stores as ModelGrid fields:
 
     -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
@@ -33,11 +40,10 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of steepest downhill slope from each receiver:
-       *'topographic__steepest_slope'*
-    -  Node array containing ID of steepest link that leads from each node to a
-       receiver, or BAD_INDEX_VALUE if no link:
-       *'flow__link_to_receiver_node'*
+    -  Node array of downhill slopes cooresponding to each receiver.:
+       *'topographic__steepest_slope'* This array is 2D, and is
+       of dimension (number of nodes x max number of receivers). If the slope is
+       uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -114,12 +120,12 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1]])
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0.        ,  0.        ,  0.        ,  0.        , -1.41421356,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        , -1.        ,  0.        ,  0.        ,  0.        ,
+    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  0.        ,  0.        ],
            [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            -0.        ,  0.        ,  0.        ],
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
            [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  0.        ,  0.        ],
            [ 0.        ,  0.        ,  0.        ,  1.        ,  0.        ,
@@ -273,25 +279,25 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1]])
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0. , -1.5,  0. ,  0. ,  0. ,  0. ],
-           [ 0. , -1.5, -0.5,  0. ,  0. ,  0. ],
-           [ 0. , -0.5,  0. ,  0. ,  0. ,  0. ],
-           [-1. , -1.5,  0. ,  0. ,  0. ,  0. ],
-           [-1. , -1.5, -0.5,  1. ,  1.5,  0.5],
-           [-1. , -1.5, -0.5,  1. ,  1.5,  0.5],
-           [ 0. , -0.5,  1. ,  0. ,  0. ,  0. ],
-           [-1. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [-1. , -1.5, -0.5,  1. ,  1.5,  0.5],
-           [-1. , -1.5, -0.5,  1. ,  1.5,  0.5],
-           [-1. , -1.5, -0.5,  1. ,  1.5,  0.5],
+    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
+           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
+           [ 0. ,  0. ,  1. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
+           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
+           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
            [ 0. ,  1. ,  0. ,  0. ,  0. ,  0. ],
-           [-1. ,  0. ,  0. ,  0.5,  0. ,  0. ],
-           [-1. , -0.5,  0.5,  1. ,  1.5,  0.5],
-           [-1. , -0.5,  0.5,  1. ,  1.5,  0.5],
-           [-0. ,  1. ,  1.5,  0. ,  0. ,  0. ],
-           [ 0. ,  0. , -0.5,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0.5, -0.5,  0. ,  0. ],
-           [ 0. ,  0.5, -0. ,  0. ,  0. ,  0. ]])
+           [ 0. ,  0. ,  0. ,  0.5,  0. ,  0. ],
+           [ 0. ,  0. ,  0.5,  1. ,  1.5,  0.5],
+           [ 0. ,  0. ,  0.5,  1. ,  1.5,  0.5],
+           [ 0. ,  1. ,  1.5,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0.5,  0. ,  0. ,  0. ],
+           [ 0. ,  0.5,  0. ,  0. ,  0. ,  0. ]])
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1,
            1, 0, 0, 1,

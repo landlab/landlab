@@ -42,7 +42,6 @@ class FlowAccumulator(Component):
     directing, depression finding, and flow routing can all be accomplished
     together.
 
-
     NOTE: The perimeter nodes  NEVER contribute to the accumulating flux, even
     if the  gradients from them point inwards to the main body of the grid.
     This is because under Landlab definitions, perimeter nodes lack cells, so
@@ -59,35 +58,25 @@ class FlowAccumulator(Component):
         -  Link array of the D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields.
-    DirectToOne methods(Steepest/D4 and D8) and DirectToMany(NAMES HERE) use
-    different model grid fields.
+    DirectToOne methods(Steepest/D4 and D8) and DirectToMany(DINF and MFD) use
+    the same model grid field names. Some of these fields will be different
+    shapes if a DirectToOne or a DirectToMany method is used.
 
-    DirectToOne Methods (Steeptest/D4 and D8) store the following as ModelGrid
-    fields:
-
-        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*
-        -  Node array of steepest downhill slopes:
-           *'topographic__steepest_slope'*
-        -  Node array containing ID of link that leads from each node to its
-           receiver, or BAD_INDEX_VALUE if no link:
-           *'flow__link_to_receiver_node'*
-        -  Boolean node array of all local lows: *'flow__sink_flag'*
-
-    DirectToMany Methods (MFD) store the following as ModelGrid
-    fields:
+    The FlowDirectors store the following as ModelGrid fields:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*. This array is 2D, and is
-           of dimension (number of nodes x max number of receivers).
+           there is no receiver: *'flow__receiver_node'*. This array is 2D for
+           RouteToMany methods and has the shape
+           (n-nodes x max number of receivers).
         -  Node array of flow proportions: *'flow__receiver_proportions'*. This
-           array is 2D, and is of dimension (number of nodes x max number of
-           receivers).
-        -  Node array of links carrying flow:  *'flow__links_to_receiver_node'*.
-           This array is 2D, and is of dimension (number of nodes x max number of
-           receivers).
+           array is 2D, for RouteToMany methods and has the shape
+           (n-nodes x max number of receivers).
+        -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
+           This array is 2D for RouteToMany methods and has the shape
+           (n-nodes x max number of receivers).
         -  Node array of downhill slopes from each receiver:
-           *'topographic__steepest_slope'*
+           *'topographic__steepest_slope'* This array is 2D for RouteToMany
+           methods and has the shape (n-nodes x max number of receivers).
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`

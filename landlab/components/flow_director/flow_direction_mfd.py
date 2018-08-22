@@ -66,8 +66,9 @@ def flow_directions_mfd(elev,
         A proportion of zero indicates that the link does not have flow along
         it.
     slopes: ndarray of size (num nodes, max neighbors at node)
-        For each reciever, the slope value (positive downhill) in the direction
-        of flow.
+        For each node in the array ``recievers``, the slope value (positive
+        downhill) in the direction of flow. If no flow occurs (value of
+        ``recievers`` is -1), then this array is set to 0.
     steepest_slope : ndarray
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
@@ -200,6 +201,25 @@ def flow_directions_mfd(elev,
              0.        ,  0.        ,  0.        ],
            [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  1.        ,  0.        ]])
+    >>> slopes
+    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.78539816,  0.78539816,  0.        ,
+             0.        ,  0.95531662,  0.        ],
+           [ 0.        ,  0.        ,  0.78539816,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.78539816,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.95531662,  0.        ]])
     >>> proportions.sum(axis=-1)
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     """
@@ -309,6 +329,9 @@ def flow_directions_mfd(elev,
     # nodes that are also interior nodes).
     (sink, ) = np.where(node_id==receivers[:,0])
     sink = as_id_array(sink)
+
+    slopes_to_neighbors_at_node[flow_does_not_occur] = 0
+    slopes_to_neighbors_at_node[inactive_link_to_neighbor] = 0
 
     return (receivers, proportions, slopes_to_neighbors_at_node, steepest_slope, steepest_receiver, sink,
             receiver_links, steepest_link)
