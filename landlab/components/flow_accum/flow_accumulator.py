@@ -808,10 +808,11 @@ class FlowAccumulator(Component):
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
             if self.flow_director._name in ('FlowDirectorMFD',
                                             'FlowDirectorDINF'):
-                raise ValueError('The depression finder only works with route '
-                                 'to one FlowDirectors such as '
-                                 'FlowDirectorSteepest and  FlowDirectorD8. '
-                                 'Provide a different FlowDirector.')
+                msg = ('The depression finder only works with route '
+                       'to one FlowDirectors such as '
+                       'FlowDirectorSteepest and  FlowDirectorD8. '
+                       'Provide a different FlowDirector.')                            
+                raise NotImplementedError(msg)
 
             # if D4 is being used here and should be.
             if ((('routing' not in kw) or (kw['routing'] != 'D4')) and

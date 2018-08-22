@@ -125,9 +125,10 @@ class SinkFiller(Component):
         """
         if 'flow__receiver_node' in grid.at_node:
             if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-                raise ValueError('A route-to-multiple flow director has been '
-                                 'run on this grid. SinkFiller is not compatible '
-                                 'with route-to-multiple methods.')
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. SinkFiller is not compatible '
+                       'with route-to-multiple methods.')
+                raise NotImplementedError(msg)
 
         self._grid = grid
         if routing is not 'D8':

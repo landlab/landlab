@@ -191,11 +191,13 @@ class DepressionFinderAndRouter(Component):
 
         if 'flow__receiver_node' in self._grid.at_node:
             if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
-                    raise ValueError('A route-to-multiple flow director has been '
-                                     'run on this grid. The depression finder is '
-                                     'not compatible with the grid anymore. Use '
-                                     'DepressionFinderAndRouter with reroute_flow='
-                                     'True only with route-to-one methods.')
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The depression finder is '
+                       'not compatible with the grid anymore. Use '
+                       'DepressionFinderAndRouter with reroute_flow='
+                       'True only with route-to-one methods.')
+                raise NotImplementedError(msg)
+
         self._initialize()
 
     def _initialize(self, input_stream=None):

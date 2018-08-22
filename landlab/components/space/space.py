@@ -217,9 +217,10 @@ class Space(_GeneralizedErosionDeposition):
 
         """
         if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            raise ValueError('A route-to-multiple flow director has been '
-                             'run on this grid. SPACE is not compatible with '
-                             'route-to-multiple methods.')
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. SPACE is not compatible with '
+                   'route-to-multiple methods.')
+            raise NotImplementedError(msg)
 
         super(Space, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
                                     phi=phi, F_f=F_f, v_s=v_s,

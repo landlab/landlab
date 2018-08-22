@@ -203,19 +203,19 @@ def test_error_for_to_many_with_depression():
     z1 = mg1.add_field('topographic__elevation', mg1.node_x**2 + mg1.node_y**2, at = 'node')
 
 
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         FlowAccumulator(mg0, flow_director='MFD', depression_finder='DepressionFinderAndRouter')
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         FlowAccumulator(mg0, flow_director='DINF', depression_finder='DepressionFinderAndRouter')
 
     fa0 = FlowAccumulator(mg0, flow_director='MFD')
     fa0.run_one_step()
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         DepressionFinderAndRouter(mg0)
 
     fa1 = FlowAccumulator(mg1, flow_director='DINF')
     fa1.run_one_step()
-    with pytest.raises(ValueError):
+    with pytest.raises(NotImplementedError):
         DepressionFinderAndRouter(mg1)
 
 
