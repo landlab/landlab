@@ -111,25 +111,25 @@ class _FlowDirectorToOne(_FlowDirector):
         super(_FlowDirectorToOne, self).__init__(grid, surface)
         self.to_n_receivers = 'one'
         # initialize new fields
-        try:
+        if 'flow__receiver_node' not in grid.at_node:
             self.receiver = grid.add_field('flow__receiver_node',
                                            BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                            at='node', dtype=int)
-        except FieldError:
+        else:
             self.receiver = grid.at_node['flow__receiver_node']
 
-        try:
+        if 'topographic__steepest_slope' not in grid.at_node:
             self.steepest_slope = grid.add_zeros(
                 'topographic__steepest_slope', at='node', dtype=float)
-        except FieldError:
+        else:
             self.steepest_slope = grid.at_node['topographic__steepest_slope']
 
-        try:
+        if 'flow__link_to_receiver_node' not in grid.at_node:
             self.links_to_receiver = grid.add_field('flow__link_to_receiver_node',
                                                     BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                                     at='node', dtype=int)
 
-        except FieldError:
+        else:
             self.links_to_receiver = grid.at_node[
                 'flow__link_to_receiver_node']
 

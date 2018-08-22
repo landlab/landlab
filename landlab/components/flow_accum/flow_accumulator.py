@@ -627,36 +627,34 @@ class FlowAccumulator(Component):
         #   - D array
         #   - delta array
         #   - missing nodes in stack.
-        try:
+        if 'drainage_area' not in grid.at_node:
             self.drainage_area = grid.add_zeros('drainage_area', at='node',
                                                 dtype=float)
-        except FieldError:
+        else:
             self.drainage_area = grid.at_node['drainage_area']
 
-        try:
+        if 'surface_water__discharge' not in grid.at_node:
             self.discharges = grid.add_zeros('surface_water__discharge',
                                              at='node', dtype=float)
-        except FieldError:
+        else:
             self.discharges = grid.at_node['surface_water__discharge']
 
-        try:
+        if 'flow__upstream_node_order' not in grid.at_node:
             self.upstream_ordered_nodes = grid.add_field('flow__upstream_node_order',
                                                          BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                                          at='node', dtype=int)
-
-        except FieldError:
+        else:
             self.upstream_ordered_nodes = grid.at_node[
                 'flow__upstream_node_order']
 
-        try:
+        if 'flow__data_structure_delta' not in grid.at_node:
             self.delta_structure = grid.add_field('flow__data_structure_delta',
                                                   BAD_INDEX_VALUE*grid.ones(at='node', dtype=int),
                                                   at='node', dtype=int)
-        except FieldError:
+        else:
             self.delta_structure = grid.at_node['flow__data_structure_delta']
 
-        try:
-
+        if 'flow__data_structure_D' not in grid.at_link:
             if self.flow_director.to_n_receivers == 'many' and self._is_raster:
                 # needs to be BAD_INDEX_VALUE
                 self.D_structure = grid.add_field('flow__data_structure_D',
@@ -666,12 +664,11 @@ class FlowAccumulator(Component):
                                                   dtype=int,
                                                   noclobber=False)
             else:
-
                 # needs to be BAD_INDEX_VALUE
                 self.D_structure = grid.add_field('flow__data_structure_D',
                                                   BAD_INDEX_VALUE*grid.ones(at='link'),
                                                   at='link', dtype=int)
-        except FieldError:
+        else:
             self.D_structure = grid.at_link['flow__data_structure_D']
 
         self.nodes_not_in_stack = True

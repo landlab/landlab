@@ -322,14 +322,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             'square_root_of_slope'.
         """
         # unpack kwargs:
-        try:
-            partition_method = kwargs.pop('partition_method')
-        except:
-            partition_method = 'slope'
-        try:
-            diagonals = kwargs.pop('diagonals')
-        except:
-            diagonals = False
+        partition_method = kwargs.get('partition_method', 'slope')
+        diagonals = kwargs.get('diagonals', False)
 
         self.method = 'MFD'
         super(FlowDirectorMFD, self).__init__(grid, surface)
