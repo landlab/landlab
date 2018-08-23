@@ -1,13 +1,5 @@
 #! /usr/bin/env python
 
-from nose.tools import assert_equal, assert_true, assert_false
-try:
-    from nose.tools import (assert_tuple_equal, assert_is_not, assert_is_none,
-                            assert_is_not_none, assert_is)
-except ImportError:
-    from landlab.testing.tools import (assert_tuple_equal, assert_is_not,
-                                       assert_is_none, assert_is_not_none,
-                                       assert_is)
 from numpy.testing import assert_array_equal
 import numpy as np
 
@@ -70,8 +62,8 @@ def test_round_off_error():
                                (5.4563957090392, 5.4563957090392),
                                (0., 0.))
 
-    assert_tuple_equal(x.shape, (135 * 127, ))
-    assert_tuple_equal(y.shape, (135 * 127, ))
+    assert x.shape == (135 * 127, )
+    assert y.shape == (135 * 127, )
 
 
 def test_2d_shape_2_by_3():
@@ -214,34 +206,34 @@ def test_no_active_cells():
 # class TestCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_one_cell():
     n_cells = sgrid.cell_count((3, 3))
-    assert_equal(n_cells, 1)
+    assert n_cells == 1
 
 
 def test_no_cells():
     n_cells = sgrid.cell_count((2, 3))
-    assert_equal(n_cells, 0)
+    assert n_cells == 0
 
 
 # class TestInteriorCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_one_cell():
     n_cells = sgrid.interior_cell_count((3, 3))
-    assert_equal(n_cells, 1)
+    assert n_cells == 1
 
 
 def test_no_cells():
     n_cells = sgrid.interior_cell_count((2, 3))
-    assert_equal(n_cells, 0)
+    assert n_cells == 0
 
 
 # class TestActiveCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_one_cell():
     n_cells = sgrid.active_cell_count((3, 3))
-    assert_equal(n_cells, 1)
+    assert n_cells == 1
 
 
 def test_no_cells():
     n_cells = sgrid.active_cell_count((2, 3))
-    assert_equal(n_cells, 0)
+    assert n_cells == 0
 
 
 # class TestInteriorNodes(unittest.TestCase, NumpyArrayTestingMixIn):
@@ -258,7 +250,7 @@ def test_no_interiors():
 # class TestNodeStatus(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_4_by_5():
     status = sgrid.stat_at_node((4, 5))
-    assert_equal(status.dtype, np.int8)
+    assert status.dtype == np.int8
     assert_array_equal(status,
                        np.array([1, 1, 1, 1, 1,
                                  1, 0, 0, 0, 1,
@@ -268,7 +260,7 @@ def test_4_by_5():
 
 def test_no_interiors():
     status = sgrid.status_at_node((2, 3))
-    assert_equal(status.dtype, np.int8)
+    assert status.dtype == np.int8
     assert_array_equal(status,
                        np.array([1, 1, 1,
                                  1, 1, 1, ]))
@@ -297,7 +289,7 @@ def test_4_by_5():
     assert_array_equal(active_links,
                        np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                  19, 20, 21, 22, 23, 24, 25, 26]))
-    assert_equal(len(active_links), sgrid.active_link_count((4, 5)))
+    assert len(active_links) == sgrid.active_link_count((4, 5))
 
 
 def test_with_status_at_node():
@@ -317,77 +309,77 @@ def test_with_link_nodes():
     assert_array_equal(active_links,
                        np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
                                  19, 20, 21, 22, 23, 24, 25, 26]))
-    assert_equal(len(active_links), sgrid.active_link_count((4, 5)))
+    assert len(active_links) == sgrid.active_link_count((4, 5))
 
 
 def test_vertical_active_link_count():
     link_count = sgrid.vertical_active_link_count((3, 4))
-    assert_equal(4, link_count)
+    assert 4 == link_count
 
     link_count = sgrid.vertical_active_link_count((3, 2))
-    assert_equal(0, link_count)
+    assert 0 == link_count
 
     node_status = np.ones((4, 5), dtype=np.int)
     link_count = sgrid.vertical_active_link_count((4, 5),
                                                   node_status=node_status)
-    assert_equal(9, link_count)
+    assert 9 == link_count
 
     link_count = sgrid.vertical_active_link_count((4, 5),
                                                   node_status=node_status)
     node_status[0, 1] = 0
     link_count = sgrid.vertical_active_link_count((4, 5),
                                                   node_status=node_status)
-    assert_equal(8, link_count)
+    assert 8 == link_count
 
     node_status[2, 1] = 0
     link_count = sgrid.vertical_active_link_count((4, 5),
                                                   node_status=node_status)
-    assert_equal(6, link_count)
+    assert 6 == link_count
 
     node_status[2, 2] = 0
     link_count = sgrid.vertical_active_link_count((4, 5),
                                                   node_status=node_status)
-    assert_equal(4, link_count)
+    assert 4 == link_count
 
     node_status[1, 1] = 0
     link_count = sgrid.vertical_active_link_count((4, 5),
                                                   node_status=node_status)
-    assert_equal(4, link_count)
+    assert 4 == link_count
 
 
 def test_horizontal_active_link_count():
     link_count = sgrid.horizontal_active_link_count((3, 4))
-    assert_equal(3, link_count)
+    assert 3 == link_count
 
     link_count = sgrid.horizontal_active_link_count((2, 3))
-    assert_equal(0, link_count)
+    assert 0 == link_count
 
     node_status = np.ones((4, 5), dtype=np.int)
     link_count = sgrid.horizontal_active_link_count(
         (4, 5), node_status=node_status)
-    assert_equal(8, link_count)
+    assert 8 == link_count
 
     link_count = sgrid.horizontal_active_link_count(
         (4, 5), node_status=node_status)
     node_status[0, 1] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5),
                                                     node_status=node_status)
-    assert_equal(8, link_count)
+    assert 8 == link_count
 
     node_status[2, 1] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5),
                                                     node_status=node_status)
-    assert_equal(6, link_count)
+    assert 6 == link_count
 
     node_status[2, 2] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5),
                                                     node_status=node_status)
-    assert_equal(5, link_count)
+    assert 5 == link_count
 
     node_status[1, 1] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5),
                                                     node_status=node_status)
-    assert_equal(3, link_count)
+    assert 3 == link_count
 
 
 def test_horizontal_active_link_ids():
@@ -573,19 +565,19 @@ def test_inlinks_4x5():
 
 # class TestFaces(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_face_count():
-    assert_equal(17, sgrid.face_count((4, 5)))
-    assert_equal(4, sgrid.face_count((3, 3)))
-    assert_equal(0, sgrid.face_count((2, 100)))
-    assert_equal(0, sgrid.face_count((100, 2)))
-    assert_equal(0, sgrid.face_count((100, 1)))
+    assert 17 == sgrid.face_count((4, 5))
+    assert 4 == sgrid.face_count((3, 3))
+    assert 0 == sgrid.face_count((2, 100))
+    assert 0 == sgrid.face_count((100, 2))
+    assert 0 == sgrid.face_count((100, 1))
 
 
 def test_active_face_count():
-    assert_equal(17, sgrid.active_face_count((4, 5)))
-    assert_equal(4, sgrid.active_face_count((3, 3)))
-    assert_equal(0, sgrid.active_face_count((2, 100)))
-    assert_equal(0, sgrid.active_face_count((100, 2)))
-    assert_equal(0, sgrid.active_face_count((100, 1)))
+    assert 17 == sgrid.active_face_count((4, 5))
+    assert 4 == sgrid.active_face_count((3, 3))
+    assert 0 == sgrid.active_face_count((2, 100))
+    assert 0 == sgrid.active_face_count((100, 2))
+    assert 0 == sgrid.active_face_count((100, 1))
 
 
 def test_active_faces():
@@ -634,20 +626,20 @@ def test_default():
     x = np.arange(12.)
     y = sgrid.reshape_array((3, 4), x)
 
-    assert_equal(y.shape, (3, 4))
+    assert y.shape == (3, 4)
     assert_array_equal(x, y.flat)
-    assert_true(y.flags['C_CONTIGUOUS'])
-    assert_is(y.base, x)
+    assert y.flags['C_CONTIGUOUS']
+    assert y.base is x
 
 
 def test_copy():
     x = np.arange(12.)
     y = sgrid.reshape_array((3, 4), x, copy=True)
 
-    assert_equal(y.shape, (3, 4))
+    assert y.shape == (3, 4)
     assert_array_equal(x, y.flat)
-    assert_true(y.flags['C_CONTIGUOUS'])
-    assert_is_none(y.base)
+    assert y.flags['C_CONTIGUOUS']
+    assert y.base is None
 
     y[0][0] = 0.
     assert_array_equal(x, np.array([0.,  1.,  2., 3.,
@@ -659,12 +651,12 @@ def test_flip():
     x = np.arange(12.)
     y = sgrid.reshape_array((3, 4), x, flip_vertically=True)
 
-    assert_equal(y.shape, (3, 4))
+    assert y.shape == (3, 4)
     assert_array_equal(y, np.array([[8.,  9., 10., 11.],
                                     [4.,  5.,  6., 7.],
                                     [0.,  1.,  2., 3.]]))
-    assert_false(y.flags['C_CONTIGUOUS'])
-    assert_is_not_none(y.base)
+    assert not y.flags['C_CONTIGUOUS']
+    assert y.base is not None
 
     y[0][0] = 0.
     assert_array_equal(x, np.array([0.,  1.,  2., 3.,
@@ -676,12 +668,12 @@ def test_flip_copy():
     x = np.arange(12.)
     y = sgrid.reshape_array((3, 4), x, flip_vertically=True, copy=True)
 
-    assert_equal(y.shape, (3, 4))
+    assert y.shape == (3, 4)
     assert_array_equal(y, np.array([[8.,  9., 10., 11.],
                                     [4.,  5.,  6., 7.],
                                     [0.,  1.,  2., 3.]]))
-    assert_true(y.flags['C_CONTIGUOUS'])
-    assert_is_not(y.base, x)
+    assert y.flags['C_CONTIGUOUS']
+    assert y.base is not x
 
 
 # class TestDiagonalArray(unittest.TestCase, NumpyArrayTestingMixIn):
@@ -695,8 +687,8 @@ def test_default():
                                  [-1, -1,  0,  2],
                                  [-1, -1,  1, -1]]))
 
-    assert_true(diags.base is None)
-    assert_true(diags.flags['C_CONTIGUOUS'])
+    assert diags.base is None
+    assert diags.flags['C_CONTIGUOUS']
 
 
 def test_non_contiguous():
@@ -710,8 +702,8 @@ def test_non_contiguous():
                                  [-1, -1,  0,  2],
                                  [-1, -1,  1, -1]]))
 
-    assert_true(isinstance(diags.base, np.ndarray))
-    assert_false(diags.flags['C_CONTIGUOUS'])
+    assert isinstance(diags.base, np.ndarray)
+    assert not diags.flags['C_CONTIGUOUS']
 
 
 def test_boundary_node_mask_no_actives():
@@ -745,8 +737,8 @@ def test_default():
                   [5, BAD,   3,   1],
                   [BAD, BAD,   4,   2]]).T)
 
-    assert_true(neighbors.flags['C_CONTIGUOUS'])
-    assert_true(neighbors.base is None)
+    assert neighbors.flags['C_CONTIGUOUS']
+    assert neighbors.base is None
 
 
 def test_set_out_of_bounds():

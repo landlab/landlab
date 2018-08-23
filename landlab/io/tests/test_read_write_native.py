@@ -2,7 +2,6 @@
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 import pickle 
-from nose.tools import assert_equal, assert_dict_equal, assert_tuple_equal
 from numpy.testing import assert_array_equal
 import os
 from landlab.io.native_landlab import save_grid, load_grid
@@ -68,8 +67,8 @@ def test_pickle():
 
     os.remove('testsavedgrid.grid')
 
-    assert_tuple_equal(mg1.shape, mg2.shape)
-    assert_tuple_equal((mg1.dy, mg1.dx), (mg2.dy, mg2.dx))
+    assert mg1.shape == mg2.shape
+    assert (mg1.dy, mg1.dx) == (mg2.dy, mg2.dx)
     assert_array_equal(mg1.status_at_node, mg2.status_at_node)
     for name in mg1.at_node:
         assert_array_equal(mg1.at_node[name], mg2.at_node[name])
@@ -109,8 +108,8 @@ def test_save():
     
     os.remove('testsavedgrid.grid')
 
-    assert_tuple_equal(mg1.shape, mg2.shape)
-    assert_tuple_equal((mg1.dy, mg1.dx), (mg2.dy, mg2.dx))
+    assert mg1.shape == mg2.shape
+    assert (mg1.dy, mg1.dx) == (mg2.dy, mg2.dx)
     assert_array_equal(mg1.status_at_node, mg2.status_at_node)
     for name in mg1.at_node:
         assert_array_equal(mg1.at_node[name], mg2.at_node[name])
