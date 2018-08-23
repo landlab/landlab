@@ -161,6 +161,7 @@ class DataRecord(Dataset):
         Example of a Datarecord with item_id as the only dimension:
         >>> my_items2 = {'grid_element': np.array(('node', 'link'), dtype=str),
         ...              'element_id': np.array([1, 3])}
+
         Note that both arrays have 1 dimension as they only vary along
         the dimension 'item_id'.
         >>> dr2=DataRecord(grid,
@@ -174,6 +175,7 @@ class DataRecord(Dataset):
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
         ...              'element_id': np.array([[1],[3]])}
+
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
         >>> dr3=DataRecord(grid,
@@ -424,6 +426,7 @@ class DataRecord(Dataset):
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element': np.array([['node'], ['link']]),
         ...              'element_id': np.array([[1],[3]])}
+
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
         >>> dr3=DataRecord(grid,
@@ -612,6 +615,7 @@ class DataRecord(Dataset):
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
         ...              'element_id': np.array([[1],[3]])}
+
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
         >>> dr3=DataRecord(grid,
@@ -758,6 +762,7 @@ class DataRecord(Dataset):
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items4 = {'grid_element' : 'node',
         ...              'element_id': np.array([[1],[3],[3],[7]])}
+
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
         >>> my_data4 = {'item_size': (['item_id', 'time'], np.array(
@@ -823,6 +828,7 @@ class DataRecord(Dataset):
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items4 = {'grid_element' : 'node',
         ...              'element_id': np.array([[1],[3],[3],[7]])}
+
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
         >>> my_data4 = {'item_size': (['item_id', 'time'], np.array(
