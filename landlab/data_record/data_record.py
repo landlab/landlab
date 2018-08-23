@@ -265,7 +265,6 @@ class DataRecord(Dataset):
             else: # no item and no time = no dimension
                 coords = {}
 
-
         # VARIABLES
         if data_vars is not None:
 
@@ -307,10 +306,11 @@ class DataRecord(Dataset):
 
         # initialize the xarray Dataset:
         # self.Dataset = Dataset(data_vars_dict, coords, attrs, compat)
-        super().__init__(data_vars=data_vars_dict,
+        super(DataRecord, self).__init__(data_vars=data_vars_dict,
                                          coords=coords,
                                          attrs=attrs,
                                          compat=compat)
+
 
 # Modified from ItemCollection:
     def _check_grid_element_and_id(self, grid_element, element_id, flag=None):
