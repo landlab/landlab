@@ -1,7 +1,7 @@
+import pytest
 import numpy as np
 
 from numpy.testing import assert_array_equal
-from nose.tools import raises, assert_equal
 
 from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
 from landlab.grid.structured_quad.links import active_link_ids
@@ -28,6 +28,6 @@ def test_active_links_with_edge_boundaries():
     assert_array_is_int(link_ids)
 
 
-@raises(ValueError)
 def test_active_link_ids_with_shape_mismatch():
-    active_link_ids((3, 4), np.zeros(3))
+    with pytest.raises(ValueError):
+        active_link_ids((3, 4), np.zeros(3))
