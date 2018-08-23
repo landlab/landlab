@@ -14,7 +14,7 @@ class SpatialPrecipitationDistribution(Component):
     A component to generate a sequence of spatially resolved storms over a
     grid, following a lightly modified version (see below) of the
     stochastic methods of Singer & Michaelides, Env Res Lett 12, 104011,
-    2017, & Singer et al., Geosci. Model Dev., in review, 10.5194/gmd-2018-86.
+    2017, & Singer et al., Geosci. Model Dev., accepted, 10.5194/gmd-2018-86.
 
     The method is heavily stochastic, and at the present time is intimately
     calibrated against the conditions at Walnut Gulch, described in those
