@@ -166,7 +166,7 @@ class DataRecord(Dataset):
         the dimension 'item_id'.
         >>> dr2=DataRecord(grid,
         ...                items=my_items2)
-        >>> dr2.to_dataframe()
+        >>> dr2.to_dataframe()[['grid_element', 'element_id']]
                 grid_element  element_id
         item_id
         0               node           1
@@ -181,7 +181,7 @@ class DataRecord(Dataset):
         >>> dr3=DataRecord(grid,
         ...                time=[0.],
         ...                items=my_items3)
-        >>> dr3.to_dataframe()
+        >>> dr3.to_dataframe()[['grid_element', 'element_id']]
                      grid_element  element_id
         item_id time
         0       0.0          node           1
@@ -625,10 +625,8 @@ class DataRecord(Dataset):
         ...                              ['item_id', 'time'], [[10],[5]])})
 
         Two items have been added at a new timestep 1.0:
-        >>> dr3.coords
-        Coordinates:
-          * item_id  (item_id) int64 0 1 2 3
-          * time     (time) float64 0.0 1.0
+        >>> dr3['item_id'].values, dr3['time'].values
+        (array([0, 1, 2, 3]), array([ 0.,  1.]))
 
         If a data variable is also added with the new items ('size' in this
         example), the values for this variable are filled with 'nan' for the
@@ -639,7 +637,6 @@ class DataRecord(Dataset):
         The previous line calls the values of the variable 'size', for all
         items, at time=1; the first two items don't have a value for the
         variable 'size'.
-
         """
 
         if model__time is None and 'time' in self['grid_element'].coords:
@@ -830,27 +827,17 @@ class DataRecord(Dataset):
         ...                time=[50.],
         ...                items=my_items4,
         ...                data_vars=my_data4)
-        >>> dr4
-        <xarray.DataRecord>
-        Dimensions:       (item_id: 4, time: 1)
-        Coordinates:
-          * time          (time) float64 50.0
-          * item_id       (item_id) int64 0 1 2 3
-        Data variables:
-            grid_element  (item_id, time) object 'node' 'node' 'node' 'node'
-            element_id    (item_id, time) int64 1 3 3 7
-            item_size     (item_id, time) float64 0.3 0.4 0.8 0.4
+        >>> dr4['item_size'].values
+        array([[ 0.3],
+               [ 0.4],
+               [ 0.8],
+               [ 0.4]])
         >>> dr4.set_data(50.,2,'item_size', 0.5)
-        >>> dr4
-        <xarray.DataRecord>
-        Dimensions:       (item_id: 4, time: 1)
-        Coordinates:
-          * time          (time) float64 50.0
-          * item_id       (item_id) int64 0 1 2 3
-        Data variables:
-            grid_element  (item_id, time) object 'node' 'node' 'node' 'node'
-            element_id    (item_id, time) int64 1 3 3 7
-            item_size     (item_id, time) float64 0.3 0.4 0.5 0.4
+        >>> dr4['item_size'].values
+        array([[ 0.3],
+               [ 0.4],
+               [ 0.5],
+               [ 0.4]])
         """
 
 
