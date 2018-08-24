@@ -167,10 +167,10 @@ class DataRecord(Dataset):
         >>> dr2=DataRecord(grid,
         ...                items=my_items2)
         >>> dr2.to_dataframe()
-                    grid_element  element_id
-            item_id
-            0               node           1
-            1               link           3
+                grid_element  element_id
+        item_id
+        0               node           1
+        1               link           3
 
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
@@ -181,15 +181,11 @@ class DataRecord(Dataset):
         >>> dr3=DataRecord(grid,
         ...                time=[0.],
         ...                items=my_items3)
-        >>> dr3
-        <xarray.DataRecord>
-        Dimensions:       (item_id: 2, time: 1)
-        Coordinates:
-          * time          (time) float64 0.0
-          * item_id       (item_id) int64 0 1
-        Data variables:
-            grid_element  (item_id, time) <U4 'node' 'link'
-            element_id    (item_id, time) int64 1 3
+        >>> dr3.to_dataframe()
+                     grid_element  element_id
+        item_id time
+        0       0.0          node           1
+        1       0.0          link           3
         """
 
         # save a reference to the grid
@@ -451,15 +447,12 @@ class DataRecord(Dataset):
         record:
         >>> dr3.add_record(model__time=[50.0],
         ...                new_record={'mean_elev': (['time'], [110])})
-        >>> dr3.to_dataframe()
-                     grid_element  element_id  item_size  mean_elev
-        item_id time
-        0       0.0          node         1.0        NaN        NaN
-                2.0          node         6.0        0.2        NaN
-                50.0          NaN         NaN        NaN      110.0
-        1       0.0          link         3.0        NaN        NaN
-                2.0           NaN         NaN        NaN        NaN
-                50.0          NaN         NaN        NaN      110.0
+        >>> dr3['mean_elev'].to_dataframe()
+              mean_elev
+        time
+        0.0         NaN
+        2.0         NaN
+        50.0      110.0
         """
 
         if model__time is not None:
@@ -837,20 +830,27 @@ class DataRecord(Dataset):
         ...                time=[50.],
         ...                items=my_items4,
         ...                data_vars=my_data4)
-        >>> dr4.to_dataframe()
-                     grid_element  element_id  item_size
-        item_id time
-        0       50.0         node           1        0.3
-        1       50.0         node           3        0.4
-        2       50.0         node           3        0.8
-        3       50.0         node           7        0.4
+        >>> dr4
+        <xarray.DataRecord>
+        Dimensions:       (item_id: 4, time: 1)
+        Coordinates:
+          * time          (time) float64 50.0
+          * item_id       (item_id) int64 0 1 2 3
+        Data variables:
+            grid_element  (item_id, time) object 'node' 'node' 'node' 'node'
+            element_id    (item_id, time) int64 1 3 3 7
+            item_size     (item_id, time) float64 0.3 0.4 0.8 0.4
         >>> dr4.set_data(50.,2,'item_size', 0.5)
-                     grid_element  element_id  item_size
-        item_id time
-        0       50.0         node           1        0.3
-        1       50.0         node           3        0.4
-        2       50.0         node           3        0.5
-        3       50.0         node           7        0.4
+        >>> dr4
+        <xarray.DataRecord>
+        Dimensions:       (item_id: 4, time: 1)
+        Coordinates:
+          * time          (time) float64 50.0
+          * item_id       (item_id) int64 0 1 2 3
+        Data variables:
+            grid_element  (item_id, time) object 'node' 'node' 'node' 'node'
+            element_id    (item_id, time) int64 1 3 3 7
+            item_size     (item_id, time) float64 0.3 0.4 0.5 0.4
         """
 
 
