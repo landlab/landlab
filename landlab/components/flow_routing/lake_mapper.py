@@ -195,7 +195,9 @@ class DepressionFinderAndRouter(Component):
                        'run on this grid. The depression finder is '
                        'not compatible with the grid anymore. Use '
                        'DepressionFinderAndRouter with reroute_flow='
-                       'True only with route-to-one methods.')
+                       'True only with route-to-one methods. If using this '
+                       'component with such a flow directing method is desired '
+                       'please open a GitHub Issue/')
                 raise NotImplementedError(msg)
 
         self._initialize()

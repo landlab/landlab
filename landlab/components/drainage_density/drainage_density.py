@@ -146,6 +146,13 @@ class DrainageDensity(Component):
         channelization_threshold : threshold value above
             which channels exist
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that DrainageDensity is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
 
         if channel__mask is not None:
             if area_coefficient is not None:
