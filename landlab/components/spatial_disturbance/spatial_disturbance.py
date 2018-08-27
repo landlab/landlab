@@ -263,14 +263,17 @@ class SpatialDisturbance(Component):
         burning_cells = [ignition_cell]
         V = self._burn_veg(V, burning_cells)
         fire_burnt += 1
+        alr_cntd = []
         # loop to propagate fires one ring at a time
         while (burning_cells != []):
             newly_burnt = []   # Cells to be burnt in the sub-loop
             for cell in burning_cells:
                 neigh_ = self._grid.looped_neighbors_at_cell[cell]
                 veg_neighbors = (neigh_[np.where(V[neigh_] != BARE)])
-                susc_neigh = self._check_susc(veg_neighbors,
-                                              susc[veg_neighbors])
+                unique_neigh = np.setdiff1d(veg_neighbors, alr_cntd)
+                alr_cntd += list(unique_neigh)
+                susc_neigh = self._check_susc(unique_neigh,
+                                              susc[unique_neigh])
                 newly_burnt += (susc_neigh)
             if newly_burnt == []:
                 break
