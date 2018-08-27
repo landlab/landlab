@@ -8,7 +8,7 @@ Created on Mon Apr 30 09:17:36 2018
 
 import numpy as np
 from numpy.testing import assert_array_equal#, assert_array_almost_equal
-from nose.tools import assert_raises#, assert_almost_equal, assert_equal
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import Lithology, LithoLayers
@@ -20,8 +20,8 @@ def test_bad_layer_method():
     thicknesses = [1, 2, 4, 1]
     ids = [1, 2, 1, 2]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs,
-                  layer_type='spam')
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs, layer_type='spam')
 
 def test_no_topographic__elevation():
     """Test init with no topo__elevation."""
@@ -29,7 +29,8 @@ def test_no_topographic__elevation():
     thicknesses = [1, 2, 4, 1]
     ids = [1, 2, 1, 2]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
 def test_thickness_ids_wrong_shape():
     """Test wrong size thickness and id shapes."""
@@ -39,7 +40,8 @@ def test_thickness_ids_wrong_shape():
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
     # next as both as ndim = 2 arrays
     ones = np.ones(mg.number_of_nodes)
@@ -48,7 +50,8 @@ def test_thickness_ids_wrong_shape():
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1*ones, 2*ones, 1*ones, 2*ones]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
     # now with thickness as ndim 2 and id as ndim 1
     ones = np.ones(mg.number_of_nodes)
@@ -57,7 +60,8 @@ def test_thickness_ids_wrong_shape():
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1, 2, 1, 2]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
 def test_thickness_ndim3():
     """Test too many ndim for thickness."""
@@ -68,7 +72,8 @@ def test_thickness_ndim3():
     z = mg.add_zeros('node', 'topographic__elevation')
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1, 2, 1, 2]
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
 
 def test_id_ndim3():
@@ -82,7 +87,8 @@ def test_id_ndim3():
     z = mg.add_zeros('node', 'topographic__elevation')
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1*extra_ones, 2*extra_ones, 1*extra_ones, 2*extra_ones]
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
 
 def test_thickness_nodes_wrong_shape():
@@ -93,27 +99,19 @@ def test_thickness_nodes_wrong_shape():
     thicknesses = [1*ones, 2*ones, 4*ones, 1*ones, 5*ones]
     ids = [1*ones, 2*ones, 1*ones, 2*ones, 1*ones]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
-
-
-def test_init_with_thickness_zero():
-    """Test Lithology with zero thickness on init."""
-    mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
-    thicknesses = [0, 0, 0, 0]
-    ids = [1, 2, 1, 2]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
-
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
 def test_atts_lack_ids():
     """Test Lithology missing ID."""
     mg = RasterModelGrid(3, 3)
     z = mg.add_zeros('node', 'topographic__elevation')
     thicknesses = [1, 2, 4, 1, 5]
-    ids = [1, 2, 1, 2]
-    attrs = {'K_sp': {2: 0.0001}}
-    assert_raises(ValueError, Lithology, mg, thicknesses, ids, attrs)
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {2: 0.0001},
+             'age': {1: 100, 2:300}}
+    with pytest.raises(ValueError):
+        Lithology(mg, thicknesses, ids, attrs)
 
 
 def test_erode_to_zero_thickness():
@@ -124,7 +122,8 @@ def test_erode_to_zero_thickness():
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, lith.add_layer, -100)
+    with pytest.raises(ValueError):
+        lith.add_layer(-100)
 
 
 def test_deposit_with_no_rock_id():
@@ -135,7 +134,8 @@ def test_deposit_with_no_rock_id():
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, lith.add_layer, 100)
+    with pytest.raises(ValueError):
+        lith.add_layer(100)
 
 
 def test_deposit_with_bad_rock_id():
@@ -146,11 +146,13 @@ def test_deposit_with_bad_rock_id():
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, lith.add_layer, 100, rock_id=3)
+    with pytest.raises(ValueError):
+        lith.add_layer(100, rock_id=3)
 
     ones = np.ones(mg.number_of_nodes)
     new_ids = [0, 1, 3, 4, 0, 1, 0, 1, 5]
-    assert_raises(ValueError, lith.add_layer, ones, rock_id=new_ids)
+    with pytest.raises(ValueError):
+        lith.add_layer(ones, rock_id=new_ids)
 
 def test_adding_existing_attribute():
     """Test adding an existing attribute."""
@@ -163,7 +165,8 @@ def test_adding_existing_attribute():
 
     new_attr = {'K_sp': {1: 0.001, 2: 0.0001}}
 
-    assert_raises(ValueError, lith.add_property, new_attr)
+    with pytest.raises(ValueError):
+        lith.add_property(new_attr)
 
 
 def test_adding_new_attribute_missing_rock_id():
@@ -177,7 +180,8 @@ def test_adding_new_attribute_missing_rock_id():
 
     new_attr = {'D': {2: 0.0001}}
 
-    assert_raises(ValueError, lith.add_property, new_attr)
+    with pytest.raises(ValueError):
+        lith.add_property(new_attr)
 
 
 def test_adding_new_attribute_extra_rock_id():
@@ -191,7 +195,23 @@ def test_adding_new_attribute_extra_rock_id():
 
     new_attr = {'D': {1: 0.001, 2: 0.0001, 3: 5.3}}
 
-    assert_raises(ValueError, lith.add_property, new_attr)
+    with pytest.raises(ValueError):
+        lith.add_property(new_attr)
+
+
+def test_adding_new_id_existing_rock_type():
+    """Test adding an rock type that already exists."""
+    mg = RasterModelGrid(3, 3)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    thicknesses = [1, 2, 4, 1, 5]
+    ids = [1, 2, 1, 2, 1]
+    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    lith = Lithology(mg, thicknesses, ids, attrs)
+
+    new_attr = {'K_sp': {1: 0.001, 5: 0.0001}}
+
+    with pytest.raises(ValueError):
+        lith.add_rock_type(new_attr)
 
 
 def test_adding_new_id_extra_attribute():
@@ -206,7 +226,8 @@ def test_adding_new_id_extra_attribute():
     new_attr = {'K_sp': {4: 0.001, 5: 0.0001},
                 'D':    {4: 0.001, 5: 0.0001}}
 
-    assert_raises(ValueError, lith.add_rock_type, new_attr)
+    with pytest.raises(ValueError):
+        lith.add_rock_type(new_attr)
 
 def test_adding_new_id_missing_attribute():
     """Test adding an new rock type with an extra attribute."""
@@ -217,7 +238,8 @@ def test_adding_new_id_missing_attribute():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
     new_attr = {'D':  {4: 0.001, 5: 0.0001}}
-    assert_raises(ValueError, lith.add_rock_type, new_attr)
+    with pytest.raises(ValueError):
+        lith.add_rock_type(new_attr)
 
 
 def test_updating_attribute_that_doesnt_exist():
@@ -228,7 +250,8 @@ def test_updating_attribute_that_doesnt_exist():
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, lith.update_rock_properties, 'spam', 1, 4)
+    with pytest.raises(ValueError):
+        lith.update_rock_properties('spam', 1, 4)
 
 
 def test_updating_rock_type_that_doesnt_exist():
@@ -239,7 +262,8 @@ def test_updating_rock_type_that_doesnt_exist():
     ids = [1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
-    assert_raises(ValueError, lith.update_rock_properties, 'K_sp', 3, 4)
+    with pytest.raises(ValueError):
+        lith.update_rock_properties('K_sp', 3, 4)
 
 
 def test_run_one_step_deposit_no_id_raises_error():
@@ -251,7 +275,8 @@ def test_run_one_step_deposit_no_id_raises_error():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
     z += 1
-    assert_raises(ValueError, lith.run_one_step)
+    with pytest.raises(ValueError):
+        lith.run_one_step()
 
 
 def test_run_one_step_erodes_all_raises_error():
@@ -263,7 +288,8 @@ def test_run_one_step_erodes_all_raises_error():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     lith = Lithology(mg, thicknesses, ids, attrs)
     z -= 30
-    assert_raises(ValueError, lith.run_one_step)
+    with pytest.raises(ValueError):
+        lith.run_one_step()
 
 def test_rock_block_xarray():
     """Test that the xarray method works as expected."""

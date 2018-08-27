@@ -1,8 +1,9 @@
-from landlab import RasterModelGrid, HexModelGrid
-from landlab.components import Space, FlowAccumulator, DepressionFinderAndRouter
+import pytest
 import numpy as np
 from numpy import testing
-from nose.tools import assert_raises
+
+from landlab import RasterModelGrid, HexModelGrid
+from landlab.components import Space, FlowAccumulator, DepressionFinderAndRouter
 
 
 def test_bad_solver_name():
@@ -35,10 +36,11 @@ def test_bad_solver_name():
     fa = FlowAccumulator(mg, flow_director='D8')
 
     #try to instantiate SPACE using a wrong solver name
-    assert_raises(ValueError, Space, mg, K_sed=0.01, K_br=0.01, F_f=0.0, 
-                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
-                         sp_crit_sed=0, sp_crit_br=0, 
-                         solver='something_else')
+    with pytest.raises(ValueError):
+        Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0,
+              phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0,
+              sp_crit_sed=0, sp_crit_br=0,
+              solver='something_else')
     
 
 def test_soil_field_already_on_grid():

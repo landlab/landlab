@@ -142,10 +142,10 @@ def indent_and_wrap(content, indent=''):
     """
     wrapper = textwrap.TextWrapper(initial_indent=indent,
                                    subsequent_indent=2 * indent)
-    lines = content.split(os.linesep)
+    lines = content.splitlines()
     first_line, the_rest = [lines[0].strip()], lines[1:]
     if the_rest:
-        the_rest = textwrap.dedent(os.linesep.join(the_rest)).split(os.linesep)
+        the_rest = textwrap.dedent(os.linesep.join(the_rest)).splitlines()
     if first_line[0]:
         lines = first_line + the_rest
     else:
