@@ -284,11 +284,8 @@ class MaterialLayers(EventLayers):
 
         if not compatible:
             for name in kwds:
-                try:
-                    self[name][-1] = kwds[name]
-                except KeyError:
-                    print('{0} is not being tracked. Ignoring'.format(name),
-                          file=sys.stderr)
+                self[name][-1] = kwds[name]
+
 
     def _remove_empty_layers(self):
         number_of_filled_layers = self.surface_index.max() + 1
@@ -311,7 +308,12 @@ class MaterialLayers(EventLayers):
         where_deposition = np.where(dz > 0.)[0]
         if len(where_deposition) > 0:
             for name in kwds:
-                is_compatible = self[name][self.surface_index] == kwds[name]
+                try:
+                    is_compatible = self[name][self.surface_index] == kwds[name]
+                except KeyError:
+                    msg = 'MaterialLayers: {0} is not being tracked. Error in adding.'.format(name)
+                    raise ValueError(msg)
+
                 if not np.all(is_compatible[where_deposition]):
                     return False
         return True
