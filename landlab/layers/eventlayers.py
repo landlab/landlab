@@ -372,6 +372,10 @@ class EventLayers(object):
 
     def __setitem__(self, name, values):
         dims = (self.allocated, self.number_of_stacks)
+        values = np.asarray(values)
+        if values.ndim == 1:
+            values = np.expand_dims(values, 1)
+        values = np.broadcast_to(values, (self.number_of_layers, self.number_of_stacks))
         self._attrs[name] = _allocate_layers_for(values.flatten()[0], *dims)
         self._attrs[name][:self.number_of_layers] = values
 
