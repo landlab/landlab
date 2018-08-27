@@ -14,14 +14,14 @@ class MaterialLayersMixIn(object):
     """MixIn that adds a MaterialLayers attribute to a ModelGrid."""
 
     @property
-    def layers(self):
+    def material_layers(self):
         """MaterialLayers for each cell."""
         try:
-            self._layers
+            self._material_layers
         except AttributeError:
-            self._layers = MaterialLayers(self.number_of_cells)
+            self._material_layers = MaterialLayers(self.number_of_cells)
         finally:
-            return self._layers
+            return self._material_layers
 
 
 class MaterialLayers(EventLayers):

@@ -264,14 +264,14 @@ class EventLayersMixIn(object):
     """MixIn that adds a EventLayers attribute to a ModelGrid."""
 
     @property
-    def layers(self):
+    def event_layers(self):
         """EventLayers for each cell."""
         try:
-            self._layers
+            self._event_layers
         except AttributeError:
-            self._layers = EventLayers(self.number_of_cells)
+            self._event_layers = EventLayers(self.number_of_cells)
         finally:
-            return self._layers
+            return self._event_layers
 
 
 class EventLayers(object):

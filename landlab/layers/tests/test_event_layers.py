@@ -5,12 +5,16 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
+from landlab import RasterModelGrid
 from landlab.layers import EventLayersMixIn, EventLayers
 
 
 def test_EventLayersMixIn():
-    pass
-
+    mg = RasterModelGrid(4,4)
+    ml = mg.event_layers
+    assert hasattr(mg, 'event_layers') == True
+    assert ml.number_of_layers == 0
+    assert ml.number_of_stacks == 4
 
 def test_setitem_with_scalar():
     layers = EventLayers(5)
