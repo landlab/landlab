@@ -7,7 +7,7 @@ def test_MaterialLayersMixIn():
     pass
 
 
-def test_adding_ignored_layer():
+def test_adding_untracked_layer():
     layers = MaterialLayers(3)
     layers.add(1., type=3., size='sand')
     layers.add([0., 0., 1.], type=3., size='sand')

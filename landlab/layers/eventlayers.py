@@ -391,7 +391,7 @@ class EventLayers(object):
             attrs=', '.join(self.tracking) or 'null')
 
     def __repr__(self):
-        return 'EventLayers({number_of_stacks})'.format(
+        return self.__class__.__name__+'({number_of_stacks})'.format(
             number_of_stacks=self.number_of_stacks)
 
     @property
@@ -660,8 +660,8 @@ class EventLayers(object):
             try:
                 self[name][-1] = kwds[name]
             except KeyError:
-                print('{0} is not being tracked. Ignoring'.format(name),
-                      file=sys.stderr)
+                msg = 'MaterialLayers: {0} is not being tracked. Error in adding.'.format(name)
+                raise ValueError(msg)
 
     @property
     def surface_index(self):

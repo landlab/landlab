@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import pytest
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -56,3 +58,25 @@ def test_set_item_with_2d():
     truth = np.array([[ 4.,  4.,  4.,  4.,  4.],
                       [ 7.,  7.,  7.,  7.,  7.]])
     assert_array_equal(layers['age'], truth)
+
+
+def test__str__():
+    layers = EventLayers(5)
+    layers.add(1., age=3.)
+    vals = str(layers)
+    assert vals == 'number_of_layers: 1\nnumber_of_stacks: 5\ntracking: age'
+
+
+def test__repr__():
+    layers = EventLayers(5)
+    layers.add(1., age=3.)
+    vals = repr(layers)
+    assert vals == 'EventLayers(5)'
+
+
+def test_adding_untracked_layer():
+    layers = EventLayers(3)
+    layers.add(1., type=3., size='sand')
+    layers.add([0., 0., 1.], type=3., size='sand')
+    with pytest.raises(ValueError):
+        layers.add([1.], type=3., size='sand', spam='eggs')
