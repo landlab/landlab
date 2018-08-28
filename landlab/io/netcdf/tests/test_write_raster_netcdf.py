@@ -3,7 +3,12 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import WITH_NETCDF4, NotRasterGridError, write_raster_netcdf
+from landlab.io.netcdf import write_raster_netcdf
+
+try:
+    import netCDF4 as nc
+except ImportError:
+    pass
 
 
 def test_append_with_time(tmpdir):
