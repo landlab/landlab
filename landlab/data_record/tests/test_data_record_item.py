@@ -40,9 +40,24 @@ def test_coordinates(dr_item):
         dr_item.prior_time
 
 def test_variable_names(dr_item):
-    assert dr_item.variable_names == ['grid_element', 'element_id']
+    assert sorted(dr_item.variable_names) == sorted(
+            ['grid_element', 'element_id'])
 
+def test_add_item(dr_item):
+    dr_item.add_item(new_item={'grid_element' : np.array(
+                                             ['node', 'node']),
+                               'element_id' : np.array([4,4])},
+                     new_item_spec={'size': (['item_id'], [10,5])})
+    assert (dr_item['grid_element'].values[3],
+            dr_item['element_id'].values[3],
+            dr_item['size'].values[3]) == ('node', 4.0, 5.0)
 
+def test_get_data(dr_item):
+    assert dr_item.get_data(item_id=1, data_variable='grid_element') == 'link'
+    assert dr_item.get_data(data_variable='element_id') == [1, 3]
 
-
-#        assert np.isnan()
+def test_set_data(dr_item):
+    dr_item.set_data(item_id=1,
+                     data_variable='element_id',
+                     new_value=2)
+    assert dr_item['element_id'].values[1] == 2

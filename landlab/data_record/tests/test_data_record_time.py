@@ -44,3 +44,22 @@ def test_coordinates(dr_time):
 
 def test_variable_names(dr_time):
     assert dr_time.variable_names == ['mean_elevation']
+
+def test_add_record(dr_time):
+    dr_time.add_record(model__time = [50.],
+                       new_record={
+                               'mean_elevation' : (['time'], np.array([120]))})
+    dr_time.add_record(model__time = [100.],
+                       new_record={'new_variable' : (['time'], ['new_data'])})
+    assert np.isnan(dr_time['mean_elevation'].values[2])
+
+def test_get_data(dr_time):
+    assert dr_time.get_data(model__time=0.,
+                            data_variable='mean_elevation') == 100.
+    assert dr_time.get_data(data_variable='mean_elevation') == [100]
+
+def test_set_data(dr_time):
+    dr_time.set_data(model__time=0.,
+                     data_variable='mean_elevation',
+                     new_value=105.)
+    assert dr_time['mean_elevation'].values[0] == 105.

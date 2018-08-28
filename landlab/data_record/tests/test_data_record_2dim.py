@@ -46,5 +46,44 @@ def test_coordinates(dr_2dim):
     assert np.isnan(dr_2dim.prior_time)
 
 def test_variable_names(dr_2dim):
-    assert dr_2dim.variable_names == ['grid_element', 'element_id',
-                                      'mean_elevation', 'item_size']
+    assert sorted(dr_2dim.variable_names) == sorted(
+            ['element_id', 'grid_element', 'item_size', 'mean_elevation'])
+
+def test_add_record(dr_2dim):
+    dr_2dim.add_record(model__time=[10.],
+                       item_id=[1],
+                       new_item_loc={'grid_element' : np.array([['cell']]),
+                                     'element_id' : np.array([[0]])})
+    dr_2dim.add_record(model__time=[20.],
+                       new_record={'mean_elevation' : (
+                               ['time'], np.array([130.]))})
+    assert(dr_2dim['grid_element'].values[1,1],
+           dr_2dim['mean_elevation'].values[2])== ('cell', 130.)
+    assert np.isnan(dr_2dim['element_id'].values[1,2])
+
+def test_add_item(dr_2dim):
+    dr_2dim.add_item(model__time=[10.],
+                     new_item={'grid_element' : np.array(
+                                             [['node'], ['cell']]),
+                               'element_id' : np.array([[2],[0]])},
+                     new_item_spec={'size': (['item_id'], [10,5])})
+    assert (dr_2dim['grid_element'].values[3,1],
+            dr_2dim['element_id'].values[2,1],
+            dr_2dim['size'].values[3]) == ('cell', 2.0, 5.0)
+
+def test_get_data(dr_2dim):
+    assert dr_2dim.get_data(model__time=0.,
+                            item_id=1,
+                            data_variable='grid_element') == 'link'
+    assert dr_2dim.get_data(data_variable='mean_elevation') == [110.0]
+
+def test_set_data(dr_2dim):
+    dr_2dim.set_data(model__time=0.,
+                     item_id=1,
+                     data_variable='grid_element',
+                     new_value='node')
+    dr_2dim.set_data(model__time=0.,
+                     data_variable='mean_elevation',
+                     new_value=150.)
+    assert all(dr_2dim['grid_element'].values == 'node')
+    assert dr_2dim['mean_elevation'].values[0] == 150.0
