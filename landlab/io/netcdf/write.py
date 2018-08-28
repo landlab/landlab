@@ -639,15 +639,16 @@ def write_netcdf(path, fields, attrs=None, append=False,
 
 
 def write_raster_netcdf(path, fields, attrs=None, append=False,
-                        format='NETCDF4', names=None, at=None):
+                        with_time=False, format='NETCDF4', names=None,
+                        at=None):
     
     """Write Raster Model Grid landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
-    
+
     This method is for Raster Grids only and takes advantage of regular x and
     y spacing to save memory. 
-    
+
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
 
@@ -660,6 +661,8 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         be a Raster type. 
     append : boolean, optional
         Append data to an existing file, otherwise clobber the file.
+    with_time : boolean, optional
+        Include a time dimension for variables.
     format : {'NETCDF4'}
         Format of output netcdf file.
     attrs : dict
@@ -748,6 +751,8 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     _set_netcdf_attributes(root, attrs)
    
     _set_netcdf_structured_dimensions(root, fields.shape)
+    if with_time or "nt" in root.dimensions:
+        _add_time_variable(root, 0.)
     _set_netcdf_raster_variables(root, fields, names=names)
 
     root.close()
