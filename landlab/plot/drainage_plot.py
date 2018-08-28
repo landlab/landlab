@@ -28,17 +28,21 @@ def drainage_plot(mg,
         if proportions is None:
             if 'flow__receiver_proportions' in mg.at_node:
                 proportions = mg.at_node['flow__receiver_proportions']
+    else:
+        receivers = np.asarray(receivers)
 
-    nreceievers = int(receivers.size/receivers.shape[0])
+    if receivers.ndim == 1:
+        receivers = np.expand_dims(receivers, axis=1)
+
+    nreceievers = receivers.shape[-1]
 
     propColor=plt.get_cmap(quiver_cmap)
-
     for j in range(nreceievers):
         rec = receivers[:,j]
         is_bad = rec == -1
 
-        xdist =  -0.8*(mg.node_x-mg.node_x[rec])
-        ydist =  -0.8*(mg.node_y-mg.node_y[rec])
+        xdist =  -0.8*(mg.x_of_node-mg.x_of_node[rec])
+        ydist =  -0.8*(mg.y_of_node-mg.y_of_node[rec])
 
         if proportions is None:
            proportions = np.ones_like(receivers, dtype=float)
@@ -54,7 +58,7 @@ def drainage_plot(mg,
 
         shape = (mg.number_of_nodes, 1)
 
-        plt.quiver(mg.node_x.reshape(shape), mg.node_y.reshape(shape),
+        plt.quiver(mg.x_of_node.reshape(shape), mg.y_of_node.reshape(shape),
                xdist.reshape(shape), ydist.reshape(shape),
                color=colors,
                angles='xy',
@@ -63,15 +67,15 @@ def drainage_plot(mg,
                zorder=3)
 
     # Plot differen types of nodes:
-    o, = plt.plot(mg.node_x[mg.status_at_node == CORE_NODE], mg.node_y[mg.status_at_node == CORE_NODE], 'b.', label='Core Nodes', zorder=4)
-    fg, = plt.plot(mg.node_x[mg.status_at_node == FIXED_VALUE_BOUNDARY], mg.node_y[mg.status_at_node == FIXED_VALUE_BOUNDARY], 'c.', label='Fixed Gradient Nodes', zorder=5)
-    fv, = plt.plot(mg.node_x[mg.status_at_node == FIXED_GRADIENT_BOUNDARY], mg.node_y[mg.status_at_node ==FIXED_GRADIENT_BOUNDARY], 'g.', label='Fixed Value Nodes', zorder=6)
-    c, = plt.plot(mg.node_x[mg.status_at_node == CLOSED_BOUNDARY], mg.node_y[mg.status_at_node ==CLOSED_BOUNDARY], 'r.', label='Closed Nodes', zorder=7)
+    o, = plt.plot(mg.x_of_node[mg.status_at_node == CORE_NODE], mg.y_of_node[mg.status_at_node == CORE_NODE], 'b.', label='Core Nodes', zorder=4)
+    fg, = plt.plot(mg.x_of_node[mg.status_at_node == FIXED_VALUE_BOUNDARY], mg.y_of_node[mg.status_at_node == FIXED_VALUE_BOUNDARY], 'c.', label='Fixed Gradient Nodes', zorder=5)
+    fv, = plt.plot(mg.x_of_node[mg.status_at_node == FIXED_GRADIENT_BOUNDARY], mg.y_of_node[mg.status_at_node ==FIXED_GRADIENT_BOUNDARY], 'g.', label='Fixed Value Nodes', zorder=6)
+    c, = plt.plot(mg.x_of_node[mg.status_at_node == CLOSED_BOUNDARY], mg.y_of_node[mg.status_at_node ==CLOSED_BOUNDARY], 'r.', label='Closed Nodes', zorder=7)
 
     node_id = np.arange(mg.number_of_nodes)
     flow_to_self = receivers[:,0]==node_id
 
-    fts, = plt.plot(mg.node_x[flow_to_self], mg.node_y[flow_to_self], 'kx', markersize=6, label = 'Flows To Self', zorder=8)
+    fts, = plt.plot(mg.x_of_node[flow_to_self], mg.y_of_node[flow_to_self], 'kx', markersize=6, label = 'Flows To Self', zorder=8)
 
     ax = plt.gca()
 
