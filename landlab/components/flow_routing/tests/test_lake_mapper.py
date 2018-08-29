@@ -6,11 +6,15 @@ Created on Sun Sep 27 09:52:50, 2015
 
 @author: gtucker, amended dejh
 """
+import pytest
 from pytest import approx
 
 import landlab
 from landlab import RasterModelGrid
-from landlab.components.flow_routing import FlowRouter, DepressionFinderAndRouter
+from landlab.components import (FlowRouter,
+                                DepressionFinderAndRouter,
+                                FlowAccumulator)
+
 from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal
@@ -21,6 +25,19 @@ NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
 PERIOD_X = 8.
 PERIOD_Y = 4.
+
+
+def test_route_to_multiple_error_raised():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    channel__mask = mg.zeros(at='node')
+
+    with pytest.raises(NotImplementedError):
+        DepressionFinderAndRouter(mg)
 
 
 def create_test_grid():
@@ -1100,7 +1117,7 @@ def test_changing_slopes(dans_grid3):
 def test_filling_alone(dans_grid3):
     """
     Test the filler alone, w/o supplying information on the pits.
-    
+
     Setting the the *pits* parameter to None causes the mapper to look for pits
     using its _find_pits method.
     """
