@@ -1,18 +1,14 @@
+import pytest
 from numpy.testing import assert_array_equal
-from nose.tools import raises
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
 from landlab.grid.unstructured.links import (link_ids_at_node,
                                              in_link_ids_at_node,
                                              out_link_ids_at_node)
 
 
-@raises(ValueError)
 def test_array_length_mismatch():
-    link_ids_at_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7]))
+    with pytest.raises(ValueError):
+        link_ids_at_node(([0, 1, 2, 3, 4, 5], [3, 4, 5, 6, 7]))
 
 
 def test_link_arg_as_scalars():

@@ -12,6 +12,14 @@
 from __future__ import absolute_import
 import os
 
+from numpy import set_printoptions
+try:
+    set_printoptions(legacy='1.13')
+except TypeError:
+    pass
+finally:
+    del set_printoptions
+
 from ._registry import registry
 
 cite_as = registry.format_citations
@@ -38,10 +46,6 @@ from .framework.framework import Framework
 from .field.scalar_data_fields import FieldError
 from .grid import *
 from .plot import *
-
-from .testing.nosetester import LandlabTester
-test = LandlabTester().test
-bench = LandlabTester().bench
 
 __all__.extend(['ModelParameterDictionary', 'MissingKeyError',
                 'ParameterValueError', 'Component', 'Palette', 'Arena',
