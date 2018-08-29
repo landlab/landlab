@@ -47,7 +47,7 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov
+- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest==3.7.4 pytest-cov
 - conda info -a && conda list
 script:
 - conda install --file=requirements.txt
