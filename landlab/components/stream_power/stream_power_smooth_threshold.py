@@ -146,7 +146,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         """
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
             msg = ('A route-to-multiple flow director has been '
                    'run on this grid. The landlab development team has not '
                    'verified that StreamPowerSmoothThresholdEroder is compatible '
