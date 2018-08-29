@@ -72,6 +72,15 @@ class SinkFillerBarnes(LakeMapperBarnes):
         """
         Initialise the component.
         """
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that SinkFillerBarnes is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
+
         # Most of the functionality of this component is directly inherited
         # from SinkFillerBarnes, so
         super(SinkFillerBarnes, self).__init__(
@@ -189,6 +198,14 @@ class SinkFillerBarnes(LakeMapperBarnes):
         FlowRouter *does* think they are, because these nodes are where flow
         terminates.)
         """
+        if 'flow__receiver_node' in self._grid.at_node:
+            if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that SinkFillerBarnes is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
         super(SinkFillerBarnes, self).run_one_step()
 
     @property

@@ -300,6 +300,14 @@ class LakeMapperBarnes(Component):
         """
         Initialize the component.
         """
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that LakeMapperBarnes is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
         self._grid = grid
         self._open = StablePriorityQueue()
         self._pit = []
@@ -1577,6 +1585,14 @@ class LakeMapperBarnes(Component):
         ensures the information about the lake and the water surface
         topography are all updated cleanly and correctly.
         """
+        if 'flow__receiver_node' in self._grid.at_node:
+            if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that LakeMapperBarnes is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
         # do the prep:
         # increment the run counter
         self._runcount = next(self._runcounter)
