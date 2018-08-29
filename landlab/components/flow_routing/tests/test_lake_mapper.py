@@ -34,8 +34,6 @@ def test_route_to_multiple_error_raised():
     fa = FlowAccumulator(mg, flow_director='MFD')
     fa.run_one_step()
 
-    channel__mask = mg.zeros(at='node')
-
     with pytest.raises(NotImplementedError):
         DepressionFinderAndRouter(mg)
 
