@@ -15,6 +15,26 @@ These tests test specific aspects of LakeMapperBarnes not picked up in the
 various docstrings.
 """
 
+def test_route_to_multiple_error_raised_init():
+     mg = RasterModelGrid((10, 10))
+     z = mg.add_zeros('node', 'topographic__elevation')
+     z += mg.x_of_node + mg.y_of_node
+     fa = FlowAccumulator(mg, flow_director='MFD')
+     fa.run_one_step()
+     with pytest.raises(NotImplementedError):
+         LakeMapperBarnes(mg)
+
+
+def test_route_to_multiple_error_raised_run():
+     mg = RasterModelGrid((10, 10))
+     z = mg.add_zeros('node', 'topographic__elevation')
+     z += mg.x_of_node + mg.y_of_node
+     lmb = LakeMapperBarnes(mg)
+     fa = FlowAccumulator(mg, flow_director='MFD')
+     fa.run_one_step()
+     with pytest.raises(NotImplementedError):
+         lmb.run_one_step()
+
 
 def test_bad_init_method1():
     rmg = RasterModelGrid((5, 5), dx=2.)
