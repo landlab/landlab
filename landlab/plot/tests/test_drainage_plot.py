@@ -1,4 +1,5 @@
-
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from matplotlib.testing.decorators import image_comparison
@@ -24,6 +25,7 @@ def test_steepest():
     fa.run_one_step()
     fig = plt.figure()
     drainage_plot(mg)
+
 
 @image_comparison(baseline_images=['drainage_plot_mfd'],
                   extensions=['png'])
