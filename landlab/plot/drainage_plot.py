@@ -86,4 +86,3 @@ def drainage_plot(mg,
     cx = plt.colorbar(sm)
     cx.set_label('Proportion of Flow')
     plt.title(title)
-    plt.show()

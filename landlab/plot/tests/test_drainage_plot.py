@@ -1,5 +1,7 @@
 
+import matplotlib.pyplot as plt
 
+from matplotlib.testing.decorators import image_comparison
 from landlab import RasterModelGrid
 
 from landlab.components import FlowAccumulator
@@ -14,14 +16,20 @@ def make_grid():
                   at = 'node')
     return mg
 
+@image_comparison(baseline_images=['drainage_plot_steepest'],
+                  extensions=['png'])
 def test_steepest():
     mg = make_grid()
     fa = FlowAccumulator(mg)
     fa.run_one_step()
+    fig = plt.figure()
     drainage_plot(mg)
 
+@image_comparison(baseline_images=['drainage_plot_mfd'],
+                  extensions=['png'])
 def test_mfd():
     mg = make_grid()
     fa = FlowAccumulator(mg, flow_director='MFD')
     fa.run_one_step()
+    fig = plt.figure()
     drainage_plot(mg)
