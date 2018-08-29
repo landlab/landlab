@@ -32,6 +32,7 @@ requirements:
 test:
   requires:
     - pytest 3.7.2
+
   commands:
     - pytest --pyargs landlab --doctest-modules -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
 
