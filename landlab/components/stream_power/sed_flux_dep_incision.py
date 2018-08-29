@@ -316,13 +316,14 @@ class SedDepEroder(Component):
             If True, the threshold_Shields will be set according to
             0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
         """
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that SedDepEroder is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
-            raise NotImplementedError(msg)
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that SedDepEroder is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
 
@@ -584,6 +585,14 @@ class SedDepEroder(Component):
             with sediment (...but does NOT update any other related lake
             fields).
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that SedDepEroder is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
+
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
         node_A = grid.at_node['drainage_area']

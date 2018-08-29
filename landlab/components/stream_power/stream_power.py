@@ -216,13 +216,14 @@ class StreamPowerEroder(Component):
             in Wh&T's 1999 derivation, if you are setting m and n through a, b,
             and c.
         """
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that StreamPowerEroder is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
-            raise NotImplementedError(msg)
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that StreamPowerEroder is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
 
         if type(use_Q) is str and use_Q == 'water__discharge':
             use_Q = 'surface_water__discharge'
@@ -431,6 +432,13 @@ class StreamPowerEroder(Component):
             stream_power_erosion is not an excess stream power; any specified
             erosion threshold is not incorporated into it.
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that StreamPowerEroder is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
         if type(order_upstream) is str:
             upstream_order_IDs = grid.at_node[order_upstream]
         else:
