@@ -199,7 +199,6 @@ class ChannelProfiler(_Profiler):
     @property
     def profile_structure():
         """
-
         profile_structure, the channel segment datastructure.
                 profile structure is a list of length number_of_watersheds. Each
                 element of profile_structure is itself a list of length number of
@@ -220,7 +219,9 @@ class ChannelProfiler(_Profiler):
         return self._distances_upstream
 
     def run_one_step(self):
-        """
+        """Calculate the channel profile datastructure and distances upstream.
+
+
         """
         # calculate the profile IDs datastructure
         self._create_profile_structure()
@@ -230,14 +231,6 @@ class ChannelProfiler(_Profiler):
 
     def _get_channel_segment(self, i):
         """Get channel segment and return additional nodes to process.
-
-        If main_channel_only == False, the channel segment will be the largest
-        drainage area segement moving upstream until drainage area is below the
-        threshold. If main_channel_only == True, the channel segment will progress
-        upstream until two (or more) nodes draining into the channel have drainage
-        area greater than the threshold. These nodes will be returned in
-        nodes_to_process so that they can be processed into their own channel
-        segments.
 
         Parameters
         ----------
@@ -317,11 +310,11 @@ class ChannelProfiler(_Profiler):
         Create the profile_IDs data structure for channel network.
 
         The bound attribute self._profile structure is the channel segment
-        datastructure. profile structure is a list of length number_of_watersheds. Each element
-        of profile_structure is itself a list of length number of stream
-        segments that drain to each of the starting nodes. Each stream segment
-        list contains the node ids of a stream segment from downstream to
-        upstream.
+        datastructure. profile structure is a list of length
+        number_of_watersheds. Each element of profile_structure is itself a list
+        of length number of stream segments that drain to each of the starting
+        nodes. Each stream segment list contains the node ids of a stream
+        segment from downstream to upstream.
         """
         self._profile_structure = []
 
