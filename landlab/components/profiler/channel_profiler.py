@@ -1,54 +1,46 @@
 # coding: utf8
 #! /usr/env/python
-"""
-"""
+"""channel_profiler.py component to create channel profiles."""
 
 from six.moves import range
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.profiler.base_profiler import _Profiler
+from landlab.components.profiler.base_profiler import _NetworkProfiler
 
 
-class ChannelProfiler(_Profiler):
-    """Profile channels of a drainage network.
+class ChannelProfiler(_NetworkProfiler):
+    """Extract and plot the long profiles within a drainage network.
 
-    It is expected that the following at-node grid fields will be present.
+    The ChannelProfiler can work on grids that have used route-to-one or
+    route-to-multiple flow directing. This component expects that the following
+    at-node grid fields will be present:
 
         'drainage_area'
         'flow__receiver_node'
         'flow__link_to_receiver_node'
 
-    Extract and plot channel long profiles.
+    These are typically created by using the FlowAccumulator component.
 
-    Two options for use are available. For an integrated single-line call, use
-    analyze_channel_network_and_plot(). This function wraps the other three
-    functions and allows a single-line call to plot long profiles. First it uses
-    channel_nodes to get the nodes belonging to the channels. Then it uses
-    get_distances_upstream to get distances upstream. Finally it uses
-    plot_profiles to make a plot.
+    Four parameters control the behavior of this component. By default, the
+    component will extract the single largest channel in the drainage network up
+    to a drainage area below a threshold of two times the cell area.
 
+    Providing a value for the paramter ``threshold`` changes this value. Setting
+    ``main_channel_only`` to ``False`` will plot all of the channels in each
+    watershed that have drainage area below the threshold. The number of
+    watersheds can be changed from one based on the parameter
+    ``number_of_watersheds``. By default the ChannelProfiler will identify the
+    largest watersheds and use them. If instead you want to extract the channel
+    network draining to specific nodes, you can provide values for the parameter
+    ``starting_nodes``. The length of ``starting_nodes`` must be consistent with
+    the value of ``number_of_watersheds``.
 
-    You can specify how many differents stream networks it handles using the
-    number_of_watersheds parameter in the channel_nodes function (default is 1). The
-    specific node ids for the beginning of the chanel can be passed with the
-    keyword argument starting_nodes. If it is not specified, then the stream
-    networks(s) will be chosed based on largest terminal drainage area.
-
-
-    Two options exist for controlling which channels within a given stream network
-    are plotted. Set main_channel_only = True (default) to plot only the largest
-    drainage leading that network's outlet node. main_channel_only = False will
-    plot all channels within each network with drainage below the threshold value
-    (default = 2 * grid cell area).
-
-    The functions will return the profile datastructure profile_structure and the
-    distance upstream datastructure distances_upstream. rofile structure is a list
-    of length number_of_watersheds. Each element of profile_structure is itself a
-    list of length number of stream  segments that drain to each of the starting
-    nodes. Each stream segment list contains the node ids of a stream segment from
-    downstream to upstream. distances_upstream provides the equivalent structure
-    but provides the distance upstream rather than the node id.
+    The ``run_one_step`` method extracts the channel network and stores it in
+    the ``profile_structure`` and ``distances_upstream`` bound properties. To
+    make a plot of distance-upstream vs an at-node value use the method
+    ``plot_profiles``. To make a plot of the location of profiles in map view
+    use ``plot_profiles_in_map_view``.
 
     Examples
     ---------
@@ -62,17 +54,20 @@ class ChannelProfiler(_Profiler):
     ...                                 FastscapeEroder,
     ...                                 ChannelProfiler)
 
-    Construct a grid and evolve some topography
+    Construct a grid and set up components necessary to evolve some topography
 
     >>> mg = RasterModelGrid(40, 60)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
     >>> z += 200 + mg.x_of_node + mg.y_of_node
-    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True, left_is_closed=True, right_is_closed=True, top_is_closed=True)
+    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+    ...                                        left_is_closed=True,
+    ...                                        right_is_closed=True,
+    ...                                        top_is_closed=True)
     >>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
     >>> fa = FlowAccumulator(mg, flow_director='D8')
     >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
 
-    Now run a simple landscape evolution model to develop a channel network.
+    Now run our simple landscape evolution model to develop a channel network.
 
     >>> dt = 100
     >>> for i in range(200):
@@ -80,9 +75,8 @@ class ChannelProfiler(_Profiler):
     ...     sp.run_one_step(dt=dt)
     ...     mg.at_node['topographic__elevation'][0] -= 0.001
 
-    Now call analyze_channel_network_and_plot in order to plot the network. Note
-    in general, we'd leave create_plot in its default value of create_plot=True,
-    but we can't plot in the docstring
+    Next we construct the ChannelProfiler component and run ``run_one_step`` to
+    extract the channel network.
 
     >>> profiler = ChannelProfiler(mg)
     >>> profiler.run_one_step()
@@ -132,8 +126,9 @@ class ChannelProfiler(_Profiler):
     ...                            threshold = 100,
     ...                            main_channel_only=False,
     ...                            number_of_watersheds=3)
+    >>> profiler.run_one_step()
 
-    This will create four channel networks. The datastructures profile_structure
+    This will create three channel networks. The attributes profile_structure
     and distances_upstream will both be length 3
 
     >>> len(profiler.profile_structure) == len(profiler.distances_upstream) == 3
@@ -194,10 +189,16 @@ class ChannelProfiler(_Profiler):
             starting_nodes = grid.boundary_nodes[np.argsort(
                 self._drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
 
+        starting_da = self._drainage_area[starting_nodes]
+        if np.any(starting_da < self.threshold):
+            msg =('The number of watersheds requested by the ChannelProfiler is '
+                  'greater than the number in the domain.')
+            raise ValueError(msg)
+
         self._starting_nodes = starting_nodes
 
     @property
-    def profile_structure():
+    def profile_structure(self):
         """
         profile_structure, the channel segment datastructure.
                 profile structure is a list of length number_of_watersheds. Each
@@ -207,8 +208,9 @@ class ChannelProfiler(_Profiler):
                 downstream to upstream.
         """
         return self._profile_structure
+
     @property
-    def distances_upstream():
+    def distances_upstream(self):
         """
         distances_upstream, the channel segment datastructure.
                 A datastructure that parallels profile_structure but holds

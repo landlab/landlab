@@ -3,10 +3,10 @@
 """
 """
 
-from landlab.components.profiler.base_profiler import _Profiler
+from landlab.components.profiler.base_profiler import _NetworkProfiler
 
 
-class RidgeProfiler(_Profiler):
+class RidgeProfiler(_NetworkProfiler):
     """
     """
     def __init__(self, grid):
