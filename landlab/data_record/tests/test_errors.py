@@ -20,7 +20,6 @@ from landlab.data_record import DataRecord
 
 grid = RasterModelGrid((3,3))
 
-######### To test errors:
 
 def dr_bad_dim():
     time=[0.]
@@ -175,6 +174,11 @@ def dr_time_bad_set_data_(dr_time):
                          data_variable='mean_elevation',
                          new_value=105.)
 # should return KeyError: 'This datarecord does not hold items'
+def dr_time_bad_properties(dr_time):
+    with pytest.raises(AttributeError):
+        dr_time.number_of_items
+        dr_time.item_coordinates
+
 ###############################################################################
 
 ########### ITEM ONLY #########################################################
@@ -225,8 +229,101 @@ def dr_item_bad_set_data(dr_item):
                      new_value=2)
 #should return IndexError: The item_id you passed does not exist in this
 # Datarecord
+def dr_item_bad_properties(dr_item):
+    with pytest.raises(AttributeError):
+        dr_item.number_of_timesteps
+        dr_item.time_coordinates
+        dr_item.earliest_time
+        dr_item.latest_time
+        dr_item.prior_time
 ###############################################################################
 
 ########### ITEM AND TIME #####################################################
-#def dr_item_bad_add_record(dr_2dim):
-#    with pytest.raises(KeyError):
+def dr_2dim_bad_add_record(dr_2dim):
+    with pytest.raises(TypeError):
+        dr_2dim.add_record(model__time=10.,
+                       item_id=[1],
+                       new_item_loc={'grid_element' : np.array([['cell']]),
+                                     'element_id' : np.array([[0]])})
+#should return TypeError: You have passed a model__time that is not permitted,
+#must be list or array.
+    with pytest.raises(ValueError):
+        dr_2dim.add_record(model__time=[10.],
+                       item_id=[10],
+                       new_item_loc={'grid_element' : np.array([['cell']]),
+                                     'element_id' : np.array([[0]])})
+#should return ValueError: There is no item with item_id 10, modify the
+#value(s) you pass as item_id or create a new item using the method add_item.
+    with pytest.raises(KeyError):
+        dr_2dim.add_record(model__time=[10.],
+                       item_id=[0],
+                       new_item_loc={'grid_element' : np.array([['cell']])})
+#should return KeyError: 'You must provide a new_item_loc dictionnary with
+# both grid_element and element_id'
+def dr_2dim_bad_add_item(dr_2dim):
+    with pytest.raises(ValueError):
+        dr_2dim.add_item(new_item={'grid_element' : np.array(
+                                             [['node'], ['cell']]),
+                               'element_id' : np.array([[2],[0]])},
+                     new_item_spec={'size': (['item_id'], [10,5])})
+#should return ValueError: The items previously defined in this Datarecord have
+# dimensions "time" and "item_id", please provide a "model__time" for the
+#new item(s)
+    with pytest.raises(AttributeError):
+        dr_2dim.add_item(model__time=[10.],
+                         new_item=('not a dict'),
+                         new_item_spec={'size': (['item_id'], [10,5])})
+#should return AttributeError: You must provide an new_item dictionnary (see
+# documentation for required format)
+    with pytest.raises(KeyError):
+        dr_2dim.add_item(model__time=[10.],
+                     new_item={'grid_element' : np.array(
+                                             [['node'], ['cell']])},
+                     new_item_spec={'size': (['item_id'], [10,5])})
+#should return AttributeError: You must provide an new_item dictionnary (see
+# documentation for required format)
+    with pytest.raises(TypeError):
+        dr_2dim.add_item(model__time=10.,
+                         new_item={'grid_element' : np.array(
+                                                 [['node'], ['cell']]),
+                                   'element_id' : np.array([[2],[0]])},
+                         new_item_spec={'size': (['item_id'], [10,5])})
+#should return TypeError: You have passed a model__time that is not permitted,
+#must be list or array.
+def dr_2dim_bad_get_data(dr_2dim):
+    with pytest.raises(KeyError):
+        dr_2dim.get_data(model__time=0.,
+                            item_id=1,
+                            data_variable='bad_variable')
+        dr_2dim.get_data(data_variable='bad_variable')
+#should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
+    with pytest.raises(IndexError):
+        dr_2dim.get_data(model__time=0.,
+                            item_id=10,
+                            data_variable='grid_element')
+#should return IndexError: The item_id you passed does not exist in this
+# Datarecord
+def dr_2dim_bad_set_data(dr_2dim):
+    with pytest.raises(KeyError):
+        dr_2dim.set_data(model__time=0.,
+                     item_id=1,
+                     data_variable='bad_variable',
+                     new_value='node')
+    with pytest.raises(ValueError):
+        dr_2dim.set_data(model__time=0.,
+                     item_id=1,
+                     data_variable='grid_element',
+                     new_value='cell')
+        dr_2dim.set_data(model__time=0.,
+                     item_id=-1,
+                     data_variable='grid_element',
+                     new_value='node')
+        dr_2dim.set_data(model__time=0.,
+                     item_id=1.,
+                     data_variable='grid_element',
+                     new_value='node')
+    with pytest.raises(IndexError):
+        dr_2dim.set_data(model__time=130.,
+                     item_id=1,
+                     data_variable='grid_element',
+                     new_value='node')
