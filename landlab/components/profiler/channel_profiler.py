@@ -149,20 +149,6 @@ class ChannelProfiler(_Profiler):
     It is important that the length of starting nodes is the same as the value
     of number_of_watersheds. If this is not the case, then an error will occur.
 
-    Attributes
-    ----------
-    profile_structure, the channel segment datastructure.
-            profile structure is a list of length number_of_watersheds. Each
-            element of profile_structure is itself a list of length number of
-            stream segments that drain to each of the starting nodes. Each
-            stream segment list contains the node ids of a stream segment from
-            downstream to upstream.
-    distances_upstream, the channel segment datastructure.
-            A datastructure that parallels profile_structure but holds
-            distances upstream instead of node IDs.
-
-            Both lists are number_of_watersheds long.
-
     """
     def __init__(self, grid,
                        number_of_watersheds=1,
@@ -192,7 +178,7 @@ class ChannelProfiler(_Profiler):
         """
         super(ChannelProfiler, self).__init__(grid)
 
-        self.distances_upstream = []
+        self._distances_upstream = []
         self._main_channel_only = main_channel_only
 
         if threshold is None:
@@ -209,6 +195,29 @@ class ChannelProfiler(_Profiler):
                 self._drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
 
         self._starting_nodes = starting_nodes
+
+    @property
+    def profile_structure():
+        """
+
+        profile_structure, the channel segment datastructure.
+                profile structure is a list of length number_of_watersheds. Each
+                element of profile_structure is itself a list of length number of
+                stream segments that drain to each of the starting nodes. Each
+                stream segment list contains the node ids of a stream segment from
+                downstream to upstream.
+        """
+        return self._profile_structure
+    @property
+    def distances_upstream():
+        """
+        distances_upstream, the channel segment datastructure.
+                A datastructure that parallels profile_structure but holds
+                distances upstream instead of node IDs.
+
+                Both lists are number_of_watersheds long.
+        """
+        return self._distances_upstream
 
     def run_one_step(self):
         """
@@ -307,21 +316,21 @@ class ChannelProfiler(_Profiler):
         """
         Create the profile_IDs data structure for channel network.
 
-        The bound attribute self.profile structure is the channel segment
+        The bound attribute self._profile structure is the channel segment
         datastructure. profile structure is a list of length number_of_watersheds. Each element
         of profile_structure is itself a list of length number of stream
         segments that drain to each of the starting nodes. Each stream segment
         list contains the node ids of a stream segment from downstream to
         upstream.
         """
-        self.profile_structure = []
+        self._profile_structure = []
 
         if self._main_channel_only:
             channel_network = []
             for i in self._starting_nodes:
                 (channel_segment, nodes_to_process) = self._get_channel_segment(i)
                 channel_network.append(np.array(channel_segment))
-                self.profile_structure.append(channel_network)
+                self._profile_structure.append(channel_network)
 
         else:
             for i in self._starting_nodes:
@@ -332,7 +341,7 @@ class ChannelProfiler(_Profiler):
                     (channel_segment, nodes_to_process) = self._get_channel_segment(node_to_process)
                     channel_network.append(np.array(channel_segment))
                     queue.extend(nodes_to_process)
-                self.profile_structure.append(channel_network)
+                self._profile_structure.append(channel_network)
 
     def _calculate_distances_upstream(self):
         """
@@ -341,12 +350,12 @@ class ChannelProfiler(_Profiler):
         end_distances = {}
 
         # set the starting values for the beginnings of each netwrok.
-        for network in self.profile_structure:
+        for network in self._profile_structure:
             starting_node = network[0][0]
             end_distances[starting_node] = 0
 
         # for each network
-        for network in self.profile_structure:
+        for network in self._profile_structure:
 
             network_values = []
             # for each segment in the network.
@@ -370,4 +379,4 @@ class ChannelProfiler(_Profiler):
                         profile_values.append(total_distance)
                 network_values.append(np.array(profile_values))
                 end_distances[segment[-1]] = total_distance
-            self.distances_upstream.append(network_values)
+            self._distances_upstream.append(network_values)
