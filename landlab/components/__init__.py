@@ -34,7 +34,7 @@ from .space import Space
 from .landslides import LandslideProbability
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .normal_fault import NormalFault
-from .profiler import ChannelProfiler
+from .profiler import ChannelProfiler, RidgeProfiler
 
 COMPONENTS = [ChiFinder, LinearDiffuser,
               Flexure, FlowRouter, DepressionFinderAndRouter,
@@ -53,6 +53,6 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
               LandslideProbability, DepthDependentTaylorDiffuser,
-              NormalFault, ChannelProfiler]
+              NormalFault, ChannelProfiler, RidgeProfiler]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
