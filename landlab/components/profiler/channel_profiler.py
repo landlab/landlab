@@ -7,10 +7,10 @@ from six.moves import range
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.profiler.base_profiler import Profiler
+from landlab.components.profiler.base_profiler import _Profiler
 
 
-class ChannelProfiler(Profiler):
+class ChannelProfiler(_Profiler):
     """Profile channels of a drainage network.
 
     It is expected that the following at-node grid fields will be present.

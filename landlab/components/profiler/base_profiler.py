@@ -17,7 +17,7 @@ from landlab.utils.return_array import return_array_at_node
 
 from landlab import Component
 
-class Profiler(Component):
+class _Profiler(Component):
     """
     """
     def __init__(self, grid):

@@ -3,10 +3,10 @@
 """
 """
 
-from landlab.components.profiler.base_profiler import Profiler
+from landlab.components.profiler.base_profiler import _Profiler
 
 
-class RidgeProfiler(Profiler):
+class RidgeProfiler(_Profiler):
     """
     """
     def __init__(self, grid):
@@ -14,7 +14,7 @@ class RidgeProfiler(Profiler):
         """
         super(RidgeProfiler, self).__init__(grid)
         self._grid = grid
-    
+
     def something(self):
         """
         """
