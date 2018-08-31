@@ -297,9 +297,12 @@ class SpatialPrecipitationDistribution(Component):
             A Landlab model grid of any type.
         number_of_years : int
             The number of years over which to generate storms.
-        orographic_scenario : {None, 'Singer'}
+        orographic_scenario : {None, 'Singer', func}
             Whether to use no orographic rule, or to adopt S&M's 2017
-            calibration for Walnut Gulch.
+            calibration for Walnut Gulch. Alternatively, provide a function
+            here that turns the provided elevation of the storm center into
+            a length-11 curve weighting to select which orographic scenario
+            to apply.
 
         """
         self._grid = grid
@@ -335,6 +338,8 @@ class SpatialPrecipitationDistribution(Component):
         self._running_total_rainfall_this_season = self.grid.zeros('node')
 
         self._open_area = self.grid.cell_area_at_node[open_nodes].sum()
+        self._scaling_to_WG = self._open_area / 275710702.
+        # ^ this is the relative size of the catchment compared to WG
 
     def yield_storms(self, limit='total_time', style='whole_year',
                      total_rf_trend=0., storminess_trend=0.,
@@ -347,9 +352,12 @@ class SpatialPrecipitationDistribution(Component):
                      monsoon_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
+                     # monsoon_storm_interarrival_GEV={
+                     #     'shape': -0.807971, 'sigma': 1.40304e9,
+                     #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                      monsoon_storm_interarrival_GEV={
-                         'shape': -0.807971, 'sigma': 1.40304e9,
-                         'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
+                         'shape': -0.807971, 'sigma': 9.4957,
+                         'mu': 10.6108, 'trunc_interval': (0., 720.)},
                      monsoon_storm_radial_weakening_gaussian={
                          'sigma': 0.08, 'mu': 0.25,
                          'trunc_interval': (0.15, 0.67)},
@@ -361,9 +369,12 @@ class SpatialPrecipitationDistribution(Component):
                      winter_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
+                     # winter_storm_interarrival_GEV={
+                     #     'shape': 1.1131, 'sigma': 7.87044e9,
+                     #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                      winter_storm_interarrival_GEV={
-                         'shape': 1.1131, 'sigma': 7.87044e9,
-                         'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
+                         'shape': 1.1131, 'sigma': 53.2671,
+                         'mu': 47.4944, 'trunc_interval': (0., 720.)},
                      winter_storm_radial_weakening_gaussian={
                          'sigma': 0.08, 'mu': 0.25,
                          'trunc_interval': (0.15, 0.67)}):
@@ -416,8 +427,14 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. Note that this calibration is specifically to Walnut Gulch,
+            which has an area of 275 km**2. The generator directly scales this
+            resulting distribution to the area ratio of Walnut Gulch to the
+            open cells of the grid. This crudely accounts for the fact that
+            bigger catchments will have more storms, but note that the heavy
+            tail on this distribution means the default distribution shape
+            will not be trustworthy for catchments with big differences in
+            size from Walnut Gulch.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -435,8 +452,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. The same considerations apply here as for the monsoonal
+            interstorm equivalent.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -483,9 +500,12 @@ class SpatialPrecipitationDistribution(Component):
                     monsoon_storm_area_GEV={
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
+                    # monsoon_storm_interarrival_GEV={
+                    #     'shape': -0.807971, 'sigma': 1.40304e9,
+                    #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                     monsoon_storm_interarrival_GEV={
-                        'shape': -0.807971, 'sigma': 1.40304e9,
-                        'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
+                        'shape': -0.807971, 'sigma': 9.4957,
+                        'mu': 10.6108, 'trunc_interval': (0., 720.)},
                     monsoon_storm_radial_weakening_gaussian={
                         'sigma': 0.08, 'mu': 0.25,
                         'trunc_interval': (0.15, 0.67)},
@@ -497,9 +517,12 @@ class SpatialPrecipitationDistribution(Component):
                     winter_storm_area_GEV={
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
+                    # winter_storm_interarrival_GEV={
+                    #     'shape': 1.1131, 'sigma': 7.87044e9,
+                    #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                     winter_storm_interarrival_GEV={
-                        'shape': 1.1131, 'sigma': 7.87044e9,
-                        'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
+                        'shape': 1.1131, 'sigma': 53.2671,
+                        'mu': 47.4944, 'trunc_interval': (0., 720.)},
                     winter_storm_radial_weakening_gaussian={
                         'sigma': 0.08, 'mu': 0.25,
                         'trunc_interval': (0.15, 0.67)}):
@@ -552,8 +575,14 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. Note that this calibration is specifically to Walnut Gulch,
+            which has an area of 275 km**2. The generator directly scales this
+            resulting distribution to the area ratio of Walnut Gulch to the
+            open cells of the grid. This crudely accounts for the fact that
+            bigger catchments will have more storms, but note that the heavy
+            tail on this distribution means the default distribution shape
+            will not be trustworthy for catchments with big differences in
+            size from Walnut Gulch.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -571,8 +600,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. The same considerations apply here as for the monsoonal
+            interstorm equivalent.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -616,9 +645,12 @@ class SpatialPrecipitationDistribution(Component):
                       monsoon_storm_area_GEV={
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
+                      # monsoon_storm_interarrival_GEV={
+                      #     'shape': -0.807971, 'sigma': 1.40304e9,
+                      #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                       monsoon_storm_interarrival_GEV={
-                          'shape': -0.807971, 'sigma': 1.40304e9,
-                          'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
+                          'shape': -0.807971, 'sigma': 9.4957,
+                          'mu': 10.6108, 'trunc_interval': (0., 720.)},
                       monsoon_storm_radial_weakening_gaussian={
                           'sigma': 0.08, 'mu': 0.25,
                           'trunc_interval': (0.15, 0.67)},
@@ -630,9 +662,12 @@ class SpatialPrecipitationDistribution(Component):
                       winter_storm_area_GEV={
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
+                      # winter_storm_interarrival_GEV={
+                      #     'shape': 1.1131, 'sigma': 7.87044e9,
+                      #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                       winter_storm_interarrival_GEV={
-                          'shape': 1.1131, 'sigma': 7.87044e9,
-                          'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
+                          'shape': 1.1131, 'sigma': 53.2671,
+                          'mu': 47.4944, 'trunc_interval': (0., 720.)},
                       winter_storm_radial_weakening_gaussian={
                           'sigma': 0.08, 'mu': 0.25,
                           'trunc_interval': (0.15, 0.67)}):
@@ -686,8 +721,14 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. Note that this calibration is specifically to Walnut Gulch,
+            which has an area of 275 km**2. The generator directly scales this
+            resulting distribution to the area ratio of Walnut Gulch to the
+            open cells of the grid. This crudely accounts for the fact that
+            bigger catchments will have more storms, but note that the heavy
+            tail on this distribution means the default distribution shape
+            will not be trustworthy for catchments with big differences in
+            size from Walnut Gulch.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -705,8 +746,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. The same considerations apply here as for the monsoonal
+            interstorm equivalent.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -755,9 +796,12 @@ class SpatialPrecipitationDistribution(Component):
                              'shape': 0., 'sigma': 2.83876e+07,
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
+                         # monsoon_storm_interarrival_GEV={
+                         #     'shape': -0.807971, 'sigma': 1.40304e9,
+                         #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                          monsoon_storm_interarrival_GEV={
-                             'shape': -0.807971, 'sigma': 1.40304e9,
-                             'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
+                             'shape': -0.807971, 'sigma': 9.4957,
+                             'mu': 10.6108, 'trunc_interval': (0., 720.)},
                          monsoon_storm_radial_weakening_gaussian={
                              'sigma': 0.08, 'mu': 0.25,
                              'trunc_interval': (0.15, 0.67)},
@@ -770,9 +814,12 @@ class SpatialPrecipitationDistribution(Component):
                              'shape': 0., 'sigma': 2.83876e+07,
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
+                         # winter_storm_interarrival_GEV={
+                         #     'shape': 1.1131, 'sigma': 7.87044e9,
+                         #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                          winter_storm_interarrival_GEV={
-                             'shape': 1.1131, 'sigma': 7.87044e9,
-                             'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
+                             'shape': 1.1131, 'sigma': 53.2671,
+                             'mu': 47.4944, 'trunc_interval': (0., 720.)},
                          winter_storm_radial_weakening_gaussian={
                              'sigma': 0.08, 'mu': 0.25,
                              'trunc_interval': (0.15, 0.67)}):
@@ -809,8 +856,14 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         monsoon_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. Note that this calibration is specifically to Walnut Gulch,
+            which has an area of 275 km**2. The generator directly scales this
+            resulting distribution to the area ratio of Walnut Gulch to the
+            open cells of the grid. This crudely accounts for the fact that
+            bigger catchments will have more storms, but note that the heavy
+            tail on this distribution means the default distribution shape
+            will not be trustworthy for catchments with big differences in
+            size from Walnut Gulch.
         monsoon_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -827,8 +880,8 @@ class SpatialPrecipitationDistribution(Component):
             distribution.
         winter_storm_interarrival_GEV is a generalised extreme value
             distribution controlling the interarrival time between each storm.
-            In HRS * M**2. i.e., a bigger catchment will have a shorter
-            interstorm duration.
+            In HRS. The same considerations apply here as for the monsoonal
+            interstorm equivalent.
         winter_storm_radial_weakening_gaussian is a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
@@ -888,13 +941,6 @@ class SpatialPrecipitationDistribution(Component):
         if FUZZMETHOD == 'MS':
             raise NameError(
                 'The Singer method for fuzz is no longer supported')
-
-        # NOTE this is overly specific
-        if self._orographic_scenario == 'Singer':
-            # These are elevation ranges for the 3 orographic groups
-            OroGrp1 = np.arange(int(np.round(Zz.min())), 1350)
-            OroGrp2 = np.arange(1350, 1500)
-            OroGrp3 = np.arange(1500, int(np.round(Zz.max())))
 
         # lambda_, kappa, and C are parameters of the intensity-duration curves
         # of the form: intensity =
@@ -1001,7 +1047,8 @@ class SpatialPrecipitationDistribution(Component):
                         # ...just in case
                         if int_arr_val < 0.:
                             int_arr_val = 0.
-                    int_arr_val /= self._open_area
+                    # now, correct the scaling relative to WG
+                    int_arr_val /= self._scaling_to_WG
                     self._int_arr_val = int_arr_val
                     # ^Samples from distribution of interarrival times (hr).
                     # This can be used to develop STORM output for use in
@@ -1059,29 +1106,30 @@ class SpatialPrecipitationDistribution(Component):
                     # censors the number of curves accordingly
                     # missing top curve in GR1, top and bottom curves for GR2,
                     # and bottom curve for GR3
-                    # new version of orography compares local 'gauge' elevation
-                    # to elevation bands called OroGrp, defined above
                     # NOTE again, DEJH thinks this could be generalised a lot
-                    if self._orographic_scenario == 'Singer':
+
+                    # original curve# probs for 30%-20%-10%: [0.0636, 0.0727,
+                    # 0.0819, 0.0909, 0.0909, 0.0909, 0.0909, 0.0909, 0.1001,
+                    # 0.1090, 0.1182]
+                    # original curve# probs are modified as below
+                    # add weights to reflect reasonable probabilities that
+                    # favor lower curves:
+                    if self._orographic_scenario is not None:
                         # this routine below allows for orography in precip by
                         # first determining the closest gauge and then
                         # determining its orographic grouping
                         cc = np.argmin(gdist)
-                        closest_gauge = np.round(Zz[cc])  # this will be
+                        closest_gauge_z = Zz[cc]  # this will be
                         # compared against orographic gauge groupings to
                         # determine the appropriate set of intensity-duration
                         # curves
-                        if closest_gauge in OroGrp1:
-                            baa = 'a'
-                        elif closest_gauge in OroGrp2:
-                            baa = 'b'
-                        elif closest_gauge in OroGrp3:
-                            baa = 'c'
+                        if self._orographic_scenario == 'Singer':
+                            wgts = Singer_orographic_rainfall(closest_gauge_z)
                         else:
-                            raise ValueError(
-                                'closest_gauge not found in curve lists!')
+                            wgts = self._orographic_scenario(closest_gauge_z)
                     elif self._orographic_scenario is None:
-                        baa = None
+                        wgts = [0.0636, 0.0727, 0.0819, 0.0909, 0.0909, 0.0909,
+                                0.0909, 0.0909, 0.1001, 0.1090, 0.1182]
                     if seas == 0 and not style == 'winter':
                         duration_val = genextreme.rvs(
                             c=Duration_pdf['shape'], loc=Duration_pdf['mu'],
@@ -1106,24 +1154,6 @@ class SpatialPrecipitationDistribution(Component):
                     # we will always do the next storm, even if it exceeds the
                     # specified "total" time
 
-                    # original curve# probs for 30%-20%-10%: [0.0636, 0.0727,
-                    # 0.0819, 0.0909, 0.0909, 0.0909, 0.0909, 0.0909, 0.1001,
-                    # 0.1090, 0.1182]
-                    # original curve# probs are modified as below
-                    # add weights to reflect reasonable probabilities that
-                    # favor lower curves:
-                    if baa == 'a':
-                        wgts = [0.0318, 0.0759, 0.0851, 0.0941, 0.0941, 0.0941,
-                                0.0941, 0.0941, 0.1033, 0.1121, 0.1213]
-                    elif baa == 'b':
-                        wgts = [0.0478, 0.0778, 0.0869, 0.0959, 0.0959, 0.0959,
-                                0.0959, 0.0959, 0.1051, 0.1141, 0.0888]
-                    elif baa == 'c':
-                        wgts = [0.0696, 0.0786, 0.0878, 0.0968, 0.0968, 0.0968,
-                                0.0968, 0.0968, 0.1060, 0.1149, 0.0591]
-                    elif baa is None:
-                        wgts = [0.0636, 0.0727, 0.0819, 0.0909, 0.0909, 0.0909,
-                                0.0909, 0.0909, 0.1001, 0.1090, 0.1182]
                     # which curve did we pick?:
                     int_dur_curve_val = np.random.choice(numcurves, p=wgts)
 
@@ -1483,6 +1513,37 @@ class SpatialPrecipitationDistribution(Component):
         from this value.
         """
         return self._season_rf_limit
+
+
+def Singer_orographic_rainfall(z_closest_node_to_center):
+    """
+    Return a set of curve weights for a provided z, assuming an orographic
+    rule following that presented in Singer & Michaelides 2017 & Singer et
+    al. 2018 and applicable specifically to Walnut Gulch.
+    i.e., there are three orographic divisions, divided at 1350 m and
+    1500 m.
+
+    Parameters
+    ----------
+    z_closest_node_to_center : float
+        The elevation of the node closest to the storm center.
+
+    Returns
+    -------
+    wgts : length 11 list
+        The weighting parameters to use in selecting a storm distribution
+        curve.
+    """
+    if z_closest_node_to_center <= 1350:
+        wgts = [0.0318, 0.0759, 0.0851, 0.0941, 0.0941, 0.0941,
+                0.0941, 0.0941, 0.1033, 0.1121, 0.1213]
+    elif 1350 < z_closest_node_to_center <= 1500:
+        wgts = [0.0478, 0.0778, 0.0869, 0.0959, 0.0959, 0.0959,
+                0.0959, 0.0959, 0.1051, 0.1141, 0.0888]
+    elif z_closest_node_to_center > 1500:
+        wgts = [0.0696, 0.0786, 0.0878, 0.0968, 0.0968, 0.0968,
+                0.0968, 0.0968, 0.1060, 0.1149, 0.0591]
+    return wgts
 
 
 if __name__ == "__main__":
