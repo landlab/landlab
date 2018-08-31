@@ -6,6 +6,7 @@ import numpy as np
 
 from six import string_types
 
+import xarray as xr
 from xarray import Dataset
 
 
@@ -232,8 +233,11 @@ class DataRecord(Dataset):
                       '(see documentation for required format)')
 
             self._number_of_items = len(self.element_ids)
-            if self._number_of_items != len(self.grid_elements):
-                raise ValueError(('The number of grid_element passed '
+            if len(self.grid_elements) != self._number_of_items:
+                if isinstance(self.grid_elements, string_types):
+                    pass
+                else:
+                    raise ValueError(('The number of grid_element passed '
                                   'to Datarecord must be 1 or equal '
                                   'to the number of element_id.'))
 
@@ -241,6 +245,7 @@ class DataRecord(Dataset):
             # have valid format:
             self.grid_elements = self._check_grid_element_and_id(
                     self.grid_elements, self.element_ids)
+
 
             # check that element IDs do not exceed number of elements
             # on this grid:
@@ -341,13 +346,15 @@ class DataRecord(Dataset):
 
             #create list of grid_element for all items:
             ge_name = grid_element
+
             try: # if time
+                self.number_of_timesteps
                 grid_element = np.array(
                     np.empty((self._number_of_items,
                               self._number_of_times), dtype=object))
-            except AttributeError: # no time
+            except (AttributeError, RecursionError): # no time
                 grid_element = np.array(
-                    np.empty((self._number_of_items, ), dtype=object))
+                    np.empty((self._number_of_items,), dtype=object))
             grid_element.fill(ge_name)
 
 
@@ -761,7 +768,6 @@ class DataRecord(Dataset):
                             coords=coords_to_add)
 
         # Merge new record and original dataset:
-        #new_ds = xr.concat((self, ds_to_add), compat='equals')
         self.merge(ds_to_add, inplace='True', compat='no_conflicts')
 
     def get_data(self, model__time=None, item_id=None, data_variable=None):
@@ -951,143 +957,150 @@ class DataRecord(Dataset):
                                   ' to DataRecord, this is not permitted.'))
 
         if model__time is None:
-            self[data_variable].loc[dict(item_id=item_id)] = new_value
+            #self[data_variable].loc[dict(item_id=item_id)] = new_value
+            self[data_variable].values[item_id] = new_value
         else:
-            if model__time not in self.time_coordinates:
+            try:
+                time_index=int(self.time_coordinates.index(model__time))
+            except ValueError:
+#            if model__time not in self.time_coordinates:
                 raise IndexError(('The model__time you passed is not currently'
                                 ' in the Datarecord, you must change the value'
                                 ' you pass or first create the new time '
                                 ' coordinate using the add_record method.'))
-            else:
-                if item_id is None:
-                    self[data_variable].loc[
-                            dict(time=model__time)] = new_value
-                else:
-                    try:
-                        self['item_id']
-                        self[data_variable].loc[
-                                dict(time=model__time, item_id=item_id)] = (
-                                new_value)
-                    except KeyError:
-                        raise KeyError(('This datarecord does not hold items'))
 
-#### COPIED FROM ITEM_COLLECTION: TO BE MODIFIED ##############################
-#    def calc_aggregate_value(self,
-#                             func,
-#                             data_variable,
-#                             at='node',
-#                             filter_array=None,
-#                             args=(),
-#                             **kwargs):
-#
-#        # fill_value=_FILL_VALUE,?
-#        # fill_value : str, float, int, optional
-#        #    Value to use for grid element locations where no items are located.
-#        #    Default is np.nan.
-#
-#
-#        """Apply a function to a variable aggregated at grid elements.
-#        Parameters
-#        ----------
-#        func : function
-#            Function to apply to aggregated
-#        data_variable : str
-#            Column name of variable to sum
-#        at : str, optional
-#            Name of grid element at which to sum. Default is "node".
-#
-#        filter_array : boolean array of size (number-of-items,)
-#            Array to filter items in the item collection before aggregation.
-#        args : tuple, optional
-#            Additional positional arguments to pass to function in after the
-#            array/series
-#        **kwargs : key value pairs, optional
-#            Additional keyword arguments to pass to func.
-#        Returns
-#        -------
-#        out : ndarray
-#            Array of size (num_grid_elements,) where num_grid_elements is the
-#            number of elements at the location specified with the `at`
-#            keyword argument.
-#        Examples
-#        --------
-#        >>> import numpy as np
-#        >>> from landlab.item_collection import ItemCollection
-#        >>> from landlab import RasterModelGrid
-#        >>> grid = RasterModelGrid(3,3)
-#        >>> element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5]
-#        >>> volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
-#        >>> ages = [10, 11, 12, 13, 14, 15, 16, 8, 10]
-#        >>> grid_element = 'node'
-#        >>> data = {'ages': ages,
-#        ...         'volumes':volumes}
-#        >>> ic = ItemCollection(grid,
-#        ...                     data = data,
-#        ...                     grid_element ='node',
-#        ...                     element_id = element_id)
-#        >>> print(ic.DataFrame)
-#          grid_element  element_id  ages  volumes
-#        0         node           0    10        4
-#        1         node           0    11        5
-#        2         node           0    12        1
-#        3         node           0    13        2
-#        4         node           1    14        3
-#        5         node           2    15        4
-#        6         node           3    16        5
-#        7         node           4     8        6
-#        8         node           5    10        7
-#        We can calculate aggregate values by passing the function we want to
-#        use to `calc_aggregate_value`.
-#        >>> s = ic.calc_aggregate_value(np.sum, 'ages')
-#        >>> print(s)
-#        [ 46.  14.  15.  16.   8.  10.  nan  nan  nan]
-#        >>> len(s) == grid.number_of_nodes
-#        True
+#            else:
+
+            if item_id is None:
+                self[data_variable].values[time_index] = new_value
+            else:
+                try:
+                    self['item_id']
+                    self[data_variable].values[item_id, time_index] = (
+                            #dict(time=model__time, item_id=item_id)] =
+                            new_value)
+                except KeyError:
+                    raise KeyError(('This datarecord does not hold items'))
+
+
+
+    def calc_aggregate_value(self,
+                             func,
+                             data_variable,
+                             at='node',
+                             filter_time=None,
+                             filter_item=None,
+                             args=(),
+                             **kwargs):
+
+
+        """Apply a function to a variable aggregated at grid elements.
+        Parameters
+        ----------
+        func : function
+            Function to apply to aggregated
+        data_variable : str
+            Name of variable on which to apply the function
+        at : str, optional
+            Name of grid element at which to apply the function.
+            Default is "node".
+        filter_time : boolean array of size number-of-timesteps (optional)
+            Array to filter the timesteps before aggregation.
+        filter_item : boolean array of size number-of-items (optional)
+            Array to filter the items before aggregation.
+        args : tuple (optional)
+            Additional positional arguments to pass to the function
+        **kwargs : key value pairs (optional)
+            Additional keyword arguments to pass to func.
+        Returns
+        -------
+        out : ndarray
+            Array of size number-of-grid_elements (grid_elements is the group
+            passed as 'at' argument).
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.data_record import DataRecord
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3,3))
+        >>> element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5]
+        >>> volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
+        >>> ages = [10, 11, 12, 13, 14, 15, 16, 8, 10]
+        >>> grid_element = 'node'
+        >>> data = {'ages': ages,
+        ...         'volumes': volumes}
+        >>> dr = DataRecord(grid,
+        ...                 items={'grid_element' : 'node',
+        ...                           'element_id' : np.array(element_id)},
+        ...                 data_vars={'ages' : (['item_id'], np.array(ages)),
+        ...                             'volumes' : (
+        ...                                 ['item_id'], np.array(volumes))})
+        >>> s = dr.calc_aggregate_value(func=np.sum, data_variable='ages')
+        >>> s
+        array([ 46.,  14.,  15.,  16.,   8.,  10.,  nan,  nan,  nan])
+        >>> len(s) == grid.number_of_nodes
+        True
+
+        """
+
+        #### To add to Example above, when I can make it work!
 #        You can even pass functions that require additional positional
 #        arguments or keyword arguments. For example, in order to get the 25th
 #        percentile, we we do the following.
+#
 #        >>> s = ic.calc_aggregate_value(np.percentile, 'ages', q=25)
 #        >>> print(s)
 #        [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
-#        If you want to first filter the items and then aggregate, create an
-#        filter array that is of size (number-of-items,) and has True for items
-#        that should be retained and False for items that should be ignored.
-#        For example, if we wanted to aggregate volume for items with an age
-#        greater than 10 we would to the following:
-#        >>> f = ic.DataFrame['ages'] > 10.
-#        >>> v = ic.calc_aggregate_value(np.sum, 'volumes', filter_array = f)
-#        >>> print(v)
-#        [  8.   3.   4.   5.  nan  nan  nan  nan  nan]
-#        """
-#        # select those items located on the correct type of element,
-#        # group by element_id and sum.
-#        if filter_array is None:
-#            filt = self.DataFrame["grid_element"] == at
-#        else:
-#            filter_array = np.squeeze(np.asarray(filter_array))
-#            if filter_array.size == self.DataFrame.shape[0]:
-#                filt = (self.DataFrame["grid_element"] == at) & (filter_array)
-#            else:
-#                raise ValueError(
-#                    (
-#                        "ItemCollection: filter_array has incorrect "
-#                        "size. It must be of size (number-of-items,)"
-#                    )
-#                )
-#        grouped = self.DataFrame.loc[filt].groupby("element_id")
-#        vals = grouped.agg(func, *args, **kwargs)
-#
-#        # create a nan array that we will fill with the results of the sum
-#        # this should be the size of the number of elements, even if there are
-#        # no items living at some grid elements.
-#        out = fill_value * np.ones(self._grid[at].size)
-#
-#        # put the values of the specified variable in to the correct location
-#        # of the out array.
-#        out[vals.index] = vals[var]
-#
-#        return out
-#
+
+    #if both filters are not None:
+        filter_at = self['grid_element'] == at
+
+        if filter_time is None:
+            if filter_item is None:
+                my_filter = filter_at
+            else:
+                try:
+                    self['item_id']
+                except KeyError:
+                    raise ValueError(('You cannot pass a filter_item as this'
+                                      ' Datarecord does not hold any item.'))
+                if ((filter_item.dtype == bool) and (
+                        len(filter_item) == self.number_of_items)) == False:
+                    raise TypeError(('The filter_item you passed must be a boolean'
+                                     ' array of size number-of-items.'))
+                my_filter = filter_at & filter_item
+        else: # filter_time is not None
+            try:
+                self['time']
+            except KeyError:
+                raise ValueError(('You cannot pass a filter_time as this'
+                                  ' Datarecord does not record time.'))
+            if ((filter_time.dtype == bool) and (
+                    len(filter_time) == self.number_of_timesteps)) == False:
+                raise TypeError(('The filter_time you passed must be a boolean'
+                                 ' array of size number-of-timesteps.'))
+            if filter_item is None:
+                my_filter = filter_at & filter_time
+            else:
+                my_filter = filter_time & filter_item & filter_at
+
+        # Filter Datarecord with my_filter:
+        #filtered = self.where(my_filter == True)
+        filtered = self.where(my_filter == True).groupby('element_id')
+
+        #vals = xr.core.groupby.DatasetGroupBy(filtered, 'element_id').reduce(func, *args, **kwargs)
+        vals = filtered.apply(func, *args, **kwargs)  #.reduce
+
+        # create a nan array that we will fill with the results of the sum
+        # this should be the size of the number of elements, even if there are
+        # no items living at some grid elements.
+        out = np.nan * np.ones(self._grid[at].size)
+
+        # put the values of the specified variable into the correct location
+        # of the out array.
+        out[vals.element_id.values.astype(int)] = vals[data_variable]
+
+        return out
 ###############################################################################
 
     @property
