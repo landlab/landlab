@@ -47,7 +47,7 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov
+- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest==3.7.2 pytest-cov
 - conda info -a && conda list
 script:
 - conda install --file=requirements.txt
@@ -59,8 +59,7 @@ script:
   fi
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
-    echo "WARNING: NOT BUILDING DOCS"
-    # (cd docs && make html)
+    (cd docs && make html)
   fi
 - |
   if [[ "$DEPLOY" == "1" ]]; then
