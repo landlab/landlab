@@ -143,7 +143,7 @@ class SpatialPrecipitationDistribution(Component):
     >>> total_t_each_step = [
     ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms()]
     >>> len(total_t_each_step)
-    220
+    41
     >>> np.isclose(sum(total_t_each_step)/24., 365.)
     True
 
@@ -152,7 +152,7 @@ class SpatialPrecipitationDistribution(Component):
     the grid, but in this case, it was for the last simulated storm:
 
     >>> mg.at_node['rainfall__flux'].argmax()
-    75
+    80
 
     We can also run the component for only one season (i.e., only using one
     of the pdf sets describing the storm properties):
@@ -164,8 +164,8 @@ class SpatialPrecipitationDistribution(Component):
     >>> total_t_each_step = [
     ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms(
     ...         style='monsoonal', monsoon_fraction_of_year=0.35)]
-    >>> round(sum(total_t_each_step)/24./365./2., 2)
-    0.35
+    >>> np.isclose(sum(total_t_each_step)/24./365./2., 0.35)
+    True
 
     Note this behaviour can be stopped by upping monsoon_fraction_of_year:
 
@@ -194,7 +194,7 @@ class SpatialPrecipitationDistribution(Component):
     ...         vdg.at_node['rainfall__total_depth_per_year'],
     ...         rain.total_rainfall_last_year)))
     >>> sum(storms_each_year)
-    418
+    11
 
     yield_seasons yields rainfall statistics for individual seasons. Access
     these using the various provided component properties. Note that we can
@@ -352,15 +352,11 @@ class SpatialPrecipitationDistribution(Component):
                      monsoon_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
-                     # monsoon_storm_interarrival_GEV={
-                     #     'shape': -0.807971, 'sigma': 1.40304e9,
-                     #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                      monsoon_storm_interarrival_GEV={
                          'shape': -0.807971, 'sigma': 9.4957,
                          'mu': 10.6108, 'trunc_interval': (0., 720.)},
                      monsoon_storm_radial_weakening_gaussian={
-                         'sigma': 0.08, 'mu': 0.25,
-                         'trunc_interval': (0.15, 0.67)},
+                         'sigma': 0.08, 'mu': 0.25},
                      winter_total_rf_gaussian={
                          'sigma': 52., 'mu': 1.65},
                      winter_storm_duration_fisk={
@@ -369,9 +365,6 @@ class SpatialPrecipitationDistribution(Component):
                      winter_storm_area_GEV={
                          'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                          'trunc_interval': (5.e+06, 3.e+08)},
-                     # winter_storm_interarrival_GEV={
-                     #     'shape': 1.1131, 'sigma': 7.87044e9,
-                     #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                      winter_storm_interarrival_GEV={
                          'shape': 1.1131, 'sigma': 53.2671,
                          'mu': 47.4944, 'trunc_interval': (0., 720.)},
@@ -500,9 +493,6 @@ class SpatialPrecipitationDistribution(Component):
                     monsoon_storm_area_GEV={
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
-                    # monsoon_storm_interarrival_GEV={
-                    #     'shape': -0.807971, 'sigma': 1.40304e9,
-                    #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                     monsoon_storm_interarrival_GEV={
                         'shape': -0.807971, 'sigma': 9.4957,
                         'mu': 10.6108, 'trunc_interval': (0., 720.)},
@@ -517,9 +507,6 @@ class SpatialPrecipitationDistribution(Component):
                     winter_storm_area_GEV={
                         'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                         'trunc_interval': (5.e+06, 3.e+08)},
-                    # winter_storm_interarrival_GEV={
-                    #     'shape': 1.1131, 'sigma': 7.87044e9,
-                    #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                     winter_storm_interarrival_GEV={
                         'shape': 1.1131, 'sigma': 53.2671,
                         'mu': 47.4944, 'trunc_interval': (0., 720.)},
@@ -645,9 +632,6 @@ class SpatialPrecipitationDistribution(Component):
                       monsoon_storm_area_GEV={
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
-                      # monsoon_storm_interarrival_GEV={
-                      #     'shape': -0.807971, 'sigma': 1.40304e9,
-                      #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                       monsoon_storm_interarrival_GEV={
                           'shape': -0.807971, 'sigma': 9.4957,
                           'mu': 10.6108, 'trunc_interval': (0., 720.)},
@@ -662,9 +646,6 @@ class SpatialPrecipitationDistribution(Component):
                       winter_storm_area_GEV={
                           'shape': 0., 'sigma': 2.83876e+07, 'mu': 1.22419e+08,
                           'trunc_interval': (5.e+06, 3.e+08)},
-                      # winter_storm_interarrival_GEV={
-                      #     'shape': 1.1131, 'sigma': 7.87044e9,
-                      #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
                       winter_storm_interarrival_GEV={
                           'shape': 1.1131, 'sigma': 53.2671,
                           'mu': 47.4944, 'trunc_interval': (0., 720.)},
@@ -796,9 +777,6 @@ class SpatialPrecipitationDistribution(Component):
                              'shape': 0., 'sigma': 2.83876e+07,
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
-                         # monsoon_storm_interarrival_GEV={
-                         #     'shape': -0.807971, 'sigma': 1.40304e9,
-                         #     'mu': 1.56779e9, 'trunc_interval': (0., 1.8e10)},
                          monsoon_storm_interarrival_GEV={
                              'shape': -0.807971, 'sigma': 9.4957,
                              'mu': 10.6108, 'trunc_interval': (0., 720.)},
@@ -814,10 +792,7 @@ class SpatialPrecipitationDistribution(Component):
                              'shape': 0., 'sigma': 2.83876e+07,
                              'mu': 1.22419e+08,
                              'trunc_interval': (5.e+06, 3.e+08)},
-                         # winter_storm_interarrival_GEV={
-                         #     'shape': 1.1131, 'sigma': 7.87044e9,
-                         #     'mu': 7.01750e9, 'trunc_interval': (0., 1.e11)},
-                         winter_storm_interarrival_GEV={
+                             winter_storm_interarrival_GEV={
                              'shape': 1.1131, 'sigma': 53.2671,
                              'mu': 47.4944, 'trunc_interval': (0., 720.)},
                          winter_storm_radial_weakening_gaussian={
