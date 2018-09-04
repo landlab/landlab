@@ -155,7 +155,7 @@ class SpatialDisturbance(Component):
             self._grid.at_cell['vegetation__plant_functional_type'] = vegtype
         return (V, grazed_cells)
 
-    def create_fires(self, V=None, n_fires=2, fire_area_mean=0.0625,
+    def initiate_fires(self, V=None, n_fires=2, fire_area_mean=0.0625,
                      fire_area_dev=0.01, susc=None):
         """
         - Add description to this method. If this is the main method or
@@ -203,7 +203,7 @@ class SpatialDisturbance(Component):
         for i in range(0, n_fires):
             ignition_cell = np.random.choice(self._grid.number_of_cells, 1)
             if V[ignition_cell] == GRASS:
-                (fire_locs, V) = self._create_fire(
+                (fire_locs, V) = self._spread_fire(
                                       V, ignition_cell,
                                       fire_area_mean=fire_area_mean,
                                       fire_area_dev=fire_area_dev,
@@ -218,7 +218,7 @@ class SpatialDisturbance(Component):
             self._grid.at_cell['vegetation__plant_functional_type'] = vegtype
         return (V, burnt_locs, ignition_cells)
 
-    def _create_fire(self, V, ignition_cell, fire_area_mean=0.0625,
+    def _spread_fire(self, V, ignition_cell, fire_area_mean=0.0625,
                      fire_area_dev=0.01,
                      susc=None):
         """
