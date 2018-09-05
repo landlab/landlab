@@ -61,7 +61,7 @@ class _FlowDirector(Component):
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     """
 
-    _name = '_FlowDirector'
+    _name = "_FlowDirector"
 
     def __init__(self, grid, surface):
         """Initialize the _FlowDirector class."""
@@ -80,8 +80,7 @@ class _FlowDirector(Component):
         self.surface = surface
         self.surface_values = return_array_at_node(grid, surface)
 
-        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
-                       noclobber=False)
+        grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
 
     def _changed_surface(self):
         """Check if the surface values have changed.
@@ -100,28 +99,30 @@ class _FlowDirector(Component):
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
-        raise NotImplementedError('run_one_step()')
+        raise NotImplementedError("run_one_step()")
 
     @property
     def sink_flag(self):
         """Return the array with sink flags."""
-        return self._grid['node']['flow__sink_flag']
+        return self._grid["node"]["flow__sink_flag"]
 
     @property
     def node_steepest_slope(self):
         """Return the steepest link slope at a node."""
-        return self._grid['node']['topographic__steepest_slope']
+        return self._grid["node"]["topographic__steepest_slope"]
 
     @property
     def link_to_flow_receiving_node(self):
         """Return the link id along the link transporting flow."""
-        return self._grid['node']['flow__link_to_receiver_node']
+        return self._grid["node"]["flow__link_to_receiver_node"]
 
     @property
     def node_receiving_flow(self):
         """Return the node ids of the nodes receiving flow."""
-        return self._grid['node']['flow__receiver_node']
+        return self._grid["node"]["flow__receiver_node"]
 
-if __name__ == '__main__': # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()

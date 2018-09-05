@@ -55,45 +55,39 @@ class _FlowDirectorToMany(_FlowDirector):
     ['flow__sink_flag', 'topographic__elevation']
     """
 
-    _name = 'FlowDirectorToMany'
+    _name = "FlowDirectorToMany"
 
-    _input_var_names = ('topographic__elevation',
-                        )
+    _input_var_names = ("topographic__elevation",)
 
-    _output_var_names = ('flow__sink_flag',
-                         )
+    _output_var_names = ("flow__sink_flag",)
 
-    _var_units = {'topographic__elevation': 'm',
-                  'flow__sink_flag': '-',
-                  }
+    _var_units = {"topographic__elevation": "m", "flow__sink_flag": "-"}
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'flow__sink_flag': 'node',
-                    }
+    _var_mapping = {"topographic__elevation": "node", "flow__sink_flag": "node"}
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'flow__sink_flag': 'Boolean array, True at local lows',
+        "topographic__elevation": "Land surface topographic elevation",
+        "flow__sink_flag": "Boolean array, True at local lows",
     }
 
     def __init__(self, grid, surface):
         """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
         super(_FlowDirectorToMany, self).__init__(grid, surface)
-        self.to_n_receivers = 'many'
+        self.to_n_receivers = "many"
         # initialize new fields
-
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
-        raise NotImplementedError('run_one_step()')
+        raise NotImplementedError("run_one_step()")
 
     @property
     def proportions_of_flow(self):
         """Return the proportions of flow going to recievers."""
-        return self._grid['node']['flow__receiver_proportions']
+        return self._grid["node"]["flow__receiver_proportions"]
 
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()

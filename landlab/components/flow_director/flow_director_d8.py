@@ -10,8 +10,7 @@ grids and does not consider diagonal links for rasters, use
 FlowDirectorSteepest instead.
 """
 
-from landlab.components.flow_director.flow_director_to_one import(
-_FlowDirectorToOne)
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 from landlab.components.flow_director import flow_direction_DN
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 from landlab import VoronoiDelaunayGrid
@@ -97,9 +96,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
            6, 7, 8])
     """
 
-    _name = 'FlowDirectorD8'
+    _name = "FlowDirectorD8"
 
-    def __init__(self, grid, surface='topographic__elevation'):
+    def __init__(self, grid, surface="topographic__elevation"):
         """
         Parameters
         ----------
@@ -109,13 +108,15 @@ class FlowDirectorD8(_FlowDirectorToOne):
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """
-        self.method = 'D8'
+        self.method = "D8"
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
-            raise NotImplementedError('FlowDirectorD8 not implemented for'
-                                      'irregular grids, use'
-                                      'FlowDirectorSteepest')
+            raise NotImplementedError(
+                "FlowDirectorD8 not implemented for"
+                "irregular grids, use"
+                "FlowDirectorSteepest"
+            )
 
         self.updated_boundary_conditions()
 
@@ -165,32 +166,41 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._changed_surface()
 
         # step 1. Calculate link slopes.
-        link_slope = - self._grid._calculate_gradients_at_d8_active_links(self.surface_values)
+        link_slope = -self._grid._calculate_gradients_at_d8_active_links(
+            self.surface_values
+        )
 
         # Step 2. Find and save base level nodes.
-        (baselevel_nodes, ) = numpy.where(
-            numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
+        (baselevel_nodes,) = numpy.where(
+            numpy.logical_or(
+                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+            )
+        )
 
         # Calculate flow directions by D8 method
-        receiver, steepest_slope, sink, recvr_link = \
-        flow_direction_DN.flow_directions(self.surface_values,
-                                          self._active_links,
-                                          self._activelink_tail,
-                                          self._activelink_head,
-                                          link_slope,
-                                          grid=self._grid,
-                                          baselevel_nodes=baselevel_nodes)
+        receiver, steepest_slope, sink, recvr_link = flow_direction_DN.flow_directions(
+            self.surface_values,
+            self._active_links,
+            self._activelink_tail,
+            self._activelink_head,
+            link_slope,
+            grid=self._grid,
+            baselevel_nodes=baselevel_nodes,
+        )
         # Save the four ouputs of this component.
-        self._grid['node']['flow__receiver_node'][:] = receiver
-        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
-        self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
-                                                                    dtype=bool)
-        self._grid['node']['flow__sink_flag'][sink] = True
+        self._grid["node"]["flow__receiver_node"][:] = receiver
+        self._grid["node"]["topographic__steepest_slope"][:] = steepest_slope
+        self._grid["node"]["flow__link_to_receiver_node"][:] = recvr_link
+        self._grid["node"]["flow__sink_flag"][:] = numpy.zeros_like(
+            receiver, dtype=bool
+        )
+        self._grid["node"]["flow__sink_flag"][sink] = True
 
         return receiver
 
-if __name__ == '__main__': # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()
