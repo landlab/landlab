@@ -140,27 +140,6 @@ class _FlowDirectorToOne(_FlowDirector):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError('run_one_step()')
 
-    # set properties. These are the same for all DirectToOne Directors
-    @property
-    def node_receiving_flow(self):
-        """Return the node id of the node receiving flow."""
-        return self._grid['node']['flow__receiver_node']
-
-    @property
-    def node_steepest_slope(self):
-        """Return the steepest link slope at a node."""
-        return self._grid['node']['topographic__steepest_slope']
-
-    @property
-    def link_to_flow_receiving_node(self):
-        """Return the link id along the link transporting flow."""
-        return self._grid['node']['flow__link_to_receiver_node']
-
-    @property
-    def sink_flag(self):
-        """Return the array with sink flags."""
-        return self._grid['node']['flow__sink_flag']
-
 
 if __name__ == '__main__': # pragma: no cover
     import doctest

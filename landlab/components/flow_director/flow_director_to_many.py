@@ -90,11 +90,6 @@ class _FlowDirectorToMany(_FlowDirector):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError('run_one_step()')
 
-    @property
-    def sink_flag(self):
-        """Return the array with sink flags."""
-        return self._grid['node']['flow__sink_flag']
-
 
 if __name__ == '__main__': # pragma: no cover
     import doctest

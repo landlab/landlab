@@ -90,6 +90,26 @@ class _FlowDirector(Component):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError('run_one_step()')
 
-if __name__ == '__main__':
+    @property
+    def sink_flag(self):
+        """Return the array with sink flags."""
+        return self._grid['node']['flow__sink_flag']
+
+    @property
+    def node_steepest_slope(self):
+        """Return the steepest link slope at a node."""
+        return self._grid['node']['topographic__steepest_slope']
+
+    @property
+    def link_to_flow_receiving_node(self):
+        """Return the link id along the link transporting flow."""
+        return self._grid['node']['flow__link_to_receiver_node']
+
+    @property
+    def node_receiving_flow(self):
+        """Return the node ids of the nodes receiving flow."""
+        return self._grid['node']['flow__receiver_node']
+
+if __name__ == '__main__': # pragma: no cover
     import doctest
     doctest.testmod()

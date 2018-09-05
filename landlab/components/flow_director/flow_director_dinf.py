@@ -332,26 +332,6 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
         return (self.receivers, self.proportions)
 
-    @property
-    def node_receiving_flow(self):
-        """Return the node ids of the nodes receiving flow."""
-        return self._grid['node']['flow__receiver_node']
-
-    @property
-    def proportions_of_flow(self):
-        """Return the proportion of flow going to receivers."""
-        return self._grid['node']['flow__receiver_proportions']
-
-    @property
-    def node_steepest_slope(self):
-        """Return the steepest link slope at a node."""
-        return self._grid['node']['topographic__steepest_slope']
-
-    @property
-    def link_to_flow_receiving_node(self):
-        """Return the link id along the link transporting flow."""
-        return self._grid['node']['flow__link_to_receiver_node']
-
 
 if __name__ == '__main__': # pragma: no cover
     import doctest
