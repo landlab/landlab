@@ -17,7 +17,7 @@ class RidgeProfiler(_NetworkProfiler):
         self._grid = grid
 
         if threshold is None:
-            threshold = 10. * np.amin(grid.area_of_cell)
+            threshold = 4. * np.amin(grid.area_of_cell)
         self.threshold = threshold
 
         self._ridge_mask = self._drainage_area < self.threshold
