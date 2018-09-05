@@ -147,7 +147,7 @@ class LithoLayers(Lithology):
 
         function_args = function.__code__.co_varnames
         if len(function_args) != 2:
-            msg = 'LithoLayers: function must take only two arguments, x and y.'
+            msg = 'LithoLayers: function must take exactly two arguments, x and y.'
             raise ValueError(msg)
 
         if np.asarray(z0s).size != np.asarray(ids).size:
