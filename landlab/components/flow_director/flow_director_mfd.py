@@ -415,10 +415,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         is stored in the grid at:
         grid['node']['flow__receiver_nodes']
         """
-        # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
-            self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+        self._check_updated_bc()
 
         # step 1. Required inumpyuts for flow_directions_MFD
         # this is where diagonals are or are not included in

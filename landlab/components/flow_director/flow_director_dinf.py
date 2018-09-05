@@ -302,10 +302,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         is stored in the grid at:
         grid['node']['flow__receiver_nodes']
         """
-        # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
-            self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+        self._check_updated_bc()
 
         # Step 1. Find and save base level nodes.
         (baselevel_nodes, ) = numpy.where(

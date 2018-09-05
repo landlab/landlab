@@ -9,10 +9,13 @@ the boundary condition testing.
 """
 
 from __future__ import print_function
+
+import numpy
+import six
+
 from landlab import Component
 from landlab import RasterModelGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
-import six
 
 
 class _FlowDirector(Component):
@@ -47,7 +50,7 @@ class _FlowDirector(Component):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> list(mg.at_node.keys())
-    ['topographic__elevation']
+    ['topographic__elevation', 'flow__sink_flag']
 
     _FlowDirector also works if you pass it an array instead of a field name.
     >>> import numpy as np
@@ -77,6 +80,9 @@ class _FlowDirector(Component):
         self.surface = surface
         self.surface_values = return_array_at_node(grid, surface)
 
+        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
+                       noclobber=False)
+
     def _changed_surface(self):
         """Check if the surface values have changed.
 
@@ -85,6 +91,12 @@ class _FlowDirector(Component):
         """
         if isinstance(self.surface, six.string_types):
             self.surface_values = return_array_at_node(self._grid, self.surface)
+
+    def _check_updated_bc(self):
+        # step 0. Check and update BCs
+        if self._bc_set_code != self.grid.bc_set_code:
+            self.updated_boundary_conditions()
+            self._bc_set_code = self.grid.bc_set_code
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

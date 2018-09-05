@@ -70,7 +70,7 @@ def test_check_fields():
     mg0 = RasterModelGrid((10,10), spacing=(1, 1))
     z0 = mg0.add_field('topographic__elevation', mg0.node_x**2 + mg0.node_y**2, at = 'node')
     fd0 = _FlowDirector(mg0, 'topographic__elevation')
-    assert list(mg0.at_node.keys()) == ['topographic__elevation']
+    assert list(mg0.at_node.keys()) == ['topographic__elevation', 'flow__sink_flag']
     assert np.size(mg0.at_node['topographic__elevation']) == mg0.number_of_nodes
 
     mg1 = RasterModelGrid((10,10), spacing=(1, 1))
@@ -266,3 +266,25 @@ def test_properties():
                        [23, -1, -1, -1],
                        [24, -1, -1, -1]])
     assert_array_equal(fd.node_receiving_flow, true_node)
+
+
+def test_change_bc_post_init():
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_field('topographic__elevation', mg.node_x**2 + mg.node_y**2, at = 'node')
+    fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+    fd.run_one_step()
+    true_reciever = np.array([ 0,  1,  2,  3,  4,
+                               5,  1,  6,  7,  9,
+                               10,  6,  7, 12, 14,
+                               15, 11, 12, 13, 19,
+                               20, 21, 22, 23, 24])
+    assert_array_equal(true_reciever, fd.receiver)
+
+    mg.status_at_node[mg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+    fd.run_one_step()
+    new_true_reciever = np.array([ 0,  1,  2,  3,  4,
+                                   5,  5,  6,  7,  9,
+                                  10,  6,  7, 12, 14,
+                                  15, 11, 12, 13, 19,
+                                  20, 21, 22, 23, 24])
+    assert_array_equal(new_true_reciever, fd.receiver)

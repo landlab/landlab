@@ -83,8 +83,6 @@ class _FlowDirectorToMany(_FlowDirector):
         self.to_n_receivers = 'many'
         # initialize new fields
 
-        grid.add_zeros('flow__sink_flag', at='node', dtype=numpy.int8,
-                       noclobber=False)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
