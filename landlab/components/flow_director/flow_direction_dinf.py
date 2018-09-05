@@ -444,6 +444,6 @@ def flow_directions_dinf(grid,
     return (receivers, proportions, slopes_to_receivers, steepest_slope, steepest_receiver, sink,
             receiver_links, steepest_link)
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     import doctest
     doctest.testmod()

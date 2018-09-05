@@ -353,6 +353,6 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         return self._grid['node']['flow__link_to_receiver_node']
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     import doctest
     doctest.testmod()
