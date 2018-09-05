@@ -259,7 +259,9 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     runoff : float or ndarray
         Local runoff rate at each cell (in water depth per time). If it's an
         array, must have same length as s (that is, the number of nodes).
-
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to zero.
+        Default value is None.
     Returns
     -------
     tuple of ndarray
@@ -351,6 +353,6 @@ def flow_accumulation(receiver_nodes, node_cell_area=1.0,
     return a, q, s
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     import doctest
     doctest.testmod()

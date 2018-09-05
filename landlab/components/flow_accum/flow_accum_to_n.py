@@ -72,7 +72,7 @@ class _DrainageStack_to_n():
         Initialization of the _DrainageStack_to_n() class including storing
         delta and D.
         """
-        
+
         self.num_receivers = num_receivers
         self.s = list()
         self.delta = delta
@@ -137,71 +137,71 @@ class _DrainageStack_to_n():
             base = set(l)
         except:
             base = set([l])
-        
+
         # instantiate the time keeping variable i, and a variable to keep track
         # of the visit time. Using visit time allows us to itterate through
-        # the entire graph and make sure that only put a node in the stack 
-        # the last time it is visited. 
-        
+        # the entire graph and make sure that only put a node in the stack
+        # the last time it is visited.
+
         i = 0
         visit_time = -1*numpy.ones((self.delta.size-1))
         num_visits = numpy.zeros((self.delta.size-1))
-        
-        # deal with the first node, which goes to it 
+
+        # deal with the first node, which goes to it
         visit_time[list(base)] = i
-        num_visits[list(base)] += 1 
-        
+        num_visits[list(base)] += 1
+
         i = 1
         visited = set([])
         for node_i in base:
                 # select the nodes to visit
                 visit = set(self.D[self.delta[node_i]:self.delta[node_i+1]])
                 visit = visit-base
-                
+
                 # record the visit time.
                 visit_time[list(visit)] = i
-                          
-                # record that they have been visited. 
+
+                # record that they have been visited.
                 num_visits[list(visit)] += 1
-                
+
                 visited.update(list(visit))
-        
+
         visited = numpy.array(list(visited))
         visited_enough = num_visits[visited]==self.num_receivers[visited]
         completed = set(visited[visited_enough])
-        
-        # recurse through the remainder. Only look above completed nodes, 
-        # this prevents repeat link walking. 
+
+        # recurse through the remainder. Only look above completed nodes,
+        # this prevents repeat link walking.
         while len(completed)>0:
             # increase counter
             i += 1
-            
+
             visited = set([])
             new_completes = set([])
-            
+
             for node_i in completed:
-                    
+
                     # select the nodes to visit
                     visit = self.D[self.delta[node_i]:self.delta[node_i+1]]
                     # record the visit time.
                     visit_time[visit] = i
-                              
-                    # record that they have been visited. 
+
+                    # record that they have been visited.
                     num_visits[visit] += 1
-                              
+
                     # add nodes that have been visited enough times to complete
                     # to the upstream stack. We can ignore the rest, they will
                     # be re-visited. This should reduce the number of times each
-                    # link is walked to the number of active links. 
+                    # link is walked to the number of active links.
                     visited_enough = num_visits[numpy.array(visit)]==self.num_receivers[numpy.array(visit)]
-                    
+
                     visited.update(visit)
                     new_completes.update(visit[visited_enough])
             completed = new_completes
-            
-        
-        
-        # the stack is the argsort of visit time. 
+
+
+
+        # the stack is the argsort of visit time.
         self.s = numpy.argsort(visit_time)
 
 def _make_number_of_donors_array_to_n(r, p):
@@ -449,9 +449,9 @@ def make_ordered_node_array_to_n(receiver_nodes,
     nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
     delta = _make_delta_array_to_n(nd)
     D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
-    
+
     num_receivers = numpy.sum(receiver_nodes>=0, axis=1)
-    
+
     dstack = _DrainageStack_to_n(delta, D, num_receivers)
     construct_it = dstack.construct__stack
 
@@ -479,6 +479,9 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     runoff : float or ndarray
         Local runoff rate at each cell (in water depth per time). If it's an
         array, must have same length as s (that is, the number of nodes).
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to zero.
+        Default value is None.
 
     Returns
     -------
@@ -656,6 +659,6 @@ def flow_accumulation_to_n(receiver_nodes,
     return a, q, s
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     import doctest
     doctest.testmod()
