@@ -11,6 +11,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 import landlab
 from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
+from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import FlowAccumulator
 
 from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
@@ -553,3 +554,106 @@ def test_field_name_array_float_case6():
     assert_array_equal(mg.at_node['flow__receiver_node'], reciever)
     assert_array_equal(mg.at_node['drainage_area'], da)
     assert_array_equal(mg.at_node['surface_water__discharge'], q)
+
+def test_flow_accumulator_properties():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    node_drainage_area = np.array([ 0.,  3.,  3.,  3.,  0.,
+                                    0.,  3.,  3.,  3.,  0.,
+                                    0.,  2.,  2.,  2.,  0.,
+                                    0.,  1.,  1.,  1.,  0.,
+                                    0.,  0.,  0.,  0.,  0.])
+
+    node_order_upstream = np.array([ 0,   1,  6, 11, 16,
+                                     2,   7, 12, 17,  3,
+                                     8,  13, 18,  4,  5,
+                                     9,  10, 14, 15, 19,
+                                     20, 21, 22, 23, 24])
+
+    assert_array_equal(fa.node_order_upstream, node_order_upstream)
+    assert_array_equal(fa.node_water_discharge, node_drainage_area)
+    assert_array_equal(fa.node_drainage_area, node_drainage_area)
+
+
+def test_water_discharge_in_supplied():
+     mg = RasterModelGrid((5,5), spacing=(1, 1))
+     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+     d = mg.add_field('water__discharge_in', mg.node_x + mg.node_y, at = 'node')
+     with pytest.warns(DeprecationWarning):
+        fa = FlowAccumulator(mg)
+
+
+def test_bad_director_name():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    with pytest.raises(ValueError):
+       fa = FlowAccumulator(mg, flow_director='spam')
+
+
+def test_bad_director_instance():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    with pytest.raises(ValueError):
+       fa = FlowAccumulator(mg, flow_director=ld)
+
+
+def test_instantiated_director_with_kwargs():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    fd = FlowDirectorSteepest(mg)
+    with pytest.raises(ValueError):
+       fa = FlowAccumulator(mg, flow_director=fd, partition_method='eggs')
+
+
+def test_depression_finder_as_bad_string():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg, flow_director='D8', depression_finder='spam')
+
+
+def test_depression_finder_as_string():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    fa = FlowAccumulator(mg, flow_director='D8', depression_finder='DepressionFinderAndRouter')
+
+
+def test_depression_finder_as_instance():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    df = DepressionFinderAndRouter(mg)
+    fa = FlowAccumulator(mg, flow_director='D8', depression_finder=df)
+
+
+def test_depression_finder_bad_instance():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    with pytest.raises(ValueError):
+       fa = FlowAccumulator(mg, flow_director='D8', depression_finder=ld)
+
+
+def test_instantiated_depression_finder_with_kwargs():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    df = DepressionFinderAndRouter(mg)
+    with pytest.raises(ValueError):
+       fa = FlowAccumulator(mg, flow_director='D8', depression_finder=df, routing='eggs')
+
+
+def test_depression_finder_bad_uninstantiated_component():
+    mg = RasterModelGrid((5,5), spacing=(1, 1))
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    with pytest.raises(ValueError):
+       fa = FlowAccumulator(mg, flow_director='D8', depression_finder=LinearDiffuser)
+
+
+def test_hex_mfd():
+    mg = HexModelGrid(5, 3)
+    z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()

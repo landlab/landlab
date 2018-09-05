@@ -811,7 +811,7 @@ class FlowAccumulator(Component):
                 msg = ('The depression finder only works with route '
                        'to one FlowDirectors such as '
                        'FlowDirectorSteepest and  FlowDirectorD8. '
-                       'Provide a different FlowDirector.')                            
+                       'Provide a different FlowDirector.')
                 raise NotImplementedError(msg)
 
             # if D4 is being used here and should be.
@@ -863,23 +863,6 @@ class FlowAccumulator(Component):
                     raise ValueError('flow_director provided as an instantiated ',
                                      'component and keyword arguments provided. ',
                                      'These kwargs would be ignored.')
-
-                # if D4 is being used here and should be.
-                if (self.depression_finder._D8 and
-                    (self.flow_director._name in ('FlowDirectorSteepest'))):
-
-                    message = ('You have specified \n'
-                               'flow_director=FlowDirectorSteepest and\n'
-                               'depression_finder=DepressionFinderAndRouter\n'
-                               'in the instantiation of FlowAccumulator on a '
-                               'RasterModelGrid. The behavior of the instantiated '
-                               'DepressionFinderAndRouter is to use D8 connectivity '
-                               'which is in conflict with D4 connectivity used by '
-                               'FlowDirectorSteepest. \n'
-                               "To fix this, provide the kwarg routing='D4', when "
-                               'you instantiate DepressionFinderAndRouter.')
-
-                    raise ValueError(warning_message(message))
 
             # depression_fiuner is provided as an uninstantiated depression finder
             else:
@@ -987,8 +970,9 @@ class FlowAccumulator(Component):
             self._grid['node']['surface_water__discharge'][:] = q
 
             # at the moment, this is where the depression finder needs to live.
-            if self.depression_finder_provided is not None:
-                self.depression_finder.map_depressions()
+            # at the moment, no depression finders work with to-many
+            # if self.depression_finder_provided is not None:
+            #     self.depression_finder.map_depressions()
 
         return (a, q)
 
@@ -1006,6 +990,6 @@ class FlowAccumulator(Component):
         """
         self.accumulate_flow()
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     import doctest
     doctest.testmod()
