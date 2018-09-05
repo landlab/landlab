@@ -90,6 +90,11 @@ class _FlowDirectorToMany(_FlowDirector):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError('run_one_step()')
 
+    @property
+    def proportions_of_flow(self):
+        """Return the proportions of flow going to recievers."""
+        return self._grid['node']['flow__receiver_proportions']
+
 
 if __name__ == '__main__': # pragma: no cover
     import doctest
