@@ -96,7 +96,7 @@ def test_check_fields():
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fd0 = _FlowDirector(mg0, "topographic__elevation")
-    assert list(mg0.at_node.keys()) == ["topographic__elevation", "flow__sink_flag"]
+    assert sorted(list(mg0.at_node.keys())) == ["flow__sink_flag", "topographic__elevation"]
     assert np.size(mg0.at_node["topographic__elevation"]) == mg0.number_of_nodes
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))

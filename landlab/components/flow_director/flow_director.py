@@ -49,8 +49,10 @@ class _FlowDirector(Component):
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> list(mg.at_node.keys())
-    ['topographic__elevation', 'flow__sink_flag']
+    >>> 'topographic__elevation' in mg.at_node.keys()
+    True
+    >>> 'flow__sink_flag'in mg.at_node.keys()
+    True
 
     _FlowDirector also works if you pass it an array instead of a field name.
     >>> import numpy as np
