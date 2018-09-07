@@ -7,12 +7,10 @@ Directs flow on raster grids only using the Dinfinity algorithm of
 Tarboton 1997.
 """
 
-from landlab.components.flow_director.flow_director_to_many import(
-_FlowDirectorToMany)
+from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 from landlab.components.flow_director import flow_direction_dinf
 from landlab import VoronoiDelaunayGrid
-from landlab import (FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY,
-                     BAD_INDEX_VALUE)
+from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy
 
 
@@ -29,20 +27,18 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     Specifically, it stores as ModelGrid fields:
 
     -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-       there is no receiver: *'flow__receiver_nodes'*. This array is 2D, and is
+       there is no receiver: *'flow__receiver_node'*. This array is 2D, and is
        of dimension (number of nodes x max number of receivers).
     -  Node array of flow proportions: *'flow__receiver_proportions'*. This
        array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of links carrying flow:  *'flow__links_to_receiver_nodes'*.
+    -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of the steepest downhill receiver. *'flow__receiver_nodes'*
-    -  Node array of steepest downhill slope from each receiver:
-       *'topographic__steepest_slope'*
-    -  Node array containing ID of steepest link that leads from each node to a
-       receiver, or BAD_INDEX_VALUE if no link:
-       *'flow__link_to_receiver_node'*
+    -  Node array of downhill slopes cooresponding to each receiver.:
+       *'topographic__steepest_slope'* This array is 2D, and is
+       of dimension (number of nodes x max number of receivers). If the slope is
+       uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
@@ -76,7 +72,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     downstream nodes, FlowDirectorDINF directs flow two nodes only. It stores
     the receiver information is a (number of nodes x 2) shape field at nodes.
 
-    >>> mg.at_node['flow__receiver_nodes']
+    >>> mg.at_node['flow__receiver_node']
     array([[ 0, -1],
            [ 1, -1],
            [ 2, -1],
@@ -94,8 +90,8 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [10,  9],
            [-1, 10]])
 
-    It also stores the proportions of flow going to each receiver and the link
-    on which the flow moves in at node arrays.
+    It also stores the proportions of flow going to each receiver, the link on
+    which the flow moves in at node arrays, and the slope of each link.
 
     >>> mg.at_node['flow__receiver_proportions'] # doctest: +NORMALIZE_WHITESPACE
     array([[ 1.        ,  0.        ],
@@ -114,7 +110,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [ 1.        ,  0.        ],
            [ 0.31191652,  0.68808348],
            [ 0.        ,  1.        ]])
-    >>> mg.at_node['flow__links_to_receiver_nodes']
+    >>> mg.at_node['flow__link_to_receiver_node']
     array([[-1, -1],
            [-1, -1],
            [-1, -1],
@@ -131,21 +127,23 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [18, 36],
            [19, 38],
            [20, 40]])
-
-    Like flow directors that only direct flow to one downstream node,
-    FlowDirectorDINF identifies and stores the steepest slope leading downhill
-    from each node, the link carrying that flow, and the receiver receiving
-    flow on that link.
-
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  1.        ,
-            1.41421356,  3.        ,  5.        ,  0.        ,  3.        ,
-            4.24264069,  5.65685425,  0.        ,  5.        ,  5.65685425,
-            7.07106781])
-    >>> mg.at_node['flow__link_to_receiver_node']
-    array([-1,  0,  1,  2,  3, 24,  8,  9, -1, 11, 32, 34, -1, 18, 38, 40])
-    >>> mg.at_node['flow__receiver_node']
-    array([ 0,  0,  1,  2,  0,  0,  5,  6,  8,  5,  5,  6, 12,  9,  9, 10])
+    array([[-1.        ,  0.        ],
+           [ 1.        , -0.        ],
+           [ 3.        ,  1.41421356],
+           [ 5.        ,  2.82842712],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  1.41421356],
+           [ 3.        ,  2.82842712],
+           [ 5.        ,  4.24264069],
+           [ 3.        ,  1.41421356],
+           [ 3.        ,  2.82842712],
+           [ 3.        ,  4.24264069],
+           [ 5.        ,  5.65685425],
+           [ 5.        ,  2.82842712],
+           [ 5.        ,  4.24264069],
+           [ 5.        ,  5.65685425],
+           [ 5.        ,  7.07106781]])
 
     Finally, FlowDirectorDINF identifies sinks, or local lows.
 
@@ -202,9 +200,9 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     """
 
-    _name = 'FlowDirectorDINF'
+    _name = "FlowDirectorDINF"
 
-    def __init__(self, grid, surface='topographic__elevation'):
+    def __init__(self, grid, surface="topographic__elevation"):
         """
         Parameters
         ----------
@@ -218,41 +216,54 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             'square_root_of_slope'.
         """
 
-        self.method = 'DINF'
+        self.method = "DINF"
+        self.max_receivers = 2
         super(FlowDirectorDINF, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
-            raise NotImplementedError('FlowDirectorDINF is not implemented'
-                                      ' for irregular grids.')
-        self.max_receivers = 2
+            raise NotImplementedError(
+                "FlowDirectorDINF is not implemented" " for irregular grids."
+            )
+
         self.updated_boundary_conditions()
 
         # set the number of recievers, proportions, and receiver links with the
         # right size.
-        self.receivers = grid.add_field('flow__receiver_nodes',
-                                        BAD_INDEX_VALUE*numpy.ones((self._grid.number_of_nodes,
-                                                                    self.max_receivers),
-                                                                   dtype=int),
-                                        at='node',
-                                        dtype=int,
-                                        noclobber=False)
+        self.receivers = grid.add_field(
+            "flow__receiver_node",
+            BAD_INDEX_VALUE
+            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=int),
+            at="node",
+            dtype=int,
+            noclobber=False,
+        )
 
-        self.receiver_links = grid.add_field('flow__links_to_receiver_nodes',
-                                             BAD_INDEX_VALUE*numpy.ones((self._grid.number_of_nodes,
-                                                                         self.max_receivers),
-                                                                        dtype=int),
-                                        at='node',
-                                        dtype=int,
-                                        noclobber=False)
+        self.steepest_slope = grid.add_field(
+            "topographic__steepest_slope",
+            BAD_INDEX_VALUE
+            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=float),
+            at="node",
+            dtype=float,
+            noclobber=False,
+        )
 
-        self.proportions = grid.add_field('flow__receiver_proportions',
-                                        BAD_INDEX_VALUE*numpy.ones((self._grid.number_of_nodes,
-                                                                    self.max_receivers),
-                                                                   dtype=float),
-                                        at='node',
-                                        dtype=int,
-                                        noclobber=False)
+        self.receiver_links = grid.add_field(
+            "flow__link_to_receiver_node",
+            BAD_INDEX_VALUE
+            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=int),
+            at="node",
+            dtype=int,
+            noclobber=False,
+        )
 
+        self.proportions = grid.add_field(
+            "flow__receiver_proportions",
+            BAD_INDEX_VALUE
+            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=float),
+            at="node",
+            dtype=int,
+            noclobber=False,
+        )
 
     def updated_boundary_conditions(self):
         """
@@ -293,47 +304,42 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         is stored in the grid at:
         grid['node']['flow__receiver_nodes']
         """
-        # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
-            self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+        self._check_updated_bc()
 
         # Step 1. Find and save base level nodes.
-        (baselevel_nodes, ) = numpy.where(
-            numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
+        (baselevel_nodes,) = numpy.where(
+            numpy.logical_or(
+                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+            )
+        )
 
         # Calculate flow directions
-        (self.receivers, self.proportions, steepest_slope,
-        steepest_receiver, sink,
-        receiver_links, steepest_link)= \
-        flow_direction_dinf.flow_directions_dinf(self._grid,
-                                                 self.surface_values,
-                                                 baselevel_nodes=baselevel_nodes)
+        (
+            self.receivers,
+            self.proportions,
+            slopes_to_receivers,
+            steepest_slope,
+            steepest_receiver,
+            sink,
+            receiver_links,
+            steepest_link,
+        ) = flow_direction_dinf.flow_directions_dinf(
+            self._grid, self.surface_values, baselevel_nodes=baselevel_nodes
+        )
 
         # Save the four ouputs of this component.
-        self._grid['node']['flow__receiver_nodes'][:] = self.receivers
-        self._grid['node']['flow__receiver_node'][:] = steepest_receiver
-        self._grid['node']['flow__receiver_proportions'][:] = self.proportions
-        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['flow__link_to_receiver_node'][:] = steepest_link
-        self._grid['node']['flow__links_to_receiver_nodes'][:] = receiver_links
-        self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(steepest_link,
-                                                                    dtype=bool)
-        self._grid['node']['flow__sink_flag'][sink] = True
+        self._grid["node"]["flow__receiver_node"][:] = self.receivers
+        self._grid["node"]["flow__receiver_proportions"][:] = self.proportions
+        self._grid["node"]["topographic__steepest_slope"][:] = slopes_to_receivers
+        self._grid["node"]["flow__link_to_receiver_node"][:] = receiver_links
+        self._grid["node"]["flow__sink_flag"][:] = False
+        self._grid["node"]["flow__sink_flag"][sink] = True
 
         return (self.receivers, self.proportions)
 
-    @property
-    def nodes_receiving_flow(self):
-        """Return the node ids of the nodes receiving flow."""
-        return self._grid['node']['flow__receiver_nodes']
 
-    @property
-    def proportions_of_flow(self):
-        """Return the proportion of flow going to receivers."""
-        return self._grid['node']['flow__receiver_proportions']
-
-if __name__ == '__main__':
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()
