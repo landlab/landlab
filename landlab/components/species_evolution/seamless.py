@@ -16,6 +16,8 @@ from landlab import Component
 from landlab.components.species_evolution import RecordCollection
 from landlab.core.messages import warning_message
 
+from data_record import DataRecord
+
 
 class SpeciesEvolver(Component):
     """Simulate the macroevolution processes of species.
@@ -90,6 +92,7 @@ class SpeciesEvolver(Component):
 
         # Set DataFrames.
         self.records = RecordCollection()
+        self.dataRecord = DataRecord(grid, time=[0])
         self.species = pd.DataFrame(columns=['clade', 'species',
                                              'time_appeared', 'latest_time',
                                              'subtype', 'object'])
@@ -125,6 +128,7 @@ class SpeciesEvolver(Component):
         else:
             if time not in self.records.model__times:
                 self.records.insert_time(time)
+                self.dataRecord.add_record(model__time=[time])
 
             if not type(zones_at_time) == list:
                 zones_at_time = [zones_at_time]
@@ -164,6 +168,9 @@ class SpeciesEvolver(Component):
             if 'species_evolver_records_add_on' in output.keys():
                 add_on = output['species_evolver_records_add_on']
                 self.records.modify_time(time, add_on)
+                for key, value in add_on.items():
+                    self.dataRecord.set_data(model__time=[time],
+                                              data_variable=key, new_value=value)
 
         return paths
 
