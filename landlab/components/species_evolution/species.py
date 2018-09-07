@@ -2,7 +2,7 @@
 """
 import numpy as np
 
-from landlab.components.species_evolution import RecordCollection, Zone
+from landlab.components.species_evolution import Zone
 
 
 class Species(object):
@@ -18,7 +18,7 @@ class Species(object):
 
     subtype = 'base'
 
-    def __init__(self, initial_time, initial_zones, parent_species=-1):
+    def __init__(self, initial_time, initial_zones, parent_species=None):
         """Initialize a species.
 
         Parameters
@@ -29,10 +29,9 @@ class Species(object):
             A list of SpeciesEvolver Zone objects of the species at the initial
             time.
         parent_species : SpeciesEvolver Species
-            The parent species object. An id of -1 indicates no parent species.
+            The parent species object. The default value, 'None' indicates no
+            parent species.
         """
-        self.records = RecordCollection()
-
         # Set parameters.
         self._identifier = None
         self.parent_species = parent_species
@@ -42,14 +41,13 @@ class Species(object):
             z = initial_zones
         else:
             z = [initial_zones]
-
-        self.records.insert_time(initial_time, data={'zones': z})
+        self.zones = {initial_time: z}
 
     def __str__(self):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
 
     @classmethod
-    def _evolve_type(cls, prior_time, time, extant_species, zone_paths):
+    def evolve_type(cls, prior_time, time, extant_species, zone_paths):
         origins = zone_paths.origin.tolist()
 
         # Get the species that persist in `time` given the outcome of the
@@ -59,8 +57,7 @@ class Species(object):
 
         for es in extant_species:
             # Get paths that include the zone origin of this species.
-            time_mask = es.records.DataFrame.model__time == prior_time
-            species_zones = es.records.DataFrame.loc[time_mask].zones
+            species_zones = es.zones[prior_time]
             indices = np.where(np.isin(origins, species_zones))[0]
 
             if len(indices) > 0:
@@ -114,7 +111,7 @@ class Species(object):
         for v in zone_paths.itertuples():
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
-                self.records.insert_time(time, {'zones': v.destinations})
+                self.zones[time] = v.destinations
                 species_persists = True
 
             elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:

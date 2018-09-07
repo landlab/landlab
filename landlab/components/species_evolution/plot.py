@@ -93,7 +93,7 @@ def plot_number_of_species(record, species_DataFrame, axes=None,
     axes.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 
-def plot_zones(mg, zones):
+def plot_zones(mg, zones, time):
     """
 
     """
@@ -101,7 +101,7 @@ def plot_zones(mg, zones):
         c = (z.plot_color[0], z.plot_color[1], z.plot_color[2], 0.7)
         cmap = colors.LinearSegmentedColormap.from_list('streamOverlay',
                                                         [(1,1,1,0), c], 2)
-        imshow_grid(mg, z.mask, cmap=cmap, allow_colorbar=False)
+        imshow_grid(mg, z.mask[time], cmap=cmap, allow_colorbar=False)
 
 
 def plot_tree(species_DataFrame, axes=None, x_multiplier=0.001,

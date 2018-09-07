@@ -3,9 +3,8 @@
 from random import random
 
 import numpy as np
-import pandas as pd
+from pandas import DataFrame
 
-from landlab.components.species_evolution import RecordCollection
 #from landlab.utils.watershed import get_watershed_masks_with_area_threshold
 from .watershed import get_watershed_masks_with_area_threshold
 
@@ -32,15 +31,13 @@ class Zone(object):
         """
         Parameters
         ----------
-
+        initial_time : float
+            The initial time of the zone.
         mask : boolean ndarray
             The initial mask of the zone. True elements of this array
             correspond to the nodes of the zone.
         """
-        self.mask = mask
-
-        self.records = RecordCollection()
-        self.records.insert_time(initial_time, data={'mask': mask})
+        self.mask = {initial_time: mask}
 
         self.plot_color = (random(), random(), random(), 1)
 
@@ -51,7 +48,8 @@ class Zone(object):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
 
     @classmethod
-    def _get_paths(cls, prior_zones, new_zones, time, grid, **kwargs):
+    def _get_paths(cls, prior_zones, new_zones, prior_time, time, grid,
+                   **kwargs):
         """Get the data of connectivity paths across two timesteps.
 
         Paths represent the temporal connectivity of zones. The returned
@@ -78,6 +76,8 @@ class Zone(object):
             The zones of the prior timestep.
         new_patches : Zone list
             The zones of the current timestep.
+        prior_time :
+
         time : float
             The current simulation time.
         grid : ModelGrid
@@ -92,12 +92,12 @@ class Zone(object):
             The items of this dictionary will become items in the
             SpeciesEvolver records for this time.
         """
-        paths = pd.DataFrame(columns=['time', 'origin', 'destinations',
-                                      'path_type'])
+        paths = DataFrame(columns=['time', 'origin', 'destinations',
+                                   'path_type'])
 
         # Stack the masks for prior (p) and new (n) zones.
-        ps = np.vstack((p.mask for p in prior_zones))
-        ns = np.vstack((n.mask for n in new_zones))
+        ps = np.vstack((p.mask[prior_time] for p in prior_zones))
+        ns = np.vstack((n.mask[time] for n in new_zones))
 
         # Keep track of new zones replaced by prior zones. Zone in the
         # dictionary key will be replaced by their values after the prior
@@ -119,7 +119,7 @@ class Zone(object):
 
         for p in prior_zones:
             # Get the new zones that overlap the prior zone.
-            p_in_ns = np.all([p.mask == ns, ns], 0)
+            p_in_ns = np.all([p.mask[prior_time] == ns, ns], 0)
             n_indices = np.argwhere(p_in_ns)
             n_indices = np.unique(n_indices[:, 0])
             n_overlaps_p = [new_zones[i] for i in n_indices]
@@ -128,7 +128,7 @@ class Zone(object):
             # Get the prior zone that is overlapped by the new zones.
             if n_overlaps_p_count > 0:
                 n = new_zones[n_indices[0]]
-                n_nodes = n.mask
+                n_nodes = n.mask[time]
                 n_in_ps = np.all([n_nodes == ps, ps], 0)
                 p_indices = np.argwhere(n_in_ps)
                 p_indices = np.unique(p_indices[:, 0])
@@ -154,7 +154,7 @@ class Zone(object):
             elif path_type == cls.ONE_TO_ONE:
                 # The prior zone is set as the new zone
                 # because only the one new and the one prior overlap.
-                p.mask = n.mask
+                p.mask[time] = n.mask[time]
                 destinations = [p]
 
                 replacements[n] = p
@@ -162,8 +162,9 @@ class Zone(object):
             elif path_type == cls.ONE_TO_MANY:
                 # Set the destinations to the new zones that overlap p.
                 # Although, replace the dominant n with p.
-                dominant_n = p._get_largest_intersection(n_overlaps_p)
-                p.mask = dominant_n.mask
+                dominant_n = p._get_largest_intersection(prior_time,
+                                                         n_overlaps_p, time)
+                p.mask[time] = dominant_n.mask[time]
                 n_overlaps_p[n_overlaps_p.index(dominant_n)] = p
                 destinations = n_overlaps_p
 
@@ -172,28 +173,32 @@ class Zone(object):
             elif path_type == cls.MANY_TO_ONE:
                 # Set the destination to the prior zone that intersects n the
                 # most.
-                dominant_p = n._get_largest_intersection(p_overlaps_n)
-                dominant_p.mask = n.mask
+                dominant_p = n._get_largest_intersection(time, p_overlaps_n,
+                                                         prior_time)
+                dominant_p.mask[time] = n.mask[time]
                 destinations = [dominant_p]
 
                 replacements[n] = dominant_p
 
             elif path_type == cls.MANY_TO_MANY:
                 # Get the new zone that intersects p the most.
-                dominant_n = p._get_largest_intersection(n_overlaps_p)
-                dominant_n_nodes = dominant_n.mask
+                dominant_n = p._get_largest_intersection(prior_time,
+                                                         n_overlaps_p, time)
+                dominant_n_nodes = dominant_n.mask[time]
                 dominant_n_in_ps = np.all([dominant_n_nodes == ps, ps], 0)
 
                 # Get the prior zone that intersects the dominant n the most.
                 p_indices = np.argwhere(dominant_n_in_ps)
                 p_indices = np.unique(p_indices[:, 0])
                 p_of_dominant_n = [prior_zones[i] for i in p_indices]
-                dominant_p = dominant_n._get_largest_intersection(p_of_dominant_n)
+                dominant_p = dominant_n._get_largest_intersection(time,
+                                                                  p_of_dominant_n,
+                                                                  prior_time)
 
                 # Set the destination to the n that overlaps p. Although, the
                 # p that greatest intersects the dominant n replaces the
                 # dominant n in the destination list.
-                dominant_p.mask = dominant_n.mask
+                dominant_p.mask[time] = dominant_n.mask[time]
                 n_overlaps_p[n_overlaps_p.index(dominant_n)] = dominant_p
                 destinations = n_overlaps_p
 
@@ -204,7 +209,8 @@ class Zone(object):
                 number_of_captures += len(n_overlaps_p)
 
                 for n_i in n_overlaps_p:
-                    captured_nodes = np.all([p.mask, n_i.mask], 0)
+                    captured_nodes = np.all([p.mask[prior_time],
+                                             n_i.mask[time]], 0)
                     number_of_captured_nodes = len(np.where(captured_nodes))
                     cum_area_captured += number_of_captured_nodes * cell_area
 
@@ -228,11 +234,7 @@ class Zone(object):
                     i = np.where(zone == np.array(row.destinations))[0][0]
                     paths.loc[index, 'destinations'][i] = replacements[zone]
 
-        # Update zone records.
-        for zone in all_destinations:
-            zone.records.insert_time(time, data={'mask': zone.mask},
-                                     clobber=True)
-
+        # Construct output.
         add_on = {'number_of_captures': number_of_captures,
                   'sum_of_area_captured': cum_area_captured}
 
@@ -266,11 +268,11 @@ class Zone(object):
             elif new_zone_count > 1:
                 return cls.MANY_TO_MANY
 
-    def _get_largest_intersection(self, zones):
-        nodes = self.mask
+    def _get_largest_intersection(self, time, zones, time_of_zones):
+        nodes = self.mask[time]
         n_zone_overlap_nodes = []
         for z in zones:
-            n = len(np.where(np.all([z.mask, nodes], 0))[0])
+            n = len(np.where(np.all([z.mask[time_of_zones], nodes], 0))[0])
             n_zone_overlap_nodes.append(n)
 
         return zones[np.argmax(n_zone_overlap_nodes)]
@@ -307,9 +309,3 @@ class Zone(object):
             zones[i] = Zone(time, zone_mask)
 
         return zones
-
-#    @property
-#    def mask(self):
-#        """Get the zone mask of the latest time."""
-#        latest_time = self.records.model__latest_time
-#        return self.records.get_value(latest_time, 'mask')
