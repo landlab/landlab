@@ -1,4 +1,3 @@
-from .record_collection import RecordCollection
 from .seamless import SpeciesEvolver
 from .zone import Zone
 from .plot import (plot_area_versus_species, plot_number_of_species, plot_tree,

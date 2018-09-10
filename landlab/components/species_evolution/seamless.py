@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 
 from landlab import Component
-from landlab.components.species_evolution import RecordCollection
 from landlab.core.messages import warning_message
 
 from data_record import DataRecord
@@ -91,7 +90,6 @@ class SpeciesEvolver(Component):
         Component.__init__(self, grid, **kwds)
 
         # Set DataFrames.
-        self.records = RecordCollection()
         self.dataRecord = DataRecord(grid, time=[0])
         self.species = pd.DataFrame(columns=['clade', 'species',
                                              'time_appeared', 'latest_time',
@@ -122,12 +120,11 @@ class SpeciesEvolver(Component):
         if len(self.species) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
-        elif len(self.records.DataFrame) == 0:
+        elif len(self.dataRecord.time) == 0:
             print(warning_message('Species must be introduced at a time prior'
                                   ' to the ``run_one_step`` time.'))
         else:
-            if time not in self.records.model__times:
-                self.records.insert_time(time)
+            if time not in self.dataRecord.time_coordinates:
                 self.dataRecord.add_record(model__time=[time])
 
             if not type(zones_at_time) == list:
@@ -146,7 +143,10 @@ class SpeciesEvolver(Component):
             self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
     def _get_zone_paths(self, time, new_zones, **kwds):
-        prior_time = self.records.get_model_time_prior_to_time(time)
+        times = np.array(self.dataRecord.time_coordinates)
+        input_time_greater_than_model_time = np.array(times) < time
+        prior_time = times[input_time_greater_than_model_time].max()
+
         prior_zones = self.zones_at_time(prior_time, return_objects=True)
         zone_types = set([type(p) for p in new_zones])
 
@@ -167,16 +167,19 @@ class SpeciesEvolver(Component):
 
             if 'species_evolver_records_add_on' in output.keys():
                 add_on = output['species_evolver_records_add_on']
-                self.records.modify_time(time, add_on)
                 for key, value in add_on.items():
-                    self.dataRecord.set_data(model__time=[time],
-                                              data_variable=key, new_value=value)
+                    self.dataRecord.add_record(model__time=[time],
+                                               new_record={key: (['time'],
+                                                                 [value])})
 
         return paths
 
     def _get_surviving_species(self, time, zone_paths, **kwds):
         # Process only the species extant at the prior time.
-        prior_time = self.records.get_model_time_prior_to_time(time)
+        times = np.array(self.dataRecord.time_coordinates)
+        input_time_greater_than_model_time = times < time
+        prior_time = times[input_time_greater_than_model_time].max()
+
         extant_species = self.species_at_time(prior_time, return_objects=True)
 
         # Get the species that persist in `time` given the outcome of the
@@ -275,8 +278,8 @@ class SpeciesEvolver(Component):
         species_zones = species.zones[time]
         self._update_zones_DataFrame(time, species_zones)
 
-        if time not in self.records.model__times:
-            self.records.insert_time(time)
+        if time not in self.dataRecord.time_coordinates:
+            self.dataRecord.add_record(model__time=[time])
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
@@ -440,13 +443,13 @@ class SpeciesEvolver(Component):
 
         """
         if time == None:
-            t = self.records.model__latest_time
-            df = self._area_species_data_at_time(t)
-        elif time in self.records.model__times:
+            latest_time = self.dataRecord.latest_time
+            df = self._area_species_data_at_time(latest_time)
+        elif time in self.dataRecord.time_coordinates:
             df = self._area_species_data_at_time(time)
         elif time == 'all':
             df_list = []
-            for i, t in enumerate(self.records.model__times):
+            for i, t in enumerate(self.dataRecord.time_coordinates):
                 df_t = self._area_species_data_at_time(t)
                 df_t['time'] = t
                 df_list.append(df_t)
