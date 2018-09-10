@@ -174,6 +174,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
            -0.054, -0.053, -0.035,  7.053,  4.059,  5.041,  6.07 ,  7.004,
             8.01 ])
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that ErosionDeposition is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
+
         super(ErosionDeposition, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
                                                 phi=phi, F_f=F_f, v_s=v_s,
                                                 dt_min=dt_min,

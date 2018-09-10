@@ -14,6 +14,18 @@ from numpy import testing
 import pytest
 
 
+def test_route_to_multiple_error_raised():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        ErosionDeposition(mg, K=0.01, phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0,
+                          sp_crit=0,)
+
+
 def test_bad_solver_name():
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.
@@ -92,7 +104,7 @@ def test_steady_state_with_basic_solver_option():
     phi=0.5
 
     # Instantiate the ErosionDeposition component...
-    ed = ErosionDeposition(mg, K=K, F_f=F_f, phi=phi, v_s=v_s, m_sp=m_sp, 
+    ed = ErosionDeposition(mg, K=K, F_f=F_f, phi=phi, v_s=v_s, m_sp=m_sp,
                            n_sp=n_sp, sp_crit=0, solver='basic')
 
     # ... and run it to steady state (5000x1-year timesteps).
