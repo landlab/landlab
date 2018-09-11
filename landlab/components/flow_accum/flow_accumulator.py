@@ -723,8 +723,7 @@ class FlowAccumulator(Component):
                 + "_in' as an input field. However, this field is "
                 + "now named 'water__unit_flux_in'. You are still "
                 + "using a field with the old name. Please update "
-                + "your code if you intended the FlowRouter to use "
-                + "that field.",
+                + "your code if you intended to use that field.",
                 DeprecationWarning,
             )
 

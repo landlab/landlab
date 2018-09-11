@@ -8,7 +8,7 @@ Tests and illustrates use of route_flow_dn component.
 from __future__ import print_function
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
-from landlab.components.flow_routing import FlowRouter
+from landlab.components import FlowAccumulator
 from landlab.io import read_esri_ascii
 from landlab.plot.imshow import imshow_node_grid
 import os
@@ -40,7 +40,7 @@ z[13] = 2.
 interior_nodes = np.where(grid.status_at_node != CLOSED_BOUNDARY)[0]
 
 # Route flow
-flow_router = FlowRouter(grid)
+flow_router = FlowAccumulator(grid, flow_director='D8')
 grid = flow_router.route_flow()
 
 for i in range(grid.number_of_nodes):
@@ -118,4 +118,3 @@ for t in range(num_time_steps):
         print(i, j)
         if i != j:  # if sender and receiver are same, it's a boundary node
             z[i] = (z[i] + alpha[i]*z[j])/(1.0+alpha[i])
-

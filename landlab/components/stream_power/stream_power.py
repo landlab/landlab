@@ -53,8 +53,7 @@ class StreamPowerEroder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-    >>> from landlab.components import FlowRouter
-    >>> from landlab.components import StreamPowerEroder
+    >>> from landlab.components import FlowAccumulator, StreamPowerEroder
     >>> mg = RasterModelGrid((5, 5), 10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
@@ -62,7 +61,7 @@ class StreamPowerEroder(Component):
     ...               7.,  1., 1.9,  4.,  7.,
     ...               7.,  0.,  7.,  7.,  7.])
     >>> z = mg.add_field('node', 'topographic__elevation', z)
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sp = StreamPowerEroder(mg, K_sp=1.)
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=1.)
@@ -80,7 +79,7 @@ class StreamPowerEroder(Component):
     >>> mg2.status_at_node[mg2.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> mg2.status_at_node[mg2.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> fr2 = FlowRouter(mg2)
+    >>> fr2 = FlowAccumulator(mg2, flow_director='D8')
     >>> sp2 = StreamPowerEroder(mg2, K_sp=0.1, m_sp=0., n_sp=2.,
     ...                         threshold_sp=2.)
     >>> fr2.run_one_step()
@@ -97,7 +96,7 @@ class StreamPowerEroder(Component):
     >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
     >>> mg3.at_node['water__unit_flux_in'] = mg3.node_y
-    >>> fr3 = FlowRouter(mg3)
+    >>> fr3 = FlowAccumulator(mg3, flow_director='D8')
     >>> Q = mg3.at_node['surface_water__discharge']
     >>> sp3 = StreamPowerEroder(mg3, K_sp=1., sp_type='Unit', a_sp=1.,
     ...                         b_sp=0.5, c_sp=1., use_Q=Q)
