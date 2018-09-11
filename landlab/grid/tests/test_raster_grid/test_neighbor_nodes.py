@@ -1,6 +1,6 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup, raises, assert_true
 
 from landlab import RasterModelGrid
 from landlab.grid.base import BAD_INDEX_VALUE as X
@@ -61,15 +61,15 @@ def test_neighbor_list_with_array_arg():
                        np.array([[7, 10, 5, 2], [X, X, 18, 15]]))
 
 
-@raises(ValueError)
 def test_neighbor_list_is_read_only():
     rmg = RasterModelGrid(5, 4)
-    rmg.adjacent_nodes_at_node[0] = [1, 2, 3, 4]
+    with pytest.raises(ValueError):
+        rmg.adjacent_nodes_at_node[0] = [1, 2, 3, 4]
 
 
 def test_neighbors_is_contiguous():
     rmg = RasterModelGrid(5, 4)
-    assert_true(rmg.adjacent_nodes_at_node.flags['C_CONTIGUOUS'])
+    assert rmg.adjacent_nodes_at_node.flags['C_CONTIGUOUS']
 
 
 def test_active_neighbor_list_boundary():
@@ -109,12 +109,12 @@ def test_diagonal_list_with_array_arg():
                        np.array([[11, 9, 1, 3], [X, X, 14, X]]))
 
 
-@raises(ValueError)
 def test_diagonal_list_is_read_only():
     rmg = RasterModelGrid(5, 4)
-    rmg.diagonal_adjacent_nodes_at_node[0] = [1, 2, 3, 4]
+    with pytest.raises(ValueError):
+        rmg.diagonal_adjacent_nodes_at_node[0] = [1, 2, 3, 4]
 
 
 def test_diagonals_is_contiguous():
     rmg = RasterModelGrid(5, 4)
-    assert_true(rmg.diagonal_adjacent_nodes_at_node.flags['C_CONTIGUOUS'])
+    assert rmg.diagonal_adjacent_nodes_at_node.flags['C_CONTIGUOUS']

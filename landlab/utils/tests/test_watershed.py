@@ -1,10 +1,14 @@
 #!/usr/bin/env python
+import pytest
+import numpy as np
+
 
 from landlab import RasterModelGrid
-from landlab.components import FlowRouter
-from landlab.utils import (get_watershed_nodes, get_watershed_outlet,
-                           get_watershed_masks_with_area_threshold)
-import numpy as np
+from landlab.components import FlowRouter, FlowAccumulator
+from landlab.utils import (get_watershed_nodes,
+                           get_watershed_outlet,
+                           get_watershed_masks_with_area_threshold,
+                           get_watershed_mask)
 
 
 def test_get_watershed_nodes():
@@ -104,3 +108,25 @@ def test_get_watershed_outlet():
 
     pit_outlet = get_watershed_outlet(grid, test_node)
     np.testing.assert_equal(pit_outlet, pit_node)
+
+
+def test_route_to_multiple_error_raised_watershed_outlet():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        get_watershed_outlet(mg, 10)
+
+
+def test_route_to_multiple_error_raised_watershed_mask():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        get_watershed_mask(mg, 10)

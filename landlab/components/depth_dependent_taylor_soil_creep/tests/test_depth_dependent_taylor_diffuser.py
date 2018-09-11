@@ -5,13 +5,13 @@ Created on Fri Mar  3 10:39:32 2017
 
 @author: gtucker
 """
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import (DepthDependentTaylorDiffuser,
                                 ExponentialWeatherer)
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import assert_raises
 
 import warnings
 
@@ -76,7 +76,8 @@ def test_raise_stability_error():
     expweath = ExponentialWeatherer(mg)
     DDdiff = DepthDependentTaylorDiffuser(mg)
     expweath.calc_soil_prod_rate()
-    assert_raises(RuntimeError, DDdiff.soilflux, 10, if_unstable='raise')
+    with pytest.raises(RuntimeError):
+        DDdiff.soilflux(10, if_unstable='raise')
 
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
@@ -86,7 +87,8 @@ def test_raise_kwargs_error():
     z += mg.node_x.copy()**2
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
-    assert_raises(TypeError, DepthDependentTaylorDiffuser, mg, diffusivity=1)
+    with pytest.raises(TypeError):
+        DepthDependentTaylorDiffuser(mg, diffusivity=1)
 
 def test_infinite_taylor_error():
 
@@ -100,7 +102,8 @@ def test_infinite_taylor_error():
     expweath = ExponentialWeatherer(mg)
     DDdiff = DepthDependentTaylorDiffuser(mg, nterms=400)
     expweath.calc_soil_prod_rate()
-    assert_raises(RuntimeError, DDdiff.soilflux, 10)
+    with pytest.raises(RuntimeError):
+        DDdiff.soilflux(10)
 
 #def test_warn():
 #    mg = RasterModelGrid((5, 5))

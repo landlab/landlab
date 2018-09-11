@@ -77,6 +77,18 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
                  rainfall_intensity=1., use_Q=None, **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that StreamPowerSmoothThresholdEroder is compatible '
+                       'with route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
+
+        if n_sp != 1.0:
+            raise ValueError(('StreamPowerSmoothThresholdEroder currently only '
+                              'supports n_sp = 1'))
 
         # Call base-class init
         super(StreamPowerSmoothThresholdEroder,
@@ -134,7 +146,13 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         """
-
+        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that StreamPowerSmoothThresholdEroder is compatible '
+                   'with route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream
@@ -157,12 +175,6 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # (Later on, add functionality for a runoff rate, or discharge, or
         # variable K)
 
-        # Handle possibility of spatially varying threshold
-        if type(self.thresholds) is np.ndarray:
-            thresh = self.thresholds[defined_flow_receivers]
-        else:
-            thresh = self.thresholds
-
         # Handle possibility of spatially varying K
         if type(self.K) is np.ndarray:
             K = self.K[defined_flow_receivers]
@@ -170,10 +182,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             K = self.K
 
         # Handle possibility of spatially varying threshold
-        if type(self.thresholds) is np.ndarray:
+        if isinstance(self.thresholds, np.ndarray):
             thresh = self.thresholds[defined_flow_receivers]
         else:
-            thresh = self.thresholds            
+            thresh = self.thresholds
 
         # Set up alpha, beta, delta arrays
         #
@@ -191,21 +203,25 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
-
         self.delta[defined_flow_receivers==False] = 0.0
-        self.delta[defined_flow_receivers] = ((K
-            * self.A_to_the_m[defined_flow_receivers] )
-            / (thresh * flow_link_lengths))
+        if isinstance(self.thresholds, np.ndarray):
+            self.delta[defined_flow_receivers] = ((K
+                * self.A_to_the_m[defined_flow_receivers] )
+                / (thresh * flow_link_lengths))
+
+            self.delta[defined_flow_receivers][thresh == 0.0] = 0.0
+        else:
+            if thresh == 0:
+                self.delta[defined_flow_receivers] = 0.0
+            else:
+                self.delta[defined_flow_receivers] = ((K
+                    * self.A_to_the_m[defined_flow_receivers] )
+                    / (thresh * flow_link_lengths))
 
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
-        smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers, 
+        smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers,
                                          z, self.alpha, self.gamma, self.delta)
-
-        # TODO: handle case self.thresholds = 0
-        # THIS WOULD REQUIRE SETTING DELTA = 0 WHEN/WHERE THRESHOLD = 0
-
-
 
 #if __name__ == '__main__':
 #    from landlab import RasterModelGrid
