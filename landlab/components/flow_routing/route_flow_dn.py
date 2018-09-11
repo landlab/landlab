@@ -123,7 +123,7 @@ class FlowRouter(FlowAccumulator):
         """
         msg = ("FlowRouter has been deprecated as of Landlab v1.5.2 and will be "
                "removed in v2.0. Use FlowAccumulator instead.")
-        warnings.warn(message=msg, category=DeprecationWarning)
+        warnings.warn(msg, DeprecationWarning)
         self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         self._grid = grid
         if 'method' in kwds:
