@@ -30,7 +30,7 @@ class FlowRouter(FlowAccumulator):
     """Single-path (steepest direction) flow routing.
 
     **AS OF v1.5.3 THIS COMPONENT HAS BEEN DEPRECATED. USE THE FlowAccumulator
-    INSTEAD.**
+    INSTEAD. THIS COMPONENT WILL BE REMOVED IN v2.0**
 
     This class implements single-path (steepest direction) flow routing, and
     calculates flow directions, drainage area, and (optionally) discharge.
@@ -121,8 +121,8 @@ class FlowRouter(FlowAccumulator):
             the time of initialization, runoff_rate will *overwrite* the field.
             If neither are set, defaults to spatially constant unit input.
         """
-        msg = ("FlowRouter has been deprecated as of Landlab v1.5.2. "
-               "Use FlowAccumulator instead.")
+        msg = ("FlowRouter has been deprecated as of Landlab v1.5.2 and will be "
+               "removed in v2.0. Use FlowAccumulator instead.")
         warnings.warn(message=msg, category=DeprecationWarning)
         self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         self._grid = grid
