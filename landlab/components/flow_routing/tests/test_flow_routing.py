@@ -11,7 +11,7 @@ import os
 
 from six.moves import range
 
-from pytest import approx
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -24,6 +24,12 @@ from landlab import BAD_INDEX_VALUE as XX
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
+
+def test_deprecation_raised():
+    mg = RasterModelGrid(10, 10)
+    _ = mg.add_zeros('node', 'topographic__elevation')
+    with pytest.warns(DeprecationWarning):
+        fr = FlowRouter(mg)
 
 def test_check_fields(dans_grid1):
     """Check to make sure the right fields have been created."""
@@ -99,7 +105,7 @@ def test_irreg_topo(dans_grid2):
         dans_grid2.links2rcvr_target_D8,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert dans_grid2.steepest_target_D8 == approx(
+    assert dans_grid2.steepest_target_D8 == pytest.approx(
         dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
@@ -122,7 +128,7 @@ def test_irreg_topo_old(dans_grid2):
         dans_grid2.links2rcvr_target_D4,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert dans_grid2.steepest_target_D4 == approx(
+    assert dans_grid2.steepest_target_D4 == pytest.approx(
         dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
@@ -142,7 +148,7 @@ def test_irreg_topo_new(dans_grid2):
         dans_grid2.links2rcvr_target_D4,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert dans_grid2.steepest_target_D4 == approx(
+    assert dans_grid2.steepest_target_D4 == pytest.approx(
         dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
@@ -151,7 +157,7 @@ def test_internal_closed(internal_closed):
     """Test closed nodes in the core of the grid."""
     fr = FlowRouter(internal_closed.mg)
     fr.route_flow()
-    assert internal_closed.A_target == approx(
+    assert internal_closed.A_target == pytest.approx(
         internal_closed.mg.at_node["drainage_area"]
     )
     assert_array_equal(
@@ -161,10 +167,10 @@ def test_internal_closed(internal_closed):
         internal_closed.links2rcvr_target,
         internal_closed.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert internal_closed.A_target == approx(
+    assert internal_closed.A_target == pytest.approx(
         internal_closed.mg.at_node["surface_water__discharge"]
     )
-    assert internal_closed.steepest_target == approx(
+    assert internal_closed.steepest_target == pytest.approx(
         internal_closed.mg.at_node["topographic__steepest_slope"]
     )
 
@@ -212,8 +218,8 @@ def test_voronoi():
     A_target_outlet = vmg.area_of_cell.sum()
 
     fr.route_flow()
-    assert vmg.at_node["drainage_area"][vmg.core_nodes] == approx(A_target_core)
-    assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(A_target_core)
+    assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)
 
 
 def test_voronoi_closedinternal():
@@ -244,5 +250,5 @@ def test_voronoi_closedinternal():
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
     fr.route_flow()
 
-    assert vmg.at_node["drainage_area"][vmg.core_nodes] == approx(A_target_internal)
-    assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(A_target_internal)
+    assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)
