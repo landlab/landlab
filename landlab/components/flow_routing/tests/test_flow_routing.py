@@ -28,7 +28,7 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 def test_deprecation_raised():
     mg = RasterModelGrid(10, 10)
     _ = mg.add_zeros('node', 'topographic__elevation')
-    with pytest.warns(DeprecationWarning):
+    with pytest.deprecated_call():
         fr = FlowRouter(mg)
 
 def test_check_fields(dans_grid1):
