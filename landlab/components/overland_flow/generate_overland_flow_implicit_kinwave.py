@@ -51,7 +51,7 @@ def water_fn(x, a, b, c, d, e):
     .. math::
 
         \alpha = \frac{\Delta t \sum S^{1/2}}{C_f A}
-    
+
     where :math:`H` is water depth at the given node at the new
     time step, :math:`H_0` is water depth at the prior time step,
     :math:`w` is a weighting factor, :math:`d` is the depth-discharge
@@ -73,26 +73,26 @@ class KinwaveImplicitOverlandFlow(Component):
     assumed to equal bed slope. The solution method is locally implicit, and
     works as follows. At each time step, we iterate from upstream to downstream
     over the topography. Because we are working downstream, we can assume that
-    we know the total water inflow to a given cell. We solve the following mass 
+    we know the total water inflow to a given cell. We solve the following mass
     conservation equation at each cell:
-    
+
     .. math::
 
         (H^{t+1} - H^t)/\Delta t = Q_{in}/A - Q_{out}/A + R
-        
+
     where :math:`H` is water depth, :math:`t` indicates time step
     number, :math:`\Delta t` is time step duration, :math:`Q_{in}` is
     total inflow discharge, :math:`Q_{out}` is total outflow
     discharge, :math:`A` is cell area, and :math:`R` is local
     runoff rate (precipitation minus infiltration; could be
     negative if runon infiltration is occurring).
-    
+
     The specific outflow discharge leaving a cell along one of its faces is:
 
     .. math::
 
         q = (1/C_r) H^\alpha S^{1/2}
-    
+
     where :math:`C_r` is a roughness coefficient (such as
     Manning's n), :math:`\alpha` is an exponent equal to :math:`5/3`
     for the Manning equation and :math:`3/2` for the Chezy family,
@@ -105,17 +105,17 @@ class KinwaveImplicitOverlandFlow(Component):
     .. math::
 
         Q_{out} = \sum_{i=1}^N (1/C_r) H^\alpha S_i^{1/2} W_i
-        
+
     where :math:`N` is the number of outflow faces (i.e., faces
     where the ground slopes downhill away from the cell's node),
     and :math:`W_i` is the width of face :math:`i`.
-    
+
     We use the depth at the cell's node, so this simplifies to:
 
     .. math::
 
         Q_{out} = (1/C_r) H'^\alpha \sum_{i=1}^N S_i^{1/2} W_i
-        
+
     We define :math:`H` in the above as a weighted sum of
     the "old" (time step :math:`t`) and "new" (time step :math:`t+1`)
     depth values:
@@ -123,10 +123,10 @@ class KinwaveImplicitOverlandFlow(Component):
     .. math::
 
         H' = w H^{t+1} + (1-w) H^t
-    
+
     If :math:`w=1`, the method is fully implicit. If :math:`w=0`,
     it is a simple forward explicit method.
-    
+
     When we combine these equations, we have an equation that includes the
     unknown :math:`H^{t+1}` and a bunch of terms that are known.
     If :math:`w\ne 0`, it is a nonlinear equation in :math:`H^{t+1}`,
@@ -282,13 +282,13 @@ class KinwaveImplicitOverlandFlow(Component):
             runoff_rate = self.runoff_rate
 
         # If it's our first iteration, or if the topography may be changing,
-        # do flow routing and calculate square root of slopes at links     
+        # do flow routing and calculate square root of slopes at links
         if self.changing_topo or self.first_iteration:
 
             # Calculate the ground-surface slope
             self.slope[self.grid.active_links] = \
                 self._grid.calc_grad_at_link(self.elev)[self._grid.active_links]
-                
+
             # Take square root of slope magnitude for use in velocity eqn
             self.sqrt_slope = np.sqrt(np.abs(self.slope))
 
@@ -296,7 +296,7 @@ class KinwaveImplicitOverlandFlow(Component):
             # ordering
             self.flow_accum.run_one_step()
             self.nodes_ordered = self.grid.at_node['flow__upstream_node_order']
-            self.flow_lnks = self.grid.at_node['flow__links_to_receiver_nodes']
+            self.flow_lnks = self.grid.at_node['flow__link_to_receiver_node']
 
             # (Re)calculate, for each node, sum of sqrt(gradient) x width
             self.grad_width_sum[:] = 0.0
@@ -310,7 +310,7 @@ class KinwaveImplicitOverlandFlow(Component):
             #   $\alpha = \frac{\Sigma W S^{1/2} \Delta t}{A C_r}$
             cores = self.grid.core_nodes
             self.alpha[cores] = (
-                self.vel_coef * self.grad_width_sum[cores] * dt 
+                self.vel_coef * self.grad_width_sum[cores] * dt
                 / (self.grid.area_of_cell[self.grid.cell_at_node[cores]]))
 
         # Zero out inflow discharge
@@ -324,11 +324,11 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Solve for new water depth
                 aa = self.alpha[n]
                 cc = self.depth[n]
-                ee = ((dt * runoff_rate) 
-                       + (dt * self.disch_in[n] 
+                ee = ((dt * runoff_rate)
+                       + (dt * self.disch_in[n]
                           / self.grid.area_of_cell[self.grid.cell_at_node[n]]))
-                self.depth[n] = newton(water_fn, self.depth[n], 
-                                       args=(aa, self.weight, cc, 
+                self.depth[n] = newton(water_fn, self.depth[n],
+                                       args=(aa, self.weight, cc,
                                              self.depth_exp, ee))
 
                 # Calc outflow

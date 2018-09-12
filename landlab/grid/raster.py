@@ -38,13 +38,13 @@ from . import gradients
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')
 def _node_has_boundary_neighbor(mg, id, method='d8'):
-    """Test if a node is next to a boundary.
+    """Test if a RasterModelGrid node is next to a boundary.
 
     Test if one of the neighbors of node *id* is a boundary node.
 
     Parameters
     ----------
-    mg : ModelGrid
+    mg : RasterModelGrid
         Source grid
     node_id : int
         ID of node to test.
@@ -3837,6 +3837,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method for use if remove_disconnected==True
 
+        Returns
+        --------
+        outlet_loc : array
+            Array of size 1 containing id of outlet location
+
         Examples
         --------
         The first example will use a 4,4 grid with node data values
@@ -4216,11 +4221,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             Data values.
         nodata_value : float, optional
             Value that indicates an invalid value.
-
-        Returns
-        --------
-        outlet_loc : int
-            id of outlet location
 
         Examples
         --------

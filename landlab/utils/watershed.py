@@ -62,6 +62,14 @@ def get_watershed_mask(grid, outlet_id):
         raise FieldError("A 'flow__receiver_node' field is required at the "
                          "nodes of the input grid.")
 
+    if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+        msg = ('A route-to-multiple flow director has been '
+               'run on this grid. The landlab development team has not '
+               'verified that get_watershed_mask is compatible with '
+               'route-to-multiple methods. Please open a GitHub Issue '
+               'to start this process.')
+        raise NotImplementedError(msg)
+
     grid_nodes = grid.nodes.flatten()
     receiver_at_node = grid.at_node['flow__receiver_node']
 
@@ -74,7 +82,7 @@ def get_watershed_mask(grid, outlet_id):
         outlet_not_found = True
 
         while outlet_not_found:
-            node_flows_to_outlet = any([receiver_node == outlet_id, 
+            node_flows_to_outlet = any([receiver_node == outlet_id,
                                         receiver_at_node[receiver_node] ==
                                         outlet_id])
             node_is_outlet = node == outlet_id
@@ -85,10 +93,10 @@ def get_watershed_mask(grid, outlet_id):
 
             else:
                 receiver_node = receiver_at_node[receiver_node]
-       
+
                 if receiver_node == receiver_at_node[receiver_node]:
                     # Receiver_node is a pit.
-                    outlet_not_found = False        
+                    outlet_not_found = False
 
     return watershed_mask
 
@@ -296,6 +304,14 @@ def get_watershed_outlet(grid, source_node_id):
     if 'flow__receiver_node' not in grid.at_node:
         raise FieldError("A 'flow__receiver_node' field is required at the "
                          "nodes of the input grid.")
+
+    if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+        msg = ('A route-to-multiple flow director has been '
+               'run on this grid. The landlab development team has not '
+               'verified that get_watershed_outlet is compatible with '
+               'route-to-multiple methods. Please open a GitHub Issue '
+               'to start this process.')
+        raise NotImplementedError(msg)
 
     receiver_at_node = grid.at_node['flow__receiver_node']
     receiver_node = receiver_at_node[source_node_id]
