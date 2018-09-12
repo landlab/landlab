@@ -162,6 +162,13 @@ class TransportLengthHillslopeDiffuser(Component):
         slope_crit: float (default=1.)
             Critical slope [L/L]
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that TransportLengthHillslopeDiffuser is compatible '
+                   'with route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
 
         # Store grid and parameters
         self._grid = grid

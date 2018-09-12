@@ -119,27 +119,20 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
 
     # get the reciever nodes, depending on if this is to-one, or to-multiple,
     # we'll need to get a different at-node field.
-    if 'flow__receiver_nodes' in grid.at_node:
+    if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
         to_one = False
-        flow__receiver_node = grid.at_node['flow__receiver_nodes']
     else:
         to_one = True
-        flow__receiver_node = grid.at_node['flow__receiver_node']
+    flow__receiver_node = grid.at_node['flow__receiver_node']
 
     # get the upstream node order
     flow__upstream_node_order = grid.at_node['flow__upstream_node_order']
 
     # get downstream flow link lengths, result depends on type of grid.
     if isinstance(grid, RasterModelGrid):
-        if to_one:
-            flow_link_lengths = grid.length_of_d8[grid.at_node['flow__link_to_receiver_node']]
-        else:
-            flow_link_lengths = grid.length_of_d8[grid.at_node['flow__links_to_receiver_nodes']]
+        flow_link_lengths = grid.length_of_d8[grid.at_node['flow__link_to_receiver_node']]
     else:
-        if to_one:
-            flow_link_lengths = grid.length_of_link[grid.at_node['flow__link_to_receiver_node']]
-        else:
-            flow_link_lengths = grid.length_of_link[grid.at_node['flow__links_to_receiver_nodes']]
+        flow_link_lengths = grid.length_of_link[grid.at_node['flow__link_to_receiver_node']]
 
     # create an array that representes the outlet lengths.
     flow__distance = np.zeros(grid.nodes.size)

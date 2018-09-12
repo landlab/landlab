@@ -59,8 +59,7 @@ script:
   fi
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
-    echo "WARNING: NOT BUILDING DOCS"
-    # (cd docs && make html)
+    (cd docs && make html)
   fi
 - |
   if [[ "$DEPLOY" == "1" ]]; then
