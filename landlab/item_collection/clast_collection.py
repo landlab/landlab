@@ -852,7 +852,8 @@ class ClastCollection(ItemCollection):
 
 
         # Calculate lambda_0 and lambda_mean :
-        df.at[clast, 'lambda_0'] = ((self._dt * self._kappa * _grid.dx) / (2 * df.at[clast,'clast__radius'])) * (np.tan(df.at[clast, 'slope__steepest_dip']) * ((self._Si-np.tan(df.at[clast, 'slope__steepest_dip']))/(self._Si+np.tan(df.at[clast, 'slope__steepest_dip']))))
+        df.at[clast, 'lambda_0'] = self._kappa / (2 * df.at[clast,'clast__radius'] * self._disturbance_fqcy)
+        # ((self._dt * self._kappa * _grid.dx) / (2 * df.at[clast,'clast__radius'])) * (np.tan(df.at[clast, 'slope__steepest_dip']) * ((self._Si-np.tan(df.at[clast, 'slope__steepest_dip']))/(self._Si+np.tan(df.at[clast, 'slope__steepest_dip']))))
                 #(self._dt * self._kappa * _grid.dx) / (
 #                        2 * df.at[clast,'clast__radius'])) #self._Si *
 # self._Si *
@@ -910,106 +911,146 @@ class ClastCollection(ItemCollection):
             df.at[clast, 'change_y'] = change_y
 
 
-    def _change_cell_proba(self, clast):
-        """ Determine the probability for a clast to exit from its current
-        cell. A random travel distance is drawn from a probability distribution
-        calculated for each clast, on its current cell. If this travel distance
-        is higher than the distance for the clast to exit the cell, then the
-        clast will change cell.
+    def _move(self, clast):
+            """ Move the clast along the path of steepest slope. First draws a
+            travel distance from a probability distribution. If that travel
+            distance is smaller than the distance to exit the cell in the
+            direction of steepest slope, then move is handled by
+            _move_in_cell. Otherwise, the clast is moved to the edge of the
+            next downslope cell. The distance to travel, remaining from the
+            original travel distance, is scaled as follows:
+                new distance_to_travel = (lambda_mean in new cell) * (
+                        distance remaining to travel) / (lambda_mean in
+                                                    previous cell)
+            This new distance to travel is compared to the distance to exit
+            new cell (in the steepest slope direction of this new cell) and
+            the clast is move accordingly, in cell or to next cell, re-
+            iterating the same process until the distance left to travel is 0.
 
-        Parameters
-        ----------
-        clast : int
-            Clast ID
-        """
-        lambda_mean = self.df.at[clast, 'lambda_mean']
-        dist_to_exit = self.df.at[clast, 'distance__to_exit']
+            Parameters
+            ----------
+            clast : int
+                Clast ID
+            """
 
-        if np.isinf(dist_to_exit): # cases where slope is null or sink
-            _change_cell = False
-        else:
-            # Draw a random sample in the probability distribution
-            # of travel distances:
-            self.rand_length = np.random.exponential(scale=lambda_mean, size=1)
+            # cases where slope is null or sink:
+            if np.isinf(self.df.at[clast, 'distance__to_exit']):
+                # clast does not move:
+                pass
+            else:
+                # Draw a random sample in the probability distribution
+                # of travel distances:
+                self.distance_to_travel = np.random.exponential(
+                        scale=self.df.at[clast, 'lambda_mean'],
+                        size=1)
+                print('dist_to_travel:')
+                print(self.distance_to_travel)
 
-            if self.rand_length < dist_to_exit: # clast stays in cell
-                _change_cell = False
-            else: # self.rand_length >= dist_to_exit: clast leaves cell
-                _change_cell = True
 
-# For testing only:##################################
-        print('rand_length = %s' % self.rand_length)
-        print('dist_to_exit= %s' % dist_to_exit)
-#####################################################
+                while self.distance_to_travel > 0.:
+                    print('moving')
+                    print(self.distance_to_travel)
 
-        return _change_cell
+                    if ClastCollection.phantom(self, clast) == False:
+
+                        if self.distance_to_travel > (
+                                self.df.at[clast, 'distance__to_exit']):
+                            print('MOVE OUT OF CELL')
+                            # clast must change cell
+
+                            # clast leaves cell,
+                            # move of distance dist_to_exit along steepest slope:
+                            self.df.at[clast, 'clast__x'] += (
+                                    self.df.at[clast, 'change_x'])
+                            self.df.at[clast, 'clast__y'] += (
+                                    self.df.at[clast, 'change_y'])
+                            self.df.at[clast, 'hop_length'] += (
+                                    np.sqrt(np.power(self.df.at[
+                                            clast, 'change_x'], 2)+ np.power(
+                                            self.df.at[clast, 'change_y'],2))) / (
+                                            np.cos(
+                                                    self.df.at[
+                                                            clast, 'slope__steepest_dip']))
+
+                            self.df.at[clast, 'clast__node'] = (
+                                    self.df.at[clast, 'target_node'])
+                            # check if target_node == find_nearest_node(new_x, new_y)?
+                            # check if phantom?
+                            self.df.at[clast, 'element_id'] = (
+                                    self._grid.cell_at_node[
+                                    self.df.at[clast, 'clast__node']])
+
+                            # update distance to travel left after first hop:
+                            self.distance_to_travel -= (
+                                    self.df.at[clast, 'distance__to_exit'])
+
+                            # keep memory of lambda_mean:
+                            self.lambda_mean_old = self.df.at[clast, 'lambda_mean']
+
+                            # update new neighborhood and travel characteristics:
+                            ClastCollection._neighborhood(self, clast)
+                            ClastCollection._move_to(self, clast)
+
+                            # Scale distance_to_travel to new lambda mean:
+                            self.distance_to_travel = (
+                                    self.df.at[clast, 'lambda_mean'] * (
+                                            self.distance_to_travel)) / (
+                                            self.lambda_mean_old)
+
+
+                        else: # move in cell, once
+                            print('MOVE IN CELL')
+                            ClastCollection._move_in_cell(self, clast)
+                            break
+
+                    else: # clast is phantom, does not move
+                        pass
+
+
 
 
     def _move_in_cell(self, clast):
-        """ Move the clast within the cell, along the path of steepest slope,
-        of a distance corresponding to the drawn travel distance if that travel
-        distance drawn from the probability distribution is smaller than the
-        distance to exit the cell.
+            """ Move the clast within the cell, along the path of steepest slope,
+            of a distance corresponding to the drawn travel distance if that travel
+            distance drawn from the probability distribution is smaller than the
+            distance to exit the cell.
 
-        Parameters
-        ----------
-        clast : int
-            Clast ID
-        """
-        # clast stays in cell, move of distance rand_length along slope
-        ss_azimuth = self.df.at[clast, 'slope__steepest_azimuth']
-        ss_dip = self.df.at[clast, 'slope__steepest_dip']
-        x_horizontal = self.rand_length * np.cos(ss_dip)
+            Parameters
+            ----------
+            clast : int
+                Clast ID
+            """
+            # clast stays in cell, move of distance rand_length along slope
+            ss_azimuth = self.df.at[clast, 'slope__steepest_azimuth']
+            ss_dip = self.df.at[clast, 'slope__steepest_dip']
+            x_horizontal = self.distance_to_travel * np.cos(ss_dip)
 
-        if np.isnan(ss_azimuth): # clast is in sink
-            [change_x, change_y] = [0., 0.]
-        elif ss_azimuth <= np.radians(90):
-            [change_x, change_y] = [(
-                    x_horizontal * np.cos(ss_azimuth)), (
-                            x_horizontal * np.sin(ss_azimuth))]
-        elif ss_azimuth <= np.radians(180):
-            [change_x, change_y] = [(
-                    -x_horizontal * np.cos(np.radians(180)-ss_azimuth)), (
-                            x_horizontal * np.sin(np.radians(180)-ss_azimuth))]
-        elif ss_azimuth <= np.radians(270):
-            [change_x, change_y] = [(
-                    -x_horizontal * np.sin(np.radians(270)-ss_azimuth)), (
-                            -x_horizontal * np.cos(
-                                    np.radians(270)-ss_azimuth))]
-        else: # ss_azimuth <= np.radians(360)
-            [change_x, change_y] = [(
-                    x_horizontal * np.cos(np.radians(360)-ss_azimuth)), (
-                            -x_horizontal * np.sin(
-                                    np.radians(360)-ss_azimuth))]
+            if np.isnan(ss_azimuth): # clast is in sink
+                [change_x, change_y] = [0., 0.]
+            elif ss_azimuth <= np.radians(90):
+                [change_x, change_y] = [(
+                        x_horizontal * np.cos(ss_azimuth)), (
+                                x_horizontal * np.sin(ss_azimuth))]
+            elif ss_azimuth <= np.radians(180):
+                [change_x, change_y] = [(
+                        -x_horizontal * np.cos(np.radians(180)-ss_azimuth)), (
+                                x_horizontal * np.sin(np.radians(180)-ss_azimuth))]
+            elif ss_azimuth <= np.radians(270):
+                [change_x, change_y] = [(
+                        -x_horizontal * np.sin(np.radians(270)-ss_azimuth)), (
+                                -x_horizontal * np.cos(
+                                        np.radians(270)-ss_azimuth))]
+            else: # ss_azimuth <= np.radians(360)
+                [change_x, change_y] = [(
+                        x_horizontal * np.cos(np.radians(360)-ss_azimuth)), (
+                                -x_horizontal * np.sin(
+                                        np.radians(360)-ss_azimuth))]
 
-        # Update clast coordinates:
-        self.df.at[clast, 'clast__x'] += change_x
-        self.df.at[clast, 'clast__y'] += change_y
-        # Update hop length:
-        self.df.at[clast, 'hop_length'] += self.rand_length
-
-    def _move_out_of_cell(self, clast):
-        """ Move the clast out of the cell, along the path of steepest slope.
-        The clast gets placed fully in the target cell, just along the face it
-        just crossed. This happens if the travel distance drawn from the
-        probability distribution is larger than the distance to exit the cell.
-
-        Parameters
-        ----------
-        clast : int
-            Clast ID
-        """
-        # clast leaves cell, move of distance dist_to_exit along slope
-        self.df.at[clast, 'clast__x'] += self.df.at[clast, 'change_x']
-        self.df.at[clast, 'clast__y'] += self.df.at[clast, 'change_y']
-        self.df.at[clast, 'hop_length'] += (
-                np.sqrt(np.power(
-                        self.df.at[clast, 'change_x'], 2)+ np.power(
-                                self.df.at[clast, 'change_y'],2))) / (
-                        np.cos(self.df.at[clast, 'slope__steepest_dip']))
-
-        self.df.at[clast, 'clast__node'] = self.df.at[clast, 'target_node']
-        self.df.at[clast, 'element_id'] = self._grid.cell_at_node[self.df.at[clast, 'clast__node']]
+            # Update clast coordinates:
+            self.df.at[clast, 'clast__x'] += change_x
+            self.df.at[clast, 'clast__y'] += change_y
+            # Update hop length:
+            self.df.at[clast, 'hop_length'] += self.distance_to_travel
 
 
     def phantom(self, clast):
@@ -1055,11 +1096,26 @@ class ClastCollection(ItemCollection):
         clast__node = self.df.at[clast, 'clast__node']
         clast__elev = self.df.at[clast, 'clast__elev']
         topo__elev = self._grid.at_node['topographic__elevation'][clast__node]
-        erosion = self._erosion__depth[clast__node]
+#        erosion = self._erosion__depth[clast__node]
 
         _detach = np.zeros(1, dtype=bool)
 
-        if erosion >= topo__elev - clast__elev:
+#        if erosion >= topo__elev - clast__elev:
+#            _detach = True
+#        else:
+#            _detach = False
+#
+#        return _detach
+
+        _disturb_fqcy = self._disturbance_fqcy
+        _clast_depth = topo__elev - clast__elev
+
+
+        proba_mobile = (
+                1-np.exp(-_disturb_fqcy * self._dt)) * np.exp(
+                        -_clast_depth / self._d_star)
+
+        if proba_mobile >= 0.5:
             _detach = True
         else:
             _detach = False
@@ -1109,7 +1165,9 @@ class ClastCollection(ItemCollection):
                                  uplift=None,
                                  erosion_method='TLDiff',
                                  hillslope_river__threshold=1e4,
-                                 lateral_spreading='off'):
+                                 lateral_spreading='off',
+                                 disturbance_fqcy=1.,
+                                 d_star=1.):
         """See :func:`run_one_step`
 
         """
@@ -1118,18 +1176,18 @@ class ClastCollection(ItemCollection):
         # get sediment influx, erosion and deposition
         self.erosion_method = erosion_method
         if self.erosion_method == 'TLDiff':
-            self._erosion_rate = self._grid.at_node['sediment__erosion_rate']
+            #self._erosion_rate = self._grid.at_node['sediment__erosion_rate'] # NOT USED
             self._deposition_rate = self._grid.at_node[
                     'sediment__deposition_rate']
-            self._sediment__flux_in = self._grid.at_node['sediment__flux_in'] # NOT USED
+            #self._sediment__flux_in = self._grid.at_node['sediment__flux_in'] # NOT USED
 
         elif self.erosion_method == 'Space':
             from landlab.components import Space
             for obj in gc.get_objects():
                 if isinstance(obj, Space):    # look for instance of Space
-                    self._erosion_rate = obj.Es + obj.Er   # Works if only one instance of Space was made
+                    #self._erosion_rate = obj.Es + obj.Er   # Works if only one instance of Space was made # NOT USED
                     self._deposition_rate = obj.depo_rate
-                    self._sediment__flux_in = obj.qs_in  # NOT USED
+                    #self._sediment__flux_in = obj.qs_in  # NOT USED
 
         else:
             raise ValueError('Erosion method must be "TLDiff" or "Space"')
@@ -1138,13 +1196,15 @@ class ClastCollection(ItemCollection):
         # Store values that will be used:
         self._kappa = kappa # if using SPACE, kappa=K_sed. TO DO: can be a field or array
         self._dt = dt
-        self._erosion__depth = self._erosion_rate * self._dt
+        #self._erosion__depth = self._erosion_rate * self._dt# NOT USED
         self._deposition__thickness = self._deposition_rate * self._dt
         #  slope above which particle motion continues indefinetly (not equal
         # to critical slope of diffusion, see Furbish and Haff, 2010):
         self._Si = Si
         self._threshold = hillslope_river__threshold
         self._lateral_spreading = lateral_spreading
+        self._disturbance_fqcy = disturbance_fqcy
+        self._d_star = d_star
 
 
         # Uplift:
@@ -1178,60 +1238,24 @@ class ClastCollection(ItemCollection):
                     ClastCollection._move_to(self, clast)
                     print('move_to')
 
-                    self.df.at[clast, 'hop_length'] =0
-                    self.rand_length = 0.
-                    #Test if moves (leaves node):
-                    if np.isnan(self.df.at[clast,'slope__steepest_azimuth']) == False: # if centered slope is not null (not on a flat)
-                        print('not on flat')
-                        while ClastCollection._change_cell_proba(self, clast) == True:
-                            if ClastCollection.phantom(self, clast) == False:
-                                print('HERE')
-                                print(self.df)
-                                print('must change cell')
-                                ClastCollection._move_out_of_cell(self,clast)
-                                print('moved out')
-                                print('clastx= %s' %self.DataFrame.at[clast, 'clast__x'])
-                                print('clasty= %s' %self.DataFrame.at[clast, 'clast__y'])
-                                figure(1)
-                                plot(self.DataFrame.at[clast, 'clast__x'], self.DataFrame.at[clast, 'clast__y'], 'o', color='gray', markersize=1)
-                                ########JUST FOR TESTING PURPOSE##################################
-                                if self.df.at[clast, 'clast__node'] != self.df.at[clast, 'target_node']:
-                                    print('Error: moved to wrong node')
-                                ##################################################################
-                                self.df.at[clast, 'target_node_flag'] = -1
-                                ClastCollection._neighborhood(self, clast)
-                                print('done new neighborhood')
-                                ClastCollection._move_to(self, clast)
-                                print('done new move_to, test change_cell_proba')
-                            else:
-                                print('clast has gone out of grid')
-                                break
+                    self.df.at[clast, 'hop_length'] = 0.
+                    self.distance_to_travel = 0.
 
-
-                        else:
-                            if ClastCollection.phantom(self, clast) == False:
-                                if np.isinf(self.df.at[clast,'distance__to_exit']):# case where slope is null or simk
-                                    pass
-                                else:
-                                    print(self.df)
-                                    print('must move in cell')
-                                    ClastCollection._move_in_cell(self,clast)
-                                    print('moved in cell')
-                            else:
-                                break
-                    else: # if centered slope is null
-                        pass   # go to next clast
+                    #
+                    ClastCollection._move(self, clast)
+                    print('moved')
 
                     # Update elevation:
                     self.df.at[clast, 'clast__elev'] = self._grid.at_node['topographic__elevation'][self.df.at[clast, 'clast__node']] - (self._deposition__thickness[self.df.at[clast, 'clast__node']] * np.random.rand(1))
                     print('elevation updated')
+                    if hasattr(self, '_uplift') is True:   # uplift clast if necessary
+                            self.df.at[clast, 'clast__elev'] += self._uplift[self.df.at[clast, 'clast__node']] * self._dt
+                            print('elevation updated with uplift')
+
                     # Update total travelled distance:
                     self.df.at[clast, 'total_travelled_dist'] += self.df.at[clast, 'hop_length']
-
-                if hasattr(self, '_uplift') is True:   # uplift clast if necessary
-                        self.df.at[clast, 'clast__elev'] += self._uplift[self.df.at[clast, 'clast__node']] * self._dt
-
-
+                else: # clast not detached, don't move:
+                    pass
             else: # clast is phantom, go to next clast
                 # for display purpose: phantom clast has a radius of 0
                 # self._clast__radius(i) = 0.
@@ -1244,7 +1268,9 @@ class ClastCollection(ItemCollection):
                      uplift=None,
                      erosion_method='TLDiff',
                      hillslope_river__threshold=1e4,
-                     lateral_spreading='off'):
+                     lateral_spreading='off',
+                     disturbance_fqcy=1.,
+                     d_star=1.):
 
         """ Run the clast-tracker for one timestep dt: evaluate the type of
         cell each clast is currently in, wheteher each clast is detached,
@@ -1282,4 +1308,5 @@ class ClastCollection(ItemCollection):
                                       uplift,
                                       erosion_method,
                                       hillslope_river__threshold,
-                                      lateral_spreading)
+                                      lateral_spreading,
+                                      disturbance_fqcy)
