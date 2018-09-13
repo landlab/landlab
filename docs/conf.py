@@ -30,7 +30,7 @@ sys.path.insert(0, '.')
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode', 'sphinx.ext.todo',
-              'sphinx.ext.mathjax', 'numpydoc', 'sphinx.ext.autosummary']
+              'sphinx.ext.mathjax', 'sphinx.ext.napoleon', 'sphinx.ext.autosummary']
 
 if os.getenv('READTHEDOCS'):
         template_bridge = 'landlab_ext.MyTemplateLoader'
@@ -320,6 +320,9 @@ epub_copyright = u'2013, Author'
 todo_include_todos = True
 #latex_elements = dict(preamble='\\usepackage{amsmath}')
 
-numpydoc_class_members_toctree = False
-numpydoc_show_class_members = False
+napoleon_numpy_docstring = True
+napoleon_google_docstring = False
+napoleon_include_init_with_doc = True
+napoleon_include_special_with_doc = True
+
 html_style = 'landlab.css'
