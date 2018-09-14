@@ -77,6 +77,15 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
                  rainfall_intensity=1., use_Q=None, **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that StreamPowerSmoothThresholdEroder is compatible '
+                       'with route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
+
         if n_sp != 1.0:
             raise ValueError(('StreamPowerSmoothThresholdEroder currently only '
                               'supports n_sp = 1'))
@@ -137,7 +146,13 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         """
-
+        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that StreamPowerSmoothThresholdEroder is compatible '
+                   'with route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream

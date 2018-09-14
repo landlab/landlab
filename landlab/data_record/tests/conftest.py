@@ -7,7 +7,6 @@ grid = RasterModelGrid((3,3))
 
 @pytest.fixture
 def dr_time():
-    # Dimension = time
     time=[0.]
     data_vars={'mean_elevation' : (['time'], np.array([100]))}
     attrs={'time_units' : 'y'}
