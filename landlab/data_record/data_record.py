@@ -1088,7 +1088,7 @@ class DataRecord(Dataset):
 
     def ffill_grid_element_and_id(self):
         """ Fill NaN values of the fields 'grid_element' and 'element_id' by
-        propogating values forward in time.
+        propagating values forward in time.
         """
         ############# ADD EXAMPLE ############################
 
