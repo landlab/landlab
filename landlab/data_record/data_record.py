@@ -539,7 +539,8 @@ class DataRecord(Dataset):
                              'element_id' : (
                                      ['item_id', 'time'],
                                      new_element_id)}
-
+                    else: # new_item_loc is  None
+                        _new_data_vars = {}
                 else: # no item
                     coords_to_add = {'time' : np.array(time)}
                     _new_data_vars = {}
@@ -600,7 +601,6 @@ class DataRecord(Dataset):
         # Merge new record and original dataset:
         #new_ds = xr.concat((self, ds_to_add), compat='equals')
         self.merge(ds_to_add, inplace='True', compat='no_conflicts')
-
 
     def add_item(self,
                   time = None,
@@ -918,10 +918,6 @@ class DataRecord(Dataset):
                [ 0.4]])
         """
 
-
-        # TO ADD TO THIS METHOD: if the modified data is in 'grid_element' or
-        # 'element_id', check that the new_value is consistent with grid
-
         if data_variable not in self.variable_names:
             raise KeyError("the variable '{}' is not in the "
                            "Datarecord".format(data_variable))
@@ -981,19 +977,16 @@ class DataRecord(Dataset):
                 except KeyError:
                     raise KeyError(('This datarecord does not hold items'))
 
-
-
     def calc_aggregate_value(self,
                              func,
                              data_variable,
                              at='node',
-                             filter_time=None,
-                             filter_item=None,
+                             filter_array=None,
                              args=(),
                              **kwargs):
 
-
         """Apply a function to a variable aggregated at grid elements.
+
         Parameters
         ----------
         func : function
@@ -1003,10 +996,9 @@ class DataRecord(Dataset):
         at : str, optional
             Name of grid element at which to apply the function.
             Default is "node".
-        filter_time : boolean array of size number-of-timesteps (optional)
-            Array to filter the timesteps before aggregation.
-        filter_item : boolean array of size number-of-items (optional)
-            Array to filter the items before aggregation.
+        filter_array: boolean array with dimensions matching that of the
+            DataRecord (optional)
+            Array to filter the DataRecord before aggregation.
         args : tuple (optional)
             Additional positional arguments to pass to the function
         **kwargs : key value pairs (optional)
@@ -1040,9 +1032,22 @@ class DataRecord(Dataset):
         >>> len(s) == grid.number_of_nodes
         True
 
+        If you want to first filter the DataRecord and then aggregate, first
+        create a filter array that dimesions matching that of the DataRecord
+        and has True for entries that should be retained and False for entries
+        that should be ignored.
+        For example, if we wanted to aggregate volume for items with an age
+        greater than 10 we would to the following:
+        >>> f = dr['ages'] > 10.
+        >>> v_f = dr.calc_aggregate_value(func=np.sum,
+        ...                               data_variable='volumes',
+        ...                               filter_array=f)
+        >>> v_f
+        array([  8.,   3.,   4.,   5.,  nan,  nan,  nan,  nan,  nan])
+
         """
 
-        #### To add to Example above, when I can make it work!
+        #### To add to Example above, when I can make it work:
 #        You can even pass functions that require additional positional
 #        arguments or keyword arguments. For example, in order to get the 25th
 #        percentile, we we do the following.
@@ -1050,45 +1055,25 @@ class DataRecord(Dataset):
 #        >>> s = ic.calc_aggregate_value(np.percentile, 'ages', q=25)
 #        >>> print(s)
 #        [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
+        #######
 
-    #if both filters are not None:
         filter_at = self['grid_element'] == at
 
-        if filter_time is None:
-            if filter_item is None:
-                my_filter = filter_at
-            else:
-                try:
-                    self['item_id']
-                except KeyError:
-                    raise ValueError(('You cannot pass a filter_item as this'
-                                      ' Datarecord does not hold any item.'))
-                if ((filter_item.dtype == bool) and (
-                        len(filter_item) == self.number_of_items)) == False:
-                    raise TypeError(('The filter_item you passed must be a boolean'
-                                     ' array of size number-of-items.'))
-                my_filter = filter_at & filter_item
-        else: # filter_time is not None
-            try:
-                self['time']
-            except KeyError:
-                raise ValueError(('You cannot pass a filter_time as this'
-                                  ' Datarecord does not record time.'))
-            if ((filter_time.dtype == bool) and (
-                    len(filter_time) == self.number_of_timesteps)) == False:
-                raise TypeError(('The filter_time you passed must be a boolean'
-                                 ' array of size number-of-timesteps.'))
-            if filter_item is None:
-                my_filter = filter_at & filter_time
-            else:
-                my_filter = filter_time & filter_item & filter_at
+        if filter_array is None:
+            my_filter = filter_at
+        else:
+            my_filter = filter_at & filter_array
 
-        # Filter Datarecord with my_filter:
-        #filtered = self.where(my_filter == True)
+        # Filter Datarecord with my_filter and groupby element_id:
         filtered = self.where(my_filter == True).groupby('element_id')
 
         #vals = xr.core.groupby.DatasetGroupBy(filtered, 'element_id').reduce(func, *args, **kwargs)
         vals = filtered.apply(func, *args, **kwargs)  #.reduce
+#        vals = xr.apply_ufunc(func,
+#                            filtered,
+#                            input_core_dims=[[time]],
+#                            *args, **kwargs)
+
 
         # create a nan array that we will fill with the results of the sum
         # this should be the size of the number of elements, even if there are
@@ -1100,6 +1085,26 @@ class DataRecord(Dataset):
         out[vals.element_id.values.astype(int)] = vals[data_variable]
 
         return out
+
+    def ffill_grid_element_and_id(self):
+        """ Fill NaN values of the fields 'grid_element' and 'element_id' by
+        propogating values forward in time.
+        """
+        ############# ADD EXAMPLE ############################
+
+        # Forward fill element_id:
+        self['element_id'] = self['element_id'].ffill('time')
+        # Can't do ffill to grid_element because str/nan, so:
+        fill_value=''
+        ge = self['grid_element'].values
+        for i in range(ge.shape[0]):
+            for j in range(ge.shape[1]):
+                if isinstance(ge[i,j], str):
+                    fill_value=ge[i,j]
+                else:
+                    ge[i,j]=fill_value
+        self['grid_element'] = (['item_id', 'time'], ge)
+
 ###############################################################################
 
     @property
