@@ -7,9 +7,9 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import (read_netcdf, 
-                               write_netcdf, 
-                               NotRasterGridError, 
+from landlab.io.netcdf import (read_netcdf,
+                               write_netcdf,
+                               NotRasterGridError,
                                WITH_NETCDF4)
 
 from landlab.io.netcdf.read import _get_raster_spacing
@@ -295,60 +295,5 @@ def test_netcdf_write_at_cells(tmpdir):
         )
         root.close()
 
-def test_write_netcdf_with_grid_mapping_3():
-    """Test write with grid_mapping variable NETCDF3."""
-    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex.nc'))
-    assert_equal(hasattr(grid, 'grid_mapping'), True)
-    
-    out_file = os.path.join(_TEST_DATA_DIR, 'temporary.nc')
-    write_netcdf(out_file, grid, format='NETCDF3_64BIT')
-    
-    grid_read = read_netcdf(out_file)
-    
-    mapping_original = grid.grid_mapping
-    mapping = grid_read.grid_mapping
-    
-    for gmk in mapping_original.keys():
-        assert_equal(gmk in mapping, True)
-        
-        orig_val = mapping_original[gmk]
-        if type(orig_val) is bytes:
-            orig_val = orig_val.decode("utf-8")
-        
-        val = mapping[gmk]
-        if type(val) is bytes:
-            val = val.decode("utf-8")
-        
-        assert_equal(val, orig_val)
-    
-    os.remove(out_file)
-    
-    
-def test_write_netcdf_with_grid_mapping_4():
-    """Test write with grid_mapping variable NETCDF4."""
-    grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'grid_mapping_ex.nc'))
-    assert_equal(hasattr(grid, 'grid_mapping'), True)
-    
-    out_file = os.path.join(_TEST_DATA_DIR, 'temporary.nc')
-    write_netcdf(out_file, grid, format='NETCDF4')
-    
-    grid_read = read_netcdf(out_file)
-    
-    mapping_original = grid.grid_mapping
-    mapping = grid_read.grid_mapping
-    
-    for gmk in mapping_original.keys():
-        assert_equal(gmk in mapping, True)
-        
-        orig_val = mapping_original[gmk]
-        if type(orig_val) is bytes:
-            orig_val = orig_val.decode("utf-8")
-        
-        val = mapping[gmk]
-        if type(val) is bytes:
-            val = val.decode("utf-8")
-        
-        assert_equal(val, orig_val)
-    
-    os.remove(out_file)
-
+def test_write_llc():
+    pass

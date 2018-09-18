@@ -21,7 +21,7 @@ try:
     import netCDF4 as nc4
 except ImportError:
     warnings.warn('Unable to import netCDF4.', ImportWarning)
-    
+
 try:
     import pycrs
     _HAS_PYCRS = True
@@ -437,11 +437,11 @@ def _add_variables_at_points(root, fields, names=None):
 
         var.units = node_fields.units[var_name] or '?'
         var.long_name = var_name
-        
+
         if hasattr(fields, 'grid_mapping'):
             setattr(var, 'grid_mapping', fields.grid_mapping['name'])
-          
-                
+
+
 def _add_variables_at_cells(root, fields, names=None):
     if isinstance(names, six.string_types):
         names = [names]
@@ -526,7 +526,7 @@ def _set_netcdf_grid_mapping_variable(root, grid_mapping):
     var = root.createVariable(name, 'S1', dimensions=())
     for attr in grid_mapping.keys():
         setattr(var, attr, grid_mapping[attr])
-    
+
 
 _VALID_NETCDF_FORMATS = set([
     'NETCDF3_CLASSIC',
@@ -667,13 +667,13 @@ def write_netcdf(path, fields, attrs=None, append=False,
 def write_raster_netcdf(path, fields, attrs=None, append=False,
                         time=None, format='NETCDF4', names=None,
                         at=None):
-    
+
     """Write Raster Model Grid landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
 
     This method is for Raster Grids only and takes advantage of regular x and
-    y spacing to save memory. 
+    y spacing to save memory.
 
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
@@ -784,7 +784,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     if hasattr(fields, 'grid_mapping'):
         _set_netcdf_grid_mapping_variable(root,  fields.grid_mapping)
 
-    if hasattr(fields, 'esri_ascii_projection'):
+#    if hasattr(fields, 'esri_ascii_projection'):
 #        if _HAS_PYCRS:
 #            message = ('This RasterModelGrid has a projection and was read in '
 #                       'as an Esri ASCII and is being written out as a NetCDF. '
@@ -794,23 +794,23 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
 #                       'to the grid_mapping variable. We are working on fully '
 #                       'supporting this conversion, but it is in active '
 #                       'development.')
-#            
+#
 #            print(warning_message(message))
-#            
+#
 #            projection = pycrs.parser.from_proj4(fields.esri_ascii_projection)
 #            crs_wkt = projection.to_ogc_wkt()
 #            grid_mapping = {'name':'name',
 #                            'crs_wkt': crs_wkt}
-#            
+#
 #            _set_netcdf_grid_mapping_variable(root, grid_mapping)
 #
 #        else:
-        message = ('This RasterModelGrid has a projection and was read in '
-                       'as an Esri ASCII and is being written out as a NetCDF. '
-                       'Landlab does not presently have the ability to '
-                       'translate the projection information used by these two '
-                       'formats.')
-            
-        print(warning_message(message))
-        
+        # message = ('This RasterModelGrid has a projection and was read in '
+        #                'as an Esri ASCII and is being written out as a NetCDF. '
+        #                'Landlab does not presently have the ability to '
+        #                'translate the projection information used by these two '
+        #                'formats.')
+        #
+        # print(warning_message(message))
+
     root.close()
