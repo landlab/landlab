@@ -105,3 +105,9 @@ docs/auto_grid_info__subsets.rst
 docs/auto_grid_info__surf.rst
 
 docs/auto_grid_info__whole.rst
+
+\.pytest_cache/README\.md
+
+\.pytest_cache/v/cache/lastfailed
+
+\.pytest_cache/v/cache/nodeids

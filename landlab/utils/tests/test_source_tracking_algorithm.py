@@ -5,11 +5,33 @@ Unit tests for source_tracking_algorithm.py
 """
 
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import FlowRouter
+from landlab.components import FlowRouter, FlowAccumulator
 from landlab.utils import (track_source,
                            find_unique_upstream_hsd_ids_and_fractions)
+
+
+def test_route_to_multiple_error_raised():
+    grid = RasterModelGrid((5, 5), spacing=(1., 1.))
+    grid.at_node['topographic__elevation'] = np.array([5., 5., 5., 5., 5.,
+                                                       5., 4., 5., 1., 5.,
+                                                       0., 3., 5., 3., 0.,
+                                                       5., 4., 5., 2., 5.,
+                                                       5., 5., 5., 5., 5.])
+    grid.status_at_node[10] = 0
+    grid.status_at_node[14] = 0
+    fa = FlowAccumulator(grid, flow_director='MFD')
+    fa.run_one_step()
+    hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
+    hsd_ids[:] = 1
+    hsd_ids[2:5] = 0
+    hsd_ids[7:10] = 0
+
+    with pytest.raises(NotImplementedError):
+        track_source(grid, hsd_ids)
+
 
 def test_track_source():
     """Unit tests for track_source().
