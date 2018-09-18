@@ -2,9 +2,10 @@
 """The Landlab
 
 :Package name: TheLandlab
-:Release date: 2013-03-24
+:Release date: 2018-09-18
 :Authors: Greg Tucker, Nicole Gasparini, Erkan Istanbulluoglu, Daniel Hobley,
-    Sai Nudurupati, Jordan Adams, Eric Hutton
+    Sai Nudurupati, Jordan Adams, Eric Hutton, Katherine Barnhart, Margaux
+    Mouchene, Nathon Lyons
 :URL: http://csdms.colorado.edu/trac/landlab
 :License: MIT
 """
