@@ -339,47 +339,6 @@ def _read_asc_data(asc_file):
     """
     return np.loadtxt(asc_file)
 
-
-def _read_projection_information(asc_file):
-    """Read .proj file if existing and return projection information.
-
-    Parameters
-    ----------
-    asc_file : file-like
-        File-like object of the data file pointing to the start of the data.
-        Assumption is that the projection information is in a file with the
-        same name as asc_file, but with the extention replaced with .proj
-
-    """
-    proj_file = os.path.splitext(asc_file)[0] + '.proj'
-    
-    if os.path.exists(proj_file):
-        
-        with open(proj_file, 'r') as f:    
-            projection_data_structure = f.readlines()
-        return ''.join(projection_data_structure)
-    
-    else:
-        return None
-
-
-def _write_projection_information(asc_file, projection_string):
-    """Write .proj file if projection information exists on the grid.
-
-    Parameters
-    ----------
-    asc_file : file-like
-        File-like object of the data file pointing to the start of the data.
-        Assumption is that the projection information is in a file with the
-        same name as asc_file, but with the extention replaced with .proj
-    projection_string : string
-        The projection datastructure stored on the grid. 
-    """
-    proj_file = os.path.splitext(asc_file)[0] + '.proj'
-
-    with open(proj_file, 'w') as f:    
-        f.write(projection_string)
-    
     
 def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
@@ -470,12 +429,6 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             file_name = asc_file.name
         except AttributeError: # StringIO objects will not have this attribute
             file_name = None
-            
-    # look for an associated projection file and read it. 
-    if file_name:
-        projection_data_structure = _read_projection_information(file_name)
-    else:
-        projection_data_structure = None
         
     #There is no reason for halo to be negative.
     #Assume that if a negative value is given it should be 0.
@@ -494,7 +447,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
-    origin = (header['xllcorner'] - halo * header['cellsize'], header['yllcorner'] - halo * header['cellsize'])
+    origin = (header['yllcorner'] - halo * header['cellsize'], header['xllcorner'] - halo * header['cellsize'])
     
     data = np.flipud(data)
 
@@ -531,9 +484,6 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         grid = RasterModelGrid(shape, spacing=spacing, origin=origin)
     if name:
         grid.add_field('node', name, data)
-    
-    # save projection onto the grid
-    grid.esri_ascii_projection = projection_data_structure
     
     return (grid, data)
 
@@ -612,23 +562,5 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
         data = fields.at_node[name].reshape(header['nrows'], header['ncols'])
         np.savetxt(path, np.flipud(data), header=os.linesep.join(header_lines),
                    comments='')
-        
-        # if a proj file existed, duplicate it with the appropriate name. 
-        if hasattr(fields, 'esri_ascii_projection'):
-            _write_projection_information(path, fields.esri_ascii_projection)
-        
-        if hasattr(fields, 'grid_mapping'):
-            if _HAS_PYCRS:
-                grid_mapping_proj = pycrs.parser.from_unknown_wkt(fields.grid_mapping['spatial_ref'])
-                _write_projection_information(path, grid_mapping_proj.to_proj4())
-                
-            else:
-                message = ('This RasterModelGrid has a projection and was read in '
-                           'as a NetCDF and is being written out as an Esri ASCII. '
-                           'In order to translate you shoud install the pure python '
-                           'pycrs library with pip. Without it Landlab does not '
-                           'have the capability to translate the '
-                           'projection information between these two formats.')
-            print(warning_message(message))
         
     return paths
