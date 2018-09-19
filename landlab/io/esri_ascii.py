@@ -23,21 +23,6 @@ from landlab.core.messages import warning_message
 
 import warnings
 
-    
-try:
-    import pycrs
-    _HAS_PYCRS = True
-except ImportError:
-    warnings.warn('Unable to import pycrs.', ImportWarning)
-    _HAS_PYCRS = False
-    
-try:
-    import pycrs
-    _HAS_PYCRS = True
-except ImportError:
-    warnings.warn('Unable to import pycrs.', ImportWarning)
-    _HAS_PYCRS = False
-
 
 _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
@@ -124,9 +109,9 @@ class DataSizeError(Error):
 
 
 class MismatchGridDataSizeError(Error):
-    
+
     """Raise this error if the data size does not match the grid size."""
-    
+
     def __init__(self, size, expected_size):
         self._actual = size
         self._expected = expected_size
@@ -135,7 +120,7 @@ class MismatchGridDataSizeError(Error):
         return '(data size) %s != %s (grid size)' \
            % (self._actual, self._expected)
 
-    
+
 def _parse_header_key_value(line):
     """Parse a header line into a key-value pair.
 
@@ -339,7 +324,7 @@ def _read_asc_data(asc_file):
     """
     return np.loadtxt(asc_file)
 
-    
+
 def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
 
@@ -366,13 +351,13 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     grid : *grid* , optional
         Adds data to an existing *grid* instead of creating a new one.
     halo : integer, optional
-        Adds outer border of depth halo to the *grid*. 
+        Adds outer border of depth halo to the *grid*.
 
     Returns
     -------
     (grid, data) : tuple
         A newly-created RasterModel grid and the associated node data.
-        
+
     Raises
     ------
     DataSizeError
@@ -380,7 +365,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     MismatchGridDataSizeError
         If a grid is passed, the size of the grid does not agree with the
         size of the data.
-        
+
     Examples
     --------
     Assume that fop is the name of a file that contains text below
@@ -404,8 +389,8 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     >>> (grid, data) = read_esri_ascii('fop', halo=1) # doctest: +SKIP
     >>> #now the data has a nodata_value ring of -9999 around it. So array is
     >>> # [-9999, -9999, -9999, -9999, -9999, -9999,
-    >>> #  -9999, 9., 10., 11., -9999, 
-    >>> #  -9999, 6., 7., 8., -9999, 
+    >>> #  -9999, 9., 10., 11., -9999,
+    >>> #  -9999, 6., 7., 8., -9999,
     >>> #  -9999, 3., 4., 5., -9999,
     >>> #  -9999, 0., 1., 2. -9999,
     >>> #  -9999, -9999, -9999, -9999, -9999, -9999]
@@ -418,10 +403,10 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         with open(asc_file, 'r') as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
-        
+
         file_name = asc_file
-    
-    # otherwise, pass asc_file directly.     
+
+    # otherwise, pass asc_file directly.
     else:
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
@@ -429,7 +414,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             file_name = asc_file.name
         except AttributeError: # StringIO objects will not have this attribute
             file_name = None
-        
+
     #There is no reason for halo to be negative.
     #Assume that if a negative value is given it should be 0.
     if halo <= 0:
@@ -448,7 +433,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             raise DataSizeError(shape[0] * shape[1], data.size)
     spacing = (header['cellsize'], header['cellsize'])
     origin = (header['yllcorner'] - halo * header['cellsize'], header['xllcorner'] - halo * header['cellsize'])
-    
+
     data = np.flipud(data)
 
     #REMEMBER, shape contains the size with halo in place
@@ -459,7 +444,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         #for the first halo row(s), add num cols worth of nodata vals to data
         for i in range(0, halo):
             data = np.insert(data,0,helper_row)
-        #then for header['nrows'] add halo number nodata vals, header['ncols'] 
+        #then for header['nrows'] add halo number nodata vals, header['ncols']
         #of data, then halo number of nodata vals
         helper_row_ends = np.ones(halo) * nodata_value
         for i in range(halo, header['nrows']+halo):
@@ -470,10 +455,10 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         #for the last halo row(s), add num cols worth of nodata vals to data
         for i in range(header['nrows']+halo,shape[0]):
             data = np.insert(data,data.size,helper_row)
-        
+
     if not reshape:
         data = data.flatten()
-        
+
     if grid is not None:
         if (grid.number_of_node_rows != shape[0]) or \
         (grid.number_of_node_columns != shape[1]):
@@ -484,7 +469,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         grid = RasterModelGrid(shape, spacing=spacing, origin=origin)
     if name:
         grid.add_field('node', name, data)
-    
+
     return (grid, data)
 
 
@@ -562,5 +547,5 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
         data = fields.at_node[name].reshape(header['nrows'], header['ncols'])
         np.savetxt(path, np.flipud(data), header=os.linesep.join(header_lines),
                    comments='')
-        
+
     return paths
