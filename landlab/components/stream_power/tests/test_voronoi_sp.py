@@ -7,8 +7,7 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import VoronoiDelaunayGrid
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder
 from pylab import show
 
 
@@ -28,13 +27,13 @@ def test_sp_voronoi():
     z = mg.add_field('node', 'topographic__elevation',
                      np.random.rand(nnodes) / 10000., copy=False)
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg)
     spe = StreamPowerEroder(mg, os.path.join(_THIS_DIR,
                                              'drive_sp_params_voronoi.txt'))
 
     for i in range(10):
         z[mg.core_nodes] += 0.01
-        fr.route_flow()
+        fr.run_one_step()
         spe.erode(mg, 1.)
 
     z_tg = np.array([4.35994902e-05,   2.59262318e-06,   5.49662478e-05,

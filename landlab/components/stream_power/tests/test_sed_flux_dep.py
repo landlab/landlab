@@ -13,8 +13,7 @@ import os
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import SedDepEroder
+from landlab.components import FlowAccumulator, SedDepEroder
 from landlab import ModelParameterDictionary
 
 
@@ -45,12 +44,12 @@ def test_sed_dep():
 
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, **inputs)
 
     for i in range(nt):
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
-        mg = fr.route_flow()
+        mg = fr.run_one_step()
         mg, _ = sde.erode(dt)
 
     z_tg = np.loadtxt(os.path.join(_THIS_DIR, 'seddepz_tg.txt'))
@@ -72,7 +71,7 @@ def test_sed_dep_new():
 
     z = mg.add_zeros('node', 'topographic__elevation')
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
                        Qc='power_law', K_t=1.e-4)
 
@@ -86,7 +85,7 @@ def test_sed_dep_new():
     up = 0.05
 
     for i in range(10):
-        fr.route_flow()
+        fr.run_one_step()
         sde.run_one_step(dt)
         z[mg.core_nodes] += 20.*up
 

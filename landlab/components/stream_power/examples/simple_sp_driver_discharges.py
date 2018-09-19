@@ -9,8 +9,7 @@ from __future__ import print_function
 
 from six.moves import range
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder
 from landlab.components.stream_power import FastscapeEroder as Fsc
 
 import numpy
@@ -45,7 +44,7 @@ mg['node']['topographic__elevation'] = z
 print('Running ...')
 
 # instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sp = StreamPowerEroder(mg, './drive_sp_params_discharge.txt')
 # load the Fastscape module too, to allow direct comparison
 fsp = Fsc(mg, './drive_sp_params_discharge.txt')

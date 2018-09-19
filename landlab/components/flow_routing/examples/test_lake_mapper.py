@@ -1,6 +1,6 @@
 from landlab import RasterModelGrid
 from landlab.plot.imshow import imshow_node_grid
-from landlab.components.flow_routing import (FlowRouter,
+from landlab.components.flow_routing import (FlowAccumulator,
                                              DepressionFinderAndRouter)
 from matplotlib.pyplot import figure, plot, show
 import numpy as np
@@ -25,10 +25,10 @@ z += np.random.rand(nx*ny)/1000.
 
 mg.add_field('node', 'topographic__elevation', z, copy=False)
 
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 lf = DepressionFinderAndRouter(mg)
 
-fr.route_flow()
+fr.run_one_step()
 
 figure('old drainage area')
 imshow_node_grid(mg, 'drainage_area')

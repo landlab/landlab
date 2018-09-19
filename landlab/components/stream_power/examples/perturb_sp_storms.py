@@ -8,9 +8,10 @@ wave, then stores the propagation as a gif.
 # DEJH, 09/15/14
 from __future__ import print_function
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
-from landlab.components.uniform_precip import PrecipitationDistribution
+from landlab.components import (FlowAccumulator,
+                                StreamPowerEroder,
+                                FastscapeEroder,
+                                PrecipitationDistribution)
 from landlab.plot import channel_profile as prf
 from landlab.plot import imshow as llplot
 from landlab.plot.imshow import imshow_node_grid
@@ -51,7 +52,7 @@ mg.at_node['K_values'].fill(0.001)
 print( 'Running ...' )
 
 #instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sp = StreamPowerEroder(mg, input_file_string)
 #fsp = FastscapeEroder(mg, input_file_string)
 precip = PrecipitationDistribution(input_file=input_file_string)
@@ -71,7 +72,7 @@ except NameError:
     for (interval_duration, rainfall_rate) in precip.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
-            mg = fr.route_flow()
+            mg = fr.run_one_step()
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='surface_water__discharge', K_if_used='K_values')
         #add uplift
@@ -85,7 +86,7 @@ except NameError:
 
 else:
     #reinstantiate the components with the new grid
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, input_file_string)
 
 x_profiles = []
@@ -102,7 +103,7 @@ if True:
     for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
-            mg = fr.route_flow() #the runoff_rate should pick up automatically
+            mg = fr.run_one_step() #the runoff_rate should pick up automatically
             #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
             mg,_,_ = sp.erode(mg, interval_duration, Q_if_used='surface_water__discharge', K_if_used='K_values')
 
@@ -121,7 +122,7 @@ if True:
             z_profiles.append(mg.at_node['topographic_elevation'][profile_IDs])
             S_profiles.append(mg.at_node['steepest_slope'][profile_IDs])
             A_profiles.append(mg.at_node['drainage_area'][profile_IDs])
-    
+
         #add uplift
         mg.at_node['topographic__elevation'][mg.core_nodes] += 5.*uplift*interval_duration
 
@@ -152,5 +153,3 @@ pylab.title('Slope-Area')
 pylab.show()
 
 print('Done.')
-
-
