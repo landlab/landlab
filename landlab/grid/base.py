@@ -29,6 +29,7 @@ from .decorators import (override_array_setitem_and_reset, return_id_array,
                          return_readonly_id_array)
 from ..utils.decorators import cache_result_in_object
 from ..layers.eventlayers import EventLayersMixIn
+from ..layers.materiallayers import MaterialLayersMixIn
 from .nodestatus import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                          FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
                          CLOSED_BOUNDARY)
@@ -266,7 +267,7 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn):
+class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
