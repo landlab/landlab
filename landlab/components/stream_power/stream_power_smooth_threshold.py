@@ -52,8 +52,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 2.0
     >>> z[6] = 1.0
-    >>> from landlab.components import FlowRouter
-    >>> fr = FlowRouter(rg, method='D4')
+    >>> from landlab.components import FlowAccumulator
+    >>> fr = FlowAccumulator(rg, flow_director='D4')
     >>> fr.run_one_step()
     >>> from landlab.components import StreamPowerSmoothThresholdEroder
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
@@ -133,8 +133,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[4] = 1.0
-        >>> from landlab.components import FlowRouter
-        >>> fr = FlowRouter(rg, method='D4')
+        >>> from landlab.components import FlowAccumulator
+        >>> fr = FlowAccumulator(rg, flow_director='D4')
         >>> fr.run_one_step()
         >>> from landlab.components import StreamPowerSmoothThresholdEroder
         >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
@@ -222,17 +222,3 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # 'newton' function to find new elevation at each node in turn.
         smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers,
                                          z, self.alpha, self.gamma, self.delta)
-
-#if __name__ == '__main__':
-#    from landlab import RasterModelGrid
-#    rg = RasterModelGrid((3, 4), 1.0)
-#    z = rg.add_zeros('node', 'topographic__elevation')
-#    rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-#    z[5] = 2.0
-#    z[6] = 1.0
-#    from landlab.components import FlowRouter
-#    fr = FlowRouter(rg, method='D4')
-#    fr.run_one_step()
-#    sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
-#    sp.run_one_step(dt=1.0)
-#    print(z)

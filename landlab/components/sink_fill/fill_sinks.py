@@ -12,8 +12,7 @@ from landlab import (ModelParameterDictionary, Component, FieldError,
 
 from landlab.utils.decorators import use_file_name_or_kwds, deprecated
 from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.components.flow_routing import (DepressionFinderAndRouter,
-                                             FlowRouter)
+from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.grid.base import BAD_INDEX_VALUE
 import numpy as np
 
@@ -37,7 +36,7 @@ class SinkFiller(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab import BAD_INDEX_VALUE as XX
-    >>> from landlab.components import FlowRouter, SinkFiller
+    >>> from landlab.components import FlowAccumulator, SinkFiller
     >>> import numpy as np
     >>> lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     >>> lake2 = np.array([78, 87, 88])
@@ -50,7 +49,7 @@ class SinkFiller(Component):
     >>> z[lake] = 0.
     >>> field = mg.add_field('node', 'topographic__elevation', z,
     ...                      units='-', copy=True)
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fr.run_one_step()
     >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
     14
@@ -201,7 +200,7 @@ class SinkFiller(Component):
                                                    noclobber=False)
 
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
-        self._fr = FlowRouter(self._grid, method=self._routing)
+        self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
 
     def fill_pits(self, **kwds):
         """
@@ -240,7 +239,7 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow()
+        self._fr.run_one_step()
         self._lf.map_depressions(pits=self._grid.at_node['flow__sink_flag'],
                                  reroute_flow=True)
         # add the depression depths to get up to flat:
@@ -272,7 +271,8 @@ class SinkFiller(Component):
         # now put back any fields that were present initially, and wipe the
         # rest:
         for delete_me in spurious_fields:
-            self._grid.delete_field('node', delete_me)
+            if delete_me in self._grid.at_node:
+                self._grid.delete_field('node', delete_me)
         for update_me in existing_fields.keys():
             self.grid.at_node[update_me][:] = existing_fields[update_me]
         # fill the output field
@@ -328,7 +328,7 @@ class SinkFiller(Component):
             except FieldError:  # not there; good!
                 spurious_fields.add(field)
 
-        self._fr.route_flow()
+        self._fr.run_one_step()
         self._lf.map_depressions(pits=self._grid.at_node['flow__sink_flag'],
                                  reroute_flow=False)
         # add the depression depths to get up to flat:
@@ -381,7 +381,8 @@ class SinkFiller(Component):
         # now put back any fields that were present initially, and wipe the
         # rest:
         for delete_me in spurious_fields:
-            self._grid.delete_field('node', delete_me)
+            if delete_me in self.grid.at_node:
+                self._grid.delete_field('node', delete_me)
         for update_me in existing_fields.keys():
             self.grid.at_node[update_me] = existing_fields[update_me]
         # fill the output field

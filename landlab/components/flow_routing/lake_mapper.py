@@ -59,12 +59,12 @@ class DepressionFinderAndRouter(Component):
     Route flow across a depression in a sloped surface.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowRouter, DepressionFinderAndRouter
+    >>> from landlab.components import FlowAccumulator, DepressionFinderAndRouter
     >>> mg = RasterModelGrid((7, 7), 0.5)
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fr.run_one_step()  # the flow "gets stuck" in the hole
     >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
@@ -124,7 +124,7 @@ class DepressionFinderAndRouter(Component):
     array([ 2.25])
 
     Because rereoute_flow defaults to True, the flow connectivity fields
-    created by the FlowRouter will have now been modified to route flow over
+    created by the FlowAccumulator will have now been modified to route flow over
     the depressions in the surface. The topogrphy itself is not modified.
     """
 
@@ -494,7 +494,7 @@ class DepressionFinderAndRouter(Component):
         --------
         >>> import numpy as np
         >>> from landlab.components import DepressionFinderAndRouter
-        >>> from landlab.components import FlowRouter
+        >>> from landlab.components import FlowAccumulator
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((7, 7))
         >>> rg.status_at_node[rg.nodes_at_right_edge] = CLOSED_BOUNDARY
@@ -502,7 +502,7 @@ class DepressionFinderAndRouter(Component):
         >>> z[:] = rg.x_of_node + 0.01 * rg.y_of_node
         >>> lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
         >>> z[lake_nodes] *= 0.1
-        >>> fr = FlowRouter(rg, method='D4')
+        >>> fr = FlowAccumulator(rg, flow_director='D4')
         >>> fr.run_one_step()
         >>> rg.at_node['flow__receiver_node']
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 10, 10, 11, 13, 14, 14, 16,
@@ -514,7 +514,7 @@ class DepressionFinderAndRouter(Component):
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 10, 11, 13, 14, 14, 15,
                16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 38, 31, 32,
                34, 35, 35, 36, 37, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
-        >>> fr = FlowRouter(rg, method='D8')
+        >>> fr = FlowAccumulator(rg, flow_director='D8')
         >>> fr.run_one_step()
         >>> rg.at_node['flow__receiver_node']
         array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 16, 10, 18, 13, 14, 14, 16,
