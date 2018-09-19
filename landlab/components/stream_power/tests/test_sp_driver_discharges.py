@@ -9,8 +9,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -33,13 +32,13 @@ def test_sp_discharges_old():
                   5., 5., 5., 5., 5.])
     mg['node']['topographic__elevation'] = z
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     my_Q = mg.at_node['surface_water__discharge']
     sp = StreamPowerEroder(mg, input_str, use_Q=my_Q)
 
     # perform the loop (once!)
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         my_Q[:] = mg.at_node['surface_water__discharge'] * 1.
         sp.run_one_step(dt)
 
@@ -71,12 +70,12 @@ def test_sp_discharges_new():
                   5., 5., 5., 5., 5.])
     mg['node']['topographic__elevation'] = z
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, **inputs)
 
     # perform the loop (once!)
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         sp.run_one_step(dt)
 
     z_tg = np.array([5.        ,  5.        ,  0.        ,  5.        ,

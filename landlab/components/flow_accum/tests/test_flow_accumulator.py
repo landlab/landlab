@@ -945,7 +945,7 @@ def test_water_discharge_in_supplied():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     d = mg.add_field("water__discharge_in", mg.node_x + mg.node_y, at="node")
-    with pytest.warns(DeprecationWarning):
+    with pytest.deprecated_call():
         fa = FlowAccumulator(mg)
 
 

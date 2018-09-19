@@ -63,7 +63,7 @@ def test_sheetflow():
     mg.add_ones('node', 'water__unit_flux_in')
 
     pfr = PotentialityFlowRouter(mg)
-    pfr.route_flow()
+    pfr.run_one_step()
 
     assert_allclose(mg.at_node['surface_water__discharge'], flux)
 
@@ -177,7 +177,7 @@ def test_in_network():
     mg.add_field('node', 'water__unit_flux_in', Qin)
 
     pfr = PotentialityFlowRouter(mg, flow_equation='Manning')
-    pfr.route_flow()
+    pfr.run_one_step()
 
     assert_allclose(mg.at_node['surface_water__discharge'], flux)
     assert_allclose(mg.at_node['flow__potential'][mg.core_nodes],

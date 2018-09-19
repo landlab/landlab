@@ -12,8 +12,7 @@ from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -39,13 +38,13 @@ def test_sp_old():
     mg['node']['topographic__elevation'] = z + \
         numpy.random.rand(len(z)) / 1000.
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, input_str)
     elapsed_time = 0.
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        fr.route_flow()
+        fr.run_one_step()
         sp.erode(mg, dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
@@ -93,13 +92,13 @@ def test_sp_new():
     mg['node']['topographic__elevation'] = z + \
         numpy.random.rand(len(z)) / 1000.
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, **inputs)
     elapsed_time = 0.
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        fr.route_flow()
+        fr.run_one_step()
         sp.run_one_step(dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
