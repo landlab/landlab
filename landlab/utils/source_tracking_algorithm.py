@@ -36,20 +36,20 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     clockwise to 2^7 (128) at Northeastern neighbor. For more information
     refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
     how-flow-direction-works.htm'
-    
+
     Parameters
     ----------
     grid: RasterModelGrid
         A grid.
     flow_dir_arc: ndarray of int, shape (n_nodes, )
         flow directions derived from ESRII ArcGIS.
-    
+
     Returns
     -------
     receiver_nodes: ndarray of int, shape (n_nodes, )
         downstream node at each node. Note that this array gives the
         receiver nodes only for the core nodes. For non-core
-        nodes, a zero is used.  
+        nodes, a zero is used.
     """
     r_arc_raw = np.log2(flow_dir_arc)
     r_arc_raw = r_arc_raw.astype('int')
@@ -105,9 +105,9 @@ def track_source(grid, hsd_ids, flow_directions=None):
     that is at the same resolution as MD, and represents exactly the same
     landscape. Alternatively, one can use the node ids of MD
     (grid.nodes.flatten()) as input for hsd_ids.
-    
+
     For more information, refer Ref 1.
-    
+
     Parameters
     ----------
     grid: RasterModelGrid
@@ -118,7 +118,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
     flow_directions: ndarray of int, shape (n_nodes, ), optional.
         downstream node at each node. Alternatively, this data can be
         provided as a nodal field 'flow__receiver_node' on the grid.
-    
+
     Returns
     -------
     (hsd_upstr, flow_accum): (dictionary, ndarray of shape (n_nodes))
@@ -129,8 +129,16 @@ def track_source(grid, hsd_ids, flow_directions=None):
         at corresponding node_ids.
         'flow_accum' is an array of the number of upstream contributing
         nodes at each node.
-    """   
+    """
     if flow_directions is None:
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that the source tracking utility is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
+
         r = grid.at_node['flow__receiver_node']
     else:
         r = flow_directions
@@ -221,13 +229,13 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
     an alternative input. In that case, please refer to the documentation
     of track_source() or refer source_tracking_algorithm_user_manual for
     more information.
-    
+
     Parameters
     ----------
     hsd_upstr: dictionary
         'hsd_upstr' maps each MD grid node to corresponding
         contributing upstream HSD ids.
-        
+
     Returns
     -------
     (unique_ids, fractions): (dictionary, dictionary)
