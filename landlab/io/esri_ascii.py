@@ -58,7 +58,7 @@ class BadHeaderLineError(Error):
         self._line = line
 
     def __str__(self):
-        return self._line
+        return self._line  # this line not yet tested
 
 
 class MissingRequiredKeyError(Error):
@@ -93,7 +93,7 @@ class KeyValueError(Error):
         self._msg = message
 
     def __str__(self):
-        return '%s: %s' % (self._key, self._msg)
+        return '%s: %s' % (self._key, self._msg) # this line not yet tested
 
 
 class DataSizeError(Error):
@@ -105,7 +105,7 @@ class DataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return '%s != %s' % (self._actual, self._expected)
+        return '%s != %s' % (self._actual, self._expected) # this line not yet tested
 
 
 class MismatchGridDataSizeError(Error):
@@ -118,7 +118,7 @@ class MismatchGridDataSizeError(Error):
 
     def __str__(self):
         return '(data size) %s != %s (grid size)' \
-           % (self._actual, self._expected)
+           % (self._actual, self._expected)# this line not yet tested
 
 
 def _parse_header_key_value(line):
