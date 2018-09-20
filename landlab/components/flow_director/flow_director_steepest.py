@@ -201,8 +201,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         # update the surface, if it was provided as a model grid field.
         self._changed_surface()
 
-        # step 1. Calculate link slopes.
-        link_slope = -self._grid.calc_grad_of_active_link(self.surface_values)
+        # step 1. Calculate link slopes at active links only.
+        all_grads = -calc_grad_at_link(self._grid, self.surface_values)
+        link_slope = all_grads[self._grid.active_links]
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(

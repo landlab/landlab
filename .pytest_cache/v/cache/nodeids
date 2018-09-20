@@ -1,4 +1,0 @@
-[
-  "landlab/components/spatial_precip/generate_spatial_precip.py::landlab.components.spatial_precip.generate_spatial_precip.SpatialPrecipitationDistribution", 
-  "landlab/components/spatial_precip/generate_spatial_precip.py::landlab.components.spatial_precip.generate_spatial_precip.SpatialPrecipitationDistribution.calc_annual_rainfall"
-]
