@@ -131,7 +131,10 @@ def add_signature_to_doc(func):
     <BLANKLINE>
     Do something.
     """
-    argspec = inspect.getfullargspec(func)
+    try:
+        argspec = inspect.getfullargspec(func) # this is for python 3+
+    except ConftestImportFailure:
+        argspec = inspect.getargspec(func) # this is for python 2.7
     return """{name}{argspec}
 
 {body}""".format(name=func.__name__, argspec=inspect.formatargspec(*argspec),
