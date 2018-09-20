@@ -53,10 +53,11 @@ def test_route_to_multiple_error_raised():
         SinkFiller(mg)
 
 
-def check_fields(sink_grid1):
+def test_check_fields(sink_grid1):
     """
     Check to make sure the right fields have been created.
     """
+    sf = SinkFillerBarnes(sink_grid1)
     assert_array_equal(
         np.zeros(sink_grid1.number_of_nodes),
         sink_grid1.at_node["sediment_fill__depth"]
