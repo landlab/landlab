@@ -155,7 +155,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     if len(out) != len(grid.active_links):
         raise ValueError('output buffer does not match that of the grid.')
 
-    # grads = gradients.calculate_diff_at_active_links(grid, node_values,
+    # grads = gradients.calc_diff_at_link(grid, node_values,
     #                                                  out=out)
     grads = gradients.calc_diff_at_link(grid, node_values)
     out[:] = grads[grid.active_links]

@@ -29,7 +29,7 @@ def test_unit_spacing():
                                  1.0, 1.0, 1.0, 1.0,
                                  5.0, 5.0, 5.0,]))
 
-    diffs = rmg.calculate_diff_at_active_links(values_at_nodes)
+    diffs = rmg.calc_diff_at_link(values_at_nodes)
     assert_array_equal(grads, diffs)
 
 
@@ -45,7 +45,7 @@ def test_non_unit_spacing():
                                  1.0, 1.0, 1.0,
                                  0.5, 0.5, 0.5, 0.5,
                                  1.0, 1.0, 1.0]))
-    diffs = rmg.calculate_diff_at_active_links(values_at_nodes)
+    diffs = rmg.calc_diff_at_link(values_at_nodes)
     assert_array_equal(diffs,
                        np.array([5.0, 5.0, 5.0,
                                  1.0, 1.0, 1.0, 1.0,
@@ -75,7 +75,7 @@ def test_diff_out_array():
     rmg = RasterModelGrid(4, 5)
     values = np.arange(20)
     diff = np.empty(17)
-    rtn_diff = rmg.calculate_diff_at_active_links(values, out=diff)
+    rtn_diff = rmg.calc_diff_at_link(values, out=diff)
     assert_array_equal(
         diff,
         np.array([5, 5, 5,
