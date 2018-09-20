@@ -121,6 +121,21 @@ NODATA_value  -9999
         read_esri_ascii(asc_file)
 
 
+def test_4x3_size_mismatch_with_halo():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+1. 2. 3. 4. 5. 6. 7. 8. 9. 10.
+        """)
+    with pytest.raises(DataSizeError):
+        read_esri_ascii(asc_file, halo=1)
+
+
 def test_grid_data_size_mismatch():
     asc_file = StringIO(
         """
