@@ -328,7 +328,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
         self.bc_set_code = 0
-        self.projection = None
 
         # Sort links according to the x and y coordinates of their midpoints.
         # Assumes 1) node_at_link_tail and node_at_link_head have been
