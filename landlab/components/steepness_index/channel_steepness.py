@@ -11,9 +11,6 @@ import landlab
 from landlab import ModelParameterDictionary, Component, FieldError, \
                     FIXED_VALUE_BOUNDARY
 from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.components.flow_routing.lake_mapper import \
-    DepressionFinderAndRouter
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_file_name_or_kwds
 import numpy as np
@@ -29,7 +26,7 @@ class SteepnessFinder(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> from landlab.components import FlowRouter, FastscapeEroder
+    >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> from landlab.components import SteepnessFinder
     >>> mg = RasterModelGrid((3, 10), (100., 100.))
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
@@ -38,12 +35,12 @@ class SteepnessFinder(Component):
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
     >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
     ...     mg.core_nodes]/1000.
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sp = FastscapeEroder(mg, K_sp=0.01)
     >>> sf = SteepnessFinder(mg, min_drainage_area=10000.)
     >>> for i in range(10):
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
-    ...     _ = fr.route_flow()
+    ...     _ = fr.run_one_step()
     ...     sp.run_one_step(1000.)
     >>> sf.calculate_steepnesses()
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
@@ -139,6 +136,13 @@ class SteepnessFinder(Component):
             segment, it will be lumped together with the next segment.
             If zero, one value is assigned to each channel node.
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that SteepnessFinder is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
         self._grid = grid
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
@@ -269,16 +273,16 @@ class SteepnessFinder(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import FlowRouter
+        >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((4,5), (5., 10.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
         >>> mg.status_at_node[[6, 12, 13, 14]] = CLOSED_BOUNDARY
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
-        >>> fr = FlowRouter(mg)
+        >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
-        >>> _ = fr.route_flow()
+        >>> _ = fr.run_one_step()
         >>> ch_nodes = np.array([8, 7, 11, 10])
         >>> sf.channel_distances_downstream(ch_nodes)
         array([  0.        ,  10.        ,  21.18033989,  31.18033989])
@@ -318,15 +322,15 @@ class SteepnessFinder(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import FlowRouter
+        >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((3,10), (5., 10.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
-        >>> fr = FlowRouter(mg)
+        >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
-        >>> _ = fr.route_flow()
+        >>> _ = fr.run_one_step()
         >>> ch_nodes = np.arange(18, 9, -1)
         >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
         >>> interp_pt_elevs = np.array([0., 30., 60., 90., 120.])
@@ -396,16 +400,16 @@ class SteepnessFinder(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import FlowRouter
+        >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((3,10), (5., 10.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
-        >>> fr = FlowRouter(mg)
+        >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
-        >>> _ = fr.route_flow()
+        >>> _ = fr.run_one_step()
         >>> ch_nodes = np.arange(18, 9, -1)
         >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
         >>> ch_A = mg.at_node['drainage_area'][ch_nodes]
@@ -500,7 +504,7 @@ class SteepnessFinder(Component):
 
         >>> from landlab import imshow_grid_at_node
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import FlowRouter, FastscapeEroder
+        >>> from landlab.components import FlowAccumulator, FastscapeEroder
         >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((5, 5), 100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
@@ -512,14 +516,14 @@ class SteepnessFinder(Component):
         >>> np.random.seed(0)
         >>> mg.at_node['topographic__elevation'][
         ...     mg.core_nodes] += np.random.rand(mg.number_of_core_nodes)
-        >>> fr = FlowRouter(mg)
+        >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sp = FastscapeEroder(mg, K_sp=0.01)
         >>> cf = SteepnessFinder(mg, min_drainage_area=20000.)
         >>> for i in range(10):
         ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
-        ...     _ = fr.route_flow()
+        ...     _ = fr.run_one_step()
         ...     sp.run_one_step(1000.)
-        >>> _ = fr.route_flow()
+        >>> _ = fr.run_one_step()
         >>> cf.calculate_steepnesses()
 
         >>> imshow_grid_at_node(mg, 'topographic__elevation',

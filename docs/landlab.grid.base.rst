@@ -57,8 +57,10 @@ Information about nodes
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
     ~landlab.grid.base.ModelGrid.active_neighbors_at_node
+    ~landlab.grid.base.ModelGrid.adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.all_node_azimuths_map
     ~landlab.grid.base.ModelGrid.all_node_distances_map
     ~landlab.grid.base.ModelGrid.boundary_nodes
@@ -84,6 +86,7 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.node_x
     ~landlab.grid.base.ModelGrid.node_y
     ~landlab.grid.base.ModelGrid.nodes
+    ~landlab.grid.base.ModelGrid.nodes_at_link
     ~landlab.grid.base.ModelGrid.number_of_core_nodes
     ~landlab.grid.base.ModelGrid.number_of_links_at_node
     ~landlab.grid.base.ModelGrid.number_of_nodes
@@ -97,6 +100,7 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node
     ~landlab.grid.base.ModelGrid.upwind_links_at_node
     ~landlab.grid.base.ModelGrid.x_of_node
+    ~landlab.grid.base.ModelGrid.xy_of_node
     ~landlab.grid.base.ModelGrid.y_of_node
 
 Information about links
@@ -120,6 +124,7 @@ Information about links
     ~landlab.grid.base.ModelGrid.links_at_node
     ~landlab.grid.base.ModelGrid.node_at_link_head
     ~landlab.grid.base.ModelGrid.node_at_link_tail
+    ~landlab.grid.base.ModelGrid.nodes_at_link
     ~landlab.grid.base.ModelGrid.number_of_active_links
     ~landlab.grid.base.ModelGrid.number_of_fixed_links
     ~landlab.grid.base.ModelGrid.number_of_links
@@ -129,8 +134,8 @@ Information about links
     ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.status_at_link
-    ~landlab.grid.base.ModelGrid.unit_vector_xcomponent_at_link
-    ~landlab.grid.base.ModelGrid.unit_vector_ycomponent_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_at_node
     ~landlab.grid.base.ModelGrid.upwind_links_at_node
     ~landlab.grid.base.ModelGrid.x_of_link
     ~landlab.grid.base.ModelGrid.y_of_link
@@ -352,6 +357,7 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_faces
     ~landlab.grid.base.ModelGrid.active_links
     ~landlab.grid.base.ModelGrid.active_neighbors_at_node

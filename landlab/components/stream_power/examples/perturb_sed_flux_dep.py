@@ -3,8 +3,7 @@ from __future__ import print_function
 
 from six.moves import range
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import SedDepEroder
+from landlab.components import FlowAccumulator, SedDepEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import imshow
 from landlab.plot.video_out import VideoPlotter
@@ -47,7 +46,7 @@ assert mg.node_spacing == dx
 print('Running ...')
 
 # instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sde = SedDepEroder(mg, input_file)
 # don't allow overwriting of these, just in case
 try:
@@ -75,7 +74,7 @@ time_on = time()
 for i in range(nt):
     #print 'loop ', i
     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift_per_step
-    mg = fr.route_flow()
+    mg = fr.run_one_step()
     #mg.calc_grad_across_cell_faces(mg.at_node['topographic__elevation'])
     #neighbor_slopes = mg.calc_grad_along_node_links(mg.at_node['topographic__elevation'])
     #mean_slope = np.mean(np.fabs(neighbor_slopes),axis=1)

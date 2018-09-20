@@ -93,12 +93,19 @@ inherits from `VoronoiDelauneyGrid` and adds the following:
 Layers
 ======
 
-Landlab has the ability to add Layers to the grid.
+Landlab has the ability to add layers to the grid. Two types of layers are
+currently supported. First is EventLayers in which each event is preserved as
+an entry into the datastructure, even if no deposition occurs. If you are
+interested in chronostratigraphy, this is probably what you are interested in.
+Second is MaterialLayers, in which each layer must contain some material.
+If an entire layer is eroded in MaterialLayers, the layer is removed.
+MaterialLayers will likely use less memory than EventLayers.
 
   .. toctree::
      :maxdepth: 4
 
-     landlab.layers
+     landlab.layers.eventlayers
+     landlab.layers.materiallayers
 
 Components
 ==========
@@ -184,6 +191,7 @@ Precipitation
   :maxdepth: 4
 
   landlab.components.uniform_precip
+  landlab.components.spatial_precip
 
 Weathering
 ----------
@@ -201,6 +209,7 @@ Terrain Analysis
 
   landlab.components.steepness_index
   landlab.components.chi_index
+  landlab.components.drainage_density
 
 Tectonics
 ---------
@@ -227,6 +236,31 @@ Initial conditions: random field generators
   :maxdepth: 4
 
   landlab.components.fracture_grid
+
+
+Lithology
+---------
+Two objects based on the EventLayers object exist to make it easier to deal
+with spatially variable lithology and associated properties. The Lithology
+components contain information about spatially variable lithology and connect
+with the Landlab model grid so that when rock is eroded or advected upward by
+rock uplift the values of rock propeties at the topographic surface are updated.
+
+First is the Lithology component which is a generic object for variable
+lithology.
+
+  .. toctree::
+     :maxdepth: 4
+
+     landlab.components.lithology
+
+Second is LithoLayers which makes it easy to make layered rock.
+
+   .. toctree::
+      :maxdepth: 4
+
+      landlab.components.litholayers
+
 
 The Component base class
 ------------------------

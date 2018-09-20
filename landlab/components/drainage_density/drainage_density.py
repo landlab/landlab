@@ -18,12 +18,23 @@ class DrainageDensity(Component):
 
     """Calculate drainage density over a DEM.
 
-    calc_drainage_density function returns drainage density for the model
-    domain.
-
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.
-
+    
+    calc_drainage_density function returns drainage density for the model
+    domain.
+    
+    calc_drainage_density calculates the distance from every node to the 
+    nearest channel node :math:`L` along the flow line of steepest descent 
+    (assuming D8 routing). The drainage density is then (after Tucker et al., 
+    2001):
+        
+    .. math::
+        
+        D_d=\frac{1}{2\overline{L}}
+        
+    where :math:`\overline{L}` is the mean L for the model domain.
+            
     This component requires EITHER a channel__mask array with 1's
     where channels exist and 0's elsewhere, OR a set of coefficients
     and exponents for a slope-area relationship and a
@@ -35,8 +46,7 @@ class DrainageDensity(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_routing import FlowRouter
-    >>> from landlab.components import FastscapeEroder
+    >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> mg = RasterModelGrid((10, 10), 1.0)
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
     >>> np.random.seed(50)
@@ -63,7 +73,7 @@ class DrainageDensity(Component):
         0.82165703,  0.73749168,  0.84034417,  0.4015291 ,  0.74862   ,
         0.55962945,  0.61323757,  0.29810165,  0.60237917,  0.42567684,
         0.53854438,  0.48672986,  0.49989164,  0.91745948,  0.26287702])
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
@@ -146,6 +156,13 @@ class DrainageDensity(Component):
         channelization_threshold : threshold value above
             which channels exist
         """
+        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that DrainageDensity is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
 
         if channel__mask is not None:
             if area_coefficient is not None:
