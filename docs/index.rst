@@ -210,6 +210,7 @@ Terrain Analysis
 
   landlab.components.steepness_index
   landlab.components.chi_index
+  landlab.components.drainage_density
 
 Tectonics
 ---------
