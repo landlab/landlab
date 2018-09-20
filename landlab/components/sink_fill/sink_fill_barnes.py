@@ -66,6 +66,28 @@ class SinkFillerBarnes(LakeMapperBarnes):
         was_there_overfill property can still be used to see if this has
         occurred.
     """
+    _name = 'SinkFillerBarnes'
+
+    _input_var_names = ('topographic__elevation',
+                        )
+
+    _output_var_names = ('topographic__elevation',
+                         'sediment_fill__depth',
+                         )
+
+    _var_units = {'topographic__elevation': 'm',
+                  'sediment_fill__depth': 'm',
+                  }
+
+    _var_mapping = {'topographic__elevation': 'node',
+                    'sediment_fill__depth': 'node',
+                    }
+
+    _var_doc = {'topographic__elevation': 'Surface topographic elevation',
+                'sediment_fill__depth': 'Depth of sediment added at each' +
+                                        'node',
+                }
+
     def __init__(self, grid, surface='topographic__elevation',
                  method='D8', fill_flat=False,
                  ignore_overfill=False):
@@ -92,6 +114,10 @@ class SinkFillerBarnes(LakeMapperBarnes):
         # once... Likewise, no need for flow routing; this is not going to
         # get used dynamically.
         self._supplied_surface = return_array_at_node(grid, surface).copy()
+        # create the only new output field:
+        self._sed_fill_depth = self.grid.add_zeros('node',
+                                                   'sediment_fill__depth',
+                                                   noclobber=False)
 
     def run_one_step(self):
         """
@@ -199,14 +225,16 @@ class SinkFillerBarnes(LakeMapperBarnes):
         terminates.)
         """
         if 'flow__receiver_node' in self._grid.at_node:
-            if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+            if (self._grid.at_node['flow__receiver_node'].size !=
+                    self._grid.size('node')):
                 msg = ('A route-to-multiple flow director has been '
-                       'run on this grid. The landlab development team has not '
-                       'verified that SinkFillerBarnes is compatible with '
+                       'run on this grid. The landlab development team has '
+                       'not verified that SinkFillerBarnes is compatible with '
                        'route-to-multiple methods. Please open a GitHub Issue '
                        'to start this process.')
                 raise NotImplementedError(msg)
         super(SinkFillerBarnes, self).run_one_step()
+        self._sed_fill_depth[:] = self._surface - self._supplied_surface
 
     @property
     def fill_dict(self):
@@ -252,7 +280,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
     def fill_depths(self):
         """Return the change in surface elevation at each node this step.
         """
-        return self._surface - self._supplied_surface
+        return self._sed_fill_depth
 
     @property
     def fill_areas(self):
