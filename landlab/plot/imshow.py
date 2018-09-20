@@ -403,7 +403,7 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
         cb.set_label(colorbar_label)
 
     if color_for_background is not None:
-        plt.gca().set_axis_bgcolor(color_for_background)
+        plt.gca().set_facecolor(color_for_background)
 
     if output is not None:
         if type(output) is str:

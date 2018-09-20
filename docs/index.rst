@@ -191,6 +191,7 @@ Precipitation
   :maxdepth: 4
 
   landlab.components.uniform_precip
+  landlab.components.spatial_precip
 
 Weathering
 ----------
@@ -208,6 +209,7 @@ Terrain Analysis
 
   landlab.components.steepness_index
   landlab.components.chi_index
+  landlab.components.drainage_density
 
 Tectonics
 ---------
