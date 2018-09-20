@@ -102,7 +102,7 @@ def test_clobber_keyword(tmpdir):
 
 
 def test_write_then_read(tmpdir):
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
+    grid = RasterModelGrid((4, 5), spacing=(2., 2.), origin=(10., 15.))
     grid.add_field('node', 'air__temperature', np.arange(20.))
 
     with tmpdir.as_cwd():
@@ -112,6 +112,7 @@ def test_write_then_read(tmpdir):
     assert grid.number_of_node_columns == new_grid.number_of_node_columns
     assert grid.number_of_node_rows == new_grid.number_of_node_rows
     assert grid.dx == new_grid.dx
+    assert (grid.x_of_node.min(), grid.y_of_node.min()) == (15., 10.)
     assert_array_almost_equal(grid.node_x, new_grid.node_x)
     assert_array_almost_equal(grid.node_y, new_grid.node_y)
     assert_array_almost_equal(field, grid.at_node['air__temperature'])

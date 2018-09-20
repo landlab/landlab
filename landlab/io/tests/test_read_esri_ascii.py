@@ -27,7 +27,7 @@ def test_hugo_read_file_name():
 
     assert field.size == 55 * 76
     assert field.shape == (55 * 76, )
-
+    assert (grid.x_of_node.min(), grid.y_of_node.min()) == (0.0, 0.0)
 
 def test_hugo_read_file_like():
     with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
@@ -55,6 +55,7 @@ def test_4x3_read_file_name():
     assert isinstance(grid, RasterModelGrid)
 
     assert isinstance(field, np.ndarray)
+    assert (grid.x_of_node.min(), grid.y_of_node.min()) == (1.0, 2.0)
     assert_array_equal(field,
                        np.array([9., 10., 11.,
                                  6.,  7.,  8.,
