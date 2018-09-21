@@ -156,8 +156,8 @@ def test_route_to_many():
     mg.add_zeros('node', 'topographic__elevation', dtype=float)
     fd = FlowDirectorDINF(mg, 'topographic__elevation')
     fd.run_one_step()
-    assert mg.at_node['flow__receiver_nodes'].shape == (mg.number_of_nodes, 2)
-    with pytest.raises(ValueError):
+    assert mg.at_node['flow__receiver_node'].shape == (mg.number_of_nodes, 2)
+    with pytest.raises(NotImplementedError):
         lmb = LakeMapperBarnes(mg, method='D8',
                                redirect_flow_steepest_descent=True)
 

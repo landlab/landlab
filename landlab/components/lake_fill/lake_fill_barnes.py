@@ -391,11 +391,6 @@ class LakeMapperBarnes(Component):
             # never see this.
             assert len(FlowDirectorSteepest.output_var_names) == 4
             self._receivers = self.grid.at_node['flow__receiver_node']
-            if len(self._receivers.shape) != 1 or (
-                    'flow__receiver_nodes' in grid.at_node.keys()):
-                raise ValueError(
-                    'The LakeFillerBarnes does not yet work with route-to-' +
-                    'many flow directing schemes!')
             self._receiverlinks = self.grid.at_node[
                 'flow__link_to_receiver_node']
             self._steepestslopes = self.grid.at_node[
