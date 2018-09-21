@@ -35,7 +35,7 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
         # choose the node id
         node_id = stack_flip_ud[i]
 
-        # If q at current node is greather than zero, calculate qs based on a
+        # If q at current node is greater than zero, calculate qs based on a
         # local analytical solution. This local analytical solution depends on
         # qs_in, the sediment flux coming into the node from upstream (hence
         # the upstream to downstream node ordering).
@@ -43,12 +43,13 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
         # Because calculation of qs requires qs_in, this operation must be done
         # in an upstream to downstream loop, and cannot be vectorized.
         #
-        if q[node_id] > 0:
-            qs[node_id] = ((qs_in[node_id]
-                            + ((1.0 - F_f) * (1. - phi) * Es[node_id]) * cell_area_at_node[node_id])
-                           / (1.0 + (v_s * cell_area_at_node[node_id] / (q[node_id]))))
+        if q[node_id] > 0.:
+            qs[node_id] = (
+                (qs_in[node_id] + (1.0 - F_f) * (1. - phi) * Es[node_id] *
+                    cell_area_at_node[node_id]) /
+                (1.0 + v_s * cell_area_at_node[node_id] / q[node_id]))
 
-            # finally, add this nodes qs to recieiving nodes qs_in.
+            # finally, add this nodes qs to receiving nodes qs_in.
             # if qs[node_id] == 0, then there is no need for this line to be
             # evaluated.
             qs_in[flow_receivers[node_id]] += qs[node_id]
