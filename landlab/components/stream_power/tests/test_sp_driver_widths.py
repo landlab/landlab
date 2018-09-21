@@ -9,8 +9,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -34,12 +33,12 @@ def test_sp_widths():
                   5., 5., 5., 5., 5.])
     mg['node']['topographic__elevation'] = z
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, use_W=widths, **inputs)
 
     # perform the loop (once!)
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         sqrt_A = mg.at_node['drainage_area']**0.5
         widths[mg.core_nodes] = sqrt_A[mg.core_nodes]/sqrt_A[
             mg.core_nodes].mean()

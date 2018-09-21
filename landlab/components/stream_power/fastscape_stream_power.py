@@ -54,12 +54,12 @@ class FastscapeEroder(Component):
     if :math:`K A^m S^n <= \textit{threshold_sp}`.
 
     This module assumes you have already run
-    :func:`landlab.components.flow_routing.route_flow_dn.FlowRouter.route_flow`
+    :func:`landlab.components.flow_accum.flow_accumulator.FlowAccumulator.run_one_step`
     in the same timestep. It looks for 'flow__upstream_node_order',
     'flow__link_to_receiver_node', 'drainage_area', 'flow__receiver_node', and
     'topographic__elevation' at the nodes in the grid. 'drainage_area' should
     be in area upstream, not volume (i.e., set runoff_rate=1.0 when calling
-    FlowRouter.route_flow).
+    FlowAccumulator.run_one_step).
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -68,7 +68,7 @@ class FastscapeEroder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-    >>> from landlab.components import FlowRouter, FastscapeEroder
+    >>> from landlab.components import FlowAccumulator, FastscapeEroder
 
     >>> grid = RasterModelGrid((5, 5), spacing=10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
@@ -77,7 +77,7 @@ class FastscapeEroder(Component):
     ...               7.,  1., 1.9,  4.,  7.,
     ...               7.,  0.,  7.,  7.,  7.])
     >>> z = grid.add_field('topographic__elevation', z, at='node')
-    >>> fr = FlowRouter(grid)
+    >>> fr = FlowAccumulator(grid, flow_director='D8')
     >>> sp = FastscapeEroder(grid, K_sp=1.)
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=1.)
@@ -95,7 +95,7 @@ class FastscapeEroder(Component):
     >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> fr = FlowRouter(grid)
+    >>> fr = FlowAccumulator(grid, flow_director='D8')
     >>> sp = FastscapeEroder(grid, K_sp=0.1, m_sp=0., n_sp=2.,
     ...                      threshold_sp=2.)
     >>> fr.run_one_step()
@@ -111,7 +111,7 @@ class FastscapeEroder(Component):
     >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> fr = FlowRouter(grid)
+    >>> fr = FlowAccumulator(grid, flow_director='D8')
     >>> K_field = grid.ones(at='node') # K can be a field
     >>> sp = FastscapeEroder(grid, K_sp=K_field, m_sp=1., n_sp=0.6,
     ...                      threshold_sp=grid.node_x,
@@ -201,6 +201,15 @@ class FastscapeEroder(Component):
             different field, such as 'surface_water__discharge', give its name in
             this argument.
         """
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that FastscapeEroder is compatible with '
+                       'route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
+
         self._grid = grid
 
         self.K = K_sp  # overwritten below in special cases
@@ -313,6 +322,14 @@ class FastscapeEroder(Component):
         grid
             A reference to the grid.
         """
+        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that FastscapeEroder is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
+
         upstream_order_IDs = self._grid.at_node['flow__upstream_node_order']
         z = self._grid.at_node['topographic__elevation']
         defined_flow_receivers = np.not_equal(

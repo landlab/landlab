@@ -2,8 +2,7 @@ from __future__ import print_function
 
 from six.moves import range
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import FastscapeEroder
+from landlab.components import FlowAccumulator, FastscapeEroder
 from landlab import ModelParameterDictionary
 from landlab.plot import channel_profile as prf
 
@@ -64,7 +63,7 @@ for t in range(5):
 
 
     #instantiate the components:
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = FastscapeEroder(mg, input_file)
 
     time_on = time()
@@ -72,7 +71,7 @@ for t in range(5):
     #perform the inner time loops:
     for i in range(nt):
         mg['node']['topographic__elevation'][mg.core_nodes] += uplift_per_step
-        mg = fr.route_flow()
+        mg = fr.run_one_step()
         mg = sp.erode(mg)
 
         #plot long profiles along channels
@@ -127,4 +126,3 @@ time_off = time()
 
 print('Done.')
 print('Time: ', time_off-time_on)
-

@@ -3920,7 +3920,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             # check all nodes rather than selecting the first node that meets
             # the criteria
             for i in range(len(min_locs)):
-                next_to_boundary.append(self.has_boundary_neighbor(min_locs[i]))
+                next_to_boundary.append(self.node_has_boundary_neighbor(min_locs[i]))
 
             # if any of those nodes were adjacent to the boundary, check
             #that  there is only one. If only one, set as outlet loc, else,

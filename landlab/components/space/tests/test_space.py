@@ -6,6 +6,17 @@ from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import Space, FlowAccumulator, DepressionFinderAndRouter
 
 
+def test_route_to_multiple_error_raised():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        Space(mg, K_sed=0.1, K_br=0.1, F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
+              m_sp=1.0, n_sp=0.5, sp_crit_sed=0, sp_crit_br=0)
+
 def test_bad_solver_name():
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.
@@ -41,11 +52,11 @@ def test_bad_solver_name():
               phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0,
               sp_crit_sed=0, sp_crit_br=0,
               solver='something_else')
-    
+
 
 def test_soil_field_already_on_grid():
     """
-    Test that an existing soil grid field is not changed by instantiating 
+    Test that an existing soil grid field is not changed by instantiating
     SPACE.
     """
 
@@ -75,9 +86,9 @@ def test_soil_field_already_on_grid():
     fa = FlowAccumulator(mg, flow_director='D8')
 
     #Instantiate SPACE
-    sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0, 
-                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
-                         sp_crit_sed=0, sp_crit_br=0, 
+    sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0,
+                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0,
+                         sp_crit_sed=0, sp_crit_br=0,
                          solver='basic')
 
     #ensure that 'soil__depth' field is everywhere equal to 1.0 m.
@@ -88,7 +99,7 @@ def test_soil_field_already_on_grid():
 
 def test_br_field_already_on_grid():
     """
-    Test that an existing bedrock elevation grid field is not changed by 
+    Test that an existing bedrock elevation grid field is not changed by
     instantiating SPACE.
     """
 
@@ -118,13 +129,13 @@ def test_br_field_already_on_grid():
     fa = FlowAccumulator(mg, flow_director='D8')
 
     #Instantiate SPACE
-    sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0, 
-                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, 
-                         sp_crit_sed=0, sp_crit_br=0, 
+    sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0,
+                         phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0,
+                         sp_crit_sed=0, sp_crit_br=0,
                          solver='basic')
 
     #ensure that 'bedrock__elevation' field is everywhere equal to 1.0 m.
-    testing.assert_array_equal(np.ones(mg.number_of_nodes), 
+    testing.assert_array_equal(np.ones(mg.number_of_nodes),
                                sp.bedrock__elevation,
                                err_msg='SPACE bedrock field test failed',
                                verbose=True)
