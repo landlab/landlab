@@ -40,7 +40,7 @@ print('uplift per step: ', uplift_per_step)
 #check we have a plaubible grid
 #mg = RasterModelGrid(nrows,ncols,dx)
 assert mg.number_of_nodes == nrows*ncols
-assert mg.node_spacing == dx
+assert mg.dx == dx
 
 # Display a message
 print('Running ...')
