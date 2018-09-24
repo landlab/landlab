@@ -138,7 +138,7 @@ setup(name='landlab',
           'Topic :: Scientific/Engineering :: Physics'
       ],
       packages=find_packages(),
-      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc', 'data/*.proj',
+      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
                          'preciptest.in']},
       cmdclass=versioneer.get_cmdclass({
           'install': install_and_register,
