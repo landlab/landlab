@@ -27,6 +27,7 @@ class SteepnessFinder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
+    >>> from landlab.components import SteepnessFinder
     >>> mg = RasterModelGrid((3, 10), (100., 100.))
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
@@ -400,6 +401,7 @@ class SteepnessFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((3,10), (5., 10.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -503,6 +505,7 @@ class SteepnessFinder(Component):
         >>> from landlab import imshow_grid_at_node
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator, FastscapeEroder
+        >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((5, 5), 100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
