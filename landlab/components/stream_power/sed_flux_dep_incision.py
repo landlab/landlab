@@ -1,3 +1,4 @@
+#! /usr/env/python
 from __future__ import print_function
 
 import warnings
@@ -165,7 +166,7 @@ class SedDepEroder(Component):
     >>> from six.moves import range
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> from landlab.components import FlowRouter, SedDepEroder
+    >>> from landlab.components import FlowAccumulator, SedDepEroder
 
     >>> mg = RasterModelGrid((10, 3), 200.)
     >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
@@ -176,7 +177,7 @@ class SedDepEroder(Component):
     >>> th = mg.add_zeros('node', 'channel_sediment__depth')
     >>> th += 0.0007
 
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sde = SedDepEroder(mg, K_sp=1.e-4,
     ...                    sed_dependency_type='almost_parabolic',
     ...                    Qc='power_law', K_t=1.e-4)
@@ -215,7 +216,7 @@ class SedDepEroder(Component):
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> th = mg.add_zeros('node', 'channel_sediment__depth')
     >>> z[:] = mg.node_y/10000.
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sde = SedDepEroder(mg, K_sp=1.e-5,
     ...                    sed_dependency_type='generalized_humped',
     ...                    Qc='power_law', K_t=1.e-5)
@@ -240,7 +241,7 @@ class SedDepEroder(Component):
 
     >>> z = mg.add_zeros('node', 'topographic__elevation')
 
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sde = SedDepEroder(mg, K_sp=1.e-4,
     ...                    sed_dependency_type='None',
     ...                    Qc='power_law', K_t=1.e-4)
@@ -519,14 +520,6 @@ class SedDepEroder(Component):
             provided but flow has still been routed across depressions, erosion
             and deposition may still occur beneath the apparent water level.
         """
-        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that SedDepEroder is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
-            raise NotImplementedError(msg)
-
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
         node_A = grid.at_node['drainage_area']
