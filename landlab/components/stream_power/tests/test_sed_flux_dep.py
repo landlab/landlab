@@ -13,8 +13,8 @@ import os
 from numpy.testing import assert_array_almost_equal, assert_equal
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
-from landlab.components.flow_routing import FlowAccumulator
-from landlab.components.stream_power import SedDepEroder
+from landlab.components import FlowAccumulator
+from landlab.components import SedDepEroder
 from landlab.components import FastscapeEroder
 from landlab import ModelParameterDictionary
 
