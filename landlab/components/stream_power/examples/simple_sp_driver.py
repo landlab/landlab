@@ -7,8 +7,7 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder, FastscapeEroder
 from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
 from landlab.plot import channel_profile as prf
 
@@ -45,7 +44,7 @@ print( 'Running ...' )
 time_on = time.time()
 
 #instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 #load the Fastscape module too, to allow direct comparison
 fsp = FastscapeEroder(mg, './drive_sp_params.txt')

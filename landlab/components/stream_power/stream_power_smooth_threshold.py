@@ -52,8 +52,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 2.0
     >>> z[6] = 1.0
-    >>> from landlab.components import FlowRouter
-    >>> fr = FlowRouter(rg, method='D4')
+    >>> from landlab.components import FlowAccumulator
+    >>> fr = FlowAccumulator(rg, flow_director='D4')
     >>> fr.run_one_step()
     >>> from landlab.components import StreamPowerSmoothThresholdEroder
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
@@ -77,6 +77,15 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     def __init__(self, grid, K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=1.,
                  rainfall_intensity=1., use_Q=None, **kwargs):
         """Initialize StreamPowerSmoothThresholdEroder."""
+        if 'flow__receiver_node' in grid.at_node:
+            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+                msg = ('A route-to-multiple flow director has been '
+                       'run on this grid. The landlab development team has not '
+                       'verified that StreamPowerSmoothThresholdEroder is compatible '
+                       'with route-to-multiple methods. Please open a GitHub Issue '
+                       'to start this process.')
+                raise NotImplementedError(msg)
+
         if n_sp != 1.0:
             raise ValueError(('StreamPowerSmoothThresholdEroder currently only '
                               'supports n_sp = 1'))
@@ -124,8 +133,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[4] = 1.0
-        >>> from landlab.components import FlowRouter
-        >>> fr = FlowRouter(rg, method='D4')
+        >>> from landlab.components import FlowAccumulator
+        >>> fr = FlowAccumulator(rg, flow_director='D4')
         >>> fr.run_one_step()
         >>> from landlab.components import StreamPowerSmoothThresholdEroder
         >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
@@ -137,7 +146,13 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         """
-
+        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that StreamPowerSmoothThresholdEroder is compatible '
+                   'with route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream
@@ -207,17 +222,3 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # 'newton' function to find new elevation at each node in turn.
         smooth_stream_power_eroder_solver(upstream_order_IDs, flow_receivers,
                                          z, self.alpha, self.gamma, self.delta)
-
-#if __name__ == '__main__':
-#    from landlab import RasterModelGrid
-#    rg = RasterModelGrid((3, 4), 1.0)
-#    z = rg.add_zeros('node', 'topographic__elevation')
-#    rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-#    z[5] = 2.0
-#    z[6] = 1.0
-#    from landlab.components import FlowRouter
-#    fr = FlowRouter(rg, method='D4')
-#    fr.run_one_step()
-#    sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
-#    sp.run_one_step(dt=1.0)
-#    print(z)

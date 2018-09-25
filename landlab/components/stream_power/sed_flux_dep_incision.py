@@ -510,6 +510,14 @@ class SedDepEroder(Component):
             provided but flow has still been routed across depressions, erosion
             and deposition may still occur beneath the apparent water level.
         """
+        if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
+            msg = ('A route-to-multiple flow director has been '
+                   'run on this grid. The landlab development team has not '
+                   'verified that SedDepEroder is compatible with '
+                   'route-to-multiple methods. Please open a GitHub Issue '
+                   'to start this process.')
+            raise NotImplementedError(msg)
+
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
         node_A = grid.at_node['drainage_area']

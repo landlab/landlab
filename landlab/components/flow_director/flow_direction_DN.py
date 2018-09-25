@@ -19,8 +19,15 @@ from .cfuncs import adjust_flow_receivers
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
-def flow_directions(elev, active_links, tail_node, head_node, link_slope,
-                    grid=None, baselevel_nodes=None):
+def flow_directions(
+    elev,
+    active_links,
+    tail_node,
+    head_node,
+    link_slope,
+    grid=None,
+    baselevel_nodes=None,
+):
     """Find flow directions on a grid.
 
     Finds and returns flow directions for a given elevation grid. Each node is
@@ -97,12 +104,19 @@ def flow_directions(elev, active_links, tail_node, head_node, link_slope,
     # (Note the minus sign when looking at slope from "t" to "f").
     #
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
-    #THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
-    #overridden as part of fastscape_stream_power
+    # THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
+    # overridden as part of fastscape_stream_power
 
-    adjust_flow_receivers(tail_node, head_node, elev, link_slope,
-                          active_links, receiver, receiver_link,
-                          steepest_slope)
+    adjust_flow_receivers(
+        tail_node,
+        head_node,
+        elev,
+        link_slope,
+        active_links,
+        receiver,
+        receiver_link,
+        steepest_slope,
+    )
 
     node_id = np.arange(num_nodes)
 
@@ -115,7 +129,7 @@ def flow_directions(elev, active_links, tail_node, head_node, link_slope,
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
-    (sink, ) = np.where(node_id==receiver)
+    (sink,) = np.where(node_id == receiver)
     sink = as_id_array(sink)
 
     return receiver, steepest_slope, sink, receiver_link

@@ -15,8 +15,18 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 import landlab
 from landlab import BAD_INDEX_VALUE as XX
 from landlab import RasterModelGrid, FieldError
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.sink_fill import SinkFiller
+from landlab.components import FlowAccumulator, SinkFiller
+
+
+def test_route_to_multiple_error_raised():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        SinkFiller(mg)
 
 
 def check_fields(sink_grid1):
@@ -142,7 +152,7 @@ def test_filler_inclined2(sink_grid3):
     Tests an inclined fill into an inclined surface, with two holes.
     """
     z_init = sink_grid3.at_node["topographic__elevation"].copy()
-    fr = FlowRouter(sink_grid3)
+    fr = FlowAccumulator(sink_grid3, flow_director='D8')
     hf = SinkFiller(sink_grid3, apply_slope=True)
 
     hf.fill_pits()
@@ -166,13 +176,13 @@ def test_filler_inclined2(sink_grid3):
     assert_array_almost_equal(
         sink_grid3.at_node["topographic__elevation"][sink_grid3.lake2], hole2
     )
-    fr.route_flow()
+    fr.run_one_step()
     assert sink_grid3.at_node["flow__sink_flag"][sink_grid3.core_nodes].sum() == 0
 
 
 def test_stupid_shaped_hole(sink_grid4):
     """Tests inclined fill into a surface with a deliberately awkward shape."""
-    fr = FlowRouter(sink_grid4)
+    fr = FlowAccumulator(sink_grid4, flow_director='D8')
     hf = SinkFiller(sink_grid4, apply_slope=True)
     hf.fill_pits()
     hole1 = np.array(
@@ -198,7 +208,7 @@ def test_stupid_shaped_hole(sink_grid4):
     assert_array_almost_equal(
         sink_grid4.at_node["topographic__elevation"][sink_grid4.lake2], hole2
     )
-    fr.route_flow()
+    fr.run_one_step()
     assert sink_grid4.at_node["flow__sink_flag"][sink_grid4.core_nodes].sum() == 0
 
 
@@ -207,7 +217,7 @@ def test_D4_routing(sink_grid5):
     Tests inclined fill into a surface with a deliberately awkward shape.
     This is testing D4 routing.
     """
-    fr = FlowRouter(sink_grid5)
+    fr = FlowAccumulator(sink_grid5, flow_director='D4')
     hf = SinkFiller(sink_grid5, routing="D4", apply_slope=True)
     hf.fill_pits()
     #    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
@@ -236,7 +246,7 @@ def test_D4_routing(sink_grid5):
     assert_array_almost_equal(
         sink_grid5.at_node["topographic__elevation"][sink_grid5.lake2], hole2
     )
-    fr.route_flow(method="D4")
+    fr.run_one_step()
     assert sink_grid5.at_node["flow__sink_flag"][sink_grid5.core_nodes].sum() == 0
 
 

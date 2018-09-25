@@ -13,7 +13,7 @@ import os
 from numpy.testing import assert_array_almost_equal, assert_equal
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY
-from landlab.components.flow_routing import FlowRouter
+from landlab.components.flow_routing import FlowAccumulator
 from landlab.components.stream_power import SedDepEroder
 from landlab.components import FastscapeEroder
 from landlab import ModelParameterDictionary
@@ -31,7 +31,7 @@ def test_sed_dep_new_almostpara():
 
     z = mg.add_zeros('node', 'topographic__elevation')
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
                        Qc='power_law', K_t=1.e-4)
 
@@ -45,7 +45,7 @@ def test_sed_dep_new_almostpara():
     up = 0.05
 
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         sde.run_one_step(dt)
 
     assert_array_almost_equal(mg.at_node['channel_sediment__depth'],
@@ -87,7 +87,7 @@ def test_sed_dep_new_genhumped():
 
     z = mg.add_zeros('node', 'topographic__elevation')
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, K_sp=1.e-4,
                        sed_dependency_type='generalized_humped',
                        Qc='power_law', K_t=1.e-4)
@@ -102,7 +102,7 @@ def test_sed_dep_new_genhumped():
     up = 0.05
 
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         sde.run_one_step(dt)
 
     ans = np.array([0.,  0.,  0.,  0.,  0.,
@@ -131,7 +131,7 @@ def test_sed_dep_new_lindecl():
 
     z = mg.add_zeros('node', 'topographic__elevation')
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, K_sp=1.e-4,
                        sed_dependency_type='linear_decline',
                        Qc='power_law', K_t=1.e-4)
@@ -146,7 +146,7 @@ def test_sed_dep_new_lindecl():
     up = 0.05
 
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         sde.run_one_step(dt)
 
     ans = np.array([0.,  0.,  0.,  0.,  0.,
@@ -175,7 +175,7 @@ def test_sed_dep_new_const():
 
     z = mg.add_zeros('node', 'topographic__elevation')
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, K_sp=1.e-4,
                        sed_dependency_type='None',
                        Qc='power_law', K_t=1.e-4)
@@ -190,7 +190,7 @@ def test_sed_dep_new_const():
     up = 0.05
 
     for i in range(1):
-        fr.route_flow()
+        fr.run_one_step()
         sde.run_one_step(dt)
 
     ans = np.array([0.,  0.,  0.,  0.,  0.,
@@ -220,7 +220,7 @@ def test_sed_dep_w_hillslopes():
     th = mg.add_zeros('node', 'channel_sediment__depth')
     th[mg.core_nodes] += 0.001
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
                        Qc='power_law', K_t=1.e-4)
 
@@ -235,7 +235,7 @@ def test_sed_dep_w_hillslopes():
 
     for i in range(1):
         print(i)
-        fr.route_flow()
+        fr.run_one_step()
         sde.run_one_step(dt)
 
     # test binding of field occurs correctly:

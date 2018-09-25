@@ -6,7 +6,7 @@ test_script_for_route_flow_dn.py:
 Tests and illustrates use of route_flow_dn component.
 """
 
-from landlab.components.flow_routing import FlowRouter
+from landlab.components import FlowAccumulator
 from landlab.io import read_esri_ascii
 from landlab.plot.imshow import imshow_node_grid
 import os
@@ -23,7 +23,7 @@ grid.set_nodata_nodes_to_inactive(z, 0) # set nodata nodes to inactive bounds
 outlet_node = grid.grid_coords_to_node_id(outlet_row, outlet_column)
 
 # Route flow
-flow_router = FlowRouter(grid)
+flow_router = FlowAccumulator(grid, flow_director='D8')
 flow_router.route_flow()
 
 # Get a 2D array version of the elevations
@@ -51,5 +51,3 @@ pylab.ylabel('Distance (m)')
 
 # Display the plot
 pylab.show()
-
-

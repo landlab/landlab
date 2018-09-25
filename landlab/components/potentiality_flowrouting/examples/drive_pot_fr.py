@@ -13,9 +13,9 @@ from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from pylab import imshow, show, contour, figure, clabel, quiver, plot, close
-from landlab.components.potentiality_flowrouting import PotentialityFlowRouter
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import FastscapeEroder
+from landlab.components import (PotentialityFlowRouter,
+                                FlowAccumulator,
+                                FastscapeEroder)
 
 nrows = 100
 ncols = 100
@@ -111,7 +111,7 @@ mg.at_node['water__unit_flux_in'] = dx*dx*np.ones_like(z)*100./(60.*60.*24.*365.
 print( 'Running ...' )
 
 #instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 #load the Fastscape module too, to allow direct comparison
 fsp = FastscapeEroder(mg, './pot_fr_params.txt')
 
@@ -122,7 +122,7 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print("Short step!")
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow()
+    mg = fr.run_one_step()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
     #mg = fsp.erode(mg)
     mg = fsp.erode(mg, K_if_used='K_values')
