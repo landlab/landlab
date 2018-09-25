@@ -8,6 +8,7 @@ ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
 DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
+
 class ErosionDeposition(_GeneralizedErosionDeposition):
     """
     Erosion-Deposition model in the style of Davy and Lague (2009). It uses a
@@ -42,7 +43,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     Component written by C. Shobe, K. Barnhart, and G. Tucker.
     """
 
-    _name= 'ErosionDeposition'
+    _name = 'ErosionDeposition'
 
     _input_var_names = (
         'flow__receiver_node',
@@ -209,13 +210,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                    'to start this process.')
             raise NotImplementedError(msg)
 
-        super(ErosionDeposition, self).__init__(grid, m_sp=m_sp, n_sp=n_sp,
-                                                phi=phi, F_f=F_f, v_s=v_s,
-                                                dt_min=dt_min,
-                                                discharge_field=discharge_field)
+        super(ErosionDeposition, self).__init__(
+            grid, m_sp=m_sp, n_sp=n_sp, phi=phi, F_f=F_f, v_s=v_s,
+            dt_min=dt_min, discharge_field=discharge_field)
 
-
-        self._grid = grid #store grid
+        self._grid = grid  # store grid
 
         # E/D specific inits.
 
@@ -236,10 +235,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     def _calc_erosion_rates(self):
         """Calculate erosion rates"""
         omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
-        omega_over_sp_crit = np.divide(omega, self.sp_crit,
-                             out=np.zeros_like(omega), where=self.sp_crit!=0)
+        omega_over_sp_crit = np.divide(
+            omega, self.sp_crit, out=np.zeros_like(omega),
+            where=self.sp_crit != 0)
 
-        self.erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
+        self.erosion_term = omega - self.sp_crit * (
+            1.0 - np.exp(-omega_over_sp_crit))
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
         """Calculate change in rock and alluvium thickness for
@@ -259,7 +260,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self.erosion_term[flooded_nodes] = 0.0
         self.qs_in[:] = 0.0
 
-        #iterate top to bottom through the stack, calculate qs
+        # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
         calculate_qs_in(np.flipud(self.stack),
                         self.flow_receivers,
@@ -273,14 +274,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                         self.phi)
 
         self.depo_rate[:] = 0.0
-        self.depo_rate[self.q > 0] = (self.qs[self.q > 0] * \
-                                         (self.v_s / self.q[self.q > 0]))
+        self.depo_rate[self.q > 0] = (self.qs[self.q > 0] *
+                                      (self.v_s / self.q[self.q > 0]))
 
-        #topo elev is old elev + deposition - erosion
+        # topo elev is old elev + deposition - erosion
         cores = self.grid.core_nodes
-        self.topographic__elevation[cores] += (((self.depo_rate[cores] /
-                            (1 - self.phi))
-                              - self.erosion_term[cores]) * dt)
+        self.topographic__elevation[cores] += (
+            ((self.depo_rate[cores] / (1 - self.phi)) -
+             self.erosion_term[cores]) * dt)
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
                                            **kwds):
@@ -309,11 +310,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             if not first_iteration:
                 # update the link slopes
                 self._update_flow_link_slopes()
-                # update where nodes are flooded. This shouuldn't happen because
+                # update where nodes are flooded. This shouuldn't happen bc
                 # of the dynamic timestepper, but just incase, we update here.
-                new_flooded_nodes = np.where(self.slope<0)[0]
-                flooded_nodes = np.asarray(np.unique(np.concatenate((flooded_nodes,
-                                                          new_flooded_nodes))), dtype=np.int64)
+                new_flooded_nodes = np.where(self.slope < 0)[0]
+                flooded_nodes = np.asarray(np.unique(
+                    np.concatenate((flooded_nodes, new_flooded_nodes))),
+                    dtype=np.int64)
             else:
                 first_iteration = False
 
@@ -341,7 +343,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                                           * (self.v_s / self.q[self.q > 0]))
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[cores]
+            dzdt[cores] = ((self.depo_rate[cores] / (1 - self.phi)) -
+                           self.erosion_term[cores])
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]
@@ -361,9 +364,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
             # Find the time to (almost) flat by dividing difference by rate of
             # change of difference, and then multiplying by a "safety factor"
-            self.time_to_flat[converging] = - (TIME_STEP_FACTOR
-                                               * zdif[converging]
-                                              / rocdif[converging])
+            self.time_to_flat[converging] = -1. * (
+                TIME_STEP_FACTOR * zdif[converging] / rocdif[converging])
 
             # Mask out pairs where the source at the same or lower elevation
             # as its downstream neighbor (e.g., because it's a pit or a lake).
