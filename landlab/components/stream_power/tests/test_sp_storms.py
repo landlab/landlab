@@ -7,16 +7,11 @@ import copy
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
-
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
-from landlab.components.uniform_precip import PrecipitationDistribution
+from landlab.components import (FlowAccumulator,
+                                StreamPowerEroder,
+                                PrecipitationDistribution)
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -49,14 +44,14 @@ def test_storms():
                                 mean_interstorm_duration = mean_interstorm,
                                 mean_storm_depth = mean_depth,
                                 total_t = storm_run_time, delta_t = delta_t)
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, **inputs)
 
     for (interval_duration, rainfall_rate) in \
             precip.yield_storm_interstorm_duration_intensity():
         if rainfall_rate != 0.:
             mg.at_node['water__unit_flux_in'].fill(rainfall_rate)
-            mg = fr.route_flow()
+            fr.run_one_step()
             sp.run_one_step(dt)
         mg.at_node['topographic__elevation'][
             mg.core_nodes] += uplift * interval_duration

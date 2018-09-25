@@ -2,15 +2,24 @@
 """The Landlab
 
 :Package name: TheLandlab
-:Release date: 2013-03-24
+:Release date: 2018-09-18
 :Authors: Greg Tucker, Nicole Gasparini, Erkan Istanbulluoglu, Daniel Hobley,
-    Sai Nudurupati, Jordan Adams, Eric Hutton
+    Sai Nudurupati, Jordan Adams, Eric Hutton, Katherine Barnhart, Margaux
+    Mouchene, Nathon Lyons
 :URL: http://csdms.colorado.edu/trac/landlab
 :License: MIT
 """
 
 from __future__ import absolute_import
 import os
+
+from numpy import set_printoptions
+try:
+    set_printoptions(legacy='1.13')
+except TypeError:
+    pass
+finally:
+    del set_printoptions
 
 from ._registry import registry
 
@@ -38,10 +47,6 @@ from .framework.framework import Framework
 from .field.scalar_data_fields import FieldError
 from .grid import *
 from .plot import *
-
-from .testing.nosetester import LandlabTester
-test = LandlabTester().test
-bench = LandlabTester().bench
 
 __all__.extend(['ModelParameterDictionary', 'MissingKeyError',
                 'ParameterValueError', 'Component', 'Palette', 'Arena',

@@ -11,7 +11,7 @@ from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
-from landlab.components.flow_routing import FlowRouter
+from landlab.components import FlowAccumulator
 from landlab.components.stream_power import FastscapeEroder as Fsc
 
 
@@ -38,13 +38,13 @@ def test_fastscape():
     mg['node']['topographic__elevation'] = z + \
         numpy.random.rand(len(z)) / 1000.
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     fsp = Fsc(mg, input_str, method='D8')
     elapsed_time = 0.
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        mg = fr.route_flow()
+        mg = fr.run_one_step()
         mg = fsp.erode(mg, dt=dt)
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt
@@ -90,13 +90,13 @@ def test_fastscape_new():
     mg['node']['topographic__elevation'] = z + \
         numpy.random.rand(len(z)) / 1000.
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     fsp = Fsc(mg, **inputs)  # here's the diff from the above
     elapsed_time = 0.
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
-        mg = fr.route_flow()
+        fr.run_one_step()
         fsp.run_one_step(dt)  # new style
         mg.at_node['topographic__elevation'][mg.core_nodes] += uplift * dt
         elapsed_time += dt

@@ -1,5 +1,5 @@
+import pytest
 import numpy as np
-from nose.tools import assert_raises
 
 from landlab import RasterModelGrid
 from landlab.utils.decorators import use_field_name_array_or_value
@@ -13,4 +13,5 @@ def my_func(grid, vals):
 def test_use_field_name_array_or_value_raises_errors():
     grid = RasterModelGrid((4, 5), spacing=(1, 2))
     bad_values = np.array([[0, 1, 2, 3, 4]])
-    assert_raises(ValueError, my_func, grid, bad_values)
+    with pytest.raises(ValueError):
+        my_func(grid, bad_values)
