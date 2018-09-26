@@ -160,9 +160,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     array([ 7, 11, 15])
     >>> lnf.do_offset(rock_state=16)
     >>> ns
-    array([ 0, 16, 16, 16,  4, 16,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
+    array([ 0, 16, 16, 16,  4, 16,  6,  1,  8,  9, 10,  5, 12, 13, 14,  15])
     >>> lnf.propid
-    array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  2, 10,  5, 12, 13, 14,  9])
+    array([ 0,  7, 11,  3,  4, 15,  6,  1,  8,  9, 10,  5, 12, 13, 14,  15])
 
     >>> pid = np.arange(20, dtype=int)
     >>> ns = np.arange(20, dtype=int)
@@ -176,11 +176,11 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     array([12, 14, 17, 19])
     >>> lnf.do_offset(rock_state=20)
     >>> ns
-    array([ 0, 20, 20, 20, 20,  5, 20, 20,  8,  1, 10,  3,  4, 13,  6, 15, 16,
-            9, 18, 11])
+    array([ 0, 20, 20, 20, 20,  5, 20, 20,  8,  1, 10, 11,  4, 13,  6, 15, 16,
+           17, 18, 19])
     >>> lnf.propid
-    array([ 0, 12,  2, 14, 17,  5, 19,  7,  8,  1, 10,  3,  4, 13,  6, 15, 16,
-            9, 18, 11])
+    array([ 0, 12,  2, 14, 17,  5, 19,  7,  8,  1, 10, 11,  4, 13,  6, 15, 16,
+           17, 18, 19])
     """
 
     def __init__(self, fault_x_intercept=0.0, grid=None, node_state=None,
@@ -635,11 +635,11 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.do_offset(rock_state=25)
         >>> ns
-        array([ 0, 25, 25, 25, 25,  5, 25, 25,  8,  1, 10,  3,  4, 13,  6, 15, 16,
-                9, 18, 11, 20, 21, 14, 23, 24])
+        array([ 0, 25, 25, 25, 25,  5, 25, 25,  8,  1, 10, 11,  4, 13,  6, 15, 16,
+                9, 18, 19, 20, 21, 22, 23, 24])
         >>> lnf.propid
-        array([ 0, 12,  2, 17, 19,  5, 22,  7,  8,  1, 10,  3,  4, 13,  6, 15, 16,
-                9, 18, 11, 20, 21, 14, 23, 24])
+        array([ 0, 12,  2, 17, 19,  5, 22,  7,  8,  1, 10, 11,  4, 13,  6, 15, 16,
+                9, 18, 19, 20, 21, 22, 23, 24])
 
         >>> ns[5:] = 0
         >>> ns[:5] = 1
@@ -653,8 +653,8 @@ class LatticeNormalFault(HexLatticeTectonicizer):
                8, 4, 8, 0, 0, 0])
         >>> lnf.do_offset(ca=ohcts, current_time=0.0, rock_state=1)
         >>> ohcts.link_state[7:35]
-        array([ 3,  0,  0,  7, 11,  0,  2,  3,  4,  9,  7, 11,  0,  3,  0,  8,  5,
-               11,  7,  0,  2,  4,  9,  6,  9,  0,  2,  0])
+        array([ 3,  0,  0,  7, 11,  0,  2,  3,  4,  9,  7, 11,  0,  2,  0,  8,  4,
+                9,  7,  0,  2,  4,  8,  4,  9,  0,  0,  0])
         """
 
         # If we need to shift the property ID numbers, we'll first need to
@@ -691,7 +691,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
             # left and down one or two nodes. We do this replacement if indices
             # contains any data.
             first_repl = bottom_node + n_base_nodes * self.nc
-            last_repl = first_repl + (self.num_fw_rows[c] -
+            last_repl = first_repl + (self.num_fw_rows[c] - 1 -
                                       (n_base_nodes + 1)) * self.nc
             indices = arange(first_repl, last_repl + 1, self.nc)
 
