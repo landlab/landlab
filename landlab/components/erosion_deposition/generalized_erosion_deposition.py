@@ -92,7 +92,7 @@ class _GeneralizedErosionDeposition(Component):
         self.stack = grid.at_node['flow__upstream_node_order']
         self.topographic__elevation = grid.at_node['topographic__elevation']
         self.slope = grid.at_node['topographic__steepest_slope']
-        self.link_to_reciever = grid.at_node['flow__link_to_receiver_node']
+        self.link_to_receiver = grid.at_node['flow__link_to_receiver_node']
         self.cell_area_at_node = grid.cell_area_at_node
 
         if isinstance(grid, RasterModelGrid):
@@ -162,7 +162,7 @@ class _GeneralizedErosionDeposition(Component):
         """
         self.slope[:] = ((self.topographic__elevation -
                           self.topographic__elevation[self.flow_receivers]) /
-                         self.link_lengths[self.link_to_reciever])
+                         self.link_lengths[self.link_to_receiver])
 
     def _calc_hydrology(self):
         self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
