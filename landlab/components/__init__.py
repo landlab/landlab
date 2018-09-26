@@ -55,7 +55,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
               FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
               LandslideProbability, DepthDependentTaylorDiffuser,
-              NormalFault, ChannelProfiler, RidgeProfiler]
+              NormalFault, ChannelProfiler, RidgeProfiler,
               NormalFault, Lithology, LithoLayers]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
