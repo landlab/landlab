@@ -38,11 +38,10 @@ This open-source manuscript is a gateway for entering the Landlab world:
 
 http://www.earth-surf-dynam.net/5/21/2017/
 
-After installation, tests can be run with:
+Two main installation options exist for Landlab. Most people will likely want to 
+[install the conda package](https://github.com/landlab/landlab/wiki/Installing-Landlab-with-Anaconda). Individuals interested in modifying the Landlab source code should follow the [developer installation instructions](https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)). 
 
-    $ python -c 'import landlab; landlab.test()'
-
-The most current development version is always available from our git
+The most current source code is always available from our git
 repository:
 
 http://github.com/landlab/landlab

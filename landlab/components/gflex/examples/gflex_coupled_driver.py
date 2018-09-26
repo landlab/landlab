@@ -12,7 +12,7 @@ import numpy as np
 import pylab
 
 from landlab.components.gFlex.flexure import gFlex
-from landlab.components.flow_routing import FlowRouter
+from landlab.components.flow_routing import FlowAccumulator
 from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary
@@ -42,7 +42,7 @@ mg.at_node['surface_load__stress'] = np.zeros(nrows*ncols, dtype=float)
 gf = gFlex(mg, './coupled_SP_gflex_params.txt')
 fsp = FastscapeEroder(mg, './coupled_SP_gflex_params.txt')
 sp = StreamPowerEroder(mg, './coupled_SP_gflex_params.txt')
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 
 #perform the loop:
 elapsed_time = 0. #total time in simulation
@@ -51,7 +51,7 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print("Short step!")
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow()
+    mg = fr.run_one_step()
     #mg = fsp.erode(mg)
     mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
     mg.at_node['surface_load__stress'] = (mg.at_node['topographic__elevation']+1000)*rock_stress_param
