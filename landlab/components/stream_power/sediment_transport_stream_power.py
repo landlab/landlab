@@ -22,6 +22,12 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
 
     If provided, the threshold is implemented smoothly. See the
     StreamPowerSmoothThresholdEroder for more details.
+
+    The component permits supply of a porosity (phi) and wash fraction (F_f).
+    Note that if these are not 0., then you are implicitly assuming that
+    any sediment pickup is occurring out of intact rock, that has not
+    previously been processed by a river. This assumption may often not be
+    appropriate.
     """
     _name = 'TransportLimitedEroder'
 
@@ -124,17 +130,24 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
                 dt_min=dt_min, discharge_field='drainage_area')
 
         self._grid = grid  # store grid
+        self._one_by_erosion_loss = 1. / (F_f * phi)
+        # the net loss of rock during erosion
 
         # K's and critical values can be floats, grid fields, or arrays
         self.K = return_array_at_node(grid, K)
+        self.Qs_in = grid.zeros('node', dtype=float)
         # special cases if sp_crit is 0 or <0...
         self.sp_crit = return_array_at_node(grid, sp_crit)
         if np.any(self.sp_crit < 0.):
             raise ValueError('sp_crit must be >= 0. everywhere')
         if np.allclose(sp_crit, 0.):
-            self._calc_trp = self._calc_transport_rates_wo_thresh()
+            self._calc_trp = self._calc_transport_rates_wo_thresh
         else:
-            self._calc_trp = self._calc_transport_rates_with_thresh()
+            self._calc_trp = self._calc_transport_rates_with_thresh
+        if np.isclose(self._one_by_erosion_loss, 1.):
+            self._calc_sed_div = _calc_sed_flux_divergence
+        else:
+            self._calc_sed_div = _calc_sed_flux_divergence_lossy
 
         # Handle option for solver
         if solver == 'basic':
@@ -158,3 +171,151 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
     def _calc_transport_rates_wo_thresh(self):
         """Calculate Qs with a threshold"""
         self.qs = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
+
+    def _calc_discharges(self, flooded_nodes):
+        """
+        Calculate sediment discharge out of a node in channel.
+        """
+        self._calc_trp()  # this sets fluxes, so need to weight by A
+        self.Qs_out = self.qs * self.cell_area_at_node
+        if flooded_nodes is not None:
+            self.Qs_out[flooded_nodes] = 0.
+
+    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
+                                           **kwds):
+        """CHILD-like solver that adjusts time steps to prevent slope
+        flattening."""
+
+        # Initialize remaining_time, which records how much of the global time
+        # step we have yet to use up.
+        remaining_time = dt
+
+        # z = self._grid.at_node['topographic__elevation']
+        r = self.flow_receivers
+        dzdt = self.grid.zeros('node', dtype=float)
+        cores = self.grid.core_nodes
+
+        first_iteration = True
+
+        # Outer WHILE loop: keep going until time is used up
+        while remaining_time > 0.0:
+
+            # Update all the flow-link slopes.
+            #
+            # For the first iteration, we assume this has already been done
+            # outside the component (e.g., by flow router), but we need to do
+            # it ourselves on subsequent iterations.
+            if not first_iteration:
+                # update the link slopes
+                self._update_flow_link_slopes()
+                # update where nodes are flooded. This shouuldn't happen bc
+                # of the dynamic timestepper, but just incase, we update here.
+                new_flooded_nodes = np.where(self.slope < 0)[0]
+                if len(new_flooded_nodes != 0):
+                    flooded_nodes = np.asarray(np.unique(
+                        np.concatenate((flooded_nodes, new_flooded_nodes))),
+                        dtype=np.int64)
+            else:
+                first_iteration = False
+
+            self.Qs_in[:] = 0.0
+
+            self._calc_discharges(flooded_nodes=flooded_nodes)
+            self._calc_sed_div(np.flipud(self.stack), r, self.Qs_out,
+                               self.Qs_in, self._one_by_erosion_loss)
+
+            # Qs_in now gives dz/dt:
+            dzdt[cores] = (
+                self.Qs_in[cores] / self.grid.cell_area_at_node[cores])
+
+            # Difference in elevation between each upstream-downstream pair
+            zdif = z - z[r]
+            # Rate of change of the *difference* in elevation between each
+            # upstream-downstream pair.
+            rocdif = dzdt - dzdt[r]
+
+            # (Re)-initialize the array that will contain "time to (almost)
+            # flat" for each node (relative to its downstream neighbor).
+            self.time_to_flat[:] = remaining_time
+
+            # Find locations where the upstream and downstream node elevations
+            # are converging (e.g., the upstream one is eroding faster than its
+            # downstream neighbor)
+            converging = rocdif < 0.0
+
+            # Find the time to (almost) flat by dividing difference by rate of
+            # change of difference, and then multiplying by a "safety factor"
+            self.time_to_flat[converging] = -1. * (TIME_STEP_FACTOR
+                                                   * zdif[converging]
+                                                   / rocdif[converging])
+
+            # Mask out pairs where the source at the same or lower elevation
+            # as its downstream neighbor (e.g., because it's a pit or a lake).
+            # Here, masking out means simply assigning the remaining time in
+            # the global time step.
+            self.time_to_flat[zdif <= 0.0] = remaining_time
+            self.time_to_flat[flooded_nodes] = remaining_time
+
+            # From this, find the maximum stable time step. If it is smaller
+            # than our tolerance, reduce to tolerance
+            dt_max = np.amin(self.time_to_flat)
+            if dt_max < self.dt_min:
+                dt_max = self.dt_min
+
+            # TODO: this is CMS's method, and it's not terribly efficient.
+            # Could enhance to remove need to search whole grid.
+
+            # Finally, apply dzdt to all nodes for a (sub)step of duration
+            # dt_max
+            z[cores] += dzdt[cores] * dt_max
+
+            # Update remaining time and continue the loop
+            remaining_time -= dt_max
+
+
+def _calc_sed_flux_divergence_lossy(
+                        stack_up_to_down,
+                        flow_receivers,
+                        Qs,
+                        Qs_in,
+                        one_by_erosion_loss):
+    """
+    Calculate divergence of sediment discharge at a node in channel.
+    Qs_in should begin as either an array of zeros, or potentially an
+    existing, non-fluvial sediment discharge into the node.
+    This version accounts for loss of material during erosion.
+    """
+    # cdef unsigned int node_id
+    # cdef unsigned int next_node
+    # cdef double Qs_here
+    # We iterate this calc to correctly add the discharges dstr
+    for node_id in stack_up_to_down:
+        next_node = flow_receivers[node_id]
+        Qs_here = Qs[node_id]
+        Qs_in[next_node] += Qs_here
+        Qs_in[node_id] -= Qs_here   # note these cancel out in a self-drainer
+        if Qs_in[node_id] < 0.:
+            # erosion is occurring. Need to consider F_f & phi.
+            Qs_in[node_id] *= one_by_erosion_loss
+
+
+def _calc_sed_flux_divergence(
+                        stack_up_to_down,
+                        flow_receivers,
+                        Qs,
+                        Qs_in,
+                        dummy):
+    """
+    Calculate divergence of sediment discharge at a node in channel.
+    Qs_in should begin as either an array of zeros, or potentially an
+    existing, non-fluvial sediment discharge into the node.
+    """
+    # cdef unsigned int node_id
+    # cdef unsigned int next_node
+    # cdef double Qs_here
+    # We iterate this calc to correctly add the discharges dstr
+    for node_id in stack_up_to_down:
+        next_node = flow_receivers[node_id]
+        Qs_here = Qs[node_id]
+        Qs_in[next_node] += Qs_here
+        Qs_in[node_id] -= Qs_here  # note these cancel out in a self-drainer
