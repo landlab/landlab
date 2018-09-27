@@ -5,77 +5,105 @@ from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab.components import TransportLimitedEroder
-from landlab.components.sediment_transport_stream_power import _calc_sed_flux_divergence
-from landlab.components.sediment_transport_stream_power import _calc_sed_flux_divergence_lossy
+from landlab.components.stream_power.sediment_transport_stream_power import _calc_sed_flux_divergence
+from landlab.components.stream_power.sediment_transport_stream_power import _calc_sed_flux_divergence_lossy
 from landlab.components import FlowAccumulator
 
 
 def test_multidirection():
-    mg = RasterModelGrid((4, 4), 1.)
+    mg = RasterModelGrid((5, 5), 1.)
     z = mg.add_zeros('node', 'topographic__elevation')
-    fa = FlowAccumulator(mg, flow_director='D8')
+    z += np.random.rand(25)
+    fa = FlowAccumulator(mg, flow_director='MFD')
     fa.run_one_step()
     with pytest.raises(NotImplementedError):
-        TL = TransportLimitedEroder(mg)
+        TL = TransportLimitedEroder(mg, K=1.e-5)
 
 
 def test_bad_init1():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, phi=1.)
+        TL = TransportLimitedEroder(mg, K=1.e-5, phi=1.)
 
 
 def test_bad_init2():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, phi=-1.)
+        TL = TransportLimitedEroder(mg, K=1.e-5, phi=-1.)
 
 
 def test_bad_init3():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, F_f=1.1)
+        TL = TransportLimitedEroder(mg, K=1.e-5, F_f=1.1)
 
 
 def test_bad_init4():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, F_f=-1.)
+        TL = TransportLimitedEroder(mg, K=1.e-5, F_f=-1.)
 
 
 def test_bad_init5():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, solver='nope')
+        TL = TransportLimitedEroder(mg, K=1.e-5, solver='nope')
 
 
 def test_bad_init6():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, sp_crit=-1.)
+        TL = TransportLimitedEroder(mg, K=1.e-5, sp_crit=-1.)
 
 
 def test_bad_init7():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     badcrits = np.zeros(16, dtype=float)
     badcrits[5] = -1.
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, sp_crit=badcrits)
+        TL = TransportLimitedEroder(mg, K=1.e-5, sp_crit=badcrits)
 
 
 def test_bad_init8():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     badcrits = np.zeros(16, dtype=float)
     badcrits[5] = -1.
     crits = mg.add_field('node', 'crits', badcrits)
     with pytest.raises(ValueError):
-        TL = TransportLimitedEroder(mg, sp_crit='crits')
+        TL = TransportLimitedEroder(mg, K=1.e-5, sp_crit='crits')
 
 
 def test_sed_flux_in():
     mg = RasterModelGrid((4, 4), 1.)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     Qsin = mg.add_ones('node', 'sediment__flux')
-    TL = TransportLimitedEroder(mg)
+    TL = TransportLimitedEroder(mg, K=1.e-5)
     assert np.allclose(TL.qs, 1.)
 
 
@@ -95,6 +123,9 @@ def test_flux_transfer():
                       0., 0., 2.,
                       1., 0., 0.])
     dummy_one_over_loss = 2.  # i.e., F_f * phi = 0.5
+    mg.add_field('node', 'topographic__elevation', z)
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     _calc_sed_flux_divergence(elev_order, nextnode, Qs, Qs_in,
                               dummy_one_over_loss)
     assert np.allclose(Qs_in, np.array([-2., -2.,  1.,
@@ -118,6 +149,9 @@ def test_flux_transfer_lossy():
                       0., 0., 2.,
                       1., 0., 0.])
     one_over_loss = 2.  # i.e., F_f * phi = 0.5
+    mg.add_field('node', 'topographic__elevation', z)
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
     _calc_sed_flux_divergence_lossy(elev_order, nextnode, Qs, Qs_in,
                                     one_over_loss)
     assert np.allclose(Qs_in, np.array([-4., -4.,  1.,
@@ -127,7 +161,13 @@ def test_flux_transfer_lossy():
 
 def test_correct_flux_equ():
     mg = RasterModelGrid((3, 3), 1.)
-    TL = TransportLimitedEroder(mg, phi=0., F_f=0.)
+    z = np.array([9., 8., 6.,
+                  7., 3., 2.,
+                  5., 0., 1.])
+    mg.add_field('node', 'topographic__elevation', z)
+    fa = FlowAccumulator(mg, flow_director='D8')
+    fa.run_one_step()
+    TL = TransportLimitedEroder(mg, K=1.e-5, phi=0., F_f=0.)
     elev_order = np.array([0, 1, 3, 2, 6, 4, 5, 8, 7])
     nextnode = np.array([4, 4, 5,
                          4, 7, 8,
@@ -146,7 +186,7 @@ def test_correct_flux_equ():
     Qs_in = np.array([0., 0., 3.,
                       0., 0., 2.,
                       1., 0., 0.])
-    TL = TransportLimitedEroder(mg, phi=0.5, F_f=0.5)
+    TL = TransportLimitedEroder(mg, K=1.e-5, phi=0.5, F_f=0.5)
     TL._calc_sed_div(elev_order, nextnode, Qs, Qs_in, TL._one_by_erosion_loss)
     assert np.allclose(Qs_in, np.array([-8., -8.,  1.,
                                         -4.,  4.,  3.,

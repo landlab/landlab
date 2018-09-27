@@ -19,7 +19,9 @@ from .soil_moisture import SoilMoisture
 from .vegetation_dynamics import Vegetation
 from .sink_fill import SinkFiller
 from .steepness_index import SteepnessFinder
-from .stream_power import StreamPowerEroder, FastscapeEroder, StreamPowerSmoothThresholdEroder, SedDepEroder
+from .stream_power import StreamPowerEroder, FastscapeEroder
+from .stream_power import StreamPowerSmoothThresholdEroder, SedDepEroder
+from .stream_power import TransportLimitedEroder
 from .uniform_precip import PrecipitationDistribution
 from .spatial_precip import SpatialPrecipitationDistribution
 from .soil_moisture import SoilInfiltrationGreenAmpt
@@ -44,7 +46,7 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               PotentialEvapotranspiration, PotentialityFlowRouter,
               Radiation, SinkFiller,
               StreamPowerEroder, StreamPowerSmoothThresholdEroder,
-              FastscapeEroder, SedDepEroder,
+              FastscapeEroder, SedDepEroder, TransportLimitedEroder,
               PrecipitationDistribution, SpatialPrecipitationDistribution,
               SteepnessFinder, DetachmentLtdErosion, gFlex,
               SoilInfiltrationGreenAmpt, FireGenerator,

@@ -2,7 +2,6 @@ import numpy as np
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (_GeneralizedErosionDeposition,
                                                             DEFAULT_MINIMUM_TIME_STEP)
 from landlab.utils.return_array import return_array_at_node
-from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)    # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
@@ -74,8 +73,8 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
             'Land surface topographic elevation',
     }
 
-    def __init__(self, grid, K=None, phi=None, v_s=None,
-                 m_sp=None, n_sp=None, sp_crit=0.0, F_f=0.0,
+    def __init__(self, grid, K=None,
+                 m_sp=0.5, n_sp=1., sp_crit=0.0,  phi=0., F_f=0.0,
                  discharge_field=None,
                  solver='adaptive',
                  dt_min=DEFAULT_MINIMUM_TIME_STEP,
@@ -121,16 +120,23 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
             raise NotImplementedError(msg)
 
         if discharge_field is not None:
-            super(ErosionDeposition, self).__init__(
+            super(TransportLimitedEroder, self).__init__(
                 grid, m_sp=m_sp, n_sp=n_sp, phi=phi, F_f=F_f, v_s=1.,
                 dt_min=dt_min, discharge_field=discharge_field)
         else:
-            super(ErosionDeposition, self).__init__(
+            super(TransportLimitedEroder, self).__init__(
                 grid, m_sp=m_sp, n_sp=n_sp, phi=phi, F_f=F_f, v_s=1.,
                 dt_min=dt_min, discharge_field='drainage_area')
 
         self._grid = grid  # store grid
-        self._one_by_erosion_loss = 1. / (F_f * phi)
+        sed_fract_to_remain = (1. - F_f) * (1. - phi)
+        self._one_by_erosion_loss = 1. / sed_fract_to_remain
+        # tests in _GeneralizedErosionDeposition stop this ever exploding
+        if np.isclose(self._one_by_erosion_loss, 1.):
+            self._calc_sed_div = _calc_sed_flux_divergence
+        else:
+            self._calc_sed_div = _calc_sed_flux_divergence_lossy
+
         # the net loss of rock during erosion
 
         # K's and critical values can be floats, grid fields, or arrays
@@ -144,10 +150,6 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
             self._calc_trp = self._calc_transport_rates_wo_thresh
         else:
             self._calc_trp = self._calc_transport_rates_with_thresh
-        if np.isclose(self._one_by_erosion_loss, 1.):
-            self._calc_sed_div = _calc_sed_flux_divergence
-        else:
-            self._calc_sed_div = _calc_sed_flux_divergence_lossy
 
         # Handle option for solver
         if solver == 'basic':
@@ -273,12 +275,15 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
             remaining_time -= dt_max
 
 
-def _calc_sed_flux_divergence_lossy(
-                        stack_up_to_down,
-                        flow_receivers,
-                        Qs,
-                        Qs_in,
-                        one_by_erosion_loss):
+# These following two methods are designed to be cythonised, but written
+# like this to enable clean testing.
+
+
+def _calc_sed_flux_divergence_lossy(stack_up_to_down,
+                                    flow_receivers,
+                                    Qs,
+                                    Qs_in,
+                                    one_by_erosion_loss):
     """
     Calculate divergence of sediment discharge at a node in channel.
     Qs_in should begin as either an array of zeros, or potentially an
@@ -299,12 +304,11 @@ def _calc_sed_flux_divergence_lossy(
             Qs_in[node_id] *= one_by_erosion_loss
 
 
-def _calc_sed_flux_divergence(
-                        stack_up_to_down,
-                        flow_receivers,
-                        Qs,
-                        Qs_in,
-                        dummy):
+def _calc_sed_flux_divergence(stack_up_to_down,
+                              flow_receivers,
+                              Qs,
+                              Qs_in,
+                              dummy):
     """
     Calculate divergence of sediment discharge at a node in channel.
     Qs_in should begin as either an array of zeros, or potentially an
