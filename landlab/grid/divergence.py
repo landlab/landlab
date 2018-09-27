@@ -4,7 +4,6 @@ import numpy as np
 from landlab.utils.decorators import use_field_name_or_array
 
 
-
 @use_field_name_or_array('link')
 def calc_flux_div_at_node(grid, unit_flux, out=None):
     """Calculate divergence of link-based fluxes at nodes.
@@ -51,8 +50,8 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-            
-            
+
+
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
@@ -67,9 +66,8 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     elif out.size != grid.number_of_nodes:
         raise ValueError('output buffer length mismatch with number of nodes')
 
-    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
-                                    unit_flux[grid.link_at_face]) \
-                                    / grid.area_of_cell
+    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(
+        grid, unit_flux[grid.link_at_face]) / grid.area_of_cell
 
     return out
 
@@ -78,10 +76,10 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
 def calc_flux_div_at_cell(grid, unit_flux, out=None):
     """Calculate divergence of link-based fluxes at cells.
 
-    This function is very similar to the function *calc_flux_div_at_node*. 
-    
-    Given a flux per unit width across each cell face in the grid, calculate 
-    the net outflux (or influx, if negative) divided by cell area, at each 
+    This function is very similar to the function *calc_flux_div_at_node*.
+
+    Given a flux per unit width across each cell face in the grid, calculate
+    the net outflux (or influx, if negative) divided by cell area, at each
     cell.
 
     Parameters
@@ -124,7 +122,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
     >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
     array([ 1.64,  0.94])
-            
+
     Notes
     -----
     Performs a numerical flux divergence operation at cells.
@@ -140,12 +138,11 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
         raise ValueError('output buffer length mismatch with number of cells')
 
     if unit_flux.size == grid.number_of_links:
-        out = _calc_net_face_flux_at_cell(grid, 
-                                    unit_flux[grid.link_at_face]) \
-                                    / grid.area_of_cell
+        out = _calc_net_face_flux_at_cell(
+            grid, unit_flux[grid.link_at_face]) / grid.area_of_cell
     elif unit_flux.size == grid.number_of_faces:
-        out = _calc_net_face_flux_at_cell(grid, unit_flux) \
-                                / grid.area_of_cell
+        out = _calc_net_face_flux_at_cell(
+            grid, unit_flux) / grid.area_of_cell
 
     return out
 
@@ -224,8 +221,8 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     if out is None:
         out = grid.zeros(at='node')
 
-    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
-                                unit_flux_at_links[grid.link_at_face])
+    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(
+        grid, unit_flux_at_links[grid.link_at_face])
     return out
 
 
@@ -296,8 +293,8 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.link_dirs_at_node.shape[1]):
-        out -= total_flux[fac[:,c]] \
-        * grid.link_dirs_at_node[grid.node_at_cell,c]
+        out -= total_flux[fac[:, c]] * grid.link_dirs_at_node[
+            grid.node_at_cell, c]
     return out
 
 
@@ -344,8 +341,8 @@ def _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     -----
     Performs a numerical flux divergence operation on cells.
     """
-    return _calc_net_face_flux_at_cell(grid, unit_flux_at_faces) \
-           / grid.area_of_cell
+    return _calc_net_face_flux_at_cell(
+        grid, unit_flux_at_faces) / grid.area_of_cell
 
 
 @use_field_name_or_array('face')
@@ -413,8 +410,8 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.active_link_dirs_at_node.shape[1]):
-        out -= total_flux[fac[:,c]] \
-        * grid.active_link_dirs_at_node[grid.node_at_cell,c]
+        out -= total_flux[fac[:, c]] * grid.active_link_dirs_at_node[
+            grid.node_at_cell, c]
     return out
 
 
@@ -461,8 +458,8 @@ def _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     -----
     Performs a numerical flux divergence operation on cells.
     """
-    return _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces) \
-           / grid.area_of_cell
+    return _calc_net_active_face_flux_at_cell(
+        grid, unit_flux_at_faces) / grid.area_of_cell
 
 
 @use_field_name_or_array('link')
@@ -536,14 +533,14 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     if out is None:
         out = grid.zeros(at='node')
 
-    out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(grid, 
-                                unit_flux_at_links[grid.link_at_face])
+    out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(
+        grid, unit_flux_at_links[grid.link_at_face])
     return out
 
 
 @use_field_name_or_array('link')
-def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links, 
-                                             out=None):
+def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links,
+                                              out=None):
     """Calculate divergence of link-based fluxes at nodes, ignoring any fluxes
     at inactive links.
 
@@ -589,10 +586,9 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links,
     """
     if out is None:
         out = grid.zeros(at='node')
-    
-    out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(grid, 
-                                unit_flux_at_links[grid.link_at_face]) \
-                                / grid.area_of_cell
+
+    out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(
+        grid, unit_flux_at_links[grid.link_at_face]) / grid.area_of_cell
     return out
 
 
@@ -653,15 +649,15 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
 
     Notes
     -----
-    Like _calc_net_face_flux_at_cells, this essentially performs a line integral
-    for the fluxes along the boundaries of each cell. Nodes without cells are
-    either assigned a zero value, or if `out` is provided, they retain their
-    previous values.
+    Like _calc_net_face_flux_at_cells, this essentially performs a line
+    integral for the fluxes along the boundaries of each cell. Nodes without
+    cells are either assigned a zero value, or if `out` is provided, they
+    retain their previous values.
     """
     if out is None:
         out = grid.zeros(at='node')
 
-    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid, 
+    out[grid.node_at_cell] = _calc_net_face_flux_at_cell(grid,
                                                          unit_flux_at_faces)
     return out
 
@@ -722,21 +718,22 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
 
     Notes
     -----
-    Like _calc_net_face_flux_at_cells, this essentially performs a line integral
-    for the fluxes along the boundaries of each cell. Nodes without cells are
-    either assigned a zero value, or if `out` is provided, they retain their
-    previous values.
+    Like _calc_net_face_flux_at_cells, this essentially performs a line
+    integral for the fluxes along the boundaries of each cell. Nodes without
+    cells are either assigned a zero value, or if `out` is provided, they
+    retain their previous values.
     """
     if out is None:
         out = grid.zeros(at='node')
 
-    out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(grid, 
-                                                         unit_flux_at_faces)
+    out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(
+        grid, unit_flux_at_faces)
     return out
 
 
 @use_field_name_or_array('face')
-def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None):
+def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces,
+                                              out=None):
     """Calculate divergence of face-based fluxes at nodes (active faces only).
 
     Given a flux per unit width across each face in the grid, calculate the net
