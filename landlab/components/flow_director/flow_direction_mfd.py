@@ -259,7 +259,7 @@ def flow_directions_mfd(
     source_node_elev = elev[np.tile(node_id, (max_number_of_neighbors, 1)).T]
 
     # find where flow does not occur (source is lower that receiver)
-    flow_does_not_occur = source_node_elev <= potential_receiver_elev
+    flow_does_not_occur = source_node_elev < potential_receiver_elev
 
     # Where the source is lower, set receivers to UNDEFINED_INDEX
     receivers[flow_does_not_occur] = UNDEFINED_INDEX

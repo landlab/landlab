@@ -389,8 +389,8 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # if proportions is nan, drain to self
     drains_to_self = np.isnan(proportions[:, 0])
 
-    # if all slopes are leading out, drain to self
-    drains_to_self[steepest_s <= 0] = True
+    # if all slopes are leading out or flat, drain to self
+    drains_to_self[steepest_s < 0] = True
 
     # if both receiver nodes are closed, drain to self
     drains_to_two_closed = receiver_closed.sum(axis=1) == num_receivers
