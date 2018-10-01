@@ -77,8 +77,7 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
                  m_sp=0.5, n_sp=1., sp_crit=0.0,  phi=0., F_f=0.0,
                  discharge_field=None,
                  solver='adaptive',
-                 dt_min=DEFAULT_MINIMUM_TIME_STEP,
-                 **kwds):
+                 dt_min=DEFAULT_MINIMUM_TIME_STEP):
         """Initialize the TransportLimitedEroder component.
 
         Parameters
@@ -183,7 +182,7 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
         if flooded_nodes is not None:
             self.Qs_out[flooded_nodes] = 0.
 
-    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[],
+    def run_with_adaptive_time_step_solver(self, dt, flooded_nodes=[],
                                            **kwds):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
@@ -192,7 +191,7 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
         # step we have yet to use up.
         remaining_time = dt
 
-        # z = self._grid.at_node['topographic__elevation']
+        z = self.grid.at_node['topographic__elevation']
         r = self.flow_receivers
         dzdt = self.grid.zeros('node', dtype=float)
         cores = self.grid.core_nodes
@@ -201,7 +200,7 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
-
+            print(remaining_time)
             # Update all the flow-link slopes.
             #
             # For the first iteration, we assume this has already been done
@@ -222,7 +221,9 @@ class TransportLimitedEroder(_GeneralizedErosionDeposition):
 
             self.Qs_in[:] = 0.0
 
+            self._calc_hydrology()
             self._calc_discharges(flooded_nodes=flooded_nodes)
+
             self._calc_sed_div(np.flipud(self.stack), r, self.Qs_out,
                                self.Qs_in, self._one_by_erosion_loss)
 

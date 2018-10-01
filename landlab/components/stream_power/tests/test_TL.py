@@ -192,6 +192,53 @@ def test_correct_flux_equ():
                                         -4.,  4.,  3.,
                                          0.,  2.,  1.]))
 
+
+def test_run_no_thresh():
+
+    import pytest
+    import numpy as np
+
+    from numpy.testing import assert_array_almost_equal
+
+    from landlab import RasterModelGrid, imshow_grid_at_node
+    from landlab.components import TransportLimitedEroder
+    from landlab.components import DepressionFinderAndRouter
+    from landlab.components.stream_power.sediment_transport_stream_power import _calc_sed_flux_divergence
+    from landlab.components.stream_power.sediment_transport_stream_power import _calc_sed_flux_divergence_lossy
+    from landlab.components import FlowAccumulator
+    from matplotlib.pyplot import figure, plot, show
+
+
+    K = 0.001
+    U = 0.0001
+    m = 1.2
+    n = 1.0
+    threshold = 0.0
+    dt = 1000.
+
+    mg = RasterModelGrid((20, 3), 100.)
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += np.random.rand(len(z)) / 1000.
+
+    fa = FlowAccumulator(mg)
+    df = DepressionFinderAndRouter(mg)
+    sp = TransportLimitedEroder(mg, K=K, m_sp=m, n_sp=n, sp_crit=threshold)
+    for i in range(100):
+        mg['node']['topographic__elevation'][mg.core_nodes] += U*dt
+        fa.run_one_step()
+        df.map_depressions()
+        sp.run_with_adaptive_time_step_solver(dt)#, flooded_nodes=df.lake_at_node)
+
+    actual_slopes = mg.at_node["topographic__steepest_slope"][mg.core_nodes[1:-1]]
+    actual_areas = mg.at_node["drainage_area"][mg.core_nodes[1:-1]]
+
+    predicted_slopes = (U / (K * (actual_areas ** m))) ** (1. / n)
+
+    assert_array_almost_equal(actual_slopes, predicted_slopes)
+
+
+
 # def test_no_thresh():
 #     K = 0.001
 #     U = 0.01
