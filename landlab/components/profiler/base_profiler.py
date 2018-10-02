@@ -15,14 +15,14 @@ from landlab import Component
 class _NetworkProfiler(Component):
     """
     """
-    def __init__(self, grid):
+    def __init__(self, grid, stopping_field):
         super(_NetworkProfiler, self).__init__(grid)
         self._grid = grid
 
-        if 'drainage_area' in grid.at_node:
-            self._drainage_area = grid.at_node['drainage_area']
+        if stopping_field in grid.at_node:
+            self._stopping_field = grid.at_node[stopping_field]
         else:
-            msg = 'drainage_area is a required field to run a _NetworkProfiler.'
+            msg = 'a field to stop based on is a required field to run a _NetworkProfiler.'
             raise ValueError(msg)
 
         if 'flow__receiver_node' in grid.at_node:

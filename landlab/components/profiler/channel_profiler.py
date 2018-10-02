@@ -146,13 +146,16 @@ class ChannelProfiler(_NetworkProfiler):
 
     """
     def __init__(self, grid,
+                       stopping_field='drainage_area',
                        number_of_watersheds=1,
-                       main_channel_only = True,
+                       main_channel_only=True,
                        starting_nodes=None,
                        threshold=None):
         """Parameters
         ----------
         grid : Landlab Model Grid instance, required
+        stopping_field : field name as string
+            Field name to
         number_of_watersheds : int, optional
             Total number of watersheds to plot. Default value is 1. If value is
             greater than 1 and starting_nodes is not specified, then the
@@ -171,7 +174,7 @@ class ChannelProfiler(_NetworkProfiler):
             Value to use for the minimum drainage area associated with a plotted
             channel segment. Default values is 2.0 x minimum grid cell area.
         """
-        super(ChannelProfiler, self).__init__(grid)
+        super(ChannelProfiler, self).__init__(grid, stopping_field)
 
         self._distances_upstream = []
         self._main_channel_only = main_channel_only
@@ -187,9 +190,9 @@ class ChannelProfiler(_NetworkProfiler):
                 raise ValueError(msg)
         else:
             starting_nodes = grid.boundary_nodes[np.argsort(
-                self._drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
+                self._stopping_field[grid.boundary_nodes])[-number_of_watersheds:]]
 
-        starting_da = self._drainage_area[starting_nodes]
+        starting_da = self._stopping_field[starting_nodes]
         if np.any(starting_da < self.threshold):
             msg =('The number of watersheds requested by the ChannelProfiler is '
                   'greater than the number in the domain.')
@@ -272,8 +275,8 @@ class ChannelProfiler(_NetworkProfiler):
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
             if self._main_channel_only:
-                max_drainage = np.argmax(self._drainage_area[supplying_nodes])
-                if self._drainage_area[supplying_nodes[max_drainage]] < self.threshold:
+                max_drainage = np.argmax(self._stopping_field[supplying_nodes])
+                if self._stopping_field[supplying_nodes[max_drainage]] < self.threshold:
                     nodes_to_process = []
                     channel_upstream = False
                 else:
@@ -285,7 +288,7 @@ class ChannelProfiler(_NetworkProfiler):
             else:
 
                 # get all upstream drainage areas
-                upstream_das = self._drainage_area[supplying_nodes]
+                upstream_das = self._stopping_field[supplying_nodes]
 
                 # if no nodes upstream exceed the threshold, exit
                 if np.sum(upstream_das > self.threshold) == 0:
@@ -297,7 +300,7 @@ class ChannelProfiler(_NetworkProfiler):
                     # if only one upstream node exceeds the threshold, proceed up
                     # the channel.
                     if np.sum(upstream_das > self.threshold) == 1:
-                        max_drainage = np.argmax(self._drainage_area[supplying_nodes])
+                        max_drainage = np.argmax(self._stopping_field[supplying_nodes])
                         j = supplying_nodes[max_drainage]
                     # otherwise provide the multiple upstream nodes to be processed
                     # into a new channel.
