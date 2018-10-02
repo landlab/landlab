@@ -190,7 +190,7 @@ class ChannelProfiler(_NetworkProfiler):
                 raise ValueError(msg)
         else:
             starting_nodes = grid.boundary_nodes[np.argsort(
-                self._stopping_field[grid.boundary_nodes])[-number_of_watersheds:]]
+                self._drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
 
         starting_da = self._stopping_field[starting_nodes]
         if np.any(starting_da < self.threshold):

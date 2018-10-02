@@ -25,6 +25,12 @@ class _NetworkProfiler(Component):
             msg = 'a field to stop based on is a required field to run a _NetworkProfiler.'
             raise ValueError(msg)
 
+        if 'drainage_area' in grid.at_node:
+            self._drainage_area = grid.at_node['drainage_area']
+        else:
+            msg = 'drainage_area is a required field to run a _NetworkProfiler.'
+            raise ValueError(msg)
+
         if 'flow__receiver_node' in grid.at_node:
             self._flow_receiver = grid.at_node['flow__receiver_node']
         else:
