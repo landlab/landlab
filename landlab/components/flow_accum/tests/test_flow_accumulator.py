@@ -1024,3 +1024,6 @@ def test_hex_mfd():
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
+
+def test_flat_grids():
+    pass
