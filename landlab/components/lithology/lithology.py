@@ -252,7 +252,7 @@ class Lithology(object):
                 self.add_layer(self._init_thicknesses[i, :], self._layer_ids[i, :])
             except IndexError:
                 self.add_layer(self._init_thicknesses[i], self._layer_ids[i])
-                
+
 
     def __getitem__(self, name):
         return self._get_surface_values(name)
@@ -742,7 +742,7 @@ class Lithology(object):
 
         Parameters
         ----------
-        dz_advenction : float or `(n_nodes, ) shape array, optional
+        dz_advection : float or `(n_nodes, ) shape array, optional
             Change in rock elevation due to advection by some external process.
         rock_id : value or `(n_nodes, ) shape array, optional
             Rock type id for new material if deposited.
