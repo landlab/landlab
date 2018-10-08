@@ -75,7 +75,7 @@ class LithoLayers(Lithology):
         z0s : ndarray of shape `(n_layers, )`
             Values of layer depth from surface at horizontal location (x0, y0).
         ids : ndarray of shape `(n_layers, )`
-            Values of rock type IDs cooresponding to each layer specified in
+            Values of rock type IDs corresponding to each layer specified in
             **z0s**.
         attrs : dict
             Rock type property dictionary. See class docstring for example of

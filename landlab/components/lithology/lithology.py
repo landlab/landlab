@@ -32,8 +32,8 @@ class Lithology(object):
     It is constructed by specifying a series of thicknesses and a series of
     rock type IDs. Thicknesses and IDs are both specified in order of closest
     to the surface to furthest from the surface. Thicknesses can either be a
-    single value (cooresponding to a layer of uniform thickness) or a number-of
-    -nodes length array (cooresponding to a non-uniform layer).
+    single value (corresponding to a layer of uniform thickness) or a number-of
+    -nodes length array (corresponding to a non-uniform layer).
 
     Additionally, an attribute dictionary specifies the properties of each
     rock type. This dictionary is expected to have the form of:
@@ -83,7 +83,7 @@ class Lithology(object):
             have to have constant thickness. Layer thickness can be zero,
             though the entirety of Lithology must have non-zero thickness.
         ids : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
-            Values of rock type IDs cooresponding to each layer specified in
+            Values of rock type IDs corresponding to each layer specified in
             **thicknesses**. A single layer may have multiple rock types if
             specified by the user.
         attrs : dict

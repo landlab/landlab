@@ -38,7 +38,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of downhill slopes cooresponding to each receiver.:
+    -  Node array of downhill slopes corresponding to each receiver.:
        *'topographic__steepest_slope'* This array is 2D, and is
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
