@@ -48,24 +48,6 @@ class Lithology(object):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
-
-    Attributes
-    ----------
-    z_top
-    z_bottom
-    thickness
-    dz
-    tracked_properties
-    properties
-
-    Methods
-    -------
-    add_rock_type
-    add_rock_property
-    update_rock_properties
-    add_layer
-    run_one_step
-    rock_cube_to_xarray
     """
 
     _name = 'Lithology'
@@ -552,7 +534,7 @@ class Lithology(object):
             for rid in new_rids:
                 if rid not in self._ids:
                     msg = ('add_property has an attribute(' + str(at) + ')'
-                           ' for rock type ' + str(rid) + ' that no other. Rock '
+                           ' for rock type ' + str(rid) + ' that no other rock '
                            ' type has. This is not permitted.')
                     raise ValueError(msg)
 
