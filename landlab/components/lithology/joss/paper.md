@@ -98,8 +98,10 @@ the repository with [Pull Request #
 the Landlab tutorials that includes this notebooks is tagged as v1.5.4. It is
 archived with the following DOI: [@ZenodoLithologyNotebook].
 
-# Acknowledgements The authors thank Adam Forte, Matt Rossi, and Brian Yanites
-# for helpful discussions during the development of this code and the
-# accompanying Jupyter notebooks.
+# Acknowledgements
+
+The authors thank Adam Forte, Matt Rossi, and Brian Yanites for helpful
+discussions during the development of this code and the accompanying Jupyter
+notebooks.
 
 # References
