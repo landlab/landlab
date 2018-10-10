@@ -86,7 +86,7 @@ Unit and docstring tests provide 100% coverage of this submodule. [Pull Request 
 674](https://github.com/landlab/landlab/pull/674) brought the ``Lithology``
 submodule into the core Landlab source code. The first release version of
 Landlab that includes the ``Lithology`` submodule is tagged as v1.5.4. It is
-archived in Zenodo with the linked DOI:[@ZenodoLithologySourceCode].
+archived in Zenodo with the linked DOI: [@ZenodoLithologySourceCode].
 
 The Landlab project maintains a separate repository containing tutorials that
 introduce core concepts and the use of individual submodules. In addition to the
