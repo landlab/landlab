@@ -38,25 +38,6 @@ class LithoLayers(Lithology):
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
 
-    The following attributes and methods are the same as in the Lithology.
-
-    Attributes
-    ----------
-    z_top
-    z_bottom
-    thickness
-    dz
-    tracked_properties
-    properties
-
-    Methods
-    -------
-    add_rock_type
-    add_rock_property
-    update_rock_properties
-    add_layer
-    run_one_step
-
     """
     _name = 'LithoLayers'
 
@@ -75,7 +56,7 @@ class LithoLayers(Lithology):
         z0s : ndarray of shape `(n_layers, )`
             Values of layer depth from surface at horizontal location (x0, y0).
         ids : ndarray of shape `(n_layers, )`
-            Values of rock type IDs cooresponding to each layer specified in
+            Values of rock type IDs corresponding to each layer specified in
             **z0s**.
         attrs : dict
             Rock type property dictionary. See class docstring for example of

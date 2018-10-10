@@ -32,8 +32,8 @@ class Lithology(object):
     It is constructed by specifying a series of thicknesses and a series of
     rock type IDs. Thicknesses and IDs are both specified in order of closest
     to the surface to furthest from the surface. Thicknesses can either be a
-    single value (cooresponding to a layer of uniform thickness) or a number-of
-    -nodes length array (cooresponding to a non-uniform layer).
+    single value (corresponding to a layer of uniform thickness) or a number-of
+    -nodes length array (corresponding to a non-uniform layer).
 
     Additionally, an attribute dictionary specifies the properties of each
     rock type. This dictionary is expected to have the form of:
@@ -48,24 +48,6 @@ class Lithology(object):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
-
-    Attributes
-    ----------
-    z_top
-    z_bottom
-    thickness
-    dz
-    tracked_properties
-    properties
-
-    Methods
-    -------
-    add_rock_type
-    add_rock_property
-    update_rock_properties
-    add_layer
-    run_one_step
-    rock_cube_to_xarray
     """
 
     _name = 'Lithology'
@@ -83,7 +65,7 @@ class Lithology(object):
             have to have constant thickness. Layer thickness can be zero,
             though the entirety of Lithology must have non-zero thickness.
         ids : ndarray of shape `(n_layers, )` or `(n_layers, n_nodes)`
-            Values of rock type IDs cooresponding to each layer specified in
+            Values of rock type IDs corresponding to each layer specified in
             **thicknesses**. A single layer may have multiple rock types if
             specified by the user.
         attrs : dict
@@ -252,7 +234,7 @@ class Lithology(object):
                 self.add_layer(self._init_thicknesses[i, :], self._layer_ids[i, :])
             except IndexError:
                 self.add_layer(self._init_thicknesses[i], self._layer_ids[i])
-                
+
 
     def __getitem__(self, name):
         return self._get_surface_values(name)
@@ -552,7 +534,7 @@ class Lithology(object):
             for rid in new_rids:
                 if rid not in self._ids:
                     msg = ('add_property has an attribute(' + str(at) + ')'
-                           ' for rock type ' + str(rid) + ' that no other. Rock '
+                           ' for rock type ' + str(rid) + ' that no other rock '
                            ' type has. This is not permitted.')
                     raise ValueError(msg)
 
@@ -742,7 +724,7 @@ class Lithology(object):
 
         Parameters
         ----------
-        dz_advenction : float or `(n_nodes, ) shape array, optional
+        dz_advection : float or `(n_nodes, ) shape array, optional
             Change in rock elevation due to advection by some external process.
         rock_id : value or `(n_nodes, ) shape array, optional
             Rock type id for new material if deposited.
