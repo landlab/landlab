@@ -41,8 +41,15 @@ class LithoLayers(Lithology):
     """
     _name = 'LithoLayers'
 
-    _cite_as = """ """
-
+    _cite_as = """@article{barnhart2018lithology,
+                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
+                    journal = "Journal of Open Source Software",
+                    volume = "",
+                    pages = "",
+                    year = "2018",
+                    doi = "10.21105/joss.00979",
+                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
+                    }"""
 
 
     def __init__(self, grid, z0s, ids, attrs, x0=0, y0=0,
