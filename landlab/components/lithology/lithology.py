@@ -52,7 +52,16 @@ class Lithology(object):
 
     _name = 'Lithology'
 
-    _cite_as = """ """
+    _cite_as = """@article{barnhart2018lithology,
+                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
+                    journal = "Journal of Open Source Software",
+                    volume = "",
+                    pages = "",
+                    year = "2018",
+                    doi = "10.21105/joss.00979",
+                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
+                    }"""
+
 
     def __init__(self, grid, thicknesses, ids, attrs, layer_type = "MaterialLayers"):
         """Create a new instance of Lithology.
