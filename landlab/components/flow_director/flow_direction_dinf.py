@@ -424,6 +424,10 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     proportions[drains_to_self, 0] = 1.
     proportions[drains_to_self, 1] = 0.
+    
+    # set properties of closed
+    receivers[closed_nodes, :] = -1
+    proportions[closed_nodes, :] = 0.
 
     # mask the receiver_links by where flow doesn't occur to return
     receiver_links[drains_to_self, :] = UNDEFINED_INDEX
