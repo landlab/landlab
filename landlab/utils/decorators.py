@@ -20,7 +20,7 @@ import inspect
 
 try:
     from inspect import getfullargspec
-except ImportError
+except ImportError:
     from inspect import getargspec as getfullargspec
 
 import numpy as np
