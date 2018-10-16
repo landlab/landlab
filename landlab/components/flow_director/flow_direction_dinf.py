@@ -153,6 +153,13 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # get elevs
     elevs = return_array_at_node(grid, elevs)
 
+    # find where there are closed nodes.
+    closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
+
+    closed_elevation = np.max(elevs[closed_nodes == False]) + 1000
+
+    elevs[closed_nodes] = closed_elevation
+
     ### Step 1, some basic set-up, gathering information about the grid.
 
     # Calculate the number of nodes.
@@ -164,10 +171,6 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # Create a node array
     node_id = np.arange(num_nodes)
-
-    # find where there are closed nodes.
-    closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
-    # best way to deal with closed nodes given the
 
     # create an array of the triangle numbers
     tri_numbers = np.arange(num_facets)
@@ -272,7 +275,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     ##### Step 4, Initialize receiver and proportion arrays
     receivers = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
-    receiver_closed = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
+    #receiver_closed = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     proportions = np.zeros((num_nodes, num_receivers), dtype=float)
     receiver_links = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
@@ -297,12 +300,6 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # triangle_neighbors_at_node == -1)
     e1[triangle_neighbors_at_node[:, 0, :] == -1] = np.nan
     e2[triangle_neighbors_at_node[:, 1, :] == -1] = np.nan
-    # second,
-    # for e1 and e2, mask out the closed nodes
-    # identify where nodes are closed.
-    closed_triangle_neighbors = closed_nodes[triangle_neighbors_at_node]
-    e1[closed_triangle_neighbors[:, 0, :] == True] = np.nan
-    e2[closed_triangle_neighbors[:, 1, :] == True] = np.nan
 
     # loop through and calculate s1 and s2
     # this will only loop nfacets times.
@@ -354,7 +351,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     for n in node_id:
         steepest_rg[n] = rg[n, steepest_sort[n, -1]]
-        receiver_closed[n] = closed_triangle_neighbors[n, :, steepest_sort[n, -1]]
+        #receiver_closed[n] = closed_triangle_neighbors[n, :, steepest_sort[n, -1]]
         steepest_s[n] = s[n, steepest_sort[n, -1]]
         receivers[n, :] = triangle_neighbors_at_node[n, :, steepest_sort[n, -1]]
         receiver_links[n, :] = triangle_links_at_node[n, :, steepest_sort[n, -1]]
@@ -387,30 +384,30 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     drains_to_self[steepest_s < 0] = True
 
     # if both receiver nodes are closed, drain to self
-    drains_to_two_closed = receiver_closed.sum(axis=1) == num_receivers
-    drains_to_self[drains_to_two_closed] = True
+    #drains_to_two_closed = receiver_closed.sum(axis=1) == num_receivers
+    #drains_to_self[drains_to_two_closed] = True
 
     # if drains to one closed receiver, check that the open receiver actually
     # gets flow. If so, route all to the open receiver. If the receiver getting
     # all the flow is closed, then drain to self.
-    all_flow_to_closed = np.sum(receiver_closed * proportions, axis=1) == 1
-    drains_to_self[all_flow_to_closed] = True
+    #all_flow_to_closed = np.sum(receiver_closed * proportions, axis=1) == 1
+    #drains_to_self[all_flow_to_closed] = True
 
-    drains_to_one_closed = receiver_closed.sum(axis=1) == 1
-    fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
-    first_column_has_closed = np.array(receiver_closed[:, 0] * fix_flow, dtype=bool)
-    second_column_has_closed = np.array(receiver_closed[:, 1] * fix_flow, dtype=bool)
+    #drains_to_one_closed = receiver_closed.sum(axis=1) == 1
+    #fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
+    #first_column_has_closed = np.array(receiver_closed[:, 0] * fix_flow, dtype=bool)
+    #second_column_has_closed = np.array(receiver_closed[:, 1] * fix_flow, dtype=bool)
 
     # remove the link to the closed node
-    receivers[first_column_has_closed, 0] = -1
-    receivers[second_column_has_closed, 1] = -1
+    #receivers[first_column_has_closed, 0] = -1
+    #receivers[second_column_has_closed, 1] = -1
 
     # change the proportions
-    proportions[first_column_has_closed, 0] = 0.
-    proportions[first_column_has_closed, 1] = 1.
+    #proportions[first_column_has_closed, 0] = 0.
+    #proportions[first_column_has_closed, 1] = 1.
 
-    proportions[second_column_has_closed, 0] = 1.
-    proportions[second_column_has_closed, 1] = 0.
+    #proportions[second_column_has_closed, 0] = 1.
+    #proportions[second_column_has_closed, 1] = 0.
 
     # set properties of drains to self.
     receivers[drains_to_self, 0] = node_id[drains_to_self]
