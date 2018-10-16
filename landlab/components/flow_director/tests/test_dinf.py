@@ -4,7 +4,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid, VoronoiDelaunayGrid
-from landlab.components import FlowDirectorDINF
+from landlab.components import FlowDirectorDINF, FlowAccumulator
 from landlab.components.flow_director import flow_direction_dinf
 
 
@@ -48,7 +48,7 @@ def test_D_infinity_low_closed_boundary_conditions():
             [6, -1],
             [11, -1],
             [12, -1],
-            [-1, 10],
+            [10, -1],
             [10, -1],
             [15, -1],
             [16, -1],
@@ -73,7 +73,7 @@ def test_D_infinity_low_closed_boundary_conditions():
             [1., 0.],
             [1., 0.],
             [1., 0.],
-            [0., 1.],
+            [1., 0.],
             [1., 0.],
             [1., 0.],
             [1., 0.],
