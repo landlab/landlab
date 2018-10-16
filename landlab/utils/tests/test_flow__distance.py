@@ -343,3 +343,7 @@ def test_flow__distance_raster_D_infinity():
     # test that the flow__distance utility works as expected
 
     assert_array_equal(flow__distance_expected, flow__distance)
+
+
+def test_flow__distance_raster_D_infinity_low_closed_boundary_conditions():
+    pass
