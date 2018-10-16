@@ -1027,16 +1027,18 @@ def test_hex_mfd():
 
 
 def test_flat_grids_all_directors():
-    for fd in ['FlowDirectorSteepest',
-               'FlowDirectorD8',
-               'FlowDirectorDINF',
-               'FlowDirectorMFD']:
+    for fd in [
+        "FlowDirectorSteepest",
+        "FlowDirectorD8",
+        "FlowDirectorDINF",
+        "FlowDirectorMFD",
+    ]:
         mg = RasterModelGrid(10, 20, dx=1)
-        z = mg.add_zeros('topographic__elevation', at='node')
+        z = mg.add_zeros("topographic__elevation", at="node")
         fa = FlowAccumulator(mg, flow_director=fd)
         try:
             fa.run_one_step()
-            print(fd + ' success')
+            print(fd + " success")
         except IndexError:
-            print(fd + ' failed')
+            print(fd + " failed")
         del mg, z, fa

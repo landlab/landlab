@@ -267,9 +267,8 @@ def _make_number_of_donors_array_to_n(r, p):
 
     # filter r based on p and flatten
     r_filter_flat = r.flatten()[p.flatten() > 0]
-    
-    max_index = numpy.amax(r_filter_flat)
 
+    max_index = numpy.amax(r_filter_flat)
 
     nd[: (max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd
