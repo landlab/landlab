@@ -53,26 +53,26 @@ def test_flow__distance_raster_D_infinity_low_closed_boundary_conditions():
            [18, -1],
            [19, -1]])
 
-    true_proportions = np.array([[  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
+    true_proportions = np.array([[  1.        ,   0.        ],
                                  [  1.        ,   0.        ],
                                  [  1.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
                                  [  0.06058469,   0.93941531],
                                  [  1.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
                                  [  0.        ,   1.        ],
                                  [  1.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ],
-                                 [  0.        ,   0.        ]])
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ],
+                                 [  1.        ,   0.        ]])
     assert_array_equal(fd.receivers, true_recievers)
     assert_array_equal(np.round(fd.proportions, decimals=6),
                        np.round(true_proportions, decimals=6))
@@ -127,6 +127,24 @@ def test_flow__distance_raster_D_infinity_open_boundary_conditions():
                                    [ 1.        ,  0.        ],
                                    [ 1.        ,  0.        ],
                                    [ 1.        ,  0.        ]])
+    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(np.round(fd.proportions, decimals=6),
+                       np.round(true_proportions, decimals=6))
+
+def test_flow__distance_raster_D_infinity_flat():
+    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg.add_zeros('node','topographic__elevation')
+
+    fd = FlowDirectorDINF(mg)
+    fd.run_one_step()
+
+    node_ids = np.arange(mg.number_of_nodes)
+    true_recievers = -1 * np.ones(fd.receivers.shape)
+    true_recievers[:, 0] = node_ids
+
+    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions[:, 0] = 1
+
     assert_array_equal(fd.receivers, true_recievers)
     assert_array_equal(np.round(fd.proportions, decimals=6),
                        np.round(true_proportions, decimals=6))

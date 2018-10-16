@@ -321,7 +321,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     radj[too_small] = 0
     s[too_small] = s1[too_small]
 
-    # to consider two big, we need to look by trangle.
+    # to consider two big, we need to look by triangle.
     for i in range(num_facets):
         too_big = r[:, i] > thresh[i]
         radj[too_big, i] = thresh[i]
@@ -384,7 +384,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     drains_to_self = np.isnan(proportions[:, 0])
 
     # if all slopes are leading out or flat, drain to self
-    drains_to_self[steepest_s < 0] = True
+    drains_to_self[steepest_s <= 0] = True
 
     # if both receiver nodes are closed, drain to self
     drains_to_two_closed = receiver_closed.sum(axis=1) == num_receivers
@@ -422,7 +422,8 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # set properties of closed
     receivers[closed_nodes, 0] = node_id[closed_nodes]
     receivers[closed_nodes, 1] = -1
-    proportions[closed_nodes, :] = 0.
+    proportions[closed_nodes, 0] = 1.
+    proportions[closed_nodes, 1] = 0.
 
     # mask the receiver_links by where flow doesn't occur to return
     receiver_links[drains_to_self, :] = UNDEFINED_INDEX
