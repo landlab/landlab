@@ -458,9 +458,18 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     receivers_out = receivers.copy()
     receivers_out[order_reversed, 1] = receivers[order_reversed, 0]
     receivers_out[order_reversed, 0] = receivers[order_reversed, 1]
+
     proportions_out = proportions.copy()
     proportions_out[order_reversed, 1] = proportions[order_reversed, 0]
     proportions_out[order_reversed, 0] = proportions[order_reversed, 1]
+
+    slopes_to_receivers_out = slopes_to_receivers.copy()
+    slopes_to_receivers_out[order_reversed, 1] = slopes_to_receivers[order_reversed, 0]
+    slopes_to_receivers_out[order_reversed, 0] = slopes_to_receivers[order_reversed, 1]
+
+    receiver_links_out = receiver_links.copy()
+    receiver_links_out[order_reversed, 1] = receiver_links[order_reversed, 0]
+    receiver_links_out[order_reversed, 0] = receiver_links[order_reversed, 1]
 
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
@@ -471,11 +480,11 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     return (
         receivers_out,
         proportions_out,
-        slopes_to_receivers,
+        slopes_to_receivers_out,
         steepest_slope,
         steepest_receiver,
         sink,
-        receiver_links,
+        receiver_links_out,
         steepest_link,
     )
 
