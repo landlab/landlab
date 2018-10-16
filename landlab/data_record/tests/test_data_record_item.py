@@ -33,10 +33,15 @@ def test_coordinates(dr_item):
     assert dr_item.number_of_items == len(my_items2['element_id'])
     with pytest.raises(AttributeError):
         dr_item.time
+    with pytest.raises(AttributeError):
         dr_item.time_coordinates
+    with pytest.raises(AttributeError):
         dr_item.number_of_timesteps
+    with pytest.raises(AttributeError):
         dr_item.earliest_time
+    with pytest.raises(AttributeError):
         dr_item.latest_time
+    with pytest.raises(AttributeError):
         dr_item.prior_time
 
 def test_variable_names(dr_item):
@@ -53,11 +58,12 @@ def test_add_item(dr_item):
             dr_item['size'].values[3]) == ('node', 4.0, 5.0)
 
 def test_get_data(dr_item):
-    assert dr_item.get_data(item_id=1, data_variable='grid_element') == 'link'
-    assert dr_item.get_data(data_variable='element_id') == [1, 3]
+    assert dr_item.get_data(item_id=[1],
+                            data_variable='grid_element') == 'link'
+    assert dr_item.get_data(data_variable='element_id')[1] ==  3
 
 def test_set_data(dr_item):
-    dr_item.set_data(item_id=1,
+    dr_item.set_data(item_id=[1],
                      data_variable='element_id',
                      new_value=2)
     assert dr_item['element_id'].values[1] == 2

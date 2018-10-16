@@ -330,8 +330,6 @@ class DataRecord(Dataset):
                                          attrs=attrs,
                                          compat=compat)
 
-
-# Modified from ItemCollection:
     def _check_grid_element_and_id(self, grid_element, element_id, flag=None):
         """Check that grid_element and element_id are permitted and the
         right size."""
@@ -413,9 +411,9 @@ class DataRecord(Dataset):
 
         Parameters
         ----------
-        time : list or array of size 1
+        time : list or 1-D array of float or int
             Time step at which the record is to be added.
-        item_id : int (optional)
+        item_id : list or 1-D array of int (optional)
             ID of the item to which the new record relates.
         new_item_loc: dict (optional)
             Dictionary of the new item location. If the new record is a change
@@ -462,8 +460,8 @@ class DataRecord(Dataset):
         >>> dr3['element_id'].values
         array([[  1.,   6.],
                [  3.,  nan]])
-        >>> dr3.get_data(2.0,0,'item_size')
-        0.2
+        >>> dr3.get_data([2.0],[0],'item_size')
+        array([ 0.2])
 
         The 'add_record' method can also be used to add a non item-related
         record:
@@ -492,6 +490,10 @@ class DataRecord(Dataset):
                         self['item_id']
                     except KeyError:
                         raise KeyError(('This Datarecord does not hold items'))
+                    try:
+                        len(item_id) # check that item_id is list or array
+                    except TypeError:
+                        raise TypeError(('item_id must be a list or an array'))
                     for i in item_id: # check that item_id already exist:
                         if i in self['item_id'].values:
                             pass
@@ -610,7 +612,7 @@ class DataRecord(Dataset):
 
         """ Add new item(s) to the current Datarecord.
 
-        time : list or array of size 1
+        time : list or 1-D array of float or int
             Time step at which the items are to be added.
         new_item : dict
             Structure is:
@@ -710,12 +712,10 @@ class DataRecord(Dataset):
                 self['time']
             except KeyError:
                 raise KeyError(('This Datarecord does not record time'))
-
             if isinstance(
                     time, (list, np.ndarray)) == False:
                 raise TypeError(('You have passed a time that is not '
-                                 'permitted, must be list or array.'))
-
+                                 'permitted, must be list or a 1-D array.'))
             else:
                 coords_to_add = {
                         'time' : np.array(time),
@@ -775,10 +775,10 @@ class DataRecord(Dataset):
 
         Parameters
         ----------
-        time : integer or float (optional)
+        time : list or 1-D array of float or int (optional)
             The time coordinate of the record to get.
-        item_id : integer (optional)
-            The item id of the record to set.
+        item_id : list or 1-D array of int (optional)
+            The item id of the record to get.
         data_variable : string
             The label of the variable to get.
 
@@ -808,24 +808,29 @@ class DataRecord(Dataset):
         ...                time=[50.],
         ...                items=my_items4,
         ...                data_vars=my_data4)
-        >>> dr4.get_data(50.,2,'element_id')
-        3
-        >>> dr4.get_data(time=50.,data_variable='item_size')
-        [0.3, 0.4, 0.8, 0.4]
-        >>> dr4.get_data(item_id=1, data_variable='grid_element')
-        ['node']
+        >>> dr4.get_data([50.],[2],'element_id')
+        array([3])
+        >>> dr4.get_data(time=[50.],data_variable='item_size')
+        array([  0.3,  0.4,  0.8,  0.4])
+        >>> dr4.get_data(item_id=[1,2], data_variable='grid_element')
+        array([['node'],
+               ['node']], dtype=object)
         """
         if data_variable not in self.variable_names:
             raise KeyError("the variable '{}' is not in the "
                            "Datarecord".format(data_variable))
         if time is None:
             if item_id is None:
-                return self[data_variable].values.tolist()
+                return self[data_variable].values
             else:
                 try:
                     self['item_id']
                 except KeyError:
                     raise KeyError(('This Datarecord does not hold items'))
+                try:
+                    len(item_id)
+                except TypeError:
+                    raise TypeError(('item_id must be a list or a 1-D array'))
                 try:
                     self['item_id'].values[item_id]
                 except IndexError:
@@ -833,16 +838,19 @@ class DataRecord(Dataset):
                                       'in this Datarecord'))
 
                 return self.isel(
-                        item_id=item_id)[data_variable].values.tolist()
+                        item_id=item_id)[data_variable].values
 
         else: #time is not None
             try:
                 self['time']
             except KeyError:
                 raise KeyError(('This Datarecord does not record time.'))
-
             try:
-                time_index=int(self.time_coordinates.index(time))
+                len(time)
+            except TypeError:
+                raise TypeError(('time must be a list or a 1-D array'))
+            try:
+                time_index=int(self.time_coordinates.index(time[0]))
             except ValueError:
                 raise IndexError(('The time you passed is not currently'
                                 ' in the Datarecord, you must change the value'
@@ -850,12 +858,16 @@ class DataRecord(Dataset):
                                 ' coordinate using the add_record method.'))
             if item_id is None:
                 return self.isel(
-                        time=time_index)[data_variable].values.tolist()
+                        time=time_index)[data_variable].values
             else:
                 try:
                     self['item_id']
                 except KeyError:
                     raise KeyError(('This Datarecord does not hold items'))
+                try:
+                    len(item_id)
+                except TypeError:
+                    raise TypeError(('item_id must be a list or a 1-D array'))
                 try:
                     self['item_id'].values[item_id]
                 except IndexError:
@@ -863,7 +875,7 @@ class DataRecord(Dataset):
                                       'in this Datarecord'))
                 return self.isel(time=time_index,
                                  item_id= item_id)[
-                                 data_variable].values.tolist()
+                                 data_variable].values
 
     def set_data(self,
                  time=None,
@@ -871,16 +883,18 @@ class DataRecord(Dataset):
                  data_variable=None,
                  new_value=np.nan):
         """Set the value of a variable in the record at a model time
-        and/or for an item to a new value.
+        and/or for an item to a new value. (Change only 1 data at a time)
 
         Parameters
         ----------
-        time : integer or float
+        time : list or 1-D array of float or int
             The time coordinate of the record to set.
-        item_id : integer
+        item_id : list or 1-D array of int
             The item id of the record to set.
-        variable : string
+        data_variable : string
             The label of the variable to set.
+        new_value : list or 1-D array
+            The new value to give to the variable data.
 
         Returns
         -------
@@ -910,7 +924,7 @@ class DataRecord(Dataset):
                [ 0.4],
                [ 0.8],
                [ 0.4]])
-        >>> dr4.set_data(50.,2,'item_size', 0.5)
+        >>> dr4.set_data([50.],[2],'item_size', [0.5])
         >>> dr4['item_size'].values
         array([[ 0.3],
                [ 0.4],
@@ -931,12 +945,19 @@ class DataRecord(Dataset):
                 assoc_grid_element = new_value
                 assoc_element_id = self.get_data(time,
                                                  item_id,
-                                                 'element_id')
+                                                 'element_id')[0]
             if data_variable == 'element_id':
+                if isinstance(new_value, int) == False:
+                    raise ValueError(('You have passed a non-integer '
+                                      'element_id to DataRecord, this is not '
+                                      'permitted.'))
+                if new_value < 0:
+                    raise ValueError(('You have passed an element id below '
+                                      'zero. This is not permitted.'))
                 assoc_element_id = new_value
                 assoc_grid_element = self.get_data(time,
                                                    item_id,
-                                                   'grid_element')
+                                                   'grid_element')[0]
             _ = (self._check_grid_element_and_id(assoc_grid_element,
                                                  assoc_element_id,
                                                  flag=1))
@@ -944,19 +965,17 @@ class DataRecord(Dataset):
                 raise ValueError(('The location ' + assoc_grid_element + ' ' +
                                   str(assoc_element_id) +
                                   ' does not exist on this grid.'))
-            if assoc_element_id < 0:
-                raise ValueError(('You have passed an element id below zero. '
-                                  ' This is not permitted.'))
-            if type(assoc_element_id) != int:
-                raise ValueError(('You have passed a non-integer element_id'
-                                  ' to DataRecord, this is not permitted.'))
+
 
         if time is None:
-            #self[data_variable].loc[dict(item_id=item_id)] = new_value
             self[data_variable].values[item_id] = new_value
         else:
             try:
-                time_index=int(self.time_coordinates.index(time))
+                len(time)
+            except TypeError:
+                raise TypeError(('time must be a list or a 1-d array'))
+            try:
+                time_index=int(self.time_coordinates.index(time[0]))
             except ValueError:
 #            if time not in self.time_coordinates:
                 raise IndexError(('The time you passed is not currently'
@@ -965,17 +984,20 @@ class DataRecord(Dataset):
                                 ' coordinate using the add_record method.'))
 
 #            else:
-
             if item_id is None:
                 self[data_variable].values[time_index] = new_value
             else:
                 try:
+                    len(item_id)
+                except TypeError:
+                    raise TypeError(('time must be a list or a 1-d array'))
+                try:
                     self['item_id']
                     self[data_variable].values[item_id, time_index] = (
-                            #dict(time=time, item_id=item_id)] =
                             new_value)
                 except KeyError:
                     raise KeyError(('This datarecord does not hold items'))
+
 
     def calc_aggregate_value(self,
                              func,
@@ -1068,11 +1090,11 @@ class DataRecord(Dataset):
         filtered = self.where(my_filter == True).groupby('element_id')
 
         #vals = xr.core.groupby.DatasetGroupBy(filtered, 'element_id').reduce(func, *args, **kwargs)
-        vals = filtered.apply(func, *args, **kwargs)  #.reduce
-#        vals = xr.apply_ufunc(func,
-#                            filtered,
-#                            input_core_dims=[[time]],
-#                            *args, **kwargs)
+#        vals = filtered.apply(func, *args, **kwargs)  #.reduce
+        vals = xr.apply_ufunc(func,
+                            filtered,
+                            input_core_dims=[['item_id']],
+                            *args, **kwargs)
 
 
         # create a nan array that we will fill with the results of the sum
@@ -1090,7 +1112,7 @@ class DataRecord(Dataset):
         """ Fill NaN values of the fields 'grid_element' and 'element_id' by
         propagating values forward in time.
         """
-        ############# ADD EXAMPLE ############################
+        ############# ADD EXAMPLE AND TEST #######################
 
         # Forward fill element_id:
         self['element_id'] = self['element_id'].ffill('time')
