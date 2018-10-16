@@ -372,7 +372,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     proportions[:, 1] = (alpha2) / (alpha1 + alpha2)
 
     # where proportions == 0, set reciever  to -1
-    receivers[proportions==0] = -1
+    receivers[proportions == 0] = -1
 
     ### END OF THE Tarboton algorithm, start of work to make this code mesh
     # with other landlab flow directing algorithms.
