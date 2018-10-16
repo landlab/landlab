@@ -223,3 +223,48 @@ def test_D_infinity_flat_closed_upper():
     assert_array_equal(
         np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
+
+
+def test_D_infinity_SW_slope():
+    mg = RasterModelGrid(10, 10, spacing=(1, 1))
+    z = mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
+    fa = FlowAccumulator(mg, flow_director="FlowDirectorDINF")
+    fa.run_one_step()
+
+    # this one should all flow to the soutwest (third column of diagonal neighbors at node)
+    node_ids = np.arange(mg.number_of_nodes)
+    sw_diags = mg.diagonal_adjacent_nodes_at_node[:, 2]
+    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
+    true_recievers[:, 0] = sw_diags
+    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+
+    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions[:, 0] = 1
+
+    assert_array_equal(true_recievers, fa.flow_director.receivers)
+    assert_array_equal(true_proportions, fa.flow_director.proportions)
+
+
+def test_D_infinity_WSW_slope():
+    mg = RasterModelGrid(10, 10, spacing=(1, 1))
+    z = mg.add_field(
+        "topographic__elevation", mg.node_y * (2 ** 0.5 - 1.) + mg.node_x, at="node"
+    )
+    fa = FlowAccumulator(mg, flow_director="FlowDirectorDINF")
+    fa.run_one_step()
+
+    # this one should flow equally to west and southwest.
+    node_ids = np.arange(mg.number_of_nodes)
+    sw_diags = mg.diagonal_adjacent_nodes_at_node[:, 2]
+    w_links = mg.adjacent_nodes_at_node[:, 2]
+    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
+    true_recievers[mg.core_nodes, 0] = w_links[mg.core_nodes]
+    true_recievers[mg.core_nodes, 1] = sw_diags[mg.core_nodes]
+    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+
+    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions[mg.boundary_nodes, 0] = 1
+    true_proportions[mg.core_nodes, 0] = 0.5
+    true_proportions[mg.core_nodes, 1] = 0.5
+
+    assert_array_equal(true_recievers, fa.flow_director.receivers)
