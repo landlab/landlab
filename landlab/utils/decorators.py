@@ -131,7 +131,7 @@ def add_signature_to_doc(func):
     <BLANKLINE>
     Do something.
     """
-    argspec = inspect.getargspec(func)
+    argspec = inspect.getfullargspec(func)
     return """{name}{argspec}
 
 {body}""".format(name=func.__name__, argspec=inspect.formatargspec(*argspec),
