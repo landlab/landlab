@@ -264,10 +264,12 @@ def _make_number_of_donors_array_to_n(r, p):
     # modified by KRB 10/31/2016 to support route to multiple.
 
     nd = numpy.zeros(r.shape[0], dtype=int)
-    max_index = numpy.amax(r)
 
     # filter r based on p and flatten
     r_filter_flat = r.flatten()[p.flatten() > 0]
+    
+    max_index = numpy.amax(r_filter_flat)
+
 
     nd[: (max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd
