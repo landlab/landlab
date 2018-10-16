@@ -39,7 +39,9 @@ def test_coordinates(dr_time):
     # no item_id coord:
     with pytest.raises(AttributeError):
         dr_time.item_id
+    with pytest.raises(AttributeError):
         dr_time.item_coordinates
+    with pytest.raises(AttributeError):
         dr_time.number_of_items
 
 def test_variable_names(dr_time):
@@ -54,12 +56,12 @@ def test_add_record(dr_time):
     assert np.isnan(dr_time['mean_elevation'].values[2])
 
 def test_get_data(dr_time):
-    assert dr_time.get_data(time=0.,
+    assert dr_time.get_data(time=[0.],
                             data_variable='mean_elevation') == 100.
     assert dr_time.get_data(data_variable='mean_elevation') == [100]
 
 def test_set_data(dr_time):
-    dr_time.set_data(time=0.,
+    dr_time.set_data(time=[0.],
                      data_variable='mean_elevation',
                      new_value=105.)
     assert dr_time['mean_elevation'].values[0] == 105.

@@ -72,17 +72,17 @@ def test_add_item(dr_2dim):
             dr_2dim['size'].values[3]) == ('cell', 2.0, 5.0)
 
 def test_get_data(dr_2dim):
-    assert dr_2dim.get_data(time=0.,
-                            item_id=1,
+    assert dr_2dim.get_data(time=[0.],
+                            item_id=[1],
                             data_variable='grid_element') == 'link'
     assert dr_2dim.get_data(data_variable='mean_elevation') == [110.0]
 
 def test_set_data(dr_2dim):
-    dr_2dim.set_data(time=0.,
-                     item_id=1,
+    dr_2dim.set_data(time=[0.],
+                     item_id=[1],
                      data_variable='grid_element',
                      new_value='node')
-    dr_2dim.set_data(time=0.,
+    dr_2dim.set_data(time=[0.],
                      data_variable='mean_elevation',
                      new_value=150.)
     assert all(dr_2dim['grid_element'].values == 'node')
