@@ -1,4 +1,5 @@
 
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
@@ -32,25 +33,25 @@ def test_flow__distance_raster_D_infinity_low_closed_boundary_conditions():
     fd.run_one_step()
 
     true_recievers = np.array([[ 0, -1],
-                               [ 1, -1],
-                               [ 2, -1],
-                               [ 3, -1],
-                               [ 4, -1],
-                               [ 6, -1],
-                               [ 6, -1],
-                               [ 7, -1],
-                               [ 8, -1],
-                               [10,  6],
-                               [ 6, -1],
-                               [11, -1],
-                               [12, -1],
-                               [14, 10],
-                               [10, -1],
-                               [15, -1],
-                               [16, -1],
-                               [17, -1],
-                               [18, -1],
-                               [19, -1]])
+           [ 1, -1],
+           [ 2, -1],
+           [ 3, -1],
+           [ 4, -1],
+           [ 6, -1],
+           [ 6, -1],
+           [ 7, -1],
+           [ 8, -1],
+           [10,  6],
+           [ 6, -1],
+           [11, -1],
+           [12, -1],
+           [-1, 10],
+           [10, -1],
+           [15, -1],
+           [16, -1],
+           [17, -1],
+           [18, -1],
+           [19, -1]])
 
     true_proportions = np.array([[  0.        ,   0.        ],
                                  [  0.        ,   0.        ],
@@ -72,6 +73,60 @@ def test_flow__distance_raster_D_infinity_low_closed_boundary_conditions():
                                  [  0.        ,   0.        ],
                                  [  0.        ,   0.        ],
                                  [  0.        ,   0.        ]])
+    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(np.round(fd.proportions, decimals=6),
+                       np.round(true_proportions, decimals=6))
+
+
+def test_flow__distance_raster_D_infinity_open_boundary_conditions():
+    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    z = mg.x_of_node + 2. * mg.y_of_node
+    mg.add_field('node','topographic__elevation', z)
+
+    fd = FlowDirectorDINF(mg)
+    fd.run_one_step()
+
+    true_recievers = np.array([[ 0, -1],
+                               [ 1, -1],
+                               [ 2, -1],
+                               [ 3, -1],
+                               [ 4, -1],
+                               [ 1,  0],
+                               [ 2,  1],
+                               [ 7, -1],
+                               [ 8, -1],
+                               [ 5,  4],
+                               [ 6,  5],
+                               [11, -1],
+                               [12, -1],
+                               [ 9,  8],
+                               [10,  9],
+                               [15, -1],
+                               [16, -1],
+                               [17, -1],
+                               [18, -1],
+                               [19, -1]])
+
+    true_proportions = np.array([[ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 0.40966553,  0.59033447],
+                                   [ 0.40966553,  0.59033447],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 0.40966553,  0.59033447],
+                                   [ 0.40966553,  0.59033447],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 0.40966553,  0.59033447],
+                                   [ 0.40966553,  0.59033447],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ],
+                                   [ 1.        ,  0.        ]])
     assert_array_equal(fd.receivers, true_recievers)
     assert_array_equal(np.round(fd.proportions, decimals=6),
                        np.round(true_proportions, decimals=6))

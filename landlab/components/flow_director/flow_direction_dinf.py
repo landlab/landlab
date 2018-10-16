@@ -88,12 +88,12 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid)
     >>> receivers
     array([[ 0, -1],
-           [ 0,  3],
-           [ 1,  4],
-           [ 0,  1],
+           [ 0, -1],
+           [ 1, -1],
+           [ 0, -1],
            [ 3,  0],
            [ 4,  1],
-           [ 3,  4],
+           [ 3, -1],
            [ 6,  3],
            [ 7,  4]])
     >>> proportions
@@ -116,16 +116,16 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
     >>> receivers
     array([[ 0, -1],
-           [ 0,  3],
-           [ 1,  4],
-           [ 0,  1],
+           [ 0, -1],
+           [ 1, -1],
+           [ 0, -1],
            [ 3,  0],
            [ 4,  1],
-           [ 3,  4],
+           [ 3, -1],
            [ 6,  3],
            [ 7,  4]])
     >>> slopes
-    array([[-2.        , -0.        ],
+    array([[-1.        , -2.12132034],
            [ 2.        ,  0.70710678],
            [ 2.        ,  0.70710678],
            [ 1.        , -0.70710678],
