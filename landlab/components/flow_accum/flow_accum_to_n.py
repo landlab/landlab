@@ -156,19 +156,21 @@ class _DrainageStack_to_n:
             # select the nodes to visit
             visit = set(self.D[self.delta[node_i] : self.delta[node_i + 1]])
             visit = visit - base
-
+        
             # record the visit time.
             visit_time[list(visit)] = i
-
+        
             # record that they have been visited.
             num_visits[list(visit)] += 1
-
+        
             visited.update(list(visit))
 
         visited = numpy.array(list(visited))
-        visited_enough = num_visits[visited] == self.num_receivers[visited]
-        completed = set(visited[visited_enough])
-
+        if visited.size > 0:
+            visited_enough = num_visits[visited] == self.num_receivers[visited]
+            completed = set(visited[visited_enough])
+        else:
+            completed = {}
         # recurse through the remainder. Only look above completed nodes,
         # this prevents repeat link walking.
         while len(completed) > 0:
