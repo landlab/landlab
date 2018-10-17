@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import FlowRouter, FlowAccumulator
+from landlab.components import FlowAccumulator
 from landlab.utils import (track_source,
                            find_unique_upstream_hsd_ids_and_fractions)
 
@@ -44,8 +44,8 @@ def test_track_source():
                                                        5., 5., 5., 5., 5.])
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
-    fr = FlowRouter(grid)
-    fr.route_flow()
+    fr = FlowAccumulator(grid, flow_director='D8')
+    fr.run_one_step()
     r = grid.at_node['flow__receiver_node']
     assert r[6] == 10
     assert r[7] == 8
@@ -70,8 +70,8 @@ def test_find_unique_upstream_hsd_ids_and_fractions():
                                                        5., 5., 5., 5., 5.])
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
-    fr = FlowRouter(grid)
-    fr.route_flow()
+    fr = FlowAccumulator(grid, flow_director='D8')
+    fr.run_one_step()
     hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
     hsd_ids[:] = 1
     hsd_ids[2:5] = 0
