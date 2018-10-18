@@ -431,7 +431,7 @@ class ClastCollection(DataRecord):
                     _row_col_adjacent_nodes_at_node,
                         _diagonal_adjacent_nodes_at_node),
                             axis=0)
-
+            print(_neighbor_nodes)
             # Case where one of the neighbor is boundary:
             if any(i in _row_col_adjacent_nodes_at_node for\
                        i in _grid.boundary_nodes) == True or \
@@ -445,17 +445,19 @@ class ClastCollection(DataRecord):
                             _grid.at_node['flow__receiver_node'][_node])
                     print('target node: ')
                     print(self['target_node'][clast])
-                    self['target_node_flag'][clast] = (
-                            np.where(_neighbor_nodes ==
-                                     _grid.at_node['flow__receiver_node']\
-                                         [_node])[0][0])
+                    print(np.where(
+                            _neighbor_nodes == _grid.at_node[
+                                    'flow__receiver_node'][_node])[0][0])
+                    self['target_node_flag'][clast] = np.where(
+                            _neighbor_nodes == _grid.at_node[
+                                    'flow__receiver_node'][_node])[0][0]
                     # slopes will be calculated by _move_to depending on the
                     # target node, they are set as NaN for now:
                     self['slope__WE'][clast] = np.NaN
                     self['slope__SN'][clast] = np.NaN
                 else: # flow receiver = node itself
                     self['target_node'][clast] = _node
-                    self['target_node_flag'] = -1
+                    self['target_node_flag'][clast] = -1
                     self['slope__WE'][clast] = np.NaN
                     self['slope__SN'][clast] = np.NaN
 
@@ -475,8 +477,8 @@ class ClastCollection(DataRecord):
         ####### ADD LATERAL SPREADING HERE? CANT BECAUSE NEEDS slope_steepest_dip
 
                 # norm of steepest slope vector projected on horizontal plane:
-                we_slope = self['slope__WE'].values[clast]
-                sn_slope = self['slope__SN'].values[clast]
+                we_slope = self['slope__WE'][clast].values.item()
+                sn_slope = self['slope__SN'][clast].values.item()
                 ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
 
                 # norms of vectors SN and WE:
@@ -492,20 +494,24 @@ class ClastCollection(DataRecord):
                         # Add randomness for lateral spreading (if option on):
                 if self.attrs['lateral_spreading'] == 'on':
                     # maximum angle of deviation from steepest slope direction:
-                    max_deviation = np.pi * np.exp(ss_dip/(-np.sqrt(self['lambda_0'].values[clast]))) * np.cos(ss_dip)
+                    max_deviation = np.pi * np.exp(ss_dip/(-np.sqrt(self['lambda_0'][clast].values.item()))) * np.cos(ss_dip)
                     print('max_dev=%s' %max_deviation)
-                    # draw random angle of deviation in distrib:
-                    draw_dev=truncnorm((-max_deviation),
-                                        max_deviation,
-                                        loc=0.0,
-                                        scale=1).rvs(1)
+                    # draw random angle of deviation in normal distrib:
+#                    draw_dev=truncnorm((-max_deviation),
+#                                        max_deviation,
+#                                        loc=0.0,
+#                                        scale=1).rvs(1)
+
+                    draw_dev=np.random.uniform(low=-max_deviation,
+                                                  high=max_deviation,
+                                                  size=1)
                     print('draw_dev=%s' %draw_dev)
 
-                    slope_WE_with_dev = self['slope__WE'].values[clast] * np.cos(draw_dev) - self['slope__SN'].values[clast] * np.sin(draw_dev)
-                    slope_SN_with_dev = self['slope__WE'].values[clast] * np.sin(draw_dev) + self['slope__SN'].values[clast] * np.cos(draw_dev)
+                    slope_WE_with_dev = self['slope__WE'][clast].values.item() * np.cos(draw_dev[0]) - self['slope__SN'][clast].values.item() * np.sin(draw_dev[0])
+                    slope_SN_with_dev = self['slope__WE'][clast].values.item() * np.sin(draw_dev[0]) + self['slope__SN'][clast].values.item() * np.cos(draw_dev[0])
                     print('slope_we_with_dev=%s' %slope_WE_with_dev)
-                    self['slope__WE'].values[clast] = slope_WE_with_dev
-                    self['slope__SN'].values[clast] = slope_SN_with_dev
+                    self['slope__WE'][clast] = slope_WE_with_dev
+                    self['slope__SN'][clast] = slope_SN_with_dev
 
 
 
@@ -526,10 +532,10 @@ class ClastCollection(DataRecord):
         _node_x = _grid.node_x[_node]
         _node_y = _grid.node_y[_node]
         _node_z = _grid.at_node['topographic__elevation'][_node]
-        _clast_x = self['clast__x'][clast, -2]
-        _clast_y = self['clast__y'][clast, -2]
-        we_slope = self['slope__WE'][clast]
-        sn_slope = self['slope__SN'][clast]
+        _clast_x = self['clast__x'][clast, -2].values.item()
+        _clast_y = self['clast__y'][clast, -2].values.item()
+        we_slope = self['slope__WE'][clast].values.item()
+        sn_slope = self['slope__SN'][clast].values.item()
 #        _radius = self['clast__radius'][clast][-2]
         # Adjacent row and col nodes:
         _row_col_adjacent_nodes_at_node = _grid.neighbors_at_node[_node]
@@ -712,12 +718,12 @@ class ClastCollection(DataRecord):
 #            print('WE_norm=%s' %we_norm)
 
 
-            self['slope__WE'][clast] = we_slope
-            self['slope__SN'][clast] = sn_slope
-            self['slope__steepest_azimuth'][clast] = ss_azimuth
-            self['slope__steepest_dip'][clast] = ss_dip
-            self['distance__to_exit'][clast] = dist_to_exit
-            self['target_node'][clast] = target_node
+            self['slope__WE'][clast].values = we_slope
+            self['slope__SN'][clast].values = sn_slope
+            self['slope__steepest_azimuth'][clast].values = ss_azimuth
+            self['slope__steepest_dip'][clast].values = ss_dip
+            self['distance__to_exit'][clast].values = dist_to_exit
+            self['target_node'][clast].values = target_node
             #df.at[clast, 'target_node_flag'] = target_node_flag
 
 
@@ -904,8 +910,8 @@ class ClastCollection(DataRecord):
         self['distance__to_exit'][clast] = dist_to_exit
         self['target_node'][clast] = target_node
 
-        self['change_x'][clast] = change_x
-        self['change_y'][clast] = change_y
+        self['change_x'][clast].values = change_x
+        self['change_y'][clast].values = change_y
 
 
         # Calculate lambda_0 and lambda_mean :
@@ -1164,28 +1170,19 @@ class ClastCollection(DataRecord):
         """
 
         clast__node = self['clast__node'][clast]
-        clast__elev = self['clast__elev'][clast, -2]
+        clast__elev = self['clast__elev'][clast, -2] #-2?
         topo__elev = self._grid.at_node['topographic__elevation'][clast__node]
-#        erosion = self._erosion__depth[clast__node]
 
         _detach = np.zeros(1, dtype=bool)
 
-#        if erosion >= topo__elev - clast__elev:
-#            _detach = True
-#        else:
-#            _detach = False
-#
-#        return _detach
 
-        _disturb_fqcy = self.attrs['disturbance_fqcy']
         _clast_depth = topo__elev - clast__elev
 
 
-        proba_mobile = (
-                1-np.exp(-_disturb_fqcy * self.attrs['dt'])) * np.exp(
-                        -_clast_depth / self.attrs['d_star'])
+        proba_mobile = (1-np.exp(-self.attrs['disturbance_fqcy'] * self.attrs['dt'])) * (
+                np.exp(-_clast_depth / self.attrs['d_star']))
 
-        if proba_mobile >= 0.39:  ### VALUE TO SET #############################
+        if proba_mobile >= 0.35:  ### VALUE TO SET #############################
             _detach = True
         else:
             _detach = False
@@ -1328,7 +1325,7 @@ class ClastCollection(DataRecord):
 
                     # Update elevation:
                     # Clast is buried in the active layer with inv exp proba
-                    self['clast__elev'][clast, -1] = self._grid.at_node['topographic__elevation'][self['clast__node'][clast].values] #- np.random.exponential(scale=self.attrs['d_star'], size=1)[0] #(self.attrs['d_star']/100 * (np.random.rand(1)))
+                    self['clast__elev'][clast, -1] = self._grid.at_node['topographic__elevation'][self['clast__node'][clast].values] - np.random.exponential(scale=(self.attrs['d_star']*self.attrs['disturbance_fqcy']/self['clast__radius'][clast].values[-1]), size=1)[0] #(self.attrs['d_star']/100 * (np.random.rand(1)))
                     print('elevation updated')
                     if hasattr(self, '_uplift') is True:   # uplift clast if necessary
                             self['clast__elev'][clast, -1] += \
