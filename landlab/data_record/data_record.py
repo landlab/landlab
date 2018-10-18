@@ -73,12 +73,12 @@ class DataRecord(Dataset):
         ----------
         grid : ModelGrid
         time : list or 1-D array of float or int (optional)
-            The initial time coordinates to add to the recorded. A time
-            coordinate is not created if the value is 'None' (default).
+            The initial time(s) to add to the record. A time dimension is not
+            created if the value is 'None' (default).
         items : dict (optional)
-            No item is created if the value is 'None' (default). Otherwise,
-            dictionary describes the position of generic items on the grid. The
-            structure is:
+            Generic items that live on grid elements. No item is created if the
+            value is 'None' (default). Otherwise, dictionary describes the
+            position of generic items on the grid. The structure is:
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
             where:
