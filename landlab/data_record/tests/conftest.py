@@ -36,5 +36,7 @@ def dr_2dim():
                       items=my_items3,
                       data_vars=my_data_vars)
 
+@pytest.fixture
+def dr_nodim():
+    return DataRecord(grid=grid)
 
-# test time=[1,3,1]

@@ -22,7 +22,7 @@ my_data_vars = {'mean_elevation' : (['time'], [110.]),
 #    return DataRecord(grid, time=time, items=my_items3, data_vars=my_data_vars )
 
 
-def test_dr_time_name(dr_2dim):
+def test_dr_name(dr_2dim):
     assert dr_2dim._name == 'DataRecord'
 
 def test_grid_shape(dr_2dim):
@@ -44,6 +44,9 @@ def test_coordinates(dr_2dim):
     assert dr_2dim.earliest_time == 0.
     assert dr_2dim.latest_time == 0.
     assert np.isnan(dr_2dim.prior_time)
+    dr_2dim.add_record(time=[10.,20.],
+                       new_record={'new_data':((),(120., 130.))})
+    assert dr_2dim.prior_time == 10.
 
 def test_variable_names(dr_2dim):
     assert sorted(dr_2dim.variable_names) == sorted(
@@ -60,6 +63,11 @@ def test_add_record(dr_2dim):
     assert(dr_2dim['grid_element'].values[1,1],
            dr_2dim['mean_elevation'].values[2])== ('cell', 130.)
     assert np.isnan(dr_2dim['element_id'].values[1,2])
+    dr_2dim.add_record(time=[10.],
+                       item_id=[1],
+                       new_record={'size' : (
+                               ['item_id','time'],np.array([[.3]]))})
+    assert np.isnan(dr_2dim['size'].values[0,0])
 
 def test_add_item(dr_2dim):
     dr_2dim.add_item(time=[10.],
@@ -87,3 +95,13 @@ def test_set_data(dr_2dim):
                      new_value=150.)
     assert all(dr_2dim['grid_element'].values == 'node')
     assert dr_2dim['mean_elevation'].values[0] == 150.0
+
+def test_ffill_grid_element_and_id(dr_2dim):
+    dr_2dim.add_record(time=[20.],
+                       new_record={'mean_elevation' : (
+                               ['time'], np.array([130.]))})
+    dr_2dim.ffill_grid_element_and_id()
+    assert dr_2dim['grid_element'].values[0,0] ==(
+            dr_2dim['grid_element'].values[0,1])
+    assert dr_2dim['element_id'].values[0,0] ==(
+            dr_2dim['element_id'].values[0,1])
