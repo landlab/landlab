@@ -1079,7 +1079,15 @@ class DataRecord(Dataset):
         """
 
         # Forward fill element_id:
-        self['element_id'] = self['element_id'].ffill('time')
+        fill_value=[]
+        ei = self['element_id'].values
+        for i in range(ei.shape[0]):
+            for j in range(ei.shape[1]):
+                if np.isnan(ei[i,j]):
+                    ei[i,j]=fill_value
+                else:
+                    fill_value=ei[i,j]
+        self['element_id'] = (['item_id', 'time'], ei)
         # Can't do ffill to grid_element because str/nan, so:
         fill_value=''
         ge = self['grid_element'].values
