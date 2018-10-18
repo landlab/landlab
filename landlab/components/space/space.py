@@ -66,10 +66,10 @@ class Space(_GeneralizedErosionDeposition):
     ---------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_routing import FlowRouter
-    >>> from landlab.components import DepressionFinderAndRouter
-    >>> from landlab.components import Space
-    >>> from landlab.components import FastscapeEroder
+    >>> from landlab.components import (FlowAccumulator,
+    ...                                 DepressionFinderAndRouter,
+    ...                                 Space,
+    ...                                 FastscapeEroder)
     >>> np.random.seed(seed = 5000)
 
     Define grid and initial topography:
@@ -95,7 +95,7 @@ class Space(_GeneralizedErosionDeposition):
     Instantiate Fastscape eroder, flow router, and depression finder
 
     >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
-    >>> fr = FlowRouter(mg)
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> df = DepressionFinderAndRouter(mg)
 
     Burn in an initial drainage network using the Fastscape eroder:

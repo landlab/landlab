@@ -1,11 +1,17 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
 import pytest
+
+import os
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import write_netcdf, NotRasterGridError, WITH_NETCDF4
+from landlab.io.netcdf import (read_netcdf,
+                               write_netcdf,
+                               NotRasterGridError,
+                               WITH_NETCDF4)
+
 from landlab.io.netcdf.read import _get_raster_spacing
 
 try:
@@ -13,6 +19,7 @@ try:
 except ImportError:
     pass
 
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 def test_netcdf_write_int64_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an int64 field."""
@@ -287,3 +294,6 @@ def test_netcdf_write_at_cells(tmpdir):
             ["x_bnds", "y_bnds", "topographic__elevation", "uplift_rate"]
         )
         root.close()
+
+def test_write_llc():
+    pass

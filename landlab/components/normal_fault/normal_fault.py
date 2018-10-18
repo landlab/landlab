@@ -375,8 +375,8 @@ class NormalFault(Component):
             core_nodes = np.zeros(self._grid.size('node'), dtype=bool)
             core_nodes[self._grid.core_nodes] = True
 
-            neighbor_is_core = core_nodes[self._grid.neighbors_at_node]
-            neighbor_is_faulted = self.faulted_nodes[self._grid.neighbors_at_node]
+            neighbor_is_core = core_nodes[self._grid.adjacent_nodes_at_node]
+            neighbor_is_faulted = self.faulted_nodes[self._grid.adjacent_nodes_at_node]
 
             neighbor_for_averaging = neighbor_is_faulted&neighbor_is_core
 
@@ -391,8 +391,8 @@ class NormalFault(Component):
             if any(averaged):
                 averaged_nodes = np.where(faulted_boundaries)[0][np.where(averaged)[0]]
                 for surf_name in self.surfaces:
-                    elevations_to_average =  surfs_before_uplift[surf_name][self._grid.neighbors_at_node]
-                    elevations_to_average[self._grid.neighbors_at_node == -1] = np.nan
+                    elevations_to_average =  surfs_before_uplift[surf_name][self._grid.adjacent_nodes_at_node]
+                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = np.nan
                     elevations_to_average[neighbor_for_averaging == False] = np.nan
                     self.surfaces[surf_name][averaged_nodes] = np.nanmean(elevations_to_average[averaged_nodes], axis=1)
 
@@ -404,8 +404,8 @@ class NormalFault(Component):
             if any(averaged == False):
                 un_averaged_nodes = np.where(faulted_boundaries)[0][np.where(averaged == False)[0]]
                 for surf_name in self.surfaces:
-                    elevations_to_average =  self.surfaces[surf_name][self._grid.neighbors_at_node]
-                    elevations_to_average[self._grid.neighbors_at_node == -1] = np.nan
+                    elevations_to_average =  self.surfaces[surf_name][self._grid.adjacent_nodes_at_node]
+                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = np.nan
                     elevations_to_average[neighbor_is_faulted == False] = np.nan
                     self.surfaces[surf_name][un_averaged_nodes] = np.nanmean(elevations_to_average[un_averaged_nodes], axis=1)
 

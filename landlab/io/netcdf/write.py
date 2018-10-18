@@ -22,12 +22,20 @@ try:
 except ImportError:
     warnings.warn('Unable to import netCDF4.', ImportWarning)
 
+try:
+    import pycrs
+    _HAS_PYCRS = True
+except ImportError:
+    warnings.warn('Unable to import pycrs.', ImportWarning)
+    _HAS_PYCRS = False
+
 from scipy.io import netcdf as nc
 
 from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
                                           _NP_TO_NC_TYPE)
 
+from landlab.core.messages import warning_message
 
 def _set_netcdf_attributes(root, attrs):
     """Set attributes of a netcdf file.
@@ -344,8 +352,8 @@ def _add_spatial_variables(root, grid, **kwds):
             var.long_name = long_name[name]
         except KeyError:
             var.long_name = grid.axis_name[axis]
-            
-            
+
+
 def _add_raster_spatial_variables(root, grid, **kwds):
     """Add spatial variables to a NetCDF file for rasters.
 
@@ -364,7 +372,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
     long_name = kwds.get('long_name', {})
 
     netcdf_vars = root.variables
-    
+
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
@@ -382,7 +390,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
         else:
             raise NotImplementedError('')
         coords.shape = var.shape
-        
+
         var[:] = coords
 
         var.units = grid.axis_units[axis]
@@ -414,7 +422,7 @@ def _add_variables_at_points(root, fields, names=None):
             var = netcdf_vars[var_name]
         except KeyError:
             var = root.createVariable(
-                var_name, _NP_TO_NC_TYPE[str(node_fields[var_name].dtype)],
+                var_name, _NP_TO_NC_TYPE[str(node_fields[var_name][0].dtype)],
                 ['nt'] + spatial_variable_shape)
 
         if node_fields[var_name].size > 1:
@@ -429,6 +437,9 @@ def _add_variables_at_points(root, fields, names=None):
 
         var.units = node_fields.units[var_name] or '?'
         var.long_name = var_name
+
+        if hasattr(fields, 'grid_mapping'):
+            setattr(var, 'grid_mapping', fields.grid_mapping['name'])
 
 
 def _add_variables_at_cells(root, fields, names=None):
@@ -509,6 +520,14 @@ def _add_time_variable(root, time, **kwds):
         time_var[n_times] = n_times
 
 
+def _set_netcdf_grid_mapping_variable(root, grid_mapping):
+    """Create grid mapping variable, if necessary."""
+    name = grid_mapping.pop('name')
+    var = root.createVariable(name, 'S1', dimensions=())
+    for attr in grid_mapping.keys():
+        setattr(var, attr, grid_mapping[attr])
+
+
 _VALID_NETCDF_FORMATS = set([
     'NETCDF3_CLASSIC',
     'NETCDF3_64BIT',
@@ -535,7 +554,6 @@ def _guess_at_location(fields, names):
         else:
             at = None
     return at
-
 
 def write_netcdf(path, fields, attrs=None, append=False,
                  format='NETCDF3_64BIT', names=None, at=None):
@@ -640,19 +658,22 @@ def write_netcdf(path, fields, attrs=None, append=False,
         _set_netcdf_cell_structured_dimensions(root, fields.shape)
         _set_netcdf_cell_variables(root, fields, names=names)
 
+    if hasattr(fields, 'grid_mapping'):
+        _set_netcdf_grid_mapping_variable(root, fields.grid_mapping)
+
     root.close()
 
 
 def write_raster_netcdf(path, fields, attrs=None, append=False,
                         time=None, format='NETCDF4', names=None,
                         at=None):
-    
+
     """Write Raster Model Grid landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
 
     This method is for Raster Grids only and takes advantage of regular x and
-    y spacing to save memory. 
+    y spacing to save memory.
 
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
@@ -663,7 +684,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         Path to output file.
     fields : field-like
         Landlab field object that holds a grid and associated values. This must
-        be a Raster type. 
+        be a Raster type.
     append : boolean, optional
         Append data to an existing file, otherwise clobber the file.
     time : float, optional
@@ -676,7 +697,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         Names of the fields to include in the netcdf file. If not provided,
         write all fields.
     at : {'node'}, optional
-        The location where values are defined. Presently only implemented for 
+        The location where values are defined. Presently only implemented for
         type 'node'.
 
     Examples
@@ -723,7 +744,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
     else:
         raise NotImplementedError("This method only supports grids of type Raster, "
                                   "for other grid types use write_netcdf")
-    
+
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError('format not understood')
     if at not in (None, 'cell', 'node'):
@@ -733,7 +754,7 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         names = (names, )
 
     at = 'node'
-    
+
     names = names or fields[at].keys()
 
     if not set(fields[at].keys()).issuperset(names):
@@ -754,10 +775,42 @@ def write_raster_netcdf(path, fields, attrs=None, append=False,
         root = nc4.Dataset(path, mode, format=format)
 
     _set_netcdf_attributes(root, attrs)
-   
+
     _set_netcdf_structured_dimensions(root, fields.shape)
     if time is not None:
         _add_time_variable(root, time)
     _set_netcdf_raster_variables(root, fields, names=names)
+
+    if hasattr(fields, 'grid_mapping'):
+        _set_netcdf_grid_mapping_variable(root,  fields.grid_mapping)
+
+#    if hasattr(fields, 'esri_ascii_projection'):
+#        if _HAS_PYCRS:
+#            message = ('This RasterModelGrid has a projection and was read in '
+#                       'as an Esri ASCII and is being written out as a NetCDF. '
+#                       'You have the pure python pycrs library which will now '
+#                       'be used to translate the projection.\nNote that '
+#                       'currently only the crs_wkt attribute will be written '
+#                       'to the grid_mapping variable. We are working on fully '
+#                       'supporting this conversion, but it is in active '
+#                       'development.')
+#
+#            print(warning_message(message))
+#
+#            projection = pycrs.parser.from_proj4(fields.esri_ascii_projection)
+#            crs_wkt = projection.to_ogc_wkt()
+#            grid_mapping = {'name':'name',
+#                            'crs_wkt': crs_wkt}
+#
+#            _set_netcdf_grid_mapping_variable(root, grid_mapping)
+#
+#        else:
+        # message = ('This RasterModelGrid has a projection and was read in '
+        #                'as an Esri ASCII and is being written out as a NetCDF. '
+        #                'Landlab does not presently have the ability to '
+        #                'translate the projection information used by these two '
+        #                'formats.')
+        #
+        # print(warning_message(message))
 
     root.close()
