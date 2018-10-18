@@ -18,7 +18,7 @@ ctypedef np.int_t DTYPE_INT_t
 cdef extern from "math.h":
     double fabs(double x) nogil
     double pow(double x, double y) nogil
-    
+
 @cython.boundscheck(False)
 def erode_avoiding_pits(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                         np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
@@ -553,15 +553,15 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
     """Erode node elevations using Newtons Method for smoothed Stream Power. "
 
-    This method takes three parameters, alpha, gamma, and delta. 
+    This method takes three parameters, alpha, gamma, and delta.
 
     alpha = K A^m dt / L
-    
-    delta = K A^m / (L * wc)
-    
-    gamma = omega_c * dt 
 
-    This method will use the new_elev and new_elev_prime equations. 
+    delta = K A^m / (L * wc)
+
+    gamma = omega_c * dt
+
+    This method will use the new_elev and new_elev_prime equations.
 
     Parameters
     ----------
@@ -570,11 +570,11 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     dst_nodes : array_like
         Node ids of nodes receiving flow.
     alpha : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     gamma : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     delta : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     z : array_like
         Node elevations.
     """
@@ -583,7 +583,7 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     cdef unsigned int dst_id
     cdef unsigned int i
 
-    cdef double epilon
+    cdef double epsilon
 
 
 
