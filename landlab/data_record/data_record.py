@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -11,9 +10,7 @@ from xarray import Dataset
 
 
 class DataRecord(Dataset):
-    """
-    Datastructure to hold variables relating to the grid or to generic items
-    that live on grid elements.
+    """Data structure to store variables in time and/or space dimensions.
 
     This is a base class to contain the majority of core Datarecord
     functionality. It inherits from the xarray Dataset.
@@ -24,20 +21,25 @@ class DataRecord(Dataset):
             by an individual id) that reside on the grid.
 
     Examples:
-        - the variable 'mean_elevation' characterizes the grid and
-            varies with time,
+        - the variable 'mean_elevation' characterizes the grid and varies with
+            time,
         - the variable 'clast__rock_type' characterizes a set of items (clasts)
             and varies with item_id,
         - the variable 'clast__size' can vary with both time and item_id
 
     If an item or set of items is defined, each item must be defined by the
-    grid element and the element id at which it resides: e.g.,
-    grid_element = 'node', element_id = 9. In this case, 'grid_element'
-    and 'element_id' are default data variables (in addition to any
-    user-specified variables).
-    For each item, the element_id must be less than the number of this item's
-    grid_element that exist on the grid: e.g, if the grid has 100 links, no
-    item can live at link 100 or link -3.
+    grid element and the element id at which it resides, e.g.:
+
+        grid_element = 'node'
+        element_id = 9.
+
+    In the above case, `grid_element` and `element_id` are default data
+    variables (in addition to any user-specified variables).
+
+    For each item, `element_id` must be less than the number of this item's
+    grid_element that exist on the grid. For example, if the grid has 100
+    links, no item can live at link 100 or link -3 because only links 0 to 99
+    exist in this example.
     """
     _name = "DataRecord"
 
@@ -70,29 +72,21 @@ class DataRecord(Dataset):
         Parameters
         ----------
         grid : ModelGrid
-        time : list or array (optional)
-            Time steps to be recorded.
-            - if length=1: corresponds to first recorded timestep
-            # FUTURE IMPLEMENTATION: ############################
-            - if length=3: corresponds to all recorded timesteps,
-                            required format is [first_timestep,
-                                                last_step,
-                                                timestep_size]
-            #####################################################
-
+        time : list or 1-D array of float or int (optional)
+            The initial time coordinates to add to the recorded. A time
+            coordinate is not created if the value is 'None' (default).
         items : dict (optional)
-            If None: no item is created
-            Otherwise, dictionnary describing the position of generic items on
-            the grid.
-            Structure is:
+            No item is created if the value is 'None' (default). Otherwise,
+            dictionary describes the position of generic items on the grid. The
+            structure is:
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
-            With:
-                - [grid_element] a str or number-of-items-long array containing
-                strings of the grid element(s) on which the items live. Valid
-                locations depend on the grid type. If provided as a string
-                it is assumed that all items live on the same type of grid
-                element.
+            where:
+                - [grid_element] is a str or number-of-items-long array
+                containing strings of the grid element(s) on which the items
+                live. Valid locations depend on the grid type. If provided as a
+                string it is assumed that all items live on the same type of
+                grid element.
                 - [element_id] is an array of integers identifying the grid
                 element ID on which each item resides.
             An example argument would be:
@@ -100,11 +94,11 @@ class DataRecord(Dataset):
                  'element_id' :   numpy.array([1],      [5],      [1]     ])}
 
         data_vars : dict (optional)
-            Dictionary of the data variables to be recorded.
-            Structure is:
+            Dictionary of the data variables to be recorded. The structure is:
                 {'variable_name_1' : (['dimensions'], variable_data_1),
                  'variable_name_2' : (['dimensions'], variable_data_2)}
-                - 'variable_name' is a string of the variable name (label)
+            where:
+                - 'variable_name...' is a string of the variable name (label)
                 - ['dimensions'] is the dimension(s) over which the variable
                 exists: can be ['time'], ['item_id'] or ['item_id', 'time'].
                 - variable_data is an array containing the data, its size must
@@ -122,8 +116,7 @@ class DataRecord(Dataset):
                 - 'equals': all values and dimensions must be the same.
                 - 'identical': all values, dimensions and attributes must be
                 the same.
-                Default is 'broadcast_equals'.
-
+            The default is 'broadcast_equals'.
 
         Examples
         --------
@@ -133,10 +126,10 @@ class DataRecord(Dataset):
         >>> grid = RasterModelGrid((3,3))
 
         Example of a Datarecord with time as the only dimension:
-        >>> dr1=DataRecord(grid, time=[0.],
-        ...                data_vars={'mean_elevation' : (['time'],
-        ...                                               np.array([100]))},
-        ...                attrs={'time_units' : 'y'})
+        >>> dr1 = DataRecord(grid, time=[0.],
+        ...                  data_vars={'mean_elevation' : (['time'],
+        ...                                                 np.array([100]))},
+        ...                  attrs={'time_units' : 'y'})
 
         Datarecord is a xarray.Dataset, a multi-dimensional, in memory, array
         database. Dataset implements the mapping interface with keys given by
@@ -173,8 +166,8 @@ class DataRecord(Dataset):
 
         Note that both arrays have 1 dimension as they only vary along
         the dimension 'item_id'.
-        >>> dr2=DataRecord(grid,
-        ...                items=my_items2)
+        >>> dr2 = DataRecord(grid,
+        ...                  items=my_items2)
         >>> dr2.to_dataframe()[['grid_element', 'element_id']]
                 grid_element  element_id
         item_id
@@ -183,53 +176,45 @@ class DataRecord(Dataset):
 
         Example of a Datarecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1],[3]])}
+        ...              'element_id': np.array([[1], [3]])}
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
-        >>> dr3=DataRecord(grid,
-        ...                time=[0.],
-        ...                items=my_items3)
+        >>> dr3 = DataRecord(grid,
+        ...                  time=[0.],
+        ...                  items=my_items3)
         >>> dr3.to_dataframe()[['grid_element', 'element_id']]
                      grid_element  element_id
         item_id time
         0       0.0          node           1
         1       0.0          link           3
         """
-
         # save a reference to the grid
         self._grid = grid
 
-        # depending on the grid type, permitted locations (for items) vary:
+        # depending on the grid type, permitted locations (for items) vary
         self.permitted_locations = self._grid.groups
 
-        # TIME
-        if time is not None:
-            # create coordinates for the dimension 'time':
-            if len(time) == 1:
-                self._times = np.array(time)
-            # This does not work for now:
-#            elif isinstance(time, (list, np.ndarray)):
-#                self._times = np.array(range(time[0], time[1]+time[2], time[2]))
-#                # time[1]+time[2] so that last timestep is not excluded
-                self._number_of_times = len(self._times)
-            else:
-                raise TypeError(('Time must be a list or an array of length'
-                                 ' 1'))
-                # or lenght 3, to implement
+        # set initial time coordinates, if any
+        if isinstance(time, (list, np.ndarray)):
+            self._times = np.array(time)
+        elif time is not None:
+            raise TypeError('time must be a list or numpy array')
 
-        # ITEMS
+        # set initial items, if any
         if items is not None:
             try:
                 items.keys()
-            except AttributeError: # items is not a dict
-                raise TypeError(('You must provide an ''items'' dictionary '
+            except AttributeError:
+                # items is not a dict
+                raise TypeError(('You must provide an `items` dictionary '
                                  '(see documentation for required format)'))
             try:
                 self.grid_elements, self.element_ids = (
                         items['grid_element'], items['element_id'])
-            except KeyError: # grid_element and/or element_id not provided
-                print('You must provide an ''items'' dictionnary,'
+            except KeyError:
+                # grid_element and/or element_id not provided
+                print('You must provide an `items` dictionary,'
                       '(see documentation for required format)')
 
             self._number_of_items = len(self.element_ids)
@@ -238,14 +223,13 @@ class DataRecord(Dataset):
                     pass
                 else:
                     raise ValueError(('The number of grid_element passed '
-                                  'to Datarecord must be 1 or equal '
-                                  'to the number of element_id.'))
+                                      'to Datarecord must be 1 or equal '
+                                      'to the number of element_id.'))
 
             # check that grid_element and element_id exist on the grid and
             # have valid format:
             self.grid_elements = self._check_grid_element_and_id(
                     self.grid_elements, self.element_ids)
-
 
             # check that element IDs do not exceed number of elements
             # on this grid:
@@ -264,10 +248,10 @@ class DataRecord(Dataset):
                                 ['item_id', 'time'], self.grid_elements),
                          'element_id' : (
                                  ['item_id', 'time'], self.element_ids)}
-                coords = {'time' : self._times,
-                          'item_id' : self.item_ids}
+                coords = {'time' : self._times, 'item_id' : self.item_ids}
 
-            else: # no time
+            else:
+                # no time
                 self.item_ids = np.array(range(self._number_of_items))
                 data_vars_dict = {
                         'grid_element' : (
@@ -275,7 +259,6 @@ class DataRecord(Dataset):
                          'element_id' : (
                                  ['item_id'], self.element_ids)}
                 coords = {'item_id' : self.item_ids}
-
 
         else:
             # no items, initial dictionary of variables is empty:
@@ -289,7 +272,7 @@ class DataRecord(Dataset):
         if data_vars is not None:
 
             # TO DO: CHECK FORMAT OF THE PASSED DATA_VARS DICTIONARY:
-            # - must be dictionnary,
+            # - must be dictionary,
             # - must have format: {'data_var_name' : ([dim(s)], data)}
             # - [dim(s)] must be ['time'], ['item_id'] or ['time', 'item_id']
             # - data must have size of its dimension(s): no need to check that,
@@ -300,8 +283,8 @@ class DataRecord(Dataset):
             try:
                 data_vars.keys() # check if dict
             except AttributeError: # data_vars not a dict
-                raise TypeError(('Data variables (data_vars) passed to'
-                                 ' DataRecord must be a dictionary (see '
+                raise TypeError(('Data variables (data_vars) passed to '
+                                 'DataRecord must be a dictionary (see '
                                  'documentation for valid structure)'))
             for key in data_vars.keys(): # check dict format and dims:
                 if ((data_vars[key][0] in (['time'],
@@ -309,7 +292,7 @@ class DataRecord(Dataset):
                                       ['time', 'item_id'],
                                       ['item_id', 'time'])) == False):
                     raise ValueError ('Data variable dimensions must be '
-                                      ' time and/or item_id')
+                                      'time and/or item_id')
 
             # create complete dictionary of variables
             # (= initial data_vars_dict + additional user-defined data_vars):
@@ -331,8 +314,7 @@ class DataRecord(Dataset):
                                          compat=compat)
 
     def _check_grid_element_and_id(self, grid_element, element_id, flag=None):
-        """Check that grid_element and element_id are permitted and the
-        right size."""
+        """Check the location and size of grid_element and element_id."""
         if isinstance(grid_element, string_types):
             # all items are on same type of grid_element
             if grid_element in self.permitted_locations:
@@ -342,24 +324,27 @@ class DataRecord(Dataset):
                                   ' is not a permitted location for this grid '
                                   'type.'))
 
-            #create list of grid_element for all items:
+            # create list of grid_element for all items
             ge_name = grid_element
 
-            try: # if time
+            try:
+                # if time
                 #self._number_of_times
                 grid_element = np.array(
                     np.empty((self._number_of_items,
                               self._number_of_times), dtype=object))
-            except (AttributeError, RuntimeError): # no time
+            except (AttributeError, RuntimeError):
+                # no time
                 grid_element = np.array(
                     np.empty((self._number_of_items, ), dtype=object))
             grid_element.fill(ge_name)
 
-        else: # each item on different grid element
+        else:
+            # each item on different grid element
 
             for loc in grid_element:
                 if isinstance(loc, np.ndarray):
-                    loc=loc[0]#depending on dims
+                    loc = loc[0] # depending on dims
 
                 if loc in self.permitted_locations:
                     pass
@@ -368,7 +353,7 @@ class DataRecord(Dataset):
                             'One or more of the grid elements provided is/are'
                             ' not permitted location for this grid type.'))
 
-        if flag==1: # testing values passed to add_record: don't check length
+        if flag == 1: # testing values passed to add_record: don't check length
             pass
         else:
             if len(grid_element) != self._number_of_items:
@@ -402,12 +387,12 @@ class DataRecord(Dataset):
                              'DataRecord, this is not permitted.'))
 
     def add_record(self,
-                   time = None,
+                   time=None,
                    item_id=None,
                    new_item_loc=None,
                    new_record=None,
                    **kwargs):
-        """ Add a time-related record to an existing DataRecord.
+        """Add a time-related record to an existing DataRecord.
 
         Parameters
         ----------
@@ -445,9 +430,9 @@ class DataRecord(Dataset):
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
-        >>> dr3=DataRecord(grid,
-        ...                time=[0.],
-        ...                items=my_items3)
+        >>> dr3 = DataRecord(grid,
+        ...                  time=[0.],
+        ...                  items=my_items3)
 
         Records relating to pre-existing items can be added to the Datarecord
         using the method 'add_record':
@@ -474,9 +459,9 @@ class DataRecord(Dataset):
         2.0         NaN
         50.0      110.0
         """
-
         if time is not None:
-            try: # check that time is a dim of the Datarecord
+            try:
+                # check that time is a dim of the Datarecord
                 self['time']
             except KeyError:
                 raise KeyError(('This Datarecord does not record time'))
@@ -507,18 +492,15 @@ class DataRecord(Dataset):
                     coords_to_add = {'time' : np.array(time),
                                      'item_id' : item_id}
 
-                    # if item location is changed by this new record,
-                    # check that both grid_element and element_id
-                    # are provided:
+                    # if item location is changed by this new record, check
+                    # that both grid_element and element_id are provided:
                     if new_item_loc is not None:
                         try:
-                            new_grid_element = new_item_loc[
-                                    'grid_element']
-                            new_element_id = new_item_loc[
-                                    'element_id']
+                            new_grid_element = new_item_loc['grid_element']
+                            new_element_id = new_item_loc['element_id']
                         except KeyError:
                                 raise KeyError(('You must provide a '
-                                      'new_item_loc dictionnary with both '
+                                      'new_item_loc dictionary with both '
                                       'grid_element and element_id'))
                         # check that grid_element and element_id exist
                         # on the grid and have valid format:
@@ -541,15 +523,19 @@ class DataRecord(Dataset):
                              'element_id' : (
                                      ['item_id', 'time'],
                                      new_element_id)}
-                    else: # new_item_loc is  None
+                    else:
+                        # new_item_loc is `None`
                         _new_data_vars = {}
-                else: # no item
+                else:
+                    # no item
                     coords_to_add = {'time' : np.array(time)}
                     _new_data_vars = {}
 
-        else: # no time
+        else:
+            # no time
             if item_id is not None:
-                for i in item_id: # check that item_id already exist:
+                for i in item_id:
+                    # check that item_id already exist
                     if i not in self['item_id'].values:
                         raise ValueError ('There is no item with item_id '
                                            + str(i) +', modify the value(s) '
@@ -563,7 +549,7 @@ class DataRecord(Dataset):
                 _new_data_vars = {}
 
                 # if item location is changed by this new record, check
-                    # that both grid_element and element_id are provided:
+                # both grid_element and element_id are provided
                 if new_item_loc is not None:
                     try:
                         new_grid_element, new_element_id = (
@@ -571,11 +557,11 @@ class DataRecord(Dataset):
                                 new_item_loc['element_id'])
                     except KeyError:
                         raise KeyError(('You must provide an new_item_loc '
-                              'dictionnary with both grid_element and '
+                              'dictionary with both grid_element and '
                               'element_id'))
 
                     # check that grid_element and element_id exist on
-                    # the grid and have valid format:
+                    # the grid and have valid format
                     new_grid_element = (
                             self._check_grid_element_and_id(
                             new_grid_element,
@@ -583,7 +569,7 @@ class DataRecord(Dataset):
                             flag=1))
 
                     # check that element IDs do not exceed number of
-                    # elements on this grid:
+                    # elements on this grid
                     self._check_element_id_values(new_grid_element,
                                                   new_element_id)
 
@@ -596,11 +582,11 @@ class DataRecord(Dataset):
         # add new_record to dict of variables to add
             _new_data_vars.update(new_record)
 
-        # Dataset of new record:
+        # create dataset of new record
         ds_to_add = Dataset(data_vars=_new_data_vars,
                             coords=coords_to_add,
                             **kwargs)
-        # Merge new record and original dataset:
+        # merge new record and original dataset
         #new_ds = xr.concat((self, ds_to_add), compat='equals')
         self.merge(ds_to_add, inplace='True', compat='no_conflicts')
 
@@ -609,8 +595,7 @@ class DataRecord(Dataset):
                   new_item=None,
                   new_item_spec=None,
                   **kwargs):
-
-        """ Add new item(s) to the current Datarecord.
+        """Add new item(s) to the current Datarecord.
 
         time : list or 1-D array of float or int
             Time step at which the items are to be added.
@@ -618,7 +603,7 @@ class DataRecord(Dataset):
             Structure is:
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
-            with:
+            where:
                 - [grid_element] is str or number-of-items long array
                 containing strings of the grid element(s) on which the items
                 live. Valid locations depend on the grid type. If provided as
@@ -634,13 +619,12 @@ class DataRecord(Dataset):
             'grid_element' and 'element_id') relating to the new item(s) to be
             added. Structure is:
                 {'variable_name_1' : (['dimensions'], variable_data_1)}
-            with:
+            where:
                 - 'variable_name_1' : name of the (potentially new) variable
                 - ['dimensions'] : dimension(s) along which the new record
                 varies; can be ['time'], ['item_id] or ['item_id', 'time']
                 - variable_data_1 : new data array, size must match the
                 variable dimension(s)
-
 
         Examples
         --------
@@ -655,9 +639,9 @@ class DataRecord(Dataset):
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
-        >>> dr3=DataRecord(grid,
-        ...                time=[0.],
-        ...                items=my_items3)
+        >>> dr3 = DataRecord(grid,
+        ...                  time=[0.],
+        ...                  items=my_items3)
 
         Items can be added to a Datarecord that already holds similar items,
         using the method 'add_item':
@@ -682,7 +666,6 @@ class DataRecord(Dataset):
         items, at time=1; the first two items don't have a value for the
         variable 'size'.
         """
-
         if time is None and 'time' in self['grid_element'].coords:
             raise ValueError(('The items previously defined in this Datarecord'
                               ' have dimensions "time" and "item_id", '
@@ -692,14 +675,14 @@ class DataRecord(Dataset):
         try:
             new_item.keys()
         except AttributeError: # new_item is not a dict
-            raise TypeError('You must provide an new_item dictionnary'
-                          ' (see documentation for required format)')
+            raise TypeError('You must provide an new_item dictionary '
+                            '(see documentation for required format)')
         try:
             self.grid_elements, self.element_ids = (
                     new_item['grid_element'], new_item['element_id'])
         except KeyError: # items dict does not contain correct entries
-            raise KeyError('You must provide a new_item dictionnary '
-                      '(see documentation for required format)')
+            raise KeyError('You must provide a new_item dictionary '
+                           '(see documentation for required format)')
 
         number_of_new_items = len(new_item['element_id'])
         # first id of new item = last item in existing datarecord+1
@@ -721,7 +704,7 @@ class DataRecord(Dataset):
                         'time' : np.array(time),
                         'item_id' : np.array(new_item_ids)}
                 # check that grid_element and element_id exist
-                # on the grid and have valid format:
+                # on the grid and have valid format
                 self.grid_elements = (
                         self._check_grid_element_and_id(
                                 self.grid_elements,
@@ -740,7 +723,8 @@ class DataRecord(Dataset):
                                 self.element_ids)}
 
 
-        else: # model time is None
+        else:
+            # model time is None
             coords_to_add = {'item_id' : np.array(new_item_ids)}
             # check that grid_element and element_id exist on
             # the grid and have valid format:
@@ -749,14 +733,11 @@ class DataRecord(Dataset):
                                     self.element_ids)
             # check that element IDs do not exceed number of
             # elements on this grid
-            self._check_element_id_values(
-                    self.grid_elements, self.element_ids)
+            self._check_element_id_values(self.grid_elements, self.element_ids)
 
             data_vars_dict = {'grid_element' : (
                     ['item_id'], self.grid_elements),
                  'element_id' : (['item_id'], self.element_ids)}
-
-
 
         # other variables:
         if new_item_spec is not None:
@@ -770,8 +751,7 @@ class DataRecord(Dataset):
         self.merge(ds_to_add, inplace='True', compat='no_conflicts')
 
     def get_data(self, time=None, item_id=None, data_variable=None):
-        """Get the value of a variable in the record at a model time
-        and/or for an item.
+        """Get the value of a variable at a model time and/or for an item.
 
         Parameters
         ----------
@@ -785,9 +765,8 @@ class DataRecord(Dataset):
         Returns
         -------
         object
-            The value of *variable* at *time* and/or for *item_id.
-            The type of the returned object is dependent on the type of
-            the variable value.
+            The value of *variable* at *time* and/or for *item_id*. The type of
+            the returned object is dependent on the type of the variable value.
 
         Examples
         --------
@@ -850,20 +829,19 @@ class DataRecord(Dataset):
             except TypeError:
                 raise TypeError(('time must be a list or a 1-D array'))
             try:
-                time_index=int(self.time_coordinates.index(time[0]))
+                time_index = int(self.time_coordinates.index(time[0]))
             except ValueError:
                 raise IndexError(('The time you passed is not currently'
                                 ' in the Datarecord, you must change the value'
                                 ' you pass or first create the new time '
                                 ' coordinate using the add_record method.'))
             if item_id is None:
-                return self.isel(
-                        time=time_index)[data_variable].values
+                return self.isel(time=time_index)[data_variable].values
             else:
                 try:
                     self['item_id']
                 except KeyError:
-                    raise KeyError(('This Datarecord does not hold items'))
+                    raise KeyError(('This DataRecord does not hold items'))
                 try:
                     len(item_id)
                 except TypeError:
@@ -872,7 +850,7 @@ class DataRecord(Dataset):
                     self['item_id'].values[item_id]
                 except IndexError:
                     raise IndexError(('The item_id you passed does not exist '
-                                      'in this Datarecord'))
+                                      'in this DataRecord'))
                 return self.isel(time=time_index,
                                  item_id= item_id)[
                                  data_variable].values
@@ -882,8 +860,10 @@ class DataRecord(Dataset):
                  item_id=None,
                  data_variable=None,
                  new_value=np.nan):
-        """Set the value of a variable in the record at a model time
-        and/or for an item to a new value. (Change only 1 data at a time)
+        """Set a variable value at a model time and/or an item to a new value.
+
+        The value of only one variable can be changed at a time using this
+        method.
 
         Parameters
         ----------
@@ -915,10 +895,10 @@ class DataRecord(Dataset):
         'time' and 'item_id'.
         >>> my_data4 = {'item_size': (['item_id', 'time'], np.array(
         ...                                 [[0.3],[0.4],[0.8],[0.4]]))}
-        >>> dr4=DataRecord(grid,
-        ...                time=[50.],
-        ...                items=my_items4,
-        ...                data_vars=my_data4)
+        >>> dr4 = DataRecord(grid,
+        ...                  time=[50.],
+        ...                  items=my_items4,
+        ...                  data_vars=my_data4)
         >>> dr4['item_size'].values
         array([[ 0.3],
                [ 0.4],
@@ -931,7 +911,6 @@ class DataRecord(Dataset):
                [ 0.5],
                [ 0.4]])
         """
-
         if data_variable not in self.variable_names:
             raise KeyError("the variable '{}' is not in the "
                            "Datarecord".format(data_variable))
@@ -958,14 +937,12 @@ class DataRecord(Dataset):
                 assoc_grid_element = self.get_data(time,
                                                    item_id,
                                                    'grid_element')[0]
-            _ = (self._check_grid_element_and_id(assoc_grid_element,
-                                                 assoc_element_id,
-                                                 flag=1))
+            _ = self._check_grid_element_and_id(assoc_grid_element,
+                                                assoc_element_id, flag=1)
             if assoc_element_id >= self._grid[assoc_grid_element].size:
                 raise ValueError(('The location ' + assoc_grid_element + ' ' +
                                   str(assoc_element_id) +
                                   ' does not exist on this grid.'))
-
 
         if time is None:
             self[data_variable].values[item_id] = new_value
@@ -975,11 +952,11 @@ class DataRecord(Dataset):
             except TypeError:
                 raise TypeError(('time must be a list or a 1-d array'))
             try:
-                time_index=int(self.time_coordinates.index(time[0]))
+                time_index = np.where(self.time.values == time)[0][0]
             except ValueError:
 #            if time not in self.time_coordinates:
                 raise IndexError(('The time you passed is not currently'
-                                ' in the Datarecord, you must change the value'
+                                ' in the DataRecord, you must change the value'
                                 ' you pass or first create the new time '
                                 ' coordinate using the add_record method.'))
 
@@ -996,8 +973,7 @@ class DataRecord(Dataset):
                     self[data_variable].values[item_id, time_index] = (
                             new_value)
                 except KeyError:
-                    raise KeyError(('This datarecord does not hold items'))
-
+                    raise KeyError(('This DataRecord does not hold items'))
 
     def calc_aggregate_value(self,
                              func,
@@ -1006,15 +982,14 @@ class DataRecord(Dataset):
                              filter_array=None,
                              args=(),
                              **kwargs):
-
         """Apply a function to a variable aggregated at grid elements.
 
         Parameters
         ----------
         func : function
-            Function to apply to aggregated
+            Function to apply to be aggregated.
         data_variable : str
-            Name of variable on which to apply the function
+            Name of variable on which to apply the function.
         at : str, optional
             Name of grid element at which to apply the function.
             Default is "node".
@@ -1022,14 +997,16 @@ class DataRecord(Dataset):
             DataRecord (optional)
             Array to filter the DataRecord before aggregation.
         args : tuple (optional)
-            Additional positional arguments to pass to the function
+            Additional positional arguments to pass to the function.
         **kwargs : key value pairs (optional)
             Additional keyword arguments to pass to func.
+
         Returns
         -------
         out : ndarray
             Array of size number-of-grid_elements (grid_elements is the group
             passed as 'at' argument).
+
         Examples
         --------
         >>> import numpy as np
@@ -1055,9 +1032,10 @@ class DataRecord(Dataset):
         True
 
         If you want to first filter the DataRecord and then aggregate, first
-        create a filter array that dimesions matching that of the DataRecord
-        and has True for entries that should be retained and False for entries
-        that should be ignored.
+        create a filter array with dimensions matching that of the DataRecord
+        and has `True` for entries that should be retained and False for
+        entries that should be ignored.
+
         For example, if we wanted to aggregate volume for items with an age
         greater than 10 we would to the following:
         >>> f = dr['ages'] > 10.
@@ -1109,8 +1087,9 @@ class DataRecord(Dataset):
         return out
 
     def ffill_grid_element_and_id(self):
-        """ Fill NaN values of the fields 'grid_element' and 'element_id' by
-        propagating values forward in time.
+        """Fill NaN values of the fields 'grid_element' and 'element_id'.
+
+        Fields are filled by propagating values forward in time.
         """
         ############# ADD EXAMPLE AND TEST #######################
 
@@ -1131,8 +1110,7 @@ class DataRecord(Dataset):
 
     @property
     def variable_names(self):
-        """Return the name(s) of the data variable(s) in the Datarecord as a
-        list.
+        """Return the name(s) of the data variable(s) in the record as a list.
         """
         _keys = []
         for key in self.to_dataframe().keys():
@@ -1141,46 +1119,45 @@ class DataRecord(Dataset):
 
     @property
     def number_of_items(self):
-        """Return the number of items in the Datarecord.
+        """Return the number of items in the DataRecord.
         """
         return len(self.item_id)
 
     @property
     def item_coordinates(self):
-        """Return a list of the item_id coordinates in the Datarecord.
+        """Return a list of the item_id coordinates in the DataRecord.
         """
         return self.item_id.values.tolist()
 
     @property
     def number_of_timesteps(self):
-        """Return the number of time steps in the Datarecord.
+        """Return the number of time steps in the DataRecord.
         """
         return len(self.time)
 
     @property
     def time_coordinates(self):
-        """Return a list of the time coordinates in the Datarecord.
+        """Return a list of the time coordinates in the DataRecord.
         """
         return self.time.values.tolist()
 
     @property
     def earliest_time(self):
-        """Return the earliest time coordinate in the Datarecord.
+        """Return the earliest time coordinate in the DataRecord.
         """
         return min(self.time.values)
 
     @property
     def latest_time(self):
-        """Return the latest time coordinate in the Datarecord.
+        """Return the latest time coordinate in the DataRecord.
         """
         return max(self.time.values)
 
     @property
     def prior_time(self):
-        """Return the penultimate time coordinate in the Datarecord.
+        """Return the penultimate time coordinate in the DataRecord.
         """
         if self.number_of_timesteps < 2:
             return np.nan
         else:
             return sorted(self.time_coordinates)[-2]
-
