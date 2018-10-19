@@ -124,24 +124,18 @@ class DataRecord(Dataset):
         name.
         A DataRecord can have dimensions 'time' and/or 'item_id'.
         Coordinates are one dimensional arrays used for label-based indexing.
-
-        >>> dr1
-        <xarray.DataRecord>
-        Dimensions:         (time: 1)
-        Coordinates:
-          * time            (time) float64 0.0
-        Data variables:
-            mean_elevation  (time) int64 100
-        Attributes:
-            time_units:  y
-
         DataRecord inherits all the methods and attributes from xarray.Dataset.
-        >>> dr1['mean_elevation'].values
-        array([100])
+
         >>> dr1.dims
         Frozen(SortedKeysDict({'time': 1}))
-        >>> dr1.attrs['time_units']
-        'y'
+        >>> dr1.time.values
+        array([ 0.])
+        >>> dr1.variable_names
+        ['mean_elevation']
+        >>> dr1['mean_elevation'].values
+        array([100])
+        >>> dr1.attrs
+        OrderedDict([('time_units', 'y')])
         >>> dr1.to_dataframe()
               mean_elevation
         time
@@ -150,11 +144,12 @@ class DataRecord(Dataset):
         Example of a DataRecord with item_id as the only dimension:
         >>> my_items2 = {'grid_element': np.array(('node', 'link'), dtype=str),
         ...              'element_id': np.array([1, 3])}
-
-        Note that both arrays have 1 dimension as they only vary along
-        the dimension 'item_id'.
         >>> dr2 = DataRecord(grid,
         ...                  items=my_items2)
+
+        Note that both arrays (grid_element and element_id) have 1 dimension
+        as they only vary along the dimension 'item_id'.
+
         >>> dr2.to_dataframe()[['grid_element', 'element_id']]
                 grid_element  element_id
         item_id
@@ -164,12 +159,13 @@ class DataRecord(Dataset):
         Example of a DataRecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
         ...              'element_id': np.array([[1], [3]])}
-
-        Note that both arrays have 2 dimensions as they vary along dimensions
-        'time' and 'item_id'.
         >>> dr3 = DataRecord(grid,
         ...                  time=[0.],
         ...                  items=my_items3)
+
+        Note that both arrays have 2 dimensions as they vary along dimensions
+        'time' and 'item_id'.
+
         >>> dr3.to_dataframe()[['grid_element', 'element_id']]
                      grid_element  element_id
         item_id time
@@ -591,8 +587,8 @@ class DataRecord(Dataset):
         ...                              ['item_id', 'time'], [[10],[5]])})
 
         Two items have been added at a new timestep 1.0:
-        >>> dr3['item_id'].values, dr3['time'].values
-        (array([0, 1, 2, 3]), array([ 0.,  1.]))
+        >>> dr3.item_coordinates, dr3.time_coordinates
+        ([0, 1, 2, 3], [0.0, 1.0])
 
         If a data variable is also added with the new items ('size' in this
         example), the values for this variable are filled with 'nan' for the
