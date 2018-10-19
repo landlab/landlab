@@ -126,20 +126,22 @@ class DataRecord(Dataset):
         Coordinates are one dimensional arrays used for label-based indexing.
         DataRecord inherits all the methods and attributes from xarray.Dataset.
 
-        >>> dr1.dims
-        Frozen(SortedKeysDict({'time': 1}))
-        >>> dr1.time.values
-        array([ 0.])
-        >>> dr1.variable_names
-        ['mean_elevation']
-        >>> dr1['mean_elevation'].values
-        array([100])
-        >>> dr1.attrs
-        OrderedDict([('time_units', 'y')])
         >>> dr1.to_dataframe()
               mean_elevation
         time
         0.0              100
+
+        >>> dr1.time.values
+        array([ 0.])
+
+        >>> dr1.variable_names
+        ['mean_elevation']
+
+        >>> dr1['mean_elevation'].values
+        array([100])
+
+        >>> dr1.attrs
+        OrderedDict([('time_units', 'y')])
 
         Example of a DataRecord with item_id as the only dimension:
         >>> my_items2 = {'grid_element': np.array(('node', 'link'), dtype=str),
