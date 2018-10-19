@@ -587,8 +587,10 @@ class DataRecord(Dataset):
         ...                              ['item_id', 'time'], [[10],[5]])})
 
         Two items have been added at a new timestep 1.0:
-        >>> dr3.item_coordinates, dr3.time_coordinates
-        ([0, 1, 2, 3], [0.0, 1.0])
+        >>> dr3.number_of_items
+        4
+        >>> dr3.time_coordinates
+        [0.0, 1.0]
 
         If a data variable is also added with the new items ('size' in this
         example), the values for this variable are filled with 'nan' for the
