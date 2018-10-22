@@ -107,8 +107,6 @@ def sink_grid4():
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 
-    # fr = FlowRouter(mg)
-
     return sink_grid
 
 
@@ -158,5 +156,4 @@ def sink_grid5():
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 
-    # fr = FlowRouter(mg)
     return sink_grid

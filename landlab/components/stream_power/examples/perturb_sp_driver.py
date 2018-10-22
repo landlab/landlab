@@ -10,8 +10,7 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder
 from landlab.components.stream_power import FastscapeEroder as Fsc
 from landlab.plot.video_out import VideoPlotter
 from landlab.plot import channel_profile as prf
@@ -41,7 +40,7 @@ mg.add_zeros('topographic__elevation', at='node')
 z = mg.zeros(at='node') + init_elev
 mg['node'][ 'topographic__elevation'] = z + numpy.random.rand(len(z))/1000.
 
-#make some K values in a field to test 
+#make some K values in a field to test
 mg.at_node['K_values'] = 1.e-6+numpy.random.rand(nrows*ncols)*1.e-8
 
 mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
@@ -49,7 +48,7 @@ mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 print( 'Running ...' )
 
 #instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 fsp = Fsc(mg, './drive_sp_params.txt')
 
@@ -68,7 +67,7 @@ except NameError:
         if elapsed_time+dt>time_to_run:
             print("Short step!")
             dt = time_to_run - elapsed_time
-        mg = fr.route_flow()
+        mg = fr.run_one_step()
         #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
         mg = fsp.erode(mg)
         #mg,_,_ = sp.erode(mg, dt, node_drainage_areas='drainage_area', slopes_at_nodes='topographic__steepest_slope')
@@ -80,7 +79,7 @@ except NameError:
 
 else:
     #reinstantiate the components with the new grid
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director='D8')
     sp = StreamPowerEroder(mg, './drive_sp_params.txt')
     fsp = Fsc(mg, './drive_sp_params.txt')
 
@@ -102,7 +101,7 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print("Short step!")
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow()
+    mg = fr.run_one_step()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
     #mg = fsp.erode(mg)
     mg,_,_ = sp.erode(mg, dt, K_if_used='K_values')
@@ -157,5 +156,3 @@ pylab.title('Slope-Area')
 pylab.show()
 
 print('Done.')
-
-

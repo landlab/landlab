@@ -8,9 +8,20 @@ Created on Thu Sep 21 16:52:10 2017
 
 from landlab import RasterModelGrid
 from landlab.components import TransportLengthHillslopeDiffuser
-from landlab.components import FlowDirectorSteepest
+from landlab.components import FlowDirectorSteepest, FlowAccumulator
 import numpy as np
 from numpy.testing import assert_equal, assert_almost_equal
+import pytest
+
+def test_route_to_multiple_error_raised():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        TransportLengthHillslopeDiffuser(mg, erodibility=1.0, slope_crit=0.5)
 
 
 def test_tl_hill_diff():
