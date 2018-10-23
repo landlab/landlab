@@ -16,7 +16,7 @@ shape = (3,3)
 my_items2 = {'grid_element': np.array(('node', 'link'), dtype=str),
              'element_id': np.array([1, 3])}
 
-def test_dr_time_name(dr_item):
+def test_dr_item_name(dr_item):
     assert dr_item._name == 'DataRecord'
 
 def test_grid_shape(dr_item):

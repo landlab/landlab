@@ -28,7 +28,7 @@ def get_watershed_mask(grid, outlet_id):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowRouter
+    >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_mask
 
     >>> rmg = RasterModelGrid((7, 7), 1)
@@ -47,7 +47,7 @@ def get_watershed_mask(grid, outlet_id):
     >>> rmg.set_fixed_value_boundaries_at_grid_edges(False, False, False, True)
 
     Route flow.
-    >>> fr = FlowRouter(rmg)
+    >>> fr = FlowAccumulator(rmg, flow_director='D8')
     >>> fr.run_one_step()
 
     >>> get_watershed_mask(rmg, 2)
@@ -122,7 +122,7 @@ def get_watershed_nodes(grid, outlet_id):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowRouter
+    >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_nodes
 
     >>> rmg = RasterModelGrid((7, 7), 1)
@@ -140,7 +140,7 @@ def get_watershed_nodes(grid, outlet_id):
     ...                                                nodata_value=-9999.)
 
     Route flow.
-    >>> fr = FlowRouter(rmg)
+    >>> fr = FlowAccumulator(rmg, flow_director='D8')
     >>> fr.run_one_step()
 
     Get the nodes of two watersheds.
@@ -182,7 +182,7 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowRouter
+    >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_masks_with_area_threshold
 
     Create a grid with a node spacing of 200 meter.
@@ -199,7 +199,7 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     Route flow.
-    >>> fr = FlowRouter(rmg)
+    >>> fr = FlowAccumulator(rmg, flow_director='D8')
     >>> fr.run_one_step()
 
     Get the masks of watersheds greater than or equal to 80,000 square-meters.
@@ -274,7 +274,7 @@ def get_watershed_outlet(grid, source_node_id):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowRouter
+    >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_outlet
 
     >>> rmg = RasterModelGrid((7, 7), 1)
@@ -293,7 +293,7 @@ def get_watershed_outlet(grid, source_node_id):
     ...                                                nodata_value=-9999.)
 
     Route flow.
-    >>> fr = FlowRouter(rmg)
+    >>> fr = FlowAccumulator(rmg, flow_director='D8')
     >>> fr.run_one_step()
 
     Get the grid watershed outlet.

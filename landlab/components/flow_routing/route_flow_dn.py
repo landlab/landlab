@@ -21,7 +21,6 @@ import warnings
 from landlab import ModelParameterDictionary
 from landlab import VoronoiDelaunayGrid  # for type tests
 from landlab.utils.decorators import use_file_name_or_kwds
-#import numpy
 
 from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
 
@@ -29,6 +28,9 @@ from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
 class FlowRouter(FlowAccumulator):
 
     """Single-path (steepest direction) flow routing.
+
+    **AS OF v1.5.3 THIS COMPONENT HAS BEEN DEPRECATED. USE THE FlowAccumulator
+    INSTEAD. THIS COMPONENT WILL BE REMOVED IN v2.0**
 
     This class implements single-path (steepest direction) flow routing, and
     calculates flow directions, drainage area, and (optionally) discharge.
@@ -104,7 +106,7 @@ class FlowRouter(FlowAccumulator):
     @use_file_name_or_kwds
     def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
         """Initialize FlowDirector.
-        
+
         Parameters
         ----------
         grid : ModelGrid
@@ -119,6 +121,9 @@ class FlowRouter(FlowAccumulator):
             the time of initialization, runoff_rate will *overwrite* the field.
             If neither are set, defaults to spatially constant unit input.
         """
+        msg = ("FlowRouter has been deprecated as of Landlab v1.5.2 and will be "
+               "removed in v2.0. Use FlowAccumulator instead.")
+        warnings.warn(msg, DeprecationWarning)
         self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         self._grid = grid
         if 'method' in kwds:
@@ -133,23 +138,23 @@ class FlowRouter(FlowAccumulator):
             flow_director = 'Steepest'
         else:
             flow_director = 'D8'
-        
-        super(FlowRouter, self).__init__(grid, 
+
+        super(FlowRouter, self).__init__(grid,
                                          surface = 'topographic__elevation',
                                          flow_director=flow_director,
                                          runoff_rate=runoff_rate)
 
     def _test_for_method_change(self, **kwds):
         """Provides backwards compatability for method keyword.
-        
-        The original flow router allowed the method to be specified as a 
-        keyword argument to run_one_step. Under the new flow accumulator 
-        framework this requires resetting which flow director is used. 
+
+        The original flow router allowed the method to be specified as a
+        keyword argument to run_one_step. Under the new flow accumulator
+        framework this requires resetting which flow director is used.
         """
-        
+
         # this retained for back compatibility - method now set in __init__.
         if 'method' in kwds:
-            
+
             method = kwds.pop('method')
             warnings.warn("'method' should be set at initialization now. " +
                           "Please update your code.", DeprecationWarning)
@@ -161,14 +166,14 @@ class FlowRouter(FlowAccumulator):
                 self.method = method
             if not self._is_raster:
                 self.method = None
-                
+
             if method == 'D4' or self._is_Voroni == True:
                 flow_director = 'Steepest'
             else:
                 flow_director = 'D8'
-                
+
             self._add_director(flow_director)
-        
+
     def route_flow(self, **kwds):
         """Route surface-water flow over a landscape.
 
@@ -289,9 +294,9 @@ class FlowRouter(FlowAccumulator):
                 0.,  1.,  1.,  0.,
                 0.,  0.,  0.,  0.])
 
-        The default behavior of FlowRouter is to use the D8 method. Next we 
-        will examine the alternative case of the D4 method that does not 
-        consider diagonal links bewtween nodes. 
+        The default behavior of FlowRouter is to use the D8 method. Next we
+        will examine the alternative case of the D4 method that does not
+        consider diagonal links bewtween nodes.
 
         >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
@@ -315,12 +320,12 @@ class FlowRouter(FlowAccumulator):
                 0.,  1.,  4.,  0.,
                 0.,  1.,  2.,  0.,
                 0.,  0.,  0.,  0.])
-        
-        The flow router can also work on irregular grids.  For the example we 
-        will use a Hexagonal Model Grid, a special type of Voroni Grid that has 
-        regularly spaced hexagonal cells. We will also set the dx spacing such 
-        that each cell has an area of one. 
-        
+
+        The flow router can also work on irregular grids.  For the example we
+        will use a Hexagonal Model Grid, a special type of Voroni Grid that has
+        regularly spaced hexagonal cells. We will also set the dx spacing such
+        that each cell has an area of one.
+
         >>> from landlab import HexModelGrid
         >>> dx=(2./(3.**0.5))**0.5
         >>> mg = HexModelGrid(5,3, dx)
@@ -328,19 +333,19 @@ class FlowRouter(FlowAccumulator):
         >>> fr = FlowRouter(mg)
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0,  1,  2,  
-                3,  0,  1,  6,  
-                7,  3,  4,  5, 11, 
-               12,  8,  9, 15, 
+        array([ 0,  1,  2,
+                3,  0,  1,  6,
+                7,  3,  4,  5, 11,
+               12,  8,  9, 15,
                16, 17, 18])
         >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 3.,  2.,  0., 
-                2.,  3.,  2.,  0.,  
-                0.,  2.,  2.,  1.,  0.,  
-                0., 1.,  1.,  0.,  
+        array([ 3.,  2.,  0.,
+                2.,  3.,  2.,  0.,
+                0.,  2.,  2.,  1.,  0.,
+                0., 1.,  1.,  0.,
                 0.,  0.,  0.])
 
-        Now let's return to the first example and change the cell area (100.) 
+        Now let's return to the first example and change the cell area (100.)
         and the runoff rates:
 
         >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
@@ -361,7 +366,7 @@ class FlowRouter(FlowAccumulator):
                    0.,  1300.,  1400.,     0.,
                    0.,     0.,     0.,     0.])
         """
-        
+
         self._test_for_method_change(**kwds)
         self.accumulate_flow()
 

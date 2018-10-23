@@ -53,7 +53,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     """
     r_arc_raw = np.log2(flow_dir_arc)
     r_arc_raw = r_arc_raw.astype('int')
-    neigh_ = grid.neighbors_at_node
+    neigh_ = grid.adjacent_nodes_at_node
     diag_ = grid.diagonals_at_node
     neigh_ = np.fliplr(neigh_)
     diag_ = np.fliplr(diag_)
