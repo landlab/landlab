@@ -15,7 +15,8 @@ from __future__ import print_function
 import warnings
 
 from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import RasterModelGrid, VoronoiDelaunayGrid, ModelGrid
+# ^^for type tests
 from landlab.utils.return_array import return_array_at_node
 from landlab.core.messages import warning_message
 
@@ -116,15 +117,19 @@ class LossyFlowAccumulator(FlowAccumulator):
          DepressionFinder class.
          This sets the method for depression finding.
     loss_function : Python function, optional
-        A function of the form f(Qw, [node_ID, [linkID]]), where Qw is the
-        discharge at a node, node_ID the ID of the node at which the loss
-        is to be calculated, and linkID is the ID of the link down which
-        the outflow drains. Note that if a linkID is needed, a nodeID must
-        also be specified, even if only as a dummy parameter. Both nodeID and
-        linkID are required to permit spatially variable losses, and also
-        losses dependent on flow path geometry (e.g., flow length).
-        This function should take (float, [int, [int]]), and return a single
-        float.
+        A function of the form f(Qw, [node_ID, [linkID, [grid]]]), where Qw is
+        the discharge at a node, node_ID the ID of the node at which the loss
+        is to be calculated, linkID is the ID of the link down which the
+        outflow drains, and grid is a Landlab ModelGrid. Note that if a linkID
+        is needed, a nodeID must also be specified, even if only as a dummy
+        parameter; similarly, if a grid is to be passed, all of the preceding
+        parameters must be specified. Both nodeID and linkID are required to
+        permit spatially variable losses, and also losses dependent on flow
+        path geometry (e.g., flow length). The grid is passed to allow fields
+        or grid properties describing values across the grid to be accessed
+        for the loss calculation (see examples).
+        This function should take (float, [int, [int, [ModelGrid]]]), and
+        return a single float.
     **kwargs : any additional parameters to pass to a FlowDirector or
          DepressionFinderAndRouter instance (e.g., partion_method for
          FlowDirectorMFD). This will have no effect if an instantiated component
@@ -532,8 +537,8 @@ class LossyFlowAccumulator(FlowAccumulator):
     of flow every time flow moves along a node:
 
     >>> mg = RasterModelGrid((3, 5), (1, 2))
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
+    >>> z = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
     ...                  at='node')
 
@@ -545,9 +550,17 @@ class LossyFlowAccumulator(FlowAccumulator):
     ...                           routing='D4', loss_function=mylossfunction)
     >>> fa.run_one_step()
 
-    >>> mg.at_node['drainage_area']
-    >>>
-    >>> mg.at_node['surface_water__discharge']
+    >>> mg.at_node['drainage_area'].reshape(mg.shape)
+    array([[ 0.,  0.,  0.,  0.,  0.],
+           [ 6.,  6.,  4.,  2.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.]])
+    >>> mg.at_node['surface_water__discharge'].reshape(mg.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 1.75,  3.5 ,  3.  ,  2.  ,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+
+    >>> def mylossfunction2(Qw, nodeID):
+    ...     return
     """
 
     _name = "LossyFlowAccumulator"
@@ -640,7 +653,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # now, for logical consistency in our calls to
                 # find_drainage_area_and_discharge, wrap the func so it has two
                 # arguments:
-                def lossfunc(Qw, dummyn, dummyl):
+                def lossfunc(Qw, dummyn, dummyl, dummygrid):
                     return float(loss_function(Qw))
                 self._lossfunc = lossfunc
 
@@ -654,8 +667,8 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # now, for logical consistency in our calls to
                 # find_drainage_area_and_discharge, wrap the func so it has two
                 # arguments:
-                def lossfunc(Qw, dummyn, dummyl):
-                    return float(loss_function(Qw))
+                def lossfunc(Qw, nodeID, dummyl, dummygrid):
+                    return float(loss_function(Qw, nodeID))
                 self._lossfunc = lossfunc
 
             elif loss_function.func_code.co_argcount == 3:
@@ -663,10 +676,15 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # single value:
                 if not isinstance(loss_function(1., 0, 0), float):
                     raise TypeError(
-                        'The loss_function should take (float, int), and ' +
-                        'return a float.')
-                self._lossfunc = loss_function
+                        'The loss_function should take (float, int, int), ' +
+                        'and return a float.')
+                def lossfunc(Qw, nodeID, linkID, dummygrid):
+                    return float(loss_function(Qw, nodeID, linkID))
+                self._lossfunc = lossfunc
 
+            elif loss_function.func_code.co_argcount == 4:
+                # this time, the test is too hard to implement cleanly so just
+                self._lossfunc = loss_function
             else:
                 raise ValueError(
                     'The loss_function must have only a single argument, ' +
@@ -677,10 +695,9 @@ class LossyFlowAccumulator(FlowAccumulator):
                     'which that discharge will flow.')
         else:
             # make a dummy
-            def lossfunc(Qw, dummyn, dummyl):
+            def lossfunc(Qw, dummyn, dummyl, dummygrid):
                 return float(Qw)
             self._lossfunc = lossfunc
-
 
     def accumulate_flow(self, update_flow_director=True):
         """
@@ -730,7 +747,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             # step 4. Accumulate (to one or to N depending on direction
             # method. )
             a, q = flow_accum_bw.find_drainage_area_and_discharge_lossy(
-                s, r, link, self._lossfunc, self.node_cell_area,
+                s, r, link, self._lossfunc, self._grid, self.node_cell_area,
                 self._grid.at_node["water__unit_flux_in"]
             )
             self._grid["node"]["drainage_area"][:] = a
@@ -767,7 +784,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             # step 4. Accumulate (to one or to N depending on dir method. )
             a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
-                s, r, link, p, self._lossfunc, self.node_cell_area,
+                s, r, link, p, self._lossfunc, self._grid, self.node_cell_area,
                 self._grid.at_node["water__unit_flux_in"]
             )
             # store drainage area and discharge.

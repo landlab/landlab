@@ -587,7 +587,7 @@ def find_drainage_area_and_discharge_to_n(
 
 
 def find_drainage_area_and_discharge_to_n_lossy(
-    s, r, l, p, loss_function, node_cell_area=1.0, runoff=1.0,
+    s, r, l, p, loss_function, grid, node_cell_area=1.0, runoff=1.0,
     boundary_nodes=None
 ):
 
@@ -611,6 +611,10 @@ def find_drainage_area_and_discharge_to_n_lossy(
         Function dictating how to modify the discharge as it leaves each node.
         nodeID is the current node; linkID is the downstream link. Returns a
         float.
+    grid : Landlab ModelGrid (or None)
+        A grid to enable spatially variable parameters to be used in the loss
+        function. If no spatially resolved parameters are needed, this can be
+        a dummy variable, e.g., None.
     node_cell_area : float or ndarray
         Cell surface areas for each node. If it's an array, must have same
         length as s (that is, the number of nodes).
@@ -643,8 +647,9 @@ def find_drainage_area_and_discharge_to_n_lossy(
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_accum.flow_accum_to_n import(
-    ... find_drainage_area_and_discharge_to_n_lossy)
+    ...     find_drainage_area_and_discharge_to_n_lossy)
     >>> r = np.array([[ 1,  2],
     ...               [ 3, -1],
     ...               [ 3,  1],
@@ -656,19 +661,29 @@ def find_drainage_area_and_discharge_to_n_lossy(
     >>> s = np.array([ 3, 1, 2, 0])
     >>> l = np.ones_like(r, dtype=int)  # dummy
 
-    >>> def lossfunc(Qw, dummyn, dummyl):
-    ...     return 0.5 * Qw
+    Make here a grid that contains (too many!) links holding values for loss.
+    We're only going to use the first 4 links, but illustrates the use of the
+    grid for link input.
+
+    >>> mg = RasterModelGrid((3, 3), 1.)
+    >>> lossy = mg.add_ones('link', 'lossy', dtype=float)
+    >>> lossy *= 0.5
+    >>> def lossfunc(Qw, dummyn, linkID, grid):
+    ...     return grid.at_link['lossy'][linkID] * Qw
+
     >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
-    ...     s, r, l, p, lossfunc)
+    ...     s, r, l, p, lossfunc, mg)
     >>> a
     array([ 1. ,  2.7,  1.5,  4. ])
     >>> q
     array([ 1.  ,  1.75,  1.25,  2.  ])
 
-    >>> def lossfunc(Qw, dummyn, dummyl):
+    Final example of total transmission loss:
+
+    >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
     ...     return Qw - 100.  # huge loss
     >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
-    ...     s, r, l, p, lossfunc)
+    ...     s, r, l, p, lossfunc, None)
     >>> a
     array([ 1. ,  2.7,  1.5,  4. ])
     >>> q
@@ -702,7 +717,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
                 if donor != recvr:
                     drainage_area[recvr] += proportion * drainage_area[donor]
                     discharge[recvr] += numpy.clip(loss_function(
-                        proportion * discharge[donor], donor, lrec),
+                        proportion * discharge[donor], donor, lrec, grid),
                         0., float('inf'))
 
     return drainage_area, discharge
