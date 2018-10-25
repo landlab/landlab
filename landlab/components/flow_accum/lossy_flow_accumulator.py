@@ -45,7 +45,9 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     Optionally a depression finding component can be specified and flow
     directing, depression finding, and flow routing can all be accomplished
-    together.
+    together. Note that the DepressionFinderAndRouter is not particularly
+    intelligent when running on lossy streams, and in particular, it will
+    reroute flow around pits even when they are in fact not filled due to loss.
 
     NOTE: The perimeter nodes  NEVER contribute to the accumulating flux, even
     if the  gradients from them point inwards to the main body of the grid.
@@ -623,7 +625,8 @@ class LossyFlowAccumulator(FlowAccumulator):
         """
         super(LossyFlowAccumulator, self).__init__(
             grid, surface=surface, flow_director=flow_director,
-            runoff_rate=runoff_rate, depression_finder=depression_finder)
+            runoff_rate=runoff_rate, depression_finder=depression_finder,
+            **kwargs)
 
         if loss_function is not None:
             # save the func for loss, and do a quick test on its inputs:
@@ -641,7 +644,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                     return float(loss_function(Qw))
                 self._lossfunc = lossfunc
 
-            if loss_function.func_code.co_argcount == 2:
+            elif loss_function.func_code.co_argcount == 2:
                 # check the func takes a single value and turns it into a new
                 # single value:
                 if not isinstance(loss_function(1., 0), float):
@@ -666,9 +669,12 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             else:
                 raise ValueError(
-                    'The loss_function must have only a single argument, which ' +
-                    'should be the discharge at a node, or a pair of arguments, ' +
-                    'which should be the discharge at a node and the node ID.')
+                    'The loss_function must have only a single argument, ' +
+                    'which should be the discharge at a node; a pair of ' +
+                    'arguments, which should be the discharge at a node and ' +
+                    'the node ID; or three arguments, which should be the ' +
+                    'discharge at a node, the node ID, and the link along ' +
+                    'which that discharge will flow.')
         else:
             # make a dummy
             def lossfunc(Qw, dummyn, dummyl):
@@ -703,7 +709,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             if self.depression_finder_provided is not None:
                 # prevent internal flow rerouting (which ignores loss), and
                 # do it (more slowly) here instead
-                self.depression_finder.map_depressions(reroute_flow=False)
+                self.depression_finder.map_depressions()
 
             # step 2. Get r
             r = self._grid["node"]["flow__receiver_node"]
