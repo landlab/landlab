@@ -21,7 +21,6 @@ from landlab import BAD_INDEX_VALUE
 
 # %% Instantiate Object
 
-
 class NetworkSedimentTransporter(Component):
     """Network bedload morphodynamic component.
 
@@ -29,9 +28,10 @@ class NetworkSedimentTransporter(Component):
     info info info
 
     **Usage:**
-    Option 1 - Uniform recharge::
+    Option 1 - Basic::
         NetworkSedimentTransporter(grid,
                              parcels,
+                             parcel_reservoir,
                              transport_method = 'WilcockCrow',
                              transporter = asdfasdf
                              discharge,
@@ -65,15 +65,23 @@ class NetworkSedimentTransporter(Component):
     """
 
 # AP note: this is where the documentation ends and the component starts...
-
+# QUESTIONS:
+#   what about the variables that aren't on the grid? (e.g. active_layer_thickness, bed_material_porosity,etc?)
+#   what about the variables attached to the DataRecord, rather than the grid?
+    
+    
     # component name
     _name = 'NetworkSedimentTransporter'
     __version__ = '1.0'
 
     # component requires these values to do its calculation, get from driver
     _input_var_names = (
-        'BMI things here',
-        'soil__thickness',
+        'topographic__elevation',    
+        'channel_slope',
+        'link_length',
+        'channel_width',
+        'flow_depth',
+        'channel_discharge'
         )
 
     #  component creates these output values
@@ -84,21 +92,33 @@ class NetworkSedimentTransporter(Component):
 
     # units for each parameter and output
     _var_units = {
-        'topographic__specific_contributing_area': 'm',
-        'topographic__slope': 'tan theta',
+        'topographic__elevation': 'm',
+        'channel_slope': 'm/m',
+        'link_length':'m',
+        'channel_width':'m',
+        'flow_depth': 'm',
+        'channel_discharge': 'm3'
         }
 
     # grid centering of each field and variable
     _var_mapping = {
-        'topographic__specific_contributing_area': 'node',
-        'topographic__slope': 'node',
+        'topographic__elevation': 'node',
+        'channel_slope': 'link',
+        'link_length':'link',
+        'channel_width':'link',
+        'flow_depth': 'link',
+        'channel_discharge': 'link'        
         }
 
     # short description of each field
     _var_doc = {
-        'topographic__specific_contributing_area':
-            ('specific contributing (upslope area/cell face )' +
-             ' that drains to node'),
+        'surface_water__depth': 'Depth of streamflow on the surface',
+        'topographic__elevation': 'Topographic elevation at that node',
+        'channel_slope': 'Slope of the river channel through each reach',
+        'link_length':'Length of each reach',
+        'channel_width':'Flow width of the channel, assuming constant width',
+        'flow_depth': 'Depth of stream flow in each reach',
+        'channel_discharge': 'Stream channel discharge in each reach'         
         }
 
     # Run Component
@@ -106,12 +126,13 @@ class NetworkSedimentTransporter(Component):
     def __init__(self,
                  grid,
                  parcels,
+                 parcel_reservoir,
                  flow_director,
                  flow_depth,
                  active_layer_thickness,
-                 Lp,
+                 bed_porosity,
                  discharge='surface_water__discharge',
-                 channel_width='channel__width',
+                 channel_width='channel_width',
                  transport_method = 'WilcockCrowe',
                  **kwds):
         """
@@ -124,8 +145,10 @@ class NetworkSedimentTransporter(Component):
         and more here...
         """
         super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
-        self._parcels = parcels
         self._grid = grid
+        self._parcels = parcels
+        self._parcel_reservoir = parcel_reservoir
+
 
         # assert that the flow director is a component and is of type
         # FlowDirectorSteepest
@@ -142,8 +165,8 @@ class NetworkSedimentTransporter(Component):
 
         # save reference to flow director
         self.fd = flow_director
-        self.Lp = Lp
-        self.H = flow_depth
+        self.flow_depth = flow_depth
+        self.bed_porosity = bed_porosity
 
         self.transport_method = transport_method # self.transport_method makes it a class variable, that can be accessed within any method within this class
         if self.transport_method =="WilcockCrowe":
@@ -155,13 +178,11 @@ class NetworkSedimentTransporter(Component):
         self._width = self._grid.at_link[channel_width]
 
         # create field for channel slope if it doesnt exist yet.
-        if "topographic__gradient" not in self._grid.at_link():
+        if "channel_slope" not in self._grid.at_link():
             self._channel_slope = self._grid.zeros(at='node')
             self._update_channel_slopes() # this would be a function that updates the channel slopes (if you use this more than once, make it a function)
         else:
-            self._channel_slope = self._grid.at_link["topographic__gradient"]
-
-
+            self._channel_slope = self._grid.at_link["channel_slope"]
 
 
     def _update_channel_slopes(self):
@@ -213,7 +234,7 @@ class NetworkSedimentTransporter(Component):
         vol_act = self._parcels.calc_aggregate_value(np.sum,
                                                   'volume',at = 'link',
                                                   filter_array = findactive)
-        self.vol_stor = (vol_tot-vol_act)/(1-self.Lp)
+        self.vol_stor = (vol_tot-vol_act)/(1-self.bed_porosity)
         # ^ Jon-- what's the rationale behind only calculating new node elevations
         # using the storage volume (rather than the full sediment volume)?
         # Jon response -- because during transport, that is the sediment defining the immobile
@@ -256,7 +277,7 @@ class NetworkSedimentTransporter(Component):
         self._update_channel_slopes()
 
 # %%
-    def _calc_transport_wilcock_crowe(self, H_foreachlink): # Allison
+    def _calc_transport_wilcock_crowe(self, flow_depth): # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation.
 
@@ -316,7 +337,7 @@ class NetworkSedimentTransporter(Component):
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = vol_act[i]
             Sarray[Linkarray == i] = self._grid.at_link['channel_slope'][i]
-            Harray[Linkarray == i] = self.H[i]
+            Harray[Linkarray == i] = self.flow_depth[i]
             Larray[Linkarray == i] = self._grid.at_link['link_length'][i]
 
         # Wilcock and crowe claculate transport for all parcels (active and inactive)
@@ -333,8 +354,8 @@ class NetworkSedimentTransporter(Component):
         W = W.real
 
         # assign travel times only where active==1
-        Ttimearray[Activearray==1] = rho**(3/2)*R[Activearray==1]*g*Larray[Activearray==1]*theta/W[Activearray==1]/tau[Activearray==1]**(3/2)/(1-frac_sand_array[Activearray==1])/frac_parcel[Activearray==1]
-        Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*theta/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
+        Ttimearray[Activearray==1] = rho**(3/2)*R[Activearray==1]*g*Larray[Activearray==1]*active_layer_thickness/W[Activearray==1]/tau[Activearray==1]**(3/2)/(1-frac_sand_array[Activearray==1])/frac_parcel[Activearray==1]
+        Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*active_layer_thickness/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
         # ^ why?? if k = 1 ---> if it's sand...?  ASK JON about the logic here...
 
         # Assign those things to the grid -- might be useful for plotting later...?
@@ -376,7 +397,10 @@ class NetworkSedimentTransporter(Component):
                     # I think we should then remove this parcel from the parcel item collector
                     # if so, we manipulate the exiting parcel here, but may want to note something about its exit
                     # such as output volume and output time into a separate outlet array
+                    
+                    
                     # ADD CODE FOR THIS HERE, right now these parcel will just cycle through not actually leaving the system
+                    
                     
                     break # break out of while loop
 
@@ -398,12 +422,21 @@ class NetworkSedimentTransporter(Component):
             # update location in current link
             location_in_link[p] = location_in_link[p] + (time_in_link_before_dt / time_to_exit_current_link[p])
 
+            # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE
+            
+            distance_traveled = 0 # NEED TO DEFINE
+            
+            volume[p] = self._parcels.DataFrame.volume.values[p]*np.exp(distance_traveled * -self._parcels.DataFrame.abrasion_rate.values[p])
+
+            D[p] = 2 * (volume[p] * 3 / (4 * np.pi))**(1/3)
+
             # update parcel attributes
             self._parcels.DataFrame.location_in_link.values[p] = location_in_link[p]
             self._parcels.DataFrame.element_id.values[p] = current_link[p]
             self._parcels.DataFrame.active_layer.values[p] = 1 # reset to 1 (active) to be recomputed/determined at next timestep
+            self._parcels.DataFrame.volume.values[p] = volume[p]
+            self._parcels.DataFrame.D.values[p] = D[p]
 
-            # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE
 
 # %%
     def run_one_step(self,dt):
