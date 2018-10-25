@@ -64,6 +64,7 @@ time_arrival_in_link = np.random.rand(np.size(element_id)) # time of arrival in 
 volume = np.ones(np.size(element_id)) # (m3) the volume of each parcel
 D = 0.05 * np.ones(np.size(element_id)) # (m) the diameter of grains in each parcel
 lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each parcel
+abrasion_rate = 0 * np.ones(np.size(element_id)) # 0 = no abrasion; abrasion rates are positive mass loss coefficients
 active_layer = np.ones(np.size(element_id)) # 1 = active/surface layer; 0 = subsurface layer
 density = 2650 * np.ones(np.size(element_id)) # (kg/m3) 
 
@@ -81,7 +82,8 @@ data = {'starting_link': starting_link,
         'time_arrival_in_link': time_arrival_in_link,
         'active_layer': active_layer,
         'density': density,
-        'location_in_link': location_in_link}
+        'location_in_link': location_in_link
+        'abrasion_rate': abrasion_rate}
         
 parcels = ItemCollection(grid,
     data = data,
