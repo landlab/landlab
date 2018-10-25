@@ -587,7 +587,7 @@ def find_drainage_area_and_discharge_to_n(
 
 
 def find_drainage_area_and_discharge_to_n_lossy(
-    s, r, p, loss_function, node_cell_area=1.0, runoff=1.0,
+    s, r, l, p, loss_function, node_cell_area=1.0, runoff=1.0,
     boundary_nodes=None
 ):
 
