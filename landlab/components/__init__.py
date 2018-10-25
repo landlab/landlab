@@ -10,6 +10,7 @@ from .flow_director import FlowDirectorSteepest
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
+from .flow_accum import LossyFlowAccumulator
 from .overland_flow import OverlandFlowBates, OverlandFlow
 from .overland_flow import KinwaveImplicitOverlandFlow, KinwaveOverlandFlowModel
 from .potentiality_flowrouting import PotentialityFlowRouter
@@ -52,7 +53,8 @@ COMPONENTS = [ChiFinder, LinearDiffuser,
               ExponentialWeatherer, DepthDependentDiffuser,
               TaylorNonLinearDiffuser, DepthSlopeProductErosion,
               FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
-              FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
+              FlowDirectorDINF, FlowAccumulator, LossyFlowAccumulator,
+              Space, ErosionDeposition,
               LandslideProbability, DepthDependentTaylorDiffuser,
               NormalFault, Lithology, LithoLayers]
 
