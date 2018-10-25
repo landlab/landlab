@@ -559,8 +559,99 @@ class LossyFlowAccumulator(FlowAccumulator):
            [ 1.75,  3.5 ,  3.  ,  2.  ,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
 
-    >>> def mylossfunction2(Qw, nodeID):
-    ...     return
+    Here we use a spatially distributed field to derive loss terms, and also
+    use a filled, non-raster grid.
+
+    >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
+    >>> hmg = HexModelGrid(5,3, dx)
+    >>> z = hmg.add_field('topographic__elevation',
+    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...                     at = 'node')
+    >>> z[9] = -10.  # poke a hole
+    >>> lossy = hmg.add_zeros('node', 'mylossterm', dtype=float)
+    >>> lossy[14] = 1.  # suppress all flow from node 14
+
+    Without loss looks like this:
+
+    >>> fa = LossyFlowAccumulator(hmg, 'topographic__elevation',
+    ...                           flow_director=FlowDirectorSteepest,
+    ...                           depression_finder=DepressionFinderAndRouter)
+    >>> fa.run_one_step()
+    >>> hmg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0,  1,  2,
+            3,  0,  9,  6,
+            7,  9,  4,  9, 11,
+           12,  9,  9, 15,
+           16, 17, 18])
+    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 7.,  0.,  0.,
+            0.,  7.,  1.,  0.,
+            0.,  1.,  6.,  1.,  0.,
+            0., 1.,  1.,  0.,
+            0.,  0.,  0.])
+    >>> hmg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 7.,  0.,  0.,
+            0.,  7.,  1.,  0.,
+            0.,  1.,  6.,  1.,  0.,
+            0., 1.,  1.,  0.,
+            0.,  0.,  0.])
+
+    With loss looks like this:
+
+    >>> def mylossfunction2(Qw, nodeID, linkID, grid):
+    ...     return (1. - grid.at_node['mylossterm'][nodeID]) * Qw
+    >>> fa = LossyFlowAccumulator(hmg, 'topographic__elevation',
+    ...                           flow_director=FlowDirectorSteepest,
+    ...                           depression_finder=DepressionFinderAndRouter,
+    ...                           loss_function=mylossfunction2)
+    >>> fa.run_one_step()
+    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 7.,  0.,  0.,
+            0.,  7.,  1.,  0.,
+            0.,  1.,  6.,  1.,  0.,
+            0., 1.,  1.,  0.,
+            0.,  0.,  0.])
+    >>> hmg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 6.,  0.,  0.,
+            0.,  6.,  1.,  0.,
+            0.,  1.,  5.,  1.,  0.,
+            0., 1.,  1.,  0.,
+            0.,  0.,  0.])
+
+    Finally, note we can use the linkIDs to create flow-length-dependent
+    effects:
+
+    >>> from landlab.components import FlowDirectorMFD
+    >>> mg = RasterModelGrid((4, 6), (2, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
+    >>> z = mg.add_field('node', 'topographic__elevation', 2.*mg.node_x)
+    >>> z[9] = 8.
+    >>> z[16] = 6.5  # force the first node sideways
+
+    >>> L = mg.add_zeros('node', 'spatialloss')
+    >>> mg.at_node['spatialloss'][9] = 1.
+    >>> mg.at_node['spatialloss'][13] = 1.
+    >>> def fancyloss(Qw, nodeID, linkID, grid):
+    ...     # now a true transmission loss:
+    ...     Lt = (1. - 1./grid.length_of_link[linkID]**2)
+    ...     Lsp = grid.at_node['spatialloss'][nodeID]
+    ...     return Qw * (1. - Lt) * (1. - Lsp)
+
+    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
+    ...                           flow_director=FlowDirectorMFD,
+    ...                           loss_function=fancyloss)
+    >>> fa.run_one_step()
+
+    >>> mg.at_node['drainage_area'].reshape(mg.shape)
+    array([[  0. ,   0. ,   0. ,   0. ,   0. ,   0. ],
+           [  5.6,   5.6,   3.6,   2. ,   2. ,   0. ],
+           [ 10.4,  10.4,   8.4,   6.4,   4. ,   0. ],
+           [  0. ,   0. ,   0. ,   0. ,   0. ,   0. ]])
+    >>> mg.at_node['surface_water__discharge'].reshape(mg.shape)
+    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 4. ,  4. ,  2. ,  2. ,  2. ,  0. ],
+           [ 0. ,  8.5,  6.5,  4.5,  2.5,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
     """
 
     _name = "LossyFlowAccumulator"
