@@ -654,22 +654,25 @@ def find_drainage_area_and_discharge_to_n_lossy(
     ...               [ 0.2,  0.8],
     ...               [ 1. ,  0. ]])
     >>> s = np.array([ 3, 1, 2, 0])
+    >>> l = np.ones_like(r, dtype=int)  # dummy
 
     >>> def lossfunc(Qw, dummyn, dummyl):
     ...     return 0.5 * Qw
-    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(s, r, p, lossfunc)
+    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
+    ...     s, r, l, p, lossfunc)
     >>> a
-    array([ 1.  , 2.25, 1.5 , 4.  ])
+    array([ 1. ,  2.7,  1.5,  4. ])
     >>> q
-    array([ 1.   , 2.25 , 1.25 , 1.375])
+    array([ 1.  ,  1.75,  1.25,  2.  ])
 
     >>> def lossfunc(Qw, dummyn, dummyl):
     ...     return Qw - 100.  # huge loss
-    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(s, r, p, lossfunc)
+    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
+    ...     s, r, l, p, lossfunc)
     >>> a
-    array([ 1.  , 2.25, 1.5 , 4.  ])
+    array([ 1. ,  2.7,  1.5,  4. ])
     >>> q
-    array([ 1. , 1. , 1. , 1. ])
+    array([ 1.,  1.,  1.,  1.])
     """
     # Number of points
     np = r.shape[0]
@@ -698,8 +701,9 @@ def find_drainage_area_and_discharge_to_n_lossy(
             if proportion > 0:
                 if donor != recvr:
                     drainage_area[recvr] += proportion * drainage_area[donor]
-                    discharge[recvr] += np.clip(loss_function(
-                        proportion * discharge[donor], donor, lrec))
+                    discharge[recvr] += numpy.clip(loss_function(
+                        proportion * discharge[donor], donor, lrec),
+                        0., float('inf'))
 
     return drainage_area, discharge
 

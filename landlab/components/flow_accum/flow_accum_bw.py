@@ -380,10 +380,11 @@ def find_drainage_area_and_discharge_lossy(
     ...     find_drainage_area_and_discharge)
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    >>> l = np.ones(10, dtype=int)  # dummy
 
     >>> def lossfunc(Qw, dummyn, dummyl):
     ...     return 0.5 * Qw
-    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, lossfunc)
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
@@ -393,7 +394,7 @@ def find_drainage_area_and_discharge_lossy(
     ...     lossfracs = np.ones(10, dtype=float)
     ...     lossfracs *= 0.5
     ...     return lossfracs[nodeID] * Qw
-    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, lossfunc2)
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc2)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
@@ -401,11 +402,11 @@ def find_drainage_area_and_discharge_lossy(
 
     >>> def lossfunc3(Qw, nodeID, dummyl):
     ...     return Qw - 100.  # a huge loss
-    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, lossfunc3)
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc3)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
-    array([  1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1. ])
+    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     """
     # Number of points
     np = len(s)
@@ -431,8 +432,8 @@ def find_drainage_area_and_discharge_lossy(
         lrec = l[donor]
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += np.clip(loss_function(discharge[donor], donor,
-                                                      lrec))
+            discharge[recvr] += numpy.clip(loss_function(
+                discharge[donor], donor, lrec), 0., float('inf'))
 
     return drainage_area, discharge
 
