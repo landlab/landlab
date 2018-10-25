@@ -21,11 +21,10 @@ from landlab.core.messages import warning_message
 
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.components.flow_accum import flow_accum_to_n
-from landlab.components import FlowAccumulator
+from landlab.components.flow_accum import FlowAccumulator
 
 from landlab import BAD_INDEX_VALUE
 import six
-import numbers
 import numpy as np
 
 
@@ -527,12 +526,26 @@ class LossyFlowAccumulator(FlowAccumulator):
     through LossyFlowAccumulator, we can pass this keyword argument to the
     DepressionFinderAndRouter component.
 
+    Now, some examples of the loss happening. Here's an example of a 50% loss
+    of flow every time flow moves along a node:
+
+    >>> mg = RasterModelGrid((3, 5), (1, 2))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field('topographic__elevation',
+    ...                  mg.node_x + mg.node_y,
+    ...                  at='node')
+
+    >>> def mylossfunction(qw):
+    ...     return 0.5 * qw
+
     >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
     ...                           flow_director=FlowDirectorSteepest,
-    ...                           depression_finder=DepressionFinderAndRouter,
-    ...                           routing='D4')
+    ...                           routing='D4', loss_function=mylossfunction)
+    >>> fa.run_one_step()
 
-    Now, some examples of the
+    >>> mg.at_node['drainage_area']
+    >>>
+    >>> mg.at_node['surface_water__discharge']
     """
 
     _name = "LossyFlowAccumulator"
@@ -617,7 +630,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             if loss_function.func_code.co_argcount == 1:
                 # check the func takes a single value and turns it into a new
                 # single value:
-                if not isinstance(loss_function(1.), numbers.Real):
+                if not isinstance(loss_function(1.), float):
                     raise TypeError(
                         'The loss_function should take a float, and return a ' +
                         'float.')
@@ -625,13 +638,13 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # find_drainage_area_and_discharge, wrap the func so it has two
                 # arguments:
                 def lossfunc(Qw, dummyn, dummyl):
-                    return loss_function(Qw)
+                    return float(loss_function(Qw))
                 self._lossfunc = lossfunc
 
             if loss_function.func_code.co_argcount == 2:
                 # check the func takes a single value and turns it into a new
                 # single value:
-                if not isinstance(loss_function(1., 0), numbers.Real):
+                if not isinstance(loss_function(1., 0), float):
                     raise TypeError(
                         'The loss_function should take (float, int), and ' +
                         'return a float.')
@@ -639,13 +652,13 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # find_drainage_area_and_discharge, wrap the func so it has two
                 # arguments:
                 def lossfunc(Qw, dummyn, dummyl):
-                    return loss_function(Qw)
+                    return float(loss_function(Qw))
                 self._lossfunc = lossfunc
 
             elif loss_function.func_code.co_argcount == 3:
                 # check the func takes (float, int) and turns it into a new
                 # single value:
-                if not isinstance(loss_function(1., 0, 0), numbers.Real):
+                if not isinstance(loss_function(1., 0, 0), float):
                     raise TypeError(
                         'The loss_function should take (float, int), and ' +
                         'return a float.')
@@ -658,8 +671,8 @@ class LossyFlowAccumulator(FlowAccumulator):
                     'which should be the discharge at a node and the node ID.')
         else:
             # make a dummy
-            def lossfunc(Qw, dummy, dummy):
-                return Qw
+            def lossfunc(Qw, dummyn, dummyl):
+                return float(Qw)
             self._lossfunc = lossfunc
 
 
