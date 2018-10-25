@@ -586,6 +586,124 @@ def find_drainage_area_and_discharge_to_n(
     return drainage_area, discharge
 
 
+def find_drainage_area_and_discharge_to_n_lossy(
+    s, r, p, loss_function, node_cell_area=1.0, runoff=1.0,
+    boundary_nodes=None
+):
+
+    """
+    Calculate the drainage area and water discharge at each node, permitting
+    discharge to fall (or gain) as it moves downstream according to some
+    function. Note that only transmission creates loss, so water sourced
+    locally within a cell is always retained.
+
+    Parameters
+    ----------
+    s : ndarray of int
+        Ordered (downstream to upstream) array of node IDs
+    r : ndarray size (np, q) where r[i, :] gives all receivers of node i. Each
+        node receives flow fom up to q donors.
+    l : ndarray size (np, q) where l[i, :] gives all links to receivers of
+        node i.
+    p : ndarray size (np, q) where p[i, v] give the proportion of flow going
+        from node i to the receiver listed in r[i, v].
+    loss_function : Python function(Qw, nodeID, linkID)
+        Function dictating how to modify the discharge as it leaves each node.
+        nodeID is the current node; linkID is the downstream link. Returns a
+        float.
+    node_cell_area : float or ndarray
+        Cell surface areas for each node. If it's an array, must have same
+        length as s (that is, the number of nodes).
+    runoff : float or ndarray
+        Local runoff rate at each cell (in water depth per time). If it's an
+        array, must have same length as s (that is, the number of nodes).
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to
+        zero. Default value is None.
+
+    Returns
+    -------
+    tuple of ndarray
+        drainage area and discharge
+
+    Notes
+    -----
+    -  If node_cell_area not given, the output drainage area is equivalent
+       to the number of nodes/cells draining through each point, including
+       the local node itself.
+    -  Give node_cell_area as a scalar when using a regular raster grid.
+    -  If runoff is not given, the discharge returned will be the same as
+       drainage area (i.e., drainage area times unit runoff rate).
+    -  If using an unstructured Landlab grid, make sure that the input
+       argument for node_cell_area is the cell area at each NODE rather than
+       just at each CELL. This means you need to include entries for the
+       perimeter nodes too. They can be zeros.
+    -  Loss cannot go negative.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ... find_drainage_area_and_discharge_to_n_lossy)
+    >>> r = np.array([[ 1,  2],
+    ...               [ 3, -1],
+    ...               [ 3,  1],
+    ...               [ 3, -1]])
+    >>> p = np.array([[ 0.5,  0.5],
+    ...               [ 1. ,  0. ],
+    ...               [ 0.2,  0.8],
+    ...               [ 1. ,  0. ]])
+    >>> s = np.array([ 3, 1, 2, 0])
+
+    >>> def lossfunc(Qw, dummyn, dummyl):
+    ...     return 0.5 * Qw
+    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(s, r, p, lossfunc)
+    >>> a
+    array([ 1.  , 2.25, 1.5 , 4.  ])
+    >>> q
+    array([ 1.   , 2.25 , 1.25 , 1.375])
+
+    >>> def lossfunc(Qw, dummyn, dummyl):
+    ...     return Qw - 100.  # huge loss
+    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(s, r, p, lossfunc)
+    >>> a
+    array([ 1.  , 2.25, 1.5 , 4.  ])
+    >>> q
+    array([ 1. , 1. , 1. , 1. ])
+    """
+    # Number of points
+    np = r.shape[0]
+    q = r.shape[1]
+
+    # Initialize the drainage_area and discharge arrays. Drainage area starts
+    # out as the area of the cell in question, then (unless the cell has no
+    # donors) grows from there. Discharge starts out as the cell's local runoff
+    # rate times the cell's surface area.
+    drainage_area = numpy.zeros(np) + node_cell_area
+    discharge = numpy.zeros(np) + node_cell_area * runoff
+
+    # Optionally zero out drainage area and discharge at boundary nodes
+    if boundary_nodes is not None:
+        drainage_area[boundary_nodes] = 0
+        discharge[boundary_nodes] = 0
+
+    # Iterate backward through the list, which means we work from upstream to
+    # downstream.
+    for i in range(np - 1, -1, -1):
+        donor = s[i]
+        for v in range(q):
+            recvr = r[donor, v]
+            lrec = l[donor, v]
+            proportion = p[donor, v]
+            if proportion > 0:
+                if donor != recvr:
+                    drainage_area[recvr] += proportion * drainage_area[donor]
+                    discharge[recvr] += np.clip(loss_function(
+                        proportion * discharge[donor], donor, lrec))
+
+    return drainage_area, discharge
+
+
 def flow_accumulation_to_n(
     receiver_nodes,
     receiver_proportions,
