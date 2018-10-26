@@ -9,8 +9,10 @@ Created on Sun May 20 15:54:03 2018
 """
 import numpy as np
 from landlab.grid.network import NetworkModelGrid
-from landlab.item_collection import ItemCollection
+from landlab.data_record import DataRecord
+from landlab.components import FlowDirectorSteepest
 from landlab.plot import graph
+from network_sediment_transporter import NetworkSedimentTransporter
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -34,7 +36,7 @@ area = grid.add_ones('cell_area_at_node', at = 'node')
 # Ultimately, map between flow accumulator and shapefile reader info...
 # map_upstream_node_to_link
 
-grid.at_link['drainage_area'] = [100e+6,10e+6,70e+6,20e+6,70e+6,30e+6,40e+6] # m
+grid.at_link['drainage_area'] = [100e+6,10e+6,70e+6,20e+6,70e+6,30e+6,40e+6] # m2
 grid.at_link['channel_slope'] = [0.01,0.02,0.01,0.02,0.02,0.03,0.03]  
 grid.at_link['link_length'] = [100,100,100,100,100,100,100] # m
 
@@ -46,9 +48,9 @@ grid.at_link['channel_width'][3]= 10
 
 g = 9.81 # m/s2
 rho = 1000 # kg/m3
-theta = 0.5
+active_layer_thickness = 0.5
 
-Lp = 0.3  #porosity of the bed material
+bed_porosity = 0.3  #porosity of the bed material
 
 # %% initialize bed sediment (will become its own component)
 
@@ -64,7 +66,7 @@ time_arrival_in_link = np.random.rand(np.size(element_id)) # time of arrival in 
 volume = np.ones(np.size(element_id)) # (m3) the volume of each parcel
 D = 0.05 * np.ones(np.size(element_id)) # (m) the diameter of grains in each parcel
 lithology = ['quartzite']*np.size(element_id) # a lithology descriptor for each parcel
-abrasion_rate = 0 * np.ones(np.size(element_id)) # 0 = no abrasion; abrasion rates are positive mass loss coefficients
+abrasion_rate = np.zeros(np.size(element_id)) # 0 = no abrasion; abrasion rates are positive mass loss coefficients
 active_layer = np.ones(np.size(element_id)) # 1 = active/surface layer; 0 = subsurface layer
 density = 2650 * np.ones(np.size(element_id)) # (kg/m3) 
 
@@ -82,10 +84,10 @@ data = {'starting_link': starting_link,
         'time_arrival_in_link': time_arrival_in_link,
         'active_layer': active_layer,
         'density': density,
-        'location_in_link': location_in_link
+        'location_in_link': location_in_link,
         'abrasion_rate': abrasion_rate}
         
-parcels = ItemCollection(grid,
+parcels = DataRecord(grid,
     data = data,
     grid_element ='link',
     element_id = element_id)
@@ -103,14 +105,16 @@ Bgage=30.906*Qgage**0.1215; # (m)
 Hgage=0.2703*Qgage**0.3447; # (m)
 Agage=4.5895e+9;# (m2)
 
-B=((np.tile(Bgage,(grid.number_of_links))/(Agage**0.5))
+channel_width=((np.tile(Bgage,(grid.number_of_links))/(Agage**0.5))
   *np.tile(grid.at_link['drainage_area'],(timesteps))**0.5)
 
-H=((np.tile(Hgage,(grid.number_of_links))/(Agage**0.4))
+flow_depth=((np.tile(Hgage,(grid.number_of_links))/(Agage**0.4))
   *np.tile(grid.at_link['drainage_area'],(timesteps))**0.4)
 
 
-Btmax=np.amax(B, axis = 0)
+Btmax=np.amax(channel_width, axis = 0) # CURRENTLY UNUSED
+
+
 
 
 # %% Instantiate component(s)
@@ -122,11 +126,25 @@ Btmax=np.amax(B, axis = 0)
 #sc = SyntheticChannelGeomMaker(hydraulic_geometry_scaling_rules,discharge)
     # 
 
-nst = NetworkSedimentTransporter(grid,parcels,depth...?)
+
+fd = FlowDirectorSteepest(grid, 'topographic__elevation')
+fd.run_one_step()
+
+nst = NetworkSedimentTransporter(grid,
+                 parcels,
+                 fd,
+                 flow_depth,
+                 active_layer_thickness,
+                 bed_porosity,
+                 g = 9.81, 
+                 fluid_density = 1000,
+                 discharge='surface_water__discharge',
+                 channel_width='channel_width',
+                 transport_method = 'WilcockCrowe')
 
 # %% Run the component(s)
 
-timesteps = 10;
+timesteps = 10
 
 for t in range(timesteps):
     
@@ -141,4 +159,4 @@ for t in range(timesteps):
 
     
     # Run our component
-   nst.run_one_step
+   nst.run_one_step(t)

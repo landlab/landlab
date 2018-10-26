@@ -126,11 +126,12 @@ class NetworkSedimentTransporter(Component):
     def __init__(self,
                  grid,
                  parcels,
-                 parcel_reservoir,
                  flow_director,
                  flow_depth,
                  active_layer_thickness,
                  bed_porosity,
+                 g = 9.81, 
+                 fluid_density = 1000,
                  discharge='surface_water__discharge',
                  channel_width='channel_width',
                  transport_method = 'WilcockCrowe',
@@ -147,8 +148,6 @@ class NetworkSedimentTransporter(Component):
         super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
         self._grid = grid
         self._parcels = parcels
-        self._parcel_reservoir = parcel_reservoir
-
 
         # assert that the flow director is a component and is of type
         # FlowDirectorSteepest
@@ -167,6 +166,9 @@ class NetworkSedimentTransporter(Component):
         self.fd = flow_director
         self.flow_depth = flow_depth
         self.bed_porosity = bed_porosity
+        self.active_layer_thickness = active_layer_thickness
+        self.g = g
+        self.fluid_density = fluid_density
 
         self.transport_method = transport_method # self.transport_method makes it a class variable, that can be accessed within any method within this class
         if self.transport_method =="WilcockCrowe":
@@ -240,10 +242,11 @@ class NetworkSedimentTransporter(Component):
         # Jon response -- because during transport, that is the sediment defining the immobile
         # substrate that is setting the slope. Parcels that are actively transporting should not
         # affect the slope because they are moving.
+        # Makes sense, thanks!
 
 
 # %%
-    def _adjust_node_elevation(self, seed=0): # Allison is working on this as of July 23, 2018
+    def _adjust_node_elevation(self): # Allison is working on this as of July 23, 2018
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
         """
@@ -283,8 +286,6 @@ class NetworkSedimentTransporter(Component):
 
         Note: could have options here (e.g. Wilcock and Crowe, FLVB, MPM, etc)
         """
-
-# %%
         # parcel attribute arrays from ItemCollector
 
         # another way of doing this --> check to see if this is copying. we don't want to be copying
@@ -295,7 +296,8 @@ class NetworkSedimentTransporter(Component):
         Rhoarray = self._parcels.DataFrame.density.values
         Volarray = self._parcels.DataFrame.volume.values
         Linkarray = self._parcels.DataFrame.element_id.values #link that the parcel is currently in
-        rho = 1000 # kg/m3
+        rho = self.fluid_density
+        g = self.g
         R = (Rhoarray-rho)/rho
 
         # parcel attribute arrays to populate below
@@ -354,8 +356,8 @@ class NetworkSedimentTransporter(Component):
         W = W.real
 
         # assign travel times only where active==1
-        Ttimearray[Activearray==1] = rho**(3/2)*R[Activearray==1]*g*Larray[Activearray==1]*active_layer_thickness/W[Activearray==1]/tau[Activearray==1]**(3/2)/(1-frac_sand_array[Activearray==1])/frac_parcel[Activearray==1]
-        Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*active_layer_thickness/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
+        Ttimearray[Activearray==1] = rho**(3/2)*R[Activearray==1]*g*Larray[Activearray==1]*self.active_layer_thickness/W[Activearray==1]/tau[Activearray==1]**(3/2)/(1-frac_sand_array[Activearray==1])/frac_parcel[Activearray==1]
+        Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*self.active_layer_thickness/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
         # ^ why?? if k = 1 ---> if it's sand...?  ASK JON about the logic here...
 
         # Assign those things to the grid -- might be useful for plotting later...?
@@ -365,7 +367,7 @@ class NetworkSedimentTransporter(Component):
 
 
 # %%
-    def _move_parcel_downstream(self, i):    # Jon
+    def _move_parcel_downstream(self, dt,Ttimearray):    # Jon
         """Method to update parcel location for each parcel in the active
         layer.
         """
@@ -383,7 +385,6 @@ class NetworkSedimentTransporter(Component):
         time_to_exit_current_link = Ttimearray*(1-location_in_link)
         running_travel_time_in_dt = time_to_exit_current_link
 
-
         for p in range(self._parcels.number_of_items):
             #^ loop through all parcels, this loop could probably be removed in future refinements
 
@@ -391,7 +392,7 @@ class NetworkSedimentTransporter(Component):
             # loop through until you find the link the parcel will reside in after dt
             while running_travel_time_in_dt[p] <= dt :
                 # determine downstream link
-                downstream_link_id = fd.link_to_flow_receiving_node[fd.downstream_node_at_link[element_id[p]]]
+                downstream_link_id = self.fd.link_to_flow_receiving_node[self.fd.downstream_node_at_link[element_id[p]]]
 
                 if downstream_link_id == -1 : #parcel has exited the network
                     # I think we should then remove this parcel from the parcel item collector
@@ -426,23 +427,23 @@ class NetworkSedimentTransporter(Component):
             
             distance_traveled = 0 # NEED TO DEFINE
             
-            volume[p] = self._parcels.DataFrame.volume.values[p]*np.exp(distance_traveled * -self._parcels.DataFrame.abrasion_rate.values[p])
+            vol = self._parcels.DataFrame.volume.values[p]*np.exp(distance_traveled * -self._parcels.DataFrame.abrasion_rate.values[p])
 
-            D[p] = 2 * (volume[p] * 3 / (4 * np.pi))**(1/3)
+            D = 2 * (vol * 3 / (4 * np.pi))**(1/3)
 
             # update parcel attributes
             self._parcels.DataFrame.location_in_link.values[p] = location_in_link[p]
             self._parcels.DataFrame.element_id.values[p] = current_link[p]
             self._parcels.DataFrame.active_layer.values[p] = 1 # reset to 1 (active) to be recomputed/determined at next timestep
-            self._parcels.DataFrame.volume.values[p] = volume[p]
-            self._parcels.DataFrame.D.values[p] = D[p]
+            self._parcels.DataFrame.volume.values[p] = vol
+            self._parcels.DataFrame.D.values[p] = D
 
 
 # %%
     def run_one_step(self,dt):
         """stuff"""
-
-        self._partition_active_and_storage_layers(things)
-        self._update_node_elevation(things)
-        self._calc_transport_wilcock_crowe(things)
-        self._move_parcel_downstream(things)
+        self._update_channel_slopes(self)
+        self._partition_active_and_storage_layers(self)
+        self._update_node_elevation(self)
+        self._calc_transport_wilcock_crowe(self)
+        self._move_parcel_downstream(self)
