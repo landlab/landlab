@@ -9,8 +9,10 @@ Created on Sun May 20 15:54:03 2018
 """
 import numpy as np
 from landlab.grid.network import NetworkModelGrid
-from landlab.item_collection import ItemCollection
+from landlab.data_record import DataRecord
+from landlab.components import FlowDirectorSteepest
 from landlab.plot import graph
+from network_sediment_transporter import NetworkSedimentTransporter
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -85,7 +87,7 @@ data = {'starting_link': starting_link,
         'location_in_link': location_in_link,
         'abrasion_rate': abrasion_rate}
         
-parcels = ItemCollection(grid,
+parcels = DataRecord(grid,
     data = data,
     grid_element ='link',
     element_id = element_id)
@@ -124,9 +126,13 @@ Btmax=np.amax(channel_width, axis = 0) # CURRENTLY UNUSED
 #sc = SyntheticChannelGeomMaker(hydraulic_geometry_scaling_rules,discharge)
     # 
 
+
+fd = FlowDirectorSteepest(grid, 'topographic__elevation')
+fd.run_one_step()
+
 nst = NetworkSedimentTransporter(grid,
                  parcels,
-                 flow_director,
+                 fd,
                  flow_depth,
                  active_layer_thickness,
                  bed_porosity,

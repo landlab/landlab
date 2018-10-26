@@ -1090,4 +1090,4 @@ class DataRecord(Dataset):
         if self.number_of_timesteps < 2:
             return np.nan
         else:
-return sorted(self.time_coordinates)[-2]
+            return sorted(self.time_coordinates)[-2]
