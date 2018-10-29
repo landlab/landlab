@@ -740,7 +740,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             if sys.version_info[0] >= 3:
                 sig = signature(loss_function)
                 num_params = len(sig.parameters)
-            else:  # Python 2
+            else:  # Python 2
                 num_params = loss_function.func_code.co_argcount
             # save the func for loss, and do a quick test on its inputs:
             if num_params == 1:
