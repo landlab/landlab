@@ -26,7 +26,11 @@ from landlab.components.flow_accum import FlowAccumulator
 
 from landlab import BAD_INDEX_VALUE
 import six
+import sys
 import numpy as np
+
+if sys.version_info[0] >= 3:
+    from inspect import signature
 
 
 class LossyFlowAccumulator(FlowAccumulator):
@@ -733,8 +737,13 @@ class LossyFlowAccumulator(FlowAccumulator):
             **kwargs)
 
         if loss_function is not None:
+            if sys.version_info[0] >= 3:
+                sig = signature(loss_function)
+                num_params = len(sig.parameters)
+            else:  # Python 2
+                num_params = loss_function.func_code.co_argcount
             # save the func for loss, and do a quick test on its inputs:
-            if loss_function.func_code.co_argcount == 1:
+            if num_params == 1:
                 # check the func takes a single value and turns it into a new
                 # single value:
                 if not isinstance(loss_function(1.), float):
@@ -748,7 +757,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                     return float(loss_function(Qw))
                 self._lossfunc = lossfunc
 
-            elif loss_function.func_code.co_argcount == 2:
+            elif num_params == 2:
                 # check the func takes a single value and turns it into a new
                 # single value:
                 if not isinstance(loss_function(1., 0), float):
@@ -762,7 +771,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                     return float(loss_function(Qw, nodeID))
                 self._lossfunc = lossfunc
 
-            elif loss_function.func_code.co_argcount == 3:
+            elif num_params == 3:
                 # check the func takes (float, int) and turns it into a new
                 # single value:
                 if not isinstance(loss_function(1., 0, 0), float):
@@ -773,7 +782,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                     return float(loss_function(Qw, nodeID, linkID))
                 self._lossfunc = lossfunc
 
-            elif loss_function.func_code.co_argcount == 4:
+            elif num_params == 4:
                 # this time, the test is too hard to implement cleanly so just
                 self._lossfunc = loss_function
             else:
