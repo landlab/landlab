@@ -301,13 +301,11 @@ def test_flow__distance_raster_MFD_diagonals_false():
 def test_flow__distance_raster_D_infinity():
     """Test of flow__distance utility with a raster grid and D infinity."""
 
-    # instantiate a model grid
-
     mg = RasterModelGrid((5, 4), spacing=(1, 1))
 
     # instantiate an elevation array
 
-    z = mg.x_of_node + 2.0 * mg.y_of_node
+    z = mg.x_of_node + 3.0 * mg.y_of_node
 
     # add the elevation field to the grid
 
@@ -315,13 +313,11 @@ def test_flow__distance_raster_D_infinity():
 
     # instantiate the expected flow_length array
 
-    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 0, 0, 0],
-                                        [0, 1, 1, math.sqrt(2)],
-                                        [0, 2, 2, 1+math.sqrt(2)],
-                                        [0, 3, 3, 2+math.sqrt(2)]], dtype='float64')
-    flow__distance_expected = np.reshape(flow__distance_expected,
-                                        mg.number_of_node_rows *
-                                        mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0],
+                                        [0, 0, 1, 0],
+                                        [0, 1, 0+math.sqrt(2.), 0],
+                                        [0, 2, 1+math.sqrt(2.), 0],
+                                        [0, 0, 0, 0]], dtype='float64')
 
     #setting boundary conditions
 
@@ -337,8 +333,9 @@ def test_flow__distance_raster_D_infinity():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(mg, add_to_grid=True,
-                                              noclobber=False)
+    flow__distance = calculate_flow__distance(mg,
+                                              add_to_grid=True,
+                                              noclobber=False).reshape(mg.shape)
 
     # test that the flow__distance utility works as expected
 

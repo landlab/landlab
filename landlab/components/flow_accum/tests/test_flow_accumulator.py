@@ -1024,3 +1024,22 @@ def test_hex_mfd():
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
+
+
+def test_flat_grids_all_directors():
+    for fd in [
+        "FlowDirectorMFD",
+        "FlowDirectorSteepest",
+        "FlowDirectorD8",
+        "FlowDirectorDINF",
+
+    ]:
+        mg = RasterModelGrid(10, 10)
+        z = mg.add_zeros("topographic__elevation", at="node")
+        fa = FlowAccumulator(mg, flow_director=fd)
+        fa.run_one_step()
+
+        true_da = np.zeros(mg.size('node'))
+        true_da[mg.core_nodes] = 1.0
+        assert_array_equal(true_da, fa.drainage_area)
+        del mg, z, fa
