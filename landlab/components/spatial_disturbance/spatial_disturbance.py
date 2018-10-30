@@ -155,9 +155,9 @@ class SpatialDisturbance(Component):
             self._grid.at_cell['vegetation__plant_functional_type'] = vegtype
         return (V, grazed_cells)
 
-    def create_fires(self, V=None, n_fires=2, fire_area_mean=0.0625,
-                     fire_area_dev=0.01, sh_susc=0.8, tr_susc=0.6,
-                     gr_susc=1., sh_seed_susc=0.9, tr_seed_susc=0.9):
+    def initiate_fires(self, V=None, n_fires=2, fire_area_mean=0.0625,
+                     fire_area_dev=0.01, sh_susc=1., tr_susc=1.,
+                     gr_susc=1., sh_seed_susc=1., tr_seed_susc=1.):
         """
         - Add description to this method. If this is the main method or
         one of the main methods, i.e. if this method performs a
@@ -199,19 +199,21 @@ class SpatialDisturbance(Component):
             if V is None:
                 raise ValueError("Cellular field of 'Plant Functional Type'" +
                                  " should be provided!")
+        susc = self._set_susceptibility(V, sh_susc=sh_susc, 
+                                        tr_susc=tr_susc,
+                                        gr_susc=gr_susc,
+                                        sh_seed_susc=sh_seed_susc,
+                                        tr_seed_susc=tr_seed_susc)
         ignition_cells = []
         burnt_locs = []  # Total burnt locations for all fires
         for i in range(0, n_fires):
             ignition_cell = np.random.choice(self._grid.number_of_cells, 1)
             if V[ignition_cell] == GRASS:
-                (fire_locs, V) = self._create_fire(
+                (fire_locs, V) = self._spread_fire(
                                       V, ignition_cell,
                                       fire_area_mean=fire_area_mean,
                                       fire_area_dev=fire_area_dev,
-                                      sh_susc=sh_susc, tr_susc=tr_susc,
-                                      gr_susc=gr_susc,
-                                      sh_seed_susc=sh_seed_susc,
-                                      tr_seed_susc=tr_seed_susc)
+                                      susc=susc)
             else:
                 fire_locs = []
             burnt_locs += fire_locs
@@ -222,9 +224,9 @@ class SpatialDisturbance(Component):
             self._grid.at_cell['vegetation__plant_functional_type'] = vegtype
         return (V, burnt_locs, ignition_cells)
 
-    def _create_fire(self, V, ignition_cell, fire_area_mean=0.0625,
-                     fire_area_dev=0.01, sh_susc=0.8, tr_susc=0.6,
-                     gr_susc=1., sh_seed_susc=0.9, tr_seed_susc=0.9):
+    def _spread_fire(self, V, ignition_cell, fire_area_mean=0.0625,
+                     fire_area_dev=0.01,
+                     susc=None):
         """
         - An underscore in the front signals the user to stay away
         from using this method (is intended for internal use).
@@ -256,6 +258,8 @@ class SpatialDisturbance(Component):
         tr_seed_susc: float, optional
             susceptibility of tree seedlings to burn
         """
+        if susc == None:
+            susc = np.ones(self.grid.number_of_cells)
         fire_burnt = 0    # To check how many cells are being burnt
         grass_cells = np.where(V == GRASS)[0]
         if int(grass_cells.shape[0]) == 1:
@@ -265,26 +269,18 @@ class SpatialDisturbance(Component):
         burning_cells = [ignition_cell]
         V = self._burn_veg(V, burning_cells)
         fire_burnt += 1
+        alr_cntd = []
         # loop to propagate fires one ring at a time
         while (burning_cells != []):
             newly_burnt = []   # Cells to be burnt in the sub-loop
             for cell in burning_cells:
                 neigh_ = self._grid.looped_neighbors_at_cell[cell]
-                grass_neighbors = (neigh_[np.where(V[neigh_] == GRASS)])
-                shrub_neighbors = (neigh_[np.where(V[neigh_] == SHRUB)])
-                tree_neighbors = (neigh_[np.where(V[neigh_] == TREE)])
-                shrub_seed_neighbors = (
-                                neigh_[np.where(V[neigh_] == SHRUBSEED)])
-                tree_seed_neighbors = (neigh_[np.where(V[neigh_] == TREESEED)])
-                susc_gr_neigh = self._check_susc(grass_neighbors, gr_susc)
-                susc_sh_neigh = self._check_susc(shrub_neighbors, sh_susc)
-                susc_tr_neigh = self._check_susc(tree_neighbors, tr_susc)
-                susc_sh_seed_neigh = self._check_susc(shrub_seed_neighbors,
-                                                      sh_seed_susc)
-                susc_tr_seed_neigh = self._check_susc(tree_seed_neighbors,
-                                                      tr_seed_susc)
-                newly_burnt += (susc_gr_neigh + susc_sh_neigh + susc_tr_neigh +
-                                susc_sh_seed_neigh + susc_tr_seed_neigh)
+                veg_neighbors = (neigh_[np.where(V[neigh_] != BARE)])
+                unique_neigh = np.setdiff1d(veg_neighbors, alr_cntd)
+                alr_cntd += list(unique_neigh)
+                susc_neigh = self._check_susc(unique_neigh,
+                                              susc[unique_neigh])
+                newly_burnt += (susc_neigh)
             if newly_burnt == []:
                 break
             burning_cells = np.unique(np.array(newly_burnt))
@@ -323,3 +319,14 @@ class SpatialDisturbance(Component):
             rand_val = np.random.rand(some_neighbors.shape[0])
             susc_neighbors = some_neighbors[rand_val < susc]
         return (list(susc_neighbors))
+
+    def _set_susceptibility(self, V=None, sh_susc=1.,
+                            tr_susc=1., gr_susc=1.,
+                            sh_seed_susc=1., tr_seed_susc=1.):
+        susc = np.zeros(self.grid.number_of_cells)
+        susc[V==SHRUB] = sh_susc
+        susc[V==TREE] = tr_susc
+        susc[V==GRASS] = gr_susc
+        susc[V==SHRUBSEED] = sh_seed_susc
+        susc[V==TREESEED] = tr_seed_susc
+        return susc
