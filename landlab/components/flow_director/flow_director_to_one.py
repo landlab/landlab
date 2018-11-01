@@ -151,7 +151,8 @@ class _FlowDirectorToOne(_FlowDirector):
     @property
     def node_receiving_flow(self):
         """Return the node id of the node receiving flow."""
-        return self._grid['node']['flow__receiver_node']
+        return self._grid["node"]["flow__receiver_node"]
+
 
 if __name__ == "__main__":  # pragma: no cover
     import doctest

@@ -257,12 +257,15 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
         # create a : 'flow__link_direction' field if it does not exist yest
-        if 'flow__link_direction' not in self._grid.at_link:
-            self._flow__link_direction = grid.add_field('flow__link_direction',
-                                                        grid.zeros(at='link', dtype=int),
-                                                        at='link', dtype=int)
+        if "flow__link_direction" not in self._grid.at_link:
+            self._flow__link_direction = grid.add_field(
+                "flow__link_direction",
+                grid.zeros(at="link", dtype=int),
+                at="link",
+                dtype=int,
+            )
         else:
-            self._flow__link_direction = grid.at_link['flow__link_direction']
+            self._flow__link_direction = grid.at_link["flow__link_direction"]
 
         self.updated_boundary_conditions()
 
@@ -384,23 +387,33 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
 
         # if head node is upstream node = -1, else 1
-        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
-        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
+        self._flow__link_direction[
+            active_flow_links[
+                head_node_at_active_flow_link == upstream_node_of_active_flow_link
+            ]
+        ] = -1
+        self._flow__link_direction[
+            active_flow_links[
+                head_node_at_active_flow_link != upstream_node_of_active_flow_link
+            ]
+        ] = 1
 
     @property
     def flow__link_direction_at_node(self):
         """Return array that mirrors links at node that indicates flow direction."""
-        flow__link_direction_at_node = self.flow__link_direction[self._grid.links_at_node]
+        flow__link_direction_at_node = self.flow__link_direction[
+            self._grid.links_at_node
+        ]
         flow__link_direction_at_node[self._grid.links_at_node == -1] = 0
         return flow__link_direction_at_node
-
 
     @property
     def flow__link_incoming_at_node(self):
         """Return array that mirrors links at node and indicates if flow is
         incoming (1) or outgoing (-1)."""
-        incoming_at_node = (self.flow__link_direction_at_node *
-                            self._grid.link_dirs_at_node)
+        incoming_at_node = (
+            self.flow__link_direction_at_node * self._grid.link_dirs_at_node
+        )
         return incoming_at_node
 
     # Number of Link (or number of D8)
@@ -412,17 +425,25 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     @property
     def upstream_node_at_link(self):
         """At-link array of the upstream node"""
-        out = -1 * self._grid.ones(at='link', dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[self._flow__link_direction == 1]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[self._flow__link_direction == -1]
+        out = -1 * self._grid.ones(at="link", dtype=int)
+        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[
+            self._flow__link_direction == 1
+        ]
+        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[
+            self._flow__link_direction == -1
+        ]
         return out
 
     @property
     def downstream_node_at_link(self):
         """At-link array of the downstream node"""
-        out = -1 * self._grid.ones(at='link', dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[self._flow__link_direction == 1]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[self._flow__link_direction == -1]
+        out = -1 * self._grid.ones(at="link", dtype=int)
+        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[
+            self._flow__link_direction == 1
+        ]
+        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[
+            self._flow__link_direction == -1
+        ]
         return out
 
 

@@ -7,9 +7,7 @@ import os
 
 import pytest
 import numpy as np
-from numpy.testing import (assert_array_equal,
-                           assert_array_almost_equal,
-                           assert_equal)
+from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_equal
 
 import landlab
 from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
@@ -263,17 +261,25 @@ def test_fields():
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
-    assert_equal(sorted(list(mg.at_node.keys())), ['drainage_area',
-                                                   'flow__data_structure_delta',
-                                                   'flow__link_to_receiver_node',
-                                                   'flow__receiver_node',
-                                                   'flow__sink_flag',
-                                                   'flow__upstream_node_order',
-                                                   'surface_water__discharge',
-                                                   'topographic__elevation',
-                                                   'topographic__steepest_slope',
-                                                   'water__unit_flux_in'])
-    assert_equal(sorted(list(mg.at_link.keys())), ['flow__data_structure_D', 'flow__link_direction'])
+    assert_equal(
+        sorted(list(mg.at_node.keys())),
+        [
+            "drainage_area",
+            "flow__data_structure_delta",
+            "flow__link_to_receiver_node",
+            "flow__receiver_node",
+            "flow__sink_flag",
+            "flow__upstream_node_order",
+            "surface_water__discharge",
+            "topographic__elevation",
+            "topographic__steepest_slope",
+            "water__unit_flux_in",
+        ],
+    )
+    assert_equal(
+        sorted(list(mg.at_link.keys())),
+        ["flow__data_structure_D", "flow__link_direction"],
+    )
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
     _ = mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
@@ -1032,14 +1038,13 @@ def test_flat_grids_all_directors():
         "FlowDirectorSteepest",
         "FlowDirectorD8",
         "FlowDirectorDINF",
-
     ]:
         mg = RasterModelGrid(10, 10)
         z = mg.add_zeros("topographic__elevation", at="node")
         fa = FlowAccumulator(mg, flow_director=fd)
         fa.run_one_step()
 
-        true_da = np.zeros(mg.size('node'))
+        true_da = np.zeros(mg.size("node"))
         true_da[mg.core_nodes] = 1.0
         assert_array_equal(true_da, fa.drainage_area)
         del mg, z, fa
