@@ -7,8 +7,7 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing import FlowRouter
-from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
+from landlab.components import FlowAccumulator, StreamPowerEroder, FastscapeEroder
 from landlab.plot.imshow import imshow_node_grid
 
 import numpy
@@ -40,7 +39,7 @@ mg.at_node['K_values'] = 0.1+numpy.random.rand(nrows*ncols)/10.
 print( 'Running ...' )
 
 #instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 #load the Fastscape module too, to allow direct comparison
 fsp = FastscapeEroder(mg, './drive_sp_params.txt')
@@ -52,7 +51,7 @@ while elapsed_time < time_to_run:
     if elapsed_time+dt>time_to_run:
         print("Short step!")
         dt = time_to_run - elapsed_time
-    mg = fr.route_flow()
+    mg = fr.run_one_step()
     #print 'Area: ', numpy.max(mg.at_node['drainage_area'])
     #mg = fsp.erode(mg)
     mg = fsp.erode(mg, K_if_used='K_values')
@@ -81,5 +80,3 @@ pylab.title('Vertical cross section')
 pylab.show()
 
 print('Done.')
-
-

@@ -18,6 +18,11 @@ from functools import wraps
 import textwrap
 import inspect
 
+try:
+    from inspect import getfullargspec
+except ImportError:
+    from inspect import getargspec as getfullargspec
+
 import numpy as np
 import six
 
@@ -131,7 +136,7 @@ def add_signature_to_doc(func):
     <BLANKLINE>
     Do something.
     """
-    argspec = inspect.getargspec(func)
+    argspec = getfullargspec(func)
     return """{name}{argspec}
 
 {body}""".format(name=func.__name__, argspec=inspect.formatargspec(*argspec),

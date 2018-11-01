@@ -16,13 +16,15 @@ from landlab.core.utils import as_id_array
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
-def flow_directions_mfd(elev,
-                        neighbors_at_node,
-                        links_at_node,
-                        active_link_dir_at_node,
-                        link_slope,
-                        baselevel_nodes=None,
-                        partition_method='slope'):
+def flow_directions_mfd(
+    elev,
+    neighbors_at_node,
+    links_at_node,
+    active_link_dir_at_node,
+    link_slope,
+    baselevel_nodes=None,
+    partition_method="slope",
+):
 
     """
     Find multiple-flow-direction flow directions on a grid.
@@ -65,6 +67,10 @@ def flow_directions_mfd(elev,
         For each receiver, the proportion of flow (between 0 and 1) is given.
         A proportion of zero indicates that the link does not have flow along
         it.
+    slopes: ndarray of size (num nodes, max neighbors at node)
+        For each node in the array ``recievers``, the slope value (positive
+        downhill) in the direction of flow. If no flow occurs (value of
+        ``recievers`` is -1), then this array is set to 0.
     steepest_slope : ndarray
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
@@ -98,6 +104,7 @@ def flow_directions_mfd(elev,
     >>> slopes_to_neighbors_at_node = link_slope[links_at_node]*active_link_dir_at_node
     >>> (receivers,
     ... proportions,
+    ... slopes,
     ... steepest_slope,
     ... steepest_receiver,
     ... sink,
@@ -155,6 +162,7 @@ def flow_directions_mfd(elev,
     ...                         np.arctan(diag_grads)))
     >>> (receivers,
     ... proportions,
+    ... slopes,
     ... steepest_slope,
     ... steepest_receiver,
     ... sink,
@@ -195,6 +203,25 @@ def flow_directions_mfd(elev,
              0.        ,  0.        ,  0.        ],
            [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
              0.        ,  1.        ,  0.        ]])
+    >>> slopes
+    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.78539816,  0.78539816,  0.        ,
+             0.        ,  0.95531662,  0.        ],
+           [ 0.        ,  0.        ,  0.78539816,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.78539816,  0.        ,
+             0.        ,  0.        ,  0.        ],
+           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+             0.        ,  0.95531662,  0.        ]])
     >>> proportions.sum(axis=-1)
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     """
@@ -213,7 +240,7 @@ def flow_directions_mfd(elev,
 
     # Construct the array of slope to neighbors at node. This also will adjust
     # for the slope convention based on the direction of the link.
-    slopes_to_neighbors_at_node = link_slope[links_at_node]*active_link_dir_at_node
+    slopes_to_neighbors_at_node = link_slope[links_at_node] * active_link_dir_at_node
 
     # Make a copy so this can be changed based on where no flow occurs.
     receiver_links = links_at_node.copy()
@@ -229,10 +256,10 @@ def flow_directions_mfd(elev,
 
     # now make an array of the same shape (for direct comparison) of the source
     # node elevation.
-    source_node_elev = elev[np.tile(node_id, (max_number_of_neighbors,1)).T]
+    source_node_elev = elev[np.tile(node_id, (max_number_of_neighbors, 1)).T]
 
     # find where flow does not occur (source is lower that receiver)
-    flow_does_not_occur = source_node_elev<=potential_receiver_elev
+    flow_does_not_occur = source_node_elev <= potential_receiver_elev
 
     # Where the source is lower, set receivers to UNDEFINED_INDEX
     receivers[flow_does_not_occur] = UNDEFINED_INDEX
@@ -241,7 +268,7 @@ def flow_directions_mfd(elev,
     receivers[inactive_link_to_neighbor] = UNDEFINED_INDEX
 
     # Next, find where a node drains to itself
-    drains_to_self = receivers.sum(1) == -1*max_number_of_neighbors
+    drains_to_self = receivers.sum(1) == -1 * max_number_of_neighbors
 
     # Where this occurs, set the receiver ID in the first column of receivers
     # to the node ID.
@@ -257,17 +284,17 @@ def flow_directions_mfd(elev,
     flow_slopes[flow_does_not_occur] = 0.
     flow_slopes[inactive_link_to_neighbor] = 0.
 
-    if partition_method == 'square_root_of_slope':
-        values_for_partitioning = flow_slopes**0.5
-    elif partition_method == 'slope':
+    if partition_method == "square_root_of_slope":
+        values_for_partitioning = flow_slopes ** 0.5
+    elif partition_method == "slope":
         values_for_partitioning = flow_slopes
     else:
-        raise ValueError ('Keyword argument to partition_method invalid.')
+        raise ValueError("Keyword argument to partition_method invalid.")
 
     # Calculate proportions by normalizing by rowsums.
-    denom = np.tile(values_for_partitioning.sum(1), (max_number_of_neighbors,1)).T
-    denom[denom<=0] = 1  # to prevent runtime errors
-    proportions = values_for_partitioning/denom
+    denom = np.tile(values_for_partitioning.sum(1), (max_number_of_neighbors, 1)).T
+    denom[denom <= 0] = 1  # to prevent runtime errors
+    proportions = values_for_partitioning / denom
     proportions[drains_to_self, 0] = 1
     proportions[drains_to_self, 1:] = 0
 
@@ -280,9 +307,9 @@ def flow_directions_mfd(elev,
 
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned.
-    slope_sort = np.argsort(np.argsort(flow_slopes,
-                                   axis=1),
-                        axis=1) == (max_number_of_neighbors-1)
+    slope_sort = np.argsort(np.argsort(flow_slopes, axis=1), axis=1) == (
+        max_number_of_neighbors - 1
+    )
     steepest_slope = flow_slopes[slope_sort]
 
     ## identify the steepest link and steepest receiever.
@@ -292,22 +319,35 @@ def flow_directions_mfd(elev,
 
     # Optionally, handle baselevel nodes: they are their own receivers
     if baselevel_nodes is not None:
-        receivers[baselevel_nodes,0] = node_id[baselevel_nodes]
-        receivers[baselevel_nodes,1:] = -1
+        receivers[baselevel_nodes, 0] = node_id[baselevel_nodes]
+        receivers[baselevel_nodes, 1:] = -1
         proportions[baselevel_nodes, 0] = 1
         proportions[baselevel_nodes, 1:] = 0
-        receiver_links[baselevel_nodes,:] = UNDEFINED_INDEX
+        receiver_links[baselevel_nodes, :] = UNDEFINED_INDEX
         steepest_slope[baselevel_nodes] = 0.
 
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
-    (sink, ) = np.where(node_id==receivers[:,0])
+    (sink,) = np.where(node_id == receivers[:, 0])
     sink = as_id_array(sink)
 
-    return (receivers, proportions, steepest_slope, steepest_receiver, sink,
-            receiver_links, steepest_link)
+    slopes_to_neighbors_at_node[flow_does_not_occur] = 0
+    slopes_to_neighbors_at_node[inactive_link_to_neighbor] = 0
 
-if __name__ == '__main__':
+    return (
+        receivers,
+        proportions,
+        slopes_to_neighbors_at_node,
+        steepest_slope,
+        steepest_receiver,
+        sink,
+        receiver_links,
+        steepest_link,
+    )
+
+
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()

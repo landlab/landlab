@@ -1443,7 +1443,5 @@ def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
     Examples
     --------
     ...
-
-    LLCATS: MAP
     """
     pass

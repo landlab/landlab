@@ -1,12 +1,8 @@
 """
 Unit tests for landlab.components.landslides.landslide_probability
 """
-from nose.tools import assert_equal, assert_true, assert_raises, with_setup
+import pytest
 from numpy.testing import assert_array_almost_equal
-try:
-    from nose.tools import assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_is_instance
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -17,121 +13,92 @@ from landlab.components import LandslideProbability
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
-def setup_grid():
-    """Setting up test raster grid.
-    """
-    grid = RasterModelGrid((20, 20), spacing=10e0)
-    grid.at_node['topographic__slope'] = (
-        np.zeros(grid.number_of_nodes, dtype=float))
-    ls_prob = LandslideProbability(grid)
-    globals().update({
-        'ls_prob': LandslideProbability(grid)
-    })
-
-
-@with_setup(setup_grid)
-def test_name():
+def test_name(ls_prob):
     """Testing if the name is right.
     """
-    assert_equal(ls_prob.name, 'Landslide Probability')
+    assert ls_prob.name == 'Landslide Probability'
 
 
-@with_setup(setup_grid)
-def test_input_var_names():
+def test_input_var_names(ls_prob):
     """Testing if the input_var_names outputs the right list.
     """
-    assert_equal(sorted(ls_prob.input_var_names),
-                 ['soil__density',
-                  'soil__internal_friction_angle',
-                  'soil__maximum_total_cohesion',
-                  'soil__minimum_total_cohesion',
-                  'soil__mode_total_cohesion',
-                  'soil__saturated_hydraulic_conductivity',
-                  'soil__thickness',
-                  'soil__transmissivity',
-                  'topographic__slope',
-                  'topographic__specific_contributing_area'])
+    assert sorted(ls_prob.input_var_names) == [
+        'soil__density',
+        'soil__internal_friction_angle',
+        'soil__maximum_total_cohesion',
+        'soil__minimum_total_cohesion',
+        'soil__mode_total_cohesion',
+        'soil__saturated_hydraulic_conductivity',
+        'soil__thickness',
+        'soil__transmissivity',
+        'topographic__slope',
+        'topographic__specific_contributing_area',
+    ]
 
 
-@with_setup(setup_grid)
-def test_output_var_names():
+def test_output_var_names(ls_prob):
     """Testing if output_var_names outputs the right list.
     """
-    assert_equal(sorted(ls_prob.output_var_names),
-                 ['landslide__probability_of_failure',
-                  'soil__mean_relative_wetness',
-                  'soil__probability_of_saturation'])
+    assert sorted(ls_prob.output_var_names) == [
+        'landslide__probability_of_failure',
+        'soil__mean_relative_wetness',
+        'soil__probability_of_saturation',
+    ]
 
 
-@with_setup(setup_grid)
-def test_var_units():
+def test_var_units(ls_prob):
     """Testing if units are right.
     """
-    assert_equal(set(ls_prob.input_var_names) |
-                 set(ls_prob.output_var_names),
-                 set(dict(ls_prob.units).keys()))
+    assert set(ls_prob.input_var_names) | set(ls_prob.output_var_names), set(dict(ls_prob.units).keys())
 
-    assert_equal(ls_prob.var_units(
-        'topographic__specific_contributing_area'), 'm')
-    assert_equal(ls_prob.var_units('topographic__slope'), 'tan theta')
-    assert_equal(ls_prob.var_units('soil__transmissivity'), 'm2/day')
-    assert_equal(ls_prob.var_units('soil__saturated_hydraulic_conductivity'),
-                 'm/day')
-    assert_equal(ls_prob.var_units(
-        'soil__mode_total_cohesion'), 'Pa or kg/m-s2')
-    assert_equal(ls_prob.var_units(
-        'soil__minimum_total_cohesion'), 'Pa or kg/m-s2')
-    assert_equal(ls_prob.var_units(
-        'soil__maximum_total_cohesion'), 'Pa or kg/m-s2')
-    assert_equal(ls_prob.var_units(
-        'soil__internal_friction_angle'), 'degrees')
-    assert_equal(ls_prob.var_units('soil__density'), 'kg/m3')
-    assert_equal(ls_prob.var_units('soil__thickness'), 'm')
-    assert_equal(ls_prob.var_units('soil__mean_relative_wetness'), 'None')
-    assert_equal(ls_prob.var_units('landslide__probability_of_failure'),
-                                   'None')
-    assert_equal(ls_prob.var_units('soil__probability_of_saturation'),
-                 'None')
+    assert ls_prob.var_units('topographic__specific_contributing_area') == 'm'
+    assert ls_prob.var_units('topographic__slope') == 'tan theta'
+    assert ls_prob.var_units('soil__transmissivity') == 'm2/day'
+    assert ls_prob.var_units('soil__saturated_hydraulic_conductivity') == 'm/day'
+    assert ls_prob.var_units('soil__mode_total_cohesion') == 'Pa or kg/m-s2'
+    assert ls_prob.var_units('soil__minimum_total_cohesion') == 'Pa or kg/m-s2'
+    assert ls_prob.var_units('soil__maximum_total_cohesion') == 'Pa or kg/m-s2'
+    assert ls_prob.var_units('soil__internal_friction_angle') == 'degrees'
+    assert ls_prob.var_units('soil__density') == 'kg/m3'
+    assert ls_prob.var_units('soil__thickness') == 'm'
+    assert ls_prob.var_units('soil__mean_relative_wetness') == 'None'
+    assert ls_prob.var_units('landslide__probability_of_failure') == 'None'
+    assert ls_prob.var_units('soil__probability_of_saturation') == 'None'
 
 
-@with_setup(setup_grid)
-def test_grid_shape():
+def test_grid_shape(ls_prob):
     """Testing if the grid shape matches the inputs.
     """
-    assert_equal(ls_prob.grid.number_of_node_rows, _SHAPE[0])
-    assert_equal(ls_prob.grid.number_of_node_columns, _SHAPE[1])
+    assert ls_prob.grid.number_of_node_rows == _SHAPE[0]
+    assert ls_prob.grid.number_of_node_columns == _SHAPE[1]
 
 
-@with_setup(setup_grid)
-def test_grid_x_extent():
+def test_grid_x_extent(ls_prob):
     """Testing if x extent is right.
     """
-    assert_equal(ls_prob.grid.extent[1], (_SHAPE[1] - 1) * _SPACING[1])
+    assert ls_prob.grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
 
 
-@with_setup(setup_grid)
-def test_grid_y_extent():
+def test_grid_y_extent(ls_prob):
     """Testing if y extent is right.
     """
-    assert_equal(ls_prob.grid.extent[0], (_SHAPE[0] - 1) * _SPACING[0])
+    assert ls_prob.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
 
 
-@with_setup(setup_grid)
-def test_field_getters():
+def test_field_getters(ls_prob):
     """Testing if the right field is called.
     """
     for name in ls_prob.grid['node']:
         field = ls_prob.grid['node'][name]
-        assert_is_instance(field, np.ndarray)
-        assert_equal(field.shape,
-                     (ls_prob.grid.number_of_node_rows *
-                      ls_prob.grid.number_of_node_columns, ))
+        assert isinstance(field, np.ndarray)
+        assert field.shape == (ls_prob.grid.number_of_node_rows *
+                               ls_prob.grid.number_of_node_columns, )
 
-    assert_raises(KeyError, lambda: ls_prob.grid['not_a_var_name'])
+    with pytest.raises(KeyError):
+        ls_prob.grid['not_a_var_name']
 
 
-@with_setup(setup_grid)
-def test_field_initialized_to_zero():
+def test_field_initialized_to_zero(ls_prob):
     """Testing if the fields are initialized with zeros.
     """
     for name in ls_prob.grid['node']:

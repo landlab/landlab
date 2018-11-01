@@ -27,6 +27,13 @@ except ImportError:
 
 
 def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_channels=1, threshold=None):
+    if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
+        msg = ('A route-to-multiple flow director has been '
+               'run on this grid. The landlab development team has not '
+               'verified that the channel profiler utility is compatible with '
+               'route-to-multiple methods. Please open a GitHub Issue '
+               'to start this process.')
+        raise NotImplementedError(msg)
     if threshold == None:
         threshold = 2. * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes

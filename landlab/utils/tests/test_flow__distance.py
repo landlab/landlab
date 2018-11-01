@@ -1,9 +1,8 @@
-#Importing the requested modules
-
+import pytest
 import numpy as np
 import math
-from nose.tools import assert_raises
 from numpy.testing import assert_array_equal, assert_almost_equal
+
 from landlab import RasterModelGrid, FieldError, HexModelGrid
 from landlab.components import FlowAccumulator, FlowDirectorSteepest
 from landlab.utils.flow__distance import calculate_flow__distance
@@ -14,11 +13,12 @@ def test_no_flow_recievers():
 
     # instantiate a model grid, do not run flow accumulation on it
 
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
 
     # test that the flow distance utility will fail because of a ValueError
 
-    assert_raises(FieldError, calculate_flow__distance, mg)
+    with pytest.raises(FieldError):
+        calculate_flow__distance(mg)
 
 
 def test_no_upstream_array():
@@ -39,7 +39,8 @@ def test_no_upstream_array():
 
     # test that the flow distance utility will fail because of a ValueError
 
-    assert_raises(FieldError, calculate_flow__distance, mg)
+    with pytest.raises(FieldError):
+        calculate_flow__distance(mg)
 
 
 def test_flow__distance_regular_grid_d8():
@@ -300,13 +301,11 @@ def test_flow__distance_raster_MFD_diagonals_false():
 def test_flow__distance_raster_D_infinity():
     """Test of flow__distance utility with a raster grid and D infinity."""
 
-    # instantiate a model grid
-
     mg = RasterModelGrid((5, 4), spacing=(1, 1))
 
     # instantiate an elevation array
 
-    z = mg.x_of_node + 2.0 * mg.y_of_node
+    z = mg.x_of_node + 3.0 * mg.y_of_node
 
     # add the elevation field to the grid
 
@@ -314,13 +313,11 @@ def test_flow__distance_raster_D_infinity():
 
     # instantiate the expected flow_length array
 
-    flow__distance_expected = np.array([[0, 0, 0, 0], [0, 0, 0, 0],
-                                        [0, 1, 1, math.sqrt(2)],
-                                        [0, 2, 2, 1+math.sqrt(2)],
-                                        [0, 3, 3, 2+math.sqrt(2)]], dtype='float64')
-    flow__distance_expected = np.reshape(flow__distance_expected,
-                                        mg.number_of_node_rows *
-                                        mg.number_of_node_columns)
+    flow__distance_expected = np.array([[0, 0, 0, 0],
+                                        [0, 0, 1, 0],
+                                        [0, 1, 0+math.sqrt(2.), 0],
+                                        [0, 2, 1+math.sqrt(2.), 0],
+                                        [0, 0, 0, 0]], dtype='float64')
 
     #setting boundary conditions
 
@@ -336,8 +333,9 @@ def test_flow__distance_raster_D_infinity():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(mg, add_to_grid=True,
-                                              noclobber=False)
+    flow__distance = calculate_flow__distance(mg,
+                                              add_to_grid=True,
+                                              noclobber=False).reshape(mg.shape)
 
     # test that the flow__distance utility works as expected
 
