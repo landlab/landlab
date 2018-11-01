@@ -1260,27 +1260,7 @@ class ClastCollection(DataRecord):
         """See :func:`run_one_step`
 
         """
-        # Method loop: Depending on the method used to evolve the landscape,
-        # get sediment influx, erosion and deposition
-#        self.erosion_method = erosion_method
-#        if self.erosion_method == 'TLDiff':
-#            #self._erosion_rate = self._grid.at_node['sediment__erosion_rate'] # NOT USED
-#            self._deposition_rate = self._grid.at_node[
-#                    'sediment__deposition_rate']
-#            #self._sediment__flux_in = self._grid.at_node['sediment__flux_in'] # NOT USED
-#
-#        elif self.erosion_method == 'Space':
-#            from landlab.components import Space
-#            for obj in gc.get_objects():
-#                if isinstance(obj, Space):    # look for instance of Space
-#                    #self._erosion_rate = obj.Es + obj.Er   # Works if only one instance of Space was made # NOT USED
-#                    self._deposition_rate = obj.depo_rate
-#                    #self._sediment__flux_in = obj.qs_in  # NOT USED
-#
-#        else:
-#            raise ValueError('Erosion method must be "TLDiff" or "Space"')
 
-        # Future version: multiple compo -> add fluxes?
         # Store values that will be used:
         self.attrs['kappa'] = kappa # if using SPACE, kappa=K_sed. TO DO: can be a field or array
         self.attrs['dt'] = dt
@@ -1295,7 +1275,7 @@ class ClastCollection(DataRecord):
         self.attrs['d_star'] = d_star
 
 
-        # Uplift:
+        # Uplift: #### TO MODIF (put in attrs?) AND TEST #########
         if uplift is not None:
             if type(uplift) is str:
                 self._uplift = self._grid.at_node[uplift]
@@ -1323,6 +1303,9 @@ class ClastCollection(DataRecord):
 
         # Treat clasts one after the other:
         for clast in range(self._nb_of_clast):
+            # Calculate lambda_0 (for display purposes mostly):
+            self['lambda_0'][clast] = self.attrs['kappa'] / (2 * self['clast__radius'][clast, -1] * self.attrs['disturbance_fqcy'])
+
             # FOR TESTING ONLY ######
             print('CLAST %s' %clast)
             #########################
