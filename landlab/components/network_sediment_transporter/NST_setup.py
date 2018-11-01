@@ -12,7 +12,8 @@ from landlab.grid.network import NetworkModelGrid
 from landlab.data_record import DataRecord
 from landlab.components import FlowDirectorSteepest
 from landlab.plot import graph
-from network_sediment_transporter import NetworkSedimentTransporter
+
+#from network_sediment_transporter import NetworkSedimentTransporter
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -90,7 +91,7 @@ data = {'starting_link': starting_link,
 parcels = DataRecord(grid,
     data = data,
     grid_element ='link',
-    element_id = element_id)
+    element_id = element_id
 
 # Add parcels in at a given time --> attribute in the item collection
 

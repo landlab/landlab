@@ -1,4 +1,4 @@
-from .Network_bedload_morphodyn import Network_bedload_morphodyn
+from .network_sediment_transporter import NetworkSedimentTransporter
 
 
-__all__ = ['Network_bedload_morphodyn', ]
+__all__ = ['NetworkSedimentTransporter', ]
