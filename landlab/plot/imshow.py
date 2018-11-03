@@ -302,7 +302,7 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
                 myimage = plt.imshow(values, origin='lower',
                                      extent=(x[0], x[-1], y[0], y[-1]), **kwds)
         myimage = plt.pcolormesh(x, y, values, **kwds)
-
+        myimage.set_rasterized(True)
         plt.gca().set_aspect(1.)
         plt.autoscale(tight=True)
 
