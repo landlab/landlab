@@ -366,7 +366,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
     @classmethod
     def from_dict(cls, params):
-        raise NotImplementedError('from_dict')
+        return cls(**params)
 
     def _initialize(self):
         raise NotImplementedError('_initialize')
