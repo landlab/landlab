@@ -34,7 +34,8 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.):
     """
     D = E * pow(h, 3) / 12. / (1. - pow(_POISSON, 2))
 
-    assert n_dim == 1 or n_dim == 2
+    if n_dim not in (1, 2):
+        raise ValueError("n_dim must be either 1 or 2")
 
     if n_dim == 2:
         alpha = pow(D / gamma_mantle, .25)
@@ -138,26 +139,32 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     eet, youngs = params["eet"], params["youngs"]
     gamma_mantle = params.get("gamma_mantle", 33000.)
 
-    assert len(loc) in [1, 2]
-    assert len(coords) == len(loc)
-    assert len(coords[0].shape) == 1
+    load = np.asarray(load).reshape((-1, ))
+    loc = np.asarray(loc).reshape((-1, len(load)))
+    coords = np.asarray(coords)
+    if coords.ndim == 1:
+        coords = np.expand_dims(coords, axis=0)
 
-    if not isinstance(load, (int, float, np.ndarray)):
-        load = np.array(load)
+    n_dim = len(loc)
+    if n_dim not in (1, 2):
+        raise ValueError("number of dimension must be 1 or 2")
+    if len(coords) != n_dim:
+        raise ValueError("number of dimensions in coordinates doesn't match loc")
 
     if out is None:
         out = np.empty(coords[0].size, dtype=np.float)
 
-    alpha = get_flexure_parameter(eet, youngs, len(loc), gamma_mantle=gamma_mantle)
+    alpha = get_flexure_parameter(eet, youngs, n_dim, gamma_mantle=gamma_mantle)
 
-    if len(loc) == 2:
+    if n_dim == 2:
         _calculate_deflections(
             load, loc, coords, alpha, out=out, gamma_mantle=gamma_mantle
         )
     else:
-        c = load / (2. * alpha * gamma_mantle)
-        r = abs(coords[0] - loc[0]) / alpha
-        out[:] = c * np.exp(-r) * (np.cos(r) + np.sin(r))
+        x, x0 = np.meshgrid(loc[0], coords[0])
+        c = (load / (2. * alpha * gamma_mantle))
+        r = abs(x - x0) / alpha
+        out[:] = (c * np.exp(-r) * (np.cos(r) + np.sin(r))).sum(axis=1)
 
     return out
 
@@ -212,7 +219,7 @@ def subside_point_loads(loads, locs, coords, params=None, deflection=None, n_pro
         for index in loads.nonzero()[0]:
             loc = [dim.flat[index] for dim in locs]
             deflection += subside_point_load(
-                loads.flat[index], loc, coords, eet, youngs, gamma_mantle
+                loads.flat[index], loc, coords, params=dict(eet=eet, youngs=youngs, gamma_mantle=gamma_mantle)
             )
     return deflection
 
@@ -236,9 +243,3 @@ def _subside_in_parallel(dz, loads, locs, coords, eet, youngs, gamma_mantle, n_p
         except ValueError:
             result.shape = dz.shape
             dz += result
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
