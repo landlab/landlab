@@ -132,3 +132,15 @@ def test_dimension_mismatch():
     y = np.zeros_like(x)
     with raises(ValueError):
         subside_point_load(load, loc, (x, y), params=params)
+
+
+def test_ndim_too_big():
+    params = dict(eet=65000., youngs=7e10)
+    load = 1e9
+    loc = ((5000., 1000., 500.),)
+
+    x = np.arange(0, 10000, 1000.)
+    y = np.zeros_like(x)
+    z = np.zeros_like(x)
+    with raises(ValueError):
+        subside_point_load(load, loc, (x, y, z), params=params)
