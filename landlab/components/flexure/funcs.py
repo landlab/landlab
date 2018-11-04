@@ -46,24 +46,18 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.):
 
 
 def _calculate_distances(locs, coords):
-    if isinstance(locs[0], (float, int)):
-        return np.sqrt(pow(coords[0] - locs[0], 2) + pow(coords[1] - locs[1], 2))
-    else:
-        r = pow(coords[0][:, np.newaxis] - locs[0], 2)
-        r += pow(coords[1][:, np.newaxis] - locs[1], 2)
-        return np.sqrt(r, out=r)
+    r = pow(coords[0][:, np.newaxis] - locs[0], 2)
+    r += pow(coords[1][:, np.newaxis] - locs[1], 2)
+    return np.sqrt(r, out=r)
 
 
 def _calculate_deflections(load, locs, coords, alpha, out=None, gamma_mantle=33000.):
     c = -load / (2. * np.pi * gamma_mantle * pow(alpha, 2.))
     r = _calculate_distances(locs, coords) / alpha
 
-    if isinstance(c, (float, int)):
-        return np.multiply(scipy.special.kei(r), c, out=out)
-    else:
-        scipy.special.kei(r, out=r)
-        np.multiply(r, c[np.newaxis, :], out=r)
-        return np.sum(r, axis=1, out=out)
+    scipy.special.kei(r, out=r)
+    np.multiply(r, c[np.newaxis, :], out=r)
+    return np.sum(r, axis=1, out=out)
 
 
 def subside_point_load(load, loc, coords, params=None, out=None):
@@ -139,7 +133,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     eet, youngs = params["eet"], params["youngs"]
     gamma_mantle = params.get("gamma_mantle", 33000.)
 
-    load = np.asarray(load).reshape((-1, ))
+    load = np.asarray(load).reshape((-1,))
     loc = np.asarray(loc).reshape((-1, len(load)))
     coords = np.asarray(coords)
     if coords.ndim == 1:
@@ -162,7 +156,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
         )
     else:
         x, x0 = np.meshgrid(loc[0], coords[0])
-        c = (load / (2. * alpha * gamma_mantle))
+        c = load / (2. * alpha * gamma_mantle)
         r = abs(x - x0) / alpha
         out[:] = (c * np.exp(-r) * (np.cos(r) + np.sin(r))).sum(axis=1)
 
