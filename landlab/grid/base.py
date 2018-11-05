@@ -317,6 +317,18 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
 
+    @classmethod
+    def from_file(cls, file_like):
+        params = load_params(file_like)
+        return cls.from_dict(params)
+
+    @classmethod
+    def from_dict(cls, params):
+        return cls(**params)
+
+    def _initialize(self):
+        raise NotImplementedError('_initialize')
+
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
@@ -358,18 +370,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             self.active_link_dirs_at_node == 0] = BAD_INDEX_VALUE
         self.neighbor_list_created = True
         return self._active_neighbor_nodes
-
-    @classmethod
-    def from_file(cls, file_like):
-        params = load_params(file_like)
-        return cls.from_dict(params)
-
-    @classmethod
-    def from_dict(cls, params):
-        return cls(**params)
-
-    def _initialize(self):
-        raise NotImplementedError('_initialize')
 
     @property
     def ndim(self):
