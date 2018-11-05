@@ -103,10 +103,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         LLCATS: GINF
         """
-        shape = params['shape']
-        spacing = params.get('spacing', 1.)
+        shape = params.pop(['shape'])
+        spacing = params.pop('spacing', None)
 
-        return cls(shape[0], shape[1], spacing)
+        return cls(shape[0], shape[1], spacing, **params)
 
     def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
                     shape, reorient_links=True):
@@ -643,7 +643,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     def node_row_and_column(self, node_id):
         """Row and column from node ID, FOR VERT RECT CONFIGURATION ONLY.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -665,8 +665,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         n_mod_nc = node_id % nc
         half_nc = (nc + 1) // 2
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
-        return (row, col)            
-            
+        return (row, col)
+
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
@@ -800,7 +800,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Returns
         -------
         boolean
-            ``True`` if node has a neighbor with a boundary ID, 
+            ``True`` if node has a neighbor with a boundary ID,
             ``False`` otherwise.
 
 

@@ -357,7 +357,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         bc : dict, optional
             Edge boundary conditions.
         origin : tuple, optional
-            Provides the values (x, y) of the
+            Provides the values (y, x) of the
             lower left corner of the grid. Default
             value is (0.0, 0.0)
 
@@ -538,11 +538,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: GINF
         """
-        shape = params['shape']
-        spacing = params.get('spacing', (1., ) * len(shape))
-        bc = params.get('bc', {})
-
-        return cls(shape, spacing=spacing, bc=bc)
+        shape = params.pop('shape')
+        return cls(shape, **params)
 
     def _initialize(self, num_rows, num_cols, spacing, origin):
         """Set up a raster grid.
@@ -552,7 +549,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         boundaries and all interior cells are active).
 
         The lower left corner is set through *origin*, which is a
-        (lower left corner x, lower left corner y) tuple.
+        (lower left corner y, lower left corner x) tuple.
 
         To be consistent with unstructured grids, the raster grid is
         managed not as a 2D array but rather as a set of vectors that

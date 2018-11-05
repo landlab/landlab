@@ -8,12 +8,16 @@ def test_RMG_from_dict():
                      "top": "closed",
                      "left": "closed",
                      "bottom": "closed"},
-               'origin': (35, 55)}
+              'origin': (35, 55),
+              "axis_name": ('spam', 'eggs'),
+              "axis_units": ('smoot', 'parsec')}
 
     mg = RasterModelGrid.from_dict(params)
 
     # assert things.
     assert mg.shape == mg.shape
     assert mg.dx == 25
-    assert (mg.x_of_node.min(), mg.y_of_node) == (35, 55)
+    assert (mg.y_of_node.min(), mg.x_of_node.min()) == (35, 55)
     assert np.all(mg.status_at_node[mg.boundary_nodes]==CLOSED_BOUNDARY) == True
+    assert mg.axis_units == ('smoot', 'parsec')
+    assert mg.axis_name == ('spam', 'eggs')
