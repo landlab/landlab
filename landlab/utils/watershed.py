@@ -157,6 +157,17 @@ def get_watershed_nodes(grid, outlet_id):
 
     return ws_nodes
 
+def assign_watershed_mask_to_all_nodes(grid):
+    """
+    """
+    upstream_node_order = grid.at_node['flow__upstream_node_order']
+    flow__receiver_node = grid.at_node['flow__receiver_node']
+    watershed_mask = np.zeros(grid.number_of_nodes, dtype=bool)
+
+    for node_id in upstream_node_order:
+        watershed_mask[node_id] = watershed_mask[flow__receiver_node[node_id]]
+
+    return watershed_mask
 
 def get_watershed_masks_with_area_threshold(grid, critical_area):
     """
