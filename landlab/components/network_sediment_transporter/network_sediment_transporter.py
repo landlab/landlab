@@ -31,9 +31,7 @@ class NetworkSedimentTransporter(Component):
     Option 1 - Basic::
         NetworkSedimentTransporter(grid,
                              parcels,
-                             parcel_reservoir,
-                             transport_method = 'WilcockCrow',
-                             transporter = asdfasdf
+                             transporter = asdfasdf,
                              discharge,
                              channel_geometry,
                              active_layer_thickness)
@@ -134,7 +132,6 @@ class NetworkSedimentTransporter(Component):
                  fluid_density = 1000,
                  discharge='surface_water__discharge',
                  channel_width='channel_width',
-                 transport_method = 'WilcockCrowe',
                  **kwds):
         """
         Parameters
@@ -188,7 +185,8 @@ class NetworkSedimentTransporter(Component):
 
 
     def _update_channel_slopes(self):
-        """text"""
+        """text Can be simple-- this is what this does. 'private' functions can 
+        have very simple examples, explanations. Essentially note to yourself"""
         # Katy think this can be vectorized
         for l in range(self._grid.number_of_links):
 
@@ -218,18 +216,18 @@ class NetworkSedimentTransporter(Component):
             if vol_tot[i]>0: #only do this check capacity if parcels are in link
 
                 #First In Last Out
-                parcel_id_thislink = np.where(self._parcels.DataFrame.element_id.values == i)[0]
-
-                time_arrival_sort = np.flip(np.argsort(self._parcels.DataFrame.time_arrival_in_link.values[parcel_id_thislink]),0)
+                #parcel_id_thislink = np.where(self._parcels.DataFrame.element_id.values == i)[0]
+                parcel_id_thislink = np.where(self._parcels['element_id']== i)[0]
+                #time_arrival_sort = np.flip(np.argsort(self._parcels.DataFrame.time_arrival_in_link.values[parcel_id_thislink]),0)
+                time_arrival_sort = np.flip(np.argsort(self._parcels['time_arrival_in_link'][parcel_id_thislink]),0)
                 parcel_id_time_sorted = parcel_id_thislink[time_arrival_sort]
-
-                cumvol = np.cumsum(self._parcels.DataFrame.volume.values[parcel_id_time_sorted])
+                cumvol = np.cumsum(self._parcels['volume'][parcel_id_time_sorted])
 
                 idxinactive = np.where(cumvol>capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
 
-                self._parcels.set_value(item_id = parcel_id_thislink,variable = 'active_layer', value = 1)
-                self._parcels.set_value(item_id = make_inactive,variable = 'active_layer', value = 0)
+                self._parcels.set_data(item_id = parcel_id_thislink,variable = 'active_layer', value = 1)
+                self._parcels.set_data(item_id = make_inactive,variable = 'active_layer', value = 0)
 
         # Update Node Elevations
         findactive = self._parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer
@@ -289,31 +287,31 @@ class NetworkSedimentTransporter(Component):
         # parcel attribute arrays from ItemCollector
 
         # another way of doing this --> check to see if this is copying. we don't want to be copying
-        Darray = self._parcels.DataFrame.D.values
+        Darray = self._parcels['D']
 
 #        Darray = np.array(parcels.DataFrame.D,copy=False) # this gives a copy, but we can set copy to false..?
-        Activearray = self._parcels.DataFrame.active_layer.values
-        Rhoarray = self._parcels.DataFrame.density.values
-        Volarray = self._parcels.DataFrame.volume.values
-        Linkarray = self._parcels.DataFrame.element_id.values #link that the parcel is currently in
+        Activearray = self._parcels['active_layer']
+        Rhoarray = self._parcels['density']
+        Volarray = self._parcels['volume']
+        Linkarray = self._parcels['element_id'] #link that the parcel is currently in
         rho = self.fluid_density
         g = self.g
         R = (Rhoarray-rho)/rho
 
         # parcel attribute arrays to populate below
-        frac_sand_array = np.zeros(np.size(self._parcels.DataFrame.element_id))
-        vol_act_array = np.zeros(np.size(self._parcels.DataFrame.element_id))
-        Sarray = np.zeros(np.size(self._parcels.DataFrame.element_id))
-        Harray = np.zeros(np.size(self._parcels.DataFrame.element_id))
-        Larray = np.zeros(np.size(self._parcels.DataFrame.element_id))
-        d_mean_active = np.zeros(np.size(self._parcels.DataFrame.element_id))
+        frac_sand_array = np.zeros(np.size(self._parcels['element_id']))
+        vol_act_array = np.zeros(np.size(self._parcels['element_id']))
+        Sarray = np.zeros(np.size(self._parcels['element_id']))
+        Harray = np.zeros(np.size(self._parcels['element_id']))
+        Larray = np.zeros(np.size(self._parcels['element_id']))
+        d_mean_active = np.zeros(np.size(self._parcels['element_id']))
         d_mean_active.fill(np.nan)
-        Ttimearray = np.zeros(np.size(self._parcels.DataFrame.element_id))
+        Ttimearray = np.zeros(np.size(self._parcels['element_id']))
 
         # Calculate bed statistics for all of the links
         vol_tot =  self._parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
 
-        findactive = self._parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer
+        findactive = self._parcels['active_layer']==1 # filter for only parcels in active layer
         vol_act = self._parcels.calc_aggregate_value(np.sum,
                                                   'volume',at = 'link',
                                                   filter_array = findactive)
@@ -374,8 +372,8 @@ class NetworkSedimentTransporter(Component):
 
 # %%
         # we need to make sure we are pointing to the array rather than making copies
-        current_link = self._parcels.DataFrame.element_id.values # same as Linkarray, this will be updated below
-        location_in_link = self._parcels.DataFrame.location_in_link.values # updated below
+        current_link = self._parcels['element_id'] # same as Linkarray, this will be updated below
+        location_in_link = self._parcels['location_in_link'] # updated below
         # Ttimearray -- needs to be brought in here
         #^ Ttimearray is the time to move through the entire length of a link
 
@@ -392,7 +390,8 @@ class NetworkSedimentTransporter(Component):
             # loop through until you find the link the parcel will reside in after dt
             while running_travel_time_in_dt[p] <= dt :
                 # determine downstream link
-                downstream_link_id = self.fd.link_to_flow_receiving_node[self.fd.downstream_node_at_link[element_id[p]]]
+                current_link_of_parcel = self._parcels['element_id'][p]
+                downstream_link_id = self.fd.link_to_flow_receiving_node[self.fd.downstream_node_at_link[current_link_of_parcel]]
 
                 if downstream_link_id == -1 : #parcel has exited the network
                     # I think we should then remove this parcel from the parcel item collector
@@ -412,7 +411,7 @@ class NetworkSedimentTransporter(Component):
                 # movement in DS link is at the same velocity as in US link
                 # perhaps modify in future or ensure this type of travel is kept to a minimum by
                 # dt < travel time
-                time_to_exit_current_link[p] = time_to_exit_current_link[p] / self._grid.at_link['link_length'][element_id[p]] * self._grid.at_link['link_length'][current_link[p]]
+                time_to_exit_current_link[p] = time_to_exit_current_link[p] / self._grid.at_link['link_length']['element_id'[p]] * self._grid.at_link['link_length'][current_link[p]]
                 running_travel_time_in_dt[p] = running_travel_time_in_dt[p] + time_to_exit_current_link[p]
 
                 # TRACK RUNNING TRAVEL DISTANCE HERE SIMILAR TO RUNNING TRAVEL TIME
@@ -427,16 +426,16 @@ class NetworkSedimentTransporter(Component):
             
             distance_traveled = 0 # NEED TO DEFINE
             
-            vol = self._parcels.DataFrame.volume.values[p]*np.exp(distance_traveled * -self._parcels.DataFrame.abrasion_rate.values[p])
+            vol = (self._parcels['volume'][p])*(np.exp(distance_traveled * (-self._parcels['abrasion_rate'][p])))
 
             D = 2 * (vol * 3 / (4 * np.pi))**(1/3)
 
             # update parcel attributes
-            self._parcels.DataFrame.location_in_link.values[p] = location_in_link[p]
-            self._parcels.DataFrame.element_id.values[p] = current_link[p]
-            self._parcels.DataFrame.active_layer.values[p] = 1 # reset to 1 (active) to be recomputed/determined at next timestep
-            self._parcels.DataFrame.volume.values[p] = vol
-            self._parcels.DataFrame.D.values[p] = D
+            self._parcels['location_in_link'][p] = location_in_link[p]
+            self._parcels['element_id'][p] = current_link[p]
+            self._parcels['active_layer'][p] = 1 # reset to 1 (active) to be recomputed/determined at next timestep
+            self._parcels['volume'][p] = vol
+            self._parcels['D'][p] = D
 
 
 # %%

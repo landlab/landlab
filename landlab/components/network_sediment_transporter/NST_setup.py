@@ -11,6 +11,7 @@ import numpy as np
 from landlab.grid.network import NetworkModelGrid
 from landlab.data_record import DataRecord
 from landlab.components import FlowDirectorSteepest
+from landlab.components import network_sediment_transporter
 from landlab.plot import graph
 
 #from network_sediment_transporter import NetworkSedimentTransporter
@@ -78,20 +79,33 @@ D[5] = 0.0001 # make one of them sand
 
 volume[2] = 0.3
 
-data = {'starting_link': starting_link,
-        'volume': volume,
-        'D': D,
-        'lithology': lithology,
-        'time_arrival_in_link': time_arrival_in_link,
-        'active_layer': active_layer,
-        'density': density,
-        'location_in_link': location_in_link,
-        'abrasion_rate': abrasion_rate}
+#data = {'starting_link': starting_link,
+#        'volume': volume,
+#        'D': D,
+#        'lithology': lithology,
+#        'time_arrival_in_link': time_arrival_in_link,
+#        'active_layer': active_layer,
+#        'density': density,
+#        'location_in_link': location_in_link,
+#        'abrasion_rate': abrasion_rate}
+
+
+items = {'grid_element': 'link',
+        'element_id': element_id}
+        
+variables = {'starting_link': (['item_id'],starting_link),
+        'volume': (['item_id'],volume),
+        'D': (['item_id'],D),
+        'lithology': (['item_id'],lithology),
+        'time_arrival_in_link': (['item_id'],time_arrival_in_link),
+        'active_layer': (['item_id'],active_layer),
+        'density': (['item_id'],density),
+        'location_in_link': (['item_id'],location_in_link),
+        'abrasion_rate': (['item_id'],abrasion_rate)}
         
 parcels = DataRecord(grid,
-    data = data,
-    grid_element ='link',
-    element_id = element_id
+    items = items,
+    data_vars = variables)
 
 # Add parcels in at a given time --> attribute in the item collection
 
@@ -131,7 +145,7 @@ Btmax=np.amax(channel_width, axis = 0) # CURRENTLY UNUSED
 fd = FlowDirectorSteepest(grid, 'topographic__elevation')
 fd.run_one_step()
 
-nst = NetworkSedimentTransporter(grid,
+nst = network_sediment_transporter(grid,
                  parcels,
                  fd,
                  flow_depth,
@@ -140,8 +154,7 @@ nst = NetworkSedimentTransporter(grid,
                  g = 9.81, 
                  fluid_density = 1000,
                  discharge='surface_water__discharge',
-                 channel_width='channel_width',
-                 transport_method = 'WilcockCrowe')
+                 channel_width='channel_width')
 
 # %% Run the component(s)
 
