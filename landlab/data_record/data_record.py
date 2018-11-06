@@ -1000,7 +1000,6 @@ class DataRecord(Dataset):
         # Filter DataRecord with my_filter and groupby element_id:
         filtered = self.where(my_filter == True).groupby('element_id')
 
-        #vals = xr.core.groupby.DatasetGroupBy(filtered, 'element_id').reduce(func, *args, **kwargs)
         vals = filtered.apply(func, *args, **kwargs)  #.reduce
 #        vals = xr.apply_ufunc(func,
 #                            filtered,
