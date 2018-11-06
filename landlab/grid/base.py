@@ -344,19 +344,17 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
     @property
     def origin(self):
-        """
-        """
+        """Return the (y, x) tuple of the model grid's origin."""
         return self._origin
 
-    def _origin(self):
-        return (self.y_of_node.min(), self.x_of_node.min())
-
     @origin.setter
-    def origin(self, new_origin)
-        """
-        """
+    def origin(self, new_origin):
+        """Set a new value for the model grid origin."""
+        dy = self._origin[0] - new_origin[0]
+        dx = self._origin[1] - new_origin[1]
+        self._xy_of_node -= (dy, dx)
         self.__origin = new_origin
-        # move x and y locations.
+
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
@@ -4109,17 +4107,20 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self.node_at_link_head[:] = self.node_at_link_head[indices]
 
     def move_origin(self, origin):
-        """Changes the x, y values of all nodes.  Initially a grid will have
-        an origin of 0,0, and all x,y values will be relative to 0,0.  This
-        will move origin a new location.
+        """Changes the x and y coordinate values of all nodes.
+
+        Initially a grid will have an origin of 0,0, and all x,y values will be
+        relative to 0,0.  This will move origin a new location.
 
         Note this is most likely useful when importing a DEM that has an
         absolute location, however it can be used generally.
 
+        As with initializing the grid, *origin* is specified as (y, x).
+
         Parameters
         ----------
         origin : list of two float values, can be negative.
-            [y,x], where x is the new x value for the origin and y is the new
+            [y, x], where x is the new x value for the origin and y is the new
             y value for the origin.
 
         Examples
@@ -4130,7 +4131,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> rmg.move_origin((1.5, 5))
+        >>> rmg.move_origin((5.0, 1.5))
         >>> rmg.node_x
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
         >>> rmg.node_y

@@ -348,16 +348,20 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         At the moment, num_rows and num_cols MUST be specified. Both must be
         >=3 to allow correct automated setup of boundary conditions.
 
+        Note that to mirror the shape as (nrows, ncols) the spacing is
+        specified as (dy, dx) and the origin is specified as (y, x)
+
         Parameters
         ----------
         shape : tuple of int
-            Shape of the grid in nodes.
+            Shape of the grid in nodes as (nrows, ncols).
         spacing : tuple or float, optional
-            Row and column node spacing.
+            Row and column node spacing. If provided as a
+            tuple, provide as (dy, dx).
         bc : dict, optional
             Edge boundary conditions.
         origin : tuple, optional
-            Provides the values (x, y) of the
+            Provides the values (y, x) of the
             lower left corner of the grid. Default
             value is (0.0, 0.0)
 
@@ -376,7 +380,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         dx = kwds.pop('dx', None)
         num_rows = kwds.pop('num_rows', None)
         num_cols = kwds.pop('num_cols', None)
-        origin = kwds.pop('origin', None) or (0., 0.)
+        self._origin = kwds.pop('origin', None) or (0., 0.)
 
         if num_rows is None and num_cols is None:
             num_rows, num_cols = _parse_grid_shape_from_args(args)
@@ -393,7 +397,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx, origin)
+        self._initialize(num_rows, num_cols, dx, self._origin)
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop('bc', {})))
@@ -547,12 +551,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     def _initialize(self, num_rows, num_cols, spacing, origin):
         """Set up a raster grid.
 
-        Sets up a *num_rows* by *num_cols* grid with cell *spacing* and
+        Sets up a *num_rows* by *num_cols* grid with cell *spacing*  and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
 
+        Spacing may be provided as a value for square cells or as a tuple
+        (dy, dx) for rectangular cells.
+
         The lower left corner is set through *origin*, which is a
-        (lower left corner x, lower left corner y) tuple.
+        (lower left corner y, lower left corner y) tuple.
 
         To be consistent with unstructured grids, the raster grid is
         managed not as a 2D array but rather as a set of vectors that
