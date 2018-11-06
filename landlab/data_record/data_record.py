@@ -43,14 +43,6 @@ class DataRecord(Dataset):
     """
     _name = "DataRecord"
 
-# Should we cite xarray?
-#    _cite_as = """@article{hoyer2016xarray,
-#            title   = {xarray: {N-D} labeled arrays and datasets in {Python}},
-#            author  = {Hoyer, S. and J. Hamman},
-#            journal = {in prep, J. Open Res. Software},
-#            year    = {2016}
-#            }"""
-
     def __init__(self,
                  grid,
                  time=None,
@@ -81,7 +73,7 @@ class DataRecord(Dataset):
                 element ID on which each item resides.
             An example argument would be:
                 {'grid_element' : numpy.array(['node'], ['node'], ['link']),
-                 'element_id' :   numpy.array([1],      [5],      [1]     ])}
+                 'element_id' :   numpy.array([1],      [5],      [1]     )}
         data_vars : dict (optional)
             Dictionary of the data variables to be recorded. The structure is:
                 {'variable_name_1' : (['dimensions'], variable_data_1),
@@ -1009,11 +1001,11 @@ class DataRecord(Dataset):
         filtered = self.where(my_filter == True).groupby('element_id')
 
         #vals = xr.core.groupby.DatasetGroupBy(filtered, 'element_id').reduce(func, *args, **kwargs)
-#        vals = filtered.apply(func, *args, **kwargs)  #.reduce
-        vals = xr.apply_ufunc(func,
-                            filtered,
-                            input_core_dims=[['item_id']],
-                            **kwargs)
+        vals = filtered.apply(func, *args, **kwargs)  #.reduce
+#        vals = xr.apply_ufunc(func,
+#                            filtered,
+#                            #input_core_dims=[['item_id']],
+#                            **kwargs)
 
 
         # create a nan array that we will fill with the results of the sum
