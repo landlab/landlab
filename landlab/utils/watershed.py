@@ -75,14 +75,11 @@ def get_watershed_mask(grid, outlet_id):
         )
         raise NotImplementedError(msg)
 
-    grid_nodes = grid.nodes.flatten()
     receiver_at_node = grid.at_node["flow__receiver_node"]
     upstream_node_order = grid.at_node["flow__upstream_node_order"]
 
     # Prepare output.
     watershed_mask = np.zeros(grid.number_of_nodes, dtype=bool)
-
-    outlet_found = False
 
     # loop through all nodes once based on upstream node order. This means we
     # only need to loop through the nodes once.
@@ -161,7 +158,7 @@ def get_watershed_nodes(grid, outlet_id):
 
 def get_watershed_masks(grid):
     """
-    Assing the watershed outlet id to all nodes in the grid.
+    Assign the watershed outlet id to all nodes in the grid.
 
     Parameters
     ----------
@@ -201,7 +198,7 @@ def get_watershed_masks(grid):
     >>> fr = FlowAccumulator(rmg, flow_director='D8')
     >>> fr.run_one_step()
 
-    Assign mask
+    Assign mask.
 
     >>> mask = get_watershed_masks(rmg)
     >>> mask.reshape(rmg.shape)
