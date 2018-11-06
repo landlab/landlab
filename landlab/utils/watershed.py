@@ -216,7 +216,7 @@ def get_watershed_masks(grid):
     """
     upstream_node_order = grid.at_node["flow__upstream_node_order"]
     flow__receiver_node = grid.at_node["flow__receiver_node"]
-    watershed_mask = np.arange(grid.size('node'), dtype=int)
+    watershed_mask = np.arange(grid.size("node"), dtype=int)
 
     for node_id in upstream_node_order:
         watershed_mask[node_id] = watershed_mask[flow__receiver_node[node_id]]
