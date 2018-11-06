@@ -24,7 +24,7 @@ dr1 = DataRecord(grid, time =[0.],
 # Vaguely how we'll be using it
 
 
-#my_items = {'grid_element': np.array(('node', 'link'), dtype=str),
-#            'element_id': np.array([1, 3])}
-#
-#dr = DataRecord(grid,items = my_items)
+my_items = {'grid_element': np.array(('node', 'link'), dtype=str),
+            'element_id': np.array([1, 3])}
+
+dr = DataRecord(grid,items = my_items)
