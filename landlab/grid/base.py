@@ -342,6 +342,22 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         #     ModelDataFields.new_field_location(self, loc, size=None)
         ModelDataFields.set_default_group(self, 'node')
 
+    @property
+    def origin(self):
+        """
+        """
+        return self._origin
+
+    def _origin(self):
+        return (self.y_of_node.min(), self.x_of_node.min())
+
+    @origin.setter
+    def origin(self, new_origin)
+        """
+        """
+        self.__origin = new_origin
+        # move x and y locations.
+
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
 
@@ -4095,7 +4111,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     def move_origin(self, origin):
         """Changes the x, y values of all nodes.  Initially a grid will have
         an origin of 0,0, and all x,y values will be relative to 0,0.  This
-        will add origin[0] to all x values and origin[1] to all y values.
+        will move origin a new location.
 
         Note this is most likely useful when importing a DEM that has an
         absolute location, however it can be used generally.
@@ -4103,8 +4119,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Parameters
         ----------
         origin : list of two float values, can be negative.
-            [x,y], where x is the value to add to all x values and
-            y is the value to add to all y values
+            [y,x], where x is the new x value for the origin and y is the new
+            y value for the origin.
 
         Examples
         --------
@@ -4114,7 +4130,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> rmg.move_origin((5,1.5))
+        >>> rmg.move_origin((1.5, 5))
         >>> rmg.node_x
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
         >>> rmg.node_y
@@ -4123,7 +4139,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: GINF MEAS
         """
-        self._xy_of_node += origin
+        self.origin = origin
 
 
 add_module_functions_to_class(ModelGrid, 'mappers.py', pattern='map_*')
