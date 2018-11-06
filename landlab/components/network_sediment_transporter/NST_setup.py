@@ -11,7 +11,7 @@ import numpy as np
 from landlab.grid.network import NetworkModelGrid
 from landlab.data_record import DataRecord
 from landlab.components import FlowDirectorSteepest
-from landlab.components import network_sediment_transporter
+from landlab.components import NetworkSedimentTransporter
 from landlab.plot import graph
 
 #from network_sediment_transporter import NetworkSedimentTransporter
@@ -89,7 +89,6 @@ volume[2] = 0.3
 #        'location_in_link': location_in_link,
 #        'abrasion_rate': abrasion_rate}
 
-
 items = {'grid_element': 'link',
         'element_id': element_id}
         
@@ -130,8 +129,6 @@ flow_depth=((np.tile(Hgage,(grid.number_of_links))/(Agage**0.4))
 Btmax=np.amax(channel_width, axis = 0) # CURRENTLY UNUSED
 
 
-
-
 # %% Instantiate component(s)
 #dis = ExteralDischargeSetter(grid, filename, model='dhsvm')
         
@@ -145,7 +142,7 @@ Btmax=np.amax(channel_width, axis = 0) # CURRENTLY UNUSED
 fd = FlowDirectorSteepest(grid, 'topographic__elevation')
 fd.run_one_step()
 
-nst = network_sediment_transporter(grid,
+nst = NetworkSedimentTransporter(grid,
                  parcels,
                  fd,
                  flow_depth,
@@ -153,8 +150,8 @@ nst = network_sediment_transporter(grid,
                  bed_porosity,
                  g = 9.81, 
                  fluid_density = 1000,
-                 discharge='surface_water__discharge',
-                 channel_width='channel_width')
+                 channel_width='channel_width',
+                 transport_method = 'WilcockCrowe')
 
 # %% Run the component(s)
 

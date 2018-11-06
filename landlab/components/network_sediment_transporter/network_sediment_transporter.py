@@ -78,8 +78,7 @@ class NetworkSedimentTransporter(Component):
         'channel_slope',
         'link_length',
         'channel_width',
-        'flow_depth',
-        'channel_discharge'
+        'flow_depth'
         )
 
     #  component creates these output values
@@ -94,8 +93,7 @@ class NetworkSedimentTransporter(Component):
         'channel_slope': 'm/m',
         'link_length':'m',
         'channel_width':'m',
-        'flow_depth': 'm',
-        'channel_discharge': 'm3'
+        'flow_depth': 'm'
         }
 
     # grid centering of each field and variable
@@ -104,8 +102,7 @@ class NetworkSedimentTransporter(Component):
         'channel_slope': 'link',
         'link_length':'link',
         'channel_width':'link',
-        'flow_depth': 'link',
-        'channel_discharge': 'link'        
+        'flow_depth': 'link'    
         }
 
     # short description of each field
@@ -115,12 +112,12 @@ class NetworkSedimentTransporter(Component):
         'channel_slope': 'Slope of the river channel through each reach',
         'link_length':'Length of each reach',
         'channel_width':'Flow width of the channel, assuming constant width',
-        'flow_depth': 'Depth of stream flow in each reach',
-        'channel_discharge': 'Stream channel discharge in each reach'         
+        'flow_depth': 'Depth of stream flow in each reach'     
         }
 
     # Run Component
-    @use_file_name_or_kwds
+#    @use_file_name_or_kwds
+#   Katy! We had to comment out ^ that line in order to get NST to instantiate. Back end changes needed. 
     def __init__(self,
                  grid,
                  parcels,
@@ -130,8 +127,8 @@ class NetworkSedimentTransporter(Component):
                  bed_porosity,
                  g = 9.81, 
                  fluid_density = 1000,
-                 discharge='surface_water__discharge',
                  channel_width='channel_width',
+                 transport_method = 'WilcockCrowe',
                  **kwds):
         """
         Parameters
@@ -154,7 +151,7 @@ class NetworkSedimentTransporter(Component):
                    "is not a Landlab component.")
             raise(ValueError, msg)
 
-        if flow_director.__name__ is not "FlowDirectorSteepest":
+        if flow_director.name is not "FlowDirectorSteepest":
             msg = ("NetworkSedimentTransporter: flow_director must be "
                    "FlowDirectorSteepest.")
             raise(ValueError, msg)
@@ -173,11 +170,10 @@ class NetworkSedimentTransporter(Component):
 
         # save reference to discharge and width fields stored at-link on the
         # grid
-        self._discharge = self._grid.at_link[discharge]
         self._width = self._grid.at_link[channel_width]
 
         # create field for channel slope if it doesnt exist yet.
-        if "channel_slope" not in self._grid.at_link():
+        if "channel_slope" not in self._grid.at_link:
             self._channel_slope = self._grid.zeros(at='node')
             self._update_channel_slopes() # this would be a function that updates the channel slopes (if you use this more than once, make it a function)
         else:
@@ -209,28 +205,39 @@ class NetworkSedimentTransporter(Component):
 # %%
         vol_tot =  self._parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
 
-        capacity = 2* np.ones(np.size(self._parcels.DataFrame.element_id)) # REPLACE with real calculation for capacity
+        capacity = 2* np.ones(np.size(self._parcels['element_id'])) # REPLACE with real calculation for capacity
 
         for i in range(self._grid.number_of_links):
 
             if vol_tot[i]>0: #only do this check capacity if parcels are in link
 
-                #First In Last Out
+                #First In Last Out.
                 #parcel_id_thislink = np.where(self._parcels.DataFrame.element_id.values == i)[0]
                 parcel_id_thislink = np.where(self._parcels['element_id']== i)[0]
+                print('parcel_id_thislink','\n',parcel_id_thislink,'\n')
+                
                 #time_arrival_sort = np.flip(np.argsort(self._parcels.DataFrame.time_arrival_in_link.values[parcel_id_thislink]),0)
-                time_arrival_sort = np.flip(np.argsort(self._parcels['time_arrival_in_link'][parcel_id_thislink]),0)
+                #time_arrival_sort = np.flip(np.argsort(self._parcels['time_arrival_in_link'][parcel_id_thislink]),0)
+                time_arrival_sort = np.flip(np.argsort(self._parcels.get_data(item_id=parcel_id_thislink,
+                                                                              data_variable ='time_arrival_in_link'),0))
+                
                 parcel_id_time_sorted = parcel_id_thislink[time_arrival_sort]
+                
                 cumvol = np.cumsum(self._parcels['volume'][parcel_id_time_sorted])
 
                 idxinactive = np.where(cumvol>capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
 
-                self._parcels.set_data(item_id = parcel_id_thislink,variable = 'active_layer', value = 1)
-                self._parcels.set_data(item_id = make_inactive,variable = 'active_layer', value = 0)
+                self._parcels.set_data(item_id = parcel_id_thislink,
+                                       data_variable = 'active_layer', 
+                                       new_value = 1)
+                
+                self._parcels.set_data(item_id = make_inactive,
+                                       data_variable = 'active_layer',
+                                       new_value = 0)
 
         # Update Node Elevations
-        findactive = self._parcels.DataFrame['active_layer']==1 # filter for only parcels in active layer
+        findactive = self._parcels['active_layer']==1 # filter for only parcels in active layer
         vol_act = self._parcels.calc_aggregate_value(np.sum,
                                                   'volume',at = 'link',
                                                   filter_array = findactive)
@@ -278,7 +285,7 @@ class NetworkSedimentTransporter(Component):
         self._update_channel_slopes()
 
 # %%
-    def _calc_transport_wilcock_crowe(self, flow_depth): # Allison
+    def _calc_transport_wilcock_crowe(self): # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation.
 
@@ -439,10 +446,10 @@ class NetworkSedimentTransporter(Component):
 
 
 # %%
-    def run_one_step(self,dt):
+    def run_one_step(self, dt):
         """stuff"""
-        self._update_channel_slopes(self)
-        self._partition_active_and_storage_layers(self)
-        self._update_node_elevation(self)
-        self._calc_transport_wilcock_crowe(self)
-        self._move_parcel_downstream(self)
+        self._update_channel_slopes()
+        self._partition_active_and_storage_layers()
+        self._adjust_node_elevation
+        self._calc_transport_wilcock_crowe()
+        self._move_parcel_downstream()
