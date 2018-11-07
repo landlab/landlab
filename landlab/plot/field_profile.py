@@ -1,7 +1,8 @@
-from landlab import FieldError
-from landlab.plot.imshow import imshow_grid
 import matplotlib.pyplot as plt
 import numpy as np
+
+from landlab import FieldError
+from landlab.plot.imshow import imshow_grid
 
 
 class FieldProfiler:
@@ -10,13 +11,13 @@ class FieldProfiler:
     The profile is laid out by `points` that act as the vertices, including
     endpoints, of the profile trace. Sections of the profile between the points
     are referred to as `segments`. The profile trace will be one segment
-    when `points` has exactly two elements (making a straight line) . The
-    profile will have multiple segments when `points` has greater than two
+    when `points` has exactly two elements (making a straight line). The
+    profile will have multiple segments when `points` include greater than two
     elements and the trace can be more complex than a straight line.
 
-    Boundary nodes will be included in the profile if these nodes are samples
-    along the trace. Avoid the boundary when selecting inputs points if these
-    nodes should not be included in the profile.
+    Nodes on the grid boundary will be included in the profile if these nodes
+    are samples along the trace. Avoid the boundary when selecting inputs
+    points if these nodes should not be included in the profile.
 
     The `field` of `grid` is sampled either at the resolution of `grid` (the
     default), or if set, at the length interval of `sample_spacing`. For
