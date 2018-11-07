@@ -56,7 +56,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     7
     """
 
-    def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0,
+    def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0, origin=(0.,0.),
                  orientation='horizontal', shape='hex', reorient_links=True,
                  **kwds):
         """Create a grid of hexagonal cells.
@@ -73,9 +73,17 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Number of nodes on the first row.
         dx : float, optional
             Node spacing.
+        origin : tuple, optional
+            (y, x) coordinates of the origin. Default is (0., 0.)
         orientation : string, optional
             One of the 3 cardinal directions in the grid, either 'horizontal'
             (default) or 'vertical'
+        shape : string
+            Either 'hex' (default) or 'rect'
+        reorient_links : bool, optional
+            Whether or not to re-orient all links to point between -45 deg
+            and +135 deg clockwise from "north" (i.e., along y axis). default
+            is True.
 
         Returns
         -------
@@ -94,8 +102,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         # Set number of nodes, and initialize if caller has given dimensions
         if base_num_rows * base_num_cols > 0:
-            self._initialize(base_num_rows, base_num_cols, dx, orientation,
-                             shape, reorient_links)
+            self._initialize(base_num_rows, base_num_cols, dx, origin,
+                             orientation, shape, reorient_links)
         super(HexModelGrid, self).__init__(**kwds)
 
     @classmethod
@@ -105,9 +113,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         return cls(**params)
 
-        return cls(shape[0], shape[1], spacing)
-
-    def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
+    def _initialize(self, base_num_rows, base_num_cols, dx, origin, orientation,
                     shape, reorient_links=True):
         r"""Set up a hexagonal grid.
 
@@ -123,13 +129,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Number of columns along bottom side of grid
         dx : float
             Distance between nodes
+        origin : tuple, optional
+            (y, x) coordinates of the origin. Default in __init__ is (0., 0.)
         orientation : string
             Either 'horizontal' (default in __init__) or 'vertical'
         shape : string
             Either 'hex' (default in __init__) or 'rect'
-        reorient_links : bool
+        reorient_links : bool, optional
             Whether or not to re-orient all links to point between -45 deg
-            and +135 deg clockwise from "north" (i.e., along y axis)
+            and +135 deg clockwise from "north" (i.e., along y axis). default
+            is True.
 
         Returns
         -------
@@ -189,12 +198,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation[0].lower() == 'h' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_horizontal_hex(
-                base_num_rows, base_num_cols, dx)
+                base_num_rows, base_num_cols, dx, origin)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
         elif orientation[0].lower() == 'h' and shape[0].lower() == 'r':
             pts = HexModelGrid._hex_points_with_horizontal_rect(
-                base_num_rows, base_num_cols, dx)
+                base_num_rows, base_num_cols, dx, origin)
             self.orientation = 'horizontal'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
@@ -203,12 +212,12 @@ class HexModelGrid(VoronoiDelaunayGrid):
                                        dtype=int).reshape(self._shape)
         elif orientation[0].lower() == 'v' and shape[0].lower() == 'h':
             pts = HexModelGrid._hex_points_with_vertical_hex(
-                base_num_rows, base_num_cols, dx)
+                base_num_rows, base_num_cols, dx, origin)
             self.orientation = 'vertical'
             self._ncols = base_num_cols
         else:
             pts = HexModelGrid._hex_points_with_vertical_rect(
-                base_num_rows, base_num_cols, dx)
+                base_num_rows, base_num_cols, dx, origin)
             self.orientation = 'vertical'
             self._nrows = base_num_rows
             self._ncols = base_num_cols
@@ -289,7 +298,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return self._area_of_cell
 
     @staticmethod
-    def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh):
+    def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh, origin):
         """Create a set of points on a staggered grid.
 
         Creates and returns a set of (x,y) points in a staggered grid in which
@@ -306,7 +315,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             more)
         dxh : float
             Horizontal and diagonal spacing between points
-
+        origin : tuple
+            (y, x) coordinates of the origin. Default is (0., 0.)
         Returns
         -------
         poinst : ndarray
@@ -316,7 +326,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_hex(3, 2, 1.0)
+        >>> points = HexModelGrid._hex_points_with_horizontal_hex(3, 2, 1.0, (0., 0.))
         >>> len(points)
         7
         >>> points[1, :]
@@ -335,12 +345,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
         pts = numpy.zeros((npts, 2))
         middle_row = num_rows // 2
         extra_cols = 0
-        xshift = 0.
+
+
+        xshift = 0
         i = 0
         for r in range(num_rows):
             for c in range(base_num_cols + extra_cols):
-                pts[i, 0] = c * dxh + xshift
-                pts[i, 1] = r * dxv
+                pts[i, 0] = c * dxh + xshift + origin[1]
+                pts[i, 1] = r * dxv + origin[0]
                 i += 1
             if r < middle_row:
                 extra_cols += 1
@@ -351,7 +363,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts
 
     @staticmethod
-    def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh):
+    def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh, origin):
         """Create a set of points in a taggered grid.
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -367,6 +379,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Number of columns in lattice
         dxh : float
             Horizontal and diagonal spacing between points
+        origin : tuple
+            (y, x) coordinates of the origin. Default is (0., 0.)
 
         Returns
         -------
@@ -377,7 +391,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_rect(3, 3, 1.0)
+        >>> points = HexModelGrid._hex_points_with_horizontal_rect(3, 3, 1.0, (0., 0.))
         >>> len(points)
         9
         >>> points[1, :]
@@ -390,19 +404,20 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         npts = num_rows * num_cols
         pts = numpy.zeros((npts, 2))
-        xshift = 0.
+
+
         i = 0
         for r in range(num_rows):
             for c in range(num_cols):
                 xshift = half_dxh * (r % 2)
-                pts[i, 0] = c * dxh + xshift
-                pts[i, 1] = r * dxv
+                pts[i, 0] = c * dxh + xshift + origin[1]
+                pts[i, 1] = r * dxv + origin[0]
                 i += 1
 
         return pts
 
     @staticmethod
-    def _hex_points_with_vertical_hex(base_num_rows, num_cols, dxv):
+    def _hex_points_with_vertical_hex(base_num_rows, num_cols, dxv, origin):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -418,6 +433,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Number of columns in lattice
         dxv : float
             Vertical and diagonal spacing between points
+        origin : tuple
+            (y, x) coordinates of the origin. Default is (0., 0.)
 
         Returns
         -------
@@ -428,7 +445,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_hex(2, 3, 1.0)
+        >>> points = HexModelGrid._hex_points_with_vertical_hex(2, 3, 1.0, (0., 0.))
         >>> len(points)
         7
         >>> points[1, :]
@@ -447,12 +464,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
         pts = numpy.zeros((npts, 2))
         middle_col = num_cols // 2
         extra_rows = 0
-        yshift = 0.
+
+
+        yshift = 0
         i = 0
         for c in range(num_cols):
             for r in range(base_num_rows + extra_rows):
-                pts[i, 1] = r * dxv + yshift
-                pts[i, 0] = c * dxh
+                pts[i, 1] = r * dxv + yshift + origin[0]
+                pts[i, 0] = c * dxh + origin[1]
                 i += 1
             if c < middle_col:
                 extra_rows += 1
@@ -463,7 +482,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts
 
     @staticmethod
-    def _hex_points_with_vertical_rect(num_rows, num_cols, dxv):
+    def _hex_points_with_vertical_rect(num_rows, num_cols, dxv, origin):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -478,6 +497,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             Number of columns in lattice
         dxv : float
             Vertical and diagonal spacing between points
+        origin : tuple
+            (y, x) coordinates of the origin. Default is (0., 0.).
 
         Returns
         -------
@@ -488,7 +509,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_rect(3, 3, 1.0)
+        >>> points = HexModelGrid._hex_points_with_vertical_rect(3, 3, 1.0, (0., 0.))
         >>> len(points)
         9
         >>> points[1, :]
@@ -501,13 +522,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         npts = num_rows * num_cols
         pts = numpy.zeros((npts, 2))
-        yshift = 0.
+
+
         i = 0
         for c in range(num_cols):
             for r in range(num_rows):
                 yshift = half_dxv * (c % 2)
-                pts[i, 1] = r * dxv + yshift
-                pts[i, 0] = c * dxh
+                pts[i, 1] = r * dxv + yshift + origin[0]
+                pts[i, 0] = c * dxh + origin[1]
                 i += 1
 
         return pts
@@ -642,7 +664,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     def node_row_and_column(self, node_id):
         """Row and column from node ID, FOR VERT RECT CONFIGURATION ONLY.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -664,8 +686,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         n_mod_nc = node_id % nc
         half_nc = (nc + 1) // 2
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
-        return (row, col)            
-            
+        return (row, col)
+
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
@@ -799,7 +821,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Returns
         -------
         boolean
-            ``True`` if node has a neighbor with a boundary ID, 
+            ``True`` if node has a neighbor with a boundary ID,
             ``False`` otherwise.
 
 
