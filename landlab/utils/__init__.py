@@ -10,4 +10,5 @@ from .source_tracking_algorithm import (
 from .watershed import (get_watershed_mask,
                         get_watershed_masks_with_area_threshold,
                         get_watershed_nodes,
-                        get_watershed_outlet)
+                        get_watershed_outlet,
+                        get_watershed_masks)

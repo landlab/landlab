@@ -11,6 +11,7 @@ env:
 os:
 - linux
 - osx
+osx_image: xcode6.4
 sudo: false
 filter_secrets: false
 before_install:
