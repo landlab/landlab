@@ -7,12 +7,30 @@ import numpy as np
 
 
 def _deposit_or_erode(layers, n_layers, dz):
-    """Add a new layer to the top of a stack.
+    """Update the array that contains layers with deposition or erosion.
+
+    This function operates on the entire array that contain the layers (active,
+    and allocated but not yet active). The number of active layers includes the
+    layer that is currently being added. Thus the row with the index
+    ``n_layers - 1`` is the layer that is currently being added as an active
+    layer.
+
+    Note that in EventLayers, layers represent an event, and not necessarily
+    material.
+
+    This means that if only erosion occurs, the array elements in the row with
+    the index ``n_layers - 1`` will be set to zero and thickness will be
+    removed from lower layers. Note that lower layers have smaller row indicies
+    as the bottom of the layer stack has row index zero.
+
+    If deposition occurs, the array elements in the row with index
+    ``n_layers - 1`` will be set to the value of dz.
 
     Parameters
     ----------
     layers : ndarray of shape `(n_layers, n_nodes)`
-        Array of layer thicknesses.
+        Array of layer thicknesses. This array is the datastructure that
+        contains all allocated layers, active or inactive.
     n_layers : int
         Number of active layers.
     dz : ndarray of shape `(n_nodes, )`
@@ -24,41 +42,111 @@ def _deposit_or_erode(layers, n_layers, dz):
     >>> import numpy as np
     >>> from landlab.layers.eventlayers import _deposit_or_erode
 
-    >>> layers = np.full((4, 3), -1.)
+    First we create a numpy array allocated to contain layers. We fill it with
+    -1. These -1.'s do not represent negative layer thickness. In EventLayers
+    this array is created with np.empty, but that creates different numbers
+    every time and doesn't work for testing.
+
+    >>> allocated_layers_array = np.full((4, 3), 0.)
+
+    Next we add a layer with spatially variable thickness. We specify that the
+    number of active layers (including the one being added) is 1.
+
     >>> dz = np.array([1., 2., 3.])
-    >>> _deposit_or_erode(layers, 1, dz)
-    >>> layers
+    >>> _deposit_or_erode(allocated_layers_array, 1, dz)
+    >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
-           [-1., -1., -1.],
-           [-1., -1., -1.],
-           [-1., -1., -1.]])
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.]])
+
+    As you can see, this changes the value of the first row in the array. The
+    remainder of the array represents space in the datatastructure that has
+    been allocated to contain layers, but does not yet contain active layers.
+
+    Next we add a layer of thickness 1. To do this, we now need to specify that
+    the number of active layers is 2.
 
     >>> dz = np.array([1., 1., 1.])
-    >>> _deposit_or_erode(layers, 2, dz)
-    >>> layers
+    >>> _deposit_or_erode(allocated_layers_array, 2, dz)
+    >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
            [ 1.,  1.,  1.],
-           [-1., -1., -1.],
-           [-1., -1., -1.]])
+           [ 0.,  0.,  0.],
+           [ 0.,  0.,  0.]])
 
-    >>> _deposit_or_erode(layers, 3, [1., -1., -2.])
-    >>> layers
+    Finally, we do some erosion. We specify that the number of active layers is
+    3 and give a spatially variable field of erosion and deposition.
+
+    >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
+    >>> allocated_layers_array
     array([[ 1.,  2.,  2.],
            [ 1.,  0.,  0.],
            [ 1.,  0.,  0.],
-           [-1., -1., -1.]])
+           [ 0.,  0.,  0.]])
+
+    >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
+    >>> allocated_layers_array
+    array([[ 1.,  1.,  0.],
+           [ 1.,  0.,  0.],
+           [ 2.,  0.,  0.],
+           [ 0.,  0.,  0.]])
     """
     from .ext.eventlayers import deposit_or_erode
 
     layers = layers.reshape((layers.shape[0], -1))
     try:
         dz = dz.reshape((layers.shape[1], ))
-    except AttributeError:
+    except (AttributeError, ValueError):
         dz = np.broadcast_to(dz, (layers.shape[1], ))
     finally:
         dz = np.asfarray(dz)
 
     deposit_or_erode(layers, n_layers, dz)
+
+
+def _get_surface_index(layers, n_layers, surface_index):
+    """Get index within each stack of the layer at the topographic surface.
+
+    Parameters
+    ----------
+    layers : ndarray of shape `(n_layers, n_nodes)`
+        Array of layer thicknesses. This array is the datastructure that
+        contains all allocated layers, active or inactive.
+    n_layers : int
+        Number of active layers.
+    surface_index : ndarray of shape `(n_nodes, )`
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.layers.eventlayers import (_deposit_or_erode,
+    ...                                         _get_surface_index)
+
+    >>> layers = np.full((5, 3), 1.)
+    >>> dz = np.array([-1., -2., -3.])
+
+    Note here, if you are very confused by the use of ``_deposit_or_erode``
+    we recommend you read the docstring associated with that function.
+
+    >>> _deposit_or_erode(layers, 5, dz)
+    >>> layers
+    array([[ 1.,  1.,  1.],
+           [ 1.,  1.,  1.],
+           [ 1.,  1.,  0.],
+           [ 1.,  0.,  0.],
+           [ 0.,  0.,  0.]])
+
+    >>> surface_index = np.empty(3, dtype=int)
+    >>> _get_surface_index(layers, 5, surface_index)
+    >>> surface_index
+    array([3, 2, 1])
+    """
+    from .ext.eventlayers import get_surface_index
+
+    layers = layers.reshape((layers.shape[0], -1))
+
+    get_surface_index(layers, n_layers, surface_index)
 
 
 def resize_array(array, newsize, exact=False):
@@ -166,30 +254,56 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
         values_per_stack = array.shape
     else:
         values_per_stack = array.shape[1:]
-        
+
     return np.empty((number_of_layers, number_of_stacks) + values_per_stack,
                     dtype=array.dtype)
-    
+
 
 class EventLayersMixIn(object):
 
-    """MixIn that adds a layers attribute to a ModelGrid."""
+    """MixIn that adds a EventLayers attribute to a ModelGrid."""
 
     @property
-    def layers(self):
-        """Layers for each cell."""
+    def event_layers(self):
+        """EventLayers for each cell."""
         try:
-            self._layers
+            self._event_layers
         except AttributeError:
-            self._layers = EventLayers(self.number_of_cells)
+            self._event_layers = EventLayers(self.number_of_cells)
         finally:
-            return self._layers
+            return self._event_layers
 
 
 class EventLayers(object):
 
-    """Track layers where each event is its own layer.
-    
+    """Track EventLayers where each event is its own layer.
+
+    EventLayers are meant to represent a layered object in which each layer
+    represents a event. Thus they are likely the most appropriate tool to use
+    if the user is interested in chronostratigraphy. If erosion occurs, a new
+    layer with zero thickness is created. Thus, EventLayers may not be the most
+    memory efficent layers datastructure.
+
+    EventLayers exists in contrast to the MaterialLayers object which does not
+    make a new layer if only erosion occurs and if the attributes of the new
+    layer are equivalent to the attributes of the material at the surface of the
+    layer stack.
+
+    Attributes
+    ----------
+    allocated
+    dz
+    thickness
+    number_of_layers
+    number_of_stacks
+    surface_index
+    z
+
+    Methods
+    -------
+    add
+    get_surface_values
+
     Parameters
     ----------
     number_of_stacks : int
@@ -223,19 +337,30 @@ class EventLayers(object):
            [ 1. ,  2. ,  0.5,  5. ,  0. ]])
 
     Adding a layer with negative thickness will remove
-    existing layers for the top of the stack.
+    existing layers for the top of the stack. Note that
+    this will create a new layer with thickness zero
+    that represents this 'event'. If instead your
+    application would prefer that no new row is added to
+    the layers datastructure, you may want to consider
+    the MaterialLayers object.
 
     >>> layers.add(-1)
     >>> layers.dz
     array([[ 1.5,  1.5,  1. ,  1.5,  0.5],
            [ 0. ,  1. ,  0. ,  4. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ]])
+
+    Get the index value of the layer within each stack
+    at the topographic surface.
+
+    >>> layers.surface_index
+    array([0, 1, 0, 1, 0])
     """
 
     def __init__(self, number_of_stacks, allocated=0):
         self._number_of_layers = 0
         self._number_of_stacks = number_of_stacks
-
+        self._surface_index = np.zeros(number_of_stacks, dtype=int)
         self._attrs = dict()
 
         dims = (self.number_of_layers, self.number_of_stacks)
@@ -244,6 +369,15 @@ class EventLayers(object):
 
     def __getitem__(self, name):
         return self._attrs[name][:self.number_of_layers]
+
+    def __setitem__(self, name, values):
+        dims = (self.allocated, self.number_of_stacks)
+        values = np.asarray(values)
+        if values.ndim == 1:
+            values = np.expand_dims(values, 1)
+        values = np.broadcast_to(values, (self.number_of_layers, self.number_of_stacks))
+        self._attrs[name] = _allocate_layers_for(values.flatten()[0], *dims)
+        self._attrs[name][:self.number_of_layers] = values
 
     def __str__(self):
         lines = [
@@ -257,13 +391,13 @@ class EventLayers(object):
             attrs=', '.join(self.tracking) or 'null')
 
     def __repr__(self):
-        return 'EventLayers({number_of_stacks})'.format(
+        return self.__class__.__name__+'({number_of_stacks})'.format(
             number_of_stacks=self.number_of_stacks)
 
     @property
     def tracking(self):
         """Layer properties being tracked.
-        
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import EventLayers
@@ -318,7 +452,7 @@ class EventLayers(object):
 
         Thickness from the bottom of each stack to the top of each layer
         as an array of shape `(number_of_layers, number_of_stacks)`.
-        
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import EventLayers
@@ -495,6 +629,24 @@ class EventLayers(object):
         >>> layers['age']
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
+
+        Attributes for each layer will exist even if the the layer is
+        associated with erosion.
+
+        >>> layers.add([-2, -1, 1], age=8.)
+        >>> layers.dz
+        array([[ 1.,  1.,  1.],
+               [ 0.,  1.,  2.],
+               [ 0.,  0.,  1.]])
+        >>> layers['age']
+        array([[ 3.,  3.,  3.],
+               [ 6.,  6.,  6.],
+               [ 8.,  8.,  8.]])
+
+        To get the values at the surface of the layer stack:
+
+        >>> layers.get_surface_values('age')
+        array([ 3.,  6.,  8.])
         """
         if self.number_of_layers == 0:
             self._setup_layers(**kwds)
@@ -502,13 +654,21 @@ class EventLayers(object):
         self._add_empty_layer()
 
         _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
+        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
 
         for name in kwds:
             try:
                 self[name][-1] = kwds[name]
             except KeyError:
-                print('{0} is not being tracked. Ignoring'.format(name),
-                      file=sys.stderr)
+                msg = 'MaterialLayers: {0} is not being tracked. Error in adding.'.format(name)
+                raise ValueError(msg)
+
+    @property
+    def surface_index(self):
+        return self._surface_index
+
+    def get_surface_values(self, name):
+        return self._attrs[name][self.surface_index, np.arange(self._number_of_stacks)]
 
     def _add_empty_layer(self):
         """Add a new empty layer to the stacks."""
@@ -516,6 +676,7 @@ class EventLayers(object):
             self._resize(self.allocated + 1)
 
         self._number_of_layers += 1
+        self._attrs['_dz'][self.number_of_layers - 1, :] = 0.
         for name in self._attrs:
             self._attrs[name][self.number_of_layers - 1] = 0.
 

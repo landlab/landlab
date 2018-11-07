@@ -8,7 +8,6 @@ import numpy as np
 
 from landlab import HexModelGrid
 from numpy.testing import assert_array_equal
-from nose.tools import assert_true
 
 
 def test_hex_grid_link_order():
@@ -33,10 +32,8 @@ def test_nodes_at_link():
     assert_array_equal(grid.nodes_at_link[:, 0], grid.node_at_link_tail)
     assert_array_equal(grid.nodes_at_link[:, 1], grid.node_at_link_head)
 
-    assert_true(np.may_share_memory(grid.nodes_at_link,
-                                    grid.node_at_link_tail))
-    assert_true(np.may_share_memory(grid.nodes_at_link,
-                                    grid.node_at_link_head))
+    assert np.may_share_memory(grid.nodes_at_link, grid.node_at_link_tail)
+    assert np.may_share_memory(grid.nodes_at_link, grid.node_at_link_head)
 
 
 if __name__=='__main__':

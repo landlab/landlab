@@ -9,10 +9,6 @@ import os
 
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
-try:
-    from nose.tools import assert_is
-except ImportError:
-    from landlab.testing.tools import assert_is
 
 from landlab import RasterModelGrid, ModelParameterDictionary
 from landlab.components import PotentialityFlowRouter
@@ -67,7 +63,7 @@ def test_sheetflow():
     mg.add_ones('node', 'water__unit_flux_in')
 
     pfr = PotentialityFlowRouter(mg)
-    pfr.route_flow()
+    pfr.run_one_step()
 
     assert_allclose(mg.at_node['surface_water__discharge'], flux)
 
@@ -181,7 +177,7 @@ def test_in_network():
     mg.add_field('node', 'water__unit_flux_in', Qin)
 
     pfr = PotentialityFlowRouter(mg, flow_equation='Manning')
-    pfr.route_flow()
+    pfr.run_one_step()
 
     assert_allclose(mg.at_node['surface_water__discharge'], flux)
     assert_allclose(mg.at_node['flow__potential'][mg.core_nodes],

@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.testing import assert_array_equal
-from nose.tools import with_setup
 
 from landlab import RasterModelGrid
 from landlab import FIXED_VALUE_BOUNDARY as FV

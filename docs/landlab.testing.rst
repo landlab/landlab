@@ -12,14 +12,6 @@ landlab.testing.decorators module
     :undoc-members:
     :show-inheritance:
 
-landlab.testing.nosetester module
----------------------------------
-
-.. automodule:: landlab.testing.nosetester
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 landlab.testing.numpy_mixins module
 -----------------------------------
 

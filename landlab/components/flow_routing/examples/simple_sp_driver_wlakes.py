@@ -7,7 +7,7 @@ DEJH, 09/15/14
 '''
 from __future__ import print_function
 
-from landlab.components.flow_routing import (FlowRouter,
+from landlab.components.flow_routing import (FlowAccumulator,
                                              DepressionFinderAndRouter)
 from landlab.components.stream_power import StreamPowerEroder, FastscapeEroder
 
@@ -43,7 +43,7 @@ print( 'Running ...' )
 time_on = time.time()
 
 #instantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 sp = StreamPowerEroder(mg, './drive_sp_params.txt')
 lf = DepressionFinderAndRouter(mg)
 #load the Fastscape module too, to allow direct comparison
