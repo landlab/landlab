@@ -1,7 +1,0 @@
-{
-  "landlab/components/flow_routing/examples/test_script_for_route_flow_dn.py": true,
-  "landlab/components/stream_power/examples/test_script_for_fastscape_stream_power.py": true,
-  "landlab/components/stream_power/examples/test_sed_flux_dep.py": true,
-  "landlab/components/stream_power/examples/test_voronoi_sp.py": true,
-  "landlab/components/uniform_precip/examples/uniform_precip_test.py": true
-}
