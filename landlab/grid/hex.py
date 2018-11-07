@@ -103,8 +103,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         LLCATS: GINF
         """
-        shape = params['shape']
-        spacing = params.get('spacing', 1.)
+        return cls(**params)
 
         return cls(shape[0], shape[1], spacing)
 
