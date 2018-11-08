@@ -101,57 +101,6 @@ def create_diagonals_at_node(shape, out=None):
     return out
 
 
-def create_diagonal_dirs_at_node(shape, out=None):
-    """Create array of diagonals directions at node.
-
-    Parameters
-    ----------
-    shape : tuple of *(n_rows, n_cols)*
-        Shape as number of node rows and node columns.
-    out : ndarray of shape *(n_nodes, 4)*, optional
-        Output buffer to place diagonal ids at each node.
-
-    Returns
-    -------
-    out : ndarray of shape *(n_nodes, 4)*
-        Diagonals at node with -1 for missing diagonals.
-
-    Examples
-    --------
-    >>> from landlab.grid.diagonals import create_diagonals_at_node
-    >>> create_diagonals_at_node((3, 4))
-    array([[ 0, -1, -1, -1],
-           [ 2,  1, -1, -1],
-           [ 4,  3, -1, -1],
-           [-1,  5, -1, -1],
-           [ 6, -1, -1,  1],
-           [ 8,  7,  0,  3],
-           [10,  9,  2,  5],
-           [-1, 11,  4, -1],
-           [-1, -1, -1,  7],
-           [-1, -1,  6,  9],
-           [-1, -1,  8, 11],
-           [-1, -1, 10, -1]])
-    """
-    shape = np.asarray(shape)
-    n_diagonals = np.prod(shape - 1) * 2
-    n_nodes = np.prod(shape)
-    if out is None:
-        out = np.full((n_nodes, 4), -1, dtype=int8)
-
-    dirs = np.zeros(shape + 1, dtype=int8)
-
-    dirs[1:-1, 1:-1] = np.arange(0, n_diagonals, 2).reshape(shape - 1)
-    out[:, 0] = diagonals[1:, 1:].flat
-    out[:, 2] = diagonals[:-1, :-1].flat
-
-    diagonals[1:-1, 1:-1] = np.arange(1, n_diagonals, 2).reshape(shape - 1)
-    out[:, 1] = diagonals[1:, :-1].flat
-    out[:, 3] = diagonals[:-1, 1:].flat
-
-    return out
-
-
 class DiagonalsMixIn(object):
 
     """Add diagonals to a structured quad grid."""
