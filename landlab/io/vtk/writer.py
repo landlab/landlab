@@ -2,6 +2,8 @@
 import os
 import xml.dom.minidom
 
+from .vtkxml import VtkAppendedDataElement
+
 
 _VALID_ENCODINGS = set(['ascii', 'base64', 'raw'])
 _VALID_FORMATS = set(['ascii', 'base64', 'raw', 'appended'])
