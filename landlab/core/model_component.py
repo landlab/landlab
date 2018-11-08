@@ -37,6 +37,8 @@ import warnings
 import inspect
 
 from .. import registry
+from .model_parameter_loader import load_params
+
 
 _VAR_HELP_MESSAGE = """
 name: {name}
