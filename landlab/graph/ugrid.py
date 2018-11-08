@@ -78,25 +78,6 @@ def load_ugrid(ugrid):
     return ds
 
 
-def ugrid_as_dataset(grid):
-    if isinstance(grid, types.StringTypes):
-        ugrid = xr.open_dataset(grid)
-    elif isinstance(grid, Graph):
-        ugrid = xr.ds
-    elif isinstance(grid, dict):
-        ugrid = xr.Dataset.from_dict(d)
-    elif isinstance(grid, xr.Dataset):
-        ugrid = grid
-    else:
-        raise ValueError(
-            'unable to convert {t} to a Dataset'.format(t=type(grid)))
-
-    if not validate_ugrid(ugrid):
-        raise ValueError('unable to convert to a ugrid Dataset')
-    else:
-        return grid
-
-
 def ugrid_as_dual(ugrid):
     rename = {
         'node': 'corner',
