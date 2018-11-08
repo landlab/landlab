@@ -1,24 +1,7 @@
 import warnings
 
 import numpy as np
-from ...utils.jaggedarray import unravel
 from ...core.utils import as_id_array
-
-
-# def get_links_at_node(graph):
-#     (links_at_node,
-#      _,
-#      offset_to_node) = calc_links_at_node(graph.nodes_at_link)
-# 
-#     return unravel(links_at_node, offset_to_node)
-
-
-def get_link_dirs_at_node(graph):
-    (_,
-     link_dirs_at_node,
-     offset_to_node) = calc_links_at_node(graph.nodes_at_link)
-
-    return unravel(link_dirs_at_node, offset_to_node)
 
 
 def get_links_at_node(graph, sort=False):
