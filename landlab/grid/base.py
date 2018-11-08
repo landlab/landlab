@@ -1175,24 +1175,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             return self._create_face_at_link()
 
     @property
-    def link_at_face(self):
-        """Get array of links associated with faces.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), 1.)
-        >>> mg.link_at_face[0:3]
-        array([5, 6, 7])
-
-        LLCATS: LINF FINF CONN
-        """
-        try:
-            return self._link_at_face
-        except AttributeError:
-            return self._create_link_at_face()
-
-    @property
     def number_of_nodes(self):
         """Total number of nodes.
 

@@ -10,9 +10,7 @@ import pytest
 from pytest import approx
 
 from landlab import RasterModelGrid
-from landlab.components import (FlowAccumulator,
-                                DepressionFinderAndRouter,
-                                FlowAccumulator)
+from landlab.components import FlowAccumulator, DepressionFinderAndRouter
 
 from numpy import sin, pi
 import numpy as np  # for use of np.round

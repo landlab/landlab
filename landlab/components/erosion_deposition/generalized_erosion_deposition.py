@@ -5,6 +5,7 @@ from landlab import RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 DEFAULT_MINIMUM_TIME_STEP = 0.001 # default minimum time step duration
 
+
 class _GeneralizedErosionDeposition(Component):
     """ Base class for erosion-deposition type components.
 

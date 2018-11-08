@@ -502,8 +502,8 @@ class DischargeDiffuser(Component):
 
 
 if __name__ == '__main__':
-    import numpy as np
-    from landlab import RasterModelGrid, imshow_grid_at_node
+    from landlab import imshow_grid_at_node
+
     S_crit = 0.25
     mg = RasterModelGrid((20, 20), 0.5)
     mg.add_zeros('node', 'topographic__elevation')

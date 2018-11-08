@@ -9,7 +9,6 @@ import os
 from six.moves import range
 
 import numpy as np
-import os
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY

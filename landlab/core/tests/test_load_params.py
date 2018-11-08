@@ -65,7 +65,7 @@ def test_from_mpd_string():
     assert isinstance(params['y'], int)
 
 
-def test_from_yaml_file_like():
+def test_from_mpd_file_like():
     """Load parameters from YAML-formatted string."""
     params = load_params(StringIO(MPD_PARAMS_STR))
     assert params == MPD_PARAMS
@@ -73,7 +73,7 @@ def test_from_yaml_file_like():
     assert isinstance(params['y'], int)
 
 
-def test_from_yaml_path(tmpdir):
+def test_from_mpd_path(tmpdir):
     """Load parameters from YAML-formatted string."""
     with tmpdir.as_cwd():
         with open('params.txt', 'w') as fp:
