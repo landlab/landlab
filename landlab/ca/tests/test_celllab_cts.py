@@ -46,7 +46,7 @@ def test_transition():
     assert t.to_state == (1,1,0)
     assert t.rate == 1.0
     assert t.name == 'test'
-    assert t.swap_properties == False
+    assert t.swap_properties is False
     assert t.prop_update_fn is None
 
 

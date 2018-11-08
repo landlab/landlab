@@ -195,16 +195,16 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                  out=self.A_to_the_m)
 
         #   Alpha
-        self.alpha[defined_flow_receivers==False] = 0.0
+        self.alpha[~ defined_flow_receivers] = 0.0
         self.alpha[defined_flow_receivers] = (K * dt
             * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths)
 
         #   Gamma
-        self.gamma[defined_flow_receivers==False] = 0.0
+        self.gamma[~ defined_flow_receivers] = 0.0
         self.gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
-        self.delta[defined_flow_receivers==False] = 0.0
+        self.delta[~ defined_flow_receivers] = 0.0
         if isinstance(self.thresholds, np.ndarray):
             self.delta[defined_flow_receivers] = ((K
                 * self.A_to_the_m[defined_flow_receivers] )

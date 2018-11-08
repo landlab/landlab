@@ -664,10 +664,8 @@ class OverlandFlow(Component):
         discharge_vals = np.zeros(self.grid.number_of_links)
         discharge_vals[:] = input_discharge[:]
 
-        if convert_to_volume == True:
+        if convert_to_volume:
             discharge_vals *= self.grid.dx
-        else:
-            pass
 
         discharge_vals = (discharge_vals[self.grid.links_at_node] *
                                         self.grid.link_dirs_at_node)

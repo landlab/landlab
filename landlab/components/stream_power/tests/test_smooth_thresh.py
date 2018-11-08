@@ -69,5 +69,5 @@ def test_with_thresh():
     predicted_slopes_lower = ((U + 0.0) / (K * (actual_areas ** m))) ** (1. / n)
 
     # assert actual and predicted slopes are in the correct range for the slopes.
-    assert np.all(actual_slopes > predicted_slopes_lower) == True
-    assert np.all(actual_slopes < predicted_slopes_upper) == True
+    assert np.all(actual_slopes > predicted_slopes_lower)
+    assert np.all(actual_slopes < predicted_slopes_upper)

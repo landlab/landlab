@@ -10,11 +10,11 @@ from landlab.layers import EventLayers
 
 
 def test_EventLayersMixIn():
-    mg = RasterModelGrid(4,4)
-    ml = mg.event_layers
-    assert hasattr(mg, 'event_layers') == True
-    assert ml.number_of_layers == 0
-    assert ml.number_of_stacks == 4
+    grid = RasterModelGrid((4, 4))
+    assert hasattr(grid, "event_layers")
+    assert grid.event_layers.number_of_layers == 0
+    assert grid.event_layers.number_of_stacks == 4
+
 
 def test_setitem_with_scalar():
     layers = EventLayers(5)

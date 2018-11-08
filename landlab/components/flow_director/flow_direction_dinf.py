@@ -157,7 +157,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # find where there are closed nodes.
     closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
 
-    closed_elevation = np.max(elevs[closed_nodes == False]) + 1000
+    closed_elevation = np.max(elevs[~ closed_nodes]) + 1000
 
     elevs[closed_nodes] = closed_elevation
 
@@ -398,7 +398,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     drains_to_self[all_flow_to_closed] = True
 
     drains_to_one_closed = receiver_closed.sum(axis=1) == 1
-    fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
+    fix_flow = drains_to_one_closed * (~ all_flow_to_closed)
     first_column_has_closed = np.array(receiver_closed[:, 0] * fix_flow, dtype=bool)
     second_column_has_closed = np.array(receiver_closed[:, 1] * fix_flow, dtype=bool)
 

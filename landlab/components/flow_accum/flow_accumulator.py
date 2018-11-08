@@ -931,7 +931,7 @@ class FlowAccumulator(Component):
             discharge.
         """
         # step 1. Find flow directions by specified method
-        if update_flow_director == True:
+        if update_flow_director:
             self.flow_director.run_one_step()
 
         # further steps vary depending on how many recievers are present

@@ -37,7 +37,7 @@ def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
                             % (dict_1_name, path, dict_1[k], dict_2_name, path, dict_2[k])
                             
                 except ValueError:
-                    if np.array_equal(np.asarray(o1), np.asarray(o1)) == False:
+                    if not np.array_equal(np.asarray(o1), np.asarray(o1)):
                         value_err += "Value of %s%s (%s) not same as %s%s (%s)\n"\
                             % (dict_1_name, path, dict_1[k], dict_2_name, path, dict_2[k])
                     

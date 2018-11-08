@@ -266,8 +266,7 @@ class VegCA(Component):
         # Probability of establishment
         R_Est = np.random.rand(n_bare)
         # Random number for comparison to establish
-        Establish = np.int32(np.where(
-                             np.greater_equal(Pest, R_Est) == True)[0])
+        Establish = np.int32(np.where(np.greater_equal(Pest, R_Est))[0])
         self._VegType[bare_cells[Establish]] = Select_PFT_E[Establish]
         self._tp[bare_cells[Establish]] = 0
 
@@ -293,7 +292,7 @@ class VegCA(Component):
         PM = PMd + PMa + PMb
         PM[PM > 1.] = 1.
         R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill
-        Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
+        Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor))[0])
         self._VegType[plant_cells[Mortality]] = BARE
         self._tp[plant_cells[Mortality]] = 0
 

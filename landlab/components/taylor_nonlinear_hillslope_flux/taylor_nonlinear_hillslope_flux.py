@@ -250,7 +250,7 @@ class TaylorNonLinearDiffuser(Component):
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (dynamic_dt == False) and (if_unstable != 'pass'):
+            if (self.dt_max < dt) and (not dynamic_dt) and (if_unstable != 'pass'):
                 message = ('Topographic slopes are high enough such that the '
                            'Courant condition is exceeded AND you have not '
                            'selected dynamic timestepping with dynamic_dt=True. '

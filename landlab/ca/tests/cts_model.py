@@ -77,7 +77,7 @@ class CTSModel(object):
 
         # Initialize graphics
         self._show_plots = show_plots
-        if show_plots == True:
+        if show_plots:
             self.initialize_plotting(**kwds)
 
 

@@ -483,7 +483,7 @@ class Lithology(object):
             all_ids_present = self._ids.issuperset([rock_id])
             new_ids = [rock_id]
 
-        if all_ids_present == False:
+        if not all_ids_present:
 
             missing_ids = set(new_ids).difference(self._ids)
 
@@ -658,7 +658,7 @@ class Lithology(object):
                    'this attribute does not exist.')
             raise ValueError(msg)
 
-        if self._ids.issuperset([rock_id]) == False:
+        if not self._ids.issuperset([rock_id]):
             msg = ('Lithology cannot update the value of rock type '
                    '' + str(rock_id) + 'for attribute ' + str(at) + ' as '
                    'this rock type is not yet defined.')

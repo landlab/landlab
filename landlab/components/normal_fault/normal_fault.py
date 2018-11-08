@@ -393,7 +393,7 @@ class NormalFault(Component):
                 for surf_name in self.surfaces:
                     elevations_to_average =  surfs_before_uplift[surf_name][self._grid.adjacent_nodes_at_node]
                     elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = np.nan
-                    elevations_to_average[neighbor_for_averaging == False] = np.nan
+                    elevations_to_average[~ neighbor_for_averaging] = np.nan
                     self.surfaces[surf_name][averaged_nodes] = np.nanmean(elevations_to_average[averaged_nodes], axis=1)
 
             # identify any boundary nodes that are not being averaged. This will
@@ -401,12 +401,12 @@ class NormalFault(Component):
             # nodes that are faulted. These nodes will be boundary nodes.
             # here we use the current topography as we will have just updated the
             # adjacent nodes in the prior block.
-            if any(averaged == False):
-                un_averaged_nodes = np.where(faulted_boundaries)[0][np.where(averaged == False)[0]]
+            if any(~ averaged):
+                un_averaged_nodes = np.where(faulted_boundaries)[0][np.where(~ averaged)[0]]
                 for surf_name in self.surfaces:
                     elevations_to_average =  self.surfaces[surf_name][self._grid.adjacent_nodes_at_node]
                     elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = np.nan
-                    elevations_to_average[neighbor_is_faulted == False] = np.nan
+                    elevations_to_average[~ neighbor_is_faulted] = np.nan
                     self.surfaces[surf_name][un_averaged_nodes] = np.nanmean(elevations_to_average[un_averaged_nodes], axis=1)
 
     def run_one_step(self, dt, current_time=None):

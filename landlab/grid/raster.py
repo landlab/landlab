@@ -3966,7 +3966,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
-        if remove_disconnected==True:
+        if remove_disconnected:
             self.set_open_nodes_disconnected_from_watershed_to_closed(node_data=node_data,
                                                                       outlet_id=as_id_array(np.array([outlet_loc])),
                                                                       nodata_value=nodata_value,
@@ -4066,7 +4066,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
             outlet_id=possible_outlets
 
-        elif outlet_id.size!=1 or (isinstance(outlet_id, np.ndarray)==False):
+        elif outlet_id.size != 1 or not isinstance(outlet_id, np.ndarray):
             # check that the value given by outlet_id is an integer
             raise ValueError('outlet_id must be a length 1 numpy array')
         else:

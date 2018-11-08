@@ -133,7 +133,7 @@ class FlowRouter(FlowAccumulator):
                 raise ValueError('method not understood ({method})'.format(
                     method=method))
 
-        if method == 'D4' or self._is_Voroni == True:
+        if method == 'D4' or self._is_Voroni:
             flow_director = 'Steepest'
         else:
             flow_director = 'D8'
@@ -166,7 +166,7 @@ class FlowRouter(FlowAccumulator):
             if not self._is_raster:
                 self.method = None
 
-            if method == 'D4' or self._is_Voroni == True:
+            if method == 'D4' or self._is_Voroni:
                 flow_director = 'Steepest'
             else:
                 flow_director = 'D8'
