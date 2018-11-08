@@ -352,9 +352,9 @@ class LandslideProbability(Component):
             self._Re /= 1000. # Convert mm to m
         # Lognormal Distribution - Uniform in space
         elif self.groundwater__recharge_distribution == 'lognormal':
-            assert (groundwater__recharge_mean != None), (
+            assert (groundwater__recharge_mean is not None), (
                 'Input mean of the distribution!')
-            assert (groundwater__recharge_standard_deviation != None), (
+            assert (groundwater__recharge_standard_deviation is not None), (
                 'Input standard deviation of the distribution!')
             self._recharge_mean = groundwater__recharge_mean
             self._recharge_stdev = groundwater__recharge_standard_deviation

@@ -488,7 +488,7 @@ class CellLabCTSModel(object):
                 assert t.to_state[-1] < self.number_of_orientations, \
                     'Encoding for orientation in to_state must be < number of orientations.'
                 this_type = tuple
-            assert last_type == this_type or last_type == None, \
+            assert last_type == this_type or last_type is None, \
                 'All transition types must be either int IDs, or all tuples.'
             # this test to ensure all entries are either IDs, or tuples, not
             # mixed

@@ -47,7 +47,7 @@ def test_transition():
     assert t.rate == 1.0
     assert t.name == 'test'
     assert t.swap_properties == False
-    assert t.prop_update_fn == None
+    assert t.prop_update_fn is None
 
 
 def test_raster_cts():

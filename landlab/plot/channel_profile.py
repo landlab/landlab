@@ -34,7 +34,7 @@ def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_
                'route-to-multiple methods. Please open a GitHub Issue '
                'to start this process.')
         raise NotImplementedError(msg)
-    if threshold == None:
+    if threshold is None:
         threshold = 2. * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes
     #top_two_pc = len(boundary_nodes)//50
@@ -123,13 +123,13 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
             assert j.size == grid.number_of_nodes, "Inputs must be field names or nnode-long numpy arrays!"
             internal_list[i] = j
 
-    if starting_nodes == None:
+    if starting_nodes is None:
         profile_IDs = channel_nodes(grid, None, internal_list[1], internal_list[
                                     2], number_of_channels, threshold)
     else:
         assert len(
             starting_nodes) == number_of_channels, "Length of starting_nodes must equal the number_of_channels!"
-        if threshold == None:
+        if threshold is None:
             threshold = 2. * numpy.amin(grid.area_of_cell)
         profile_IDs = []
         for i in starting_nodes:
