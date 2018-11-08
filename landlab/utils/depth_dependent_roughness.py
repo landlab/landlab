@@ -69,32 +69,32 @@ def depth_dependent_mannings_n(grid, water_depths='surface_water__depth',
         effective Manning's n at low flow conditions.
     """
 
-    ## Looks for a field called 'mannings_n' attached to the grid instance. If
-    ## one is found, a FieldError is thrown but ignored. This method
-    ## REWRITES over the existing Manning's n fields after the calculation.
+    # Looks for a field called 'mannings_n' attached to the grid instance. If
+    # one is found, a FieldError is thrown but ignored. This method
+    # REWRITES over the existing Manning's n fields after the calculation.
     try:
         grid.add_zeros('mannings_n', at='node')
 
     except FieldError:
         pass
 
-    ## Identifies locations where water depth is lower than the value supplied
-    ## through keyword index_flow_depth.
+    # Identifies locations where water depth is lower than the value supplied
+    # through keyword index_flow_depth.
     (locs_less, ) = np.where(grid.at_node['surface_water__depth'] <=
                              index_flow_depth)
 
-    ## Identifies locations where water depth is greater than the value
-    ## supplied through keyword index_flow_depth.
+    # Identifies locations where water depth is greater than the value
+    # supplied through keyword index_flow_depth.
     (locs_more, ) = np.where(grid.at_node['surface_water__depth'] >
                              index_flow_depth)
 
-    ## At all locations lower than the index flow depth (assumed to be shallow
-    ## flow on hillslopes), a new Manning's n value is calculated to that
-    ## incorporates effects of vegetation drag. These Manning's n values will
-    ## be greater than the supplied Manning's n (keyword: min_mannings_n)
+    # At all locations lower than the index flow depth (assumed to be shallow
+    # flow on hillslopes), a new Manning's n value is calculated to that
+    # incorporates effects of vegetation drag. These Manning's n values will
+    # be greater than the supplied Manning's n (keyword: min_mannings_n)
     grid.at_node['mannings_n'][locs_less] = (
         min_mannings_n * (grid.at_node['surface_water__depth'][locs_less] /
                           index_flow_depth) ** veg_drag_exponent)
 
-    ## Resets the field with the new Manning's n values.
+    # Resets the field with the new Manning's n values.
     grid.at_node['mannings_n'][locs_more] = min_mannings_n

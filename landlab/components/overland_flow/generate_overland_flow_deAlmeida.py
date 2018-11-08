@@ -355,7 +355,7 @@ class OverlandFlow(Component):
         self.east_neighbors = links.horizontal_east_link_neighbor(
             self.grid.shape, self.horizontal_active_link_ids)
 
-        ## replace bdy condition links
+        # replace bdy condition links
         (ids, ) = np.where(self.west_neighbors[self.horiz_bdy_ids] == -1)
         ids = self.horiz_bdy_ids[ids]
         self.west_neighbors[ids] = self.horizontal_active_link_ids[ids]
@@ -616,10 +616,10 @@ class OverlandFlow(Component):
 #            self.grid['link']['water_surface__gradient'][
 #                self.active_links_at_open_bdy] = self.helper_s[
 #                self.active_links_at_open_bdy]
-            ## Update nodes near boundary locations - nodes adjacent to
-            ## boundaries may have discharge and water surface slopes
-            ## artifically reduced due to boundary effects. This step removes
-            ## those errors. 
+            # Update nodes near boundary locations - nodes adjacent to
+            # boundaries may have discharge and water surface slopes
+            # artifically reduced due to boundary effects. This step removes
+            # those errors. 
             
             if dt is np.inf:
                 break

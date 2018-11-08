@@ -92,7 +92,6 @@ class PotentialityFlowRouter(Component):
     def __init__(self, grid, method='D8', flow_equation='default',
                  Chezys_C=None, Mannings_n=0.03, return_components=False,
                  suppress_closed_node_friction=True, **kwds):
-#### give val for Chezy's C!!!
         """Initialize flow router.
 
         Parameters
@@ -119,12 +118,18 @@ class PotentialityFlowRouter(Component):
 
         self._grid = grid
         self.equation = flow_equation
-        assert self.equation in ('default', 'Chezy', 'Manning')
+
+        if method not in ("D8", "D4"):
+            raise ValueError("'method' must be one of 'D8', 'D4'")
+        if self.equation not in ('default', 'Chezy', 'Manning'):
+            raise ValueError("'equation' must be one of 'default', 'Chezy', 'Manning'")
+        if self.equation == "Chezy" and Chezys_C is None:
+            raise ValueError("missing value for Chezys_C")
+
         if self.equation == 'Chezy':
             self.chezy_C = Chezys_C
         elif self.equation == 'Manning':
             self.manning_n = Mannings_n
-        assert method in ('D8', 'D4')
         if method == 'D8':
             self.route_on_diagonals = True
         else:
