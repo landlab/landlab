@@ -15,7 +15,6 @@ from landlab.components import LithoLayers
 def test_z0s_ids_different_shape():
     """Test that providing z0s and ids of different shapes raises an error."""
     mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
     z0s = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
@@ -26,7 +25,6 @@ def test_z0s_ids_different_shape():
 def test_z0s_bad_order():
     """Test that providing z0s in a bad order raises an error."""
     mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
     z0s = [-4, -3, -2, -1, 0, 1, 2, 6, 4]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
@@ -37,7 +35,6 @@ def test_z0s_bad_order():
 def test_bad_function():
     """Test that providing a function of three variables."""
     mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
@@ -48,7 +45,6 @@ def test_bad_function():
 
 def test_function_returns_scalar():
     mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
@@ -59,7 +55,6 @@ def test_function_returns_scalar():
 
 def test_function_returns_wrong_number_of_values():
     mg = RasterModelGrid(3, 3)
-    z = mg.add_zeros('node', 'topographic__elevation')
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}

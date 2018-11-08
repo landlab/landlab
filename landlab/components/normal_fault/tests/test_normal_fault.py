@@ -11,7 +11,7 @@ def test_dx_equals_zero():
     """Test a vertical fault trace."""
     grid = RasterModelGrid((6, 6), spacing=10)
 
-    _ = grid.add_zeros('node', 'topographic__elevation')
+    grid.add_zeros('node', 'topographic__elevation')
 
     param_dict = {'faulted_surface': 'topographic__elevation',
                   'fault_dip_angle': 90.0,
@@ -39,7 +39,7 @@ def test_anti_aximuth_greq_2pi():
     """Test anti azimuth over 2*pi."""
     grid = RasterModelGrid((6, 6), spacing=10)
 
-    _ = grid.add_zeros('node', 'topographic__elevation')
+    grid.add_zeros('node', 'topographic__elevation')
 
     param_dict = {'faulted_surface': 'topographic__elevation',
                   'fault_dip_angle': 90.0,
@@ -70,7 +70,7 @@ def test_non_raster():
     """Test a hex model grid."""
     grid = HexModelGrid(7, 3, dx=10)
 
-    _ = grid.add_zeros('node', 'topographic__elevation')
+    grid.add_zeros('node', 'topographic__elevation')
 
     param_dict = {'faulted_surface': 'topographic__elevation',
                   'fault_dip_angle': 90.0,
@@ -104,7 +104,7 @@ def test_dip_geq_90():
     """Test dip angles of >90 degrees."""
     grid = RasterModelGrid((6, 6), spacing=10)
 
-    _ = grid.add_zeros('node', 'topographic__elevation')
+    grid.add_zeros('node', 'topographic__elevation')
 
     with pytest.raises(ValueError):
         NormalFault(grid, fault_dip_angle=90.001)
@@ -114,7 +114,7 @@ def test_uplifting_multiple_fields():
     """Test uplifting multiple fields with NormalFault."""
     grid = RasterModelGrid((6, 6), spacing=10)
 
-    _ = grid.add_zeros('node', 'topographic__elevation')
+    grid.add_zeros('node', 'topographic__elevation')
 
     zbr = grid.add_zeros('node', 'bedrock__elevation')
 
@@ -157,7 +157,7 @@ def test_uplifting_a_not_yet_created_field():
     """Test uplifting a field that does not exist with  NormalFault."""
     grid = RasterModelGrid((6, 6), spacing=10)
 
-    _ = grid.add_zeros('node', 'topographic__elevation')
+    grid.add_zeros('node', 'topographic__elevation')
 
     zbr = grid.add_zeros('node', 'bedrock__elevation')
 
@@ -200,9 +200,9 @@ def test_uplifting_a_not_yet_created_field():
     # running NormalFault after adding spam and eggs will result in NormalFault
     # modifying these fields.
 
-    _ = grid.add_zeros('node', 'eggs')
+    grid.add_zeros('node', 'eggs')
 
-    _ = grid.add_zeros('node', 'spam')
+    grid.add_zeros('node', 'spam')
 
     nf.run_one_step(dt=10)
 

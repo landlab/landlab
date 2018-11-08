@@ -41,7 +41,7 @@ def is_fixed_link(node_status_at_link):
 
     Examples
     --------
-    >>> from landlab.grid.diagonals import is_fixed_link
+    >>> from landlab.grid.linkstatus import is_fixed_link
     >>> from landlab import CORE_NODE, FIXED_GRADIENT_BOUNDARY
     >>> is_fixed_link([CORE_NODE, FIXED_GRADIENT_BOUNDARY])
     array([ True], dtype=bool)
@@ -81,7 +81,7 @@ def is_inactive_link(node_status_at_link):
 
     Examples
     --------
-    >>> from landlab.grid.diagonals import is_inactive_link
+    >>> from landlab.grid.linkstatus import is_inactive_link
     >>> from landlab import CORE_NODE, FIXED_GRADIENT_BOUNDARY
     >>> is_inactive_link([CORE_NODE, CLOSED_BOUNDARY])
     array([ True], dtype=bool)
@@ -125,7 +125,7 @@ def is_active_link(node_status_at_link):
 
     Examples
     --------
-    >>> from landlab.grid.diagonals import is_active_link
+    >>> from landlab.grid.linkstatus import is_active_link
     >>> from landlab import CORE_NODE, FIXED_GRADIENT_BOUNDARY
     >>> is_active_link([CORE_NODE, FIXED_GRADIENT_BOUNDARY])
     array([False], dtype=bool)

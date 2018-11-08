@@ -31,7 +31,7 @@ def test_not_implemented():
     """Test that private run_one_step is not implemented"""
 
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    z = mg.add_field(
+    mg.add_field(
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
 
@@ -51,7 +51,7 @@ def test_not_implemented():
 def test_fields_already_added():
 
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    z = mg.add_field(
+    mg.add_field(
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
     r = mg.add_field("flow__receiver_node", mg.nodes, at="node")
@@ -68,7 +68,7 @@ def test_grid_type_testing():
     """Test that only the right grids can be implemented."""
     dx = (2. / (3. ** 0.5)) ** 0.5
     hmg = HexModelGrid(9, 5, dx)
-    z = hmg.add_field(
+    hmg.add_field(
         "topographic__elevation", hmg.node_x + np.round(hmg.node_y), at="node"
     )
 
@@ -89,10 +89,10 @@ def test_check_fields():
     """
 
     mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z0 = mg0.add_field(
+    mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
-    fd0 = _FlowDirector(mg0, "topographic__elevation")
+    _FlowDirector(mg0, "topographic__elevation")
     assert sorted(list(mg0.at_node.keys())) == [
         "flow__sink_flag",
         "topographic__elevation",
@@ -100,10 +100,10 @@ def test_check_fields():
     assert np.size(mg0.at_node["topographic__elevation"]) == mg0.number_of_nodes
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z1 = mg1.add_field(
+    mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
-    fd1 = _FlowDirectorToMany(mg1, "topographic__elevation")
+    _FlowDirectorToMany(mg1, "topographic__elevation")
     assert sorted(list(mg1.at_node.keys())) == [
         "flow__sink_flag",
         "topographic__elevation",
@@ -111,10 +111,10 @@ def test_check_fields():
     assert np.size(mg1.at_node["topographic__elevation"]) == mg1.number_of_nodes
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z2 = mg2.add_field(
+    mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
-    fd2 = _FlowDirectorToOne(mg2, "topographic__elevation")
+    _FlowDirectorToOne(mg2, "topographic__elevation")
     assert sorted(list(mg2.at_node.keys())) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
@@ -125,10 +125,10 @@ def test_check_fields():
     assert np.size(mg2.at_node["topographic__elevation"]) == mg2.number_of_nodes
 
     mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z3 = mg3.add_field(
+    mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
-    fd3 = FlowDirectorMFD(mg3, "topographic__elevation")
+    FlowDirectorMFD(mg3, "topographic__elevation")
     assert sorted(list(mg3.at_node.keys())) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
@@ -140,10 +140,10 @@ def test_check_fields():
     assert np.size(mg3.at_node["topographic__elevation"]) == mg3.number_of_nodes
 
     mg4 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z4 = mg4.add_field(
+    mg4.add_field(
         "topographic__elevation", mg4.node_x ** 2 + mg4.node_y ** 2, at="node"
     )
-    fd4 = FlowDirectorDINF(mg4, "topographic__elevation")
+    FlowDirectorDINF(mg4, "topographic__elevation")
     assert sorted(list(mg4.at_node.keys())) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
@@ -155,10 +155,10 @@ def test_check_fields():
     assert np.size(mg4.at_node["topographic__elevation"]) == mg4.number_of_nodes
 
     mg5 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z5 = mg5.add_field(
+    mg5.add_field(
         "topographic__elevation", mg5.node_x ** 2 + mg5.node_y ** 2, at="node"
     )
-    fd5 = FlowDirectorSteepest(mg5, "topographic__elevation")
+    FlowDirectorSteepest(mg5, "topographic__elevation")
     assert sorted(list(mg5.at_node.keys())) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
@@ -169,10 +169,10 @@ def test_check_fields():
     assert np.size(mg5.at_node["topographic__elevation"]) == mg5.number_of_nodes
 
     mg6 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z6 = mg6.add_field(
+    mg6.add_field(
         "topographic__elevation", mg6.node_x ** 2 + mg6.node_y ** 2, at="node"
     )
-    fd6 = FlowDirectorD8(mg6, "topographic__elevation")
+    FlowDirectorD8(mg6, "topographic__elevation")
     assert sorted(list(mg6.at_node.keys())) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
@@ -185,7 +185,7 @@ def test_check_fields():
 
 def test_properties():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field(
+    mg.add_field(
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
     fd = FlowDirectorMFD(mg, "topographic__elevation")
@@ -323,7 +323,7 @@ def test_properties():
 
 def test_change_bc_post_init():
     mg = RasterModelGrid((5, 5))
-    z = mg.add_field(
+    mg.add_field(
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
     fd = FlowDirectorSteepest(mg, "topographic__elevation")

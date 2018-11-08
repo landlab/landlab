@@ -175,9 +175,6 @@ class SteepnessFinder(Component):
         # get an array of only nodes with A above threshold:
         valid_dstr_order = (upstr_order[self.grid.at_node['drainage_area'][
             upstr_order] >= min_drainage])[::-1]
-        valid_dstr_elevs = self.grid.at_node['topographic__elevation'][
-            valid_dstr_order]
-        valid_dstr_areas = self.grid.at_node['drainage_area'][valid_dstr_order]
         # note elevs are guaranteed to be in order, UNLESS a fill
         # algorithm has been used.
         nodes_incorporated = self.grid.zeros('node', dtype=bool)

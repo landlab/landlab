@@ -44,7 +44,7 @@ def test_bad_solver_name():
     br[:] = z[:] - soil[:]
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8')
+    FlowAccumulator(mg, flow_director='D8')
 
     #try to instantiate SPACE using a wrong solver name
     with pytest.raises(ValueError):
@@ -83,7 +83,7 @@ def test_soil_field_already_on_grid():
     br[:] = z[:] - soil[:]
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8')
+    FlowAccumulator(mg, flow_director='D8')
 
     #Instantiate SPACE
     sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0,
@@ -126,7 +126,7 @@ def test_br_field_already_on_grid():
     z[:] = br[:] + soil[:]
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8')
+    FlowAccumulator(mg, flow_director='D8')
 
     #Instantiate SPACE
     sp = Space(mg, K_sed=0.01, K_br=0.01, F_f=0.0,
