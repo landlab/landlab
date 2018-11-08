@@ -1,5 +1,6 @@
 import numpy as np
 
+from ..sort import sort_patches
 from ...utils.jaggedarray import unravel
 
 
