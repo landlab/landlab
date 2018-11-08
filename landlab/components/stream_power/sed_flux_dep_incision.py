@@ -599,7 +599,7 @@ class SedDepEroder(Component):
         node_S = grid.at_node['topographic__steepest_slope']
 
         if type(flooded_depths) is str:
-            flooded_depths = mg.at_node[flooded_depths]
+            flooded_depths = grid.at_node[flooded_depths]
             # also need a map of initial flooded conds:
             flooded_nodes = flooded_depths > 0.
         elif type(flooded_depths) is np.ndarray:
