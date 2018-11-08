@@ -2,10 +2,16 @@
 
 from landlab.io.vtk.writer import VtkWriter
 from landlab.io.vtk.vtktypes import VtkUniformRectilinear
-from landlab.io.vtk.vtkxml import (VtkRootElement, VtkGridElement,
-                                   VtkPieceElement,
-                                   VtkPointDataElement, VtkCellDataElement,
-                                   VtkExtent)
+from landlab.io.vtk.vtkxml import (
+    VtkRootElement,
+    VtkGridElement,
+    VtkPieceElement,
+    VtkPointDataElement,
+    VtkCellDataElement,
+    VtkExtent,
+    VtkOrigin,
+    VtkSpacing,
+)
 
 
 class VtkUniformRectilinearWriter(VtkWriter):
