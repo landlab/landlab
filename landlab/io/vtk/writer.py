@@ -104,7 +104,7 @@ class VtkWriter(xml.dom.minidom.Document):
         elements = self.construct_field_elements(field)
 
         if self.data is not None:
-            element['AppendedData'] = self.data
+            elements['AppendedData'] = self.data
 
         self.appendChild(assemble_vtk_document(elements))
         self.to_xml(path)
