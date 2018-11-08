@@ -15,7 +15,7 @@ import os
 
 from numpy import set_printoptions
 try:
-    set_printoptions(legacy='1.13')
+    set_printoptions(legacy="1.13")
 except TypeError:
     pass
 finally:
@@ -25,16 +25,14 @@ from ._registry import registry
 
 cite_as = registry.format_citations
 
-__all__ = ['registry']
-
-if 'DISPLAY' not in os.environ:
+if "DISPLAY" not in os.environ:
     try:
         import matplotlib
     except ImportError:
         import warnings
-        warnings.warn('matplotlib not found', ImportWarning)
+        warnings.warn("matplotlib not found", ImportWarning)
     else:
-        matplotlib.use('Agg')
+        matplotlib.use("Agg")
 
 from .core.model_parameter_dictionary import ModelParameterDictionary
 from .core.model_parameter_dictionary import (MissingKeyError,
@@ -48,11 +46,23 @@ from .field.scalar_data_fields import FieldError
 from .grid import *
 from .plot import *
 
-__all__.extend(['ModelParameterDictionary', 'MissingKeyError',
-                'ParameterValueError', 'Component', 'Palette', 'Arena',
-                'NoProvidersError', 'Implements', 'ImplementsOrRaise',
-                'Framework', 'FieldError', 'LandlabTester', 'load_params'])
+__all__ = [
+    "registry",
+    "ModelParameterDictionary",
+    "MissingKeyError",
+    "ParameterValueError",
+    "Component",
+    "Palette",
+    "Arena",
+    "NoProvidersError",
+    "Implements",
+    "ImplementsOrRaise",
+    "Framework",
+    "FieldError",
+    "LandlabTester",
+    "load_params",
+]
 
 from ._version import get_versions
-__version__ = get_versions()['version']
+__version__ = get_versions()["version"]
 del get_versions

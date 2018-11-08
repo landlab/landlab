@@ -41,7 +41,6 @@ from six.moves import range
 from landlab import HexModelGrid
 import numpy as np
 from numpy.testing import assert_array_equal
-import time
 
 MAX_NUM_LINKS = 6
 

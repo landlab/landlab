@@ -20,8 +20,6 @@ import yaml
 from ..core.model_component import Component
 from ..grid import RasterModelGrid
 
-__all__ = ['TimeStepper', 'wrap_as_bmi']
-
 
 class TimeStepper(object):
 
