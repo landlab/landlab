@@ -27,13 +27,13 @@ def test_move_origin_hex():
                 9, 5, dx=2.0, origin=_START_ORIGIN, orientation=orientation, shape=shape
             )
             assert mg._origin == _START_ORIGIN
-            assert mg.x_of_node.min() == _START_ORIGIN[1]
-            assert mg.y_of_node.min() == _START_ORIGIN[0]
+            assert mg.x_of_node[0] == _START_ORIGIN[1]
+            assert mg.y_of_node[0] == _START_ORIGIN[0]
 
             mg.origin = _MOVE_ORIGIN
             assert mg._origin == _MOVE_ORIGIN
-            assert mg.x_of_node.min() == _MOVE_ORIGIN[1]
-            assert mg.y_of_node.min() == _MOVE_ORIGIN[0]
+            assert mg.x_of_node[0] == _MOVE_ORIGIN[1]
+            assert mg.y_of_node[0] == _MOVE_ORIGIN[0]
 
 
 def test_move_origin_radial():
