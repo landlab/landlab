@@ -30,8 +30,9 @@ def test_Ff_bad_vals():
                                                   -9999.)
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8',
-                         depression_finder='DepressionFinderAndRouter')
+    FlowAccumulator(
+        mg, flow_director='D8', depression_finder='DepressionFinderAndRouter'
+    )
 
 
     # Instantiate the ErosionDeposition component...
@@ -65,8 +66,9 @@ def test_phi_bad_vals():
                                                   -9999.)
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8',
-                         depression_finder='DepressionFinderAndRouter')
+    FlowAccumulator(
+        mg, flow_director='D8', depression_finder='DepressionFinderAndRouter'
+    )
 
     # Instantiate the ErosionDeposition component...
     with pytest.raises(ValueError):
@@ -102,8 +104,9 @@ def test_q_as_field():
                                                   -9999.)
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8',
-                         depression_finder='DepressionFinderAndRouter')
+    FlowAccumulator(
+        mg, flow_director='D8', depression_finder='DepressionFinderAndRouter'
+    )
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 
@@ -144,8 +147,9 @@ def test_q_as_array():
                                                   -9999.)
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8',
-                         depression_finder='DepressionFinderAndRouter')
+    FlowAccumulator(
+        mg, flow_director='D8', depression_finder='DepressionFinderAndRouter'
+    )
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 
@@ -186,8 +190,9 @@ def test_sediment__flux_already_created():
                                                   -9999.)
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8',
-                         depression_finder='DepressionFinderAndRouter')
+    FlowAccumulator(
+        mg, flow_director='D8', depression_finder='DepressionFinderAndRouter'
+    )
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 

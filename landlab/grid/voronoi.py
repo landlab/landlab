@@ -195,7 +195,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         [self._cell_at_node, self._node_at_cell] = \
             self._node_to_cell_connectivity(self.status_at_node,
                                             self.number_of_cells)
-        active_cell_at_node = self.cell_at_node[self.core_nodes]
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
@@ -712,8 +711,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         orderforsort = argsort_points_by_x_then_y(patches_xy)
         self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
         patches_xy = patches_xy[orderforsort, :]
-        # get the nodes around the patch in order:
-        nodes_xy = np.empty((3, 2), dtype=float)
 
         # perform a CCW sort without a line-by-line loop:
         patch_nodes_x = self.node_x[self._nodes_at_patch]

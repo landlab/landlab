@@ -12,7 +12,7 @@ def test_bad_nsp():
     mg = RasterModelGrid(4, 4, 1)
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
     with pytest.raises(ValueError):
-        spst = Spst(mg, K_sp = 1.0, n_sp = 1.01)
+        Spst(mg, K_sp = 1.0, n_sp = 1.01)
 
 def test_no_thresh():
     K = 0.001

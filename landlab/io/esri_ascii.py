@@ -399,16 +399,10 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             header = read_asc_header(f)
             data = _read_asc_data(f)
 
-        file_name = asc_file
-
     # otherwise, pass asc_file directly.
     else:
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
-        try:
-            file_name = asc_file.name
-        except AttributeError: # StringIO objects will not have this attribute
-            file_name = None
 
     #There is no reason for halo to be negative.
     #Assume that if a negative value is given it should be 0.

@@ -25,18 +25,18 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def test_deprecation_raised():
     mg = RasterModelGrid(10, 10)
-    _ = mg.add_zeros('node', 'topographic__elevation')
+    mg.add_zeros('node', 'topographic__elevation')
     with pytest.deprecated_call():
-        fr = FlowRouter(mg)
+        FlowRouter(mg)
 
 def test_check_fields(dans_grid1):
     """Check to make sure the right fields have been created."""
-    fr = FlowRouter(dans_grid1.mg)
+    FlowRouter(dans_grid1.mg)
     assert_array_equal(dans_grid1.z, dans_grid1.mg.at_node["topographic__elevation"])
     assert_array_equal(np.zeros(25), dans_grid1.mg.at_node["drainage_area"])
     assert_array_equal(np.ones(25), dans_grid1.mg.at_node["water__unit_flux_in"])
 
-    fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
+    FlowRouter(dans_grid1.mg, dans_grid1.infile)
     assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
@@ -45,9 +45,9 @@ def test_check_field_input(dans_grid1):
     dans_grid1.mg.add_field(
         "node", "water__unit_flux_in", np.full(25, 3.), units="m**3/s"
     )
-    fr = FlowRouter(dans_grid1.mg)
+    FlowRouter(dans_grid1.mg)
     assert_array_equal(np.full(25, 3.), dans_grid1.mg.at_node["water__unit_flux_in"])
-    fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
+    FlowRouter(dans_grid1.mg, dans_grid1.infile)
     assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 

@@ -929,20 +929,13 @@ class SpatialPrecipitationDistribution(Component):
         self._Ptot_ann_global = np.zeros(simyears)
         self._Ptot_monsoon_global = np.zeros(simyears)
 
-        Intensity_local_all = 0  # initialize all variables (concatenated
-        # matrices of generated output)
-        Storm_totals_all = 0
-        Duration_local_all = 0
-
         master_storm_count = 0
-        last_year_count = 0
         storm_trend = 0
 
         for syear in range(simyears):
             self._year = syear
             year_time = 0.  # tracks simulation time per year in hours
             storm_trend += storminess_trend
-            Ptotal = 0.
             year_storm_count = 0
             breaker = False
             Storm_total_local_year = np.zeros(
@@ -1070,8 +1063,6 @@ class SpatialPrecipitationDistribution(Component):
                     year_storm_count += 1
                     seas_storm_count += 1
                     master_storm_count += 1
-                    gauges_hit = np.where(mask_name)[0]
-                    num_gauges_hit = gauges_hit.size
 
                     # This routine below determines to which orographic group
                     # the closest gauge to the storm center belongs to, and

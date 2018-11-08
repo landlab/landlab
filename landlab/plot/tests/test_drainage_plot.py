@@ -21,7 +21,7 @@ def test_steepest():
     mg = make_grid()
     fa = FlowAccumulator(mg)
     fa.run_one_step()
-    fig = plt.figure()
+    plt.figure()
     drainage_plot(mg)
 
 
@@ -29,5 +29,5 @@ def test_mfd():
     mg = make_grid()
     fa = FlowAccumulator(mg, flow_director='MFD')
     fa.run_one_step()
-    fig = plt.figure()
+    plt.figure()
     drainage_plot(mg)

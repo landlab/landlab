@@ -19,7 +19,7 @@ def test_raise_kwargs_error():
     z += mg.node_x.copy()
     BRz += mg.node_x/2.
     soilTh[:] = z - BRz
-    expweath = ExponentialWeatherer(mg)
+    ExponentialWeatherer(mg)
     with pytest.raises(TypeError):
         DepthDependentDiffuser(mg, diffusivity=1)
     

@@ -21,8 +21,6 @@ def dans_grid1():
 
     z = mg.node_x.copy()
 
-    Q_in = np.full(25, 2.)
-
     A_target = (
         np.array(
             [

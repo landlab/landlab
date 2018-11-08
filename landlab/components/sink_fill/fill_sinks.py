@@ -397,7 +397,7 @@ class SinkFiller(Component):
                         self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
         lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
-        lake_ext_margin = self._get_lake_ext_margin(lake_nodes)
+        # lake_ext_margin = self._get_lake_ext_margin(lake_nodes)
         d = self._grid.calc_distances_of_nodes_to_point(outlet_coord,
                                                         node_subset=lake_nodes)
         add_vals = slope*d
@@ -447,7 +447,7 @@ class SinkFiller(Component):
             self._elev[:], lake_nodes = self._add_slopes(apply_slope,
                                                          outlet_node,
                                                          lake_code)
-            ext_edge = self._get_lake_ext_margin(lake_nodes)
+            # ext_edge = self._get_lake_ext_margin(lake_nodes)
             if sublake:
                 break
             else:

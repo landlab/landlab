@@ -427,15 +427,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # If patches existed, create them
         if state_dict['_patches_created']:
-            temp = self.nodes_at_patch
-            temp2 = self.links_at_patch
-            del temp
-            del temp2
+            self.nodes_at_patch
+            self.links_at_patch
 
         # If forced cell area existed.
         if state_dict['forced_cell_areas_created']:
-            temp = self._create_cell_areas_array_force_inactive()
-            del temp
+            self._create_cell_areas_array_force_inactive()
 
         # If neighbor list existed, create them
         if state_dict['neighbor_list_created']:
@@ -2474,7 +2471,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: DEPR NINF BC
         """
         try:
-            fixed_nodes = self.fixed_value_node_properties['boundary_node_IDs']
+            self.fixed_value_node_properties['boundary_node_IDs']
         except AttributeError:
             # no fixed value boundaries have been set
             pass

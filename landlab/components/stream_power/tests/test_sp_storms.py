@@ -20,7 +20,6 @@ def test_storms():
     ncols = inputs.read_int('ncols')
     dx = inputs.read_float('dx')
     dt = inputs.read_float('dt')
-    time_to_run = inputs.read_float('run_time')
     uplift = inputs.read_float('uplift_rate')
 
     mean_duration  = inputs.read_float('mean_storm')

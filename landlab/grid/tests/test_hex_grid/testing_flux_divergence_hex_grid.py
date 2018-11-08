@@ -48,8 +48,8 @@ MAX_NUM_LINKS = 6
 
 def gt_grads_at_faces1(grid, nv):
     
-    lg = (nv[grid.node_at_link_head]-nv[grid.node_at_link_tail])/grid.length_of_link
-    #return lg[grid.link_at_face]
+    # lg = (nv[grid.node_at_link_head] - nv[grid.node_at_link_tail]) / grid.length_of_link
+    # return lg[grid.link_at_face]
     return None # temporary
     
 
@@ -166,11 +166,8 @@ def testing_flux_divergence_with_hex():
     #gt_calc_gradients_at_faces(hmg, nv)    
     #gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
     
-    # Some time trials
-    start = time.time()
     for i in range(1000):
         gt_grads_at_faces1(hmg, nv)
-    endtime = time.time()
 
 
 if __name__=='__main__':

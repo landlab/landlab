@@ -1302,7 +1302,7 @@ def test_degenerate_drainage():
     z_init[22] = 0.  # the common spill pt for both lakes
     z_init[21] = 0.1  # an adverse bump in the spillway
     z_init[20] = -0.2  # the spillway
-    z = mg.add_field("node", "topographic__elevation", z_init)
+    mg.add_field("node", "topographic__elevation", z_init)
 
     fr = FlowAccumulator(mg, flow_director='D8')
     lf = DepressionFinderAndRouter(mg)
@@ -1368,8 +1368,6 @@ def test_degenerate_drainage():
             0.,
         ]
     )
-
-    thelake = np.concatenate((lake_pits, [22])).sort()
 
     assert mg.at_node["drainage_area"] == approx(correct_A)
 

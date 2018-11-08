@@ -129,7 +129,6 @@ def _read_netcdf_structured_grid(root):
     """
     shape = _read_netcdf_grid_shape(root)
     coordinates = _read_netcdf_coordinate_values(root)
-    units = _read_netcdf_coordinate_units(root)
 
     for coordinate in coordinates:
         coordinate.shape = shape
@@ -152,7 +151,6 @@ def _read_netcdf_raster_structured_grid(root):
     """
     shape = _read_netcdf_grid_shape(root)
     coordinates = _read_netcdf_coordinate_values(root)
-    units = _read_netcdf_coordinate_units(root)
 
     if len(coordinates) != 2:
         assert ValueError('Rasters must have only two spatial coordinate dimensions')

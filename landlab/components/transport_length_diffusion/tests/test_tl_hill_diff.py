@@ -33,7 +33,7 @@ def test_tl_hill_diff():
     z = np.array([0., 0., 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0., 0.,
                   0., 5., 1.9, 1.9, 1.9, 1.9, 1.3, 1.3, 1.3, 1.3, 1., 0.,
                   0., 0., 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0., 0.])
-    _ = mg.add_field('node', 'topographic__elevation', z)
+    mg.add_field('node', 'topographic__elevation', z)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Parameter values for test

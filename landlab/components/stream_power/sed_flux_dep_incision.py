@@ -698,7 +698,6 @@ class SedDepEroder(Component):
 
                 sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
                 dz = np.zeros(grid.number_of_nodes, dtype=float)
-                len_s_in = s_in.size
                 cell_areas = self.cell_areas
                 try:
                     raise NameError
@@ -896,8 +895,6 @@ class SedDepEroder(Component):
                 node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[
                     core_draining_nodes]/link_length[core_draining_nodes]
                 internal_t += dt_this_step  # still in seconds, remember
-
-        active_nodes = grid.core_nodes
 
         if self.return_ch_props:
             # add the channel property field entries,

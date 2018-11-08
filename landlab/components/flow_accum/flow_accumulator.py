@@ -736,12 +736,6 @@ class FlowAccumulator(Component):
             "FlowDirectorDINF",
         ]
 
-        # find keyword args to pass along:
-        try:
-            component_name = flow_director._name
-        except:
-            component_name = None
-
         potential_kwargs = ["partition_method", "diagonals"]
         kw = {}
         for p_k in potential_kwargs:

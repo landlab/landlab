@@ -43,8 +43,6 @@ def get_links_at_node(graph, sort=False):
     # from .cfuncs import _setup_links_at_node
     from .ext.at_node import get_links_at_node
 
-    sorted_by_node = np.argsort(graph.nodes_at_link.flat)
-
     node_count = np.bincount(graph.nodes_at_link.flat)
     number_of_nodes = graph.number_of_nodes
 

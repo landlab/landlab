@@ -50,7 +50,7 @@ def test_bad_solver_name():
                                                   -9999.)
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(mg, flow_director='D8')
+    FlowAccumulator(mg, flow_director='D8')
 
     #try to instantiate ErodionDeposition using a wrong solver name
     with pytest.raises(ValueError):

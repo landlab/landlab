@@ -66,11 +66,6 @@ def generate_add_ones_tests():
 
 
 def generate_empty_tests():
-    elements = ['node', 'cell', 'link', 'face']
-    # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
-
-    types = ['float', 'int', 'bool']
-
     for element in ELEMENTS:
         for type in TYPES:
             def _test():
@@ -83,11 +78,6 @@ def generate_empty_tests():
 
 
 def generate_add_empty_tests():
-    elements = ['node', 'cell', 'link', 'face']
-    # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
-
-    types = ['float', 'int', 'bool']
-
     for element in ELEMENTS:
         for type in TYPES:
             def _test():

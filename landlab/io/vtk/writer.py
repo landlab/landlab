@@ -73,7 +73,7 @@ class VtkWriter(xml.dom.minidom.Document):
         assert_encoding_is_valid(self.encoding)
 
         if format == 'ascii':
-            encoding = 'ascii'
+            self._encoding = 'ascii'
 
         if self.format == 'appended':
             self._data = VtkAppendedDataElement('', encoding=self.encoding)

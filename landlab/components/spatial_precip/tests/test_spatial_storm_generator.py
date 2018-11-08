@@ -69,8 +69,8 @@ def test_MS_params():
 
     mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
     mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, 'BCs_Singer.txt'))
-    z = mg.add_field('node', 'topographic__elevation',
-                     np.loadtxt(os.path.join(_THIS_DIR, 'elevs_Singer.txt')))
+    mg.add_field('node', 'topographic__elevation',
+                 np.loadtxt(os.path.join(_THIS_DIR, 'elevs_Singer.txt')))
 
     np.random.seed(10)
     rain = SpatialPrecipitationDistribution(mg, number_of_years=2,

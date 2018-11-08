@@ -149,7 +149,6 @@ def test_filler_inclined2(sink_grid3):
     """
     Tests an inclined fill into an inclined surface, with two holes.
     """
-    z_init = sink_grid3.at_node["topographic__elevation"].copy()
     fr = FlowAccumulator(sink_grid3, flow_director='D8')
     hf = SinkFiller(sink_grid3, apply_slope=True)
 

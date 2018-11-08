@@ -26,8 +26,6 @@ def test_sed_dep():
     nrows = inputs.read_int('nrows')
     ncols = inputs.read_int('ncols')
     dx = inputs.read_float('dx')
-    leftmost_elev = inputs.read_float('leftmost_elevation')
-    initial_slope = inputs.read_float('initial_slope')
     uplift_rate = inputs.read_float('uplift_rate')
 
     runtime = inputs.read_float('total_time')
