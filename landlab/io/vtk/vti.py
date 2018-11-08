@@ -34,8 +34,8 @@ class VtkUniformRectilinearWriter(VtkWriter):
                 VtkPointDataElement(field.at_node, append=self.data,
                                     encoding=self.encoding),
             'CellData':
-                VtkCellDataElement(field.at_cell, append=data,
-                                   encoding=encoding),
+                VtkCellDataElement(field.at_cell, append=self.data,
+                                   encoding=self.encoding),
         }
 
         return element
