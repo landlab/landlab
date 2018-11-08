@@ -110,22 +110,19 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        self._origin = (origin_y, origin_x)
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)
+        self._origin = (origin_y, origin_x)
 
     @classmethod
     def from_dict(cls, params):
         """
         LLCATS: GINF
         """
-        num_shells = params['num_shells']
-        dr = params.get('dr', 1.)
-        origin = params.get('origin', (0., 0.))
+        num_shells = params.pop('num_shells')
 
-        return cls(num_shells=num_shells, dr=dr, origin_x=origin[0],
-                   origin_y=origin[1])
+        return cls(num_shells=num_shells, **params)
 
     def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         [pts, npts] = self._create_radial_points(num_shells, dr)
