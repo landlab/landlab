@@ -23,7 +23,7 @@ def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
     old_path = path
     for k in dict_1.keys():
         path = old_path + "[%s]" % k
-        if not k in dict_2:
+        if k not in dict_2:
             key_err += "Key %s%s not in %s\n" % (dict_2_name, path, dict_2_name)
         else:
             if isinstance(dict_1[k], dict) and isinstance(dict_2[k], dict):
@@ -43,7 +43,7 @@ def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
                     
     for k in dict_2.keys():
         path = old_path + "[%s]" % k
-        if not k in dict_1:
+        if k not in dict_1:
             key_err += "Key %s%s not in %s\n" % (dict_2_name, path, dict_1_name)
 
     return key_err + value_err + err
