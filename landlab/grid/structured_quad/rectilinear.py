@@ -42,13 +42,10 @@ class RectilinearGrid(StructuredQuadGrid):
             Coordinates of node rows and node columns.
         """
         if len(coord) != 2:
-            raise ValueError('only 2d grids are supported')
+            raise ValueError("only 2d grids are supported")
 
-        shape = (
-            len(coord[0]),
-            len(coord[1]),
-        )
-        node_coord = np.meshgrid(*coord, indexing='ij')
+        shape = (len(coord[0]), len(coord[1]))
+        node_coord = np.meshgrid(*coord, indexing="ij")
 
         super(RectilinearGrid, self).__init__(node_coord, shape, cells=True)
 
@@ -115,13 +112,21 @@ class UniformRectilinearGrid(RectilinearGrid):
             Coordinates of grid origin.
         """
         if len(shape) != 2:
-            raise ValueError('only 2d grids are supported')
+            raise ValueError("only 2d grids are supported")
 
         coords = (
-            np.arange(origin[0], origin[0] + shape[0] * spacing[0], spacing[0],
-                      dtype=np.float64),
-            np.arange(origin[1], origin[1] + shape[1] * spacing[1], spacing[1],
-                      dtype=np.float64),
+            np.arange(
+                origin[0],
+                origin[0] + shape[0] * spacing[0],
+                spacing[0],
+                dtype=np.float64,
+            ),
+            np.arange(
+                origin[1],
+                origin[1] + shape[1] * spacing[1],
+                spacing[1],
+                dtype=np.float64,
+            ),
         )
 
         super(UniformRectilinearGrid, self).__init__(coords)
@@ -192,5 +197,6 @@ class RasterGrid(UniformRectilinearGrid):
         origin : tuple, optional
             Coordinates of grid origin.
         """
-        super(RasterGrid, self).__init__(shape, origin=origin,
-                                         spacing=(spacing, ) * len(shape))
+        super(RasterGrid, self).__init__(
+            shape, origin=origin, spacing=(spacing,) * len(shape)
+        )

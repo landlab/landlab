@@ -1,10 +1,13 @@
 #! /usr/bin/env python
 import numpy as np
 
-from .nodestatus import (CLOSED_BOUNDARY, CORE_NODE, FIXED_GRADIENT_BOUNDARY,
-                         FIXED_VALUE_BOUNDARY)
-from ..utils.decorators import (cache_result_in_object,
-                                make_return_array_immutable)
+from .nodestatus import (
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+)
+from ..utils.decorators import cache_result_in_object, make_return_array_immutable
 
 # Define the link types
 
@@ -17,11 +20,7 @@ FIXED_LINK = 2
 #: Indicates a link is *inactive*, and cannot carry flux
 INACTIVE_LINK = 4
 
-LINK_STATUS_FLAGS_LIST = [
-    ACTIVE_LINK,
-    FIXED_LINK,
-    INACTIVE_LINK,
-]
+LINK_STATUS_FLAGS_LIST = [ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK]
 LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
 
 
@@ -61,8 +60,9 @@ def is_fixed_link(node_status_at_link):
     is_core_node = node_status_at_link == CORE_NODE
     is_fixed_gradient_node = node_status_at_link == FIXED_GRADIENT_BOUNDARY
 
-    return ((is_core_node[:, 0] & is_fixed_gradient_node[:, 1]) |
-            (is_fixed_gradient_node[:, 0] & is_core_node[:, 1]))
+    return (is_core_node[:, 0] & is_fixed_gradient_node[:, 1]) | (
+        is_fixed_gradient_node[:, 0] & is_core_node[:, 1]
+    )
 
 
 def is_inactive_link(node_status_at_link):
@@ -104,9 +104,11 @@ def is_inactive_link(node_status_at_link):
     is_closed = node_status_at_link == CLOSED_BOUNDARY
     is_boundary_node = is_fixed_value | is_fixed_gradient | is_closed
 
-    return ((is_boundary_node[:, 0] & is_boundary_node[:, 1]) |
-            (is_closed[:, 0] & is_core[:, 1]) |
-            (is_core[:, 0] & is_closed[:, 1]))
+    return (
+        (is_boundary_node[:, 0] & is_boundary_node[:, 1])
+        | (is_closed[:, 0] & is_core[:, 1])
+        | (is_core[:, 0] & is_closed[:, 1])
+    )
 
 
 def is_active_link(node_status_at_link):
@@ -145,9 +147,9 @@ def is_active_link(node_status_at_link):
     is_core_node = node_status_at_link == CORE_NODE
     is_fixed_value_node = node_status_at_link == FIXED_VALUE_BOUNDARY
     return (
-        (is_core_node[:, 0] & is_core_node[:, 1]) |
-        (is_core_node[:, 0] & is_fixed_value_node[:, 1]) |
-        (is_fixed_value_node[:, 0] & is_core_node[:, 1])
+        (is_core_node[:, 0] & is_core_node[:, 1])
+        | (is_core_node[:, 0] & is_fixed_value_node[:, 1])
+        | (is_fixed_value_node[:, 0] & is_core_node[:, 1])
     )
 
 
@@ -161,13 +163,13 @@ def set_status_at_link(node_status_at_link, out=None):
     _is_active_link = is_active_link(node_status_at_link)
     _is_inactive_link = is_inactive_link(node_status_at_link)
 
-    assert np.all(np.sum(np.vstack((_is_active_link, _is_inactive_link,
-                                    _is_fixed_link)), axis=0) == 1)
+    assert np.all(
+        np.sum(np.vstack((_is_active_link, _is_inactive_link, _is_fixed_link)), axis=0)
+        == 1
+    )
 
     out[_is_inactive_link] = INACTIVE_LINK
     out[_is_active_link] = ACTIVE_LINK
     out[_is_fixed_link] = FIXED_LINK
 
     return out
-
-

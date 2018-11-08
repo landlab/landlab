@@ -1,8 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import FIXED_GRADIENT_BOUNDARY, CLOSED_BOUNDARY, INACTIVE_LINK, \
-    FIXED_LINK
+from landlab import FIXED_GRADIENT_BOUNDARY, CLOSED_BOUNDARY, INACTIVE_LINK, FIXED_LINK
 from landlab import RasterModelGrid
 
 
@@ -13,7 +12,7 @@ def test_issue_428_a():
 
     assert grid.status_at_node[1] == 4
     assert grid.status_at_link[4] == 4
-    assert_array_equal(grid.active_link_dirs_at_node[1],[0, 0, 0, 0])
+    assert_array_equal(grid.active_link_dirs_at_node[1], [0, 0, 0, 0])
 
     grid.status_at_node[1] = 1
     assert grid.status_at_link[4] == 0
@@ -40,14 +39,14 @@ def test_issue_428_b():
 def test_link_update_with_nodes_closed():
     rmg = RasterModelGrid((4, 5))
     rmg.status_at_node[rmg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    inactive_array = np.array([INACTIVE_LINK, ] * 5)
+    inactive_array = np.array([INACTIVE_LINK] * 5)
     assert_array_equal(rmg.status_at_link[4:9], inactive_array)
 
 
 def test_link_update_with_nodes_fixed_grad():
     rmg = RasterModelGrid((4, 5))
     rmg.status_at_node[rmg.nodes_at_bottom_edge] = FIXED_GRADIENT_BOUNDARY
-    fixed_array = np.array([FIXED_LINK, ] * 3)
+    fixed_array = np.array([FIXED_LINK] * 3)
     assert_array_equal(rmg.status_at_link[5:8], fixed_array)
 
 

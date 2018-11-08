@@ -110,7 +110,7 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
     out[:] = var_name[grid.node_at_link_head]
 
     return out
@@ -166,7 +166,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -224,12 +224,13 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
-    np.minimum(var_name[grid.node_at_link_head],
-               var_name[grid.node_at_link_tail], out=out)
+    np.minimum(
+        var_name[grid.node_at_link_head], var_name[grid.node_at_link_tail], out=out
+    )
 
     return out
 
@@ -283,12 +284,13 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
-    np.maximum(var_name[grid.node_at_link_head],
-               var_name[grid.node_at_link_tail], out=out)
+    np.maximum(
+        var_name[grid.node_at_link_head], var_name[grid.node_at_link_tail], out=out
+    )
 
     return out
 
@@ -341,12 +343,11 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
-    out[:] = 0.5 * (var_name[grid.node_at_link_head] +
-                    var_name[grid.node_at_link_tail])
+    out[:] = 0.5 * (var_name[grid.node_at_link_head] + var_name[grid.node_at_link_tail])
 
     return out
 
@@ -402,7 +403,7 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
 
     if type(control_name) is str:
         control_name = grid.at_node[control_name]
@@ -468,7 +469,7 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='link')
+        out = grid.empty(at="link")
 
     if type(control_name) is str:
         control_name = grid.at_node[control_name]
@@ -527,7 +528,7 @@ def map_node_to_cell(grid, var_name, out=None):
     LLCATS: CINF NINF MAP
     """
     if out is None:
-        out = grid.empty(at='cell')
+        out = grid.empty(at="cell")
 
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -584,9 +585,9 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
-    values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
+    values_at_linksX = np.empty(grid.number_of_links + 1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).max
     if type(var_name) is str:
         values_at_linksX[:-1] = grid.at_link[var_name]
@@ -645,9 +646,9 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
-    values_at_linksX = np.empty(grid.number_of_links+1, dtype=float)
+    values_at_linksX = np.empty(grid.number_of_links + 1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).min
     if type(var_name) is str:
         values_at_linksX[:-1] = grid.at_link[var_name]
@@ -714,7 +715,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -781,7 +782,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -849,7 +850,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -857,7 +858,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     # this procedure makes incoming links NEGATIVE
     vals_in_positive = -values_at_links
     vals_above_zero = vals_in_positive > 0.
-    total_vals = np.sum(vals_in_positive*vals_above_zero, axis=1)
+    total_vals = np.sum(vals_in_positive * vals_above_zero, axis=1)
     link_count = np.sum(vals_above_zero, axis=1)
     np.divide(total_vals, link_count, out=out)
     out[np.isnan(out)] = 0.
@@ -921,7 +922,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -929,7 +930,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     # this procedure makes incoming links NEGATIVE
     vals_in_positive = values_at_links
     vals_above_zero = vals_in_positive > 0.
-    total_vals = np.sum(vals_in_positive*vals_above_zero, axis=1)
+    total_vals = np.sum(vals_in_positive * vals_above_zero, axis=1)
     link_count = np.sum(vals_above_zero, axis=1)
     np.divide(total_vals, link_count, out=out)
     out[np.isnan(out)] = 0.
@@ -937,8 +938,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     return out
 
 
-def map_value_at_upwind_node_link_max_to_node(grid, control_name,
-                                              value_name, out=None):
+def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, out=None):
     """
     Map the the value found in one link array to a node, based on the
     largest magnitude value of links bringing fluxes into the node,
@@ -1000,7 +1000,7 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
     if type(control_name) is str:
         control_name = grid.at_link[control_name]
@@ -1012,14 +1012,14 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name,
     invalid_links = values_at_nodes >= 0.
     link_vals_without_invalids = value_name[grid.links_at_node]
     link_vals_without_invalids[invalid_links] = 0.
-    out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
-                                        which_link]
+    out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes), which_link]
 
     return out
 
 
-def map_value_at_downwind_node_link_max_to_node(grid, control_name,
-                                                value_name, out=None):
+def map_value_at_downwind_node_link_max_to_node(
+    grid, control_name, value_name, out=None
+):
     """
     Map the the value found in one link array to a node, based on the
     largest magnitude value of links carrying fluxes out of the node,
@@ -1081,7 +1081,7 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(at='node')
+        out = grid.empty(at="node")
 
     if type(control_name) is str:
         control_name = grid.at_link[control_name]
@@ -1093,14 +1093,14 @@ def map_value_at_downwind_node_link_max_to_node(grid, control_name,
     invalid_links = values_at_nodes <= 0.
     link_vals_without_invalids = value_name[grid.links_at_node]
     link_vals_without_invalids[invalid_links] = 0.
-    out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes),
-                                        which_link]
+    out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes), which_link]
 
     return out
 
 
-def map_mean_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
-                                     out=None):
+def map_mean_of_patch_nodes_to_patch(
+    grid, var_name, ignore_closed_nodes=True, out=None
+):
     """Map the mean value of nodes around a patch to the patch.
 
     Parameters
@@ -1154,9 +1154,11 @@ def map_mean_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
         var_name = grid.at_node[var_name]
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
-        values_at_nodes = np.ma.masked_where(grid.status_at_node[
-            grid.nodes_at_patch] == CLOSED_BOUNDARY,
-            values_at_nodes, copy=False)
+        values_at_nodes = np.ma.masked_where(
+            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            values_at_nodes,
+            copy=False,
+        )
         meanvals = np.mean(values_at_nodes, axis=1)
         if type(meanvals.mask) is not np.bool_:
             gooddata = np.logical_not(meanvals.mask)
@@ -1170,8 +1172,7 @@ def map_mean_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     return out
 
 
-def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
-                                    out=None):
+def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, out=None):
     """Map the maximum value of nodes around a patch to the patch.
 
     Parameters
@@ -1225,9 +1226,11 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
         var_name = grid.at_node[var_name]
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
-        values_at_nodes = np.ma.masked_where(grid.status_at_node[
-            grid.nodes_at_patch] == CLOSED_BOUNDARY,
-            values_at_nodes, copy=False)
+        values_at_nodes = np.ma.masked_where(
+            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            values_at_nodes,
+            copy=False,
+        )
         maxvals = values_at_nodes.max(axis=1)
         if type(maxvals.mask) is not np.bool_:
             gooddata = np.logical_not(maxvals.mask)
@@ -1241,8 +1244,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     return out
 
 
-def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
-                                    out=None):
+def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, out=None):
     """Map the minimum value of nodes around a patch to the patch.
 
     Parameters
@@ -1296,9 +1298,11 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
         var_name = grid.at_node[var_name]
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
-        values_at_nodes = np.ma.masked_where(grid.status_at_node[
-            grid.nodes_at_patch] == CLOSED_BOUNDARY,
-            values_at_nodes, copy=False)
+        values_at_nodes = np.ma.masked_where(
+            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            values_at_nodes,
+            copy=False,
+        )
         minvals = values_at_nodes.min(axis=1)
         if type(minvals.mask) is not np.bool_:
             gooddata = np.logical_not(minvals.mask)
@@ -1312,8 +1316,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True,
     return out
 
 
-def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
-                                 out=None):
+def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out=None):
     """Map the vector sum of links around a patch to the patch.
 
     The resulting vector is returned as a length-2 list, with the two
@@ -1392,8 +1395,10 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
     LLCATS: PINF LINF MAP
     """
     if out is None:
-        out = [np.zeros(grid.number_of_patches, dtype=float),
-               np.zeros(grid.number_of_patches, dtype=float)]
+        out = [
+            np.zeros(grid.number_of_patches, dtype=float),
+            np.zeros(grid.number_of_patches, dtype=float),
+        ]
     else:
         assert len(out) == 2
 
@@ -1408,10 +1413,12 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True,
     vert_vals_at_patches = vert_vals[grid.links_at_patch]
     if ignore_inactive_links:
         linkmask = grid.status_at_link[grid.links_at_patch] == INACTIVE_LINK
-        hoz_vals_at_patches = np.ma.array(hoz_vals_at_patches, mask=linkmask,
-                                          copy=False)
-        vert_vals_at_patches = np.ma.array(vert_vals_at_patches, mask=linkmask,
-                                           copy=False)
+        hoz_vals_at_patches = np.ma.array(
+            hoz_vals_at_patches, mask=linkmask, copy=False
+        )
+        vert_vals_at_patches = np.ma.array(
+            vert_vals_at_patches, mask=linkmask, copy=False
+        )
         hoz_sum = np.sum(hoz_vals_at_patches, axis=1)
         vert_sum = np.sum(vert_vals_at_patches, axis=1)
         if type(hoz_sum.mask) is not np.bool_:  # the 2 comps have same mask

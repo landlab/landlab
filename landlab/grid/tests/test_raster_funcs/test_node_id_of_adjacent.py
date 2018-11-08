@@ -17,7 +17,7 @@ def test_face_with_iterable_cell_id():
     """Test using iterable arg for cell."""
     rmg = RasterModelGrid((4, 5))
     values_at_nodes = np.arange(20.)
-    node_ids = rfuncs.neighbor_node_at_cell(rmg, np.array([0]), (5, ))
+    node_ids = rfuncs.neighbor_node_at_cell(rmg, np.array([0]), (5,))
     assert_array_equal(node_ids, np.array([[8]]))
 
 
@@ -33,7 +33,7 @@ def test_face_multiple_faces():
     """Test getting nodes for more than one corner."""
     rmg = RasterModelGrid((4, 5))
     values_at_nodes = np.arange(20.)
-    node_ids = rfuncs.neighbor_node_at_cell(rmg, np.array([0, 1]), (4, ))
+    node_ids = rfuncs.neighbor_node_at_cell(rmg, np.array([0, 1]), (4,))
     assert_array_equal(node_ids, np.array([[7, 11]]))
 
 
@@ -65,7 +65,7 @@ def test_face_type_scalar():
     """Test using scalar as face arg."""
     rmg = RasterModelGrid((4, 5))
     values_at_nodes = np.arange(20.)
-    node_ids = rfuncs.neighbor_node_at_cell(rmg, 2, (4, ))
+    node_ids = rfuncs.neighbor_node_at_cell(rmg, 2, (4,))
     assert_array_equal(node_ids, np.array([17]))
 
     node_ids = rfuncs.neighbor_node_at_cell(rmg, 2, (4, 5))

@@ -24,11 +24,10 @@ def number_of_faces(shape):
     7
     """
     if len(shape) != 2:
-        raise ValueError('shape must be size 2')
+        raise ValueError("shape must be size 2")
 
     if min(shape) > 2:
-        return ((shape[0] - 1) * (shape[1] - 2) +
-                (shape[0] - 2) * (shape[1] - 1))
+        return (shape[0] - 1) * (shape[1] - 2) + (shape[0] - 2) * (shape[1] - 1)
     else:
         return 0
 
@@ -103,7 +102,11 @@ def link_at_face(shape):
     faces = np.arange(number_of_faces(shape))
 
     faces_per_row = (2 * shape[1]) - 3
-    links = (shape[1] + (2 * (faces // faces_per_row)) +
-             ((faces % faces_per_row) >= (shape[1] - 2)) + faces)
+    links = (
+        shape[1]
+        + (2 * (faces // faces_per_row))
+        + ((faces % faces_per_row) >= (shape[1] - 2))
+        + faces
+    )
 
     return links

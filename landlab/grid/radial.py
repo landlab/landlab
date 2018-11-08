@@ -63,8 +63,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     20
     """
 
-    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0,
-                 **kwds):
+    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
         """Create a circular grid.
 
         Create a circular grid in which grid nodes are placed at regular
@@ -120,7 +119,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         """
         LLCATS: GINF
         """
-        num_shells = params.pop('num_shells')
+        num_shells = params.pop("num_shells")
 
         return cls(num_shells=num_shells, **params)
 
@@ -130,8 +129,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         self._dr = dr
         super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
 
-    def _create_radial_points(self, num_shells, dr, origin_x=0.0,
-                              origin_y=0.0):
+    def _create_radial_points(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         """Create a set of points on concentric circles.
 
         Creates and returns a set of (x,y) points placed in a series of
@@ -147,22 +145,23 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         r = shells * dr
         startpt = 1
         for i in numpy.arange(0, num_shells):
-            theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
-                     dtheta[i] / (i + 1))
+            theta = dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) + dtheta[i] / (i + 1)
             ycoord = r[i] * numpy.sin(theta)
             if numpy.isclose(ycoord[-1], 0.):
                 # this modification necessary to force the first ring to
                 # follow our new CCW from E numbering convention (DEJH, Nov15)
                 ycoord[-1] = 0.
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    0] = numpy.roll(r[i] * numpy.cos(theta), 1)
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    1] = numpy.roll(ycoord, 1)
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = numpy.roll(
+                    r[i] * numpy.cos(theta), 1
+                )
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 1] = numpy.roll(
+                    ycoord, 1
+                )
             else:
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    0] = r[i] * numpy.cos(theta)
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    1] = ycoord
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = r[i] * numpy.cos(
+                    theta
+                )
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 1] = ycoord
             startpt += int(n_pts_in_shell[i])
         pts[:, 0] += origin_x
         pts[:, 1] += origin_y
@@ -184,7 +183,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         return self._n_shells
 
     @property
-    @deprecated(use='spacing_of_shells', version=1.0)
+    @deprecated(use="spacing_of_shells", version=1.0)
     def shell_spacing(self):
         """Fixed distance between shells.
 
@@ -214,8 +213,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         try:
             return self._nnodes_inshell
         except AttributeError:
-            n_pts_in_shell = numpy.round(2. * numpy.pi * (
-                numpy.arange(self.number_of_shells, dtype=float) + 1.))
+            n_pts_in_shell = numpy.round(
+                2. * numpy.pi * (numpy.arange(self.number_of_shells, dtype=float) + 1.)
+            )
             self._nnodes_inshell = n_pts_in_shell.astype(int)
             return self._nnodes_inshell
 
@@ -238,8 +238,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         try:
             return self._node_radii
         except AttributeError:
-            self._node_radii = numpy.sqrt(numpy.square(self.node_x -
-                                                       self._origin[1]) +
-                                          numpy.square(self.node_y -
-                                                       self._origin[0]))
+            self._node_radii = numpy.sqrt(
+                numpy.square(self.node_x - self._origin[1])
+                + numpy.square(self.node_y - self._origin[0])
+            )
             return self._node_radii

@@ -88,9 +88,7 @@ def neighbor_node_at_cell(grid, inds, *args):
         inds = np.array(inds)
 
     # return neighbors[range(len(cell_ids)), 3 - inds]
-    return (
-        np.take(np.take(neighbors, range(len(cell_ids)), axis=0),
-                3 - inds, axis=1))
+    return np.take(np.take(neighbors, range(len(cell_ids)), axis=0), 3 - inds, axis=1)
 
 
 def calculate_slope_aspect_bfp(xs, ys, zs):
@@ -110,7 +108,7 @@ def calculate_slope_aspect_bfp(xs, ys, zs):
         than a plane.
     """
     if not len(xs) == len(ys) == len(zs):
-        raise ValueError('array must be the same length')
+        raise ValueError("array must be the same length")
 
     # step 1: subtract the centroid from the points
     # step 2: create a 3XN matrix of the points for SVD
@@ -130,7 +128,7 @@ def calculate_slope_aspect_bfp(xs, ys, zs):
     return slp, asp
 
 
-def find_nearest_node(rmg, coords, mode='raise'):
+def find_nearest_node(rmg, coords, mode="raise"):
     """Find the node nearest a point.
 
     Find the index to the node nearest the given x, y coordinates.
@@ -189,10 +187,11 @@ def find_nearest_node(rmg, coords, mode='raise'):
         return _find_nearest_node_ndarray(rmg, coords, mode=mode)
     else:
         return find_nearest_node(
-            rmg, (np.array(coords[0]), np.array(coords[1])), mode=mode)
+            rmg, (np.array(coords[0]), np.array(coords[1])), mode=mode
+        )
 
 
-def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
+def _find_nearest_node_ndarray(rmg, coords, mode="raise"):
     """Find the node nearest to a point.
 
     Parameters
@@ -225,10 +224,8 @@ def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
     >>> _find_nearest_node_ndarray(grid, (3.1, 4.1))
     6
     """
-    column_indices = np.int_(
-        np.around((coords[0] - rmg.node_x[0]) / rmg.dx))
-    row_indices = np.int_(
-        np.around((coords[1] - rmg.node_y[0]) / rmg.dy))
+    column_indices = np.int_(np.around((coords[0] - rmg.node_x[0]) / rmg.dx))
+    row_indices = np.int_(np.around((coords[1] - rmg.node_y[0]) / rmg.dy))
 
     return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
 
@@ -334,10 +331,8 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
     """
     coords = np.broadcast_arrays(*coords)
 
-    is_in_bounds = _value_is_within_axis_bounds(rmg, coords[1 - axes[0]],
-                                                axes[0])
+    is_in_bounds = _value_is_within_axis_bounds(rmg, coords[1 - axes[0]], axes[0])
     for axis in axes[1:]:
-        is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis],
-                                                     axis)
+        is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis], axis)
 
     return is_in_bounds

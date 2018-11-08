@@ -17,12 +17,14 @@ def test_move_origin_raster():
 
 
 def test_move_origin_hex():
-    shapes = ['rect', 'hex']
-    orientations = ['horizontal', 'vertical']
+    shapes = ["rect", "hex"]
+    orientations = ["horizontal", "vertical"]
 
     for shape in shapes:
         for orientation in orientations:
-            mg = HexModelGrid(9, 5, dx=2.0, origin=(10., 20.), orientation=orientation, shape=shape)
+            mg = HexModelGrid(
+                9, 5, dx=2.0, origin=(10., 20.), orientation=orientation, shape=shape
+            )
             assert mg._origin == (20., 10.)
             assert mg.x_of_node.min() == 20.
             assert mg.y_of_node.min() == 10.
