@@ -371,7 +371,7 @@ class SinkFiller(Component):
                     apply_slope *= 0.1
                     sublake = False
                     self.lake_nodes_treated = np.array([], dtype=int)
-                    self._elev[:] = original_elev  # put back init conds
+                    self._elev[:] = self.original_elev  # put back init conds
                     stability_increment += 1
                     if stability_increment == 10:
                         raise OverflowError('Filler could not find a stable ' +
