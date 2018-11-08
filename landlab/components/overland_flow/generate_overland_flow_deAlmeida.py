@@ -114,7 +114,7 @@ class OverlandFlow(Component):
     _name = 'OverlandFlow'
 
     _cite_as = """@article{adams2017landlab,
-	title={The Landlab v1. 0 OverlandFlow component: a Python
+        title={The Landlab v1. 0 OverlandFlow component: a Python
             tool for computing shallow-water flow across watersheds},
         author={Adams, Jordan M and Gasparini, Nicole M and
             Hobley, Daniel EJ and Tucker, Gregory E and

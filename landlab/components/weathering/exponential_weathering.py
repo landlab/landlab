@@ -33,9 +33,9 @@ class ExponentialWeatherer(Component):
     grid: ModelGrid
         Landlab ModelGrid object
     soil_production__maximum_rate : float
-	   Characteristic weathering depth
-     soil_production__decay_depth : float
-	   Maximum weathering rate for bare bedrock
+        Characteristic weathering depth
+    soil_production__decay_depth : float
+        Maximum weathering rate for bare bedrock
 
     Examples
     --------
