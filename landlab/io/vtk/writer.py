@@ -60,7 +60,7 @@ def assert_format_is_valid(format_string):
         raise InvalidFormatError(format)
 
 
-def assert_encoding_is_valid(encoding_string):
+def assert_encoding_is_valid(encoding):
     if encoding not in _VALID_ENCODINGS:
         raise InvalidEncodingError(encoding)
 
