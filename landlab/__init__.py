@@ -43,8 +43,30 @@ from .framework.collections import Palette, Arena, NoProvidersError
 from .framework.decorators import Implements, ImplementsOrRaise
 from .framework.framework import Framework
 from .field.scalar_data_fields import FieldError
-from .grid import *
-from .plot import *
+from .grid import (
+    ModelGrid,
+    HexModelGrid,
+    RadialModelGrid,
+    RasterModelGrid,
+    VoronoiDelaunayGrid,
+    BAD_INDEX_VALUE,
+    CORE_NODE,
+    FIXED_VALUE_BOUNDARY,
+    FIXED_GRADIENT_BOUNDARY,
+    LOOPED_BOUNDARY,
+    CLOSED_BOUNDARY,
+    ACTIVE_LINK,
+    FIXED_LINK,
+    INACTIVE_LINK,
+    create_and_initialize_grid,
+)
+from .plot import (
+    imshow_grid,
+    imshow_node_grid,
+    imshow_cell_grid,
+    imshow_grid_at_node,
+    analyze_channel_network_and_plot,
+)
 
 __all__ = [
     "registry",
@@ -61,6 +83,26 @@ __all__ = [
     "FieldError",
     "LandlabTester",
     "load_params",
+    "ModelGrid",
+    "HexModelGrid",
+    "RadialModelGrid",
+    "RasterModelGrid",
+    "VoronoiDelaunayGrid",
+    "BAD_INDEX_VALUE",
+    "CORE_NODE",
+    "FIXED_VALUE_BOUNDARY",
+    "FIXED_GRADIENT_BOUNDARY",
+    "LOOPED_BOUNDARY",
+    "CLOSED_BOUNDARY",
+    "ACTIVE_LINK",
+    "FIXED_LINK",
+    "INACTIVE_LINK",
+    "create_and_initialize_grid",
+    "imshow_grid",
+    "imshow_node_grid",
+    "imshow_cell_grid",
+    "imshow_grid_at_node",
+    "analyze_channel_network_and_plot",
 ]
 
 from ._version import get_versions
