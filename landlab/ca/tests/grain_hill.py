@@ -2,18 +2,20 @@
 """
 Hillslope model with block uplift.
 """
+import sys
+import time
+
+from matplotlib.pyplot import axis
+from numpy import amax, count_nonzero, logical_and, where, zeros
+
+from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
+from landlab.ca.celllab_cts import Transition
+
+from .cts_model import CTSModel
+from .lattice_grain import lattice_grain_node_states, lattice_grain_transition_list
+
 
 _DEBUG = False
-
-import sys
-from .cts_model import CTSModel
-from .lattice_grain import (lattice_grain_node_states,
-                            lattice_grain_transition_list)
-import time
-from numpy import zeros, count_nonzero, where, amax, logical_and
-from matplotlib.pyplot import axis
-from landlab.ca.celllab_cts import Transition
-from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
 
 
 class GrainHill(CTSModel):

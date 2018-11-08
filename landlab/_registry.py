@@ -73,6 +73,7 @@ import os
 
 import six
 
+from . import _info
 from .core.messages import indent_and_wrap
 
 
@@ -300,7 +301,6 @@ class ComponentRegistry(object):
         return 'ComponentRegistry({0})'.format(repr(self.registered))
 
 
-from . import _info
 
 
 registry = ComponentRegistry(_info)

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 Source Tracking Algorithm
 +++++++++++++++++++++++++
@@ -6,8 +7,7 @@ Source Tracking Algorithm
     ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
     ~landlab.utils.source_tracking_algorithm.track_source
     ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions
-"""
-"""
+
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
 Ref 1: 'The Landlab LandslideProbability Component User Manual' @
@@ -17,14 +17,12 @@ MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
 HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
       more info, refer Ref 1
 """
-
-# %%
-# Import required libraries
-import numpy as np
 import copy
 from collections import Counter
 
-# %%
+import numpy as np
+
+
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     """Convert Arc flow_directions to RasterModelGrid node ids
 

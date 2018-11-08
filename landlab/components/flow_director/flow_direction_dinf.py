@@ -10,14 +10,15 @@ algorithm of Tarboton 1997.
 KRB Feb 2017
 """
 
+import numpy as np
+
+from landlab import VoronoiDelaunayGrid  # for type tests
+from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
-from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-from landlab import VoronoiDelaunayGrid  # for type tests
 
-import numpy as np
 
 
 def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=None):

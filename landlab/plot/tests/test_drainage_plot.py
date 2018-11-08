@@ -1,11 +1,7 @@
-import matplotlib
-matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from landlab import RasterModelGrid
-
 from landlab.components import FlowAccumulator
-
 from landlab.plot.drainage_plot import drainage_plot
 
 

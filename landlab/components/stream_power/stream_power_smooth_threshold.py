@@ -16,14 +16,15 @@ Created on Sat Nov 26 08:36:49 2016
 @author: gtucker
 """
 
-if __name__ == '__main__':
-    from landlab.components import FastscapeEroder
-else:
-    from .fastscape_stream_power import FastscapeEroder
 import numpy as np
-from .cfuncs import smooth_stream_power_eroder_solver
+
 from landlab import BAD_INDEX_VALUE
+
+from .cfuncs import smooth_stream_power_eroder_solver
+from .fastscape_stream_power import FastscapeEroder
+
 UNDEFINED_INDEX = BAD_INDEX_VALUE
+
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     """Stream erosion component with smooth threshold function.
