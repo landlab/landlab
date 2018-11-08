@@ -356,8 +356,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         """Set a new value for the model grid origin."""
         dy = self._origin[0] - new_origin[0]
         dx = self._origin[1] - new_origin[1]
-        self._xy_of_node -= (dy, dx)
-        self.__origin = new_origin
+        self._xy_of_node -= (dx, dy)
+        self._origin = new_origin
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
