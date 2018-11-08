@@ -110,8 +110,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        self._origin_x = origin_x
-        self._origin_y = origin_y
+        self._origin = (origin_y, origin_x)
         if num_shells > 0:
             self._initialize(num_shells, dr, origin_x, origin_y)
         super(RadialModelGrid, self).__init__(**kwds)
@@ -243,7 +242,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             return self._node_radii
         except AttributeError:
             self._node_radii = numpy.sqrt(numpy.square(self.node_x -
-                                                       self._origin_x) +
+                                                       self._origin[1]) +
                                           numpy.square(self.node_y -
-                                                       self._origin_y))
+                                                       self._origin[0]))
             return self._node_radii
