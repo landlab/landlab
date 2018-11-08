@@ -28,6 +28,7 @@ from .nodestatus import (CORE_NODE, FIXED_VALUE_BOUNDARY,
                          CLOSED_BOUNDARY)
 from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
 from .linkstatus import set_status_at_link
+from ..core import load_params
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
