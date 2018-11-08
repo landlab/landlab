@@ -224,10 +224,7 @@ class KinwaveImplicitOverlandFlow(Component):
         self.weight = weight
 
         # Get elevation field
-        try:
-            self.elev = grid.at_node['topographic__elevation']
-        except:
-            raise
+        self.elev = grid.at_node['topographic__elevation']
 
         # Create fields...
         #  Water depth

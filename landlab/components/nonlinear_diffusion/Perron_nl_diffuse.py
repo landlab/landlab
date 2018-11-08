@@ -4,11 +4,8 @@ import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
 
-# these ones only so we can run this module ad-hoc:
-# import pylab
-from landlab import ModelParameterDictionary, Component
+from landlab import ModelParameterDictionary, Component, MissingKeyError
 from landlab.utils.decorators import use_file_name_or_kwds
-# from copy import copy
 
 # Things to add: 1. Explicit stability check.
 # 2. Implicit handling of scenarios where kappa*dt exceeds critical step -
@@ -362,7 +359,7 @@ class PerronNLDiffuse(Component):
         if self.internal_uplifts:
             try:
                 self._uplift = inputs.read_float('uplift')
-            except:
+            except MissingKeyError:
                 self._uplift = inputs.read_float('uplift_rate')
         else:
             self._uplift = 0.
@@ -372,11 +369,11 @@ class PerronNLDiffuse(Component):
         self._S_crit = inputs.read_float('S_crit')
         try:
             self.values_to_diffuse = inputs.read_str('values_to_diffuse')
-        except:
+        except MissingKeyError:
             self.values_to_diffuse = 'topographic__elevation'
         try:
             self.timestep_in = inputs.read_float('dt')
-        except:
+        except MissingKeyError:
             raise NameError('''No fixed timestep supplied, it must be set
                        dynamically somewhere else. Be sure to call
                        input_timestep(timestep_in) as part of your run
@@ -652,11 +649,11 @@ class PerronNLDiffuse(Component):
 
         try:
             elev = grid['node'][self.values_to_diffuse]
-        except:
+        except KeyError:
             raise NameError('elevations not found in grid!')
         try:
             _delta_t = self._delta_t
-        except:
+        except AttributeError:
             raise NameError('''Timestep not set! Call _gear_timestep(tstep)
                             after initializing the component, but before
                             running it.''')

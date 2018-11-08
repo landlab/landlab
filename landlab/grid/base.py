@@ -759,7 +759,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         """
         try:
             return self._boundary_nodes
-        except:
+        except AttributeError:
             (boundary_node_ids, ) = numpy.where(self._node_status != CORE_NODE)
             return boundary_node_ids
 

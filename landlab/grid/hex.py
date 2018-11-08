@@ -656,7 +656,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         assert self.orientation[0] == 'v', 'grid orientation must be vertical'
         try:
             (nr, nc) = self._shape
-        except:
+        except AttributeError:
             raise AttributeError(
                 'Only rectangular Hex grids have defined rows and columns.')
 
@@ -764,7 +764,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         try:
             self._hexplot_configured
-        except:
+        except AttributeError:
             self._configure_hexplot(data, data_label, color_map)
         else:
             if self._hexplot_pc.cmap != color_map:

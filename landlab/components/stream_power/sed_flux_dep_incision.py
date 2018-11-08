@@ -728,7 +728,7 @@ class SedDepEroder(Component):
                             # #implementing the pseudoimplicit method:
                             try:
                                 thresh = variable_thresh
-                            except:  # it doesn't exist
+                            except NameError:  # it doesn't exist
                                 thresh = self.thresh
                             dz_prefactor = self._K_unit_time*dt_this_step*(
                                 shear_tothe_a[i]-thresh).clip(0.)

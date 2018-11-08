@@ -134,7 +134,7 @@ class _DrainageStack_to_n:
         # create base nodes set
         try:
             base = set(l)
-        except:
+        except TypeError:
             base = set([l])
 
         # instantiate the time keeping variable i, and a variable to keep track

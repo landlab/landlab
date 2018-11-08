@@ -48,6 +48,6 @@ def colormap(name):
                      'earth' : earth_colormap() }
     try:
         return colormap_fns[name]
-    except:
+    except KeyError:
         print('Warning: colormap "' + name + '" does not exist')
         return None

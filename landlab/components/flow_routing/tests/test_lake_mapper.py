@@ -65,7 +65,7 @@ def check_fields1(grid):
         grid.at_node["depression__depth"]
         grid.at_node["depression__outlet_node"]
         grid.at_node["is_pit"]
-    except:
+    except KeyError:
         print("Test failure in check_fields")
         raise
 
@@ -508,7 +508,7 @@ def check_fields2(grid):
         grid.at_node["depression__depth"]
         grid.at_node["depression__outlet_node"]
         grid.at_node["is_pit"]
-    except:
+    except KeyError:
         print("Test failure in check_fields")
         raise
 

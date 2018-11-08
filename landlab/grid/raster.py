@@ -1768,13 +1768,13 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 self._node_status[self.nodes_at_right_edge] == 3):
             try:
                 x_condition[:] = 1
-            except:
+            except IndexError:
                 x_condition = 1
         if np.all(self._node_status[self.nodes_at_top_edge] == 3) or np.all(
                 self._node_status[self.nodes_at_bottom_edge] == 3):
             try:
                 y_condition[:] = 1
-            except:
+            except IndexError:
                 y_condition = 1
 
         return x_condition & y_condition
@@ -1830,7 +1830,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                xcoord // self._dx)
         try:
             id_ = int(id_)
-        except:
+        except TypeError:
             id_ = as_id_array(id_)
         return np.array([id_, id_ + self.number_of_node_columns,
                          id_ + self.number_of_node_columns + 1, id_ + 1])
