@@ -15,11 +15,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
-import landlab
-from landlab import RasterModelGrid, RadialModelGrid, FieldError
+from landlab import RasterModelGrid, RadialModelGrid
 from landlab.components.flow_routing import FlowRouter
 from landlab import CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))

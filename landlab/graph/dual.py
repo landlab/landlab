@@ -11,8 +11,6 @@ from ..utils.decorators import store_result_in_grid, read_only_array
 from .graph import Graph, find_perimeter_nodes
 from .sort.sort import reverse_one_to_one
 
-from .ugrid import DUAL_MESH_ATTRS
-
 
 def _sort_dual_graph(graph):
     from .sort.sort import reindex_by_xy

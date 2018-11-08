@@ -1,9 +1,6 @@
 
 import numpy as np
-import os
-import inspect
 from six.moves import range
-from matplotlib.pyplot import figure
 from scipy.stats import genextreme, fisk
 from landlab import RasterModelGrid, CLOSED_BOUNDARY, Component
 
@@ -1522,7 +1519,6 @@ def Singer_orographic_rainfall(z_closest_node_to_center):
 
 
 if __name__ == "__main__":
-    from landlab.plot import imshow_grid_at_node
     from matplotlib.pyplot import show
 
     nx = 17

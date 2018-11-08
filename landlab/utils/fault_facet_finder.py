@@ -11,12 +11,10 @@ Tucker, Hobley, McCoy.
 from __future__ import print_function
 import numpy as np
 import sys
-from pylab import plot, colorbar, figure, show
-from scipy.stats import mode
+from pylab import plot, figure, show
 from six.moves import range
 
 from landlab.plot import imshow as gridshow
-from landlab.utils import structured_grid as sgrid
 
 
 class find_facets(object):

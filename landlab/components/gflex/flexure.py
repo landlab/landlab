@@ -24,7 +24,6 @@ from __future__ import print_function
 import numpy as np
 import inspect
 from landlab import RasterModelGrid, Component
-from landlab import ModelParameterDictionary
 from landlab import FieldError
 
 try:

@@ -11,12 +11,10 @@ from __future__ import print_function
 
 import numpy as np
 from six.moves import range
-from inspect import getmro
 
-from landlab import ModelParameterDictionary, Component, FieldError, \
-    create_and_initialize_grid, FIXED_GRADIENT_BOUNDARY, FIXED_LINK, \
+from landlab import Component, FieldError, \
+    FIXED_GRADIENT_BOUNDARY, \
     RasterModelGrid, INACTIVE_LINK
-from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.utils.decorators import use_file_name_or_kwds
 
 _ALPHA = 0.15   # time-step stability factor

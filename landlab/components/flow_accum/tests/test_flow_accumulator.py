@@ -7,10 +7,9 @@ import os
 
 import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
-import landlab
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
+from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import FlowAccumulator
 
@@ -23,8 +22,6 @@ from landlab.components.flow_director import (
     FlowDirectorSteepest,
 )
 
-from landlab import CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 

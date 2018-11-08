@@ -3,8 +3,6 @@ import numpy as np
 
 from .nodestatus import (CLOSED_BOUNDARY, CORE_NODE, FIXED_GRADIENT_BOUNDARY,
                          FIXED_VALUE_BOUNDARY)
-from ..utils.decorators import (cache_result_in_object,
-                                make_return_array_immutable)
 
 # Define the link types
 

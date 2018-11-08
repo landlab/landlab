@@ -1,5 +1,3 @@
-import numpy as np
-
 from ..voronoi import DualVoronoiGraph
 from .hex import setup_xy_of_node
 

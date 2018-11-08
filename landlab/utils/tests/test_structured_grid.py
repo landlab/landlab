@@ -3,10 +3,8 @@
 from numpy.testing import assert_array_equal
 import numpy as np
 
-from landlab.testing import NumpyArrayTestingMixIn
-
 import landlab.utils.structured_grid as sgrid
-from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab.grid.base import BAD_INDEX_VALUE
 
 
 def test_node_x_2d():

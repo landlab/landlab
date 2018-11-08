@@ -1,6 +1,5 @@
 import numpy as np
 import xarray as xr
-from scipy.spatial import Voronoi
 from scipy.spatial import Delaunay
 
 from ..graph import Graph
@@ -26,7 +25,7 @@ def remove_bad_patches(max_node_spacing, nodes_at_patch, neighbors_at_patch):
 
 
 def setup_links_and_patches(node_y_and_x, max_node_spacing=None):
-    from .ext.delaunay import _setup_links_at_patch, remove_tris
+    from .ext.delaunay import _setup_links_at_patch
 
     delaunay = Delaunay(list(zip(node_y_and_x[1], node_y_and_x[0])))
 
@@ -52,8 +51,6 @@ def setup_links_and_patches(node_y_and_x, max_node_spacing=None):
 
 
 def ugrid_from_voronoi(node_y_and_x, max_node_spacing=None):
-    from .ext.delaunay import _setup_links_at_patch, remove_tris
-
     ugrid = xr.Dataset({'mesh': xr.DataArray(data=1, attrs=MESH_ATTRS)})
 
     nodes_at_link, links_at_patch = (

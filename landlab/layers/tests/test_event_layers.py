@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.layers import EventLayersMixIn, EventLayers
+from landlab.layers import EventLayers
 
 
 def test_EventLayersMixIn():

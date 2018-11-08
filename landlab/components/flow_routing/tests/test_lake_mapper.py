@@ -9,7 +9,6 @@ Created on Sun Sep 27 09:52:50, 2015
 import pytest
 from pytest import approx
 
-import landlab
 from landlab import RasterModelGrid
 from landlab.components import (FlowAccumulator,
                                 DepressionFinderAndRouter,

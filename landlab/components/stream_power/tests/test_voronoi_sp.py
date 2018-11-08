@@ -4,11 +4,10 @@ import os
 from six.moves import range
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal
 
 from landlab import VoronoiDelaunayGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
-from pylab import show
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))

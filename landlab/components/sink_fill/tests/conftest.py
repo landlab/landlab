@@ -2,8 +2,6 @@ import pytest
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab import BAD_INDEX_VALUE as XX
-from landlab.components.sink_fill import SinkFiller
 
 
 @pytest.fixture

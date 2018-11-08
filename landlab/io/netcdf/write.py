@@ -22,12 +22,12 @@ try:
 except ImportError:
     warnings.warn('Unable to import netCDF4.', ImportWarning)
 
-try:
-    import pycrs
-    _HAS_PYCRS = True
-except ImportError:
-    warnings.warn('Unable to import pycrs.', ImportWarning)
-    _HAS_PYCRS = False
+# try:
+#     import pycrs
+#     _HAS_PYCRS = True
+# except ImportError:
+#     warnings.warn('Unable to import pycrs.', ImportWarning)
+#     _HAS_PYCRS = False
 
 from scipy.io import netcdf as nc
 
@@ -35,7 +35,6 @@ from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
                                           _AXIS_COORDINATE_NAMES,
                                           _NP_TO_NC_TYPE)
 
-from landlab.core.messages import warning_message
 
 def _set_netcdf_attributes(root, attrs):
     """Set attributes of a netcdf file.

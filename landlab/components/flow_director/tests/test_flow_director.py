@@ -6,12 +6,10 @@
 import os
 
 import pytest
-from six.moves import range
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-import landlab
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
+from landlab import RasterModelGrid, HexModelGrid
 from landlab.components.flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
@@ -24,7 +22,6 @@ from landlab.components.flow_director.flow_director_to_many import _FlowDirector
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 from landlab import CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
 
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))

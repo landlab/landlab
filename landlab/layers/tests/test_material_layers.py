@@ -1,7 +1,7 @@
 from __future__ import print_function
 import pytest
 
-from landlab.layers import MaterialLayers, MaterialLayersMixIn
+from landlab.layers import MaterialLayers
 from landlab import RasterModelGrid
 
 def test_MaterialLayersMixIn():

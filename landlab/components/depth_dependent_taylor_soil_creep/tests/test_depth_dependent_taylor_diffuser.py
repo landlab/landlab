@@ -13,7 +13,6 @@ from landlab.components import (DepthDependentTaylorDiffuser,
 import numpy as np
 from numpy.testing import assert_array_equal
 
-import warnings
 
 def test_4x7_grid_vs_analytical_solution():
     """Test against known analytical solution."""

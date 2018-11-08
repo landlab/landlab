@@ -3,10 +3,7 @@ Utility functions that operate on landlab grids.
 ------------------------------------------------
 
 """
-
-
 import numpy as np
-from six.moves import range
 
 
 def resolve_values_on_active_links(grid, active_link_values):

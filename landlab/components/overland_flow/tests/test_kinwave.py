@@ -4,12 +4,6 @@ Unit tests for landlab.components.overland_flow.KinwaveOverlandFlowModel
 
 last updated: 3/14/16
 """
-import numpy as np
-
-from landlab import RasterModelGrid
-from landlab.components.overland_flow import KinwaveOverlandFlowModel
-
-
 (_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0., 0.))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 

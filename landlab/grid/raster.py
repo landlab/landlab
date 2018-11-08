@@ -12,15 +12,11 @@ import numpy as np
 import six
 from six.moves import range
 
-from landlab.testing.decorators import track_this_method
 from landlab.utils import structured_grid as sgrid
-from landlab.utils import count_repeated_values
 
 from .base import ModelGrid
-from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY,
-                   FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
-                   CLOSED_BOUNDARY, FIXED_LINK, BAD_INDEX_VALUE, ACTIVE_LINK,
-                   INACTIVE_LINK)
+from .base import (CORE_NODE, FIXED_VALUE_BOUNDARY, LOOPED_BOUNDARY,
+                   CLOSED_BOUNDARY, BAD_INDEX_VALUE)
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import make_return_array_immutable, deprecated
 from . import raster_funcs as rfuncs
@@ -33,7 +29,6 @@ from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
 from .decorators import return_id_array, return_readonly_id_array
 from ..utils.decorators import cache_result_in_object
-from . import gradients
 
 
 @deprecated(use='grid.node_has_boundary_neighbor', version='0.2')

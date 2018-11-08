@@ -1,12 +1,8 @@
 #! /usr/bin/env python
 import numpy as np
 
-
-from .nodestatus import (CLOSED_BOUNDARY, CORE_NODE, FIXED_GRADIENT_BOUNDARY,
-                         FIXED_VALUE_BOUNDARY)
-from .linkstatus import ACTIVE_LINK, INACTIVE_LINK, FIXED_LINK
-from .linkstatus import (is_fixed_link, is_inactive_link, is_active_link,
-                         set_status_at_link)
+from .linkstatus import ACTIVE_LINK
+from .linkstatus import set_status_at_link
 from ..utils.decorators import (cache_result_in_object,
                                 make_return_array_immutable)
 from .decorators import return_readonly_id_array

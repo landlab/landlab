@@ -10,9 +10,8 @@ Written by Jordan Adams, based on code written by Greg Tucker.
 Last updated: April 21, 2016
 
 """
-from landlab import Component, ModelParameterDictionary
+from landlab import Component
 import numpy as np
-import os
 
 
 class OverlandFlowBates(Component):

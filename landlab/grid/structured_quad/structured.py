@@ -21,10 +21,8 @@ array([ 0,  4, 15, 19])
 import numpy as np
 
 from ..base import FIXED_VALUE_BOUNDARY
-from ..unstructured.status import StatusGrid
 from ..unstructured.base import BaseGrid
-from .links import (StructuredQuadLinkGrid, node_id_at_link_start,
-                    node_id_at_link_end)
+from .links import StructuredQuadLinkGrid
 from .cells import StructuredQuadCellGrid
 from . import cells as quad_cells
 from . import links as quad_links

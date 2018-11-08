@@ -6,8 +6,7 @@ This module provides functions that sort the elements of a graph structure.
 import numpy as np
 
 from ...core.utils import as_id_array, argsort_points_by_x_then_y
-from ...utils.jaggedarray import flatten_jagged_array, unravel
-from .ext.spoke_sort import sort_spokes_at_wheel
+from ...utils.jaggedarray import flatten_jagged_array
 
 
 def remap(src, mapping, out=None, inplace=False): 
@@ -127,7 +126,6 @@ def reorder_links_at_patch(graph):
     from ..matrix.ext.matrix import roll_id_matrix_rows
     from ..object.ext.at_patch import get_rightmost_edge_at_patch
     from .ext.remap_element import reverse_element_order
-    from ..object.at_patch import get_nodes_at_patch
 
     if graph.number_of_patches == 0:
         return

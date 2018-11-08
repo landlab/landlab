@@ -6,10 +6,6 @@ Created on Fri Mar  3 10:39:32 2017
 @author: gtucker
 """
 import pytest
-import warnings
-
-import numpy as np
-from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components import DepthDependentDiffuser, ExponentialWeatherer

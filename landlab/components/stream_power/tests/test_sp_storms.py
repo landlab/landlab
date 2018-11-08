@@ -1,11 +1,7 @@
 """Test the storm generator and simple stream power eroder both execute."""
 import os
-import pylab
-import time
-import copy
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab import ModelParameterDictionary

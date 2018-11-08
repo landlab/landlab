@@ -100,9 +100,7 @@ array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
 """
 
 from landlab import Component
-import pylab
 import numpy as np
-from matplotlib import pyplot as plt
 from landlab.field.scalar_data_fields import FieldError
 
 

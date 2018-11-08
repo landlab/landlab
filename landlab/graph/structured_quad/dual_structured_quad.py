@@ -1,8 +1,7 @@
 import numpy as np
 
 from ..dual import DualGraph
-from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
-                              UniformRectilinearGraph, )
+from .structured_quad import StructuredQuadGraph
 
 
 class DualStructuredQuadGraphExtras(object):

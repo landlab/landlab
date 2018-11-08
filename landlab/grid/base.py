@@ -10,23 +10,16 @@ automated fashion. To modify the text seen on the web, edit the files
 
 import numpy
 import numpy as np
-import warnings
-from time import time
 
 import six
 from six.moves import range
 
-from landlab.testing.decorators import track_this_method
-from landlab.utils import count_repeated_values
 from landlab.core.utils import argsort_points_by_x_then_y
 from landlab.utils.decorators import make_return_array_immutable, deprecated
 from landlab.field import ModelDataFields, ModelDataFieldsMixIn
-from landlab.field.scalar_data_fields import FieldError
 from . import grid_funcs as gfuncs
-from ..core.utils import as_id_array
 from ..core.utils import add_module_functions_to_class
-from .decorators import (override_array_setitem_and_reset, return_id_array,
-                         return_readonly_id_array)
+from .decorators import override_array_setitem_and_reset, return_readonly_id_array
 from ..utils.decorators import cache_result_in_object
 from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn

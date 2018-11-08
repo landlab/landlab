@@ -1,4 +1,3 @@
-import numpy as np
 from scipy.spatial import Voronoi
 
 from ..graph import Graph
@@ -10,9 +9,7 @@ from .voronoi_helpers import VoronoiConverter
 
 def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3,
                             max_node_spacing=None):
-    from .voronoi import ugrid_from_voronoi
-    from ..ugrid import (ugrid_from_unstructured,
-                         update_node_at_cell, update_nodes_at_face)
+    from ..ugrid import ugrid_from_unstructured
 
     voronoi = Voronoi(list(zip(node_y_and_x[1], node_y_and_x[0])))
 

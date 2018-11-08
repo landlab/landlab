@@ -10,11 +10,9 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy as np
 from six.moves import range
 
-from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
-                               INACTIVE_LINK)
+from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE
 from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
-                                argsort_points_by_x_then_y,
-                                anticlockwise_argsort_points)
+                                argsort_points_by_x_then_y)
 from .decorators import return_readonly_id_array
 
 from scipy.spatial import Voronoi
@@ -698,8 +696,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         from scipy.spatial import Delaunay
         from landlab.core.utils import anticlockwise_argsort_points_multiline
-        from .cfuncs import find_rows_containing_ID, \
-            create_patches_at_element, create_links_at_patch
+        from .cfuncs import create_patches_at_element, create_links_at_patch
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
         nodata = -1

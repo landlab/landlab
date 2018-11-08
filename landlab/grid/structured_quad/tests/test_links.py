@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal
 from landlab.grid.structured_quad.nodes import status_with_perimeter_as_boundary
 from landlab.grid.structured_quad.links import active_link_ids
 
-from landlab.grid.base import CORE_NODE, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
+from landlab.grid.base import CORE_NODE, CLOSED_BOUNDARY
 from landlab.testing.tools import assert_array_is_int
 
 

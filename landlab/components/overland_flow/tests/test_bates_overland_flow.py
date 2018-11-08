@@ -6,8 +6,7 @@ last updated: 3/14/16
 """
 import numpy as np
 
-from landlab import RasterModelGrid
-from landlab.components.overland_flow import OverlandFlowBates, OverlandFlow
+from landlab.components.overland_flow import OverlandFlowBates
 
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0., 0.))

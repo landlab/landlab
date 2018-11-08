@@ -85,9 +85,7 @@ array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
 """
 
 from landlab import Component
-import pylab
 import numpy as np
-from matplotlib import pyplot as plt
 from landlab.field.scalar_data_fields import FieldError
 
 

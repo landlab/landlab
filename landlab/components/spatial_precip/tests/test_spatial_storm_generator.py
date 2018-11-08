@@ -1,15 +1,10 @@
 import os
 
-import pytest
-from six.moves import range
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 # from matplotlib.pyplot import plot, show, figure
 # from landlab import imshow_grid_at_node
 # import shapefile as shp
-from matplotlib.path import Path
 
-import landlab
 from landlab import RasterModelGrid
 from landlab.components import SpatialPrecipitationDistribution
 

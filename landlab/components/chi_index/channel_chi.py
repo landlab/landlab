@@ -5,10 +5,8 @@ Created March 2016.
 @author: dejh
 """
 from __future__ import print_function
-from six.moves import range  # this is Python 3's generator, not P2's list
 
-from landlab import ModelParameterDictionary, Component, FieldError, \
-                    FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab import Component, BAD_INDEX_VALUE, CLOSED_BOUNDARY
 import numpy as np
 try:
     from itertools import izip
@@ -542,7 +540,7 @@ class ChiFinder(Component):
             A matplotlib-style string for the style to use for the line, if
             plot_line.
         """
-        from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf, show
+        from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf
         figure('Chi plot')
         clf()
         if channel_heads is not None:

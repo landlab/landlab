@@ -8,11 +8,9 @@ Created on Tues Oct 20, 2015
 """
 import pytest
 
-from numpy import sin, pi
 import numpy as np  # for use of np.round
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 
-import landlab
 from landlab import BAD_INDEX_VALUE as XX
 from landlab import RasterModelGrid, FieldError
 from landlab.components import FlowAccumulator, SinkFiller

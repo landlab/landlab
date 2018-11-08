@@ -1,8 +1,5 @@
 from __future__ import print_function
 
-import os
-import sys
-
 import numpy as np
 
 from landlab.layers.eventlayers import (EventLayers, _deposit_or_erode,

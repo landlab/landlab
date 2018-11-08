@@ -5,11 +5,7 @@ Created on Fri Mar  3 10:39:32 2017
 
 @author: KRB
 """
-import warnings
-
 import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components import TaylorNonLinearDiffuser

@@ -10,7 +10,7 @@ from landlab import RasterModelGrid
 from landlab.components import TransportLengthHillslopeDiffuser
 from landlab.components import FlowDirectorSteepest, FlowAccumulator
 import numpy as np
-from numpy.testing import assert_equal, assert_almost_equal
+from numpy.testing import assert_almost_equal
 import pytest
 
 def test_route_to_multiple_error_raised():

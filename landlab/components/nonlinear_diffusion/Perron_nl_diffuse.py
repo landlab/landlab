@@ -3,7 +3,6 @@ from six.moves import range
 import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
-from landlab.grid.base import BAD_INDEX_VALUE
 
 # these ones only so we can run this module ad-hoc:
 # import pylab

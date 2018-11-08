@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components.vegetation_dynamics.vegetation_dynamics import Vegetation

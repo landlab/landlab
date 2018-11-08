@@ -1,10 +1,8 @@
 """Test HexGraph and DualHexGraph."""
 from pytest import approx
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from scipy.spatial import Voronoi
-import numpy as np
 
-from landlab.graph import HexGraph, DualHexGraph
+from landlab.graph import HexGraph
 
 
 def test_create_rect():

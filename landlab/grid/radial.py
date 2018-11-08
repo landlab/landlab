@@ -9,7 +9,6 @@ automated fashion. To modify the text seen on the web, edit the files
 """
 
 import numpy
-from six.moves import range
 
 from .voronoi import VoronoiDelaunayGrid
 from landlab.utils.decorators import deprecated

@@ -5,12 +5,10 @@ functionality is working.
 
 Probably doesn't account for cell area yet.
 """
-import os
-
 import numpy as np
-from numpy.testing import assert_array_equal, assert_allclose
+from numpy.testing import assert_allclose
 
-from landlab import RasterModelGrid, ModelParameterDictionary
+from landlab import RasterModelGrid
 from landlab.components import PotentialityFlowRouter
 
 NROWS = 10

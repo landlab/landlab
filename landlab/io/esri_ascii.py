@@ -18,11 +18,6 @@ import six
 
 import numpy as np
 
-from landlab.core.messages import warning_message
-
-
-import warnings
-
 
 _VALID_HEADER_KEYS = [
     'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',

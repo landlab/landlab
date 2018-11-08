@@ -53,16 +53,14 @@ array([[4, 3, 0, 1],
        [8, 7, 4, 5]])
 """
 import six
-from six.moves import range
 
 import numpy as np
 import xarray as xr
 import json
 
-from ..core.utils import as_id_array, argsort_points_by_x_then_y
-from ..utils.jaggedarray import flatten_jagged_array
+from ..core.utils import as_id_array
 from ..utils.decorators import store_result_in_grid, read_only_array
-from .sort import sort_graph, reindex_by_xy, reorder_links_at_patch
+from .sort import reindex_by_xy, reorder_links_at_patch
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
 from .quantity.of_link import (get_angle_of_link, get_length_of_link,
@@ -71,7 +69,7 @@ from .quantity.of_patch import get_centroid_of_patch, get_area_of_patch
 
 from .sort.sort import reverse_one_to_many, reorient_link_dirs
 
-from .ugrid import update_nodes_at_patch, ugrid_from_unstructured
+from .ugrid import ugrid_from_unstructured
 
 
 def _parse_sorting_opt(sorting):

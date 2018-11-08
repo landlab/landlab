@@ -56,7 +56,7 @@ their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 from __future__ import division
 
 import numpy as np
-from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY, INACTIVE_LINK
+from landlab.grid.base import CLOSED_BOUNDARY, INACTIVE_LINK
 
 
 def map_link_head_node_to_link(grid, var_name, out=None):

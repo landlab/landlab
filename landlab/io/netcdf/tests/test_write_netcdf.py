@@ -7,8 +7,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import (read_netcdf,
-                               write_netcdf,
+from landlab.io.netcdf import (write_netcdf,
                                NotRasterGridError,
                                WITH_NETCDF4)
 

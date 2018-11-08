@@ -15,7 +15,6 @@ from .base import (CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE,
                    CORE_NODE)
 from ..core.utils import as_id_array
 from landlab.grid.voronoi import VoronoiDelaunayGrid
-from .decorators import return_readonly_id_array
 
 
 class HexModelGrid(VoronoiDelaunayGrid):

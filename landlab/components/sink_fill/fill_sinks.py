@@ -7,8 +7,7 @@ Created on Mon Oct 19.
 from __future__ import print_function
 
 import landlab
-from landlab import (ModelParameterDictionary, Component, FieldError,
-                     FIXED_VALUE_BOUNDARY)
+from landlab import ModelParameterDictionary, Component, FieldError
 
 from landlab.utils.decorators import use_file_name_or_kwds, deprecated
 from landlab.core.model_parameter_dictionary import MissingKeyError

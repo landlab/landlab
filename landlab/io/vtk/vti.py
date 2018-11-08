@@ -3,7 +3,7 @@
 from landlab.io.vtk.writer import VtkWriter
 from landlab.io.vtk.vtktypes import VtkUniformRectilinear
 from landlab.io.vtk.vtkxml import (VtkRootElement, VtkGridElement,
-                                   VtkPieceElement, VtkCoordinatesElement,
+                                   VtkPieceElement,
                                    VtkPointDataElement, VtkCellDataElement,
                                    VtkExtent)
 

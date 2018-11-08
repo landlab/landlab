@@ -6,12 +6,11 @@ Base class for a "full" generic CTS model.
 _DEBUG = False
 
 import time
-#import random
-from numpy import zeros, bincount, arange, savetxt, sqrt, log10, mean, arctan, pi, random
+
+from numpy import random
 from landlab.io.native_landlab import save_grid
 from landlab.ca.celllab_cts import Transition, CAPlotter
 from matplotlib.pyplot import axis
-import sys
 
 
 class CTSModel(object):

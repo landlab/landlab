@@ -1,5 +1,3 @@
-from six import string_types
-
 import numpy as np
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (_GeneralizedErosionDeposition,
                                                             DEFAULT_MINIMUM_TIME_STEP)

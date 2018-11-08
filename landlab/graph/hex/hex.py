@@ -1,7 +1,6 @@
 import numpy as np
 
 from ..voronoi.voronoi import VoronoiGraph
-from ...utils.decorators import store_result_in_grid
 
 
 def number_of_nodes(shape, node_layout='rect'):

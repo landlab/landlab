@@ -13,7 +13,7 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 from landlab import (RasterModelGrid, Component, FieldError, INACTIVE_LINK,
-                     ACTIVE_LINK, CLOSED_BOUNDARY, CORE_NODE, FIXED_LINK)
+                     FIXED_LINK)
 import inspect
 from landlab.utils.decorators import use_file_name_or_kwds
 

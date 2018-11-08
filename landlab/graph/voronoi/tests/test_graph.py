@@ -11,7 +11,7 @@ This result in two bound voronoi polygons (12 total) centered on points
 5 and 6.
 """
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 from scipy.spatial import Voronoi
 import numpy as np
 

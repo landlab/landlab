@@ -10,7 +10,6 @@ Created on Sat Apr  1 10:49:33 2017
 
 from landlab import RasterModelGrid
 from landlab.components import KinwaveImplicitOverlandFlow
-from numpy.testing import assert_array_equal
 import numpy as np
 
 

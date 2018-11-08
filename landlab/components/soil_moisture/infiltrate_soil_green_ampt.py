@@ -3,7 +3,7 @@
 import numpy as np
 import six
 
-from landlab import Component, CLOSED_BOUNDARY
+from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 
 

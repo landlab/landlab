@@ -5,11 +5,9 @@ import warnings
 from six.moves import range
 
 import numpy as np
-from time import sleep
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
+from landlab import Component
 
 from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
 

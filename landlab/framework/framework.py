@@ -1,7 +1,4 @@
 #! /usr/bin/env python
-
-import inspect
-
 from .component import load_landlab_components
 from landlab import Palette, Arena
 

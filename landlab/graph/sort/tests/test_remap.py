@@ -1,4 +1,4 @@
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_equal
 import numpy as np
 
 from landlab.graph.sort.sort import remap

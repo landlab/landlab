@@ -1,4 +1,4 @@
-from landlab import RasterModelGrid, HexModelGrid
+from landlab import RasterModelGrid
 from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy import testing
