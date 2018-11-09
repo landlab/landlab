@@ -22,9 +22,9 @@ class GrainHill(CTSModel):
     """
     Model hillslope evolution with block uplift.
     """
-    def __init__(self, grid_size, report_interval=1.0e8, run_duration=1.0, 
+    def __init__(self, grid_size, report_interval=1.0e8, run_duration=1.0,
                  output_interval=1.0e99, settling_rate=2.2e8,
-                 disturbance_rate=1.0, weathering_rate=1.0, 
+                 disturbance_rate=1.0, weathering_rate=1.0,
                  uplift_interval=1.0, plot_interval=1.0e99, friction_coef=0.3,
                  rock_state_for_uplift=7, opt_rock_collapse=False,
                  show_plots=True, initial_state_grid=None, **kwds):
@@ -55,8 +55,8 @@ class GrainHill(CTSModel):
             self.collapse_rate = 0.0
 
         # Call base class init
-        super(GrainHill, self).initialize(grid_size=grid_size, 
-                                          report_interval=report_interval, 
+        super(GrainHill, self).initialize(grid_size=grid_size,
+                                          report_interval=report_interval,
                                           grid_orientation='vertical',
                                           grid_shape='rect',
                                           show_plots=show_plots,
@@ -66,7 +66,7 @@ class GrainHill(CTSModel):
                                           initial_state_grid=initial_state_grid,
                                           **kwds)
 
-        self.uplifter = LatticeUplifter(self.grid, 
+        self.uplifter = LatticeUplifter(self.grid,
                                         self.grid.at_node['node_state'])
 
     def node_state_dictionary(self):
@@ -99,7 +99,7 @@ class GrainHill(CTSModel):
         Parameters
         ----------
         xn_list : list of Transition objects
-            List of objects that encode information about the link-state 
+            List of objects that encode information about the link-state
             transitions. Normally should first be initialized with lattice-grain
             transition rules, then passed to this function to add rules for
             weathering and disturbance.
@@ -157,7 +157,7 @@ class GrainHill(CTSModel):
         Examples
         --------
         >>> gh = GrainHill((5, 7), show_plots=False)
-        >>> gh.grid.at_node['node_state']        
+        >>> gh.grid.at_node['node_state']
         array([8, 7, 7, 8, 7, 7, 7, 0, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         """
@@ -218,7 +218,7 @@ class GrainHill(CTSModel):
                 next_report = current_real_time + self.report_interval
 
             # Run the model forward in time until the next output step
-            self.ca.run(next_pause, self.ca.node_state) 
+            self.ca.run(next_pause, self.ca.node_state)
                    #plot_each_transition=pet, plotter=self.ca_plotter)
             current_time = next_pause
 
@@ -261,7 +261,7 @@ class GrainHill(CTSModel):
         elev = zeros(nc)
         soil = zeros(nc)
         for col in range(nc):
-            states = data[grid.nodes[:, col]]  
+            states = data[grid.nodes[:, col]]
             (rows_with_rock_or_sed, ) = where(states > 0)
             if len(rows_with_rock_or_sed) == 0:
                 elev[col] = 0.0
@@ -282,7 +282,7 @@ def get_params_from_input_file(filename):
 
 def main(params):
     """Initialize model with dict of params then run it."""
-    grid_size = (int(params['number_of_node_rows']), 
+    grid_size = (int(params['number_of_node_rows']),
                  int(params['number_of_node_columns']))
     grain_hill_model = GrainHill(grid_size, **params)
     grain_hill_model.run()

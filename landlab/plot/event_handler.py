@@ -33,7 +33,7 @@ def query_grid_on_button_press(event, grid):
     if type(grid) is not RasterModelGrid:
         raise TypeError('Only raster grids can be queried.')
 
-    if all([event.xdata, event.ydata]):        
+    if all([event.xdata, event.ydata]):
         x_pressed = int(round(event.xdata / grid.dx))
         y_pressed = int(round(event.ydata / grid.dy))
 
@@ -53,4 +53,4 @@ def query_grid_on_button_press(event, grid):
         print('\nGrid query results:\n')
         pprint(query_results, width=1)
 
-    return query_results 
+    return query_results

@@ -42,7 +42,7 @@ def test_shift_link_and_transition_data_upward():
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
 
-    assert_array_equal(ohcts.link_state[mg.active_links], 
+    assert_array_equal(ohcts.link_state[mg.active_links],
                        [0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
 
     assert_array_equal(ohcts.next_trn_id[mg.active_links],
@@ -63,7 +63,7 @@ def test_shift_link_and_transition_data_upward():
     lu.shift_link_and_transition_data_upward(ohcts, 0.0)
 
     # note new events lowest 5 links
-    assert_array_equal(np.round(ohcts.next_update[mg.active_links], 2),  
+    assert_array_equal(np.round(ohcts.next_update[mg.active_links], 2),
                        [0.75, 0.84, 2.6 , 0.07, 0.09, 0.8 , 0.02, 1.79, 1.51,
                         2.04, 3.85])
     assert_equal(pq._queue[0][2], 15)  # new soonest event

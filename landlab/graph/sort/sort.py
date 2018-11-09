@@ -9,7 +9,7 @@ from ...core.utils import as_id_array, argsort_points_by_x_then_y
 from ...utils.jaggedarray import flatten_jagged_array
 
 
-def remap(src, mapping, out=None, inplace=False): 
+def remap(src, mapping, out=None, inplace=False):
     """Remap elements in an id array.
 
     Parameters
@@ -337,7 +337,7 @@ def sort_graph(nodes, links=None, patches=None):
                                                    kind='mergesort')))
         midpoint_of_link = np.empty((len(links), 2), dtype=float)
         sorted_links = sort_links(links, nodes,
-                                  midpoint_of_link=midpoint_of_link) 
+                                  midpoint_of_link=midpoint_of_link)
 
     if patches is not None:
         remap_graph_element(links_at_patch,

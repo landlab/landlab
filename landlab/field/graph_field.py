@@ -707,7 +707,7 @@ class GraphFields(object):
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
 
-        This method is not valid for the group *grid*.        
+        This method is not valid for the group *grid*.
 
         See Also
         --------
@@ -746,7 +746,7 @@ class GraphFields(object):
         copy of the provided array.
 
         In the case of adding to the collection *grid*, the added field is a
-        numpy scalar rather than a numpy array. 
+        numpy scalar rather than a numpy array.
 
         Parameters
         ----------

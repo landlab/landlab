@@ -503,7 +503,7 @@ class ModelDataFields(object):
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
 
-        This method is not valid for the group *grid*.        
+        This method is not valid for the group *grid*.
 
         See Also
         --------
@@ -585,7 +585,7 @@ class ModelDataFields(object):
         if group=='grid':
             raise ValueError("add_empty is not supported for at_grid values "
                              "use\ngrid.at_grid['value_name']=value\n"
-                             "instead")        
+                             "instead")
 
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
@@ -657,7 +657,7 @@ class ModelDataFields(object):
         if group=='grid':
             raise ValueError("add_ones is not supported for at_grid values"
                              " use\ngrid.at_grid['value_name']=value\n"
-                             "instead")                
+                             "instead")
 
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
@@ -711,7 +711,7 @@ class ModelDataFields(object):
         if group=='grid':
             raise ValueError("add_zeros is not supported for at_grid values "
                              "use\ngrid.at_grid['value_name']=value\n"
-                             "instead")                
+                             "instead")
 
         numpy_kwds = kwds.copy()
         numpy_kwds.pop('units', 0.)
@@ -729,7 +729,7 @@ class ModelDataFields(object):
         copy of the provided array.
 
         In the case of adding to the collection *grid*, the added field is a
-        numpy scalar rather than a numpy array. 
+        numpy scalar rather than a numpy array.
 
         Parameters
         ----------

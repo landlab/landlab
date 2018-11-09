@@ -98,7 +98,7 @@ def test_raster_cts():
 
     if _RUN_NEW:
         # pop the scheduled event off the queue
-        (event_time, index, event_link) = ca.priority_queue.pop()        
+        (event_time, index, event_link) = ca.priority_queue.pop()
         assert (ca.priority_queue._queue==[]), \
                                 'event queue should now be empty but is not'
 
@@ -288,7 +288,7 @@ def test_grain_hill_model():
         'plot_interval' : 1.0,
         'show_plots' : False,
         }
-    grid_size = (int(params['number_of_node_rows']), 
+    grid_size = (int(params['number_of_node_rows']),
                  int(params['number_of_node_columns']))
     grain_hill_model = GrainHill(grid_size, **params)
     grain_hill_model.run()

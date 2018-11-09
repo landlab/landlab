@@ -234,7 +234,7 @@ def test_grid_field_add_zeros_ones_empty():
 def test_grid_field_zeros_ones_empty():
     """Test creating scalar fields with zeros, empty, and ones."""
     fields = ModelDataFields()
-    fields.new_field_location('grid', 1)    
+    fields.new_field_location('grid', 1)
     with pytest.raises(ValueError):
         fields.zeros('grid')
     with pytest.raises(ValueError):

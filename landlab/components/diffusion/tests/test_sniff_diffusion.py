@@ -124,7 +124,7 @@ def test_diffusion():
 
 def test_diffusion_no_deposit():
     # Make an array with three core nodes, in one column.
-    # Because there is zero slope between two of the nodes, there 
+    # Because there is zero slope between two of the nodes, there
     # would be deposition. However, with the deposit flag as 'False',
     # the elevation of the node with zero downslope gradient will not change.
     # Use closed boundaries all around because this is a simpler scenario.
@@ -136,7 +136,7 @@ def test_diffusion_no_deposit():
     mg['node']['topographic__elevation'] = z
 
     # The gradient at node 7 should be zero, so the elevation here would
-    # go up if deposition was allowed. Maker sure it doesn't change with 
+    # go up if deposition was allowed. Maker sure it doesn't change with
     # deposit set to 'False'
     z_7_before = z[7]
 

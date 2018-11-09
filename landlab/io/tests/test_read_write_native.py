@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-import pickle 
+import pickle
 from numpy.testing import assert_array_equal
 import os
 from landlab.io.native_landlab import save_grid, load_grid

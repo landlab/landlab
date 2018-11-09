@@ -119,7 +119,7 @@ def testing_flux_divergence_with_hex():
         (7)-17-.(8)-18-.(9)
         . .     . .     . .
       11  12  13  14  15  16
-      /     \ /     \ /     \ 
+      /     \ /     \ /     \
     (3)--8-.(4)--9-.(5)-10-.(6)
       .     . .     . .     .
        2   3   4   5   6   7
@@ -158,11 +158,11 @@ def testing_flux_divergence_with_hex():
     raw_net_flux = np.zeros(hmg.number_of_nodes)
     for r in range(MAX_NUM_LINKS):
         raw_net_flux += f[hmg.gt_links_at_node[r,:]]*hmg.gt_link_dirs_at_node[r,:]
-    assert_array_equal(raw_net_flux, 
+    assert_array_equal(raw_net_flux,
                        [ -5., -10., -12., -17., -19., -19.,  1.,  6., 26., 49.])
 
     nv = np.arange(hmg.number_of_nodes)
-    #gt_calc_gradients_at_faces(hmg, nv)    
+    #gt_calc_gradients_at_faces(hmg, nv)
     #gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
 
     for i in range(1000):

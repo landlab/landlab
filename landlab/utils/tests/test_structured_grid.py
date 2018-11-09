@@ -813,11 +813,11 @@ def test_out_link_ids_at_nodes():
 def test_in_link_ids_at_nodes():
     links_ids = sgrid.inlink_index_at_node((4, 5))
     assert_array_equal(
-        np.array([[-1, -1, -1, -1, -1,  
+        np.array([[-1, -1, -1, -1, -1,
                     4,  5,  6,  7,  8,
-                   13, 14, 15, 16, 17, 
+                   13, 14, 15, 16, 17,
                    22, 23, 24, 25, 26],
-                  [-1,  0,  1,  2,  3, 
+                  [-1,  0,  1,  2,  3,
                    -1,  9, 10, 11, 12,
                    -1, 18, 19, 20, 21,
                    -1, 27, 28, 29, 30]]),

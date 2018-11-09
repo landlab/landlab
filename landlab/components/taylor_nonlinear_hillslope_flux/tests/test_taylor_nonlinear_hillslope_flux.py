@@ -39,7 +39,7 @@ def test_infinite_taylor_error():
 #    z = mg.add_zeros('node', 'topographic__elevation')
 #    z += mg.node_x.copy()**2
 #    Cdiff = TaylorNonLinearDiffuser(mg)
-#    
+#
 #    with warnings.catch_warnings(record=True) as w:
 #        # Cause all warnings to always be triggered.
 #        warnings.simplefilter("always")

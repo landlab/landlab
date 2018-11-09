@@ -24,9 +24,9 @@ class DrainageDensity(Component):
     calc_drainage_density function returns drainage density for the model
     domain.
 
-    calc_drainage_density calculates the distance from every node to the 
-    nearest channel node :math:`L` along the flow line of steepest descent 
-    (assuming D8 routing). The drainage density is then (after Tucker et al., 
+    calc_drainage_density calculates the distance from every node to the
+    nearest channel node :math:`L` along the flow line of steepest descent
+    (assuming D8 routing). The drainage density is then (after Tucker et al.,
     2001):
 
     .. math::

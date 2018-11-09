@@ -328,14 +328,14 @@ class OverlandFlow(Component):
                 self.grid)
 
         self.vert_bdy_ids = self.active_links_at_open_bdy[
-                            links.is_vertical_link(self.grid.shape, 
+                            links.is_vertical_link(self.grid.shape,
                                             self.active_links_at_open_bdy)]
 
-        self.vert_bdy_ids = links.nth_vertical_link(self.grid.shape, 
+        self.vert_bdy_ids = links.nth_vertical_link(self.grid.shape,
                                                     self.vert_bdy_ids)
 
         self.horiz_bdy_ids = self.active_links_at_open_bdy[
-                            links.is_horizontal_link(self.grid.shape, 
+                            links.is_horizontal_link(self.grid.shape,
                                             self.active_links_at_open_bdy)]
 
         self.horiz_bdy_ids = links.nth_horizontal_link(self.grid.shape,
@@ -466,8 +466,8 @@ class OverlandFlow(Component):
                     self.theta * self.q[horiz] + (1. - self.theta) / 2. *
                     (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
                     self.g * self.h_links[horiz] * self.dt *
-                    self.water_surface_slope[horiz]) / (1 + self.g * self.dt 
-                    * self.mannings_n ** 2. * abs(self.q[horiz]) / 
+                    self.water_surface_slope[horiz]) / (1 + self.g * self.dt
+                    * self.mannings_n ** 2. * abs(self.q[horiz]) /
                     self.h_links[horiz] ** _SEVEN_OVER_THREE))
 
                 # ... and in the vertical direction
@@ -475,8 +475,8 @@ class OverlandFlow(Component):
                     self.theta * self.q[vert] + (1 - self.theta) / 2. *
                     (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
                     self.g * self.h_links[vert] * self.dt *
-                    self.water_surface_slope[vert]) / (1 + self.g * self.dt * 
-                    self.mannings_n ** 2. * abs(self.q[vert]) / 
+                    self.water_surface_slope[vert]) / (1 + self.g * self.dt *
+                    self.mannings_n ** 2. * abs(self.q[vert]) /
                     self.h_links[vert] ** _SEVEN_OVER_THREE))
 
             except ValueError:
@@ -487,8 +487,8 @@ class OverlandFlow(Component):
                     self.theta * self.q[horiz] + (1. - self.theta) / 2. *
                     (self.q[self.west_neighbors] + self.q[self.east_neighbors]) -
                     self.g * self.h_links[horiz] * self.dt *
-                    self.water_surface_slope[horiz]) / (1 + self.g * self.dt 
-                    * self.mannings_n[horiz]** 2. * abs(self.q[horiz]) / 
+                    self.water_surface_slope[horiz]) / (1 + self.g * self.dt
+                    * self.mannings_n[horiz]** 2. * abs(self.q[horiz]) /
                     self.h_links[horiz] ** _SEVEN_OVER_THREE))
 
                 # ... and in the vertical direction
@@ -496,7 +496,7 @@ class OverlandFlow(Component):
                     self.theta * self.q[vert] + (1 - self.theta) / 2. *
                     (self.q[self.north_neighbors] + self.q[self.south_neighbors]) -
                     self.g * self.h_links[vert] * self.dt *
-                    self.water_surface_slope[self.vertical_ids]) / (1 + self.g 
+                    self.water_surface_slope[self.vertical_ids]) / (1 + self.g
                     * self.dt * self.mannings_n[vert] ** 2. * abs(self.q[vert])
                     / self.h_links[vert] ** _SEVEN_OVER_THREE))
 
@@ -605,7 +605,7 @@ class OverlandFlow(Component):
 #            self.helper_q = self.grid.map_upwind_node_link_max_to_node(self.q)
 #            self.helper_s = self.grid.map_upwind_node_link_max_to_node(
 #                                                    self.water_surface_slope)
-#            
+#
 #            self.helper_q = self.grid.map_max_of_link_nodes_to_link(self.helper_q)
 #            self.helper_s = self.grid.map_max_of_link_nodes_to_link(self.helper_s)
 #
@@ -619,7 +619,7 @@ class OverlandFlow(Component):
             # Update nodes near boundary locations - nodes adjacent to
             # boundaries may have discharge and water surface slopes
             # artifically reduced due to boundary effects. This step removes
-            # those errors. 
+            # those errors.
 
             if dt is np.inf:
                 break

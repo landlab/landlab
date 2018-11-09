@@ -57,7 +57,7 @@ class LandslideProbability(Component):
     Option 1 - Uniform recharge::
 
         LandslideProbability(grid, number_of_iterations=250,
-                             groundwater__recharge_distribution='uniform', 
+                             groundwater__recharge_distribution='uniform',
                              groundwater__recharge_min_value=5.,
                              groundwater__recharge_max_value=121.)
 
@@ -142,7 +142,7 @@ class LandslideProbability(Component):
     >>> grid.at_node['soil__transmissivity'] = np.sort(
     ...      np.random.randint(5, 20, grid.number_of_nodes), -1)
     >>> grid.at_node['soil__saturated_hydraulic_conductivity'] = np.sort(
-    ...      np.random.randint(2, 10, grid.number_of_nodes), -1) 
+    ...      np.random.randint(2, 10, grid.number_of_nodes), -1)
     >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
     ...      np.random.randint(30, 900, grid.number_of_nodes))
     >>> grid.at_node['soil__minimum_total_cohesion'] = (
@@ -249,12 +249,12 @@ class LandslideProbability(Component):
         'soil__transmissivity':
             ('mode rate of water transmitted' +
              ' through a unit width of saturated soil - ' +
-              'either provided or calculated with Ksat ' + 
+              'either provided or calculated with Ksat ' +
                'and soil depth'),
         'soil__saturated_hydraulic_conductivity':
             ('mode rate of water transmitted' +
              ' through soil - provided if transmissivity ' +
-              'is NOT provided to calculate tranmissivity ' + 
+              'is NOT provided to calculate tranmissivity ' +
                ' with soil depth'),
         'soil__mode_total_cohesion':
             'mode of combined root and soil cohesion at node',
@@ -304,7 +304,7 @@ class LandslideProbability(Component):
             minium groundwater recharge for 'uniform' (default=20.)
         groundwater__recharge_max_value: float, optional (mm/d)
             maximum groundwater recharge for 'uniform' (default=120.)
-        groundwater__recharge_mean: float, optional (mm/d) 
+        groundwater__recharge_mean: float, optional (mm/d)
             mean grounwater recharge for 'lognormal'
             and 'lognormal_spatial' (default=None)
         groundwater__recharge_standard_deviation: float, optional (mm/d)
@@ -314,7 +314,7 @@ class LandslideProbability(Component):
             list of 3 dictionaries in order (default=[]) - HSD_dict
             {Hydrologic Source Domain (HSD) keys: recharge numpy array values},
             {node IDs keys: list of HSD_Id values}, HSD_fractions {node IDS
-            keys: list of HSD fractions values} (none) 
+            keys: list of HSD fractions values} (none)
             Note: this input method is a very specific one, and to use this method,
             one has to refer Ref 1 & Ref 2 mentioned above, as this set of
             inputs require rigorous pre-processing of data.
@@ -326,7 +326,7 @@ class LandslideProbability(Component):
             sequence. To create a certain sequence repititively, use the same
             value as input for seed.
         """
-        # Initialize seeded random number generation        
+        # Initialize seeded random number generation
         self._seed_generator(seed)
 
         super(LandslideProbability, self).__init__(grid)
@@ -361,7 +361,7 @@ class LandslideProbability(Component):
             self._Re = np.random.lognormal(self._mu_lognormal,
                                           self._sigma_lognormal, self.n)
             self._Re /= 1000. # Convert mm to m
-        # Lognormal Distribution - Variable in space                                  
+        # Lognormal Distribution - Variable in space
         elif self.groundwater__recharge_distribution == 'lognormal_spatial':
             assert (groundwater__recharge_mean.shape[0] == (
                 self.grid.number_of_nodes)), (
@@ -462,7 +462,7 @@ class LandslideProbability(Component):
                                         phi_max, size=self.n)
         # soil thickness
         #hs_min = min(0.005, self._hs_mode-0.3*self._hs_mode) # Alternative
-        hs_min = self._hs_mode-0.3*self._hs_mode 
+        hs_min = self._hs_mode-0.3*self._hs_mode
         hs_max = self._hs_mode+0.1*self._hs_mode
         self._hs = np.random.triangular(hs_min, self._hs_mode,
                                        hs_max, size=self.n)
@@ -493,7 +493,7 @@ class LandslideProbability(Component):
                 countr = countr + 1  # number with RW values (>=1)
         # probability: No. high RW values/total No. of values (n)
         self._soil__probability_of_saturation = np.float32(countr)/self.n
-        # Maximum Rel_wetness = 1.0        
+        # Maximum Rel_wetness = 1.0
         np.place(self._rel_wetness, self._rel_wetness > 1, 1.0)
         self._soil__mean_relative_wetness = np.mean(self._rel_wetness)
         Y = np.tan(np.radians(self._phi))*(1 - (self._rel_wetness*0.5))
@@ -516,13 +516,13 @@ class LandslideProbability(Component):
         Method creates arrays for output variables then loops through all
         the core nodes to run the method 'calculate_factor_of_safety.'
         Output parameters probability of failure, mean relative wetness,
-        and probability of saturation are assigned as fields to nodes. 
+        and probability of saturation are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
         self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes,
                                              -9999.)
         self.prob_fail = np.full(self.grid.number_of_nodes, -9999.)
-        self.prob_sat = np.full(self.grid.number_of_nodes, -9999.) 
+        self.prob_sat = np.full(self.grid.number_of_nodes, -9999.)
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self.grid.core_nodes:
@@ -587,7 +587,7 @@ class LandslideProbability(Component):
         This method calculates the resultant recharge at node i of the
         model domain, using recharge of contributing HSD ids and the areal
         fractions of upstream contributing HSD ids. Output is a numpy array
-        of recharge at node i.        
+        of recharge at node i.
         """
         store_Re = np.zeros(self.n)
         HSD_id_list = self._HSD_id_dict[i]

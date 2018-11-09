@@ -40,7 +40,7 @@ def test_MS_params():
     # # isin=inpolygon(X1(:),Y1(:),Xx,Yy)
     # Yin = Y1[isin]
     # Xin = X1[isin]
-    # 
+    #
     # Easting = np.loadtxt(os.path.join(_THIS_DIR, 'model_input', 'Easting.csv'))
     # # This is the Longitudinal data for each gauge.
     # Northing = np.loadtxt(os.path.join(_THIS_DIR, 'model_input', 'Northing.csv'))
@@ -55,12 +55,12 @@ def test_MS_params():
     # vdg_z = vdg.add_field('node', 'topographic__elevation',
     #                       gauge_elev[np.argsort(Northing)])
     # numgauges = len(gauges)
-    # 
+    #
     # mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
     # mg.status_at_node[:] = 4
     # mg.status_at_node[isin.flatten()] = 0
     # z = mg.add_zeros('node', 'topographic__elevation')
-    # 
+    #
     # closest_core_node_in_vdg = []
     # for E, N in zip(Xin, Yin):
     #     closest_core_node_in_vdg.append(
@@ -114,12 +114,12 @@ def test_MS_params():
     # z = vdg.add_field('node', 'topographic__elevation', z)
     # rain = SpatialPrecipitationDistribution(vdg, number_of_years=1,
     #                                         orographic_scenario='Singer')
-    # 
+    #
     # storms = [storm for (storm, istorm) in rain.yield_storms(
     #     style='monsoonal', monsoon_storm_interarrival_GEV={
     #                          'shape': -0.807971, 'sigma': 9.4957,
     #                          'mu': 10.6108, 'trunc_interval': (0., 720.)})]
-    # 
+    #
     # istorms = [istorm for (storm, istorm) in rain.yield_storms(
     #     style='monsoonal', monsoon_storm_interarrival_GEV={
     #                          'shape': -0.807971, 'sigma': 9.4957,

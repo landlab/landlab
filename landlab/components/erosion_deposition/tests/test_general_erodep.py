@@ -7,7 +7,7 @@ import pytest
 
 def test_Ff_bad_vals():
     """
-    Test that instantiating ErosionDeposition with a F_f value > 1 throws a 
+    Test that instantiating ErosionDeposition with a F_f value > 1 throws a
     ValueError.
     """
 
@@ -43,7 +43,7 @@ def test_Ff_bad_vals():
 
 def test_phi_bad_vals():
     """
-    Test that instantiating ErosionDeposition with a phi value >= 1 throws a 
+    Test that instantiating ErosionDeposition with a phi value >= 1 throws a
     ValueError.
     """
 
@@ -109,13 +109,13 @@ def test_q_as_field():
     )
 
     # Instantiate the ErosionDeposition component...
-    ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 
-                           n_sp=1.0, sp_crit=0.0, 
-                           discharge_field='user_imposed_discharge', 
+    ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5,
+                           n_sp=1.0, sp_crit=0.0,
+                           discharge_field='user_imposed_discharge',
                            solver='basic')
 
     #ensure that ed.q is everywhere equal to 1.0 m3/yr.
-    testing.assert_array_equal(np.ones(mg.number_of_nodes), 
+    testing.assert_array_equal(np.ones(mg.number_of_nodes),
                                ed.q,
                                err_msg='E/D discharge field test failed',
                                verbose=True)
@@ -152,20 +152,20 @@ def test_q_as_array():
     )
 
     # Instantiate the ErosionDeposition component...
-    ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 
-                           n_sp=1.0, sp_crit=0.0, 
-                           discharge_field=q, 
+    ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5,
+                           n_sp=1.0, sp_crit=0.0,
+                           discharge_field=q,
                            solver='basic')
 
     #ensure that ed.q is everywhere equal to 1.0 m3/yr.
-    testing.assert_array_equal(np.ones(mg.number_of_nodes), 
+    testing.assert_array_equal(np.ones(mg.number_of_nodes),
                                ed.q,
                                err_msg='E/D discharge array test failed',
                                verbose=True)
 
 def test_sediment__flux_already_created():
     """
-    Test that an existing sediment flux grid field is not changed by 
+    Test that an existing sediment flux grid field is not changed by
     instantiating ErosionDeposition.
     """
 
@@ -195,11 +195,11 @@ def test_sediment__flux_already_created():
     )
 
     # Instantiate the ErosionDeposition component...
-    ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 
+    ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5,
                            n_sp=1.0, sp_crit=0.0, solver='basic')
 
     #ensure that 'sediment__flux' field is everywhere equal to 1.0 m3/yr.
-    testing.assert_array_equal(np.ones(mg.number_of_nodes), 
+    testing.assert_array_equal(np.ones(mg.number_of_nodes),
                                ed.qs,
                                err_msg='E/D sediment flux field test failed',
                                verbose=True)

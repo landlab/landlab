@@ -14,7 +14,7 @@ def lattice_grain_node_states():
     """
     Create and return dict of states for lattice-grain model.
     """
-    ns_dict = { 0 : 'empty', 
+    ns_dict = { 0 : 'empty',
                 1 : 'moving up',
                 2 : 'moving right and up',
                 3 : 'moving right and down',
@@ -427,4 +427,4 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
         xn_list.append( Transition((7,0,2), (3,0,2), g/2.0, 'gravity') )
         xn_list.append( Transition((0,7,1), (0,5,1), g/2.0, 'gravity') )
 
-    return xn_list   
+    return xn_list

@@ -186,19 +186,19 @@ def _read_netcdf_structured_data(root):
             if hasattr(var, 'grid_mapping'):
                 grid_mapping = getattr(var, 'grid_mapping')
                 if type(grid_mapping) is bytes:
-                    grid_mapping = grid_mapping.decode("utf-8") 
+                    grid_mapping = grid_mapping.decode("utf-8")
                 grid_mapping_exists = True
 
     dont_use = list(_COORDINATE_NAMES)
     if grid_mapping_exists:
         dont_use.append(grid_mapping)
-    for (name, var) in root.variables.items():            
+    for (name, var) in root.variables.items():
         if name not in dont_use:
             fields[name] = var[:].copy()
-            fields[name].shape = (fields[name].size, )    
+            fields[name].shape = (fields[name].size, )
 
     if grid_mapping_exists:
-        grid_mapping_variable = root.variables[grid_mapping]            
+        grid_mapping_variable = root.variables[grid_mapping]
         grid_mapping_dict = {'name': grid_mapping}
         try:
             for att in grid_mapping_variable.ncattrs():

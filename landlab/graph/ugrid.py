@@ -39,7 +39,7 @@ def ugrid_from_structured_quad(coords, shape=None):
     return ugrid_from_unstructured(
         node_y_and_x,
         setup_nodes_at_link(shape),
-        setup_links_at_patch(shape)) 
+        setup_links_at_patch(shape))
 
 
 def ugrid_from_rectilinear(coords):

@@ -20,7 +20,7 @@ class CTSModel(object):
 
     def __init__(self, grid_size=(5, 5), report_interval=5.0,
                  grid_orientation='vertical', grid_shape='rect',
-                 show_plots=False, cts_type='oriented_hex', 
+                 show_plots=False, cts_type='oriented_hex',
                  run_duration=1.0, output_interval=1.0e99,
                  plot_every_transition=False, **kwds):
 
@@ -31,7 +31,7 @@ class CTSModel(object):
 
     def initialize(self, grid_size=(5, 5), report_interval=5.0,
                  grid_orientation='vertical', grid_shape='rect',
-                 show_plots=False, cts_type='oriented_hex', 
+                 show_plots=False, cts_type='oriented_hex',
                  run_duration=1.0, output_interval=1.0e99,
                  plot_every_transition=False, **kwds):
 
@@ -48,7 +48,7 @@ class CTSModel(object):
         self.run_duration = run_duration
 
         # Create a grid
-        self.create_grid_and_node_state_field(grid_size[0], grid_size[1], 
+        self.create_grid_and_node_state_field(grid_size[0], grid_size[1],
                                               grid_orientation, grid_shape,
                                               cts_type)
 
@@ -81,7 +81,7 @@ class CTSModel(object):
             self.initialize_plotting(**kwds)
 
 
-    def create_grid_and_node_state_field(self, num_rows, num_cols, 
+    def create_grid_and_node_state_field(self, num_rows, num_cols,
                                          grid_orientation, grid_shape,
                                          cts_type):
         """Create the grid and the field containing node states."""
@@ -92,8 +92,8 @@ class CTSModel(object):
                                         spacing=1.0)
         else:
             from landlab import HexModelGrid
-            self.grid = HexModelGrid(num_rows, num_cols, 1.0, 
-                                     orientation=grid_orientation, 
+            self.grid = HexModelGrid(num_rows, num_cols, 1.0,
+                                     orientation=grid_orientation,
                                      shape=grid_shape)
 
         self.grid.add_zeros('node', 'node_state', dtype=int)
@@ -105,7 +105,7 @@ class CTSModel(object):
         This method creates a default set of states (just two); it is a
         template meant to be overridden.
         """
-        ns_dict = { 0 : 'on', 
+        ns_dict = { 0 : 'on',
                     1 : 'off'}
         return ns_dict
 
@@ -131,7 +131,7 @@ class CTSModel(object):
     def initialize_node_state_grid(self):
         """Initialize values in the node-state grid.
 
-        This method should be overridden. The default is random "on" and "off".        
+        This method should be overridden. The default is random "on" and "off".
         """
         num_states = 2
         for i in range(self.grid.number_of_nodes):

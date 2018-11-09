@@ -109,7 +109,7 @@ def test_field_initialized_to_zero(ls_prob):
 
 def test_calculate_landslide_probability_uniform_method():
     """Testing the main method 'calculate_landslide_probability()' with
-    'uniform' method. 
+    'uniform' method.
     """
     grid_1 = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     gridnum = grid_1.number_of_nodes
@@ -146,7 +146,7 @@ def test_calculate_landslide_probability_uniform_method():
 
 def test_calculate_landslide_probability_lognormal_method():
     """Testing the main method 'calculate_landslide_probability()' with
-    'lognormal' method. 
+    'lognormal' method.
     """
     grid_2 = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     gridnum = grid_2.number_of_nodes
@@ -183,7 +183,7 @@ def test_calculate_landslide_probability_lognormal_method():
 
 def test_calculate_landslide_probability_lognormal_spatial_method():
     """Testing the main method 'calculate_landslide_probability()' with
-    'lognormal_spatial' method. 
+    'lognormal_spatial' method.
     """
     grid_3 = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
     gridnum = grid_3.number_of_nodes

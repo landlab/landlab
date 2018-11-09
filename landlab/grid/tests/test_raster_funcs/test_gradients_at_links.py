@@ -11,7 +11,7 @@ def test_unit_spacing():
     grads = grid.calc_grad_at_link(values_at_nodes)
     assert_array_equal(
         grads,
-        np.array([1, 1, 1, 1, 
+        np.array([1, 1, 1, 1,
                   5, 5, 5, 5, 5,
                   1, 1, 1, 1,
                   5, 5, 5, 5, 5,
@@ -32,7 +32,7 @@ def test_non_unit_spacing():
         grads,
         np.array(
            [0.5, 0.5,  0.5,  0.5,
-            1.0, 1.0,  1. ,  1. ,  1. ,  
+            1.0, 1.0,  1. ,  1. ,  1. ,
             0.5,  0.5, 0.5,  0.5,
             1. ,  1. , 1. ,  1. ,  1. ,
             0.5,  0.5,  0.5,  0.5,

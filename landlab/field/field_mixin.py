@@ -63,7 +63,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
             raise ValueError("empty is not supported for at='grid', if you "
                              "want to create a field at the grid, use\n"
                              "grid.at_grid['value_name']=value\n"
-                             "instead.")        
+                             "instead.")
 
         n_elements = self.number_of_elements(group)
 

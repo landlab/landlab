@@ -664,7 +664,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         n_mod_nc = node_id % nc
         half_nc = (nc + 1) // 2
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
-        return (row, col)            
+        return (row, col)
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
@@ -798,7 +798,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Returns
         -------
         boolean
-            ``True`` if node has a neighbor with a boundary ID, 
+            ``True`` if node has a neighbor with a boundary ID,
             ``False`` otherwise.
 
 
