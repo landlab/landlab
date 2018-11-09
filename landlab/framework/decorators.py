@@ -67,8 +67,8 @@ def is_implementation(cls, interface):
                 return False
         else:
             try:
-                assert(type(getattr(cls, name)) ==
-                       type(getattr(interface, name)))
+                assert isinstance(getattr(cls, name), type(getattr(interface, name)))
+                # assert(type(getattr(cls, name)) == type(getattr(interface, name)))
             except (AttributeError, AssertionError):
                 six.print_('Missing member or type mismatch for %s' % name)
                 return False
