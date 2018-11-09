@@ -8,7 +8,6 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 
-import numpy
 import numpy as np
 
 import six
@@ -87,7 +86,7 @@ def _sort_points_into_quadrants(x, y, nodes):
     """
     above_x_axis = y > 0
     right_of_y_axis = x > 0
-    closer_to_y_axis = numpy.abs(y) >= numpy.abs(x)
+    closer_to_y_axis = np.abs(y) >= np.abs(x)
 
     north_nodes = nodes[above_x_axis & closer_to_y_axis]
     south_nodes = nodes[(~ above_x_axis) & closer_to_y_axis]
@@ -741,7 +740,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        return numpy.where(self.status_at_node == CORE_NODE)[0]
+        return np.where(self.status_at_node == CORE_NODE)[0]
 
     @property
     @return_readonly_id_array
@@ -760,7 +759,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         try:
             return self._boundary_nodes
         except AttributeError:
-            (boundary_node_ids, ) = numpy.where(self._node_status != CORE_NODE)
+            (boundary_node_ids, ) = np.where(self._node_status != CORE_NODE)
             return boundary_node_ids
 
     @property
@@ -780,7 +779,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        (open_boundary_node_ids, ) = numpy.where(
+        (open_boundary_node_ids, ) = np.where(
             (self._node_status != CLOSED_BOUNDARY) &
             (self._node_status != CORE_NODE))
         return open_boundary_node_ids
@@ -800,7 +799,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        (closed_boundary_node_ids, ) = numpy.where(
+        (closed_boundary_node_ids, ) = np.where(
             self._node_status == CLOSED_BOUNDARY)
         return closed_boundary_node_ids
 
@@ -819,7 +818,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        (fixed_gradient_boundary_node_ids, ) = numpy.where(
+        (fixed_gradient_boundary_node_ids, ) = np.where(
             self._node_status == FIXED_GRADIENT_BOUNDARY)
         return fixed_gradient_boundary_node_ids
 
@@ -980,7 +979,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        return numpy.where(self._node_status == FIXED_VALUE_BOUNDARY)[0]
+        return np.where(self._node_status == FIXED_VALUE_BOUNDARY)[0]
 
     @property
     @return_readonly_id_array
@@ -1076,7 +1075,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF CINF BC CONN
         """
-        return numpy.where(self.status_at_node == CORE_NODE)[0]
+        return np.where(self.status_at_node == CORE_NODE)[0]
 
     @property
     @make_return_array_immutable
@@ -2582,18 +2581,18 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                                     CLOSED_BOUNDARY).sum(axis=1) > (
                                         max_nodes_at_patch - 3)
         absent_patches = any_node_at_patch_closed[self.patches_at_node]
-        bad_patches = numpy.logical_or(absent_patches,
+        bad_patches = np.logical_or(absent_patches,
                                        self.patches_at_node == -1)
-        self._patches_present_mask = numpy.logical_not(
+        self._patches_present_mask = np.logical_not(
             bad_patches)
-        self._number_of_patches_present_at_node = numpy.sum(
+        self._number_of_patches_present_at_node = np.sum(
             self._patches_present_mask, axis=1)
         absent_patches = any_node_at_patch_closed[self.patches_at_link]
-        bad_patches = numpy.logical_or(absent_patches,
+        bad_patches = np.logical_or(absent_patches,
                                        self.patches_at_link == -1)
-        self._patches_present_link_mask = numpy.logical_not(
+        self._patches_present_link_mask = np.logical_not(
             bad_patches)
-        self._number_of_patches_present_at_link = numpy.sum(
+        self._number_of_patches_present_at_link = np.sum(
             self._patches_present_link_mask, axis=1)
 
     def calc_hillshade_at_node(self, alt=45., az=315., slp=None, asp=None,
@@ -2655,21 +2654,21 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         """
         if slp is not None and asp is not None:
             if unit == 'degrees':
-                (alt, az, slp, asp) = (numpy.radians(alt), numpy.radians(az),
-                                       numpy.radians(slp), numpy.radians(asp))
+                (alt, az, slp, asp) = (np.radians(alt), np.radians(az),
+                                       np.radians(slp), np.radians(asp))
             elif unit == 'radians':
-                if alt > numpy.pi / 2. or az > 2. * numpy.pi:
+                if alt > np.pi / 2. or az > 2. * np.pi:
                     six.print_(
                         'Assuming your solar properties are in degrees, '
                         'but your slopes and aspects are in radians...')
-                    (alt, az) = (numpy.radians(alt), numpy.radians(az))
+                    (alt, az) = (np.radians(alt), np.radians(az))
                     # ...because it would be super easy to specify radians,
                     # but leave the default params alone...
             else:
                 raise TypeError("unit must be 'degrees' or 'radians'")
         elif slp is None and asp is None:
             if unit == 'degrees':
-                (alt, az) = (numpy.radians(alt), numpy.radians(az))
+                (alt, az) = (np.radians(alt), np.radians(az))
             elif unit == 'radians':
                 pass
             else:
@@ -2683,8 +2682,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             raise TypeError('Either both slp and asp must be set, or neither!')
 
         shaded = (
-            numpy.sin(alt) * numpy.cos(slp) +
-            numpy.cos(alt) * numpy.sin(slp) * numpy.cos(az - asp)
+            np.sin(alt) * np.cos(slp) +
+            np.cos(alt) * np.sin(slp) * np.cos(az - asp)
         )
 
         return shaded.clip(0.)
@@ -2763,7 +2762,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1,  7,  8,  9, 10,
                -1, -1, -1])
         """
-        self._face_at_link = numpy.full(self.number_of_links, BAD_INDEX_VALUE,
+        self._face_at_link = np.full(self.number_of_links, BAD_INDEX_VALUE,
                                         dtype=int)
         face_id = 0
         node_at_link_tail = self.node_at_link_tail
@@ -2788,7 +2787,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
         """
         num_faces = len(self.width_of_face)
-        self._link_at_face = numpy.empty(num_faces, dtype=int)
+        self._link_at_face = np.empty(num_faces, dtype=int)
         face_id = 0
         node_at_link_tail = self.node_at_link_tail
         node_at_link_head = self.node_at_link_head
@@ -2808,7 +2807,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         cells receive the area of that cell. Nodes which do not, receive
         zeros.
         """
-        _cell_area_at_node_zero = numpy.zeros(self.number_of_nodes,
+        _cell_area_at_node_zero = np.zeros(self.number_of_nodes,
                                               dtype=float)
         _cell_area_at_node_zero[self.node_at_cell] = self.area_of_cell
         self._cell_area_at_node = _cell_area_at_node_zero
@@ -2847,7 +2846,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             if link_connects_nodes:
                 active_link = alink
                 break
-        return numpy.array([active_link])
+        return np.array([active_link])
 
     @property
     @make_return_array_immutable
@@ -2914,7 +2913,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                   self.node_x[self.node_at_link_head])
         diff_y = (self.node_y[self.node_at_link_tail] -
                   self.node_y[self.node_at_link_head])
-        numpy.sqrt(diff_x ** 2 + diff_y ** 2, out=self._link_length)
+        np.sqrt(diff_x ** 2 + diff_y ** 2, out=self._link_length)
 
         return self._link_length
 
@@ -2950,9 +2949,9 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: DEPR NINF LINF CONN
         """
         if v is None:
-            v = numpy.array((0., ))
+            v = np.array((0., ))
 
-        fv = numpy.zeros(len(self.active_links))
+        fv = np.zeros(len(self.active_links))
         fromnode = self.nodes_at_link[self.active_links, 0]
         tonode = self.nodes_at_link[self.active_links, 1]
         if len(v) < len(u):
@@ -3107,7 +3106,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
-        nodata_locations = numpy.nonzero(node_data == nodata_value)
+        nodata_locations = np.nonzero(node_data == nodata_value)
         self.status_at_node[nodata_locations] = CLOSED_BOUNDARY
 
     def set_nodata_nodes_to_fixed_gradient(self, node_data, nodata_value):
@@ -3192,7 +3191,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
-        nodata_locations = numpy.nonzero(node_data == nodata_value)
+        nodata_locations = np.nonzero(node_data == nodata_value)
         self.status_at_node[nodata_locations] = FIXED_GRADIENT_BOUNDARY
 
     @deprecated(use='map_max_of_link_nodes_to_link', version=1.0)
@@ -3252,7 +3251,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         endpoints are neighbors of one another, so we increment the number of
         neighbors for both the endpoint nodes.
         """
-        num_nbrs = numpy.zeros(self.number_of_nodes, dtype=int)
+        num_nbrs = np.zeros(self.number_of_nodes, dtype=int)
         node_at_link_tail = self.node_at_link_tail
         node_at_link_head = self.node_at_link_head
         for link in range(self.number_of_links):
@@ -3737,8 +3736,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([0, 2, 1])
         """
         # Calculate x and y distance from centerpoint
-        diff_x = self.node_x[self.boundary_nodes] - numpy.mean(self.node_x)
-        diff_y = self.node_y[self.boundary_nodes] - numpy.mean(self.node_y)
+        diff_x = self.node_x[self.boundary_nodes] - np.mean(self.node_x)
+        diff_y = self.node_y[self.boundary_nodes] - np.mean(self.node_y)
 
         return _sort_points_into_quadrants(diff_x, diff_y, self.boundary_nodes)
 
@@ -3875,19 +3874,19 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         if get_az not in (None, 'displacements', 'angles'):
             raise ValueError('get_az not understood')
 
-        if node_subset is not None and numpy.any(numpy.isnan(node_subset)):
+        if node_subset is not None and np.any(np.isnan(node_subset)):
             node_subset = None
 
         if node_subset is not None:
-            if not isinstance(node_subset, numpy.ndarray):
-                node_subset = numpy.array(node_subset)
+            if not isinstance(node_subset, np.ndarray):
+                node_subset = np.array(node_subset)
             node_subset = node_subset.reshape((-1, ))
             len_subset = node_subset.size
         else:
             len_subset = self.number_of_nodes
 
         if out_distance is None:
-            out_distance = numpy.empty(len_subset, dtype=numpy.float)
+            out_distance = np.empty(len_subset, dtype=np.float)
         if out_distance.size != len_subset:
             raise ValueError('output array size mismatch for distances')
 
@@ -3897,14 +3896,14 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             else:
                 az_shape = (len_subset, )
             if out_azimuth is None:
-                out_azimuth = numpy.empty(az_shape, dtype=numpy.float)
+                out_azimuth = np.empty(az_shape, dtype=np.float)
             if out_azimuth.shape != az_shape:
                 raise ValueError('output array mismatch for azimuths')
 
-        azimuths_as_displacements = numpy.empty((2, self.number_of_nodes))
-        dummy_nodes_1 = numpy.empty(self.number_of_nodes)
-        dummy_nodes_2 = numpy.empty(self.number_of_nodes)
-        dummy_nodes_3 = numpy.empty(self.number_of_nodes)
+        azimuths_as_displacements = np.empty((2, self.number_of_nodes))
+        dummy_nodes_1 = np.empty(self.number_of_nodes)
+        dummy_nodes_2 = np.empty(self.number_of_nodes)
+        dummy_nodes_3 = np.empty(self.number_of_nodes)
 
         if node_subset is None:
             azimuths_as_displacements[0] = (self.node_x - coord[0])
@@ -3915,26 +3914,26 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             azimuths_as_displacements[1, :len_subset] = (
                 self.node_y[node_subset] - coord[1])
 
-        numpy.square(azimuths_as_displacements[0, :len_subset],
+        np.square(azimuths_as_displacements[0, :len_subset],
                      out=dummy_nodes_1[:len_subset])
-        numpy.square(azimuths_as_displacements[1, :len_subset],
+        np.square(azimuths_as_displacements[1, :len_subset],
                      out=dummy_nodes_2[:len_subset])
-        numpy.add(dummy_nodes_1[:len_subset], dummy_nodes_2[:len_subset],
+        np.add(dummy_nodes_1[:len_subset], dummy_nodes_2[:len_subset],
                   out=dummy_nodes_3[:len_subset])
-        numpy.sqrt(dummy_nodes_3[:len_subset], out=out_distance)
+        np.sqrt(dummy_nodes_3[:len_subset], out=out_distance)
 
         if get_az:
             if get_az == 'displacements':
                 out_azimuth[:] = azimuths_as_displacements[:, :len_subset]
             elif get_az == 'angles':
-                numpy.arctan2(
+                np.arctan2(
                     azimuths_as_displacements[0, :len_subset],
                     azimuths_as_displacements[1, :len_subset],
                     out=out_azimuth[:len_subset])
 
-                less_than_zero = numpy.empty(self.number_of_nodes, dtype=bool)
-                numpy.less(out_azimuth, 0., out=less_than_zero[:len_subset])
-                out_azimuth[less_than_zero[:len_subset]] += 2. * numpy.pi
+                less_than_zero = np.empty(self.number_of_nodes, dtype=bool)
+                np.less(out_azimuth, 0., out=less_than_zero[:len_subset])
+                out_azimuth[less_than_zero[:len_subset]] += 2. * np.pi
 
             return out_distance, out_azimuth
         else:
@@ -4031,12 +4030,12 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         tuple of ndarrays
             Tuple of (distances, azimuths)
         """
-        self._all_node_distances_map = numpy.empty((self.number_of_nodes,
+        self._all_node_distances_map = np.empty((self.number_of_nodes,
                                                     self.number_of_nodes))
-        self._all_node_azimuths_map = numpy.empty((self.number_of_nodes,
+        self._all_node_azimuths_map = np.empty((self.number_of_nodes,
                                                    self.number_of_nodes))
 
-        node_coords = numpy.empty((self.number_of_nodes, 2))
+        node_coords = np.empty((self.number_of_nodes, 2))
         node_coords[:, 0] = self.node_x
         node_coords[:, 1] = self.node_y
 
@@ -4046,7 +4045,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                  self.calc_distances_of_nodes_to_point(
                      (node_coords[i, 0], node_coords[i, 1]), get_az='angles'))
 
-        assert numpy.all(self._all_node_distances_map >= 0.)
+        assert np.all(self._all_node_distances_map >= 0.)
 
         return self._all_node_distances_map, self._all_node_azimuths_map
 
