@@ -11,11 +11,11 @@
 """
 from __future__ import absolute_import
 
+import os
+
 if "DISPLAY" not in os.environ:
     import matplotlib
     matplotlib.use("Agg")
-
-import os
 
 from numpy import set_printoptions
 
