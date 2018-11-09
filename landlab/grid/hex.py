@@ -119,6 +119,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 reorient_links,
             )
         super(HexModelGrid, self).__init__(**kwds)
+        # save origin as attribute. This has to happen after Voronoi
+        self._origin = origin
 
     @classmethod
     def from_dict(cls, params):
@@ -265,9 +267,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 self._nodes[:, col] = numpy.arange(
                     base_node, self._nrows * self._ncols, self._ncols
                 )
-
-        # save origin as attribute
-        self._origin = origin
 
         # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
         # the nodes into a grid.
