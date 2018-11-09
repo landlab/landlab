@@ -33,6 +33,7 @@ before_install:
   if [[ "$TRAVIS_TAG" == v* ]]; then
     DEPLOY=1
   fi
+- mkdir -p $HOME/.matplotlib && cat "backend: Agg" > $HOME/.matplotlib/matplotlibrc
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
 - |
