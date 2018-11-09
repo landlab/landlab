@@ -488,10 +488,10 @@ class Lithology(object):
             missing_ids = set(new_ids).difference(self._ids)
 
             if np.any(thickness>0):
-                 msg = ('Lithology add_layer was given a rock type id that does '
-                        'not yet exist and will need to deposit. Use a valid '
-                        'rock type or add_rock_type. ' + str(missing_ids))
-                 raise ValueError(msg)
+                msg = ('Lithology add_layer was given a rock type id that does '
+                       'not yet exist and will need to deposit. Use a valid '
+                       'rock type or add_rock_type. ' + str(missing_ids))
+                raise ValueError(msg)
 
         # add_rock_type
         if rock_id is not None:

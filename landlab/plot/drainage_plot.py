@@ -46,7 +46,7 @@ def drainage_plot(mg,
         ydist =  -0.8*(mg.y_of_node-mg.y_of_node[rec])
 
         if proportions is None:
-           proportions = np.ones_like(receivers, dtype=float)
+            proportions = np.ones_like(receivers, dtype=float)
 
         is_bad[proportions[:,j]==0.]=True
 
