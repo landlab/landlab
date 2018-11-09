@@ -8,6 +8,7 @@ import matplotlib.pylab as plt
 from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 
+
 def drainage_plot(mg,
                   surface='topographic__elevation',
                   receivers=None,

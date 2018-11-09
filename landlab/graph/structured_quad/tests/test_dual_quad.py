@@ -97,6 +97,7 @@ def test_raster_origin_as_scalar():
                        [-.5, -.5, -.5,
                          .5,  .5,  .5])
 
+
 def test_perimeter_corners():
     """Test the perimeter corners."""
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]

@@ -554,6 +554,7 @@ def _guess_at_location(fields, names):
             at = None
     return at
 
+
 def write_netcdf(path, fields, attrs=None, append=False,
                  format='NETCDF3_64BIT', names=None, at=None):
     """Write landlab fields to netcdf.

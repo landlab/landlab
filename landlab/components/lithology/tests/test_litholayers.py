@@ -12,6 +12,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components import LithoLayers
 
+
 def test_z0s_ids_different_shape():
     """Test that providing z0s and ids of different shapes raises an error."""
     mg = RasterModelGrid(3, 3)

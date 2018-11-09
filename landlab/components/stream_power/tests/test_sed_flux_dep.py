@@ -54,6 +54,7 @@ def test_sed_dep():
     assert_array_almost_equal(mg.at_node['topographic__elevation'][
         mg.core_nodes], z_tg[mg.core_nodes])
 
+
 def test_sed_dep_new():
     """
     This tests only the power_law version of the SDE.

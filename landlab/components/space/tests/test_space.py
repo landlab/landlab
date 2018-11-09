@@ -17,6 +17,7 @@ def test_route_to_multiple_error_raised():
         Space(mg, K_sed=0.1, K_br=0.1, F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
               m_sp=1.0, n_sp=0.5, sp_crit_sed=0, sp_crit_br=0)
 
+
 def test_bad_solver_name():
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.

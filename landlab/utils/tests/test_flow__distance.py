@@ -7,6 +7,7 @@ from landlab import RasterModelGrid, FieldError, HexModelGrid
 from landlab.components import FlowAccumulator, FlowDirectorSteepest
 from landlab.utils.flow__distance import calculate_flow__distance
 
+
 def test_no_flow_recievers():
     """Test that correct error is raised when no flow recievers are
     on the grid."""
@@ -250,6 +251,7 @@ def test_flow__distance_raster_MFD_diagonals_true():
 
     assert_array_equal(flow__distance_expected, flow__distance)
 
+
 def test_flow__distance_raster_MFD_diagonals_false():
     """Test of flow__distance utility with a raster grid and MFD."""
 
@@ -297,6 +299,7 @@ def test_flow__distance_raster_MFD_diagonals_false():
     # test that the flow__distance utility works as expected
 
     assert_array_equal(flow__distance_expected, flow__distance)
+
 
 def test_flow__distance_raster_D_infinity():
     """Test of flow__distance utility with a raster grid and D infinity."""

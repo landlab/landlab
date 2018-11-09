@@ -5,6 +5,7 @@ from landlab.components import FlowAccumulator
 from landlab.plot import analyze_channel_network_and_plot
 from landlab.plot.channel_profile import channel_nodes
 
+
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
     z = mg.add_zeros('node', 'topographic__elevation')

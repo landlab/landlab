@@ -135,6 +135,7 @@ def _read_netcdf_structured_grid(root):
 
     return coordinates
 
+
 def _read_netcdf_raster_structured_grid(root):
     """Get node coordinates for a structured grid written as a raster.
 
@@ -234,6 +235,7 @@ def _get_raster_spacing(coords):
         raise NotRasterGridError()
 
     return spacing[0]
+
 
 def read_netcdf(nc_file, just_grid=False):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.

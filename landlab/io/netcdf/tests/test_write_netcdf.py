@@ -18,7 +18,9 @@ try:
 except ImportError:
     pass
 
+
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+
 
 def test_netcdf_write_int64_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an int64 field."""
@@ -293,6 +295,7 @@ def test_netcdf_write_at_cells(tmpdir):
             ["x_bnds", "y_bnds", "topographic__elevation", "uplift_rate"]
         )
         root.close()
+
 
 def test_write_llc():
     pass

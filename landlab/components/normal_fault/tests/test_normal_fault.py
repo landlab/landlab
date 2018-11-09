@@ -100,6 +100,7 @@ def test_non_raster():
 
     assert_array_equal(nf.faulted_nodes, out)
 
+
 def test_dip_geq_90():
     """Test dip angles of >90 degrees."""
     grid = RasterModelGrid((6, 6), spacing=10)
@@ -152,6 +153,7 @@ def test_uplifting_multiple_fields():
 
     assert_array_equal(grid.at_node['topographic__elevation'], elev)
     assert_array_equal(grid.at_node['bedrock__elevation'], bedrock)
+
 
 def test_uplifting_a_not_yet_created_field():
     """Test uplifting a field that does not exist with  NormalFault."""

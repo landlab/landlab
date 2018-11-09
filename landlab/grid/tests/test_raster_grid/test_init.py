@@ -312,6 +312,7 @@ def test_links_at_node_with_no_args():
                [30, -1, 29, 25],
                [-1, -1, 30, 26]]))
 
+
 def test_face_at_link():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert_array_equal(rmg.face_at_link,

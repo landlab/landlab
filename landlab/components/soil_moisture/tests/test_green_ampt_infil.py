@@ -42,6 +42,7 @@ def test_calc_soil_pressure(si):
     np.testing.assert_almost_equal(si.calc_soil_pressure('silt loam'),
                                    0.1647870740305523, decimal=6)
 
+
 def test_calc_soil_head(si):
     soil_props = SoilInfiltrationGreenAmpt.SOIL_PROPS['loam']
     np.testing.assert_almost_equal(si.calc_pressure_head(soil_props[0],

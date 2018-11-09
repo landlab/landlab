@@ -30,6 +30,7 @@ def test_Bates_output_var_names(bates):
         )
     )
 
+
 def test_Bates_var_units(bates):
     assert set(bates.input_var_names) | set(bates.output_var_names) == set(dict(bates.units).keys())
 

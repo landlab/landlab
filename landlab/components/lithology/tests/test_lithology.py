@@ -5,13 +5,13 @@ Created on Mon Apr 30 09:17:36 2018
 
 @author: barnhark
 """
-
 import numpy as np
 from numpy.testing import assert_array_equal#, assert_array_almost_equal
 import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import Lithology, LithoLayers
+
 
 def test_bad_layer_method():
     """Test passing a bad name for the layer method."""
@@ -23,6 +23,7 @@ def test_bad_layer_method():
     with pytest.raises(ValueError):
         Lithology(mg, thicknesses, ids, attrs, layer_type='spam')
 
+
 def test_no_topographic__elevation():
     """Test init with no topo__elevation."""
     mg = RasterModelGrid(3, 3)
@@ -31,6 +32,7 @@ def test_no_topographic__elevation():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         Lithology(mg, thicknesses, ids, attrs)
+
 
 def test_thickness_ids_wrong_shape():
     """Test wrong size thickness and id shapes."""
@@ -61,6 +63,7 @@ def test_thickness_ids_wrong_shape():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         Lithology(mg, thicknesses, ids, attrs)
+
 
 def test_thickness_ndim3():
     """Test too many ndim for thickness."""
@@ -100,6 +103,7 @@ def test_thickness_nodes_wrong_shape():
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         Lithology(mg, thicknesses, ids, attrs)
+
 
 def test_atts_lack_ids():
     """Test Lithology missing ID."""
@@ -152,6 +156,7 @@ def test_deposit_with_bad_rock_id():
     new_ids = [0, 1, 3, 4, 0, 1, 0, 1, 5]
     with pytest.raises(ValueError):
         lith.add_layer(ones, rock_id=new_ids)
+
 
 def test_adding_existing_attribute():
     """Test adding an existing attribute."""
@@ -228,6 +233,7 @@ def test_adding_new_id_extra_attribute():
     with pytest.raises(ValueError):
         lith.add_rock_type(new_attr)
 
+
 def test_adding_new_id_missing_attribute():
     """Test adding an new rock type with an extra attribute."""
     mg = RasterModelGrid(3, 3)
@@ -289,6 +295,7 @@ def test_run_one_step_erodes_all_raises_error():
     z -= 30
     with pytest.raises(ValueError):
         lith.run_one_step()
+
 
 def test_rock_block_xarray():
     """Test that the xarray method works as expected."""

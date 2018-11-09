@@ -69,6 +69,7 @@ def test_sp_old():
 
     assert_array_almost_equal(mg.at_node['topographic__elevation'], z_trg)
 
+
 def test_sp_new():
     """
     Tests new style component instantiation and run.

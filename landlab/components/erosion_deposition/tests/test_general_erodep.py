@@ -120,6 +120,7 @@ def test_q_as_field():
                                err_msg='E/D discharge field test failed',
                                verbose=True)
 
+
 def test_q_as_array():
     """
     Test that passing in water discharge as an array results in self.q
@@ -162,6 +163,7 @@ def test_q_as_array():
                                ed.q,
                                err_msg='E/D discharge array test failed',
                                verbose=True)
+
 
 def test_sediment__flux_already_created():
     """

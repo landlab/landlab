@@ -29,6 +29,7 @@ def test_hugo_read_file_name():
     assert field.shape == (55 * 76, )
     assert (grid.x_of_node.min(), grid.y_of_node.min()) == (0.0, 0.0)
 
+
 def test_hugo_read_file_like():
     with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
@@ -312,6 +313,7 @@ def test_name_keyword():
     assert_array_almost_equal(grid.at_node['air__temperature'], field)
     assert grid.at_node['air__temperature'] is field
 
+
 def test_halo_keyword():
     (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \
                                                  '4_x_3.asc'), \
@@ -327,6 +329,7 @@ def test_halo_keyword():
                                  -9999.,     3.,     4.,     5., -9999.,
                                  -9999.,     0.,     1.,     2., -9999.,
                                  -9999., -9999., -9999., -9999., -9999.]))
+
 
 def test_halo_keyword_no_nodata_value():
     (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \

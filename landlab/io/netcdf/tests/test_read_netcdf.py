@@ -17,6 +17,7 @@ grid_mapping_keys = ['grid_mapping_name', 'longitude_of_central_meridian',
                      'longitude_of_prime_meridian', 'semi_major_axis',
                      'inverse_flattening', 'spatial_ref', 'GeoTransform']
 
+
 def test_read_netcdf3_64bit():
     """Test read_netcdf for with 64-bit netcdf3 format."""
     grid = read_netcdf(os.path.join(_TEST_DATA_DIR, "test-netcdf3-64bit.nc"))
@@ -31,6 +32,7 @@ def test_read_netcdf4():
 
     grid = read_netcdf(os.path.join(_TEST_DATA_DIR, 'test-netcdf4.nc'))
     assert grid.shape ==(4, 3)
+
 
 def test_read_llc():
     pass

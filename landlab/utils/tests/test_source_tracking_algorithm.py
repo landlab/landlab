@@ -59,6 +59,7 @@ def test_track_source():
     assert hsd_upstr[14] == [1, 1, 1, 1, 0, 0, 1]
     assert flow_accum[14] == 7
 
+
 def test_find_unique_upstream_hsd_ids_and_fractions():
     """Unit tests find_unique_upstream_hsd_ids_and_fractions().
     """

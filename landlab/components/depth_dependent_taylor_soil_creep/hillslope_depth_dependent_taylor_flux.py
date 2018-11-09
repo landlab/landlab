@@ -10,6 +10,8 @@ DepthDependentTaylorNonLinearDiffuser Component
 from landlab import Component
 import numpy as np
 from landlab import INACTIVE_LINK
+
+
 class DepthDependentTaylorDiffuser(Component):
 
     """

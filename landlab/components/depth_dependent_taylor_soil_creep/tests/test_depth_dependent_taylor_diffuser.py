@@ -64,6 +64,7 @@ def test_4x7_grid_vs_analytical_solution():
     assert_array_equal(np.round(mg.at_node['soil__depth'][8:13], 2),
                        np.array([0.35, 0.35, 0.35, 0.35, 0.35]))
 
+
 def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
     soilTh = mg.add_zeros('node', 'soil__depth')
@@ -78,6 +79,7 @@ def test_raise_stability_error():
     with pytest.raises(RuntimeError):
         DDdiff.soilflux(10, if_unstable='raise')
 
+
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
     soilTh = mg.add_zeros('node', 'soil__depth')
@@ -88,6 +90,7 @@ def test_raise_kwargs_error():
     soilTh[:] = z - BRz
     with pytest.raises(TypeError):
         DepthDependentTaylorDiffuser(mg, diffusivity=1)
+
 
 def test_infinite_taylor_error():
 

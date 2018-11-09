@@ -19,12 +19,14 @@ def test_raise_stability_error():
     with pytest.raises(RuntimeError):
         Cdiff.soilflux(10, if_unstable='raise')
 
+
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
     z += mg.node_x.copy()**2
     with pytest.raises(TypeError):
         TaylorNonLinearDiffuser(mg, bad_name='true')
+
 
 def test_infinite_taylor_error():
     mg = RasterModelGrid((5, 5))

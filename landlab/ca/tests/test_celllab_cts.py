@@ -225,6 +225,7 @@ def test_priority_queue():
     assert (index == 1), 'incorrect index in PQ test'
     assert (item == 5), 'incorrect item in PQ test'
 
+
 def test_run_oriented_raster():
     """Test running with a small grid, 2 states, 4 transition types."""
 

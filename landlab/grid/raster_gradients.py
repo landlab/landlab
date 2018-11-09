@@ -503,6 +503,7 @@ def calc_unit_normals_at_cell_subtriangles(grid,
             n_SSE[node_at_cell,:],
             n_ESE[node_at_cell,:])
 
+
 def _calc_subtriangle_unit_normals_at_node(grid,
                                            elevs='topographic__elevation'):
     """Private Function: Calculate unit normals on subtriangles at all nodes.
@@ -777,6 +778,7 @@ def _calc_subtriangle_unit_normals_at_node(grid,
 
     return (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
 
+
 def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
                                     subtriangle_unit_normals=None):
     """Calculate the slope (positive magnitude of gradient) at each of the
@@ -870,6 +872,7 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
         s_SSE[node_at_cell],
         s_ESE[node_at_cell],
     )
+
 
 def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
                                      subtriangle_unit_normals=None):
@@ -999,6 +1002,7 @@ def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
     s_ESE = slopes_at_cell_subtriangles[:, 7].reshape(reshape_size)
 
     return (s_ENE, s_NNE, s_NNW, s_WNW, s_WSW, s_SSW, s_SSE, s_ESE)
+
 
 def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
                                      subtriangle_unit_normals=None,
@@ -1263,6 +1267,7 @@ def _calc_subtriangle_aspect_at_node(grid, elevs='topographic__elevation',
                 angle_from_north_cw_ESE)
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")
+
 
 def calc_unit_normals_at_patch_subtriangles(grid,
                                             elevs='topographic__elevation'):

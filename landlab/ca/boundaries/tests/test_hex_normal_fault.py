@@ -30,6 +30,7 @@ def test_links_to_update():
                                              56, 60, 62, 68, 70, 73, 76, 77,
                                              80])
 
+
 def test_shift_link_and_transition_data_upward():
     """Test the LatticeUplifter method that uplifts link data and tr'ns."""
 

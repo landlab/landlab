@@ -3,6 +3,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components import ChiFinder, FlowAccumulator
 
+
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
     z = mg.add_zeros('node', 'topographic__elevation')

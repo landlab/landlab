@@ -29,6 +29,7 @@ def test_deprecation_raised():
     with pytest.deprecated_call():
         FlowRouter(mg)
 
+
 def test_check_fields(dans_grid1):
     """Check to make sure the right fields have been created."""
     FlowRouter(dans_grid1.mg)

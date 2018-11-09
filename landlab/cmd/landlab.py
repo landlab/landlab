@@ -60,6 +60,7 @@ def get_users_of(var):
 
     return users
 
+
 def get_providers_of(var):
     """Get components that provide a variable."""
     providers = []

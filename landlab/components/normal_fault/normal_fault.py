@@ -10,7 +10,8 @@ import numpy as np
 from landlab import Component, FieldError
 
 
-TWO_PI = 2.0*np.pi
+TWO_PI = 2.0 * np.pi
+
 
 class NormalFault(Component):
     """NormalFault implements relative rock motion due to a normal fault.

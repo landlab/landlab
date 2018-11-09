@@ -1035,6 +1035,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         if return_outlet_id:
             return as_id_array(numpy.array([outlet_loc]))
 
+
 def from_dict(param_dict):
     """
     Create a HexModelGrid from the dictionary-like object, *param_dict*.
