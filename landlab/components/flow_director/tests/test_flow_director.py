@@ -56,11 +56,11 @@ def test_fields_already_added():
     )
     r = mg.add_field("flow__receiver_node", mg.nodes, at="node")
     s = mg.add_field("topographic__steepest_slope", mg.nodes, at="node")
-    l = mg.add_field("flow__link_to_receiver_node", mg.nodes, at="node")
+    links_to_receiver = mg.add_field("flow__link_to_receiver_node", mg.nodes, at="node")
     fd = _FlowDirectorToOne(mg, "topographic__elevation")
 
     assert_array_equal(r, fd.receiver)
-    assert_array_equal(l, fd.links_to_receiver)
+    assert_array_equal(links_to_receiver, fd.links_to_receiver)
     assert_array_equal(s, fd.steepest_slope)
 
 
