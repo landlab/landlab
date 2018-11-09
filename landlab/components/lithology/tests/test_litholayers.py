@@ -38,9 +38,8 @@ def test_bad_function():
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    func = lambda x, y, z: 0*x + 0*y + z
     with pytest.raises(ValueError):
-        LithoLayers(mg, z0s, ids, attrs, function=func)
+        LithoLayers(mg, z0s, ids, attrs, function=lambda x, y, z: 0*x + 0*y + z)
 
 
 def test_function_returns_scalar():
@@ -48,9 +47,8 @@ def test_function_returns_scalar():
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    func = lambda x, y: 1.0
     with pytest.raises(ValueError):
-        LithoLayers(mg, z0s, ids, attrs, function=func)
+        LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: 1.0)
 
 
 def test_function_returns_wrong_number_of_values():
@@ -58,6 +56,5 @@ def test_function_returns_wrong_number_of_values():
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
     attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
-    func = lambda x, y: np.array([1.0])
     with pytest.raises(ValueError):
-        LithoLayers(mg, z0s, ids, attrs, function=func)
+        LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: np.array([1.0]))

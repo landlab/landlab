@@ -292,7 +292,6 @@ def test_run_one_step_erodes_all_raises_error():
 
 def test_rock_block_xarray():
     """Test that the xarray method works as expected."""
-    func = lambda x, y : x + y
     sample_depths = np.arange(0, 10, 1)
 
     mg = RasterModelGrid((3, 3), 1)
@@ -305,7 +304,7 @@ def test_rock_block_xarray():
                       2: 0.0002,
                       3: 0.0004}}
 
-    lith = LithoLayers(mg, layer_elevations, layer_ids, function=func, attrs=attrs)
+    lith = LithoLayers(mg, layer_elevations, layer_ids, function=lambda x, y : x + y, attrs=attrs)
     ds = lith.rock_cube_to_xarray(sample_depths)
     expected_array = np.array([[[ 3.,  2.,  2.],
                                 [ 2.,  2.,  2.],
