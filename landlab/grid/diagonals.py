@@ -321,7 +321,6 @@ class DiagonalsMixIn(object):
         diagonals_at_node[diagonals_at_node >= 0] += self.number_of_links
         return np.hstack((super(DiagonalsMixIn, self).links_at_node,
                           diagonals_at_node))
-                          # self.diagonals_at_node + self.number_of_links))
 
     @property
     @cache_result_in_object()

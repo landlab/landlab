@@ -493,7 +493,7 @@ def calc_unit_normals_at_cell_subtriangles(grid,
      n_SSE,
      n_ESE)=_calc_subtriangle_unit_normals_at_node(grid,elevs=elevs)
 
-     # return only those at cell.
+    # return only those at cell.
     return (n_ENE[node_at_cell,:],
             n_NNE[node_at_cell,:],
             n_NNW[node_at_cell,:],
@@ -687,7 +687,7 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     nhat_SSE = np.cross(diff_xyz_IV, diff_xyz_IW)
     nhat_ESE = np.cross(diff_xyz_IW, diff_xyz_IP)
 
-     # now remove the bad subtriangles based on parts of the grid
+    # now remove the bad subtriangles based on parts of the grid
     # make the bad subtriangle of length greater than one.
     bad = np.nan*np.ones((3,))
 
@@ -1073,7 +1073,7 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
     LLCATS: CINF SURF
     """
 
-     # calculate all subtriangle slopes
+    # calculate all subtriangle slopes
     (angle_ENE,
      angle_NNE,
      angle_NNW,

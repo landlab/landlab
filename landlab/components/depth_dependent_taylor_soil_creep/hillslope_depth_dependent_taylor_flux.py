@@ -337,7 +337,7 @@ class DepthDependentTaylorDiffuser(Component):
             self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
 
             # Test for time stepping courant condition
-             # Test for time stepping courant condition
+            # Test for time stepping courant condition
             courant_slope_term = 0.0
             courant_s_over_scrit = self.slope.max() / self.slope_crit
             for i in range(0, 2*self.nterms, 2):

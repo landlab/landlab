@@ -219,7 +219,7 @@ class GrainHill(CTSModel):
 
             # Run the model forward in time until the next output step
             self.ca.run(next_pause, self.ca.node_state)
-                   #plot_each_transition=pet, plotter=self.ca_plotter)
+            # plot_each_transition=pet, plotter=self.ca_plotter)
             current_time = next_pause
 
             # Handle output to file
