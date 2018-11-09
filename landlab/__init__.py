@@ -9,8 +9,11 @@
 :URL: http://csdms.colorado.edu/trac/landlab
 :License: MIT
 """
-
 from __future__ import absolute_import
+
+if "DISPLAY" not in os.environ:
+    import matplotlib
+    matplotlib.use("Agg")
 
 import os
 
@@ -62,15 +65,6 @@ finally:
     del set_printoptions
 
 cite_as = registry.format_citations
-
-if "DISPLAY" not in os.environ:
-    try:
-        import matplotlib
-    except ImportError:
-        import warnings
-        warnings.warn("matplotlib not found", ImportWarning)
-    else:
-        matplotlib.use("Agg")
 
 
 __all__ = [
