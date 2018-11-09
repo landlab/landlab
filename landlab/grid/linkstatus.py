@@ -167,5 +167,3 @@ def set_status_at_link(node_status_at_link, out=None):
     out[_is_fixed_link] = FIXED_LINK
 
     return out
-
-

@@ -150,6 +150,3 @@ def test_diffusion_no_deposit():
     z_7_after = z[7]
     
     assert_equal(z_7_before, z_7_after)
-    
-    
-

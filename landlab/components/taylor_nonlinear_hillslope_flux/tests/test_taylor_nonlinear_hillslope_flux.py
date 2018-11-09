@@ -48,4 +48,3 @@ def test_infinite_taylor_error():
 #        # Verify some things
 #        assert len(w) == 1
 #        assert issubclass(w[-1].category, RuntimeWarning)
-

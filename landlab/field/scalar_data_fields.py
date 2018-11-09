@@ -492,4 +492,3 @@ class ScalarDataFields(dict):
             return super(ScalarDataFields, self).__getitem__(name)
         except KeyError:
             raise FieldError(name)
-
