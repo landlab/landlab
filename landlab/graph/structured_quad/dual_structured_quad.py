@@ -176,7 +176,7 @@ def get_corners(node_y_and_x, shape):
     y_of_node, x_of_node = (np.asarray(node_y_and_x[0], dtype=float),
                             np.asarray(node_y_and_x[1], dtype=float))
     y_of_node.shape = x_of_node.shape = shape
-    
+
     x_of_corner = (x_of_node[:-1, :-1] + x_of_node[:-1, 1:] +
                    x_of_node[1:, :-1] + x_of_node[1:, 1:]) * .25
     y_of_corner = (y_of_node[:-1, :-1] + y_of_node[:-1, 1:] +

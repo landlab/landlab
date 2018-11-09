@@ -111,7 +111,7 @@ def test_raster_cts():
         # pop the scheduled event off the queue
         ev = heappop(ca.event_queue)
         assert (ca.event_queue==[]), 'event queue should now be empty but is not'
-    
+
         # engineer an event
         ev.time = 1.0
         ev.link = 8
@@ -119,7 +119,7 @@ def test_raster_cts():
         ev.propswap = True
         ev.prop_update_fn = callback_function
         ca.next_update[8] = 1.0
-    
+
         # push it onto the event queue
         heappush(ca.event_queue, ev)
 
@@ -173,19 +173,19 @@ def test_oriented_hex_cts():
     xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-    
+
     assert ohcts.num_link_states == 12
     #assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
     assert_array_equal(ohcts.link_orientation, [2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1])
-    
-    
+
+
 def test_priority_queue():
     """Test import and use of priority queue."""
     from ..cfuncs import PriorityQueue
-    
+
     # Create a priority queue
     pq = PriorityQueue()
-    
+
     # push a bunch of events
     pq.push(2, 2.2)
     pq.push(5, 5.5)

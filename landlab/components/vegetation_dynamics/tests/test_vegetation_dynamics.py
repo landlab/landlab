@@ -65,7 +65,7 @@ def test_field_getters(veg):
         field = veg.grid['node'][name]
         assert isinstance(field, np.ndarray)
         assert field.shape == (veg.grid.number_of_node_rows * veg.grid.number_of_node_columns, )
-                      
+
     for name in veg.grid['cell']:
         field = veg.grid['cell'][name]
         assert isinstance(field, np.ndarray)

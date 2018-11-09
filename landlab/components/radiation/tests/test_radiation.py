@@ -53,7 +53,7 @@ def test_field_getters(rad):
         field = rad.grid['node'][name]
         assert isinstance(field, np.ndarray)
         assert field.shape == (rad.grid.number_of_node_rows * rad.grid.number_of_node_columns, )
-                      
+
     for name in rad.grid['cell']:
         field = rad.grid['cell'][name]
         assert isinstance(field, np.ndarray)

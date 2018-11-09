@@ -47,7 +47,7 @@ def remap(src, mapping, out=None, inplace=False):
             out = src.copy()
         else:
             out[:] = src[:]
-    
+
     remap_graph_element(out.reshape((-1, )), mapping)
 
     return out

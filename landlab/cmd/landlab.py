@@ -21,7 +21,7 @@ def get_all_components_by_name():
 
 def get_components(*args):
     """Get components by name.
-    
+
     Parameters
     ----------
     names : list of str, optional

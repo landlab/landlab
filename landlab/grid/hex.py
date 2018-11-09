@@ -642,7 +642,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
     def node_row_and_column(self, node_id):
         """Row and column from node ID, FOR VERT RECT CONFIGURATION ONLY.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -665,7 +665,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         half_nc = (nc + 1) // 2
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
         return (row, col)            
-            
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """

@@ -22,8 +22,8 @@ def test_raise_kwargs_error():
     ExponentialWeatherer(mg)
     with pytest.raises(TypeError):
         DepthDependentDiffuser(mg, diffusivity=1)
-    
+
     DDdiff = DepthDependentDiffuser(mg)
-    
+
     with pytest.raises(TypeError):
         DDdiff.soilflux(2., bad_var=1)

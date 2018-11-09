@@ -51,8 +51,8 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-            
-            
+
+
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
@@ -79,7 +79,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     """Calculate divergence of link-based fluxes at cells.
 
     This function is very similar to the function *calc_flux_div_at_node*. 
-    
+
     Given a flux per unit width across each cell face in the grid, calculate 
     the net outflux (or influx, if negative) divided by cell area, at each 
     cell.
@@ -124,7 +124,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
     >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
     array([ 1.64,  0.94])
-            
+
     Notes
     -----
     Performs a numerical flux divergence operation at cells.
@@ -589,7 +589,7 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links,
     """
     if out is None:
         out = grid.zeros(at='node')
-    
+
     out[grid.node_at_cell] = _calc_net_active_face_flux_at_cell(grid, 
                                 unit_flux_at_links[grid.link_at_face]) \
                                 / grid.area_of_cell

@@ -188,7 +188,7 @@ def _read_netcdf_structured_data(root):
                 if type(grid_mapping) is bytes:
                     grid_mapping = grid_mapping.decode("utf-8") 
                 grid_mapping_exists = True
-          
+
     dont_use = list(_COORDINATE_NAMES)
     if grid_mapping_exists:
         dont_use.append(grid_mapping)
@@ -196,7 +196,7 @@ def _read_netcdf_structured_data(root):
         if name not in dont_use:
             fields[name] = var[:].copy()
             fields[name].shape = (fields[name].size, )    
-        
+
     if grid_mapping_exists:
         grid_mapping_variable = root.variables[grid_mapping]            
         grid_mapping_dict = {'name': grid_mapping}
@@ -321,11 +321,11 @@ def read_netcdf(nc_file, just_grid=False):
         fields, grid_mapping_dict = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
             grid.add_field('node', name, values)
-            
+
     # save grid mapping
     if grid_mapping_dict is not None:
         grid.grid_mapping = grid_mapping_dict
-        
+
     root.close()
 
     return grid

@@ -218,7 +218,7 @@ class SoilInfiltrationGreenAmpt(Component):
                               volume_fraction_coarse_fragments=0.,
                               soil_moisture_content=0.):
         """Calculate the moisture deficit in a soil.
-        
+
         Parameters
         ----------
         soil_bulk_density : float or array of float
@@ -267,7 +267,7 @@ class SoilInfiltrationGreenAmpt(Component):
     def hydraulic_conductivity(self):
         """Hydraulic conductivity of soil."""
         return self._hydraulic_conductivity
-    
+
     @hydraulic_conductivity.setter
     def hydraulic_conductivity(self, new_value):
         if isinstance(new_value, six.string_types):
@@ -312,7 +312,7 @@ class SoilInfiltrationGreenAmpt(Component):
         assert(np.all(infiltration_depth >= 0.))
 
         wettingfront_depth = infiltration_depth / self.moisture_deficit
-        
+
         potential_infilt = dt * self.hydraulic_conductivity * (
             (wettingfront_depth + self.capillary_pressure + water_depth) /
             wettingfront_depth)

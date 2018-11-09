@@ -58,7 +58,7 @@ def test_field_getters(pet):
         assert isinstance(field, np.ndarray)
         assert field.shape == (pet.grid.number_of_node_rows *
                                pet.grid.number_of_node_columns, )
-                      
+
     for name in pet.grid['cell']:
         field = pet.grid['cell'][name]
         assert isinstance(field, np.ndarray)

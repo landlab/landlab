@@ -35,12 +35,11 @@ def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
                     if o1  != o2:
                         value_err += "Value of %s%s (%s) not same as %s%s (%s)\n"\
                             % (dict_1_name, path, dict_1[k], dict_2_name, path, dict_2[k])
-                            
                 except ValueError:
                     if not np.array_equal(np.asarray(o1), np.asarray(o1)):
                         value_err += "Value of %s%s (%s) not same as %s%s (%s)\n"\
                             % (dict_1_name, path, dict_1[k], dict_2_name, path, dict_2[k])
-                    
+
     for k in dict_2.keys():
         path = old_path + "[%s]" % k
         if k not in dict_1:
@@ -56,11 +55,11 @@ def test_pickle():
     z += mg1.node_x.copy()
     fa = FlowAccumulator(mg1, flow_director='D8')
     fa.run_one_step()
-    
+
     # save it with pickle
     with open('testsavedgrid.grid', 'wb') as f:
         pickle.dump(mg1, f)
-    
+
     # load it with pickle
     with open('testsavedgrid.grid', 'rb') as f:
         mg2 = pickle.load(f)
@@ -101,11 +100,11 @@ def test_save():
     z += mg1.node_x.copy()
     fa = FlowAccumulator(mg1, flow_director='D8')
     fa.run_one_step()
-    
+
     save_grid(mg1, 'testsavedgrid.grid')
-    
+
     mg2 = load_grid('testsavedgrid.grid')
-    
+
     os.remove('testsavedgrid.grid')
 
     assert mg1.shape == mg2.shape
@@ -119,7 +118,7 @@ def test_save():
     #     len(mg1.__dict__) == len(mg2.__dict__)
     #     mg1keys = sorted(list(mg1.__dict__.keys()))
     #     mg2keys = sorted(list(mg2.__dict__.keys()))
-        
+
     #     for i in range(len(mg1keys)):
     #         assert_equal(mg1keys[i], mg2keys[i])
 

@@ -34,7 +34,7 @@ def test_initialization():
 
 def test_first_iteration():
     """Test stuff that happens only on first iteration"""
-    
+
     # Create a basic ramp
     rg = RasterModelGrid((10,10), spacing=(2, 2))
     rg.add_field('topographic__elevation', 0.1 * rg.node_y, at='node')

@@ -57,7 +57,7 @@ class CTSModel(object):
 
         # Initialize values of the node-state grid
         nsg = self.initialize_node_state_grid()
-        
+
         # Create the transition list
         xn_list = self.transition_list()
 
@@ -101,7 +101,7 @@ class CTSModel(object):
 
     def node_state_dictionary(self):
         """Create and return a dictionary of all possible node (cell) states.
-        
+
         This method creates a default set of states (just two); it is a
         template meant to be overridden.
         """
@@ -112,7 +112,7 @@ class CTSModel(object):
 
     def transition_list(self):
         """Create and return a list of transition objects.
-        
+
         This method creates a default set of transitions (just two); it is a
         template meant to be overridden.
         """
@@ -130,7 +130,7 @@ class CTSModel(object):
 
     def initialize_node_state_grid(self):
         """Initialize values in the node-state grid.
-        
+
         This method should be overridden. The default is random "on" and "off".        
         """
         num_states = 2

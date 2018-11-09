@@ -29,7 +29,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).
-    
+
     This component will ignore soil thickness located at non-core nodes.
 
     Parameters
@@ -258,7 +258,7 @@ class DepthDependentTaylorDiffuser(Component):
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit
         self.nterms = nterms
-        
+
         # create fields
         # elevation
         if 'topographic__elevation' in self.grid.at_node:

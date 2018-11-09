@@ -120,7 +120,8 @@ def test_diffusion():
                             5.80291603e-05,   4.34416626e-04])
 
     assert_array_almost_equal(mg.at_node['topographic__elevation'], z_target)
-    
+
+
 def test_diffusion_no_deposit():
     # Make an array with three core nodes, in one column.
     # Because there is zero slope between two of the nodes, there 
@@ -133,7 +134,7 @@ def test_diffusion_no_deposit():
     z[7]=3.
     z[10]=4.
     mg['node']['topographic__elevation'] = z
-    
+
     # The gradient at node 7 should be zero, so the elevation here would
     # go up if deposition was allowed. Maker sure it doesn't change with 
     # deposit set to 'False'
@@ -144,9 +145,9 @@ def test_diffusion_no_deposit():
     # instantiate:
     dfn = LinearDiffuser(mg, linear_diffusivity=1., method='simple',
                  deposit=False)
-    
+
     dfn.run_one_step(100)
-    
+
     z_7_after = z[7]
-    
+
     assert_equal(z_7_before, z_7_after)

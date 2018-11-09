@@ -18,7 +18,7 @@ def test_inactive_boundaries():
                   [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
                   [-1, -1, -1, -1, -1,  8, -1, -1, -1, -1, -1, -1]]))
 
- 
+
 def test_inactive_interiors():
     rmg = RasterModelGrid(4, 5, 1.)
     rmg.set_closed_nodes([6, 12])

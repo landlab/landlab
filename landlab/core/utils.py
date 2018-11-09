@@ -298,7 +298,7 @@ def add_module_functions_to_class(cls, module, pattern=None):
     import inspect
     import imp
     import os
-    
+
     caller = inspect.stack()[1]
     path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
 
@@ -399,7 +399,7 @@ def argsort_points_by_x_then_y(points):
     -------
     ndarray of int, shape `(n_points, )`
         Indices of sorted points.
-    
+
     Examples
     --------
     >>> import numpy as np
@@ -479,9 +479,9 @@ def sort_points_by_x_then_y(pts):
 
 def anticlockwise_argsort_points(pts, midpt=None):
     """Argort points into anticlockwise order around a supplied center.
-        
+
         Sorts CCW from east. Assumes a convex hull.
-        
+
         Parameters
         ----------
         pts : Nx2 NumPy array of float
@@ -494,7 +494,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
         -------
         pts : N NumPy array of int
             sorted (x,y) points
-        
+
         Examples
         --------
         >>> import numpy as np

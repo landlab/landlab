@@ -209,9 +209,9 @@ class LinearDiffuser(Component):
         if self._use_patches:
             assert self._kd_on_links
         # set _deposit flag to tell code whether or not diffusion can deposit.    
-        
+
         self._deposit = deposit
-    
+
         # for component back compatibility (undocumented):
         # note component can NO LONGER do internal uplift, at all.
         # ###

@@ -191,7 +191,7 @@ def test_scalar_field():
 
     fields.at_all_over_the_place['const'] = 1.
     assert_array_equal(np.array(1.), fields.at_all_over_the_place['const'])
-    
+
     val = np.array(2.)
     fields.at_all_over_the_place['const'] = val
     assert val is fields.at_all_over_the_place['const']
@@ -219,7 +219,7 @@ def test_grid_field_add_zeros_ones_empty():
     """Test creating scalar fields with add_zeros, add_empty, and add_ones."""
     fields = ModelDataFields()
     fields.new_field_location('grid', 1)
-    
+
     with pytest.raises(ValueError):
         fields.add_zeros('value', at='grid')
     with pytest.raises(ValueError):

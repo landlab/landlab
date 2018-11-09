@@ -425,7 +425,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         16
         >>> lnf.first_link_shifted_to
         37
-        
+
         >>> pid = np.arange(36, dtype=int)
         >>> pdata = np.arange(36)
         >>> ns = np.arange(36, dtype=int)
@@ -880,7 +880,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         For each link that lies above the y = 1.5 cells line, assign the
         properties of the link one row down.
-        
+
         (For an example, see unit test:
             test_shift_link_and_transition_data_upward)
         """

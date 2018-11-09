@@ -30,7 +30,7 @@ def earth_colormap():
               'blue'  : ((0.0, 0.0, 179.0/255.0),
                          (1.0, 24.0/255.0, 1.0)) }
     return LinearSegmentedColormap('landlab_earth', cdict)
-    
+
 
 def colormap(name):
     """Return named Landlab colormap as a matplotlib colormap.

@@ -84,7 +84,7 @@ an erodibility factor ('k_e').
 
 Now we test to see how the topography changed as a function of the erosion
 rate. First, we'll look at the erosion rate:
-    
+
 >>> dspe.dz   # doctest: +NORMALIZE_WHITESPACE 
 array([ 0.    , -2.4525, -2.4525, -2.4525,  0.    ,  0.    , -1.962 ,
        -1.962 , -1.962 ,  0.    ,  0.    , -1.4715, -1.4715, -1.4715,
@@ -186,9 +186,7 @@ class DepthSlopeProductErosion(Component):
     def erode(self, dt, elevs='topographic__elevation', 
                           depth='surface_water__depth', 
                           slope='topographic__slope'):
-            
         """Erode into grid topography.
-        
 
         For one time step, this erodes into the grid topography using
         the water discharge and topographic slope.
@@ -206,30 +204,27 @@ class DepthSlopeProductErosion(Component):
         slope : str, optional
             Name of the field that represent topographic slope on each node.
         """
-        
-        
         try:
             S = self._grid.at_node[slope]
         except FieldError:
             raise ValueError('Slope field is missing!')
-            
+
         try:
             h = self._grid.at_node[depth]
         except FieldError:
             raise ValueError('Depth field is missing!')
 
         self.tau = self.rho * self.g * h * S
-        
+
         greater_than_tc,  = np.where(self.tau >= self.tau_crit)
         less_than_tc,  = np.where(self.tau < self.tau_crit)
-        
+
         self.E[less_than_tc] = 0.0
-        
+
         self.E[greater_than_tc] = (self.k_e * 
                                  ((self.tau[greater_than_tc] ** self.a) - 
                                  (self.tau_crit ** self.a)))
-        
-        
+
         self.E[self.E < 0.0] = 0.0
 
         self.dz = (self.uplift_rate - self.E) * dt
@@ -239,5 +234,5 @@ class DepthSlopeProductErosion(Component):
     def run_one_step(self, dt, elevs='topographic__elevation', 
                           depth='surface_water__depth', 
                           slope='topographic__slope'):
-        
+
         self.erode(dt=dt, elevs=elevs, depth=depth, slope=slope)

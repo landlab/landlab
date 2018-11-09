@@ -17,12 +17,12 @@ import numpy as np
 
 def test_links_to_update():
     """Test that update list includes lower 2 rows and fault-crossing links"""
-    
+
     # Create a 6x6 test grid
     hg = HexModelGrid(6, 6, shape='rect', orientation='vert')
 
     lnf = LatticeNormalFault(grid=hg, fault_x_intercept=-0.1)
-    
+
     assert_array_equal(lnf.links_to_update, [ 8,  9, 11, 12, 13, 14, 15, 16,
                                              18, 19, 20, 21, 22, 24, 25, 26,
                                              27, 28, 29, 30, 31, 32, 35, 36,
@@ -41,24 +41,24 @@ def test_shift_link_and_transition_data_upward():
     xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'frogging'))
     nsg = mg.add_zeros('node', 'node_state_grid')
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-    
+
     assert_array_equal(ohcts.link_state[mg.active_links], 
                        [0, 4, 8, 8, 4, 0, 4, 8, 8, 4, 0])
-        
+
     assert_array_equal(ohcts.next_trn_id[mg.active_links],
                        [0, 1, 2, 2, 1, 0, 1, 2, 2, 1, 0])
-        
+
     assert_array_equal(np.round(ohcts.next_update[mg.active_links], 2),
                        [0.8 , 1.26, 0.92, 0.79, 0.55, 1.04, 0.58, 2.22, 3.31,
                         0.48, 1.57])
-    
+
     pq = ohcts.priority_queue
 
     assert_equal(pq._queue[0][2], 20)  # link for first event = 20, not shifted
     assert_equal(round(pq._queue[0][0], 2), 0.48)  # trn scheduled for t = 0.48
     assert_equal(pq._queue[2][2], 15)  # this event scheduled for link 15...
     assert_equal(round(pq._queue[2][0], 2), 0.58)  # ...trn sched for t = 0.58
-    
+
     lu = LatticeUplifter(grid=mg)
     lu.shift_link_and_transition_data_upward(ohcts, 0.0)
 

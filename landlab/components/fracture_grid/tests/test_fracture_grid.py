@@ -14,13 +14,12 @@ from numpy.testing import assert_array_equal
 
 
 def test_frac_grid():
-    
     frac_spacing = 3
     nrows = 9
     ncols = 9
-    
+
     fg = make_frac_grid(frac_spacing, nrows, ncols, seed=1)
-    
+
     assert_array_equal(fg, [[1, 0, 0, 0, 0, 0, 1, 1, 0],
                             [0, 0, 0, 0, 1, 1, 0, 0, 0],
                             [1, 1, 1, 1, 1, 1, 1, 0, 0],
@@ -30,6 +29,3 @@ def test_frac_grid():
                             [0, 0, 0, 0, 1, 1, 1, 0, 0],
                             [0, 0, 0, 0, 0, 1, 1, 1, 0],
                             [0, 0, 0, 0, 0, 0, 0, 1, 1]])
-    
-if __name__=='__main__':
-    test_frac_grid()

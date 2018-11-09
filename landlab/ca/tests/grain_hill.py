@@ -68,11 +68,11 @@ class GrainHill(CTSModel):
 
         self.uplifter = LatticeUplifter(self.grid, 
                                         self.grid.at_node['node_state'])
-                                        
+
     def node_state_dictionary(self):
         """
         Create and return dict of node states.
-        
+
         Overrides base-class method. Here, we simply call on a function in
         the lattice_grain module.
         """
@@ -89,13 +89,13 @@ class GrainHill(CTSModel):
                     self.disturbance_rate, self.weathering_rate,
                     collapse_rate=self.collapse_rate)
         return xn_list
-        
+
     def add_weathering_and_disturbance_transitions(self, xn_list, d=0.0, w=0.0,
                                                    collapse_rate=0.0):
         """
         Add transition rules representing weathering and/or grain disturbance
         to the list, and return the list.
-        
+
         Parameters
         ----------
         xn_list : list of Transition objects
@@ -109,7 +109,7 @@ class GrainHill(CTSModel):
         w : float (optional)
             Rate of transition (1/time) from fluid / rock pair to
             fluid / resting-grain pair, representing weathering.
-        
+
         Returns
         -------
         xn_list : list of Transition objects
@@ -172,7 +172,7 @@ class GrainHill(CTSModel):
                 if (self.grid.node_x[i] > 0.0 and
                     self.grid.node_x[i] < right_side_x):
                     nsg[i] = 7
-        
+
         # Place "wall" particles in the lower-left and lower-right corners
         if self.grid.number_of_node_columns % 2 == 0:
             bottom_right = self.grid.number_of_node_columns - 1
@@ -180,7 +180,7 @@ class GrainHill(CTSModel):
             bottom_right = self.grid.number_of_node_columns // 2
         nsg[0] = 8  # bottom left
         nsg[bottom_right] = 8
-        
+
         return nsg
 
 
@@ -208,7 +208,7 @@ class GrainHill(CTSModel):
             next_pause = min(next_output, next_plot)
             next_pause = min(next_pause, next_uplift)
             next_pause = min(next_pause, self.run_duration)
-    
+
             # Once in a while, print out simulation and real time to let the user
             # know that the sim is running ok
             current_real_time = time.time()
@@ -216,7 +216,7 @@ class GrainHill(CTSModel):
                 print('Current sim time' + str(current_time) + '(' + \
                       str(100 * current_time / self.run_duration) + '%)')
                 next_report = current_real_time + self.report_interval
-    
+
             # Run the model forward in time until the next output step
             self.ca.run(next_pause, self.ca.node_state) 
                    #plot_each_transition=pet, plotter=self.ca_plotter)
@@ -239,10 +239,10 @@ class GrainHill(CTSModel):
                 self.uplifter.uplift_interior_nodes(self.ca, current_time,
                                                     rock_state=self.rock_state)
                 next_uplift += self.uplift_interval
-        
+
     def get_profile_and_soil_thickness(self, grid, data):
         """Calculate and return profiles of elevation and soil thickness.
-        
+
         Examples
         --------
         >>> from landlab import HexModelGrid
@@ -268,7 +268,7 @@ class GrainHill(CTSModel):
             else:
                 elev[col] = amax(rows_with_rock_or_sed) + 0.5 * (col % 2)
             soil[col] = count_nonzero(logical_and(states > 0, states < 8))
-        
+
         return elev, soil
 
 

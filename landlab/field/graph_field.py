@@ -642,7 +642,7 @@ class GraphFields(object):
             group = kwds.pop('at', kwds.pop('centering', 'node'))
         else:
             group = args[0]
-        
+
         if group == 'grid':
             raise ValueError("ones is not supported for at='grid', if you "
                              "want to create a field at the grid, use\n"
@@ -708,7 +708,7 @@ class GraphFields(object):
         arguments are the same as that for the equivalent numpy function.
 
         This method is not valid for the group *grid*.        
-        
+
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
@@ -744,7 +744,7 @@ class GraphFields(object):
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
         copy of the provided array.
-        
+
         In the case of adding to the collection *grid*, the added field is a
         numpy scalar rather than a numpy array. 
 
@@ -874,7 +874,7 @@ class GraphFields(object):
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
-        
+
         This method is not valid for the group *grid*.
 
         Parameters
@@ -925,7 +925,7 @@ class GraphFields(object):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
-        
+
         This method is not valid for the group *grid*.
 
         Parameters

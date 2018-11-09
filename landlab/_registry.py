@@ -91,7 +91,7 @@ class ComponentRegistry(object):
 
     def add(self, cls):
         """Add a class to the registry.
-        
+
         Parameters
         ----------
         cls : Component
@@ -103,7 +103,7 @@ class ComponentRegistry(object):
     @property
     def registered(self):
         """All registered classes.
-        
+
         Returns
         -------
         tuple
@@ -125,12 +125,12 @@ class ComponentRegistry(object):
     @staticmethod
     def format_citation(obj):
         """Format a single citation.
-        
+
         Parameters
         ----------
         obj : Component
             A landlab component class or instance.
-        
+
         Returns
         -------
         str
@@ -226,7 +226,7 @@ class ComponentRegistry(object):
 
     def format_citations(self):
         """Format citations for all registered components.
-        
+
         Returns
         -------
         str
@@ -299,8 +299,6 @@ class ComponentRegistry(object):
 
     def __repr__(self):
         return 'ComponentRegistry({0})'.format(repr(self.registered))
-
-
 
 
 registry = ComponentRegistry(_info)

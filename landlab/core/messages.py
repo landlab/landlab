@@ -166,7 +166,7 @@ def split_paragraphs(msg, linesep=os.linesep):
         Text to split into paragraphs.
     linesep : str, optional
         Line separator used in the message string.
-    
+
     Returns
     -------
     list of str

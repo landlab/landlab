@@ -70,7 +70,7 @@ def test_field_getters(sm):
         field = sm.grid['node'][name]
         assert isinstance(field, np.ndarray)
         assert field.shape == (sm.grid.number_of_node_rows * sm.grid.number_of_node_columns, )
-                      
+
     for name in sm.grid['cell']:
         field = sm.grid['cell'][name]
         assert isinstance(field, np.ndarray)

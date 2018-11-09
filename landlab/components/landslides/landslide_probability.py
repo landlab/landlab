@@ -1,5 +1,4 @@
 #!/usr/env/python
-
 """Landlab component that simulates landslide probability of failure as well
 as mean relative wetness and probability of saturation.
 
@@ -26,7 +25,6 @@ Created on Thu Aug 20, 2015
 Last edit June 7, 2017
 """
 
-# %% Import Libraries
 from landlab import Component
 from landlab.utils.decorators import use_file_name_or_kwds
 import numpy as np
@@ -35,13 +33,11 @@ from scipy import interpolate
 from statsmodels.distributions.empirical_distribution import ECDF
 import copy
 
-# %% Instantiate Object
-
 
 class LandslideProbability(Component):
     """Landslide probability component using the infinite slope stability
     model.
-    
+
     Landlab component designed to calculate probability of failure at
     each grid node based on the infinite slope stability model
     stability index (Factor of Safety).
@@ -91,20 +87,20 @@ class LandslideProbability(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.landslides import LandslideProbability
     >>> import numpy as np
-    
+
     Create a grid on which to calculate landslide probability.
-    
+
     >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
-    
+
     Check the number of core nodes.
-    
+
     >>> grid.number_of_core_nodes
     6
-    
+
     The grid will need some input data. To check the names of the fields
     that provide the input to this component, use the *input_var_names*
     class property.
-    
+
     >>> sorted(LandslideProbability.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
     ['soil__density',
      'soil__internal_friction_angle',
@@ -116,19 +112,19 @@ class LandslideProbability(Component):
      'soil__transmissivity',
      'topographic__slope',
      'topographic__specific_contributing_area']
-    
+
     Check the units for the fields.
-    
+
     >>> LandslideProbability.var_units('topographic__specific_contributing_area')
     'm'
-    
+
     Create an input field.
-    
+
     >>> grid.at_node['topographic__slope'] = np.random.rand(grid.number_of_nodes)
-    
+
     If you are not sure about one of the input or output variables, you can
     get help for specific variables.
-    
+
     >>> LandslideProbability.var_help('soil__transmissivity')  # doctest: +NORMALIZE_WHITESPACE
     name: soil__transmissivity
     description:
@@ -137,9 +133,9 @@ class LandslideProbability(Component):
     units: m2/day
     at: node
     intent: in
-    
+
     Additional required fields for component.
-    
+
     >>> scatter_dat = np.random.randint(1, 10, grid.number_of_nodes)
     >>> grid.at_node['topographic__specific_contributing_area'] = np.sort(
     ...      np.random.randint(30, 900, grid.number_of_nodes))
@@ -158,28 +154,28 @@ class LandslideProbability(Component):
     >>> grid.at_node['soil__thickness'] = np.sort(
     ...      np.random.randint(1, 10, grid.number_of_nodes))
     >>> grid.at_node['soil__density'] = (2000. * np.ones(grid.number_of_nodes))
-    
+
     Instantiate the 'LandslideProbability' component to work on this grid,
     and run it.
-    
+
     >>> ls_prob = LandslideProbability(grid)
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     True
-    
+
     Run the *calculate_landslide_probability* method to update output
     variables with grid
-    
+
     >>> ls_prob.calculate_landslide_probability()
-    
+
     Check the output variable names.
-    
+
     >>> sorted(ls_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['landslide__probability_of_failure',
      'soil__mean_relative_wetness',
      'soil__probability_of_saturation']
-    
+
     Check the output from the component, including array at one node.
-    
+
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = ls_prob.grid.core_nodes
@@ -549,7 +545,7 @@ class LandslideProbability(Component):
 
     def _seed_generator(self, seed=0):
         """Method to initiate random seed.
-        
+
         Seed the random-number generator. This method will create the same
         sequence again by re-seeding with the same value (default value is
         zero). To create a sequence other than the default, assign non-zero
@@ -560,7 +556,7 @@ class LandslideProbability(Component):
 
     def _interpolate_HSD_dict(self):
         """Method to extrapolate input data.
-        
+
         This method uses a non-parametric approach to expand the input
         recharge array to the length of number of iterations. Output is
         a new dictionary of interpolated recharge for each HSD id.
@@ -585,10 +581,9 @@ class LandslideProbability(Component):
 
         self._interpolated_HSD_dict = HSD_dict
 
-
     def _calculate_HSD_recharge(self, i):
         """Method to calculate recharge based on upstream fractions.
-        
+
         This method calculates the resultant recharge at node i of the
         model domain, using recharge of contributing HSD ids and the areal
         fractions of upstream contributing HSD ids. Output is a numpy array

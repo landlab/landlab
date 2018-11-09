@@ -30,7 +30,7 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for simple granular mechanics model.
-    
+
     Parameters
     ----------
     g : float (optional)
@@ -169,7 +169,7 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
         xn_list.append( Transition((3,4,2), (7,3,2), f, 'oblique') )
         xn_list.append( Transition((1,6,2), (6,7,2), f, 'oblique') )
         xn_list.append( Transition((5,6,2), (6,7,2), f, 'oblique') )
-   
+
     # Rule 5: Transitions for direct-from-behind collisions
     if p_elast > 0.0:
         xn_list.append( Transition((1,1,0), (2,6,0), p_elast/4, 'behind') )
@@ -262,7 +262,7 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
         xn_list.append( Transition((1,4,1), (6,3,1), p_elast, 'glancing') )
         xn_list.append( Transition((4,1,2), (5,2,2), p_elast, 'glancing') )
         xn_list.append( Transition((2,5,2), (1,4,2), p_elast, 'glancing') )
-    
+
     # Rule 8 frictional
     if f > 0.0:
         xn_list.append( Transition((2,5,0), (7,7,0), f, 'glancing') )
@@ -280,7 +280,7 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
         xn_list.append( Transition((3,4,1), (4,3,1), p_elast, 'near-on') )
         xn_list.append( Transition((2,1,2), (1,2,2), p_elast, 'near-on') )
         xn_list.append( Transition((4,5,2), (5,4,2), p_elast, 'near-on') )
-    
+
     # Rule 9 frictional
     if f > 0.0:
         xn_list.append( Transition((6,5,0), (7,6,0), f/2, 'near-on') )
@@ -295,7 +295,7 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
         xn_list.append( Transition((2,1,2), (1,7,2), f/2, 'near-on') )
         xn_list.append( Transition((4,5,2), (7,4,2), f/2, 'near-on') )
         xn_list.append( Transition((4,5,2), (5,7,2), f/2, 'near-on') )
-        
+
     # Rule 10: Transitions for oblique collision with rest particle
     if p_elast > 0.0:
         xn_list.append( Transition((2,7,0), (7,1,0), p_elast, 'oblique with rest') )
@@ -399,7 +399,7 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
         xn_list.append( Transition((6,6,0), (6,5,0), g, 'gravity 3') )
         xn_list.append( Transition((7,6,0), (7,5,0), g, 'gravity 3') )
         xn_list.append( Transition((8,6,0), (8,5,0), g, 'gravity 3') )
-    
+
     # Gravity rule 4: down/side to straight down
     if g > 0.0:
         xn_list.append( Transition((0,3,0), (0,4,0), g, 'gravity 4') )
@@ -426,5 +426,5 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0):
     if g > 0.0:
         xn_list.append( Transition((7,0,2), (3,0,2), g/2.0, 'gravity') )
         xn_list.append( Transition((0,7,1), (0,5,1), g/2.0, 'gravity') )
- 
+
     return xn_list   

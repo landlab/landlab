@@ -20,21 +20,21 @@ class DrainageDensity(Component):
 
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.
-    
+
     calc_drainage_density function returns drainage density for the model
     domain.
-    
+
     calc_drainage_density calculates the distance from every node to the 
     nearest channel node :math:`L` along the flow line of steepest descent 
     (assuming D8 routing). The drainage density is then (after Tucker et al., 
     2001):
-        
+
     .. math::
-        
+
         D_d=\frac{1}{2\overline{L}}
-        
+
     where :math:`\overline{L}` is the mean L for the model domain.
-            
+
     This component requires EITHER a channel__mask array with 1's
     where channels exist and 0's elsewhere, OR a set of coefficients
     and exponents for a slope-area relationship and a

@@ -552,7 +552,7 @@ class CellLabCTSModel(object):
         else:
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
-            
+
         # Determine and remember whether we will handle property swaps and/or
         # callbacks in this model.
         if np.amax(self.xn_propswap) > 0:
@@ -1051,7 +1051,7 @@ class CellLabCTSModel(object):
         cell pair that has one or more potential transitions and pushing these
         onto the queue. Also records scheduled transition times in the
         self.next_update array.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1388,7 +1388,7 @@ class CellLabCTSModel(object):
            it on the event queue.
         3. Update the states of the other links attached to the two nodes,
            choose their next transitions, and push them on the event queue.
-           
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1603,7 +1603,7 @@ class CellLabCTSModel(object):
             Option to display the grid after each transition
         plotter : CAPlotter object (optional)
             Needed if caller wants to plot after every transition
-           
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1673,8 +1673,8 @@ class CellLabCTSModel(object):
 #               self.num_node_states_sq,
 #               self.bnd_lnk)
 
-#X        if _RUN_NEW:
-            
+#         if _RUN_NEW:
+
         self.current_time = run_cts_new(run_to, self.current_time,
                         self.priority_queue,
                         self.next_update,                  
@@ -1702,7 +1702,7 @@ class CellLabCTSModel(object):
                         self,
                         plot_each_transition,
                         plotter)         
-#X        else:
+#         else:
 #
 #            # Continue until we've run out of either time or events
 #            while self.current_time < run_to and self.event_queue:
@@ -1732,11 +1732,10 @@ class CellLabCTSModel(object):
 #
 #                if _DEBUG:
 #                    print(self.node_state)
-                    
-    
+
     def run_new(self, run_to, plot_each_transition=False, plotter=None):
         """Test of new approach using priority queue."""
-        
+
         # Continue until we've run out of either time or events
         while self.current_time < run_to and self.priority_queue._queue:
 
@@ -1751,7 +1750,7 @@ class CellLabCTSModel(object):
 
                 if _DEBUG:
                     print('Event:', ev_time, ev_link, self.trn_to[self.next_trn_id[ev_link]])
-                
+
                 if _CYTEST:
                     do_transition_new(ev_link, ev_time,
                                       self.priority_queue, self.next_update,                  
@@ -1790,7 +1789,7 @@ class CellLabCTSModel(object):
             # advance current_time to the end of the current run period.
             else:
                 self.current_time = run_to
-                    
+
             if _DEBUG:
                 print(self.node_state)
 
@@ -1818,15 +1817,9 @@ class CellLabCTSModel(object):
                     + str(new_head_state)                     # new head state
                     )
         return info_str
-                    
 
     def print_scheduled_transitions(self):
         """Display list of transitions in PQ, and related data, for debug."""
         print('tme tml lnk tln hdn orn tst hst tid nls nts nhs')
         for trn_event in self.priority_queue._queue:
             print(self.transition_info_as_string(trn_event))
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()

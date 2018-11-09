@@ -56,7 +56,7 @@ def test_field_getters(ca_veg):
         assert isinstance(field, np.ndarray)
         assert field.shape == (ca_veg.grid.number_of_node_rows *
                                ca_veg.grid.number_of_node_columns, )
-                      
+
     for name in ca_veg.grid['cell']:
         field = ca_veg.grid['cell'][name]
         assert isinstance(field, np.ndarray)

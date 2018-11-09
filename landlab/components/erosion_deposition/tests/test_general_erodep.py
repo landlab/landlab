@@ -113,7 +113,7 @@ def test_q_as_field():
                            n_sp=1.0, sp_crit=0.0, 
                            discharge_field='user_imposed_discharge', 
                            solver='basic')
-    
+
     #ensure that ed.q is everywhere equal to 1.0 m3/yr.
     testing.assert_array_equal(np.ones(mg.number_of_nodes), 
                                ed.q,
@@ -156,7 +156,7 @@ def test_q_as_array():
                            n_sp=1.0, sp_crit=0.0, 
                            discharge_field=q, 
                            solver='basic')
-    
+
     #ensure that ed.q is everywhere equal to 1.0 m3/yr.
     testing.assert_array_equal(np.ones(mg.number_of_nodes), 
                                ed.q,
@@ -197,7 +197,7 @@ def test_sediment__flux_already_created():
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(mg, K=0.01, F_f=0.0, phi=0.0, v_s=0.001, m_sp=0.5, 
                            n_sp=1.0, sp_crit=0.0, solver='basic')
-    
+
     #ensure that 'sediment__flux' field is everywhere equal to 1.0 m3/yr.
     testing.assert_array_equal(np.ones(mg.number_of_nodes), 
                                ed.qs,
