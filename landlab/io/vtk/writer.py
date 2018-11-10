@@ -114,26 +114,6 @@ class VtkWriter(xml.dom.minidom.Document):
             xml_file.write(self.toprettyxml())
 
 
-def assemble_vtk_elements(element):
-    root = element["VTKFile"]
-    grid = element["Grid"]
-    piece = element["Piece"]
-    for section in _VTK_FILE_SECTIONS:
-        try:
-            piece.appendChild(element[section])
-        except (KeyError, EmptyElementError):
-            pass
-    grid.appendChild(piece)
-    root.appendChild(grid)
-
-    try:
-        root.appendChild(element["AppendedData"])
-    except KeyError:
-        pass
-
-    return root
-
-
 class VTKDatabase(VtkWriter):
     def write(self, path, **kwargs):
         (base, file) = os.path.split(path)
