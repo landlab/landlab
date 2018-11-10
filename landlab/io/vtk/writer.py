@@ -43,7 +43,7 @@ def assemble_vtk_document(element):
     for section in _VTK_POSSIBLE_PIECE_SECTIONS:
         try:
             piece.appendChild(element[section])
-        except (KeyError, EmptyElementError):
+        except KeyError:
             pass
     grid.appendChild(piece)
     root.appendChild(grid)
