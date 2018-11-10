@@ -1006,8 +1006,7 @@ class SpatialPrecipitationDistribution(Component):
         # NOTE: In this version this produces output on a grid, rather than at
         # real gauge locations.
 
-        if FUZZMETHOD == "MS":
-            raise NameError("The Singer method for fuzz is no longer supported")
+        assert FUZZMETHOD == "DEJH", "The Singer method for fuzz is no longer supported"
 
         # lambda_, kappa, and C are parameters of the intensity-duration curves
         # of the form: intensity =
@@ -1255,13 +1254,9 @@ class SpatialPrecipitationDistribution(Component):
                     )
                     # ...these curves are based on empirical data from WG
 
-                    if FUZZMETHOD == "MS":
-                        fuzz_int_val = np.random.choice(fuzz)
-                    elif FUZZMETHOD == "DEJH":
-                        # this dist should look identical, w/o discretisation
-                        fuzz_int_val = FUZZWIDTH * 2. * (np.random.rand() - 0.5)
-                    else:
-                        raise NameError
+                    # this dist should look identical, w/o discretisation
+                    fuzz_int_val = FUZZWIDTH * 2. * (np.random.rand() - 0.5)
+
                     intensity_val += fuzz_int_val
                     # ^this allows for specified fuzzy tolerance around
                     # selected intensity (but it can go -ve)
