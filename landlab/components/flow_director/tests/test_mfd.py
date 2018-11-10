@@ -1,10 +1,10 @@
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components import FlowDirectorMFD, FlowAccumulator
+from landlab.components import FlowAccumulator, FlowDirectorMFD
 from landlab.components.flow_director import flow_direction_mfd
 
 

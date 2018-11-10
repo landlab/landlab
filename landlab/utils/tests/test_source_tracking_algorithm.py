@@ -9,20 +9,43 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from landlab.utils import (track_source,
-                           find_unique_upstream_hsd_ids_and_fractions)
+from landlab.utils import find_unique_upstream_hsd_ids_and_fractions, track_source
 
 
 def test_route_to_multiple_error_raised():
     grid = RasterModelGrid((5, 5), spacing=(1., 1.))
-    grid.at_node['topographic__elevation'] = np.array([5., 5., 5., 5., 5.,
-                                                       5., 4., 5., 1., 5.,
-                                                       0., 3., 5., 3., 0.,
-                                                       5., 4., 5., 2., 5.,
-                                                       5., 5., 5., 5., 5.])
+    grid.at_node["topographic__elevation"] = np.array(
+        [
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            4.,
+            5.,
+            1.,
+            5.,
+            0.,
+            3.,
+            5.,
+            3.,
+            0.,
+            5.,
+            4.,
+            5.,
+            2.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+        ]
+    )
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
-    fa = FlowAccumulator(grid, flow_director='MFD')
+    fa = FlowAccumulator(grid, flow_director="MFD")
     fa.run_one_step()
     hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
     hsd_ids[:] = 1
@@ -37,16 +60,40 @@ def test_track_source():
     """Unit tests for track_source().
     """
     grid = RasterModelGrid((5, 5), spacing=(1., 1.))
-    grid.at_node['topographic__elevation'] = np.array([5., 5., 5., 5., 5.,
-                                                       5., 4., 5., 1., 5.,
-                                                       0., 3., 5., 3., 0.,
-                                                       5., 4., 5., 2., 5.,
-                                                       5., 5., 5., 5., 5.])
+    grid.at_node["topographic__elevation"] = np.array(
+        [
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            4.,
+            5.,
+            1.,
+            5.,
+            0.,
+            3.,
+            5.,
+            3.,
+            0.,
+            5.,
+            4.,
+            5.,
+            2.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+        ]
+    )
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
-    fr = FlowAccumulator(grid, flow_director='D8')
+    fr = FlowAccumulator(grid, flow_director="D8")
     fr.run_one_step()
-    r = grid.at_node['flow__receiver_node']
+    r = grid.at_node["flow__receiver_node"]
     assert r[6] == 10
     assert r[7] == 8
     assert r[18] == 14
@@ -64,14 +111,38 @@ def test_find_unique_upstream_hsd_ids_and_fractions():
     """Unit tests find_unique_upstream_hsd_ids_and_fractions().
     """
     grid = RasterModelGrid((5, 5), spacing=(1., 1.))
-    grid.at_node['topographic__elevation'] = np.array([5., 5., 5., 5., 5.,
-                                                       5., 4., 5., 1., 5.,
-                                                       0., 3., 5., 3., 0.,
-                                                       5., 4., 5., 2., 5.,
-                                                       5., 5., 5., 5., 5.])
+    grid.at_node["topographic__elevation"] = np.array(
+        [
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            4.,
+            5.,
+            1.,
+            5.,
+            0.,
+            3.,
+            5.,
+            3.,
+            0.,
+            5.,
+            4.,
+            5.,
+            2.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+            5.,
+        ]
+    )
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
-    fr = FlowAccumulator(grid, flow_director='D8')
+    fr = FlowAccumulator(grid, flow_director="D8")
     fr.run_one_step()
     hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
     hsd_ids[:] = 1
@@ -80,4 +151,5 @@ def test_find_unique_upstream_hsd_ids_and_fractions():
     (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
     (uniq_ids, coeff) = find_unique_upstream_hsd_ids_and_fractions(hsd_upstr)
     np.testing.assert_almost_equal(
-        np.sort(np.array(coeff[8])), np.array([0.33333333, 0.66666667]))
+        np.sort(np.array(coeff[8])), np.array([0.33333333, 0.66666667])
+    )

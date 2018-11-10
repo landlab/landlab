@@ -32,10 +32,12 @@ class GroupSizeError(Error, KeyError):
         self._new_size = new_size
 
     def __str__(self):
-        return ("number of {group} elements has changed. "
-                "(was = {was}, now={now})".format(group=self._group,
-                                                  was=self._old_size,
-                                                  now=self._new_size))
+        return (
+            "number of {group} elements has changed. "
+            "(was = {was}, now={now})".format(
+                group=self._group, was=self._old_size, now=self._new_size
+            )
+        )
 
 
 class ModelDataFields(object):
@@ -314,10 +316,10 @@ class ModelDataFields(object):
         LLCATS: FIELDCR
         """
         if self.has_group(group):
-            raise ValueError('ModelDataFields already contains %s' % group)
+            raise ValueError("ModelDataFields already contains %s" % group)
         else:
             self._groups[group] = ScalarDataFields(size)
-            setattr(self, 'at_' + group, self[group])
+            setattr(self, "at_" + group, self[group])
 
     def field_values(self, group, field):
         """Get values of a field.
@@ -441,11 +443,13 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
-        if group=='grid':
-            raise ValueError("empty is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.")
+        if group == "grid":
+            raise ValueError(
+                "empty is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead."
+            )
         return self[group].empty(**kwds)
 
     def ones(self, group, **kwds):
@@ -484,12 +488,14 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
-        if group=='grid':
-            raise ValueError("ones is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want ones "
-                             "of the shape stored at_grid, use np.array(1).")
+        if group == "grid":
+            raise ValueError(
+                "ones is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want ones "
+                "of the shape stored at_grid, use np.array(1)."
+            )
         return self[group].ones(**kwds)
 
     def zeros(self, group, **kwds):
@@ -528,12 +534,14 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
-        if group=='grid':
-            raise ValueError("zeros is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want zeros"
-                             "of the shape stored at_grid, use np.array(0).")
+        if group == "grid":
+            raise ValueError(
+                "zeros is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want zeros"
+                "of the shape stored at_grid, use np.array(0)."
+            )
 
         return self[group].zeros(**kwds)
 
@@ -578,20 +586,21 @@ class ModelDataFields(object):
         if len(args) == 2:
             group, name = args
         elif len(args) == 1:
-            group, name = kwds.pop('at'), args[0]
+            group, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
+            raise ValueError("number of arguments must be 1 or 2")
 
-        if group=='grid':
-            raise ValueError("add_empty is not supported for at_grid values "
-                             "use\ngrid.at_grid['value_name']=value\n"
-                             "instead")
+        if group == "grid":
+            raise ValueError(
+                "add_empty is not supported for at_grid values "
+                "use\ngrid.at_grid['value_name']=value\n"
+                "instead"
+            )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop('units', 0.)
-        numpy_kwds.pop('noclobber', 0.)
-        return self.add_field(group, name, self.empty(group, **numpy_kwds),
-                              **kwds)
+        numpy_kwds.pop("units", 0.)
+        numpy_kwds.pop("noclobber", 0.)
+        return self.add_field(group, name, self.empty(group, **numpy_kwds), **kwds)
 
     def add_ones(self, *args, **kwds):
         """add_ones(group, name, units='-', noclobber=True)
@@ -650,20 +659,21 @@ class ModelDataFields(object):
         if len(args) == 2:
             group, name = args
         elif len(args) == 1:
-            group, name = kwds.pop('at'), args[0]
+            group, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
+            raise ValueError("number of arguments must be 1 or 2")
 
-        if group=='grid':
-            raise ValueError("add_ones is not supported for at_grid values"
-                             " use\ngrid.at_grid['value_name']=value\n"
-                             "instead")
+        if group == "grid":
+            raise ValueError(
+                "add_ones is not supported for at_grid values"
+                " use\ngrid.at_grid['value_name']=value\n"
+                "instead"
+            )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop('units', 0.)
-        numpy_kwds.pop('noclobber', 0.)
-        return self.add_field(group, name, self.ones(group, **numpy_kwds),
-                              **kwds)
+        numpy_kwds.pop("units", 0.)
+        numpy_kwds.pop("noclobber", 0.)
+        return self.add_field(group, name, self.ones(group, **numpy_kwds), **kwds)
 
     def add_zeros(self, *args, **kwds):
         """add_zeros(group, name, units='-', noclobber=True)
@@ -704,20 +714,21 @@ class ModelDataFields(object):
         if len(args) == 2:
             group, name = args
         elif len(args) == 1:
-            group, name = kwds.pop('at'), args[0]
+            group, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
+            raise ValueError("number of arguments must be 1 or 2")
 
-        if group=='grid':
-            raise ValueError("add_zeros is not supported for at_grid values "
-                             "use\ngrid.at_grid['value_name']=value\n"
-                             "instead")
+        if group == "grid":
+            raise ValueError(
+                "add_zeros is not supported for at_grid values "
+                "use\ngrid.at_grid['value_name']=value\n"
+                "instead"
+            )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop('units', 0.)
-        numpy_kwds.pop('noclobber', 0.)
-        return self.add_field(group, name, self.zeros(group, **numpy_kwds),
-                              **kwds)
+        numpy_kwds.pop("units", 0.)
+        numpy_kwds.pop("noclobber", 0.)
+        return self.add_field(group, name, self.zeros(group, **numpy_kwds), **kwds)
 
     def add_field(self, *args, **kwds):
         """add_field(group, name, value_array, units='-', copy=False, noclobber=True)
@@ -795,13 +806,16 @@ class ModelDataFields(object):
         if len(args) == 3:
             group, name, value_array = args
         elif len(args) == 2:
-            group, name, value_array = (kwds.pop('at', self._default_group),
-                                        args[0], args[1])
+            group, name, value_array = (
+                kwds.pop("at", self._default_group),
+                args[0],
+                args[1],
+            )
         else:
-            raise ValueError('number of arguments must be 2 or 3')
+            raise ValueError("number of arguments must be 2 or 3")
 
         if not group:
-            raise ValueError('missing group name')
+            raise ValueError("missing group name")
 
         return self[group].add_field(name, value_array, **kwds)
 

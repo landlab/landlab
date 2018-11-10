@@ -2,10 +2,11 @@
 """
 Unit tests for landlab.model_parameter_dictionary
 """
-import pytest
 import os
 import tempfile
+
 import numpy as np
+import pytest
 
 from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError

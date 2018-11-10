@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 """Functions to work with watersheds of model grids."""
 
-from landlab import FieldError
 import numpy as np
+
+from landlab import FieldError
 
 
 def get_watershed_mask(grid, outlet_id):

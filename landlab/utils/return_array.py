@@ -3,7 +3,7 @@
 from landlab.utils.decorators import use_field_name_array_or_value
 
 
-@use_field_name_array_or_value('node')
+@use_field_name_array_or_value("node")
 def return_array_at_node(grid, value):
     """Function to return an array stored at node or of shape `(n_nodes,)`.
 

@@ -1,12 +1,14 @@
 import os
 
 import numpy as np
+
+from landlab import RasterModelGrid
+from landlab.components import SpatialPrecipitationDistribution
+
 # from matplotlib.pyplot import plot, show, figure
 # from landlab import imshow_grid_at_node
 # import shapefile as shp
 
-from landlab import RasterModelGrid
-from landlab.components import SpatialPrecipitationDistribution
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 # _THIS_DIR = '.'
@@ -68,13 +70,17 @@ def test_MS_params():
     # z[mg.status_at_node == 0] = vdg_z[np.array(closest_core_node_in_vdg)]
 
     mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
-    mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, 'BCs_Singer.txt'))
-    mg.add_field('node', 'topographic__elevation',
-                 np.loadtxt(os.path.join(_THIS_DIR, 'elevs_Singer.txt')))
+    mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, "BCs_Singer.txt"))
+    mg.add_field(
+        "node",
+        "topographic__elevation",
+        np.loadtxt(os.path.join(_THIS_DIR, "elevs_Singer.txt")),
+    )
 
     np.random.seed(10)
-    rain = SpatialPrecipitationDistribution(mg, number_of_years=2,
-                                            orographic_scenario='Singer')
+    rain = SpatialPrecipitationDistribution(
+        mg, number_of_years=2, orographic_scenario="Singer"
+    )
 
     max_intensity = []
     storm_dur = []
@@ -83,8 +89,10 @@ def test_MS_params():
     depth = []
     count = 0
     for (storm, istorm) in rain.yield_storms(
-            # style='monsoonal', limit='total_rainfall'):
-            style='whole_year', limit='total_rainfall'):
+        # style='monsoonal', limit='total_rainfall'):
+        style="whole_year",
+        limit="total_rainfall",
+    ):
         # print('storm dur:', storm, rain.storm_duration_last_storm)
         # print('istorm dur:', istorm)
         # print('intensity:', rain.storm_intensity_last_storm)

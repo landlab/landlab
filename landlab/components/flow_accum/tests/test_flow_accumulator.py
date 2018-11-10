@@ -5,23 +5,20 @@
 # Created on Thurs Nov 12, 2015
 import os
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid, HexModelGrid
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import FlowAccumulator
-
-from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
-
 from landlab.components.flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-
+from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -1004,9 +1001,7 @@ def test_instantiated_depression_finder_with_kwargs():
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     df = DepressionFinderAndRouter(mg)
     with pytest.raises(ValueError):
-        FlowAccumulator(
-            mg, flow_director="D8", depression_finder=df, routing="eggs"
-        )
+        FlowAccumulator(mg, flow_director="D8", depression_finder=df, routing="eggs")
 
 
 def test_depression_finder_bad_uninstantiated_component():
@@ -1029,14 +1024,13 @@ def test_flat_grids_all_directors():
         "FlowDirectorSteepest",
         "FlowDirectorD8",
         "FlowDirectorDINF",
-
     ]:
         mg = RasterModelGrid(10, 10)
         z = mg.add_zeros("topographic__elevation", at="node")
         fa = FlowAccumulator(mg, flow_director=fd)
         fa.run_one_step()
 
-        true_da = np.zeros(mg.size('node'))
+        true_da = np.zeros(mg.size("node"))
         true_da[mg.core_nodes] = 1.0
         assert_array_equal(true_da, fa.drainage_area)
         del mg, z, fa

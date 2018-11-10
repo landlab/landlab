@@ -4,8 +4,8 @@
 
 """
 
-from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
+from landlab.components.flexure import Flexure
 
 
 def add_load_to_middle_of_grid(grid, load):

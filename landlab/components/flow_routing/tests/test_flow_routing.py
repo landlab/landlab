@@ -9,23 +9,20 @@ Sinks are tested as part of the lake_mapper.
 # Created on Thurs Nov 12, 2015
 import os
 
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 from six.moves import range
 
-import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
-
-from landlab import RasterModelGrid, RadialModelGrid
+from landlab import CLOSED_BOUNDARY, RadialModelGrid, RasterModelGrid
 from landlab.components.flow_routing import FlowRouter
-from landlab import CLOSED_BOUNDARY
-
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_deprecation_raised():
     mg = RasterModelGrid(10, 10)
-    mg.add_zeros('node', 'topographic__elevation')
+    mg.add_zeros("node", "topographic__elevation")
     with pytest.deprecated_call():
         FlowRouter(mg)
 
@@ -249,5 +246,7 @@ def test_voronoi_closedinternal():
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
     fr.run_one_step()
 
-    assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(A_target_internal)
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(
+        A_target_internal
+    )
     assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)

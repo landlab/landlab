@@ -4,11 +4,14 @@ import xml.dom.minidom
 
 from .vtkxml import VtkAppendedDataElement
 
-
-_VALID_ENCODINGS = set(['ascii', 'base64', 'raw'])
-_VALID_FORMATS = set(['ascii', 'base64', 'raw', 'appended'])
+_VALID_ENCODINGS = set(["ascii", "base64", "raw"])
+_VALID_FORMATS = set(["ascii", "base64", "raw", "appended"])
 _VTK_POSSIBLE_PIECE_SECTIONS = [
-    'Points', 'Coordinates', 'PointData', 'Cells', 'CellData',
+    "Points",
+    "Coordinates",
+    "PointData",
+    "Cells",
+    "CellData",
 ]
 
 
@@ -17,27 +20,25 @@ class VtkError(Exception):
 
 
 class InvalidFormatError(VtkError):
-
     def __init__(self, format):
         self.name = format
 
     def __str__(self):
-        return '%s: Invalid format' % self.name
+        return "%s: Invalid format" % self.name
 
 
 class InvalidEncodingError(VtkError):
-
     def __init__(self, encoding):
         self.name = encoding
 
     def __str__(self):
-        return '%s: Invalid encoder' % self.name
+        return "%s: Invalid encoder" % self.name
 
 
 def assemble_vtk_document(element):
-    root = element['VTKFile']
-    grid = element['Grid']
-    piece = element['Piece']
+    root = element["VTKFile"]
+    grid = element["Grid"]
+    piece = element["Piece"]
 
     for section in _VTK_POSSIBLE_PIECE_SECTIONS:
         try:
@@ -48,7 +49,7 @@ def assemble_vtk_document(element):
     root.appendChild(grid)
 
     try:
-        root.appendChild(element['AppendedData'])
+        root.appendChild(element["AppendedData"])
     except KeyError:
         pass
 
@@ -66,19 +67,18 @@ def assert_encoding_is_valid(encoding):
 
 
 class VtkWriter(xml.dom.minidom.Document):
-
     def __init__(self, **kwds):
-        self._format = kwds.pop('format', 'ascii')
-        self._encoding = kwds.pop('encoding', 'ascii')
+        self._format = kwds.pop("format", "ascii")
+        self._encoding = kwds.pop("encoding", "ascii")
 
         assert_format_is_valid(self.format)
         assert_encoding_is_valid(self.encoding)
 
-        if format == 'ascii':
-            self._encoding = 'ascii'
+        if format == "ascii":
+            self._encoding = "ascii"
 
-        if self.format == 'appended':
-            self._data = VtkAppendedDataElement('', encoding=self.encoding)
+        if self.format == "appended":
+            self._data = VtkAppendedDataElement("", encoding=self.encoding)
         else:
             self._data = None
 
@@ -104,20 +104,20 @@ class VtkWriter(xml.dom.minidom.Document):
         elements = self.construct_field_elements(field)
 
         if self.data is not None:
-            elements['AppendedData'] = self.data
+            elements["AppendedData"] = self.data
 
         self.appendChild(assemble_vtk_document(elements))
         self.to_xml(path)
 
     def to_xml(self, path):
-        with open(path, 'w') as xml_file:
+        with open(path, "w") as xml_file:
             xml_file.write(self.toprettyxml())
 
 
 def assemble_vtk_elements(element):
-    root = element['VTKFile']
-    grid = element['Grid']
-    piece = element['Piece']
+    root = element["VTKFile"]
+    grid = element["Grid"]
+    piece = element["Piece"]
     for section in _VTK_FILE_SECTIONS:
         try:
             piece.appendChild(element[section])
@@ -127,7 +127,7 @@ def assemble_vtk_elements(element):
     root.appendChild(grid)
 
     try:
-        root.appendChild(element['AppendedData'])
+        root.appendChild(element["AppendedData"])
     except KeyError:
         pass
 
@@ -135,16 +135,15 @@ def assemble_vtk_elements(element):
 
 
 class VTKDatabase(VtkWriter):
-
     def write(self, path, **kwargs):
         (base, file) = os.path.split(path)
         (root, ext) = os.path.splitext(file)
 
         try:
-            next_file = '%s_%04d%s' % (root, self._count, ext)
+            next_file = "%s_%04d%s" % (root, self._count, ext)
         except NameError:
             self._count = 0
-            next_file = '%s_%04d%s' % (root, self._count, ext)
+            next_file = "%s_%04d%s" % (root, self._count, ext)
 
         VtkWriter.write(self, os.path.join(base, next_file), **kwargs)
 
@@ -153,4 +152,5 @@ class VTKDatabase(VtkWriter):
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

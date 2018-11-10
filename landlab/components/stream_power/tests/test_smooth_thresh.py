@@ -1,11 +1,9 @@
-import pytest
 import numpy as np
-
+import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import StreamPowerSmoothThresholdEroder as Spst
-from landlab.components import FlowAccumulator
+from landlab.components import FlowAccumulator, StreamPowerSmoothThresholdEroder as Spst
 
 
 def test_bad_nsp():
@@ -13,7 +11,7 @@ def test_bad_nsp():
     mg = RasterModelGrid(4, 4, 1)
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
     with pytest.raises(ValueError):
-        Spst(mg, K_sp = 1.0, n_sp = 1.01)
+        Spst(mg, K_sp=1.0, n_sp=1.01)
 
 
 def test_no_thresh():
@@ -26,15 +24,15 @@ def test_no_thresh():
 
     mg = RasterModelGrid(30, 3, 100.)
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
-    z = mg.zeros(at='node')
-    mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
+    z = mg.zeros(at="node")
+    mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.
 
     fa = FlowAccumulator(mg)
-    sp = Spst(mg, K_sp = K, threshold_sp=threshold)
+    sp = Spst(mg, K_sp=K, threshold_sp=threshold)
     for i in range(100):
         fa.run_one_step()
         sp.run_one_step(dt)
-        mg['node']['topographic__elevation'][mg.core_nodes] += U*dt
+        mg["node"]["topographic__elevation"][mg.core_nodes] += U * dt
 
     actual_slopes = mg.at_node["topographic__steepest_slope"][mg.core_nodes[1:-1]]
     actual_areas = mg.at_node["drainage_area"][mg.core_nodes[1:-1]]
@@ -54,15 +52,15 @@ def test_with_thresh():
 
     mg = RasterModelGrid(30, 3, 100.)
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
-    z = mg.zeros(at='node')
-    mg['node']['topographic__elevation'] = z + np.random.rand(len(z)) / 1000.
+    z = mg.zeros(at="node")
+    mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.
 
     fa = FlowAccumulator(mg)
-    sp = Spst(mg, K_sp = K, threshold_sp=threshold)
+    sp = Spst(mg, K_sp=K, threshold_sp=threshold)
     for i in range(100):
         fa.run_one_step()
         sp.run_one_step(dt)
-        mg['node']['topographic__elevation'][mg.core_nodes] += U*dt
+        mg["node"]["topographic__elevation"][mg.core_nodes] += U * dt
 
     actual_slopes = mg.at_node["topographic__steepest_slope"][mg.core_nodes[1:-1]]
     actual_areas = mg.at_node["drainage_area"][mg.core_nodes[1:-1]]

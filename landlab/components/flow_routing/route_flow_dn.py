@@ -12,16 +12,17 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 # Modified to save data to grid directly, DEJH March 2014
 
 from __future__ import print_function
-#
-#import landlab
-import warnings
-#from landlab.components.flow_director import flow_direction_DN
-#from landlab.components.flow_accum import flow_accum_bw
-#from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import VoronoiDelaunayGrid  # for type tests
-from landlab.utils.decorators import use_file_name_or_kwds
 
+#
+# import landlab
+import warnings
+
+# from landlab.components.flow_director import flow_direction_DN
+# from landlab.components.flow_accum import flow_accum_bw
+# from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
+from landlab import VoronoiDelaunayGrid  # for type tests
 from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
+from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class FlowRouter(FlowAccumulator):
@@ -43,67 +44,64 @@ class FlowRouter(FlowAccumulator):
     The primary method of this class is :func:`run_one_step`.
     """
 
-    _name = 'DNFlowRouter'
+    _name = "DNFlowRouter"
 
-    _input_var_names = ('topographic__elevation',
-                        'water__unit_flux_in',
-                        )
+    _input_var_names = ("topographic__elevation", "water__unit_flux_in")
 
-    _output_var_names = ('drainage_area',
-                         'flow__receiver_node',
-                         'topographic__steepest_slope',
-                         'surface_water__discharge',
-                         'flow__upstream_node_order',
-                         'flow__link_to_receiver_node',
-                         'flow__sink_flag',
-                         )
+    _output_var_names = (
+        "drainage_area",
+        "flow__receiver_node",
+        "topographic__steepest_slope",
+        "surface_water__discharge",
+        "flow__upstream_node_order",
+        "flow__link_to_receiver_node",
+        "flow__sink_flag",
+    )
 
-    _var_units = {'topographic__elevation': 'm',
-                  'water__unit_flux_in': 'm/s',
-                  'drainage_area': 'm**2',
-                  'flow__receiver_node': '-',
-                  'topographic__steepest_slope': '-',
-                  'surface_water__discharge': 'm**3/s',
-                  'flow__upstream_node_order': '-',
-                  'flow__link_to_receiver_node': '-',
-                  'flow__sink_flag': '-',
-                  }
+    _var_units = {
+        "topographic__elevation": "m",
+        "water__unit_flux_in": "m/s",
+        "drainage_area": "m**2",
+        "flow__receiver_node": "-",
+        "topographic__steepest_slope": "-",
+        "surface_water__discharge": "m**3/s",
+        "flow__upstream_node_order": "-",
+        "flow__link_to_receiver_node": "-",
+        "flow__sink_flag": "-",
+    }
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'water__unit_flux_in': 'node',
-                    'drainage_area': 'node',
-                    'flow__receiver_node': 'node',
-                    'topographic__steepest_slope': 'node',
-                    'surface_water__discharge': 'node',
-                    'flow__upstream_node_order': 'node',
-                    'flow__link_to_receiver_node': 'node',
-                    'flow__sink_flag': 'node',
-                    }
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "water__unit_flux_in": "node",
+        "drainage_area": "node",
+        "flow__receiver_node": "node",
+        "topographic__steepest_slope": "node",
+        "surface_water__discharge": "node",
+        "flow__upstream_node_order": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__sink_flag": "node",
+    }
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'water__unit_flux_in':
-            ('External volume water per area per time input to each node ' +
-             '(e.g., rainfall rate)'),
-        'drainage_area':
-            "Upstream accumulated surface area contributing to the node's "
-            "discharge",
-        'flow__receiver_node':
-            'Node array of receivers (node that receives flow from current '
-            'node)',
-        'topographic__steepest_slope':
-            'Node array of steepest *downhill* slopes',
-        'surface_water__discharge': 'Discharge of water through each node',
-        'flow__upstream_node_order':
-            'Node array containing downstream-to-upstream ordered list of '
-            'node IDs',
-        'flow__link_to_receiver_node':
-            'ID of link downstream of each node, which carries the discharge',
-        'flow__sink_flag': 'Boolean array, True at local lows',
+        "topographic__elevation": "Land surface topographic elevation",
+        "water__unit_flux_in": (
+            "External volume water per area per time input to each node "
+            + "(e.g., rainfall rate)"
+        ),
+        "drainage_area": "Upstream accumulated surface area contributing to the node's "
+        "discharge",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
+        "surface_water__discharge": "Discharge of water through each node",
+        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
+        "node IDs",
+        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
+        "flow__sink_flag": "Boolean array, True at local lows",
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, method='D8', runoff_rate=None, **kwds):
+    def __init__(self, grid, method="D8", runoff_rate=None, **kwds):
         """Initialize FlowDirector.
 
         Parameters
@@ -120,28 +118,36 @@ class FlowRouter(FlowAccumulator):
             the time of initialization, runoff_rate will *overwrite* the field.
             If neither are set, defaults to spatially constant unit input.
         """
-        msg = ("FlowRouter has been deprecated as of Landlab v1.5.2 and will be "
-               "removed in v2.0. Use FlowAccumulator instead.")
+        msg = (
+            "FlowRouter has been deprecated as of Landlab v1.5.2 and will be "
+            "removed in v2.0. Use FlowAccumulator instead."
+        )
         warnings.warn(msg, DeprecationWarning)
         self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         self._grid = grid
-        if 'method' in kwds:
-            warnings.warn("'method' should be set at initialization now. " +
-                          "Please update your code.", DeprecationWarning)
+        if "method" in kwds:
+            warnings.warn(
+                "'method' should be set at initialization now. "
+                + "Please update your code.",
+                DeprecationWarning,
+            )
             # raise NameError
-            if kwds['method'] not in ('D8', 'D4'):
-                raise ValueError('method not understood ({method})'.format(
-                    method=method))
+            if kwds["method"] not in ("D8", "D4"):
+                raise ValueError(
+                    "method not understood ({method})".format(method=method)
+                )
 
-        if method == 'D4' or self._is_Voroni:
-            flow_director = 'Steepest'
+        if method == "D4" or self._is_Voroni:
+            flow_director = "Steepest"
         else:
-            flow_director = 'D8'
+            flow_director = "D8"
 
-        super(FlowRouter, self).__init__(grid,
-                                         surface = 'topographic__elevation',
-                                         flow_director=flow_director,
-                                         runoff_rate=runoff_rate)
+        super(FlowRouter, self).__init__(
+            grid,
+            surface="topographic__elevation",
+            flow_director=flow_director,
+            runoff_rate=runoff_rate,
+        )
 
     def _test_for_method_change(self, **kwds):
         """Provides backwards compatability for method keyword.
@@ -152,24 +158,28 @@ class FlowRouter(FlowAccumulator):
         """
 
         # this retained for back compatibility - method now set in __init__.
-        if 'method' in kwds:
+        if "method" in kwds:
 
-            method = kwds.pop('method')
-            warnings.warn("'method' should be set at initialization now. " +
-                          "Please update your code.", DeprecationWarning)
+            method = kwds.pop("method")
+            warnings.warn(
+                "'method' should be set at initialization now. "
+                + "Please update your code.",
+                DeprecationWarning,
+            )
             # raise NameError
-            if method not in ('D8', 'D4'):
-                raise ValueError('method not understood ({method})'.format(
-                    method=method))
+            if method not in ("D8", "D4"):
+                raise ValueError(
+                    "method not understood ({method})".format(method=method)
+                )
             else:
                 self.method = method
             if not self._is_raster:
                 self.method = None
 
-            if method == 'D4' or self._is_Voroni:
-                flow_director = 'Steepest'
+            if method == "D4" or self._is_Voroni:
+                flow_director = "Steepest"
             else:
-                flow_director = 'D8'
+                flow_director = "D8"
 
             self._add_director(flow_director)
 
@@ -371,29 +381,30 @@ class FlowRouter(FlowAccumulator):
 
     @property
     def node_drainage_area(self):
-        return self._grid['node']['drainage_area']
+        return self._grid["node"]["drainage_area"]
 
     @property
     def node_receiving_flow(self):
-        return self._grid['node']['flow__receiver_node']
+        return self._grid["node"]["flow__receiver_node"]
 
     @property
     def node_steepest_slope(self):
-        return self._grid['node']['topographic__steepest_slope']
+        return self._grid["node"]["topographic__steepest_slope"]
 
     @property
     def node_water_discharge(self):
-        return self._grid['node']['surface_water__discharge']
+        return self._grid["node"]["surface_water__discharge"]
 
     @property
     def node_order_upstream(self):
-        return self._grid['node']['flow__upstream_node_order']
+        return self._grid["node"]["flow__upstream_node_order"]
 
     @property
     def link_to_flow_receiving_node(self):
-        return self._grid['node']['flow__link_to_receiver_node']
+        return self._grid["node"]["flow__link_to_receiver_node"]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

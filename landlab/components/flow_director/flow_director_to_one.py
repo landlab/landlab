@@ -6,9 +6,10 @@ flow_director_to_one.py provides a private class to help create FlowDirectors.
 Provides the _FlowDirectorToOne component which makes sure all model grid
 fields are set up correctly.
 """
-from landlab.components.flow_director.flow_director import _FlowDirector
 import numpy
+
 from landlab import BAD_INDEX_VALUE
+from landlab.components.flow_director.flow_director import _FlowDirector
 
 
 class _FlowDirectorToOne(_FlowDirector):

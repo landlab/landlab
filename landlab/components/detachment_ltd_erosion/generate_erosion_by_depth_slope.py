@@ -99,8 +99,9 @@ array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
          9.019 ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ])
 """
 
-from landlab import Component
 import numpy as np
+
+from landlab import Component
 from landlab.field.scalar_data_fields import FieldError
 
 
@@ -112,38 +113,45 @@ class DepthSlopeProductErosion(Component):
     incision.
     """
 
-    _name = 'DetachmentLtdErosion'
+    _name = "DetachmentLtdErosion"
 
     _input_var_names = (
-        'topographic__elevation',
-        'topographic__slope',
-        'surface_water__depth',
+        "topographic__elevation",
+        "topographic__slope",
+        "surface_water__depth",
     )
 
-    _output_var_names = (
-        'topographic__elevation',
-    )
+    _output_var_names = ("topographic__elevation",)
 
     _var_units = {
-        'topographic__elevation': 'm',
-        'topographic__slope': '-',
-        'surface_water__depth': 'm',
+        "topographic__elevation": "m",
+        "topographic__slope": "-",
+        "surface_water__depth": "m",
     }
 
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'topographic__slope': 'node',
-        'surface_water__depth': 'node',
+        "topographic__elevation": "node",
+        "topographic__slope": "node",
+        "surface_water__depth": "node",
     }
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'topographic__slope': 'Slope of the land surface',
-        'surface_water__depth': 'Depth of water on the surface',
+        "topographic__elevation": "Land surface topographic elevation",
+        "topographic__slope": "Slope of the land surface",
+        "surface_water__depth": "Depth of water on the surface",
     }
 
-    def __init__(self, grid, k_e, fluid_density=1000., g=9.81,
-                 a_exp=1.0, tau_crit=0.0, uplift_rate=0.0, **kwds):
+    def __init__(
+        self,
+        grid,
+        k_e,
+        fluid_density=1000.,
+        g=9.81,
+        a_exp=1.0,
+        tau_crit=0.0,
+        uplift_rate=0.0,
+        **kwds
+    ):
         """Calculate detachment limited erosion rate on nodes using the shear
         stress equation, solved using the depth slope product.
 
@@ -176,16 +184,20 @@ class DepthSlopeProductErosion(Component):
         self.a = a_exp
         self.g = g
         self.rho = fluid_density
-        self.E = self._grid.zeros(at='node')
+        self.E = self._grid.zeros(at="node")
         self.uplift_rate = uplift_rate
         self.tau_crit = tau_crit
         self.k_e = k_e
 
-        self.dz = self._grid.zeros(at='node')
+        self.dz = self._grid.zeros(at="node")
 
-    def erode(self, dt, elevs='topographic__elevation',
-                          depth='surface_water__depth',
-                          slope='topographic__slope'):
+    def erode(
+        self,
+        dt,
+        elevs="topographic__elevation",
+        depth="surface_water__depth",
+        slope="topographic__slope",
+    ):
         """Erode into grid topography.
 
         For one time step, this erodes into the grid topography using
@@ -207,32 +219,36 @@ class DepthSlopeProductErosion(Component):
         try:
             S = self._grid.at_node[slope]
         except FieldError:
-            raise ValueError('Slope field is missing!')
+            raise ValueError("Slope field is missing!")
 
         try:
             h = self._grid.at_node[depth]
         except FieldError:
-            raise ValueError('Depth field is missing!')
+            raise ValueError("Depth field is missing!")
 
         self.tau = self.rho * self.g * h * S
 
-        greater_than_tc,  = np.where(self.tau >= self.tau_crit)
-        less_than_tc,  = np.where(self.tau < self.tau_crit)
+        greater_than_tc, = np.where(self.tau >= self.tau_crit)
+        less_than_tc, = np.where(self.tau < self.tau_crit)
 
         self.E[less_than_tc] = 0.0
 
-        self.E[greater_than_tc] = (self.k_e *
-                                 ((self.tau[greater_than_tc] ** self.a) -
-                                 (self.tau_crit ** self.a)))
+        self.E[greater_than_tc] = self.k_e * (
+            (self.tau[greater_than_tc] ** self.a) - (self.tau_crit ** self.a)
+        )
 
         self.E[self.E < 0.0] = 0.0
 
         self.dz = (self.uplift_rate - self.E) * dt
 
-        self._grid['node'][elevs] += self.dz
+        self._grid["node"][elevs] += self.dz
 
-    def run_one_step(self, dt, elevs='topographic__elevation',
-                          depth='surface_water__depth',
-                          slope='topographic__slope'):
+    def run_one_step(
+        self,
+        dt,
+        elevs="topographic__elevation",
+        depth="surface_water__depth",
+        slope="topographic__slope",
+    ):
 
         self.erode(dt=dt, elevs=elevs, depth=depth, slope=slope)

@@ -18,7 +18,7 @@ def test_z0s_ids_different_shape():
     mg = RasterModelGrid(3, 3)
     z0s = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         LithoLayers(mg, z0s, ids, attrs)
 
@@ -28,7 +28,7 @@ def test_z0s_bad_order():
     mg = RasterModelGrid(3, 3)
     z0s = [-4, -3, -2, -1, 0, 1, 2, 6, 4]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         LithoLayers(mg, z0s, ids, attrs)
 
@@ -38,16 +38,16 @@ def test_bad_function():
     mg = RasterModelGrid(3, 3)
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
-        LithoLayers(mg, z0s, ids, attrs, function=lambda x, y, z: 0*x + 0*y + z)
+        LithoLayers(mg, z0s, ids, attrs, function=lambda x, y, z: 0 * x + 0 * y + z)
 
 
 def test_function_returns_scalar():
     mg = RasterModelGrid(3, 3)
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: 1.0)
 
@@ -56,6 +56,6 @@ def test_function_returns_wrong_number_of_values():
     mg = RasterModelGrid(3, 3)
     z0s = [-4, -3, -2, -1, 0, 1, 2, 4, 6]
     ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
-    attrs = {'K_sp': {1: 0.001, 2: 0.0001}}
+    attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
     with pytest.raises(ValueError):
         LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: np.array([1.0]))

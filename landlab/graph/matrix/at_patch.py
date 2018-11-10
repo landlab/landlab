@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..sort import sort_patches
 from ...utils.jaggedarray import unravel
+from ..sort import sort_patches
 
 
 def links_at_patch(patches, sort=True, nodes_at_link=None):

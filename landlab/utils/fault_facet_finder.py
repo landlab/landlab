@@ -9,16 +9,17 @@ This is part of the NSF funded project investigating fault scarp degradation,
 Tucker, Hobley, McCoy.
 """
 from __future__ import print_function
-import numpy as np
-import sys
-from pylab import plot, figure, show
 
+import sys
+
+import numpy as np
 import six
+from pylab import figure, plot, show
 
 from landlab.plot import imshow as gridshow
 
-
 if six.PY3:
+
     def cmp(a, b):
         return (a > b) - (a < b)
 

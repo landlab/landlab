@@ -11,9 +11,9 @@ This result in two bound voronoi polygons (12 total) centered on points
 5 and 6.
 """
 
+import numpy as np
 from numpy.testing import assert_array_equal
 from scipy.spatial import Voronoi
-import numpy as np
 
 from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
 
@@ -23,12 +23,8 @@ from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
 #     get_links_at_patch, get_corner_at_patch)
 
 
-NODE_X = (0. , 1. , 2. , 3. ,
-           .1, 1.1, 2.1, 3.1,
-           .2, 1.2, 2.2, 3.2)
-NODE_Y = (0. , 0. , 0. , 0. ,
-          1. , 1. , 1. , 1. ,
-          2. , 2. , 2. , 2.)
+NODE_X = (0., 1., 2., 3., .1, 1.1, 2.1, 3.1, .2, 1.2, 2.2, 3.2)
+NODE_Y = (0., 0., 0., 0., 1., 1., 1., 1., 2., 2., 2., 2.)
 POINTS = list(zip(NODE_X, NODE_Y))
 
 
@@ -38,7 +34,7 @@ def test_get_finite_regions():
 
     regions = converter.get_finite_regions()
 
-    assert len(regions) == 13 # There's one extra "empty" region
+    assert len(regions) == 13  # There's one extra "empty" region
     assert len(regions[regions == 0]) == 11
     assert len(regions[regions == 1]) == 2
 
@@ -69,7 +65,7 @@ def test_patch_at_region():
 
     patch_at_region = converter.get_patch_at_region()
 
-    assert patch_at_region.shape == (len(v.regions), )
+    assert patch_at_region.shape == (len(v.regions),)
     assert sum(patch_at_region >= 0) == 2
 
 
@@ -80,7 +76,7 @@ def test_link_at_ridge():
 
     link_at_ridge = converter.get_link_at_ridge()
 
-    assert link_at_ridge.shape == (len(v.ridge_vertices), )
+    assert link_at_ridge.shape == (len(v.ridge_vertices),)
     assert sum(link_at_ridge >= 0) == 11
 
 
@@ -102,7 +98,7 @@ def test_node_at_vertex():
 
     node_at_vertex = converter.get_node_at_vertex()
 
-    assert node_at_vertex.shape == (len(v.vertices), )
+    assert node_at_vertex.shape == (len(v.vertices),)
     assert sum(node_at_vertex >= 0) == 10
 
     node_at_vertex = node_at_vertex[node_at_vertex >= 0]
@@ -120,8 +116,7 @@ def test_nodes_at_link():
     assert np.all(nodes_at_link >= 0)
     assert np.all(nodes_at_link < 10)
 
-    assert_array_equal(np.unique(nodes_at_link),
-                       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    assert_array_equal(np.unique(nodes_at_link), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
 
 def test_nodes():
@@ -164,6 +159,6 @@ def test_corner_at_patch():
 
     corner_at_patch = converter.get_corner_at_patch()
 
-    assert corner_at_patch.shape == (2, )
+    assert corner_at_patch.shape == (2,)
     assert np.all(corner_at_patch >= 0)
     assert np.all(corner_at_patch < len(v.points))

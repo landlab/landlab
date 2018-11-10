@@ -15,6 +15,7 @@ import os
 
 if "DISPLAY" not in os.environ:
     import matplotlib
+
     matplotlib.use("Agg")
 
 from numpy import set_printoptions

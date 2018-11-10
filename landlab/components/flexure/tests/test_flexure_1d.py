@@ -1,17 +1,15 @@
 #! /usr/bin/env python
 """Unit tests for landlab.components.flexure.Flexure1D."""
+import numpy as np
 import pytest
 from numpy.testing import (
+    assert_array_almost_equal,
     assert_array_equal,
     assert_array_less,
-    assert_array_almost_equal,
 )
-
-import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components.flexure import Flexure1D
-
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)

@@ -8,10 +8,12 @@ Created on Fri Feb 20 09:32:27 2015
 @author: danhobley (SiccarPoint), after volle001@umn.edu
 """
 
+import inspect
+
 import numpy as np
 from six.moves import range
-from landlab import RasterModelGrid, Component, FieldError
-import inspect
+
+from landlab import Component, FieldError, RasterModelGrid
 
 
 class DischargeDiffuser(Component):
@@ -62,46 +64,55 @@ class DischargeDiffuser(Component):
     ...             Q_at_core_nodes)
     True
     """
-    _name = 'DischargeDiffuser'
 
-    _input_var_names = ('topographic__elevation',
-                        'water__discharge_in',
-                        'sediment__discharge_in',
-                        )
+    _name = "DischargeDiffuser"
 
-    _output_var_names = ('topographic__elevation',
-                         'surface_water__discharge',
-                         'flow__potential',
-                         )
+    _input_var_names = (
+        "topographic__elevation",
+        "water__discharge_in",
+        "sediment__discharge_in",
+    )
 
-    _var_units = {'topographic__elevation': 'm',
-                  'water__unit_flux_in': 'm/s',
-                  'surface_water__discharge': 'm**3/s',
-                  'flow__potential': 'm**3/s',
-                  'surface_water__depth': 'm',
-                  }
+    _output_var_names = (
+        "topographic__elevation",
+        "surface_water__discharge",
+        "flow__potential",
+    )
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'water__unit_flux_in': 'node',
-                    'surface_water__discharge': 'node',
-                    'flow__potential': 'node',
-                    'surface_water__depth': 'node',
-                    }
+    _var_units = {
+        "topographic__elevation": "m",
+        "water__unit_flux_in": "m/s",
+        "surface_water__discharge": "m**3/s",
+        "flow__potential": "m**3/s",
+        "surface_water__depth": "m",
+    }
+
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "water__unit_flux_in": "node",
+        "surface_water__discharge": "node",
+        "flow__potential": "node",
+        "surface_water__depth": "node",
+    }
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'water__unit_flux_in': (
-            'External volume water per area per time input to each node ' +
-            '(e.g., rainfall rate)'),
-        'surface_water__discharge': (
-            'Magnitude of volumetric water flux out of each node'),
-        'flow__potential': (
-            'Value of the hypothetical field "K", used to force water flux ' +
-            'to flow downhill'),
-        'surface_water__depth': (
-            'If Manning or Chezy specified, the depth of flow in the cell, ' +
-            'calculated assuming flow occurs over the whole surface'),
-                  }
+        "topographic__elevation": "Land surface topographic elevation",
+        "water__unit_flux_in": (
+            "External volume water per area per time input to each node "
+            + "(e.g., rainfall rate)"
+        ),
+        "surface_water__discharge": (
+            "Magnitude of volumetric water flux out of each node"
+        ),
+        "flow__potential": (
+            'Value of the hypothetical field "K", used to force water flux '
+            + "to flow downhill"
+        ),
+        "surface_water__depth": (
+            "If Manning or Chezy specified, the depth of flow in the cell, "
+            + "calculated assuming flow occurs over the whole surface"
+        ),
+    }
 
     _min_slope_thresh = 1.e-24
     # if your flow isn't connecting up, this probably needs to be reduced
@@ -128,47 +139,47 @@ class DischargeDiffuser(Component):
 
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
-            if self._var_mapping[out_field] == 'node':
+            if self._var_mapping[out_field] == "node":
                 try:
-                    self.grid.add_zeros(self._var_mapping[out_field],
-                                        out_field, dtype=float)
+                    self.grid.add_zeros(
+                        self._var_mapping[out_field], out_field, dtype=float
+                    )
                 except FieldError:
                     pass
             else:
                 pass
             try:
-                self.grid.add_zeros('node', 'surface_water__discharge',
-                                    dtype=float)
+                self.grid.add_zeros("node", "surface_water__discharge", dtype=float)
             except FieldError:
                 pass
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
 
-        self._K = grid.zeros('node', dtype=float)
-        self._Knew = grid.zeros('node', dtype=float)
-        self._prevK = grid.zeros('node', dtype=float)
-        self._znew = grid.zeros('node', dtype=float)
+        self._K = grid.zeros("node", dtype=float)
+        self._Knew = grid.zeros("node", dtype=float)
+        self._prevK = grid.zeros("node", dtype=float)
+        self._znew = grid.zeros("node", dtype=float)
         # discharge across north, south, west, and east face of control volume
-        self._Qn = np.zeros((ni, nj), dtype='float')
-        self._Qs = np.zeros((ni, nj), dtype='float')
-        self._Qw = np.zeros((ni, nj), dtype='float')
-        self._Qe = np.zeros((ni, nj), dtype='float')
+        self._Qn = np.zeros((ni, nj), dtype="float")
+        self._Qs = np.zeros((ni, nj), dtype="float")
+        self._Qw = np.zeros((ni, nj), dtype="float")
+        self._Qe = np.zeros((ni, nj), dtype="float")
 
         # coefficenst used in solition of flow conductivity K
-        self._app = np.zeros((ni, nj), dtype='float')
-        self._apz = np.zeros((ni, nj), dtype='float')
-        self._aww = np.zeros((ni, nj), dtype='float')
-        self._awp = np.zeros((ni, nj), dtype='float')
-        self._awz = np.zeros((ni, nj), dtype='float')
-        self._aee = np.zeros((ni, nj), dtype='float')
-        self._aep = np.zeros((ni, nj), dtype='float')
-        self._aez = np.zeros((ni, nj), dtype='float')
-        self._ass = np.zeros((ni, nj), dtype='float')
-        self._asp = np.zeros((ni, nj), dtype='float')
-        self._asz = np.zeros((ni, nj), dtype='float')
-        self._ann = np.zeros((ni, nj), dtype='float')
-        self._anp = np.zeros((ni, nj), dtype='float')
-        self._anz = np.zeros((ni, nj), dtype='float')
+        self._app = np.zeros((ni, nj), dtype="float")
+        self._apz = np.zeros((ni, nj), dtype="float")
+        self._aww = np.zeros((ni, nj), dtype="float")
+        self._awp = np.zeros((ni, nj), dtype="float")
+        self._awz = np.zeros((ni, nj), dtype="float")
+        self._aee = np.zeros((ni, nj), dtype="float")
+        self._aep = np.zeros((ni, nj), dtype="float")
+        self._aez = np.zeros((ni, nj), dtype="float")
+        self._ass = np.zeros((ni, nj), dtype="float")
+        self._asp = np.zeros((ni, nj), dtype="float")
+        self._asz = np.zeros((ni, nj), dtype="float")
+        self._ann = np.zeros((ni, nj), dtype="float")
+        self._anp = np.zeros((ni, nj), dtype="float")
+        self._anz = np.zeros((ni, nj), dtype="float")
 
         self._slx = np.empty((ni, nj), dtype=float)
         self._sly = np.empty((ni, nj), dtype=float)
@@ -183,11 +194,13 @@ class DischargeDiffuser(Component):
         grid = self.grid
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
-        z = grid.at_node['topographic__elevation']
-        Qsp = grid.at_node['water__discharge_in'].reshape(
-            (grid.number_of_node_rows, grid.number_of_node_columns))
-        Qsource = grid.at_node['sediment__discharge_in'].reshape(
-            (grid.number_of_node_rows, grid.number_of_node_columns))
+        z = grid.at_node["topographic__elevation"]
+        Qsp = grid.at_node["water__discharge_in"].reshape(
+            (grid.number_of_node_rows, grid.number_of_node_columns)
+        )
+        Qsource = grid.at_node["sediment__discharge_in"].reshape(
+            (grid.number_of_node_rows, grid.number_of_node_columns)
+        )
 
         ######STABILITY ANALYSIS GOES HERE
         dt_stab = dt
@@ -201,20 +214,23 @@ class DischargeDiffuser(Component):
         #                            grid.number_of_node_columns))
 
         # pad eta
-        pad_eta = np.pad(eta, ((1, 1), (1, 1)), 'edge')
+        pad_eta = np.pad(eta, ((1, 1), (1, 1)), "edge")
         # do the sediment diffusion
-        for dir in ('W', 'E', 'S', 'N'):
+        for dir in ("W", "E", "S", "N"):
             self._grad_on_link(pad_eta, dir)
-            Cslope = np.sqrt(self._slx**2 + self._sly**2)
+            Cslope = np.sqrt(self._slx ** 2 + self._sly ** 2)
             self._link_sed_flux_from_slope(Cslope, self._slope, dir)
 
         try:
             Qin = Qsource.reshape((ni, nj))
         except AttributeError:
             Qin = float(Qsource)  # if both fail, we're in trouble
-        eta[:] += dt_stab*(
-            self._Qsed_e + self._Qsed_n + self._Qsed_w + self._Qsed_s +
-            Qin)/grid.dx/grid.dy
+        eta[:] += (
+            dt_stab
+            * (self._Qsed_e + self._Qsed_n + self._Qsed_w + self._Qsed_s + Qin)
+            / grid.dx
+            / grid.dy
+        )
 
         # do the water routing on links
         # These calculations are based on assuming that the flow is a sheet
@@ -281,7 +297,7 @@ class DischargeDiffuser(Component):
             Knew /= apz
             K[:] = Knew
 
-        Kpad = np.pad(K, ((1, 1), (1, 1)), 'edge')
+        Kpad = np.pad(K, ((1, 1), (1, 1)), "edge")
         self._Qw += self._aww * Kpad[1:-1, :-2]
         self._Qw -= self._awp * K
         self._Qe += self._aee * Kpad[1:-1, 2:]
@@ -319,9 +335,8 @@ class DischargeDiffuser(Component):
         >>> dd._grad_on_link(zpad, 'W')
         """
         core = (slice(1, -1, 1), slice(1, -1, 1))
-        if direction == 'W':
-            self._slx[:] = (
-                padded_eta[1:-1, :-2] - padded_eta[core])/self.grid.dx
+        if direction == "W":
+            self._slx[:] = (padded_eta[1:-1, :-2] - padded_eta[core]) / self.grid.dx
             self._sly[:] = padded_eta[:-2, :-2]
             self._sly -= padded_eta[2:, :-2]
             self._sly += padded_eta[:-2, 1:-1]
@@ -329,9 +344,8 @@ class DischargeDiffuser(Component):
             self._sly *= 0.25
             self._sly /= self.grid.dy
 
-        elif direction == 'E':
-            self._slx[:] = (
-                padded_eta[1:-1, 2:] - padded_eta[core])/self.grid.dx
+        elif direction == "E":
+            self._slx[:] = (padded_eta[1:-1, 2:] - padded_eta[core]) / self.grid.dx
             self._sly[:] = padded_eta[:-2, 2:]
             self._sly -= padded_eta[2:, 2:]
             self._sly += padded_eta[:-2, 1:-1]
@@ -339,9 +353,8 @@ class DischargeDiffuser(Component):
             self._sly *= 0.25
             self._sly /= self.grid.dy
 
-        elif direction == 'S':
-            self._sly[:] = (
-                padded_eta[:-2, 1:-1] - padded_eta[core])/self.grid.dy
+        elif direction == "S":
+            self._sly[:] = (padded_eta[:-2, 1:-1] - padded_eta[core]) / self.grid.dy
             self._slx[:] = padded_eta[:-2, :-2]
             self._slx -= padded_eta[:-2, 2:]
             self._slx += padded_eta[1:-1, :-2]
@@ -349,9 +362,8 @@ class DischargeDiffuser(Component):
             self._slx *= 0.25
             self._slx /= self.grid.dx
 
-        elif direction == 'N':
-            self._sly[:] = (
-                padded_eta[2:, 1:-1] - padded_eta[core])/self.grid.dy
+        elif direction == "N":
+            self._sly[:] = (padded_eta[2:, 1:-1] - padded_eta[core]) / self.grid.dy
             self._slx[:] = padded_eta[2:, :-2]
             self._slx -= padded_eta[2:, 2:]
             self._slx += padded_eta[1:-1, :-2]
@@ -366,22 +378,22 @@ class DischargeDiffuser(Component):
         """
         Update the sed flux array for a given link dir, assuming a critical S.
         """
-        if direction == 'W':
+        if direction == "W":
             dir_sed_flux = self._Qsed_w
             dir_water_flux = self._Qw
             thisslice = (slice(0, -1, 1), slice(1, -1, 1))
             deadedge = (slice(0, -1, 1), slice(0, 1, 1))
-        elif direction == 'E':
+        elif direction == "E":
             dir_sed_flux = self._Qsed_e
             dir_water_flux = self._Qe
             thisslice = (slice(0, -1, 1), slice(1, -2, 1))
             deadedge = (slice(0, -1, 1), slice(-2, -1, 1))
-        elif direction == 'N':
+        elif direction == "N":
             dir_sed_flux = self._Qsed_n
             dir_water_flux = self._Qn
             thisslice = (slice(0, -2, 1), slice(0, -1, 1))
             deadedge = (slice(-2, -1, 1), slice(0, -1, 1))
-        elif direction == 'S':
+        elif direction == "S":
             dir_sed_flux = self._Qsed_s
             dir_water_flux = self._Qs
             thisslice = (slice(1, -1, 1), slice(0, -1, 1))
@@ -389,8 +401,7 @@ class DischargeDiffuser(Component):
         else:
             raise NameError("direction must be {'E', 'N', 'S', 'W'}")
         slope_diff = (S_val - S_thresh).clip(0.)
-        dir_sed_flux[thisslice] = (dir_water_flux[thisslice] *
-                                   slope_diff[thisslice])
+        dir_sed_flux[thisslice] = dir_water_flux[thisslice] * slope_diff[thisslice]
         dir_sed_flux[deadedge] = 0.
 
     def diffuse_sediment(self, Qw_in, Qsed_in, **kwds):
@@ -399,17 +410,17 @@ class DischargeDiffuser(Component):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from landlab import imshow_grid_at_node
 
     S_crit = 0.25
     mg = RasterModelGrid((20, 20), 0.5)
-    mg.add_zeros('node', 'topographic__elevation')
-    Qw_in = mg.add_zeros('node', 'water__discharge_in')
-    Qs_in = mg.add_zeros('node', 'sediment__discharge_in')
-    Qw_in[0] = 0.5*np.pi
-    Qs_in[0] = (1. - S_crit)*0.5*np.pi
+    mg.add_zeros("node", "topographic__elevation")
+    Qw_in = mg.add_zeros("node", "water__discharge_in")
+    Qs_in = mg.add_zeros("node", "sediment__discharge_in")
+    Qw_in[0] = 0.5 * np.pi
+    Qs_in[0] = (1. - S_crit) * 0.5 * np.pi
     dd = DischargeDiffuser(mg, S_crit)
     for i in range(5):  # 501
         dd.run_one_step(0.01)  # 0.08
-    imshow_grid_at_node(mg, 'topographic__elevation')
+    imshow_grid_at_node(mg, "topographic__elevation")

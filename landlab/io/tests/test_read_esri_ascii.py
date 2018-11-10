@@ -4,77 +4,76 @@ Unit tests for landlab.io.esri_ascii module.
 """
 import os
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from six import StringIO
 
-from landlab.io import read_esri_ascii, read_asc_header
-from landlab.io import (MissingRequiredKeyError, KeyTypeError, DataSizeError,
-                        BadHeaderLineError, KeyValueError,
-                        MismatchGridDataSizeError)
 from landlab import RasterModelGrid
+from landlab.io import (
+    BadHeaderLineError,
+    DataSizeError,
+    KeyTypeError,
+    KeyValueError,
+    MismatchGridDataSizeError,
+    MissingRequiredKeyError,
+    read_asc_header,
+    read_esri_ascii,
+)
 
-
-_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 def test_hugo_read_file_name():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
-                                                 'hugo_site.asc'))
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, "hugo_site.asc"))
 
     assert isinstance(grid, RasterModelGrid)
 
     assert field.size == 55 * 76
-    assert field.shape == (55 * 76, )
+    assert field.shape == (55 * 76,)
     assert (grid.x_of_node.min(), grid.y_of_node.min()) == (0.0, 0.0)
 
 
 def test_hugo_read_file_like():
-    with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
+    with open(os.path.join(_TEST_DATA_DIR, "hugo_site.asc")) as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
 
     assert isinstance(grid, RasterModelGrid)
 
     assert field.size == 55 * 76
-    assert field.shape == (55 * 76, )
+    assert field.shape == (55 * 76,)
 
 
 def test_hugo_reshape():
-    with open(os.path.join(_TEST_DATA_DIR, 'hugo_site.asc')) as asc_file:
+    with open(os.path.join(_TEST_DATA_DIR, "hugo_site.asc")) as asc_file:
         (grid, field) = read_esri_ascii(asc_file, reshape=True)
 
     assert isinstance(grid, RasterModelGrid)
 
-    assert field.shape==(55, 76)
+    assert field.shape == (55, 76)
 
 
 def test_4x3_read_file_name():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
-                                                 '4_x_3.asc'))
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, "4_x_3.asc"))
 
     assert isinstance(grid, RasterModelGrid)
 
     assert isinstance(field, np.ndarray)
     assert (grid.x_of_node.min(), grid.y_of_node.min()) == (1.0, 2.0)
-    assert_array_equal(field,
-                       np.array([9., 10., 11.,
-                                 6.,  7.,  8.,
-                                 3.,  4.,  5.,
-                                 0.,  1.,  2.]))
+    assert_array_equal(
+        field, np.array([9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.])
+    )
 
 
 def test_4x3_read_file_like():
-    with open(os.path.join(_TEST_DATA_DIR, '4_x_3.asc')) as asc_file:
+    with open(os.path.join(_TEST_DATA_DIR, "4_x_3.asc")) as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
 
     assert isinstance(grid, RasterModelGrid)
 
-    assert_array_equal(field,
-                       np.array([9., 10., 11.,
-                                 6.,  7.,  8.,
-                                 3.,  4.,  5.,
-                                 0.,  1.,  2.]))
+    assert_array_equal(
+        field, np.array([9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.])
+    )
 
 
 def test_4x3_shape_mismatch():
@@ -89,7 +88,8 @@ NODATA_value  -9999
 1. 2. 3. 4.
 5. 6. 7. 8.
 9. 10. 11. 12.
-        """)
+        """
+    )
     (grid, field) = read_esri_ascii(asc_file)
     assert field.size == 12
 
@@ -102,7 +102,8 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
-        """)
+        """
+    )
     (grid, field) = read_esri_ascii(asc_file)
     assert field.size == 12
 
@@ -117,7 +118,8 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10.
-        """)
+        """
+    )
     with pytest.raises(DataSizeError):
         read_esri_ascii(asc_file)
 
@@ -132,7 +134,8 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10.
-        """)
+        """
+    )
     with pytest.raises(DataSizeError):
         read_esri_ascii(asc_file, halo=1)
 
@@ -147,8 +150,9 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
-        """)
-    rmg = RasterModelGrid((10,10),10.)
+        """
+    )
+    rmg = RasterModelGrid((10, 10), 10.)
     with pytest.raises(MismatchGridDataSizeError):
         read_esri_ascii(asc_file, grid=rmg)
 
@@ -161,7 +165,8 @@ xllcorner     1.
 yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
-        """)
+        """
+    )
     with pytest.raises(MissingRequiredKeyError):
         read_asc_header(asc_file)
 
@@ -176,7 +181,8 @@ yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
 invalid_key   1
-        """)
+        """
+    )
     with pytest.raises(BadHeaderLineError):
         read_asc_header(asc_file)
 
@@ -191,7 +197,8 @@ yllcorner     2.
 cellsize
 NODATA_value  -9999
 invalid_key   1
-        """)
+        """
+    )
     with pytest.raises(BadHeaderLineError):
         read_asc_header(asc_file)
 
@@ -205,7 +212,8 @@ xllcorner     1.
 yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
-        """)
+        """
+    )
     with pytest.raises(KeyValueError):
         read_asc_header(asc_file)
 
@@ -218,7 +226,8 @@ nrows         4
 yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
-        """)
+        """
+    )
     with pytest.raises(MissingRequiredKeyError):
         read_asc_header(asc_file)
 
@@ -232,11 +241,12 @@ xllcenter     1.
 yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
-        """)
+        """
+    )
     header = read_asc_header(asc_file)
-    assert header['xllcenter'] == 1.
+    assert header["xllcenter"] == 1.
     with pytest.raises(KeyError):
-        header['xllcorner']
+        header["xllcorner"]
 
     asc_file = StringIO(
         """
@@ -246,11 +256,12 @@ xllcorner     1.
 yllcorner     2.
 cellsize      10.
 NODATA_value  -9999
-        """)
+        """
+    )
     header = read_asc_header(asc_file)
-    assert header['xllcorner'] == 1.
+    assert header["xllcorner"] == 1.
     with pytest.raises(KeyError):
-        header['xllcenter']
+        header["xllcenter"]
 
 
 def test_header_missing_optional():
@@ -261,10 +272,11 @@ nrows         4
 xllcenter     1.
 yllcorner     2.
 cellsize      10.
-        """)
+        """
+    )
     header = read_asc_header(asc_file)
     with pytest.raises(KeyError):
-        header['nodata_value']
+        header["nodata_value"]
 
 
 def test_header_case_insensitive():
@@ -276,10 +288,10 @@ Xllcenter     1.
 YLLCORNER     2.
 CELLSIZE      10.
 NODATA_value  -999
-        """)
+        """
+    )
     header = read_asc_header(asc_file)
-    for key in ['ncols', 'nrows', 'xllcenter', 'yllcorner', 'cellsize',
-                'nodata_value']:
+    for key in ["ncols", "nrows", "xllcenter", "yllcorner", "cellsize", "nodata_value"]:
         assert key in header
 
 
@@ -292,57 +304,114 @@ Xllcenter     1.
 YLLCORNER     2.
 CELLSIZE      10.
 NODATA_value  -999
-        """)
+        """
+    )
     with pytest.raises(KeyTypeError):
         read_asc_header(asc_file)
 
 
 def test_name_keyword():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR,
-                                                 '4_x_3.asc'),
-                                    name='air__temperature')
+    (grid, field) = read_esri_ascii(
+        os.path.join(_TEST_DATA_DIR, "4_x_3.asc"), name="air__temperature"
+    )
 
     assert isinstance(grid, RasterModelGrid)
 
     assert isinstance(field, np.ndarray)
-    assert_array_equal(field,
-                       np.array([9., 10., 11.,
-                                 6.,  7.,  8.,
-                                 3.,  4.,  5.,
-                                 0.,  1.,  2.]))
-    assert_array_almost_equal(grid.at_node['air__temperature'], field)
-    assert grid.at_node['air__temperature'] is field
+    assert_array_equal(
+        field, np.array([9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.])
+    )
+    assert_array_almost_equal(grid.at_node["air__temperature"], field)
+    assert grid.at_node["air__temperature"] is field
 
 
 def test_halo_keyword():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \
-                                                 '4_x_3.asc'), \
-                                                 halo=1)
+    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, "4_x_3.asc"), halo=1)
 
     assert isinstance(grid, RasterModelGrid)
 
     assert isinstance(field, np.ndarray)
-    assert_array_equal(field,
-                       np.array([-9999., -9999., -9999., -9999., -9999.,
-                                 -9999.,     9.,    10.,    11., -9999.,
-                                 -9999.,     6.,     7.,     8., -9999.,
-                                 -9999.,     3.,     4.,     5., -9999.,
-                                 -9999.,     0.,     1.,     2., -9999.,
-                                 -9999., -9999., -9999., -9999., -9999.]))
+    assert_array_equal(
+        field,
+        np.array(
+            [
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                9.,
+                10.,
+                11.,
+                -9999.,
+                -9999.,
+                6.,
+                7.,
+                8.,
+                -9999.,
+                -9999.,
+                3.,
+                4.,
+                5.,
+                -9999.,
+                -9999.,
+                0.,
+                1.,
+                2.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+            ]
+        ),
+    )
 
 
 def test_halo_keyword_no_nodata_value():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, \
-                                                '4_x_3_no_nodata_value.asc'), \
-                                                halo=1)
+    (grid, field) = read_esri_ascii(
+        os.path.join(_TEST_DATA_DIR, "4_x_3_no_nodata_value.asc"), halo=1
+    )
 
     assert isinstance(grid, RasterModelGrid)
 
     assert isinstance(field, np.ndarray)
-    assert_array_equal(field,
-                       np.array([-9999., -9999., -9999., -9999., -9999.,
-                                 -9999.,     9.,    10.,    11., -9999.,
-                                 -9999.,     6.,     7.,     8., -9999.,
-                                 -9999.,     3.,     4.,     5., -9999.,
-                                 -9999.,     0.,     1.,     2., -9999.,
-                                 -9999., -9999., -9999., -9999., -9999.]))
+    assert_array_equal(
+        field,
+        np.array(
+            [
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                9.,
+                10.,
+                11.,
+                -9999.,
+                -9999.,
+                6.,
+                7.,
+                8.,
+                -9999.,
+                -9999.,
+                3.,
+                4.,
+                5.,
+                -9999.,
+                -9999.,
+                0.,
+                1.,
+                2.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+                -9999.,
+            ]
+        ),
+    )

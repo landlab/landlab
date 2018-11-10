@@ -4,7 +4,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid, VoronoiDelaunayGrid
-from landlab.components import FlowDirectorDINF, FlowAccumulator
+from landlab.components import FlowAccumulator, FlowDirectorDINF
 from landlab.components.flow_director import flow_direction_dinf
 
 

@@ -36,11 +36,11 @@ IN A HEX-SHAPED OR RECTANGULAR HEX, SLIGHTLY MORE COMPLICATED BUT NOT TOO BAD.
 IN A GENERAL VORONOI...??
 FIRST THING PROBABLY IS TO FIX LINK_AT_FACE FOR RASTER, THEN IMPLEMENT FOR HEX.
 """
+import numpy as np
+from numpy.testing import assert_array_equal
 from six.moves import range
 
 from landlab import HexModelGrid
-import numpy as np
-from numpy.testing import assert_array_equal
 
 MAX_NUM_LINKS = 6
 
@@ -49,7 +49,7 @@ def gt_grads_at_faces1(grid, nv):
 
     # lg = (nv[grid.node_at_link_head] - nv[grid.node_at_link_tail]) / grid.length_of_link
     # return lg[grid.link_at_face]
-    return None # temporary
+    return None  # temporary
 
 
 def gt_link_flux_divergence_at_cells_with_2darray(grid, f, out=None):
@@ -60,8 +60,8 @@ def gt_link_flux_divergence_at_cells_with_2darray(grid, f, out=None):
         net_flux = np.zeros(grid.number_of_nodes)
 
     for r in range(MAX_NUM_LINKS):
-        links = grid.gt_links_at_node[r,grid.node_at_cell]
-        net_flux += f[links]*grid.gt_link_dirs_at_node[r,:]
+        links = grid.gt_links_at_node[r, grid.node_at_cell]
+        net_flux += f[links] * grid.gt_link_dirs_at_node[r, :]
 
 
 def gt_calc_gradients_at_faces(grid, vn):
@@ -73,11 +73,21 @@ def make_links_at_node_array(grid):
     """Make array with links at each node"""
 
     # Create arrays for link-at-node information
-    grid.gt_links_at_node = -np.ones((MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int32)
-    grid.gt_link_dirs_at_node = np.zeros((MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int8)
-    grid.gt_active_link_dirs_at_node = np.zeros((MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int8)
-    grid.gt_num_links_at_node = np.zeros(grid.number_of_nodes, dtype=np.uint8)  # assume <256 links at any node
-    grid.gt_num__active_links_at_node = np.zeros(grid.number_of_nodes, dtype=np.uint8)  # assume <256 links at any node
+    grid.gt_links_at_node = -np.ones(
+        (MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int32
+    )
+    grid.gt_link_dirs_at_node = np.zeros(
+        (MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int8
+    )
+    grid.gt_active_link_dirs_at_node = np.zeros(
+        (MAX_NUM_LINKS, grid.number_of_nodes), dtype=np.int8
+    )
+    grid.gt_num_links_at_node = np.zeros(
+        grid.number_of_nodes, dtype=np.uint8
+    )  # assume <256 links at any node
+    grid.gt_num__active_links_at_node = np.zeros(
+        grid.number_of_nodes, dtype=np.uint8
+    )  # assume <256 links at any node
 
     # Sweep over all links
     for lk in range(grid.number_of_links):
@@ -131,43 +141,51 @@ def testing_flux_divergence_with_hex():
     """
     hmg = HexModelGrid(3, 3, reorient_links=True)
 
-    f = hmg.add_zeros('link', 'test_flux')
+    f = hmg.add_zeros("link", "test_flux")
     f[:] = np.arange(hmg.number_of_links)
 
     make_links_at_node_array(hmg)
 
-    assert_array_equal(hmg.gt_num_links_at_node,
-                       [3, 4, 3, 3, 6, 6, 3, 3, 4, 3])
+    assert_array_equal(hmg.gt_num_links_at_node, [3, 4, 3, 3, 6, 6, 3, 3, 4, 3])
 
-    assert_array_equal(hmg.gt_links_at_node,
-                       [[  0,  0,  1,  2,  3,  5,  7, 11, 13, 15],
-                        [  2,  1,  6,  8,  4,  6, 10, 12, 14, 16],
-                        [  3,  4,  7, 11,  8,  9, 16, 17, 17, 18],
-                        [ -1,  5, -1, -1,  9, 10, -1, -1, 18, -1],
-                        [ -1, -1, -1, -1, 12, 14, -1, -1, -1, -1],
-                        [ -1, -1, -1, -1, 13, 15, -1, -1, -1, -1]])
+    assert_array_equal(
+        hmg.gt_links_at_node,
+        [
+            [0, 0, 1, 2, 3, 5, 7, 11, 13, 15],
+            [2, 1, 6, 8, 4, 6, 10, 12, 14, 16],
+            [3, 4, 7, 11, 8, 9, 16, 17, 17, 18],
+            [-1, 5, -1, -1, 9, 10, -1, -1, 18, -1],
+            [-1, -1, -1, -1, 12, 14, -1, -1, -1, -1],
+            [-1, -1, -1, -1, 13, 15, -1, -1, -1, -1],
+        ],
+    )
 
-    assert_array_equal(hmg.gt_link_dirs_at_node,
-                       [[ -1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
-                        [ -1, -1, -1, -1,  1,  1,  1,  1,  1,  1],
-                        [ -1, -1, -1, -1,  1,  1, -1, -1,  1,  1],
-                        [  0, -1,  0,  0, -1, -1,  0,  0, -1,  0],
-                        [  0,  0,  0,  0, -1, -1,  0,  0,  0,  0],
-                        [  0,  0,  0,  0, -1, -1,  0,  0,  0,  0]])
+    assert_array_equal(
+        hmg.gt_link_dirs_at_node,
+        [
+            [-1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [-1, -1, -1, -1, 1, 1, 1, 1, 1, 1],
+            [-1, -1, -1, -1, 1, 1, -1, -1, 1, 1],
+            [0, -1, 0, 0, -1, -1, 0, 0, -1, 0],
+            [0, 0, 0, 0, -1, -1, 0, 0, 0, 0],
+            [0, 0, 0, 0, -1, -1, 0, 0, 0, 0],
+        ],
+    )
 
     raw_net_flux = np.zeros(hmg.number_of_nodes)
     for r in range(MAX_NUM_LINKS):
-        raw_net_flux += f[hmg.gt_links_at_node[r,:]]*hmg.gt_link_dirs_at_node[r,:]
-    assert_array_equal(raw_net_flux,
-                       [ -5., -10., -12., -17., -19., -19.,  1.,  6., 26., 49.])
+        raw_net_flux += f[hmg.gt_links_at_node[r, :]] * hmg.gt_link_dirs_at_node[r, :]
+    assert_array_equal(
+        raw_net_flux, [-5., -10., -12., -17., -19., -19., 1., 6., 26., 49.]
+    )
 
     nv = np.arange(hmg.number_of_nodes)
-    #gt_calc_gradients_at_faces(hmg, nv)
-    #gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
+    # gt_calc_gradients_at_faces(hmg, nv)
+    # gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
 
     for i in range(1000):
         gt_grads_at_faces1(hmg, nv)
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     testing_flux_divergence_with_hex()

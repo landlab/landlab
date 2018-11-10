@@ -3,9 +3,8 @@
 Unit tests for landlab.collections
 """
 import pytest
-from landlab import Palette, Arena, NoProvidersError
 
-from landlab import Implements, ImplementsOrRaise
+from landlab import Arena, Implements, ImplementsOrRaise, NoProvidersError, Palette
 from landlab.framework.interfaces import BmiBase, BmiNoGrid
 
 

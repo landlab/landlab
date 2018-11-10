@@ -5,24 +5,20 @@
 # Created on Thurs Nov 12, 2015
 import os
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from landlab import RasterModelGrid, HexModelGrid
+from landlab import CLOSED_BOUNDARY, HexModelGrid, RasterModelGrid
 from landlab.components.flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-
 from landlab.components.flow_director.flow_director import _FlowDirector
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
-
-from landlab import CLOSED_BOUNDARY
-
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -31,9 +27,7 @@ def test_not_implemented():
     """Test that private run_one_step is not implemented"""
 
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
-    )
+    mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
 
     fd0 = _FlowDirector(mg, "topographic__elevation")
     with pytest.raises(NotImplementedError):
@@ -51,9 +45,7 @@ def test_not_implemented():
 def test_fields_already_added():
 
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
-    )
+    mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
     r = mg.add_field("flow__receiver_node", mg.nodes, at="node")
     s = mg.add_field("topographic__steepest_slope", mg.nodes, at="node")
     links_to_receiver = mg.add_field("flow__link_to_receiver_node", mg.nodes, at="node")
@@ -185,9 +177,7 @@ def test_check_fields():
 
 def test_properties():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
-    )
+    mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
     fd = FlowDirectorMFD(mg, "topographic__elevation")
     fd.run_one_step()
 
@@ -323,9 +313,7 @@ def test_properties():
 
 def test_change_bc_post_init():
     mg = RasterModelGrid((5, 5))
-    mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
-    )
+    mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
     fd = FlowDirectorSteepest(mg, "topographic__elevation")
     fd.run_one_step()
     true_reciever = np.array(

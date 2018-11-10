@@ -31,5 +31,6 @@ def test_id_as_int():
 
 def test_id_as_array():
     grid = RasterModelGrid((4, 5))
-    assert_array_equal(grid.faces_at_cell[[0, 1]],
-                       np.array([[4, 7, 3, 0], [5, 8, 4, 1]]))
+    assert_array_equal(
+        grid.faces_at_cell[[0, 1]], np.array([[4, 7, 3, 0], [5, 8, 4, 1]])
+    )
