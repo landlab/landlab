@@ -11,8 +11,6 @@
 """
 from __future__ import absolute_import
 
-import os
-
 from numpy import set_printoptions
 
 from ._registry import registry
