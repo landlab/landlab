@@ -4,6 +4,7 @@ env:
   - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   global:
+  - MPLBACKEND=Agg
   - CONDA_PREFIX=$HOME/miniconda
   - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
   - secure: wuv2O1M29pkfAjPbOK1MetIf3teDrG4VTepDOps2YFLMzcoJBlJeTqEneVcHb/q2dz5SefjxQQrbLjgZNOURiS1IT2z24srNDPbp8OAsv9nsqAGZO40eWecCRa+u+P+Wh0pZ8urz/ptTir0qFIQ/yz5hoEPx4ScktHkn23V+/fM=
