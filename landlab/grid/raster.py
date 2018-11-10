@@ -1861,46 +1861,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             ]
         )
 
-    @deprecated(use="find_nearest_node", version="0.2")
-    def snap_coords_to_grid(self, xcoord, ycoord):
-        """Snap coordinates to the nearest node.
-
-        This method takes existing coordinates, inside the grid, and returns
-        the ID of the closest grid node. That node can be a boundary node.
-
-        LLCATS: DEPR NINF SUBSET
-        """
-        # DEJH, 9/24/13.
-        # This testing suppressed for speed. While suppressed, coordinates
-        # provided MUST be within the grid or silent instability will occur.
-        # if type(xcoord) == int:
-        #    if not self.is_point_on_grid(xcoord, ycoord):
-        #        raise LookupError(
-        #           'Coordinates specified are outside the grid area')
-        # else: #it's an array
-        #    if not np.all(self.is_point_on_grid(xcoord, ycoord)):
-        #        raise LookupError(
-        #           'One or more pairs of coordinates specified are outside '
-        #           'the grid area')
-        vertices_array = self.nodes_around_point(xcoord, ycoord)
-        # vertices_array.reshape((4,-1))
-        xdir_displacement = np.tile(xcoord, (4, 1)) - self.node_x[vertices_array]
-        ydir_displacement = np.tile(ycoord, (4, 1)) - self.node_y[vertices_array]
-        distances_to_vertices = np.sqrt(
-            xdir_displacement * xdir_displacement
-            + ydir_displacement * ydir_displacement
-        )
-        try:
-            return vertices_array[
-                (
-                    np.argmin(distances_to_vertices, axis=0),
-                    range(distances_to_vertices.shape[1]),
-                )
-            ]
-        except:
-            return vertices_array[np.argmin(distances_to_vertices)]
-        # ...per fancy indexing
-
     def find_nearest_node(self, coords, mode="raise"):
         """Node nearest a point.
 
@@ -3288,9 +3248,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        neighbors[:,] = self.active_adjacent_nodes_at_node[ids]
+        neighbors[:, ] = self.active_adjacent_nodes_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
-        diagonals[:,] = self.diagonal_adjacent_nodes_at_node[ids]
+        diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]
