@@ -2,10 +2,10 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
+from landlab.components.flow_accum import find_drainage_area_and_discharge
 from landlab.components.flow_accum.flow_accum_to_n import (
     find_drainage_area_and_discharge_to_n
 )
-from landlab.components.flow_accum import find_drainage_area_and_discharge
 
 
 def test_boundary_to_n():

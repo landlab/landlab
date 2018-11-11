@@ -11,13 +11,15 @@ GT, September 2014
 """
 from __future__ import print_function
 
-_DEBUG = False
-
 import time
-from numpy import where, bitwise_and
+
+from numpy import bitwise_and, where
+
 from landlab import RasterModelGrid
-from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.celllab_cts import CAPlotter, Transition
 from landlab.ca.oriented_raster_cts import OrientedRasterCTS
+
+_DEBUG = False
 
 
 def setup_transition_list():
@@ -56,16 +58,25 @@ def setup_transition_list():
     """
     xn_list = []
 
-    xn_list.append( Transition((0,1,0), (1,0,0), 1., 'left motion') )
-    xn_list.append( Transition((1,0,0), (0,1,0), 1., 'right motion') )
-    xn_list.append( Transition((0,1,1), (1,0,1), 1.1, 'down motion') )
-    xn_list.append( Transition((1,0,1), (0,1,1), 0.9, 'up motion') )
+    xn_list.append(Transition((0, 1, 0), (1, 0, 0), 1., "left motion"))
+    xn_list.append(Transition((1, 0, 0), (0, 1, 0), 1., "right motion"))
+    xn_list.append(Transition((0, 1, 1), (1, 0, 1), 1.1, "down motion"))
+    xn_list.append(Transition((1, 0, 1), (0, 1, 1), 0.9, "up motion"))
 
     if _DEBUG:
         print()
-        print('setup_transition_list(): list has',len(xn_list),'transitions:')
+        print("setup_transition_list(): list has", len(xn_list), "transitions:")
         for t in xn_list:
-            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
+            print(
+                "  From state",
+                t.from_state,
+                "to state",
+                t.to_state,
+                "at rate",
+                t.rate,
+                "called",
+                t.name,
+            )
 
     return xn_list
 
@@ -93,14 +104,14 @@ def main():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Set up the states and pair transitions.
-    ns_dict = { 0 : 'fluid', 1 : 'particle' }
+    ns_dict = {0: "fluid", 1: "particle"}
     xn_list = setup_transition_list()
 
     # Create the node-state array and attach it to the grid
-    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
+    node_state_grid = mg.add_zeros("node", "node_state_map", dtype=int)
 
     # Initialize the node-state array
-    middle_rows = where(bitwise_and(mg.node_y>0.45*nr, mg.node_y<0.55*nr))[0]
+    middle_rows = where(bitwise_and(mg.node_y > 0.45 * nr, mg.node_y < 0.55 * nr))[0]
     node_state_grid[middle_rows] = 1
 
     # Create the CA model
@@ -112,7 +123,7 @@ def main():
         for r in range(ca.grid.number_of_node_rows):
             for c in range(ca.grid.number_of_node_columns):
                 n -= 1
-                print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                print("{0:.0f}".format(ca.node_state[n]), end=" ")
             print()
 
     # Create a CAPlotter object for handling screen display
@@ -129,12 +140,19 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
+            print(
+                "Current sim time",
+                current_time,
+                "(",
+                100 * current_time / run_duration,
+                "%)",
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
-               plot_each_transition=False) #, plotter=ca_plotter)
+        ca.run(
+            current_time + plot_interval, ca.node_state, plot_each_transition=False
+        )  # , plotter=ca_plotter)
         current_time += plot_interval
 
         # Plot the current grid
@@ -146,9 +164,8 @@ def main():
             for r in range(ca.grid.number_of_node_rows):
                 for c in range(ca.grid.number_of_node_columns):
                     n -= 1
-                    print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                    print("{0:.0f}".format(ca.node_state[n]), end=" ")
                 print()
-
 
     # FINALIZE
 

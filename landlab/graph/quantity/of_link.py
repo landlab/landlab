@@ -80,16 +80,13 @@ def get_midpoint_of_link(graph, out=None):
     if out is None:
         out = np.empty((graph.number_of_links, 2), dtype=float)
 
-    calc_midpoint_of_link(graph.nodes_at_link, graph.x_of_node,
-                          graph.y_of_node, out)
+    calc_midpoint_of_link(graph.nodes_at_link, graph.x_of_node, graph.y_of_node, out)
 
     return out
 
 
 def get_length_of_link(graph):
     nodes_at_link = graph.nodes_at_link
-    dx = (graph.x_of_node[nodes_at_link[:, 0]] -
-          graph.x_of_node[nodes_at_link[:, 1]])
-    dy = (graph.y_of_node[nodes_at_link[:, 0]] -
-          graph.y_of_node[nodes_at_link[:, 1]])
+    dx = graph.x_of_node[nodes_at_link[:, 0]] - graph.x_of_node[nodes_at_link[:, 1]]
+    dy = graph.y_of_node[nodes_at_link[:, 0]] - graph.y_of_node[nodes_at_link[:, 1]]
     return np.sqrt(dx ** 2 + dy ** 2)

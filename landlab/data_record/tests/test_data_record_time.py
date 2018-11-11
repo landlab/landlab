@@ -7,25 +7,30 @@ Last updated 8/24/2018
 
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from landlab import RasterModelGrid
 
-grid = RasterModelGrid((3,3))
-shape = (3,3)
-time=[0.]
-data_vars={'mean_elevation' : (['time'], np.array([100]))}
-attrs={'time_units' : 'y'}
+grid = RasterModelGrid((3, 3))
+shape = (3, 3)
+time = [0.]
+data_vars = {"mean_elevation": (["time"], np.array([100]))}
+attrs = {"time_units": "y"}
+
 
 def test_dr_time_name(dr_time):
-    assert dr_time._name == 'DataRecord'
+    assert dr_time._name == "DataRecord"
+
 
 def test_grid_shape(dr_time):
     assert dr_time._grid.number_of_node_rows == shape[0]
     assert dr_time._grid.number_of_node_columns == shape[1]
 
+
 def test_permitted_locations(dr_time):
     assert dr_time.permitted_locations == grid.groups
+
 
 def test_coordinates(dr_time):
     assert len(dr_time.dims) == 1
@@ -44,24 +49,26 @@ def test_coordinates(dr_time):
     with pytest.raises(AttributeError):
         dr_time.number_of_items
 
+
 def test_variable_names(dr_time):
-    assert dr_time.variable_names == ['mean_elevation']
+    assert dr_time.variable_names == ["mean_elevation"]
+
 
 def test_add_record(dr_time):
-    dr_time.add_record(time = [50.],
-                       new_record={
-                               'mean_elevation' : (['time'], np.array([120]))})
-    dr_time.add_record(time = [100.],
-                       new_record={'new_variable' : (['time'], ['new_data'])})
-    assert np.isnan(dr_time['mean_elevation'].values[2])
+    dr_time.add_record(
+        time=[50.], new_record={"mean_elevation": (["time"], np.array([120]))}
+    )
+    dr_time.add_record(
+        time=[100.], new_record={"new_variable": (["time"], ["new_data"])}
+    )
+    assert np.isnan(dr_time["mean_elevation"].values[2])
+
 
 def test_get_data(dr_time):
-    assert dr_time.get_data(time=[0.],
-                            data_variable='mean_elevation') == 100.
-    assert dr_time.get_data(data_variable='mean_elevation') == [100]
+    assert dr_time.get_data(time=[0.], data_variable="mean_elevation") == 100.
+    assert dr_time.get_data(data_variable="mean_elevation") == [100]
+
 
 def test_set_data(dr_time):
-    dr_time.set_data(time=[0.],
-                     data_variable='mean_elevation',
-                     new_value=105.)
-    assert dr_time['mean_elevation'].values[0] == 105.
+    dr_time.set_data(time=[0.], data_variable="mean_elevation", new_value=105.)
+    assert dr_time["mean_elevation"].values[0] == 105.

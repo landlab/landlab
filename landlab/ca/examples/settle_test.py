@@ -7,13 +7,16 @@ GT Nov 2014
 """
 from __future__ import print_function
 
+import time
+
+from numpy import where
+
+from landlab import RasterModelGrid
+from landlab.ca.celllab_cts import CAPlotter, Transition
+from landlab.ca.oriented_raster_cts import OrientedRasterCTS
+
 _DEBUG = False
 
-import time
-from numpy import where
-from landlab import RasterModelGrid
-from landlab.ca.celllab_cts import Transition, CAPlotter
-from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 
 def setup_transition_list():
     """
@@ -46,13 +49,22 @@ def setup_transition_list():
     """
     xn_list = []
 
-    xn_list.append( Transition(5, 6, 1., 'settling') )
+    xn_list.append(Transition(5, 6, 1., "settling"))
 
     if _DEBUG:
         print()
-        print('setup_transition_list(): list has',len(xn_list),'transitions:')
+        print("setup_transition_list(): list has", len(xn_list), "transitions:")
         for t in xn_list:
-            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
+            print(
+                "  From state",
+                t.from_state,
+                "to state",
+                t.to_state,
+                "at rate",
+                t.rate,
+                "called",
+                t.name,
+            )
 
     return xn_list
 
@@ -83,16 +95,16 @@ def main():
     # represented by nodes with state 1. Node pairs (links) with 0-1 or 1-0
     # can undergo a transition to 1-1, representing chemical weathering of the
     # rock.
-    ns_dict = { 0 : 'air', 1 : 'particle' }
+    ns_dict = {0: "air", 1: "particle"}
     xn_list = setup_transition_list()
 
     # Create the node-state array and attach it to the grid
-    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
-    node_state_grid[where(mg.node_y>nr-3)[0]] = 1
+    node_state_grid = mg.add_zeros("node", "node_state_map", dtype=int)
+    node_state_grid[where(mg.node_y > nr - 3)[0]] = 1
 
-        # Create the CA model
+    # Create the CA model
     ca = OrientedRasterCTS(mg, ns_dict, xn_list, node_state_grid)
-    #ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid)
+    # ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid)
 
     # Debug output if needed
     if _DEBUG:
@@ -100,7 +112,7 @@ def main():
         for r in range(ca.grid.number_of_node_rows):
             for c in range(ca.grid.number_of_node_columns):
                 n -= 1
-                print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                print("{0:.0f}".format(ca.node_state[n]), end=" ")
             print()
 
     # Create a CAPlotter object for handling screen display
@@ -118,18 +130,25 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
+            print(
+                "Current sim time",
+                current_time,
+                "(",
+                100 * current_time / run_duration,
+                "%)",
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
-               plot_each_transition=False) #, plotter=ca_plotter)
+        ca.run(
+            current_time + plot_interval, ca.node_state, plot_each_transition=False
+        )  # , plotter=ca_plotter)
         current_time += plot_interval
 
         # Add a bunch of particles
-        if current_time > run_duration/2. and not updated:
-            print('updating...')
-            node_state_grid[where(ca.grid.node_y>(nc/2.0))[0]] = 1
+        if current_time > run_duration / 2. and not updated:
+            print("updating...")
+            node_state_grid[where(ca.grid.node_y > (nc / 2.0))[0]] = 1
             ca.update_link_states_and_transitions(current_time)
             updated = True
 
@@ -142,9 +161,8 @@ def main():
             for r in range(ca.grid.number_of_node_rows):
                 for c in range(ca.grid.number_of_node_columns):
                     n -= 1
-                    print('{0:.0f}'.format(ca.node_state[n]), end=' ')
+                    print("{0:.0f}".format(ca.node_state[n]), end=" ")
                 print()
-
 
     # FINALIZE
 

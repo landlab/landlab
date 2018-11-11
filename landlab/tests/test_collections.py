@@ -3,9 +3,8 @@
 Unit tests for landlab.collections
 """
 import pytest
-from landlab import Palette, Arena, NoProvidersError
 
-from landlab import Implements, ImplementsOrRaise
+from landlab import Arena, Implements, ImplementsOrRaise, NoProvidersError, Palette
 from landlab.framework.interfaces import BmiBase, BmiNoGrid
 
 
@@ -322,9 +321,9 @@ def test_arena_connect():
     arena.connect("one", "two", "surface__elevation")
     arena.connect("two", "one", "deposition__rate")
 
-    dz = arena["one"].get_value("deposition__rate")
-    t = arena["two"].get_value("air__temperature")
-    z = arena["two"].get_value("surface__elevation")
+    arena["one"].get_value("deposition__rate")
+    arena["two"].get_value("air__temperature")
+    arena["two"].get_value("surface__elevation")
 
 
 def test_arena_walk():
