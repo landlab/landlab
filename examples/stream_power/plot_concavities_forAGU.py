@@ -1,12 +1,5 @@
 import numpy as np
-from pylab import (
-    figure,
-    gca,
-    legend,
-    plot,
-    xlim,
-    ylim,
-)
+from pylab import figure, gca, legend, plot, xlim, ylim
 
 yunnan_propx = np.loadtxt("yunnan_proplength.txt")
 yunnan_theta = np.loadtxt("yunnan_theta.txt")
