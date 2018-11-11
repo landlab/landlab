@@ -20,9 +20,9 @@ def add_load_to_middle_of_grid(grid, load):
 
 def main():
     (n_rows, n_cols) = (100, 100)
-    (dy, dx) = (10e3, 10e3)
+    spacing = (10e3, 10e3)
 
-    grid = RasterModelGrid(n_rows, n_cols, dx)
+    grid = RasterModelGrid(n_rows, n_cols, spacing[1])
 
     flex = Flexure(grid, method="flexure")
 
