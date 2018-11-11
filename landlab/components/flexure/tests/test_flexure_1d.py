@@ -98,7 +98,7 @@ def test_with_one_row():
     assert_array_equal(flex.dz_at_node[2], 0.)
 
 
-def test_with_one_row():
+def test_with_two_row():
     """Test calculating on one row."""
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
@@ -143,7 +143,7 @@ def test_calc_flexure_with_out_keyword():
     assert np.may_share_memory(dz, buffer)
 
 
-def test_calc_flexure():
+def test_calc_flexure_with_multiple_rows():
     """Test calc_flexure with multiple rows of loads."""
     x = np.arange(100.) * 1e3
     loads = np.ones(500).reshape((5, 100))
