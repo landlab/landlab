@@ -7,7 +7,7 @@ from .write import write_raster_netcdf
 from .errors import NotRasterGridError
 
 try:
-    import netCDF4
+    import netCDF4  # noqa: F401
 except ImportError:
     import warnings
 

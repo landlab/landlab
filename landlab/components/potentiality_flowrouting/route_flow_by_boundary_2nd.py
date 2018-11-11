@@ -8,7 +8,7 @@ Created on Fri Feb 20 09:32:27 2015
 @author: danhobley (SiccarPoint), after volle001@umn.edu
 """
 
-###in the diagonal case, even closed edges can produce "drag". Is this right?
+# ##in the diagonal case, even closed edges can produce "drag". Is this right?
 # Could suppress by mirroring the diagonals
 
 import inspect

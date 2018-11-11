@@ -202,7 +202,7 @@ class DischargeDiffuser(Component):
             (grid.number_of_node_rows, grid.number_of_node_columns)
         )
 
-        ######STABILITY ANALYSIS GOES HERE
+        # #####STABILITY ANALYSIS GOES HERE
         dt_stab = dt
 
         # elevation at current and new time
@@ -282,7 +282,7 @@ class DischargeDiffuser(Component):
 
         # Solve upwind equations for nodal K
         # this involves iteration to a stable solution
-        ######IMPLEMENT IT
+        # #####IMPLEMENT IT
         # calc the new K based on incoming discharges
         for init in range(1):
             Knew[:, 1:] += awz[:, 1:] + K[:, :-1]

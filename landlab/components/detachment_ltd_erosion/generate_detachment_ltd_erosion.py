@@ -168,7 +168,7 @@ class DetachmentLtdErosion(Component):
         self.m = m_sp
         self.n = n_sp
 
-        self.I = self._grid.zeros(at="node")
+        self.I = self._grid.zeros(at="node")  # noqa: E741
         self.uplift_rate = uplift_rate
         self.entrainment_threshold = entrainment_threshold
 
@@ -212,7 +212,7 @@ class DetachmentLtdErosion(Component):
 
         S_to_n = np.power(S, self.n)
 
-        self.I = (self.K * Q_to_m * S_to_n) - self.entrainment_threshold
+        self.I = (self.K * Q_to_m * S_to_n) - self.entrainment_threshold  # noqa: E741
 
         self.I[self.I < 0.0] = 0.0
 

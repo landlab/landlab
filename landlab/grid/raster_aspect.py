@@ -54,7 +54,7 @@ def _one_line_slopes(input_array, grid, vals):
         except IndexError:
             try:
                 C = vals[neighbors[2]]
-            except:
+            except IndexError:
                 left_grad = 0.
                 weighting_verticals -= 1.
             else:
@@ -67,7 +67,7 @@ def _one_line_slopes(input_array, grid, vals):
         except IndexError:
             try:
                 C = vals[neighbors[0]]
-            except:
+            except IndexError:
                 right_grad = 0.
                 weighting_verticals -= 1.
             else:
@@ -80,7 +80,7 @@ def _one_line_slopes(input_array, grid, vals):
         except IndexError:
             try:
                 C = vals[neighbors[1]]
-            except:
+            except IndexError:
                 top_grad = 0.
                 weighting_horizontals -= 1.
             else:
@@ -93,7 +93,7 @@ def _one_line_slopes(input_array, grid, vals):
         except IndexError:
             try:
                 C = vals[neighbors[3]]
-            except:
+            except IndexError:
                 bottom_grad = 0.
                 weighting_horizontals -= 1.
             else:
