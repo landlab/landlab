@@ -58,6 +58,7 @@ script:
 - conda install --file=requirements.txt
 - python setup.py develop
 - pytest --cov --cov-report=xml:$(pwd)/coverage.xml
+- make lint
 - |
   if [[ "$REPORT_TO_COVERALLS" == "1" ]]; then
     coveralls
