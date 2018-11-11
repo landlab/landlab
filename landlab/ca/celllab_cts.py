@@ -482,17 +482,14 @@ class CellLabCTSModel(object):
         assert transition_list, "Transition list must contain at least one transition"
         last_type = None
         for t in transition_list:
-            try:
-                assert (
-                    t.from_state < self.num_link_states
-                ), "Transition from_state out of range"
-                assert (
-                    t.to_state < self.num_link_states
-                ), "Transition to_state out of range"
-                this_type = int
             # TODO: make orientation optional for cases where
             # self.number_of_orientations = 1
-            except TypeError:
+            if isinstance(t.from_state, tuple) and isinstance(t.to_state, tuple):
+                this_type = tuple
+            else:
+                this_type = int
+
+            if this_type is tuple:
                 # added to allow from and to states to be tuples, not just ids
                 for i in t.from_state[:-1]:
                     assert (
@@ -506,7 +503,14 @@ class CellLabCTSModel(object):
                 assert (
                     t.to_state[-1] < self.number_of_orientations
                 ), "Encoding for orientation in to_state must be < number of orientations."
-                this_type = tuple
+            else:
+                assert (
+                    t.from_state < self.num_link_states
+                ), "Transition from_state out of range"
+                assert (
+                    t.to_state < self.num_link_states
+                ), "Transition to_state out of range"
+
             assert (
                 last_type == this_type or last_type is None
             ), "All transition types must be either int IDs, or all tuples."
