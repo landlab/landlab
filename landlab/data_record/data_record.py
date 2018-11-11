@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import xarray as xr
 from six import string_types
 from xarray import Dataset
 
@@ -264,8 +263,8 @@ class DataRecord(Dataset):
                 # check dict structure and dims:
                 if (
                     data_vars[key][0]
-                    in (["time"], ["item_id"], ["time", "item_id"], ["item_id", "time"])
-                ) == False:
+                    not in (["time"], ["item_id"], ["time", "item_id"], ["item_id", "time"])
+                ):
                     raise ValueError(
                         "Data variable dimensions must be " "time and/or item_id"
                     )
@@ -437,7 +436,7 @@ class DataRecord(Dataset):
             except KeyError:
                 raise KeyError("This DataRecord does not record time")
 
-            if isinstance(time, (list, np.ndarray)) == False:
+            if not isinstance(time, (list, np.ndarray)):
                 # check input type
                 raise TypeError(
                     "You have passed a time that is"
@@ -455,7 +454,7 @@ class DataRecord(Dataset):
                         len(item_id)
                     except TypeError:
                         raise TypeError("item_id must be a list or a 1D array")
-                    if all(i in self["item_id"].values for i in item_id) == (False):
+                    if not all(i in self["item_id"].values for i in item_id):
                         # check that item_id already exist
                         raise ValueError(
                             "One or more of the value(s) you "
@@ -503,7 +502,7 @@ class DataRecord(Dataset):
         else:
             # no time
             if item_id is not None:
-                if all(i in self["item_id"].values for i in item_id) == (False):
+                if not all(i in self["item_id"].values for i in item_id):
                     # check that item_id already exist
                     raise ValueError(
                         "One or more of the value(s) you "
@@ -650,7 +649,7 @@ class DataRecord(Dataset):
                 self["time"]
             except KeyError:
                 raise KeyError("This DataRecord does not record time")
-            if isinstance(time, (list, np.ndarray)) == False:
+            if not isinstance(time, (list, np.ndarray)):
                 raise TypeError(
                     "You have passed a time that is not "
                     "permitted, must be list or a 1-D array"
@@ -877,7 +876,7 @@ class DataRecord(Dataset):
                 assoc_grid_element = new_value
                 assoc_element_id = self.get_data(time, item_id, "element_id")[0]
             if data_variable == "element_id":
-                if isinstance(new_value, int) == False:
+                if not isinstance(new_value, int):
                     raise ValueError(
                         "You have passed a non-integer "
                         "element_id to DataRecord, this is not "
@@ -890,7 +889,7 @@ class DataRecord(Dataset):
                     )
                 assoc_element_id = new_value
                 assoc_grid_element = self.get_data(time, item_id, "grid_element")[0]
-            _ = self._check_grid_element_and_id(
+            self._check_grid_element_and_id(
                 assoc_grid_element, assoc_element_id, flag=1
             )
             if assoc_element_id >= self._grid[assoc_grid_element].size:
@@ -1001,7 +1000,7 @@ class DataRecord(Dataset):
 
         """
 
-        #### (From ItemCollection:)
+        #    (From ItemCollection:)
         #        To add to Example, when I can make it work:
         #        You can even pass functions that require additional positional
         #        arguments or keyword arguments. For example, in order to get the 25th
@@ -1010,7 +1009,6 @@ class DataRecord(Dataset):
         #        >>> s = ic.calc_aggregate_value(np.percentile, 'ages', q=25)
         #        >>> print(s)
         #        [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
-        #######
 
         filter_at = self["grid_element"] == at
 
@@ -1020,7 +1018,7 @@ class DataRecord(Dataset):
             my_filter = filter_at & filter_array
 
         # Filter DataRecord with my_filter and groupby element_id:
-        filtered = self.where(my_filter == True).groupby("element_id")
+        filtered = self.where(my_filter).groupby("element_id")
 
         vals = filtered.apply(func, *args, **kwargs)  # .reduce
         #        vals = xr.apply_ufunc(func,

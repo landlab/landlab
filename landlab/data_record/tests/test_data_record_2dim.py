@@ -8,7 +8,6 @@ Last updated 8/24/2018
 """
 
 import numpy as np
-import pytest
 
 from landlab import RasterModelGrid
 

@@ -52,8 +52,8 @@ with pytest.raises(TypeError):
 # Should return TypeError(('You must provide an ''items'' dictionary '
 #                                 '(see documentation for required format)'))
 #
-##test bad items keys:
 with pytest.raises(TypeError):
+    """Test bad items keys"""
     DataRecord(
         grid,
         time=[0.],
@@ -64,11 +64,10 @@ with pytest.raises(TypeError):
         data_vars={"mean_elevation": (["time"], np.array([100]))},
         attrs={"time_units": "y"},
     )
-##Should return TypeError(('You must provide an ''items'' dictionary '
-##                                 '(see documentation for required format)'))
-#
-##test bad attrs:
+# Should return TypeError(('You must provide an ''items'' dictionary '
+#                                  '(see documentation for required format)'))
 with pytest.raises(TypeError):
+    """Test bad attrs"""
     DataRecord(
         grid,
         time=[0.],
@@ -79,11 +78,11 @@ with pytest.raises(TypeError):
         data_vars={"mean_elevation": (["time"], np.array([100]))},
         attrs=["not a dict"],
     )
-##Should return except AttributeError:
-##                raise TypeError(('Attributes (attrs) passed to DataRecord'
-##                                'must be a dictionary'))
+# Should return except AttributeError:
+#                 raise TypeError(('Attributes (attrs) passed to DataRecord'
+#                                 'must be a dictionary'))
 #
-##test bad loc and id:
+# test bad loc and id:
 rmg = RasterModelGrid((3, 3))
 hmg = HexModelGrid(3, 2, 1.0)
 radmg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
@@ -121,16 +120,16 @@ with pytest.raises(ValueError):
     DataRecord(radmg, items=my_items_bad_loc)
 with pytest.raises(ValueError):
     DataRecord(vdmg, items=my_items_bad_loc)
-##should return ValueError(('One or more of the grid elements provided is/are'
-##                            ' not permitted location for this grid type.'))
+# should return ValueError(('One or more of the grid elements provided is/are'
+#                             ' not permitted location for this grid type.'))
 with pytest.raises(ValueError):
     DataRecord(rmg, items=my_items_bad_loc2)
-##should return ValueError: Location provided: bad_loc is not a permitted
-## location for this grid type.
+# should return ValueError: Location provided: bad_loc is not a permitted
+#  location for this grid type.
 with pytest.raises(ValueError):
     DataRecord(rmg, items=my_items_bad_loc3)
-##should return ValueError(('grid_element passed to DataRecord must be '
-## ' the same length as the number of items or 1.'))
+# should return ValueError(('grid_element passed to DataRecord must be '
+#  ' the same length as the number of items or 1.'))
 with pytest.raises(ValueError):
     DataRecord(rmg, items=my_items_bad_id)
 with pytest.raises(ValueError):
@@ -139,40 +138,40 @@ with pytest.raises(ValueError):
     DataRecord(radmg, items=my_items_bad_id)
 with pytest.raises(ValueError):
     DataRecord(vdmg, items=my_items_bad_id)
-##should return ValueError(('An item residing at ' + at + ' has an '
-## 'element_id larger than the number of'+ at + 'on the grid.'))
+# should return ValueError(('An item residing at ' + at + ' has an '
+#  'element_id larger than the number of'+ at + 'on the grid.'))
 with pytest.raises(ValueError):
     DataRecord(rmg, items=my_items_bad_id2)
-## should return ValueError(('An item residing at ' + at + ' has '
-##'an element id below zero. This is not permitted.'))
+#  should return ValueError(('An item residing at ' + at + ' has '
+# 'an element id below zero. This is not permitted.'))
 with pytest.raises(ValueError):
     DataRecord(rmg, items=my_items_bad_id3)
-##should return ValueError(('You have passed a non-integer element_id to '
-##                             'DataRecord, this is not permitted.'))
+# should return ValueError(('You have passed a non-integer element_id to '
+#                              'DataRecord, this is not permitted.'))
 with pytest.raises(ValueError):
     DataRecord(rmg, items=my_items_bad_id4)
-##should return ValueError(('The number of grid_element passed '
-## ' to Datarecord must be 1 or equal  to the number of element_id '))
-#
-############ TIME ONLY #########################################################
+# should return ValueError(('The number of grid_element passed '
+#  ' to Datarecord must be 1 or equal  to the number of element_id '))
+
+
+# TIME ONLY
 def test_dr_time_bad_add_record(dr_time):
     with pytest.raises(TypeError):
         dr_time.add_record(time="bad_time", new_record=None)
-    ## should return TypeError: You have passed a time that is not permitted,
-    ## must be list or array
+    #  should return TypeError: You have passed a time that is not permitted,
+    #  must be list or array
     with pytest.raises(KeyError):
         dr_time.add_record(time=[300.], item_id=[0], new_record=None)
 
 
-## should return KeyError: 'This Datarecord does not hold items'
-#
+#  should return KeyError: 'This Datarecord does not hold items'
 def test_dr_time_bad_get_data_(dr_time):
     with pytest.raises(KeyError):
         dr_time.get_data(time=[0.], data_variable="bad_variable")
-    ##should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
+    # should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
     with pytest.raises(KeyError):
         dr_time.get_data(time=[0.], item_id=[0], data_variable="mean_elevation")
-    ##should return KeyError: 'This Datarecord does not hold items'
+    # should return KeyError: 'This Datarecord does not hold items'
     with pytest.raises(TypeError):
         dr_time.get_data(time=0., data_variable="mean_elevation")
 
@@ -204,10 +203,7 @@ def test_dr_time_bad_properties(dr_time):
         dr_time.item_coordinates
 
 
-#
-################################################################################
-#
-############ ITEM ONLY #########################################################
+# ITEM ONLY
 def test_dr_item_bad_add_record(dr_item):
     with pytest.raises(KeyError):
         dr_item.add_record(time=[0.], item_id=[0], new_record={"new_var": ["new_data"]})
@@ -292,9 +288,7 @@ def test_dr_item_bad_properties(dr_item):
         dr_item.prior_time
 
 
-################################################################################
-#
-############ ITEM AND TIME #####################################################
+# ITEM AND TIME
 def test_dr_2dim_bad_add_record(dr_2dim):
     with pytest.raises(TypeError):
         dr_2dim.add_record(
@@ -420,11 +414,11 @@ def test_dr_2dim_bad_set_data(dr_2dim):
 
 # TypeError('item_id must be a list or a 1-d array')
 
-######## NO DIM##################
+# NO DIM
 def test_dr_nodim_bad_get_data(dr_nodim):
     dr_nodim.add_record(new_record={"mean_elev": (100.)})
     with pytest.raises(KeyError):
         dr_nodim.get_data(item_id=[0], data_variable="mean_elev")
 
 
-##should return KeyError: 'This Datarecord does not hold items'
+# should return KeyError: 'This Datarecord does not hold items'

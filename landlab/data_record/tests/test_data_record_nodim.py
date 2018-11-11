@@ -7,9 +7,6 @@ Last updated 10/18/2018
 
 """
 
-import numpy as np
-import pytest
-
 from landlab import RasterModelGrid
 
 grid = RasterModelGrid((3, 3))
