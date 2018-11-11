@@ -371,7 +371,9 @@ def strip_grid_from_method_docstring(funcs):
         # strip the entry under "Parameters":
         func.__doc__ = re.sub("grid *:.*?\n.*?\n *", "", func.__doc__)
         # # cosmetic magic to get a two-line signature to line up right:
-        match_2_lines = re.search(func.__name__ + r"\(grid,[^\)]*?\n.*?\)", func.__doc__)
+        match_2_lines = re.search(
+            func.__name__ + r"\(grid,[^\)]*?\n.*?\)", func.__doc__
+        )
         try:
             lines_were = match_2_lines.group()
         except AttributeError:  # no successful match
