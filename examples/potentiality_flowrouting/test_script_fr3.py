@@ -222,7 +222,7 @@ for i in range(nt):
     hR[1:-1, -1] = hR[1:-1, -2]
     hR[(0, -1, 0, -1), (0, -1, -1, 0)] = hR[(1, -2, 1, -2), (1, -2, -2, 1)]
 
-    ###P SOLVER
+    # P SOLVER
 
     # not_flat = np.greater(hR[core],flat_threshold)
     # not_mask = np.logical_not(mask)

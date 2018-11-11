@@ -112,7 +112,7 @@ for i in range(nt):
         * (CslopeE[core] - slope).clip(0.)
         * np.cos(thetaE[core])
     )
-    ###the clip should deal with the eastern edge, but return here to check if probs
+    # The clip should deal with the eastern edge, but return here to check if probs
 
     hgradWx[core] = hR[Ws] - hR[core]  # /width
     hgradWy[core] = hR[SWs] - hR[NWs] + hR[Ss] - hR[Ns]

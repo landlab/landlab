@@ -203,7 +203,7 @@ for i in range(nt):
 
     hR[core] += dtwidth * (qS[core] + qW[core] - qN[core] - qE[core] + qsourceR[core])
 
-    ###P SOLVER
+    # P SOLVER
 
     # mask for which core nodes get updated:
     mask = hR[core] < p_thresh

@@ -33,7 +33,7 @@ mg.set_inactive_boundaries(True, True, True, True)
 mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
 mg.status_at_node[20] = FIXED_VALUE_BOUNDARY
 
-##create the elevation field in the grid:
+# create the elevation field in the grid:
 # create the field
 mg.add_zeros("topographic__elevation", at="node")
 z = mg.zeros(at="node") + init_elev

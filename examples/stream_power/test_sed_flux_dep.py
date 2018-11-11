@@ -33,7 +33,7 @@ print("uplift per step: ", uplift_per_step)
 # instantiate the grid object
 mg = RasterModelGrid(nrows, ncols, dx)
 
-##create the elevation field in the grid:
+# create the elevation field in the grid:
 # create the field
 mg.add_zeros("topographic__elevation", at="node")
 z = mg.zeros(at="node") + leftmost_elev

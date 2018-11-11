@@ -64,7 +64,7 @@ print(
 # now a run with a grid...
 
 # mg = RasterModelGrid(nrows, ncols, dx)
-##make a topo to test on:
+# # make a topo to test on:
 # mg.at_node['topographic__elevation'] = np.zeros(mg.number_of_nodes)
 # fr = FlowRouter(mg)
 # fsp = FastscapeEroder(mg, './pot_fr_params.txt')
@@ -73,19 +73,19 @@ print(
 # time_to_run = inputs.read_float('run_time')
 # uplift = inputs.read_float('uplift_rate')
 # mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
-##make some K values in a field to test
+# # make some K values in a field to test
 # mg.at_node['K_values'] = 0.1+np.random.rand(nrows*ncols)/10.
-##elapsed_time = 0. #total time in simulation
-##while elapsed_time < time_to_run:
-##    #add uplift
-##    mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
-##    print elapsed_time
-##    if elapsed_time+dt>time_to_run:
-##        print "Short step!"
-##        dt = time_to_run - elapsed_time
-##    mg = fr.route_flow(grid=mg)
-##    mg,_,_ = sp.erode(mg)
-##    elapsed_time += dt
+# # elapsed_time = 0. #total time in simulation
+# # while elapsed_time < time_to_run:
+# #     #add uplift
+# #     mg.at_node['topographic__elevation'][mg.core_nodes] += uplift*dt
+# #     print elapsed_time
+# #     if elapsed_time+dt>time_to_run:
+# #         print "Short step!"
+# #         dt = time_to_run - elapsed_time
+# #     mg = fr.route_flow(grid=mg)
+# #     mg,_,_ = sp.erode(mg)
+# #     elapsed_time += dt
 
 inputs = ModelParameterDictionary("./pot_fr_params.txt")
 nrows = 200  # inputs.read_int('nrows')

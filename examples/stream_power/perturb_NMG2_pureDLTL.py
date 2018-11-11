@@ -31,7 +31,7 @@ else:
 
 # get the needed properties to build the grid:
 input_file = "./sed_dep_NMGparams2.txt"
-#####remember to change the fixed y-axis dimension in the plots!!
+# NOTE: remember to change the fixed y-axis dimension in the plots!!
 y_max = 3000
 make_output_plots = True
 out_interval = 15  # was 15
