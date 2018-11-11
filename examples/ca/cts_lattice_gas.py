@@ -1,6 +1,6 @@
 #!/usr/env/python
 """
-cts_lattice_gas.py: continuous-time stochastic version of a lattice-gas cellular 
+cts_lattice_gas.py: continuous-time stochastic version of a lattice-gas cellular
 automaton model.
 
 GT Sep 2014

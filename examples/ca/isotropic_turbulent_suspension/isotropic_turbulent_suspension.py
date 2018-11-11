@@ -3,7 +3,7 @@
 """
 isotropic_turbulent_suspension.py
 
-Example of a continuous-time, stochastic, pair-based cellular automaton model, 
+Example of a continuous-time, stochastic, pair-based cellular automaton model,
 which simulates the diffusion of suspended, neutrally buoyant particles in a
 turbulent fluid.
 
@@ -38,7 +38,7 @@ def setup_transition_list():
     
     Notes
     -----
-    State 0 represents fluid and state 1 represents a particle (such as a 
+    State 0 represents fluid and state 1 represents a particle (such as a
     sediment grain, tea leaf, or dissolved heavy particle).
     
     The states and transitions are as follows:

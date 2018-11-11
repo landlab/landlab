@@ -1,7 +1,7 @@
 #!/usr/env/python
 """
-cts_lattice_gas_with_gravity_and_friction.py: 
-continuous-time stochastic version of a lattice-gas cellular 
+cts_lattice_gas_with_gravity_and_friction.py:
+continuous-time stochastic version of a lattice-gas cellular
 automaton model.
 
 GT Oct 2014

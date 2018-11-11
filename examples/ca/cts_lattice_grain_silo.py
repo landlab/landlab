@@ -1,6 +1,6 @@
 #!/usr/env/python
 """
-cts_lattice_grain_silo.py: 
+cts_lattice_grain_silo.py:
 
 Continuous-time stochastic CA lattice grain model configured as a silo.
 
