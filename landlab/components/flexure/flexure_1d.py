@@ -381,7 +381,7 @@ class Flexure1D(Component):
             Deflections caused by the loading.
         """
         if self._method == "airy":
-            deflection[:] = load / self.gamma_mantle
+            out[:] = loads / self.gamma_mantle
         else:
             Flexure1D.calc_flexure(
                 self.x_at_node[0], loads, self.alpha, self.rigidity, out=out
