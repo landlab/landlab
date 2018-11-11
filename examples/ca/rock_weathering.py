@@ -26,19 +26,19 @@ def setup_transition_list():
     """
     Creates and returns a list of Transition() objects to represent the
     grain-by-grain transformation of bedrock to saprolite.
-    
+
     Returns
     -------
     xn_list : list of Transition objects
         List of objects that encode information about the link-state transitions.
-    
+
     Notes
     -----
     Weathering here is treated very simply: a bedrock particle adjacent to a
     saprolite particle has a specified probability (rate) of weathering to
     saprolite; in other words, a rock-saprolite pair can turn into a
     saprolite-saprolite pair.
-    
+
     The states and transitions are as follows:
 
     Pair state      Transition to       Process             Rate (cells/s)
@@ -48,7 +48,7 @@ def setup_transition_list():
     1 (0-1)         3 (1-1)                                 1.0
     2 (1-0)         3 (1-1)                                 1.0
     3 (1-1)         (none)                                  -
-    
+
     """
 
     # Create an empty transition list

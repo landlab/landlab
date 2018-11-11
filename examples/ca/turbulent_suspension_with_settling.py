@@ -27,21 +27,21 @@ def setup_transition_list():
     Creates and returns a list of Transition() objects to represent state
     transitions for a biased random walk, in which the rate of downward
     motion is greater than the rate in the other three directions.
-    
+
     Parameters
     ----------
     (none)
-    
+
     Returns
     -------
     xn_list : list of Transition objects
         List of objects that encode information about the link-state transitions.
-    
+
     Notes
     -----
     State 0 represents fluid and state 1 represents a particle (such as a
     sediment grain, tea leaf, or dissolved heavy particle).
-    
+
     The states and transitions are as follows:
 
     Pair state      Transition to       Process             Rate (cells/s)
@@ -54,7 +54,7 @@ def setup_transition_list():
     5 (0-1)         2 (1-0)             down motion         10.55
     6 (1-0)         1 (0-1)             up motion            9.45
     7 (1-1)         (none)              -                   -
-    
+
     """
 
     # Create an empty transition list

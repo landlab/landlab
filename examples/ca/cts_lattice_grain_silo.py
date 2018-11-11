@@ -25,11 +25,11 @@ def setup_transition_list(g=0.0, f=0.0, d=0.0, w=0.0):
     """
     Creates and returns a list of Transition() objects to represent state
     transitions for simple granular mechanics model.
-    
+
     Parameters
     ----------
     (none)
-    
+
     Returns
     -------
     xn_list : list of Transition objects
