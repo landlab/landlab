@@ -16,7 +16,7 @@ from landlab import Component, FieldError
 
 class DrainageDensity(Component):
 
-    """Calculate drainage density over a DEM.
+    r"""Calculate drainage density over a DEM.
 
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.

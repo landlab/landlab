@@ -17,7 +17,7 @@ from landlab.components import FlowAccumulator
 
 
 def water_fn(x, a, b, c, d, e):
-    """Evaluates the solution to the water-depth equation.
+    r"""Evaluates the solution to the water-depth equation.
 
     Called by scipy.newton() to find solution for :math:`x`
     using Newton's method.
@@ -67,7 +67,7 @@ def water_fn(x, a, b, c, d, e):
 
 
 class KinwaveImplicitOverlandFlow(Component):
-    """Calculate shallow water flow over topography.
+    r"""Calculate shallow water flow over topography.
 
     Landlab component that implements a two-dimensional kinematic wave model.
     This is a form of the 2D shallow-water equations in which energy slope is

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 stream_power_smooth_threshold.py: Defines the StreamPowerSmoothThresholdEroder,
 which is a version of the FastscapeEroder (derived from it).
 

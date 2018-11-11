@@ -371,14 +371,14 @@ def strip_grid_from_method_docstring(funcs):
         # strip the entry under "Parameters":
         func.__doc__ = re.sub("grid *:.*?\n.*?\n *", "", func.__doc__)
         # # cosmetic magic to get a two-line signature to line up right:
-        match_2_lines = re.search(func.__name__ + "\(grid,[^\)]*?\n.*?\)", func.__doc__)
+        match_2_lines = re.search(func.__name__ + r"\(grid,[^\)]*?\n.*?\)", func.__doc__)
         try:
             lines_were = match_2_lines.group()
         except AttributeError:  # no successful match
             pass
         else:
-            end_chars = re.search("    .*?\)", lines_were).group()[4:]
-            lines_are_now = re.sub("    .*?\)", "         " + end_chars, lines_were)
+            end_chars = re.search(r"    .*?\)", lines_were).group()[4:]
+            lines_are_now = re.sub(r"    .*?\)", "         " + end_chars, lines_were)
             func.__doc__ = (
                 func.__doc__[: match_2_lines.start()]
                 + lines_are_now
@@ -386,7 +386,7 @@ def strip_grid_from_method_docstring(funcs):
             )
         # Move "grid" in signature from an arg to the class position
         func.__doc__ = re.sub(
-            func.__name__ + "\(grid, ", "grid." + func.__name__ + "(", func.__doc__
+            func.__name__ + r"\(grid, ", "grid." + func.__name__ + "(", func.__doc__
         )
 
 

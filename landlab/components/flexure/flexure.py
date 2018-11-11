@@ -117,7 +117,7 @@ class Flexure(Component):
 
     _name = "Flexure"
 
-    _cite_as = """@article{hutton2008sedflux,
+    _cite_as = r"""@article{hutton2008sedflux,
         title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
         author={Hutton, Eric WH and Syvitski, James PM},
         journal={Computers \& Geosciences},

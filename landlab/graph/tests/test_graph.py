@@ -2,7 +2,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab.graph import Graph
 
-"""
+r"""
 For these tests the nodes are given column-by-column::
 
     (1) -- (3) --- (4)

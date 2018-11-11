@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Registry of landlab components being used.
+r"""Registry of landlab components being used.
 
 The landlab registry keeps track of landlab components that have
 be instantiated by a user. A user can then get a list of all

@@ -190,7 +190,7 @@ def split_paragraphs(msg, linesep=os.linesep):
     >>> len(split_paragraphs(text, linesep='\\n'))
     1
     """
-    pattern = linesep + "\s*" + linesep
+    pattern = linesep + r"\s*" + linesep
     parsep = linesep * 2
     return re.sub(pattern, parsep, msg.strip()).split(parsep)
 

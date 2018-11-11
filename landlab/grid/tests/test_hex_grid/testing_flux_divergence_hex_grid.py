@@ -120,7 +120,7 @@ def make_links_at_node_array(grid):
 
 
 def testing_flux_divergence_with_hex():
-    """Test flux divergence function(s).
+    r"""Test flux divergence function(s).
 
     Notes
     -----

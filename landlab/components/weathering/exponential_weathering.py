@@ -13,7 +13,7 @@ from landlab import Component
 
 class ExponentialWeatherer(Component):
 
-    """
+    r"""
     This component implements exponential weathering of bedrock on hillslopes.
     Uses exponential soil production function in the style of Ahnert (1976).
 

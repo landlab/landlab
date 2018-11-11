@@ -3455,7 +3455,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         return self.unit_vector_at_node[:, 1]
 
     def map_link_vector_to_nodes(self, q):
-        """Map data defined on links to nodes.
+        r"""Map data defined on links to nodes.
 
         Given a variable defined on links, breaks it into x and y components
         and assigns values to nodes by averaging each node's attached links.
