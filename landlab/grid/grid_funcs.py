@@ -3,10 +3,7 @@ Utility functions that operate on landlab grids.
 ------------------------------------------------
 
 """
-
-
 import numpy as np
-from six.moves import range
 
 
 def resolve_values_on_active_links(grid, active_link_values):
@@ -30,12 +27,27 @@ def resolve_values_on_active_links(grid, active_link_values):
     """
     link_lengths = grid.length_of_link[grid.active_links]
     return (
-        np.multiply(((grid.node_x[grid._activelink_tonode] -
-                      grid.node_x[grid._activelink_fromnode]) /
-                     link_lengths), active_link_values),
-        np.multiply(((grid.node_y[grid._activelink_tonode] -
-                      grid.node_y[grid._activelink_fromnode]) /
-                     link_lengths), active_link_values))
+        np.multiply(
+            (
+                (
+                    grid.node_x[grid._activelink_tonode]
+                    - grid.node_x[grid._activelink_fromnode]
+                )
+                / link_lengths
+            ),
+            active_link_values,
+        ),
+        np.multiply(
+            (
+                (
+                    grid.node_y[grid._activelink_tonode]
+                    - grid.node_y[grid._activelink_fromnode]
+                )
+                / link_lengths
+            ),
+            active_link_values,
+        ),
+    )
 
 
 def resolve_values_on_links(grid, link_values):
@@ -58,9 +70,24 @@ def resolve_values_on_links(grid, link_values):
         Values resolved into x-component and y-component.
     """
     return (
-        np.multiply(((grid.node_x[grid.node_at_link_head] -
-                      grid.node_x[grid.node_at_link_tail]) /
-                     grid.length_of_link), link_values),
-        np.multiply(((grid.node_y[grid.node_at_link_head] -
-                      grid.node_y[grid.node_at_link_tail]) /
-                     grid.length_of_link), link_values))
+        np.multiply(
+            (
+                (
+                    grid.node_x[grid.node_at_link_head]
+                    - grid.node_x[grid.node_at_link_tail]
+                )
+                / grid.length_of_link
+            ),
+            link_values,
+        ),
+        np.multiply(
+            (
+                (
+                    grid.node_y[grid.node_at_link_head]
+                    - grid.node_y[grid.node_at_link_tail]
+                )
+                / grid.length_of_link
+            ),
+            link_values,
+        ),
+    )

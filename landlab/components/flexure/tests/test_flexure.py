@@ -2,10 +2,8 @@
 """
 Unit tests for landlab.components.flexure.flexure
 """
-import pytest
-
 import numpy as np
-
+import pytest
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)

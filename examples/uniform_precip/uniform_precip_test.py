@@ -15,8 +15,9 @@ Written by Jordan Marie Adams, 2013.
 """
 from __future__ import print_function
 
-from landlab.components.uniform_precip import PrecipitationDistribution
 from matplotlib import pyplot as plt
+
+from landlab.components.uniform_precip import PrecipitationDistribution
 
 
 def create_precip_plot(storm_arr):
@@ -98,4 +99,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

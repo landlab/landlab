@@ -1,5 +1,4 @@
-def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
-                                bottom=None):
+def set_status_at_node_on_edges(grid, right=None, top=None, left=None, bottom=None):
     """Set node status on grid edges.
 
     Parameters
@@ -66,8 +65,12 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None,
 
     LLCATS: BC
     """
-    status_at_edge = (('bottom', bottom), ('left', left), ('top', top),
-                      ('right', right), )
+    status_at_edge = (
+        ("bottom", bottom),
+        ("left", left),
+        ("top", top),
+        ("right", right),
+    )
 
     for edge, val in status_at_edge:
         if val is not None:
