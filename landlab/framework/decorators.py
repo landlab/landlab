@@ -20,13 +20,14 @@ def camel_case(text, sep=None):
     >>> camel_case('camel_case', sep='_')
     'CamelCase'
     """
-    return ''.join(text.title().split(sep))
+    return "".join(text.title().split(sep))
 
 
 class Error(Exception):
     """
     Exceptions for this module.
     """
+
     pass
 
 
@@ -41,7 +42,9 @@ class InterfaceImplementationError(Error):
 
     def __str__(self):
         return "Class '%s' does not implement interface '%s'" % (
-            self.cls, self.interface)
+            self.cls,
+            self.interface,
+        )
 
 
 def is_implementation(cls, interface):
@@ -58,19 +61,19 @@ def is_implementation(cls, interface):
                 cls_args = inspect.getargspec(getattr(cls, name))
                 interface_args = inspect.getargspec(value)
             except AttributeError:
-                six.print_('Missing attribute %s' % name)
+                six.print_("Missing attribute %s" % name)
                 return False
             try:
-                assert(len(cls_args.args) == len(interface_args.args))
+                assert len(cls_args.args) == len(interface_args.args)
             except AssertionError:
-                six.print_('Mismatch in number of args for %s' % name)
+                six.print_("Mismatch in number of args for %s" % name)
                 return False
         else:
             try:
-                assert(type(getattr(cls, name)) ==
-                       type(getattr(interface, name)))
+                assert isinstance(getattr(cls, name), type(getattr(interface, name)))
+                # assert(type(getattr(cls, name)) == type(getattr(interface, name)))
             except (AttributeError, AssertionError):
-                six.print_('Missing member or type mismatch for %s' % name)
+                six.print_("Missing member or type mismatch for %s" % name)
                 return False
     return True
 
@@ -90,7 +93,7 @@ class ImplementsOrRaise(object):
         cls.__implements__ = ()
         for interface in self._interfaces:
             if is_implementation(cls, interface):
-                cls.__implements__ += (interface.__name__, )
+                cls.__implements__ += (interface.__name__,)
             else:
                 raise InterfaceImplementationError(cls, interface)
         return cls
@@ -112,7 +115,7 @@ class Implements(object):
         cls.__implements__ = ()
         for interface in self._interfaces:
             if is_implementation(cls, interface):
-                cls.__implements__ += (interface.__name__, )
+                cls.__implements__ += (interface.__name__,)
             else:
                 pass
         return cls

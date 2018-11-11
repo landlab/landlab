@@ -134,7 +134,7 @@ class _DrainageStack_to_n:
         # create base nodes set
         try:
             base = set(l)
-        except:
+        except TypeError:
             base = set([l])
 
         # instantiate the time keeping variable i, and a variable to keep track
@@ -166,9 +166,11 @@ class _DrainageStack_to_n:
             visited.update(list(visit))
 
         visited = numpy.array(list(visited))
-        visited_enough = num_visits[visited] == self.num_receivers[visited]
-        completed = set(visited[visited_enough])
-
+        if visited.size > 0:
+            visited_enough = num_visits[visited] == self.num_receivers[visited]
+            completed = set(visited[visited_enough])
+        else:
+            completed = {}
         # recurse through the remainder. Only look above completed nodes,
         # this prevents repeat link walking.
         while len(completed) > 0:
@@ -264,10 +266,11 @@ def _make_number_of_donors_array_to_n(r, p):
     # modified by KRB 10/31/2016 to support route to multiple.
 
     nd = numpy.zeros(r.shape[0], dtype=int)
-    max_index = numpy.amax(r)
 
     # filter r based on p and flatten
     r_filter_flat = r.flatten()[p.flatten() > 0]
+
+    max_index = numpy.amax(r_filter_flat)
 
     nd[: (max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd

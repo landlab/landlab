@@ -2,12 +2,8 @@
 """
 Unit tests for landlab.components.flexure.flexure
 """
-from pytest import raises, approx
-
 import numpy as np
-from landlab import RasterModelGrid
-from landlab.components.flexure import Flexure
-
+import pytest
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
 

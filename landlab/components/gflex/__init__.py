@@ -1,3 +1,3 @@
 from .flexure import gFlex
 
-__all__ = ['gFlex', ]
+__all__ = ["gFlex"]

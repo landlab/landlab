@@ -52,30 +52,29 @@ array([[4, 3, 0, 1],
        [7, 6, 3, 4],
        [8, 7, 4, 5]])
 """
-import six
-from six.moves import range
-
-import numpy as np
-import xarray as xr
 import json
 
-from ..core.utils import as_id_array, argsort_points_by_x_then_y
-from ..utils.jaggedarray import flatten_jagged_array
-from ..utils.decorators import store_result_in_grid, read_only_array
-from .sort import sort_graph, reindex_by_xy, reorder_links_at_patch
+import numpy as np
+import six
+import xarray as xr
+
+from ..core.utils import as_id_array
+from ..utils.decorators import read_only_array, store_result_in_grid
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
-from .quantity.of_link import (get_angle_of_link, get_length_of_link,
-                               get_midpoint_of_link)
-from .quantity.of_patch import get_centroid_of_patch, get_area_of_patch
-
-from .sort.sort import reverse_one_to_many, reorient_link_dirs
-
-from .ugrid import update_nodes_at_patch, ugrid_from_unstructured
+from .quantity.of_link import (
+    get_angle_of_link,
+    get_length_of_link,
+    get_midpoint_of_link,
+)
+from .quantity.of_patch import get_area_of_patch, get_centroid_of_patch
+from .sort import reindex_by_xy, reorder_links_at_patch
+from .sort.sort import reorient_link_dirs, reverse_one_to_many
+from .ugrid import ugrid_from_unstructured
 
 
 def _parse_sorting_opt(sorting):
-    SORTING_OPTS = ('xy', 'ccw', 'ne')
+    SORTING_OPTS = ("xy", "ccw", "ne")
 
     as_dict = None
 
@@ -106,7 +105,7 @@ def find_perimeter_nodes(graph):
     """
     from scipy.spatial import ConvexHull
 
-    hull = ConvexHull(graph.xy_of_node, qhull_options='Qt')
+    hull = ConvexHull(graph.xy_of_node, qhull_options="Qt")
     return as_id_array(hull.vertices)
 
 
@@ -137,16 +136,15 @@ class Graph(object):
         """
         if not isinstance(mesh, xr.Dataset):
             node_y_and_x = mesh
-            links = kwds.get('links', None)
-            patches = kwds.get('patches', None)
-            mesh = ugrid_from_unstructured(node_y_and_x, links=links,
-                                           patches=patches)
+            links = kwds.get("links", None)
+            patches = kwds.get("patches", None)
+            mesh = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
         self._ds = mesh
 
         self._frozen = False
         self.freeze()
 
-        if kwds.get('sort', True):
+        if kwds.get("sort", True):
             Graph.sort(self)
 
         self._origin = (0., 0.)
@@ -236,9 +234,11 @@ class Graph(object):
 
     @classmethod
     def from_dict(cls, meta):
-        return cls((meta['y_of_node'], meta['x_of_node']),
-                   links=meta.get('nodes_at_link', None),
-                   patches=meta.get('links_at_patch', None))
+        return cls(
+            (meta["y_of_node"], meta["x_of_node"]),
+            links=meta.get("nodes_at_link", None),
+            patches=meta.get("links_at_patch", None),
+        )
 
     @classmethod
     def load(cls, source):
@@ -247,7 +247,9 @@ class Graph(object):
         elif isinstance(source, (dict, xr.Dataset)):
             return cls.from_dict(source)
         else:
-            raise ValueError('source must be dict-like or NetCDF ({type})'.format(type=type(source)))
+            raise ValueError(
+                "source must be dict-like or NetCDF ({type})".format(type=type(source))
+            )
 
     def __str__(self):
         return str(self.ds)
@@ -289,7 +291,7 @@ class Graph(object):
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
         """
-        return self.ds['x_of_node'].values
+        return self.ds["x_of_node"].values
 
     @property
     def y_of_node(self):
@@ -303,7 +305,7 @@ class Graph(object):
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
         """
-        return self.ds['y_of_node'].values
+        return self.ds["y_of_node"].values
 
     @property
     def nodes(self):
@@ -317,7 +319,7 @@ class Graph(object):
         >>> graph.nodes
         array([0, 1, 2, 3, 4, 5])
         """
-        return self.ds['node'].values
+        return self.ds["node"].values
 
     @property
     @store_result_in_grid()
@@ -337,7 +339,7 @@ class Graph(object):
         >>> graph.number_of_nodes == 6
         True
         """
-        return self.ds.dims['node']
+        return self.ds.dims["node"]
 
     @property
     def nodes_at_link(self):
@@ -360,7 +362,7 @@ class Graph(object):
                [3, 6], [4, 7], [5, 8],
                [6, 7], [7, 8]])
         """
-        return self.ds['nodes_at_link'].values
+        return self.ds["nodes_at_link"].values
 
     @property
     def node_at_link_tail(self):
@@ -418,7 +420,7 @@ class Graph(object):
         True
         """
         try:
-            return self.ds.dims['link']
+            return self.ds.dims["link"]
         except KeyError:
             return 0
 
@@ -441,7 +443,7 @@ class Graph(object):
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
         """
-        return self.ds['links_at_patch'].values
+        return self.ds["links_at_patch"].values
 
     @property
     # @store_result_in_grid()
@@ -512,16 +514,19 @@ class Graph(object):
         """
         return reverse_one_to_many(self.links_at_patch, min_counts=2)
         try:
-            return self.ds['patches_at_link'].values
+            return self.ds["patches_at_link"].values
         except KeyError:
             patches_at_link = xr.DataArray(
                 data=reverse_one_to_many(self.links_at_patch, min_counts=2),
-                dims=('link', 'Two'),
-                attrs={'cf_role': 'edge_node_connectivity',
-                       'long_name': 'patches on either side of a link',
-                       'start_index': 0})
-            self.ds.update({'patches_at_link': patches_at_link})
-            return self.ds['patches_at_link'].values
+                dims=("link", "Two"),
+                attrs={
+                    "cf_role": "edge_node_connectivity",
+                    "long_name": "patches on either side of a link",
+                    "start_index": 0,
+                },
+            )
+            self.ds.update({"patches_at_link": patches_at_link})
+            return self.ds["patches_at_link"].values
 
     @property
     def number_of_patches(self):
@@ -542,7 +547,7 @@ class Graph(object):
         True
         """
         try:
-            return self.ds.dims['patch']
+            return self.ds.dims["patch"]
         except KeyError:
             return 0
 
@@ -569,8 +574,10 @@ class Graph(object):
         try:
             return self._links_at_node
         except AttributeError:
-            (self._links_at_node,
-             self._link_dirs_at_node) = self._create_links_and_dirs_at_node()
+            (
+                self._links_at_node,
+                self._link_dirs_at_node,
+            ) = self._create_links_and_dirs_at_node()
             return self._links_at_node
 
     def _create_links_and_dirs_at_node(self):
@@ -599,8 +606,10 @@ class Graph(object):
         try:
             return self._link_dirs_at_node
         except AttributeError:
-            (self._links_at_node,
-             self._link_dirs_at_node) = self._create_links_and_dirs_at_node()
+            (
+                self._links_at_node,
+                self._link_dirs_at_node,
+            ) = self._create_links_and_dirs_at_node()
             return self._link_dirs_at_node
 
     @property
@@ -730,8 +739,9 @@ class Graph(object):
                [ 8,  6,  4, -1, -1],
                [ 7,  5, -1, -1, -1]])
         """
-        node_is_at_tail = np.choose(self.link_dirs_at_node + 1,
-                                    np.array((1, -1, 0), dtype=np.int8))
+        node_is_at_tail = np.choose(
+            self.link_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
+        )
         out = self.nodes_at_link[self.links_at_node, node_is_at_tail]
         out[node_is_at_tail == -1] = -1
 

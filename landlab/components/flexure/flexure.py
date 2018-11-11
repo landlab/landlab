@@ -59,8 +59,9 @@ array([ 0., 0., 0., 0.,
 import numpy as np
 
 from landlab import Component
-from .funcs import get_flexure_parameter
+
 from ...utils.decorators import use_file_name_or_kwds
+from .funcs import get_flexure_parameter
 
 
 class Flexure(Component):
@@ -116,7 +117,7 @@ class Flexure(Component):
 
     _name = "Flexure"
 
-    _cite_as = """@article{hutton2008sedflux,
+    _cite_as = r"""@article{hutton2008sedflux,
         title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
         author={Hutton, Eric WH and Syvitski, James PM},
         journal={Computers \& Geosciences},

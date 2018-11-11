@@ -12,9 +12,11 @@ Written by Jordan Adams, 2013, updated May 2016
 
 
 import random
+
 import numpy as np
-from landlab import Component, ModelGrid
 from six import next
+
+from landlab import Component, ModelGrid
 
 
 class PrecipitationDistribution(Component):
@@ -81,26 +83,33 @@ class PrecipitationDistribution(Component):
     True
     """
 
-    _name = 'PrecipitationDistribution'
+    _name = "PrecipitationDistribution"
 
     _input_var_names = tuple()
 
     _output_var_names = tuple()
 
-    _optional_var_names = ('rainfall__flux', )
+    _optional_var_names = ("rainfall__flux",)
 
-    _var_units = {'rainfall__flux': '[depth unit]/[time unit]', }
+    _var_units = {"rainfall__flux": "[depth unit]/[time unit]"}
 
-    _var_mapping = {'rainfall__flux': 'grid', }
+    _var_mapping = {"rainfall__flux": "grid"}
 
     _var_doc = {
-        'rainfall__flux':
-            'Depth of water delivered per unit time in each storm', }
+        "rainfall__flux": "Depth of water delivered per unit time in each storm"
+    }
 
-    def __init__(self, grid=None,
-                 mean_storm_duration=0.0, mean_interstorm_duration=0.0,
-                 mean_storm_depth=0.0, total_t=0.0, delta_t=None,
-                 random_seed=0, **kwds):
+    def __init__(
+        self,
+        grid=None,
+        mean_storm_duration=0.0,
+        mean_interstorm_duration=0.0,
+        mean_storm_depth=0.0,
+        total_t=0.0,
+        delta_t=None,
+        random_seed=0,
+        **kwds
+    ):
         """Create the storm generator.
 
         Parameters
@@ -163,7 +172,7 @@ class PrecipitationDistribution(Component):
 
         # build LL fields, if a grid is supplied:
         if grid is not None:
-            self.grid.add_field('grid', 'rainfall__flux', 0.)
+            self.grid.add_field("grid", "rainfall__flux", 0.)
             self._gridupdate = True
         else:
             self._gridupdate = False
@@ -279,8 +288,8 @@ class PrecipitationDistribution(Component):
             The storm depth.
         """
 
-        shape_parameter = (self.storm_duration / self.mean_storm_duration)
-        scale_parameter = (self.mean_storm_depth)
+        shape_parameter = self.storm_duration / self.mean_storm_duration
+        scale_parameter = self.mean_storm_depth
         self.storm_depth = np.random.gamma(shape_parameter, scale_parameter)
         return self.storm_depth
 
@@ -302,7 +311,7 @@ class PrecipitationDistribution(Component):
         """
         self._intensity = self.storm_depth / self.storm_duration
         if self._gridupdate:
-            self.grid.at_grid['rainfall__flux'] = self._intensity
+            self.grid.at_grid["rainfall__flux"] = self._intensity
         return self._intensity
 
     def get_storm_time_series(self):
@@ -336,21 +345,21 @@ class PrecipitationDistribution(Component):
         storm_helper = storm
         storm_iterator = storm
         while storm_iterator <= self.run_time:
-            next_storm_start = storm_helper + (round(
-                                    self.get_interstorm_event_duration(), 2))
-            next_storm_end = next_storm_start + (round(
-                                self.get_precipitation_event_duration(), 2))
+            next_storm_start = storm_helper + (
+                round(self.get_interstorm_event_duration(), 2)
+            )
+            next_storm_end = next_storm_start + (
+                round(self.get_precipitation_event_duration(), 2)
+            )
             intensity = round(self.get_storm_intensity(), 2)
             self.get_storm_depth()
-            self.storm_time_series.append(
-                            [next_storm_start, next_storm_end, intensity])
+            self.storm_time_series.append([next_storm_start, next_storm_end, intensity])
             storm_iterator = storm_helper
             storm_helper = next_storm_end
             storm_iterator = storm_helper
         return self.storm_time_series
 
-    def yield_storm_interstorm_duration_intensity(self,
-                                                  subdivide_interstorms=False):
+    def yield_storm_interstorm_duration_intensity(self, subdivide_interstorms=False):
         """Iterator for a time series of storms interspersed with interstorms.
 
         This method is intended to be equivalent to get_storm_time_series,
@@ -392,8 +401,9 @@ class PrecipitationDistribution(Component):
         delta_t = self.delta_t
         if delta_t is None:
             assert subdivide_interstorms is False, (
-                'You specified you wanted storm subdivision, but did not ' +
-                'provide a delta_t to allow this!')
+                "You specified you wanted storm subdivision, but did not "
+                + "provide a delta_t to allow this!"
+            )
         self._elapsed_time = 0.
         while self._elapsed_time < self.run_time:
             storm_duration = self.get_precipitation_event_duration()
@@ -417,10 +427,10 @@ class PrecipitationDistribution(Component):
                     interstorm_duration = self.run_time - self._elapsed_time
                 self._intensity = 0.
                 if self._gridupdate:
-                    self.grid.at_grid['rainfall__flux'] = 0.
+                    self.grid.at_grid["rainfall__flux"] = 0.
                 if subdivide_interstorms:
                     step_time = 0.
-                    while interstorm_duration-step_time > delta_t:
+                    while interstorm_duration - step_time > delta_t:
                         yield (delta_t, 0.)
                         step_time += delta_t
                     yield (interstorm_duration - step_time, 0.)
@@ -531,7 +541,7 @@ class PrecipitationDistribution(Component):
 
         """
         # we must have instantiated with a grid, so check:
-        assert hasattr(self, '_grid')
+        assert hasattr(self, "_grid")
 
         # now exploit the existing generator to make this easier & less
         # redundant:
@@ -554,7 +564,7 @@ class PrecipitationDistribution(Component):
                 interstorm_dur = 0.
             # reset the rainfall__flux field, that got overstamped in the
             # interstorm iter:
-            self.grid.at_grid['rainfall__flux'] = storm_int
+            self.grid.at_grid["rainfall__flux"] = storm_int
             yield (storm_dur, interstorm_dur)
         # now, just in case, restore self.delta_t:
         self.delta_t = delta_t

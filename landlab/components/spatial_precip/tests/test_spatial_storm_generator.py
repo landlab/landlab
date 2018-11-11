@@ -1,17 +1,14 @@
 import os
 
-import pytest
-from six.moves import range
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+
+from landlab import RasterModelGrid
+from landlab.components import SpatialPrecipitationDistribution
+
 # from matplotlib.pyplot import plot, show, figure
 # from landlab import imshow_grid_at_node
 # import shapefile as shp
-from matplotlib.path import Path
 
-import landlab
-from landlab import RasterModelGrid
-from landlab.components import SpatialPrecipitationDistribution
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 # _THIS_DIR = '.'
@@ -45,7 +42,7 @@ def test_MS_params():
     # # isin=inpolygon(X1(:),Y1(:),Xx,Yy)
     # Yin = Y1[isin]
     # Xin = X1[isin]
-    # 
+    #
     # Easting = np.loadtxt(os.path.join(_THIS_DIR, 'model_input', 'Easting.csv'))
     # # This is the Longitudinal data for each gauge.
     # Northing = np.loadtxt(os.path.join(_THIS_DIR, 'model_input', 'Northing.csv'))
@@ -60,12 +57,12 @@ def test_MS_params():
     # vdg_z = vdg.add_field('node', 'topographic__elevation',
     #                       gauge_elev[np.argsort(Northing)])
     # numgauges = len(gauges)
-    # 
+    #
     # mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
     # mg.status_at_node[:] = 4
     # mg.status_at_node[isin.flatten()] = 0
     # z = mg.add_zeros('node', 'topographic__elevation')
-    # 
+    #
     # closest_core_node_in_vdg = []
     # for E, N in zip(Xin, Yin):
     #     closest_core_node_in_vdg.append(
@@ -73,13 +70,17 @@ def test_MS_params():
     # z[mg.status_at_node == 0] = vdg_z[np.array(closest_core_node_in_vdg)]
 
     mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
-    mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, 'BCs_Singer.txt'))
-    z = mg.add_field('node', 'topographic__elevation',
-                     np.loadtxt(os.path.join(_THIS_DIR, 'elevs_Singer.txt')))
+    mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, "BCs_Singer.txt"))
+    mg.add_field(
+        "node",
+        "topographic__elevation",
+        np.loadtxt(os.path.join(_THIS_DIR, "elevs_Singer.txt")),
+    )
 
     np.random.seed(10)
-    rain = SpatialPrecipitationDistribution(mg, number_of_years=2,
-                                            orographic_scenario='Singer')
+    rain = SpatialPrecipitationDistribution(
+        mg, number_of_years=2, orographic_scenario="Singer"
+    )
 
     max_intensity = []
     storm_dur = []
@@ -88,8 +89,10 @@ def test_MS_params():
     depth = []
     count = 0
     for (storm, istorm) in rain.yield_storms(
-            # style='monsoonal', limit='total_rainfall'):
-            style='whole_year', limit='total_rainfall'):
+        # style='monsoonal', limit='total_rainfall'):
+        style="whole_year",
+        limit="total_rainfall",
+    ):
         # print('storm dur:', storm, rain.storm_duration_last_storm)
         # print('istorm dur:', istorm)
         # print('intensity:', rain.storm_intensity_last_storm)
@@ -119,12 +122,12 @@ def test_MS_params():
     # z = vdg.add_field('node', 'topographic__elevation', z)
     # rain = SpatialPrecipitationDistribution(vdg, number_of_years=1,
     #                                         orographic_scenario='Singer')
-    # 
+    #
     # storms = [storm for (storm, istorm) in rain.yield_storms(
     #     style='monsoonal', monsoon_storm_interarrival_GEV={
     #                          'shape': -0.807971, 'sigma': 9.4957,
     #                          'mu': 10.6108, 'trunc_interval': (0., 720.)})]
-    # 
+    #
     # istorms = [istorm for (storm, istorm) in rain.yield_storms(
     #     style='monsoonal', monsoon_storm_interarrival_GEV={
     #                          'shape': -0.807971, 'sigma': 9.4957,

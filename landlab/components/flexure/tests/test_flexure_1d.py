@@ -1,18 +1,15 @@
 #! /usr/bin/env python
 """Unit tests for landlab.components.flexure.Flexure1D."""
-from pytest import approx, raises
+import numpy as np
+import pytest
 from numpy.testing import (
+    assert_array_almost_equal,
     assert_array_equal,
     assert_array_less,
-    assert_array_almost_equal,
-    assert_almost_equal,
 )
-
-import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components.flexure import Flexure1D
-
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -113,7 +110,7 @@ def test_with_one_row():
     assert_array_equal(flex.dz_at_node[2], 0.)
 
 
-def test_with_two_rows():
+def test_with_two_row():
     """Test calculating on one row."""
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
