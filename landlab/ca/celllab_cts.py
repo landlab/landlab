@@ -492,10 +492,8 @@ class CellLabCTSModel(object):
                 this_type = int
             # TODO: make orientation optional for cases where
             # self.number_of_orientations = 1
-            except:
+            except TypeError:
                 # added to allow from and to states to be tuples, not just ids
-                assert type(t.from_state) == tuple, "Transition from_state out of range"
-                assert type(t.to_state) == tuple, "Transition to_state out of range"
                 for i in t.from_state[:-1]:
                     assert (
                         i < self.num_node_states
