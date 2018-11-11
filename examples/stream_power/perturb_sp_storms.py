@@ -9,11 +9,9 @@ wave, then stores the propagation as a gif.
 from __future__ import print_function
 
 import copy
-import time
 
 import numpy
 import pylab
-from pylab import figure, plot, show, title, xlabel, ylabel
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import (
@@ -23,7 +21,6 @@ from landlab.components import (
     StreamPowerEroder,
 )
 from landlab.plot import channel_profile as prf, imshow as llplot
-from landlab.plot.imshow import imshow_node_grid
 
 input_file_string = "./drive_sp_params_storms.txt"
 inputs = ModelParameterDictionary(input_file_string)

@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from copy import copy, deepcopy
+from copy import deepcopy
 from time import time
 
 import numpy as np
 import pylab
-from pylab import colorbar, figure, loglog, plot, show
 from six.moves import range
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, SedDepEroder
-from landlab.plot import channel_profile as prf, imshow
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot import channel_profile as prf
 from landlab.plot.video_out import VideoPlotter
 
 # get the needed properties to build the grid:

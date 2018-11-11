@@ -11,7 +11,6 @@ DEJH, 09/15/14
 from __future__ import print_function
 
 import copy
-import time
 
 import numpy
 import pylab
@@ -20,7 +19,6 @@ from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
 from landlab.components.stream_power import FastscapeEroder as Fsc
 from landlab.plot import channel_profile as prf, imshow as llplot
-from landlab.plot.video_out import VideoPlotter
 
 inputs = ModelParameterDictionary("./drive_sp_params.txt")
 nrows = inputs.read_int("nrows")

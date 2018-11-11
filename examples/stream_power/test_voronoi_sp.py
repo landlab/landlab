@@ -1,5 +1,5 @@
 import numpy as np
-from matplotlib.pyplot import figure, show
+from matplotlib.pyplot import show
 from six.moves import range
 
 from landlab import VoronoiDelaunayGrid

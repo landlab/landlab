@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
-from copy import copy, deepcopy
+from copy import deepcopy
 from time import time
 
 import numpy as np
 import pylab
-from pylab import close, colorbar, figure, loglog, plot, savefig, show, ylim
+from pylab import close, plot, savefig, ylim
 from six.moves import range
 
-from landlab import ModelParameterDictionary, RasterModelGrid
+from landlab import ModelParameterDictionary
 from landlab.components import FlowAccumulator, SedDepEroder
-from landlab.plot import channel_profile as prf, imshow
-from landlab.plot.imshow import imshow_node_grid
-from landlab.plot.video_out import VideoPlotter
+from landlab.plot import channel_profile as prf
 
 # get the needed properties to build the grid:
 input_file = "./sed_dep_NMGparams2.txt"

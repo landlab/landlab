@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # this driver runs 0.001->0.01 perturbation of NMG2 for both simple SP & simple transport limited response
 
-from copy import copy, deepcopy
+from copy import deepcopy
 from time import time
 
 import numpy as np
 import pylab
-from pylab import close, colorbar, figure, gca, loglog, plot, savefig, show, xlim, ylim
+from pylab import close, gca, loglog, plot, savefig, show, xlim, ylim
 
 from landlab import (
     CLOSED_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
     ModelParameterDictionary,
     RasterModelGrid,
 )
@@ -19,9 +18,7 @@ from landlab.components import (
     StreamPowerEroder,
     TransportLimitedEroder,
 )
-from landlab.plot import channel_profile as prf, imshow
-from landlab.plot.imshow import imshow_node_grid
-from landlab.plot.video_out import VideoPlotter
+from landlab.plot import channel_profile as prf
 
 show_figs_in_run = True  # disable to run straight through
 DL_or_TL = "DL"

@@ -11,11 +11,9 @@ import time
 
 import numpy
 import pylab
-from pylab import show
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FastscapeEroder, FlowAccumulator, StreamPowerEroder
-from landlab.components.stream_power.fastscape_stream_power import SPEroder as Fsc
 from landlab.plot import channel_profile as prf
 from landlab.plot.imshow import imshow_node_grid
 

@@ -7,8 +7,6 @@ DEJH, 09/15/14
 """
 from __future__ import print_function
 
-import time
-
 import numpy as np
 import pylab
 from six.moves import range

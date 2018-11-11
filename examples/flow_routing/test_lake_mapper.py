@@ -1,5 +1,5 @@
 import numpy as np
-from matplotlib.pyplot import figure, plot, show
+from matplotlib.pyplot import figure
 
 from landlab import RasterModelGrid
 from landlab.components.flow_routing import DepressionFinderAndRouter, FlowAccumulator

@@ -14,7 +14,7 @@ from __future__ import print_function
 # from landlab.plot.imshow import imshow_node_grid
 import numpy as np
 from matplotlib.ticker import MaxNLocator
-from pylab import clabel, contour, figure, imshow, quiver, show
+from pylab import clabel, contour, figure, imshow, quiver
 from six.moves import range
 
 sqrt = np.sqrt

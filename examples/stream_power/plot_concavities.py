@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 import numpy as np
-from pylab import figure, loglog, plot, show, title, xlabel, ylabel
+from pylab import figure, loglog, plot, title, xlabel, ylabel
 
 limit_of_steepening = []
 max_S = 0.

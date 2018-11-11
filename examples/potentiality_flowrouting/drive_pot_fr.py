@@ -10,7 +10,7 @@ Created on Wed Mar 4 2015
 from __future__ import print_function
 
 import numpy as np
-from pylab import clabel, close, contour, figure, imshow, plot, quiver, show
+from pylab import close, figure, show
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FastscapeEroder, FlowAccumulator, PotentialityFlowRouter

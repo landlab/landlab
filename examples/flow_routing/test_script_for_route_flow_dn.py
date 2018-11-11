@@ -12,7 +12,6 @@ import pylab
 
 from landlab.components import FlowAccumulator
 from landlab.io import read_esri_ascii
-from landlab.plot.imshow import imshow_node_grid
 
 dem_name = "../../../io/tests/data/west_bijou_gully.asc"
 outlet_row = 82

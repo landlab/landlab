@@ -3,13 +3,8 @@ from pylab import (
     figure,
     gca,
     legend,
-    loglog,
     plot,
-    show,
-    title,
-    xlabel,
     xlim,
-    ylabel,
     ylim,
 )
 
