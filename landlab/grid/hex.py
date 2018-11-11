@@ -1087,9 +1087,9 @@ def from_dict(param_dict):
         n_rows = int(param_dict["NUM_ROWS"])
         n_cols = int(param_dict["NUM_COLS"])
         dx = float(param_dict.get("GRID_SPACING", 1.))
-    except KeyError as e:
+    except KeyError:
         raise
-    except ValueError as e:
+    except ValueError:
         raise
     else:
         hg = HexModelGrid(n_rows, n_cols, dx)
