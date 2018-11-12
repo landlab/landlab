@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from multiprocessing import Pool
-
 import numpy as np
 import scipy.special
 
