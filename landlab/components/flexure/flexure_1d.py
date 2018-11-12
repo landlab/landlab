@@ -380,6 +380,9 @@ class Flexure1D(Component):
         ndarray of float
             Deflections caused by the loading.
         """
+        if out is None:
+            out = np.zeros(self.grid.shape)
+        loads = np.asarray(loads)
         if self._method == "airy":
             out[:] = loads / self.gamma_mantle
         else:
@@ -415,10 +418,7 @@ class Flexure1D(Component):
             out = np.zeros_like(loads, dtype=np.float)
 
         loads = loads.reshape((-1, loads.shape[-1]))
-        out = out[..., :].reshape((-1, out.shape[-1]))
-        subside_load_1d(x, loads, alpha, rigidity, out[..., :])
+        dz = out[..., :].reshape((-1, out.shape[-1]))
+        subside_load_1d(x, loads, alpha, rigidity, dz[..., :])
 
-        if out.base is not None:
-            return out.base
-        else:
-            return out
+        return out
