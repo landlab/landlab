@@ -1,15 +1,16 @@
 from __future__ import print_function
 
 import numpy as np
-from pylab import figure, loglog, plot, title, xlabel, ylabel
+from pylab import figure, loglog, plot, title, xlabel, ylabel, legend
+from six.moves import range
 
 limit_of_steepening = []
 max_S = 0.
-for i in xrange(len(S_profiles)):
+for i in range(len(S_profiles)):
     if np.amax(S_profiles[i]) > max_S:
         max_S = np.amax(S_profiles[i])
 
-for i in xrange(len(S_profiles)):
+for i in range(len(S_profiles)):
     counter = 0
     steepest = 0.
     for n in S_profiles[i]:
@@ -34,7 +35,7 @@ print(limit_of_steepening)
 concavities = []
 convexity_x = []
 max_x = []
-for i in xrange(len(limit_of_steepening)):
+for i in range(len(limit_of_steepening)):
     lim = limit_of_steepening[i]
     if lim != 0:
         polyvals = np.polyfit(
@@ -52,7 +53,7 @@ convexity_x = np.array(convexity_x)
 max_x = np.array(max_x)
 
 figure("long_profiles")
-for i in xrange(len(A_profiles)):
+for i in range(len(A_profiles)):
     loglog(A_profiles[i], S_profiles[i], "x-")
 
 yunnan_propx = np.loadtxt("yunnan_proplength.txt")
@@ -137,7 +138,7 @@ plot(1. - convexity_x / max_x, np.log(concavities), "*-", label="active_run")
 xlabel("relative position of knickzone down channel")
 ylabel("natural log of concavity downstream of knickzone")
 title("Concavities donstream of propagating knickzones")
-pylab.legend(loc=2)
+legend(loc=2)
 
 figure("concavities_nolog")
 plot(yunnan_propx, yunnan_theta, "o")

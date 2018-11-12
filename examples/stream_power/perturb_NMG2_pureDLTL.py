@@ -7,6 +7,7 @@ from time import time
 import numpy as np
 import pylab
 from pylab import close, gca, loglog, plot, savefig, show, xlim, ylim
+from six.moves import range
 
 from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, RasterModelGrid
 from landlab.components import (
@@ -70,7 +71,7 @@ if DL_or_TL == "TL":
 else:
     spe = StreamPowerEroder(mg, input_file)
 
-for i in xrange(nt):
+for i in range(nt):
     # print 'loop ', i
     mg.at_node["topographic__elevation"][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
@@ -136,7 +137,7 @@ start_node = [profile_IDs[0]]
 
 time_on = time()
 # perform the loops:
-for i in xrange(nt):
+for i in range(nt):
     # print 'loop ', i
     mg.at_node["topographic__elevation"][mg.core_nodes] += uplift_per_step
     mg = fr.route_flow(grid=mg)
@@ -204,7 +205,7 @@ if True:
     xlim(gca().get_xlim()[::-1])  # reverse the x axis for comparison with long profiles
     savefig("0profile_anim_init.png")
     close("long_profile_anim_init")
-    for j in xrange(len(x_profiles)):
+    for j in range(len(x_profiles)):
         i = j * 15
         pylab.figure("long_profile_anim")
         # prf.plot_profiles(dists_upstr, profile_IDs, mg.at_node['topographic_elevation'])

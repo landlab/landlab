@@ -99,7 +99,7 @@ pylab.figure(1)
 im = imshow_node_grid(mg, "topographic__elevation")  # display a colored image
 
 pylab.figure(2)
-im = pylab.plot(dx * numpy.arange(nrows), elev_r[:, int(ncols // 2)])
+im = pylab.plot(dx * np.arange(nrows), elev_r[:, int(ncols // 2)])
 pylab.title("Vertical cross section")
 
 pylab.show()

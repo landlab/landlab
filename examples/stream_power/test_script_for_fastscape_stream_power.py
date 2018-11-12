@@ -117,7 +117,7 @@ for t in range(num_time_steps):
 
     # Calculate A^m and K A^m dt / L using Numpy array operations, for speed
     # (TODO: flow router should return an array of flow-link lengths)
-    Am = numpy.power(a, m)
+    Am = np.power(a, m)
     alpha = Kdt * Am / flow_link_length
 
     # Loop over nodes from downstream to upstream, updating elevations using
