@@ -85,7 +85,7 @@ def test_with_method_flexure():
     flex.update()
 
     assert np.argmax(flex.dz_at_node[1]) == i_mid
-    assert np.all(flex.dz_at_node[:, i_mid::-1] == approx(flex.dz_at_node[:, i_mid:]))
+    assert np.all(flex.dz_at_node[:, i_mid::-1] == pytest.approx(flex.dz_at_node[:, i_mid:]))
 
 
 def test_run_one_step():
@@ -198,7 +198,7 @@ def test_method_keyword():
     assert flex.method == "airy"
     flex = Flexure1D(RasterModelGrid((3, 5)), method="flexure")
     assert flex.method == "flexure"
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         Flexure1D(RasterModelGrid((3, 5)), method="Flexure")
 
 
@@ -206,7 +206,7 @@ def test_flexure_keywords(flexure_keyword):
     flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: 1.})
     assert getattr(flex, flexure_keyword) == 1.
     assert isinstance(getattr(flex, flexure_keyword), float)
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: -1})
 
 
@@ -272,4 +272,4 @@ def test_subside_loads():
     assert dz_flexure.shape == flex.grid.shape
     assert np.argmax(dz_flexure) == 2
     assert np.all(dz_flexure[:, 2] < dz_airy[:, 2])
-    assert np.all(dz_flexure[:, 2::-1] == approx(dz_flexure[:, 2:]))
+    assert np.all(dz_flexure[:, 2::-1] == pytest.approx(dz_flexure[:, 2:]))
