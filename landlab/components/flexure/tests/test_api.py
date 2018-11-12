@@ -48,7 +48,6 @@ def test_subside_point_load():
 def test_point_load_1d_with_scalar_args():
     params = dict(eet=65000., youngs=7e10)
     load = 1e9
-    loc = (5000.,)
 
     x = np.arange(0, 10000, 1000.)
 
@@ -74,7 +73,6 @@ def test_point_load_1d_is_symetric():
 def test_point_load_2d_is_symetric():
     params = dict(eet=65000., youngs=7e10)
     load = 1e9
-    loc = (5000.,)
 
     n = 11
     n_mid = (n - 1) // 2
@@ -108,6 +106,8 @@ def test_subside_point_load_1d():
     dz = subside_point_load(
         np.full(n_loads, load / n_loads), (np.full(n_loads, loc),), (x,), params=params
     )
+
+    assert np.all(dz == approx(dz_one_load))
 
 
 def test_out_keyword():
