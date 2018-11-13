@@ -29,8 +29,8 @@ def test_name_setter():
 
 def test_name_setter_too_few_names():
     rmg = RasterModelGrid((4, 5))
-    with pytest.raises(ValueError):
-        rmg.axis_name = ("z",)
+    rmg.axis_name = "z"
+    assert rmg.axis_name == ("z", "z")
 
 
 def test_name_setter_too_many_names():
@@ -64,9 +64,9 @@ def test_axis_units_setter():
 
 
 def test_name_setter_too_few_units():
-    rmg = RasterModelGrid((4, 5))
-    with pytest.raises(ValueError):
-        rmg.axis_units = ("m",)
+    grid = RasterModelGrid((4, 5))
+    grid.axis_units = "m"
+    assert grid.axis_units == ("m", "m")
 
 
 def test_name_setter_too_many_units():

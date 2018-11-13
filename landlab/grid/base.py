@@ -309,6 +309,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     _DEBUG_TRACK_METHODS = False
 
     def __init__(self, **kwds):
+        axis_units = kwds.pop("axis_units", "-")
+        axis_name = kwds.pop("axis_name", ("y", "x"))
+
         super(ModelGrid, self).__init__()
 
         self.new_field_location('node', self.number_of_nodes)
@@ -320,11 +323,14 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         self.new_field_location('grid', None)
         self.default_group = 'node'
 
-
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
         self.bc_set_code = 0
+
+        self._axis_units = tuple(np.broadcast_to(axis_units, self.ndim))
+        self._axis_name = tuple(np.broadcast_to(axis_name, self.ndim))
+
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
@@ -1598,9 +1604,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> mg = RasterModelGrid((4, 5), (2., 3.))
         >>> mg.axis_units
         ('-', '-')
-        >>> mg.axis_units = ('km', 'km')
+        >>> mg.axis_units = ("degrees_north", "degrees_east")
         >>> mg.axis_units
-        ('km', 'km')
+        ('degrees_north', 'degrees_east')
+        >>> mg.axis_units = "m"
+        ('m', 'm')
 
         LLCATS: GINF
         """
@@ -1609,6 +1617,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @axis_units.setter
     def axis_units(self, new_units):
         """Set the units for each coordinate axis."""
+        new_units = np.broadcast_to(new_units, self.ndim)
         if len(new_units) != self.ndim:
             raise ValueError("length of units does not match grid dimension")
         self._axis_units = tuple(new_units)
@@ -1649,10 +1658,12 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name = ("y", "x")
+        >>> grid.axis_name = ("lon", "lat")
         >>> grid.axis_name
         ('lon', 'lat')
         """
+        new_names = np.broadcast_to(new_names, self.ndim)
         if len(new_names) != self.ndim:
             raise ValueError("length of names does not match grid dimension")
         self._axis_name = tuple(new_names)
