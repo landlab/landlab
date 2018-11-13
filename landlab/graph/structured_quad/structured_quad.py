@@ -182,6 +182,31 @@ class StructuredQuadGraphExtras(object):
     def vertical_links(self):
         return setup_vertical_links(self.shape)
 
+    @property
+    def nodes_at_corners_of_grid(self):
+        """Nodes at corners of grid.
+
+        The nodes at at the corners of the grid. The nodes are returned
+        counterclockwise starting with the upper-right.
+
+        Return
+        ------
+        tuple of int
+            Nodes at the four corners.
+
+        Examples
+        --------
+        >>> from landlab.graph import UniformRectilinearGraph
+        >>> graph = UniformRectilinearGraph((4, 5))
+        >>> graph.nodes_at_corners_of_grid
+        (19, 15, 0, 4)
+        """
+        return (
+            self.number_of_nodes - 1,
+            self.number_of_nodes - self.number_of_node_columns,
+            0,
+            self.number_of_node_columns - 1,
+        )
 
 class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
 
