@@ -1,12 +1,12 @@
 import numpy as np
 
-from ...utils.decorators import store_result_in_grid, read_only_array
+from ...utils.decorators import read_only_array, store_result_in_grid
 from ..graph import Graph
-from .ext.at_link import fill_patches_at_link, fill_nodes_at_link
+from .ext.at_link import fill_nodes_at_link, fill_patches_at_link
 from .ext.at_node import (
-    fill_patches_at_node,
-    fill_links_at_node,
     fill_link_dirs_at_node,
+    fill_links_at_node,
+    fill_patches_at_node,
     fill_perimeter_nodes,
 )
 from .ext.at_patch import fill_links_at_patch
@@ -207,6 +207,7 @@ class StructuredQuadGraphExtras(object):
             0,
             self.number_of_node_columns - 1,
         )
+
 
 class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
 

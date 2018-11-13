@@ -34,6 +34,7 @@ def test_nodes_at_link():
 
 def test_face_at_link():
     grid = HexModelGrid(3, 3)
-    assert_array_equal(grid.face_at_link,
-                       [-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1, 7,  8,
-                         9, 10, -1, -1, -1])
+    assert_array_equal(
+        grid.face_at_link,
+        [-1, -1, -1, 0, 1, 2, 3, -1, 4, 5, 6, -1, 7, 8, 9, 10, -1, -1, -1],
+    )

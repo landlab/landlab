@@ -1,7 +1,7 @@
 import numpy as np
 
-from ..voronoi.voronoi import VoronoiGraph
 from ...utils.decorators import cache_result_in_object, make_return_array_immutable
+from ..voronoi.voronoi import VoronoiGraph
 
 
 def number_of_nodes(shape, node_layout="rect"):
@@ -167,8 +167,9 @@ class HexGraphExtras(object):
         >>> graph.nodes_at_right_edge
         array([ 3,  7, 11])
         """
-        return np.arange(self.shape[1] - 1, self.shape[0] * self.shape[1],
-                         self.shape[1], dtype=int)
+        return np.arange(
+            self.shape[1] - 1, self.shape[0] * self.shape[1], self.shape[1], dtype=int
+        )
 
     @property
     @cache_result_in_object()
@@ -184,8 +185,9 @@ class HexGraphExtras(object):
         >>> graph.nodes_at_top_edge
         array([ 8,  9, 10, 11])
         """
-        return np.arange(self.number_of_nodes - self.shape[1],
-                         self.number_of_nodes, dtype=int)
+        return np.arange(
+            self.number_of_nodes - self.shape[1], self.number_of_nodes, dtype=int
+        )
 
     @property
     @cache_result_in_object()
@@ -201,8 +203,7 @@ class HexGraphExtras(object):
         >>> graph.nodes_at_left_edge
         array([0, 4, 8])
         """
-        return np.arange(0, self.shape[0] * self.shape[1], self.shape[1],
-                         dtype=int)
+        return np.arange(0, self.shape[0] * self.shape[1], self.shape[1], dtype=int)
 
     @property
     @cache_result_in_object()
@@ -224,8 +225,7 @@ class HexGraphExtras(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def perimeter_nodes(self):
-        return setup_perimeter_nodes(self.shape, self.orientation,
-                                     self.node_layout)
+        return setup_perimeter_nodes(self.shape, self.orientation, self.node_layout)
 
 
 class HexGraph(HexGraphExtras, VoronoiGraph):
@@ -312,5 +312,5 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
             (y_of_node, x_of_node),
             xy_sort=True,
             rot_sort=True,
-            max_node_spacing=max_node_spacing
+            max_node_spacing=max_node_spacing,
         )

@@ -65,8 +65,8 @@ class TestPatchesAtNode:
         rmg = RasterModelGrid((4, 5))
         nodes_out = rmg.nodes_at_patch
         assert np.all(
-            nodes_out ==
-            np.array(
+            nodes_out
+            == np.array(
                 [
                     [6, 5, 0, 1],
                     [7, 6, 1, 2],
@@ -81,7 +81,7 @@ class TestPatchesAtNode:
                     [18, 17, 12, 13],
                     [19, 18, 13, 14],
                 ]
-            ),
+            )
         )
 
 
@@ -96,10 +96,10 @@ class TestSlopesAtPatches:
         rmg = RasterModelGrid((4, 5))
         rmg.at_node["topographic__elevation"] = -rmg.node_y
         slopes_out = rmg.calc_slope_at_node(
-            rmg.at_node['topographic__elevation'],
-            return_components=True)
-        assert np.all(slopes_out[0] == approx(np.full(20, np.pi/4., dtype=float)))
-        assert np.all(slopes_out[1][1] == approx(np.full(20, -np.pi/4., dtype=float)))
+            rmg.at_node["topographic__elevation"], return_components=True
+        )
+        assert np.all(slopes_out[0] == approx(np.full(20, np.pi / 4., dtype=float)))
+        assert np.all(slopes_out[1][1] == approx(np.full(20, -np.pi / 4., dtype=float)))
         assert np.all(slopes_out[1][0] == approx(np.zeros(20, dtype=float)))
 
 
@@ -111,20 +111,40 @@ def test_number_of_patches():
 def test_patches_at_node():
     grid = RasterModelGrid((3, 3))
     assert np.all(
-        grid.patches_at_node ==
-        np.array([[ 0, -1, -1, -1], [ 1,  0, -1, -1], [-1,  1, -1, -1],
-                  [ 2, -1, -1,  0], [ 3,  2,  0,  1], [-1,  3,  1, -1],
-                  [-1, -1, -1,  2], [-1, -1,  2,  3], [-1, -1,  3, -1]],
-                 dtype=int))
+        grid.patches_at_node
+        == np.array(
+            [
+                [0, -1, -1, -1],
+                [1, 0, -1, -1],
+                [-1, 1, -1, -1],
+                [2, -1, -1, 0],
+                [3, 2, 0, 1],
+                [-1, 3, 1, -1],
+                [-1, -1, -1, 2],
+                [-1, -1, 2, 3],
+                [-1, -1, 3, -1],
+            ],
+            dtype=int,
+        )
+    )
 
 
 def test_links_at_patch():
     grid = RasterModelGrid((3, 4))
     assert np.all(
-        grid.links_at_patch ==
-        np.array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
-                  [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]],
-                dtype=np.int))
+        grid.links_at_patch
+        == np.array(
+            [
+                [4, 7, 3, 0],
+                [5, 8, 4, 1],
+                [6, 9, 5, 2],
+                [11, 14, 10, 7],
+                [12, 15, 11, 8],
+                [13, 16, 12, 9],
+            ],
+            dtype=np.int,
+        )
+    )
 
     with raises(ValueError):
         grid.links_at_patch[0] = -1
@@ -133,11 +153,30 @@ def test_links_at_patch():
 def test_patches_at_link():
     grid = RasterModelGrid((3, 4))
     assert np.all(
-        grid.patches_at_link ==
-        np.array([[-1,  0], [-1,  1], [-1,  2], [ 0, -1], [ 1,  0], [ 2,  1],
-                  [-1,  2], [ 0,  3], [ 1,  4], [ 2,  5], [ 3, -1], [ 4,  3],
-                  [ 5,  4], [-1,  5], [ 3, -1], [ 4, -1], [ 5, -1]],
-                 dtype=int))
+        grid.patches_at_link
+        == np.array(
+            [
+                [-1, 0],
+                [-1, 1],
+                [-1, 2],
+                [0, -1],
+                [1, 0],
+                [2, 1],
+                [-1, 2],
+                [0, 3],
+                [1, 4],
+                [2, 5],
+                [3, -1],
+                [4, 3],
+                [5, 4],
+                [-1, 5],
+                [3, -1],
+                [4, -1],
+                [5, -1],
+            ],
+            dtype=int,
+        )
+    )
 
     with raises(ValueError):
         grid.patches_at_link[0] = -1

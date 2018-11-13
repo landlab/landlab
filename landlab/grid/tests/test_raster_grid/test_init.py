@@ -1,5 +1,4 @@
 import numpy as np
-import numpy as np
 import pytest
 
 from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
@@ -84,8 +83,8 @@ def test_neighbor_list_with_scalar_arg():
 def test_neighbor_list_with_array_arg():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.active_adjacent_nodes_at_node[[6, -1]] ==
-        np.array([[7, 11, 5, 1], [X, X, X, X]]),
+        rmg.active_adjacent_nodes_at_node[[6, -1]]
+        == np.array([[7, 11, 5, 1], [X, X, X, X]])
     )
 
 
@@ -122,8 +121,8 @@ def test_neighbor_list_with_no_args():
 def test_node_x():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.node_x ==
-        np.array(
+        rmg.node_x
+        == np.array(
             [
                 0.,
                 1.,
@@ -146,15 +145,15 @@ def test_node_x():
                 3.,
                 4.,
             ]
-        ),
+        )
     )
 
 
 def test_node_y():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.node_y ==
-        np.array(
+        rmg.node_y
+        == np.array(
             [
                 0.,
                 0.,
@@ -177,7 +176,7 @@ def test_node_y():
                 3.,
                 3.,
             ]
-        ),
+        )
     )
 
 
@@ -206,12 +205,12 @@ def test_diagonal_list():
     assert np.all(rmg.diagonal_adjacent_nodes_at_node[6] == np.array([12, 10, 0, 2]))
     assert np.all(rmg.diagonal_adjacent_nodes_at_node[-1] == np.array([X, X, 13, X]))
     assert np.all(
-        rmg.diagonal_adjacent_nodes_at_node[[6, -1]] ==
-        np.array([[12, 10, 0, 2], [X, X, 13, X]]),
+        rmg.diagonal_adjacent_nodes_at_node[[6, -1]]
+        == np.array([[12, 10, 0, 2], [X, X, 13, X]])
     )
     assert np.all(
-        rmg.diagonal_adjacent_nodes_at_node ==
-        np.array(
+        rmg.diagonal_adjacent_nodes_at_node
+        == np.array(
             [
                 [6, X, X, X],
                 [7, 5, X, X],
@@ -234,7 +233,7 @@ def test_diagonal_list():
                 [X, X, 12, 14],
                 [X, X, 13, X],
             ]
-        ),
+        )
     )
 
 
@@ -260,8 +259,8 @@ def test_active_links():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert rmg.number_of_active_links == 17
     assert np.all(
-        rmg.active_links ==
-        np.array([5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25]),
+        rmg.active_links
+        == np.array([5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25])
     )
 
 
@@ -292,15 +291,16 @@ def test__active_links_at_node_scalar_boundary():
 def test_active_node_with_array_arg():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg._active_links_at_node([6, 7]) == np.array([[5, 9, 14, 10], [6, 10, 15, 11]]).T
+        rmg._active_links_at_node([6, 7])
+        == np.array([[5, 9, 14, 10], [6, 10, 15, 11]]).T
     )
 
 
 def test__active_links_at_node_with_no_args():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg._active_links_at_node() ==
-        np.array(
+        rmg._active_links_at_node()
+        == np.array(
             [
                 [
                     -1,
@@ -391,7 +391,7 @@ def test__active_links_at_node_with_no_args():
                     -1,
                 ],
             ]
-        ),
+        )
     )
 
 
@@ -408,8 +408,8 @@ def test_nodes_at_link():
 def test_node_at_link_tail():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.node_at_link_tail ==
-        np.array(
+        rmg.node_at_link_tail
+        == np.array(
             [
                 0,
                 1,
@@ -443,15 +443,15 @@ def test_node_at_link_tail():
                 17,
                 18,
             ]
-        ),
+        )
     )
 
 
 def test_node_at_link_head():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.node_at_link_head ==
-        np.array(
+        rmg.node_at_link_head
+        == np.array(
             [
                 1,
                 2,
@@ -485,7 +485,7 @@ def test_node_at_link_head():
                 18,
                 19,
             ]
-        ),
+        )
     )
 
 
@@ -501,16 +501,14 @@ def test_links_at_node_with_scalar_boundary():
 
 def test_links_at_node_with_array_arg():
     rmg = RasterModelGrid((4, 5), spacing=1.)
-    assert np.all(
-        rmg.links_at_node[6:8] == np.array([[10, 14, 9, 5], [11, 15, 10, 6]])
-    )
+    assert np.all(rmg.links_at_node[6:8] == np.array([[10, 14, 9, 5], [11, 15, 10, 6]]))
 
 
 def test_links_at_node_with_no_args():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.links_at_node ==
-        np.array(
+        rmg.links_at_node
+        == np.array(
             [
                 [0, 4, -1, -1],
                 [1, 5, 0, -1],
@@ -533,15 +531,15 @@ def test_links_at_node_with_no_args():
                 [30, -1, 29, 25],
                 [-1, -1, 30, 26],
             ]
-        ),
+        )
     )
 
 
 def test_face_at_link():
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.face_at_link ==
-        np.array(
+        rmg.face_at_link
+        == np.array(
             [
                 X,
                 X,
@@ -575,7 +573,7 @@ def test_face_at_link():
                 X,
                 X,
             ]
-        ),
+        )
     )
 
 
@@ -599,8 +597,8 @@ def test_diagonal_adjacent_nodes_at_node():
     """Test diagonally adjacent nodes."""
     rmg = RasterModelGrid((4, 5), spacing=1.)
     assert np.all(
-        rmg.diagonal_adjacent_nodes_at_node ==
-        np.array(
+        rmg.diagonal_adjacent_nodes_at_node
+        == np.array(
             [
                 [6, X, X, X],
                 [7, 5, X, X],
@@ -623,5 +621,5 @@ def test_diagonal_adjacent_nodes_at_node():
                 [X, X, 12, 14],
                 [X, X, 13, X],
             ]
-        ),
+        )
     )

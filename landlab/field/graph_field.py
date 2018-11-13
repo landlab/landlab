@@ -148,7 +148,7 @@ class FieldDataset(dict):
 
     def __init__(self, *args, **kwds):
         self._name, self._size = args[0], args[1]
-        self._fixed_size = bool(kwds.get('fixed_size', True))
+        self._fixed_size = bool(kwds.get("fixed_size", True))
         self._ds = xr.Dataset()
         self._units = {}
 
@@ -318,7 +318,7 @@ class GraphFields(object):
         for loc in dims:
             self.new_field_location(loc, dims[loc])
 
-        self.default_group = kwds.get('default_group', None)
+        self.default_group = kwds.get("default_group", None)
 
     def __getitem__(self, name):
         try:
@@ -660,8 +660,8 @@ class GraphFields(object):
             group = kwds.pop("at", kwds.pop("centering", "node"))
         else:
             group = args[0]
-        
-        if group == 'grid':
+
+        if group == "grid":
             raise ValueError(
                 "ones is not supported for at='grid', if you "
                 "want to create a field at the grid, use\n"
@@ -670,9 +670,9 @@ class GraphFields(object):
                 "of the shape stored at_grid, use np.array(1)."
             )
 
-        size = getattr(self, 'at_{group}'.format(group=group)).size
+        size = getattr(self, "at_{group}".format(group=group)).size
         if size is None:
-            raise ValueError('group is not yet sized.')
+            raise ValueError("group is not yet sized.")
 
         return np.empty(size, **kwds)
 
@@ -833,11 +833,7 @@ class GraphFields(object):
         if len(args) == 3:
             at, name, value_array = args
         elif len(args) == 2:
-            at, name, value_array = (
-                kwds.pop('at', None),
-                args[0],
-                args[1],
-            )
+            at, name, value_array = (kwds.pop("at", None), args[0], args[1])
         else:
             raise ValueError("number of arguments must be 2 or 3")
 
@@ -848,7 +844,7 @@ class GraphFields(object):
 
         at = at or self.default_group
         if at is None:
-            raise ValueError('no group specified')
+            raise ValueError("no group specified")
 
         attrs = {"long_name": name}
         attrs["units"] = units

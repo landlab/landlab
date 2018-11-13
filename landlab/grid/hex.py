@@ -11,9 +11,9 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 import six
 
-from .decorators import return_readonly_id_array
-from .base import ModelGrid
 from ..graph import DualHexGraph
+from .base import ModelGrid
+from .decorators import return_readonly_id_array
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
@@ -60,10 +60,11 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         base_num_cols=0,
         dx=1.0,
         origin=(0., 0.),
-        orientation='horizontal',
-        shape='hex',
+        orientation="horizontal",
+        shape="hex",
         reorient_links=True,
-        **kwds):
+        **kwds
+    ):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
@@ -102,7 +103,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         spacing = dx
 
         DualHexGraph.__init__(
-            self, shape, spacing=spacing, origin=origin, orientation=orientation, node_layout=node_layout
+            self,
+            shape,
+            spacing=spacing,
+            origin=origin,
+            orientation=orientation,
+            node_layout=node_layout,
         )
         ModelGrid.__init__(self, **kwds)
 

@@ -1,6 +1,6 @@
-from ..voronoi import DualVoronoiGraph
-from .hex import setup_xy_of_node, setup_perimeter_nodes, HexGraphExtras
 from ...utils.decorators import cache_result_in_object
+from ..voronoi import DualVoronoiGraph
+from .hex import HexGraphExtras, setup_perimeter_nodes, setup_xy_of_node
 
 
 class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
@@ -60,20 +60,23 @@ class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
         self._shape = tuple(shape)
         self._spacing = spacing
 
-        if node_layout not in ('rect', 'hex', 'rect1'):
-            raise ValueError('node_layout not understood')
+        if node_layout not in ("rect", "hex", "rect1"):
+            raise ValueError("node_layout not understood")
         else:
             self._node_layout = node_layout
 
-        if orientation not in ('horizontal', 'vertical'):
-            raise ValueError('orientation not understood')
+        if orientation not in ("horizontal", "vertical"):
+            raise ValueError("orientation not understood")
         else:
             self._orientation = orientation
 
-        x_of_node, y_of_node = setup_xy_of_node(shape, spacing=spacing,
-                                                origin=origin,
-                                                orientation=orientation,
-                                                node_layout=node_layout)
+        x_of_node, y_of_node = setup_xy_of_node(
+            shape,
+            spacing=spacing,
+            origin=origin,
+            orientation=orientation,
+            node_layout=node_layout,
+        )
 
         if node_layout == "hex":
             max_node_spacing = None

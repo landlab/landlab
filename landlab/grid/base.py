@@ -19,6 +19,7 @@ from landlab.utils.decorators import deprecated, make_return_array_immutable
 from . import grid_funcs as gfuncs
 from ..core import load_params
 from ..core.utils import add_module_functions_to_class
+from ..field.graph_field import GraphFields
 from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
@@ -259,8 +260,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 
     return ax, ay
 
-from ..field.graph_field import GraphFields
-
 
 # class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
@@ -314,14 +313,14 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         super(ModelGrid, self).__init__()
 
-        self.new_field_location('node', self.number_of_nodes)
-        self.new_field_location('link', self.number_of_links)
-        self.new_field_location('patch', self.number_of_patches)
-        self.new_field_location('corner', self.number_of_corners)
-        self.new_field_location('face', self.number_of_faces)
-        self.new_field_location('cell', self.number_of_cells)
-        self.new_field_location('grid', None)
-        self.default_group = 'node'
+        self.new_field_location("node", self.number_of_nodes)
+        self.new_field_location("link", self.number_of_links)
+        self.new_field_location("patch", self.number_of_patches)
+        self.new_field_location("corner", self.number_of_corners)
+        self.new_field_location("face", self.number_of_faces)
+        self.new_field_location("cell", self.number_of_cells)
+        self.new_field_location("grid", None)
+        self.default_group = "node"
 
         self._link_length = None
         self._all_node_distances_map = None
@@ -330,7 +329,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         self._axis_units = tuple(np.broadcast_to(axis_units, self.ndim))
         self._axis_name = tuple(np.broadcast_to(axis_name, self.ndim))
-
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.

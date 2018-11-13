@@ -21,16 +21,13 @@ from landlab.grid.structured_quad import (
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
+from . import gradients, raster_funcs as rfuncs
 from ..core.utils import add_module_functions_to_class, as_id_array
-from ..io import write_esri_ascii
-from ..io.netcdf import write_netcdf
-from ..core.utils import as_id_array
-from ..core.utils import add_module_functions_to_class
 from ..field.graph_field import GraphFields
 from ..graph import DualUniformRectilinearGraph
+from ..io import write_esri_ascii
+from ..io.netcdf import write_netcdf
 from ..utils.decorators import cache_result_in_object
-from . import raster_funcs as rfuncs
-from . import gradients
 from .base import (
     BAD_INDEX_VALUE,
     CLOSED_BOUNDARY,
@@ -276,8 +273,9 @@ def _parse_grid_spacing_from_args(args):
         return None
 
 
-class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
-                      RasterModelGridPlotter):
+class RasterModelGrid(
+    DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid, RasterModelGridPlotter
+):
 
     """A 2D uniform rectilinear grid.
 
@@ -398,23 +396,27 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
             raise ValueError("number of rows and columns must be positive")
 
         shape = (num_rows, num_cols)
-        spacing = np.asfarray(np.broadcast_to(dx, (2, )))
-        origin = np.asfarray(np.broadcast_to(origin, (2, )))
+        spacing = np.asfarray(np.broadcast_to(dx, (2,)))
+        origin = np.asfarray(np.broadcast_to(origin, (2,)))
 
-        DualUniformRectilinearGraph.__init__(self, shape, spacing=spacing,
-                                             origin=origin)
+        DualUniformRectilinearGraph.__init__(
+            self, shape, spacing=spacing, origin=origin
+        )
         ModelGrid.__init__(self, **kwds)
 
-        self._node_status = np.full(self.number_of_nodes,
-                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
+        self._node_status = np.full(
+            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
+        )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
         self._DEBUG_TRACK_METHODS = False
-        bc_at_edges = kwds.pop('bc', {'right': 'open', 'top': 'open',
-                                      'left': 'open', 'bottom': 'open'})
-        if 'closed' in bc_at_edges.values():
+        bc_at_edges = kwds.pop(
+            "bc", {"right": "open", "top": "open", "left": "open", "bottom": "open"}
+        )
+        if "closed" in bc_at_edges.values():
             self.set_closed_boundaries_at_grid_edges(
-                *grid_edge_is_closed_from_dict(bc_at_edges))
+                *grid_edge_is_closed_from_dict(bc_at_edges)
+            )
 
         self.looped_node_properties = {}
 
@@ -855,7 +857,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         """
         return (self.number_of_cell_rows, self.number_of_cell_columns)
 
-    @deprecated(use='vals[links_at_node]*active_link_dirs_at_node', version=1.0)
+    @deprecated(use="vals[links_at_node]*active_link_dirs_at_node", version=1.0)
     def _active_links_at_node(self, *args):
         """_active_links_at_node([node_ids])
         Active links of a node.
@@ -1146,7 +1148,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         LLCATS: DEPR GINF NINF MEAS
         """
         if self.dx != self.dy:
-            raise RuntimeError('dx and dy are not the same')
+            raise RuntimeError("dx and dy are not the same")
         return self.dx
 
     @property
@@ -2641,9 +2643,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid,
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        neighbors[:, ] = self.active_adjacent_nodes_at_node[ids]
+        neighbors[:,] = self.active_adjacent_nodes_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
-        diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
+        diagonals[:,] = self.diagonal_adjacent_nodes_at_node[ids]
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]
