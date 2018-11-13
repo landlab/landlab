@@ -360,11 +360,11 @@ def _add_spatial_variables(root, grid, **kwds):
         coords.shape = var.shape
         var[:] = coords
 
-        var.units = grid.axis_units[axis]
+        var.units = grid.axis_units[axis].encode("utf-8")
         try:
-            var.long_name = long_name[name]
+            var.long_name = long_name[name].encode("utf-8")
         except KeyError:
-            var.long_name = grid.axis_name[axis]
+            var.long_name = grid.axis_name[axis].encode("utf-8")
 
 
 def _add_raster_spatial_variables(root, grid, **kwds):
