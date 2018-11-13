@@ -2,57 +2,101 @@
 """The Landlab
 
 :Package name: TheLandlab
-:Release date: 2013-03-24
+:Release date: 2018-09-18
 :Authors: Greg Tucker, Nicole Gasparini, Erkan Istanbulluoglu, Daniel Hobley,
-    Sai Nudurupati, Jordan Adams, Eric Hutton
+    Sai Nudurupati, Jordan Adams, Eric Hutton, Katherine Barnhart, Margaux
+    Mouchene, Nathon Lyons
 :URL: http://csdms.colorado.edu/trac/landlab
 :License: MIT
 """
-
 from __future__ import absolute_import
-import os
 
-import numpy as np
-try:
-    np.set_printoptions(legacy='1.13')
-except TypeError:
-    pass
+from numpy import set_printoptions
 
-# from ._info import version as  __version__
 from ._registry import registry
-
-__all__ = ['registry']
-
-if 'DISPLAY' not in os.environ:
-    try:
-        import matplotlib
-    except ImportError:
-        import warnings
-        warnings.warn('matplotlib not found', ImportWarning)
-    else:
-        matplotlib.use('Agg')
-
-from .core.model_parameter_dictionary import ModelParameterDictionary
-from .core.model_parameter_dictionary import (MissingKeyError,
-                                              ParameterValueError)
-from .core.model_parameter_loader import load_params
+from ._version import get_versions
 from .core.model_component import Component
-from .framework.collections import Palette, Arena, NoProvidersError
+from .core.model_parameter_dictionary import (
+    MissingKeyError,
+    ModelParameterDictionary,
+    ParameterValueError,
+)
+from .core.model_parameter_loader import load_params
+from .field.scalar_data_fields import FieldError
+from .framework.collections import Arena, NoProvidersError, Palette
 from .framework.decorators import Implements, ImplementsOrRaise
 from .framework.framework import Framework
-from .field.scalar_data_fields import FieldError
-from .grid import *
-from .plot import *
+from .grid import (
+    ACTIVE_LINK,
+    BAD_INDEX_VALUE,
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_LINK,
+    FIXED_VALUE_BOUNDARY,
+    INACTIVE_LINK,
+    LOOPED_BOUNDARY,
+    HexModelGrid,
+    ModelGrid,
+    RadialModelGrid,
+    RasterModelGrid,
+    VoronoiDelaunayGrid,
+    create_and_initialize_grid,
+)
+from .plot import (
+    analyze_channel_network_and_plot,
+    imshow_cell_grid,
+    imshow_grid,
+    imshow_grid_at_node,
+    imshow_node_grid,
+)
 
-from .testing.nosetester import LandlabTester
-test = LandlabTester().test
-bench = LandlabTester().bench
+try:
+    set_printoptions(legacy="1.13")
+except TypeError:
+    pass
+finally:
+    del set_printoptions
 
-__all__.extend(['ModelParameterDictionary', 'MissingKeyError',
-                'ParameterValueError', 'Component', 'Palette', 'Arena',
-                'NoProvidersError', 'Implements', 'ImplementsOrRaise',
-                'Framework', 'FieldError', 'LandlabTester', 'load_params'])
+cite_as = registry.format_citations
 
-from ._version import get_versions
-__version__ = get_versions()['version']
+
+__all__ = [
+    "registry",
+    "ModelParameterDictionary",
+    "MissingKeyError",
+    "ParameterValueError",
+    "Component",
+    "Palette",
+    "Arena",
+    "NoProvidersError",
+    "Implements",
+    "ImplementsOrRaise",
+    "Framework",
+    "FieldError",
+    "LandlabTester",
+    "load_params",
+    "ModelGrid",
+    "HexModelGrid",
+    "RadialModelGrid",
+    "RasterModelGrid",
+    "VoronoiDelaunayGrid",
+    "BAD_INDEX_VALUE",
+    "CORE_NODE",
+    "FIXED_VALUE_BOUNDARY",
+    "FIXED_GRADIENT_BOUNDARY",
+    "LOOPED_BOUNDARY",
+    "CLOSED_BOUNDARY",
+    "ACTIVE_LINK",
+    "FIXED_LINK",
+    "INACTIVE_LINK",
+    "create_and_initialize_grid",
+    "imshow_grid",
+    "imshow_node_grid",
+    "imshow_cell_grid",
+    "imshow_grid_at_node",
+    "analyze_channel_network_and_plot",
+]
+
+__version__ = get_versions()["version"]
 del get_versions

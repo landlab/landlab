@@ -8,10 +8,6 @@ from libc.math cimport fabs
 from libc.stdlib cimport abs
 
 
-_RHO_MANTLE = 3300.
-_GRAVITY = 9.81
-
-
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 

@@ -90,6 +90,22 @@ inherits from `VoronoiDelauneyGrid` and adds the following:
 
    landlab.grid.radial
 
+Layers
+======
+
+Landlab has the ability to add layers to the grid. Two types of layers are
+currently supported. First is EventLayers in which each event is preserved as
+an entry into the datastructure, even if no deposition occurs. If you are
+interested in chronostratigraphy, this is probably what you are interested in.
+Second is MaterialLayers, in which each layer must contain some material.
+If an entire layer is eroded in MaterialLayers, the layer is removed.
+MaterialLayers will likely use less memory than EventLayers.
+
+  .. toctree::
+     :maxdepth: 4
+
+     landlab.layers.eventlayers
+     landlab.layers.materiallayers
 
 Components
 ==========
@@ -105,7 +121,10 @@ Hillslope geomorphology
 
    landlab.components.diffusion
    landlab.components.nonlinear_diffusion
+   landlab.components.depth_dependent_diffusion
    landlab.components.transport_length_diffusion
+   landlab.components.taylor_nonlinear_hillslope_flux
+   landlab.components.depth_dependent_taylor_soil_creep
 
 Fluvial geomorphology
 ---------------------
@@ -115,6 +134,7 @@ Fluvial geomorphology
 
    landlab.components.stream_power
    landlab.components.detachment_ltd_erosion
+   landlab.components.erosion_deposition
    landlab.components.space
 
 Flow routing
@@ -123,6 +143,8 @@ Flow routing
 .. toctree::
    :maxdepth: 4
 
+   landlab.components.flow_director
+   landlab.components.flow_accum
    landlab.components.flow_routing
    landlab.components.sink_fill
 
@@ -169,6 +191,15 @@ Precipitation
   :maxdepth: 4
 
   landlab.components.uniform_precip
+  landlab.components.spatial_precip
+
+Weathering
+----------
+
+.. toctree::
+  :maxdepth: 4
+
+  landlab.components.weathering
 
 Terrain Analysis
 ----------------
@@ -178,6 +209,7 @@ Terrain Analysis
 
   landlab.components.steepness_index
   landlab.components.chi_index
+  landlab.components.drainage_density
 
 Tectonics
 ---------
@@ -187,6 +219,7 @@ Tectonics
 
   landlab.components.flexure
   landlab.components.gflex
+  landlab.components.normal_fault
 
 Fire
 ----
@@ -203,6 +236,31 @@ Initial conditions: random field generators
   :maxdepth: 4
 
   landlab.components.fracture_grid
+
+
+Lithology
+---------
+Two objects based on the EventLayers object exist to make it easier to deal
+with spatially variable lithology and associated properties. The Lithology
+components contain information about spatially variable lithology and connect
+with the Landlab model grid so that when rock is eroded or advected upward by
+rock uplift the values of rock propeties at the topographic surface are updated.
+
+First is the Lithology component which is a generic object for variable
+lithology.
+
+  .. toctree::
+     :maxdepth: 4
+
+     landlab.components.lithology
+
+Second is LithoLayers which makes it easy to make layered rock.
+
+   .. toctree::
+      :maxdepth: 4
+
+      landlab.components.litholayers
+
 
 The Component base class
 ------------------------

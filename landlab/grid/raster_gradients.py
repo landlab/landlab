@@ -14,24 +14,19 @@ Gradient calculators for raster grids
     ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
 
 """
+from collections import deque
+
 import numpy as np
 
-from landlab.core.utils import make_optional_arg_into_id_array, \
-    radians_to_degrees
-
+from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.utils.decorators import use_field_name_or_array
-from collections import deque
 
 
-@use_field_name_or_array('node')
+@use_field_name_or_array("node")
 def calc_grad_at_link(grid, node_values, out=None):
     """Calculate gradients in node_values at links.
-
-    Construction::
-
-        calc_grad_at_link(grid, node_values, out=None)
 
     Parameters
     ----------
@@ -74,16 +69,16 @@ def calc_grad_at_link(grid, node_values, out=None):
     LLCATS: LINF GRAD
     """
     grads = gradients.calc_diff_at_link(grid, node_values, out=out)
-    grads /= grid.length_of_link[:grid.number_of_links]
+    grads /= grid.length_of_link[: grid.number_of_links]
 
-#    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
-#    diffs[:n_vertical_links] /= grid.dy
-#    diffs[n_vertical_links:] /= grid.dx
+    #    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
+    #    diffs[:n_vertical_links] /= grid.dy
+    #    diffs[n_vertical_links:] /= grid.dx
 
     return grads
 
 
-@use_field_name_or_array('node')
+@use_field_name_or_array("node")
 def calc_grad_at_active_link(grid, node_values, out=None):
     """Calculate gradients over active links.
 
@@ -157,9 +152,9 @@ def calc_grad_at_active_link(grid, node_values, out=None):
         out = np.empty(len(grid.active_links), dtype=float)
 
     if len(out) != len(grid.active_links):
-        raise ValueError('output buffer does not match that of the grid.')
+        raise ValueError("output buffer does not match that of the grid.")
 
-    # grads = gradients.calculate_diff_at_active_links(grid, node_values,
+    # grads = gradients.calc_diff_at_link(grid, node_values,
     #                                                  out=out)
     grads = gradients.calc_diff_at_link(grid, node_values)
     out[:] = grads[grid.active_links]
@@ -168,9 +163,11 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     return out
 
 
-@use_field_name_or_array('node')
+@use_field_name_or_array("node")
 def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
-    """Get gradients across the faces of a cell.
+    """calc_grad_across_cell_faces(grid, node_values, [cell_ids], out=None)
+
+    Get gradients across the faces of a cell.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the cells of a grid. The returned gradients are
@@ -178,11 +175,6 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
 
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value -1.
-
-    Construction::
-
-        calc_grad_across_cell_faces(grid, node_values, [cell_ids],
-                                             out=None)
 
     Parameters
     ----------
@@ -244,7 +236,8 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
         neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=neighbors == BAD_INDEX_VALUE)
+        values_at_neighbors, mask=neighbors == BAD_INDEX_VALUE
+    )
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(masked_neighbor_values, values_at_nodes, **kwds)
@@ -255,18 +248,15 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     return out
 
 
-@use_field_name_or_array('node')
+@use_field_name_or_array("node")
 def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
-    """Get gradients to diagonally opposite nodes.
+    """calc_grad_across_cell_corners(grid, node_values, [cell_ids], out=None)
+
+    Get gradients to diagonally opposite nodes.
 
     Calculate gradient of the value field provided by *node_values* to
     the values at diagonally opposite nodes. The returned gradients are
     ordered as upper-right, upper-left, lower-left and lower-right.
-
-    Construction::
-
-        calc_grad_across_cell_corners(grid, node_values, [cell_ids],
-                                               out=None)
 
     Parameters
     ----------
@@ -322,9 +312,11 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     return out
 
 
-@use_field_name_or_array('node')
+@use_field_name_or_array("node")
 def calc_grad_along_node_links(grid, node_values, *args, **kwds):
-    """Get gradients along links touching a node.
+    """calc_grad_along_node_links(grid, node_values, [cell_ids], out=None)
+
+    Get gradients along links touching a node.
 
     Calculate gradient of the value field provided by *node_values* across
     each of the faces of the nodes of a grid. The returned gradients are
@@ -335,11 +327,6 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
 
     Note that the returned gradients are masked to exclude neighbor nodes which
     are closed. Beneath the mask is the value -1.
-
-    Construction::
-
-        calc_grad_along_node_links(grid, node_values, [cell_ids],
-                                            out=None)
 
     Parameters
     ----------
@@ -428,14 +415,13 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     neighbors = grid.active_adjacent_nodes_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE)
+        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE
+    )
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.ma.empty_like(masked_neighbor_values, dtype=float)
-    np.subtract(masked_neighbor_values[:, :2],
-                values_at_nodes, out=out[:, :2], **kwds)
-    np.subtract(values_at_nodes, masked_neighbor_values[:, 2:],
-                out=out[:, 2:], **kwds)
+    np.subtract(masked_neighbor_values[:, :2], values_at_nodes, out=out[:, :2], **kwds)
+    np.subtract(values_at_nodes, masked_neighbor_values[:, 2:], out=out[:, 2:], **kwds)
 
     out[:, (0, 2)] /= grid.dx
     out[:, (1, 3)] /= grid.dy
@@ -443,8 +429,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     return out
 
 
-def calc_unit_normals_at_cell_subtriangles(grid,
-                                           elevs='topographic__elevation'):
+def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation"):
     """Calculate unit normals on a cell.
 
     Calculate the eight unit normal vectors <a, b, c> to the eight
@@ -481,43 +466,46 @@ def calc_unit_normals_at_cell_subtriangles(grid,
     >>> eight_tris[0].shape == (mg.number_of_cells, 3)
     True
     >>> eight_tris # doctest: +NORMALIZE_WHITESPACE
-    (array([[-0.9486833 ,  0.        ,  0.31622777]]),  
-     array([[-0.9486833 ,  0.        ,  0.31622777]]), 
-     array([[-0.70710678,  0.        ,  0.70710678]]), 
-     array([[-0.70710678,  0.        ,  0.70710678]]), 
-     array([[-0.70710678,  0.        ,  0.70710678]]), 
-     array([[-0.70710678,  0.        ,  0.70710678]]), 
-     array([[-0.9486833 ,  0.        ,  0.31622777]]), 
+    (array([[-0.9486833 ,  0.        ,  0.31622777]]),
+     array([[-0.9486833 ,  0.        ,  0.31622777]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.70710678,  0.        ,  0.70710678]]),
+     array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.9486833 ,  0.        ,  0.31622777]]))
 
     LLCATS: CINF GRAD
     """
 
-
     # identify the grid neigbors at each location
-    I = grid.node_at_cell
+    node_at_cell = grid.node_at_cell
     # calculate unit normals at all nodes.
-    (n_ENE,
-     n_NNE,
-     n_NNW,
-     n_WNW,
-     n_WSW,
-     n_SSW,
-     n_SSE,
-     n_ESE)=_calc_subtriangle_unit_normals_at_node(grid,elevs=elevs)
+    (
+        n_ENE,
+        n_NNE,
+        n_NNW,
+        n_WNW,
+        n_WSW,
+        n_SSW,
+        n_SSE,
+        n_ESE,
+    ) = _calc_subtriangle_unit_normals_at_node(grid, elevs=elevs)
 
-     # return only those at cell.
-    return (n_ENE[I,:], 
-            n_NNE[I,:], 
-            n_NNW[I,:], 
-            n_WNW[I,:],
-            n_WSW[I,:],
-            n_SSW[I,:],
-            n_SSE[I,:],
-            n_ESE[I,:])
+    # return only those at cell.
+    return (
+        n_ENE[node_at_cell, :],
+        n_NNE[node_at_cell, :],
+        n_NNW[node_at_cell, :],
+        n_WNW[node_at_cell, :],
+        n_WSW[node_at_cell, :],
+        n_SSW[node_at_cell, :],
+        n_SSE[node_at_cell, :],
+        n_ESE[node_at_cell, :],
+    )
 
-def _calc_subtriangle_unit_normals_at_node(grid,
-                                           elevs='topographic__elevation'):
+
+def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation"):
     """Private Function: Calculate unit normals on subtriangles at all nodes.
 
     Calculate the eight unit normal vectors <a, b, c> to the eight
@@ -525,7 +513,7 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     calc_unit_normals_at_node_subtriangles, this function also
     calculated unit normals at the degenerate part-cells around the
     boundary.
-    
+
     On the grid boundaries where the cell is not fully defined, the unit normal
     is given as <nan, nan, nan>.
 
@@ -562,7 +550,7 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     >>> eight_tris[0].shape == (mg.number_of_nodes, 3)
     True
     >>> eight_tris[0] # doctest: +NORMALIZE_WHITESPACE
-    array([[-0.70710678,  0.        ,  0.70710678], 
+    array([[-0.70710678,  0.        ,  0.70710678],
                [-0.9486833 ,  0.        ,  0.31622777],
                [        nan,         nan,         nan],
                [-0.70710678,  0.        ,  0.70710678],
@@ -574,7 +562,7 @@ def _calc_subtriangle_unit_normals_at_node(grid,
 
     LLCATS: CINF GRAD
     """
-    
+
     try:
         z = grid.at_node[elevs]
     except TypeError:
@@ -607,20 +595,20 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     diff_xyz_IW = np.empty((grid.number_of_nodes, 3))  # Southeast
 
     # identify the grid neigbors at each location
-    I = np.arange(grid.number_of_nodes)
-    P = grid.adjacent_nodes_at_node[I, 0]
-    Q = grid.diagonal_adjacent_nodes_at_node[I, 0]
-    R = grid.adjacent_nodes_at_node[I, 1]
-    S = grid.diagonal_adjacent_nodes_at_node[I, 1]
-    T = grid.adjacent_nodes_at_node[I, 2]
-    U = grid.diagonal_adjacent_nodes_at_node[I, 2]
-    V = grid.adjacent_nodes_at_node[I, 3]
-    W = grid.diagonal_adjacent_nodes_at_node[I, 3]
+    node_at_cell = np.arange(grid.number_of_nodes)
+    P = grid.adjacent_nodes_at_node[node_at_cell, 0]
+    Q = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 0]
+    R = grid.adjacent_nodes_at_node[node_at_cell, 1]
+    S = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 1]
+    T = grid.adjacent_nodes_at_node[node_at_cell, 2]
+    U = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 2]
+    V = grid.adjacent_nodes_at_node[node_at_cell, 3]
+    W = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 3]
 
     # get x, y, z coordinates for each location
-    x_I = grid.node_x[I]
-    y_I = grid.node_y[I]
-    z_I = z[I]
+    x_I = grid.node_x[node_at_cell]
+    y_I = grid.node_y[node_at_cell]
+    z_I = z[node_at_cell]
 
     x_P = grid.node_x[P]
     y_P = grid.node_y[P]
@@ -698,77 +686,75 @@ def _calc_subtriangle_unit_normals_at_node(grid,
     nhat_SSW = np.cross(diff_xyz_IU, diff_xyz_IV)
     nhat_SSE = np.cross(diff_xyz_IV, diff_xyz_IW)
     nhat_ESE = np.cross(diff_xyz_IW, diff_xyz_IP)
-    
-     # now remove the bad subtriangles based on parts of the grid
-    # make the bad subtriangle of length greater than one. 
-    bad = np.nan*np.ones((3,))
-    
+
+    # now remove the bad subtriangles based on parts of the grid
+    # make the bad subtriangle of length greater than one.
+    bad = np.nan * np.ones((3,))
+
     # first, corners:
-    corners = (0, grid.shape[1] - 1, grid.shape[1] * (grid.shape[0] - 1),
-               grid.shape[1] * grid.shape[0] - 1)
+    corners = grid.nodes_at_corners_of_grid
 
     # lower left corner only has NNE and ENE
-    nhat_NNW[corners[0],:] = bad
-    nhat_WNW[corners[0],:] = bad
-    nhat_WSW[corners[0],:] = bad
-    nhat_SSW[corners[0],:] = bad
-    nhat_SSE[corners[0],:] = bad
-    nhat_ESE[corners[0],:] = bad
-    
-    # lower right corner only has NNW and WNW
-    nhat_ENE[corners[1],:] = bad
-    nhat_NNE[corners[1],:] = bad
-    nhat_WSW[corners[1],:] = bad
-    nhat_SSW[corners[1],:] = bad
-    nhat_SSE[corners[1],:] = bad
-    nhat_ESE[corners[1],:] = bad
-    
-    # upper left corner only has ESE and SSE
-    nhat_ENE[corners[2],:] = bad
-    nhat_NNE[corners[2],:] = bad
-    nhat_NNW[corners[2],:] = bad
-    nhat_WNW[corners[2],:] = bad
-    nhat_WSW[corners[2],:] = bad
-    nhat_SSW[corners[2],:] = bad
+    nhat_NNW[corners[0], :] = bad
+    nhat_WNW[corners[0], :] = bad
+    nhat_WSW[corners[0], :] = bad
+    nhat_SSW[corners[0], :] = bad
+    nhat_SSE[corners[0], :] = bad
+    nhat_ESE[corners[0], :] = bad
 
-    
+    # lower right corner only has NNW and WNW
+    nhat_ENE[corners[1], :] = bad
+    nhat_NNE[corners[1], :] = bad
+    nhat_WSW[corners[1], :] = bad
+    nhat_SSW[corners[1], :] = bad
+    nhat_SSE[corners[1], :] = bad
+    nhat_ESE[corners[1], :] = bad
+
+    # upper left corner only has ESE and SSE
+    nhat_ENE[corners[2], :] = bad
+    nhat_NNE[corners[2], :] = bad
+    nhat_NNW[corners[2], :] = bad
+    nhat_WNW[corners[2], :] = bad
+    nhat_WSW[corners[2], :] = bad
+    nhat_SSW[corners[2], :] = bad
+
     # upper right corner only has WSW and SSW
-    nhat_ENE[corners[3],:] = bad
-    nhat_NNE[corners[3],:] = bad
-    nhat_NNW[corners[3],:] = bad
-    nhat_WNW[corners[3],:] = bad
-    nhat_SSE[corners[3],:] = bad
-    nhat_ESE[corners[3],:] = bad
-    
-    #next, sizes:
+    nhat_ENE[corners[3], :] = bad
+    nhat_NNE[corners[3], :] = bad
+    nhat_NNW[corners[3], :] = bad
+    nhat_WNW[corners[3], :] = bad
+    nhat_SSE[corners[3], :] = bad
+    nhat_ESE[corners[3], :] = bad
+
+    # next, sizes:
     # bottom row only has Norths
     bottom = grid.nodes_at_bottom_edge
     nhat_WSW[bottom, :] = bad
     nhat_SSW[bottom, :] = bad
     nhat_SSE[bottom, :] = bad
     nhat_ESE[bottom, :] = bad
-    
+
     # left side only has Easts
     left = grid.nodes_at_left_edge
     nhat_NNW[left, :] = bad
     nhat_WNW[left, :] = bad
     nhat_WSW[left, :] = bad
     nhat_SSW[left, :] = bad
-    
+
     # top row only has Souths
     top = grid.nodes_at_top_edge
     nhat_ENE[top, :] = bad
     nhat_NNE[top, :] = bad
     nhat_NNW[top, :] = bad
     nhat_WNW[top, :] = bad
-    
+
     # right side only has Wests
     right = grid.nodes_at_right_edge
     nhat_ENE[right, :] = bad
     nhat_NNE[right, :] = bad
     nhat_SSE[right, :] = bad
     nhat_ESE[right, :] = bad
-    
+
     # calculate magnitude of cross product so that the result is a unit normal
     nmag_ENE = np.sqrt(np.square(nhat_ENE).sum(axis=1))
     nmag_NNE = np.sqrt(np.square(nhat_NNE).sum(axis=1))
@@ -781,19 +767,21 @@ def _calc_subtriangle_unit_normals_at_node(grid,
 
     # normalize the cross product with its magnitude so it is a unit normal
     # instead of a variable length normal.
-    n_ENE = nhat_ENE/nmag_ENE.reshape(grid.number_of_nodes, 1)
-    n_NNE = nhat_NNE/nmag_NNE.reshape(grid.number_of_nodes, 1)
-    n_NNW = nhat_NNW/nmag_NNW.reshape(grid.number_of_nodes, 1)
-    n_WNW = nhat_WNW/nmag_WNW.reshape(grid.number_of_nodes, 1)
-    n_WSW = nhat_WSW/nmag_WSW.reshape(grid.number_of_nodes, 1)
-    n_SSW = nhat_SSW/nmag_SSW.reshape(grid.number_of_nodes, 1)
-    n_SSE = nhat_SSE/nmag_SSE.reshape(grid.number_of_nodes, 1)
-    n_ESE = nhat_ESE/nmag_ESE.reshape(grid.number_of_nodes, 1)
+    n_ENE = nhat_ENE / nmag_ENE.reshape(grid.number_of_nodes, 1)
+    n_NNE = nhat_NNE / nmag_NNE.reshape(grid.number_of_nodes, 1)
+    n_NNW = nhat_NNW / nmag_NNW.reshape(grid.number_of_nodes, 1)
+    n_WNW = nhat_WNW / nmag_WNW.reshape(grid.number_of_nodes, 1)
+    n_WSW = nhat_WSW / nmag_WSW.reshape(grid.number_of_nodes, 1)
+    n_SSW = nhat_SSW / nmag_SSW.reshape(grid.number_of_nodes, 1)
+    n_SSE = nhat_SSE / nmag_SSE.reshape(grid.number_of_nodes, 1)
+    n_ESE = nhat_ESE / nmag_ESE.reshape(grid.number_of_nodes, 1)
 
     return (n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE)
 
-def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
-                                    subtriangle_unit_normals=None):
+
+def calc_slope_at_cell_subtriangles(
+    grid, elevs="topographic__elevation", subtriangle_unit_normals=None
+):
     """Calculate the slope (positive magnitude of gradient) at each of the
     eight cell subtriangles.
 
@@ -860,31 +848,45 @@ def calc_slope_at_cell_subtriangles(grid, elevs='topographic__elevation',
     """
 
     # calculate all subtriangle slopes
-    (s_ENE,
-     s_NNE,
-     s_NNW,
-     s_WNW,
-     s_WSW,
-     s_SSW,
-     s_SSE,
-     s_ESE) = _calc_subtriangle_slopes_at_node(grid, elevs=elevs, 
-                                               subtriangle_unit_normals=subtriangle_unit_normals)
+    (
+        s_ENE,
+        s_NNE,
+        s_NNW,
+        s_WNW,
+        s_WSW,
+        s_SSW,
+        s_SSE,
+        s_ESE,
+    ) = _calc_subtriangle_slopes_at_node(
+        grid, elevs=elevs, subtriangle_unit_normals=subtriangle_unit_normals
+    )
     # return only those at cell
     if s_ENE.shape[0] == grid.number_of_nodes:
-        I = grid.node_at_cell
+        node_at_cell = grid.node_at_cell
     else:
-        I = np.arange(grid.number_of_cells)
-        
-    return (s_ENE[I], s_NNE[I], s_NNW[I], s_WNW[I], s_WSW[I], s_SSW[I], s_SSE[I], s_ESE[I])
+        node_at_cell = np.arange(grid.number_of_cells)
 
-def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
-                                     subtriangle_unit_normals=None):
-    """Private Function: Calculate subtriangles slope at all nodes. 
-    
+    return (
+        s_ENE[node_at_cell],
+        s_NNE[node_at_cell],
+        s_NNW[node_at_cell],
+        s_WNW[node_at_cell],
+        s_WSW[node_at_cell],
+        s_SSW[node_at_cell],
+        s_SSE[node_at_cell],
+        s_ESE[node_at_cell],
+    )
+
+
+def _calc_subtriangle_slopes_at_node(
+    grid, elevs="topographic__elevation", subtriangle_unit_normals=None
+):
+    """Private Function: Calculate subtriangles slope at all nodes.
+
     Calculate the slope (positive magnitude of gradient) at each of the
     eight subtriangles, including those at not-full cells along the
-    boundary. 
-    
+    boundary.
+
     Those subtriangles that that don't exist because they are on the edge
     of the grid have slopes of NAN.
 
@@ -894,9 +896,9 @@ def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
         A grid.
     elevs : str or ndarray, optional
         Field name or array of node values.
-    subtriangle_unit_normals : tuple of 8 (ncells, 3) or (nnodes, 3) arrays 
+    subtriangle_unit_normals : tuple of 8 (ncells, 3) or (nnodes, 3) arrays
         (optional)
-        The unit normal vectors for the eight subtriangles of each cell or 
+        The unit normal vectors for the eight subtriangles of each cell or
         node,if already known. Order is from north of east, counter
         clockwise to south of east (East North East, North North East, North
         North West, West North West, West South West, South South West, South
@@ -965,20 +967,29 @@ def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
         assert subtriangle_unit_normals[5].shape[1] == 3
         assert subtriangle_unit_normals[6].shape[1] == 3
         assert subtriangle_unit_normals[7].shape[1] == 3
-        (n_ENE, n_NNE, n_NNW, n_WNW,
-        n_WSW, n_SSW, n_SSE, n_ESE) = subtriangle_unit_normals
-        
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = subtriangle_unit_normals
+
         if subtriangle_unit_normals[7].shape[0] == grid.number_of_nodes:
             reshape_size = grid.number_of_nodes
         elif subtriangle_unit_normals[7].shape[0] == grid.number_of_cells:
-            reshape_size = grid.number_of_cells              
+            reshape_size = grid.number_of_cells
         else:
-            ValueError("Subtriangles must be of lenght nnodes or ncells")    
+            ValueError("Subtriangles must be of lenght nnodes or ncells")
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
-            _calc_subtriangle_unit_normals_at_node(grid, elevs))
+        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
+            grid, elevs
+        )
         reshape_size = grid.number_of_nodes
-        
+
     # combine z direction element of all eight so that the arccosine portion
     # only takes one function call.
     dotprod = np.empty((reshape_size, 8))
@@ -1006,9 +1017,10 @@ def _calc_subtriangle_slopes_at_node(grid, elevs='topographic__elevation',
 
     return (s_ENE, s_NNE, s_NNW, s_WNW, s_WSW, s_SSW, s_SSE, s_ESE)
 
-def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
-                                     subtriangle_unit_normals=None,
-                                     unit='degrees'):
+
+def calc_aspect_at_cell_subtriangles(
+    grid, elevs="topographic__elevation", subtriangle_unit_normals=None, unit="degrees"
+):
     """Get tuple of arrays of aspect of each of the eight cell subtriangles.
 
     Aspect is returned as radians clockwise of north, unless input parameter
@@ -1075,44 +1087,48 @@ def calc_aspect_at_cell_subtriangles(grid, elevs='topographic__elevation',
     LLCATS: CINF SURF
     """
 
-     # calculate all subtriangle slopes
-    (angle_ENE,
-     angle_NNE,
-     angle_NNW,
-     angle_WNW,
-     angle_WSW,
-     angle_SSW,
-     angle_SSE,
-     angle_ESE) = _calc_subtriangle_aspect_at_node(grid, elevs=elevs, 
-                                                   subtriangle_unit_normals=subtriangle_unit_normals,
-                                                   unit=unit)
+    # calculate all subtriangle slopes
+    (
+        angle_ENE,
+        angle_NNE,
+        angle_NNW,
+        angle_WNW,
+        angle_WSW,
+        angle_SSW,
+        angle_SSE,
+        angle_ESE,
+    ) = _calc_subtriangle_aspect_at_node(
+        grid, elevs=elevs, subtriangle_unit_normals=subtriangle_unit_normals, unit=unit
+    )
     # return only those at cell
     if angle_ESE.shape[0] == grid.number_of_nodes:
-        I = grid.node_at_cell
+        node_at_cell = grid.node_at_cell
     else:
-        I = np.arange(grid.number_of_cells)
+        node_at_cell = np.arange(grid.number_of_cells)
 
-    if unit == 'degrees' or unit == 'radians':
-        return (angle_ENE[I],
-                angle_NNE[I],
-                angle_NNW[I],
-                angle_WNW[I],
-                angle_WSW[I],
-                angle_SSW[I],
-                angle_SSE[I],
-                angle_ESE[I])
+    if unit == "degrees" or unit == "radians":
+        return (
+            angle_ENE[node_at_cell],
+            angle_NNE[node_at_cell],
+            angle_NNW[node_at_cell],
+            angle_WNW[node_at_cell],
+            angle_WSW[node_at_cell],
+            angle_SSW[node_at_cell],
+            angle_SSE[node_at_cell],
+            angle_ESE[node_at_cell],
+        )
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")
 
 
-def _calc_subtriangle_aspect_at_node(grid, elevs='topographic__elevation',
-                                     subtriangle_unit_normals=None,
-                                     unit='degrees'):
-    """Private Function: Aspect of subtriangles at node. 
-    
+def _calc_subtriangle_aspect_at_node(
+    grid, elevs="topographic__elevation", subtriangle_unit_normals=None, unit="degrees"
+):
+    """Private Function: Aspect of subtriangles at node.
+
     This function calculates the aspect of all subtriangles, including those
     that are at noded without cells (on the boundaries).
-    
+
     Aspect is returned as radians clockwise of north, unless input parameter
     units is set to 'degrees'.
 
@@ -1132,9 +1148,9 @@ def _calc_subtriangle_aspect_at_node(grid, elevs='topographic__elevation',
         Node field name or node array of elevations.
         If *subtriangle_unit_normals* is not provided, must be set, but unused
         otherwise.
-    subtriangle_unit_normals : tuple of 8 (ncells, 3) or (nnodes, 3) arrays 
+    subtriangle_unit_normals : tuple of 8 (ncells, 3) or (nnodes, 3) arrays
         (optional)
-        The unit normal vectors for the eight subtriangles of each cell or 
+        The unit normal vectors for the eight subtriangles of each cell or
         node,if already known. Order is from north of east, counter
         clockwise to south of east (East North East, North North East, North
         North West, West North West, West South West, South South West, South
@@ -1174,13 +1190,13 @@ def _calc_subtriangle_aspect_at_node(grid, elevs='topographic__elevation',
     >>> len(A[0]) == mg.number_of_nodes
     True
     >>> A0  # doctest: +NORMALIZE_WHITESPACE
-    (array([  90.,  315.,   nan,   90.,  180.,   nan,   nan,   nan,   nan]), 
-     array([   0.,   90.,   nan,  135.,  270.,   nan,   nan,   nan,   nan]), 
-     array([  nan,   90.,    0.,   nan,   90.,  225.,   nan,   nan,   nan]), 
-     array([  nan,   45.,  270.,   nan,  180.,   90.,   nan,   nan,   nan]), 
-     array([  nan,   nan,   nan,   nan,    0.,   90.,   nan,  135.,  270.]), 
-     array([  nan,   nan,   nan,   nan,   90.,  315.,   nan,   90.,  180.]), 
-     array([  nan,   nan,   nan,   45.,  270.,   nan,  180.,   90.,   nan]), 
+    (array([  90.,  315.,   nan,   90.,  180.,   nan,   nan,   nan,   nan]),
+     array([   0.,   90.,   nan,  135.,  270.,   nan,   nan,   nan,   nan]),
+     array([  nan,   90.,    0.,   nan,   90.,  225.,   nan,   nan,   nan]),
+     array([  nan,   45.,  270.,   nan,  180.,   90.,   nan,   nan,   nan]),
+     array([  nan,   nan,   nan,   nan,    0.,   90.,   nan,  135.,  270.]),
+     array([  nan,   nan,   nan,   nan,   90.,  315.,   nan,   90.,  180.]),
+     array([  nan,   nan,   nan,   45.,  270.,   nan,  180.,   90.,   nan]),
      array([  nan,   nan,   nan,  270.,    0.,   nan,   90.,  225.,   nan]))
 
     LLCATS: CINF SURF
@@ -1197,81 +1213,110 @@ def _calc_subtriangle_aspect_at_node(grid, elevs='topographic__elevation',
         assert subtriangle_unit_normals[5].shape[1] == 3
         assert subtriangle_unit_normals[6].shape[1] == 3
         assert subtriangle_unit_normals[7].shape[1] == 3
-                                       
+
         if subtriangle_unit_normals[7].shape[0] == grid.number_of_nodes:
             reshape_size = grid.number_of_nodes
         elif subtriangle_unit_normals[7].shape[0] == grid.number_of_cells:
-            reshape_size = grid.number_of_cells              
+            reshape_size = grid.number_of_cells
         else:
             ValueError("Subtriangles must be of lenght nnodes or ncells")
-        (n_ENE, n_NNE, n_NNW, n_WNW,
-         n_WSW, n_SSW, n_SSE, n_ESE) = subtriangle_unit_normals
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = subtriangle_unit_normals
 
     # otherwise create it.
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = (
-            _calc_subtriangle_unit_normals_at_node(grid, elevs))
+        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
+            grid, elevs
+        )
         reshape_size = grid.number_of_nodes
     # calculate the aspect as an angle ccw from the x axis (math angle)
-    angle_from_x_ccw_ENE = np.reshape(np.arctan2(n_ENE[:, 1], n_ENE[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_NNE = np.reshape(np.arctan2(n_NNE[:, 1], n_NNE[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_NNW = np.reshape(np.arctan2(n_NNW[:, 1], n_NNW[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_WNW = np.reshape(np.arctan2(n_WNW[:, 1], n_WNW[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_WSW = np.reshape(np.arctan2(n_WSW[:, 1], n_WSW[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_SSW = np.reshape(np.arctan2(n_SSW[:, 1], n_SSW[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_SSE = np.reshape(np.arctan2(n_SSE[:, 1], n_SSE[:, 0]),
-                                      reshape_size)
-    angle_from_x_ccw_ESE = np.reshape(np.arctan2(n_ESE[:, 1], n_ESE[:, 0]),
-                                      reshape_size)
+    angle_from_x_ccw_ENE = np.reshape(
+        np.arctan2(n_ENE[:, 1], n_ENE[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_NNE = np.reshape(
+        np.arctan2(n_NNE[:, 1], n_NNE[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_NNW = np.reshape(
+        np.arctan2(n_NNW[:, 1], n_NNW[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_WNW = np.reshape(
+        np.arctan2(n_WNW[:, 1], n_WNW[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_WSW = np.reshape(
+        np.arctan2(n_WSW[:, 1], n_WSW[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_SSW = np.reshape(
+        np.arctan2(n_SSW[:, 1], n_SSW[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_SSE = np.reshape(
+        np.arctan2(n_SSE[:, 1], n_SSE[:, 0]), reshape_size
+    )
+    angle_from_x_ccw_ESE = np.reshape(
+        np.arctan2(n_ESE[:, 1], n_ESE[:, 0]), reshape_size
+    )
     # convert reference from math angle to angles clockwise from north
     # return as either  radians or degrees depending on unit.
-    if unit == 'degrees':
-        return (radians_to_degrees(angle_from_x_ccw_ENE),
-                radians_to_degrees(angle_from_x_ccw_NNE),
-                radians_to_degrees(angle_from_x_ccw_NNW),
-                radians_to_degrees(angle_from_x_ccw_WNW),
-                radians_to_degrees(angle_from_x_ccw_WSW),
-                radians_to_degrees(angle_from_x_ccw_SSW),
-                radians_to_degrees(angle_from_x_ccw_SSE),
-                radians_to_degrees(angle_from_x_ccw_ESE))
+    if unit == "degrees":
+        return (
+            radians_to_degrees(angle_from_x_ccw_ENE),
+            radians_to_degrees(angle_from_x_ccw_NNE),
+            radians_to_degrees(angle_from_x_ccw_NNW),
+            radians_to_degrees(angle_from_x_ccw_WNW),
+            radians_to_degrees(angle_from_x_ccw_WSW),
+            radians_to_degrees(angle_from_x_ccw_SSW),
+            radians_to_degrees(angle_from_x_ccw_SSE),
+            radians_to_degrees(angle_from_x_ccw_ESE),
+        )
 
-    elif unit == 'radians':
-        angle_from_north_cw_ENE = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_ENE) % (2. * np.pi)
-        angle_from_north_cw_NNE = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_NNE) % (2. * np.pi)
-        angle_from_north_cw_NNW = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_NNW) % (2. * np.pi)
-        angle_from_north_cw_WNW = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_WNW) % (2. * np.pi)
-        angle_from_north_cw_WSW = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_WSW) % (2. * np.pi)
-        angle_from_north_cw_SSW = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_SSW) % (2. * np.pi)
-        angle_from_north_cw_SSE = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_SSE) % (2. * np.pi)
-        angle_from_north_cw_ESE = (5. * np.pi / 2. -
-                                   angle_from_x_ccw_ESE) % (2. * np.pi)
+    elif unit == "radians":
+        angle_from_north_cw_ENE = (5. * np.pi / 2. - angle_from_x_ccw_ENE) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_NNE = (5. * np.pi / 2. - angle_from_x_ccw_NNE) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_NNW = (5. * np.pi / 2. - angle_from_x_ccw_NNW) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_WNW = (5. * np.pi / 2. - angle_from_x_ccw_WNW) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_WSW = (5. * np.pi / 2. - angle_from_x_ccw_WSW) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_SSW = (5. * np.pi / 2. - angle_from_x_ccw_SSW) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_SSE = (5. * np.pi / 2. - angle_from_x_ccw_SSE) % (
+            2. * np.pi
+        )
+        angle_from_north_cw_ESE = (5. * np.pi / 2. - angle_from_x_ccw_ESE) % (
+            2. * np.pi
+        )
 
-        return (angle_from_north_cw_ENE,
-                angle_from_north_cw_NNE,
-                angle_from_north_cw_NNW,
-                angle_from_north_cw_WNW,
-                angle_from_north_cw_WSW,
-                angle_from_north_cw_SSW,
-                angle_from_north_cw_SSE,
-                angle_from_north_cw_ESE)
+        return (
+            angle_from_north_cw_ENE,
+            angle_from_north_cw_NNE,
+            angle_from_north_cw_NNW,
+            angle_from_north_cw_WNW,
+            angle_from_north_cw_WSW,
+            angle_from_north_cw_SSW,
+            angle_from_north_cw_SSE,
+            angle_from_north_cw_ESE,
+        )
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")
-        
-def calc_unit_normals_at_patch_subtriangles(grid,
-                                            elevs='topographic__elevation'):
+
+
+def calc_unit_normals_at_patch_subtriangles(grid, elevs="topographic__elevation"):
     """Calculate unit normals on a patch.
 
     Calculate the four unit normal vectors <a, b, c> to the four possible
@@ -1377,19 +1422,20 @@ def calc_unit_normals_at_patch_subtriangles(grid,
     nmag_bottomright = np.sqrt(np.square(nhat_bottomright).sum(axis=1))
     nmag_topright = np.sqrt(np.square(nhat_topright).sum(axis=1))
     nmag_bottomleft = np.sqrt(np.square(nhat_bottomleft).sum(axis=1))
-    n_TR = nhat_topright/nmag_topright.reshape(grid.number_of_patches, 1)
-    n_TL = nhat_topleft/nmag_topleft.reshape(grid.number_of_patches, 1)
-    n_BL = nhat_bottomleft/nmag_bottomleft.reshape(
-        grid.number_of_patches, 1)
-    n_BR = nhat_bottomright/nmag_bottomright.reshape(
-        grid.number_of_patches, 1)
+    n_TR = nhat_topright / nmag_topright.reshape(grid.number_of_patches, 1)
+    n_TL = nhat_topleft / nmag_topleft.reshape(grid.number_of_patches, 1)
+    n_BL = nhat_bottomleft / nmag_bottomleft.reshape(grid.number_of_patches, 1)
+    n_BR = nhat_bottomright / nmag_bottomright.reshape(grid.number_of_patches, 1)
 
     return (n_TR, n_TL, n_BL, n_BR)
 
 
-def calc_slope_at_patch(grid, elevs='topographic__elevation',
-                        ignore_closed_nodes=True,
-                        subtriangle_unit_normals=None):
+def calc_slope_at_patch(
+    grid,
+    elevs="topographic__elevation",
+    ignore_closed_nodes=True,
+    subtriangle_unit_normals=None,
+):
     """Calculate the slope (positive magnitude of gradient) at raster patches.
 
     Returns the mean of the slopes of the four possible patch subtriangles.
@@ -1455,8 +1501,7 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
         assert subtriangle_unit_normals[3].shape[1] == 3
         n_TR, n_TL, n_BL, n_BR = subtriangle_unit_normals
     else:
-        n_TR, n_TL, n_BL, n_BR = (
-            grid.calc_unit_normals_at_patch_subtriangles(elevs))
+        n_TR, n_TL, n_BL, n_BR = grid.calc_unit_normals_at_patch_subtriangles(elevs)
     dotprod_TL = n_TL[:, 2]  # by definition
     dotprod_BR = n_BR[:, 2]
     dotprod_TR = n_TR[:, 2]
@@ -1473,8 +1518,14 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
         # anywhere where badnodes > 1 will have zero from summing, so div by 1
         # assert np.all(np.logical_or(np.isclose(tot_tris, 4.),
         #                             np.isclose(tot_tris, 1.)))
-        corners_rot = deque([slopes_at_patch_BR, slopes_at_patch_TR,
-                             slopes_at_patch_TL, slopes_at_patch_BL])
+        corners_rot = deque(
+            [
+                slopes_at_patch_BR,
+                slopes_at_patch_TR,
+                slopes_at_patch_TL,
+                slopes_at_patch_BL,
+            ]
+        )
         # note initial offset so we are centered around TR on first slice
         for i in range(4):
             for j in range(3):
@@ -1482,16 +1533,23 @@ def calc_slope_at_patch(grid, elevs='topographic__elevation',
             corners_rot.rotate(-1)
     else:
         tot_tris = 4.
-    mean_slope_at_patch = (slopes_at_patch_TR + slopes_at_patch_TL +
-                           slopes_at_patch_BL + slopes_at_patch_BR) / tot_tris
+    mean_slope_at_patch = (
+        slopes_at_patch_TR
+        + slopes_at_patch_TL
+        + slopes_at_patch_BL
+        + slopes_at_patch_BR
+    ) / tot_tris
 
     return mean_slope_at_patch
 
 
-def calc_grad_at_patch(grid, elevs='topographic__elevation',
-                       ignore_closed_nodes=True,
-                       subtriangle_unit_normals=None,
-                       slope_magnitude=None):
+def calc_grad_at_patch(
+    grid,
+    elevs="topographic__elevation",
+    ignore_closed_nodes=True,
+    subtriangle_unit_normals=None,
+    slope_magnitude=None,
+):
     """Calculate the components of the gradient of each raster patch.
 
     Returns the mean gradient of the four possible patch subtriangles,
@@ -1559,15 +1617,16 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
         assert subtriangle_unit_normals[3].shape[1] == 3
         n_TR, n_TL, n_BL, n_BR = subtriangle_unit_normals
     else:
-        n_TR, n_TL, n_BL, n_BR = \
-            grid.calc_unit_normals_at_patch_subtriangles(elevs)
+        n_TR, n_TL, n_BL, n_BR = grid.calc_unit_normals_at_patch_subtriangles(elevs)
     if slope_magnitude is not None:
         assert slope_magnitude.size == grid.number_of_patches
         slopes_at_patch = slope_magnitude
     else:
         slopes_at_patch = grid.calc_slope_at_patch(
-            elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
-            subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+            elevs=elevs,
+            ignore_closed_nodes=ignore_closed_nodes,
+            subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR),
+        )
 
     if ignore_closed_nodes:
         badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
@@ -1581,15 +1640,19 @@ def calc_grad_at_patch(grid, elevs='topographic__elevation',
     n_sum_x = n_TR[:, 0] + n_TL[:, 0] + n_BL[:, 0] + n_BR[:, 0]
     n_sum_y = n_TR[:, 1] + n_TL[:, 1] + n_BL[:, 1] + n_BR[:, 1]
     theta_sum = np.arctan2(-n_sum_y, -n_sum_x)
-    x_slope_patches = np.cos(theta_sum)*slopes_at_patch
-    y_slope_patches = np.sin(theta_sum)*slopes_at_patch
+    x_slope_patches = np.cos(theta_sum) * slopes_at_patch
+    y_slope_patches = np.sin(theta_sum) * slopes_at_patch
 
     return (x_slope_patches, y_slope_patches)
 
 
-def calc_slope_at_node(grid, elevs='topographic__elevation',
-                       method='patch_mean', ignore_closed_nodes=True,
-                       return_components=False):
+def calc_slope_at_node(
+    grid,
+    elevs="topographic__elevation",
+    method="patch_mean",
+    ignore_closed_nodes=True,
+    return_components=False,
+):
     """Array of slopes at nodes, averaged over neighboring patches.
 
     Produces a value for node slope (i.e., mean gradient magnitude)
@@ -1671,57 +1734,63 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
 
     LLCATS: NINF GRAD SURF
     """
-    if method not in ('patch_mean', 'Horn'):
-        raise ValueError('method name not understood')
+    if method not in ("patch_mean", "Horn"):
+        raise ValueError("method name not understood")
     try:
         patches_at_node = grid.patches_at_node()
     except TypeError:  # was a property, not a fn (=> new style)
         if not ignore_closed_nodes:
             patches_at_node = np.ma.masked_where(
-                grid.patches_at_node == -1, grid.patches_at_node,
-                copy=False)
+                grid.patches_at_node == -1, grid.patches_at_node, copy=False
+            )
         else:
-            patches_at_node = np.ma.masked_where(np.logical_not(
-                grid.patches_present_at_node), grid.patches_at_node,
-                copy=False)
+            patches_at_node = np.ma.masked_where(
+                np.logical_not(grid.patches_present_at_node),
+                grid.patches_at_node,
+                copy=False,
+            )
     # now, we also want to mask any "closed" patches (any node closed)
-    closed_patches = (grid.status_at_node[grid.nodes_at_patch] ==
-                      CLOSED_BOUNDARY).sum(axis=1) > 0
+    closed_patches = (grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY).sum(
+        axis=1
+    ) > 0
     closed_patch_mask = np.logical_or(
-        patches_at_node.mask, closed_patches[patches_at_node.data])
+        patches_at_node.mask, closed_patches[patches_at_node.data]
+    )
 
-    if method == 'patch_mean':
-        n_TR, n_TL, n_BL, n_BR = \
-            grid.calc_unit_normals_at_patch_subtriangles(elevs)
+    if method == "patch_mean":
+        n_TR, n_TL, n_BL, n_BR = grid.calc_unit_normals_at_patch_subtriangles(elevs)
 
         mean_slope_at_patches = grid.calc_slope_at_patch(
-            elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
-            subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR))
+            elevs=elevs,
+            ignore_closed_nodes=ignore_closed_nodes,
+            subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR),
+        )
 
         # now CAREFUL - patches_at_node is MASKED
         slopes_at_node_unmasked = mean_slope_at_patches[patches_at_node]
-        slopes_at_node_masked = np.ma.array(slopes_at_node_unmasked,
-                                            mask=closed_patch_mask)
+        slopes_at_node_masked = np.ma.array(
+            slopes_at_node_unmasked, mask=closed_patch_mask
+        )
         slope_mag = np.mean(slopes_at_node_masked, axis=1).data
         if return_components:
             (x_slope_patches, y_slope_patches) = grid.calc_grad_at_patch(
-                elevs=elevs, ignore_closed_nodes=ignore_closed_nodes,
+                elevs=elevs,
+                ignore_closed_nodes=ignore_closed_nodes,
                 subtriangle_unit_normals=(n_TR, n_TL, n_BL, n_BR),
-                slope_magnitude=mean_slope_at_patches)
+                slope_magnitude=mean_slope_at_patches,
+            )
             x_slope_unmasked = x_slope_patches[patches_at_node]
-            x_slope_masked = np.ma.array(x_slope_unmasked,
-                                         mask=closed_patch_mask)
+            x_slope_masked = np.ma.array(x_slope_unmasked, mask=closed_patch_mask)
             x_slope = np.mean(x_slope_masked, axis=1).data
             y_slope_unmasked = y_slope_patches[patches_at_node]
-            y_slope_masked = np.ma.array(y_slope_unmasked,
-                                         mask=closed_patch_mask)
+            y_slope_masked = np.ma.array(y_slope_unmasked, mask=closed_patch_mask)
             y_slope = np.mean(y_slope_masked, axis=1).data
             mean_grad_x = x_slope
             mean_grad_y = y_slope
-    elif method == 'Horn':
+    elif method == "Horn":
         z = np.empty(grid.number_of_nodes + 1, dtype=float)
-        mean_grad_x = grid.empty(at='node', dtype=float)
-        mean_grad_y = grid.empty(at='node', dtype=float)
+        mean_grad_x = grid.empty(at="node", dtype=float)
+        mean_grad_y = grid.empty(at="node", dtype=float)
         z[-1] = 0.
         try:
             z[:-1] = grid.at_node[elevs]
@@ -1748,14 +1817,13 @@ def calc_slope_at_node(grid, elevs='topographic__elevation',
         patch_slopes_y[:, 1] = z[diags[:, 1]] - z[orthos[:, 2]] + diff_N
         patch_slopes_y[:, 2] = z[orthos[:, 2]] - z[diags[:, 2]] + diff_S
         patch_slopes_y[:, 3] = z[orthos[:, 0]] - z[diags[:, 3]] + diff_S
-        patch_slopes_x /= (2. * grid.dx)
-        patch_slopes_y /= (2. * grid.dy)
+        patch_slopes_x /= 2. * grid.dx
+        patch_slopes_y /= 2. * grid.dy
         patch_slopes_x.mask = closed_patch_mask
         patch_slopes_y.mask = closed_patch_mask
         mean_grad_x = patch_slopes_x.mean(axis=1).data
         mean_grad_y = patch_slopes_y.mean(axis=1).data
-        slope_mag = np.arctan(np.sqrt(np.square(mean_grad_x) +
-                                      np.square(mean_grad_y)))
+        slope_mag = np.arctan(np.sqrt(np.square(mean_grad_x) + np.square(mean_grad_y)))
         if return_components:
             mean_grad_x = np.arctan(mean_grad_x)
             mean_grad_y = np.arctan(mean_grad_y)

@@ -1,7 +1,5 @@
-from nose.tools import (assert_true, assert_false, assert_equal,
-                        assert_almost_equal, assert_is, assert_is_not)
-from numpy.testing import assert_array_equal, assert_array_almost_equal
 import numpy as np
+from numpy.testing import assert_array_equal
 
 from landlab.graph.sort.sort import remap
 
@@ -12,7 +10,7 @@ def test_remap():
 
     rtn = remap(src, mapping)
     assert_array_equal(rtn, [10, 20, 30, 40])
-    assert_is_not(rtn, src)
+    assert rtn is not src
 
 
 def test_remap_inplace():
@@ -22,7 +20,7 @@ def test_remap_inplace():
     rtn = remap(src, mapping, inplace=True)
 
     assert_array_equal(rtn, [10, 20, 30, 40])
-    assert_is(rtn, src)
+    assert rtn is src
 
 
 def test_remap_out():
@@ -33,4 +31,4 @@ def test_remap_out():
     rtn = remap(src, mapping, out=dst)
 
     assert_array_equal(rtn, [10, 20, 30, 40])
-    assert_is(rtn, dst)
+    assert rtn is dst

@@ -9,8 +9,9 @@ Created by Greg Tucker, May 2015
 from __future__ import print_function
 
 import time
+
 from landlab import RasterModelGrid
-from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.celllab_cts import CAPlotter, Transition
 from landlab.ca.raster_cts import RasterCTS
 
 
@@ -55,10 +56,10 @@ def setup_transition_list():
     #    (left/bottom cell, right/top cell, orientation)
     #  - Transition rate (cells per time step, in this case 1 sec)
     #  - Name for transition
-    xn_list.append(Transition((0, 0, 0), (0, 1, 0), 0.5, ''))
-    xn_list.append(Transition((0, 0, 0), (1, 0, 0), 0.5, ''))
-    xn_list.append(Transition((0, 1, 0), (1, 1, 0), 1., ''))
-    xn_list.append(Transition((1, 0, 0), (1, 1, 0), 1., ''))
+    xn_list.append(Transition((0, 0, 0), (0, 1, 0), 0.5, ""))
+    xn_list.append(Transition((0, 0, 0), (1, 0, 0), 0.5, ""))
+    xn_list.append(Transition((0, 1, 0), (1, 1, 0), 1., ""))
+    xn_list.append(Transition((1, 0, 0), (1, 1, 0), 1., ""))
 
     return xn_list
 
@@ -70,8 +71,8 @@ def main():
     # User-defined parameters
     nr = 5  # number of rows in grid
     nc = 5  # number of columns in grid
-    plot_interval = 10.0   # time interval for plotting, sec
-    run_duration = 10.0   # duration of run, sec
+    plot_interval = 10.0  # time interval for plotting, sec
+    run_duration = 10.0  # duration of run, sec
     report_interval = 10.0  # report interval, in real-time seconds
 
     # Remember the clock time, and calculate when we next want to report
@@ -86,11 +87,11 @@ def main():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Set up the states and pair transitions.
-    ns_dict = {0: 'black', 1: 'white'}
+    ns_dict = {0: "black", 1: "white"}
     xn_list = setup_transition_list()
 
     # Create the node-state array and attach it to the grid
-    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
+    node_state_grid = mg.add_zeros("node", "node_state_map", dtype=int)
 
     # For visual display purposes, set all boundary nodes to fluid
     node_state_grid[mg.closed_boundary_nodes] = 0
@@ -112,13 +113,22 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current sim time', current_time, '(',
-                  100 * current_time / run_duration, '%)')
+            print(
+                "Current sim time",
+                current_time,
+                "(",
+                100 * current_time / run_duration,
+                "%)",
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time + plot_interval, ca.node_state,
-               plot_each_transition=True, plotter=ca_plotter)
+        ca.run(
+            current_time + plot_interval,
+            ca.node_state,
+            plot_each_transition=True,
+            plotter=ca_plotter,
+        )
         current_time += plot_interval
 
         # Plot the current grid
@@ -129,13 +139,13 @@ def main():
     # Plot
     ca_plotter.finalize()
 
-    print('ok, here are the keys')
+    print("ok, here are the keys")
     print(ca.__dict__.keys())
 
 
 # If user runs this file, activate the main() function
 if __name__ == "__main__":
-    #import cProfile
-    #fname = 'test_profiler_for_little_ca.txt'
+    # import cProfile
+    # fname = 'test_profiler_for_little_ca.txt'
     # cProfile.run('print main(); print') #, fname)
     main()

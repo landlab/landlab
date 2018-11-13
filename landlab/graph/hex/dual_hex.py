@@ -1,5 +1,3 @@
-import numpy as np
-
 from ..voronoi import DualVoronoiGraph
 from .hex import setup_xy_of_node, setup_perimeter_nodes, HexGraphExtras
 from ...utils.decorators import cache_result_in_object
@@ -27,8 +25,14 @@ class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
     array([ 0. ,  1. , -0.5,  0.5,  1.5,  0. ,  1. ])
     """
 
-    def __init__(self, shape, spacing=1., origin=(0., 0.),
-                 orientation='horizontal', node_layout='rect'):
+    def __init__(
+        self,
+        shape,
+        spacing=1.,
+        origin=(0., 0.),
+        orientation="horizontal",
+        node_layout="rect",
+    ):
         """Create a structured grid of triangles.
 
         Parameters
@@ -41,11 +45,17 @@ class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
             Length of links.
         origin : tuple of float, optional
             Coordinates of lower-left corner of the grid.
+        orientation: {'horizontal', 'vertical'}
+            Specify if triangles should be laid out in rows or columns.
+        node_layout: {'rect', 'hex', 'rect1'}
+            Specify the overall layout of the nodes. Use *rect* for
+            the layout to approximate a rectangle and *hex* for
+            a hexagon.
         """
         try:
             spacing = float(spacing)
         except TypeError:
-            raise TypeError('spacing must be a float')
+            raise TypeError("spacing must be a float")
 
         self._shape = tuple(shape)
         self._spacing = spacing
@@ -65,11 +75,16 @@ class DualHexGraph(HexGraphExtras, DualVoronoiGraph):
                                                 orientation=orientation,
                                                 node_layout=node_layout)
 
-        if node_layout == 'hex':
+        if node_layout == "hex":
             max_node_spacing = None
         else:
             max_node_spacing = shape[1] + 1
 
-        DualVoronoiGraph.__init__(self,
-            (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
-            min_cell_size=6, max_node_spacing=max_node_spacing)
+        DualVoronoiGraph.__init__(
+            self,
+            (y_of_node, x_of_node),
+            xy_sort=True,
+            rot_sort=True,
+            min_cell_size=6,
+            max_node_spacing=max_node_spacing,
+        )

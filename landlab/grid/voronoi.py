@@ -8,17 +8,18 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 import numpy as np
+from scipy.spatial import Voronoi
 from six.moves import range
 
-from landlab.grid.base import (ModelGrid, CORE_NODE, BAD_INDEX_VALUE,
-                               INACTIVE_LINK)
-from landlab.core.utils import (as_id_array, sort_points_by_x_then_y,
-                                argsort_points_by_x_then_y,
-                                anticlockwise_argsort_points)
-from .decorators import return_readonly_id_array
-from ..graph import DualVoronoiGraph
+from landlab.core.utils import (
+    argsort_points_by_x_then_y,
+    as_id_array,
+    sort_points_by_x_then_y,
+)
+from landlab.grid.base import BAD_INDEX_VALUE, CORE_NODE, ModelGrid
 
-from scipy.spatial import Voronoi
+from ..graph import DualVoronoiGraph
+from .decorators import return_readonly_id_array
 
 
 def simple_poly_area(x, y):
@@ -63,8 +64,7 @@ def simple_poly_area(x, y):
     # For short arrays (less than about 100 elements) it seems that the
     # Python sum is faster than the numpy sum. Likewise for the Python
     # built-in abs.
-    return .5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) +
-                    x[-1] * y[0] - x[0] * y[-1])
+    return .5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
 
 
 class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
@@ -173,7 +173,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         """
         x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
         if x.size != y.size:
-            raise ValueError('x and y arrays must have the same size')
+            raise ValueError("x and y arrays must have the same size")
 
         # Make a copy of the points in a 2D array (useful for calls to geometry
         # routines, but takes extra memory space).
@@ -196,10 +196,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         #   - all cells are active (later we'll build a mechanism for the user
         #       specify a subset of cells as active)
         self._find_perimeter_nodes_and_BC_set(self._xy_of_node)
-        [self._cell_at_node, self._node_at_cell] = \
-            self._node_to_cell_connectivity(self.status_at_node,
-                                            self.number_of_cells)
-        active_cell_at_node = self.cell_at_node[self.core_nodes]
+        [self._cell_at_node, self._node_at_cell] = self._node_to_cell_connectivity(
+            self.status_at_node, self.number_of_cells
+        )
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
@@ -209,19 +208,20 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         for node in self._node_at_cell:
             xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
             yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
-            self._area_of_cell[self.cell_at_node[node]] = (
-                simple_poly_area(xv, yv))
+            self._area_of_cell[self.cell_at_node[node]] = simple_poly_area(xv, yv)
 
         # LINKS: Construct Delaunay triangulation and construct lists of link
         # "from" and "to" nodes.
-        (node_at_link_tail,
-         node_at_link_head,
-         _,
-         self._face_width) = \
-            self._create_links_and_faces_from_voronoi_diagram(vor)
+        (
+            node_at_link_tail,
+            node_at_link_head,
+            _,
+            self._face_width,
+        ) = self._create_links_and_faces_from_voronoi_diagram(vor)
 
-        self._nodes_at_link = np.hstack((node_at_link_tail.reshape((-1, 1)),
-                                         node_at_link_head.reshape((-1, 1))))
+        self._nodes_at_link = np.hstack(
+            (node_at_link_tail.reshape((-1, 1)), node_at_link_head.reshape((-1, 1)))
+        )
 
         # Sort them by midpoint coordinates
         self._sort_links_by_midpoint()
@@ -248,8 +248,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         try:
             return self._number_of_patches
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
             return self._number_of_patches
 
     @property
@@ -261,8 +260,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         try:
             return self._nodes_at_patch
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
             return self._nodes_at_patch
 
     @property
@@ -296,8 +294,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         try:
             return self._patches_at_node
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
             return self._patches_at_node
 
     @property
@@ -322,8 +319,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         try:
             return self._links_at_patch
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
             return self._links_at_patch
 
     @property
@@ -354,8 +350,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         try:
             return self._patches_at_link
         except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node,
-                                                       self.vor)
+            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
             return self._patches_at_link
 
     def _find_perimeter_nodes_and_BC_set(self, pts):
@@ -368,7 +363,8 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         # Calculate the convex hull for the set of points
         from scipy.spatial import ConvexHull
-        hull = ConvexHull(pts, qhull_options='Qc')  # see below why we use 'Qt'
+
+        hull = ConvexHull(pts, qhull_options="Qc")  # see below why we use 'Qt'
 
         # The ConvexHull object lists the edges that form the hull. We need to
         # get from this list of edges the unique set of nodes. To do this, we
@@ -389,8 +385,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         # points. We include these in our set of boundary nodes.
         convex_hull_nodes = np.array(list(set(hull.simplices.flatten())))
         coplanar_nodes = hull.coplanar[:, 0]
-        boundary_nodes = as_id_array(np.concatenate(
-            (convex_hull_nodes, coplanar_nodes)))
+        boundary_nodes = as_id_array(
+            np.concatenate((convex_hull_nodes, coplanar_nodes))
+        )
 
         # Now we'll create the "node_status" array, which contains the code
         # indicating whether the node is interior and active (=0) or a
@@ -450,8 +447,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         >>> cell_node
         array([1, 2, 4])
         """
-        assert ncells == np.count_nonzero(node_status == CORE_NODE), \
-            'ncells must equal number of CORE_NODE values in node_status'
+        assert ncells == np.count_nonzero(
+            node_status == CORE_NODE
+        ), "ncells must equal number of CORE_NODE values in node_status"
 
         cell = 0
         node_cell = np.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
@@ -518,13 +516,10 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         link_id = 0
         tridone = np.zeros(tri.nsimplex, dtype=bool)
         for t in range(tri.nsimplex):  # loop over triangles
-            for i in range(0, 3):       # loop over vertices & neighbors
-                if tri.neighbors[t, i] == -1 or not tridone[
-                        tri.neighbors[t, i]]:
-                    link_fromnode[link_id] = tri.simplices[
-                        t, np.mod(i + 1, 3)]
-                    link_tonode[link_id] = tri.simplices[
-                        t, np.mod(i + 2, 3)]
+            for i in range(0, 3):  # loop over vertices & neighbors
+                if tri.neighbors[t, i] == -1 or not tridone[tri.neighbors[t, i]]:
+                    link_fromnode[link_id] = tri.simplices[t, np.mod(i + 1, 3)]
+                    link_tonode[link_id] = tri.simplices[t, np.mod(i + 2, 3)]
                     link_id += 1
             tridone[t] = True
 
@@ -539,10 +534,11 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
     def _is_valid_voronoi_ridge(vor, n):
 
         SUSPICIOUSLY_BIG = 40000000.0
-        return (vor.ridge_vertices[n][0] != -1 and
-                vor.ridge_vertices[n][1] != -1 and
-                np.amax(np.abs(vor.vertices[
-                    vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG)
+        return (
+            vor.ridge_vertices[n][0] != -1
+            and vor.ridge_vertices[n][1] != -1
+            and np.amax(np.abs(vor.vertices[vor.ridge_vertices[n]])) < SUSPICIOUSLY_BIG
+        )
 
     @staticmethod
     def _create_links_and_faces_from_voronoi_diagram(vor):
@@ -605,8 +601,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         # links. So, to find the number of active links, we subtract from the
         # total number of links the number of occurrences of an undefined
         # vertex.
-        num_active_links = num_links \
-            - np.count_nonzero(np.array(vor.ridge_vertices) == -1)
+        num_active_links = num_links - np.count_nonzero(
+            np.array(vor.ridge_vertices) == -1
+        )
 
         # Create arrays for active links and width of faces (which are Voronoi
         # ridges).
@@ -616,8 +613,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         # Find the order to sort by link midpoints
         link_midpoints = np.zeros((num_links, 2))
         for i in range(num_links):
-            link_midpoints[i][:] = (vor.points[vor.ridge_points[i, 0]] +
-                                    vor.points[vor.ridge_points[i, 1]])/2.
+            link_midpoints[i][:] = (
+                vor.points[vor.ridge_points[i, 0]] + vor.points[vor.ridge_points[i, 1]]
+            ) / 2.
         ind = argsort_points_by_x_then_y(link_midpoints)
 
         # Loop through the list of ridges. For each ridge, there is a link, and
@@ -632,10 +630,8 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
             face_corner2 = vor.ridge_vertices[ind[i]][1]
             # means it's a valid face
             if VoronoiDelaunayGrid._is_valid_voronoi_ridge(vor, ind[i]):
-                dx = vor.vertices[face_corner2, 0] - \
-                    vor.vertices[face_corner1, 0]
-                dy = vor.vertices[face_corner2, 1] - \
-                    vor.vertices[face_corner1, 1]
+                dx = vor.vertices[face_corner2, 0] - vor.vertices[face_corner1, 0]
+                dy = vor.vertices[face_corner2, 1] - vor.vertices[face_corner1, 1]
                 face_width[j] = np.sqrt(dx * dx + dy * dy)
                 active_links[j] = i
                 j += 1
@@ -643,7 +639,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         return link_fromnode, link_tonode, active_links, face_width
 
     def _reorient_links_upper_right(self):
-        """Reorient links to all point within the upper-right semi-circle.
+        r"""Reorient links to all point within the upper-right semi-circle.
 
         Notes
         -----
@@ -667,10 +663,12 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         """
 
         # Calculate the horizontal (dx) and vertical (dy) link offsets
-        link_dx = self.node_x[self.node_at_link_head] - \
-            self.node_x[self.node_at_link_tail]
-        link_dy = self.node_y[self.node_at_link_head] - \
-            self.node_y[self.node_at_link_tail]
+        link_dx = (
+            self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
+        )
+        link_dy = (
+            self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
+        )
 
         # Calculate the angle, clockwise, with respect to vertical, then rotate
         # by 45 degrees counter-clockwise (by adding pi/4)
@@ -685,7 +683,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         # Find locations where the angle is negative; these are the ones we
         # want to flip
-        (flip_locs, ) = np.where(link_angle < 0.)
+        (flip_locs,) = np.where(link_angle < 0.)
 
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
@@ -700,8 +698,8 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         """
         from scipy.spatial import Delaunay
         from landlab.core.utils import anticlockwise_argsort_points_multiline
-        from .cfuncs import find_rows_containing_ID, \
-            create_patches_at_element, create_links_at_patch
+        from .cfuncs import create_patches_at_element, create_links_at_patch
+
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
         nodata = -1
@@ -710,21 +708,18 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         self._number_of_patches = tri.simplices.shape[0]
         # get the patches in order:
         patches_xy = np.empty((self._number_of_patches, 2), dtype=float)
-        patches_xy[:, 0] = np.mean(self.node_x[self._nodes_at_patch],
-                                   axis=1)
-        patches_xy[:, 1] = np.mean(self.node_y[self._nodes_at_patch],
-                                   axis=1)
+        patches_xy[:, 0] = np.mean(self.node_x[self._nodes_at_patch], axis=1)
+        patches_xy[:, 1] = np.mean(self.node_y[self._nodes_at_patch], axis=1)
         orderforsort = argsort_points_by_x_then_y(patches_xy)
         self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
         patches_xy = patches_xy[orderforsort, :]
-        # get the nodes around the patch in order:
-        nodes_xy = np.empty((3, 2), dtype=float)
 
         # perform a CCW sort without a line-by-line loop:
         patch_nodes_x = self.node_x[self._nodes_at_patch]
         patch_nodes_y = self.node_y[self._nodes_at_patch]
-        anticlockwise_argsort_points_multiline(patch_nodes_x, patch_nodes_y,
-                                               out=self._nodes_at_patch)
+        anticlockwise_argsort_points_multiline(
+            patch_nodes_x, patch_nodes_y, out=self._nodes_at_patch
+        )
 
         # need to build a squared off, masked array of the patches_at_node
         # the max number of patches for a node in the grid is the max sides of
@@ -732,31 +727,36 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         max_dimension = len(max(vor.regions, key=len))
 
         self._patches_at_node = np.full(
-            (self.number_of_nodes, max_dimension), nodata, dtype=int)
+            (self.number_of_nodes, max_dimension), nodata, dtype=int
+        )
 
         self._nodes_at_patch = as_id_array(self._nodes_at_patch)
         self._patches_at_node = as_id_array(self._patches_at_node)
 
-        create_patches_at_element(self._nodes_at_patch,
-                                  self.number_of_nodes,
-                                  self._patches_at_node)
+        create_patches_at_element(
+            self._nodes_at_patch, self.number_of_nodes, self._patches_at_node
+        )
 
         # build the patch-link connectivity:
-        self._links_at_patch = np.empty((self._number_of_patches, 3),
-                                        dtype=int)
-        create_links_at_patch(self._nodes_at_patch, self._links_at_node,
-                              self._number_of_patches, self._links_at_patch)
+        self._links_at_patch = np.empty((self._number_of_patches, 3), dtype=int)
+        create_links_at_patch(
+            self._nodes_at_patch,
+            self._links_at_node,
+            self._number_of_patches,
+            self._links_at_patch,
+        )
         patch_links_x = self.x_of_link[self._links_at_patch]
         patch_links_y = self.y_of_link[self._links_at_patch]
-        anticlockwise_argsort_points_multiline(patch_links_x, patch_links_y,
-                                               out=self._links_at_patch)
+        anticlockwise_argsort_points_multiline(
+            patch_links_x, patch_links_y, out=self._links_at_patch
+        )
 
-        self._patches_at_link = np.empty((self.number_of_links, 2),
-                                         dtype=int)
+        self._patches_at_link = np.empty((self.number_of_links, 2), dtype=int)
         self._patches_at_link.fill(-1)
-        create_patches_at_element(self._links_at_patch, self.number_of_links,
-                                  self._patches_at_link)
-# a sort of the links will be performed here once we have corners
+        create_patches_at_element(
+            self._links_at_patch, self.number_of_links, self._patches_at_link
+        )
+        # a sort of the links will be performed here once we have corners
 
         self._patches_created = True
 
@@ -805,17 +805,18 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         from six.moves import cPickle
 
         if os.path.exists(path) and not clobber:
-            raise ValueError('file exists')
+            raise ValueError("file exists")
 
         (base, ext) = os.path.splitext(path)
-        if ext != '.grid':
-            ext = ext + '.grid'
+        if ext != ".grid":
+            ext = ext + ".grid"
         path = base + ext
 
-        with open(path, 'wb') as fp:
+        with open(path, "wb") as fp:
             cPickle.dump(self, fp)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

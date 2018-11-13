@@ -68,6 +68,7 @@ Lake filling and routing (handling depressions in terrain)
     landlab.components.steepness_index
     landlab.components.stream_power
     landlab.components.uniform_precip
+    landlab.components.spatial_precip
 
 Submodules
 ----------
