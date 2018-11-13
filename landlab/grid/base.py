@@ -13,7 +13,6 @@ import six
 from six.moves import range
 
 from landlab.core.utils import argsort_points_by_x_then_y
-from landlab.field import ModelDataFields, ModelDataFieldsMixIn
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
 from . import grid_funcs as gfuncs

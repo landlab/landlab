@@ -11,9 +11,9 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 import six
 
+from ..core.utils import as_id_array
 from ..graph import DualHexGraph
-from .base import ModelGrid
-from .decorators import return_readonly_id_array
+from .base import ModelGrid, BAD_INDEX_VALUE
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
@@ -874,7 +874,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                 ans.append(True)
             else:
                 neighbor_status = self.status_at_node[real_neighbors].astype(bool)
-                if numpy.any(neighbor_status != CORE_NODE):
+                if numpy.any(neighbor_status != self.BC_NODE_IS_CORE):
                     ans.append(True)
                 else:
                     ans.append(False)
@@ -940,11 +940,11 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         LLCATS: BC
         """
         # make ring of no data nodes
-        self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
+        self.status_at_node[self.boundary_nodes] = self.BC_NODE_IS_CLOSED
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
         # set the boundary condition (fixed value) at the outlet_node
-        self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+        self.status_at_node[outlet_id] = self.BC_NODE_IS_FIXED_VALUE
 
     def set_watershed_boundary_condition(
         self, node_data, nodata_value=-9999., return_outlet_id=False
@@ -1007,7 +1007,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         LLCATS: BC
         """
         # make ring of no data nodes
-        self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
+        self.status_at_node[self.boundary_nodes] = self.BC_NODE_IS_CLOSED
 
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
@@ -1076,7 +1076,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                 not_found = False
 
         # set outlet boundary condition
-        self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
+        self.status_at_node[outlet_loc] = self.BC_NODE_IS_FIXED_VALUE
 
         if return_outlet_id:
             return as_id_array(numpy.array([outlet_loc]))

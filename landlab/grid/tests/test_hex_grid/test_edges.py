@@ -1,4 +1,3 @@
-import numpy as np
 from nose.tools import assert_false, assert_is, assert_raises
 from numpy.testing import assert_array_equal
 

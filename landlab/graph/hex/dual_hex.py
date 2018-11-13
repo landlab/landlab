@@ -1,6 +1,5 @@
-from ...utils.decorators import cache_result_in_object
 from ..voronoi import DualVoronoiGraph
-from .hex import HexGraphExtras, setup_perimeter_nodes, setup_xy_of_node
+from .hex import HexGraphExtras, setup_xy_of_node
 
 
 class DualHexGraph(HexGraphExtras, DualVoronoiGraph):

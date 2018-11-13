@@ -15,15 +15,13 @@ from six.moves import range
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import (
     cells as squad_cells,
-    faces as squad_faces,
     links as squad_links,
 )
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
-from . import gradients, raster_funcs as rfuncs
+from . import raster_funcs as rfuncs
 from ..core.utils import add_module_functions_to_class, as_id_array
-from ..field.graph_field import GraphFields
 from ..graph import DualUniformRectilinearGraph
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
@@ -36,7 +34,7 @@ from .base import (
     LOOPED_BOUNDARY,
     ModelGrid,
 )
-from .decorators import return_id_array, return_readonly_id_array
+from .decorators import return_id_array
 from .diagonals import DiagonalsMixIn
 
 
@@ -2643,9 +2641,9 @@ class RasterModelGrid(
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        neighbors[:,] = self.active_adjacent_nodes_at_node[ids]
+        neighbors[:, ] = self.active_adjacent_nodes_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
-        diagonals[:,] = self.diagonal_adjacent_nodes_at_node[ids]
+        diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]
