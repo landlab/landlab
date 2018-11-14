@@ -237,40 +237,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
     @property
     @return_readonly_id_array
-    def patches_at_node(self):
-        """
-        Return a (nnodes, max_voronoi_polygon_sides) array of patches at nodes.
-
-        The patches are returned in LL standard order (ccw from E), with any
-        nonexistent patches recorded after the ids of existing faces.
-        Nonexistent patches are ID'ed as -1.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 3)
-        >>> mg.patches_at_node # doctest: +SKIP
-        array([[ 0,  2, -1, -1, -1, -1],
-               [ 1,  3,  0, -1, -1, -1],
-               [ 4,  1, -1, -1, -1, -1],
-               [ 5,  2, -1, -1, -1, -1],
-               [ 6,  8,  5,  2,  0,  3],
-               [ 7,  9,  6,  3,  1,  4],
-               [ 7,  4, -1, -1, -1, -1],
-               [ 5,  8, -1, -1, -1, -1],
-               [ 8,  6,  9, -1, -1, -1],
-               [ 9,  7, -1, -1, -1, -1]])
-
-        LLCATS: NINF PINF CONN
-        """
-        try:
-            return self._patches_at_node
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
-            return self._patches_at_node
-
-    @property
-    @return_readonly_id_array
     def links_at_patch(self):
         """Returns the links forming each patch.
 
