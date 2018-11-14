@@ -16,9 +16,9 @@ from landlab.core.utils import (
     as_id_array,
     sort_points_by_x_then_y,
 )
-from landlab.grid.base import BAD_INDEX_VALUE, CORE_NODE, ModelGrid
 
 from ..graph import DualVoronoiGraph
+from .base import BAD_INDEX_VALUE, ModelGrid
 from .decorators import return_readonly_id_array
 
 
@@ -330,14 +330,14 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         array([1, 2, 4])
         """
         assert ncells == np.count_nonzero(
-            node_status == CORE_NODE
+            node_status == self.BC_NODE_IS_CORE
         ), "ncells must equal number of CORE_NODE values in node_status"
 
         cell = 0
         node_cell = np.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
         cell_node = np.zeros(ncells, dtype=int)
         for node in range(len(node_cell)):
-            if node_status[node] == CORE_NODE:
+            if node_status[node] == self.BC_NODE_IS_CORE:
                 node_cell[node] = cell
                 cell_node[cell] = node
                 cell += 1
@@ -696,9 +696,3 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         with open(path, "wb") as fp:
             cPickle.dump(self, fp)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
