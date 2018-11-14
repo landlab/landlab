@@ -1,11 +1,11 @@
 import numpy as np
 
-from .status import StatusGrid
-from .links import link_is_active, find_active_links, LinkGrid
-from .links import _split_link_ends
-from .cells import CellGrid
-from .nodes import NodeGrid
 from landlab.utils.decorators import deprecated
+
+from .cells import CellGrid
+from .links import LinkGrid, _split_link_ends, find_active_links
+from .nodes import NodeGrid
+from .status import StatusGrid
 
 
 def _default_axis_names(n_dims):

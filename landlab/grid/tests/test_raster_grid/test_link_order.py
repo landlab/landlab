@@ -5,8 +5,9 @@ Created on Sat Nov 14 10:48:23 2015
 @author: gtucker
 """
 
-from landlab import RasterModelGrid
 from numpy.testing import assert_array_equal
+
+from landlab import RasterModelGrid
 
 
 def test_link_order():

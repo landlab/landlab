@@ -8,18 +8,17 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 import numpy as np
+from scipy.spatial import Voronoi
 from six.moves import range
 
-from landlab.grid.base import ModelGrid, CORE_NODE, BAD_INDEX_VALUE, INACTIVE_LINK
 from landlab.core.utils import (
+    argsort_points_by_x_then_y,
     as_id_array,
     sort_points_by_x_then_y,
-    argsort_points_by_x_then_y,
-    anticlockwise_argsort_points,
 )
-from .decorators import return_readonly_id_array
+from landlab.grid.base import BAD_INDEX_VALUE, CORE_NODE, ModelGrid
 
-from scipy.spatial import Voronoi
+from .decorators import return_readonly_id_array
 
 
 def simple_poly_area(x, y):
@@ -200,7 +199,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         [self._cell_at_node, self._node_at_cell] = self._node_to_cell_connectivity(
             self.status_at_node, self.number_of_cells
         )
-        active_cell_at_node = self.cell_at_node[self.core_nodes]
 
         # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
         # each active cell.
@@ -641,7 +639,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         return link_fromnode, link_tonode, active_links, face_width
 
     def _reorient_links_upper_right(self):
-        """Reorient links to all point within the upper-right semi-circle.
+        r"""Reorient links to all point within the upper-right semi-circle.
 
         Notes
         -----
@@ -700,11 +698,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         """
         from scipy.spatial import Delaunay
         from landlab.core.utils import anticlockwise_argsort_points_multiline
-        from .cfuncs import (
-            find_rows_containing_ID,
-            create_patches_at_element,
-            create_links_at_patch,
-        )
+        from .cfuncs import create_patches_at_element, create_links_at_patch
 
         tri = Delaunay(pts)
         assert np.array_equal(tri.points, vor.points)
@@ -719,8 +713,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         orderforsort = argsort_points_by_x_then_y(patches_xy)
         self._nodes_at_patch = self._nodes_at_patch[orderforsort, :]
         patches_xy = patches_xy[orderforsort, :]
-        # get the nodes around the patch in order:
-        nodes_xy = np.empty((3, 2), dtype=float)
 
         # perform a CCW sort without a line-by-line loop:
         patch_nodes_x = self.node_x[self._nodes_at_patch]

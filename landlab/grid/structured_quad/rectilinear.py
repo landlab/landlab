@@ -162,7 +162,7 @@ class RasterGrid(UniformRectilinearGrid):
         Spacing between rows and columns.
     origin : tuple, optional
         Coordinates of grid origin.
-        
+
     Examples
     --------
     >>> from landlab.grid.structured_quad.rectilinear import RasterGrid

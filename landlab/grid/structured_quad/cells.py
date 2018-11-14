@@ -1,7 +1,8 @@
 import numpy as np
 
-from . import nodes
 from landlab.grid.base import BAD_INDEX_VALUE
+
+from . import nodes
 
 
 def number_of_cells(shape):

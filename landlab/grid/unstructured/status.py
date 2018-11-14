@@ -1,11 +1,10 @@
 import numpy as np
 
 from ..nodestatus import (
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-    FIXED_GRADIENT_BOUNDARY,
-    LOOPED_BOUNDARY,
     CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
 )
 
 

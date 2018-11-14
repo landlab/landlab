@@ -1,9 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
-from landlab import BAD_INDEX_VALUE as X
+from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
 
 
 def test_init_with_kwds_classic():

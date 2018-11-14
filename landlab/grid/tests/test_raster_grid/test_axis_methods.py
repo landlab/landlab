@@ -1,6 +1,4 @@
 import pytest
-import numpy as np
-from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 
@@ -46,7 +44,7 @@ def test_default_units():
     assert rmg.axis_units == ("-", "-")
 
 
-def test_name_keyword():
+def test_axis_units_keyword():
     rmg = RasterModelGrid(
         (4, 5),
         axis_name=["longitude", "latitude"],
@@ -55,7 +53,7 @@ def test_name_keyword():
     assert rmg.axis_units == ("degrees_east", "degrees_north")
 
 
-def test_name_setter():
+def test_axis_units_setter():
     rmg = RasterModelGrid(
         (4, 5),
         axis_name=["longitude", "latitude"],

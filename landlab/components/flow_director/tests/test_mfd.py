@@ -1,10 +1,10 @@
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components import FlowDirectorMFD, FlowAccumulator
+from landlab.components import FlowAccumulator, FlowDirectorMFD
 from landlab.components.flow_director import flow_direction_mfd
 
 
@@ -16,7 +16,7 @@ def test_bad_argument_mfd():
     links_at_node = mg.links_at_node
     active_link_dir_at_node = mg.active_link_dirs_at_node
     link_slope = np.arctan(mg.calc_grad_at_link(z))
-    slopes_to_neighbors_at_node = link_slope[links_at_node] * active_link_dir_at_node
+    link_slope[links_at_node] * active_link_dir_at_node
 
     with pytest.raises(ValueError):
         flow_direction_mfd.flow_directions_mfd(
@@ -105,7 +105,7 @@ def test_mfd_flat_closed_upper():
 
 def test_MFD_SW_slope():
     mg = RasterModelGrid(10, 10, spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
+    mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD")
     fa.run_one_step()
 
@@ -128,7 +128,7 @@ def test_MFD_SW_slope():
 
 def test_MFD_SW_slope_w_diags():
     mg = RasterModelGrid(10, 10, spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
+    mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD", diagonals=True)
     fa.run_one_step()
 
@@ -159,7 +159,7 @@ def test_MFD_SW_slope_w_diags():
 # %%
 def test_MFD_S_slope():
     mg = RasterModelGrid(10, 10, spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD")
     fa.run_one_step()
 
@@ -180,7 +180,7 @@ def test_MFD_S_slope():
 
 def test_MFD_S_slope_w_diag():
     mg = RasterModelGrid(10, 10, spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD", diagonals=True)
     fa.run_one_step()
 

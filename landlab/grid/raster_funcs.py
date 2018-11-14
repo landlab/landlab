@@ -1,9 +1,7 @@
 import numpy as np
-import six
 from six.moves import range
 
 from ..core.utils import make_optional_arg_into_id_array
-from .structured_quad import links as squad_links
 
 
 def neighbor_active_link_at_cell(grid, inds, *args):

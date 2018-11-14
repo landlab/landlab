@@ -20,16 +20,13 @@ array([ 0,  4, 15, 19])
 """
 import numpy as np
 
-from ..base import FIXED_VALUE_BOUNDARY
-from ..unstructured.status import StatusGrid
-from ..unstructured.base import BaseGrid
-from .links import StructuredQuadLinkGrid, node_id_at_link_start, node_id_at_link_end
-from .cells import StructuredQuadCellGrid
-from . import cells as quad_cells
-from . import links as quad_links
-from . import faces as quad_faces
-from . import nodes
 from landlab.utils.decorators import deprecated
+
+from . import cells as quad_cells, faces as quad_faces, links as quad_links, nodes
+from ..base import FIXED_VALUE_BOUNDARY
+from ..unstructured.base import BaseGrid
+from .cells import StructuredQuadCellGrid
+from .links import StructuredQuadLinkGrid
 
 
 class StructuredQuadGrid(BaseGrid):

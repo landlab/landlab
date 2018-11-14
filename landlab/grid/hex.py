@@ -11,10 +11,10 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy
 import six
 
-from .base import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE, CORE_NODE
-from ..core.utils import as_id_array
 from landlab.grid.voronoi import VoronoiDelaunayGrid
-from .decorators import return_readonly_id_array
+
+from ..core.utils import as_id_array
+from .base import BAD_INDEX_VALUE, CLOSED_BOUNDARY, CORE_NODE, FIXED_VALUE_BOUNDARY
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
@@ -60,7 +60,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         base_num_rows=0,
         base_num_cols=0,
         dx=1.0,
-        origin=(0., 0.),
         orientation="horizontal",
         shape="hex",
         reorient_links=True,
@@ -110,13 +109,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Set number of nodes, and initialize if caller has given dimensions
         if base_num_rows * base_num_cols > 0:
             self._initialize(
-                base_num_rows,
-                base_num_cols,
-                dx,
-                origin,
-                orientation,
-                shape,
-                reorient_links,
+                base_num_rows, base_num_cols, dx, orientation, shape, reorient_links
             )
         super(HexModelGrid, self).__init__(**kwds)
         # save origin as attribute. This has to happen after Voronoi
@@ -127,17 +120,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         LLCATS: GINF
         """
-        return cls(**params)
+        shape = params["shape"]
+        spacing = params.get("spacing", 1.)
+
+        return cls(shape[0], shape[1], spacing)
 
     def _initialize(
-        self,
-        base_num_rows,
-        base_num_cols,
-        dx,
-        origin,
-        orientation,
-        shape,
-        reorient_links=True,
+        self, base_num_rows, base_num_cols, dx, orientation, shape, reorient_links=True
     ):
         r"""Set up a hexagonal grid.
 
@@ -230,13 +219,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation[0].lower() == "h" and shape[0].lower() == "h":
             pts = HexModelGrid._hex_points_with_horizontal_hex(
-                base_num_rows, base_num_cols, dx, origin
+                base_num_rows, base_num_cols, dx
             )
             self.orientation = "horizontal"
             self._nrows = base_num_rows
         elif orientation[0].lower() == "h" and shape[0].lower() == "r":
             pts = HexModelGrid._hex_points_with_horizontal_rect(
-                base_num_rows, base_num_cols, dx, origin
+                base_num_rows, base_num_cols, dx
             )
             self.orientation = "horizontal"
             self._nrows = base_num_rows
@@ -247,13 +236,13 @@ class HexModelGrid(VoronoiDelaunayGrid):
             )
         elif orientation[0].lower() == "v" and shape[0].lower() == "h":
             pts = HexModelGrid._hex_points_with_vertical_hex(
-                base_num_rows, base_num_cols, dx, origin
+                base_num_rows, base_num_cols, dx
             )
             self.orientation = "vertical"
             self._ncols = base_num_cols
         else:
             pts = HexModelGrid._hex_points_with_vertical_rect(
-                base_num_rows, base_num_cols, dx, origin
+                base_num_rows, base_num_cols, dx
             )
             self.orientation = "vertical"
             self._nrows = base_num_rows
@@ -709,7 +698,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         assert self.orientation[0] == "v", "grid orientation must be vertical"
         try:
             (nr, nc) = self._shape
-        except:
+        except AttributeError:
             raise AttributeError(
                 "Only rectangular Hex grids have defined rows and columns."
             )
@@ -830,7 +819,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         try:
             self._hexplot_configured
-        except:
+        except AttributeError:
             self._configure_hexplot(data, data_label, color_map)
         else:
             if self._hexplot_pc.cmap != color_map:
@@ -1120,9 +1109,9 @@ def from_dict(param_dict):
         n_rows = int(param_dict["NUM_ROWS"])
         n_cols = int(param_dict["NUM_COLS"])
         dx = float(param_dict.get("GRID_SPACING", 1.))
-    except KeyError as e:
+    except KeyError:
         raise
-    except ValueError as e:
+    except ValueError:
         raise
     else:
         hg = HexModelGrid(n_rows, n_cols, dx)

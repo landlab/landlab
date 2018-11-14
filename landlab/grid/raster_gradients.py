@@ -14,14 +14,14 @@ Gradient calculators for raster grids
     ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
 
 """
+from collections import deque
+
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
-
 from landlab.grid import gradients
 from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.utils.decorators import use_field_name_or_array
-from collections import deque
 
 
 @use_field_name_or_array("node")
@@ -479,7 +479,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
     """
 
     # identify the grid neigbors at each location
-    I = grid.node_at_cell
+    node_at_cell = grid.node_at_cell
     # calculate unit normals at all nodes.
     (
         n_ENE,
@@ -494,14 +494,14 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
 
     # return only those at cell.
     return (
-        n_ENE[I, :],
-        n_NNE[I, :],
-        n_NNW[I, :],
-        n_WNW[I, :],
-        n_WSW[I, :],
-        n_SSW[I, :],
-        n_SSE[I, :],
-        n_ESE[I, :],
+        n_ENE[node_at_cell, :],
+        n_NNE[node_at_cell, :],
+        n_NNW[node_at_cell, :],
+        n_WNW[node_at_cell, :],
+        n_WSW[node_at_cell, :],
+        n_SSW[node_at_cell, :],
+        n_SSE[node_at_cell, :],
+        n_ESE[node_at_cell, :],
     )
 
 
@@ -595,20 +595,20 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     diff_xyz_IW = np.empty((grid.number_of_nodes, 3))  # Southeast
 
     # identify the grid neigbors at each location
-    I = np.arange(grid.number_of_nodes)
-    P = grid.adjacent_nodes_at_node[I, 0]
-    Q = grid.diagonal_adjacent_nodes_at_node[I, 0]
-    R = grid.adjacent_nodes_at_node[I, 1]
-    S = grid.diagonal_adjacent_nodes_at_node[I, 1]
-    T = grid.adjacent_nodes_at_node[I, 2]
-    U = grid.diagonal_adjacent_nodes_at_node[I, 2]
-    V = grid.adjacent_nodes_at_node[I, 3]
-    W = grid.diagonal_adjacent_nodes_at_node[I, 3]
+    node_at_cell = np.arange(grid.number_of_nodes)
+    P = grid.adjacent_nodes_at_node[node_at_cell, 0]
+    Q = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 0]
+    R = grid.adjacent_nodes_at_node[node_at_cell, 1]
+    S = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 1]
+    T = grid.adjacent_nodes_at_node[node_at_cell, 2]
+    U = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 2]
+    V = grid.adjacent_nodes_at_node[node_at_cell, 3]
+    W = grid.diagonal_adjacent_nodes_at_node[node_at_cell, 3]
 
     # get x, y, z coordinates for each location
-    x_I = grid.node_x[I]
-    y_I = grid.node_y[I]
-    z_I = z[I]
+    x_I = grid.node_x[node_at_cell]
+    y_I = grid.node_y[node_at_cell]
+    z_I = z[node_at_cell]
 
     x_P = grid.node_x[P]
     y_P = grid.node_y[P]
@@ -861,19 +861,19 @@ def calc_slope_at_cell_subtriangles(
     )
     # return only those at cell
     if s_ENE.shape[0] == grid.number_of_nodes:
-        I = grid.node_at_cell
+        node_at_cell = grid.node_at_cell
     else:
-        I = np.arange(grid.number_of_cells)
+        node_at_cell = np.arange(grid.number_of_cells)
 
     return (
-        s_ENE[I],
-        s_NNE[I],
-        s_NNW[I],
-        s_WNW[I],
-        s_WSW[I],
-        s_SSW[I],
-        s_SSE[I],
-        s_ESE[I],
+        s_ENE[node_at_cell],
+        s_NNE[node_at_cell],
+        s_NNW[node_at_cell],
+        s_WNW[node_at_cell],
+        s_WSW[node_at_cell],
+        s_SSW[node_at_cell],
+        s_SSE[node_at_cell],
+        s_ESE[node_at_cell],
     )
 
 
@@ -1101,20 +1101,20 @@ def calc_aspect_at_cell_subtriangles(
     )
     # return only those at cell
     if angle_ESE.shape[0] == grid.number_of_nodes:
-        I = grid.node_at_cell
+        node_at_cell = grid.node_at_cell
     else:
-        I = np.arange(grid.number_of_cells)
+        node_at_cell = np.arange(grid.number_of_cells)
 
     if unit == "degrees" or unit == "radians":
         return (
-            angle_ENE[I],
-            angle_NNE[I],
-            angle_NNW[I],
-            angle_WNW[I],
-            angle_WSW[I],
-            angle_SSW[I],
-            angle_SSE[I],
-            angle_ESE[I],
+            angle_ENE[node_at_cell],
+            angle_NNE[node_at_cell],
+            angle_NNW[node_at_cell],
+            angle_WNW[node_at_cell],
+            angle_WSW[node_at_cell],
+            angle_SSW[node_at_cell],
+            angle_SSE[node_at_cell],
+            angle_ESE[node_at_cell],
         )
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")

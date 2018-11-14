@@ -16,9 +16,10 @@ Gradient calculation functions
 """
 
 import numpy as np
-from landlab.utils.decorators import use_field_name_or_array, deprecated
+
 from landlab.core.utils import radians_to_degrees
 from landlab.grid.base import CLOSED_BOUNDARY
+from landlab.utils.decorators import deprecated, use_field_name_or_array
 
 
 @use_field_name_or_array("node")

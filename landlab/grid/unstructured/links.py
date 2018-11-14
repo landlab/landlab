@@ -3,7 +3,7 @@ from six.moves import range
 
 from ...core.utils import as_id_array
 from ...utils.jaggedarray import JaggedArray
-from .status import CORE_NODE, CLOSED_BOUNDARY
+from .status import CLOSED_BOUNDARY, CORE_NODE
 
 
 def _split_link_ends(link_ends):

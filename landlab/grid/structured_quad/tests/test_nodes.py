@@ -1,10 +1,7 @@
-import numpy as np
-
 from numpy.testing import assert_array_equal
 
+from landlab.grid.base import CLOSED_BOUNDARY, CORE_NODE, FIXED_VALUE_BOUNDARY
 from landlab.grid.structured_quad import nodes
-
-from landlab.grid.base import CORE_NODE, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
 from landlab.testing.tools import assert_array_is_int
 
 

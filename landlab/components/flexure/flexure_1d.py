@@ -63,7 +63,7 @@ array([[ 0.,  0.,  0.,  0.],
 import numpy as np
 
 from landlab import Component
-from .funcs import get_flexure_parameter
+
 from ...utils.decorators import use_file_name_or_kwds
 from .ext import subside_load_1d
 
@@ -381,7 +381,7 @@ class Flexure1D(Component):
             Deflections caused by the loading.
         """
         if self._method == "airy":
-            deflection[:] = load / self.gamma_mantle
+            out[:] = loads / self.gamma_mantle
         else:
             Flexure1D.calc_flexure(
                 self.x_at_node[0], loads, self.alpha, self.rigidity, out=out

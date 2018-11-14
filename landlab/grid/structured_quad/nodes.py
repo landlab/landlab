@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 from six.moves import range
 
-from ..base import CORE_NODE, CLOSED_BOUNDARY
+from ..base import CLOSED_BOUNDARY, CORE_NODE
 
 
 def number_of_nodes(shape):

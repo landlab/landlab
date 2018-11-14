@@ -1,9 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
-from landlab import FIXED_VALUE_BOUNDARY as FV
-from landlab import CLOSED_BOUNDARY as CB
+from landlab import CLOSED_BOUNDARY as CB, FIXED_VALUE_BOUNDARY as FV, RasterModelGrid
 
 
 def test_get_status():

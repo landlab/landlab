@@ -1,8 +1,13 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import FIXED_GRADIENT_BOUNDARY, CLOSED_BOUNDARY, INACTIVE_LINK, FIXED_LINK
-from landlab import RasterModelGrid
+from landlab import (
+    CLOSED_BOUNDARY,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_LINK,
+    INACTIVE_LINK,
+    RasterModelGrid,
+)
 
 
 def test_issue_428_a():

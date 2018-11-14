@@ -13,8 +13,8 @@ from __future__ import print_function
 import numpy
 import six
 
-from landlab import Component
 from landlab import RasterModelGrid  # for type tests
+from landlab import Component
 from landlab.utils.return_array import return_array_at_node
 
 

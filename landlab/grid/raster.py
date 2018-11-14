@@ -12,9 +12,14 @@ import numpy as np
 import six
 from six.moves import range
 
-from landlab.testing.decorators import track_this_method
+from landlab.field.scalar_data_fields import FieldError
+from landlab.grid.structured_quad import (
+    cells as squad_cells,
+    faces as squad_faces,
+    links as squad_links,
+)
 from landlab.utils import structured_grid as sgrid
-from landlab.utils import count_repeated_values
+from landlab.utils.decorators import deprecated, make_return_array_immutable
 
 from .base import ModelGrid
 from .base import (
@@ -31,16 +36,20 @@ from .base import (
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import make_return_array_immutable, deprecated
 from . import raster_funcs as rfuncs
+from ..core.utils import add_module_functions_to_class, as_id_array
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
-from landlab.grid.structured_quad import links as squad_links
-from landlab.grid.structured_quad import faces as squad_faces
-from landlab.grid.structured_quad import cells as squad_cells
-from ..core.utils import as_id_array
-from ..core.utils import add_module_functions_to_class
-from .decorators import return_id_array, return_readonly_id_array
 from ..utils.decorators import cache_result_in_object
-from . import gradients
+from .base import (
+    BAD_INDEX_VALUE,
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_VALUE_BOUNDARY,
+    LOOPED_BOUNDARY,
+    ModelGrid,
+)
+from .decorators import return_id_array, return_readonly_id_array
+from .diagonals import DiagonalsMixIn
 
 
 @deprecated(use="grid.node_has_boundary_neighbor", version="0.2")
@@ -274,9 +283,6 @@ def _parse_grid_spacing_from_args(args):
             return args[1]
     except IndexError:
         return None
-
-
-from .diagonals import DiagonalsMixIn
 
 
 class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
@@ -1806,14 +1812,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ):
             try:
                 x_condition[:] = 1
-            except:
+            except IndexError:
                 x_condition = 1
         if np.all(self._node_status[self.nodes_at_top_edge] == 3) or np.all(
             self._node_status[self.nodes_at_bottom_edge] == 3
         ):
             try:
                 y_condition[:] = 1
-            except:
+            except IndexError:
                 y_condition = 1
 
         return x_condition & y_condition
@@ -1868,7 +1874,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         id_ = ycoord // self._dy * self.number_of_node_columns + xcoord // self._dx
         try:
             id_ = int(id_)
-        except:
+        except TypeError:
             id_ = as_id_array(id_)
         return np.array(
             [

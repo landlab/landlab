@@ -1,22 +1,9 @@
 #! /usr/bin/env python
 import numpy as np
 
-
-from .nodestatus import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-)
-from .linkstatus import ACTIVE_LINK, INACTIVE_LINK, FIXED_LINK
-from .linkstatus import (
-    is_fixed_link,
-    is_inactive_link,
-    is_active_link,
-    set_status_at_link,
-)
 from ..utils.decorators import cache_result_in_object, make_return_array_immutable
 from .decorators import return_readonly_id_array
+from .linkstatus import ACTIVE_LINK, set_status_at_link
 
 
 def create_nodes_at_diagonal(shape, out=None):
@@ -102,57 +89,6 @@ def create_diagonals_at_node(shape, out=None):
     diagonals = np.full(shape + 1, -1, dtype=int)
 
     diagonals[1:-1, 1:-1] = np.arange(0, n_diagonals, 2).reshape(shape - 1)
-    out[:, 0] = diagonals[1:, 1:].flat
-    out[:, 2] = diagonals[:-1, :-1].flat
-
-    diagonals[1:-1, 1:-1] = np.arange(1, n_diagonals, 2).reshape(shape - 1)
-    out[:, 1] = diagonals[1:, :-1].flat
-    out[:, 3] = diagonals[:-1, 1:].flat
-
-    return out
-
-
-def create_diagonal_dirs_at_node(shape, out=None):
-    """Create array of diagonals directions at node.
-
-    Parameters
-    ----------
-    shape : tuple of *(n_rows, n_cols)*
-        Shape as number of node rows and node columns.
-    out : ndarray of shape *(n_nodes, 4)*, optional
-        Output buffer to place diagonal ids at each node.
-
-    Returns
-    -------
-    out : ndarray of shape *(n_nodes, 4)*
-        Diagonals at node with -1 for missing diagonals.
-
-    Examples
-    --------
-    >>> from landlab.grid.diagonals import create_diagonals_at_node
-    >>> create_diagonals_at_node((3, 4))
-    array([[ 0, -1, -1, -1],
-           [ 2,  1, -1, -1],
-           [ 4,  3, -1, -1],
-           [-1,  5, -1, -1],
-           [ 6, -1, -1,  1],
-           [ 8,  7,  0,  3],
-           [10,  9,  2,  5],
-           [-1, 11,  4, -1],
-           [-1, -1, -1,  7],
-           [-1, -1,  6,  9],
-           [-1, -1,  8, 11],
-           [-1, -1, 10, -1]])
-    """
-    shape = np.asarray(shape)
-    n_diagonals = np.prod(shape - 1) * 2
-    n_nodes = np.prod(shape)
-    if out is None:
-        out = np.full((n_nodes, 4), -1, dtype=int8)
-
-    dirs = np.zeros(shape + 1, dtype=int8)
-
-    dirs[1:-1, 1:-1] = np.arange(0, n_diagonals, 2).reshape(shape - 1)
     out[:, 0] = diagonals[1:, 1:].flat
     out[:, 2] = diagonals[:-1, :-1].flat
 
@@ -386,7 +322,6 @@ class DiagonalsMixIn(object):
         diagonals_at_node = self.diagonals_at_node.copy()
         diagonals_at_node[diagonals_at_node >= 0] += self.number_of_links
         return np.hstack((super(DiagonalsMixIn, self).links_at_node, diagonals_at_node))
-        # self.diagonals_at_node + self.number_of_links))
 
     @property
     @cache_result_in_object()

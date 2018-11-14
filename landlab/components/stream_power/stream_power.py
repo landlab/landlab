@@ -3,16 +3,15 @@ from __future__ import print_function
 
 import numpy as np
 
-from landlab import Component
-
+from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 from landlab.utils.decorators import use_file_name_or_kwds
 
-from .cfuncs import (brent_method_erode_fixed_threshold,
-                     brent_method_erode_variable_threshold)
-
-from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX
+from .cfuncs import (
+    brent_method_erode_fixed_threshold,
+    brent_method_erode_variable_threshold,
+)
 
 
 class StreamPowerEroder(Component):
@@ -110,60 +109,65 @@ class StreamPowerEroder(Component):
             0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ])
     """
 
-    _name = 'StreamPowerEroder'
+    _name = "StreamPowerEroder"
 
     _input_var_names = (
-        'topographic__elevation',
-        'flow__link_to_receiver_node',
-        'drainage_area',
-        'flow__receiver_node',
-        'flow__upstream_node_order',
-        'topographic__steepest_slope'
+        "topographic__elevation",
+        "flow__link_to_receiver_node",
+        "drainage_area",
+        "flow__receiver_node",
+        "flow__upstream_node_order",
+        "topographic__steepest_slope",
     )
 
-    _output_var_names = (
-        'topographic__elevation',
-    )
+    _output_var_names = ("topographic__elevation",)
 
     _var_units = {
-        'topographic__elevation': 'm',
-        'drainage_area': 'm**2',
-        'flow__link_to_receiver_node': '-',
-        'flow__receiver_node': '-',
-        'flow__upstream_node_order': '-',
-        'topographic__steepest_slope': '-'
+        "topographic__elevation": "m",
+        "drainage_area": "m**2",
+        "flow__link_to_receiver_node": "-",
+        "flow__receiver_node": "-",
+        "flow__upstream_node_order": "-",
+        "topographic__steepest_slope": "-",
     }
 
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'drainage_area': 'node',
-        'flow__link_to_receiver_node': 'node',
-        'flow__receiver_node': 'node',
-        'flow__upstream_node_order': 'node',
-        'topographic__steepest_slope': 'node'
+        "topographic__elevation": "node",
+        "drainage_area": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__receiver_node": "node",
+        "flow__upstream_node_order": "node",
+        "topographic__steepest_slope": "node",
     }
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'drainage_area':
-            "Upstream accumulated surface area contributing to the node's "
-            "discharge",
-        'flow__link_to_receiver_node':
-            'ID of link downstream of each node, which carries the discharge',
-        'flow__receiver_node':
-            'Node array of receivers (node that receives flow from current '
-            'node)',
-        'flow__upstream_node_order':
-            'Node array containing downstream-to-upstream ordered list of '
-            'node IDs',
-        'topographic__steepest_slope':
-            'Node array of steepest *downhill* slopes'
+        "topographic__elevation": "Land surface topographic elevation",
+        "drainage_area": "Upstream accumulated surface area contributing to the node's "
+        "discharge",
+        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
+        "node IDs",
+        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, K_sp=None, threshold_sp=0., sp_type='set_mn',
-                 m_sp=0.5, n_sp=1., a_sp=None, b_sp=None, c_sp=None,
-                 use_W=None, use_Q=None, **kwds):
+    def __init__(
+        self,
+        grid,
+        K_sp=None,
+        threshold_sp=0.,
+        sp_type="set_mn",
+        m_sp=0.5,
+        n_sp=1.,
+        a_sp=None,
+        b_sp=None,
+        c_sp=None,
+        use_W=None,
+        use_Q=None,
+        **kwds
+    ):
         """Initialize the StreamPowerEroder
 
         Parameters
@@ -215,17 +219,19 @@ class StreamPowerEroder(Component):
             in Wh&T's 1999 derivation, if you are setting m and n through a, b,
             and c.
         """
-        if 'flow__receiver_node' in grid.at_node:
-            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-                msg = ('A route-to-multiple flow director has been '
-                       'run on this grid. The landlab development team has not '
-                       'verified that StreamPowerEroder is compatible with '
-                       'route-to-multiple methods. Please open a GitHub Issue '
-                       'to start this process.')
+        if "flow__receiver_node" in grid.at_node:
+            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The landlab development team has not "
+                    "verified that StreamPowerEroder is compatible with "
+                    "route-to-multiple methods. Please open a GitHub Issue "
+                    "to start this process."
+                )
                 raise NotImplementedError(msg)
 
-        if type(use_Q) is str and use_Q == 'water__discharge':
-            use_Q = 'surface_water__discharge'
+        if type(use_Q) is str and use_Q == "water__discharge":
+            use_Q = "surface_water__discharge"
         self._grid = grid
 
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
@@ -233,10 +239,10 @@ class StreamPowerEroder(Component):
             self._K_unit_time = K_sp
         else:
             try:
-                self._K_unit_time = self.grid.zeros('node', dtype=float)
+                self._K_unit_time = self.grid.zeros("node", dtype=float)
                 self._K_unit_time.fill(K_sp)
             except ValueError:  # could not cast => was a str
-                if K_sp == 'array':
+                if K_sp == "array":
                     self.use_K = True
                 else:
                     self._K_unit_time = grid.at_node[K_sp]
@@ -259,7 +265,7 @@ class StreamPowerEroder(Component):
         else:
             self.set_threshold = False
         try:
-            self.tstep = kwds['dt']
+            self.tstep = kwds["dt"]
         except KeyError:
             self.tstep = None
             # retained for back compatibility; undocumented functionality
@@ -290,19 +296,23 @@ class StreamPowerEroder(Component):
                 assert use_Q.size == self._grid.number_of_nodes
                 self._Q = use_Q
         self._type = sp_type
-        if sp_type is 'set_mn':
-            assert (float(m_sp) >= 0.) and (float(n_sp) >= 0.), \
-                "m and n must be positive"
+        if sp_type is "set_mn":
+            assert (float(m_sp) >= 0.) and (
+                float(n_sp) >= 0.
+            ), "m and n must be positive"
             self._m = float(m_sp)
             self._n = float(n_sp)
-            assert ((a_sp is None) and (b_sp is None) and (c_sp is None)), (
-                "If sp_type is 'set_mn', do not pass values for a, b, or c!")
+            assert (
+                (a_sp is None) and (b_sp is None) and (c_sp is None)
+            ), "If sp_type is 'set_mn', do not pass values for a, b, or c!"
         else:
-            assert sp_type in ('Total', 'Unit', 'Shear_stress'), (
-                "sp_type not recognised. It must be 'set_mn', 'Total', " +
-                "'Unit', or 'Shear_stress'.")
-            assert (m_sp == 0.5 and n_sp == 1.), \
-                "Do not set m and n if sp_type is not 'set_mn'!"
+            assert sp_type in ("Total", "Unit", "Shear_stress"), (
+                "sp_type not recognised. It must be 'set_mn', 'Total', "
+                + "'Unit', or 'Shear_stress'."
+            )
+            assert (
+                m_sp == 0.5 and n_sp == 1.
+            ), "Do not set m and n if sp_type is not 'set_mn'!"
             assert float(a_sp) >= 0., "a must be positive"
             self._a = float(a_sp)
             if b_sp is not None:
@@ -317,34 +327,43 @@ class StreamPowerEroder(Component):
             else:
                 assert self.use_Q, "c was not set"
                 self._c = 1.
-            if self._type == 'Total':
+            if self._type == "Total":
                 self._n = self._a
-                self._m = self._a*self._c  # ==_a if use_Q
-            elif self._type == 'Unit':
+                self._m = self._a * self._c  # ==_a if use_Q
+            elif self._type == "Unit":
                 self._n = self._a
-                self._m = self._a*self._c*(1.-self._b)
+                self._m = self._a * self._c * (1. - self._b)
                 # ^ ==_a iff use_Q&use_W etc
-            elif self._type == 'Shear_stress':
-                self._m = 2.*self._a*self._c*(1.-self._b)/3.
-                self._n = 2.*self._a/3.
+            elif self._type == "Shear_stress":
+                self._m = 2. * self._a * self._c * (1. - self._b) / 3.
+                self._n = 2. * self._a / 3.
             else:
-                raise MissingKeyError('Not enough information was provided ' +
-                                      'on the exponents to use!')
+                raise MissingKeyError(
+                    "Not enough information was provided " + "on the exponents to use!"
+                )
         # m and n will always be set, but care needs to be taken to include Q
         # and W directly if appropriate
 
-        self.stream_power_erosion = grid.zeros(centering='node')
-        self.alpha = self.grid.zeros('node')
+        self.stream_power_erosion = grid.zeros(centering="node")
+        self.alpha = self.grid.zeros("node")
 
-    def erode(self, grid, dt, elevs='topographic__elevation',
-              drainage_areas='drainage_area',
-              flow_receiver='flow__receiver_node',
-              order_upstream='flow__upstream_node_order',
-              slopes_at_nodes='topographic__steepest_slope',
-              link_mapping='flow__link_to_receiver_node',
-              link_slopes=None, slopes_from_elevs=None,
-              W_if_used=None, Q_if_used=None, K_if_used=None,
-              flooded_nodes=None):
+    def erode(
+        self,
+        grid,
+        dt,
+        elevs="topographic__elevation",
+        drainage_areas="drainage_area",
+        flow_receiver="flow__receiver_node",
+        order_upstream="flow__upstream_node_order",
+        slopes_at_nodes="topographic__steepest_slope",
+        link_mapping="flow__link_to_receiver_node",
+        link_slopes=None,
+        slopes_from_elevs=None,
+        W_if_used=None,
+        Q_if_used=None,
+        K_if_used=None,
+        flooded_nodes=None,
+    ):
         """
         .. note:: deprecated
             This run method is now DEPRECATED. Use the fully standardized
@@ -431,20 +450,23 @@ class StreamPowerEroder(Component):
             stream_power_erosion is not an excess stream power; any specified
             erosion threshold is not incorporated into it.
         """
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that StreamPowerEroder is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
+        if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+            msg = (
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that StreamPowerEroder is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
             raise NotImplementedError(msg)
         if type(order_upstream) is str:
             upstream_order_IDs = grid.at_node[order_upstream]
         else:
-            upstream_order_IDs = self._grid['node'][order_upstream]
+            upstream_order_IDs = self._grid["node"][order_upstream]
 
-        defined_flow_receivers = np.not_equal(self._grid['node'][
-            link_mapping], UNDEFINED_INDEX)
+        defined_flow_receivers = np.not_equal(
+            self._grid["node"][link_mapping], UNDEFINED_INDEX
+        )
 
         try:
             length_of_link = self._grid.length_of_d8
@@ -452,27 +474,38 @@ class StreamPowerEroder(Component):
             length_of_link = self._grid.length_of_link
 
         flow_link_lengths = length_of_link[
-            self._grid.at_node[link_mapping][defined_flow_receivers]]
-        flow_receivers = self.grid['node'][flow_receiver]
+            self._grid.at_node[link_mapping][defined_flow_receivers]
+        ]
+        flow_receivers = self.grid["node"][flow_receiver]
 
         if W_if_used is not None:
-            assert self.use_W, ("Widths were provided, but you didn't set " +
-                                "the use_W flag in your input file! " +
-                                "Aborting...")
-            assert self._W is None, ("Do not pass W to the run method " +
-                                     "if you also set them at initialization!")
+            assert self.use_W, (
+                "Widths were provided, but you didn't set "
+                + "the use_W flag in your input file! "
+                + "Aborting..."
+            )
+            assert self._W is None, (
+                "Do not pass W to the run method "
+                + "if you also set them at initialization!"
+            )
 
         if Q_if_used is not None:
-            assert self.use_Q, ("Discharges were provided, but you didn't " +
-                                "set the use_Q flag in your input file! " +
-                                "Aborting...")
-            assert self._Q is None, ("Do not pass Q to the run method " +
-                                     "if you also set them at initialization!")
+            assert self.use_Q, (
+                "Discharges were provided, but you didn't "
+                + "set the use_Q flag in your input file! "
+                + "Aborting..."
+            )
+            assert self._Q is None, (
+                "Do not pass Q to the run method "
+                + "if you also set them at initialization!"
+            )
 
         if K_if_used is not None:
-            assert self.use_K, ("An array of erodabilities was provided, " +
-                                "but you didn't set K_sp to 'array' in your " +
-                                "input file! Aborting...")
+            assert self.use_K, (
+                "An array of erodabilities was provided, "
+                + "but you didn't set K_sp to 'array' in your "
+                + "input file! Aborting..."
+            )
             try:
                 _K_unit_time = grid.at_node[K_if_used]
             except TypeError:
@@ -501,9 +534,11 @@ class StreamPowerEroder(Component):
         # Operate the main function:
         if self.use_W is False and self.use_Q is False:  # normal case
             self.alpha[defined_flow_receivers] = (
-                _K_unit_time[defined_flow_receivers]*dt*A[
-                    defined_flow_receivers]**self._m /
-                (flow_link_lengths**self._n))
+                _K_unit_time[defined_flow_receivers]
+                * dt
+                * A[defined_flow_receivers] ** self._m
+                / (flow_link_lengths ** self._n)
+            )
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
                 self.alpha[flooded_nodes] = 0.
@@ -531,9 +566,12 @@ class StreamPowerEroder(Component):
                 else:
                     Q_direct = self._Q
                 self.alpha[defined_flow_receivers] = (
-                    _K_unit_time[defined_flow_receivers]*dt *
-                    Q_direct[defined_flow_receivers]**self._m /
-                    W[defined_flow_receivers] / (flow_link_lengths**self._n))
+                    _K_unit_time[defined_flow_receivers]
+                    * dt
+                    * Q_direct[defined_flow_receivers] ** self._m
+                    / W[defined_flow_receivers]
+                    / (flow_link_lengths ** self._n)
+                )
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
                     self.alpha[flooded_nodes] = 0.
@@ -546,9 +584,12 @@ class StreamPowerEroder(Component):
 
             else:  # just W to be used
                 self.alpha[defined_flow_receivers] = (
-                    _K_unit_time[defined_flow_receivers]*dt *
-                    A[defined_flow_receivers]**self._m /
-                    W[defined_flow_receivers] / flow_link_lengths**self._n)
+                    _K_unit_time[defined_flow_receivers]
+                    * dt
+                    * A[defined_flow_receivers] ** self._m
+                    / W[defined_flow_receivers]
+                    / flow_link_lengths ** self._n
+                )
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
                     self.alpha[flooded_nodes] = 0.
@@ -569,9 +610,11 @@ class StreamPowerEroder(Component):
             else:
                 Q_direct = self._Q
             self.alpha[defined_flow_receivers] = (
-                _K_unit_time[defined_flow_receivers]*dt *
-                Q_direct[defined_flow_receivers]**self._m /
-                flow_link_lengths**self._n)
+                _K_unit_time[defined_flow_receivers]
+                * dt
+                * Q_direct[defined_flow_receivers] ** self._m
+                / flow_link_lengths ** self._n
+            )
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
                 self.alpha[flooded_nodes] = 0.
@@ -585,12 +628,12 @@ class StreamPowerEroder(Component):
         # solve using Brent's Method in Cython for Speed
         if isinstance(threshdt, float):
             brent_method_erode_fixed_threshold(
-                upstream_order_IDs, flow_receivers, threshdt, self.alpha,
-                self._n, z)
+                upstream_order_IDs, flow_receivers, threshdt, self.alpha, self._n, z
+            )
         else:
             brent_method_erode_variable_threshold(
-                upstream_order_IDs, flow_receivers, threshdt, self.alpha,
-                self._n, z)
+                upstream_order_IDs, flow_receivers, threshdt, self.alpha, self._n, z
+            )
 
         return grid, z, self.stream_power_erosion
 

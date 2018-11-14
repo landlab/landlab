@@ -9,10 +9,10 @@ automated fashion. To modify the text seen on the web, edit the files
 """
 
 import numpy
-from six.moves import range
+
+from landlab.utils.decorators import deprecated
 
 from .voronoi import VoronoiDelaunayGrid
-from landlab.utils.decorators import deprecated
 
 
 class RadialModelGrid(VoronoiDelaunayGrid):
@@ -119,9 +119,11 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         """
         LLCATS: GINF
         """
-        num_shells = params.pop("num_shells")
+        num_shells = params["num_shells"]
+        dr = params.get("dr", 1.)
+        origin = params.get("origin", (0., 0.))
 
-        return cls(num_shells=num_shells, **params)
+        return cls(num_shells=num_shells, dr=dr, origin_x=origin[0], origin_y=origin[1])
 
     def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
         [pts, npts] = self._create_radial_points(num_shells, dr)
@@ -239,7 +241,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             return self._node_radii
         except AttributeError:
             self._node_radii = numpy.sqrt(
-                numpy.square(self.node_x - self._origin[1])
-                + numpy.square(self.node_y - self._origin[0])
+                numpy.square(self.node_x - self._origin_x)
+                + numpy.square(self.node_y - self._origin_y)
             )
             return self._node_radii

@@ -1,9 +1,7 @@
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab import BAD_INDEX_VALUE as XX
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import RasterModelGrid
-import landlab.grid.mappers as maps
 
 
 class TestPatchesAtNode:

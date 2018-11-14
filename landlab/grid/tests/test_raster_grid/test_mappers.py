@@ -1,8 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
 import landlab.grid.mappers as maps
+from landlab import RasterModelGrid
 
 
 class TestLinkEndsToLink:

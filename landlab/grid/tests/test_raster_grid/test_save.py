@@ -2,11 +2,10 @@
 import os
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 
+from landlab import RasterModelGrid
 from landlab.io import read_esri_ascii
 from landlab.io.netcdf import read_netcdf
-from landlab import RasterModelGrid
 
 
 def test_save_esri_ascii(tmpdir):

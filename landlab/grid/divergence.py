@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Calculate vector divergence and related quantities at nodes or cells."""
 import numpy as np
+
 from landlab.utils.decorators import use_field_name_or_array
 
 
@@ -50,8 +51,8 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
-            
-            
+
+
     Notes
     -----
     Performs a numerical flux divergence operation on nodes.
@@ -77,10 +78,10 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
 def calc_flux_div_at_cell(grid, unit_flux, out=None):
     """Calculate divergence of link-based fluxes at cells.
 
-    This function is very similar to the function *calc_flux_div_at_node*. 
-    
-    Given a flux per unit width across each cell face in the grid, calculate 
-    the net outflux (or influx, if negative) divided by cell area, at each 
+    This function is very similar to the function *calc_flux_div_at_node*.
+
+    Given a flux per unit width across each cell face in the grid, calculate
+    the net outflux (or influx, if negative) divided by cell area, at each
     cell.
 
     Parameters
@@ -123,7 +124,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> _ = rg.add_field('neg_grad_at_link', -lg, at = 'link')
     >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
     array([ 1.64,  0.94])
-            
+
     Notes
     -----
     Performs a numerical flux divergence operation at cells.

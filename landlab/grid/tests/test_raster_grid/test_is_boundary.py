@@ -1,8 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import FIXED_GRADIENT_BOUNDARY
-from landlab import RasterModelGrid
+from landlab import FIXED_GRADIENT_BOUNDARY, RasterModelGrid
 
 
 def test_id_as_int():

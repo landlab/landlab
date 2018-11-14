@@ -14,8 +14,8 @@ gradient functions:
 a consistent way to sort
     - nodes: by y then x
     - links and faces: by junction coords (y then x)
-    
-    
+
+
 Notes:
 
     grads_at_links:
@@ -36,19 +36,18 @@ IN A HEX-SHAPED OR RECTANGULAR HEX, SLIGHTLY MORE COMPLICATED BUT NOT TOO BAD.
 IN A GENERAL VORONOI...??
 FIRST THING PROBABLY IS TO FIX LINK_AT_FACE FOR RASTER, THEN IMPLEMENT FOR HEX.
 """
+import numpy as np
+from numpy.testing import assert_array_equal
 from six.moves import range
 
 from landlab import HexModelGrid
-import numpy as np
-from numpy.testing import assert_array_equal
-import time
 
 MAX_NUM_LINKS = 6
 
 
 def gt_grads_at_faces1(grid, nv):
 
-    lg = (nv[grid.node_at_link_head] - nv[grid.node_at_link_tail]) / grid.length_of_link
+    # lg = (nv[grid.node_at_link_head] - nv[grid.node_at_link_tail]) / grid.length_of_link
     # return lg[grid.link_at_face]
     return None  # temporary
 
@@ -121,7 +120,7 @@ def make_links_at_node_array(grid):
 
 
 def testing_flux_divergence_with_hex():
-    """Test flux divergence function(s).
+    r"""Test flux divergence function(s).
 
     Notes
     -----
@@ -130,7 +129,7 @@ def testing_flux_divergence_with_hex():
         (7)-17-.(8)-18-.(9)
         . .     . .     . .
       11  12  13  14  15  16
-      /     \ /     \ /     \ 
+      /     \ /     \ /     \
     (3)--8-.(4)--9-.(5)-10-.(6)
       .     . .     . .     .
        2   3   4   5   6   7
@@ -184,11 +183,8 @@ def testing_flux_divergence_with_hex():
     # gt_calc_gradients_at_faces(hmg, nv)
     # gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
 
-    # Some time trials
-    start = time.time()
     for i in range(1000):
         gt_grads_at_faces1(hmg, nv)
-    endtime = time.time()
 
 
 if __name__ == "__main__":

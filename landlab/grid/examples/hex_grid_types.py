@@ -9,9 +9,10 @@ Created on Sun Nov 16 09:25:04 2014
 @author: gtucker
 """
 
-from landlab import HexModelGrid
 from numpy import arange
 from pylab import figure, show, title
+
+from landlab import HexModelGrid
 
 # Case 1: Make and display a hex-shaped grid with horizontal rows of nodes
 

@@ -3,7 +3,6 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 
-
 _GRIDS = {}
 
 
