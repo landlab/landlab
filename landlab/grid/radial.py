@@ -61,7 +61,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
 
     >>> omg = RadialModelGrid(2)
     >>> omg.number_of_nodes
-    20
+    19
     """
 
     def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
@@ -106,7 +106,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
 
         >>> omg = RadialModelGrid(2)
         >>> omg.number_of_nodes
-        20
+        19
         """
         if "xy_of_center" not in kwds:
             DualRadialGraph.__init__(
