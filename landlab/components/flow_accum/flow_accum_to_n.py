@@ -598,7 +598,9 @@ def find_drainage_area_and_discharge_to_n_lossy(
     Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
-    locally within a cell is always retained.
+    locally within a cell is always retained. The loss on each link is
+    recorded in the 'surface_water__discharge_loss' link field on the grid;
+    ensure this exists before running the function.
 
     Parameters
     ----------
@@ -669,6 +671,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
     grid for link input.
 
     >>> mg = RasterModelGrid((3, 3), 1.)
+    >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
     >>> lossy = mg.add_ones('link', 'lossy', dtype=float)
     >>> lossy *= 0.5
     >>> def lossfunc(Qw, dummyn, linkID, grid):
@@ -680,13 +683,18 @@ def find_drainage_area_and_discharge_to_n_lossy(
     array([ 1. ,  2.7,  1.5,  4. ])
     >>> q
     array([ 1.  ,  1.75,  1.25,  2.  ])
+    >>> np.allclose(mg.at_node['surface_water__discharge_loss'][:3], 0.5*q[:3])
+    True
+
+    Note by definition no loss is occuring at the outlet node, as there are no
+    nodes downstream.
 
     Final example of total transmission loss:
 
     >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
     ...     return Qw - 100.  # huge loss
     >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
-    ...     s, r, l, p, lossfunc, None)
+    ...     s, r, l, p, lossfunc, mg)
     >>> a
     array([ 1. ,  2.7,  1.5,  4. ])
     >>> q
@@ -702,6 +710,8 @@ def find_drainage_area_and_discharge_to_n_lossy(
     # rate times the cell's surface area.
     drainage_area = numpy.zeros(np) + node_cell_area
     discharge = numpy.zeros(np) + node_cell_area * runoff
+
+    # grab the field to ouput loss to
 
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:
@@ -719,9 +729,13 @@ def find_drainage_area_and_discharge_to_n_lossy(
             if proportion > 0:
                 if donor != recvr:
                     drainage_area[recvr] += proportion * drainage_area[donor]
-                    discharge[recvr] += numpy.clip(loss_function(
-                        proportion * discharge[donor], donor, lrec, grid),
+                    discharge_head = proportion * discharge[donor]
+                    discharge_remaining = numpy.clip(loss_function(
+                        discharge_head, donor, lrec, grid),
                         0., float('inf'))
+                    grid.at_node['surface_water__discharge_loss'][
+                        donor] += discharge_head - discharge_remaining
+                    discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge
 
