@@ -35,9 +35,13 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     E = K * q ** m_sp * S ** n_sp - optional threshold (see above)
 
-    Note that in this implementation v_s becomes the parameter that
-    fundamentally controls response style. Very small v_s will lead to a
-    detachment-limited response style, very large v_s will lead to a
+    Note that the transition between transport-limited and detachment-limited
+    behavior is controlled by the dimensionless ratio (v_s/r) where r is the
+    runoff ratio (Q=Ar). r can be changed in the flow accumulation component
+    but is not changed within ErosionDeposition. Because the runoff ratio r 
+    is not changed within the ErosionDeposition component,  v_s becomes the 
+    parameter that fundamentally controls response style. Very small v_s will 
+    lead to a detachment-limited response style, very large v_s will lead to a
     transport-limited response style. v_s == 1 means equal contributions from
     transport and erosion, and a hybrid response as described by Davy & Lague.
 
