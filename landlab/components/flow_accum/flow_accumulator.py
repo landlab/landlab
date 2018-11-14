@@ -931,52 +931,49 @@ class FlowAccumulator(Component):
             4. Depression finding and mapping, which updates drainage area and
             discharge.
         """
+        # set a couple of aliases
+        a = self._grid["node"]["drainage_area"]
+        q = self._grid["node"]["surface_water__discharge"]
+
         # step 1. Find flow directions by specified method
         if update_flow_director:
             self.flow_director.run_one_step()
 
         # further steps vary depending on how many recievers are present
         # one set of steps is for route to one (D8, Steepest/D4)
+
+        # step 2. Get r
+        r = self._grid["node"]["flow__receiver_node"]
+
         if self.flow_director.to_n_receivers == "one":
 
-            # step 3. Run depression finder if passed
+            # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.
+            # At the moment, no depression finders work with to-many, so it
+            # lives here
             if self.depression_finder_provided is not None:
-
                 self.depression_finder.map_depressions()
 
-            a = self._grid["node"]["drainage_area"]
-            q = self._grid["node"]["surface_water__discharge"]
-
-            # step 2. Get r
-            r = self._grid["node"]["flow__receiver_node"]
-
-            # step 2. Stack, D, delta construction
+            # step 3. Stack, D, delta construction
             nd = flow_accum_bw._make_number_of_donors_array(r)
             delta = flow_accum_bw._make_delta_array(nd)
             D = flow_accum_bw._make_array_of_donors(r, delta)
             s = flow_accum_bw.make_ordered_node_array(r)
-            ###############link = self._grid.at_node['flow__link_to_receiver_node']
 
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-            self._grid["link"]["flow__data_structure_D"][: len(D)] = D
+            self._grid["link"]["flow__data_structure_D"][:len(D)] = D
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
-            # step 4. Accumulate (to one or to N depending on direction method. )
-            a, q = self._accumulate_A_Q_to_one(s, r)
-
-            self._grid["node"]["drainage_area"][:] = a
-            self._grid["node"]["surface_water__discharge"][:] = q
+            # step 4. Accumulate (to one or to N depending on direction method)
+            a[:], q[:] = self._accumulate_A_Q_to_one(s, r)
 
         else:
-            # step 2. Get r and p
-            r = self._grid["node"]["flow__receiver_node"]
+            # Get p
             p = self._grid["node"]["flow__receiver_proportions"]
-            #################link = self._grid.at_node['flow__link_to_receiver_node']
 
-            # step 2. Stack, D, delta construction
+            # step 3. Stack, D, delta construction
             nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
             delta = flow_accum_to_n._make_delta_array_to_n(nd)
             D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
@@ -993,23 +990,11 @@ class FlowAccumulator(Component):
                 self._grid["link"]["flow__data_structure_D"][
                     :] = tempD.reshape((self._grid.number_of_links, 2))
             else:
-                self._grid["link"]["flow__data_structure_D"][: len(D)] = D
+                self._grid["link"]["flow__data_structure_D"][:len(D)] = D
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
-            # step 3. Run depression finder if passed
-            # at present this must go at the end.
-
-            # step 4. Accumulate (to one or to N depending on direction method. )
-            a, q = self._accumulate_A_Q_to_n(s, r, p)
-
-            # store drainage area and discharge.
-            self._grid["node"]["drainage_area"][:] = a
-            self._grid["node"]["surface_water__discharge"][:] = q
-
-            # at the moment, this is where the depression finder needs to live.
-            # at the moment, no depression finders work with to-many
-            # if self.depression_finder_provided is not None:
-            #     self.depression_finder.map_depressions()
+            # step 4. Accumulate (to one or to N depending on direction method)
+            a[:], q[:] = self._accumulate_A_Q_to_n(s, r, p)
 
         return (a, q)
 
@@ -1022,7 +1007,7 @@ class FlowAccumulator(Component):
             s, r, self.node_cell_area,
             self._grid.at_node["water__unit_flux_in"]
         )
-        return a, q
+        return (a, q)
 
     def _accumulate_A_Q_to_n(self, s, r, p):
         """
@@ -1033,7 +1018,7 @@ class FlowAccumulator(Component):
             s, r, p, self.node_cell_area,
             self._grid.at_node["water__unit_flux_in"]
         )
-        return a, q
+        return (a, q)
 
     def run_one_step(self):
         """
@@ -1047,7 +1032,7 @@ class FlowAccumulator(Component):
         An alternative to run_one_step() is accumulate_flow() which does the
         same things but also returns the drainage area and discharge.
         """
-        self.accumulate_flow()
+        _ = self.accumulate_flow()
 
 
 if __name__ == "__main__":  # pragma: no cover
