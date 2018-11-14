@@ -80,6 +80,7 @@ class RadialGraph(VoronoiGraph):
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True
         )
 
+        self._shell_spacing = spacing
         self._shape = tuple(shape)
         self._xy_of_center = xy_of_center
 
@@ -108,6 +109,24 @@ class RadialGraph(VoronoiGraph):
         LLCATS: GINF
         """
         return self._shape[0]
+
+    @property
+    def spacing_of_shells(self):
+        """Fixed distance between shells.
+
+        Returns
+        -------
+        ndarray of float
+            The distance from the center node of each node.
+
+        >>> from landlab.graph import RadialGraph
+        >>> graph = RadialGraph((2, 6), spacing=2.)
+        >>> graph.spacing_of_shells
+        2.0
+
+        LLCATS: GINF MEAS
+        """
+        return self._shell_spacing
 
     @property
     def radius_at_node(self):
