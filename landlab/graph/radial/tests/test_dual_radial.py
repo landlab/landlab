@@ -44,9 +44,9 @@ def test_spacing_keyword():
     )
 
 
-def test_origin():
-    """Test the origin keyword for raster."""
-    graph = DualRadialGraph((1, 4), spacing=2., origin=(-1., 2))
+def test_xy_of_center():
+    """Test the xy_of_center keyword for raster."""
+    graph = DualRadialGraph((1, 4), spacing=2., xy_of_center=(2., -1.))
 
     assert_array_almost_equal(
         graph.xy_of_node, [[2., -3.], [0., -1.], [2., -1.], [4., -1.], [2., 1.]]

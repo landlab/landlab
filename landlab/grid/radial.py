@@ -108,7 +108,15 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         >>> omg.number_of_nodes
         20
         """
-        DualRadialGraph.__init__(self, (num_shells, int(2. * np.pi / dr)), **kwds)
+        if "xy_of_center" not in kwds:
+            DualRadialGraph.__init__(
+                self,
+                (num_shells, int(2. * np.pi / dr)),
+                **kwds,
+                xy_of_center=(origin_x, origin_y)
+            )
+        else:
+            DualRadialGraph.__init__(self, (num_shells, int(2. * np.pi / dr)), **kwds)
 
     @classmethod
     def from_dict(cls, params):
@@ -173,12 +181,4 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
 
         LLCATS: DEPR GINF MEAS
         """
-        return self._dr
-
-    @property
-    def spacing_of_shells(self):
-        """Fixed distance between shells.
-
-        LLCATS: GINF MEAS
-        """
-        return self._dr
+        return self.spacing_of_shells

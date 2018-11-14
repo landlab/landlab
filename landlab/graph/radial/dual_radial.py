@@ -18,7 +18,7 @@ class DualRadialGraph(DualVoronoiGraph):
     array([-0.5,  0.5, -0.5,  0.5])
     """
 
-    def __init__(self, shape, spacing=1., origin=(0., 0.)):
+    def __init__(self, shape, spacing=1., xy_of_center=(0., 0.)):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
@@ -28,7 +28,7 @@ class DualRadialGraph(DualVoronoiGraph):
             in the first ring.
         spacing : float, optional
             Spacing between rings.
-        origin : tuple of float, optional
+        xy_of_center : tuple of float, optional
             Coordinates of the center of the grid.
         """
         try:
@@ -36,7 +36,7 @@ class DualRadialGraph(DualVoronoiGraph):
         except TypeError:
             raise TypeError("spacing must be a float")
 
-        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing, origin=origin)
+        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing, xy_of_center=xy_of_center)
 
         super(DualRadialGraph, self).__init__(
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True
