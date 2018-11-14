@@ -96,8 +96,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         by six other nodes.
 
         >>> from landlab import RadialModelGrid
-        >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0.,
-        ...                       origin_y=0.)
+        >>> omg = RadialModelGrid(num_shells=1, dr=1.)
         >>> omg.number_of_nodes
         7
         >>> omg.number_of_cells
@@ -166,20 +165,6 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         pts[:, 1] += origin_y
 
         return pts, npts
-
-    @property
-    def number_of_shells(self):
-        """Number of node shells in grid.
-
-        Returns
-        -------
-        int
-            The number of node shells in the radial grid (not counting the
-            center node).
-
-        LLCATS: GINF
-        """
-        return self._n_shells
 
     @property
     @deprecated(use="spacing_of_shells", version=1.0)

@@ -80,11 +80,34 @@ class RadialGraph(VoronoiGraph):
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True
         )
 
+        self._n_shells = shape[0]
         self._xy_of_center = xy_of_center
 
     @property
     def xy_of_center(self):
         return self._xy_of_center
+
+    @property
+    def number_of_shells(self):
+        """Number of node shells in grid.
+
+        Returns
+        -------
+        int
+            The number of node shells in the radial grid (not counting the
+            center node).
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import RadialGraph
+        >>> graph = RadialGraph((1, 4))
+        >>> graph.number_of_shells
+        1
+
+        LLCATS: GINF
+        """
+        return self._n_shells
 
     @property
     def radius_at_node(self):
