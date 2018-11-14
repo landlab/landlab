@@ -80,7 +80,7 @@ class RadialGraph(VoronoiGraph):
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True
         )
 
-        self._n_shells = shape[0]
+        self._shape = tuple(shape)
         self._xy_of_center = xy_of_center
 
     @property
@@ -107,7 +107,7 @@ class RadialGraph(VoronoiGraph):
 
         LLCATS: GINF
         """
-        return self._n_shells
+        return self._shape[0]
 
     @property
     def radius_at_node(self):
@@ -130,3 +130,21 @@ class RadialGraph(VoronoiGraph):
             np.square(self.x_of_node - self._xy_of_center[0])
             + np.square(self.y_of_node - self._xy_of_center[1])
         )
+
+    @property
+    def number_of_nodes_in_shell(self):
+        """Number of nodes in each shell.
+
+        Returns
+        -------
+        ndarray of int
+            Number of nodes in each shell, excluding the center node.
+
+        >>> from landlab.graph import RadialGraph
+        >>> graph = RadialGraph((4, 6))
+        >>> graph.number_of_nodes_in_shell
+        array([ 6, 12, 18, 24])
+
+        LLCATS: NINF MEAS
+        """
+        return np.arange(1, self._shape[0] + 1) * self._shape[1]

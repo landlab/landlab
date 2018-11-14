@@ -182,23 +182,3 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         LLCATS: GINF MEAS
         """
         return self._dr
-
-    @property
-    def number_of_nodes_in_shell(self):
-        """Number of nodes in each shell.
-
-        Returns
-        -------
-        int
-            Number of nodes in each shell, excluding the center node.
-
-        LLCATS: GINF NINF
-        """
-        try:
-            return self._nnodes_inshell
-        except AttributeError:
-            n_pts_in_shell = np.round(
-                2. * np.pi * (np.arange(self.number_of_shells, dtype=float) + 1.)
-            )
-            self._nnodes_inshell = n_pts_in_shell.astype(int)
-            return self._nnodes_inshell
