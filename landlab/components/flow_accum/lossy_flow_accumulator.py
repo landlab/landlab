@@ -1,31 +1,16 @@
 #!/usr/env/python
 
 """
-flow_accumulator.py: Component to accumulate flow and calculate drainage area.
+lossy_flow_accumulator.py: Component to accumulate flow and calc drainage area,
+while permitting gain or loss of discharge during flow.
 
-Provides the FlowAccumulator component which accumulates flow and calculates
-drainage area. FlowAccumulator supports multiple methods for calculating flow
-direction. Optionally a depression finding component can be specified and flow
-directing, depression finding, and flow routing can all be accomplished
-together.
+DEJH, late 2018
 """
-
-from __future__ import print_function
-
-import warnings
-
-from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid, ModelGrid
-# ^^for type tests
-from landlab.utils.return_array import return_array_at_node
-from landlab.core.messages import warning_message
 
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.components.flow_accum import flow_accum_to_n
 from landlab.components.flow_accum import FlowAccumulator
 
-from landlab import BAD_INDEX_VALUE
-import six
 import sys
 import numpy as np
 
@@ -44,7 +29,8 @@ class LossyFlowAccumulator(FlowAccumulator):
     method and then calculating the drainage area and discharge. However,
     this component additionally requires the passing of a function that
     describes how discharge is lost or gained downstream,
-    f(Qw, nodeID, linkID, grid).
+    f(Qw, nodeID, linkID, grid). See the Examples below to see how this works
+    in practice.
 
     Optionally, spatially variable runoff can be set either by the model grid
     field 'water__unit_flux_in' or the input variable *runoff_rate**.
@@ -65,7 +51,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
         -  Node array of discharge loss in transit (vol/sec). This is the
-        total loss across all of the downstream links:
+            total loss across all of the downstream links:
             *'surface_water__discharge_loss'*
         -  Node array containing downstream-to-upstream ordered list of node
            IDs: *'flow__upstream_node_order'*
@@ -73,29 +59,18 @@ class LossyFlowAccumulator(FlowAccumulator):
             *flow__data_structure_delta*. The first element is always zero.
         -  Link array of the D data structure: *flow__data_structure_D*
 
-    The FlowDirector component will add additional ModelGrid fields.
-    DirectToOne methods(Steepest/D4 and D8) and DirectToMany(DINF and MFD) use
-    the same model grid field names. Some of these fields may be different
-    shapes if a DirectToOne or a DirectToMany method is used.
-
-    The FlowDirectors store the following as ModelGrid fields:
+    The FlowDirector component will add additional ModelGrid fields; see the
+    FlowAccumulator component for full details. These are:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*. This array is 2D for
-           RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
-        -  Node array of flow proportions: *'flow__receiver_proportions'*. This
-           array is 2D, for RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
-        -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
-           This array is 2D for RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            there is no receiver: *'flow__receiver_node'*
+        -  Node array of flow proportions: *'flow__receiver_proportions'*
+        -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*
         -  Node array of downhill slopes from each receiver:
-           *'topographic__steepest_slope'* This array is 2D for RouteToMany
-           methods and has the shape (n-nodes x max number of receivers).
+            *'topographic__steepest_slope'*
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
-    The primary method of this class is :func:`run_one_step`
+    The primary method of this class is :func:`run_one_step`.
 
     `run_one_step` takes the optional argument update_flow_director (default is
     True) that determines if the flow_director is re-run before flow is
@@ -104,7 +79,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     Parameters
     ----------
     grid : ModelGrid
-        A grid of type Voroni.
+        A Landlab grid.
     surface : field name at node or array of length node
         The surface to direct flow across.
     flow_director : string, class, instance of class.
@@ -148,7 +123,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     Examples
     --------
     These examples pertain only to the LossyFlowAccumulator. See the main
-    FlowAccumulator documentation for more generic examples.
+    FlowAccumulator documentation for more generic and comprehensive examples.
 
     First, a very simple example. Here's a 50% loss of discharge every time
     flow moves along a node:
@@ -438,9 +413,10 @@ class LossyFlowAccumulator(FlowAccumulator):
                 return float(Qw)
             self._lossfunc = lossfunc
 
-        # add the new loss discharge field:
-        _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
-                                dtype=float, noclobber=False)
+        # add the new loss discharge field if necessary:
+        if 'surface_water__discharge_loss' not in grid.at_link:
+            _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
+                                    dtype=float, noclobber=False)
 
     def _accumulate_A_Q_to_one(self, s, r):
         """

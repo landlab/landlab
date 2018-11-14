@@ -53,7 +53,7 @@ class FlowAccumulator(Component):
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
         -  Node array containing downstream-to-upstream ordered list of node
-           IDs: *'flow__upstream_node_order'*
+            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
         -  Link array of the D data structure: *flow__data_structure_D*
@@ -66,18 +66,18 @@ class FlowAccumulator(Component):
     The FlowDirectors store the following as ModelGrid fields:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*. This array is 2D for
-           RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            there is no receiver: *'flow__receiver_node'*. This array is 2D for
+            RouteToMany methods and has the shape
+            (n-nodes x max number of receivers).
         -  Node array of flow proportions: *'flow__receiver_proportions'*. This
-           array is 2D, for RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            array is 2D, for RouteToMany methods and has the shape
+            (n-nodes x max number of receivers).
         -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
-           This array is 2D for RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            This array is 2D for RouteToMany methods and has the shape
+            (n-nodes x max number of receivers).
         -  Node array of downhill slopes from each receiver:
-           *'topographic__steepest_slope'* This array is 2D for RouteToMany
-           methods and has the shape (n-nodes x max number of receivers).
+            *'topographic__steepest_slope'* This array is 2D for RouteToMany
+            methods and has the shape (n-nodes x max number of receivers).
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`
