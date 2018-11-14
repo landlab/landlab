@@ -1,3 +1,81 @@
+"""
+Examples
+--------
+
+::
+
+        * - *
+       / \ / \
+      * - * - *
+     / \ / \ / \
+    * - * - * - *
+     \ / \ / \ /
+      * - * - *
+       \ / \ /
+        * - *
+
+>>> from landlab.graph import HexGraph
+>>> graph = HexGraph((5, 2), node_layout="hex")
+>>> graph.number_of_nodes
+14
+>>> graph.x_of_node
+array([ 0. ,  1. ,
+       -0.5,  0.5,  1.5,
+       -1. ,  0. ,  1. ,  2. ,
+       -0.5,  0.5, 1.5,
+        0. ,  1. ])
+>>> graph.number_of_links
+29
+>>> graph.number_of_patches
+16
+
+::
+
+    * - * - * - *
+     \ / \ / \ / \
+      * - * - * - *
+     / \ / \ / \ /
+    * - * - * - *
+
+>>> from landlab.graph import HexGraph
+>>> graph = HexGraph((3, 4), orientation="horizontal", node_layout="rect")
+>>> graph.number_of_nodes
+12
+>>> graph.x_of_node.reshape((3, 4))
+array([[ 0. ,  1. ,  2. ,  3. ],
+       [ 0.5,  1.5,  2.5,  3.5],
+       [ 0. ,  1. ,  2. ,  3. ]])
+>>> graph.number_of_links
+23
+>>> graph.number_of_patches
+12
+
+::
+
+  * - * - * - *
+   \ / \ / \ /
+    * - * - *
+   / \ / \ / \
+  * - * - * - *
+   \ / \ / \ /
+    * - * - *
+
+>>> from landlab.graph import HexGraph
+>>> graph = HexGraph((4, 3), orientation="horizontal", node_layout="rect1")
+>>> graph.number_of_nodes
+14
+>>> graph.x_of_node
+array([ 0.5,  1.5,  2.5,
+        0. ,  1. ,  2. ,  3. ,
+        0.5,  1.5,  2.5,
+        0. ,  1. ,  2. ,  3. ])
+>>> graph.number_of_links
+28
+>>> graph.number_of_patches
+15
+"""
+
+
 import numpy as np
 
 from ...utils.decorators import cache_result_in_object, make_return_array_immutable
