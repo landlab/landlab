@@ -164,6 +164,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         25
         """
         DualVoronoiGraph.__init__(self, (y, x), **kwds)
+        ModelGrid.__init__(self, **kwds)
 
     def _initialize(self, x, y, reorient_links=True):
         """

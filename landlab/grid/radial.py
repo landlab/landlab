@@ -117,6 +117,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
             )
         else:
             DualRadialGraph.__init__(self, (num_shells, int(2. * np.pi / dr)), **kwds)
+        ModelGrid.__init__(self, **kwds)
 
     @classmethod
     def from_dict(cls, params):
