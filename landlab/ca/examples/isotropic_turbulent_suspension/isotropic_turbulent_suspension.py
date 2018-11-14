@@ -11,10 +11,12 @@ Written by Greg Tucker, February 2015
 """
 
 import time
+
 import matplotlib
 from numpy import where
+
 from landlab import RasterModelGrid
-from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.celllab_cts import CAPlotter, Transition
 from landlab.ca.raster_cts import RasterCTS
 
 

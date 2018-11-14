@@ -3,8 +3,9 @@
 
 
 from landlab.core import model_parameter_dictionary as mpd
-from .raster import from_dict as raster_from_dict
+
 from .hex import from_dict as hex_from_dict
+from .raster import from_dict as raster_from_dict
 
 
 class Error(Exception):
@@ -25,10 +26,7 @@ class BadGridTypeError(Error):
         return self._type
 
 
-_GRID_READERS = {
-    'raster': raster_from_dict,
-    'hex': hex_from_dict,
-}
+_GRID_READERS = {"raster": raster_from_dict, "hex": hex_from_dict}
 
 
 def create_and_initialize_grid(input_source):
@@ -72,7 +70,7 @@ def create_and_initialize_grid(input_source):
     else:
         param_dict = mpd.ModelParameterDictionary(from_file=input_source)
 
-    grid_type = param_dict['GRID_TYPE']
+    grid_type = param_dict["GRID_TYPE"]
 
     grid_type.strip().lower()
 

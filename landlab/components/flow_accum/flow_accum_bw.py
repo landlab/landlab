@@ -26,6 +26,7 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
+
 from .cfuncs import _add_to_stack
 
 

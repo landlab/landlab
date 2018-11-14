@@ -134,7 +134,7 @@ class _DrainageStack_to_n:
         # create base nodes set
         try:
             base = set(l)
-        except:
+        except TypeError:
             base = set([l])
 
         # instantiate the time keeping variable i, and a variable to keep track
@@ -156,13 +156,13 @@ class _DrainageStack_to_n:
             # select the nodes to visit
             visit = set(self.D[self.delta[node_i] : self.delta[node_i + 1]])
             visit = visit - base
-        
+
             # record the visit time.
             visit_time[list(visit)] = i
-        
+
             # record that they have been visited.
             num_visits[list(visit)] += 1
-        
+
             visited.update(list(visit))
 
         visited = numpy.array(list(visited))

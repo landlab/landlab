@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
+from landlab.components.flexure import Flexure
 
 
 def get_random_load_locations(shape, n_loads):

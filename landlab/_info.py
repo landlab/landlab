@@ -1,4 +1,4 @@
-name = 'landlab'
+name = "landlab"
 cite_as = [
     """@article{hobley2017creative,
     title={Creative computing with Landlab: an open-source toolkit
@@ -13,5 +13,5 @@ cite_as = [
     pages={21},
     year={2017},
     publisher={Copernicus GmbH}
-    }""",
+    }"""
 ]
