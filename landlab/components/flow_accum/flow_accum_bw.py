@@ -332,7 +332,9 @@ def find_drainage_area_and_discharge_lossy(
     Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
-    locally within a cell is always retained.
+    locally within a cell is always retained. The loss on each link is
+    recorded in the 'surface_water__discharge_loss' link field on the grid;
+    ensure this exists before running the function.
 
     Parameters
     ----------
@@ -388,16 +390,24 @@ def find_drainage_area_and_discharge_lossy(
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
     >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     >>> l = np.ones(10, dtype=int)  # dummy
+    >>> nodes_wo_outlet = np.array([0, 1, 2, 3, 5, 6, 7, 8, 9])
 
     >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
     ...     return 0.5 * Qw
-    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, None)
+    >>> mg = RasterModelGrid((3, 4), 1.)  # some grid big enough to make go
+    >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, mg)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
     array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
+    >>> np.allclose(
+    ...     mg.at_node['surface_water__discharge_loss'][nodes_wo_outlet],
+    ...     0.5*q[nodes_wo_outlet])
+    True
+    >>> np.isclose(mg.at_node['surface_water__discharge_loss'][4], 0.)
+    True
 
-    >>> mg = RasterModelGrid((3, 4), 1.)  # some grid big enough to make go
     >>> lossfield = mg.add_ones('node', 'loss_field', dtype=float)
     >>> lossfield *= 0.5
     >>> def lossfunc2(Qw, nodeID, dummyl, grid):
@@ -407,10 +417,14 @@ def find_drainage_area_and_discharge_lossy(
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
     array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
+    >>> np.allclose(
+    ...     mg.at_node['surface_water__discharge_loss'][nodes_wo_outlet],
+    ...     lossfield[nodes_wo_outlet] * q[nodes_wo_outlet])
+    True
 
     >>> def lossfunc3(Qw, nodeID, dummyl, dummygrid):
     ...     return Qw - 100.  # a huge loss
-    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc3, None)
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc3, mg)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
@@ -440,8 +454,11 @@ def find_drainage_area_and_discharge_lossy(
         lrec = l[donor]
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += numpy.clip(loss_function(
+            discharge_remaining = numpy.clip(loss_function(
                 discharge[donor], donor, lrec, grid), 0., float('inf'))
+            grid.at_node['surface_water__discharge_loss'][
+                donor] = discharge[donor] - discharge_remaining
+            discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge
 

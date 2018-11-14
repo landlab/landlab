@@ -64,6 +64,9 @@ class LossyFlowAccumulator(FlowAccumulator):
 
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
+        -  Node array of discharge loss in transit (vol/sec). This is the
+        total loss across all of the downstream links:
+            *'surface_water__discharge_loss'*
         -  Node array containing downstream-to-upstream ordered list of node
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
@@ -144,404 +147,15 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     Examples
     --------
-    (Note that examples of the use of the loss function specifically are at the
-    end of these examples.)
+    These examples pertain only to the LossyFlowAccumulator. See the main
+    FlowAccumulator documentation for more generic examples.
 
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.components import LossyFlowAccumulator
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    First, a very simple example. Here's a 50% loss of discharge every time
+    flow moves along a node:
 
-    The LossyFlowAccumulator component accumulates flow and calculates drainage
-    using all of the different methods for directing flow in Landlab. These
-    include steepest descent (also known as D4 for the case of a raster grid)
-    and D8 (on raster grids only). The method for flow director can be
-    specified as a string (e.g., 'D8' or 'FlowDirectorD8'), as an
-    uninstantiated FlowDirector component or as an instantiated FlowDirector
-    component.
-
-    The default method is to use FlowDirectorSteepest.
-
-    First let's look at the three ways to instantiate a LossyFlowAccumulator.
-    The following four methods are all equivalent. First, we can pass the
-    entire name of a flow director as a string to the argument `flow_director`:
-
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director='FlowDirectorSteepest')
-
-    Second, we can pass just the method name as a string to the argument
-    `flow_director`:
-
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director='Steepest')
-
-    Third, we can import a FlowDirector component from Landlab and pass it to
-    `flow_director`:
+    >>> from landlab import RasterModelGrid, HexModelGrid
     >>> from landlab.components import FlowDirectorSteepest
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-
-    Finally, we can instantiate a FlowDirector component and pass this
-    instantiated version to `flow_director`. You might want to do this if you
-    used a FlowDirector in order to set up something before starting a
-    time loop and then want to use the same flow director within the loop.
-
-    >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-
-    Now let's look at what LossyFlowAccumulator does. Even before we run
-    LossyFlowAccumulator it has the property `surface_values` that stores the
-    values of the surface over which flow is directed and accumulated.
-
-    >>> fa.surface_values
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-
-    Now let's make a more complicated elevation grid for the next examples.
-
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
-    >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
-    ...                                    0., 21., 10., 0.,
-    ...                                    0., 31., 20., 0.,
-    ...                                    0., 32., 30., 0.,
-    ...                                    0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node',
-    ...                    'topographic__elevation',
-    ...                    topographic__elevation)
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-    >>> fa.run_one_step()
-    >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0,  1,  2,  3,
-            4,  1,  2,  7,
-            8, 10,  6, 11,
-           12, 14, 10, 15,
-           16, 17, 18, 19])
-    >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  1.,  5.,  0.,
-            0.,  1.,  5.,  0.,
-            0.,  1.,  4.,  0.,
-            0.,  1.,  2.,  0.,
-            0.,  0.,  0.,  0.])
-
-    Now let's change the cell area (100.) and the runoff rates:
-
-    >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
-
-    Put the data back into the new grid.
-
-    >>> _ = mg.add_field('node',
-    ...                    'topographic__elevation',
-    ...                    topographic__elevation)
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-    >>> runoff_rate = np.arange(mg.number_of_nodes)
-    >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
-    ...                  noclobber=False)
-    >>> fa.run_one_step()
-    >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
-    array([    0.,   500.,  5200.,     0.,
-               0.,   500.,  5200.,     0.,
-               0.,   900.,  4600.,     0.,
-               0.,  1300.,  2700.,     0.,
-               0.,     0.,     0.,     0.])
-
-    The LossyFlowAccumulator component will work for both raster grids and
-    irregular grids. For the example we will use a Hexagonal Model Grid, a
-    special type of Voroni Grid that has regularly spaced hexagonal cells.
-
-    >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(5,3)
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x + np.round(hmg.node_y),
-    ...                   at = 'node')
-    >>> fa = LossyFlowAccumulator(hmg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-    >>> fa.surface_values
-    array([ 0. ,  1. ,  2. ,
-            0.5,  1.5,  2.5,  3.5,
-            1. ,  2. ,  3. ,  4. ,  5. ,
-            2.5,  3.5,  4.5,  5.5,
-            3. ,  4. ,  5. ])
-
-    If the FlowDirector you want to use takes keyword arguments and you want
-    to specify it using a string or uninstantiated FlowDirector class, include
-    those keyword arguments when you create LossyFlowAccumulator.
-
-    For example, in the case of a raster grid, FlowDirectorMFD can use only
-    orthogonal links, or it can use both orthogonal and diagonal links.
-
-    >>> mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    >>> topographic__elevation = mg.node_y+mg.node_x
-    >>> _ = mg.add_field('node',
-    ...                  'topographic__elevation',
-    ...                   topographic__elevation)
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director='MFD',
-    ...                           diagonals = True)
-    >>> fa.run_one_step()
-    >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0, -1, -1, -1, -1, -1, -1, -1],
-           [ 1, -1, -1, -1, -1, -1, -1, -1],
-           [ 2, -1, -1, -1, -1, -1, -1, -1],
-           [ 3, -1, -1, -1, -1, -1, -1, -1],
-           [ 4, -1, -1, -1, -1, -1, -1, -1],
-           [ 5, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1,  5,  1, -1, -1,  0, -1],
-           [-1, -1,  6,  2, -1, -1,  1, -1],
-           [-1, -1,  7,  3, -1, -1,  2, -1],
-           [ 9, -1, -1, -1, -1, -1, -1, -1],
-           [10, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, 10,  6, -1, -1,  5, -1],
-           [-1, -1, 11,  7, -1, -1,  6, -1],
-           [-1, -1, 12,  8, -1, -1,  7, -1],
-           [14, -1, -1, -1, -1, -1, -1, -1],
-           [15, -1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, 15, 11, -1, -1, 10, -1],
-           [-1, -1, 16, 12, -1, -1, 11, -1],
-           [-1, -1, 17, 13, -1, -1, 12, -1],
-           [19, -1, -1, -1, -1, -1, -1, -1],
-           [20, -1, -1, -1, -1, -1, -1, -1],
-           [21, -1, -1, -1, -1, -1, -1, -1],
-           [22, -1, -1, -1, -1, -1, -1, -1],
-           [23, -1, -1, -1, -1, -1, -1, -1],
-           [24, -1, -1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.41168825,  2.06497116,  1.3253788 ,  0.40380592,  0.        ,
-            2.06497116,  3.40811691,  2.5753788 ,  1.37867966,  0.        ,
-            1.3253788 ,  2.5753788 ,  2.17157288,  1.29289322,  0.        ,
-            0.40380592,  1.37867966,  1.29289322,  1.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
-
-    It may seem odd that there are no round numbers in the drainage area field.
-    This is because flow is directed to all downhill boundary nodes and
-    partitioned based on slope.
-
-    To check that flow is conserved, sum along all boundary nodes.
-
-    >>> sum(mg.at_node['drainage_area'][mg.boundary_nodes])
-    9.0000000000000018
-
-    This should be the same as the number of core nodes --- as boundary nodes
-    in landlab do not have area.
-
-    >>> len(mg.core_nodes)
-    9
-
-    Next, let's set the dx spacing such that each cell has an area of one.
-
-    >>> dx=(2./(3.**0.5))**0.5
-    >>> hmg = HexModelGrid(5,3, dx)
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                     at = 'node')
-    >>> fa = LossyFlowAccumulator(hmg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-    >>> fa.run_one_step()
-    >>> hmg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0,  1,  2,
-            3,  0,  1,  6,
-            7,  3,  4,  5, 11,
-           12,  8,  9, 15,
-           16, 17, 18])
-    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 3.,  2.,  0.,
-            2.,  3.,  2.,  0.,
-            0.,  2.,  2.,  1.,  0.,
-            0., 1.,  1.,  0.,
-            0.,  0.,  0.])
-
-    Now let's change the cell area (100.) and the runoff rates:
-
-    >>> hmg = HexModelGrid(5,3, dx*10.)
-
-    Put the data back into the new grid.
-
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                     at = 'node')
-    >>> fa = LossyFlowAccumulator(hmg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-    >>> fa.run_one_step()
-    >>> hmg.at_node['surface_water__discharge']
-    array([ 500.,    0.,    0.,
-            200.,  500.,  200.,    0.,
-              0.,  200.,  200.,  100.,    0.,
-              0.,  100.,  100.,    0.,
-              0.,    0.,    0.])
-
-    Next, let's see what happens to a raster grid when there is a depression.
-
-    >>> mg = RasterModelGrid((7, 7), 0.5)
-    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
-    >>> z += 0.01 * mg.node_y
-    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-
-    This model grid has a depression in the center.
-
-    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)
-    array([[ 0.    ,  0.5   ,  1.    ,  1.5   ,  2.    ,  2.5   ,  3.    ],
-           [ 0.005 ,  0.505 ,  1.005 ,  1.505 ,  2.005 ,  2.505 ,  3.005 ],
-           [ 0.01  ,  0.51  ,  0.101 ,  0.151 ,  0.201 ,  2.51  ,  3.01  ],
-           [ 0.015 ,  0.515 ,  0.1015,  0.1515,  0.2015,  2.515 ,  3.015 ],
-           [ 0.02  ,  0.52  ,  0.102 ,  0.152 ,  0.202 ,  2.52  ,  3.02  ],
-           [ 0.025 ,  0.525 ,  1.025 ,  1.525 ,  2.025 ,  2.525 ,  3.025 ],
-           [ 0.03  ,  0.53  ,  1.03  ,  1.53  ,  2.03  ,  2.53  ,  3.03  ]])
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorSteepest)
-    >>> fa.run_one_step()  # the flow "gets stuck" in the hole
-    >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
-    array([[ 0,  1,  2,  3,  4,  5,  6],
-           [ 7,  7, 16, 17, 18, 11, 13],
-           [14, 14, 16, 16, 17, 18, 20],
-           [21, 21, 16, 23, 24, 25, 27],
-           [28, 28, 23, 30, 31, 32, 34],
-           [35, 35, 30, 31, 32, 39, 41],
-           [42, 43, 44, 45, 46, 47, 48]])
-    >>> mg.at_node['drainage_area'].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  3.  ,  0.75,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  2.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-
-    Because of the depression, the flow 'got stuck' in the hole in the center
-    of the grid. We can fix this by using a depression finder, such as
-    DepressionFinderAndRouter.
-
     >>> from landlab.components import DepressionFinderAndRouter
-
-    We can either run the depression finder separately from the flow
-    accumulator or we can specify the depression finder and router when we
-    instantiate the accumulator and it will run automatically. Similar to
-    specifying the FlowDirector we can provide a depression finder in multiple
-    three ways.
-
-    First let's try running them separately.
-
-    >>> df_4 = DepressionFinderAndRouter(mg)
-    >>> df_4.map_depressions()
-    >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
-    array([[ 0,  1,  2,  3,  4,  5,  6],
-           [ 7,  7, 16, 17, 18, 11, 13],
-           [14, 14,  8, 16, 17, 18, 20],
-           [21, 21, 16, 16, 24, 25, 27],
-           [28, 28, 23, 24, 24, 32, 34],
-           [35, 35, 30, 31, 32, 39, 41],
-           [42, 43, 44, 45, 46, 47, 48]])
-    >>> mg.at_node['drainage_area'].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 5.25,  5.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.75,  2.25,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.5 ,  0.25,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-
-    Now the flow is routed correctly. The depression finder has properties that
-    including whether there is a lake at the node, which lake is at each node,
-    the outlet node of each lake, and the area of each lake.
-
-    >>> df_4.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
-    array([[False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False]], dtype=bool)
-    >>> df_4.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
-    array([[-1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, 16, 16, 16, -1, -1],
-           [-1, -1, 16, 16, 16, -1, -1],
-           [-1, -1, 16, 16, 16, -1, -1],
-           [-1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1, -1, -1, -1, -1]])
-    >>> df_4.lake_codes  # a unique code for each lake present on the grid
-    array([16])
-    >>> df_4.lake_outlets  # the outlet node of each lake in lake_codes
-    array([8])
-    >>> df_4.lake_areas  # the area of each lake in lake_codes
-    array([ 2.25])
-
-    Alternatively, we can initialize a flow accumulator with a depression
-    finder specified. Calling run_one_step() will run both the accumulator
-    and the depression finder with one call. For this example, we will pass the
-    class DepressionFinderAndRouter to the parameter `depression_finder`.
-
-    >>> mg = RasterModelGrid((7, 7), 0.5)
-    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
-    >>> z += 0.01 * mg.node_y
-    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director='FlowDirectorD8',
-    ...                           depression_finder=DepressionFinderAndRouter)
-    >>> fa.run_one_step()
-
-    This has the same effect of first calling the accumulator and then calling
-    the depression finder.
-
-    >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
-    array([[ 0,  1,  2,  3,  4,  5,  6],
-           [ 7,  7, 16, 17, 18, 18, 13],
-           [14, 14,  8, 16, 17, 18, 20],
-           [21, 21, 16, 16, 24, 25, 27],
-           [28, 28, 23, 24, 24, 32, 34],
-           [35, 35, 30, 31, 32, 32, 41],
-           [42, 43, 44, 45, 46, 47, 48]])
-    >>> mg.at_node['drainage_area'].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 5.25,  5.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.75,  2.25,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-
-    The depression finder is stored as part of the flow accumulator, so its
-    properties can be accessed through the depression finder.
-
-    >>> fa.depression_finder.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
-    array([[False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False]], dtype=bool)
-    >>> fa.depression_finder.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
-    array([[-1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, 16, 16, 16, -1, -1],
-           [-1, -1, 16, 16, 16, -1, -1],
-           [-1, -1, 16, 16, 16, -1, -1],
-           [-1, -1, -1, -1, -1, -1, -1],
-           [-1, -1, -1, -1, -1, -1, -1]])
-    >>> fa.depression_finder.lake_codes  # a unique code for each lake present on the grid
-    array([16])
-    >>> fa.depression_finder.lake_outlets  # the outlet node of each lake in lake_codes
-    array([8])
-    >>> fa.depression_finder.lake_areas  # the area of each lake in lake_codes
-    array([ 2.25])
-
-    Finally, note that the DepressionFinderAndRouter takes a keyword argument
-    *routing* ('D8', default; 'D4') that sets how connectivity is set between
-    nodes. Similar to our ability to pass keyword arguments to the FlowDirector
-    through LossyFlowAccumulator, we can pass this keyword argument to the
-    DepressionFinderAndRouter component.
-
-    Now, some examples of the loss happening. Here's an example of a 50% loss
-    of flow every time flow moves along a node:
 
     >>> mg = RasterModelGrid((3, 5), (1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
@@ -564,6 +178,10 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> mg.at_node['surface_water__discharge'].reshape(mg.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
            [ 1.75,  3.5 ,  3.  ,  2.  ,  0.  ],
+           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    >>> mg.at_node['surface_water__discharge_loss'].reshape(mg.shape)
+    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+           [ 0.  ,  1.75,  1.5 ,  1.  ,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
 
     Here we use a spatially distributed field to derive loss terms, and also
@@ -624,6 +242,12 @@ class LossyFlowAccumulator(FlowAccumulator):
             0.,  1.,  5.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
+    >>> np.allclose(hmg.at_node['surface_water__discharge_loss'],
+    ...             lossy*hmg.at_node['surface_water__discharge'])
+    True
+
+    (Loss is only happening from the node, 14, that we set it to happen at.)
+
 
     Finally, note we can use the linkIDs to create flow-length-dependent
     effects:
@@ -668,6 +292,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     _output_var_names = (
         "drainage_area",
         "surface_water__discharge",
+        "surface_water__discharge_loss",
         "flow__upstream_node_order",
         "flow__nodes_not_in_stack",
         "flow__data_structure_delta",
@@ -680,6 +305,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         "water__unit_flux_in": "m/s",
         "drainage_area": "m**2",
         "surface_water__discharge": "m**3/s",
+        "surface_water__discharge_loss": "m**3/s",
         "flow__upstream_node_order": "-",
         "flow__data_structure_delta": "-",
         "flow__data_structure_D": "-",
@@ -692,6 +318,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         "water__unit_flux_in": "node",
         "drainage_area": "node",
         "surface_water__discharge": "node",
+        "surface_water__discharge_loss": "node",
         "flow__upstream_node_order": "node",
         "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
@@ -704,6 +331,8 @@ class LossyFlowAccumulator(FlowAccumulator):
         "drainage_area": "Upstream accumulated surface area contributing to " +
         "the node's discharge",
         "surface_water__discharge": "Discharge of water through each node",
+        "surface_water__discharge_loss": "Total volume of water per second " +
+        "lost during all flow out of the node",
         "water__unit_flux_in": "External volume water per area per time " +
         "input to each node (e.g., rainfall rate)",
         "flow__upstream_node_order": "Node array containing downstream-to-" +
@@ -809,6 +438,10 @@ class LossyFlowAccumulator(FlowAccumulator):
                 return float(Qw)
             self._lossfunc = lossfunc
 
+        # add the new loss discharge field:
+        _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
+                                dtype=float, noclobber=False)
+
     def accumulate_flow(self, update_flow_director=True):
         """
         Function to make FlowAccumulator calculate drainage area and discharge.
@@ -862,6 +495,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             )
             self._grid["node"]["drainage_area"][:] = a
             self._grid["node"]["surface_water__discharge"][:] = q
+            # note the loss info is stored w/i the find... func above
 
         else:
             # step 2. Get r and p
@@ -875,7 +509,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
             s = flow_accum_to_n.make_ordered_node_array_to_n(r, p)
 
-            # put theese in grid so that depression finder can use it.
+            # put these in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
 
@@ -900,6 +534,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             # store drainage area and discharge.
             self._grid["node"]["drainage_area"][:] = a
             self._grid["node"]["surface_water__discharge"][:] = q
+            # note the loss info is stored w/i the find... func above
 
             # at the moment, this is where the depression finder needs to live.
             # at the moment, no depression finders work with to-many
