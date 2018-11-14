@@ -235,37 +235,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         # LINKS: set up link unit vectors and node unit-vector sums
         self._create_link_unit_vectors()
 
-    @property
-    @return_readonly_id_array
-    def patches_at_link(self):
-        """Returns the patches adjoined to each link.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.patches_at_link
-        array([[ 0, -1],
-               [ 1, -1],
-               [ 0,  1],
-               [ 0,  2],
-               [ 2, -1],
-               [ 1,  3],
-               [ 2,  4],
-               [ 3, -1],
-               [ 3,  5],
-               [ 4,  5],
-               [ 4, -1],
-               [ 5, -1]])
-
-        LLCATS: PINF LINF CONN
-        """
-        try:
-            return self._patches_at_link
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
-            return self._patches_at_link
-
     def _find_perimeter_nodes_and_BC_set(self, pts):
         """
         Uses a convex hull to locate the perimeter nodes of the Voronoi grid,
