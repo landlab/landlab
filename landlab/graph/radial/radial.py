@@ -7,7 +7,7 @@ def number_of_nodes(shape):
     return np.sum(np.arange(1, shape[0] + 1)) * shape[1] + 1
 
 
-def create_xy_of_node(shape, spacing=1., origin=(0., 0.)):
+def create_xy_of_node(shape, spacing=1., xy_of_center=(0., 0.)):
     n_shells, n_points = shape
     n_nodes = number_of_nodes(shape)
 
@@ -29,8 +29,8 @@ def create_xy_of_node(shape, spacing=1., origin=(0., 0.)):
     x = np.round(x, decimals=6)
     y = np.round(y, decimals=6)
 
-    y += origin[0]
-    x += origin[1]
+    x += xy_of_center[0]
+    y += xy_of_center[1]
 
     return (x, y)
 
@@ -52,7 +52,7 @@ class RadialGraph(VoronoiGraph):
     array([ 0., -1.,  0.,  1.,  0.])
     """
 
-    def __init__(self, shape, spacing=1., origin=(0., 0.)):
+    def __init__(self, shape, spacing=1., xy_of_center=(0., 0.)):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
@@ -62,16 +62,48 @@ class RadialGraph(VoronoiGraph):
             in the first ring.
         spacing : float, optional
             Spacing between rings.
-        origin : tuple of float, optional
-            Coordinates of the center of the grid.
+        xy_of_center : tuple of float, optional
+            Coordinates of the node at the center of the grid.
         """
         try:
             spacing = float(spacing)
         except TypeError:
             raise TypeError("spacing must be a float")
 
-        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing, origin=origin)
+        xy_of_center = tuple(np.broadcast_to(xy_of_center, 2))
+
+        x_of_node, y_of_node = create_xy_of_node(
+            shape, spacing=spacing, xy_of_center=xy_of_center
+        )
 
         super(RadialGraph, self).__init__(
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True
+        )
+
+        self._xy_of_center = xy_of_center
+
+    @property
+    def xy_of_center(self):
+        return self._xy_of_center
+
+    @property
+    def radius_at_node(self):
+        """Distance for center node to each node.
+
+        Returns
+        -------
+        ndarray of float
+            The distance from the center node of each node.
+
+        >>> from landlab.graph import RadialGraph
+        >>> graph = RadialGraph((2, 6))
+        >>> np.round(graph.radius_at_node, 3)
+        array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,  1.,  2.,  1.,
+                1.,  2.,  2.,  2.,  2.,  2.])
+
+        LLCATS: NINF MEAS
+        """
+        return np.sqrt(
+            np.square(self.x_of_node - self._xy_of_center[0])
+            + np.square(self.y_of_node - self._xy_of_center[1])
         )
