@@ -163,9 +163,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         >>> vmg.number_of_nodes
         25
         """
-        if (x is not None) and (y is not None):
-            self._initialize(x, y, reorient_links)
-        super(VoronoiDelaunayGrid, self).__init__(**kwds)
+        DualVoronoiGraph.__init__(self, (y, x), **kwds)
 
     def _initialize(self, x, y, reorient_links=True):
         """
@@ -236,20 +234,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         # LINKS: set up link unit vectors and node unit-vector sums
         self._create_link_unit_vectors()
-
-    @property
-    def number_of_patches(self):
-        """Number of patches.
-
-        Returns the number of patches over the grid.
-
-        LLCATS: PINF
-        """
-        try:
-            return self._number_of_patches
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
-            return self._number_of_patches
 
     @property
     def nodes_at_patch(self):
